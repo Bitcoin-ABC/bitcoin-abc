@@ -10,18 +10,14 @@ set -euxo pipefail
 help_message() {
   cat <<EOF
 Usage:
-$0 [options] revision_id
-Land a Differential revision after running any necessary scripts and sanity checks.
+$0 [options]
+Land a commit on master after running any necessary scripts and sanity checks.
 
-revision_id               The Differential revision ID (ex: D1234)
+The patch is assumed to have been reviewed or generated from a trusted sourece.
 
 Options:
   -d, --dry-run           Dry run. Does everything but actually landing the change.
   -h, --help              Display this help message.
-
-Environment Variables:
-  CONDUIT_TOKEN           (required) Conduit token to use when landing the patch. This allows
-                            landing a patch as a particular Phabricator user.
 EOF
 }
 
@@ -39,37 +35,20 @@ case $1 in
     exit 0
     ;;
   *)
-    if [ $# -gt 1 ]; then
-      echo "Error: Unrecognized argument: '$1'"
-      help_message
-      exit 1
-    fi
-    break
+    echo "Error: Unrecognized argument: '$1'"
+    help_message
+    exit 1
     ;;
 esac
 done
 
-REVISION="$1"
+if [[ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]]; then
+  echo "Error: This script assumes the commit to land is on master"
+  exit 10
+fi
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
-"${TOPLEVEL}"/contrib/source-control-tools/check-revision-accepted.sh "${REVISION}"
-
-# IMPORTANT NOTE: The patch is trusted past this point because it has been reviewed
-# and accepted. That includes any changes that may affect this script.
-
-# shellcheck source=sanitize-conduit-token.sh
-source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
-
-# Pull the patch from Phabricator and rebase it on latest master
-"${TOPLEVEL}"/contrib/source-control-tools/autopatch.sh --revision "${REVISION}"
-
-# Stop logging verbosely to prevent leaking CONDUIT_TOKEN
-set +x
-# Check that the revision is ready to land (tests passed, etc.)
-: | arc land --hold --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
-set -x
-
-# TODO: Autogen (such as manpages, updating timings.json, copyright header, etc.)
+# TODO: Autogen (update version numbers, copyright headers, etc.)
 
 # Sanity checks
 "${TOPLEVEL}"/contrib/devtools/smoke-tests.sh
