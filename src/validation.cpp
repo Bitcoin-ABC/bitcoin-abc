@@ -774,18 +774,19 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool
-AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
-                           TxValidationState &state, const CTransactionRef &tx,
-                           int64_t nAcceptTime, bool bypass_limits,
-                           bool test_accept, Amount *fee_out = nullptr)
+static bool AcceptToMemoryPoolWithTime(
+    const Config &config, CTxMemPool &pool, CChainState &active_chainstate,
+    TxValidationState &state, const CTransactionRef &tx, int64_t nAcceptTime,
+    bool bypass_limits, bool test_accept, Amount *fee_out = nullptr)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
     MemPoolAccept::ATMPArgs args{
         config,           state,       nAcceptTime, bypass_limits,
         coins_to_uncache, test_accept, fee_out};
-    bool res = MemPoolAccept(pool, ::ChainstateActive())
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(active_chainstate));
+    bool res = MemPoolAccept(pool, active_chainstate)
                    .AcceptSingleTransaction(tx, args);
     if (!res) {
         // Remove coins that were not present in the coins cache before calling
@@ -795,23 +796,24 @@ AcceptToMemoryPoolWithTime(const Config &config, CTxMemPool &pool,
         // (`CCoinsViewCache::cacheCoins`).
 
         for (const COutPoint &outpoint : coins_to_uncache) {
-            ::ChainstateActive().CoinsTip().Uncache(outpoint);
+            active_chainstate.CoinsTip().Uncache(outpoint);
         }
     }
 
     // After we've (potentially) uncached entries, ensure our coins cache is
     // still within its size limits
     BlockValidationState stateDummy;
-    ::ChainstateActive().FlushStateToDisk(config.GetChainParams(), stateDummy,
-                                          FlushStateMode::PERIODIC);
+    active_chainstate.FlushStateToDisk(config.GetChainParams(), stateDummy,
+                                       FlushStateMode::PERIODIC);
     return res;
 }
 
 bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                         TxValidationState &state, const CTransactionRef &tx,
                         bool bypass_limits, bool test_accept, Amount *fee_out) {
-    return AcceptToMemoryPoolWithTime(config, pool, state, tx, GetTime(),
-                                      bypass_limits, test_accept, fee_out);
+    return AcceptToMemoryPoolWithTime(config, pool, ::ChainstateActive(), state,
+                                      tx, GetTime(), bypass_limits, test_accept,
+                                      fee_out);
 }
 
 CTransactionRef GetTransaction(const CBlockIndex *const block_index,
@@ -5919,9 +5921,9 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
             TxValidationState state;
             if (nTime > nNow - nExpiryTimeout) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(config, pool, state, tx, nTime,
-                                           false /* bypass_limits */,
-                                           false /* test_accept */);
+                AcceptToMemoryPoolWithTime(
+                    config, pool, ::ChainstateActive(), state, tx, nTime,
+                    false /* bypass_limits */, false /* test_accept */);
                 if (state.IsValid()) {
                     ++count;
                 } else {
