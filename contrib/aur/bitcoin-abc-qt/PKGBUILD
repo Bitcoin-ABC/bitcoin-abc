@@ -7,7 +7,7 @@ pkgdesc="Bitcoin ABC with bitcoind, bitcoin-cli, bitcoin-tx, bitcoin-seeder and 
 arch=('i686' 'x86_64')
 url="https://bitcoinabc.org"
 depends=('boost-libs' 'libevent' 'desktop-file-utils' 'qt5-base' 'protobuf' 'openssl' 'miniupnpc' 'zeromq' 'qrencode' 'jemalloc')
-makedepends=('cmake' 'ninja' 'boost' 'qt5-tools' 'python')
+makedepends=('cmake' 'ninja' 'boost' 'qt5-tools' 'python' 'help2man' 'xorg-server-xvfb')
 license=('MIT')
 source=(https://github.com/Bitcoin-ABC/bitcoin-abc/archive/v$pkgver.tar.gz
         bitcoin.conf
@@ -77,8 +77,11 @@ package() {
   install -dm 755 "$pkgdir/run/bitcoin"
 
   pushd build
-  msg2 'Installing executables and man pages...'
+  msg2 'Installing executables...'
   ninja install/strip
+
+  msg2 'Installing man pages...'
+  xvfb-run ninja install-manpages
   popd
 
   msg2 'Installing bitcoin.conf...'
