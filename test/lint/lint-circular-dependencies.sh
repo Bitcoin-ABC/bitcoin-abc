@@ -34,6 +34,8 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "chainparams -> protocol -> config -> chainparams"
     "wallet/scriptpubkeyman -> wallet/wallet -> wallet/scriptpubkeyman"
     "checkpoints -> validation -> checkpoints"
+    "pow/aserti32d -> validation -> pow/aserti32d"
+    "pow/aserti32d -> validation -> pow/pow -> pow/aserti32d"
 )
 
 EXIT_CODE=0
