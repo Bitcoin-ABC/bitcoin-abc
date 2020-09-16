@@ -1415,8 +1415,8 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
         // ignore validation errors in resurrected transactions
         TxValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
-            !AcceptToMemoryPool(config, pool, stateDummy, tx,
-                                true /* bypass_limits */)) {
+            !AcceptToMemoryPool(::ChainstateActive(), config, pool, stateDummy,
+                                tx, true /* bypass_limits */)) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
             pool.removeRecursive(*tx, MemPoolRemovalReason::REORG);

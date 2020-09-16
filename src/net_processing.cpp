@@ -3084,8 +3084,8 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
         const CTransactionRef porphanTx = orphan_it->second.tx;
         TxValidationState state;
 
-        if (AcceptToMemoryPool(config, m_mempool, state, porphanTx,
-                               false /* bypass_limits */)) {
+        if (AcceptToMemoryPool(::ChainstateActive(), config, m_mempool, state,
+                               porphanTx, false /* bypass_limits */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
             RelayTransaction(orphanTxId, m_connman);
@@ -4380,8 +4380,8 @@ void PeerManagerImpl::ProcessMessage(
 
         TxValidationState state;
 
-        if (AcceptToMemoryPool(config, m_mempool, state, ptx,
-                               false /* bypass_limits */)) {
+        if (AcceptToMemoryPool(::ChainstateActive(), config, m_mempool, state,
+                               ptx, false /* bypass_limits */)) {
             m_mempool.check(&::ChainstateActive().CoinsTip());
             // As this version of the transaction was acceptable, we can forget
             // about any requests for it.

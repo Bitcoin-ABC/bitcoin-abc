@@ -808,10 +808,11 @@ static bool AcceptToMemoryPoolWithTime(
     return res;
 }
 
-bool AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
-                        TxValidationState &state, const CTransactionRef &tx,
-                        bool bypass_limits, bool test_accept, Amount *fee_out) {
-    return AcceptToMemoryPoolWithTime(config, pool, ::ChainstateActive(), state,
+bool AcceptToMemoryPool(CChainState &active_chainstate, const Config &config,
+                        CTxMemPool &pool, TxValidationState &state,
+                        const CTransactionRef &tx, bool bypass_limits,
+                        bool test_accept, Amount *fee_out) {
+    return AcceptToMemoryPoolWithTime(config, pool, active_chainstate, state,
                                       tx, GetTime(), bypass_limits, test_accept,
                                       fee_out);
 }

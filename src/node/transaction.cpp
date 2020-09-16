@@ -67,7 +67,8 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                 // First, call ATMP with test_accept and check the fee. If ATMP
                 // fails here, return error immediately.
                 Amount fee = Amount::zero();
-                if (!AcceptToMemoryPool(config, *node.mempool, state, tx,
+                if (!AcceptToMemoryPool(::ChainstateActive(), config,
+                                        *node.mempool, state, tx,
                                         false /* bypass_limits */,
                                         /* test_accept */ true, &fee)) {
                     return HandleATMPError(state, err_string);
@@ -76,8 +77,8 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                 }
             }
             // Try to submit the transaction to the mempool.
-            if (!AcceptToMemoryPool(config, *node.mempool, state, tx,
-                                    false /* bypass_limits */)) {
+            if (!AcceptToMemoryPool(::ChainstateActive(), config, *node.mempool,
+                                    state, tx, false /* bypass_limits */)) {
                 return HandleATMPError(state, err_string);
             }
 

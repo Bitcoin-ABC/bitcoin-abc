@@ -1151,7 +1151,7 @@ static RPCHelpMan testmempoolaccept() {
             {
                 LOCK(cs_main);
                 test_accept_res = AcceptToMemoryPool(
-                    config, mempool, state, std::move(tx),
+                    ::ChainstateActive(), config, mempool, state, std::move(tx),
                     false /* bypass_limits */, true /* test_accept */, &fee);
             }
 
