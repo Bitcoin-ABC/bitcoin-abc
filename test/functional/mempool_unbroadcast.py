@@ -10,7 +10,7 @@ import time
 from test_framework.blocktools import create_confirmed_utxos
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes, disconnect_nodes
+from test_framework.util import assert_equal
 
 # 15 minutes in seconds
 MAX_INITIAL_BROADCAST_DELAY = 15 * 60
@@ -35,7 +35,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         min_relay_fee = node.getnetworkinfo()["relayfee"]
         create_confirmed_utxos(node, 10)
 
-        disconnect_nodes(node, self.nodes[1])
+        self.disconnect_nodes(node.index, 1)
 
         self.log.info("Generate transactions that only node 0 knows about")
 
@@ -70,7 +70,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         self.restart_node(0)
 
         self.log.info("Reconnect nodes & check if they are sent to node 1")
-        connect_nodes(node, self.nodes[1])
+        self.connect_nodes(node.index, 1)
 
         # fast forward into the future & ensure that the second node has the
         # txns
@@ -94,7 +94,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         time.sleep(2)
         assert_equal(len(conn.get_invs()), 0)
 
-        disconnect_nodes(node, self.nodes[1])
+        self.disconnect_nodes(node.index, 1)
         node.disconnect_p2ps()
 
     def test_txn_removal(self):

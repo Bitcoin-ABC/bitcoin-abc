@@ -28,7 +28,6 @@ from test_framework.util import (
     append_config,
     assert_equal,
     assert_raises_rpc_error,
-    connect_nodes,
 )
 from test_framework.wallet_util import bytes_to_wif
 
@@ -189,7 +188,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                        expect_orphan=True)
 
         self.log.info("Connect to an up-to-date node to unorphan the proof")
-        connect_nodes(self.nodes[1], node)
+        self.connect_nodes(1, node.index)
         self.sync_all()
         wait_for_proof(self.nodes[1], f"{proofobj.proofid:0{64}x}",
                        expect_orphan=False)
