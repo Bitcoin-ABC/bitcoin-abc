@@ -341,7 +341,7 @@ add_to_security_check(bitcoin-qt)
 
 include(InstallationHelper)
 install_target(bitcoin-qt)
-install_manpage(bitcoin-qt)
+install_manpages(bitcoin-qt)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(BITCOINQT_BUNDLE_ICON "res/icons/bitcoin.icns")
