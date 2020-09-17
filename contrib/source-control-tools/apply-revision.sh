@@ -62,3 +62,11 @@ set +x
 # Check that the revision is ready to land (tests passed, etc.)
 : | arc land --hold --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
 set -x
+
+# `arc land --hold` still detaches the git HEAD. master should contain the
+# changes we expect to land, so switch back to it.
+if [ -n "$(git diff HEAD master)" ]; then
+  echo "Error: Unexpected mismatch between HEAD and master"
+  exit 10
+fi
+git checkout master --
