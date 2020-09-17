@@ -3284,8 +3284,9 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         // transactions back to the mempool if disconnecting was successful,
         // and we're not doing a very deep invalidation (in which case
         // keeping the mempool up to date is probably futile anyway).
+        assert(std::addressof(::ChainstateActive()) == std::addressof(*this));
         disconnectpool.updateMempoolForReorg(
-            config, ::ChainstateActive(),
+            config, *this,
             /* fAddToMempool = */ (++disconnected <= 10) && ret, m_mempool);
 
         if (!ret) {
