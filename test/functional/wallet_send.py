@@ -403,12 +403,13 @@ class WalletSendTest(BitcoinTestFramework):
         locked_coins = w0.listlockunspent()
         assert_equal(len(locked_coins), 1)
         # Locked coins are automatically unlocked when manually selected
-        self.test_send(
+        res = self.test_send(
             from_wallet=w0,
             to_wallet=w1,
             amount=1_000_000,
             inputs=[utxo1],
             add_to_wallet=False)
+        assert res["complete"]
 
         self.log.info("Subtract fee from output")
         self.test_send(
