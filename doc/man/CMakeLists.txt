@@ -15,6 +15,8 @@ function(generate_manpages)
 			OUTPUT "${MAN_PAGE}"
 			COMMENT "Generating man page for ${TARGET}"
 			COMMAND
+				"${CMAKE_SOURCE_DIR}/cmake/utils/log-and-print-on-failure.sh"
+				"${CMAKE_BINARY_DIR}/doc/man/gen-manpage-${TARGET}.log"
 				"${CMAKE_SOURCE_DIR}/doc/man/gen-manpages.sh"
 				"$<TARGET_FILE:bitcoind>"
 				"$<TARGET_FILE:${TARGET}>"
@@ -25,6 +27,11 @@ function(generate_manpages)
 		)
 		add_custom_target(gen-manpage-${TARGET}
 			DEPENDS "${MAN_PAGE}"
+		)
+
+		set_property(
+			DIRECTORY "${CMAKE_SOURCE_DIR}"
+			APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_BINARY_DIR}/doc/man"
 		)
 
 		set_property(
