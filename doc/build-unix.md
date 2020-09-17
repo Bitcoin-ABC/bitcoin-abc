@@ -2,8 +2,6 @@ UNIX BUILD NOTES
 ====================
 Some notes on how to build Bitcoin ABC in Unix.
 
-(For FreeBSD specific instructions, see `build-freebsd.md` in this directory.)
-
 To Build
 ---------------------
 
