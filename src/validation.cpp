@@ -4879,7 +4879,8 @@ static bool LoadBlockIndexDB(ChainstateManager &chainman,
 
 void CChainState::LoadMempool(const Config &config, const ArgsManager &args) {
     if (args.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        ::LoadMempool(config, m_mempool, ::ChainstateActive());
+        assert(std::addressof(::ChainstateActive()) == std::addressof(*this));
+        ::LoadMempool(config, m_mempool, *this);
     }
     m_mempool.SetIsLoaded(!ShutdownRequested());
 }
