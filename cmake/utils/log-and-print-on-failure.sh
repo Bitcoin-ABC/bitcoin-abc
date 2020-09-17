@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# USAGE test_wrapper.sh executable log [args]
+# USAGE log-and-print-on-failure.sh log executable [args]
 # Run the <executable> with supplied <args> arguments.
 # The stdout and stderr outputs are redirected to the <log> file, which is only
 # printed on error.

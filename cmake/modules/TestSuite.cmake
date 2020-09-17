@@ -118,7 +118,7 @@ function(add_test_runner SUITE NAME EXECUTABLE)
 
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
-			"${CMAKE_SOURCE_DIR}/cmake/utils/test_wrapper.sh"
+			"${CMAKE_SOURCE_DIR}/cmake/utils/log-and-print-on-failure.sh"
 			"${TEST_LOG_DIRECTORY}/${SUITE}-${NAME}.log"
 			${CMAKE_CROSSCOMPILING_EMULATOR} "$<TARGET_FILE:${EXECUTABLE}>" ${ARG_UNPARSED_ARGUMENTS}
 		CUSTOM_TARGET_ARGS
