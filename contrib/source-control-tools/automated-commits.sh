@@ -8,8 +8,6 @@ export LC_ALL=C.UTF-8
 
 set -euxo pipefail
 
-DEFAULT_PARENT_COMMIT="origin/master"
-
 help_message() {
   cat <<EOF
 $0 [options] [script] [script_args...]
@@ -18,9 +16,6 @@ Generate a commit from available recipes.
 The given script may produce a commit. If a commit is generated this way, it will be landed.
 
 Options:
-  -p, --parent              The parent commit to build ontop of. Default: '${DEFAULT_PARENT_COMMIT}'
-                              Note: This should only be used for testing since the behavior of setting
-                              this to a particular commit varies slightly from the default.
   -h, --help                Display this help message.
 
 Environment Variables:
@@ -31,16 +26,10 @@ EOF
 
 SCRIPT=""
 SCRIPT_ARGS=()
-PARENT_COMMIT="${DEFAULT_PARENT_COMMIT}"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
 case $1 in
-  -p|--parent)
-    PARENT_COMMIT=$(git rev-parse "$2")
-    shift # shift past argument
-    shift # shift past value
-    ;;
   -h|--help)
     help_message
     exit 0
@@ -63,15 +52,14 @@ fi
 LAND_PATCH_ARGS=()
 case ${DRY_RUN:=yes} in
   no|NO|false|FALSE)
-    if [ "${PARENT_COMMIT}" != "${DEFAULT_PARENT_COMMIT}" ]; then
-      echo "Error: Running with DRY_RUN=no on a commit parent other than '${DEFAULT_PARENT_COMMIT}'"
-      exit 3
-    fi
+    # Nothing to do
     ;;
   *)
     LAND_PATCH_ARGS+=("--dry-run")
     ;;
 esac
+
+OLD_HEAD="$(git rev-parse HEAD)"
 
 echo "Building automated commit '${COMMIT_TYPE}'..."
 
@@ -85,8 +73,10 @@ export BUILD_DIR
 DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 
 # Make sure tree is clean
-git checkout master
-git reset --hard "${PARENT_COMMIT}"
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Error: The source tree has unexpected changes. Clean up any changes (try 'git stash') and try again."
+  exit 10
+fi
 
 case "${COMMIT_TYPE}" in
   archive-release-notes)
@@ -211,7 +201,7 @@ case "${COMMIT_TYPE}" in
 esac
 
 # Bail early if there's nothing to land
-if [ "$(git rev-parse HEAD)" == "$(git rev-parse ${PARENT_COMMIT})" ]; then
+if [ "$(git rev-parse HEAD)" == "${OLD_HEAD}" ]; then
   echo "No new changes. Nothing to do."
   exit 0
 fi
