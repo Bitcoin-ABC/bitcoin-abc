@@ -54,7 +54,7 @@ if [ -z "${COMMIT_TYPE}" ]; then
   exit 2
 fi
 
-GIT_PUSH_OPTIONS=("--verbose")
+LAND_PATCH_ARGS=()
 case ${DRY_RUN:=yes} in
   no|NO|false|FALSE)
     if [ "${PARENT_COMMIT}" != "${DEFAULT_PARENT_COMMIT}" ]; then
@@ -63,7 +63,7 @@ case ${DRY_RUN:=yes} in
     fi
     ;;
   *)
-    GIT_PUSH_OPTIONS+=("--dry-run")
+    LAND_PATCH_ARGS+=("--dry-run")
     ;;
 esac
 
@@ -237,14 +237,5 @@ case "${COMMIT_TYPE}" in
     ;;
 esac
 
-# Smoke tests to give some confidence that master won't be put into a bad state
-"${DEVTOOLS_DIR}"/smoke-tests.sh
-
-echo "Pushing automated commit '${COMMIT_TYPE}'..."
-
-# Make sure master is up-to-date. If there is a merge conflict, this script
-# will not attempt to resolve it and simply fail.
-git fetch origin master
-git rebase "${PARENT_COMMIT}"
-
-git push "${GIT_PUSH_OPTIONS[@]}" origin master
+# Land the generated commit
+"${TOPLEVEL}"/contrib/source-control-tools/land-patch.sh "${LAND_PATCH_ARGS[@]}"
