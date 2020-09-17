@@ -31,14 +31,14 @@ License
 
 Bitcoin ABC is released under the terms of the MIT license. See
 [COPYING](COPYING) for more information or see
-https://opensource.org/licenses/MIT.
+<https://opensource.org/licenses/MIT>.
 
 Development Process
 -------------------
 
 This Github repository contains only source code of releases.
 
-Bitcoin ABC development takes place at https://reviews.bitcoinabc.org/
+Bitcoin ABC development takes place at [reviews.bitcoinabc.org](https://reviews.bitcoinabc.org/)
 
 If you would like to contribute, please read [CONTRIBUTING](CONTRIBUTING.md).
 

@@ -1,5 +1,9 @@
 Building Bitcoin
 ================
 
-See doc/build-*.md for instructions on building the various
-elements of the Bitcoin ABC implementation of Bitcoin.
+See platform-specific instructions on building the various
+elements of the Bitcoin ABC implementation of Bitcoin:
+- [freebsd](doc/build-freebsd.md)
+- [osx](doc/build-osx.md)
+- [unix](doc/build-unix.md)
+- [windows](doc/build-windows.md)

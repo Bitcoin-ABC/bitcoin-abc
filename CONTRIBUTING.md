@@ -12,7 +12,7 @@ To get in contact with ABC developers, we monitor a telegram supergroup.  The
 intent of this group is specifically to facilitate development of Bitcoin-ABC,
 and to welcome people who wish to participate.
 
-https://t.me/joinchat/HCYr50mxRWjA2uLqii-psw
+[Join the ABC Development telegram group](https://t.me/joinchat/HCYr50mxRWjA2uLqii-psw)
 
 Acceptable use of this supergroup includes the following:
 
@@ -50,7 +50,7 @@ on their own.
 - Sometimes you want to replace one subsystem by another implementation,
 in which case it is not possible to do things incrementally. In such cases,
 you keep both implementations in the codebase for a while, as described
-[here](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php)
+[here](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php).
 - There are no "development" branches, all Diffs apply to the master
 branch, and should always improve it (no regressions).
 - Don't break the build, it is important to keep master green as much as possible.
@@ -80,16 +80,15 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 Getting set up with the Bitcoin ABC Repository
 ----------------------------------------------
 
-1. Create an account at https://reviews.bitcoinabc.org/
+1. Create an account at [reviews.bitcoinabc.org](https://reviews.bitcoinabc.org/)
 
 2. Install Git and Arcanist on your machine
 
-Git documentation can be found at: https://git-scm.com/
+Git documentation can be found at [git-scm.com](https://git-scm.com/).
 
-Arcanist documentation can be found at:
-https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/
-
-And: https://secure.phabricator.com/book/phabricator/article/arcanist/
+For Arcanist documentation, you can read
+[Arcanist Quick Start](https://secure.phabricator.com/book/phabricator/article/arcanist_quick_start/)
+and the [Arcanist User Guide](https://secure.phabricator.com/book/phabricator/article/arcanist/).
 
 To install these packages on Debian or Ubuntu, type: `sudo apt-get install git arcanist`
 
@@ -99,7 +98,7 @@ Type: `ssh-keygen -t rsa -b 4096 -C "your_email@example.com"`
 
 Enter a file in which to save the key (/home/*username*/.ssh/id_rsa): [Press enter]
 
-4. Upload your SSH public key to reviews.bitcoinabc.org
+4. Upload your SSH public key to <https://reviews.bitcoinabc.org>
 
   - Go to: `https://reviews.bitcoinabc.org/settings/user/*username*/page/ssh/`
 
@@ -144,7 +143,7 @@ sudo apt-get -t buster-backports install clang-format-8 clang-tidy-8 clang-tools
 ```
 
 If not available in the distribution, `clang-format-8` and `clang-tidy` can be
-installed from https://releases.llvm.org/download.html or https://apt.llvm.org.
+installed from <https://releases.llvm.org/download.html> or <https://apt.llvm.org>.
 
 For example, for macOS:
 ```
@@ -155,8 +154,8 @@ ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/cl
 
 If you are modifying a shell script, you will need to install the `shellcheck` linter.
 A recent version is required and may not be packaged for your distribution.
-Standalone binaries are available for download on the project's github release page:
-https://github.com/koalaman/shellcheck/releases
+Standalone binaries are available for download on
+[the project's github release page](https://github.com/koalaman/shellcheck/releases).
 
 **Note**: In order for arcanist to detect the `shellcheck` executable, you need to make it available in your `PATH`;
 if another version is already installed, make sure the recent one is found first.
@@ -225,7 +224,7 @@ What to work on
 ---------------
 
 If you are looking for a useful task to contribute to the project, a good place
-to start is the list of tasks at https://reviews.bitcoinabc.org/maniphest/
+to start is the list of tasks at <https://reviews.bitcoinabc.org/maniphest>.
 
 You could also try [backporting](doc/backporting.md) some code from Bitcoin Core.
 
