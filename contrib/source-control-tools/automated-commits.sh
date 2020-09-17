@@ -11,19 +11,19 @@ set -euxo pipefail
 DEFAULT_PARENT_COMMIT="origin/master"
 
 help_message() {
-  set +x
-  echo "Generate a commit from available recipes."
-  echo
-  echo "Options:"
-  echo "-p, --parent              The parent commit to build ontop of. Default: '${DEFAULT_PARENT_COMMIT}'"
-  echo "                            Note: This should only be used for testing since the behavior of setting"
-  echo "                            this to a particular commit varies slightly from the default."
-  echo "-h, --help                Display this help message."
-  echo
-  echo "Environment Variables:"
-  echo "COMMIT_TYPE               (required) The commit recipe to run."
-  echo "DRY_RUN                   If set to 'no', this script will push the generated changes upstream. Default: 'yes'"
-  set -x
+  cat <<EOF
+Generate a commit from available recipes.
+
+Options:
+  -p, --parent              The parent commit to build ontop of. Default: '${DEFAULT_PARENT_COMMIT}'
+                              Note: This should only be used for testing since the behavior of setting
+                              this to a particular commit varies slightly from the default.
+  -h, --help                Display this help message.
+
+Environment Variables:
+  COMMIT_TYPE               (required) The commit recipe to run.
+  DRY_RUN                   If set to 'no', this script will push the generated changes upstream. Default: 'yes'
+EOF
 }
 
 PARENT_COMMIT="${DEFAULT_PARENT_COMMIT}"

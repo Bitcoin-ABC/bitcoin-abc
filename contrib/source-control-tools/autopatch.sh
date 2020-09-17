@@ -14,17 +14,17 @@ DEFAULT_REMOTE="origin"
 DEFAULT_BRANCH="master"
 
 help_message() {
-  set +x
-  echo "Apply a patch from Phabricator cleanly on latest master."
-  echo ""
-  echo "Options:"
-  echo "-b, --branch              The git branch to fetch and rebase onto. Default: '${DEFAULT_BRANCH}'"
-  echo "-h, --help                Display this help message."
-  echo "-o, --remote              The git remote to fetch latest from. Default: '${DEFAULT_REMOTE}'"
-  echo "-p, --patch-args          Args to pass to 'arc patch'. Default: '${DEFAULT_PATCH_ARGS}'"
-  echo "-r, --revision            The Differential revision ID used in Phabricator that you want to land. (ex: D1234)"
-  echo "                            This argument is required if --patch-args does not specify a revision or diff ID."
-  set -x
+  cat <<EOF
+Apply a patch from Phabricator cleanly on latest master.
+
+Options:
+  -b, --branch              The git branch to fetch and rebase onto. Default: '${DEFAULT_BRANCH}'
+  -h, --help                Display this help message.
+  -o, --remote              The git remote to fetch latest from. Default: '${DEFAULT_REMOTE}'
+  -p, --patch-args          Args to pass to 'arc patch'. Default: '${DEFAULT_PATCH_ARGS}'
+  -r, --revision            The Differential revision ID used in Phabricator that you want to land. (ex: D1234)
+                              This argument is required if --patch-args does not specify a revision or diff ID.
+EOF
 }
 
 BRANCH="${DEFAULT_BRANCH}"
