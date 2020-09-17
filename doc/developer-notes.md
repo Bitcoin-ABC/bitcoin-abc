@@ -232,9 +232,9 @@ to see it.
 
 ### Writing tests
 
-For details on unit tests, see `unit-tests.md`
+For details on unit tests, see [Compiling/running unit tests](unit-tests.md).
 
-For details on functional tests, see `functional-tests.md`
+For details on functional tests, see [Functional tests](functional-tests.md).
 
 ### Writing script integration tests
 
@@ -789,7 +789,7 @@ GUI
 
   Prefer to offload work from the GUI thread to worker threads (see
   `RPCExecutor` in console code as an example) or take other steps (see
-  https://doc.qt.io/archives/qq/qq27-responsive-guis.html) to keep the GUI
+  <https://doc.qt.io/archives/qq/qq27-responsive-guis.html>) to keep the GUI
   responsive.
 
   - *Rationale*: Blocking the GUI thread can increase latency, and lead to
@@ -813,16 +813,16 @@ Cosmetic changes should be purely taken upstream.
 Current third party libraries include:
 
 - src/leveldb
-  - Upstream at https://github.com/google/leveldb ; Maintained by Google.
+  - Upstream at <https://github.com/google/leveldb> ; Maintained by Google.
   - **Note**: Follow the instructions in [Upgrading LevelDB](#upgrading-leveldb)
     when merging upstream changes to Bitcoin ABC.
 
 - src/libsecp256k1
-  - Upstream at https://github.com/bitcoin-core/secp256k1/ ; actively maintained
+  - Upstream at <https://github.com/bitcoin-core/secp256k1/> ; actively maintained
     by Bitcoin Core contributors.
     Bitcoin ABC is using a modified version of libsecp256k1, some changes might
     be directly submitted to Bitcoin ABC.
-    See the [secp256k1 README](/src/secp256k1/README.md) for details.
+    See the [secp256k1 README](../src/secp256k1/README.md) for details.
 
 - src/crypto/ctaes
   - Upstream at https://github.com/bitcoin-core/ctaes ; maintained by Bitcoin
@@ -881,11 +881,11 @@ what data is returned from LevelDB queries.
 Git and GitHub tips
 ---------------------
 
-- Github is not typically the source of truth for pull requests.  See CONTRIBUTING.md for instructions
+- Github is not typically the source of truth for pull requests.  See [CONTRIBUTING](../CONTRIBUTING.md) for instructions
   on setting up your repo correctly.
 
 - Similarly, your git remote origin should be set to: `ssh://vcs@reviews.bitcoinabc.org:2221/source/bitcoin-abc.git`
-  instead of github.com.  See CONTRIBUTING.md for details.
+  instead of github.com. See [CONTRIBUTING](../CONTRIBUTING.md).
 
 - For resolving merge/rebase conflicts, it can be useful to enable diff3 style using
   `git config merge.conflictstyle diff3`. Instead of
