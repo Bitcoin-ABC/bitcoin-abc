@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2019 Pieter Wuille
+# Copyright (c) 2019-2020 The Bitcoin developers
 
 """Test-only secp256k1 elliptic curve implementation
 
@@ -8,6 +9,7 @@ keys, and is trivially vulnerable to side channel attacks. Do not use for
 anything but tests.
 """
 
+import hashlib
 import random
 
 
@@ -301,6 +303,30 @@ class ECPubKey():
             return False
         return True
 
+    def verify_schnorr(self, sig, msg32):
+        assert self.is_valid
+        assert len(sig) == 64
+        assert len(msg32) == 32
+
+        Rx = sig[:32]
+        s = int.from_bytes(sig[32:], 'big')
+        e = int.from_bytes(
+            hashlib.sha256(
+                Rx +
+                self.get_bytes() +
+                msg32).digest(),
+            'big')
+        nege = SECP256K1_ORDER - e
+
+        R = SECP256K1.affine(SECP256K1.mul([(SECP256K1_G, s), (self.p, nege)]))
+
+        if R is None:
+            return False
+        if jacobi_symbol(R[1], SECP256K1.p) == -1:
+            return False
+
+        return R[0] == int.from_bytes(Rx, 'big')
+
 
 class ECKey():
     """A secp256k1 private key"""
@@ -367,3 +393,31 @@ class ECKey():
         return b'\x30' + \
             bytes([4 + len(rb) + len(sb), 2, len(rb)]) + \
             rb + bytes([2, len(sb)]) + sb
+
+    def sign_schnorr(self, msg32):
+        """Create Schnorr signature (BIP-Schnorr convention)."""
+        assert self.valid
+        assert len(msg32) == 32
+
+        pubkey = self.get_pubkey()
+        assert pubkey.is_valid
+
+        k = random.randrange(1, SECP256K1_ORDER)
+
+        R = SECP256K1.affine(SECP256K1.mul([(SECP256K1_G, k)]))
+
+        if jacobi_symbol(R[1], SECP256K1.p) == -1:
+            k = SECP256K1_ORDER - k
+
+        Rx = R[0].to_bytes(32, 'big')
+        e = int.from_bytes(
+            hashlib.sha256(
+                Rx +
+                pubkey.get_bytes() +
+                msg32).digest(),
+            'big')
+        s = (k + e * int.from_bytes(self.get_bytes(), 'big')) % SECP256K1_ORDER
+        sig = Rx + s.to_bytes(32, 'big')
+
+        assert pubkey.verify_schnorr(sig, msg32)
+        return sig

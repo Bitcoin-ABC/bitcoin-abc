@@ -5,6 +5,10 @@
 """Test the resolution of forks via avalanche."""
 import random
 
+from test_framework.key import (
+    ECKey,
+    ECPubKey,
+)
 from test_framework.mininode import P2PInterface, mininode_lock
 from test_framework.messages import (
     AvalancheResponse,
@@ -19,7 +23,6 @@ from test_framework.util import (
     assert_equal,
     wait_until,
 )
-from test_framework import schnorr
 
 
 BLOCK_ACCEPTED = 0
@@ -45,7 +48,7 @@ class TestNode(P2PInterface):
 
     def send_avaresponse(self, round, votes, privkey):
         response = AvalancheResponse(round, 0, votes)
-        sig = schnorr.sign(privkey, response.get_hash())
+        sig = privkey.sign_schnorr(response.get_hash())
         msg = msg_tcpavaresponse()
         msg.response = TCPAvalancheResponse(response, sig)
         self.send_message(msg)
@@ -107,7 +110,8 @@ class AvalancheTest(BitcoinTestFramework):
         self.sync_blocks([node, fork_node])
 
         # Get the key so we can verify signatures.
-        avakey = bytes.fromhex(node.getavalanchekey())
+        avakey = ECPubKey()
+        avakey.set(bytes.fromhex(node.getavalanchekey()))
 
         self.log.info("Poll for the chain tip...")
         best_block_hash = int(node.getbestblockhash(), 16)
@@ -119,7 +123,7 @@ class AvalancheTest(BitcoinTestFramework):
             assert_equal(r.cooldown, 0)
 
             # Verify signature.
-            assert schnorr.verify(response.sig, avakey, r.get_hash())
+            assert avakey.verify_schnorr(response.sig, r.get_hash())
 
             votes = r.votes
             assert_equal(len(votes), len(expected))
@@ -177,12 +181,13 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info("Trigger polling from the node...")
         # duplicate the deterministic sig test from src/test/key_tests.cpp
-        privkey = bytes.fromhex(
-            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747")
-        pubkey = schnorr.getpubkey(privkey, compressed=True)
+        privkey = ECKey()
+        privkey.set(bytes.fromhex(
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
+        pubkey = privkey.get_pubkey()
 
         privatekey = node.get_deterministic_priv_key().key
-        proof = node.buildavalancheproof(11, 12, pubkey.hex(), [{
+        proof = node.buildavalancheproof(11, 12, pubkey.get_bytes().hex(), [{
             'txid': "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747",
             'vout': 0,
             'amount': 10,
@@ -192,7 +197,8 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Activate the quorum.
         for n in quorum:
-            success = node.addavalanchenode(n.nodeid, pubkey.hex(), proof)
+            success = node.addavalanchenode(
+                n.nodeid, pubkey.get_bytes().hex(), proof)
             assert success is True
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):

@@ -29,7 +29,6 @@ from test_framework.messages import (
 from test_framework.mininode import (
     P2PDataStore,
 )
-from test_framework import schnorr
 from test_framework.script import (
     CScript,
     OP_1,
@@ -150,9 +149,8 @@ class SchnorrTest(BitcoinTestFramework):
         fundings = []
 
         # Generate a key pair
-        privkeybytes = b"Schnorr!" * 4
         private_key = ECKey()
-        private_key.set(privkeybytes, True)
+        private_key.set(b"Schnorr!" * 4, True)
         # get uncompressed public key serialization
         public_key = private_key.get_pubkey().get_bytes()
 
@@ -184,7 +182,7 @@ class SchnorrTest(BitcoinTestFramework):
             sighash = SignatureHashForkId(
                 script, txspend, 0, sighashtype, value)
             if sig == 'schnorr':
-                txsig = schnorr.sign(privkeybytes, sighash) + hashbyte
+                txsig = private_key.sign_schnorr(sighash) + hashbyte
             elif sig == 'ecdsa':
                 txsig = private_key.sign_ecdsa(sighash) + hashbyte
             elif isinstance(sig, bytes):
