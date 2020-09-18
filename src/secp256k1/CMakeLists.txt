@@ -45,6 +45,7 @@ add_c_compiler_flags(
 	-Wextra
 	-Wcast-align
 	-Wshadow
+	-Wundef
 	-Wno-unused-function
 	-Wno-overlength-strings
 	-std=c89
