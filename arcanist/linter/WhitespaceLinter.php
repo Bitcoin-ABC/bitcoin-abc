@@ -35,14 +35,26 @@ final class WhitespaceLinter extends ArcanistLinter {
     );
   }
 
+  private function endsWithExactly2Spaces($line) {
+    return (rtrim($line) == substr($line, 0, strlen($line) - 2) &&
+      substr($line, -2) == "  ");
+  }
+
   public function lintPath($path) {
     $abspath = Filesystem::resolvePath($path, $this->getProjectRoot());
     $fileContent = Filesystem::readFile($abspath);
 
-    if (preg_match_all('/.*[\t ]+$/m', $fileContent, $matches,
+    $is_markdown = pathinfo($path, PATHINFO_EXTENSION) == "md";
+
+    if (preg_match_all('/.*([\t ])+$/m', $fileContent, $matches,
       PREG_OFFSET_CAPTURE)) {
       foreach ($matches[0] as $match) {
         list($fullLine, $offset) = $match;
+
+        /* Exactly two trailing whitespaces is a hard line break in markdown */
+        if ($is_markdown && $this->endsWithExactly2Spaces($fullLine)) {
+          continue;
+        }
 
         $this->raiseLintAtOffset(
           $offset,
