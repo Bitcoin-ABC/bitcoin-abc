@@ -84,7 +84,7 @@ The Bitcoin ABC repo's [root README](/README.md) contains relevant information o
 - [Developer Notes](developer-notes.md)
 - [Release Notes](release-notes.md)
 - [Release Process](release-process.md)
-- [Source Code Documentation (External Link)](https://dev.visucore.com/bitcoin/doxygen/)
+- [Source Code Documentation (External Link)](https://www.bitcoinabc.org/doc/dev/)
 - [Translation Process](translation_process.md)
 - [Translation Strings Policy](translation_strings_policy.md)
 - [Unauthenticated REST Interface](REST-interface.md)
