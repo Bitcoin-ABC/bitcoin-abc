@@ -131,8 +131,8 @@ void TestGUI(interfaces::Node &node) {
                                  wallet->m_default_address_type),
             "", "receive");
         spk_man->AddKeyPubKey(test.coinbaseKey, test.coinbaseKey.GetPubKey());
-        wallet->SetLastBlockProcessed(105,
-                                      ::ChainActive().Tip()->GetBlockHash());
+        wallet->SetLastBlockProcessed(
+            105, node.context()->chainman->ActiveTip()->GetBlockHash());
     }
     {
         WalletRescanReserver reserver(*wallet);
@@ -142,7 +142,7 @@ void TestGUI(interfaces::Node &node) {
             {} /* max height */, reserver, true /* fUpdate */);
         QCOMPARE(result.status, CWallet::ScanResult::SUCCESS);
         QCOMPARE(result.last_scanned_block,
-                 ::ChainActive().Tip()->GetBlockHash());
+                 node.context()->chainman->ActiveTip()->GetBlockHash());
         QVERIFY(result.last_failed_block.IsNull());
     }
     wallet->SetBroadcastTransactions(true);
