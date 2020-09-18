@@ -25,7 +25,7 @@ function(generate_manpages)
 				bitcoind
 				"${TARGET}"
 		)
-		add_custom_target(gen-manpage-${TARGET}
+		add_custom_target(doc-manpage-${TARGET}
 			DEPENDS "${MAN_PAGE}"
 		)
 
@@ -40,7 +40,7 @@ function(generate_manpages)
 		)
 
 		if(TARGET install-manpage-${TARGET})
-			add_dependencies(install-manpage-${TARGET} gen-manpage-${TARGET})
+			add_dependencies(install-manpage-${TARGET} doc-manpage-${TARGET})
 		endif()
 	endforeach()
 endfunction()
