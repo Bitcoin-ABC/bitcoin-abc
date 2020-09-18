@@ -6,7 +6,7 @@ Version 1.2, 2017-07-16
 
 This document describes proposed requirements and design for a reusable signing mechanism ensuring replay protection in the event of a hard fork. It provides a way for users to create transactions which are invalid on forks lacking support for the mechanism and a fork-specific ID.
 
-The proposed digest algorithm is adapted from BIP143[[1]](#bip143) as it minimizes redundant data hashing in verification, covers the input value by the signature and is already implemented in a wide variety of applications[[2]](#bip143Motivation).
+The proposed digest algorithm is adapted from [BIP143](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki) as it minimizes redundant data hashing in verification, covers the input value by the signature and is already implemented in a [wide variety of applications](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#Motivation).
 
 The proposed digest algorithm is used when the `SIGHASH_FORKID` bit is set in the signature's sighash type. The verification of signatures which do not set this bit is not affected.
 
@@ -26,7 +26,7 @@ The proposed digest algorithm is only used when the `SIGHASH_FORKID` bit in the 
 
 In presence of the `SIGHASH_FORKID` flag in the signature's sighash type, the proposed algorithm is used.
 
-Signatures using `SIGHASH_FORKID` must be rejected before [UAHF](https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-technical-spec.md) is activated.
+Signatures using `SIGHASH_FORKID` must be rejected before [UAHF](uahf-technical-spec.md) is activated.
 
 In order to ensure proper activation, the reference implementation uses the `SCRIPT_ENABLE_SIGHASH_FORKID` flag when executing `EvalScript` .
 
@@ -44,7 +44,7 @@ The proposed digest algorithm computes the double SHA256 of the serialization of
 9. nLocktime of the transaction (4-byte little endian)
 10. sighash type of the signature (4-byte little endian)
 
-Items 1, 4, 7 and 9 have the same meaning as in the original algorithm[[3]](#OP_CHECKSIG).
+Items 1, 4, 7 and 9 have the same meaning as in the [original algorithm](https://en.bitcoin.it/wiki/OP_CHECKSIG).
 
 #### hashPrevouts
 
@@ -79,7 +79,7 @@ The 8-byte value of the amount of bitcoin spent in this input.
 * Otherwise, `hashOutputs` is a `uint256` of `0x0000......0000`.
 
 Notes:
-1. In the [original algorithm][3], a `uint256` of `0x0000......0001` is committed if the input index for a `SINGLE` signature is greater than or equal to the number of outputs. In this BIP a `0x0000......0000` is committed, without changing the semantics.
+1. In the [original algorithm](https://en.bitcoin.it/wiki/OP_CHECKSIG), a `uint256` of `0x0000......0001` is committed if the input index for a `SINGLE` signature is greater than or equal to the number of outputs. In this BIP a `0x0000......0000` is committed, without changing the semantics.
 
 #### sighash type
 
@@ -190,16 +190,6 @@ Gating code:
 
 ## Note
 
-In the UAHF, a `fork id` of 0 is used (see [[4]](#uahfspec) REQ-6-2 NOTE 4), i.e.
+In the UAHF, a `fork id` of 0 is used (see [UAHF Technical Specification](uahf-technical-spec.md) REQ-6-2 NOTE 4), i.e.
 the GetForkID() function returns zero.
 In that case the code can be simplified to omit the function.
-
-## References
-
-<a name="bip143">[1]</a> https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
-
-<a name="bip143Motivation">[2]</a> https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#Motivation
-
-<a name="OP_CHECKSIG">[3]</a> https://en.bitcoin.it/wiki/OP_CHECKSIG
-
-<a name="uahfspec">[4]</a> https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-technical-spec.md

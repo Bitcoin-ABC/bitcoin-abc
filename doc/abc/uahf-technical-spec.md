@@ -269,13 +269,13 @@ as "CASH" in user interfaces of some Bitcoin clients (BU, ABC).
 
 ## References
 
-[1] https://bitco.in/forum/threads/buip040-passed-emergent-consensus-parameters-and-defaults-for-large-1mb-blocks.1643/
+[1] <https://bitco.in/forum/threads/buip040-passed-emergent-consensus-parameters-and-defaults-for-large-1mb-blocks.1643/>
 
-[2] https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#Motivation
+[2] <https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki#Motivation>
 
 [3] [Digest for replay protected signature verification across hard forks](replay-protected-sighash.md)
 
-[4] https://github.com/Bitcoin-UAHF/spec/blob/master/uahf-test-plan.md
+[4] [UAHF Test Plan](uahf-test-plan.md)
 
 
 END
