@@ -820,8 +820,9 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
             return;
         }
     }
-    connman.ForNode(nodeid, [&connman](CNode *pfrom) {
-        LockAssertion lock(::cs_main);
+    connman.ForNode(nodeid, [&connman](CNode *pfrom) EXCLUSIVE_LOCKS_REQUIRED(
+                                ::cs_main) {
+        AssertLockHeld(::cs_main);
         uint64_t nCMPCTBLOCKVersion = 1;
         if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
             // As per BIP152, we only get 3 of our peers to announce
@@ -1665,29 +1666,32 @@ void PeerManager::NewPoWValidBlock(
         most_recent_compact_block = pcmpctblock;
     }
 
-    m_connman.ForEachNode([this, &pcmpctblock, pindex, &msgMaker,
-                           &hashBlock](CNode *pnode) {
-        LockAssertion lock(::cs_main);
+    m_connman.ForEachNode(
+        [this, &pcmpctblock, pindex, &msgMaker,
+         &hashBlock](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+            AssertLockHeld(::cs_main);
 
-        // TODO: Avoid the repeated-serialization here
-        if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
-            pnode->fDisconnect) {
-            return;
-        }
-        ProcessBlockAvailability(pnode->GetId());
-        CNodeState &state = *State(pnode->GetId());
-        // If the peer has, or we announced to them the previous block already,
-        // but we don't think they have this one, go ahead and announce it.
-        if (state.fPreferHeaderAndIDs && !PeerHasHeader(&state, pindex) &&
-            PeerHasHeader(&state, pindex->pprev)) {
-            LogPrint(BCLog::NET, "%s sending header-and-ids %s to peer=%d\n",
-                     "PeerManager::NewPoWValidBlock", hashBlock.ToString(),
-                     pnode->GetId());
-            m_connman.PushMessage(
-                pnode, msgMaker.Make(NetMsgType::CMPCTBLOCK, *pcmpctblock));
-            state.pindexBestHeaderSent = pindex;
-        }
-    });
+            // TODO: Avoid the repeated-serialization here
+            if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
+                pnode->fDisconnect) {
+                return;
+            }
+            ProcessBlockAvailability(pnode->GetId());
+            CNodeState &state = *State(pnode->GetId());
+            // If the peer has, or we announced to them the previous block
+            // already, but we don't think they have this one, go ahead and
+            // announce it.
+            if (state.fPreferHeaderAndIDs && !PeerHasHeader(&state, pindex) &&
+                PeerHasHeader(&state, pindex->pprev)) {
+                LogPrint(BCLog::NET,
+                         "%s sending header-and-ids %s to peer=%d\n",
+                         "PeerManager::NewPoWValidBlock", hashBlock.ToString(),
+                         pnode->GetId());
+                m_connman.PushMessage(
+                    pnode, msgMaker.Make(NetMsgType::CMPCTBLOCK, *pcmpctblock));
+                state.pindexBestHeaderSent = pindex;
+            }
+        });
 }
 
 /**
@@ -5023,8 +5027,9 @@ void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     NodeId worst_peer = -1;
     int64_t oldest_block_announcement = std::numeric_limits<int64_t>::max();
 
-    m_connman.ForEachNode([&](CNode *pnode) {
-        LockAssertion lock(::cs_main);
+    m_connman.ForEachNode([&](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(
+                              ::cs_main) {
+        AssertLockHeld(::cs_main);
 
         // Ignore non-outbound peers, or nodes marked for disconnect already
         if (!pnode->IsOutboundOrBlockRelayConn() || pnode->fDisconnect) {
@@ -5056,31 +5061,33 @@ void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
         return;
     }
 
-    bool disconnected = m_connman.ForNode(worst_peer, [&](CNode *pnode) {
-        LockAssertion lock(::cs_main);
+    bool disconnected = m_connman.ForNode(
+        worst_peer, [&](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+            AssertLockHeld(::cs_main);
 
-        // Only disconnect a peer that has been connected to us for some
-        // reasonable fraction of our check-frequency, to give it time for new
-        // information to have arrived.
-        // Also don't disconnect any peer we're trying to download a block from.
-        CNodeState &state = *State(pnode->GetId());
-        if (time_in_seconds - pnode->nTimeConnected > MINIMUM_CONNECT_TIME &&
-            state.nBlocksInFlight == 0) {
-            LogPrint(BCLog::NET,
-                     "disconnecting extra outbound peer=%d (last block "
-                     "announcement received at time %d)\n",
-                     pnode->GetId(), oldest_block_announcement);
-            pnode->fDisconnect = true;
-            return true;
-        } else {
-            LogPrint(BCLog::NET,
-                     "keeping outbound peer=%d chosen for eviction "
-                     "(connect time: %d, blocks_in_flight: %d)\n",
-                     pnode->GetId(), pnode->nTimeConnected,
-                     state.nBlocksInFlight);
-            return false;
-        }
-    });
+            // Only disconnect a peer that has been connected to us for some
+            // reasonable fraction of our check-frequency, to give it time for
+            // new information to have arrived. Also don't disconnect any peer
+            // we're trying to download a block from.
+            CNodeState &state = *State(pnode->GetId());
+            if (time_in_seconds - pnode->nTimeConnected >
+                    MINIMUM_CONNECT_TIME &&
+                state.nBlocksInFlight == 0) {
+                LogPrint(BCLog::NET,
+                         "disconnecting extra outbound peer=%d (last block "
+                         "announcement received at time %d)\n",
+                         pnode->GetId(), oldest_block_announcement);
+                pnode->fDisconnect = true;
+                return true;
+            } else {
+                LogPrint(BCLog::NET,
+                         "keeping outbound peer=%d chosen for eviction "
+                         "(connect time: %d, blocks_in_flight: %d)\n",
+                         pnode->GetId(), pnode->nTimeConnected,
+                         state.nBlocksInFlight);
+                return false;
+            }
+        });
 
     if (disconnected) {
         // If we disconnected an extra peer, that means we successfully
