@@ -45,7 +45,7 @@ const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
      "be considered unused, even if the opposite is the case."},
 };
 
-static RecursiveMutex cs_wallets;
+RecursiveMutex cs_wallets;
 static std::vector<std::shared_ptr<CWallet>> vpwallets GUARDED_BY(cs_wallets);
 static std::list<LoadWalletFn> g_load_wallet_fns GUARDED_BY(cs_wallets);
 

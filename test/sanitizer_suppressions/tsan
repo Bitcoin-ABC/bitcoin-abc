@@ -35,7 +35,6 @@ deadlock:CConnman::ForNode
 deadlock:CConnman::GetNodeStats
 deadlock:CChainState::ConnectTip
 deadlock:UpdateTip
-deadlock:wallet_tests::CreateWallet
 
 # Lock order inversion due to the large cs_main lock from Shutdown, which comes
 # before the cs_proofrequest lock

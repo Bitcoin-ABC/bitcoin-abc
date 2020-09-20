@@ -29,6 +29,8 @@
 #include <memory>
 #include <vector>
 
+extern RecursiveMutex cs_wallets;
+
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 
 static std::shared_ptr<CWallet> TestLoadWallet(interfaces::Chain &chain) {
@@ -830,7 +832,8 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
     addtx_count = 0;
     auto handler = HandleLoadWallet(
         [&](std::unique_ptr<interfaces::Wallet> wallet_param)
-            EXCLUSIVE_LOCKS_REQUIRED(wallet_param->wallet()->cs_wallet) {
+            EXCLUSIVE_LOCKS_REQUIRED(wallet_param->wallet()->cs_wallet,
+                                     cs_wallets) {
                 BOOST_CHECK(rescan_completed);
                 m_coinbase_txns.push_back(
                     CreateAndProcessBlock(
@@ -850,9 +853,11 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
                 BOOST_CHECK(chain->broadcastTransaction(
                     GetConfig(), MakeTransactionRef(mempool_tx),
                     DEFAULT_TRANSACTION_MAXFEE, false, error));
+                LEAVE_CRITICAL_SECTION(cs_wallets);
                 LEAVE_CRITICAL_SECTION(wallet_param->wallet()->cs_wallet);
                 SyncWithValidationInterfaceQueue();
                 ENTER_CRITICAL_SECTION(wallet_param->wallet()->cs_wallet);
+                ENTER_CRITICAL_SECTION(cs_wallets);
             });
     wallet = TestLoadWallet(*chain);
     BOOST_CHECK_EQUAL(addtx_count, 4);

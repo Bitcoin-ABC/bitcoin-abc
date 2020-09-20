@@ -257,6 +257,8 @@ using DebugLock = UniqueLock<typename std::remove_reference<
 
 #define LEAVE_CRITICAL_SECTION(cs)                                             \
     {                                                                          \
+        std::string lockname;                                                  \
+        CheckLastCritical((void *)(&cs), lockname, #cs, __FILE__, __LINE__);   \
         (cs).unlock();                                                         \
         LeaveCritical();                                                       \
     }
