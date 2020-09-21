@@ -9,6 +9,7 @@
 #include <consensus/params.h>
 #include <net.h>
 #include <sync.h>
+#include <txrequest.h>
 #include <validationinterface.h>
 
 extern RecursiveMutex cs_main;
@@ -188,6 +189,15 @@ private:
     void SendBlockTransactions(CNode &pfrom, const CBlock &block,
                                const BlockTransactionsRequest &req);
 
+    /**
+     * Register with TxRequestTracker that an INV has been received from a
+     * peer. The announcement parameters are decided in PeerManager and then
+     * passed to TxRequestTracker.
+     */
+    void AddTxAnnouncement(const CNode &node, const TxId &txid,
+                           std::chrono::microseconds current_time)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
     const CChainParams &m_chainparams;
     CConnman &m_connman;
     /**
@@ -197,6 +207,7 @@ private:
     BanMan *const m_banman;
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
+    TxRequestTracker m_txrequest GUARDED_BY(::cs_main);
 
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;
