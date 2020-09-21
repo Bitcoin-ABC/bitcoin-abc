@@ -48,6 +48,7 @@ pushd buildautotools
   --enable-module-schnorr=$SCHNORR \
   --enable-jni=$JNI \
   --enable-openssl-tests=$OPENSSL_TESTS \
+  --with-valgrind=$WITH_VALGRIND \
   $AUTOTOOLS_EXTRA_FLAGS \
   $USE_HOST
 
@@ -61,7 +62,7 @@ trap 'print_logs' ERR
 
 make -j2 $AUTOTOOLS_TARGET
 
-if [ "$VALGRIND" = "yes" ]; then
+if [ "$RUN_VALGRIND" = "yes" ]; then
   # the `--error-exitcode` is required to make the test fail if valgrind found
   # errors, otherwise it'll return 0
   # (http://valgrind.org/docs/manual/manual-core.html)
@@ -70,7 +71,7 @@ if [ "$VALGRIND" = "yes" ]; then
 fi
 
 if [ "$BENCH" = "yes" ]; then
-  if [ "$VALGRIND" = "yes" ]; then
+  if [ "$RUN_VALGRIND" = "yes" ]; then
     # Using the local `libtool` because on macOS the system's libtool has
     # nothing to do with GNU libtool
     EXEC='./libtool --mode=execute valgrind --error-exitcode=42';

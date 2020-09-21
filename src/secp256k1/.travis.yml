@@ -44,6 +44,8 @@ env:
     - CMAKE_TARGET=check-secp256k1
     - AUTOTOOLS_EXTRA_FLAGS=
     - CMAKE_EXTRA_FLAGS=
+    - WITH_VALGRIND=yes
+    - RUN_VALGRIND=no
     - HOST=
     - ECDH=no
     - RECOVERY=no
@@ -68,20 +70,20 @@ env:
     - BIGNUM=no
     - BIGNUM=no       ENDOMORPHISM=yes  RECOVERY=yes  EXPERIMENTAL=yes  MULTISET=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
-    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install    CTIMETEST=no BENCH=no
+    - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install WITH_VALGRIND=no CTIMETEST=no BENCH=no
     - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
     - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_BUILD_TYPE=Debug CTIMETEST=no
-    - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes CTIMETEST=no BENCH=no
+    - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes WITH_VALGRIND=no CTIMETEST=no BENCH=no
     - ECMULTGENPRECISION=2
     - ECMULTGENPRECISION=8
-    - VALGRIND=yes
+    - RUN_VALGRIND=yes
       BIGNUM=no ENDOMORPHISM=yes ASM=x86_64 EXPERIMENTAL=yes ECDH=yes RECOVERY=yes OPENSSL_TESTS=no MULTISET=yes
-      AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND AUTOTOOLS_TARGET=
+      AUTOTOOLS_TARGET=
       CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
     # The same as above but without endomorphism.
-    - VALGRIND=yes
+    - RUN_VALGRIND=yes
       BIGNUM=no                  ASM=x86_64 EXPERIMENTAL=yes ECDH=yes RECOVERY=yes OPENSSL_TESTS=no MULTISET=yes
-      AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DVALGRIND  AUTOTOOLS_TARGET=
+      AUTOTOOLS_TARGET=
       CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
     - SCHNORR=no
 jobs:
@@ -111,6 +113,7 @@ jobs:
             - libgmp-dev
             - libtool-bin
             - ninja-build
+            - valgrind
 
 before_script:
   # This limits the iterations in the benchmarks below to ITER iterations.
