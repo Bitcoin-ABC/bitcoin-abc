@@ -12,7 +12,10 @@ DEFAULT_PARENT_COMMIT="origin/master"
 
 help_message() {
   cat <<EOF
+$0 [options] [script] [script_args...]
 Generate a commit from available recipes.
+
+The given script may produce a commit. If a commit is generated this way, it will be landed.
 
 Options:
   -p, --parent              The parent commit to build ontop of. Default: '${DEFAULT_PARENT_COMMIT}'
@@ -26,6 +29,8 @@ Environment Variables:
 EOF
 }
 
+SCRIPT=""
+SCRIPT_ARGS=()
 PARENT_COMMIT="${DEFAULT_PARENT_COMMIT}"
 
 # Parse command line arguments
@@ -41,9 +46,10 @@ case $1 in
     exit 0
     ;;
   *)
-    echo "Unknown argument: $1"
-    help_message
-    exit 1
+    SCRIPT="$1"
+    shift
+    SCRIPT_ARGS=("$@")
+    break
     ;;
 esac
 done
@@ -82,40 +88,6 @@ DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 git checkout master
 git reset --hard "${PARENT_COMMIT}"
 
-# Common script to update the AUR packages.
-# Usage: update-aur-version <package_name>
-update-aur-version() {
-  # shellcheck source=../utils/compare-version.sh
-  source "${TOPLEVEL}"/contrib/utils/compare-version.sh
-  PACKAGE="$1"
-
-  CURRENT_VERSION=""
-  get_current_version CURRENT_VERSION
-
-  # Get the current version of the AUR package
-  PKGBUILD="${TOPLEVEL}"/contrib/aur/${PACKAGE}/PKGBUILD
-  # shellcheck source=../aur/bitcoin-abc/PKGBUILD
-  source "${PKGBUILD}"
-
-  # Compare the versions. We only want to update if
-  # (software version > package version) to prevent downgrades.
-  if version_less_equal "${CURRENT_VERSION}" "${pkgver}"
-  then
-    echo "Current version ${CURRENT_VERSION} <= ${PACKAGE} AUR package version ${pkgver}, skip the update"
-    exit 0
-  fi
-
-  # Reset the release version to 0 and update the package version in the
-  # PKGBUILD file.
-  # Note that this pattern is very safe: because of the shell script syntax,
-  # no whitespace can occur and we have the original value as a variable.
-  sed -i "s/pkgrel=${pkgrel}/pkgrel=0/" "${PKGBUILD}"
-  sed -i "s/pkgver=${pkgver}/pkgver=${CURRENT_VERSION}/" "${PKGBUILD}"
-
-  git add "${PKGBUILD}"
-  git commit -m "Bump ${PACKAGE} AUR package version to ${CURRENT_VERSION}"
-}
-
 case "${COMMIT_TYPE}" in
   archive-release-notes)
     # shellcheck source=../utils/compare-version.sh
@@ -143,14 +115,6 @@ case "${COMMIT_TYPE}" in
 
     git add "${RELEASE_NOTES_FILE}" "${RELEASE_NOTES_ARCHIVE}"
     git commit -m "${BOT_PREFIX} Archive release notes for version ${RELEASE_NOTES_VERSION}"
-    ;;
-
-  update-aur-version-bitcoin-abc)
-    update-aur-version "bitcoin-abc"
-    ;;
-
-  update-aur-version-bitcoin-abc-qt)
-    update-aur-version "bitcoin-abc-qt"
     ;;
 
   update-chainparams)
@@ -232,10 +196,25 @@ case "${COMMIT_TYPE}" in
     ;;
 
   *)
-    echo "Error: Invalid commit name '${COMMIT_TYPE}'"
-    exit 10
+    if [ -z "${SCRIPT}" ]; then
+      echo "Error: Invalid commit name '${COMMIT_TYPE}'"
+      exit 10
+    fi
+
+    if [ ! -f "${SCRIPT}" ]; then
+      echo "Error: '${SCRIPT}' does not exist"
+      exit 10
+    fi
+
+    "${SCRIPT}" "${SCRIPT_ARGS[@]}"
     ;;
 esac
+
+# Bail early if there's nothing to land
+if [ "$(git rev-parse HEAD)" == "$(git rev-parse ${PARENT_COMMIT})" ]; then
+  echo "No new changes. Nothing to do."
+  exit 0
+fi
 
 # Land the generated commit
 "${TOPLEVEL}"/contrib/source-control-tools/land-patch.sh "${LAND_PATCH_ARGS[@]}"
