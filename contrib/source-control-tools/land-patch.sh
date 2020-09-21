@@ -47,6 +47,12 @@ if [[ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]]; then
   exit 10
 fi
 
+# Bail early if there's nothing to land
+if [ "$(git rev-parse HEAD)" == "$(git rev-parse origin/master)" ]; then
+  echo "No new changes. Nothing to do."
+  exit 0
+fi
+
 TOPLEVEL=$(git rev-parse --show-toplevel)
 # TODO: Autogen (update version numbers, copyright headers, etc.)
 
