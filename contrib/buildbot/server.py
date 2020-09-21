@@ -154,7 +154,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                     return repl
 
                 line = re.sub(
-                    r'PR(\d{3}\d+)',
+                    r'PR[ #]*(\d{3}\d+)',
                     replacePRWithLink(
                         'https://github.com/bitcoin/bitcoin/pull'),
                     line)
@@ -162,7 +162,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                 # Be less aggressive about serving libsecp256k1 links. Check
                 # for some reference to the name first.
                 if re.search('secp', line, re.IGNORECASE):
-                    line = re.sub(r'PR(\d{2}\d?)([^\d]|$)', replacePRWithLink(
+                    line = re.sub(r'PR[ #]*(\d{2}\d?)([^\d]|$)', replacePRWithLink(
                         'https://github.com/bitcoin-core/secp256k1/pull'), line)
 
             newSummary += line

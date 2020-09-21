@@ -70,6 +70,7 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                 'summary': "This is a test summary\n"
                 # Bitcoin Core links
                 "Backport of Core PR2345 and PR34567\n"
+                "Backports with optional separators PR 2345 and PR#34567 and PR #4567\n"
                 "PR6789 outside of a code block `PR4567 inside a code block`\n"
                 "```PR4567 in a single-line code block```\n"
                 "```\nPR4567 in a multi-line code block\n```\n"
@@ -77,6 +78,7 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                 "Another backport PR567890\n"
                 # secp256k1 links
                 "Backport of Secp256k1 PR23 and PR345\n"
+                "Backport of Secp256k1 PR 23 and PR#345 and PR #45\n"
                 "SECP256K1 PR678 outside of a code block `secp256k1 PR456 inside a code block`\n"
                 "```secp256k1 PR456 in a single-line code block```\n"
                 "```\nsecp256k1 PR456 in a multi-line code block\n```\n"
@@ -96,6 +98,9 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
             # Bitcoin Core links
             "Backport of Core [[https://github.com/bitcoin/bitcoin/pull/2345 | PR2345]] and "
             "[[https://github.com/bitcoin/bitcoin/pull/34567 | PR34567]]\n"
+            "Backports with optional separators [[https://github.com/bitcoin/bitcoin/pull/2345 | PR2345]] and "
+            "[[https://github.com/bitcoin/bitcoin/pull/34567 | PR34567]] and "
+            "[[https://github.com/bitcoin/bitcoin/pull/4567 | PR4567]]\n"
             "[[https://github.com/bitcoin/bitcoin/pull/6789 | PR6789]] outside of a code block `PR4567 inside a code block`\n"
             "```PR4567 in a single-line code block```\n"
             "```\nPR4567 in a multi-line code block\n```\n"
@@ -104,6 +109,9 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
             # secp256k1 links
             "Backport of Secp256k1 [[https://github.com/bitcoin-core/secp256k1/pull/23 | PR23]] and "
             "[[https://github.com/bitcoin-core/secp256k1/pull/345 | PR345]]\n"
+            "Backport of Secp256k1 [[https://github.com/bitcoin-core/secp256k1/pull/23 | PR23]] and "
+            "[[https://github.com/bitcoin-core/secp256k1/pull/345 | PR345]] and "
+            "[[https://github.com/bitcoin-core/secp256k1/pull/45 | PR45]]\n"
             "SECP256K1 [[https://github.com/bitcoin-core/secp256k1/pull/678 | PR678]] outside of a code block `secp256k1 PR456 inside a code block`\n"
             "```secp256k1 PR456 in a single-line code block```\n"
             "```\nsecp256k1 PR456 in a multi-line code block\n```\n"
