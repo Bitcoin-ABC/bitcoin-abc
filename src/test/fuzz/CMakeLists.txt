@@ -160,6 +160,7 @@ add_regular_fuzz_targets(
 	transaction
 	tx_in
 	tx_out
+	txrequest
 )
 
 add_deserialize_fuzz_targets(
