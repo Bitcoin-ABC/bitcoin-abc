@@ -19,7 +19,6 @@ Options:
   -h, --help                Display this help message.
 
 Environment Variables:
-  COMMIT_TYPE               (required) The commit recipe to run.
   DRY_RUN                   If set to 'no', this script will push the generated changes upstream. Default: 'yes'
 EOF
 }
@@ -43,12 +42,6 @@ case $1 in
 esac
 done
 
-: "${COMMIT_TYPE:=}"
-if [ -z "${COMMIT_TYPE}" ]; then
-  echo "Error: Environment variable COMMIT_TYPE must be set"
-  exit 2
-fi
-
 LAND_PATCH_ARGS=()
 case ${DRY_RUN:=yes} in
   no|NO|false|FALSE)
@@ -61,16 +54,14 @@ esac
 
 OLD_HEAD="$(git rev-parse HEAD)"
 
-echo "Building automated commit '${COMMIT_TYPE}'..."
+echo "Building automated commit using '${SCRIPT}'..."
 
 BOT_PREFIX="[Automated]"
 TOPLEVEL=$(git rev-parse --show-toplevel)
 
-BUILD_DIR="${TOPLEVEL}/abc-ci-builds/automated-commit-${COMMIT_TYPE}"
+BUILD_DIR="${TOPLEVEL}/abc-ci-builds/automated-commit-$(basename ${SCRIPT})"
 mkdir -p "${BUILD_DIR}"
 export BUILD_DIR
-
-DEVTOOLS_DIR="${TOPLEVEL}"/contrib/devtools
 
 # Make sure tree is clean
 if [ -n "$(git status --porcelain)" ]; then
@@ -78,49 +69,12 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 10
 fi
 
-case "${COMMIT_TYPE}" in
-  archive-release-notes)
-    # shellcheck source=../utils/compare-version.sh
-    source "${TOPLEVEL}"/contrib/utils/compare-version.sh
-    RELEASE_NOTES_FILE="${TOPLEVEL}/doc/release-notes.md"
-    RELEASE_NOTES_VERSION=$(sed -n "1s/^Bitcoin ABC version \([0-9]\+\.[0-9]\+\.[0-9]\+\).\+$/\1/p" "${RELEASE_NOTES_FILE}")
-    RELEASE_NOTES_ARCHIVE="${TOPLEVEL}/doc/release-notes/release-notes-${RELEASE_NOTES_VERSION}.md"
+if [ ! -f "${SCRIPT}" ]; then
+  echo "Error: '${SCRIPT}' does not exist"
+  exit 10
+fi
 
-    CURRENT_VERSION=""
-    get_current_version CURRENT_VERSION
-
-    # Compare the versions. We only want to archive the release notes if the
-    # current version is greater the our release notes version.
-    if version_less_equal "${CURRENT_VERSION}" "${RELEASE_NOTES_VERSION}"
-    then
-      echo "Current version ${CURRENT_VERSION} <= release-notes version ${RELEASE_NOTES_VERSION}, skip the update"
-      exit 0
-    fi
-
-    # Archive the release notes
-    cp "${RELEASE_NOTES_FILE}" "${RELEASE_NOTES_ARCHIVE}"
-
-    # Generate a fresh blank release notes file for the new version
-    PROJECT_VERSION="${CURRENT_VERSION}" envsubst < "${TOPLEVEL}/doc/release-notes/release-notes.md.in" > "${RELEASE_NOTES_FILE}"
-
-    git add "${RELEASE_NOTES_FILE}" "${RELEASE_NOTES_ARCHIVE}"
-    git commit -m "${BOT_PREFIX} Archive release notes for version ${RELEASE_NOTES_VERSION}"
-    ;;
-
-  *)
-    if [ -z "${SCRIPT}" ]; then
-      echo "Error: Invalid commit name '${COMMIT_TYPE}'"
-      exit 10
-    fi
-
-    if [ ! -f "${SCRIPT}" ]; then
-      echo "Error: '${SCRIPT}' does not exist"
-      exit 10
-    fi
-
-    "${SCRIPT}" "${SCRIPT_ARGS[@]}"
-    ;;
-esac
+"${SCRIPT}" "${SCRIPT_ARGS[@]}"
 
 # Bail early if there's nothing to land
 if [ "$(git rev-parse HEAD)" == "${OLD_HEAD}" ]; then
