@@ -2631,7 +2631,7 @@ bool CConnman::InitBinds(
     }
     if (binds.empty() && whiteBinds.empty()) {
         struct in_addr inaddr_any;
-        inaddr_any.s_addr = INADDR_ANY;
+        inaddr_any.s_addr = htonl(INADDR_ANY);
         struct in6_addr inaddr6_any = IN6ADDR_ANY_INIT;
         fBound |= Bind(CService(inaddr6_any, GetListenPort()), BF_NONE,
                        NetPermissionFlags::PF_NONE);
