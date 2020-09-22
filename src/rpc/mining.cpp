@@ -290,12 +290,8 @@ static RPCHelpMan generate() {
                       RPCExamples{""},
                       [&](const RPCHelpMan &self, const Config &config,
                           const JSONRPCRequest &request) -> UniValue {
-                          if (request.fHelp) {
-                              throw std::runtime_error(self.ToString());
-                          } else {
-                              throw JSONRPCError(RPC_METHOD_NOT_FOUND,
-                                                 self.ToString());
-                          }
+                          throw JSONRPCError(RPC_METHOD_NOT_FOUND,
+                                             self.ToString());
                       }};
 }
 
