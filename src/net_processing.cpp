@@ -826,6 +826,35 @@ private:
     /** Offset into vExtraTxnForCompact to insert the next tx */
     size_t vExtraTxnForCompactIt GUARDED_BY(g_cs_orphans) = 0;
 
+    void ProcessBlockAvailability(NodeId nodeid)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    void UpdateBlockAvailability(NodeId nodeid, const BlockHash &hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool CanDirectFetch(const Consensus::Params &consensusParams)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool BlockRequestAllowed(const CBlockIndex *pindex,
+                             const Consensus::Params &consensusParams)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool AlreadyHaveBlock(const BlockHash &block_hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool AlreadyHaveProof(const avalanche::ProofId &proofid);
+    void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
+                             const CInv &inv, CConnman &connman);
+    bool PrepareBlockFilterRequest(
+        CNode &peer, const CChainParams &chain_params,
+        BlockFilterType filter_type, uint32_t start_height,
+        const BlockHash &stop_hash, uint32_t max_height_diff,
+        const CBlockIndex *&stop_index, BlockFilterIndex *&filter_index);
+    void ProcessGetCFilters(CNode &peer, CDataStream &vRecv,
+                            const CChainParams &chain_params,
+                            CConnman &connman);
+    void ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv,
+                             const CChainParams &chain_params,
+                             CConnman &connman);
+    void ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv,
+                             const CChainParams &chain_params,
+                             CConnman &connman);
+
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
@@ -1135,47 +1164,6 @@ bool PeerManagerImpl::MarkBlockAsInFlight(
     return true;
 }
 
-/** Check whether the last unknown block a peer advertised is not yet known. */
-static void ProcessBlockAvailability(NodeId nodeid)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    CNodeState *state = State(nodeid);
-    assert(state != nullptr);
-
-    if (!state->hashLastUnknownBlock.IsNull()) {
-        const CBlockIndex *pindex =
-            g_chainman.m_blockman.LookupBlockIndex(state->hashLastUnknownBlock);
-        if (pindex && pindex->nChainWork > 0) {
-            if (state->pindexBestKnownBlock == nullptr ||
-                pindex->nChainWork >= state->pindexBestKnownBlock->nChainWork) {
-                state->pindexBestKnownBlock = pindex;
-            }
-            state->hashLastUnknownBlock.SetNull();
-        }
-    }
-}
-
-/** Update tracking information about which blocks a peer is assumed to have. */
-static void UpdateBlockAvailability(NodeId nodeid, const BlockHash &hash)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    CNodeState *state = State(nodeid);
-    assert(state != nullptr);
-
-    ProcessBlockAvailability(nodeid);
-
-    const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
-    if (pindex && pindex->nChainWork > 0) {
-        // An actually better block was announced.
-        if (state->pindexBestKnownBlock == nullptr ||
-            pindex->nChainWork >= state->pindexBestKnownBlock->nChainWork) {
-            state->pindexBestKnownBlock = pindex;
-        }
-    } else {
-        // An unknown block was announced; just assume that the latest one is
-        // the best one.
-        state->hashLastUnknownBlock = hash;
-    }
-}
-
 void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
     AssertLockHeld(cs_main);
     CNodeState *nodestate = State(nodeid);
@@ -1239,8 +1227,7 @@ bool PeerManagerImpl::TipMayBeStale() {
            mapBlocksInFlight.empty();
 }
 
-static bool CanDirectFetch(const Consensus::Params &consensusParams)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerManagerImpl::CanDirectFetch(const Consensus::Params &consensusParams) {
     return ::ChainActive().Tip()->GetBlockTime() >
            GetAdjustedTime() - consensusParams.nPowTargetSpacing * 20;
 }
@@ -1256,6 +1243,46 @@ static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex)
         return true;
     }
     return false;
+}
+
+/** Check whether the last unknown block a peer advertised is not yet known. */
+void PeerManagerImpl::ProcessBlockAvailability(NodeId nodeid) {
+    CNodeState *state = State(nodeid);
+    assert(state != nullptr);
+
+    if (!state->hashLastUnknownBlock.IsNull()) {
+        const CBlockIndex *pindex =
+            g_chainman.m_blockman.LookupBlockIndex(state->hashLastUnknownBlock);
+        if (pindex && pindex->nChainWork > 0) {
+            if (state->pindexBestKnownBlock == nullptr ||
+                pindex->nChainWork >= state->pindexBestKnownBlock->nChainWork) {
+                state->pindexBestKnownBlock = pindex;
+            }
+            state->hashLastUnknownBlock.SetNull();
+        }
+    }
+}
+
+/** Update tracking information about which blocks a peer is assumed to have. */
+void PeerManagerImpl::UpdateBlockAvailability(NodeId nodeid,
+                                              const BlockHash &hash) {
+    CNodeState *state = State(nodeid);
+    assert(state != nullptr);
+
+    ProcessBlockAvailability(nodeid);
+
+    const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
+    if (pindex && pindex->nChainWork > 0) {
+        // An actually better block was announced.
+        if (state->pindexBestKnownBlock == nullptr ||
+            pindex->nChainWork >= state->pindexBestKnownBlock->nChainWork) {
+            state->pindexBestKnownBlock = pindex;
+        }
+    } else {
+        // An unknown block was announced; just assume that the latest one is
+        // the best one.
+        state->hashLastUnknownBlock = hash;
+    }
 }
 
 void PeerManagerImpl::FindNextBlocksToDownload(
@@ -1875,9 +1902,8 @@ bool PeerManagerImpl::MaybePunishNodeForTx(NodeId nodeid,
 // active chain if they are no more than a month older (both in time, and in
 // best equivalent proof of work) than the best header chain we know about and
 // we fully-validated them at some point.
-static bool BlockRequestAllowed(const CBlockIndex *pindex,
-                                const Consensus::Params &consensusParams)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerManagerImpl::BlockRequestAllowed(
+    const CBlockIndex *pindex, const Consensus::Params &consensusParams) {
     AssertLockHeld(cs_main);
     if (::ChainActive().Contains(pindex)) {
         return true;
@@ -2174,12 +2200,11 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
     return recentRejects->contains(txid) || m_mempool.exists(txid);
 }
 
-static bool AlreadyHaveBlock(const BlockHash &block_hash)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
     return g_chainman.m_blockman.LookupBlockIndex(block_hash) != nullptr;
 }
 
-static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
+bool PeerManagerImpl::AlreadyHaveProof(const avalanche::ProofId &proofid) {
     assert(g_avalanche);
 
     const bool hasProof = g_avalanche->withPeerManager(
@@ -2257,8 +2282,9 @@ void PeerManagerImpl::RelayAddress(NodeId originator, const CAddress &addr,
     }
 }
 
-static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
-                                const CInv &inv, CConnman &connman) {
+void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
+                                          Peer &peer, const CInv &inv,
+                                          CConnman &connman) {
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
 
@@ -2976,7 +3002,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
  * serviced.
  * @return                      True if the request can be serviced.
  */
-static bool PrepareBlockFilterRequest(
+bool PeerManagerImpl::PrepareBlockFilterRequest(
     CNode &peer, const CChainParams &chain_params, BlockFilterType filter_type,
     uint32_t start_height, const BlockHash &stop_hash, uint32_t max_height_diff,
     const CBlockIndex *&stop_index, BlockFilterIndex *&filter_index) {
@@ -3045,9 +3071,9 @@ static bool PrepareBlockFilterRequest(
  * @param[in]   chain_params    Chain parameters
  * @param[in]   connman         Pointer to the connection manager
  */
-static void ProcessGetCFilters(CNode &peer, CDataStream &vRecv,
-                               const CChainParams &chain_params,
-                               CConnman &connman) {
+void PeerManagerImpl::ProcessGetCFilters(CNode &peer, CDataStream &vRecv,
+                                         const CChainParams &chain_params,
+                                         CConnman &connman) {
     uint8_t filter_type_ser;
     uint32_t start_height;
     BlockHash stop_hash;
@@ -3092,9 +3118,9 @@ static void ProcessGetCFilters(CNode &peer, CDataStream &vRecv,
  * @param[in]   chain_params    Chain parameters
  * @param[in]   connman         Pointer to the connection manager
  */
-static void ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv,
-                                const CChainParams &chain_params,
-                                CConnman &connman) {
+void PeerManagerImpl::ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv,
+                                          const CChainParams &chain_params,
+                                          CConnman &connman) {
     uint8_t filter_type_ser;
     uint32_t start_height;
     BlockHash stop_hash;
@@ -3154,9 +3180,9 @@ static void ProcessGetCFHeaders(CNode &peer, CDataStream &vRecv,
  * @param[in]   chain_params    Chain parameters
  * @param[in]   connman         Pointer to the connection manager
  */
-static void ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv,
-                                const CChainParams &chain_params,
-                                CConnman &connman) {
+void PeerManagerImpl::ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv,
+                                          const CChainParams &chain_params,
+                                          CConnman &connman) {
     uint8_t filter_type_ser;
     BlockHash stop_hash;
 
