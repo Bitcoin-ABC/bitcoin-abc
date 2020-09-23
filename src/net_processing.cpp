@@ -1427,7 +1427,8 @@ PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
 
 /**
  * Evict orphan txn pool entries (EraseOrphanTx) based on a newly connected
- * block. Also save the time of the last tip update.
+ * block, remember the recently confirmed transactions, and delete tracked
+ * announcements for them. Also save the time of the last tip update.
  */
 void PeerManager::BlockConnected(const std::shared_ptr<const CBlock> &pblock,
                                  const CBlockIndex *pindex) {
@@ -1472,6 +1473,12 @@ void PeerManager::BlockConnected(const std::shared_ptr<const CBlock> &pblock,
         LOCK(g_cs_recent_confirmed_transactions);
         for (const CTransactionRef &ptx : pblock->vtx) {
             g_recent_confirmed_transactions->insert(ptx->GetId());
+        }
+    }
+    {
+        LOCK(cs_main);
+        for (const auto &ptx : pblock->vtx) {
+            m_txrequest.ForgetTxId(ptx->GetId());
         }
     }
 }
@@ -3334,6 +3341,9 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             m_mempool.check(&::ChainstateActive().CoinsTip());
+            // As this version of the transaction was acceptable, we can forget
+            // about any requests for it.
+            m_txrequest.ForgetTxId(tx.GetId());
             RelayTransaction(tx.GetId(), m_connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 auto it_by_prev =
@@ -3379,6 +3389,10 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 }
                 AddOrphanTx(ptx, pfrom.GetId());
 
+                // Once added to the orphan pool, a tx is considered
+                // AlreadyHave, and we shouldn't request it anymore.
+                m_txrequest.ForgetTxId(tx.GetId());
+
                 // DoS prevention: do not allow mapOrphanTransactions to grow
                 // unbounded (see CVE-2012-3789)
                 unsigned int nMaxOrphanTx = (unsigned int)std::max(
@@ -3396,10 +3410,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 // We will continue to reject this tx since it has rejected
                 // parents so avoid re-requesting it from other peers.
                 recentRejects->insert(tx.GetId());
+                m_txrequest.ForgetTxId(tx.GetId());
             }
         } else {
             assert(recentRejects);
             recentRejects->insert(tx.GetId());
+            m_txrequest.ForgetTxId(tx.GetId());
 
             if (RecursiveDynamicUsage(*ptx) < 100000) {
                 AddToCompactExtraTransactions(ptx);
@@ -5380,6 +5396,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                                         current_time + GETDATA_TX_INTERVAL);
             } else {
                 // We have already seen this transaction, no need to download.
+                // This is just a belt-and-suspenders, as this should already be
+                // called whenever a transaction becomes AlreadyHaveTx().
                 m_txrequest.ForgetTxId(txid);
             }
         }
