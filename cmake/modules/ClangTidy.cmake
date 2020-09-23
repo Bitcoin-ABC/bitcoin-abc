@@ -16,7 +16,7 @@ if(NOT CLANG_TIDY_EXE)
 	message(STATUS "Using clang-tidy: ${CLANG_TIDY_EXE} (version ${CLANG_TIDY_VERSION})")
 endif()
 
-set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXE}" -fix)
+set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXE}" -warnings-as-errors=*)
 
 set(CMAKE_C_CLANG_TIDY ${CLANG_TIDY_ARGS})
 set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_ARGS})
