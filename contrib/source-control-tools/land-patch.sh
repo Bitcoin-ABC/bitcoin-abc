@@ -48,7 +48,6 @@ if [[ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]]; then
 fi
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
-# TODO: Autogen (update version numbers, copyright headers, etc.)
 
 # Sanity checks
 "${TOPLEVEL}"/contrib/devtools/smoke-tests.sh

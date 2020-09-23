@@ -30,4 +30,3 @@ cp "${RELEASE_NOTES_FILE}" "${RELEASE_NOTES_ARCHIVE}"
 PROJECT_VERSION="${CURRENT_VERSION}" envsubst < "${TOPLEVEL}/doc/release-notes/release-notes.md.in" > "${RELEASE_NOTES_FILE}"
 
 git add "${RELEASE_NOTES_FILE}" "${RELEASE_NOTES_ARCHIVE}"
-git commit -m "[Automated] Archive release notes for version ${RELEASE_NOTES_VERSION}"

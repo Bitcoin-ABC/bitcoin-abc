@@ -82,5 +82,21 @@ if [ "$(git rev-parse HEAD)" == "${OLD_HEAD}" ]; then
   exit 0
 fi
 
+# Auto-generated changes. These are amended to the patch rather than landed as
+# their own commit.
+for AUTOGEN_SCRIPT in "${TOPLEVEL}"/contrib/source-control-tools/autogen-recipes/* ; do
+  "${AUTOGEN_SCRIPT}"
+done
+
+echo "The following staged changes will be amended to your patch:"
+git --no-pager diff --cached
+
+# Amend the commit, preserving committer info
+GIT_COMMITTER_EMAIL="$(git show -s --format='%ce')"
+GIT_COMMITTER_NAME="$(git show -s --format='%cn')"
+export GIT_COMMITTER_EMAIL
+export GIT_COMMITTER_NAME
+git commit --amend --no-edit
+
 # Land the generated commit
 "${TOPLEVEL}"/contrib/source-control-tools/land-patch.sh "${LAND_PATCH_ARGS[@]}"
