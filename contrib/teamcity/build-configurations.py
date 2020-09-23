@@ -134,7 +134,7 @@ class BuildConfiguration:
         #    should be run parallel.
         script = self.config.get("script", None)
         if script:
-            script_path = Path(self.script_root.joinpath(script))
+            script_path = Path(self.project_root.joinpath(script))
             if not script_path.is_file() or not os.access(script_path, os.X_OK):
                 raise FileNotFoundError(
                     "The script file {} does not exist or does not have execution permission".format(

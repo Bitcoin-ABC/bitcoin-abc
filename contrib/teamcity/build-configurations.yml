@@ -2,7 +2,7 @@
 # Templates can be referenced in builds to avoid duplication
 templates:
   gitian_builds:
-    script: gitian.sh
+    script: contrib/teamcity/gitian.sh
     timeout: 7200
     artifacts:
       gitian-results: ''
