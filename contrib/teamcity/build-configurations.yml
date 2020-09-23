@@ -409,3 +409,7 @@ builds:
       - gitian_builds
     env:
       OS_NAME: win
+
+  lint-circular-dependencies:
+    runOnDiff: true
+    script: test/lint/lint-circular-dependencies.sh

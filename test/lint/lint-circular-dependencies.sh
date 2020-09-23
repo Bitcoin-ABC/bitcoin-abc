@@ -8,6 +8,10 @@
 
 export LC_ALL=C
 
+set -euo pipefail
+
+: "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
+
 EXPECTED_CIRCULAR_DEPENDENCIES=(
     "index/txindex -> validation -> index/txindex"
     "qt/addresstablemodel -> qt/walletmodel -> qt/addresstablemodel"
@@ -42,6 +46,8 @@ EXIT_CODE=0
 
 CIRCULAR_DEPENDENCIES=()
 
+pushd "${TOPLEVEL}"
+
 IFS=$'\n'
 for CIRC in $(cd src && ../contrib/devtools/circular-dependencies.py {*,*/*,*/*/*}.{h,cpp} | sed -e 's/^Circular dependency: //'); do
     CIRCULAR_DEPENDENCIES+=("$CIRC")
@@ -75,5 +81,7 @@ for EXPECTED_CIRC in "${EXPECTED_CIRCULAR_DEPENDENCIES[@]}"; do
         EXIT_CODE=1
     fi
 done
+
+popd
 
 exit ${EXIT_CODE}
