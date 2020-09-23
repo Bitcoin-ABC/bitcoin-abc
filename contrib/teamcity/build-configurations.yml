@@ -82,27 +82,11 @@ builds:
     runOnDiff: true
     clang: true
     cmake_flags:
-      - '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+      - '-DENABLE_CLANG_TIDY=ON'
     targets:
       - - all
-    post_build: |
-      CLANG_TIDY_WARNING_FILE="${BUILD_DIR}/clang-tidy-warnings.txt"
-
-      pushd "${TOPLEVEL}"
-      git diff -U0 HEAD^ | clang-tidy-diff-8.py \
-        -clang-tidy-binary "$(command -v clang-tidy-8)" \
-        -path "${BUILD_DIR}/compile_commands.json" \
-        -p1 > "${CLANG_TIDY_WARNING_FILE}"
-
-      if [ $(wc -l < "${CLANG_TIDY_WARNING_FILE}") -gt 1 ]; then
-        echo "clang-tidy found issues !"
-        cat "${CLANG_TIDY_WARNING_FILE}"
-        exit 1
-      fi
-      popd
-    timeout: 600
-    artifacts:
-      clang-tidy-warnings.txt: clang-tidy-warnings.txt
+      - - check
+    timeout: 1200
 
   build-coverage:
     gcc: true
