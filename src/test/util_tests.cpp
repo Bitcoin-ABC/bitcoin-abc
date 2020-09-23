@@ -29,6 +29,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <utility>
 #ifndef WIN32
@@ -38,6 +39,8 @@
 #endif
 #include <thread>
 #include <vector>
+
+using namespace std::literals;
 
 /* defined in logging.cpp */
 namespace BCLog {
@@ -1492,9 +1495,11 @@ BOOST_AUTO_TEST_CASE(util_ParseMoney) {
     BOOST_CHECK(!ParseMoney("-1", ret));
 
     // Parsing strings with embedded NUL characters should fail
-    BOOST_CHECK(!ParseMoney(std::string("\0-1", 3), ret));
-    BOOST_CHECK(!ParseMoney(std::string("\01", 2), ret));
-    BOOST_CHECK(!ParseMoney(std::string("1\0", 2), ret));
+    BOOST_CHECK(!ParseMoney("\0-1"s, ret));
+    BOOST_CHECK(!ParseMoney("\0"
+                            "1"s,
+                            ret));
+    BOOST_CHECK(!ParseMoney("1\0"s, ret));
 }
 
 BOOST_AUTO_TEST_CASE(util_IsHex) {
