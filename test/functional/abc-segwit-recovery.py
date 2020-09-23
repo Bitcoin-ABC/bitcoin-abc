@@ -39,7 +39,7 @@ from test_framework.util import assert_raises_rpc_error
 TEST_TIME = int(time.time())
 
 # Error due to non clean stack
-CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Extra items left on stack after execution)'
+CLEANSTACK_ERROR = 'non-mandatory-script-verify-flag (Stack size must be exactly one after execution)'
 RPC_CLEANSTACK_ERROR = CLEANSTACK_ERROR
 EVAL_FALSE_ERROR = 'non-mandatory-script-verify-flag (Script evaluated without error but finished with a false/empty top stack elem'
 RPC_EVAL_FALSE_ERROR = EVAL_FALSE_ERROR + "ent)"

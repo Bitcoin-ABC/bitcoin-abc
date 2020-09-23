@@ -99,7 +99,7 @@ std::string ScriptErrorString(const ScriptError serror) {
         case ScriptError::PUBKEYTYPE:
             return "Public key is neither compressed or uncompressed";
         case ScriptError::CLEANSTACK:
-            return "Extra items left on stack after execution";
+            return "Stack size must be exactly one after execution";
         case ScriptError::ILLEGAL_FORKID:
             return "Illegal use of SIGHASH_FORKID";
         case ScriptError::MUST_USE_FORKID:
