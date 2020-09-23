@@ -59,8 +59,7 @@ native_add_cmake_flags(
 	"-DENABLE_QRCODE=OFF"
 	"-DENABLE_UPNP=OFF"
 	"-DUSE_JEMALLOC=OFF"
-	# Forward the current setting for clang-tidy
-	"-DENABLE_CLANG_TIDY=${ENABLE_CLANG_TIDY}"
+	"-DENABLE_CLANG_TIDY=OFF"
 )
 
 if(ENABLE_CLANG_TIDY)
