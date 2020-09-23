@@ -2097,6 +2097,11 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     nMaxTipAge = args.GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
+    if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
+        return InitError(_(
+            "No proxy server specified. Use -proxy=<ip> or -proxy=<ip:port>."));
+    }
+
     return true;
 }
 
