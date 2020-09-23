@@ -76,7 +76,9 @@ public:
     void Clear() {
         LOCK(m_mutex);
         for (const auto &entry : m_map) {
-            if (!--entry.second->count) m_list.erase(entry.second);
+            if (!--entry.second->count) {
+                m_list.erase(entry.second);
+            }
         }
         m_map.clear();
     }
