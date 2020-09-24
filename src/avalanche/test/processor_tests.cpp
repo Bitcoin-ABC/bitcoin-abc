@@ -956,13 +956,16 @@ BOOST_AUTO_TEST_CASE(destructor) {
     CScheduler s;
     std::chrono::system_clock::time_point start, stop;
 
-    // Start the scheduler thread.
-    std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));
-
+    std::thread schedulerThread;
     {
         Processor p(m_node.connman.get());
         BOOST_CHECK(p.startEventLoop(s));
         BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
+
+        // Start the service thread after the queue size check to prevent a
+        // race condition where the thread may be processing the event loop
+        // task during the check.
+        schedulerThread = std::thread(std::bind(&CScheduler::serviceQueue, &s));
     }
 
     // Now that avalanche is destroyed, there is no more scheduled tasks.
