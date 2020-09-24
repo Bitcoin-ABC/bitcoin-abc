@@ -48,10 +48,10 @@ bool EventLoop::stopEventLoop() {
         return false;
     }
 
-    // Request avalanche to stop.
+    // Request event loop to stop.
     stopRequest = true;
 
-    // Wait for avalanche to stop.
+    // Wait for event loop to stop.
     cond_running.wait(lock, [this]() EXCLUSIVE_LOCKS_REQUIRED(cs_running) {
         return !running;
     });
