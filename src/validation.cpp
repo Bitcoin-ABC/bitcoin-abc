@@ -929,8 +929,7 @@ static void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)
     CheckForkWarningConditions();
 }
 
-static void InvalidChainFound(CBlockIndex *pindexNew)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
     AssertLockHeld(cs_main);
     if (!pindexBestInvalid ||
         pindexNew->nChainWork > pindexBestInvalid->nChainWork) {
