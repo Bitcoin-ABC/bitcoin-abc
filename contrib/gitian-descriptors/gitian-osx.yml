@@ -29,12 +29,6 @@ packages:
 - "python3"
 - "python3-dev"
 - "python3-setuptools"
-# FIXME: these dependencies are only required to make CMake happy when building
-# native tools. They can be removed when the `NativeExecutable.cmake` gets
-# improved to avoid requiring all the bitcoin-abc dependencies.
-- "libboost-all-dev"
-- "libevent-dev"
-- "libssl-dev"
 repositories:
 - "distribution": "buster-backports"
   "source": "deb http://deb.debian.org/debian/ buster-backports main"
@@ -47,7 +41,9 @@ files:
 - "Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz"
 script: |
   WRAP_DIR=$HOME/wrapped
-  HOSTS="x86_64-apple-darwin16"
+  HOSTS=(
+    x86_64-apple-darwin16
+  )
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
@@ -81,7 +77,7 @@ script: |
   }
 
   function create_per-host_faketime_wrappers {
-  for i in $HOSTS; do
+  for i in ${HOSTS[@]}; do
     for prog in ${FAKETIME_HOST_PROGS}; do
         echo '#!/usr/bin/env bash' > ${WRAP_DIR}/${i}-${prog}
         echo "REAL=\`which -a ${i}-${prog} | grep -v ${WRAP_DIR}/${i}-${prog} | head -1\`" >> ${WRAP_DIR}/${i}-${prog}
@@ -107,7 +103,7 @@ script: |
   tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
 
   # Build dependencies for each host
-  for i in $HOSTS; do
+  for i in ${HOSTS[@]}; do
     make ${MAKEOPTS} -C ${BASEPREFIX} HOST="${i}"
   done
 
@@ -119,19 +115,10 @@ script: |
 
   mkdir -p source_package
   pushd source_package
+  # Any toolchain file will work for building the source package, just pick the
+  # first one
   cmake -GNinja .. \
-    -DBUILD_BITCOIN_WALLET=OFF \
-    -DBUILD_BITCOIN_ZMQ=OFF \
-    -DBUILD_BITCOIN_ZMQ=OFF \
-    -DBUILD_BITCOIN_SEEDER=OFF \
-    -DBUILD_BITCOIN_CLI=OFF \
-    -DBUILD_BITCOIN_TX=OFF \
-    -DBUILD_BITCOIN_QT=OFF \
-    -DBUILD_LIBBITCOINCONSENSUS=OFF \
-    -DENABLE_CLANG_TIDY=OFF \
-    -DENABLE_QRCODE=OFF \
-    -DENABLE_UPNP=OFF \
-    -DUSE_JEMALLOC=OFF
+    -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${HOSTS[0]}]}
 
   ninja package_source
   SOURCEDIST=`echo bitcoin-abc-*.tar.gz`
@@ -148,7 +135,7 @@ script: |
 
   ORIGPATH="$PATH"
   # Extract the release tarball into a dir for each host and build
-  for i in ${HOSTS}; do
+  for i in ${HOSTS[@]}; do
     export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
     mkdir -p distsrc-${i}
     cd distsrc-${i}
