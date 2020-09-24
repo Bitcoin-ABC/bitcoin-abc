@@ -14,7 +14,8 @@ const std::vector<std::string> NET_PERMISSIONS_DOC{
     "noban (do not ban for misbehavior; implies download)",
     "forcerelay (relay transactions that are already in the mempool; implies "
     "relay)",
-    "relay (relay even in -blocksonly mode)",
+    "relay (relay even in -blocksonly mode, and unlimited transaction "
+    "announcements)",
     "mempool (allow requesting BIP35 mempool contents)",
     "download (allow getheaders during IBD, no disconnect after "
     "maxuploadtarget limit)",

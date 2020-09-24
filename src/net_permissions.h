@@ -19,6 +19,8 @@ enum NetPermissionFlags {
     // Can query bloomfilter even if -peerbloomfilters is false
     PF_BLOOMFILTER = (1U << 1),
     // Relay and accept transactions from this peer, even if -blocksonly is true
+    // This peer is also not subject to limits on how many transaction INVs are
+    // tracked
     PF_RELAY = (1U << 3),
     // Always relay transactions from this peer, even if already in mempool or
     // rejected from policy Keep parameter interaction: forcerelay implies relay
