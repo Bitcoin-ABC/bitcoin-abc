@@ -56,7 +56,6 @@ OLD_HEAD="$(git rev-parse HEAD)"
 
 echo "Building automated commit using '${SCRIPT}'..."
 
-BOT_PREFIX="[Automated]"
 TOPLEVEL=$(git rev-parse --show-toplevel)
 
 BUILD_DIR="${TOPLEVEL}/abc-ci-builds/automated-commit-$(basename ${SCRIPT})"
