@@ -115,11 +115,6 @@ CScript COINBASE_FLAGS;
 namespace {
 CBlockIndex *pindexBestInvalid = nullptr;
 CBlockIndex *pindexBestParked = nullptr;
-/**
- * The best finalized block.
- * This block cannot be reorged in any way except by explicit user action.
- */
-CBlockIndex const *&pindexFinalized = ::ChainstateActive().pindexFinalized;
 
 RecursiveMutex cs_LastBlockFile;
 std::vector<CBlockFileInfo> vinfoBlockFile;
@@ -940,7 +935,7 @@ void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
     // If the invalid chain found is supposed to be finalized, we need to move
     // back the finalization point.
     if (IsBlockFinalized(pindexNew)) {
-        pindexFinalized = pindexNew->pprev;
+        m_finalizedBlockIndex = pindexNew->pprev;
     }
 
     LogPrintf("%s: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
@@ -2157,8 +2152,8 @@ bool CChainState::DisconnectTip(const CChainParams &params,
     }
 
     // If the tip is finalized, then undo it.
-    if (pindexFinalized == pindexDelete) {
-        pindexFinalized = pindexDelete->pprev;
+    if (m_finalizedBlockIndex == pindexDelete) {
+        m_finalizedBlockIndex = pindexDelete->pprev;
     }
 
     m_chain.SetTip(pindexDelete->pprev);
@@ -2259,7 +2254,8 @@ bool CChainState::MarkBlockAsFinal(const Config &config,
     }
 
     // Check that the request is consistent with current finalization.
-    if (pindexFinalized && !AreOnTheSameFork(pindex, pindexFinalized)) {
+    if (m_finalizedBlockIndex &&
+        !AreOnTheSameFork(pindex, m_finalizedBlockIndex)) {
         LogPrintf("ERROR: %s: Trying to finalize block %s which conflicts with "
                   "already finalized block\n",
                   __func__, pindex->GetBlockHash().ToString());
@@ -2274,7 +2270,7 @@ bool CChainState::MarkBlockAsFinal(const Config &config,
     }
 
     // We have a new block to finalize.
-    pindexFinalized = pindex;
+    m_finalizedBlockIndex = pindex;
     return true;
 }
 
@@ -2306,7 +2302,7 @@ static const CBlockIndex *FindBlockToFinalize(const Config &config,
 
     // While our candidate is not eligible (finalization delay not expired), try
     // the previous one.
-    while (pindex && (pindex != pindexFinalized)) {
+    while (pindex && (pindex != ::ChainstateActive().GetFinalizedBlock())) {
         // Check that the block to finalize is known for a long enough time.
         // This test will ensure that an attacker could not cause a block to
         // finalize by forking the chain with a depth > maxreorgdepth.
@@ -2476,11 +2472,12 @@ CBlockIndex *CChainState::FindMostWorkChain() {
 
         // If this block will cause a finalized block to be reorged, then we
         // mark it as invalid.
-        if (pindexFinalized && !AreOnTheSameFork(pindexNew, pindexFinalized)) {
+        if (m_finalizedBlockIndex &&
+            !AreOnTheSameFork(pindexNew, m_finalizedBlockIndex)) {
             LogPrintf("Mark block %s invalid because it forks prior to the "
                       "finalization point %d.\n",
                       pindexNew->GetBlockHash().ToString(),
-                      pindexFinalized->nHeight);
+                      m_finalizedBlockIndex->nHeight);
             pindexNew->nStatus = pindexNew->nStatus.withFailed();
             InvalidChainFound(pindexNew);
         }
@@ -3281,8 +3278,9 @@ void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
 
     // In case we are reconsidering something before the finalization point,
     // move the finalization point to the last common ancestor.
-    if (pindexFinalized) {
-        pindexFinalized = LastCommonAncestor(pindex, pindexFinalized);
+    if (m_finalizedBlockIndex) {
+        m_finalizedBlockIndex =
+            LastCommonAncestor(pindex, m_finalizedBlockIndex);
     }
 
     UpdateFlags(
@@ -3327,15 +3325,16 @@ void UnparkBlock(CBlockIndex *pindex) {
     return ::ChainstateActive().UnparkBlockImpl(pindex, false);
 }
 
-const CBlockIndex *GetFinalizedBlock() {
+bool CChainState::IsBlockFinalized(const CBlockIndex *pindex) const {
     AssertLockHeld(cs_main);
-    return pindexFinalized;
+    return m_finalizedBlockIndex &&
+           m_finalizedBlockIndex->GetAncestor(pindex->nHeight) == pindex;
 }
 
-bool IsBlockFinalized(const CBlockIndex *pindex) {
+/** Return the currently finalized block index. */
+const CBlockIndex *CChainState::GetFinalizedBlock() const {
     AssertLockHeld(cs_main);
-    return pindexFinalized &&
-           pindexFinalized->GetAncestor(pindex->nHeight) == pindex;
+    return m_finalizedBlockIndex;
 }
 
 CBlockIndex *BlockManager::AddToBlockIndex(const CBlockHeader &block) {
@@ -5011,6 +5010,9 @@ bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view) {
 void CChainState::UnloadBlockIndex() {
     nBlockSequenceId = 1;
     setBlockIndexCandidates.clear();
+
+    // Do not point to CBlockIndex that will be free'd
+    m_finalizedBlockIndex = nullptr;
 }
 
 // May NOT be used after any connections are up as much
@@ -5020,7 +5022,6 @@ void UnloadBlockIndex() {
     LOCK(cs_main);
     ::ChainActive().SetTip(nullptr);
     g_blockman.Unload();
-    pindexFinalized = nullptr;
     pindexBestInvalid = nullptr;
     pindexBestParked = nullptr;
     pindexBestHeader = nullptr;

@@ -813,13 +813,18 @@ private:
     //! easily as opposed to referencing a global.
     BlockManager &m_blockman;
 
+    /**
+     * The best finalized block.
+     * This block cannot be reorged in any way except by explicit user action.
+     */
+    const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
+
 public:
     explicit CChainState(BlockManager &blockman) : m_blockman(blockman) {}
 
     //! The current chain of blockheaders we consult and build on.
     //! @see CChain, CBlockIndex.
     CChain m_chain;
-    CBlockIndex const *pindexFinalized = nullptr;
     /**
      * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
      * itself and all ancestors) and as good as our current tip or better.
@@ -885,6 +890,7 @@ public:
     bool ParkBlock(const Config &config, BlockValidationState &state,
                    CBlockIndex *pindex)
         LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
+
     /**
      * Finalize a block.
      * A finalized block can not be reorged in any way.
@@ -892,6 +898,15 @@ public:
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex)
         LOCKS_EXCLUDED(cs_main, m_cs_chainstate);
+    /** Return the currently finalized block index. */
+    const CBlockIndex *GetFinalizedBlock() const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /**
+     * Checks if a block is finalized.
+     */
+    bool IsBlockFinalized(const CBlockIndex *pindex) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     template <typename F>
@@ -910,7 +925,7 @@ public:
 
     void PruneBlockIndexCandidates();
 
-    void UnloadBlockIndex();
+    void UnloadBlockIndex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
      * Check whether we are doing an initial block download (synchronizing from
@@ -978,17 +993,6 @@ void UnparkBlockAndChildren(CBlockIndex *pindex)
 
 /** Remove parked status from a block. */
 void UnparkBlock(CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-/**
- * Retrieve the topmost finalized block.
- */
-const CBlockIndex *GetFinalizedBlock() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-/**
- * Checks if a block is finalized.
- */
-bool IsBlockFinalized(const CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** @returns the most-work valid chainstate. */
 CChainState &ChainstateActive();

@@ -219,7 +219,8 @@ UniValue getfinalizedblockhash(const Config &config,
         .Check(request);
 
     LOCK(cs_main);
-    const CBlockIndex *blockIndexFinalized = GetFinalizedBlock();
+    const CBlockIndex *blockIndexFinalized =
+        ::ChainstateActive().GetFinalizedBlock();
     if (blockIndexFinalized) {
         return blockIndexFinalized->GetBlockHash().GetHex();
     }

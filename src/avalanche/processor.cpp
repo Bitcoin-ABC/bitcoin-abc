@@ -124,7 +124,7 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
         return false;
     }
 
-    if (IsBlockFinalized(pindex)) {
+    if (::ChainstateActive().IsBlockFinalized(pindex)) {
         // There is no point polling finalized block.
         return false;
     }
