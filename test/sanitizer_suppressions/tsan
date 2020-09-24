@@ -19,7 +19,7 @@ race:CConnman::ThreadMessageHandler
 race:fHaveGenesis
 race:ProcessNewBlock
 race:ThreadImport
-race:zmq::*
+race:CZMQAbstractPublishNotifier::SendMessage
 race:bitcoin-qt
 # deadlock (TODO fix)
 deadlock:CConnman::ForNode
