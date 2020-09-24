@@ -5,8 +5,8 @@
 #include <zmq/zmqnotificationinterface.h>
 #include <zmq/zmqpublishnotifier.h>
 
+#include <primitives/block.h>
 #include <util/system.h>
-#include <validation.h>
 
 void zmqError(const char *str) {
     LogPrint(BCLog::ZMQ, "zmq: Error: %s, errno=%s\n", str,
