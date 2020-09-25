@@ -86,7 +86,7 @@ builds:
     targets:
       - - all
       - - check
-    timeout: 1200
+    timeout: 1800
 
   build-coverage:
     gcc: true
