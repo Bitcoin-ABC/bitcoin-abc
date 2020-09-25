@@ -109,7 +109,7 @@ endfunction()
 function(install_shared_library NAME)
 	cmake_parse_arguments(ARG
 		"EXCLUDE_FROM_ALL"
-		""
+		"DESCRIPTION"
 		"PUBLIC_HEADER"
 		${ARGN}
 	)
@@ -130,28 +130,19 @@ function(install_shared_library NAME)
 		set_property(TARGET ${_shared_name} PROPERTY PUBLIC_HEADER ${ARG_PUBLIC_HEADER})
 	endif()
 
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		# FIXME For compatibility reason with autotools, the version is set
-		# to 0.0.0 (major being actually 0). This is obviously wrong and the
-		# version of the library should reflect the version of the release.
-		# On platforms other than linux, only the major version (0) is used.
-		# Replace the VERSION line with the statement below to set the
-		# correct version:
-		# set(_properties VERSION "${CMAKE_PROJECT_VERSION}")
-		list(APPEND _properties VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.0.0")
-	else()
-		list(APPEND _properties VERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
-	endif()
-
-	# For autotools compatibility, rename the library to ${OUTPUT_NAME}-0.dll
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		list(APPEND _properties OUTPUT_NAME "${NAME}-${CMAKE_PROJECT_VERSION_MAJOR}")
 		# DLL_EXPORT is defined by libtool, and is expected by some sources.
 		target_compile_definitions(${_shared_name} PRIVATE DLL_EXPORT)
-	else()
-		list(APPEND _properties OUTPUT_NAME "${NAME}")
+
+		include(WindowsVersionInfo)
+		if(ARG_DESCRIPTION)
+			set(DESCRIPTION DESCRIPTION "${ARG_DESCRIPTION}")
+		endif()
+		generate_windows_version_info(${_shared_name} ${DESCRIPTION})
 	endif()
 
+	list(APPEND _properties OUTPUT_NAME "${NAME}")
+	list(APPEND _properties VERSION "${CMAKE_PROJECT_VERSION}")
 	list(APPEND _properties SOVERSION "${CMAKE_PROJECT_VERSION_MAJOR}")
 
 	set_target_properties(${_shared_name} PROPERTIES ${_properties})
