@@ -64,12 +64,10 @@ builds:
       - - bench-secp256k1
     timeout: 1200
 
-  build-clang-10:
+  build-clang:
     runOnDiff: true
     Werror: true
-    cmake_flags:
-      - '-DCMAKE_C_COMPILER=clang-10'
-      - '-DCMAKE_CXX_COMPILER=clang++-10'
+    clang: true
     targets:
       - - all
         - install
