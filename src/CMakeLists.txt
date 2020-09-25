@@ -578,6 +578,7 @@ add_subdirectory(pow/test)
 add_subdirectory(bench)
 
 include(BinaryTest)
+include(WindowsVersionInfo)
 
 # Wallet
 if(BUILD_BITCOIN_WALLET)
@@ -586,9 +587,9 @@ if(BUILD_BITCOIN_WALLET)
 
 	# bitcoin-wallet
 	add_executable(bitcoin-wallet bitcoin-wallet.cpp)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-wallet PRIVATE bitcoin-wallet-res.rc)
-	endif()
+	generate_windows_version_info(bitcoin-wallet
+		DESCRIPTION "CLI tool for ${PACKAGE_NAME} wallets"
+	)
 
 	target_link_libraries(bitcoin-wallet wallet-tool common util)
 
@@ -619,9 +620,9 @@ endif()
 # bitcoin-cli
 if(BUILD_BITCOIN_CLI)
 	add_executable(bitcoin-cli bitcoin-cli.cpp)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-cli PRIVATE bitcoin-cli-res.rc)
-	endif()
+	generate_windows_version_info(bitcoin-cli
+		DESCRIPTION "JSON-RPC client for ${PACKAGE_NAME}"
+	)
 
 	target_link_libraries(bitcoin-cli common rpcclient Event::event)
 
@@ -635,9 +636,9 @@ endif()
 # bitcoin-tx
 if(BUILD_BITCOIN_TX)
 	add_executable(bitcoin-tx bitcoin-tx.cpp)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_sources(bitcoin-tx PRIVATE bitcoin-tx-res.rc)
-	endif()
+	generate_windows_version_info(bitcoin-tx
+		DESCRIPTION "CLI Bitcoin transaction editor utility"
+	)
 
 	target_link_libraries(bitcoin-tx bitcoinconsensus)
 
@@ -651,9 +652,9 @@ endif()
 # bitcoind
 add_executable(bitcoind bitcoind.cpp)
 target_link_libraries(bitcoind server)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_sources(bitcoind PRIVATE bitcoind-res.rc)
-endif()
+generate_windows_version_info(bitcoind
+	DESCRIPTION "Bitcoin node with a JSON-RPC server"
+)
 add_to_symbols_check(bitcoind)
 add_to_security_check(bitcoind)
 

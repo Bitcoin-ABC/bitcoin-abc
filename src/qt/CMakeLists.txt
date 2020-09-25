@@ -330,9 +330,13 @@ endif()
 
 # The executable
 add_executable(bitcoin-qt WIN32 main.cpp)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_sources(bitcoin-qt PRIVATE res/bitcoin-qt-res.rc)
-endif()
+include(WindowsVersionInfo)
+generate_windows_version_info(bitcoin-qt
+	DESCRIPTION "GUI node for Bitcoin"
+	ICONS
+		"res/icons/bitcoin.ico"
+		"res/icons/bitcoin_testnet.ico"
+)
 target_link_libraries(bitcoin-qt bitcoin-qt-base)
 
 include(BinaryTest)
