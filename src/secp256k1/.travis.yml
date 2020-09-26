@@ -29,7 +29,6 @@ env:
   global:
     - WIDEMUL=auto
     - BIGNUM=gmp
-    - ENDOMORPHISM=no
     - STATICPRECOMPUTATION=yes
     - ECMULTGENPRECISION=auto
     - ASM=no
@@ -54,15 +53,12 @@ env:
   jobs:
     - WIDEMUL=int64   RECOVERY=yes
     - WIDEMUL=int64   ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes SCHNORRSIG=yes
-    - WIDEMUL=int64   ENDOMORPHISM=yes
     - WIDEMUL=int128
     - WIDEMUL=int128  RECOVERY=yes EXPERIMENTAL=yes SCHNORRSIG=yes
-    - WIDEMUL=int128  ENDOMORPHISM=yes
-    - WIDEMUL=int128  ENDOMORPHISM=yes  ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes SCHNORRSIG=yes
+    - WIDEMUL=int128  ECDH=yes  EXPERIMENTAL=yes  MULTISET=yes SCHNORRSIG=yes
     - WIDEMUL=int128                    ASM=x86_64
-    - WIDEMUL=int128  ENDOMORPHISM=yes  ASM=x86_64
     - BIGNUM=no
-    - BIGNUM=no       ENDOMORPHISM=yes  RECOVERY=yes  EXPERIMENTAL=yes  MULTISET=yes SCHNORRSIG=yes
+    - BIGNUM=no       RECOVERY=yes  EXPERIMENTAL=yes  MULTISET=yes SCHNORRSIG=yes
     - BIGNUM=no       STATICPRECOMPUTATION=no
     - AUTOTOOLS_TARGET=distcheck       CMAKE_TARGET=install WITH_VALGRIND=no CTIMETEST=no BENCH=no
     - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
@@ -71,12 +67,7 @@ env:
     - ECMULTGENPRECISION=2
     - ECMULTGENPRECISION=8
     - RUN_VALGRIND=yes
-      BIGNUM=no ENDOMORPHISM=yes ASM=x86_64 EXPERIMENTAL=yes ECDH=yes RECOVERY=yes OPENSSL_TESTS=no MULTISET=yes
-      AUTOTOOLS_TARGET=
-      CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
-    # The same as above but without endomorphism.
-    - RUN_VALGRIND=yes
-      BIGNUM=no                  ASM=x86_64 EXPERIMENTAL=yes ECDH=yes RECOVERY=yes OPENSSL_TESTS=no MULTISET=yes
+      BIGNUM=no ASM=x86_64 EXPERIMENTAL=yes ECDH=yes RECOVERY=yes OPENSSL_TESTS=no MULTISET=yes
       AUTOTOOLS_TARGET=
       CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DVALGRIND CMAKE_TARGET="secp256k1-tests secp256k1-exhaustive_tests"
     - SCHNORR=no
@@ -85,13 +76,13 @@ jobs:
   include:
     - compiler: clang
       os: linux
-      env: HOST=i686-linux-gnu ENDOMORPHISM=yes OPENSSL_TESTS=no
+      env: HOST=i686-linux-gnu OPENSSL_TESTS=no
     - compiler: clang
       os: linux
       env: HOST=i686-linux-gnu BIGNUM=no OPENSSL_TESTS=no
     - compiler: gcc
       os: linux
-      env: HOST=i686-linux-gnu ENDOMORPHISM=yes BIGNUM=no OPENSSL_TESTS=no
+      env: HOST=i686-linux-gnu BIGNUM=no OPENSSL_TESTS=no
     - compiler: gcc
       os: linux
       env: HOST=i686-linux-gnu OPENSSL_TESTS=no

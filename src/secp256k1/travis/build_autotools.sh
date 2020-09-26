@@ -36,7 +36,6 @@ pushd buildautotools
 
 ../configure \
   --enable-experimental=$EXPERIMENTAL \
-  --enable-endomorphism=$ENDOMORPHISM \
   --with-test-override-wide-multiply=$WIDEMUL \
   --with-bignum=$BIGNUM \
   --with-asm=$ASM \

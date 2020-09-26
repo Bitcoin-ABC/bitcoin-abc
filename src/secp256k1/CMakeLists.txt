@@ -251,12 +251,6 @@ if(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS)
 	set(USE_EXTERNAL_DEFAULT_CALLBACKS 1)
 endif()
 
-# Endomorphism
-option(SECP256K1_ENABLE_ENDOMORPHISM "Enable endomorphism" ON)
-if(SECP256K1_ENABLE_ENDOMORPHISM)
-	set(USE_ENDOMORPHISM 1)
-endif()
-
 # Make the emult window size customizable.
 set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomputation for verification, specified as integer in range [2..24].")
 if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 24)
