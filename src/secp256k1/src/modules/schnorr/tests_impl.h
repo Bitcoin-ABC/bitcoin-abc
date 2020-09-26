@@ -20,7 +20,7 @@ void test_schnorr_end_to_end(void) {
         secp256k1_scalar key;
         random_scalar_order_test(&key);
         secp256k1_scalar_get_b32(privkey, &key);
-        secp256k1_rand256_test(message);
+        secp256k1_testrand256_test(message);
     }
 
     /* Construct and verify corresponding public key. */
@@ -31,7 +31,7 @@ void test_schnorr_end_to_end(void) {
     CHECK(secp256k1_schnorr_sign(ctx, schnorr_signature, message, privkey, NULL, NULL) == 1);
     CHECK(secp256k1_schnorr_verify(ctx, schnorr_signature, message, &pubkey) == 1);
     /* Destroy signature and verify again. */
-    schnorr_signature[secp256k1_rand_bits(6)] += 1 + secp256k1_rand_int(255);
+    schnorr_signature[secp256k1_testrand_bits(6)] += 1 + secp256k1_testrand_int(255);
     CHECK(secp256k1_schnorr_verify(ctx, schnorr_signature, message, &pubkey) == 0);
 }
 
@@ -46,7 +46,7 @@ void test_schnorr_sign_verify(void) {
     secp256k1_scalar key[SIG_COUNT];
     int i, j;
 
-    secp256k1_rand256_test(msg32);
+    secp256k1_testrand256_test(msg32);
 
     for (i = 0; i < SIG_COUNT; i++) {
         random_scalar_order_test(&key[i]);
@@ -56,7 +56,7 @@ void test_schnorr_sign_verify(void) {
         secp256k1_fe_normalize(&pubkey[i].y);
 
         do {
-            secp256k1_rand256_test(ndata[i]);
+            secp256k1_testrand256_test(ndata[i]);
             if (secp256k1_schnorr_sig_sign(ctx, sig64[i], msg32, &key[i], &pubkey[i], NULL, &ndata[i])) {
                 break;
             }
@@ -67,8 +67,8 @@ void test_schnorr_sign_verify(void) {
         /* Apply several random modifications to the sig and check that it
          * doesn't verify anymore. */
         for (j = 0; j < count; j++) {
-            int pos = secp256k1_rand_bits(6);
-            int mod = 1 + secp256k1_rand_int(255);
+            int pos = secp256k1_testrand_bits(6);
+            int mod = 1 + secp256k1_testrand_int(255);
             sig64[i][pos] ^= mod;
             CHECK(secp256k1_schnorr_sig_verify(&ctx->ecmult_ctx, sig64[i], &pubkey[i], msg32) == 0);
             sig64[i][pos] ^= mod;
