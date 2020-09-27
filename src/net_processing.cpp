@@ -690,8 +690,9 @@ static bool MarkBlockAsReceived(const BlockHash &hash)
         if (state->vBlocksInFlight.begin() == itInFlight->second.second) {
             // First block on the queue was received, update the start download
             // time for the next one
-            state->nDownloadingSince =
-                std::max(state->nDownloadingSince, GetTimeMicros());
+            state->nDownloadingSince = std::max(
+                state->nDownloadingSince,
+                count_microseconds(GetTime<std::chrono::microseconds>()));
         }
         state->vBlocksInFlight.erase(itInFlight->second.second);
         state->nBlocksInFlight--;
@@ -740,7 +741,7 @@ MarkBlockAsInFlight(const Config &config, CTxMemPool &mempool, NodeId nodeid,
     state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
     if (state->nBlocksInFlight == 1) {
         // We're starting a block download (batch) from this peer.
-        state->nDownloadingSince = GetTimeMicros();
+        state->nDownloadingSince = GetTime<std::chrono::microseconds>().count();
     }
 
     if (state->nBlocksInFlightValidHeaders == 1 && pindex != nullptr) {
@@ -4302,7 +4303,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     // outstanding
                     bPingFinished = true;
                     const auto ping_time = ping_end - pfrom.m_ping_start.load();
-                    if (ping_time.count() > 0) {
+                    if (ping_time.count() >= 0) {
                         // Successful ping time measurement, replace previous
                         pfrom.nPingUsecTime = count_microseconds(ping_time);
                         pfrom.nMinPingUsecTime =
@@ -4909,7 +4910,6 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         CNodeState &state = *State(pto->GetId());
 
         // Address refresh broadcast
-        int64_t nNow = GetTimeMicros();
         auto current_time = GetTime<std::chrono::microseconds>();
 
         if (pto->IsAddrRelayPeer() &&
@@ -4983,7 +4983,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                     GetAdjustedTime() - 24 * 60 * 60) {
                 state.fSyncStarted = true;
                 state.nHeadersSyncTimeout =
-                    GetTimeMicros() + HEADERS_DOWNLOAD_TIMEOUT_BASE +
+                    count_microseconds(current_time) +
+                    HEADERS_DOWNLOAD_TIMEOUT_BASE +
                     HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER *
                         (GetAdjustedTime() - pindexBestHeader->GetBlockTime()) /
                         (consensusParams.nPowTargetSpacing);
@@ -5211,7 +5212,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                         pto->m_tx_relay->nNextInvSend =
                             std::chrono::microseconds{
                                 m_connman.PoissonNextSendInbound(
-                                    nNow, INVENTORY_BROADCAST_INTERVAL)};
+                                    count_microseconds(current_time),
+                                    INVENTORY_BROADCAST_INTERVAL)};
                     } else {
                         // Skip delay for outbound peers, as there is less
                         // privacy concern for them.
@@ -5330,7 +5332,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                         {
                             // Expire old relay messages
                             while (!vRelayExpiration.empty() &&
-                                   vRelayExpiration.front().first < nNow) {
+                                   vRelayExpiration.front().first <
+                                       count_microseconds(current_time)) {
                                 mapRelay.erase(vRelayExpiration.front().second);
                                 vRelayExpiration.pop_front();
                             }
@@ -5339,7 +5342,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                                 std::make_pair(txid, std::move(txinfo.tx)));
                             if (ret.second) {
                                 vRelayExpiration.push_back(std::make_pair(
-                                    nNow +
+                                    count_microseconds(current_time) +
                                         std::chrono::microseconds{
                                             RELAY_TX_CACHE_TIME}
                                             .count(),
@@ -5357,11 +5360,9 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
         // Detect whether we're stalling
         current_time = GetTime<std::chrono::microseconds>();
-        // nNow is the current system time (GetTimeMicros is not mockable) and
-        // should be replaced by the mockable current_time eventually
-        nNow = GetTimeMicros();
         if (state.nStallingSince &&
-            state.nStallingSince < nNow - 1000000 * BLOCK_STALLING_TIMEOUT) {
+            state.nStallingSince < count_microseconds(current_time) -
+                                       1000000 * BLOCK_STALLING_TIMEOUT) {
             // Stalling only triggers when the block download window cannot
             // move. During normal steady state, the download window should be
             // much larger than the to-be-downloaded set of blocks, so
@@ -5383,11 +5384,12 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             int nOtherPeersWithValidatedDownloads =
                 nPeersWithValidatedDownloads -
                 (state.nBlocksInFlightValidHeaders > 0);
-            if (nNow > state.nDownloadingSince +
-                           consensusParams.nPowTargetSpacing *
-                               (BLOCK_DOWNLOAD_TIMEOUT_BASE +
-                                BLOCK_DOWNLOAD_TIMEOUT_PER_PEER *
-                                    nOtherPeersWithValidatedDownloads)) {
+            if (count_microseconds(current_time) >
+                state.nDownloadingSince +
+                    consensusParams.nPowTargetSpacing *
+                        (BLOCK_DOWNLOAD_TIMEOUT_BASE +
+                         BLOCK_DOWNLOAD_TIMEOUT_PER_PEER *
+                             nOtherPeersWithValidatedDownloads)) {
                 LogPrintf("Timeout downloading block %s from peer=%d, "
                           "disconnecting\n",
                           queuedBlock.hash.ToString(), pto->GetId());
@@ -5402,7 +5404,9 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             // Detect whether this is a stalling initial-headers-sync peer
             if (pindexBestHeader->GetBlockTime() <=
                 GetAdjustedTime() - 24 * 60 * 60) {
-                if (nNow > state.nHeadersSyncTimeout && nSyncStarted == 1 &&
+                if (count_microseconds(current_time) >
+                        state.nHeadersSyncTimeout &&
+                    nSyncStarted == 1 &&
                     (nPreferredDownload - state.fPreferredDownload >= 1)) {
                     // Disconnect a (non-whitelisted) peer if it is our only
                     // sync peer, and we have others we could be using instead.
@@ -5465,7 +5469,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             }
             if (state.nBlocksInFlight == 0 && staller != -1) {
                 if (State(staller)->nStallingSince == 0) {
-                    State(staller)->nStallingSince = nNow;
+                    State(staller)->nStallingSince =
+                        count_microseconds(current_time);
                     LogPrint(BCLog::NET, "Stall started peer=%d\n", staller);
                 }
             }
@@ -5561,7 +5566,6 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                         gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                         1000000)
                     .GetFeePerK();
-            int64_t timeNow = GetTimeMicros();
             static FeeFilterRounder g_filter_rounder{
                 CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB}};
             if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
@@ -5574,10 +5578,12 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                 if (pto->m_tx_relay->lastSentFeeFilter == MAX_FILTER) {
                     // Send the current filter if we sent MAX_FILTER previously
                     // and made it out of IBD.
-                    pto->m_tx_relay->nextSendTimeFeeFilter = timeNow - 1;
+                    pto->m_tx_relay->nextSendTimeFeeFilter =
+                        count_microseconds(current_time) - 1;
                 }
             }
-            if (timeNow > pto->m_tx_relay->nextSendTimeFeeFilter) {
+            if (count_microseconds(current_time) >
+                pto->m_tx_relay->nextSendTimeFeeFilter) {
                 Amount filterToSend = g_filter_rounder.round(currentFilter);
                 filterToSend =
                     std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
@@ -5589,19 +5595,22 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                     pto->m_tx_relay->lastSentFeeFilter = filterToSend;
                 }
                 pto->m_tx_relay->nextSendTimeFeeFilter =
-                    PoissonNextSend(timeNow, AVG_FEEFILTER_BROADCAST_INTERVAL);
+                    PoissonNextSend(count_microseconds(current_time),
+                                    AVG_FEEFILTER_BROADCAST_INTERVAL);
             }
             // If the fee filter has changed substantially and it's still more
             // than MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then
             // move the broadcast to within MAX_FEEFILTER_CHANGE_DELAY.
-            else if (timeNow + MAX_FEEFILTER_CHANGE_DELAY * 1000000 <
+            else if (count_microseconds(current_time) +
+                             MAX_FEEFILTER_CHANGE_DELAY * 1000000 <
                          pto->m_tx_relay->nextSendTimeFeeFilter &&
                      (currentFilter <
                           3 * pto->m_tx_relay->lastSentFeeFilter / 4 ||
                       currentFilter >
                           4 * pto->m_tx_relay->lastSentFeeFilter / 3)) {
                 pto->m_tx_relay->nextSendTimeFeeFilter =
-                    timeNow + GetRandInt(MAX_FEEFILTER_CHANGE_DELAY) * 1000000;
+                    count_microseconds(current_time) +
+                    GetRandInt(MAX_FEEFILTER_CHANGE_DELAY) * 1000000;
             }
         }
     } // release cs_main
