@@ -338,6 +338,16 @@ builds:
       - - check-functional
     timeout: 1200
 
+  build-without-qt:
+    Werror: true
+    cmake_flags:
+      - '-DBUILD_BITCOIN_QT=OFF'
+    targets:
+      - - all
+        - install
+      - - check
+    timeout: 1200
+
   build-without-wallet:
     runOnDiff: true
     Werror: true
