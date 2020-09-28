@@ -21,3 +21,5 @@ This release includes the following features and fixes:
   tracking.
 - The same ZeroMQ notification (e.g. `-zmqpubhashtx=address`) can now be specified multiple
   times to publish the same notification to different ZeroMQ sockets.
+- The `-startupnotify` option can be used to specify a command to execute when Bitcoin ABC
+  has finished with its startup sequence.

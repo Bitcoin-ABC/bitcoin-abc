@@ -594,6 +594,10 @@ void SetupServerArgs(NodeContext &node) {
             "paths will be prefixed by datadir location. (default: %s)",
             BITCOIN_CONF_FILENAME, BITCOIN_SETTINGS_FILENAME),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+#if HAVE_SYSTEM
+    argsman.AddArg("-startupnotify=<cmd>", "Execute command on startup.",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+#endif
 #ifndef WIN32
     argsman.AddArg(
         "-sysperms",
@@ -1387,6 +1391,17 @@ static void CleanupBlockRevFiles() {
         remove(item.second);
     }
 }
+
+#if HAVE_SYSTEM
+static void StartupNotify(const ArgsManager &args) {
+    std::string cmd = args.GetArg("-startupnotify", "");
+    if (!cmd.empty()) {
+        std::thread t(runCommand, cmd);
+        // thread runs free
+        t.detach();
+    }
+}
+#endif
 
 static void ThreadImport(const Config &config, ChainstateManager &chainman,
                          std::vector<fs::path> vImportFiles,
@@ -3053,6 +3068,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Start Avalanche's event loop.
     g_avalanche->startEventLoop(*node.scheduler);
+
+#if HAVE_SYSTEM
+    StartupNotify(args);
+#endif
 
     return true;
 }
