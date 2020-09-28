@@ -1629,7 +1629,7 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
     if ((sigHashType.getBaseType() == BaseSigHashType::SINGLE) &&
         (nIn >= txTo.vout.size())) {
         //  nOut out of range
-        return UINT256_ONE();
+        return uint256::ONE;
     }
 
     // Wrapper to serialize only the necessary parts of the transaction being

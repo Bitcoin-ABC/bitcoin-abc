@@ -627,7 +627,7 @@ LegacyScriptPubKeyMan::GetMetadata(const CTxDestination &dest) const {
 }
 
 uint256 LegacyScriptPubKeyMan::GetID() const {
-    return UINT256_ONE();
+    return uint256::ONE;
 }
 
 /**

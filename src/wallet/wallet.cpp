@@ -276,8 +276,6 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
     return WalletCreationStatus::SUCCESS;
 }
 
-const BlockHash CWalletTx::ABANDON_HASH(UINT256_ONE());
-
 /** @defgroup mapWallet
  *
  * @{
