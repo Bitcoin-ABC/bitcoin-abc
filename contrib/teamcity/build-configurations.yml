@@ -317,6 +317,17 @@ builds:
     artifacts:
       bitcoin-abc-*-x86_64-w64-mingw32.exe: bitcoin-abc-x86_64-w64-mingw32.exe
 
+  build-without-bip70:
+    Werror: true
+    cmake_flags:
+      - '-DENABLE_BIP70=OFF'
+    targets:
+      - - all
+        - install
+      - - check
+        - check-functional
+    timeout: 1800
+
   build-without-cli:
     Werror: true
     cmake_flags:
