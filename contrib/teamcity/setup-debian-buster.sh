@@ -25,6 +25,7 @@ PACKAGES=(
   g++-mingw-w64
   gnupg
   gperf
+  help2man
   imagemagick
   jq
   lcov
@@ -68,6 +69,7 @@ PACKAGES=(
   software-properties-common
   tar
   wget
+  xvfb
   yamllint
   wine
 )

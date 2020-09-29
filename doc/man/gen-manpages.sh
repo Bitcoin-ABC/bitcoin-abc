@@ -25,6 +25,14 @@ then
   exit 2
 fi
 
+# Unfortunately bitcoin-qt requires a handle on the DISPLAY, even for the
+# --help option. We can spoof an X window using xvfb.
+if ! command -v xvfb-run
+then
+  echo "xvfb is required to run $0 headlessly, please install it"
+  exit 3
+fi
+
 BITCOIND="$1"
 BIN="$2"
 MANPAGE="$3"
@@ -32,12 +40,12 @@ MANPAGE="$3"
 if [ ! -x "${BITCOIND}" ]
 then
   echo "${BITCOIND} not found or not executable."
-  exit 3
+  exit 4
 fi
 if [ ! -x "${BIN}" ]
 then
   echo "${BIN} not found or not executable."
-  exit 3
+  exit 5
 fi
 
 mkdir -p "$(dirname ${MANPAGE})"
@@ -56,5 +64,6 @@ trap "cleanup" EXIT
 echo "[COPYRIGHT]" > "${FOOTER}"
 "${BITCOIND}" --version | sed -n '1!p' >> "${FOOTER}"
 
-help2man -N --version-string="${VERSION[0]}" --include="${FOOTER}" -o "${MANPAGE}" "${BIN}"
+xvfb-run -a -e /dev/stderr \
+  help2man -N --version-string="${VERSION[0]}" --include="${FOOTER}" -o "${MANPAGE}" "${BIN}"
 sed -i "s/\\\-${VERSION[1]}//g" "${MANPAGE}"
