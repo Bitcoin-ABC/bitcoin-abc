@@ -643,11 +643,18 @@ void SetupServerArgs(NodeContext &node) {
                              "configured bans (default: %u)",
                              DEFAULT_MISBEHAVING_BANTIME),
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-    argsman.AddArg("-bind=<addr>",
-                   "Bind to given address and always listen on it. Use "
-                   "[host]:port notation for IPv6",
-                   ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
-                   OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-bind=<addr>[:<port>][=onion]",
+        strprintf("Bind to given address and always listen on it (default: "
+                  "0.0.0.0). Use [host]:port notation for IPv6. Append =onion "
+                  "to tag any incoming connections to that address and port as "
+                  "incoming Tor connections (default: 127.0.0.1:%u=onion, "
+                  "testnet: 127.0.0.1:%u=onion, regtest: 127.0.0.1:%u=onion)",
+                  defaultBaseParams->OnionServiceTargetPort(),
+                  testnetBaseParams->OnionServiceTargetPort(),
+                  regtestBaseParams->OnionServiceTargetPort()),
+        ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
+        OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-connect=<ip>",
         "Connect only to the specified node(s); -connect=0 disables automatic "
@@ -2977,10 +2984,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
     LogPrintf("nBestHeight = %d\n", chain_active_height);
 
-    if (args.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) {
-        StartTorControl(DefaultOnionServiceTarget());
-    }
-
     Discover();
 
     // Map ports with UPnP
@@ -3012,12 +3015,42 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nMaxOutboundLimit = nMaxOutboundLimit;
     connOptions.m_peer_connect_timeout = peer_connect_timeout;
 
-    for (const std::string &strBind : args.GetArgs("-bind")) {
-        CService addrBind;
-        if (!Lookup(strBind, addrBind, GetListenPort(), false)) {
-            return InitError(ResolveErrMsg("bind", strBind));
+    for (const std::string &bind_arg : args.GetArgs("-bind")) {
+        CService bind_addr;
+        const size_t index = bind_arg.rfind('=');
+        if (index == std::string::npos) {
+            if (Lookup(bind_arg, bind_addr, GetListenPort(), false)) {
+                connOptions.vBinds.push_back(bind_addr);
+                continue;
+            }
+        } else {
+            const std::string network_type = bind_arg.substr(index + 1);
+            if (network_type == "onion") {
+                const std::string truncated_bind_arg =
+                    bind_arg.substr(0, index);
+                if (Lookup(truncated_bind_arg, bind_addr,
+                           BaseParams().OnionServiceTargetPort(), false)) {
+                    connOptions.onion_binds.push_back(bind_addr);
+                    continue;
+                }
+            }
         }
-        connOptions.vBinds.push_back(addrBind);
+        return InitError(ResolveErrMsg("bind", bind_arg));
+    }
+
+    if (connOptions.onion_binds.empty()) {
+        connOptions.onion_binds.push_back(DefaultOnionServiceTarget());
+    }
+
+    if (args.GetBoolArg("-listenonion", DEFAULT_LISTEN_ONION)) {
+        const auto bind_addr = connOptions.onion_binds.front();
+        if (connOptions.onion_binds.size() > 1) {
+            InitWarning(strprintf(
+                _("More than one onion bind address is provided. Using %s for "
+                  "the automatically created Tor onion service."),
+                bind_addr.ToStringIPPort()));
+        }
+        StartTorControl(bind_addr);
     }
 
     for (const std::string &strBind : args.GetArgs("-whitebind")) {
