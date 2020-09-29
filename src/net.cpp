@@ -2515,11 +2515,6 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
     }
 
     vhListenSocket.push_back(ListenSocket(hListenSocket, permissions));
-
-    if (addrBind.IsRoutable() && fDiscover && (permissions & PF_NOBAN) == 0) {
-        AddLocal(addrBind, LOCAL_BIND);
-    }
-
     return true;
 }
 
@@ -2614,6 +2609,11 @@ bool CConnman::Bind(const CService &addr, unsigned int flags,
         }
         return false;
     }
+
+    if (addr.IsRoutable() && fDiscover && (permissions & PF_NOBAN) == 0) {
+        AddLocal(addr, LOCAL_BIND);
+    }
+
     return true;
 }
 
