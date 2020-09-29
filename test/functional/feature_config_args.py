@@ -13,6 +13,7 @@ class ConfArgsTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.supports_cli = False
+        self.wallet_names = []
 
     def test_config_file_parser(self):
         # Assume node is stopped

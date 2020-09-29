@@ -16,7 +16,7 @@ class FilelockTest(BitcoinTestFramework):
 
     def setup_network(self):
         self.add_nodes(self.num_nodes, extra_args=None)
-        self.nodes[0].start(['-wallet='])
+        self.nodes[0].start()
         self.nodes[0].wait_for_rpc_connection()
 
     def run_test(self):
@@ -31,6 +31,7 @@ class FilelockTest(BitcoinTestFramework):
                                                      '-datadir={}'.format(self.nodes[0].datadir), '-noserver'], expected_msg=expected_msg)
 
         if self.is_wallet_compiled():
+            self.nodes[0].createwallet(self.default_wallet_name)
             wallet_dir = os.path.join(datadir, 'wallets')
             self.log.info(
                 "Check that we can't start a second bitcoind instance using the same wallet")
