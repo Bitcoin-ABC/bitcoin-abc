@@ -13,6 +13,7 @@
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <random.h>
+#include <stdexcept>
 #include <util/check.h>
 #include <util/string.h>
 #include <util/system.h>
@@ -209,7 +210,7 @@ CBlock getBlock13b8a();
 class HasReason {
 public:
     explicit HasReason(const std::string &reason) : m_reason(reason) {}
-    template <typename E> bool operator()(const E &e) const {
+    bool operator()(const std::exception &e) const {
         return std::string(e.what()).find(m_reason) != std::string::npos;
     };
 
