@@ -105,7 +105,8 @@ class ReorgsRestoreTest(BitcoinTestFramework):
             os.path.join(
                 self.nodes[1].datadir,
                 self.chain,
-                'wallet.dat'))
+                self.default_wallet_name,
+                self.wallet_data_filename))
         self.start_node(1)
         tx_after_reorg = self.nodes[1].gettransaction(txid)
         # Check that normal confirmed tx is confirmed again but with different

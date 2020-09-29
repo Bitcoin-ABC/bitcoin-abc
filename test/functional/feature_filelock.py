@@ -38,7 +38,7 @@ class FilelockTest(BitcoinTestFramework):
             self.nodes[1].assert_start_raises_init_error(
                 extra_args=[
                     '-walletdir={}'.format(wallet_dir),
-                    '-wallet=',
+                    '-wallet=' + self.default_wallet_name,
                     '-noserver'],
                 expected_msg=expected_msg,
                 match=ErrorMatch.PARTIAL_REGEX)

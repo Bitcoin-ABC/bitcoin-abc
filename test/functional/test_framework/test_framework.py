@@ -109,6 +109,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.rpc_timeout = 60
         self.supports_cli = True
         self.bind_to_localhost_only = True
+        self.default_wallet_name = ""
+        self.wallet_data_filename = "wallet.dat"
         # We run parse_args before set_test_params for tests who need to
         # know the parser options during setup.
         self.parse_args()

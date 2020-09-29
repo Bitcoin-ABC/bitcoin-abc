@@ -107,12 +107,15 @@ class WalletBackupTest(BitcoinTestFramework):
         self.stop_node(2)
 
     def erase_three(self):
-        os.remove(os.path.join(
-            self.nodes[0].datadir, self.chain, 'wallets', 'wallet.dat'))
-        os.remove(os.path.join(
-            self.nodes[1].datadir, self.chain, 'wallets', 'wallet.dat'))
-        os.remove(os.path.join(
-            self.nodes[2].datadir, self.chain, 'wallets', 'wallet.dat'))
+        os.remove(
+            os.path.join(self.nodes[0].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename))
+        os.remove(
+            os.path.join(self.nodes[1].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename))
+        os.remove(
+            os.path.join(self.nodes[2].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename))
 
     def run_test(self):
         self.log.info("Generating initial blockchain")
@@ -184,12 +187,18 @@ class WalletBackupTest(BitcoinTestFramework):
             self.nodes[2].datadir, self.chain, 'chainstate'))
 
         # Restore wallets from backup
-        shutil.copyfile(os.path.join(self.nodes[0].datadir, 'wallet.bak'), os.path.join(
-            self.nodes[0].datadir, self.chain, 'wallets', 'wallet.dat'))
-        shutil.copyfile(os.path.join(self.nodes[1].datadir, 'wallet.bak'), os.path.join(
-            self.nodes[1].datadir, self.chain, 'wallets', 'wallet.dat'))
-        shutil.copyfile(os.path.join(self.nodes[2].datadir, 'wallet.bak'), os.path.join(
-            self.nodes[2].datadir, self.chain, 'wallets', 'wallet.dat'))
+        shutil.copyfile(
+            os.path.join(self.nodes[0].datadir, 'wallet.bak'),
+            os.path.join(self.nodes[0].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename))
+        shutil.copyfile(
+            os.path.join(self.nodes[1].datadir, 'wallet.bak'),
+            os.path.join(self.nodes[1].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename))
+        shutil.copyfile(
+            os.path.join(self.nodes[2].datadir, 'wallet.bak'),
+            os.path.join(self.nodes[2].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename))
 
         self.log.info("Re-starting nodes")
         self.start_three()
@@ -233,11 +242,12 @@ class WalletBackupTest(BitcoinTestFramework):
 
         # Backup to source wallet file must fail
         sourcePaths = [
-            os.path.join(self.nodes[0].datadir,
-                         self.chain, 'wallets', 'wallet.dat'),
-            os.path.join(self.nodes[0].datadir, self.chain,
-                         '.', 'wallets', 'wallet.dat'),
-            os.path.join(self.nodes[0].datadir, self.chain, 'wallets', ''),
+            os.path.join(self.nodes[0].datadir, self.chain, 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename),
+            os.path.join(self.nodes[0].datadir, self.chain, '.', 'wallets',
+                         self.default_wallet_name, self.wallet_data_filename),
+            os.path.join(self.nodes[0].datadir, self.chain, 'wallets',
+                         self.default_wallet_name),
             os.path.join(self.nodes[0].datadir, self.chain, 'wallets')]
 
         for sourcePath in sourcePaths:
