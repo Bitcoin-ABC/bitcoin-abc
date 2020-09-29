@@ -150,6 +150,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		dbwrapper_tests.cpp
 		denialofservice_tests.cpp
 		descriptor_tests.cpp
+		dnsseeds_tests.cpp
 		dstencode_tests.cpp
 		excessiveblock_tests.cpp
 		feerate_tests.cpp
@@ -196,7 +197,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		script_standard_tests.cpp
 		script_tests.cpp
 		scriptnum_tests.cpp
-		dnsseeds_tests.cpp
 		serialize_tests.cpp
 		settings_tests.cpp
 		sigcache_tests.cpp
@@ -211,6 +211,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		torcontrol_tests.cpp
 		transaction_tests.cpp
 		txindex_tests.cpp
+		txrequest_tests.cpp
 		txvalidation_tests.cpp
 		txvalidationcache_tests.cpp
 		uint256_tests.cpp
