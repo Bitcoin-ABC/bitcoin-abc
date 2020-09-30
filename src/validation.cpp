@@ -3869,11 +3869,11 @@ CBlockIndex *BlockManager::GetLastCheckpoint(const CCheckpointData &data) {
  * in ConnectBlock().
  * Note that -reindex-chainstate skips the validation that happens here!
  */
-static bool ContextualCheckBlockHeader(const CChainParams &params,
-                                       const CBlockHeader &block,
-                                       BlockValidationState &state,
-                                       const CBlockIndex *pindexPrev,
-                                       int64_t nAdjustedTime)
+static bool
+ContextualCheckBlockHeader(const CChainParams &params,
+                           const CBlockHeader &block,
+                           BlockValidationState &state, BlockManager &blockman,
+                           const CBlockIndex *pindexPrev, int64_t nAdjustedTime)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     assert(pindexPrev != nullptr);
     const int nHeight = pindexPrev->nHeight + 1;
@@ -3901,8 +3901,10 @@ static bool ContextualCheckBlockHeader(const CChainParams &params,
         // Don't accept any forks from the main chain prior to last checkpoint.
         // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's
         // in our BlockIndex().
-        CBlockIndex *pcheckpoint =
-            g_chainman.m_blockman.GetLastCheckpoint(checkpoints);
+        assert(std::addressof(g_chainman.m_blockman) ==
+               std::addressof(blockman));
+
+        CBlockIndex *pcheckpoint = blockman.GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             LogPrintf("ERROR: %s: forked chain older than last checkpoint "
                       "(height %d)\n",
@@ -4122,8 +4124,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
                                  "bad-prevblk");
         }
 
-        if (!ContextualCheckBlockHeader(chainparams, block, state, pindexPrev,
-                                        GetAdjustedTime())) {
+        if (!ContextualCheckBlockHeader(chainparams, block, state, *this,
+                                        pindexPrev, GetAdjustedTime())) {
             return error("%s: Consensus::ContextualCheckBlockHeader: %s, %s",
                          __func__, hash.ToString(), state.ToString());
         }
@@ -4479,8 +4481,8 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
     indexDummy.phashBlock = &block_hash;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
-    if (!ContextualCheckBlockHeader(params, block, state, pindexPrev,
-                                    GetAdjustedTime())) {
+    if (!ContextualCheckBlockHeader(params, block, state, g_chainman.m_blockman,
+                                    pindexPrev, GetAdjustedTime())) {
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      state.ToString());
     }
