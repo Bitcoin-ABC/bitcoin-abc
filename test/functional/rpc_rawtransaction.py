@@ -127,7 +127,7 @@ class RawTransactionsTest(BitcoinTestFramework):
                                 self.nodes[0].createrawtransaction, [{'txid': txid}], {})
         assert_raises_rpc_error(-8, "Invalid parameter, vout must be a number",
                                 self.nodes[0].createrawtransaction, [{'txid': txid, 'vout': 'foo'}], {})
-        assert_raises_rpc_error(-8, "Invalid parameter, vout must be positive",
+        assert_raises_rpc_error(-8, "Invalid parameter, vout cannot be negative",
                                 self.nodes[0].createrawtransaction, [{'txid': txid, 'vout': -1}], {})
         assert_raises_rpc_error(-8, "Invalid parameter, sequence number is out of range",
                                 self.nodes[0].createrawtransaction, [{'txid': txid, 'vout': 0, 'sequence': -1}], {})
@@ -551,7 +551,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         inputs[0]['vout'] = -1
         assert_raises_rpc_error(
-            -8, 'Invalid parameter, vout must be positive',
+            -8, 'Invalid parameter, vout cannot be negative',
             self.nodes[0].createrawtransaction, inputs, outputs)
 
         inputs[0]['vout'] = 1

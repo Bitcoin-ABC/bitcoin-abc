@@ -279,7 +279,7 @@ static UniValue buildavalancheproof(const Config &config,
         int nOut = find_value(stake, "vout").get_int();
         if (nOut < 0) {
             throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
-                               "vout must be positive");
+                               "vout cannot be negative");
         }
 
         const int height = find_value(stake, "height").get_int();

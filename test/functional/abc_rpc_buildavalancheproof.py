@@ -55,7 +55,7 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
         negative_vout = good_stake.copy()
         negative_vout['vout'] = -1
         check_buildavalancheproof_error(-22,
-                                        "vout must be positive",
+                                        "vout cannot be negative",
                                         [negative_vout],
                                         )
 

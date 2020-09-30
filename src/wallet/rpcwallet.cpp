@@ -2726,7 +2726,7 @@ static RPCHelpMan lockunspent() {
                 if (nOutput < 0) {
                     throw JSONRPCError(
                         RPC_INVALID_PARAMETER,
-                        "Invalid parameter, vout must be positive");
+                        "Invalid parameter, vout cannot be negative");
                 }
 
                 const TxId txid(ParseHashO(o, "txid"));
