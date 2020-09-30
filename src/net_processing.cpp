@@ -56,13 +56,11 @@ static constexpr std::chrono::seconds RELAY_TX_CACHE_TIME =
 static constexpr std::chrono::seconds UNCONDITIONAL_RELAY_DELAY =
     std::chrono::minutes{2};
 /**
- * Headers download timeout expressed in microseconds.
+ * Headers download timeout.
  * Timeout = base + per_header * (expected number of headers)
  */
-// 15 minutes
-static constexpr int64_t HEADERS_DOWNLOAD_TIMEOUT_BASE = 15 * 60 * 1000000;
-// 1ms/header
-static constexpr int64_t HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER = 1000;
+static constexpr auto HEADERS_DOWNLOAD_TIMEOUT_BASE = 15min;
+static constexpr auto HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER = 1ms;
 /**
  * Protect at least this many outbound peers from disconnection due to
  * slow/behind headers chain.
@@ -174,10 +172,10 @@ static const unsigned int MAX_GETDATA_SZ = 1000;
  */
 static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
 /**
- * Timeout in seconds during which a peer must stall block download progress
- * before being disconnected.
+ * Time during which a peer must stall block download progress before being
+ * disconnected.
  */
-static const unsigned int BLOCK_STALLING_TIMEOUT = 2;
+static constexpr auto BLOCK_STALLING_TIMEOUT = 2s;
 /**
  * Number of headers sent in one getheaders result. We rely on the assumption
  * that if a peer sends
@@ -204,14 +202,14 @@ static const int MAX_BLOCKTXN_DEPTH = 10;
  */
 static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
 /**
- * Block download timeout base, expressed in millionths of the block interval
+ * Block download timeout base, expressed in multiples of the block interval
  * (i.e. 10 min)
  */
-static const int64_t BLOCK_DOWNLOAD_TIMEOUT_BASE = 1000000;
+static constexpr double BLOCK_DOWNLOAD_TIMEOUT_BASE = 1;
 /**
  * Additional block download timeout per parallel downloading peer (i.e. 5 min)
  */
-static const int64_t BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 500000;
+static constexpr double BLOCK_DOWNLOAD_TIMEOUT_PER_PEER = 0.5;
 /**
  * Maximum number of headers to announce when relaying blocks with headers
  * message.
@@ -724,14 +722,14 @@ struct CNodeState {
     //! Whether we've started headers synchronization with this peer.
     bool fSyncStarted;
     //! When to potentially disconnect peer for stalling headers download
-    int64_t nHeadersSyncTimeout;
+    std::chrono::microseconds m_headers_sync_timeout{0us};
     //! Since when we're stalling block download progress (in microseconds), or
     //! 0.
-    int64_t nStallingSince;
+    std::chrono::microseconds m_stalling_since{0us};
     std::list<QueuedBlock> vBlocksInFlight;
     //! When the first entry in vBlocksInFlight started downloading. Don't care
     //! when vBlocksInFlight is empty.
-    int64_t nDownloadingSince;
+    std::chrono::microseconds m_downloading_since{0us};
     int nBlocksInFlight;
     int nBlocksInFlightValidHeaders;
     //! Whether we consider this a preferred download peer.
@@ -829,9 +827,6 @@ struct CNodeState {
         pindexBestHeaderSent = nullptr;
         nUnconnectingHeaders = 0;
         fSyncStarted = false;
-        nHeadersSyncTimeout = 0;
-        nStallingSince = 0;
-        nDownloadingSince = 0;
         nBlocksInFlight = 0;
         nBlocksInFlightValidHeaders = 0;
         fPreferredDownload = false;
@@ -897,13 +892,13 @@ static bool MarkBlockAsReceived(const BlockHash &hash)
         if (state->vBlocksInFlight.begin() == itInFlight->second.second) {
             // First block on the queue was received, update the start download
             // time for the next one
-            state->nDownloadingSince = std::max(
-                state->nDownloadingSince,
-                count_microseconds(GetTime<std::chrono::microseconds>()));
+            state->m_downloading_since =
+                std::max(state->m_downloading_since,
+                         GetTime<std::chrono::microseconds>());
         }
         state->vBlocksInFlight.erase(itInFlight->second.second);
         state->nBlocksInFlight--;
-        state->nStallingSince = 0;
+        state->m_stalling_since = 0us;
         mapBlocksInFlight.erase(itInFlight);
         return true;
     }
@@ -948,7 +943,7 @@ MarkBlockAsInFlight(const Config &config, CTxMemPool &mempool, NodeId nodeid,
     state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
     if (state->nBlocksInFlight == 1) {
         // We're starting a block download (batch) from this peer.
-        state->nDownloadingSince = GetTime<std::chrono::microseconds>().count();
+        state->m_downloading_since = GetTime<std::chrono::microseconds>();
     }
 
     if (state->nBlocksInFlightValidHeaders == 1 && pindex != nullptr) {
@@ -5681,12 +5676,15 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 pindexBestHeader->GetBlockTime() >
                     GetAdjustedTime() - 24 * 60 * 60) {
                 state.fSyncStarted = true;
-                state.nHeadersSyncTimeout =
-                    count_microseconds(current_time) +
-                    HEADERS_DOWNLOAD_TIMEOUT_BASE +
-                    HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER *
+                state.m_headers_sync_timeout =
+                    current_time + HEADERS_DOWNLOAD_TIMEOUT_BASE +
+                    (
+                        // Convert HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER to
+                        // microseconds before scaling to maintain precision
+                        std::chrono::microseconds{
+                            HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER} *
                         (GetAdjustedTime() - pindexBestHeader->GetBlockTime()) /
-                        (consensusParams.nPowTargetSpacing);
+                        consensusParams.nPowTargetSpacing);
                 nSyncStarted++;
                 const CBlockIndex *pindexStart = pindexBestHeader;
                 /**
@@ -6097,9 +6095,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
         // Detect whether we're stalling
         current_time = GetTime<std::chrono::microseconds>();
-        if (state.nStallingSince &&
-            state.nStallingSince < count_microseconds(current_time) -
-                                       1000000 * BLOCK_STALLING_TIMEOUT) {
+        if (state.m_stalling_since.count() &&
+            state.m_stalling_since < current_time - BLOCK_STALLING_TIMEOUT) {
             // Stalling only triggers when the block download window cannot
             // move. During normal steady state, the download window should be
             // much larger than the to-be-downloaded set of blocks, so
@@ -6109,9 +6106,9 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             pto->fDisconnect = true;
             return true;
         }
-        // In case there is a block that has been in flight from this peer for 2
-        // + 0.5 * N times the block interval (with N the number of peers from
-        // which we're downloading validated blocks), disconnect due to timeout.
+        // In case there is a block that has been in flight from this peer for
+        // block_interval * (1 + 0.5 * N) (with N the number of peers from which
+        // we're downloading validated blocks), disconnect due to timeout.
         // We compensate for other peers to prevent killing off peers due to our
         // own downstream link being saturated. We only count validated
         // in-flight blocks so peers can't advertise non-existing block hashes
@@ -6121,9 +6118,9 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             int nOtherPeersWithValidatedDownloads =
                 nPeersWithValidatedDownloads -
                 (state.nBlocksInFlightValidHeaders > 0);
-            if (count_microseconds(current_time) >
-                state.nDownloadingSince +
-                    consensusParams.nPowTargetSpacing *
+            if (current_time >
+                state.m_downloading_since +
+                    std::chrono::seconds{consensusParams.nPowTargetSpacing} *
                         (BLOCK_DOWNLOAD_TIMEOUT_BASE +
                          BLOCK_DOWNLOAD_TIMEOUT_PER_PEER *
                              nOtherPeersWithValidatedDownloads)) {
@@ -6137,12 +6134,11 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
         // Check for headers sync timeouts
         if (state.fSyncStarted &&
-            state.nHeadersSyncTimeout < std::numeric_limits<int64_t>::max()) {
+            state.m_headers_sync_timeout < std::chrono::microseconds::max()) {
             // Detect whether this is a stalling initial-headers-sync peer
             if (pindexBestHeader->GetBlockTime() <=
                 GetAdjustedTime() - 24 * 60 * 60) {
-                if (count_microseconds(current_time) >
-                        state.nHeadersSyncTimeout &&
+                if (current_time > state.m_headers_sync_timeout &&
                     nSyncStarted == 1 &&
                     (nPreferredDownload - state.fPreferredDownload >= 1)) {
                     // Disconnect a peer (without the noban permission) if it
@@ -6167,13 +6163,13 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         // message to be sent to this peer (eventually).
                         state.fSyncStarted = false;
                         nSyncStarted--;
-                        state.nHeadersSyncTimeout = 0;
+                        state.m_headers_sync_timeout = 0us;
                     }
                 }
             } else {
                 // After we've caught up once, reset the timeout so we can't
                 // trigger disconnect later.
-                state.nHeadersSyncTimeout = std::numeric_limits<int64_t>::max();
+                state.m_headers_sync_timeout = std::chrono::microseconds::max();
             }
         }
 
@@ -6212,9 +6208,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                          pto->GetId());
             }
             if (state.nBlocksInFlight == 0 && staller != -1) {
-                if (State(staller)->nStallingSince == 0) {
-                    State(staller)->nStallingSince =
-                        count_microseconds(current_time);
+                if (State(staller)->m_stalling_since == 0us) {
+                    State(staller)->m_stalling_since = current_time;
                     LogPrint(BCLog::NET, "Stall started peer=%d\n", staller);
                 }
             }
