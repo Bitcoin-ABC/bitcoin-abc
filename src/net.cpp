@@ -1275,9 +1275,14 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     if (NetPermissions::HasFlag(permissionFlags, PF_BLOOMFILTER)) {
         nodeServices = static_cast<ServiceFlags>(nodeServices | NODE_BLOOM);
     }
-    CNode *pnode = new CNode(id, nodeServices, GetBestHeight(), hSocket, addr,
-                             CalculateKeyedNetGroup(addr), nonce, extra_entropy,
-                             addr_bind, "", ConnectionType::INBOUND);
+
+    const bool inbound_onion =
+        std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
+        m_onion_binds.end();
+    CNode *pnode =
+        new CNode(id, nodeServices, GetBestHeight(), hSocket, addr,
+                  CalculateKeyedNetGroup(addr), nonce, extra_entropy, addr_bind,
+                  "", ConnectionType::INBOUND, inbound_onion);
     pnode->AddRef();
     pnode->m_permissionFlags = permissionFlags;
     // If this flag is present, the user probably expect that RPC and QT report
@@ -3204,7 +3209,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
              uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
-             const std::string &addrNameIn, ConnectionType conn_type_in)
+             const std::string &addrNameIn, ConnectionType conn_type_in,
+             bool inbound_onion)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
       addrBind(addrBindIn), nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
@@ -3212,7 +3218,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
       // links from addr traffic).
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
       nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
-      nLocalServices(nLocalServicesIn), nMyStartingHeight(nMyStartingHeightIn) {
+      nLocalServices(nLocalServicesIn), nMyStartingHeight(nMyStartingHeightIn),
+      m_inbound_onion(inbound_onion) {
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
     hashContinue = BlockHash();
