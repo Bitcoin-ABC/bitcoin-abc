@@ -834,9 +834,8 @@ public:
     virtual bool Complete() const = 0;
     // set the serialization context version
     virtual void SetVersion(int version) = 0;
-    // read and deserialize data
-    virtual int Read(const Config &config, const char *data,
-                     uint32_t bytes) = 0;
+    /** read and deserialize data, advances msg_bytes data pointer */
+    virtual int Read(const Config &config, Span<const char> &msg_bytes) = 0;
     // decomposes a message from the context
     virtual CNetMessage GetMessage(const Config &config,
                                    std::chrono::microseconds time) = 0;
@@ -860,8 +859,8 @@ private:
     uint32_t nDataPos;
 
     const uint256 &GetMessageHash() const;
-    int readHeader(const Config &config, const char *pch, uint32_t nBytes);
-    int readData(const char *pch, uint32_t nBytes);
+    int readHeader(const Config &config, Span<const char> msg_bytes);
+    int readData(Span<const char> msg_bytes);
 
     void Reset() {
         vRecv.clear();
@@ -895,11 +894,12 @@ public:
         hdrbuf.SetVersion(nVersionIn);
         vRecv.SetVersion(nVersionIn);
     }
-    int Read(const Config &config, const char *pch, uint32_t nBytes) override {
-        int ret =
-            in_data ? readData(pch, nBytes) : readHeader(config, pch, nBytes);
+    int Read(const Config &config, Span<const char> &msg_bytes) override {
+        int ret = in_data ? readData(msg_bytes) : readHeader(config, msg_bytes);
         if (ret < 0) {
             Reset();
+        } else {
+            msg_bytes = msg_bytes.subspan(ret);
         }
         return ret;
     }
@@ -1297,7 +1297,16 @@ public:
         return nRefCount;
     }
 
-    bool ReceiveMsgBytes(const Config &config, const char *pch, uint32_t nBytes,
+    /**
+     * Receive bytes from the buffer and deserialize them into messages.
+     *
+     * @param[in]   msg_bytes   The raw data
+     * @param[out]  complete    Set True if at least one message has been
+     *                          deserialized and is ready to be processed
+     * @return  True if the peer should stay connected,
+     *          False if the peer should be disconnected from.
+     */
+    bool ReceiveMsgBytes(const Config &config, Span<const char> msg_bytes,
                          bool &complete);
 
     void SetCommonVersion(int greatest_common_version) {

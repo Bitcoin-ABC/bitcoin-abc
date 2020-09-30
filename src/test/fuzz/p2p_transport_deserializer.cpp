@@ -22,15 +22,12 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     const Config &config = GetConfig();
     V1TransportDeserializer deserializer{config.GetChainParams().NetMagic(),
                                          SER_NETWORK, INIT_PROTO_VERSION};
-    const char *pch = (const char *)buffer.data();
-    size_t n_bytes = buffer.size();
-    while (n_bytes > 0) {
-        const int handled = deserializer.Read(config, pch, n_bytes);
+    Span<const char> msg_bytes{(const char *)buffer.data(), buffer.size()};
+    while (msg_bytes.size() > 0) {
+        const int handled = deserializer.Read(config, msg_bytes);
         if (handled < 0) {
             break;
         }
-        pch += handled;
-        n_bytes -= handled;
         if (deserializer.Complete()) {
             const std::chrono::microseconds m_time{
                 std::numeric_limits<int64_t>::max()};

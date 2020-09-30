@@ -658,23 +658,19 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_conn_type_string = ConnectionTypeAsString();
 }
 
-bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
-                            uint32_t nBytes, bool &complete) {
+bool CNode::ReceiveMsgBytes(const Config &config, Span<const char> msg_bytes,
+                            bool &complete) {
     complete = false;
     const auto time = GetTime<std::chrono::microseconds>();
     LOCK(cs_vRecv);
     nLastRecv = std::chrono::duration_cast<std::chrono::seconds>(time).count();
-    nRecvBytes += nBytes;
-    while (nBytes > 0) {
+    nRecvBytes += msg_bytes.size();
+    while (msg_bytes.size() > 0) {
         // Absorb network data.
-        int handled = m_deserializer->Read(config, pch, nBytes);
-
+        int handled = m_deserializer->Read(config, msg_bytes);
         if (handled < 0) {
             return false;
         }
-
-        pch += handled;
-        nBytes -= handled;
 
         if (m_deserializer->Complete()) {
             // decompose a transport agnostic CNetMessage from the deserializer
@@ -701,13 +697,13 @@ bool CNode::ReceiveMsgBytes(const Config &config, const char *pch,
     return true;
 }
 
-int V1TransportDeserializer::readHeader(const Config &config, const char *pch,
-                                        uint32_t nBytes) {
+int V1TransportDeserializer::readHeader(const Config &config,
+                                        Span<const char> msg_bytes) {
     // copy data to temporary parsing buffer
     uint32_t nRemaining = CMessageHeader::HEADER_SIZE - nHdrPos;
-    uint32_t nCopy = std::min(nRemaining, nBytes);
+    uint32_t nCopy = std::min<unsigned int>(nRemaining, msg_bytes.size());
 
-    memcpy(&hdrbuf[nHdrPos], pch, nCopy);
+    memcpy(&hdrbuf[nHdrPos], msg_bytes.data(), nCopy);
     nHdrPos += nCopy;
 
     // if header incomplete, exit
@@ -734,9 +730,9 @@ int V1TransportDeserializer::readHeader(const Config &config, const char *pch,
     return nCopy;
 }
 
-int V1TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
+int V1TransportDeserializer::readData(Span<const char> msg_bytes) {
     unsigned int nRemaining = hdr.nMessageSize - nDataPos;
-    unsigned int nCopy = std::min(nRemaining, nBytes);
+    unsigned int nCopy = std::min<unsigned int>(nRemaining, msg_bytes.size());
 
     if (vRecv.size() < nDataPos + nCopy) {
         // Allocate up to 256 KiB ahead, but never more than the total message
@@ -744,8 +740,8 @@ int V1TransportDeserializer::readData(const char *pch, uint32_t nBytes) {
         vRecv.resize(std::min(hdr.nMessageSize, nDataPos + nCopy + 256 * 1024));
     }
 
-    hasher.Write({(const uint8_t *)pch, nCopy});
-    memcpy(&vRecv[nDataPos], pch, nCopy);
+    hasher.Write(MakeUCharSpan(msg_bytes.first(nCopy)));
+    memcpy(&vRecv[nDataPos], msg_bytes.data(), nCopy);
     nDataPos += nCopy;
 
     return nCopy;
@@ -1681,7 +1677,8 @@ void CConnman::SocketHandler() {
             }
             if (nBytes > 0) {
                 bool notify = false;
-                if (!pnode->ReceiveMsgBytes(*config, pchBuf, nBytes, notify)) {
+                if (!pnode->ReceiveMsgBytes(
+                        *config, Span<const char>(pchBuf, nBytes), notify)) {
                     pnode->CloseSocketDisconnect();
                 }
                 RecordBytesRecv(nBytes);
