@@ -22,12 +22,15 @@ fi
 mkdir -p buildcmake/install
 pushd buildcmake
 
-# Use the cmake version installed via the install_cmake.sh script on linux amd64
-if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "${TRAVIS_CPU_ARCH}" = "amd64" ]
-then
-  CMAKE_COMMAND=/opt/cmake/bin/cmake
-else
-  CMAKE_COMMAND=cmake
+CMAKE_COMMAND=cmake
+# Override with the cmake version installed via the install_cmake.sh script on
+# amd64
+if [ "${TRAVIS_CPU_ARCH}" = "amd64" ]; then
+  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+    CMAKE_COMMAND=/opt/cmake/bin/cmake
+  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+    CMAKE_COMMAND=/opt/cmake/CMake.app/Contents/bin/cmake
+  fi
 fi
 ${CMAKE_COMMAND} --version
 

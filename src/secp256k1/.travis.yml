@@ -16,16 +16,9 @@ addons:
       - libtool-bin
       - ninja-build
       - valgrind
-  homebrew:
-    packages:
-      - cmake
-      - gmp
-      - ninja
-      - valgrind
-    update: true
 install:
-  - if [ "${TRAVIS_OS_NAME}" = "linux" ] && [ "${TRAVIS_CPU_ARCH}" = "amd64" ]; then ./travis/install_cmake.sh; fi
-  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install gcc@9; fi
+  - if [ "${TRAVIS_CPU_ARCH}" = "amd64" ]; then ./travis/install_cmake.sh; fi
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install gcc@9 gmp ninja openssl valgrind; fi
 cache:
   directories:
     - /opt/cmake
