@@ -46,7 +46,7 @@ builds:
       - '-DENABLE_SANITIZERS=address'
     templates:
       - check+secp256k1
-    timeout: 1800
+    timeout: 2400
     env:
       ASAN_OPTIONS: log_path=stdout
       LSAN_OPTIONS: log_path=stdout
@@ -282,7 +282,7 @@ builds:
         - install
       - - check
         - check-functional
-    timeout: 1800
+    timeout: 2400
     env:
       TSAN_OPTIONS: log_path=stdout
 
@@ -294,7 +294,7 @@ builds:
       - '-DENABLE_SANITIZERS=undefined'
     templates:
       - check+secp256k1
-    timeout: 1800
+    timeout: 2400
     env:
       UBSAN_OPTIONS: log_path=stdout
 
