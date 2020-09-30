@@ -613,10 +613,10 @@ struct Peer {
      */
     std::set<TxId> m_orphan_work_set GUARDED_BY(g_cs_orphans);
 
-    /** Protects vRecvGetData **/
+    /** Protects m_getdata_requests **/
     Mutex m_getdata_requests_mutex;
     /** Work queue of items requested by this peer **/
-    std::deque<CInv> vRecvGetData GUARDED_BY(m_getdata_requests_mutex);
+    std::deque<CInv> m_getdata_requests GUARDED_BY(m_getdata_requests_mutex);
 
     Peer(NodeId id) : m_id(id) {}
 };
@@ -2173,7 +2173,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
         LOCKS_EXCLUDED(::cs_main) {
     AssertLockNotHeld(cs_main);
 
-    std::deque<CInv>::iterator it = peer.vRecvGetData.begin();
+    std::deque<CInv>::iterator it = peer.m_getdata_requests.begin();
     std::vector<CInv> vNotFound;
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
 
@@ -2187,7 +2187,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
     // Process as many TX or AVA_PROOF items from the front of the getdata
     // queue as possible, since they're common and it's efficient to batch
     // process them.
-    while (it != peer.vRecvGetData.end()) {
+    while (it != peer.m_getdata_requests.end()) {
         if (interruptMsgProc) {
             return;
         }
@@ -2275,7 +2275,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
 
     // Only process one BLOCK item per call, since they're uncommon and can be
     // expensive to process.
-    if (it != peer.vRecvGetData.end() && !pfrom.fPauseSend) {
+    if (it != peer.m_getdata_requests.end() && !pfrom.fPauseSend) {
         const CInv &inv = *it++;
         if (inv.IsGenBlkMsg()) {
             ProcessGetBlockData(config, pfrom, inv, connman, interruptMsgProc);
@@ -2284,7 +2284,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
         // and continue processing the queue on the next call.
     }
 
-    peer.vRecvGetData.erase(peer.vRecvGetData.begin(), it);
+    peer.m_getdata_requests.erase(peer.m_getdata_requests.begin(), it);
 
     if (!vNotFound.empty()) {
         // Let the peer know that we didn't find what it asked for, so it
@@ -3411,8 +3411,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         {
             LOCK(peer->m_getdata_requests_mutex);
-            peer->vRecvGetData.insert(peer->vRecvGetData.end(), vInv.begin(),
-                                      vInv.end());
+            peer->m_getdata_requests.insert(peer->m_getdata_requests.end(),
+                                            vInv.begin(), vInv.end());
             ProcessGetData(config, pfrom, *peer, m_connman, m_mempool,
                            interruptMsgProc);
         }
@@ -3559,7 +3559,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         inv.type = MSG_BLOCK;
         inv.hash = req.blockhash;
         WITH_LOCK(peer->m_getdata_requests_mutex,
-                  peer->vRecvGetData.push_back(inv));
+                  peer->m_getdata_requests.push_back(inv));
         // The message processing loop will go around again (without pausing)
         // and we'll respond then (without cs_main)
         return;
@@ -4873,7 +4873,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
 
     {
         LOCK(peer->m_getdata_requests_mutex);
-        if (!peer->vRecvGetData.empty()) {
+        if (!peer->m_getdata_requests.empty()) {
             ProcessGetData(config, *pfrom, *peer, m_connman, m_mempool,
                            interruptMsgProc);
         }
@@ -4890,11 +4890,11 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
         return false;
     }
 
-    // this maintains the order of responses and prevents vRecvGetData from
-    // growing unbounded
+    // this maintains the order of responses and prevents m_getdata_requests
+    // from growing unbounded
     {
         LOCK(peer->m_getdata_requests_mutex);
-        if (!peer->vRecvGetData.empty()) {
+        if (!peer->m_getdata_requests.empty()) {
             return true;
         }
     }
@@ -4978,7 +4978,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
 
         {
             LOCK(peer->m_getdata_requests_mutex);
-            if (!peer->vRecvGetData.empty()) {
+            if (!peer->m_getdata_requests.empty()) {
                 fMoreWork = true;
             }
         }
