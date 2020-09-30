@@ -49,12 +49,12 @@ static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
 /** Minimum time between orphan transactions expire time checks in seconds */
 static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
 /** How long to cache transactions in mapRelay for normal relay */
-static constexpr std::chrono::seconds RELAY_TX_CACHE_TIME =
-    std::chrono::minutes{15};
-/** How long a transaction has to be in the mempool before it can
- * unconditionally be relayed (even when not in mapRelay). */
-static constexpr std::chrono::seconds UNCONDITIONAL_RELAY_DELAY =
-    std::chrono::minutes{2};
+static constexpr auto RELAY_TX_CACHE_TIME = 15min;
+/**
+ * How long a transaction has to be in the mempool before it can
+ * unconditionally be relayed (even when not in mapRelay).
+ */
+static constexpr auto UNCONDITIONAL_RELAY_DELAY = 2min;
 /**
  * Headers download timeout.
  * Timeout = base + per_header * (expected number of headers)
@@ -672,8 +672,8 @@ MapRelay mapRelay GUARDED_BY(cs_main);
  * Expiration-time ordered list of (expire time, relay map entry) pairs,
  * protected by cs_main).
  */
-std::deque<std::pair<int64_t, MapRelay::iterator>>
-    vRelayExpiration GUARDED_BY(cs_main);
+std::deque<std::pair<std::chrono::microseconds, MapRelay::iterator>>
+    g_relay_expiration GUARDED_BY(cs_main);
 
 struct IteratorComparator {
     template <typename I> bool operator()(const I &a, const I &b) const {
@@ -6125,22 +6125,18 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     nRelayedTransactions++;
                     {
                         // Expire old relay messages
-                        while (!vRelayExpiration.empty() &&
-                               vRelayExpiration.front().first <
-                                   count_microseconds(current_time)) {
-                            mapRelay.erase(vRelayExpiration.front().second);
-                            vRelayExpiration.pop_front();
+                        while (!g_relay_expiration.empty() &&
+                               g_relay_expiration.front().first <
+                                   current_time) {
+                            mapRelay.erase(g_relay_expiration.front().second);
+                            g_relay_expiration.pop_front();
                         }
 
                         auto ret = mapRelay.insert(
                             std::make_pair(txid, std::move(txinfo.tx)));
                         if (ret.second) {
-                            vRelayExpiration.push_back(std::make_pair(
-                                count_microseconds(current_time) +
-                                    std::chrono::microseconds{
-                                        RELAY_TX_CACHE_TIME}
-                                        .count(),
-                                ret.first));
+                            g_relay_expiration.push_back(std::make_pair(
+                                current_time + RELAY_TX_CACHE_TIME, ret.first));
                         }
                     }
                     pto->m_tx_relay->filterInventoryKnown.insert(txid);
