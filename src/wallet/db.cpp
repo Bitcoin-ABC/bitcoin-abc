@@ -866,7 +866,9 @@ void BerkeleyEnvironment::Flush(bool fShutdown) {
                 dbenv->txn_checkpoint(0, 0, 0);
                 LogPrint(BCLog::WALLETDB,
                          "BerkeleyEnvironment::Flush: %s detach\n", strFile);
-                if (!fMockDb) dbenv->lsn_reset(strFile.c_str(), 0);
+                if (!fMockDb) {
+                    dbenv->lsn_reset(strFile.c_str(), 0);
+                }
                 LogPrint(BCLog::WALLETDB,
                          "BerkeleyEnvironment::Flush: %s closed\n", strFile);
                 mapFileUseCount.erase(mi++);
