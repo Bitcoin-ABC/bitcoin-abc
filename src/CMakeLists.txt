@@ -35,6 +35,13 @@ set(OS_WITH_JEMALLOC_AS_SYSTEM_DEFAULT
 if(NOT CMAKE_SYSTEM_NAME IN_LIST OS_WITH_JEMALLOC_AS_SYSTEM_DEFAULT)
 	set(USE_JEMALLOC_DEFAULT ON)
 endif()
+
+# FIXME: Building against jemalloc causes the software to segfault on OSX.
+# See https://github.com/Bitcoin-ABC/bitcoin-abc/issues/401
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT CMAKE_CROSSCOMPILING)
+	set(USE_JEMALLOC_DEFAULT OFF)
+endif()
+
 option(USE_JEMALLOC "Use jemalloc as an allocation library" ${USE_JEMALLOC_DEFAULT})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
