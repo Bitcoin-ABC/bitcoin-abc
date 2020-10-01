@@ -244,7 +244,7 @@ class WalletTest(BitcoinTestFramework):
         self.sync_all()
 
         # check if we can list zero value tx as available coins
-        # 1. create rawtx
+        # 1. create raw_tx
         # 2. hex-changed one output to 0.0
         # 3. sign and send
         # 4. check if recipient (node0) can list the zero value tx
@@ -256,21 +256,21 @@ class WalletTest(BitcoinTestFramework):
 
         rawTx = self.nodes[1].createrawtransaction(inputs, outputs).replace(
             "c0833842", "00000000")  # replace 11.11 with 0.0 (int32)
-        decRawTx = self.nodes[1].decoderawtransaction(rawTx)
-        signedRawTx = self.nodes[1].signrawtransactionwithwallet(rawTx)
-        decRawTx = self.nodes[1].decoderawtransaction(signedRawTx['hex'])
-        zeroValueTxid = decRawTx['txid']
-        self.nodes[1].sendrawtransaction(signedRawTx['hex'])
+        signed_raw_tx = self.nodes[1].signrawtransactionwithwallet(rawTx)
+        decoded_raw_tx = self.nodes[1].decoderawtransaction(
+            signed_raw_tx['hex'])
+        zero_value_txid = decoded_raw_tx['txid']
+        self.nodes[1].sendrawtransaction(signed_raw_tx['hex'])
 
         self.sync_all()
         self.nodes[1].generate(1)  # mine a block
         self.sync_all()
 
         # zero value tx must be in listunspents output
-        unspentTxs = self.nodes[0].listunspent()
+        unspent_txs = self.nodes[0].listunspent()
         found = False
-        for uTx in unspentTxs:
-            if uTx['txid'] == zeroValueTxid:
+        for uTx in unspent_txs:
+            if uTx['txid'] == zero_value_txid:
                 found = True
                 assert_equal(uTx['amount'], Decimal('0'))
         assert found
@@ -285,9 +285,9 @@ class WalletTest(BitcoinTestFramework):
         connect_nodes(self.nodes[0], self.nodes[2])
         self.sync_all(self.nodes[0:3])
 
-        txIdNotBroadcasted = self.nodes[0].sendtoaddress(
+        txid_not_broadcast = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), 2)
-        txObjNotBroadcasted = self.nodes[0].gettransaction(txIdNotBroadcasted)
+        tx_obj_not_broadcast = self.nodes[0].gettransaction(txid_not_broadcast)
         self.nodes[1].generate(1)  # mine a block, tx should not be in there
         self.sync_all(self.nodes[0:3])
         # should not be changed because tx was not broadcasted
@@ -295,15 +295,15 @@ class WalletTest(BitcoinTestFramework):
 
         # now broadcast from another node, mine a block, sync, and check the
         # balance
-        self.nodes[1].sendrawtransaction(txObjNotBroadcasted['hex'])
+        self.nodes[1].sendrawtransaction(tx_obj_not_broadcast['hex'])
         self.nodes[1].generate(1)
         self.sync_all(self.nodes[0:3])
         node_2_bal += 2
-        txObjNotBroadcasted = self.nodes[0].gettransaction(txIdNotBroadcasted)
+        tx_obj_not_broadcast = self.nodes[0].gettransaction(txid_not_broadcast)
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
 
         # create another tx
-        txIdNotBroadcasted = self.nodes[0].sendtoaddress(
+        txid_not_broadcast = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), 2)
 
         # restart the nodes with -walletbroadcast=1
@@ -325,20 +325,20 @@ class WalletTest(BitcoinTestFramework):
         assert_equal(self.nodes[2].getbalance(), node_2_bal)
 
         # send a tx with value in a string (PR#6380 +)
-        txId = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), "2")
-        txObj = self.nodes[0].gettransaction(txId)
-        assert_equal(txObj['amount'], Decimal('-2'))
+        txid = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), "2")
+        tx_obj = self.nodes[0].gettransaction(txid)
+        assert_equal(tx_obj['amount'], Decimal('-2'))
 
-        txId = self.nodes[0].sendtoaddress(
+        txid = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), "0.0001")
-        txObj = self.nodes[0].gettransaction(txId)
-        assert_equal(txObj['amount'], Decimal('-0.0001'))
+        tx_obj = self.nodes[0].gettransaction(txid)
+        assert_equal(tx_obj['amount'], Decimal('-0.0001'))
 
         # check if JSON parser can handle scientific notation in strings
-        txId = self.nodes[0].sendtoaddress(
+        txid = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), "1e-4")
-        txObj = self.nodes[0].gettransaction(txId)
-        assert_equal(txObj['amount'], Decimal('-0.0001'))
+        tx_obj = self.nodes[0].gettransaction(txid)
+        assert_equal(tx_obj['amount'], Decimal('-0.0001'))
 
         # General checks for errors from incorrect inputs
         # This will raise an exception because the amount type is wrong
@@ -435,13 +435,13 @@ class WalletTest(BitcoinTestFramework):
                             {"spendable": True})
 
         # Mine a block from node0 to an address from node1
-        cbAddr = self.nodes[1].getnewaddress()
-        blkHash = self.nodes[0].generatetoaddress(1, cbAddr)[0]
-        cbTxId = self.nodes[0].getblock(blkHash)['tx'][0]
+        coinbase_addr = self.nodes[1].getnewaddress()
+        block_hash = self.nodes[0].generatetoaddress(1, coinbase_addr)[0]
+        coinbase_txid = self.nodes[0].getblock(block_hash)['tx'][0]
         self.sync_all(self.nodes[0:3])
 
         # Check that the txid and balance is found by node1
-        self.nodes[1].gettransaction(cbTxId)
+        self.nodes[1].gettransaction(coinbase_txid)
 
         # check if wallet or blockchain maintenance changes the balance
         self.sync_all(self.nodes[0:3])
@@ -511,9 +511,9 @@ class WalletTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         node0_balance = self.nodes[0].getbalance()
         # Split into two chains
-        rawtx = self.nodes[0].createrawtransaction([{"txid": singletxid, "vout": 0}], {
-                                                   chain_addrs[0]: node0_balance / 2 - Decimal('0.01'), chain_addrs[1]: node0_balance / 2 - Decimal('0.01')})
-        signedtx = self.nodes[0].signrawtransactionwithwallet(rawtx)
+        raw_tx = self.nodes[0].createrawtransaction([{"txid": singletxid, "vout": 0}], {
+            chain_addrs[0]: node0_balance / 2 - Decimal('0.01'), chain_addrs[1]: node0_balance / 2 - Decimal('0.01')})
+        signedtx = self.nodes[0].signrawtransactionwithwallet(raw_tx)
         singletxid = self.nodes[0].sendrawtransaction(signedtx["hex"])
         self.nodes[0].generate(1)
 
