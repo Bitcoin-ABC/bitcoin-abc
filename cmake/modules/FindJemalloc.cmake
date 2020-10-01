@@ -27,7 +27,7 @@ find_brew_prefix(_Jemalloc_BREW_HINT jemalloc)
 
 find_path(Jemalloc_INCLUDE_DIR
 	NAMES jemalloc.h
-	PATHS ${PC_Jemalloc_INCLUDE_DIRS}
+	PATHS ${Jemalloc_INCLUDE_DIR}
 	PATH_SUFFIXES include jemalloc
 	HINTS ${_Jemalloc_BREW_HINT}
 )
@@ -38,7 +38,7 @@ mark_as_advanced(Jemalloc_INCLUDE_DIR)
 if(Jemalloc_INCLUDE_DIR)
 	if(NOT Jemalloc_VERSION)
 		# If pkgconfig found a version number, use it.
-		if(PC_Jemalloc_VERSION)
+		if(PC_Jemalloc_VERSION AND (Jemalloc_INCLUDE_DIR STREQUAL PC_Jemalloc_INCLUDEDIR))
 			set(_Jemalloc_VERSION ${PC_Jemalloc_VERSION})
 		else()
 			# Read the version from file db.h into a variable.

@@ -59,7 +59,7 @@ if(Event_INCLUDE_DIR)
 
 	if(NOT Event_VERSION)
 		# If pkgconfig found a version number, use it.
-		if(PC_Event_VERSION)
+		if(PC_Event_VERSION AND (Event_INCLUDE_DIR STREQUAL PC_Event_INCLUDEDIR))
 			set(_Event_VERSION ${PC_Event_VERSION})
 		elseif(NOT CMAKE_CROSSCOMPILING)
 			try_run(_Event_CheckVersion_RESULT _Event_CheckVersion_BUILD
