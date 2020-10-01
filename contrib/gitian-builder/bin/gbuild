@@ -221,6 +221,9 @@ OptionParser.new do |opts|
   opts.on("--skip-fetch", "skip fetching the latest git objects and refs from the remote source") do |v|
     @options[:skip_fetch] = v
   end
+  opts.on("--skip-cleanup", "skip cleaning up the target VM. this may be useful for copying additional files from the target after the build") do |v|
+    @options[:skip_cleanup] = v
+  end
 end.parse!
 
 if !ENV["USE_LXC"] and !ENV["USE_DOCKER"] and !ENV["USE_VBOX"] and !File.exist?("/dev/kvm")
@@ -346,6 +349,11 @@ suites.each do |suite|
     base_manifest = File.read("var/base-#{suite}-#{arch}.manifest")
     base_manifests["#{suite}-#{arch}"] = base_manifest
   end
+end
+
+unless @options[:skip_cleanup]
+  info "Cleaning up target"
+  system "stop-target"
 end
 
 out_dir = File.join(build_dir, "out")
