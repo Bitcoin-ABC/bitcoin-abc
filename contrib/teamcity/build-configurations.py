@@ -369,9 +369,9 @@ class UserBuild():
                 )
                 continue
 
-    def run_process(self, bin, args=[]):
+    def run_process(self, binary, args=[]):
         return asyncio.create_subprocess_exec(
-            *([bin] + args),
+            *([binary] + args),
             # Buffer limit is 64KB by default, but we need a larger buffer:
             limit=1024 * 256,
             stdout=asyncio.subprocess.PIPE,
@@ -386,8 +386,8 @@ class UserBuild():
             },
         )
 
-    async def run_build(self, bin, args=[]):
-        proc = await self.run_process(bin, args)
+    async def run_build(self, binary, args=[]):
+        proc = await self.run_process(binary, args)
 
         await asyncio.wait([
             self.process_stdout(proc.stdout)
