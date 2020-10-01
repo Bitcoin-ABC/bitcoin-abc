@@ -123,8 +123,7 @@ std::map<CTxDestination, std::vector<COutput>> ListCoins(const CWallet &wallet)
 
 std::vector<OutputGroup>
 GroupOutputs(const CWallet &wallet, const std::vector<COutput> &outputs,
-             bool single_coin, const size_t max_ancestors,
-             const CFeeRate &effective_feerate,
+             bool single_coin, const CFeeRate &effective_feerate,
              const CFeeRate &long_term_feerate,
              const CoinEligibilityFilter &filter, bool positive_only);
 

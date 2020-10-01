@@ -64,6 +64,9 @@ struct CoinEligibilityFilter {
     const int conf_theirs;
     const uint64_t max_ancestors;
     const uint64_t max_descendants;
+    /// Include partial destination groups when avoid_reuse and there are full
+    /// groups
+    const bool m_include_partial_groups{false};
 
     CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
                           uint64_t max_ancestors_)
@@ -73,6 +76,12 @@ struct CoinEligibilityFilter {
                           uint64_t max_ancestors_, uint64_t max_descendants_)
         : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
           max_ancestors(max_ancestors_), max_descendants(max_descendants_) {}
+    CoinEligibilityFilter(int conf_mine_, int conf_theirs_,
+                          uint64_t max_ancestors_, uint64_t max_descendants_,
+                          bool include_partial_groups)
+        : conf_mine(conf_mine_), conf_theirs(conf_theirs_),
+          max_ancestors(max_ancestors_), max_descendants(max_descendants_),
+          m_include_partial_groups(include_partial_groups) {}
 };
 
 struct OutputGroup {
