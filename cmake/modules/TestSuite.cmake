@@ -198,6 +198,14 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 		)
 	endforeach()
 
+	# We don't want to add a dependency to the host system boost during cross
+	# compilation. If this is a native build, we still create the executable to
+	# let cmake know the target exists but we don't add the boost dependency.
+	is_native_build(IS_NATIVE_BUILD)
+	if(IS_NATIVE_BUILD)
+		return()
+	endif()
+
 	find_package(Boost 1.59 REQUIRED unit_test_framework)
 	target_link_libraries(${NAME} Boost::unit_test_framework)
 

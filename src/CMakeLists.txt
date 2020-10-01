@@ -387,27 +387,19 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	target_compile_definitions(util PUBLIC BOOST_THREAD_USE_LIB)
 endif()
 
-# Boost packages
-set(BOOST_PACKAGES_REQUIRED filesystem thread)
+target_link_libraries(util univalue crypto)
 
-function(prepend var prefix)
-	set(listVar "")
-	foreach(f ${ARGN})
-		list(APPEND listVar "${prefix}${f}")
-	endforeach(f)
-	set(${var} "${listVar}" PARENT_SCOPE)
-endfunction(prepend)
+macro(link_event TARGET)
+	non_native_target_link_libraries(${TARGET} Event 2.0.22 ${ARGN})
+endmacro()
 
-prepend(BOOST_LIBRARIES "Boost::" ${BOOST_PACKAGES_REQUIRED})
+link_event(util event)
 
-find_package(Boost 1.59 REQUIRED ${BOOST_PACKAGES_REQUIRED})
+macro(link_boost TARGET)
+	non_native_target_link_libraries(${TARGET} Boost 1.59 ${ARGN})
+endmacro()
 
-# This require libevent
-set(EVENT_MIN_VERSION 2.0.22)
-find_package(Event ${EVENT_MIN_VERSION} REQUIRED COMPONENTS event)
-
-target_link_libraries(util univalue crypto Event::event ${BOOST_LIBRARIES})
-
+link_boost(util filesystem thread)
 # Make sure boost uses std::atomic (it doesn't before 1.63)
 target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
 
@@ -560,15 +552,14 @@ add_library(server
 target_include_directories(server PRIVATE leveldb/helpers/memenv)
 
 target_link_libraries(server
-	Event::event
 	bitcoinconsensus
 	leveldb
 	memenv
 )
 
+link_event(server event)
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	find_package(Event ${EVENT_MIN_VERSION} REQUIRED COMPONENTS pthreads)
-	target_link_libraries(server Event::pthreads)
+	link_event(server pthreads)
 endif()
 
 if(ENABLE_UPNP)
@@ -641,7 +632,8 @@ if(BUILD_BITCOIN_CLI)
 		DESCRIPTION "JSON-RPC client for ${PACKAGE_NAME}"
 	)
 
-	target_link_libraries(bitcoin-cli common rpcclient Event::event)
+	target_link_libraries(bitcoin-cli common rpcclient)
+	link_event(bitcoin-cli event)
 
 	add_to_symbols_check(bitcoin-cli)
 	add_to_security_check(bitcoin-cli)

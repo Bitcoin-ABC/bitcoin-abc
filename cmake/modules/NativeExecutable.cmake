@@ -10,6 +10,25 @@ if(__IS_NATIVE_BUILD AND CMAKE_CROSSCOMPILING)
 	message(FATAL_ERROR "A native build cannot be cross compiled")
 endif()
 
+macro(is_native_build VAR)
+	set(${VAR} ${__IS_NATIVE_BUILD})
+endmacro()
+
+function(non_native_target_link_libraries TARGET LIB VERSION)
+	# Drop dependency during native builds
+	if(__IS_NATIVE_BUILD)
+		return()
+	endif()
+
+	foreach(COMPONENT ${ARGN})
+		if(NOT TARGET ${LIB}::${COMPONENT})
+			find_package(${LIB} ${VERSION} REQUIRED COMPONENTS ${COMPONENT})
+		endif()
+
+		target_link_libraries(${TARGET} ${LIB}::${COMPONENT})
+	endforeach()
+endfunction()
+
 # It is imperative that NATIVE_BUILD_DIR be in the cache.
 set(NATIVE_BUILD_DIR "${CMAKE_BINARY_DIR}/native" CACHE PATH "The path of the native build directory" FORCE)
 
