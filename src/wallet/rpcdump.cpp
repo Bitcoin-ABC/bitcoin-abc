@@ -327,8 +327,8 @@ UniValue importaddress(const Config &config, const JSONRPCRequest &request) {
         auto locked_chain = pwallet->chain().lock();
         LOCK(pwallet->cs_wallet);
 
-        CTxDestination dest = DecodeDestination(request.params[0].get_str(),
-                                                config.GetChainParams());
+        CTxDestination dest =
+            DecodeDestination(request.params[0].get_str(), wallet->chainParams);
         if (IsValidDestination(dest)) {
             if (fP2SH) {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -846,8 +846,7 @@ UniValue dumpprivkey(const Config &config, const JSONRPCRequest &request) {
     EnsureWalletIsUnlocked(pwallet);
 
     std::string strAddress = request.params[0].get_str();
-    CTxDestination dest =
-        DecodeDestination(strAddress, config.GetChainParams());
+    CTxDestination dest = DecodeDestination(strAddress, wallet->chainParams);
     if (!IsValidDestination(dest)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            "Invalid Bitcoin address");

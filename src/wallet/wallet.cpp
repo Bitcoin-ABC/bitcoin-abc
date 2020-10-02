@@ -2082,7 +2082,7 @@ bool CWalletTx::IsTrusted(interfaces::Chain::Lock &locked_chain,
     // Quick answer in most cases
     TxValidationState state;
     if (!locked_chain.contextualCheckTransactionForCurrentBlock(
-            Params().GetConsensus(), *tx, state)) {
+            this->pwallet->chainParams.GetConsensus(), *tx, state)) {
         return false;
     }
 
@@ -2290,7 +2290,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock &locked_chain,
     const int max_depth = {coinControl ? coinControl->m_max_depth
                                        : DEFAULT_MAX_DEPTH};
 
-    const Consensus::Params params = Params().GetConsensus();
+    const Consensus::Params params = this->chainParams.GetConsensus();
 
     std::set<TxId> trusted_parents;
     for (const auto &entry : mapWallet) {
