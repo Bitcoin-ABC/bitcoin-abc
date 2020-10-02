@@ -410,6 +410,9 @@ private:
     bool IsVersionSelected() const {
         return m_details_level == 3 || m_details_level == 4;
     }
+    bool m_is_asmap_on{false};
+    size_t m_max_addr_length{0};
+    size_t m_max_id_length{2};
     struct Peer {
         int id;
         int mapped_as;
@@ -431,6 +434,7 @@ private:
                    std::tie(rhs.is_outbound, rhs.min_ping);
         }
     };
+    std::vector<Peer> m_peers;
     std::string ChainToString() const {
         if (gArgs.GetChainName() == CBaseChainParams::TESTNET) {
             return " testnet";
@@ -440,6 +444,7 @@ private:
         }
         return "";
     }
+    const int64_t m_time_now{GetSystemTimeInSeconds()};
 
 public:
     static constexpr int ID_PEERINFO = 0;
@@ -478,14 +483,10 @@ public:
 
         // Count peer connection totals, and if DetailsRequested(), store peer
         // data in a vector of structs.
-        const int64_t time_now{GetSystemTimeInSeconds()};
         // inbound conn counters
         int ipv4_i{0}, ipv6_i{0}, onion_i{0}, block_relay_i{0}, total_i{0};
         // outbound conn counters
         int ipv4_o{0}, ipv6_o{0}, onion_o{0}, block_relay_o{0}, total_o{0};
-        size_t max_peer_id_length{2}, max_addr_length{0};
-        bool is_asmap_on{false};
-        std::vector<Peer> peers;
         const UniValue &getpeerinfo{batch[ID_PEERINFO]["result"]};
 
         for (const UniValue &peer : getpeerinfo.getValues()) {
@@ -534,14 +535,15 @@ public:
                                       : peer["pingtime"].get_real()};
                 const std::string addr{peer["addr"].get_str()};
                 const std::string sub_version{peer["subver"].get_str()};
-                peers.push_back({peer_id, mapped_as, version, conn_time,
-                                 last_blck, last_recv, last_send, last_trxn,
-                                 min_ping, ping, addr, network, sub_version,
-                                 is_block_relay, !is_inbound});
-                max_peer_id_length =
-                    std::max(ToString(peer_id).length(), max_peer_id_length);
-                max_addr_length = std::max(addr.length() + 1, max_addr_length);
-                is_asmap_on |= (mapped_as != 0);
+                m_peers.push_back({peer_id, mapped_as, version, conn_time,
+                                   last_blck, last_recv, last_send, last_trxn,
+                                   min_ping, ping, addr, network, sub_version,
+                                   is_block_relay, !is_inbound});
+                m_max_id_length =
+                    std::max(ToString(peer_id).length(), m_max_id_length);
+                m_max_addr_length =
+                    std::max(addr.length() + 1, m_max_addr_length);
+                m_is_asmap_on |= (mapped_as != 0);
             }
         }
 
@@ -553,18 +555,18 @@ public:
 
         // Report detailed peer connections list sorted by direction and minimum
         // ping time.
-        if (DetailsRequested() && !peers.empty()) {
-            std::sort(peers.begin(), peers.end());
+        if (DetailsRequested() && !m_peers.empty()) {
+            std::sort(m_peers.begin(), m_peers.end());
             result += "Peer connections sorted by direction and min ping\n<-> "
                       "relay   net mping   ping send recv  txn  blk uptime ";
-            if (is_asmap_on) {
+            if (m_is_asmap_on) {
                 result += " asmap ";
             }
-            result += strprintf("%*s %-*s%s\n", max_peer_id_length, "id",
-                                IsAddressSelected() ? max_addr_length : 0,
+            result += strprintf("%*s %-*s%s\n", m_max_id_length, "id",
+                                IsAddressSelected() ? m_max_addr_length : 0,
                                 IsAddressSelected() ? "address" : "",
                                 IsVersionSelected() ? "version" : "");
-            for (const Peer &peer : peers) {
+            for (const Peer &peer : m_peers) {
                 std::string version{ToString(peer.version) + peer.sub_version};
                 result += strprintf(
                     "%3s %5s %5s%6s%7s%5s%5s%5s%5s%7s%*i %*s %-*s%s\n",
@@ -574,27 +576,27 @@ public:
                                         : ToString(round(1000 * peer.min_ping)),
                     peer.ping == -1 ? "" : ToString(round(1000 * peer.ping)),
                     peer.last_send == 0 ? ""
-                                        : ToString(time_now - peer.last_send),
+                                        : ToString(m_time_now - peer.last_send),
                     peer.last_recv == 0 ? ""
-                                        : ToString(time_now - peer.last_recv),
+                                        : ToString(m_time_now - peer.last_recv),
                     peer.last_trxn == 0
                         ? ""
-                        : ToString((time_now - peer.last_trxn) / 60),
+                        : ToString((m_time_now - peer.last_trxn) / 60),
                     peer.last_blck == 0
                         ? ""
-                        : ToString((time_now - peer.last_blck) / 60),
+                        : ToString((m_time_now - peer.last_blck) / 60),
                     peer.conn_time == 0
                         ? ""
-                        : ToString((time_now - peer.conn_time) / 60),
+                        : ToString((m_time_now - peer.conn_time) / 60),
                     // variable spacing
-                    is_asmap_on ? 7 : 0,
-                    is_asmap_on && peer.mapped_as != 0
+                    m_is_asmap_on ? 7 : 0,
+                    m_is_asmap_on && peer.mapped_as != 0
                         ? ToString(peer.mapped_as)
                         : "",
                     // variable spacing
-                    max_peer_id_length, peer.id,
+                    m_max_id_length, peer.id,
                     // variable spacing
-                    IsAddressSelected() ? max_addr_length : 0,
+                    IsAddressSelected() ? m_max_addr_length : 0,
                     IsAddressSelected() ? peer.addr : "",
                     IsVersionSelected() && version != "0" ? version : "");
             }
