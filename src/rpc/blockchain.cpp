@@ -1108,8 +1108,6 @@ static RPCHelpMan getblock() {
                                      "verbosity = 1 \"tx\" result"},
                                 }},
                            }},
-                          {RPCResult::Type::ELISION, "",
-                           "Same output as verbosity = 1"},
                       }},
         },
         RPCExamples{
