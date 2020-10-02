@@ -399,6 +399,20 @@ public:
 /** Process netinfo requests */
 class NetinfoRequestHandler : public BaseRequestHandler {
 private:
+    static constexpr int8_t UNKNOWN_NETWORK{-1};
+    static constexpr size_t m_networks_size{3};
+    const std::array<std::string, m_networks_size> m_networks{
+        {"ipv4", "ipv6", "onion"}};
+    //! Peer counts by (in/out/total, networks/total/block-relay)
+    std::array<std::array<uint16_t, m_networks_size + 2>, 3> m_counts{{{}}};
+    int8_t NetworkStringToId(const std::string &str) const {
+        for (size_t i = 0; i < m_networks_size; ++i) {
+            if (str == m_networks.at(i)) {
+                return i;
+            }
+        }
+        return UNKNOWN_NETWORK;
+    }
     //! Optional user-supplied arg to set dashboard details level
     uint8_t m_details_level{0};
     bool DetailsRequested() const {
@@ -483,38 +497,27 @@ public:
 
         // Count peer connection totals, and if DetailsRequested(), store peer
         // data in a vector of structs.
-        // inbound conn counters
-        int ipv4_i{0}, ipv6_i{0}, onion_i{0}, block_relay_i{0}, total_i{0};
-        // outbound conn counters
-        int ipv4_o{0}, ipv6_o{0}, onion_o{0}, block_relay_o{0}, total_o{0};
-        const UniValue &getpeerinfo{batch[ID_PEERINFO]["result"]};
-
-        for (const UniValue &peer : getpeerinfo.getValues()) {
-            const bool is_block_relay{!peer["relaytxes"].get_bool()};
-            const bool is_inbound{peer["inbound"].get_bool()};
+        for (const UniValue &peer : batch[ID_PEERINFO]["result"].getValues()) {
             const std::string network{peer["network"].get_str()};
-            if (is_inbound) {
-                if (network == "ipv6") {
-                    ++ipv6_i;
-                } else if (network == "onion") {
-                    ++onion_i;
-                } else {
-                    ++ipv4_i;
-                }
-                if (is_block_relay) {
-                    ++block_relay_i;
-                }
-            } else {
-                if (network == "ipv6") {
-                    ++ipv6_o;
-                } else if (network == "onion") {
-                    ++onion_o;
-                } else {
-                    ++ipv4_o;
-                }
-                if (is_block_relay) {
-                    ++block_relay_o;
-                }
+            const int8_t network_id{NetworkStringToId(network)};
+            if (network_id == UNKNOWN_NETWORK) {
+                continue;
+            }
+            const bool is_outbound{!peer["inbound"].get_bool()};
+            const bool is_block_relay{!peer["relaytxes"].get_bool()};
+            // in/out by network
+            ++m_counts.at(is_outbound).at(network_id);
+            // in/out overall
+            ++m_counts.at(is_outbound).at(m_networks_size);
+            // total by network
+            ++m_counts.at(2).at(network_id);
+            // total overall
+            ++m_counts.at(2).at(m_networks_size);
+            if (is_block_relay) {
+                // in/out block-relay
+                ++m_counts.at(is_outbound).at(m_networks_size + 1);
+                // total block-relay
+                ++m_counts.at(2).at(m_networks_size + 1);
             }
             if (DetailsRequested()) {
                 // Push data for this peer to the peers vector.
@@ -538,7 +541,7 @@ public:
                 m_peers.push_back({peer_id, mapped_as, version, conn_time,
                                    last_blck, last_recv, last_send, last_trxn,
                                    min_ping, ping, addr, network, sub_version,
-                                   is_block_relay, !is_inbound});
+                                   is_block_relay, is_outbound});
                 m_max_id_length =
                     std::max(ToString(peer_id).length(), m_max_id_length);
                 m_max_addr_length =
@@ -605,16 +608,15 @@ public:
         }
 
         // Report peer connection totals by type.
-        total_i = ipv4_i + ipv6_i + onion_i;
-        total_o = ipv4_o + ipv6_o + onion_o;
         result += "        ipv4    ipv6   onion   total  block-relay\n";
-        result += strprintf("in     %5i   %5i   %5i   %5i   %5i\n", ipv4_i,
-                            ipv6_i, onion_i, total_i, block_relay_i);
-        result += strprintf("out    %5i   %5i   %5i   %5i   %5i\n", ipv4_o,
-                            ipv6_o, onion_o, total_o, block_relay_o);
-        result += strprintf("total  %5i   %5i   %5i   %5i   %5i\n",
-                            ipv4_i + ipv4_o, ipv6_i + ipv6_o, onion_i + onion_o,
-                            total_i + total_o, block_relay_i + block_relay_o);
+        const std::array<std::string, 3> rows{{"in", "out", "total"}};
+        for (size_t i = 0; i < m_networks_size; ++i) {
+            result += strprintf("%-5s  %5i   %5i   %5i   %5i   %5i\n",
+                                rows.at(i), m_counts.at(i).at(0),
+                                m_counts.at(i).at(1), m_counts.at(i).at(2),
+                                m_counts.at(i).at(m_networks_size),
+                                m_counts.at(i).at(m_networks_size + 1));
+        }
 
         // Report local addresses, ports, and scores.
         result += "\nLocal addresses";
