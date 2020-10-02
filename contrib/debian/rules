@@ -9,7 +9,9 @@ override_dh_auto_configure:
 		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 		-DCMAKE_INSTALL_PREFIX=$$(pwd)/debian/tmp \
 		-DCLIENT_VERSION_IS_RELEASE=ON \
-		-DUSE_JEMALLOC=OFF
+		-DUSE_JEMALLOC=OFF \
+		-DBUILD_LIBBITCOINCONSENSUS=OFF \
+		-DBUILD_BITCOIN_SEEDER=OFF
 
 override_dh_auto_test:
 	ninja -C _build check
@@ -21,3 +23,8 @@ override_dh_auto_install:
 # Skip the dwz step since the files are stripped already.
 # https://manpages.debian.org/testing/debhelper/dh_dwz.1.en.html
 override_dh_dwz: ;
+
+# Enforce dh_missing to issue warnings when files are present but not installed.
+# Note that this is the default with compat level 12.
+override_dh_missing:
+	dh_missing --list-missing
