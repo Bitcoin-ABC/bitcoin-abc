@@ -55,7 +55,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         fuzzed_data_provider.PickValueInArray(
             {ConnectionType::INBOUND, ConnectionType::OUTBOUND_FULL_RELAY,
              ConnectionType::MANUAL, ConnectionType::FEELER,
-             ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH})};
+             ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH}),
+        fuzzed_data_provider.ConsumeBool()};
     node.SetCommonVersion(fuzzed_data_provider.ConsumeIntegral<int>());
     while (fuzzed_data_provider.ConsumeBool()) {
         switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 10)) {
@@ -175,4 +176,5 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             : static_cast<NetPermissionFlags>(
                   fuzzed_data_provider.ConsumeIntegral<uint32_t>());
     (void)node.HasPermission(net_permission_flags);
+    (void)node.ConnectedThroughNetwork();
 }
