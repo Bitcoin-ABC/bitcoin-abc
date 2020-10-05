@@ -137,3 +137,8 @@ pip3 install -r "${TEAMCITY_DIR}"/../buildbot/requirements.txt
 wget https://github.com/jgm/pandoc/releases/download/2.10.1/pandoc-2.10.1-1-amd64.deb
 echo "4515d6fe2bf8b82765d8dfa1e1b63ccb0ff3332d60389f948672eaa37932e936 pandoc-2.10.1-1-amd64.deb" | sha256sum -c
 DEBIAN_FRONTEND=noninteractive dpkg -i pandoc-2.10.1-1-amd64.deb
+
+# Set default git config so that any git operations requiring authoring,
+# rebasing, or cherry-picking of commits just work out of the box.
+git config --global user.name "abc-bot"
+git config --global user.email "no-email-abc-bot@bitcoinabc.org"
