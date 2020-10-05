@@ -27,7 +27,7 @@ do
   echo "category: man" >> "${HTML_FILE}"
   echo "group: @PACKAGE_NAME@ " >> "${HTML_FILE}"
   echo "name: ${BINARY_NAME}" >> "${HTML_FILE}"
-  echo "version: @PROJECT_VERSION@" >> "${HTML_FILE}"
+  echo "version: @CMAKE_PROJECT_VERSION@" >> "${HTML_FILE}"
   echo "---" >> "${HTML_FILE}"
   echo "<!-- @generated -->" >> "${HTML_FILE}"
 
