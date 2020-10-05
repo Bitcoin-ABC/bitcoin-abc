@@ -65,7 +65,8 @@ void RandAddSeedPerfmon(CSHA512 &hasher) {
 #ifdef WIN32
     // Seed with the entire set of perfmon data
 
-    // This can take up to 2 seconds, so only do it every 10 minutes
+    // This can take up to 2 seconds, so only do it every 10 minutes.
+    // Initialize last_perfmon to 0 seconds, we don't skip the first call.
     static std::atomic<std::chrono::seconds> last_perfmon{
         std::chrono::seconds{0}};
     auto last_time = last_perfmon.load();
@@ -88,7 +89,7 @@ void RandAddSeedPerfmon(CSHA512 &hasher) {
             break;
         }
         // Grow size of buffer exponentially
-        vData.resize(std::max((vData.size() * 3) / 2, nMaxSize));
+        vData.resize(std::min((vData.size() * 3) / 2, nMaxSize));
     }
     RegCloseKey(HKEY_PERFORMANCE_DATA);
     if (ret == ERROR_SUCCESS) {
