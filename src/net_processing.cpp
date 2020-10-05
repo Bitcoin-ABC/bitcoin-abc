@@ -4848,7 +4848,8 @@ void PeerManagerImpl::ProcessMessage(
     if (msg_type == NetMsgType::VERSION) {
         // Each connection can only send one version message
         if (pfrom.nVersion != 0) {
-            Misbehaving(*peer, 1, "redundant version message");
+            LogPrint(BCLog::NET, "redundant version message from peer=%d\n",
+                     pfrom.GetId());
             return;
         }
 
