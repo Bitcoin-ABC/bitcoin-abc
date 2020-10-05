@@ -1016,8 +1016,6 @@ private:
     void InvalidBlockFound(CBlockIndex *pindex,
                            const BlockValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    void InvalidChainFound(CBlockIndex *pindexNew)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     CBlockIndex *FindMostWorkChain() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool MarkBlockAsFinal(BlockValidationState &state,
                           const CBlockIndex *pindex)
@@ -1036,6 +1034,12 @@ private:
     bool UnwindBlock(const Config &config, BlockValidationState &state,
                      CBlockIndex *pindex, bool invalidate)
         EXCLUSIVE_LOCKS_REQUIRED(m_cs_chainstate);
+
+    void CheckForkWarningConditions() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    void InvalidChainFound(CBlockIndex *pindexNew)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     friend ChainstateManager;
 };
