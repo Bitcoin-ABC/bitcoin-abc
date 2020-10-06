@@ -794,6 +794,18 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                         }
                     )
 
+                    # Explicitly ignored log lines. Use with care.
+                    buildLog = tc.getBuildLog(buildId)
+                    for line in tc.getIgnoreList():
+                        # Skip empty lines and comments in the ignore file
+                        if not line or line[0] == '#':
+                            continue
+
+                        # If any of the ignore patterns match any line in the
+                        # build log, ignore this failure
+                        if re.search(line.decode(), buildLog):
+                            return SUCCESS, 200
+
                     # Get number of build failures over the last few days
                     numRecentFailures = tc.getNumAggregateFailuresSince(
                         buildTypeId, 60 * 60 * 24 * 5)

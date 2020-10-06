@@ -55,13 +55,15 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.configure_build_info()
         self.teamcity.get_coverage_summary = mock.Mock()
         self.teamcity.get_coverage_summary.return_value = None
+        self.teamcity.getIgnoreList = mock.Mock()
+        self.teamcity.getIgnoreList.return_value = []
 
         self.travis.get_branch_status = mock.Mock()
         self.travis.get_branch_status.return_value = BuildStatus.Success
 
     def setup_master_failureAndTaskDoesNotExist(self, latestCompletedBuildId=DEFAULT_BUILD_ID,
                                                 numRecentFailedBuilds=0, numCommits=1,
-                                                userSearchFields=None):
+                                                userSearchFields=None, buildLogFile='testlog.zip'):
         if userSearchFields is None:
             userSearchFields = {}
 
@@ -72,6 +74,8 @@ class EndpointStatusTestCase(ABCBotFixture):
             },
         }
 
+        with open(self.data_dir / buildLogFile, 'rb') as f:
+            buildLog = f.read()
         recentBuilds = [] if numRecentFailedBuilds == 0 else [
             {'status': 'FAILURE'}, {'status': 'SUCCESS'}] * numRecentFailedBuilds
         self.teamcity.session.send.side_effect = [
@@ -83,6 +87,8 @@ class EndpointStatusTestCase(ABCBotFixture):
                     'id': latestCompletedBuildId,
                 }],
             })),
+            test.mocks.teamcity.Response(status_code=requests.codes.not_found),
+            test.mocks.teamcity.Response(buildLog),
             test.mocks.teamcity.Response(json.dumps({
                 'build': recentBuilds,
             })),
@@ -166,7 +172,21 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.slackbot.client.chat_postMessage.assert_not_called()
 
     def test_status_master_resolveBrokenBuildTask_masterGreen(self):
-        def setupMockResponses():
+        def setupMockResponses(data):
+            afterLatestBuild = [
+                test.mocks.teamcity.Response(),
+                test.mocks.teamcity.Response(),
+            ]
+            if data.buildResult == 'failure':
+                with open(self.data_dir / 'testlog.zip', 'rb') as f:
+                    buildLog = f.read()
+                afterLatestBuild = [
+                    test.mocks.teamcity.Response(
+                        status_code=requests.codes.not_found),
+                    test.mocks.teamcity.Response(buildLog),
+                    test.mocks.teamcity.Response(),
+                ]
+
             self.teamcity.session.send.side_effect = [
                 test.mocks.teamcity.buildInfo_automatedBuild(),
                 test.mocks.teamcity.Response(json.dumps({
@@ -174,9 +194,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                         'id': DEFAULT_BUILD_ID,
                     }],
                 })),
-                test.mocks.teamcity.Response(),
-                test.mocks.teamcity.Response(),
-            ]
+            ] + afterLatestBuild
             self.phab.maniphest.search.return_value = test.mocks.phabricator.Result([{
                 'id': '123',
                 'phid': 'PHID-TASK-123',
@@ -190,13 +208,13 @@ class EndpointStatusTestCase(ABCBotFixture):
 
         data = statusRequestData()
         data.buildResult = 'failure'
-        setupMockResponses()
+        setupMockResponses(data)
         response = self.app.post('/status', headers=self.headers, json=data)
         assert response.status_code == 200
         # Master should be marked red
 
         data = statusRequestData()
-        setupMockResponses()
+        setupMockResponses(data)
         response = self.app.post('/status', headers=self.headers, json=data)
         assert response.status_code == 200
         self.phab.differential.revision.edit.assert_not_called()
@@ -686,10 +704,52 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.maniphest.edit.assert_not_called()
         self.slackbot.client.chat_postMessage.assert_not_called()
 
+    def test_status_master_failureAndTaskDoesNotExist_ignoreFailure(self):
+        testPatterns = [
+            # Simple match
+            b'err:ntdll:RtlpWaitForCriticalSection',
+            # Greedy match with some escaped characters
+            b'\\d*:err:ntdll:RtlpWaitForCriticalSection section .* retrying \\(60 sec\\)',
+            # Less greedy match
+            b'err:ntdll:RtlpWaitForCriticalSection section \\w* "\\?" wait timed out in thread \\d*, blocked by \\d*, retrying',
+        ]
+        for pattern in testPatterns:
+            self.teamcity.getIgnoreList.return_value = [
+                b'# Some comment followed by an empty line',
+                b'',
+                pattern,
+            ]
+            data = statusRequestData()
+            data.buildResult = 'failure'
+
+            self.setup_master_failureAndTaskDoesNotExist(
+                buildLogFile='testlog_ignore.zip')
+
+            response = self.app.post(
+                '/status', headers=self.headers, json=data)
+            assert response.status_code == 200
+            self.phab.differential.revision.edit.assert_not_called()
+
+            self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
+                'url': self.teamcity.build_url(
+                    "downloadBuildLog.html",
+                    {
+                        "buildId": DEFAULT_BUILD_ID,
+                        "archived": "true",
+                        "guest": 1,
+                    }
+                )
+            }))
+
+            self.phab.maniphest.edit.assert_not_called()
+            self.slackbot.client.chat_postMessage.assert_not_called()
+
     def test_status_master_failureAndTaskExists(self):
         data = statusRequestData()
         data.buildResult = 'failure'
 
+        with open(self.data_dir / 'testlog.zip', 'rb') as f:
+            buildLog = f.read()
         self.teamcity.session.send.side_effect = [
             test.mocks.teamcity.buildInfo_automatedBuild(),
             test.mocks.teamcity.Response(json.dumps({
@@ -697,6 +757,8 @@ class EndpointStatusTestCase(ABCBotFixture):
                     'id': DEFAULT_BUILD_ID,
                 }],
             })),
+            test.mocks.teamcity.Response(status_code=requests.codes.not_found),
+            test.mocks.teamcity.Response(buildLog),
             test.mocks.teamcity.Response(),
         ]
 

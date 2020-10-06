@@ -3,6 +3,7 @@
 from collections import UserDict
 import io
 import json
+import os
 from pprint import pprint
 import re
 import requests
@@ -50,6 +51,8 @@ class TeamCity():
         self.auth = (username, password)
         self.logger = None
         self.mockTime = None
+        with open(os.path.join(os.path.dirname(__file__), 'ignore-logs.txt'), 'rb') as ignoreList:
+            self.ignoreList = ignoreList.readlines()
 
     def set_logger(self, logger):
         self.logger = logger
@@ -60,6 +63,9 @@ class TeamCity():
         # time.time() returns a float, so we cast to an int to make it play nice with our other APIs.
         # We do not care about sub-second precision anyway.
         return int(time.time())
+
+    def getIgnoreList(self, ignoreList):
+        return self.ignoreList
 
     def setMockTime(self, mockTime):
         self.mockTime = mockTime
