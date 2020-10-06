@@ -4432,9 +4432,10 @@ bool CChainState::AcceptBlock(const Config &config,
     if (fNewBlock) {
         *fNewBlock = true;
     }
+    assert(std::addressof(::ChainActive()) == std::addressof(m_chain));
     try {
-        FlatFilePos blockPos = SaveBlockToDisk(
-            block, pindex->nHeight, ::ChainActive(), chainparams, dbp);
+        FlatFilePos blockPos =
+            SaveBlockToDisk(block, pindex->nHeight, m_chain, chainparams, dbp);
         if (blockPos.IsNull()) {
             state.Error(strprintf(
                 "%s: Failed to find position to write new block to disk",
@@ -5293,10 +5294,11 @@ bool CChainState::LoadGenesisBlock(const CChainParams &chainparams) {
         return true;
     }
 
+    assert(std::addressof(::ChainActive()) == std::addressof(m_chain));
     try {
         const CBlock &block = chainparams.GenesisBlock();
         FlatFilePos blockPos =
-            SaveBlockToDisk(block, 0, ::ChainActive(), chainparams, nullptr);
+            SaveBlockToDisk(block, 0, m_chain, chainparams, nullptr);
         if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
