@@ -165,7 +165,7 @@ ChainTestingSetup::ChainTestingSetup(
 
     m_node.mempool = std::make_unique<CTxMemPool>(1);
 
-    m_node.chainman = &::g_chainman;
+    m_node.chainman = std::make_unique<ChainstateManager>();
 
     constexpr int script_check_threads = 2;
     StartScriptCheckWorkerThreads(script_check_threads);
@@ -185,7 +185,7 @@ ChainTestingSetup::~ChainTestingSetup() {
     m_node.mempool.reset();
     m_node.scheduler.reset();
     m_node.chainman->Reset();
-    m_node.chainman = nullptr;
+    m_node.chainman.reset();
     pblocktree.reset();
 }
 

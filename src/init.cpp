@@ -314,7 +314,7 @@ void Shutdown(NodeContext &node) {
     globalVerifyHandle.reset();
     ECC_Stop();
     node.mempool.reset();
-    node.chainman = nullptr;
+    node.chainman.reset();
     node.scheduler.reset();
 
     try {
@@ -2403,8 +2403,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.mempool = std::make_unique<CTxMemPool>(check_ratio);
 
     assert(!node.chainman);
-    node.chainman = &g_chainman;
-    ChainstateManager &chainman = *Assert(node.chainman);
+    node.chainman = std::make_unique<ChainstateManager>();
+    ChainstateManager &chainman = *node.chainman;
 
     assert(!node.peerman);
     node.peerman =
