@@ -16,6 +16,7 @@ PACKAGES=(
   ccache
   cppcheck
   curl
+  default-jdk
   flake8
   g++-aarch64-linux-gnu
   g++-arm-linux-gnueabihf
@@ -93,10 +94,6 @@ apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -t buster-backports install -y $(join_by ' ' "${BACKPORTS[@]}")
 
 TEAMCITY_DIR=$(dirname "$0")
-
-# FIXME this should no longer be needed starting with Teamcity 2020.1, which
-# supports Java 11.
-"${TEAMCITY_DIR}/install_openjdk8.sh"
 
 # Install llvm-8 and clang-10
 apt-key add "${TEAMCITY_DIR}"/llvm.pub
