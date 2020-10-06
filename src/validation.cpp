@@ -3676,8 +3676,8 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
 }
 
 static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
-                         unsigned int nHeight, uint64_t nTime,
-                         bool fKnown = false) {
+                         unsigned int nHeight, CChain &active_chain,
+                         uint64_t nTime, bool fKnown = false) {
     LOCK(cs_LastBlockFile);
 
     unsigned int nFile = fKnown ? pos.nFile : nLastBlockFile;
@@ -3692,8 +3692,10 @@ static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
             // flush it explicitly when it is lagging behind (more blocks arrive
             // than are being connected), we let the undo block write case
             // handle it
+            assert(std::addressof(::ChainActive()) ==
+                   std::addressof(active_chain));
             finalize_undo = (vinfoBlockFile[nFile].nHeightLast ==
-                             (unsigned int)ChainActive().Tip()->nHeight);
+                             (unsigned int)active_chain.Tip()->nHeight);
             nFile++;
             if (vinfoBlockFile.size() <= nFile) {
                 vinfoBlockFile.resize(nFile + 1);
@@ -4260,6 +4262,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
  * reside on disk.
  */
 static FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
+                                   CChain &active_chain,
                                    const CChainParams &chainparams,
                                    const FlatFilePos *dbp) {
     unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
@@ -4267,8 +4270,8 @@ static FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
     if (dbp != nullptr) {
         blockPos = *dbp;
     }
-    if (!FindBlockPos(blockPos, nBlockSize + 8, nHeight, block.GetBlockTime(),
-                      dbp != nullptr)) {
+    if (!FindBlockPos(blockPos, nBlockSize + 8, nHeight, active_chain,
+                      block.GetBlockTime(), dbp != nullptr)) {
         error("%s: FindBlockPos failed", __func__);
         return FlatFilePos();
     }
@@ -4430,8 +4433,8 @@ bool CChainState::AcceptBlock(const Config &config,
         *fNewBlock = true;
     }
     try {
-        FlatFilePos blockPos =
-            SaveBlockToDisk(block, pindex->nHeight, chainparams, dbp);
+        FlatFilePos blockPos = SaveBlockToDisk(
+            block, pindex->nHeight, ::ChainActive(), chainparams, dbp);
         if (blockPos.IsNull()) {
             state.Error(strprintf(
                 "%s: Failed to find position to write new block to disk",
@@ -5292,7 +5295,8 @@ bool CChainState::LoadGenesisBlock(const CChainParams &chainparams) {
 
     try {
         const CBlock &block = chainparams.GenesisBlock();
-        FlatFilePos blockPos = SaveBlockToDisk(block, 0, chainparams, nullptr);
+        FlatFilePos blockPos =
+            SaveBlockToDisk(block, 0, ::ChainActive(), chainparams, nullptr);
         if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
