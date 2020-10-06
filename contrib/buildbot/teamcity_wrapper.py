@@ -277,9 +277,6 @@ class TeamCity():
 
     def checkBuildIsScheduled(self, buildInfo):
         trigger = buildInfo['triggered']
-
-        # Ignore builds by non-bot users, as these builds may be triggered for
-        # any reason with various unknown configs
         return trigger['type'] == 'schedule'
 
     # For all nested build configurations under a project, fetch the latest
