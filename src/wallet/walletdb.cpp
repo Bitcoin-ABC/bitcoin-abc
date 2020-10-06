@@ -219,15 +219,17 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
         if (strType == DBKeys::NAME) {
             std::string strAddress;
             ssKey >> strAddress;
-            ssValue >> pwallet
-                           ->mapAddressBook[DecodeDestination(
-                               strAddress, pwallet->chainParams)]
-                           .name;
+            std::string label;
+            ssValue >> label;
+            pwallet
+                ->m_address_book[DecodeDestination(strAddress,
+                                                   pwallet->chainParams)]
+                .SetLabel(label);
         } else if (strType == DBKeys::PURPOSE) {
             std::string strAddress;
             ssKey >> strAddress;
             ssValue >> pwallet
-                           ->mapAddressBook[DecodeDestination(
+                           ->m_address_book[DecodeDestination(
                                strAddress, pwallet->chainParams)]
                            .purpose;
         } else if (strType == DBKeys::TX) {

@@ -1316,7 +1316,7 @@ bool CWallet::IsChange(const CScript &script) const {
         }
 
         LOCK(cs_wallet);
-        if (!mapAddressBook.count(address)) {
+        if (!FindAddressBookEntry(address)) {
             return true;
         }
     }
@@ -3429,12 +3429,12 @@ bool CWallet::SetAddressBookWithDB(WalletBatch &batch,
     {
         LOCK(cs_wallet);
         std::map<CTxDestination, CAddressBookData>::iterator mi =
-            mapAddressBook.find(address);
-        fUpdated = mi != mapAddressBook.end();
-        mapAddressBook[address].name = strName;
+            m_address_book.find(address);
+        fUpdated = (mi != m_address_book.end() && !mi->second.IsChange());
+        m_address_book[address].SetLabel(strName);
         // Update purpose only if requested.
         if (!strPurpose.empty()) {
-            mapAddressBook[address].purpose = strPurpose;
+            m_address_book[address].purpose = strPurpose;
         }
     }
 
@@ -3455,16 +3455,24 @@ bool CWallet::SetAddressBook(const CTxDestination &address,
 }
 
 bool CWallet::DelAddressBook(const CTxDestination &address) {
+    // If we want to delete receiving addresses, we need to take care that
+    // DestData "used" (and possibly newer DestData) gets preserved (and the
+    // "deleted" address transformed into a change entry instead of actually
+    // being deleted)
+    // NOTE: This isn't a problem for sending addresses because they never have
+    // any DestData yet! When adding new DestData, it should be considered here
+    // whether to retain or delete it (or move it?).
+    assert(!IsMine(address));
+
     {
         LOCK(cs_wallet);
 
-        // Delete destdata tuples associated with address.
+        // Delete destdata tuples associated with address
         for (const std::pair<const std::string, std::string> &item :
-             mapAddressBook[address].destdata) {
+             m_address_book[address].destdata) {
             WalletBatch(*database).EraseDestData(address, item.first);
         }
-
-        mapAddressBook.erase(address);
+        m_address_book.erase(address);
     }
 
     NotifyAddressBookChanged(this, address, "", IsMine(address) != ISMINE_NO,
@@ -3718,7 +3726,10 @@ CWallet::GetLabelAddresses(const std::string &label) const {
     LOCK(cs_wallet);
     std::set<CTxDestination> result;
     for (const std::pair<const CTxDestination, CAddressBookData> &item :
-         mapAddressBook) {
+         m_address_book) {
+        if (item.second.IsChange()) {
+            continue;
+        }
         const CTxDestination &address = item.first;
         const std::string &strName = item.second.name;
         if (strName == label) {
@@ -3930,13 +3941,13 @@ bool CWallet::AddDestData(WalletBatch &batch, const CTxDestination &dest,
         return false;
     }
 
-    mapAddressBook[dest].destdata.insert(std::make_pair(key, value));
+    m_address_book[dest].destdata.insert(std::make_pair(key, value));
     return batch.WriteDestData(dest, key, value);
 }
 
 bool CWallet::EraseDestData(WalletBatch &batch, const CTxDestination &dest,
                             const std::string &key) {
-    if (!mapAddressBook[dest].destdata.erase(key)) {
+    if (!m_address_book[dest].destdata.erase(key)) {
         return false;
     }
 
@@ -3945,14 +3956,14 @@ bool CWallet::EraseDestData(WalletBatch &batch, const CTxDestination &dest,
 
 void CWallet::LoadDestData(const CTxDestination &dest, const std::string &key,
                            const std::string &value) {
-    mapAddressBook[dest].destdata.insert(std::make_pair(key, value));
+    m_address_book[dest].destdata.insert(std::make_pair(key, value));
 }
 
 bool CWallet::GetDestData(const CTxDestination &dest, const std::string &key,
                           std::string *value) const {
     std::map<CTxDestination, CAddressBookData>::const_iterator i =
-        mapAddressBook.find(dest);
-    if (i != mapAddressBook.end()) {
+        m_address_book.find(dest);
+    if (i != m_address_book.end()) {
         CAddressBookData::StringMap::const_iterator j =
             i->second.destdata.find(key);
         if (j != i->second.destdata.end()) {
@@ -3969,7 +3980,7 @@ bool CWallet::GetDestData(const CTxDestination &dest, const std::string &key,
 std::vector<std::string>
 CWallet::GetDestValues(const std::string &prefix) const {
     std::vector<std::string> values;
-    for (const auto &address : mapAddressBook) {
+    for (const auto &address : m_address_book) {
         for (const auto &data : address.second.destdata) {
             if (!data.first.compare(0, prefix.size(), prefix)) {
                 values.emplace_back(data.second);
@@ -4442,10 +4453,23 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
                                     walletInstance->GetKeyPoolSize());
     walletInstance->WalletLogPrintf("mapWallet.size() = %u\n",
                                     walletInstance->mapWallet.size());
-    walletInstance->WalletLogPrintf("mapAddressBook.size() = %u\n",
-                                    walletInstance->mapAddressBook.size());
+    walletInstance->WalletLogPrintf("m_address_book.size() = %u\n",
+                                    walletInstance->m_address_book.size());
 
     return walletInstance;
+}
+
+const CAddressBookData *
+CWallet::FindAddressBookEntry(const CTxDestination &dest,
+                              bool allow_change) const {
+    const auto &address_book_it = m_address_book.find(dest);
+    if (address_book_it == m_address_book.end()) {
+        return nullptr;
+    }
+    if ((!allow_change) && address_book_it->second.IsChange()) {
+        return nullptr;
+    }
+    return &address_book_it->second;
 }
 
 void CWallet::postInitProcess() {

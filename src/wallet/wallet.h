@@ -190,14 +190,24 @@ public:
 
 /** Address book data */
 class CAddressBookData {
+private:
+    bool m_change{true};
+    std::string m_label;
+
 public:
-    std::string name;
+    const std::string &name;
     std::string purpose;
 
-    CAddressBookData() : purpose("unknown") {}
+    CAddressBookData() : name(m_label), purpose("unknown") {}
 
     typedef std::map<std::string, std::string> StringMap;
     StringMap destdata;
+
+    bool IsChange() const { return m_change; }
+    void SetLabel(const std::string &label) {
+        m_change = false;
+        m_label = label;
+    }
 };
 
 struct CRecipient {
@@ -858,7 +868,11 @@ public:
     uint64_t nAccountingEntryNumber = 0;
 
     std::map<CTxDestination, CAddressBookData>
-        mapAddressBook GUARDED_BY(cs_wallet);
+        m_address_book GUARDED_BY(cs_wallet);
+    const CAddressBookData *
+    FindAddressBookEntry(const CTxDestination &,
+                         bool allow_change = false) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::set<COutPoint> setLockedCoins GUARDED_BY(cs_wallet);
 
@@ -969,7 +983,11 @@ public:
         return true;
     }
 
-    //! Adds a destination data tuple to the store, and saves it to disk
+    /**
+     * Adds a destination data tuple to the store, and saves it to disk
+     * When adding new fields, take care to consider how DelAddressBook should
+     * handle it!
+     */
     bool AddDestData(WalletBatch &batch, const CTxDestination &dest,
                      const std::string &key, const std::string &value)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

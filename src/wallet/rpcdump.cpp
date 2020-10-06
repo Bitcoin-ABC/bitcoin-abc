@@ -61,12 +61,13 @@ GetWalletAddressesForKey(const Config &config, LegacyScriptPubKeyMan *spk_man,
     CKey key;
     spk_man->GetKey(keyid, key);
     for (const auto &dest : GetAllDestinationsForKey(key.GetPubKey())) {
-        if (pwallet->mapAddressBook.count(dest)) {
+        const auto *address_book_entry = pwallet->FindAddressBookEntry(dest);
+        if (address_book_entry) {
             if (!strAddr.empty()) {
                 strAddr += ",";
             }
             strAddr += EncodeDestination(dest, config);
-            strLabel = EncodeDumpString(pwallet->mapAddressBook[dest].name);
+            strLabel = EncodeDumpString(address_book_entry->name);
             fLabelFound = true;
         }
     }
@@ -194,7 +195,7 @@ UniValue importprivkey(const Config &config, const JSONRPCRequest &request) {
             // label was passed.
             for (const auto &dest : GetAllDestinationsForKey(pubkey)) {
                 if (!request.params[1].isNull() ||
-                    pwallet->mapAddressBook.count(dest) == 0) {
+                    !pwallet->FindAddressBookEntry(dest)) {
                     pwallet->SetAddressBook(dest, strLabel, "receive");
                 }
             }
