@@ -98,6 +98,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	strprintf.cpp
 	system.cpp
 	timedata.cpp
+	torcontrol.cpp
 	transaction.cpp
 	tx_in.cpp
 	tx_out.cpp
