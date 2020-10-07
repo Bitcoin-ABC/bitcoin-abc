@@ -384,10 +384,9 @@ static CTransactionRef SendMoney(interfaces::Chain::Lock &locked_chain,
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
 
-    CCoinControl coinControl;
     CTransactionRef tx;
     if (!pwallet->CreateTransaction(locked_chain, vecSend, tx, nFeeRequired,
-                                    nChangePosRet, error, coinControl)) {
+                                    nChangePosRet, error, coin_control)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance) {
             error = strprintf(Untranslated("Error: This transaction requires a "
                                            "transaction fee of at least %s"),
