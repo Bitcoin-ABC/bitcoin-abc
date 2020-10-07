@@ -33,8 +33,8 @@ static UniValue getavalanchekey(const Config &config,
 
 static CPubKey ParsePubKey(const UniValue &param) {
     const std::string keyHex = param.get_str();
-    if ((keyHex.length() != 2 * CPubKey::COMPRESSED_PUBLIC_KEY_SIZE &&
-         keyHex.length() != 2 * CPubKey::PUBLIC_KEY_SIZE) ||
+    if ((keyHex.length() != 2 * CPubKey::COMPRESSED_SIZE &&
+         keyHex.length() != 2 * CPubKey::SIZE) ||
         !IsHex(keyHex)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            strprintf("Invalid public key: %s\n", keyHex));

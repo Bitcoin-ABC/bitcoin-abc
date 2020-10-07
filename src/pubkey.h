@@ -33,31 +33,31 @@ public:
     /**
      * secp256k1:
      */
-    static constexpr unsigned int PUBLIC_KEY_SIZE = 65;
-    static constexpr unsigned int COMPRESSED_PUBLIC_KEY_SIZE = 33;
+    static constexpr unsigned int SIZE = 65;
+    static constexpr unsigned int COMPRESSED_SIZE = 33;
     static constexpr unsigned int SIGNATURE_SIZE = 72;
     static constexpr unsigned int COMPACT_SIGNATURE_SIZE = 65;
     /**
      * see www.keylength.com
      * script supports up to 75 for single byte push
      */
-    static_assert(PUBLIC_KEY_SIZE >= COMPRESSED_PUBLIC_KEY_SIZE,
-                  "COMPRESSED_PUBLIC_KEY_SIZE is larger than PUBLIC_KEY_SIZE");
+    static_assert(SIZE >= COMPRESSED_SIZE,
+                  "COMPRESSED_SIZE is larger than SIZE");
 
 private:
     /**
      * Just store the serialized data.
      * Its length can very cheaply be computed from the first byte.
      */
-    uint8_t vch[PUBLIC_KEY_SIZE];
+    uint8_t vch[SIZE];
 
     //! Compute the length of a pubkey with a given first byte.
     static unsigned int GetLen(uint8_t chHeader) {
         if (chHeader == 2 || chHeader == 3) {
-            return COMPRESSED_PUBLIC_KEY_SIZE;
+            return COMPRESSED_SIZE;
         }
         if (chHeader == 4 || chHeader == 6 || chHeader == 7) {
-            return PUBLIC_KEY_SIZE;
+            return SIZE;
         }
         return 0;
     }
@@ -120,7 +120,7 @@ public:
     }
     template <typename Stream> void Unserialize(Stream &s) {
         unsigned int len = ::ReadCompactSize(s);
-        if (len <= PUBLIC_KEY_SIZE) {
+        if (len <= SIZE) {
             s.read((char *)vch, len);
         } else {
             // invalid pubkey, skip available data
@@ -150,7 +150,7 @@ public:
     bool IsFullyValid() const;
 
     //! Check whether this is a compressed public key.
-    bool IsCompressed() const { return size() == COMPRESSED_PUBLIC_KEY_SIZE; }
+    bool IsCompressed() const { return size() == COMPRESSED_SIZE; }
 
     /**
      * Verify a DER-serialized ECDSA signature (~72 bytes).

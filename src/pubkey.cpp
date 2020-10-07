@@ -233,8 +233,8 @@ bool CPubKey::RecoverCompact(const uint256 &hash,
                                  hash.begin())) {
         return false;
     }
-    uint8_t pub[PUBLIC_KEY_SIZE];
-    size_t publen = PUBLIC_KEY_SIZE;
+    uint8_t pub[SIZE];
+    size_t publen = SIZE;
     secp256k1_ec_pubkey_serialize(
         secp256k1_context_verify, pub, &publen, &pubkey,
         fComp ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
@@ -260,8 +260,8 @@ bool CPubKey::Decompress() {
                                    size())) {
         return false;
     }
-    uint8_t pub[PUBLIC_KEY_SIZE];
-    size_t publen = PUBLIC_KEY_SIZE;
+    uint8_t pub[SIZE];
+    size_t publen = SIZE;
     secp256k1_ec_pubkey_serialize(secp256k1_context_verify, pub, &publen,
                                   &pubkey, SECP256K1_EC_UNCOMPRESSED);
     Set(pub, pub + publen);
@@ -272,7 +272,7 @@ bool CPubKey::Derive(CPubKey &pubkeyChild, ChainCode &ccChild,
                      unsigned int nChild, const ChainCode &cc) const {
     assert(IsValid());
     assert((nChild >> 31) == 0);
-    assert(size() == COMPRESSED_PUBLIC_KEY_SIZE);
+    assert(size() == COMPRESSED_SIZE);
     uint8_t out[64];
     BIP32Hash(cc, nChild, *begin(), begin() + 1, out);
     memcpy(ccChild.begin(), out + 32, 32);
@@ -285,8 +285,8 @@ bool CPubKey::Derive(CPubKey &pubkeyChild, ChainCode &ccChild,
                                        out)) {
         return false;
     }
-    uint8_t pub[COMPRESSED_PUBLIC_KEY_SIZE];
-    size_t publen = COMPRESSED_PUBLIC_KEY_SIZE;
+    uint8_t pub[COMPRESSED_SIZE];
+    size_t publen = COMPRESSED_SIZE;
     secp256k1_ec_pubkey_serialize(secp256k1_context_verify, pub, &publen,
                                   &pubkey, SECP256K1_EC_COMPRESSED);
     pubkeyChild.Set(pub, pub + publen);
@@ -301,8 +301,8 @@ void CExtPubKey::Encode(uint8_t code[BIP32_EXTKEY_SIZE]) const {
     code[7] = (nChild >> 8) & 0xFF;
     code[8] = (nChild >> 0) & 0xFF;
     memcpy(code + 9, chaincode.begin(), 32);
-    assert(pubkey.size() == CPubKey::COMPRESSED_PUBLIC_KEY_SIZE);
-    memcpy(code + 41, pubkey.begin(), CPubKey::COMPRESSED_PUBLIC_KEY_SIZE);
+    assert(pubkey.size() == CPubKey::COMPRESSED_SIZE);
+    memcpy(code + 41, pubkey.begin(), CPubKey::COMPRESSED_SIZE);
 }
 
 void CExtPubKey::Decode(const uint8_t code[BIP32_EXTKEY_SIZE]) {
