@@ -9,7 +9,9 @@ TOPLEVEL=$(git rev-parse --show-toplevel)
 # shellcheck source=../../utils/compare-version.sh
 source "${TOPLEVEL}"/contrib/utils/compare-version.sh
 RELEASE_NOTES_FILE="${TOPLEVEL}/doc/release-notes.md"
-RELEASE_NOTES_VERSION=$(sed -n "1s/^Bitcoin ABC version \([0-9]\+\.[0-9]\+\.[0-9]\+\).\+$/\1/p" "${RELEASE_NOTES_FILE}")
+# Match the first version number in the first line of the existing release
+# notes. This will fail if no version number is found.
+RELEASE_NOTES_VERSION=$(head -n1 "${RELEASE_NOTES_FILE}" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)
 RELEASE_NOTES_ARCHIVE="${TOPLEVEL}/doc/release-notes/release-notes-${RELEASE_NOTES_VERSION}.md"
 
 CURRENT_VERSION=""
