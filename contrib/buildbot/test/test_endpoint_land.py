@@ -32,7 +32,7 @@ class EndpointLandTestCase(ABCBotFixture):
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': 'https://teamcity.test/app/rest/buildQueue',
             'body': json.dumps({
-                'branchName': 'master',
+                'branchName': 'refs/heads/master',
                 'buildType': {
                     'id': 'BitcoinAbcLandBot',
                 },

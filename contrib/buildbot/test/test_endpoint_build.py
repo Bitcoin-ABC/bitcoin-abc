@@ -16,7 +16,6 @@ from testutil import AnyWith
 class buildRequestQuery():
     def __init__(self):
         self.buildTypeId = 'test-build-type-id'
-        self.ref = 'refs/heads/master'
         self.PHID = 'buildPHID'
 
     def __str__(self):

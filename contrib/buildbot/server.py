@@ -175,7 +175,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
     @app.route("/build", methods=['POST'])
     def build():
         buildTypeId = request.args.get('buildTypeId', None)
-        ref = request.args.get('ref', 'master')
+        ref = request.args.get('ref', 'refs/heads/master')
 
         PHID = request.args.get('PHID', None)
 
@@ -283,7 +283,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
         }]
         output = tc.trigger_build(
             LANDBOT_BUILD_TYPE,
-            'master',
+            'refs/heads/master',
             UNRESOLVED,
             properties)
         if output:
