@@ -123,9 +123,11 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
     }
 
     if (wallets.empty()) {
-        throw JSONRPCError(RPC_METHOD_NOT_FOUND,
-                           "Method not found (wallet method is disabled "
-                           "because no wallet is loaded)");
+        throw JSONRPCError(
+            RPC_WALLET_NOT_FOUND,
+            "No wallet is loaded. Load a wallet using loadwallet or create a "
+            "new one with createwallet. (Note: A default wallet is no longer "
+            "automatically created)");
     }
 
     throw JSONRPCError(RPC_WALLET_NOT_SPECIFIED,
