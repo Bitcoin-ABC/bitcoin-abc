@@ -117,11 +117,6 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
             "```\nsecp256k1 PR456 in a multi-line code block\n```\n"
             "  secp256k1 PR456 in a code block using indentation\n"
             "Another secp backport [[https://github.com/bitcoin-core/secp256k1/pull/567 | PR567]]",
-        }], objectIdentifier='1234'), mock.call(transactions=[{
-            "type": "comment",
-            "value": "[Bot Message]\n"
-            "One or more PR numbers were detected in the summary.\n"
-            "Links to those PRs have been inserted into the summary for reference.",
         }], objectIdentifier='1234')]
         self.phab.differential.revision.edit.assert_has_calls(
             calls, any_order=True)

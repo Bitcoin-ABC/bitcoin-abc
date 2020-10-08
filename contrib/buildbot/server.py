@@ -169,10 +169,6 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
 
         if foundPRs > 0:
             phab.updateRevisionSummary(revisionId, newSummary)
-            commentMessage = ("[Bot Message]\n"
-                              "One or more PR numbers were detected in the summary.\n"
-                              "Links to those PRs have been inserted into the summary for reference.")
-            phab.commentOnRevision(revisionId, commentMessage)
 
         return SUCCESS, 200
 
