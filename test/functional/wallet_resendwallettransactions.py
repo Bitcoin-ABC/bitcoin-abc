@@ -28,10 +28,10 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         txid = int(node.sendtoaddress(node.getnewaddress(), 1000000), 16)
 
         # Wallet rebroadcast is first scheduled 1 sec after startup (see
-        # nNextResend in ResendWalletTransactions()). Sleep for just over a
-        # second to be certain that it has been called before the first
+        # nNextResend in ResendWalletTransactions()). Tell scheduler to call
+        # MaybeResendWalletTxn now to initialize nNextResend before the first
         # setmocktime call below.
-        time.sleep(1.1)
+        node.mockscheduler(1)
 
         # Can take a few seconds due to transaction trickling
         wait_until(
@@ -63,16 +63,17 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         twelve_hrs = 12 * 60 * 60
         two_min = 2 * 60
         node.setmocktime(now + twelve_hrs - two_min)
-        # ensure enough time has passed for rebroadcast attempt to occur
-        time.sleep(2)
+        # Tell scheduler to call MaybeResendWalletTxn now
+        node.mockscheduler(1)
         assert_equal(txid in node.p2ps[1].get_invs(), False)
 
         self.log.info("Bump time & check that transaction is rebroadcast")
         # Transaction should be rebroadcast approximately 24 hours in the future,
         # but can range from 12-36. So bump 36 hours to be sure.
-        node.setmocktime(now + 36 * 60 * 60)
-        # Tell scheduler to call MaybeResendWalletTxn now.
-        node.mockscheduler(1)
+        with node.assert_debug_log(['ResendWalletTransactions: resubmit 1 unconfirmed transactions']):
+            node.setmocktime(now + 36 * 60 * 60)
+            # Tell scheduler to call MaybeResendWalletTxn now.
+            node.mockscheduler(1)
         # Give some time for trickle to occur
         node.setmocktime(now + 36 * 60 * 60 + 600)
         wait_until(
