@@ -64,7 +64,7 @@ class TeamCity():
         # We do not care about sub-second precision anyway.
         return int(time.time())
 
-    def getIgnoreList(self, ignoreList):
+    def getIgnoreList(self):
         return self.ignoreList
 
     def setMockTime(self, mockTime):

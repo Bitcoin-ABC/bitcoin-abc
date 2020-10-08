@@ -24,6 +24,11 @@ class TeamcityTests(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_ignoreList(self):
+        expectedList = [b'test']
+        self.teamcity.ignoreList = expectedList
+        assert self.teamcity.getIgnoreList() == expectedList
+
     def test_mockTime(self):
         currentTime = int(time.time()) - 1
         assert self.teamcity.getTime() >= currentTime
