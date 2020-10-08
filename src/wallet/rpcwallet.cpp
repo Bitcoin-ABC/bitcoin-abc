@@ -342,7 +342,6 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
                            "Invalid Bitcoin address");
     }
 
-    std::string old_label = pwallet->mapAddressBook[dest].name;
     std::string label = LabelFromValue(request.params[1]);
 
     if (pwallet->IsMine(dest)) {
