@@ -3565,7 +3565,8 @@ void CWallet::MarkDestinationsDirty(
         if (wtx.m_is_cache_empty) {
             continue;
         }
-        for (unsigned int i = 0; i < wtx.tx->vout.size(); i++) {
+
+        for (size_t i = 0; i < wtx.tx->vout.size(); i++) {
             CTxDestination dst;
 
             if (ExtractDestination(wtx.tx->vout[i].scriptPubKey, dst) &&
