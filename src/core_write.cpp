@@ -14,6 +14,8 @@
 #include <script/standard.h>
 #include <serialize.h>
 #include <streams.h>
+#include <undo.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 
@@ -213,7 +215,8 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 }
 
 void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
-              UniValue &entry, bool include_hex, int serialize_flags) {
+              UniValue &entry, bool include_hex, int serialize_flags,
+              const CTxUndo *txundo) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
     // Transaction version is actually unsigned in consensus checks, just
@@ -223,7 +226,15 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
     entry.pushKV("size", (int)::GetSerializeSize(tx, PROTOCOL_VERSION));
     entry.pushKV("locktime", (int64_t)tx.nLockTime);
 
-    UniValue vin(UniValue::VARR);
+    UniValue vin{UniValue::VARR};
+
+    // If available, use Undo data to calculate the fee. Note that
+    // txundo == nullptr for coinbase transactions and for transactions where
+    // undo data is unavailable.
+    const bool calculate_fee = txundo != nullptr;
+    Amount amt_total_in = Amount::zero();
+    Amount amt_total_out = Amount::zero();
+
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxIn &txin = tx.vin[i];
         UniValue in(UniValue::VOBJ);
@@ -237,7 +248,10 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
             o.pushKV("hex", HexStr(txin.scriptSig));
             in.pushKV("scriptSig", o);
         }
-
+        if (calculate_fee) {
+            const CTxOut &prev_txout = txundo->vprevout[i].GetTxOut();
+            amt_total_in += prev_txout.nValue;
+        }
         in.pushKV("sequence", (int64_t)txin.nSequence);
         vin.push_back(in);
     }
@@ -257,9 +271,19 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
         ScriptPubKeyToUniv(txout.scriptPubKey, o, true);
         out.pushKV("scriptPubKey", o);
         vout.push_back(out);
+
+        if (calculate_fee) {
+            amt_total_out += txout.nValue;
+        }
     }
 
     entry.pushKV("vout", vout);
+
+    if (calculate_fee) {
+        const Amount fee = amt_total_in - amt_total_out;
+        CHECK_NONFATAL(MoneyRange(fee));
+        entry.pushKV("fee", fee);
+    }
 
     if (!hashBlock.IsNull()) {
         entry.pushKV("blockhash", hashBlock.GetHex());

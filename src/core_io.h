@@ -20,6 +20,7 @@ class CScript;
 class CTransaction;
 class uint256;
 class UniValue;
+class CTxUndo;
 
 // core_read.cpp
 CScript ParseScript(const std::string &s);
@@ -50,7 +51,7 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
                         bool fIncludeHex);
 void ScriptToUniv(const CScript &script, UniValue &out, bool include_address);
 void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
-              UniValue &entry, bool include_hex = true,
-              int serialize_flags = 0);
+              UniValue &entry, bool include_hex = true, int serialize_flags = 0,
+              const CTxUndo *txundo = nullptr);
 
 #endif // BITCOIN_CORE_IO_H

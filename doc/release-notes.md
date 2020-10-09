@@ -4,4 +4,6 @@ Bitcoin ABC version 0.26.6 is now available from:
 
   <https://download.bitcoinabc.org/0.26.6/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+ - The `getblock` RPC verbose mode level 2 now returns the transactions fees if
+   undo data is available. See the RPC documentation for more details.

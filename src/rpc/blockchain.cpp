@@ -189,12 +189,22 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
 
     result.pushKV("size", (int)::GetSerializeSize(block, PROTOCOL_VERSION));
     UniValue txs(UniValue::VARR);
-    for (const auto &tx : block.vtx) {
-        if (txDetails) {
+    if (txDetails) {
+        CBlockUndo blockUndo;
+        const bool have_undo = !IsBlockPruned(blockindex) &&
+                               UndoReadFromDisk(blockUndo, blockindex);
+        for (size_t i = 0; i < block.vtx.size(); ++i) {
+            const CTransactionRef &tx = block.vtx.at(i);
+            // coinbase transaction (i == 0) doesn't have undo data
+            const CTxUndo *txundo =
+                (have_undo && i) ? &blockUndo.vtxundo.at(i - 1) : nullptr;
             UniValue objTx(UniValue::VOBJ);
-            TxToUniv(*tx, BlockHash(), objTx, true, RPCSerializationFlags());
+            TxToUniv(*tx, BlockHash(), objTx, true, RPCSerializationFlags(),
+                     txundo);
             txs.push_back(objTx);
-        } else {
+        }
+    } else {
+        for (const CTransactionRef &tx : block.vtx) {
             txs.push_back(tx->GetId().GetHex());
         }
     }
@@ -1133,6 +1143,11 @@ static RPCHelpMan getblock() {
                                      "The transactions in the format of the "
                                      "getrawtransaction RPC. Different from "
                                      "verbosity = 1 \"tx\" result"},
+                                    {RPCResult::Type::STR_AMOUNT, "fee",
+                                     "The transaction fee in " +
+                                         Currency::get().ticker +
+                                         ", omitted if block undo data is not "
+                                         "available"},
                                 }},
                            }},
                       }},
