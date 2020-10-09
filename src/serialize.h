@@ -23,7 +23,11 @@
 #include <utility>
 #include <vector>
 
-static const uint64_t MAX_SIZE = 0x02000000;
+/**
+ * The maximum size of a serialized object in bytes or number of elements
+ * (for eg vectors) when the size is encoded as CompactSize.
+ */
+static constexpr uint64_t MAX_SIZE = 0x02000000;
 
 /**
  * Maximum amount of memory (in bytes) to allocate at once when deserializing
@@ -445,7 +449,15 @@ template <typename Stream> void WriteCompactSize(Stream &os, uint64_t nSize) {
     return;
 }
 
-template <typename Stream> uint64_t ReadCompactSize(Stream &is) {
+/**
+ * Decode a CompactSize-encoded variable-length integer.
+ *
+ * As these are primarily used to encode the size of vector-like serializations,
+ * by default a range check is performed. When used as a generic number
+ * encoding, range_check should be set to false.
+ */
+template <typename Stream>
+uint64_t ReadCompactSize(Stream &is, bool range_check = true) {
     uint8_t chSize = ser_readdata8(is);
     uint64_t nSizeRet = 0;
     if (chSize < 253) {
@@ -466,7 +478,7 @@ template <typename Stream> uint64_t ReadCompactSize(Stream &is) {
             throw std::ios_base::failure("non-canonical ReadCompactSize()");
         }
     }
-    if (nSizeRet > MAX_SIZE) {
+    if (range_check && nSizeRet > MAX_SIZE) {
         throw std::ios_base::failure("ReadCompactSize(): size too large");
     }
     return nSizeRet;
@@ -612,7 +624,7 @@ static inline Wrapper<Formatter, T &> Using(T &&t) {
 
 #define VARINT_MODE(obj, mode) Using<VarIntFormatter<mode>>(obj)
 #define VARINT(obj) Using<VarIntFormatter<VarIntMode::DEFAULT>>(obj)
-#define COMPACTSIZE(obj) Using<CompactSizeFormatter>(obj)
+#define COMPACTSIZE(obj) Using<CompactSizeFormatter<true>>(obj)
 #define LIMITED_STRING(obj, n) LimitedString<n>(REF(obj))
 
 /**
@@ -679,9 +691,9 @@ template <int Bytes>
 using BigEndianFormatter = CustomUintFormatter<Bytes, true>;
 
 /** Formatter for integers in CompactSize format. */
-struct CompactSizeFormatter {
+template <bool RangeCheck> struct CompactSizeFormatter {
     template <typename Stream, typename I> void Unser(Stream &s, I &v) {
-        uint64_t n = ReadCompactSize<Stream>(s);
+        uint64_t n = ReadCompactSize<Stream>(s, RangeCheck);
         if (n < std::numeric_limits<I>::min() ||
             n > std::numeric_limits<I>::max()) {
             throw std::ios_base::failure("CompactSize exceeds limit of type");
