@@ -27,7 +27,7 @@ namespace interfaces {
 namespace {
 
     //! Construct wallet tx struct.
-    static WalletTx MakeWalletTx(CWallet &wallet, const CWalletTx &wtx) {
+    WalletTx MakeWalletTx(CWallet &wallet, const CWalletTx &wtx) {
         WalletTx result;
         result.tx = wtx.tx;
         result.txin_is_mine.reserve(wtx.tx->vin.size());
@@ -56,9 +56,8 @@ namespace {
     }
 
     //! Construct wallet tx status struct.
-    static WalletTxStatus
-    MakeWalletTxStatus(interfaces::Chain::Lock &locked_chain,
-                       const CWalletTx &wtx) {
+    WalletTxStatus MakeWalletTxStatus(interfaces::Chain::Lock &locked_chain,
+                                      const CWalletTx &wtx) {
         WalletTxStatus result;
         result.block_height =
             locked_chain.getBlockHeight(wtx.m_confirm.hashBlock)
@@ -79,8 +78,8 @@ namespace {
     }
 
     //! Construct wallet TxOut struct.
-    static WalletTxOut MakeWalletTxOut(CWallet &wallet, const CWalletTx &wtx,
-                                       int n, int depth)
+    WalletTxOut MakeWalletTxOut(CWallet &wallet, const CWalletTx &wtx, int n,
+                                int depth)
         EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
         WalletTxOut result;
         result.txout = wtx.tx->vout[n];
