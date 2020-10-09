@@ -262,11 +262,13 @@ public:
 
         //! list of (sequence number, txid) tuples.
         std::vector<std::tuple<uint64_t, int>> result;
+        std::vector<std::pair<NodeId, TxId>> expected_expired;
         for (int txid = 0; txid < MAX_TXIDS; ++txid) {
             // Mark any expired REQUESTED announcements as COMPLETED.
             for (int peer2 = 0; peer2 < MAX_PEERS; ++peer2) {
                 Announcement &ann2 = m_announcements[txid][peer2];
                 if (ann2.m_state == State::REQUESTED && ann2.m_time <= m_now) {
+                    expected_expired.emplace_back(peer2, TXIDS[txid]);
                     ann2.m_state = State::COMPLETED;
                     break;
                 }
@@ -282,9 +284,13 @@ public:
         }
         // Sort the results by sequence number.
         std::sort(result.begin(), result.end());
+        std::sort(expected_expired.begin(), expected_expired.end());
 
         // Compare with TxRequestTracker's implementation.
-        const auto actual = m_tracker.GetRequestable(peer, m_now);
+        std::vector<std::pair<NodeId, TxId>> expired;
+        const auto actual = m_tracker.GetRequestable(peer, m_now, &expired);
+        std::sort(expired.begin(), expired.end());
+        assert(expired == expected_expired);
 
         m_tracker.PostGetRequestableSanityCheck(m_now);
         assert(result.size() == actual.size());

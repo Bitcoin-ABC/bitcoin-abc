@@ -42,6 +42,14 @@ struct Runner {
 
     /** Which txids have been assigned already (to prevent reuse). */
     std::set<TxId> txidset;
+
+    /**
+     * Which (peer, txid) combinations are known to be expired. These need to be
+     * accumulated here instead of checked directly in the GetRequestable return
+     * value to avoid introducing a dependency between the various parallel
+     * tests.
+     */
+    std::multiset<std::pair<NodeId, TxId>> expired;
 };
 
 std::chrono::microseconds RandomTime8s() {
@@ -158,7 +166,12 @@ public:
         const auto now = m_now;
         assert(offset.count() <= 0);
         runner.actions.emplace_back(m_now, [=, &runner]() {
-            auto ret = runner.txrequest.GetRequestable(peer, now + offset);
+            std::vector<std::pair<NodeId, TxId>> expired_now;
+            auto ret = runner.txrequest.GetRequestable(peer, now + offset,
+                                                       &expired_now);
+            for (const auto &entry : expired_now) {
+                runner.expired.insert(entry);
+            }
             runner.txrequest.SanityCheck();
             runner.txrequest.PostGetRequestableSanityCheck(now + offset);
             size_t total = candidates + inflight + completed;
@@ -179,6 +192,26 @@ public:
                           real_candidates, candidates));
             BOOST_CHECK_MESSAGE(ret == expected,
                                 "[" + comment + "] mismatching requestables");
+        });
+    }
+
+    /**
+     * Verify that an announcement for txid by peer has expired some time before
+     * this check is scheduled.
+     *
+     * Every expected expiration should be accounted for through exactly one
+     * call to this function.
+     */
+    void CheckExpired(NodeId peer, TxId txid) {
+        const auto &testname = m_testname;
+        auto &runner = m_runner;
+        runner.actions.emplace_back(m_now, [=, &runner]() {
+            auto it = runner.expired.find(std::pair<NodeId, TxId>{peer, txid});
+            BOOST_CHECK_MESSAGE(it != runner.expired.end(),
+                                "[" + testname + "] missing expiration");
+            if (it != runner.expired.end()) {
+                runner.expired.erase(it);
+            }
         });
     }
 
@@ -278,6 +311,7 @@ void BuildSingleTest(Scenario &scenario, int config) {
             scenario.Check(peer, {}, 0, 1, 0, "s7");
             scenario.AdvanceTime(MICROSECOND);
             scenario.Check(peer, {}, 0, 0, 0, "s8");
+            scenario.CheckExpired(peer, txid);
             return;
         } else {
             scenario.AdvanceTime(
@@ -292,9 +326,6 @@ void BuildSingleTest(Scenario &scenario, int config) {
         }
     }
 
-    if (InsecureRandBool()) {
-        scenario.AdvanceTime(RandomTime8s());
-    }
     if (config & 4) {
         // The peer will go offline
         scenario.DisconnectedPeer(peer);
@@ -558,6 +589,7 @@ void BuildTimeBackwardsTest(Scenario &scenario) {
     scenario.Check(peer1, {}, 0, 0, 1, "r9");
     // Request goes back to peer2.
     scenario.Check(peer2, {txid}, 1, 0, 0, "r10");
+    scenario.CheckExpired(peer1, txid);
     // Going back does not unexpire.
     scenario.Check(peer1, {}, 0, 0, 1, "r11", -MICROSECOND);
     scenario.Check(peer2, {txid}, 1, 0, 0, "r12", -MICROSECOND);
@@ -626,6 +658,7 @@ void BuildWeirdRequestsTest(Scenario &scenario) {
     scenario.AdvanceTime(expiryA - scenario.Now());
     scenario.Check(peer1, {}, 0, 0, 1, "q12");
     scenario.Check(peer2, {txid2, txid1}, 2, 0, 0, "q13");
+    scenario.CheckExpired(peer1, txid1);
 
     // Requesting it yet again from peer1 doesn't do anything, as it's already
     // COMPLETED.
@@ -719,6 +752,7 @@ void TestInterleavedScenarios() {
     }
 
     BOOST_CHECK_EQUAL(runner.txrequest.Size(), 0U);
+    BOOST_CHECK(runner.expired.empty());
 }
 
 } // namespace

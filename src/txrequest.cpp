@@ -580,7 +580,11 @@ private:
     //!   CANDIDATE_{READY,BEST}.
     //! - CANDIDATE_{READY,BEST} announcements with reqtime > now are turned
     //!   into CANDIDATE_DELAYED.
-    void SetTimePoint(std::chrono::microseconds now) {
+    void SetTimePoint(std::chrono::microseconds now,
+                      std::vector<std::pair<NodeId, TxId>> *expired) {
+        if (expired) {
+            expired->clear();
+        }
         // Iterate over all CANDIDATE_DELAYED and REQUESTED from old to new, as
         // long as they're in the past, and convert them to CANDIDATE_READY and
         // COMPLETED respectively.
@@ -591,6 +595,9 @@ private:
                 PromoteCandidateReady(m_index.project<ByTxId>(it));
             } else if (it->GetState() == State::REQUESTED &&
                        it->m_time <= now) {
+                if (expired) {
+                    expired->emplace_back(it->m_peer, it->m_txid);
+                }
                 MakeCompleted(m_index.project<ByTxId>(it));
             } else {
                 break;
@@ -707,10 +714,11 @@ public:
     }
 
     //! Find the TxIds to request now from peer.
-    std::vector<TxId> GetRequestable(NodeId peer,
-                                     std::chrono::microseconds now) {
+    std::vector<TxId>
+    GetRequestable(NodeId peer, std::chrono::microseconds now,
+                   std::vector<std::pair<NodeId, TxId>> *expired) {
         // Move time.
-        SetTimePoint(now);
+        SetTimePoint(now, expired);
 
         // Find all CANDIDATE_BEST announcements for this peer.
         std::vector<const Announcement *> selected;
@@ -896,9 +904,10 @@ void TxRequestTracker::ReceivedResponse(NodeId peer, const TxId &txid) {
     m_impl->ReceivedResponse(peer, txid);
 }
 
-std::vector<TxId>
-TxRequestTracker::GetRequestable(NodeId peer, std::chrono::microseconds now) {
-    return m_impl->GetRequestable(peer, now);
+std::vector<TxId> TxRequestTracker::GetRequestable(
+    NodeId peer, std::chrono::microseconds now,
+    std::vector<std::pair<NodeId, TxId>> *expired) {
+    return m_impl->GetRequestable(peer, now, expired);
 }
 
 uint64_t TxRequestTracker::ComputePriority(const TxId &txid, NodeId peer,

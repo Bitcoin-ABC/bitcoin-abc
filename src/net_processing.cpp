@@ -5381,8 +5381,14 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         // Message: getdata (transactions)
         //
 
-        for (const TxId &txid :
-             m_txrequest.GetRequestable(pto->GetId(), current_time)) {
+        std::vector<std::pair<NodeId, TxId>> expired;
+        auto requestable =
+            m_txrequest.GetRequestable(pto->GetId(), current_time, &expired);
+        for (const auto &entry : expired) {
+            LogPrint(BCLog::NET, "timeout of inflight tx %s from peer=%d\n",
+                     entry.second.ToString(), entry.first);
+        }
+        for (const TxId &txid : requestable) {
             if (!AlreadyHaveTx(txid, m_mempool)) {
                 LogPrint(BCLog::NET, "Requesting tx %s peer=%d\n",
                          txid.ToString(), pto->GetId());

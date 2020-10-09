@@ -177,7 +177,8 @@ public:
      *
      * It does the following:
      *  - Convert all REQUESTED announcements (for all txids/peers) with
-     *    (expiry <= now) to COMPLETED ones.
+     *    (expiry <= now) to COMPLETED ones. These are returned in expired, if
+     *    non-nullptr.
      *  - Requestable announcements are selected: CANDIDATE announcements from
      *    the specified peer with (reqtime <= now) for which no existing
      *    REQUESTED announcement with the same txid from a different peer
@@ -193,8 +194,9 @@ public:
      *    peer, and end up being requested from them, the requests will happen
      *    in announcement order.
      */
-    std::vector<TxId> GetRequestable(NodeId peer,
-                                     std::chrono::microseconds now);
+    std::vector<TxId>
+    GetRequestable(NodeId peer, std::chrono::microseconds now,
+                   std::vector<std::pair<NodeId, TxId>> *expired = nullptr);
 
     /**
      * Marks a transaction as requested, with a specified expiry.
