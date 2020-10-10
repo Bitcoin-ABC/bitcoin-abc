@@ -87,7 +87,7 @@ int CAddrDb::Lookup_(const CService &ip) {
 }
 
 void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
-                    int blocks) {
+                    int blocks, uint64_t services) {
     int id = Lookup_(addr);
     if (id == -1) {
         return;
@@ -98,6 +98,7 @@ void CAddrDb::Good_(const CService &addr, int clientV, std::string clientSV,
     info.clientVersion = clientV;
     info.clientSubVersion = clientSV;
     info.blocks = blocks;
+    info.services = services;
     info.Update(true);
     if (info.IsReliable() && goodId.count(id) == 0) {
         goodId.insert(id);

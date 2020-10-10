@@ -211,6 +211,7 @@ extern "C" void *ThreadCrawler(void *data) {
             res.nClientV = 0;
             res.nHeight = 0;
             res.strClientV = "";
+            res.services = 0;
             bool getaddr = res.ourLastSuccess + 86400 < now;
             try {
                 CSeederNode node(res.service, getaddr ? &addr : nullptr);
@@ -223,6 +224,7 @@ extern "C" void *ThreadCrawler(void *data) {
                 res.nClientV = node.GetClientVersion();
                 res.strClientV = node.GetClientSubVersion();
                 res.nHeight = node.GetStartingHeight();
+                res.services = node.GetServices();
                 // tfm::format(std::cout, "%s: %s!!!\n", cip.ToString(),
                 // ret ? "GOOD" : "BAD");
                 res.fGood = ret;
