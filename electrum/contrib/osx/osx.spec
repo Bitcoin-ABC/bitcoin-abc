@@ -34,6 +34,7 @@ datas = [
     (home+'electrumabc/servers_testnet.json', PYPKG),
     (home+'electrumabc/servers_regtest.json', PYPKG),
     (home+'electrumabc/wordlist/english.txt', PYPKG + '/wordlist'),
+    (home+'electrumabc/wordlist/slip39.txt', PYPKG + '/wordlist'),
     (home+'electrumabc/locale', PYPKG + '/locale'),
     (home+'electrumabc_plugins', PYPKG + '_plugins'),
 ]

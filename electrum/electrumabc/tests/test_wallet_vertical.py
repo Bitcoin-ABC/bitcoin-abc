@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from .. import bitcoin, keystore, mnemo, storage, wallet
+from .. import bitcoin, keystore, mnemo, slip39, storage, wallet
 from ..address import Address, PublicKey
 from ..bitcoin import ScriptType
 from ..storage import StorageKeys
@@ -364,6 +364,92 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         # The provided private key belongs to ks1, so the first signature is set.
         self.assertIsNotNone(txin.signatures[0])
         self.assertIsNone(txin.signatures[1])
+
+    @mock.patch.object(storage.WalletStorage, "_write")
+    def test_slip39_non_extendable_basic_3of6_bip44_standard(self, mock_write):
+        """
+        BIP32 Root Key for passphrase "TREZOR":
+        xprv9s21ZrQH143K2pMWi8jrTawHaj16uKk4CSbvo4Zt61tcrmuUDMx2o1Byzcr3saXNGNvHP8zZgXVdJHsXVdzYFPavxvCyaGyGr1WkAYG83ce
+        """
+        mnemonics = [
+            "extra extend academic bishop cricket bundle tofu goat apart victim enlarge program behavior permit course armed jerky faint language modern",
+            "extra extend academic acne away best indicate impact square oasis prospect painting voting guest either argue username racism enemy eclipse",
+            "extra extend academic arcade born dive legal hush gross briefing talent drug much home firefly toxic analysis idea umbrella slice",
+        ]
+        passphrase = "TREZOR"
+        derivation = "m/44'/0'/0'"
+        encrypted_seed = slip39.recover_ems(mnemonics)
+        root_seed = encrypted_seed.decrypt(passphrase)
+
+        ks0 = keystore.from_seed(
+            encrypted_seed, passphrase, seed_type="slip39", derivation=derivation
+        )
+        self.assertEqual(ks0.seed_type, "slip39")
+        ks1 = keystore.from_bip32_seed_and_derivation(root_seed, derivation)
+        self.assertEqual(ks1.seed_type, None)
+
+        for ks in ks0, ks1:
+            self.assertIsInstance(ks, keystore.BIP32KeyStore)
+            self.assertEqual(
+                ks.xprv,
+                "xprv9yELEwkzJkSUHXz4hX6iv1SkhKeEhNtgoRDqm8whrymd3f3W2Abdpx6MjRmdEAERNeGauGx1u5djsExCT8qE6e4fGNeetfWtp45rSJu7kNW",
+            )
+            self.assertEqual(
+                ks.xpub,
+                "xpub6CDgeTHt97zmW24XoYdjH9PVFMUj6qcYAe9SZXMKRKJbvTNeZhutNkQqajLyZrQ9DCqdnGenKhBD6UTrT1nHnoLCfFHkdeX8hDsZx1je6b2",
+            )
+            self.assertEqual(ks.derivation, "m/44'/0'/0'")
+
+        w = self._create_standard_wallet(ks1)
+        self.assertEqual(
+            w.get_receiving_addresses()[0],
+            Address.from_string("1NomKAUNnbASwbPuGHmkSVmnrJS5tZeVce"),
+        )
+        self.assertEqual(
+            w.get_change_addresses()[0],
+            Address.from_string("1Aw4wpXsAyEHSgMZqPdyewoAtJqH9Jaso3"),
+        )
+
+    @mock.patch.object(storage.WalletStorage, "_write")
+    def test_slip39_extendable_basic_3of6_bip44_standard(self, mock_write):
+        """
+        BIP32 Root Key for passphrase "TREZOR":
+        xprv9yba7duYBT5g7SbaN1oCX43xeDtjKXNUZ2uSmJ3efHsWYaLkqzdjg2bjLYYzQ9rmXdNzDHYWXv5m9aBCqbFbZzAoGcAceH1K8cPYVDpsJLH
+        """
+        mnemonics = [
+            "judicial dramatic academic agree craft physics memory born prize academic black listen elder station premium dance sympathy flip always kitchen",
+            "judicial dramatic academic arcade clogs timber taught recover burning judicial desktop square ecology budget nervous overall tidy knife fused knit",
+            "judicial dramatic academic axle destroy justice username elegant filter seafood device ranked behavior pecan infant lunar answer identify hour enjoy",
+        ]
+
+        encrypted_seed = slip39.recover_ems(mnemonics)
+        root_seed = encrypted_seed.decrypt("TREZOR")
+        self.assertEqual("255415e2b20ad13cef7adca1e336eaec", root_seed.hex())
+        ks = keystore.from_bip32_seed_and_derivation(
+            root_seed, derivation="m/44'/0'/0'"
+        )
+
+        self.assertIsInstance(ks, keystore.BIP32KeyStore)
+        self.assertEqual(ks.derivation, "m/44'/0'/0'")
+
+        self.assertEqual(
+            ks.xprv,
+            "xprv9yba7duYBT5g7SbaN1oCX43xeDtjKXNUZ2uSmJ3efHsWYaLkqzdjg2bjLYYzQ9rmXdNzDHYWXv5m9aBCqbFbZzAoGcAceH1K8cPYVDpsJLH",
+        )
+        self.assertEqual(
+            ks.xpub,
+            "xpub6CavX9SS1pdyKvg3U3LCtBzhCFjDiz6KvFq3ZgTGDdQVRNfuPXwzDpvDBqbg1kEsDgEeHo6uWeYsZWALRejoJMVCq4rprrHkbw8Jyu3uaMb",
+        )
+
+        w = self._create_standard_wallet(ks)
+        self.assertEqual(
+            w.get_receiving_addresses()[0],
+            Address.from_string("1N4hqJRTVqUbwT5WCbbsQSwKRPPPzG1TSo"),
+        )
+        self.assertEqual(
+            w.get_change_addresses()[0],
+            Address.from_string("1FW3QQzbYRSUoNDDYGWPvSCoom8fBhPC9k"),
+        )
 
 
 if __name__ == "__main__":

@@ -475,7 +475,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
             title=message, is_seed=is_seed, options=options, parent=self, editable=True
         )
         self.exec_layout(slayout, title, next_enabled=False)
-        return slayout.get_seed(), slayout.is_bip39, slayout.is_ext
+        return slayout.get_seed(), slayout.seed_type, slayout.is_ext
 
     def bip38_prompt_for_pw(self, bip38_keys):
         """Reimplemented from basewizard superclass. Expected to return the pw
@@ -510,6 +510,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
             options.append("ext")
         if self.opt_bip39:
             options.append("bip39")
+        if self.opt_slip39:
+            options.append("slip39")
         title = _("Enter Seed")
         message = _("Please enter your seed phrase in order to restore your wallet.")
         return self.seed_input(title, message, test, options)
@@ -528,7 +530,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 ),
             ]
         )
-        seed, is_bip39, is_ext = self.seed_input(title, message, test, None)
+        seed, seed_type, is_ext = self.seed_input(title, message, test, None)
         return seed
 
     @wizard_dialog

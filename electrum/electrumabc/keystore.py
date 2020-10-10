@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 from mnemonic import Mnemonic
 
-from . import bitcoin, mnemo, networks
+from . import bitcoin, mnemo, networks, slip39
 from .address import Address, PublicKey
 from .bip32 import (
     CKD_pub,
@@ -840,7 +840,9 @@ def from_bip32_seed_and_derivation(bip32_seed: bytes, derivation: str) -> BIP32K
     return keystore
 
 
-def from_seed(seed, passphrase, *, seed_type="", derivation=None) -> KeyStore:
+def from_seed(
+    seed: str | slip39.EncryptedSeed, passphrase, *, seed_type="", derivation=None
+) -> KeyStore:
     if not seed_type:
         seed_type = mnemo.seed_type_name(seed)  # auto-detect
     if seed_type == "old":
@@ -858,6 +860,14 @@ def from_seed(seed, passphrase, *, seed_type="", derivation=None) -> KeyStore:
         keystore = from_bip32_seed_and_derivation(bip32_seed, derivation)
         keystore.add_seed(seed, seed_type=seed_type)
         keystore.passphrase = passphrase
+    elif seed_type == "slip39":
+        derivation = derivation or bip44_derivation_xec(0)
+        bip32_seed = seed.decrypt(passphrase)
+        keystore = from_bip32_seed_and_derivation(bip32_seed, derivation)
+        keystore.seed_type = "slip39"
+        # We don't save the "seed" (the shares) and passphrase to disk for now.
+        # Users won't be able to display the "seed" (the shares used to restore the
+        # wallet).
     else:
         raise InvalidSeed()
     return keystore

@@ -33,7 +33,7 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 from electrumabc_plugins.hw_wallet import HWPluginBase
 
-from . import bitcoin, keystore, mnemo, util
+from . import bitcoin, keystore, mnemo, slip39, util
 from .address import Address
 from .bip32 import is_bip32_derivation, xpub_type
 from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
@@ -558,20 +558,27 @@ class BaseWizard(PrintError):
 
     def restore_from_seed(self):
         self.opt_bip39 = True
+        self.opt_slip39 = True
         self.opt_ext = True
         # TODO FIX #bitcoin.is_seed if self.wallet_type == 'standard' else bitcoin.is_new_seed
         test = mnemo.is_seed
         self.restore_seed_dialog(run_next=self.on_restore_seed, test=test)
 
-    def on_restore_seed(self, seed, is_bip39, is_ext):
-        # NB: seed_type_name here may also auto-detect 'bip39'
-        self.seed_type = "bip39" if is_bip39 else mnemo.seed_type_name(seed)
+    def on_restore_seed(self, seed: str | slip39.EncryptedSeed, seed_type, is_ext):
+        self.seed_type = seed_type
         if self.seed_type == "bip39":
 
             def f(passphrase):
                 self.on_restore_bip39(seed, passphrase)
 
             self.passphrase_dialog(run_next=f) if is_ext else f("")
+        elif self.seed_type == "slip39":
+
+            def f(passphrase):
+                self.on_restore_slip39(seed, passphrase)
+
+            self.passphrase_dialog(run_next=f) if is_ext else f("")
+
         elif self.seed_type in ["standard", "electrum"]:
 
             def f(passphrase):
@@ -583,10 +590,18 @@ class BaseWizard(PrintError):
         else:
             raise RuntimeError("Unknown seed type", self.seed_type)
 
-    def on_restore_bip39(self, seed, passphrase):
+    def on_restore_bip39(self, seed: str, passphrase):
         bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
         self.derivation_dialog(
-            lambda x: self.run("on_bip44", seed, passphrase, str(x)),
+            lambda x: self.run("on_bip44", seed, passphrase, "bip39", str(x)),
+            keystore.bip44_derivation_xec(0),
+            bip32_seed=bip32_seed,
+        )
+
+    def on_restore_slip39(self, seed: slip39.EncryptedSeed, passphrase: str):
+        bip32_seed = seed.decrypt(passphrase)
+        self.derivation_dialog(
+            lambda x: self.run("on_bip44", seed, passphrase, "slip39", str(x)),
             keystore.bip44_derivation_xec(0),
             bip32_seed=bip32_seed,
         )
@@ -597,10 +612,9 @@ class BaseWizard(PrintError):
         k = keystore.from_seed(seed, passphrase)
         self.on_keystore(k)
 
-    def on_bip44(self, seed, passphrase, derivation):
-        # BIP39
+    def on_bip44(self, seed, passphrase, seed_type, derivation):
         k = keystore.from_seed(
-            seed, passphrase, derivation=derivation, seed_type="bip39"
+            seed, passphrase, seed_type=seed_type, derivation=derivation
         )
         self.on_keystore(k)
 
@@ -756,6 +770,7 @@ class BaseWizard(PrintError):
             # This should never happen.
             raise ValueError("Cannot make seed for unknown seed type " + str(seed_type))
         self.opt_bip39 = False
+        self.opt_slip39 = False
         self.show_seed_dialog(
             run_next=lambda x: self.request_passphrase(seed, x), seed_text=seed
         )

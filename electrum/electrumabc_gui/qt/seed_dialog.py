@@ -27,7 +27,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-from electrumabc import mnemo, old_mnemonic
+from electrumabc import mnemo, old_mnemonic, slip39
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 
@@ -35,6 +35,7 @@ from .completion_text_edit import CompletionTextEdit
 from .qrtextedit import ScanQRTextEdit
 from .util import (
     Buttons,
+    ChoicesLayout,
     CloseButton,
     ColorScheme,
     EnterButton,
@@ -81,34 +82,61 @@ def seed_warning_msg(seed, has_der=False, has_ext=False):
 
 class SeedLayout(QtWidgets.QVBoxLayout):
     # options
-    is_bip39 = False
     is_ext = False
 
     def seed_options(self):
         dialog = QtWidgets.QDialog()
+        dialog.setWindowTitle(_("Seed Options"))
         vbox = QtWidgets.QVBoxLayout(dialog)
+
+        seed_types = [
+            (value, title)
+            for value, title in (
+                ("bip39", _("BIP39 seed")),
+                ("slip39", _("SLIP39 seed")),
+                ("electrum", _("Legacy Electrum")),
+            )
+            if value in self.options or value == "electrum"
+        ]
+        seed_type_values = [t[0] for t in seed_types]
+
         if "ext" in self.options:
             cb_ext = QtWidgets.QCheckBox(
                 _("Extend this seed with custom words") + " " + _("(aka 'passphrase')")
             )
             cb_ext.setChecked(self.is_ext)
             vbox.addWidget(cb_ext)
-        if "bip39" in self.options:
+        if len(seed_types) >= 2:
 
-            def f(b):
-                self.is_seed = (lambda x: bool(x)) if b else self.saved_is_seed
-                self.is_bip39 = b
+            def f(choices_layout):
+                self.seed_type = seed_type_values[choices_layout.selected_index()]
+                self.is_seed = (
+                    (lambda x: bool(x))
+                    if self.seed_type != "electrum"
+                    else self.saved_is_seed
+                )
+                self.slip39_current_mnemonic_invalid = None
+                self.seed_status.setText("")
                 self.on_edit()
+                self.update_share_buttons()
+                self.initialize_completer()
 
-            cb_bip39 = QtWidgets.QCheckBox(_("Force BIP39 interpretation of this seed"))
-            cb_bip39.toggled.connect(f)
-            cb_bip39.setChecked(self.is_bip39)
-            vbox.addWidget(cb_bip39)
+            checked_index = seed_type_values.index(self.seed_type)
+            titles = [t[1] for t in seed_types]
+            clayout = ChoicesLayout(
+                _("Seed type"), titles, on_clicked=f, checked_index=checked_index
+            )
+            vbox.addLayout(clayout.layout())
+
         vbox.addLayout(Buttons(OkButton(dialog)))
         if not dialog.exec_():
             return None
         self.is_ext = cb_ext.isChecked() if "ext" in self.options else False
-        self.is_bip39 = cb_bip39.isChecked() if "bip39" in self.options else False
+        self.seed_type = (
+            seed_type_values[clayout.selected_index()]
+            if len(seed_types) >= 2
+            else "bip39"
+        )
 
     def __init__(
         self,
@@ -127,6 +155,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         QtWidgets.QVBoxLayout.__init__(self)
         self.parent = parent
         self.options = options or ()
+        self.seed_type = "bip39"
         if title:
             self.addWidget(WWLabel(title))
         self.seed_e = CompletionTextEdit()
@@ -191,7 +220,26 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             grid_row += 1
         if grid_row > 0:  # only if above actually added widgets
             self.addLayout(grid_maybe)
+
+        # slip39 shares
+        self.slip39_mnemonic_index = 0
+        self.slip39_mnemonics = [""]
+        self.slip39_seed = None
+        self.slip39_current_mnemonic_invalid = None
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addStretch(1)
+        self.prev_share_btn = QtWidgets.QPushButton(_("Previous share"))
+        self.prev_share_btn.clicked.connect(self.on_prev_share)
+        hbox.addWidget(self.prev_share_btn)
+        self.next_share_btn = QtWidgets.QPushButton(_("Next share"))
+        self.next_share_btn.clicked.connect(self.on_next_share)
+        hbox.addWidget(self.next_share_btn)
+        self.update_share_buttons()
+        self.addLayout(hbox)
+
         self.addStretch(1)
+        self.seed_status = WWLabel("")
+        self.addWidget(self.seed_status)
         self.seed_warning = WWLabel("")
         self.has_warning_message = bool(msg)
         if self.has_warning_message:
@@ -201,34 +249,45 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         self.addWidget(self.seed_warning)
 
     def initialize_completer(self):
-        # Note that the wordlist for Electrum seeds is identical to the BIP39 wordlist
-        bip39_list = mnemonic.Mnemonic("english").wordlist
-        old_list = old_mnemonic.wordlist
-        only_old_list = set(old_list) - set(bip39_list)
-        self.wordlist = bip39_list + list(only_old_list)
-        self.wordlist.sort()
+        if self.seed_type != "slip39":
+            # Note that the wordlist for Electrum seeds is identical to the BIP39 wordlist
+            bip39_list = mnemonic.Mnemonic("english").wordlist
+            old_list = old_mnemonic.wordlist
+            only_old_list = set(old_list) - set(bip39_list)
+            self.wordlist = bip39_list + list(only_old_list)
+            self.wordlist.sort()
 
-        class CompleterDelegate(QtWidgets.QStyledItemDelegate):
-            def initStyleOption(self, option, index):
-                super().initStyleOption(option, index)
-                # Some people complained that due to merging the two word lists,
-                # it is difficult to restore from a metal backup, as they planned
-                # to rely on the "4 letter prefixes are unique in bip39 word list" property.
-                # So we color words that are only in old list.
-                if option.text in only_old_list:
-                    # yellow bg looks ~ok on both light/dark theme, regardless if (un)selected
-                    option.backgroundBrush = ColorScheme.YELLOW.as_color(
-                        background=True
-                    )
+            class CompleterDelegate(QtWidgets.QStyledItemDelegate):
+                def initStyleOption(self, option, index):
+                    super().initStyleOption(option, index)
+                    # Some people complained that due to merging the two word lists,
+                    # it is difficult to restore from a metal backup, as they planned
+                    # to rely on the "4 letter prefixes are unique in bip39 word list" property.
+                    # So we color words that are only in old list.
+                    if option.text in only_old_list:
+                        # yellow bg looks ~ok on both light/dark theme, regardless if (un)selected
+                        option.backgroundBrush = ColorScheme.YELLOW.as_color(
+                            background=True
+                        )
+
+            delegate = CompleterDelegate(self.seed_e)
+        else:
+            self.wordlist = list(slip39.get_wordlist())
+            delegate = None
 
         self.completer = QtWidgets.QCompleter(self.wordlist)
-        delegate = CompleterDelegate(self.seed_e)
-        self.completer.popup().setItemDelegate(delegate)
+        if delegate is not None:
+            self.completer.popup().setItemDelegate(delegate)
         self.seed_e.set_completer(self.completer)
 
+    def get_seed_words(self):
+        return self.seed_e.text().split()
+
     def get_seed(self):
-        text = self.seed_e.text()
-        return " ".join(text.split())
+        if self.seed_type != "slip39":
+            return " ".join(self.get_seed_words())
+        else:
+            return self.slip39_seed
 
     _mnem = None
 
@@ -238,9 +297,39 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             # cache the lang wordlist so it doesn't need to get loaded each time.
             # This speeds up seed_type_name and Mnemonic.check
             self._mnem = mnemonic.Mnemonic("english")
-        words = self.get_seed()
+        words = " ".join(self.get_seed_words())
         b = self.is_seed(words)
-        if not self.is_bip39:
+        if self.seed_type == "bip39":
+            is_valid = self._mnem.check(words)
+            status = "valid" if is_valid else "invalid"
+            label = f"BIP39 ({status})"
+        elif self.seed_type == "slip39":
+            self.slip39_mnemonics[self.slip39_mnemonic_index] = words
+            try:
+                slip39.decode_mnemonic(words)
+            except slip39.Slip39Error as e:
+                share_status = str(e)
+                current_mnemonic_invalid = True
+            else:
+                share_status = _("Valid.")
+                current_mnemonic_invalid = False
+
+            label = (
+                _("SLIP39 share")
+                + f" #{self.slip39_mnemonic_index + 1}: {share_status}"
+            )
+
+            # No need to process mnemonics if the current mnemonic remains invalid after editing.
+            if not (self.slip39_current_mnemonic_invalid and current_mnemonic_invalid):
+                self.slip39_seed, seed_status = slip39.process_mnemonics(
+                    self.slip39_mnemonics
+                )
+                self.seed_status.setText(seed_status)
+            self.slip39_current_mnemonic_invalid = current_mnemonic_invalid
+
+            b = self.slip39_seed is not None
+            self.update_share_buttons()
+        else:
             t = mnemo.format_seed_type_name_for_ui(mnemo.seed_type_name(words))
             label = _("Seed Type") + ": " + t if t else ""
             if t and may_clear_warning and "bip39" in self.options:
@@ -259,10 +348,6 @@ class SeedLayout(QtWidgets.QVBoxLayout):
                             " of this seed."
                         )
                     )
-        else:
-            is_valid = self._mnem.check(words)
-            status = "valid" if is_valid else "invalid"
-            label = f"BIP39 ({status})"
         self.seed_type_label.setText(label)
         self.parent.next_button.setEnabled(b)
         if may_clear_warning:
@@ -270,11 +355,52 @@ class SeedLayout(QtWidgets.QVBoxLayout):
 
         # Stop autocompletion if a previous word is not in the known list.
         # The seed phrase must be a different language than english.
-        for word in self.get_seed().split(" ")[:-1]:
+        for word in self.get_seed_words()[:-1]:
             if word not in self.wordlist:
                 self.seed_e.disable_suggestions()
                 return
         self.seed_e.enable_suggestions()
+
+    def update_share_buttons(self):
+        if self.seed_type != "slip39":
+            self.prev_share_btn.hide()
+            self.next_share_btn.hide()
+            return
+
+        finished = self.slip39_seed is not None
+        self.prev_share_btn.show()
+        self.next_share_btn.show()
+        self.prev_share_btn.setEnabled(self.slip39_mnemonic_index != 0)
+        self.next_share_btn.setEnabled(
+            # already pressed "prev" and undoing that:
+            self.slip39_mnemonic_index < len(self.slip39_mnemonics) - 1
+            # finished entering latest share and starting new one:
+            or (
+                bool(self.seed_e.text().strip())
+                and not self.slip39_current_mnemonic_invalid
+                and not finished
+            )
+        )
+
+    def on_prev_share(self):
+        if not self.slip39_mnemonics[self.slip39_mnemonic_index]:
+            del self.slip39_mnemonics[self.slip39_mnemonic_index]
+
+        self.slip39_mnemonic_index -= 1
+        self.seed_e.setText(self.slip39_mnemonics[self.slip39_mnemonic_index])
+        self.slip39_current_mnemonic_invalid = None
+
+    def on_next_share(self):
+        if not self.slip39_mnemonics[self.slip39_mnemonic_index]:
+            del self.slip39_mnemonics[self.slip39_mnemonic_index]
+        else:
+            self.slip39_mnemonic_index += 1
+
+        if len(self.slip39_mnemonics) <= self.slip39_mnemonic_index:
+            self.slip39_mnemonics.append("")
+            self.seed_e.setFocus()
+        self.seed_e.setText(self.slip39_mnemonics[self.slip39_mnemonic_index])
+        self.slip39_current_mnemonic_invalid = None
 
 
 class KeysLayout(QtWidgets.QVBoxLayout):

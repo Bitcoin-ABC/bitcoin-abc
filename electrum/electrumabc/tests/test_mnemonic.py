@@ -1,8 +1,10 @@
+import json
+import os
 import unittest
 
 import mnemonic
 
-from .. import mnemo, old_mnemonic
+from .. import mnemo, old_mnemonic, slip39
 from ..util import bh2u
 
 
@@ -155,6 +157,36 @@ class TestSeeds(unittest.TestCase):
     def test_seed_type(self):
         for seed_words, _type in self.mnemonics:
             self.assertEqual(_type, mnemo.seed_type_name(seed_words), msg=seed_words)
+
+
+class TestSlip39(unittest.TestCase):
+    """Test SLIP39 test vectors."""
+
+    def test_slip39_vectors(self):
+        test_vector_file = os.path.join(
+            os.path.dirname(__file__), "slip39-vectors.json"
+        )
+        with open(test_vector_file, "r", encoding="utf-8") as f:
+            vectors = json.load(f)
+        for description, mnemonics, expected_secret, extended_private_key in vectors:
+            if expected_secret:
+                encrypted_seed = slip39.recover_ems(mnemonics)
+                assert bytes.fromhex(expected_secret) == encrypted_seed.decrypt(
+                    "TREZOR"
+                ), 'Incorrect secret for test vector "{}".'.format(description)
+            else:
+                with self.assertRaises(slip39.Slip39Error):
+                    slip39.recover_ems(mnemonics)
+                    self.fail(
+                        'Failed to raise exception for test vector "{}".'.format(
+                            description
+                        )
+                    )
+
+    def test_make_group_prefix(self):
+        self.assertEqual(
+            slip39._make_group_prefix(5, 0, 4, 3, 2, 1), "academic cover decision"
+        )
 
 
 if __name__ == "__main__":

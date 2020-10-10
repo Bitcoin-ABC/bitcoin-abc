@@ -51,6 +51,7 @@ datas = [
     (home+'electrumabc/servers_testnet.json', 'electrumabc'),
     (home+'electrumabc/servers_regtest.json', 'electrumabc'),
     (home+'electrumabc/wordlist/english.txt', 'electrumabc/wordlist'),
+    (home+'electrumabc/wordlist/slip39.txt', 'electrumabc/wordlist'),
     (home+'electrumabc/locale', 'electrumabc/locale'),
     (home+'electrumabc_gui/qt/data/ecsupplemental_win.ttf', 'electrumabc_gui/qt/data'),
     (home+'electrumabc_plugins', 'electrumabc_plugins'),
