@@ -62,16 +62,7 @@ First, install the general dependencies:
 
     sudo apt update
     sudo apt upgrade
-    sudo apt install autoconf automake build-essential bsdmainutils curl git libboost-all-dev libevent-dec libssl-dev libtool ninja-build pkg-config python3
-
-The cmake version packaged with Ubuntu Bionic is too old for building Building Bitcoin ABC.
-To install the latest version:
-
-    sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
-    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-    sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-    sudo apt update
-    sudo apt install cmake
+    sudo apt install autoconf automake build-essential bsdmainutils curl git libboost-all-dev libevent-dev libssl-dev libtool ninja-build pkg-config python3 cmake
 
 A host toolchain (`build-essential`) is necessary because some dependency
 packages (such as `protobuf`) need to build host utilities that are used in the
@@ -97,7 +88,7 @@ Ubuntu Xenial 16.04 and Windows Subsystem for Linux <sup>[1](#footnote1),[2](#fo
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
     sudo update-alternatives --config x86_64-w64-mingw32-gcc # Set the default mingw32 gcc compiler option to posix.
 
-Ubuntu Artful 17.10 <sup>[2](#footnote2)</sup> and later, including Ubuntu Bionic on WSL:
+Ubuntu Artful 17.10 <sup>[2](#footnote2)</sup> and later, including Ubuntu Focal on WSL:
 
     sudo update-alternatives --config x86_64-w64-mingw32-g++ # Set the default mingw32 g++ compiler option to posix.
     sudo update-alternatives --config x86_64-w64-mingw32-gcc # Set the default mingw32 gcc compiler option to posix.
