@@ -5,7 +5,7 @@
 """Test that we don't leak txs to inbound peers that we haven't yet announced to"""
 
 from test_framework.messages import MSG_TX, CInv, msg_getdata
-from test_framework.p2p import P2PDataStore
+from test_framework.p2p import P2PDataStore, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.wallet import MiniWallet
@@ -40,7 +40,8 @@ class P2PLeakTxTest(BitcoinTestFramework):
 
             want_tx = msg_getdata()
             want_tx.inv.append(CInv(t=MSG_TX, h=int(txid, 16)))
-            inbound_peer.last_message.pop('notfound', None)
+            with p2p_lock:
+                inbound_peer.last_message.pop('notfound', None)
             inbound_peer.send_and_ping(want_tx)
 
             if inbound_peer.last_message.get('notfound'):
@@ -50,7 +51,8 @@ class P2PLeakTxTest(BitcoinTestFramework):
                     "node has responded with a notfound message. End test.")
                 assert_equal(
                     inbound_peer.last_message['notfound'].vec[0].hash, int(txid, 16))
-                inbound_peer.last_message.pop('notfound')
+                with p2p_lock:
+                    inbound_peer.last_message.pop('notfound')
                 break
             else:
                 self.log.debug(
