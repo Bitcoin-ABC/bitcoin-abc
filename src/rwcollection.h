@@ -22,7 +22,7 @@ private:
     T *collection;
 
     template <typename I> struct BracketType {
-        typedef decltype(std::declval<T &>()[std::declval<I>()]) type;
+        using type = decltype(std::declval<T &>()[std::declval<I>()]);
     };
 
 public:
@@ -36,7 +36,7 @@ public:
     /**
      * Iterator mechanics.
      */
-    typedef typename boost::range_iterator<T>::type iterator;
+    using iterator = typename boost::range_iterator<T>::type;
     iterator begin() { return std::begin(*collection); }
     iterator end() { return std::end(*collection); }
     std::reverse_iterator<iterator> rbegin() {
@@ -44,7 +44,7 @@ public:
     }
     std::reverse_iterator<iterator> rend() { return std::rend(*collection); }
 
-    typedef typename boost::range_iterator<const T>::type const_iterator;
+    using const_iterator = typename boost::range_iterator<const T>::type;
     const_iterator begin() const { return std::begin(*collection); }
     const_iterator end() const { return std::end(*collection); }
     std::reverse_iterator<const_iterator> rbegin() const {
@@ -70,15 +70,15 @@ private:
 public:
     RWCollection() : collection() {}
 
-    typedef RWCollectionView<const T, boost::shared_lock<boost::shared_mutex>>
-        ReadView;
+    using ReadView =
+        RWCollectionView<const T, boost::shared_lock<boost::shared_mutex>>;
     ReadView getReadView() const {
         return ReadView(boost::shared_lock<boost::shared_mutex>(rwlock),
                         collection);
     }
 
-    typedef RWCollectionView<T, boost::unique_lock<boost::shared_mutex>>
-        WriteView;
+    using WriteView =
+        RWCollectionView<T, boost::unique_lock<boost::shared_mutex>>;
     WriteView getWriteView() {
         return WriteView(boost::unique_lock<boost::shared_mutex>(rwlock),
                          collection);
