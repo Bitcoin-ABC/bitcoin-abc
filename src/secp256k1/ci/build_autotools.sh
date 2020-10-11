@@ -34,7 +34,6 @@ pushd buildautotools
 ../configure \
   --enable-experimental=$EXPERIMENTAL \
   --with-test-override-wide-multiply=$WIDEMUL \
-  --with-bignum=$BIGNUM \
   --with-asm=$ASM \
   --enable-ecmult-static-precomputation=$STATICPRECOMPUTATION \
   --with-ecmult-gen-precision=$ECMULTGENPRECISION \

@@ -73,20 +73,6 @@ set(SECP256K1_PUBLIC_HEADERS
 	include/secp256k1_preallocated.h
 )
 
-option(SECP256K1_ENABLE_BIGNUM "Use the GMP bignum implementation" OFF)
-if(SECP256K1_ENABLE_BIGNUM)
-	# We need to link in GMP
-	find_package(GMP REQUIRED)
-	target_link_libraries(secp256k1 GMP::gmp)
-	set(USE_NUM_GMP 1)
-	set(USE_FIELD_INV_NUM 1)
-	set(USE_SCALAR_INV_NUM 1)
-else()
-	set(USE_NUM_NONE 1)
-	set(USE_FIELD_INV_BUILTIN 1)
-	set(USE_SCALAR_INV_BUILTIN 1)
-endif()
-
 # Guess the target architecture, within the ones with supported ASM.
 # First check if the CMAKE_C_COMPILER_TARGET is set (should be when
 # cross compiling), then CMAKE_SYSTEM_PROCESSOR as a fallback if meaningful

@@ -10,7 +10,6 @@
 #include "assumptions.h"
 #include "util.h"
 #include "hash_impl.h"
-#include "num_impl.h"
 #include "field_impl.h"
 #include "group_impl.h"
 #include "scalar_impl.h"
@@ -360,24 +359,6 @@ void bench_context_sign(void* arg, int iters) {
     }
 }
 
-#ifndef USE_NUM_NONE
-void bench_num_jacobi(void* arg, int iters) {
-    int i, j = 0;
-    bench_inv *data = (bench_inv*)arg;
-    secp256k1_num nx, na, norder;
-
-    secp256k1_scalar_get_num(&nx, &data->scalar[0]);
-    secp256k1_scalar_order_get_num(&norder);
-    secp256k1_scalar_get_num(&na, &data->scalar[1]);
-
-    for (i = 0; i < iters; i++) {
-        j += secp256k1_num_jacobi(&nx, &norder);
-        secp256k1_num_add(&nx, &nx, &na);
-    }
-    CHECK(j <= iters);
-}
-#endif
-
 int main(int argc, char **argv) {
     bench_inv data;
     int iters = get_iters(20000);
@@ -414,8 +395,5 @@ int main(int argc, char **argv) {
     if (have_flag(argc, argv, "context") || have_flag(argc, argv, "verify")) run_benchmark("context_verify", bench_context_verify, bench_setup, NULL, &data, 10, 1 + iters/1000);
     if (have_flag(argc, argv, "context") || have_flag(argc, argv, "sign")) run_benchmark("context_sign", bench_context_sign, bench_setup, NULL, &data, 10, 1 + iters/100);
 
-#ifndef USE_NUM_NONE
-    if (have_flag(argc, argv, "num") || have_flag(argc, argv, "jacobi")) run_benchmark("num_jacobi", bench_num_jacobi, bench_setup, NULL, &data, 10, iters*10);
-#endif
     return 0;
 }

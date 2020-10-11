@@ -48,16 +48,11 @@ case $host_os in
          # in expected paths because they may conflict with system files. Ask
          # Homebrew where each one is located, then adjust paths accordingly.
          openssl_prefix=`$BREW --prefix openssl 2>/dev/null`
-         gmp_prefix=`$BREW --prefix gmp 2>/dev/null`
          valgrind_prefix=`$BREW --prefix valgrind 2>/dev/null`
          if test x$openssl_prefix != x; then
            PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
            export PKG_CONFIG_PATH
            CRYPTO_CPPFLAGS="-I$openssl_prefix/include"
-         fi
-         if test x$gmp_prefix != x; then
-           GMP_CPPFLAGS="-I$gmp_prefix/include"
-           GMP_LIBS="-L$gmp_prefix/lib"
          fi
          if test x$valgrind_prefix != x; then
            VALGRIND_CPPFLAGS="-I$valgrind_prefix/include"
@@ -179,9 +174,6 @@ AC_ARG_ENABLE(jni,
     [use_jni=$enableval],
     [use_jni=no])
 
-AC_ARG_WITH([bignum], [AS_HELP_STRING([--with-bignum=gmp|no|auto],
-[bignum implementation to use [default=auto]])],[req_bignum=$withval], [req_bignum=auto])
-
 AC_ARG_WITH([asm], [AS_HELP_STRING([--with-asm=x86_64|arm|no|auto],
 [assembly optimizations to use (experimental: arm) [default=auto]])],[req_asm=$withval], [req_asm=auto])
 
@@ -260,32 +252,6 @@ else
   esac
 fi
 
-if test x"$req_bignum" = x"auto"; then
-  SECP_GMP_CHECK
-  if test x"$has_gmp" = x"yes"; then
-    set_bignum=gmp
-  fi
-
-  if test x"$set_bignum" = x; then
-    set_bignum=no
-  fi
-else
-  set_bignum=$req_bignum
-  case $set_bignum in
-  gmp)
-    SECP_GMP_CHECK
-    if test x"$has_gmp" != x"yes"; then
-      AC_MSG_ERROR([gmp bignum explicitly requested but libgmp not available])
-    fi
-    ;;
-  no)
-    ;;
-  *)
-    AC_MSG_ERROR([invalid bignum implementation selection])
-    ;;
-  esac
-fi
-
 # Select assembly optimization
 use_external_asm=no
 
@@ -320,24 +286,6 @@ auto)
   ;;
 *)
   AC_MSG_ERROR([invalid wide multiplication implementation])
-  ;;
-esac
-
-# Select bignum implementation
-case $set_bignum in
-gmp)
-  AC_DEFINE(HAVE_LIBGMP, 1, [Define this symbol if libgmp is installed])
-  AC_DEFINE(USE_NUM_GMP, 1, [Define this symbol to use the gmp implementation for num])
-  AC_DEFINE(USE_FIELD_INV_NUM, 1, [Define this symbol to use the num-based field inverse implementation])
-  AC_DEFINE(USE_SCALAR_INV_NUM, 1, [Define this symbol to use the num-based scalar inverse implementation])
-  ;;
-no)
-  AC_DEFINE(USE_NUM_NONE, 1, [Define this symbol to use no num implementation])
-  AC_DEFINE(USE_FIELD_INV_BUILTIN, 1, [Define this symbol to use the native field inverse implementation])
-  AC_DEFINE(USE_SCALAR_INV_BUILTIN, 1, [Define this symbol to use the native scalar inverse implementation])
-  ;;
-*)
-  AC_MSG_ERROR([invalid bignum implementation])
   ;;
 esac
 
@@ -426,11 +374,6 @@ if test x"$use_jni" != x"no"; then
       JNI_INCLUDES="$JNI_INCLUDES -I$JNI_INCLUDE_DIR"
     done
   fi
-fi
-
-if test x"$set_bignum" = x"gmp"; then
-  SECP_LIBS="$SECP_LIBS $GMP_LIBS"
-  SECP_INCLUDES="$SECP_INCLUDES $GMP_CPPFLAGS"
 fi
 
 if test x"$enable_valgrind" = x"yes"; then
@@ -627,7 +570,6 @@ echo "  module extrakeys        = $enable_module_extrakeys"
 echo "  module schnorrsig       = $enable_module_schnorrsig"
 echo
 echo "  asm                     = $set_asm"
-echo "  bignum                  = $set_bignum"
 echo "  ecmult window size      = $set_ecmult_window"
 echo "  ecmult gen prec. bits   = $set_ecmult_gen_precision"
 # Hide test-only options unless they're used.

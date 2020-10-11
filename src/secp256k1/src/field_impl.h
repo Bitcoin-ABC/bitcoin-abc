@@ -12,7 +12,6 @@
 #endif
 
 #include "util.h"
-#include "num.h"
 
 #if defined(SECP256K1_WIDEMUL_INT128)
 #include "field_5x52_impl.h"
@@ -137,28 +136,8 @@ static int secp256k1_fe_sqrt(secp256k1_fe *r, const secp256k1_fe *a) {
 }
 
 static int secp256k1_fe_is_quad_var(const secp256k1_fe *a) {
-#ifndef USE_NUM_NONE
-    unsigned char b[32];
-    secp256k1_num n;
-    secp256k1_num m;
-    /* secp256k1 field prime, value p defined in "Standards for Efficient Cryptography" (SEC2) 2.7.1. */
-    static const unsigned char prime[32] = {
-        0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
-        0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
-        0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
-        0xFF,0xFF,0xFF,0xFE,0xFF,0xFF,0xFC,0x2F
-    };
-
-    secp256k1_fe c = *a;
-    secp256k1_fe_normalize_var(&c);
-    secp256k1_fe_get_b32(b, &c);
-    secp256k1_num_set_bin(&n, b, 32);
-    secp256k1_num_set_bin(&m, prime, 32);
-    return secp256k1_num_jacobi(&n, &m) >= 0;
-#else
     secp256k1_fe r;
     return secp256k1_fe_sqrt(&r, a);
-#endif
 }
 
 static const secp256k1_fe secp256k1_fe_one = SECP256K1_FE_CONST(0, 0, 0, 0, 0, 0, 0, 1);
