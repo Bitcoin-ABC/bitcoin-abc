@@ -235,6 +235,12 @@ public:
     friend bool operator<(const CNetAddr &a, const CNetAddr &b);
 
     /**
+     * Whether this address should be relayed to other peers even if we can't
+     * reach it ourselves.
+     */
+    bool IsRelayable() const { return IsIPv4() || IsIPv6() || IsTor(); }
+
+    /**
      * Serialize to a stream.
      */
     template <typename Stream> void Serialize(Stream &s) const {
