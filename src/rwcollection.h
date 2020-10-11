@@ -64,8 +64,8 @@ public:
 
 template <typename T> class RWCollection {
 private:
-    T collection GUARDED_BY(rwlock);
-    mutable boost::shared_mutex rwlock;
+    T collection;
+    mutable boost::shared_mutex rwmutex;
 
 public:
     RWCollection() : collection() {}
@@ -73,14 +73,14 @@ public:
     using ReadView =
         RWCollectionView<const T, boost::shared_lock<boost::shared_mutex>>;
     ReadView getReadView() const {
-        return ReadView(boost::shared_lock<boost::shared_mutex>(rwlock),
+        return ReadView(boost::shared_lock<boost::shared_mutex>(rwmutex),
                         collection);
     }
 
     using WriteView =
         RWCollectionView<T, boost::unique_lock<boost::shared_mutex>>;
     WriteView getWriteView() {
-        return WriteView(boost::unique_lock<boost::shared_mutex>(rwlock),
+        return WriteView(boost::unique_lock<boost::shared_mutex>(rwmutex),
                          collection);
     }
 };
