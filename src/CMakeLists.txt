@@ -112,9 +112,8 @@ foreach(LANGUAGE C CXX)
 	add_compile_options_to_configuration_for_language(Debug ${LANGUAGE} ${COMPILER_DEBUG_LEVEL})
 endforeach()
 
-# Define the debugging symbols DEBUG and DEBUG_LOCKORDER when the Debug build
-# type is selected.
-add_compile_definitions_to_configuration(Debug DEBUG DEBUG_LOCKORDER)
+# Define some debugging symbols when the Debug build type is selected.
+add_compile_definitions_to_configuration(Debug DEBUG DEBUG_LOCKORDER ABORT_ON_FAILED_ASSUME)
 
 # Add -ftrapv when building in Debug
 add_compile_options_to_configuration(Debug -ftrapv)

@@ -53,7 +53,7 @@ final class CppVoidParameterLinter extends ArcanistLinter {
     $absPath = Filesystem::resolvePath($path, $this->getProjectRoot());
     $fileContent = Filesystem::readFile($absPath);
 
-    if (preg_match_all('/[^\s{]+\s?\(void\)/', $fileContent, $voidParameters,
+    if (preg_match_all('/[^\s{(]+\s?\(void\)/', $fileContent, $voidParameters,
       PREG_OFFSET_CAPTURE)) {
       foreach ($voidParameters[0] as $voidParameter) {
         list($function, $offset) = $voidParameter;
