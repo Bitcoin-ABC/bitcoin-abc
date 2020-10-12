@@ -24,6 +24,7 @@
 #include <sync.h>
 #include <threadinterrupt.h>
 #include <uint256.h>
+#include <util/check.h>
 #include <validation.h> // For cs_main
 
 #include <atomic>
@@ -1114,6 +1115,7 @@ public:
                          bool &complete);
 
     void SetCommonVersion(int greatest_common_version) {
+        Assume(m_greatest_common_version == INIT_PROTO_VERSION);
         m_greatest_common_version = greatest_common_version;
     }
     int GetCommonVersion() const { return m_greatest_common_version; }
