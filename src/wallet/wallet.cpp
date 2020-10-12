@@ -4587,8 +4587,7 @@ CWallet::FindAddressBookEntry(const CTxDestination &dest,
     return &address_book_it->second;
 }
 
-bool CWallet::UpgradeWallet(int version, bilingual_str &error,
-                            std::vector<bilingual_str> &warnings) {
+bool CWallet::UpgradeWallet(int version, bilingual_str &error) {
     int prev_version = GetVersion();
     int nMaxVersion = version;
     // The -upgradewallet without argument case

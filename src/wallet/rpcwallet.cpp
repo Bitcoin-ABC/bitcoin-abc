@@ -5382,10 +5382,8 @@ static RPCHelpMan upgradewallet() {
             if (!request.params[0].isNull()) {
                 version = request.params[0].get_int();
             }
-
             bilingual_str error;
-            std::vector<bilingual_str> warnings;
-            if (!pwallet->UpgradeWallet(version, error, warnings)) {
+            if (!pwallet->UpgradeWallet(version, error)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, error.original);
             }
             return error.original;
