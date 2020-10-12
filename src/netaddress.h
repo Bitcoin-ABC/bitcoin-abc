@@ -296,6 +296,8 @@ protected:
     /// Is this value valid? (only used to signal parse errors)
     bool valid;
 
+    bool SanityCheck() const;
+
 public:
     CSubNet();
     CSubNet(const CNetAddr &addr, uint8_t mask);
@@ -316,7 +318,20 @@ public:
     friend bool operator<(const CSubNet &a, const CSubNet &b);
 
     SERIALIZE_METHODS(CSubNet, obj) {
-        READWRITE(obj.network, obj.netmask, obj.valid);
+        READWRITE(obj.network);
+        if (obj.network.IsIPv4()) {
+            // Before D9176, CSubNet used the last 4 bytes of netmask to store
+            // the relevant bytes for an IPv4 mask. For compatiblity reasons,
+            // keep doing so in serialized form.
+            uint8_t dummy[12] = {0};
+            READWRITE(dummy);
+            READWRITE(MakeSpan(obj.netmask).first(4));
+        } else {
+            READWRITE(obj.netmask);
+        }
+        READWRITE(obj.valid);
+        // Mark invalid if the result doesn't pass sanity checking.
+        SER_READ(obj, if (obj.valid) obj.valid = obj.SanityCheck());
     }
 };
 
