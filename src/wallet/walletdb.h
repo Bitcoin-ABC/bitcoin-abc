@@ -199,10 +199,8 @@ private:
     }
 
 public:
-    explicit WalletBatch(WalletDatabase &database, const char *pszMode = "r+",
-                         bool _fFlushOnClose = true)
-        : m_batch(database.MakeBatch(pszMode, _fFlushOnClose)),
-          m_database(database) {}
+    explicit WalletBatch(WalletDatabase &database, bool _fFlushOnClose = true)
+        : m_batch(database.MakeBatch(_fFlushOnClose)), m_database(database) {}
     WalletBatch(const WalletBatch &) = delete;
     WalletBatch &operator=(const WalletBatch &) = delete;
 

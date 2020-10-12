@@ -106,7 +106,7 @@ public:
     virtual ~WalletDatabase(){};
 
     /** Open the database if it is not already opened. */
-    virtual void Open(const char *mode) = 0;
+    virtual void Open() = 0;
 
     //! Counts the number of active database users to be sure that the database
     //! is not closed while someone is using it
@@ -160,7 +160,7 @@ public:
 
     /** Make a DatabaseBatch connected to this database */
     virtual std::unique_ptr<DatabaseBatch>
-    MakeBatch(const char *mode = "r+", bool flush_on_close = true) = 0;
+    MakeBatch(bool flush_on_close = true) = 0;
 };
 
 /** RAII class that provides access to a DummyDatabase. Never fails. */
@@ -197,7 +197,7 @@ public:
  */
 class DummyDatabase : public WalletDatabase {
 public:
-    void Open(const char *mode) override{};
+    void Open() override{};
     void AddRef() override {}
     void RemoveRef() override {}
     bool Rewrite(const char *pszSkip = nullptr) override { return true; }
@@ -209,7 +209,7 @@ public:
     void ReloadDbEnv() override {}
     std::string Filename() override { return "dummy"; }
     std::unique_ptr<DatabaseBatch>
-    MakeBatch(const char *mode = "r+", bool flush_on_close = true) override {
+    MakeBatch(bool flush_on_close = true) override {
         return std::make_unique<DummyBatch>();
     }
 };

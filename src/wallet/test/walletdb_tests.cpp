@@ -31,7 +31,7 @@ static std::unique_ptr<CWallet> LoadWallet(WalletBatch &batch) {
 BOOST_FIXTURE_TEST_SUITE(walletdb_tests, WalletTestingSetup)
 
 BOOST_AUTO_TEST_CASE(write_erase_name) {
-    WalletBatch batch(m_wallet.GetDBHandle(), "cr+");
+    WalletBatch batch(m_wallet.GetDBHandle());
 
     CTxDestination dst1 = PKHash(uint160S("c0ffee"));
     CTxDestination dst2 = PKHash(uint160S("f00d"));
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(write_erase_name) {
 }
 
 BOOST_AUTO_TEST_CASE(write_erase_purpose) {
-    WalletBatch batch(m_wallet.GetDBHandle(), "cr+");
+    WalletBatch batch(m_wallet.GetDBHandle());
 
     CTxDestination dst1 = PKHash(uint160S("c0ffee"));
     CTxDestination dst2 = PKHash(uint160S("f00d"));
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(write_erase_purpose) {
 }
 
 BOOST_AUTO_TEST_CASE(write_erase_destdata) {
-    WalletBatch batch(m_wallet.GetDBHandle(), "cr+");
+    WalletBatch batch(m_wallet.GetDBHandle());
 
     CTxDestination dst1 = PKHash(uint160S("c0ffee"));
     CTxDestination dst2 = PKHash(uint160S("f00d"));

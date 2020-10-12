@@ -106,12 +106,8 @@ public:
 
     ~BerkeleyDatabase() override;
 
-    /**
-     * Open the database if it is not already opened.
-     * Dummy function, doesn't do anything right now, but is needed for class
-     * abstraction
-     */
-    void Open(const char *mode) override;
+    /** Open the database if it is not already opened. */
+    void Open() override;
 
     /**
      * Rewrite the entire database on disk, with the exception of key pszSkip if
@@ -183,7 +179,7 @@ public:
 
     /** Make a BerkeleyBatch connected to this database */
     std::unique_ptr<DatabaseBatch>
-    MakeBatch(const char *mode = "r+", bool flush_on_close = true) override;
+    MakeBatch(bool flush_on_close = true) override;
 };
 
 /** RAII class that provides access to a Berkeley database */
@@ -225,8 +221,7 @@ protected:
     BerkeleyDatabase &m_database;
 
 public:
-    explicit BerkeleyBatch(BerkeleyDatabase &database,
-                           const char *pszMode = "r+",
+    explicit BerkeleyBatch(BerkeleyDatabase &database, const bool fReadOnly,
                            bool fFlushOnCloseIn = true);
     ~BerkeleyBatch() override;
 

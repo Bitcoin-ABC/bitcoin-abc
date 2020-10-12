@@ -956,7 +956,7 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
                                 bool fFlushOnClose) {
     LOCK(cs_wallet);
 
-    WalletBatch batch(*database, "r+", fFlushOnClose);
+    WalletBatch batch(*database, fFlushOnClose);
 
     const TxId &txid = tx->GetId();
 
@@ -1167,7 +1167,7 @@ void CWallet::MarkInputsDirty(const CTransactionRef &tx) {
 bool CWallet::AbandonTransaction(const TxId &txid) {
     LOCK(cs_wallet);
 
-    WalletBatch batch(*database, "r+");
+    WalletBatch batch(*database);
 
     std::set<TxId> todo;
     std::set<TxId> done;
@@ -1238,7 +1238,7 @@ void CWallet::MarkConflicted(const BlockHash &hashBlock, int conflicting_height,
     }
 
     // Do not flush the wallet here for performance reasons.
-    WalletBatch batch(*database, "r+", false);
+    WalletBatch batch(*database, false);
 
     std::set<TxId> todo;
     std::set<TxId> done;
@@ -3577,7 +3577,7 @@ DBErrors CWallet::LoadWallet(bool &fFirstRunRet) {
     LOCK(cs_wallet);
 
     fFirstRunRet = false;
-    DBErrors nLoadWalletRet = WalletBatch(*database, "cr+").LoadWallet(this);
+    DBErrors nLoadWalletRet = WalletBatch(*database).LoadWallet(this);
     if (nLoadWalletRet == DBErrors::NEED_REWRITE) {
         if (database->Rewrite("\x04pool")) {
             for (const auto &spk_man_pair : m_spk_managers) {
@@ -3607,7 +3607,7 @@ DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
                               std::vector<TxId> &txIdsOut) {
     AssertLockHeld(cs_wallet);
     DBErrors nZapSelectTxRet =
-        WalletBatch(*database, "cr+").ZapSelectTx(txIdsIn, txIdsOut);
+        WalletBatch(*database).ZapSelectTx(txIdsIn, txIdsOut);
     for (const TxId &txid : txIdsOut) {
         const auto &it = mapWallet.find(txid);
         wtxOrdered.erase(it->second.m_it_wtxOrdered);
