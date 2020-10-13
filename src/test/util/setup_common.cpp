@@ -150,9 +150,48 @@ BasicTestingSetup::~BasicTestingSetup() {
     ECC_Stop();
 }
 
+ChainTestingSetup::ChainTestingSetup(
+    const std::string &chainName, const std::vector<const char *> &extra_args)
+    : BasicTestingSetup(chainName, extra_args) {
+    // We have to run a scheduler thread to prevent ActivateBestChain
+    // from blocking due to queue overrun.
+    m_node.scheduler = std::make_unique<CScheduler>();
+    m_node.scheduler->m_service_thread = std::thread([&] {
+        TraceThread("scheduler", [&] { m_node.scheduler->serviceQueue(); });
+    });
+    GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
+
+    pblocktree.reset(new CBlockTreeDB(1 << 20, true));
+
+    m_node.mempool = std::make_unique<CTxMemPool>(1);
+
+    m_node.chainman = &::g_chainman;
+
+    constexpr int script_check_threads = 2;
+    StartScriptCheckWorkerThreads(script_check_threads);
+}
+
+ChainTestingSetup::~ChainTestingSetup() {
+    if (m_node.scheduler) {
+        m_node.scheduler->stop();
+    }
+    StopScriptCheckWorkerThreads();
+    GetMainSignals().FlushBackgroundCallbacks();
+    GetMainSignals().UnregisterBackgroundSignalScheduler();
+    m_node.connman.reset();
+    m_node.banman.reset();
+    m_node.args = nullptr;
+    UnloadBlockIndex(m_node.mempool.get(), *m_node.chainman);
+    m_node.mempool.reset();
+    m_node.scheduler.reset();
+    m_node.chainman->Reset();
+    m_node.chainman = nullptr;
+    pblocktree.reset();
+}
+
 TestingSetup::TestingSetup(const std::string &chainName,
                            const std::vector<const char *> &extra_args)
-    : BasicTestingSetup(chainName, extra_args) {
+    : ChainTestingSetup(chainName, extra_args) {
     const Config &config = GetConfig();
     const CChainParams &chainparams = config.GetChainParams();
 
@@ -171,20 +210,6 @@ TestingSetup::TestingSetup(const std::string &chainName,
         SetRPCWarmupFinished();
     }
 
-    m_node.scheduler = std::make_unique<CScheduler>();
-
-    // We have to run a scheduler thread to prevent ActivateBestChain
-    // from blocking due to queue overrun.
-    m_node.scheduler->m_service_thread = std::thread([&] {
-        TraceThread("scheduler", [&] { m_node.scheduler->serviceQueue(); });
-    });
-    GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
-
-    pblocktree.reset(new CBlockTreeDB(1 << 20, true));
-
-    m_node.mempool = std::make_unique<CTxMemPool>(1);
-
-    m_node.chainman = &::g_chainman;
     m_node.chainman->InitializeChainstate(*m_node.mempool);
     ::ChainstateActive().InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
@@ -202,8 +227,6 @@ TestingSetup::TestingSetup(const std::string &chainName,
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }
     }
-    constexpr int script_check_threads = 2;
-    StartScriptCheckWorkerThreads(script_check_threads);
 
     m_node.banman = std::make_unique<BanMan>(
         m_args.GetDataDirPath() / "banlist.dat", chainparams, nullptr,
@@ -218,24 +241,6 @@ TestingSetup::TestingSetup(const std::string &chainName,
         options.m_msgproc = m_node.peerman.get();
         m_node.connman->Init(options);
     }
-}
-
-TestingSetup::~TestingSetup() {
-    if (m_node.scheduler) {
-        m_node.scheduler->stop();
-    }
-    StopScriptCheckWorkerThreads();
-    GetMainSignals().FlushBackgroundCallbacks();
-    GetMainSignals().UnregisterBackgroundSignalScheduler();
-    m_node.connman.reset();
-    m_node.banman.reset();
-    m_node.args = nullptr;
-    UnloadBlockIndex(m_node.mempool.get(), *m_node.chainman);
-    m_node.mempool.reset();
-    m_node.scheduler.reset();
-    m_node.chainman->Reset();
-    m_node.chainman = nullptr;
-    pblocktree.reset();
 }
 
 TestChain100Setup::TestChain100Setup() {

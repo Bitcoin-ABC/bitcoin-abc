@@ -112,13 +112,23 @@ struct BasicTestingSetup {
 };
 
 /**
- * Testing setup that configures a complete environment.
- * Included are coins database, script check threads setup.
+ * Testing setup that performs all steps up until right before
+ * ChainstateManager gets initialized. Meant for testing ChainstateManager
+ * initialization behaviour.
  */
-struct TestingSetup : public BasicTestingSetup {
+struct ChainTestingSetup : public BasicTestingSetup {
+    explicit ChainTestingSetup(
+        const std::string &chainName = CBaseChainParams::MAIN,
+        const std::vector<const char *> &extra_args = {});
+    ~ChainTestingSetup();
+};
+
+/**
+ * Testing setup that configures a complete environment.
+ */
+struct TestingSetup : public ChainTestingSetup {
     explicit TestingSetup(const std::string &chainName = CBaseChainParams::MAIN,
                           const std::vector<const char *> &extra_args = {});
-    ~TestingSetup();
 };
 
 /** Identical to TestingSetup, but chain set to regtest */
