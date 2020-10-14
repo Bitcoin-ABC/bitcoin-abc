@@ -3092,6 +3092,10 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
 
     if (msg_type == NetMsgType::VERACK) {
+        if (pfrom.fSuccessfullyConnected) {
+            return;
+        }
+
         if (!pfrom.IsInboundConn()) {
             // Mark this node as currently connected, so we update its timestamp
             // later.
