@@ -18,15 +18,21 @@ The patch is assumed to have been reviewed or generated from a trusted sourece.
 Options:
   -d, --dry-run           Dry run. Does everything but actually landing the change.
   -h, --help              Display this help message.
+
+Environment Variables (for testing):
+  SANITY_CHECKS_COMMAND   The command to override sanity checks (smoke tests).
+  GIT_COMMAND             The command to override 'git' calls.
 EOF
 }
 
+DRY_RUN=no
 GIT_ARGS=()
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
 case $1 in
   -d|--dry-run)
+    DRY_RUN=yes
     GIT_ARGS+=("--dry-run")
     shift # shift past argument
     ;;
@@ -42,7 +48,7 @@ case $1 in
 esac
 done
 
-if [[ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]]; then
+if [[ ${DRY_RUN} == "no" ]] && [[ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]]; then
   echo "Error: This script assumes the commit to land is on master"
   exit 10
 fi
@@ -50,7 +56,9 @@ fi
 TOPLEVEL=$(git rev-parse --show-toplevel)
 
 # Sanity checks
-"${TOPLEVEL}"/contrib/devtools/smoke-tests.sh
+: "${SANITY_CHECKS_COMMAND:=${TOPLEVEL}/contrib/devtools/smoke-tests.sh}"
+${SANITY_CHECKS_COMMAND}
 
 # Push the change. Phabricator will automatically close the associated revision.
-git push "${GIT_ARGS[@]}" origin master
+: "${GIT_COMMAND:=git}"
+${GIT_COMMAND} push "${GIT_ARGS[@]}" origin master

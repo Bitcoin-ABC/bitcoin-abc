@@ -7,8 +7,9 @@ find_program_or_fail(BASH_EXECUTABLE bash)
 
 set(SOURCE_CONTROL_TOOLS_TESTS
   test/test-autopatch.sh
-  test/test-sanitize-conduit-token.sh
   test/test-check-revision-accepted.sh
+  test/test-land-patch.sh
+  test/test-sanitize-conduit-token.sh
 )
 
 foreach(TEST ${SOURCE_CONTROL_TOOLS_TESTS})
