@@ -369,7 +369,8 @@ class UserBuild():
                 )
                 continue
 
-    def run_process(self, binary, args=[]):
+    def run_process(self, binary, args=None):
+        args = args if args is not None else []
         return asyncio.create_subprocess_exec(
             *([binary] + args),
             # Buffer limit is 64KB by default, but we need a larger buffer:
@@ -386,7 +387,8 @@ class UserBuild():
             },
         )
 
-    async def run_build(self, binary, args=[]):
+    async def run_build(self, binary, args=None):
+        args = args if args is not None else []
         proc = await self.run_process(binary, args)
 
         await asyncio.wait([
@@ -395,7 +397,8 @@ class UserBuild():
 
         return await proc.wait()
 
-    async def wait_for_build(self, timeout, args=[]):
+    async def wait_for_build(self, timeout, args=None):
+        args = args if args is not None else []
         message = "Build {} completed successfully".format(
             self.configuration.name
         )
@@ -434,7 +437,8 @@ class UserBuild():
 
             return (return_code, message)
 
-    def run(self, args=[]):
+    def run(self, args=None):
+        args = args if args is not None else []
         if self.artifact_dir.is_dir():
             shutil.rmtree(self.artifact_dir)
         self.artifact_dir.mkdir(exist_ok=True)
@@ -478,7 +482,9 @@ class TeamcityBuild(UserBuild):
         )
         self.teamcity_messages.publishArtifacts(artifact_path_pattern)
 
-    def run(self, args=[]):
+    def run(self, args=None):
+        args = args if args is not None else []
+
         # Let the user know what build is being run.
         # This makes it easier to retrieve the info from the logs.
         self.teamcity_messages.customMessage(

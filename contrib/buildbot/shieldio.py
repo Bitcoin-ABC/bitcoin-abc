@@ -31,7 +31,8 @@ class Badge:
             scheme,
             netloc,
             path,
-            unquote(urlencode({**self.query, **kwargs}, doseq=True, quote_via=quote)),
+            unquote(urlencode({**self.query, **kwargs},
+                              doseq=True, quote_via=quote)),
             ''
         ))
 

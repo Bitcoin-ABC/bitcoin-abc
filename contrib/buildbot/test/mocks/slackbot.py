@@ -47,9 +47,8 @@ def user(userId=DEFAULT_USER_ID, profile=None):
     }
 
 
-def users_list(total=1, initialUsers=[]):
-    users = []
-    users.extend(initialUsers)
+def users_list(total=1, initialUsers=None):
+    users = initialUsers if initialUsers is not None else []
     for i in range(len(users), total):
         users.append(user('U{}'.format(DEFAULT_USER_NUM + i)))
     return {

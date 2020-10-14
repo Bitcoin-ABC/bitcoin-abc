@@ -10,7 +10,7 @@ from phabricator_wrapper import PhabWrapper
 
 
 class Result:
-    def __init__(self, data=[]):
+    def __init__(self, data: list):
         self.data = data
 
 
