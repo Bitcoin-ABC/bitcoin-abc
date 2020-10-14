@@ -653,6 +653,8 @@ inline void Unserialize(Stream &is, prevector<N, T> &v);
  */
 template <typename Stream, typename T, typename A>
 void Serialize_impl(Stream &os, const std::vector<T, A> &v, const uint8_t &);
+template <typename Stream, typename T, typename A>
+void Serialize_impl(Stream &os, const std::vector<T, A> &v, const bool &);
 template <typename Stream, typename T, typename A, typename V>
 void Serialize_impl(Stream &os, const std::vector<T, A> &v, const V &);
 template <typename Stream, typename T, typename A>
@@ -807,6 +809,17 @@ void Serialize_impl(Stream &os, const std::vector<T, A> &v, const uint8_t &) {
     WriteCompactSize(os, v.size());
     if (!v.empty()) {
         os.write((char *)v.data(), v.size() * sizeof(T));
+    }
+}
+
+template <typename Stream, typename T, typename A>
+void Serialize_impl(Stream &os, const std::vector<T, A> &v, const bool &) {
+    // A special case for std::vector<bool>, as dereferencing
+    // std::vector<bool>::const_iterator does not result in a const bool&
+    // due to std::vector's special casing for bool arguments.
+    WriteCompactSize(os, v.size());
+    for (bool elem : v) {
+        ::Serialize(os, elem);
     }
 }
 
