@@ -46,10 +46,13 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
     bool callback_set = false;
 
     { // cs_main scope
+        assert(node.chainman);
         LOCK(cs_main);
+        assert(std::addressof(::ChainstateActive()) ==
+               std::addressof(node.chainman->ActiveChainstate()));
         // If the transaction is already confirmed in the chain, don't do
         // anything and return early.
-        CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
+        CCoinsViewCache &view = node.chainman->ActiveChainstate().CoinsTip();
         for (size_t o = 0; o < tx->vout.size(); o++) {
             const Coin &existingCoin = view.AccessCoin(COutPoint(txid, o));
             // IsSpent doesn't mean the coin is spent, it means the output
@@ -67,8 +70,8 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                 // First, call ATMP with test_accept and check the fee. If ATMP
                 // fails here, return error immediately.
                 Amount fee = Amount::zero();
-                if (!AcceptToMemoryPool(::ChainstateActive(), config,
-                                        *node.mempool, state, tx,
+                if (!AcceptToMemoryPool(node.chainman->ActiveChainstate(),
+                                        config, *node.mempool, state, tx,
                                         false /* bypass_limits */,
                                         /* test_accept */ true, &fee)) {
                     return HandleATMPError(state, err_string);
@@ -77,8 +80,9 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
                 }
             }
             // Try to submit the transaction to the mempool.
-            if (!AcceptToMemoryPool(::ChainstateActive(), config, *node.mempool,
-                                    state, tx, false /* bypass_limits */)) {
+            if (!AcceptToMemoryPool(node.chainman->ActiveChainstate(), config,
+                                    *node.mempool, state, tx,
+                                    false /* bypass_limits */)) {
                 return HandleATMPError(state, err_string);
             }
 
