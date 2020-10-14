@@ -17,6 +17,8 @@ PACKAGES=(
   cppcheck
   curl
   default-jdk
+  devscripts
+  dput
   flake8
   g++-aarch64-linux-gnu
   g++-arm-linux-gnueabihf
