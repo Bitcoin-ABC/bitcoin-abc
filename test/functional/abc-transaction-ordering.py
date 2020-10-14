@@ -144,10 +144,9 @@ class TransactionOrderingTest(BitcoinTestFramework):
         def tip(number):
             self.tip = self.blocks[number]
 
-        # adds transactions to the block and updates state
-        def update_block(block_number, new_transactions=[]):
+        # update block state
+        def update_block(block_number):
             block = self.blocks[block_number]
-            self.add_transactions_to_block(block, new_transactions)
             old_sha256 = block.sha256
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
