@@ -113,7 +113,8 @@ builds:
   build-docs:
     targets:
       - - doc-rpc
-        - install-manpages-html
+    post_build: |
+      xvfb-run -a -e /dev/stderr ninja install-manpages-html
     timeout: 600
     artifacts:
       doc/*: doc

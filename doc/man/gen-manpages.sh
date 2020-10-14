@@ -25,14 +25,6 @@ then
   exit 2
 fi
 
-# Unfortunately bitcoin-qt requires a handle on the DISPLAY, even for the
-# --help option. We can spoof an X window using xvfb.
-if ! command -v xvfb-run
-then
-  echo "xvfb is required to run $0 headlessly, please install it"
-  exit 3
-fi
-
 BITCOIND="$1"
 BIN="$2"
 MANPAGE="$3"
@@ -64,6 +56,5 @@ trap "cleanup" EXIT
 echo "[COPYRIGHT]" > "${FOOTER}"
 "${BITCOIND}" --version | sed -n '1!p' >> "${FOOTER}"
 
-xvfb-run -a -e /dev/stderr \
-  help2man -N --version-string="${VERSION[0]}" --include="${FOOTER}" -o "${MANPAGE}" "${BIN}"
+help2man -N --version-string="${VERSION[0]}" --include="${FOOTER}" -o "${MANPAGE}" "${BIN}"
 sed -i "s/\\\-${VERSION[1]}//g" "${MANPAGE}"
