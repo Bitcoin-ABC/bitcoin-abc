@@ -45,12 +45,13 @@ std::shared_ptr<CBlock> PrepareBlock(const Config &config,
                                      const NodeContext &node,
                                      const CScript &coinbase_scriptPubKey) {
     auto block = std::make_shared<CBlock>(
-        BlockAssembler{config, ::ChainstateActive(), *Assert(node.mempool)}
+        BlockAssembler{config, Assert(node.chainman)->ActiveChainstate(),
+                       *Assert(node.mempool)}
             .CreateNewBlock(coinbase_scriptPubKey)
             ->block);
 
     LOCK(cs_main);
-    block->nTime = ::ChainActive().Tip()->GetMedianTimePast() + 1;
+    block->nTime = Assert(node.chainman)->ActiveTip()->GetMedianTimePast() + 1;
     block->hashMerkleRoot = BlockMerkleRoot(*block);
 
     return block;
