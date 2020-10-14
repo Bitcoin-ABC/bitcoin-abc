@@ -61,34 +61,35 @@ bool BaseIndex::Init() {
     }
 
     LOCK(cs_main);
+    CChain &active_chain = m_chainstate->m_chain;
     if (locator.IsNull()) {
         m_best_block_index = nullptr;
     } else {
-        m_best_block_index = g_chainman.m_blockman.FindForkInGlobalIndex(
-            ::ChainActive(), locator);
+        m_best_block_index = m_chainstate->m_blockman.FindForkInGlobalIndex(
+            active_chain, locator);
     }
-    m_synced = m_best_block_index.load() == ::ChainActive().Tip();
+    m_synced = m_best_block_index.load() == active_chain.Tip();
     if (!m_synced) {
         bool prune_violation = false;
         if (!m_best_block_index) {
             // index is not built yet
             // make sure we have all block data back to the genesis
-            const CBlockIndex *block = ::ChainActive().Tip();
+            const CBlockIndex *block = active_chain.Tip();
             while (block->pprev && block->pprev->nStatus.hasData()) {
                 block = block->pprev;
             }
-            prune_violation = block != ::ChainActive().Genesis();
+            prune_violation = block != active_chain.Genesis();
         }
         // in case the index has a best block set and is not fully synced
         // check if we have the required blocks to continue building the index
         else {
             const CBlockIndex *block_to_test = m_best_block_index.load();
-            if (!ChainActive().Contains(block_to_test)) {
+            if (!active_chain.Contains(block_to_test)) {
                 // if the bestblock is not part of the mainchain, find the fork
                 // and make sure we have all data down to the fork
-                block_to_test = ::ChainActive().FindFork(block_to_test);
+                block_to_test = active_chain.FindFork(block_to_test);
             }
-            const CBlockIndex *block = ::ChainActive().Tip();
+            const CBlockIndex *block = active_chain.Tip();
             prune_violation = true;
             // check backwards from the tip if we have all block data until we
             // reach the indexes bestblock
@@ -116,20 +117,21 @@ bool BaseIndex::Init() {
     return true;
 }
 
-static const CBlockIndex *NextSyncBlock(const CBlockIndex *pindex_prev)
+static const CBlockIndex *NextSyncBlock(const CBlockIndex *pindex_prev,
+                                        CChain &chain)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
     if (!pindex_prev) {
-        return ::ChainActive().Genesis();
+        return chain.Genesis();
     }
 
-    const CBlockIndex *pindex = ::ChainActive().Next(pindex_prev);
+    const CBlockIndex *pindex = chain.Next(pindex_prev);
     if (pindex) {
         return pindex;
     }
 
-    return ::ChainActive().Next(::ChainActive().FindFork(pindex_prev));
+    return chain.Next(chain.FindFork(pindex_prev));
 }
 
 void BaseIndex::ThreadSync() {
@@ -152,7 +154,8 @@ void BaseIndex::ThreadSync() {
 
             {
                 LOCK(cs_main);
-                const CBlockIndex *pindex_next = NextSyncBlock(pindex);
+                const CBlockIndex *pindex_next =
+                    NextSyncBlock(pindex, m_chainstate->m_chain);
                 if (!pindex_next) {
                     m_best_block_index = pindex;
                     m_synced = true;
@@ -217,8 +220,8 @@ bool BaseIndex::Commit() {
 
 bool BaseIndex::CommitInternal(CDBBatch &batch) {
     LOCK(cs_main);
-    GetDB().WriteBestBlock(batch,
-                           ::ChainActive().GetLocator(m_best_block_index));
+    GetDB().WriteBestBlock(
+        batch, m_chainstate->m_chain.GetLocator(m_best_block_index));
     return true;
 }
 
@@ -299,7 +302,7 @@ void BaseIndex::ChainStateFlushed(const CBlockLocator &locator) {
     {
         LOCK(cs_main);
         locator_tip_index =
-            g_chainman.m_blockman.LookupBlockIndex(locator_tip_hash);
+            m_chainstate->m_blockman.LookupBlockIndex(locator_tip_hash);
     }
 
     if (!locator_tip_index) {
@@ -342,7 +345,7 @@ bool BaseIndex::BlockUntilSyncedToCurrentChain() const {
         // Skip the queue-draining stuff if we know we're caught up with
         // ::ChainActive().Tip().
         LOCK(cs_main);
-        const CBlockIndex *chain_tip = ::ChainActive().Tip();
+        const CBlockIndex *chain_tip = m_chainstate->m_chain.Tip();
         const CBlockIndex *best_block_index = m_best_block_index.load();
         if (best_block_index->GetAncestor(chain_tip->nHeight) == chain_tip) {
             return true;
@@ -359,7 +362,10 @@ void BaseIndex::Interrupt() {
     m_interrupt();
 }
 
-void BaseIndex::Start() {
+void BaseIndex::Start(CChainState &active_chainstate) {
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(active_chainstate));
+    m_chainstate = &active_chainstate;
     // Need to register this ValidationInterface before running Init(), so that
     // callbacks are not missed if Init sets m_synced to true.
     RegisterValidationInterface(this);
