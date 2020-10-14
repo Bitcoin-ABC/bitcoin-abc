@@ -89,11 +89,11 @@ constexpr static struct {
     {2, 0xbbbeb305}, {2, 0xfe1c810a},
 };
 
-static CBlockIndex CreateBlockIndex(int nHeight)
+static CBlockIndex CreateBlockIndex(int nHeight, CBlockIndex *active_chain_tip)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     CBlockIndex index;
     index.nHeight = nHeight;
-    index.pprev = ::ChainActive().Tip();
+    index.pprev = active_chain_tip;
     return index;
 }
 
@@ -516,10 +516,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     // Sequence locks fail.
     BOOST_CHECK(!TestSequenceLocks(CTransaction(tx), flags));
+
     // Sequence locks pass on 2nd block.
     BOOST_CHECK(
         SequenceLocks(CTransaction(tx), flags, prevheights,
-                      CreateBlockIndex(::ChainActive().Tip()->nHeight + 2)));
+                      CreateBlockIndex(m_node.chainman->ActiveHeight() + 2,
+                                       m_node.chainman->ActiveTip())));
 
     // Relative time locked.
     tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
@@ -545,15 +547,17 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
         // Trick the MedianTimePast.
-        ::ChainActive()
-            .Tip()
-            ->GetAncestor(::ChainActive().Tip()->nHeight - i)
+        m_node.chainman->ActiveTip()
+            ->GetAncestor(m_node.chainman->ActiveHeight() - i)
             ->nTime += 512;
     }
+
     // Sequence locks pass 512 seconds later.
     BOOST_CHECK(
         SequenceLocks(CTransaction(tx), flags, prevheights,
-                      CreateBlockIndex(::ChainActive().Tip()->nHeight + 1)));
+                      CreateBlockIndex(m_node.chainman->ActiveHeight() + 1,
+                                       m_node.chainman->ActiveTip())));
+
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
         // Undo tricked MTP.
         ::ChainActive()
