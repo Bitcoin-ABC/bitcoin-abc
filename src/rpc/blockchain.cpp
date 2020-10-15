@@ -1912,6 +1912,8 @@ static UniValue getchaintxstats(const Config &config,
             "number of transactions in the chain up to that point.\n"
             "  \"window_final_block_hash\": \"...\",    (string) The hash of "
             "the final block in the window.\n"
+            "  \"window_final_block_height\": xxxxx,    (numeric) The height "
+            "of the final block in the window.\n"
             "  \"window_block_count\": xxxxx,           (numeric) Size of the "
             "window in number of blocks.\n"
             "  \"window_tx_count\": xxxxx,              (numeric) The number "
@@ -1976,6 +1978,7 @@ static UniValue getchaintxstats(const Config &config,
     ret.pushKV("time", pindex->GetBlockTime());
     ret.pushKV("txcount", pindex->GetChainTxCount());
     ret.pushKV("window_final_block_hash", pindex->GetBlockHash().GetHex());
+    ret.pushKV("window_final_block_height", pindex->nHeight);
     ret.pushKV("window_block_count", blockcount);
     if (blockcount > 0) {
         ret.pushKV("window_tx_count", nTxDiff);
