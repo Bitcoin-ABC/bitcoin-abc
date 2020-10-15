@@ -202,13 +202,13 @@ void WalletView::processNewTransaction(const QModelIndex &parent, int start,
     QModelIndex index = ttm->index(start, 0, parent);
     QString address =
         ttm->data(index, TransactionTableModel::AddressRole).toString();
-    QString label =
-        ttm->data(index, TransactionTableModel::LabelRole).toString();
+    QString label = GUIUtil::HtmlEscape(
+        ttm->data(index, TransactionTableModel::LabelRole).toString());
 
-    Q_EMIT incomingTransaction(date,
-                               walletModel->getOptionsModel()->getDisplayUnit(),
-                               int64_t(amount) * SATOSHI, type, address, label,
-                               walletModel->getWalletName());
+    Q_EMIT incomingTransaction(
+        date, walletModel->getOptionsModel()->getDisplayUnit(),
+        int64_t(amount) * SATOSHI, type, address, label,
+        GUIUtil::HtmlEscape(walletModel->getWalletName()));
 }
 
 void WalletView::gotoOverviewPage() {
