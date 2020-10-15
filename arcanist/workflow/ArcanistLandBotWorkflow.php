@@ -102,10 +102,14 @@ EOTEXT
     }
 
     $revision = $this->getArgument('revision');
-    if ($revision) {
-      array_push($landArgs, '--revision');
-      array_push($landArgs, $revision);
+    if (empty($revision)) {
+      // By default, queue the latest revision on the current branch
+      $revisions = $repositoryApi->loadWorkingCopyDifferentialRevisions(
+        $this->getConduit(), array());
+      $revision = 'D' . end($revisions)['id'];
     }
+    array_push($landArgs, '--revision');
+    array_push($landArgs, $revision);
 
     $branch = $this->getArgument('branch');
     if (!empty($branch)) {
@@ -119,17 +123,14 @@ EOTEXT
       return 0;
     }
 
-    // Whether --revision was set or not, we need a formatted revision ID
-    $revision = 'D' . $landWorkflow->getRevisionDict()['id'];
+    // Checkout the branch you were on previously
+    $repositoryApi->execxLocal('checkout %s', $oldBranch);
 
     if ($this->getArgument('hold')) {
       echo phutil_console_format(pht(
         'Revision %s will not be queued with the land bot.', $revision) . "\n");
       return 0;
     }
-
-    // Checkout the branch you were on previously
-    $repositoryApi->execxLocal('checkout %s', $oldBranch);
 
     // Encrypt your Conduit token to securely pass it to the land bot
     $workingCopy = $repositoryApi->getWorkingCopyIdentity();
