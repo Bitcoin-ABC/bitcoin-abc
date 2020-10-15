@@ -8,6 +8,7 @@
 
 #include <arith_uint256.h>
 #include <avalanche/processor.h>
+#include <blockdb.h>
 #include <blockvalidity.h>
 #include <chainparams.h>
 #include <checkpoints.h>
@@ -172,9 +173,6 @@ static void FindFilesToPruneManual(std::set<int> &setFilesToPrune,
                                    int nManualPruneHeight);
 static void FindFilesToPrune(std::set<int> &setFilesToPrune,
                              uint64_t nPruneAfterHeight);
-static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
-static FlatFileSeq BlockFileSeq();
-static FlatFileSeq UndoFileSeq();
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex);
 
@@ -720,55 +718,6 @@ static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
 
     pos.nPos = (unsigned int)fileOutPos;
     fileout << block;
-
-    return true;
-}
-
-bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
-                       const Consensus::Params &params) {
-    block.SetNull();
-
-    // Open history file to read
-    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-    if (filein.IsNull()) {
-        return error("ReadBlockFromDisk: OpenBlockFile failed for %s",
-                     pos.ToString());
-    }
-
-    // Read block
-    try {
-        filein >> block;
-    } catch (const std::exception &e) {
-        return error("%s: Deserialize or I/O error - %s at %s", __func__,
-                     e.what(), pos.ToString());
-    }
-
-    // Check the header
-    if (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {
-        return error("ReadBlockFromDisk: Errors in block header at %s",
-                     pos.ToString());
-    }
-
-    return true;
-}
-
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
-                       const Consensus::Params &params) {
-    FlatFilePos blockPos;
-    {
-        LOCK(cs_main);
-        blockPos = pindex->GetBlockPos();
-    }
-
-    if (!ReadBlockFromDisk(block, blockPos, params)) {
-        return false;
-    }
-
-    if (block.GetHash() != pindex->GetBlockHash()) {
-        return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() "
-                     "doesn't match index for %s at %s",
-                     pindex->ToString(), pindex->GetBlockPos().ToString());
-    }
 
     return true;
 }
@@ -4476,27 +4425,6 @@ static void FindFilesToPrune(std::set<int> &setFilesToPrune,
              nPruneTarget / 1024 / 1024, nCurrentUsage / 1024 / 1024,
              ((int64_t)nPruneTarget - (int64_t)nCurrentUsage) / 1024 / 1024,
              nLastBlockWeCanPrune, count);
-}
-
-static FlatFileSeq BlockFileSeq() {
-    return FlatFileSeq(GetBlocksDir(), "blk", BLOCKFILE_CHUNK_SIZE);
-}
-
-static FlatFileSeq UndoFileSeq() {
-    return FlatFileSeq(GetBlocksDir(), "rev", UNDOFILE_CHUNK_SIZE);
-}
-
-FILE *OpenBlockFile(const FlatFilePos &pos, bool fReadOnly) {
-    return BlockFileSeq().Open(pos, fReadOnly);
-}
-
-/** Open an undo file (rev?????.dat) */
-static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly) {
-    return UndoFileSeq().Open(pos, fReadOnly);
-}
-
-fs::path GetBlockPosFilename(const FlatFilePos &pos) {
-    return BlockFileSeq().FileName(pos);
 }
 
 CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {

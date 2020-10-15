@@ -13,6 +13,7 @@
 #include <amount.h>
 #include <avalanche/processor.h>
 #include <banman.h>
+#include <blockdb.h>
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>

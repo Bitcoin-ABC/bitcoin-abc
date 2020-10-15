@@ -8,6 +8,7 @@
 #include <addrman.h>
 #include <avalanche/processor.h>
 #include <banman.h>
+#include <blockdb.h>
 #include <blockencodings.h>
 #include <blockvalidity.h>
 #include <chain.h>

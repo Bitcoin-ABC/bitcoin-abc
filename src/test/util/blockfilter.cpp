@@ -4,6 +4,7 @@
 
 #include <test/util/blockfilter.h>
 
+#include <blockdb.h>
 #include <chainparams.h>
 #include <validation.h>
 

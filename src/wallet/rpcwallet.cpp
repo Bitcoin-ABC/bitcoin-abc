@@ -26,7 +26,6 @@
 #include <util/translation.h>
 #include <util/url.h>
 #include <util/validation.h>
-#include <validation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/psbtwallet.h>
 #include <wallet/rpcwallet.h>

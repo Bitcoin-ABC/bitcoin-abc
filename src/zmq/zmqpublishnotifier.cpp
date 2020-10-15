@@ -4,6 +4,7 @@
 
 #include <zmq/zmqpublishnotifier.h>
 
+#include <blockdb.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
@@ -12,7 +13,6 @@
 #include <rpc/server.h>
 #include <streams.h>
 #include <util/system.h>
-#include <validation.h>
 
 #include <cstdarg>
 

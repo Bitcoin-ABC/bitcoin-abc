@@ -74,10 +74,6 @@ static const Amount DEFAULT_UTXO_FEE = Amount::zero();
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 336;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
-/** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
-static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
-/** The pre-allocation chunk size for rev?????.dat files (since 0.8) */
-static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 
 /** Maximum number of dedicated script-checking threads allowed */
 static const int MAX_SCRIPTCHECK_THREADS = 15;
@@ -321,16 +317,6 @@ bool ProcessNewBlockHeaders(const Config &config,
                             BlockValidationState &state,
                             const CBlockIndex **ppindex = nullptr)
     LOCKS_EXCLUDED(cs_main);
-
-/**
- * Open a block file (blk?????.dat).
- */
-FILE *OpenBlockFile(const FlatFilePos &pos, bool fReadOnly = false);
-
-/**
- * Translation to a filesystem path.
- */
-fs::path GetBlockPosFilename(const FlatFilePos &pos);
 
 /**
  * Import blocks from an external file.
@@ -628,12 +614,6 @@ public:
 
     ScriptExecutionMetrics GetScriptExecutionMetrics() const { return metrics; }
 };
-
-/** Functions for disk access for blocks */
-bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
-                       const Consensus::Params &params);
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
-                       const Consensus::Params &params);
 
 bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex);
 

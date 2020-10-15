@@ -4,6 +4,7 @@
 
 #include <index/txindex.h>
 
+#include <blockdb.h>
 #include <chain.h>
 #include <shutdown.h>
 #include <ui_interface.h>

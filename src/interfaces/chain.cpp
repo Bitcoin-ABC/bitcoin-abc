@@ -4,6 +4,7 @@
 
 #include <interfaces/chain.h>
 
+#include <blockdb.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <interfaces/handler.h>
