@@ -4,11 +4,13 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test longpolling with getblocktemplate."""
 
+import random
 import threading
 from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import get_rpc_proxy, random_transaction
+from test_framework.util import get_rpc_proxy
+from test_framework.wallet import MiniWallet
 
 
 class LongpollThread(threading.Thread):
@@ -32,9 +34,6 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.supports_cli = False
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def run_test(self):
         self.log.info(
             "Warning: this test will take about 70 seconds in the best case. Be patient.")
@@ -54,9 +53,10 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         thr.join(5)
         assert thr.is_alive()
 
+        miniwallets = [MiniWallet(node) for node in self.nodes]
         # Test 2: test that longpoll will terminate if another node generates a block
         # generate a block on another node
-        self.nodes[1].generate(1)
+        miniwallets[1].generate(1)
         # check that thread will exit now that new transaction entered mempool
         # wait 5 seconds or until thread exits
         thr.join(5)
@@ -66,11 +66,16 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         # ourselves
         thr = LongpollThread(self.nodes[0])
         thr.start()
-        # generate a block on another node
-        self.nodes[0].generate(1)
+        # generate a block on own node
+        miniwallets[0].generate(1)
         # wait 5 seconds or until thread exits
         thr.join(5)
         assert not thr.is_alive()
+
+        # Add enough mature utxos to the wallets, so that all txs spend
+        # confirmed coins
+        self.nodes[0].generate(100)
+        self.sync_blocks()
 
         # Test 4: test that introducing a new transaction into the mempool will
         # terminate the longpoll
@@ -78,10 +83,9 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         thr.start()
         # generate a random transaction and submit it
         min_relay_fee = self.nodes[0].getnetworkinfo()["relayfee"]
-        # min_relay_fee is fee per 1000 bytes, which should be more than
-        # enough.
-        (txid, txhex, fee) = random_transaction(self.nodes,
-                                                Decimal("1100000"), min_relay_fee, Decimal("1000"), 20)
+        fee_rate = min_relay_fee + Decimal('0.10') * random.randint(0, 20)
+        miniwallets[0].send_self_transfer(from_node=random.choice(self.nodes),
+                                          fee_rate=fee_rate)
         # after one minute, every 10 seconds the mempool is probed, so in 80
         # seconds it should have returned
         thr.join(60 + 20)
