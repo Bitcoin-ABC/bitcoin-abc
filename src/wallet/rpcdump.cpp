@@ -2045,7 +2045,12 @@ static UniValue ProcessDescriptorImport(CWallet *const pwallet,
         // pubkeys
         FlatSigningProvider expand_keys;
         std::vector<CScript> scripts;
-        parsed_desc->Expand(0, keys, scripts, expand_keys);
+        if (!parsed_desc->Expand(0, keys, scripts, expand_keys)) {
+            throw JSONRPCError(
+                RPC_WALLET_ERROR,
+                "Cannot expand descriptor. Probably because of hardened "
+                "derivations without private keys provided");
+        }
         parsed_desc->ExpandPrivate(0, keys, expand_keys);
 
         // Check if all private keys are provided
