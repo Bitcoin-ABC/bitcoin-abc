@@ -390,12 +390,20 @@ class UserBuild():
     async def run_build(self, binary, args=None):
         args = args if args is not None else []
         proc = await self.run_process(binary, args)
+        logging_task = asyncio.ensure_future(self.process_stdout(proc.stdout))
 
-        await asyncio.wait([
-            self.process_stdout(proc.stdout)
-        ])
+        # Block until the process is finished
+        result = await proc.wait()
 
-        return await proc.wait()
+        # Wait up to a few seconds for logging to flush. Normally, this will
+        # finish immediately.
+        try:
+            await asyncio.wait_for(logging_task, timeout=5)
+        except asyncio.TimeoutError:
+            self.print_line_to_logs(
+                "Warning: Timed out while waiting for logging to flush. Some log lines may be missing.")
+
+        return result
 
     async def wait_for_build(self, timeout, args=None):
         args = args if args is not None else []
