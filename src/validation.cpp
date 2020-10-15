@@ -1044,9 +1044,14 @@ bool CheckInputs(const CTransaction &tx, TxValidationState &state,
         // Verify signature
         CScriptCheck check(coin.GetTxOut(), tx, i, flags, sigCacheStore, txdata,
                            &txLimitSigChecks, pBlockLimitSigChecks);
+
+        // If pvChecks is not null, defer the check execution to the caller.
         if (pvChecks) {
             pvChecks->push_back(std::move(check));
-        } else if (!check()) {
+            continue;
+        }
+
+        if (!check()) {
             ScriptError scriptError = check.GetScriptError();
             // Compute flags without the optional standardness flags.
             // This differs from MANDATORY_SCRIPT_VERIFY_FLAGS as it contains
@@ -1073,8 +1078,8 @@ bool CheckInputs(const CTransaction &tx, TxValidationState &state,
             }
 
             // MANDATORY flag failures correspond to
-            // TxValidationResult::TX_CONSENSUS. Because CONSENSUS failures
-            // are the most serious case of validation failures, we may need to
+            // TxValidationResult::TX_CONSENSUS. Because CONSENSUS failures are
+            // the most serious case of validation failures, we may need to
             // consider using RECENT_CONSENSUS_CHANGE for any script failure
             // that could be due to non-upgraded nodes which we may want to
             // support, to avoid splitting the network (but this depends on the
