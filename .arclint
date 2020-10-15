@@ -254,6 +254,10 @@
                 "(\\.md$)"
             ],
             "exclude": "(^contrib/gitian-builder/)"
+        },
+        "lint-python-mutable-default": {
+            "type": "lint-python-mutable-default",
+            "include": "(\\.py$)"
         }
     }
 }

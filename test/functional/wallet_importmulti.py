@@ -45,8 +45,10 @@ class ImportMultiTest(BitcoinTestFramework):
         self.setup_nodes()
 
     def test_importmulti(self, req, success, error_code=None,
-                         error_message=None, warnings=[]):
+                         error_message=None, warnings=None):
         """Run importmulti and assert success"""
+        if warnings is None:
+            warnings = []
         result = self.nodes[1].importmulti([req])
         observed_warnings = []
         if 'warnings' in result[0]:
