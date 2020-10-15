@@ -709,9 +709,9 @@ class EndpointStatusTestCase(ABCBotFixture):
             # Simple match
             b'err:ntdll:RtlpWaitForCriticalSection',
             # Greedy match with some escaped characters
-            b'\\d*:err:ntdll:RtlpWaitForCriticalSection section .* retrying \\(60 sec\\)',
+            br'\d*:err:ntdll:RtlpWaitForCriticalSection section .* retrying \(60 sec\)',
             # Less greedy match
-            b'err:ntdll:RtlpWaitForCriticalSection section \\w* "\\?" wait timed out in thread \\d*, blocked by \\d*, retrying',
+            br'err:ntdll:RtlpWaitForCriticalSection section \w* "\?" wait timed out in thread \d*, blocked by \d*, retrying',
         ]
         for pattern in testPatterns:
             self.teamcity.getIgnoreList.return_value = [
