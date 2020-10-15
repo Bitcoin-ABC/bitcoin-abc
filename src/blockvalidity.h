@@ -14,10 +14,9 @@ enum class BlockValidity : uint32_t {
     UNKNOWN = 0,
 
     /**
-     * Parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max,
-     * timestamp not in future.
+     * Reserved (was HEADER).
      */
-    HEADER = 1,
+    RESERVED = 1,
 
     /**
      * All parent headers found, difficulty matches, timestamp >= median

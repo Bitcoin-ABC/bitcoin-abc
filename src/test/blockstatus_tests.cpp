@@ -35,7 +35,7 @@ static void CheckAllPermutations(const BlockStatus base, bool hasData,
                                  bool hasParkedParent) {
     // Check all possible permutations.
     std::set<BlockValidity> baseValidities{
-        BlockValidity::UNKNOWN, BlockValidity::HEADER,
+        BlockValidity::UNKNOWN, BlockValidity::RESERVED,
         BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
 

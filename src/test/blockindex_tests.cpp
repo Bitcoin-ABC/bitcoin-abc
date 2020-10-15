@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(get_block_header) {
 BOOST_AUTO_TEST_CASE(get_disk_positions) {
     // Test against all validity values
     std::set<BlockValidity> validityValues{
-        BlockValidity::UNKNOWN, BlockValidity::HEADER,
+        BlockValidity::UNKNOWN, BlockValidity::RESERVED,
         BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
     for (BlockValidity validity : validityValues) {
@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE(index_validity_tests) {
 
     // Test against all validity values
     std::set<BlockValidity> validityValues{
-        BlockValidity::UNKNOWN, BlockValidity::HEADER,
+        BlockValidity::UNKNOWN, BlockValidity::RESERVED,
         BlockValidity::TREE,    BlockValidity::TRANSACTIONS,
         BlockValidity::CHAIN,   BlockValidity::SCRIPTS};
     std::set<bool> boolValues = {false, true};
