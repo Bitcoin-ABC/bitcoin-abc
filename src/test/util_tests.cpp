@@ -46,6 +46,27 @@ std::string LogEscapeMessage(const std::string &str);
 
 BOOST_FIXTURE_TEST_SUITE(util_tests, BasicTestingSetup)
 
+BOOST_AUTO_TEST_CASE(util_datadir) {
+    ClearDatadirCache();
+    const fs::path dd_norm = GetDataDir();
+
+    gArgs.ForceSetArg("-datadir", dd_norm.string() + "/");
+    ClearDatadirCache();
+    BOOST_CHECK_EQUAL(dd_norm, GetDataDir());
+
+    gArgs.ForceSetArg("-datadir", dd_norm.string() + "/.");
+    ClearDatadirCache();
+    BOOST_CHECK_EQUAL(dd_norm, GetDataDir());
+
+    gArgs.ForceSetArg("-datadir", dd_norm.string() + "/./");
+    ClearDatadirCache();
+    BOOST_CHECK_EQUAL(dd_norm, GetDataDir());
+
+    gArgs.ForceSetArg("-datadir", dd_norm.string() + "/.//");
+    ClearDatadirCache();
+    BOOST_CHECK_EQUAL(dd_norm, GetDataDir());
+}
+
 BOOST_AUTO_TEST_CASE(util_check) {
     // Check that Assert can forward
     const std::unique_ptr<int> p_two = Assert(std::make_unique<int>(2));
