@@ -105,7 +105,8 @@ EOTEXT
     // to land. Your old branch will be restored at the end.
     $branch = $this->getArgument('branch');
     if (!empty($branch)) {
-      $repositoryApi->execxLocal('checkout %s', $branch[0]);
+      $branch = $branch[0];
+      $repositoryApi->execxLocal('checkout %s', $branch);
     }
 
     $revision = $this->getArgument('revision');
@@ -113,6 +114,19 @@ EOTEXT
       // By default, queue the latest revision on the current branch
       $revisions = $repositoryApi->loadWorkingCopyDifferentialRevisions(
         $this->getConduit(), array());
+
+      if (empty($revisions)) {
+        $location = 'current branch';
+        if (!empty($branch)) {
+          // Restore the branch you were on previously
+          $repositoryApi->execxLocal('checkout %s', $oldBranch);
+
+          $location = "'$branch'";
+        }
+        throw new ArcanistUsageException(pht(
+          "Error: Could not find a valid revision at %s", $location));
+      }
+
       $revision = 'D' . end($revisions)['id'];
     }
     array_push($landArgs, '--revision');
