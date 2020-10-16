@@ -43,7 +43,7 @@ fi
 mkdir -p "$(dirname ${MANPAGE})"
 
 # The autodetected version git tag can screw up manpage output a little bit
-read -r -a VERSION <<< "$(${BITCOIND} --version | head -n1 | awk -F'[ -]' '{ print $5, $6 }')"
+read -r -a VERSION <<< "$(${BITCOIND} --version | awk -F'[ -]' 'NR == 1 { print $4, $5 }')"
 
 # Create a footer file with copyright content.
 # This gets autodetected fine for bitcoind if --version-string is not set,
