@@ -213,7 +213,7 @@ namespace {
         }
         bool contextualCheckTransactionForCurrentBlock(
             const CTransaction &tx, TxValidationState &state) override {
-            LockAssertion lock(::cs_main);
+            LOCK(cs_main);
             return ContextualCheckTransactionForCurrentBlock(
                 m_params.GetConsensus(), tx, state);
         }
