@@ -15,6 +15,7 @@
 #include <rpc/protocol.h>
 #include <rpc/request.h>
 #include <support/events.h>
+#include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>
@@ -426,14 +427,15 @@ private:
     }
     bool m_is_asmap_on{false};
     size_t m_max_addr_length{0};
+    size_t m_max_age_length{4};
     size_t m_max_id_length{2};
     struct Peer {
         std::string addr;
         std::string sub_version;
         std::string network;
+        std::string age;
         double min_ping;
         double ping;
-        int64_t conn_time;
         int64_t last_blck;
         int64_t last_recv;
         int64_t last_send;
@@ -537,15 +539,19 @@ public:
                                       ? -1
                                       : peer["pingtime"].get_real()};
                 const std::string addr{peer["addr"].get_str()};
+                const std::string age{
+                    conn_time == 0 ? ""
+                                   : ToString((m_time_now - conn_time) / 60)};
                 const std::string sub_version{peer["subver"].get_str()};
-                m_peers.push_back({addr, sub_version, network, min_ping, ping,
-                                   conn_time, last_blck, last_recv, last_send,
+                m_peers.push_back({addr, sub_version, network, age, min_ping,
+                                   ping, last_blck, last_recv, last_send,
                                    last_trxn, peer_id, mapped_as, version,
                                    is_block_relay, is_outbound});
-                m_max_id_length =
-                    std::max(ToString(peer_id).length(), m_max_id_length);
                 m_max_addr_length =
                     std::max(addr.length() + 1, m_max_addr_length);
+                m_max_age_length = std::max(age.length(), m_max_age_length);
+                m_max_id_length =
+                    std::max(ToString(peer_id).length(), m_max_id_length);
                 m_is_asmap_on |= (mapped_as != 0);
             }
         }
@@ -560,8 +566,10 @@ public:
         // ping time.
         if (DetailsRequested() && !m_peers.empty()) {
             std::sort(m_peers.begin(), m_peers.end());
-            result += "Peer connections sorted by direction and min ping\n<-> "
-                      "relay   net mping   ping send recv  txn  blk    age ";
+            result += strprintf(
+                "Peer connections sorted by direction and min ping\n<-> relay  "
+                " net  mping   ping send recv  txn  blk %*s ",
+                m_max_age_length, "age");
             if (m_is_asmap_on) {
                 result += " asmap ";
             }
@@ -572,7 +580,7 @@ public:
             for (const Peer &peer : m_peers) {
                 std::string version{ToString(peer.version) + peer.sub_version};
                 result += strprintf(
-                    "%3s %5s %5s%7s%7s%5s%5s%5s%5s%7s%*i %*s %-*s%s\n",
+                    "%3s %5s %5s%7s%7s%5s%5s%5s%5s %*s%*i %*s %-*s%s\n",
                     peer.is_outbound ? "out" : "in",
                     peer.is_block_relay ? "block" : "full", peer.network,
                     peer.min_ping == -1 ? ""
@@ -588,9 +596,8 @@ public:
                     peer.last_blck == 0
                         ? ""
                         : ToString((m_time_now - peer.last_blck) / 60),
-                    peer.conn_time == 0
-                        ? ""
-                        : ToString((m_time_now - peer.conn_time) / 60),
+                    // variable spacing
+                    m_max_age_length, peer.age,
                     // variable spacing
                     m_is_asmap_on ? 7 : 0,
                     m_is_asmap_on && peer.mapped_as != 0
@@ -603,8 +610,9 @@ public:
                     IsAddressSelected() ? peer.addr : "",
                     IsVersionSelected() && version != "0" ? version : "");
             }
-            result +=
-                "                    ms     ms  sec  sec  min  min    min\n\n";
+            result += strprintf(
+                "                    ms     ms  sec  sec  min  min %*s\n\n",
+                m_max_age_length, "min");
         }
 
         // Report peer connection totals by type.
