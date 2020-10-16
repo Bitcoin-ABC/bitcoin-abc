@@ -101,6 +101,13 @@ EOTEXT
       array_push($landArgs, '--hold');
     }
 
+    // Checkout the specified branch/commit which will determine the revision
+    // to land. Your old branch will be restored at the end.
+    $branch = $this->getArgument('branch');
+    if (!empty($branch)) {
+      $repositoryApi->execxLocal('checkout %s', $branch[0]);
+    }
+
     $revision = $this->getArgument('revision');
     if (empty($revision)) {
       // By default, queue the latest revision on the current branch
@@ -111,24 +118,24 @@ EOTEXT
     array_push($landArgs, '--revision');
     array_push($landArgs, $revision);
 
-    $branch = $this->getArgument('branch');
-    if (!empty($branch)) {
-      array_push($landArgs, $branch[0]);
+    if ($this->getArgument('preview')) {
+      // Restore the branch you were on previously
+      $repositoryApi->execxLocal('checkout %s', $oldBranch);
+
+      echo phutil_console_format(pht(
+        'Found revision %s', $revision) . "\n");
+      return 0;
     }
 
     $landWorkflow = $this->buildChildWorkflow('land', $landArgs);
     $landWorkflow->run();
 
-    if ($this->getArgument('preview')) {
-      return 0;
-    }
-
-    // Checkout the branch you were on previously
+    // Restore the branch you were on previously
     $repositoryApi->execxLocal('checkout %s', $oldBranch);
 
     if ($this->getArgument('hold')) {
       echo phutil_console_format(pht(
-        'Revision %s will not be queued with the land bot.', $revision) . "\n");
+        'Revision %s has not been queued with the land bot', $revision) . "\n");
       return 0;
     }
 
