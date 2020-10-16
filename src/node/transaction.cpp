@@ -28,6 +28,7 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
     // before RPC server is accepting calls, and reset after chain clients and
     // RPC sever are stopped. node.connman should never be null here.
     assert(node.connman);
+    assert(node.mempool);
     std::promise<void> promise;
     TxId txid = tx->GetId();
     bool callback_set = false;
@@ -47,10 +48,10 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
             }
         }
 
-        if (!g_mempool.exists(txid)) {
+        if (!node.mempool->exists(txid)) {
             // Transaction is not already in the mempool. Submit it.
             TxValidationState state;
-            if (!AcceptToMemoryPool(config, g_mempool, state, std::move(tx),
+            if (!AcceptToMemoryPool(config, *node.mempool, state, std::move(tx),
                                     false /* bypass_limits */, max_tx_fee)) {
                 err_string = FormatStateMessage(state);
                 if (state.IsInvalid()) {

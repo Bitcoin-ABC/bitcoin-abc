@@ -709,10 +709,11 @@ static UniValue combinerawtransaction(const Config &config,
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
+        const CTxMemPool &mempool = EnsureMemPool();
         LOCK(cs_main);
-        LOCK(g_mempool.cs);
+        LOCK(mempool.cs);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
-        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
+        CCoinsViewMemPool viewMempool(&viewChain, mempool);
         // temporarily switch cache backend to db+mempool view
         view.SetBackend(viewMempool);
 
@@ -873,7 +874,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
         // Create empty map entry keyed by prevout.
         coins[txin.prevout];
     }
-    FindCoins(coins);
+    FindCoins(*g_rpc_node, coins);
 
     // Parse the prevtxs array
     ParsePrevouts(request.params[2], &keystore, coins);
@@ -1040,6 +1041,8 @@ static UniValue testmempoolaccept(const Config &config,
         max_raw_tx_fee = fr.GetFee(sz);
     }
 
+    CTxMemPool &mempool = EnsureMemPool();
+
     UniValue result(UniValue::VARR);
     UniValue result_0(UniValue::VOBJ);
     result_0.pushKV("txid", txid.GetHex());
@@ -1049,7 +1052,7 @@ static UniValue testmempoolaccept(const Config &config,
     {
         LOCK(cs_main);
         test_accept_res = AcceptToMemoryPool(
-            config, g_mempool, state, std::move(tx), false /* bypass_limits */,
+            config, mempool, state, std::move(tx), false /* bypass_limits */,
             max_raw_tx_fee, true /* test_accept */);
     }
     result_0.pushKV("allowed", test_accept_res);
@@ -1725,9 +1728,10 @@ UniValue utxoupdatepsbt(const Config &config, const JSONRPCRequest &request) {
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     {
-        LOCK2(cs_main, g_mempool.cs);
+        const CTxMemPool &mempool = EnsureMemPool();
+        LOCK2(cs_main, mempool.cs);
         CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
-        CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
+        CCoinsViewMemPool viewMempool(&viewChain, mempool);
         // temporarily switch cache backend to db+mempool view
         view.SetBackend(viewMempool);
 

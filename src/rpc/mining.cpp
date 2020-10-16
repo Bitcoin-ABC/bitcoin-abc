@@ -131,11 +131,13 @@ static UniValue generateBlocks(const Config &config,
 
     const uint64_t nExcessiveBlockSize = config.GetMaxBlockSize();
 
+    const CTxMemPool &mempool = EnsureMemPool();
+
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(config, g_mempool).CreateNewBlock(coinbase_script));
+            BlockAssembler(config, mempool).CreateNewBlock(coinbase_script));
 
         if (!pblocktemplate.get()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
@@ -252,6 +254,7 @@ static UniValue getmininginfo(const Config &config,
         .Check(request);
 
     LOCK(cs_main);
+    const CTxMemPool &mempool = EnsureMemPool();
 
     UniValue obj(UniValue::VOBJ);
     obj.pushKV("blocks", int(::ChainActive().Height()));
@@ -263,7 +266,7 @@ static UniValue getmininginfo(const Config &config,
     }
     obj.pushKV("difficulty", double(GetDifficulty(::ChainActive().Tip())));
     obj.pushKV("networkhashps", getnetworkhashps(config, request));
-    obj.pushKV("pooledtx", uint64_t(g_mempool.size()));
+    obj.pushKV("pooledtx", uint64_t(mempool.size()));
     obj.pushKV("chain", config.GetChainParams().NetworkIDString());
     obj.pushKV("warnings", GetWarnings("statusbar"));
 
@@ -310,7 +313,7 @@ static UniValue prioritisetransaction(const Config &config,
                            "prioritisetransaction must be 0.");
     }
 
-    g_mempool.PrioritiseTransaction(txid, nAmount);
+    EnsureMemPool().PrioritiseTransaction(txid, nAmount);
     return true;
 }
 
@@ -548,6 +551,7 @@ static UniValue getblocktemplate(const Config &config,
     }
 
     static unsigned int nTransactionsUpdatedLast;
+    const CTxMemPool &mempool = EnsureMemPool();
 
     if (!lpval.isNull()) {
         // Wait to respond until either the best block changes, OR a minute has
@@ -580,8 +584,8 @@ static UniValue getblocktemplate(const Config &config,
                 if (g_best_block_cv.wait_until(lock, checktxtime) ==
                     std::cv_status::timeout) {
                     // Timeout: Check transactions for update
-                    // without holding ::mempool.cs to avoid deadlocks
-                    if (g_mempool.GetTransactionsUpdated() !=
+                    // without holding the mempool look to avoid deadlocks
+                    if (mempool.GetTransactionsUpdated() !=
                         nTransactionsUpdatedLastLP) {
                         break;
                     }
@@ -603,21 +607,21 @@ static UniValue getblocktemplate(const Config &config,
     static int64_t nStart;
     static std::unique_ptr<CBlockTemplate> pblocktemplate;
     if (pindexPrev != ::ChainActive().Tip() ||
-        (g_mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast &&
+        (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast &&
          GetTime() - nStart > 5)) {
         // Clear pindexPrev so future calls make a new block, despite any
         // failures from here on
         pindexPrev = nullptr;
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
-        nTransactionsUpdatedLast = g_mempool.GetTransactionsUpdated();
+        nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
         CBlockIndex *pindexPrevNew = ::ChainActive().Tip();
         nStart = GetTime();
 
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
         pblocktemplate =
-            BlockAssembler(config, g_mempool).CreateNewBlock(scriptDummy);
+            BlockAssembler(config, mempool).CreateNewBlock(scriptDummy);
         if (!pblocktemplate) {
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
         }
@@ -870,7 +874,8 @@ static UniValue estimatefee(const Config &config,
     }
         .Check(request);
 
-    return ValueFromAmount(g_mempool.estimateFee().GetFeePerK());
+    const CTxMemPool &mempool = EnsureMemPool();
+    return ValueFromAmount(mempool.estimateFee().GetFeePerK());
 }
 
 // clang-format off

@@ -289,7 +289,7 @@ namespace {
                    FillBlock(block2, block2_out, lock);
         }
         void findCoins(std::map<COutPoint, Coin> &coins) override {
-            return FindCoins(coins);
+            return FindCoins(m_node, coins);
         }
         double guessVerificationProgress(const BlockHash &block_hash) override {
             LOCK(cs_main);

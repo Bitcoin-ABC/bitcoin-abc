@@ -10,6 +10,7 @@
 #include <core_io.h>
 #include <httpserver.h>
 #include <index/txindex.h>
+#include <node/context.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <rpc/blockchain.h>
@@ -70,6 +71,23 @@ static bool RESTERR(HTTPRequest *req, enum HTTPStatusCode status,
     req->WriteHeader("Content-Type", "text/plain");
     req->WriteReply(status, message + "\r\n");
     return false;
+}
+
+/**
+ * Get the node context mempool.
+ *
+ * Set the HTTP error and return nullptr if node context
+ * mempool is not found.
+ *
+ * @param[in]  req the HTTP request
+ * return pointer to the mempool or nullptr if no mempool found
+ */
+static CTxMemPool *GetMemPool(HTTPRequest *req) {
+    if (!g_rpc_node || !g_rpc_node->mempool) {
+        RESTERR(req, HTTP_NOT_FOUND, "Mempool disabled or instance not found");
+        return nullptr;
+    }
+    return g_rpc_node->mempool;
 }
 
 static RetFormat ParseDataFormat(std::string &param,
@@ -328,12 +346,17 @@ static bool rest_mempool_info(Config &config, HTTPRequest *req,
         return false;
     }
 
+    const CTxMemPool *mempool = GetMemPool(req);
+    if (!mempool) {
+        return false;
+    }
+
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
 
     switch (rf) {
         case RetFormat::JSON: {
-            UniValue mempoolInfoObject = MempoolInfoToJSON(::g_mempool);
+            UniValue mempoolInfoObject = MempoolInfoToJSON(*mempool);
 
             std::string strJSON = mempoolInfoObject.write() + "\n";
             req->WriteHeader("Content-Type", "application/json");
@@ -353,12 +376,17 @@ static bool rest_mempool_contents(Config &config, HTTPRequest *req,
         return false;
     }
 
+    const CTxMemPool *mempool = GetMemPool(req);
+    if (!mempool) {
+        return false;
+    }
+
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
 
     switch (rf) {
         case RetFormat::JSON: {
-            UniValue mempoolObject = MempoolToJSON(::g_mempool, true);
+            UniValue mempoolObject = MempoolToJSON(*mempool, true);
 
             std::string strJSON = mempoolObject.write() + "\n";
             req->WriteHeader("Content-Type", "application/json");
@@ -571,12 +599,17 @@ static bool rest_getutxos(Config &config, HTTPRequest *req,
         };
 
         if (fCheckMemPool) {
+            const CTxMemPool *mempool = GetMemPool(req);
+            if (!mempool) {
+                return false;
+            }
+
             // use db+mempool as cache backend in case user likes to query
             // mempool
-            LOCK2(cs_main, g_mempool.cs);
+            LOCK2(cs_main, mempool->cs);
             CCoinsViewCache &viewChain = ::ChainstateActive().CoinsTip();
-            CCoinsViewMemPool viewMempool(&viewChain, g_mempool);
-            process_utxos(viewMempool, g_mempool);
+            CCoinsViewMemPool viewMempool(&viewChain, *mempool);
+            process_utxos(viewMempool, *mempool);
         } else {
             // no need to lock mempool!
             LOCK(cs_main);
