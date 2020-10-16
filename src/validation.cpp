@@ -4625,14 +4625,14 @@ static bool LoadBlockIndexDB(const Consensus::Params &params)
     return true;
 }
 
-bool LoadChainTip(const Config &config) {
+bool CChainState::LoadChainTip(const CChainParams &chainparams) {
     AssertLockHeld(cs_main);
-    const CCoinsViewCache &coins_cache = ::ChainstateActive().CoinsTip();
+    const CCoinsViewCache &coins_cache = CoinsTip();
     // Never called when the coins view is empty
     assert(!coins_cache.GetBestBlock().IsNull());
+    const CBlockIndex *tip = m_chain.Tip();
 
-    if (::ChainActive().Tip() &&
-        ::ChainActive().Tip()->GetBlockHash() == coins_cache.GetBestBlock()) {
+    if (tip && tip->GetBlockHash() == coins_cache.GetBestBlock()) {
         return true;
     }
 
@@ -4641,17 +4641,15 @@ bool LoadChainTip(const Config &config) {
     if (!pindex) {
         return false;
     }
-    ::ChainActive().SetTip(pindex);
+    m_chain.SetTip(pindex);
+    PruneBlockIndexCandidates();
 
-    ::ChainstateActive().PruneBlockIndexCandidates();
-
+    tip = m_chain.Tip();
     LogPrintf(
         "Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
-        ::ChainActive().Tip()->GetBlockHash().ToString(),
-        ::ChainActive().Height(),
-        FormatISO8601DateTime(::ChainActive().Tip()->GetBlockTime()),
-        GuessVerificationProgress(config.GetChainParams().TxData(),
-                                  ::ChainActive().Tip()));
+        tip->GetBlockHash().ToString(), m_chain.Height(),
+        FormatISO8601DateTime(tip->GetBlockTime()),
+        GuessVerificationProgress(chainparams.TxData(), tip));
     return true;
 }
 
@@ -4861,18 +4859,17 @@ bool CChainState::RollforwardBlock(const CBlockIndex *pindex,
     return true;
 }
 
-bool CChainState::ReplayBlocks(const Consensus::Params &params,
-                               CCoinsView *view) {
+bool CChainState::ReplayBlocks(const Consensus::Params &params) {
     LOCK(cs_main);
 
-    CCoinsViewCache cache(view);
+    CCoinsView &db = this->CoinsDB();
+    CCoinsViewCache cache(&db);
 
-    std::vector<BlockHash> hashHeads = view->GetHeadBlocks();
+    std::vector<BlockHash> hashHeads = db.GetHeadBlocks();
     if (hashHeads.empty()) {
         // We're already in a consistent state.
         return true;
     }
-
     if (hashHeads.size() != 2) {
         return error("ReplayBlocks(): unknown inconsistent state");
     }
@@ -4958,10 +4955,6 @@ bool CChainState::ReplayBlocks(const Consensus::Params &params,
     cache.Flush();
     uiInterface.ShowProgress("", 100, false);
     return true;
-}
-
-bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view) {
-    return ::ChainstateActive().ReplayBlocks(params, view);
 }
 
 // May NOT be used after any connections are up as much of the peer-processing

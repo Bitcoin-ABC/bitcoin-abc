@@ -338,11 +338,6 @@ bool LoadBlockIndex(const Consensus::Params &params)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
- * Update the chain tip based on database information.
- */
-bool LoadChainTip(const Config &config) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-/**
  * Unload database information.
  */
 void UnloadBlockIndex();
@@ -661,9 +656,6 @@ public:
                   int nCheckDepth);
 };
 
-/** Replay blocks that aren't fully applied to the database. */
-bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
-
 CBlockIndex *LookupBlockIndex(const BlockHash &hash)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -931,6 +923,9 @@ public:
      * we avoid holding cs_main for an extended period of time; the length of
      * this call may be quite long during reindexing or a substantial reorg.
      *
+     * May not be called with cs_main held. May not be called in a
+     * validationinterface callback.
+     *
      * @returns true unless a system error occurred
      */
     bool ActivateBestChain(
@@ -1000,7 +995,8 @@ public:
     void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    bool ReplayBlocks(const Consensus::Params &params, CCoinsView *view);
+    /** Replay blocks that aren't fully applied to the database. */
+    bool ReplayBlocks(const Consensus::Params &params);
     bool LoadGenesisBlock(const CChainParams &chainparams);
 
     void PruneBlockIndexCandidates();
@@ -1020,6 +1016,11 @@ public:
      * fCheckBlockIndex.
      */
     void CheckBlockIndex(const Consensus::Params &consensusParams);
+
+    /** Update the chain tip based on database information, i.e. CoinsTip()'s
+     * best block. */
+    bool LoadChainTip(const CChainParams &chainparams)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 private:
     bool ActivateBestChainStep(const Config &config,
