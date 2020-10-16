@@ -26,7 +26,7 @@ EOF
 }
 
 DRY_RUN=no
-GIT_ARGS=()
+GIT_ARGS=("--porcelain")
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -59,6 +59,20 @@ TOPLEVEL=$(git rev-parse --show-toplevel)
 : "${SANITY_CHECKS_COMMAND:=${TOPLEVEL}/contrib/devtools/smoke-tests.sh}"
 ${SANITY_CHECKS_COMMAND}
 
-# Push the change. Phabricator will automatically close the associated revision.
 : "${GIT_COMMAND:=git}"
-${GIT_COMMAND} push "${GIT_ARGS[@]}" origin master
+while true; do
+  # Make sure master is up-to-date. If there is a merge conflict, this script
+  # will not attempt to resolve it and simply fail.
+  ${GIT_COMMAND} pull --rebase origin master
+
+  # Push the change. Phabricator will automatically close the associated revision.
+  set +e
+  PUSH_OUTPUT=$(${GIT_COMMAND} push "${GIT_ARGS[@]}" origin master)
+  PUSH_EXIT_CODE=$?
+  set -e
+  if (( PUSH_EXIT_CODE == 0 )); then
+    exit 0
+  else
+    echo "${PUSH_OUTPUT}" | grep "\! refs/heads/master:refs/heads/master \[rejected\] (non-fast-forward) Done"
+  fi
+done
