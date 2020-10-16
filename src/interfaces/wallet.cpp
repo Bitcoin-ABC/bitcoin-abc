@@ -482,6 +482,14 @@ namespace {
         }
         void flush() override { return FlushWallets(); }
         void stop() override { return StopWallets(); }
+        void setMockTime(int64_t time) override { return SetMockTime(time); }
+        std::vector<std::unique_ptr<Wallet>> getWallets() override {
+            std::vector<std::unique_ptr<Wallet>> wallets;
+            for (const auto &wallet : GetWallets()) {
+                wallets.emplace_back(MakeWallet(wallet));
+            }
+            return wallets;
+        }
         ~WalletClientImpl() override { UnloadWallets(); }
 
         Chain &m_chain;

@@ -6,6 +6,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <httpserver.h>
+#include <interfaces/chain.h>
 #include <key_io.h>
 #include <logging.h>
 #include <node/context.h>
@@ -448,12 +449,17 @@ static UniValue setmocktime(const Config &config,
     LOCK(cs_main);
 
     RPCTypeCheck(request.params, {UniValue::VNUM});
-    int64_t mockTime = request.params[0].get_int64();
-    if (mockTime < 0) {
+    int64_t time = request.params[0].get_int64();
+    if (time < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            "Timestamp must be 0 or greater");
     }
-    SetMockTime(mockTime);
+    SetMockTime(time);
+    if (g_rpc_node) {
+        for (const auto &chain_client : g_rpc_node->chain_clients) {
+            chain_client->setMockTime(time);
+        }
+    }
 
     return NullUniValue;
 }
