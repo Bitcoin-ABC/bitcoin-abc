@@ -32,7 +32,7 @@ static void SetupWalletToolArgs() {
                  ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-printtoconsole",
                  "Send trace/debug info to console (default: 1 when no -debug "
-                 "is true, 0 otherwise.",
+                 "is true, 0 otherwise).",
                  ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
 
     gArgs.AddArg("info", "Get wallet info", ArgsManager::ALLOW_ANY,
