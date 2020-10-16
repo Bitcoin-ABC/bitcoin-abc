@@ -233,6 +233,11 @@ builds:
         - check-upgrade-activated-extended
     timeout: 4800
 
+  build-native-osx:
+    templates:
+      - check+secp256k1
+    timeout: 3600
+
   build-osx:
     cross_build:
       static_depends: osx
