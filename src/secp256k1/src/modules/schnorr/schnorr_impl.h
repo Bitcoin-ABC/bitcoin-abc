@@ -105,7 +105,7 @@ static int secp256k1_schnorr_compute_e(
     const unsigned char *msg32
 ) {
     int overflow = 0;
-    size_t size;
+    size_t size = 0;
     secp256k1_sha256 sha;
     unsigned char buf[33];
     secp256k1_sha256_initialize(&sha);
