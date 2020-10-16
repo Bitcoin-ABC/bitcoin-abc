@@ -8,6 +8,7 @@
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 #include <key_io.h>
+#include <psbt.h>
 #include <qt/addresstablemodel.h>
 #include <qt/guiconstants.h>
 #include <qt/paymentserver.h>
