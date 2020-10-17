@@ -472,7 +472,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	endif()
 
 	set(MACDEPLOY_DIR "${CMAKE_SOURCE_DIR}/contrib/macdeploy")
-	set(MACDEPLOYQTPLUS "${MACDEPLOY_DIR}/macdeployqtplus")
+	set(MACDEPLOYQTPLUS "${MACDEPLOY_DIR}/macdeployqtplus.py")
 	set(DMG_DIST "${CMAKE_BINARY_DIR}/dist")
 	add_custom_command(
 		OUTPUT

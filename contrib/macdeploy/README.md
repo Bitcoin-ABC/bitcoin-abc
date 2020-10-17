@@ -1,6 +1,6 @@
 # MacOS Deployment
 
-The `macdeployqtplus` script should not be run manually. Instead, after building as usual:
+The `macdeployqtplus.py` script should not be run manually. Instead, after building as usual:
 
 ```bash
 ninja osx-dmg
