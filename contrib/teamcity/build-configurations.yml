@@ -39,6 +39,7 @@ builds:
   build-asan:
     Werror: true
     clang: true
+    fail_fast: true
     cmake_flags:
       - '-DCMAKE_CXX_FLAGS=-DARENA_DEBUG'
       - '-DCRYPTO_USE_ASM=OFF'
@@ -289,6 +290,7 @@ builds:
   build-tsan:
     Werror: true
     clang: true
+    fail_fast: true
     cmake_flags:
       - '-DENABLE_SANITIZERS=thread'
     targets:
@@ -303,6 +305,7 @@ builds:
   build-ubsan:
     Werror: true
     clang: true
+    fail_fast: true
     cmake_flags:
       - '-DENABLE_SANITIZERS=undefined'
     templates:

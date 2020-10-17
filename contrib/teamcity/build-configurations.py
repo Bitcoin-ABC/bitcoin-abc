@@ -187,7 +187,13 @@ class BuildConfiguration:
         generator = self.config.get("generator", {})
         generator_name = generator.get("name", "Ninja")
         generator_command = generator.get("command", "ninja")
-        generator_flags = generator.get("flags", ["-k0"])
+        # If the build runs on diff or has the fail_fast flag, exit on first error.
+        # Otherwise keep running so we can gather more test result.
+        fail_fast = self.config.get(
+            "fail_fast", False) or self.config.get(
+            "runOnDiff", False)
+        generator_flags = generator.get(
+            "flags", ["-k0"] if not fail_fast else [])
 
         # Max out the jobs by default when the generator uses make
         if generator_command == "make":
