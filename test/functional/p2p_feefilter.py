@@ -124,10 +124,11 @@ class FeeFilterTest(BitcoinTestFramework):
         # is eligible for relay, the prior transactions from node1 are eligible
         # as well.
         txids = [miniwallet.send_self_transfer(fee_rate=Decimal('200.00'),
-                                               from_node=node0)['txid']
-                 for _ in range(3)]
+                                               from_node=node0)['txid']]
         conn.wait_for_invs_to_match(txids)
         conn.clear_invs()
+        # must be sure node 1 has received all txs
+        self.sync_mempools()
 
         self.log.info("Remove fee filter and check txs are received again")
         conn.send_and_ping(msg_feefilter(0))
