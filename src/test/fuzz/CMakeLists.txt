@@ -96,6 +96,7 @@ add_regular_fuzz_targets(
 	chain
 	checkqueue
 	coins_view
+	connman
 	crypto
 	crypto_aes256
 	crypto_aes256cbc
