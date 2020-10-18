@@ -184,6 +184,8 @@ class ImportRescanTest(BitcoinTestFramework):
             variant.confirmation_height = self.nodes[0].getblockcount()
             variant.timestamp = self.nodes[0].getblockheader(
                 self.nodes[0].getbestblockhash())["time"]
+        # Conclude sync before calling setmocktime to avoid timeouts
+        self.sync_all()
 
         # Generate a block further in the future (past the rescan window).
         assert_equal(self.nodes[0].getrawmempool(), [])
