@@ -95,7 +95,7 @@ def read_dump(file_name, addrs, script_addrs, hd_master_addr_old):
 class WalletDumpTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [["-keypool=90", "-wallet=dump"]]
+        self.extra_args = [["-keypool=90"]]
         self.rpc_timeout = 120
 
     def skip_test_if_missing_module(self):
@@ -106,6 +106,8 @@ class WalletDumpTest(BitcoinTestFramework):
         self.start_nodes()
 
     def run_test(self):
+        self.nodes[0].createwallet("dump")
+
         wallet_unenc_dump = os.path.join(
             self.nodes[0].datadir, "wallet.unencrypted.dump"
         )
@@ -229,7 +231,8 @@ class WalletDumpTest(BitcoinTestFramework):
         )
 
         # Restart node with new wallet, and test importwallet
-        self.restart_node(0, ["-wallet=w2"])
+        self.restart_node(0)
+        self.nodes[0].createwallet("w2")
 
         # Make sure the address is not IsMine before import
         result = self.nodes[0].getaddressinfo(multisig_addr)

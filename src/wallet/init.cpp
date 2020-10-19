@@ -109,12 +109,12 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     argsman.AddArg(
         "-wallet=<path>",
-        "Specify wallet database path. Can be specified multiple "
-        "times to load multiple wallets. Path is interpreted relative "
-        "to <walletdir> if it is not absolute, and will be created if "
-        "it does not exist (as a directory containing a wallet.dat "
-        "file and log files). For backwards compatibility this will "
-        "also accept names of existing data files in <walletdir>.)",
+        "Specify wallet path to load at startup. Can be used multiple times to "
+        "load multiple wallets. Path is to a directory containing wallet data "
+        "and log files. If the path is not absolute, it is interpreted "
+        "relative to <walletdir>. This only loads existing wallets and does "
+        "not create new ones. For backwards compatibility this also accepts "
+        "names of existing top-level data files in <walletdir>.",
         ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
         OptionsCategory::WALLET);
     argsman.AddArg(
