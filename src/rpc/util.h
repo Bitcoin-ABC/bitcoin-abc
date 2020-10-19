@@ -34,6 +34,11 @@ class UniValue;
 extern const std::string UNIX_EPOCH_TIME;
 
 /**
+ * Example CashAddr address used in multiple RPCExamples.
+ */
+extern const std::string EXAMPLE_ADDRESS;
+
+/**
  * Wrapper for UniValue::VType, which includes typeAny: used to denote don't
  * care type.
  */

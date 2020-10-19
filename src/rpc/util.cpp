@@ -17,6 +17,8 @@
 #include <boost/variant/static_visitor.hpp>
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
+const std::string EXAMPLE_ADDRESS =
+    "\"qrmzys48glkpevp2l4t24jtcltc9hyzx9cep2qffm4\"";
 
 void RPCTypeCheck(const UniValue &params,
                   const std::list<UniValueType> &typesExpected,

@@ -49,10 +49,8 @@ static UniValue validateaddress(const Config &config,
             "  \"isscript\" : true|false,      (boolean) If the key is a "
             "script\n"
             "}\n"},
-        RPCExamples{HelpExampleCli("validateaddress",
-                                   "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"") +
-                    HelpExampleRpc("validateaddress",
-                                   "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")},
+        RPCExamples{HelpExampleCli("validateaddress", EXAMPLE_ADDRESS) +
+                    HelpExampleRpc("validateaddress", EXAMPLE_ADDRESS)},
     }
         .Check(request);
 

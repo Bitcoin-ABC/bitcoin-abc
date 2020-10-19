@@ -4117,9 +4117,6 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
         return NullUniValue;
     }
 
-    const std::string example_address =
-        "\"qrmzys48glkpevp2l4t24jtcltc9hyzx9cep2qffm4\"";
-
     RPCHelpMan{
         "getaddressinfo",
         "\nReturn information about the given bitcoin address.\n"
@@ -4211,8 +4208,8 @@ UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
             "      },...\n"
             "    ]\n"
             "}\n"},
-        RPCExamples{HelpExampleCli("getaddressinfo", example_address) +
-                    HelpExampleRpc("getaddressinfo", example_address)},
+        RPCExamples{HelpExampleCli("getaddressinfo", EXAMPLE_ADDRESS) +
+                    HelpExampleRpc("getaddressinfo", EXAMPLE_ADDRESS)},
     }
         .Check(request);
 
