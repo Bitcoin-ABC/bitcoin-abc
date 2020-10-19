@@ -29,7 +29,6 @@ public:
 BOOST_FIXTURE_TEST_SUITE(pmt_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(pmt_test1) {
-    SeedInsecureRand(false);
     static const unsigned int nTxCounts[] = {1,   4,   7,   17,  56,   100,
                                              127, 256, 312, 513, 1000, 4095};
 

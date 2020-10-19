@@ -1386,7 +1386,7 @@ BOOST_AUTO_TEST_CASE(util_IsHexNumber) {
 }
 
 BOOST_AUTO_TEST_CASE(util_seed_insecure_rand) {
-    SeedInsecureRand(true);
+    SeedInsecureRand(SeedRand::ZEROS);
     for (int mod = 2; mod < 11; mod++) {
         int mask = 1;
         // Really rough binomial confidence approximation.
