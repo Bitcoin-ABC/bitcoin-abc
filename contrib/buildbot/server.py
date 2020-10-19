@@ -868,44 +868,34 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
             if status == BuildStatus.Failure:
                 msg = phab.createBuildStatusMessage(
                     status, guest_url, buildName)
+                # We add two newlines to break away from the (IMPORTANT)
+                # callout.
+                msg += '\n\n'
 
-                # Append a snippet of the log if there are build failures,
-                # attempting to focus on the first build failure.
-                buildFailures = tc.getBuildProblems(buildId)
-                if len(buildFailures) > 0:
+                testFailures = tc.getFailedTests(buildId)
+                if len(testFailures) == 0:
+                    # If no test failure is available, print the tail of the
+                    # build log
                     buildLog = tc.getBuildLog(buildId)
                     logLines = []
                     for line in buildLog.splitlines(keepends=True):
                         logLines.append(line)
 
-                        # If this line contains any of the build failures,
-                        # append the last N log lines to the message.
-                        foundBuildFailure = None
-                        for failure in buildFailures:
-                            if re.search(re.escape(failure['details']), line):
-                                foundBuildFailure = failure
-                                break
-
-                        if foundBuildFailure:
-                            # Recreate the build status message to point to the full build log
-                            # to make the build failure more accessible.
-                            msg = phab.createBuildStatusMessage(
-                                status, foundBuildFailure['logUrl'], buildName)
-                            # We add two newlines to break away from the
-                            # (IMPORTANT) callout.
-                            msg += "\n\nSnippet of first build failure:\n```lines=16,COUNTEREXAMPLE\n{}```".format(
-                                ''.join(logLines[-60:]))
-                            break
-
-                # Append detailed links when there are test failures.
-                testFailures = tc.getFailedTests(buildId)
-                if len(testFailures) > 0:
-                    # We add two newlines to break away from the (IMPORTANT)
-                    # callout.
-                    msg += '\n\nEach failure log is accessible here:'
-                for failure in testFailures:
-                    msg += "\n[[{} | {}]]".format(failure['logUrl'],
-                                                  failure['name'])
+                    msg += "Tail of the build log:\n```lines=16,COUNTEREXAMPLE\n{}```".format(
+                        ''.join(logLines[-60:]))
+                else:
+                    # Print the failure log for each test
+                    msg += 'Failed tests logs:\n'
+                    msg += '```lines=16,COUNTEREXAMPLE'
+                    for failure in testFailures:
+                        msg += "\n====== {} ======\n{}".format(
+                            failure['name'], failure['details'])
+                    msg += '```'
+                    msg += '\n\n'
+                    msg += 'Each failure log is accessible here:'
+                    for failure in testFailures:
+                        msg += "\n[[{} | {}]]".format(
+                            failure['logUrl'], failure['name'])
 
                 phab.commentOnRevision(revisionPHID, msg, buildName)
 

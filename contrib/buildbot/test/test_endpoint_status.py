@@ -794,10 +794,13 @@ class EndpointStatusTestCase(ABCBotFixture):
         response = self.app.post('/status', headers=self.headers, json=data)
         assert response.status_code == 200
 
-    def test_status_revision_buildFailedWithoutDetails_OS_NAME(self):
+    def test_status_revision_buildFailed(self):
         data = statusRequestData()
         data.buildResult = 'failure'
         data.branch = 'phabricator/diff/456'
+
+        self.teamcity.getBuildLog = mock.Mock()
+        self.teamcity.getBuildLog.return_value = "dummy log"
 
         self.configure_build_info(
             properties=test.mocks.teamcity.buildInfo_properties(propsList=[{
@@ -825,7 +828,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         assert response.status_code == 200
         self.phab.differential.revision.edit.assert_called_with(transactions=[{
             "type": "comment",
-            "value": "(IMPORTANT) Build [[{} | build-name (linux)]] failed.".format(
+            "value": "(IMPORTANT) Build [[{} | build-name (linux)]] failed.\n\nTail of the build log:\n```lines=16,COUNTEREXAMPLE\ndummy log```".format(
                 self.teamcity.build_url(
                     "viewLog.html",
                     {
@@ -836,178 +839,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             ),
         }], objectIdentifier='789')
 
-    def test_status_revision_buildFailedWithoutDetails(self):
-        data = statusRequestData()
-        data.buildResult = 'failure'
-        data.branch = 'phabricator/diff/789'
-
-        self.phab.differential.revision.edit = mock.Mock()
-        self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result([{
-            'id': '789',
-            'fields': {
-                'revisionPHID': '123'
-            },
-        }])
-        self.phab.differential.revision.search.return_value = test.mocks.phabricator.differential_revision_search_result()
-
-        self.configure_build_info(
-            properties=test.mocks.teamcity.buildInfo_properties(propsList=[{
-                'name': 'env.ABC_BUILD_NAME',
-                'value': 'build-diff',
-            }])
-        )
-
-        self.teamcity.session.send.side_effect = [
-            test.mocks.teamcity.Response(),
-            test.mocks.teamcity.Response(),
-            test.mocks.teamcity.Response(),
-        ]
-
-        response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
-        self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
-            'url': self.teamcity.build_url(
-                "app/rest/testOccurrences",
-                {
-                    "locator": "build:(id:{}),status:FAILURE".format(DEFAULT_BUILD_ID),
-                    "fields": "testOccurrence(id,details,name)",
-                }
-            )
-        }))
-        self.phab.differential.revision.edit.assert_called_with(transactions=[{
-            "type": "comment",
-            "value": "(IMPORTANT) Build [[{} | build-name (build-diff)]] failed.".format(
-                self.teamcity.build_url(
-                    "viewLog.html",
-                    {
-                        "buildTypeId": data.buildTypeId,
-                        "buildId": DEFAULT_BUILD_ID,
-                    }
-                )
-            ),
-        }], objectIdentifier='123')
-
-    def test_status_revision_buildFailedWithDetails(self):
-        data = statusRequestData()
-        data.buildResult = 'failure'
-        data.branch = 'phabricator/diff/789'
-
-        self.phab.differential.revision.edit = mock.Mock()
-        self.phab.differential.diff.search.return_value = test.mocks.phabricator.Result([{
-            'id': '789',
-            'fields': {
-                'revisionPHID': '123'
-            },
-        }])
-        self.phab.differential.revision.search.return_value = test.mocks.phabricator.differential_revision_search_result()
-
-        with open(self.data_dir / 'testlog.zip', 'rb') as f:
-            buildLog = f.read()
-        with open(self.data_dir / 'testlog.output.txt', 'r', encoding='utf-8') as f:
-            expectedLogOutput = f.read()
-
-        self.configure_build_info(
-            properties=test.mocks.teamcity.buildInfo_properties(propsList=[{
-                'name': 'env.ABC_BUILD_NAME',
-                'value': 'build-diff',
-            }])
-        )
-
-        self.teamcity.session.send.side_effect = [
-            test.mocks.teamcity.Response(),
-            test.mocks.teamcity.Response(json.dumps({
-                'problemOccurrence': [{
-                    'id': 'id:2500,build:(id:56789)',
-                    # The first build failure:
-                    'details': 'Process exited with code 2 (Step: Command Line)',
-                }, {
-                    'id': 'id:2620,build:(id:56789)',
-                    # A line from the log that appears after the first failure:
-                    'details': 'No reports found for paths:',
-                }],
-            })),
-            test.mocks.teamcity.Response(status_code=requests.codes.not_found),
-            test.mocks.teamcity.Response(buildLog),
-            test.mocks.teamcity.Response(),
-        ]
-
-        response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
-        self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
-            'url': self.teamcity.build_url(
-                "app/rest/testOccurrences",
-                {
-                    "locator": "build:(id:{}),status:FAILURE".format(DEFAULT_BUILD_ID),
-                    "fields": "testOccurrence(id,details,name)",
-                }
-            )
-        }))
-        self.phab.differential.revision.edit.assert_called_with(transactions=[{
-            "type": "comment",
-            "value": "(IMPORTANT) Build [[{} | build-name (build-diff)]] failed.\n\n"
-                     "Snippet of first build failure:\n```lines=16,COUNTEREXAMPLE\n{}```".format(
-                         self.teamcity.build_url(
-                             "viewLog.html",
-                             {
-                                 "tab": "buildLog",
-                                 "logTab": "tree",
-                                 "filter": "debug",
-                                 "expand": "all",
-                                 "buildId": DEFAULT_BUILD_ID,
-                             },
-                             "footer"
-                         ),
-                         expectedLogOutput
-                     ),
-        }], objectIdentifier='123')
-
-        # Build log taken from the artifacts
-        expected_log = b'What a wonderful log !\nBut not very helpful.\nSome failure message\n'
-
-        self.teamcity.session.send.side_effect = [
-            test.mocks.teamcity.Response(),
-            test.mocks.teamcity.Response(json.dumps({
-                'problemOccurrence': [{
-                    'id': 'id:2500,build:(id:56789)',
-                    # The first build failure:
-                    'details': 'Some failure message',
-                }],
-            })),
-            test.mocks.teamcity.Response(expected_log),
-            test.mocks.teamcity.Response(),
-        ]
-
-        response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
-        self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
-            'url': self.teamcity.build_url(
-                "app/rest/testOccurrences",
-                {
-                    "locator": "build:(id:{}),status:FAILURE".format(DEFAULT_BUILD_ID),
-                    "fields": "testOccurrence(id,details,name)",
-                }
-            )
-        }))
-        self.phab.differential.revision.edit.assert_called_with(transactions=[{
-            "type": "comment",
-            "value": "(IMPORTANT) Build [[{} | build-name (build-diff)]] failed.\n\n"
-                     "Snippet of first build failure:\n```lines=16,COUNTEREXAMPLE\n{}```".format(
-                         self.teamcity.build_url(
-                             "viewLog.html",
-                             {
-                                 "tab": "buildLog",
-                                 "logTab": "tree",
-                                 "filter": "debug",
-                                 "expand": "all",
-                                 "buildId": DEFAULT_BUILD_ID,
-                             },
-                             "footer"
-                         ),
-                         expected_log.decode('utf-8')
-                     ),
-        }], objectIdentifier='123')
-
-    def test_status_revision_testsFailedWithDetails(self):
+    def test_status_revision_testsFailed(self):
         data = statusRequestData()
         data.branch = 'phabricator/diff/456'
         data.buildResult = 'failure'
@@ -1023,7 +855,7 @@ class EndpointStatusTestCase(ABCBotFixture):
 
         failures = [{
             'id': 'id:2500,build:(id:{})'.format(DEFAULT_BUILD_ID),
-            'details': 'stacktrace',
+            'details': 'stacktrace1',
             'name': 'test name',
         }, {
             'id': 'id:2620,build:(id:{})'.format(DEFAULT_BUILD_ID),
@@ -1039,7 +871,6 @@ class EndpointStatusTestCase(ABCBotFixture):
         )
 
         self.teamcity.session.send.side_effect = [
-            test.mocks.teamcity.Response(),
             test.mocks.teamcity.Response(),
             test.mocks.teamcity.Response(json.dumps({
                 'testOccurrence': failures,
@@ -1060,6 +891,14 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.differential.revision.edit.assert_called_with(transactions=[{
             "type": "comment",
             "value": "(IMPORTANT) Build [[{} | build-name (build-diff)]] failed.\n\n"
+                     "Failed tests logs:\n"
+                     "```lines=16,COUNTEREXAMPLE"
+                     "\n====== test name ======\n"
+                     "stacktrace1"
+                     "\n====== other test name ======\n"
+                     "stacktrace2"
+                     "```"
+                     "\n\n"
                      "Each failure log is accessible here:\n"
                      "[[{} | test name]]\n"
                      "[[{} | other test name]]".format(
