@@ -99,6 +99,15 @@ builds:
     artifacts:
       coverage.tar.gz: coverage.tar.gz
 
+  build-debug:
+    runOnDiff: true
+    Werror: true
+    cmake_flags:
+      - '-DCMAKE_BUILD_TYPE=Debug'
+    templates:
+      - check+secp256k1
+    timeout: 1200
+
   build-diff:
     runOnDiff: true
     Werror: true
