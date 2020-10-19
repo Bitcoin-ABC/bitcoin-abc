@@ -806,15 +806,14 @@ void SetupServerArgs() {
                   DEFAULT_CHECKLEVEL),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
-    gArgs.AddArg(
-        "-checkblockindex",
-        strprintf("Do a full consistency check for the block tree, "
-                  "setBlockIndexCandidates, ::ChainActive() and "
-                  "mapBlocksUnlinked occasionally. (default: %u, regtest: %u)",
-                  defaultChainParams->DefaultConsistencyChecks(),
-                  regtestChainParams->DefaultConsistencyChecks()),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
+    gArgs.AddArg("-checkblockindex",
+                 strprintf("Do a consistency check for the block tree, "
+                           "chainstate, and other validation data structures "
+                           "occasionally. (default: %u, regtest: %u)",
+                           defaultChainParams->DefaultConsistencyChecks(),
+                           regtestChainParams->DefaultConsistencyChecks()),
+                 ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
+                 OptionsCategory::DEBUG_TEST);
     gArgs.AddArg(
         "-checkmempool=<n>",
         strprintf(
