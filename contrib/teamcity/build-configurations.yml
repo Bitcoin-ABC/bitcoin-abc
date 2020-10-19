@@ -41,7 +41,6 @@ builds:
     clang: true
     cmake_flags:
       - '-DCMAKE_CXX_FLAGS=-DARENA_DEBUG'
-      - '-DCMAKE_BUILD_TYPE=Debug'
       - '-DCRYPTO_USE_ASM=OFF'
       - '-DENABLE_SANITIZERS=address'
     templates:
@@ -305,7 +304,6 @@ builds:
     Werror: true
     clang: true
     cmake_flags:
-      - '-DCMAKE_BUILD_TYPE=Debug'
       - '-DENABLE_SANITIZERS=undefined'
     templates:
       - check+secp256k1
