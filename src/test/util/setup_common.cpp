@@ -179,8 +179,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
 
-    m_node.mempool = std::make_unique<CTxMemPool>();
-    m_node.mempool->setSanityCheck(1.0);
+    m_node.mempool = std::make_unique<CTxMemPool>(1);
 
     m_node.chainman = &::g_chainman;
     m_node.chainman->InitializeChainstate(*m_node.mempool);

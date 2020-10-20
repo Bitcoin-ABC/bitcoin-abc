@@ -2342,20 +2342,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         GetRand(std::numeric_limits<uint64_t>::max()),
         gArgs.GetBoolArg("-networkactive", true));
 
-    // Make mempool generally available in the node context. For example the
-    // connection manager, wallet, or RPC threads, which are all started after
-    // this, may use it from the node context.
     assert(!node.mempool);
-    node.mempool = std::make_unique<CTxMemPool>();
-    if (node.mempool) {
-        int check_ratio = std::min<int>(
-            std::max<int>(
-                args.GetArg("-checkmempool",
-                            chainparams.DefaultConsistencyChecks() ? 1 : 0),
-                0),
-            1000000);
-        node.mempool->setSanityCheck(check_ratio);
-    }
+    int check_ratio = std::min<int>(
+        std::max<int>(
+            args.GetArg("-checkmempool",
+                        chainparams.DefaultConsistencyChecks() ? 1 : 0),
+            0),
+        1000000);
+    node.mempool = std::make_unique<CTxMemPool>(check_ratio);
 
     assert(!node.chainman);
     node.chainman = &g_chainman;
