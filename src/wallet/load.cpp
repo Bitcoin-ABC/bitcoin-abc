@@ -73,10 +73,9 @@ bool VerifyWallets(interfaces::Chain &chain) {
         const fs::path path = fs::absolute(wallet_file, GetWalletDir());
 
         if (!wallet_paths.insert(path).second) {
-            chain.initError(strprintf(_("Error loading wallet %s. Duplicate "
-                                        "-wallet filename specified."),
-                                      wallet_file));
-            return false;
+            chain.initWarning(
+                strprintf(_("Ignoring duplicate -wallet %s."), wallet_file));
+            continue;
         }
 
         DatabaseOptions options;
@@ -94,7 +93,11 @@ bool VerifyWallets(interfaces::Chain &chain) {
 
 bool LoadWallets(interfaces::Chain &chain) {
     try {
+        std::set<fs::path> wallet_paths;
         for (const std::string &name : gArgs.GetArgs("-wallet")) {
+            if (!wallet_paths.insert(name).second) {
+                continue;
+            }
             DatabaseOptions options;
             DatabaseStatus status;
             // No need to verify, assuming verified earlier in VerifyWallets()
