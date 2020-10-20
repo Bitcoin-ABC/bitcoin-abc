@@ -26,15 +26,15 @@ inline bilingual_str operator+(const bilingual_str &lhs,
 }
 
 /** Mark a bilingual_str as untranslated */
-inline static bilingual_str Untranslated(std::string original) {
+inline bilingual_str Untranslated(std::string original) {
     return {original, original};
 }
 /** Unary operator to return the original */
-inline static std::string OpOriginal(const bilingual_str &b) {
+inline std::string OpOriginal(const bilingual_str &b) {
     return b.original;
 }
 /** Unary operator to return the translation */
-inline static std::string OpTranslated(const bilingual_str &b) {
+inline std::string OpTranslated(const bilingual_str &b) {
     return b.translated;
 }
 
