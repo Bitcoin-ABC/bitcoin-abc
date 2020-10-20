@@ -2348,15 +2348,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     assert(!node.mempool);
     node.mempool = std::make_unique<CTxMemPool>();
     if (node.mempool) {
-        int ratio = std::min<int>(
+        int check_ratio = std::min<int>(
             std::max<int>(
                 args.GetArg("-checkmempool",
                             chainparams.DefaultConsistencyChecks() ? 1 : 0),
                 0),
             1000000);
-        if (ratio != 0) {
-            node.mempool->setSanityCheck(1.0 / ratio);
-        }
+        node.mempool->setSanityCheck(check_ratio);
     }
 
     assert(!node.chainman);

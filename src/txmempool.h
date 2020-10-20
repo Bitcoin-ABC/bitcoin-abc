@@ -494,8 +494,8 @@ public:
  */
 class CTxMemPool {
 private:
-    //! Value n means that n times in 2^32 we check.
-    uint32_t nCheckFrequency GUARDED_BY(cs);
+    //! Value n means that 1 times in n we check.
+    uint32_t m_check_ratio GUARDED_BY(cs);
     //! Used by getblocktemplate to trigger CreateNewBlock() invocation
     std::atomic<uint32_t> nTransactionsUpdated;
 
@@ -620,9 +620,9 @@ public:
      * nothing.
      */
     void check(const CCoinsViewCache *pcoins) const;
-    void setSanityCheck(double dFrequency = 1.0) {
+    void setSanityCheck(int check_ratio = 0) {
         LOCK(cs);
-        nCheckFrequency = static_cast<uint32_t>(dFrequency * 4294967295.0);
+        m_check_ratio = check_ratio;
     }
 
     // addUnchecked must updated state for all ancestors of a given transaction,

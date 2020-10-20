@@ -407,7 +407,7 @@ CTxMemPool::CTxMemPool()
     // Sanity checks off by default for performance, because otherwise accepting
     // transactions becomes O(N^2) where N is the number of transactions in the
     // pool
-    nCheckFrequency = 0;
+    m_check_ratio = 0;
 }
 
 CTxMemPool::~CTxMemPool() {}
@@ -606,7 +606,7 @@ void CTxMemPool::removeForReorg(const Config &config,
                 }
 
                 const Coin &coin = pcoins->AccessCoin(txin.prevout);
-                if (nCheckFrequency != 0) {
+                if (m_check_ratio != 0) {
                     assert(!coin.IsSpent());
                 }
 
@@ -718,11 +718,11 @@ static void CheckInputsAndUpdateCoins(const CTransaction &tx,
 
 void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
     LOCK(cs);
-    if (nCheckFrequency == 0) {
+    if (m_check_ratio == 0) {
         return;
     }
 
-    if (GetRand(std::numeric_limits<uint32_t>::max()) >= nCheckFrequency) {
+    if (GetRand(m_check_ratio) >= 1) {
         return;
     }
 
