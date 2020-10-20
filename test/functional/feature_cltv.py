@@ -33,9 +33,6 @@ from test_framework.util import assert_equal
 
 CLTV_HEIGHT = 1351
 
-# Reject codes that we might receive in this test
-REJECT_OBSOLETE = 17
-
 
 def cltv_lock_to_height(node, tx, to_address, amount, height=-1):
     '''Modify the scriptPubKey to add an OP_CHECKLOCKTIMEVERIFY, and make
