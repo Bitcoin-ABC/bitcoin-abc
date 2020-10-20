@@ -968,25 +968,17 @@ static bool CompareNodeAvailabilityScore(const NodeEvictionCandidate &a,
     return a.nTimeConnected > b.nTimeConnected;
 }
 
-//! Sort an array by the specified comparator, then erase the last K elements.
+//! Sort an array by the specified comparator, then erase the last K elements
+//! where predicate is true.
 template <typename T, typename Comparator>
-static void EraseLastKElements(std::vector<T> &elements, Comparator comparator,
-                               size_t k) {
-    std::sort(elements.begin(), elements.end(), comparator);
-    size_t eraseSize = std::min(k, elements.size());
-    elements.erase(elements.end() - eraseSize, elements.end());
-}
-
-//! Sort an array by the specified comparator, then erase up to K last elements
-//! which verify the condition.
-template <typename T, typename Comparator, typename Condition>
-static void EraseLastKElementsIf(std::vector<T> &elements,
-                                 Comparator comparator, size_t k,
-                                 Condition cond) {
+static void EraseLastKElements(
+    std::vector<T> &elements, Comparator comparator, size_t k,
+    std::function<bool(const NodeEvictionCandidate &)> predicate =
+        [](const NodeEvictionCandidate &n) { return true; }) {
     std::sort(elements.begin(), elements.end(), comparator);
     size_t eraseSize = std::min(k, elements.size());
     elements.erase(
-        std::remove_if(elements.end() - eraseSize, elements.end(), cond),
+        std::remove_if(elements.end() - eraseSize, elements.end(), predicate),
         elements.end());
 }
 
@@ -998,14 +990,14 @@ void ProtectEvictionCandidatesByRatio(
     // Reserve half of these protected spots for localhost peers, even if
     // they're not longest-uptime overall. This helps protect tor peers, which
     // tend to be otherwise disadvantaged under our eviction criteria.
-    size_t initial_size = vEvictionCandidates.size();
+    const size_t initial_size = vEvictionCandidates.size();
     size_t total_protect_size = initial_size / 2;
 
     // Pick out up to 1/4 peers that are localhost, sorted by longest uptime.
-    EraseLastKElementsIf(
-        vEvictionCandidates, CompareLocalHostTimeConnected,
-        total_protect_size / 2,
-        [](NodeEvictionCandidate const &n) { return n.m_is_local; });
+    const size_t local_erase_size = total_protect_size / 2;
+    EraseLastKElements(
+        vEvictionCandidates, CompareLocalHostTimeConnected, local_erase_size,
+        [](const NodeEvictionCandidate &n) { return n.m_is_local; });
     // Calculate how many we removed, and update our total number of peers that
     // we want to protect based on uptime accordingly.
     total_protect_size -= initial_size - vEvictionCandidates.size();
@@ -1035,10 +1027,11 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // enabled for pre-consensus.
     EraseLastKElements(vEvictionCandidates, CompareNodeProofTime, 4);
     // Protect up to 8 non-tx-relay peers that have sent us novel blocks.
-    EraseLastKElementsIf(vEvictionCandidates, CompareNodeBlockRelayOnlyTime, 8,
-                         [](NodeEvictionCandidate const &n) {
-                             return !n.fRelayTxes && n.fRelevantServices;
-                         });
+    const size_t erase_size = std::min(size_t(8), vEvictionCandidates.size());
+    EraseLastKElements(vEvictionCandidates, CompareNodeBlockRelayOnlyTime,
+                       erase_size, [](const NodeEvictionCandidate &n) {
+                           return !n.fRelayTxes && n.fRelevantServices;
+                       });
 
     // Protect 4 nodes that most recently sent us novel blocks.
     // An attacker cannot manipulate this metric without performing useful work.
@@ -1046,10 +1039,10 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
 
     // Protect up to 128 nodes that have the highest avalanche availability
     // score.
-    EraseLastKElementsIf(vEvictionCandidates, CompareNodeAvailabilityScore, 128,
-                         [](NodeEvictionCandidate const &n) {
-                             return n.availabilityScore > 0.;
-                         });
+    EraseLastKElements(vEvictionCandidates, CompareNodeAvailabilityScore, 128,
+                       [](NodeEvictionCandidate const &n) {
+                           return n.availabilityScore > 0.;
+                       });
 
     // Protect some of the remaining eviction candidates by ratios of desirable
     // or disadvantaged characteristics.
@@ -1083,7 +1076,7 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
         std::vector<NodeEvictionCandidate> &group =
             mapNetGroupNodes[node.nKeyedNetGroup];
         group.push_back(node);
-        int64_t grouptime = group[0].nTimeConnected;
+        const int64_t grouptime = group[0].nTimeConnected;
         size_t group_size = group.size();
         if (group_size > nMostConnections ||
             (group_size == nMostConnections &&
