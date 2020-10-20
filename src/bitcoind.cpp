@@ -80,8 +80,8 @@ static bool AppInit(int argc, char *argv[]) {
     SetupServerArgs();
     std::string error;
     if (!gArgs.ParseParameters(argc, argv, error)) {
-        return InitError(
-            strprintf("Error parsing command line arguments: %s\n", error));
+        return InitError(Untranslated(
+            strprintf("Error parsing command line arguments: %s\n", error)));
     }
 
     // Process help and version before taking care about datadir
@@ -103,13 +103,13 @@ static bool AppInit(int argc, char *argv[]) {
 
     try {
         if (!CheckDataDirOption()) {
-            return InitError(
+            return InitError(Untranslated(
                 strprintf("Specified data directory \"%s\" does not exist.\n",
-                          gArgs.GetArg("-datadir", "")));
+                          gArgs.GetArg("-datadir", ""))));
         }
         if (!gArgs.ReadConfigFiles(error, true)) {
-            return InitError(
-                strprintf("Error reading configuration file: %s\n", error));
+            return InitError(Untranslated(
+                strprintf("Error reading configuration file: %s\n", error)));
         }
         // Check for -chain, -testnet or -regtest parameter (Params() calls are
         // only valid after this clause)
@@ -117,7 +117,7 @@ static bool AppInit(int argc, char *argv[]) {
             SelectParams(gArgs.GetChainName());
             node.chain = interfaces::MakeChain(node, config.GetChainParams());
         } catch (const std::exception &e) {
-            return InitError(strprintf("%s\n", e.what()));
+            return InitError(Untranslated(strprintf("%s\n", e.what())));
         }
 
         // Make sure we create the net-specific data directory early on: if it
@@ -134,10 +134,10 @@ static bool AppInit(int argc, char *argv[]) {
         // line
         for (int i = 1; i < argc; i++) {
             if (!IsSwitchChar(argv[i][0])) {
-                return InitError(
+                return InitError(Untranslated(
                     strprintf("Command line contains unexpected token '%s', "
                               "see bitcoind -h for a list of options.\n",
-                              argv[i]));
+                              argv[i])));
             }
         }
 
@@ -173,15 +173,15 @@ static bool AppInit(int argc, char *argv[]) {
             // Daemonize
             if (daemon(1, 0)) {
                 // don't chdir (1), do close FDs (0)
-                return InitError(
-                    strprintf("daemon() failed: %s\n", strerror(errno)));
+                return InitError(Untranslated(
+                    strprintf("daemon() failed: %s\n", strerror(errno))));
             }
 #if defined(MAC_OSX)
 #pragma GCC diagnostic pop
 #endif
 #else
-            return InitError(
-                "-daemon is not supported on this operating system\n");
+            return InitError(Untranslated(
+                "-daemon is not supported on this operating system\n"));
 #endif // HAVE_DECL_DAEMON
         }
 

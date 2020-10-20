@@ -398,7 +398,7 @@ namespace {
         void initWarning(const std::string &message) override {
             InitWarning(message);
         }
-        void initError(const std::string &message) override {
+        void initError(const bilingual_str &message) override {
             InitError(message);
         }
         void showProgress(const std::string &title, int progress,

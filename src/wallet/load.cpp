@@ -21,21 +21,21 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
         // environment instances for the same directory
         fs::path canonical_wallet_dir = fs::canonical(wallet_dir, error);
         if (error || !fs::exists(wallet_dir)) {
-            chain.initError(strprintf(
-                _("Specified -walletdir \"%s\" does not exist").translated,
-                wallet_dir.string()));
+            chain.initError(
+                strprintf(_("Specified -walletdir \"%s\" does not exist"),
+                          wallet_dir.string()));
             return false;
         } else if (!fs::is_directory(wallet_dir)) {
-            chain.initError(strprintf(
-                _("Specified -walletdir \"%s\" is not a directory").translated,
-                wallet_dir.string()));
+            chain.initError(
+                strprintf(_("Specified -walletdir \"%s\" is not a directory"),
+                          wallet_dir.string()));
             return false;
             // The canonical path transforms relative paths into absolute ones,
             // so we check the non-canonical version
         } else if (!wallet_dir.is_absolute()) {
-            chain.initError(strprintf(
-                _("Specified -walletdir \"%s\" is a relative path").translated,
-                wallet_dir.string()));
+            chain.initError(
+                strprintf(_("Specified -walletdir \"%s\" is a relative path"),
+                          wallet_dir.string()));
             return false;
         }
         gArgs.ForceSetArg("-walletdir", canonical_wallet_dir.string());
@@ -59,8 +59,7 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 
         if (!wallet_paths.insert(location.GetPath()).second) {
             chain.initError(strprintf(_("Error loading wallet %s. Duplicate "
-                                        "-wallet filename specified.")
-                                          .translated,
+                                        "-wallet filename specified."),
                                       wallet_file));
             return false;
         }
@@ -74,7 +73,7 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
             chain.initWarning(Join(warnings, "\n", OpTranslated));
         }
         if (!verify_success) {
-            chain.initError(error_string.translated);
+            chain.initError(error_string);
             return false;
         }
     }
@@ -93,7 +92,7 @@ bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
             chain.initWarning(Join(warnings, "\n", OpTranslated));
         }
         if (!pwallet) {
-            chain.initError(error.translated);
+            chain.initError(error);
             return false;
         }
         AddWallet(pwallet);

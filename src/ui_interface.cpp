@@ -89,9 +89,8 @@ void CClientUIInterface::BannedListChanged() {
     return g_ui_signals.BannedListChanged();
 }
 
-bool InitError(const std::string &str) {
-    uiInterface.ThreadSafeMessageBox(Untranslated(str), "",
-                                     CClientUIInterface::MSG_ERROR);
+bool InitError(const bilingual_str &str) {
+    uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR);
     return false;
 }
 

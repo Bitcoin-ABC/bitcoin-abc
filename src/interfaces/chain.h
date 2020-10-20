@@ -24,6 +24,7 @@ class CScheduler;
 class TxValidationState;
 
 struct BlockHash;
+struct bilingual_str;
 struct CBlockLocator;
 struct NodeContext;
 
@@ -256,7 +257,7 @@ public:
     virtual void initWarning(const std::string &message) = 0;
 
     //! Send init error.
-    virtual void initError(const std::string &message) = 0;
+    virtual void initError(const bilingual_str &message) = 0;
 
     //! Send progress indicator.
     virtual void showProgress(const std::string &title, int progress,
