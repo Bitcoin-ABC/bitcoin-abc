@@ -21,6 +21,12 @@ Updated settings
 - The `-debug=db` logging category, which was deprecated in 0.22.4 and replaced by
   `-debug=walletdb` to distinguish it from `coindb`, has been removed.
 
+- Users setting custom `dbcache` values can increase their setting slightly
+  without using any more real memory. Recent changes reduced the memory use
+  by about 9% and made chainstate accounting more accurate (it was underestimating
+  the use of memory before).  For example, if you set a value of "450" before, you
+  may now set a value of "500" to use about the same real amount of memory. (#16957)
+
 P2P and network changes
 -----------------------
 
