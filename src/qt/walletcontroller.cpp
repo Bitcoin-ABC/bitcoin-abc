@@ -72,7 +72,7 @@ std::map<std::string, bool> WalletController::listWalletDir() const {
 void WalletController::closeWallet(WalletModel *wallet_model, QWidget *parent) {
     QMessageBox box(parent);
     box.setWindowTitle(tr("Close wallet"));
-    box.setText(tr("Are you sure you wish to close wallet <i>%1</i>?")
+    box.setText(tr("Are you sure you wish to close the wallet <i>%1</i>?")
                     .arg(GUIUtil::HtmlEscape(wallet_model->getDisplayName())));
     box.setInformativeText(
         tr("Closing the wallet for too long can result in having to resync the "
