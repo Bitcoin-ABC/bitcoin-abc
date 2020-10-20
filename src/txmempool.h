@@ -497,7 +497,7 @@ private:
     //! Value n means that 1 times in n we check.
     const int m_check_ratio;
     //! Used by getblocktemplate to trigger CreateNewBlock() invocation
-    std::atomic<uint32_t> nTransactionsUpdated;
+    std::atomic<uint32_t> nTransactionsUpdated{0};
 
     //! sum of all mempool tx's sizes.
     uint64_t totalTxSize;
@@ -509,8 +509,8 @@ private:
     mutable bool blockSinceLastRollingFeeBump;
     //! minimum fee to get into the pool, decreases exponentially
     mutable double rollingMinimumFeeRate;
-    mutable uint64_t m_epoch;
-    mutable bool m_has_epoch_guard;
+    mutable uint64_t m_epoch{0};
+    mutable bool m_has_epoch_guard{false};
 
     // In-memory counter for external mempool tracking purposes.
     // This number is incremented once every time a transaction
