@@ -407,6 +407,29 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.maniphest.edit.assert_not_called()
         self.slackbot.client.chat_postMessage.assert_not_called()
 
+    def test_status_master_failureAndTaskDoesNotExist_doNotIgnoreComments(
+            self):
+        data = statusRequestData()
+        data.buildResult = 'failure'
+
+        self.setup_master_failureAndTaskDoesNotExist(userSearchFields={
+            'username': 'author-phab-username',
+            'custom.abc:slack-username': '',
+        })
+        self.slackbot.client.users_list.return_value = test.mocks.slackbot.users_list(
+            total=2)
+        # Make sure comment patterns do not give false positives
+        self.teamcity.getIgnoreList.return_value = [b'# TOTAL', b' # TOTAL']
+
+        response = self.app.post('/status', headers=self.headers, json=data)
+        assert response.status_code == 200
+        self.phab.differential.revision.edit.assert_not_called()
+
+        # Despite '# TOTAL' being in the build log, the failure was NOT ignored
+        # since the ignore pattern is a comment.
+        self.phab.maniphest.edit.assert_called()
+        self.slackbot.client.chat_postMessage.assert_called()
+
     def test_status_master_failureAndTaskDoesNotExist_authorDefaultName(self):
         data = statusRequestData()
         data.buildResult = 'failure'
@@ -715,7 +738,8 @@ class EndpointStatusTestCase(ABCBotFixture):
         ]
         for pattern in testPatterns:
             self.teamcity.getIgnoreList.return_value = [
-                b'# Some comment followed by an empty line',
+                b'# Some comment',
+                b'  # Another comment followed by an empty line',
                 b'',
                 pattern,
             ]

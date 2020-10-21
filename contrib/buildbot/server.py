@@ -840,7 +840,7 @@ def create_server(tc, phab, slackbot, travis,
                     buildLog = tc.getBuildLog(buildId)
                     for line in tc.getIgnoreList():
                         # Skip empty lines and comments in the ignore file
-                        if not line or line[0] == '#':
+                        if not line or line.decode().strip()[0] == '#':
                             continue
 
                         # If any of the ignore patterns match any line in the
