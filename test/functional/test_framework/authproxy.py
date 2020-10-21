@@ -135,8 +135,13 @@ class AuthServiceProxy():
         AuthServiceProxy.__id_count += 1
 
         log.debug("-{}-> {} {}".format(
-            AuthServiceProxy.__id_count, self._service_name, json.dumps(
-                args, default=EncodeDecimal, ensure_ascii=self.ensure_ascii)))
+            AuthServiceProxy.__id_count,
+            self._service_name,
+            json.dumps(
+                args or argsn,
+                default=EncodeDecimal,
+                ensure_ascii=self.ensure_ascii),
+        ))
         if args and argsn:
             raise ValueError(
                 'Cannot handle both named and positional arguments')
