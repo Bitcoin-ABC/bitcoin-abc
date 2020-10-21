@@ -52,7 +52,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
             response = self.app.post(
                 '/buildDiff{}'.format(data),
                 headers=self.headers)
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, 200)
 
             self.phab.get_file_content_from_master.assert_called()
 

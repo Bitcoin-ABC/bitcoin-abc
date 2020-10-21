@@ -27,76 +27,94 @@ class TeamcityTests(unittest.TestCase):
     def test_ignoreList(self):
         expectedList = [b'test']
         self.teamcity.ignoreList = expectedList
-        assert self.teamcity.getIgnoreList() == expectedList
+        self.assertListEqual(self.teamcity.getIgnoreList(), expectedList)
 
     def test_mockTime(self):
         currentTime = int(time.time()) - 1
-        assert self.teamcity.getTime() >= currentTime
+        self.assertGreaterEqual(self.teamcity.getTime(), currentTime)
 
         self.teamcity.setMockTime(1593635000)
-        assert self.teamcity.getTime() == 1593635000
+        self.assertEqual(self.teamcity.getTime(), 1593635000)
 
     def test_build_url(self):
-        assert self.teamcity.build_url() == urljoin(self.teamcity.base_url, "?guest=1")
-        assert self.teamcity.build_url("foo.html") == urljoin(
-            self.teamcity.base_url, "foo.html?guest=1")
-        assert self.teamcity.build_url(
+        self.assertEqual(
+            self.teamcity.build_url(),
+            urljoin(
+                self.teamcity.base_url,
+                "?guest=1"))
+        self.assertEqual(
+            self.teamcity.build_url("foo.html"),
+            urljoin(
+                self.teamcity.base_url,
+                "foo.html?guest=1"))
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "foo": "bar",
                 "bar": "baz",
-            }) == urljoin(self.teamcity.base_url, "foo.html?foo=bar&bar=baz&guest=1")
-        assert self.teamcity.build_url(
+            }),
+            urljoin(self.teamcity.base_url, "foo.html?foo=bar&bar=baz&guest=1"))
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "foo": "bar",
                 "baz": 42,
-            }) == urljoin(self.teamcity.base_url, "foo.html?foo=bar&baz=42&guest=1")
-        assert self.teamcity.build_url(
+            }),
+            urljoin(self.teamcity.base_url, "foo.html?foo=bar&baz=42&guest=1"))
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "foo": "bar",
                 "baz": 42
             },
-            "anchor") == urljoin(self.teamcity.base_url, "foo.html?foo=bar&baz=42&guest=1#anchor")
+            "anchor"),
+            urljoin(self.teamcity.base_url, "foo.html?foo=bar&baz=42&guest=1#anchor"))
         # No path, a fragment but no query
-        assert self.teamcity.build_url(
-            fragment="anchor") == urljoin(self.teamcity.base_url, "?guest=1#anchor")
+        self.assertEqual(
+            self.teamcity.build_url(
+                fragment="anchor"), urljoin(
+                self.teamcity.base_url, "?guest=1#anchor"))
         # Some path, a fragment but no query
-        assert self.teamcity.build_url(
-            "foo.html",
-            fragment="anchor") == urljoin(self.teamcity.base_url, "foo.html?guest=1#anchor")
+        self.assertEqual(
+            self.teamcity.build_url(
+                "foo.html", fragment="anchor"), urljoin(
+                self.teamcity.base_url, "foo.html?guest=1#anchor"))
         # Use RFC 3986 compliant chars
-        assert self.teamcity.build_url(
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "valid": "build($changes(*),properties(?),'triggered([a]:!b&c)')"
-            }) == urljoin(self.teamcity.base_url, "foo.html?valid=build%28%24changes%28%2A%29%2Cproperties%28%3F%29%2C%27triggered%28%5Ba%5D%3A%21b%26c%29%27%29&guest=1")
+            }),
+            urljoin(self.teamcity.base_url, "foo.html?valid=build%28%24changes%28%2A%29%2Cproperties%28%3F%29%2C%27triggered%28%5Ba%5D%3A%21b%26c%29%27%29&guest=1"))
         # Check other chars are also quoted/unquoted correctly
-        assert self.teamcity.build_url(
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "invalid": "space space,slash/slash,doublequote\"doublequote"
-            }) == urljoin(self.teamcity.base_url, "foo.html?invalid=space+space%2Cslash%2Fslash%2Cdoublequote%22doublequote&guest=1")
+            }),
+            urljoin(self.teamcity.base_url, "foo.html?invalid=space+space%2Cslash%2Fslash%2Cdoublequote%22doublequote&guest=1"))
         # The guest is already set to any value
-        assert self.teamcity.build_url(
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "foo": "bar",
                 "guest": 0,
-            }) == urljoin(self.teamcity.base_url, "foo.html?foo=bar&guest=0")
-        assert self.teamcity.build_url(
+            }),
+            urljoin(self.teamcity.base_url, "foo.html?foo=bar&guest=0"))
+        self.assertEqual(self.teamcity.build_url(
             "foo.html",
             {
                 "foo": "bar",
                 "guest": 1,
-            }) == urljoin(self.teamcity.base_url, "foo.html?foo=bar&guest=1")
+            }),
+            urljoin(self.teamcity.base_url, "foo.html?foo=bar&guest=1"))
         # No guest=1 parameter is appended when calling the rest API
-        assert self.teamcity.build_url(
+        self.assertEqual(self.teamcity.build_url(
             "app/rest/foo",
             {
                 "foo": "bar",
-            }) == urljoin(self.teamcity.base_url, "app/rest/foo?foo=bar")
+            }),
+            urljoin(self.teamcity.base_url, "app/rest/foo?foo=bar"))
 
     def test_convert_to_guest_url(self):
         expect_no_update = [
@@ -144,10 +162,11 @@ class TeamcityTests(unittest.TestCase):
         ]
 
         for url in expect_no_update:
-            assert self.teamcity.convert_to_guest_url(url) == url
+            self.assertEqual(self.teamcity.convert_to_guest_url(url), url)
 
         for url_in, url_out in expect_update:
-            assert self.teamcity.convert_to_guest_url(url_in) == url_out
+            self.assertEqual(
+                self.teamcity.convert_to_guest_url(url_in), url_out)
 
     def test_requestFailure(self):
         self.teamcity.session.send.return_value.status_code = requests.codes.bad_request
@@ -160,7 +179,7 @@ class TeamcityTests(unittest.TestCase):
     def test_getBuildProblems_noProblems(self):
         self.teamcity.session.send.return_value.content = json.dumps({})
         output = self.teamcity.getBuildProblems('1234')
-        assert output == []
+        self.assertListEqual(output, [])
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/problemOccurrences",
@@ -180,9 +199,9 @@ class TeamcityTests(unittest.TestCase):
             'problemOccurrence': problems,
         })
         output = self.teamcity.getBuildProblems('1234')
-        assert output[0]['id'] == problems[0]['id']
-        assert output[0]['details'] == problems[0]['details']
-        assert output[0]['logUrl'] == self.teamcity.build_url(
+        self.assertEqual(output[0]['id'], problems[0]['id'])
+        self.assertEqual(output[0]['details'], problems[0]['details'])
+        self.assertEqual(output[0]['logUrl'], self.teamcity.build_url(
             "viewLog.html",
             {
                 "tab": "buildLog",
@@ -192,7 +211,7 @@ class TeamcityTests(unittest.TestCase):
                 "buildId": 1234,
             },
             "footer"
-        )
+        ))
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/problemOccurrences",
@@ -206,7 +225,7 @@ class TeamcityTests(unittest.TestCase):
     def test_getFailedTests_noTestFailures(self):
         self.teamcity.session.send.return_value.content = json.dumps({})
         output = self.teamcity.getFailedTests('1234')
-        assert output == []
+        self.assertListEqual(output, [])
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/testOccurrences",
@@ -227,10 +246,10 @@ class TeamcityTests(unittest.TestCase):
             'testOccurrence': failures,
         })
         output = self.teamcity.getFailedTests('1234')
-        assert output[0]['id'] == failures[0]['id']
-        assert output[0]['details'] == failures[0]['details']
-        assert output[0]['name'] == failures[0]['name']
-        assert output[0]['logUrl'] == self.teamcity.build_url(
+        self.assertEqual(output[0]['id'], failures[0]['id'])
+        self.assertEqual(output[0]['details'], failures[0]['details'])
+        self.assertEqual(output[0]['name'], failures[0]['name'])
+        self.assertEqual(output[0]['logUrl'], self.teamcity.build_url(
             "viewLog.html",
             {
                 "tab": "buildLog",
@@ -240,7 +259,7 @@ class TeamcityTests(unittest.TestCase):
                 "buildId": 1234,
                 "_focus": 2500,
             }
-        )
+        ))
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/testOccurrences",
@@ -259,7 +278,7 @@ class TeamcityTests(unittest.TestCase):
             'name': 'another-property',
             'value': 'some value',
         }])
-        assert output == json.loads(triggerBuildResponse.content)
+        self.assertEqual(output, json.loads(triggerBuildResponse.content))
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url("app/rest/buildQueue"),
             'body': json.dumps({
@@ -289,7 +308,7 @@ class TeamcityTests(unittest.TestCase):
         self.teamcity.session.send.return_value.content = json.dumps(
             expectedOutput)
         output = self.teamcity.getBuildChangeDetails('1234')
-        assert output == expectedOutput
+        self.assertEqual(output, expectedOutput)
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url("app/rest/changes/1234")
         }))
@@ -309,8 +328,8 @@ class TeamcityTests(unittest.TestCase):
             })),
         ]
         output = self.teamcity.getBuildChanges('2345')
-        assert output[0]['username'] == 'email@bitcoinabc.org'
-        assert output[0]['user']['name'] == 'Author Name'
+        self.assertEqual(output[0]['username'], 'email@bitcoinabc.org')
+        self.assertEqual(output[0]['user']['name'], 'Author Name')
         calls = [mock.call(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/changes",
@@ -334,10 +353,12 @@ class TeamcityTests(unittest.TestCase):
                 ['101298f9325ddbac7e5a8f405e5e2f24a64e5171']),
         )
         buildInfo = self.teamcity.getBuildInfo('1234')
-        assert buildInfo['triggered']['type'] == 'vcs'
-        assert buildInfo.getProperties().get('env.ABC_BUILD_NAME') == 'build-diff'
-        assert buildInfo.getCommits(
-        )[0] == '101298f9325ddbac7e5a8f405e5e2f24a64e5171'
+        self.assertEqual(buildInfo['triggered']['type'], 'vcs')
+        self.assertEqual(buildInfo.getProperties().get(
+            'env.ABC_BUILD_NAME'), 'build-diff')
+        self.assertEqual(
+            buildInfo.getCommits()[0],
+            '101298f9325ddbac7e5a8f405e5e2f24a64e5171')
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/builds",
@@ -352,8 +373,8 @@ class TeamcityTests(unittest.TestCase):
         self.teamcity.session.send.return_value = test.mocks.teamcity.Response(
             json.dumps({}))
         buildInfo = self.teamcity.getBuildInfo('1234')
-        assert buildInfo.get('triggered', None) is None
-        assert buildInfo.getProperties() is None
+        self.assertIsNone(buildInfo.get('triggered', None))
+        self.assertIsNone(buildInfo.getProperties())
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/builds",
@@ -424,8 +445,8 @@ class TeamcityTests(unittest.TestCase):
 
         (buildFailures, testFailures) = self.teamcity.getLatestBuildAndTestFailures(
             'BitcoinABC_Master')
-        assert len(buildFailures) == 2
-        assert len(testFailures) == 2
+        self.assertEqual(len(buildFailures), 2)
+        self.assertEqual(len(testFailures), 2)
 
         teamcityCalls = [mock.call(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
@@ -478,7 +499,9 @@ class TeamcityTests(unittest.TestCase):
         self.assertEqual(build["id"], 1234)
 
     def test_formatTime(self):
-        assert self.teamcity.formatTime(1590000000) == '20200520T184000+0000'
+        self.assertEqual(
+            self.teamcity.formatTime(1590000000),
+            '20200520T184000+0000')
 
     def test_getNumAggregateFailuresSince(self):
         self.teamcity.setMockTime(1590000000)
@@ -486,7 +509,9 @@ class TeamcityTests(unittest.TestCase):
         self.teamcity.session.send.return_value.content = json.dumps({
             'build': [],
         })
-        assert self.teamcity.getNumAggregateFailuresSince('buildType', 0) == 0
+        self.assertEqual(
+            self.teamcity.getNumAggregateFailuresSince(
+                'buildType', 0), 0)
 
         self.teamcity.session.send.return_value.content = json.dumps({
             'build': [
@@ -495,12 +520,16 @@ class TeamcityTests(unittest.TestCase):
                 {'status': 'SUCCESS'},
             ],
         })
-        assert self.teamcity.getNumAggregateFailuresSince('buildType', 0) == 0
+        self.assertEqual(
+            self.teamcity.getNumAggregateFailuresSince(
+                'buildType', 0), 0)
 
         self.teamcity.session.send.return_value.content = json.dumps({
             'build': [{'status': 'FAILURE'}],
         })
-        assert self.teamcity.getNumAggregateFailuresSince('buildType', 0) == 1
+        self.assertEqual(
+            self.teamcity.getNumAggregateFailuresSince(
+                'buildType', 0), 1)
 
         self.teamcity.session.send.return_value.content = json.dumps({
             'build': [
@@ -509,7 +538,9 @@ class TeamcityTests(unittest.TestCase):
                 {'status': 'FAILURE'},
             ]
         })
-        assert self.teamcity.getNumAggregateFailuresSince('buildType', 0) == 1
+        self.assertEqual(
+            self.teamcity.getNumAggregateFailuresSince(
+                'buildType', 0), 1)
 
         self.teamcity.session.send.return_value.content = json.dumps({
             'build': [
@@ -519,7 +550,9 @@ class TeamcityTests(unittest.TestCase):
                 {'status': 'FAILURE'},
             ]
         })
-        assert self.teamcity.getNumAggregateFailuresSince('buildType', 0) == 2
+        self.assertEqual(
+            self.teamcity.getNumAggregateFailuresSince(
+                'buildType', 0), 2)
 
         self.teamcity.session.send.return_value.content = json.dumps({
             'build': [
@@ -535,8 +568,9 @@ class TeamcityTests(unittest.TestCase):
                 {'status': 'SUCCESS'},
             ]
         })
-        assert self.teamcity.getNumAggregateFailuresSince(
-            'buildType', 10000000) == 3
+        self.assertEqual(
+            self.teamcity.getNumAggregateFailuresSince(
+                'buildType', 10000000), 3)
 
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(

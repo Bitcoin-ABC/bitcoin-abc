@@ -55,26 +55,30 @@ class SlackbotTestCase(unittest.TestCase):
         user = test.mocks.slackbot.user()
         self.slackbot.client.users_list.return_value = test.mocks.slackbot.users_list(
             initialUsers=[user])
-        assert self.slackbot.getUserByName('Other Name') is None
-        assert self.slackbot.getUserByName('Real Name') == user
-        assert self.slackbot.getUserByName('Real Name Normalized') == user
-        assert self.slackbot.getUserByName('Display Name') == user
-        assert self.slackbot.getUserByName('Display Name Normalized') == user
+        self.assertIsNone(self.slackbot.getUserByName('Other Name'))
+        self.assertEqual(self.slackbot.getUserByName('Real Name'), user)
+        self.assertEqual(self.slackbot.getUserByName(
+            'Real Name Normalized'), user)
+        self.assertEqual(self.slackbot.getUserByName('Display Name'), user)
+        self.assertEqual(self.slackbot.getUserByName(
+            'Display Name Normalized'), user)
 
     def test_formatMentionByName(self):
         user = test.mocks.slackbot.user()
         expectedMention = '<@{}>'.format(user['id'])
         self.slackbot.client.users_list.return_value = test.mocks.slackbot.users_list(
             initialUsers=[user])
-        assert self.slackbot.formatMentionByName('testname') is None
-        assert self.slackbot.formatMentionByName(
-            'Real Name') == expectedMention
-        assert self.slackbot.formatMentionByName(
-            'Real Name Normalized') == expectedMention
-        assert self.slackbot.formatMentionByName(
-            'Display Name') == expectedMention
-        assert self.slackbot.formatMentionByName(
-            'Display Name Normalized') == expectedMention
+        self.assertIsNone(self.slackbot.formatMentionByName('testname'))
+        self.assertEqual(
+            self.slackbot.formatMentionByName('Real Name'),
+            expectedMention)
+        self.assertEqual(self.slackbot.formatMentionByName(
+            'Real Name Normalized'), expectedMention)
+        self.assertEqual(
+            self.slackbot.formatMentionByName('Display Name'),
+            expectedMention)
+        self.assertEqual(self.slackbot.formatMentionByName(
+            'Display Name Normalized'), expectedMention)
 
 
 if __name__ == '__main__':

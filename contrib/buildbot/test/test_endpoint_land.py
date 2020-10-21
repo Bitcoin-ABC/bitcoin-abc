@@ -56,8 +56,10 @@ class EndpointLandTestCase(ABCBotFixture):
                 },
             }),
         }))
-        assert response.status_code == 200
-        assert response.get_json() == json.loads(triggerBuildResponse.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get_json(), json.loads(
+                triggerBuildResponse.content))
 
     def test_land_invalid_json(self):
         data = "not: a valid json"
@@ -77,7 +79,7 @@ class EndpointLandTestCase(ABCBotFixture):
             data = landRequestData()
             setattr(data, arg, '')
             response = self.app.post('/land', headers=self.headers, json=data)
-            assert response.status_code == 400
+            self.assertEqual(response.status_code, 400)
 
 
 if __name__ == '__main__':

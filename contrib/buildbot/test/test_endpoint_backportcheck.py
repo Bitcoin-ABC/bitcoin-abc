@@ -22,7 +22,7 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
 
         response = self.post_json_with_hmac(
             '/backportCheck', self.headers, {'object': {'phid': '1234'}})
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.search.assert_called_with(
             constraints={"phids": ['1234']})
         self.phab.differential.revision.edit.assert_not_called()
@@ -58,7 +58,7 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
 
         response = self.post_json_with_hmac(
             '/backportCheck', self.headers, {'object': {'phid': '1234'}})
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.search.assert_called_with(
             constraints={'phids': ['1234']})
         self.phab.differential.revision.edit.assert_not_called()
@@ -89,7 +89,7 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
 
         response = self.post_json_with_hmac(
             '/backportCheck', self.headers, {'object': {'phid': '1234'}})
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.search.assert_called_with(
             constraints={'phids': ['1234']})
         calls = [mock.call(transactions=[{

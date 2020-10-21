@@ -11,7 +11,7 @@ import unittest
 class EndpointGetCurrentUserTestCase(ABCBotFixture):
     def test_currentUser(self):
         rv = self.app.get('/getCurrentUser', headers=self.headers)
-        assert rv.data == TEST_USER.encode()
+        self.assertEqual(rv.data, TEST_USER.encode())
 
 
 if __name__ == '__main__':

@@ -137,7 +137,7 @@ class EndpointStatusTestCase(ABCBotFixture):
 
     def test_status_noData(self):
         response = self.app.post('/status', headers=self.headers)
-        assert response.status_code == 415
+        self.assertEqual(response.status_code, 415)
         self.phab.harbormaster.createartifact.assert_not_called()
 
     def test_status_unresolved(self):
@@ -145,14 +145,14 @@ class EndpointStatusTestCase(ABCBotFixture):
         data.branch = 'UNRESOLVED'
         data.buildTargetPHID = 'UNRESOLVED'
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 400
+        self.assertEqual(response.status_code, 400)
         self.phab.harbormaster.createartifact.assert_not_called()
 
     def test_status_ignoredBuild(self):
         data = statusRequestData()
         data.buildTypeId = 'build-name__BOTIGNORE'
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.harbormaster.createartifact.assert_not_called()
 
     def test_status_master(self):
@@ -166,7 +166,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             })),
         ]
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_not_called()
         self.slackbot.client.chat_postMessage.assert_not_called()
@@ -210,13 +210,13 @@ class EndpointStatusTestCase(ABCBotFixture):
         data.buildResult = 'failure'
         setupMockResponses(data)
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         # Master should be marked red
 
         data = statusRequestData()
         setupMockResponses(data)
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_called_with(transactions=[{
             'type': 'status',
@@ -261,7 +261,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             },
         }
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_called_with(transactions=[{
             'type': 'status',
@@ -286,7 +286,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             })),
         ]
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_called_with(transactions=[{
             'type': 'status',
@@ -309,7 +309,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             })),
         ]
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_not_called()
         self.slackbot.client.chat_postMessage.assert_not_called()
@@ -351,7 +351,7 @@ class EndpointStatusTestCase(ABCBotFixture):
 
         setupTeamcity()
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_not_called()
 
@@ -382,7 +382,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         }])
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_called_with(transactions=[{
             "type": "comment",
             "value": "(IMPORTANT) The build failed due to an unexpected infrastructure outage. "
@@ -402,7 +402,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             latestCompletedBuildId=234567)
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_not_called()
         self.slackbot.client.chat_postMessage.assert_not_called()
@@ -419,7 +419,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             total=2)
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         maniphestEditCalls = [mock.call(transactions=[{
             "type": "title",
@@ -483,7 +483,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             total=2, initialUsers=[slackUser])
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         maniphestEditCalls = [mock.call(transactions=[{
             "type": "title",
@@ -541,7 +541,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.setup_master_failureAndTaskDoesNotExist()
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         maniphestEditCalls = [mock.call(transactions=[{
             "type": "title",
@@ -597,7 +597,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             total=2)
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         maniphestEditCalls = [mock.call(transactions=[{
             "type": "title",
@@ -652,7 +652,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.setup_master_failureAndTaskDoesNotExist(numRecentFailedBuilds=2)
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
 
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
@@ -687,7 +687,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.setup_master_failureAndTaskDoesNotExist(numRecentFailedBuilds=3)
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
 
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
@@ -727,7 +727,7 @@ class EndpointStatusTestCase(ABCBotFixture):
 
             response = self.app.post(
                 '/status', headers=self.headers, json=data)
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, 200)
             self.phab.differential.revision.edit.assert_not_called()
 
             self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
@@ -767,7 +767,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         }])
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_not_called()
         self.phab.maniphest.edit.assert_not_called()
 
@@ -792,7 +792,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.differential.revision.search.return_value = test.mocks.phabricator.differential_revision_search_result()
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
 
     def test_status_revision_buildFailed(self):
         data = statusRequestData()
@@ -825,7 +825,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.differential.revision.search.return_value = test.mocks.phabricator.differential_revision_search_result()
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.phab.differential.revision.edit.assert_called_with(transactions=[{
             "type": "comment",
             "value": "(IMPORTANT) Build [[{} | build-name (linux)]] failed.\n\nTail of the build log:\n```lines=16,COUNTEREXAMPLE\ndummy log```".format(
@@ -878,7 +878,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         ]
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.teamcity.session.send.assert_called_with(AnyWith(requests.PreparedRequest, {
             'url': self.teamcity.build_url(
                 "app/rest/testOccurrences",
@@ -949,7 +949,7 @@ class EndpointStatusTestCase(ABCBotFixture):
                 build_name
             )
             response = self.app.post(url, headers=self.headers)
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, 200)
 
         # Set the status to 'running' to prevent target removal on completion.
         data.buildResult = "running"
@@ -963,7 +963,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             ]
             response = self.app.post(
                 '/status', headers=self.headers, json=data)
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, 200)
 
             self.phab.harbormaster.artifact.search.assert_called_with(
                 constraints={
@@ -1096,7 +1096,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         setupTeamcity()
         setupUserSearch(slackUsername='author-slack-username')
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
 
         self.phab.differential.revision.search.assert_called_with(constraints={
                                                                   'ids': [1234]})
@@ -1115,7 +1115,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         setupUserSearch(slackUsername='author-slack-username')
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
 
         self.phab.differential.revision.search.assert_called_with(constraints={
                                                                   'ids': [1234]})
@@ -1134,7 +1134,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         setupTeamcity()
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
 
         self.phab.differential.revision.search.assert_called_with(constraints={
                                                                   'ids': [1234]})
@@ -1157,7 +1157,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.slackbot.client.chat_postMessage = mock.Mock()
 
         response = self.app.post('/status', headers=self.headers, json=data)
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
 
         self.phab.differential.revision.search.assert_not_called()
         self.phab.user.search.assert_not_called()
@@ -1253,7 +1253,8 @@ class EndpointStatusTestCase(ABCBotFixture):
 
             response = self.app.post(
                 '/status', headers=self.headers, json=data)
-            assert response.status_code == (
+            self.assertEqual(
+                response.status_code,
                 200 if not expected_status_code else expected_status_code)
 
         def assert_panel_content(content):
@@ -1486,7 +1487,8 @@ class EndpointStatusTestCase(ABCBotFixture):
 
             response = self.app.post(
                 '/status', headers=self.headers, json=data)
-            assert response.status_code == (
+            self.assertEqual(
+                response.status_code,
                 200 if not expected_status_code else expected_status_code)
 
         def assert_panel_content(content):
