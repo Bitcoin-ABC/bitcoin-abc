@@ -270,9 +270,9 @@ builds:
       - secp256k1
     timeout: 600
 
-  build-secp256k1-endomorphism:
+  build-secp256k1-without-endomorphism:
     cmake_flags:
-      - "-DSECP256K1_ENABLE_ENDOMORPHISM=ON"
+      - "-DSECP256K1_ENABLE_ENDOMORPHISM=OFF"
     templates:
       - secp256k1
     timeout: 600
