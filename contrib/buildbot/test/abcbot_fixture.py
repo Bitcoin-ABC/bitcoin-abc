@@ -38,6 +38,8 @@ class ABCBotFixture(unittest.TestCase):
             TEST_USER, TEST_PASSWORD).encode()).decode('utf-8')
         self.headers = {'Authorization': 'Basic ' + self.credentials}
 
+        self.db_file_no_ext = None
+
     def setUp(self):
         self.phab = test.mocks.phabricator.instance()
         self.slackbot = test.mocks.slackbot.instance()
@@ -48,7 +50,8 @@ class ABCBotFixture(unittest.TestCase):
             self.phab,
             self.slackbot,
             self.travis,
-            test.mocks.fixture.MockJSONEncoder).test_client()
+            db_file_no_ext=self.db_file_no_ext,
+            jsonEncoder=test.mocks.fixture.MockJSONEncoder).test_client()
 
     def tearDown(self):
         pass

@@ -10,11 +10,13 @@ from flask import abort, Flask, request
 from functools import wraps
 import hashlib
 import hmac
+import logging
 import os
 from phabricator_wrapper import (
     BITCOIN_ABC_PROJECT_PHID,
 )
 import re
+import shelve
 from shieldio import RasterBadge
 from shlex import quote
 from teamcity_wrapper import TeamcityRequestException
@@ -43,9 +45,11 @@ BADGE_TRAVIS_BASE = RasterBadge(
 )
 
 
-def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
+def create_server(tc, phab, slackbot, travis,
+                  db_file_no_ext=None, jsonEncoder=None):
     # Create Flask app for use as decorator
     app = Flask("abcbot")
+    app.logger.setLevel(logging.INFO)
 
     # json_encoder can be overridden for testing
     if jsonEncoder:
@@ -55,14 +59,53 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
     tc.set_logger(app.logger)
     travis.set_logger(app.logger)
 
-    # A collection of the known build targets
-    create_server.diff_targets = {}
+    # Optionally persistable database
+    create_server.db = {
+        # A collection of the known build targets
+        'diff_targets': {},
+        # Build status panel data
+        'panel_data': {},
+        # Whether the last status check of master was green
+        'master_is_green': True,
+    }
 
-    # Build status panel data
-    create_server.panel_data = {}
+    # If db_file_no_ext is not None, attempt to restore old database state
+    if db_file_no_ext:
+        db_file = db_file_no_ext + '.db'
+        app.logger.info("Loading persisted state file '{}'...".format(db_file))
+        if os.path.exists(db_file):
+            with shelve.open(db_file_no_ext, flag='r') as db:
+                for key in create_server.db.keys():
+                    if key in db:
+                        create_server.db[key] = db[key]
+                        app.logger.info(
+                            "Restored key '{}' from persisted state in file '{}'".format(
+                                key, db_file))
+        else:
+            app.logger.info(
+                "Persisted state file '{}' does not exist. It will be created when written to.".format(db_file))
+        app.logger.info("Done")
+    else:
+        app.logger.warning(
+            "No database file specified. State will not be persisted.")
 
-    # Whether the last status check of master was green
-    create_server.master_is_green = True
+    def persistDatabase(fn):
+        @wraps(fn)
+        def decorated_function(*args, **kwargs):
+            fn_ret = fn(*args, **kwargs)
+
+            # Persist database after executed decorated function
+            if db_file_no_ext:
+                with shelve.open(db_file_no_ext) as db:
+                    for key in create_server.db.keys():
+                        db[key] = create_server.db[key]
+                    app.logger.debug("Persisted current state")
+            else:
+                app.logger.debug(
+                    "No database file specified. Persisting state is being skipped.")
+
+            return fn_ret
+        return decorated_function
 
     # This decorator specifies an HMAC secret environment variable to use for verifying
     # requests for the given route. Currently, we're using Phabricator to trigger these
@@ -173,6 +216,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
         return SUCCESS, 200
 
     @app.route("/build", methods=['POST'])
+    @persistDatabase
     def build():
         buildTypeId = request.args.get('buildTypeId', None)
         ref = request.args.get('ref', 'refs/heads/master')
@@ -188,16 +232,16 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
             }]
 
         build_id = tc.trigger_build(buildTypeId, ref, PHID, properties)['id']
-        if PHID in create_server.diff_targets:
-            build_target = create_server.diff_targets[PHID]
+        if PHID in create_server.db['diff_targets']:
+            build_target = create_server.db['diff_targets'][PHID]
         else:
             build_target = BuildTarget(PHID)
         build_target.queue_build(build_id, abcBuildName)
-        create_server.diff_targets[PHID] = build_target
-
+        create_server.db['diff_targets'][PHID] = build_target
         return SUCCESS, 200
 
     @app.route("/buildDiff", methods=['POST'])
+    @persistDatabase
     def build_diff():
         def get_mandatory_argument(argument):
             value = request.args.get(argument, None)
@@ -226,8 +270,8 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                 'runOnDiff',
                 False)]
 
-        if target_phid in create_server.diff_targets:
-            build_target = create_server.diff_targets[target_phid]
+        if target_phid in create_server.db['diff_targets']:
+            build_target = create_server.db['diff_targets'][target_phid]
         else:
             build_target = BuildTarget(target_phid)
 
@@ -243,7 +287,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                 properties)['id']
             build_target.queue_build(build_id, build_name)
 
-        create_server.diff_targets[target_phid] = build_target
+        create_server.db['diff_targets'][target_phid] = build_target
         return SUCCESS, 200
 
     @app.route("/land", methods=['POST'])
@@ -372,6 +416,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
         return SUCCESS, 200
 
     @app.route("/status", methods=['POST'])
+    @persistDatabase
     def buildStatus():
         out = get_json_request_data(request)
         app.logger.info("Received /status POST with data: {}".format(out))
@@ -503,7 +548,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
         # If the list of project names has changed (project was added, deleted
         # or renamed, update the panel data accordingly.
         (removed_projects, added_projects) = dict_xor(
-            create_server.panel_data, project_ids, lambda key: {})
+            create_server.db['panel_data'], project_ids, lambda key: {})
 
         # Log the project changes if any
         if (len(removed_projects) + len(added_projects)) > 0:
@@ -539,7 +584,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
 
         # Update the builds
         for project_id, project_builds in sorted(
-                create_server.panel_data.items()):
+                create_server.db['panel_data'].items()):
             build_type_ids = [build['teamcity_build_type_id'] for build in list(
                 associated_builds.values()) if build['teamcity_project_id'] == project_id]
 
@@ -684,7 +729,8 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                     update_coverage_panel(coverage_summary)
 
         # If we have a buildTargetPHID, report the status.
-        build_target = create_server.diff_targets.get(buildTargetPHID, None)
+        build_target = create_server.db['diff_targets'].get(
+            buildTargetPHID, None)
         if build_target is not None:
             phab.update_build_target_status(build_target, buildId, status)
 
@@ -695,7 +741,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
             )
 
             if build_target.is_finished():
-                del create_server.diff_targets[buildTargetPHID]
+                del create_server.db['diff_targets'][buildTargetPHID]
 
         revisionPHID = phab.get_revisionPHID(branch)
 
@@ -777,8 +823,8 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                         (buildFailures, testFailures) = tc.getLatestBuildAndTestFailures(
                             'BitcoinABC')
                         if len(buildFailures) == 0 and len(testFailures) == 0:
-                            if not create_server.master_is_green:
-                                create_server.master_is_green = True
+                            if not create_server.db['master_is_green']:
+                                create_server.db['master_is_green'] = True
                                 slackbot.postMessage(
                                     'dev', "Master is green again.")
 
@@ -819,7 +865,7 @@ def create_server(tc, phab, slackbot, travis, jsonEncoder=None):
                         return SUCCESS, 200
 
                     # Only mark master as red for failures that are not flaky
-                    create_server.master_is_green = False
+                    create_server.db['master_is_green'] = False
 
                     commitHashes = buildInfo.getCommits()
                     newTask = phab.createBrokenBuildTask(
