@@ -60,7 +60,8 @@ static void add_coin(const Amount nValue, int nInput, CoinSet &set) {
 }
 
 static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
-                     bool fIsFromMe = false, int nInput = 0) {
+                     bool fIsFromMe = false, int nInput = 0,
+                     bool spendable = false) {
     balance += nValue;
     static int nextLockTime = 0;
     CMutableTransaction tx;
@@ -68,6 +69,12 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
     tx.nLockTime = nextLockTime++;
     tx.vout.resize(nInput + 1);
     tx.vout[nInput].nValue = nValue;
+    if (spendable) {
+        CTxDestination dest;
+        std::string error;
+        assert(wallet.GetNewDestination(OutputType::LEGACY, "", dest, error));
+        tx.vout[nInput].scriptPubKey = GetScriptForDestination(dest);
+    }
     if (fIsFromMe) {
         // IsFromMe() returns (GetDebit() > 0), and GetDebit() is 0 if
         // vin.empty(), so stop vin being empty, and cache a non-zero Debit to
@@ -289,19 +296,43 @@ BOOST_AUTO_TEST_CASE(bnb_search_test) {
         1 * CENT, filter_standard, GroupCoins(vCoins), setCoinsRet, nValueRet,
         coin_selection_params_bnb, bnb_used));
 
-    // Make sure that we aren't using BnB when there are preset inputs
+    // Test fees subtracted from output:
     empty_wallet();
-    add_coin(m_wallet, 5 * CENT);
-    add_coin(m_wallet, 3 * CENT);
-    add_coin(m_wallet, 2 * CENT);
-    CCoinControl coin_control;
-    coin_control.fAllowOtherInputs = true;
-    coin_control.Select(COutPoint(vCoins.at(0).tx->GetId(), vCoins.at(0).i));
-    BOOST_CHECK(m_wallet.SelectCoins(vCoins, 10 * CENT, setCoinsRet, nValueRet,
-                                     coin_control, coin_selection_params_bnb,
-                                     bnb_used));
-    BOOST_CHECK(!bnb_used);
-    BOOST_CHECK(!coin_selection_params_bnb.use_bnb);
+    add_coin(m_wallet, 1 * CENT);
+    vCoins.at(0).nInputBytes = 40;
+    BOOST_CHECK(!m_wallet.SelectCoinsMinConf(
+        1 * CENT, filter_standard, GroupCoins(vCoins), setCoinsRet, nValueRet,
+        coin_selection_params_bnb, bnb_used));
+    coin_selection_params_bnb.m_subtract_fee_outputs = true;
+    BOOST_CHECK(m_wallet.SelectCoinsMinConf(
+        1 * CENT, filter_standard, GroupCoins(vCoins), setCoinsRet, nValueRet,
+        coin_selection_params_bnb, bnb_used));
+    BOOST_CHECK_EQUAL(nValueRet, 1 * CENT);
+
+    // Make sure that can use BnB when there are preset inputs
+    empty_wallet();
+    {
+        auto wallet =
+            std::make_unique<CWallet>(Params(), m_chain.get(), WalletLocation(),
+                                      WalletDatabase::CreateMock());
+        bool firstRun;
+        wallet->LoadWallet(firstRun);
+        LOCK(wallet->cs_wallet);
+        wallet->SetupLegacyScriptPubKeyMan();
+        add_coin(*wallet, 5 * CENT, 6 * 24, false, 0, true);
+        add_coin(*wallet, 3 * CENT, 6 * 24, false, 0, true);
+        add_coin(*wallet, 2 * CENT, 6 * 24, false, 0, true);
+        CCoinControl coin_control;
+        coin_control.fAllowOtherInputs = true;
+        coin_control.Select(
+            COutPoint(vCoins.at(0).tx->GetId(), vCoins.at(0).i));
+        coin_selection_params_bnb.effective_fee = CFeeRate(Amount::zero());
+        BOOST_CHECK(wallet->SelectCoins(vCoins, 10 * CENT, setCoinsRet,
+                                        nValueRet, coin_control,
+                                        coin_selection_params_bnb, bnb_used));
+        BOOST_CHECK(bnb_used);
+        BOOST_CHECK(coin_selection_params_bnb.use_bnb);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(knapsack_solver_test) {
