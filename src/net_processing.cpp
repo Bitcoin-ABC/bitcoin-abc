@@ -672,9 +672,10 @@ static void PushNodeVersion(const Config &config, CNode &pnode,
     CAddress addr = pnode.addr;
     uint64_t extraEntropy = pnode.GetLocalExtraEntropy();
 
-    CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr)
-                            ? addr
-                            : CAddress(CService(), addr.nServices));
+    CAddress addrYou =
+        addr.IsRoutable() && !IsProxy(addr) && addr.IsAddrV1Compatible()
+            ? addr
+            : CAddress(CService(), addr.nServices);
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
     connman.PushMessage(
