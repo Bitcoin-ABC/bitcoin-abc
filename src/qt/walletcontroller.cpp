@@ -197,6 +197,7 @@ CreateWalletActivity::~CreateWalletActivity() {
 void CreateWalletActivity::askPassphrase() {
     m_passphrase_dialog = new AskPassphraseDialog(
         AskPassphraseDialog::Encrypt, m_parent_widget, &m_passphrase);
+    m_passphrase_dialog->setWindowModality(Qt::ApplicationModal);
     m_passphrase_dialog->show();
 
     connect(m_passphrase_dialog, &QObject::destroyed,
