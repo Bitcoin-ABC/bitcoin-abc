@@ -201,7 +201,10 @@ class P2PConnection(asyncio.Protocol):
                     return None
                 if self.recvbuf[:4] != self.magic_bytes:
                     raise ValueError(
-                        "got garbage {}".format(repr(self.recvbuf)))
+                        "magic bytes mismatch: {} != {}".format(
+                            repr(
+                                self.magic_bytes), repr(
+                                self.recvbuf)))
                 if len(self.recvbuf) < 4 + 12 + 4 + 4:
                     return None
                 command = self.recvbuf[4:4 + 12].split(b"\x00", 1)[0]
