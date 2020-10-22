@@ -29,6 +29,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import (
     GETDATA_TX_INTERVAL,
+    NONPREF_PEER_TX_DELAY,
     OVERLOADED_PEER_TX_DELAY,
     P2PInterface,
     p2p_lock,
@@ -61,6 +62,7 @@ class NetConstants:
     overloaded_peer_delay: int = OVERLOADED_PEER_TX_DELAY
     max_getdata_in_flight: int = 1000
     max_peer_announcements: int = 5000
+    nonpref_peer_delay: int = NONPREF_PEER_TX_DELAY
 
     @property
     def max_getdata_inbound_wait(self):
@@ -340,16 +342,31 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with p2p_lock:
             assert_equal(peer_fallback.getdata_count, 1)
 
-    def test_preferred_inv(self, context):
-        self.log.info("Check that invs from preferred peers are downloaded immediately")
-        self.restart_node(
-            0, extra_args=self.extra_args[0] + ["-whitelist=noban@127.0.0.1"]
-        )
+    def test_preferred_inv(self, context, preferred=False):
+        if preferred:
+            self.log.info(
+                "Check that invs from preferred peers are downloaded immediately"
+            )
+            self.restart_node(
+                0, extra_args=self.extra_args[0] + ["-whitelist=noban@127.0.0.1"]
+            )
+        else:
+            self.log.info(
+                f"Check invs from non-preferred peers are downloaded after "
+                f"{context.constants.nonpref_peer_delay} s"
+            )
+        mock_time = int(time.time() + 1)
+        self.nodes[0].setmocktime(mock_time)
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer.send_message(msg_inv([CInv(t=context.inv_type, h=0xFF00FF00)]))
-        peer.wait_until(lambda: peer.getdata_count >= 1)
-        with p2p_lock:
-            assert_equal(peer.getdata_count, 1)
+        peer.sync_with_ping()
+        if preferred:
+            peer.wait_until(lambda: peer.getdata_count >= 1)
+        else:
+            with p2p_lock:
+                assert_equal(peer.getdata_count, 0)
+            self.nodes[0].setmocktime(mock_time + context.constants.nonpref_peer_delay)
+            peer.wait_until(lambda: peer.getdata_count >= 1)
 
     def test_large_inv_batch(self, context):
         max_peer_announcements = context.constants.max_peer_announcements
@@ -529,6 +546,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             self.test_disconnect_fallback(context)
             self.test_notfound_fallback(context)
             self.test_preferred_inv(context)
+            self.test_preferred_inv(context, True)
             self.test_large_inv_batch(context)
             self.test_spurious_notfound(context)
 
