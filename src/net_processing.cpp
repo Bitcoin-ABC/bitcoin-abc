@@ -599,47 +599,6 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
     nPreferredDownload += state->fPreferredDownload;
 }
 
-static void PushNodeVersion(const Config &config, CNode &pnode,
-                            CConnman &connman, int64_t nTime) {
-    // Note that pnode.GetLocalServices() is a reflection of the local
-    // services we were offering when the CNode object was created for this
-    // peer.
-    ServiceFlags nLocalNodeServices = pnode.GetLocalServices();
-    uint64_t nonce = pnode.GetLocalNonce();
-    int nNodeStartingHeight = pnode.GetMyStartingHeight();
-    NodeId nodeid = pnode.GetId();
-    CAddress addr = pnode.addr;
-    uint64_t extraEntropy = pnode.GetLocalExtraEntropy();
-
-    CAddress addrYou =
-        addr.IsRoutable() && !IsProxy(addr) && addr.IsAddrV1Compatible()
-            ? addr
-            : CAddress(CService(), addr.nServices);
-    CAddress addrMe = CAddress(CService(), nLocalNodeServices);
-
-    connman.PushMessage(
-        &pnode,
-        CNetMsgMaker(INIT_PROTO_VERSION)
-            .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
-                  uint64_t(nLocalNodeServices), nTime, addrYou, addrMe, nonce,
-                  userAgent(config), nNodeStartingHeight,
-                  ::g_relay_txes && pnode.m_tx_relay != nullptr, extraEntropy));
-
-    if (fLogIPs) {
-        LogPrint(BCLog::NET,
-                 "send version message: version %d, blocks=%d, us=%s, them=%s, "
-                 "peer=%d\n",
-                 PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
-                 addrYou.ToString(), nodeid);
-    } else {
-        LogPrint(
-            BCLog::NET,
-            "send version message: version %d, blocks=%d, us=%s, peer=%d\n",
-            PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), nodeid);
-    }
-    LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
-}
-
 // Returns a bool indicating whether we requested this block.
 // Also used if a block was /not/ received and timed out or started with another
 // peer.
@@ -1000,6 +959,47 @@ ComputeRequestTime(const CNode &node,
     return current_time + delay;
 }
 
+void PeerManager::PushNodeVersion(const Config &config, CNode &pnode,
+                                  int64_t nTime) {
+    // Note that pnode.GetLocalServices() is a reflection of the local
+    // services we were offering when the CNode object was created for this
+    // peer.
+    ServiceFlags nLocalNodeServices = pnode.GetLocalServices();
+    uint64_t nonce = pnode.GetLocalNonce();
+    int nNodeStartingHeight = pnode.GetMyStartingHeight();
+    NodeId nodeid = pnode.GetId();
+    CAddress addr = pnode.addr;
+    uint64_t extraEntropy = pnode.GetLocalExtraEntropy();
+
+    CAddress addrYou =
+        addr.IsRoutable() && !IsProxy(addr) && addr.IsAddrV1Compatible()
+            ? addr
+            : CAddress(CService(), addr.nServices);
+    CAddress addrMe = CAddress(CService(), nLocalNodeServices);
+
+    m_connman.PushMessage(
+        &pnode, CNetMsgMaker(INIT_PROTO_VERSION)
+                    .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
+                          uint64_t(nLocalNodeServices), nTime, addrYou, addrMe,
+                          nonce, userAgent(config), nNodeStartingHeight,
+                          !m_ignore_incoming_txs && pnode.m_tx_relay != nullptr,
+                          extraEntropy));
+
+    if (fLogIPs) {
+        LogPrint(BCLog::NET,
+                 "send version message: version %d, blocks=%d, us=%s, them=%s, "
+                 "peer=%d\n",
+                 PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
+                 addrYou.ToString(), nodeid);
+    } else {
+        LogPrint(
+            BCLog::NET,
+            "send version message: version %d, blocks=%d, us=%s, peer=%d\n",
+            PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), nodeid);
+    }
+    LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
+}
+
 void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
                                     std::chrono::microseconds current_time) {
     // For m_txrequest and state
@@ -1062,7 +1062,7 @@ void PeerManager::InitializeNode(const Config &config, CNode *pnode) {
         m_peer_map.emplace_hint(m_peer_map.end(), nodeid, std::move(peer));
     }
     if (!pnode->IsInboundConn()) {
-        PushNodeVersion(config, *pnode, m_connman, GetTime());
+        PushNodeVersion(config, *pnode, GetTime());
     }
 }
 
@@ -1506,9 +1506,11 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
 
 PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
                          BanMan *banman, CScheduler &scheduler,
-                         ChainstateManager &chainman, CTxMemPool &pool)
+                         ChainstateManager &chainman, CTxMemPool &pool,
+                         bool ignore_incoming_txs)
     : m_chainparams(chainparams), m_connman(connman), m_banman(banman),
-      m_chainman(chainman), m_mempool(pool), m_stale_tip_check_time(0) {
+      m_chainman(chainman), m_mempool(pool), m_stale_tip_check_time(0),
+      m_ignore_incoming_txs(ignore_incoming_txs) {
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
@@ -3004,9 +3006,10 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             SeenLocal(addrMe);
         }
 
-        // Be shy and don't send version until we hear
+        // Inbound peers send us their version message when they connect.
+        // We send our version message in response.
         if (pfrom.IsInboundConn()) {
-            PushNodeVersion(config, pfrom, m_connman, GetAdjustedTime());
+            PushNodeVersion(config, pfrom, GetAdjustedTime());
         }
 
         // Change version
@@ -3330,7 +3333,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         // We won't accept tx inv's if we're in blocks-only mode, or this is a
         // block-relay-only peer
-        bool fBlocksOnly = !g_relay_txes || (pfrom.m_tx_relay == nullptr);
+        bool fBlocksOnly =
+            m_ignore_incoming_txs || (pfrom.m_tx_relay == nullptr);
 
         // Allow peers with relay permission to send data other than blocks
         // in blocks only mode
@@ -3688,7 +3692,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         // Stop processing the transaction early if
         // 1) We are in blocks only mode and peer has no relay permission
         // 2) This peer is a block-relay-only peer
-        if ((!g_relay_txes && !pfrom.HasPermission(PF_RELAY)) ||
+        if ((m_ignore_incoming_txs && !pfrom.HasPermission(PF_RELAY)) ||
             (pfrom.m_tx_relay == nullptr)) {
             LogPrint(BCLog::NET,
                      "transaction sent in violation of protocol peer=%d\n",

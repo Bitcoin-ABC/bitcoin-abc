@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
-        *m_node.chainman, *m_node.mempool);
+        *m_node.chainman, *m_node.mempool, false);
 
     // Mock an outbound peer
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
-        *m_node.chainman, *m_node.mempool);
+        *m_node.chainman, *m_node.mempool, false);
 
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, banman.get(), *m_node.scheduler,
-        *m_node.chainman, *m_node.mempool);
+        *m_node.chainman, *m_node.mempool, false);
 
     banman->ClearBanned();
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -297,7 +297,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     auto peerLogic = std::make_unique<PeerManager>(
         config.GetChainParams(), *connman, banman.get(), *m_node.scheduler,
-        *m_node.chainman, *m_node.mempool);
+        *m_node.chainman, *m_node.mempool, false);
 
     banman->ClearBanned();
     int64_t nStartTime = GetTime();

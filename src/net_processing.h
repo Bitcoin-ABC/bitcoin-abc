@@ -123,7 +123,8 @@ class PeerManager final : public CValidationInterface,
 public:
     PeerManager(const CChainParams &chainparams, CConnman &connman,
                 BanMan *banman, CScheduler &scheduler,
-                ChainstateManager &chainman, CTxMemPool &pool);
+                ChainstateManager &chainman, CTxMemPool &pool,
+                bool ignore_incoming_txs);
 
     /**
      * Overridden from CValidationInterface.
@@ -203,6 +204,9 @@ public:
 
     /** Get statistics from node state */
     bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
+
+    /** Whether this node ignores txs received over p2p. */
+    bool IgnoresIncomingTxs() { return m_ignore_incoming_txs; };
 
 private:
     /**
@@ -289,6 +293,9 @@ private:
                          std::chrono::microseconds current_time, bool preferred)
         EXCLUSIVE_LOCKS_REQUIRED(cs_proofrequest);
 
+    /** Send a version message to a peer */
+    void PushNodeVersion(const Config &config, CNode &pnode, int64_t nTime);
+
     const CChainParams &m_chainparams;
     CConnman &m_connman;
     /**
@@ -306,6 +313,9 @@ private:
 
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;
+
+    /** Whether this node is running in blocks only mode */
+    const bool m_ignore_incoming_txs;
 
     /**
      * Protects m_peer_map. This mutex must not be locked while holding a lock

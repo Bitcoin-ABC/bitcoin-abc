@@ -85,7 +85,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.connman = std::move(connman);
         m_node.peerman = std::make_unique<::PeerManager>(
             config.GetChainParams(), *m_connman, m_node.banman.get(),
-            *m_node.scheduler, *m_node.chainman, *m_node.mempool);
+            *m_node.scheduler, *m_node.chainman, *m_node.mempool, false);
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // Get the processor ready.

@@ -2355,9 +2355,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.chainman = &g_chainman;
     ChainstateManager &chainman = *Assert(node.chainman);
 
-    node.peerman.reset(new PeerManager(chainparams, *node.connman,
-                                       node.banman.get(), *node.scheduler,
-                                       chainman, *node.mempool));
+    assert(!node.peerman);
+    node.peerman = std::make_unique<PeerManager>(
+        chainparams, *node.connman, node.banman.get(), *node.scheduler,
+        chainman, *node.mempool,
+        args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
     RegisterValidationInterface(node.peerman.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size
@@ -2467,10 +2469,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
-    // see Step 2: parameter interactions for more information about these
     fListen = args.GetBoolArg("-listen", DEFAULT_LISTEN);
     fDiscover = args.GetBoolArg("-discover", true);
-    g_relay_txes = !args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY);
 
     for (const std::string &strAddr : args.GetArgs("-externalip")) {
         CService addrLocal;

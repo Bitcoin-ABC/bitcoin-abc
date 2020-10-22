@@ -211,7 +211,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
     m_node.connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
     m_node.peerman = std::make_unique<PeerManager>(
         chainparams, *m_node.connman, m_node.banman.get(), *m_node.scheduler,
-        *m_node.chainman, *m_node.mempool);
+        *m_node.chainman, *m_node.mempool, false);
     {
         CConnman::Options options;
         options.m_msgproc = m_node.peerman.get();
