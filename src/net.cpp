@@ -2898,19 +2898,21 @@ bool CConnman::Bind(const CService &addr, unsigned int flags,
     return true;
 }
 
-bool CConnman::InitBinds(const std::vector<CService> &binds,
-                         const std::vector<NetWhitebindPermissions> &whiteBinds,
-                         const std::vector<CService> &onion_binds) {
+bool CConnman::InitBinds(const Options &options) {
     bool fBound = false;
-    for (const auto &addrBind : binds) {
+    for (const auto &addrBind : options.vBinds) {
         fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR),
                        NetPermissionFlags::PF_NONE);
     }
-    for (const auto &addrBind : whiteBinds) {
+    for (const auto &addrBind : options.vWhiteBinds) {
         fBound |= Bind(addrBind.m_service, (BF_EXPLICIT | BF_REPORT_ERROR),
                        addrBind.m_flags);
     }
-    if (binds.empty() && whiteBinds.empty()) {
+    for (const auto &addr_bind : options.onion_binds) {
+        fBound |= Bind(addr_bind, BF_EXPLICIT | BF_DONT_ADVERTISE,
+                       NetPermissionFlags::PF_NONE);
+    }
+    if (options.bind_on_any) {
         struct in_addr inaddr_any;
         inaddr_any.s_addr = htonl(INADDR_ANY);
         struct in6_addr inaddr6_any = IN6ADDR_ANY_INIT;
@@ -2920,20 +2922,13 @@ bool CConnman::InitBinds(const std::vector<CService> &binds,
                        !fBound ? BF_REPORT_ERROR : BF_NONE,
                        NetPermissionFlags::PF_NONE);
     }
-
-    for (const auto &addr_bind : onion_binds) {
-        fBound |= Bind(addr_bind, BF_EXPLICIT | BF_DONT_ADVERTISE,
-                       NetPermissionFlags::PF_NONE);
-    }
-
     return fBound;
 }
 
 bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     Init(connOptions);
 
-    if (fListen && !InitBinds(connOptions.vBinds, connOptions.vWhiteBinds,
-                              connOptions.onion_binds)) {
+    if (fListen && !InitBinds(connOptions)) {
         if (clientInterface) {
             clientInterface->ThreadSafeMessageBox(
                 _("Failed to listen on any port. Use -listen=0 if you want "
