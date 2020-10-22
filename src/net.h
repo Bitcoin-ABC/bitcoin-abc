@@ -37,10 +37,6 @@
 #include <thread>
 #include <vector>
 
-#ifndef WIN32
-#include <arpa/inet.h>
-#endif
-
 class BanMan;
 class Config;
 class CNode;

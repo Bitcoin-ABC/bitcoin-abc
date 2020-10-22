@@ -27,13 +27,6 @@
 
 #include <support/events.h>
 
-#ifdef EVENT__HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#ifdef _XOPEN_SOURCE_EXTENDED
-#include <arpa/inet.h>
-#endif
-#endif
-
 #include <sys/stat.h>
 #include <sys/types.h>
 
