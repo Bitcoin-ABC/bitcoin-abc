@@ -39,12 +39,13 @@ Rescan = enum.Enum("Rescan", "no yes late_timestamp")
 
 
 class Variant(collections.namedtuple("Variant", "call data rescan prune")):
-
     """Helper for importing one key and verifying scanned transactions."""
 
     def do_import(self, timestamp):
         """Call one key import RPC."""
         rescan = self.rescan == Rescan.yes
+
+        assert_equal(self.address["solvable"], True)
 
         if self.call == Call.single:
             if self.data == Data.address:
@@ -59,16 +60,24 @@ class Variant(collections.namedtuple("Variant", "call data rescan prune")):
             assert_equal(response, None)
 
         elif self.call in (Call.multiaddress, Call.multiscript):
-            response = self.node.importmulti([{
+            request = {
                 "scriptPubKey": {
                     "address": self.address["address"]
                 } if self.call == Call.multiaddress else self.address["scriptPubKey"],
-                "timestamp": timestamp + TIMESTAMP_WINDOW + (1 if self.rescan == Rescan.late_timestamp else 0),
+                "timestamp": timestamp + TIMESTAMP_WINDOW + (
+                    1 if self.rescan == Rescan.late_timestamp else 0),
                 "pubkeys": [self.address["pubkey"]] if self.data == Data.pub else [],
                 "keys": [self.key] if self.data == Data.priv else [],
                 "label": self.label,
                 "watchonly": self.data != Data.priv
-            }], {"rescan": self.rescan in (Rescan.yes, Rescan.late_timestamp)})
+            }
+            response = self.node.importmulti(
+                requests=[request],
+                options={
+                    "rescan": self.rescan in (
+                        Rescan.yes,
+                        Rescan.late_timestamp)},
+            )
             assert_equal(response, [{"success": True}])
 
     def check(self, txid=None, amount=None, confirmation_height=None):
@@ -146,12 +155,12 @@ class ImportRescanTest(BitcoinTestFramework):
         self.skip_if_no_wallet()
 
     def setup_network(self):
-        extra_args = [[] for _ in range(self.num_nodes)]
+        self.extra_args = [[] for _ in range(self.num_nodes)]
         for i, import_node in enumerate(IMPORT_NODES, 2):
             if import_node.prune:
-                extra_args[i] += ["-prune=1"]
+                self.extra_args[i] += ["-prune=1"]
 
-        self.add_nodes(self.num_nodes, extra_args=extra_args)
+        self.add_nodes(self.num_nodes, extra_args=self.extra_args)
 
         # Import keys with pruning disabled
         self.start_nodes(extra_args=[[]] * self.num_nodes)
@@ -171,7 +180,7 @@ class ImportRescanTest(BitcoinTestFramework):
         for i, variant in enumerate(IMPORT_VARIANTS):
             variant.label = "label {} {}".format(i, variant)
             variant.address = self.nodes[1].getaddressinfo(
-                self.nodes[1].getnewaddress(variant.label))
+                self.nodes[1].getnewaddress(label=variant.label))
             variant.key = self.nodes[1].dumpprivkey(variant.address["address"])
             variant.initial_amount = get_rand_amount()
             variant.initial_txid = self.nodes[0].sendtoaddress(
