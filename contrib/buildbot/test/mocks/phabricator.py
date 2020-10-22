@@ -13,6 +13,14 @@ class Result:
     def __init__(self, data: list):
         self.data = data
 
+    def __getitem__(self, key):
+        return self.response[key]
+
+    __getattr__ = __getitem__
+
+    def __setitem__(self, key, value):
+        self.response[key] = value
+
 
 def instance():
     phab = None

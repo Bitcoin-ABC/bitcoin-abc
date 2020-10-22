@@ -9,7 +9,6 @@ import mock
 import os
 import unittest
 
-from phabricator import Result
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID, BITCOIN_ABC_REPO
 import test.mocks.phabricator
 
@@ -345,8 +344,9 @@ class PhabricatorTests(unittest.TestCase):
 
         # Check the file content can be retrieved
         expected_content = b'Some nice content'
-        self.phab.file.download.return_value = Result(
-            b64encode(expected_content))
+        result = test.mocks.phabricator.Result([])
+        result.response = b64encode(expected_content)
+        self.phab.file.download.return_value = result
         configure_file_content_query()
         file_content = self.phab.get_file_content_from_master(path)
         assert_file_commit_and_file_searched()
