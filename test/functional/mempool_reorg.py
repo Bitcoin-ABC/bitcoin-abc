@@ -43,11 +43,11 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         b = [self.nodes[0].getblockhash(n) for n in range(101, 105)]
         coinbase_txids = [self.nodes[0].getblock(h)['tx'][0] for h in b]
         spend_101_raw = create_raw_transaction(
-            self.nodes[0], coinbase_txids[1], node1_address, 49.99)
+            self.nodes[0], coinbase_txids[1], node1_address, amount=49.99)
         spend_102_raw = create_raw_transaction(
-            self.nodes[0], coinbase_txids[2], node0_address, 49.99)
+            self.nodes[0], coinbase_txids[2], node0_address, amount=49.99)
         spend_103_raw = create_raw_transaction(
-            self.nodes[0], coinbase_txids[3], node0_address, 49.99)
+            self.nodes[0], coinbase_txids[3], node0_address, amount=49.99)
 
         # Create a transaction which is time-locked to two blocks in the future
         timelock_tx = self.nodes[0].createrawtransaction(
@@ -73,9 +73,9 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
 
         # Create 102_1 and 103_1:
         spend_102_1_raw = create_raw_transaction(
-            self.nodes[0], spend_102_id, node1_address, 49.98)
+            self.nodes[0], spend_102_id, node1_address, amount=49.98)
         spend_103_1_raw = create_raw_transaction(
-            self.nodes[0], spend_103_id, node1_address, 49.98)
+            self.nodes[0], spend_103_id, node1_address, amount=49.98)
 
         # Broadcast and mine 103_1:
         spend_103_1_id = self.nodes[0].sendrawtransaction(spend_103_1_raw)

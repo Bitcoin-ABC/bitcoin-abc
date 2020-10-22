@@ -79,7 +79,7 @@ def create_fund_and_activation_specific_spending_tx(spend, pre_fork_only):
     # Fund transaction
     script = CScript([public_key, OP_CHECKSIG])
     txfund = create_tx_with_script(
-        spend.tx, spend.n, b'', 50 * COIN, script)
+        spend.tx, spend.n, b'', amount=50 * COIN, script_pub_key=script)
     txfund.rehash()
 
     # Activation specific spending tx
@@ -207,7 +207,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # spendable output for further chaining.
         def create_always_valid_chained_tx(spend):
             tx = create_tx_with_script(
-                spend.tx, spend.n, b'', spend.tx.vout[0].nValue - 1000, CScript([OP_TRUE]))
+                spend.tx, spend.n, b'', amount=spend.tx.vout[0].nValue - 1000, script_pub_key=CScript([OP_TRUE]))
             tx.rehash()
             return tx, PreviousSpendableOutput(tx, 0)
 

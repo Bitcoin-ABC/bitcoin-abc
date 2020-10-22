@@ -155,7 +155,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             # Fund transaction
             script = CScript([public_key, OP_CHECKSIG])
             txfund = create_tx_with_script(
-                spend.tx, spend.n, b'', 50 * COIN - 1000, script)
+                spend.tx, spend.n, b'', amount=50 * COIN - 1000, script_pub_key=script)
             txfund.rehash()
 
             # Spend transaction

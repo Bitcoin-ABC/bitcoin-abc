@@ -93,8 +93,8 @@ def create_coinbase(height, pubkey=None):
     return coinbase
 
 
-def create_tx_with_script(prevtx, n, script_sig=b"",
-                          amount=1, script_pub_key=CScript()):
+def create_tx_with_script(prevtx, n, script_sig=b"", *,
+                          amount, script_pub_key=CScript()):
     """Return one-input, one-output transaction object
        spending the prevtx's n-th output with the given amount.
 
@@ -109,26 +109,25 @@ def create_tx_with_script(prevtx, n, script_sig=b"",
     return tx
 
 
-def create_transaction(node, txid, to_address, amount):
+def create_transaction(node, txid, to_address, *, amount):
     """ Return signed transaction spending the first output of the
         input txid. Note that the node must be able to sign for the
         output that is being spent, and the node must not be running
         multiple wallets.
     """
-    raw_tx = create_raw_transaction(node, txid, to_address, amount)
+    raw_tx = create_raw_transaction(node, txid, to_address, amount=amount)
     tx = FromHex(CTransaction(), raw_tx)
     return tx
 
 
-def create_raw_transaction(node, txid, to_address, amount):
+def create_raw_transaction(node, txid, to_address, *, amount):
     """ Return raw signed transaction spending the first output of the
         input txid. Note that the node must be able to sign for the
         output that is being spent, and the node must not be running
         multiple wallets.
     """
-    inputs = [{"txid": txid, "vout": 0}]
-    outputs = {to_address: amount}
-    rawtx = node.createrawtransaction(inputs, outputs)
+    rawtx = node.createrawtransaction(
+        inputs=[{"txid": txid, "vout": 0}], outputs={to_address: amount})
     signresult = node.signrawtransactionwithwallet(rawtx)
     assert_equal(signresult["complete"], True)
     return signresult['hex']

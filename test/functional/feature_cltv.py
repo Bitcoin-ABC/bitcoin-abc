@@ -102,7 +102,7 @@ class BIP65Test(BitcoinTestFramework):
             "Test that an invalid-according-to-CLTV transaction can still appear in a block")
 
         fundtx = create_transaction(self.nodes[0], self.coinbase_txids[0],
-                                    self.nodeaddress, 49.99)
+                                    self.nodeaddress, amount=49.99)
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98)
 
@@ -139,7 +139,7 @@ class BIP65Test(BitcoinTestFramework):
         block.nVersion = 4
 
         fundtx = create_transaction(self.nodes[0], self.coinbase_txids[1],
-                                    self.nodeaddress, 49.99)
+                                    self.nodeaddress, amount=49.99)
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98)
 
@@ -189,7 +189,7 @@ class BIP65Test(BitcoinTestFramework):
         self.log.info(
             "Test that a version 4 block with a valid-according-to-CLTV transaction is accepted")
         fundtx = create_transaction(self.nodes[0], self.coinbase_txids[2],
-                                    self.nodeaddress, 49.99)
+                                    self.nodeaddress, amount=49.99)
         fundtx, spendtx = cltv_lock_to_height(
             self.nodes[0], fundtx, self.nodeaddress, 49.98, CLTV_HEIGHT)
 

@@ -92,7 +92,7 @@ def get_csv_status(node):
     return height >= 576
 
 
-def create_transaction(node, txid, to_address, amount):
+def create_transaction(node, txid, to_address, *, amount):
     inputs = [{"txid": txid, "vout": 0}]
     outputs = {to_address: amount}
     rawtx = node.createrawtransaction(inputs, outputs)
@@ -109,7 +109,7 @@ def sign_transaction(node, unsignedtx):
 
 def spend_tx(node, prev_tx, address):
     spendtx = create_transaction(
-        node, prev_tx.hash, address, (prev_tx.vout[0].nValue - 1000) / COIN)
+        node, prev_tx.hash, address, amount=(prev_tx.vout[0].nValue - 1000) / COIN)
     spendtx.nVersion = prev_tx.nVersion
     pad_tx(spendtx)
     spendtx.rehash()
@@ -118,7 +118,7 @@ def spend_tx(node, prev_tx, address):
 
 def create_bip112special(node, input, txversion, address):
     tx = create_transaction(
-        node, input, address, Decimal("49.98"))
+        node, input, address, amount=Decimal("49.98"))
     tx.nVersion = txversion
     tx.vout[0].scriptPubKey = CScript(
         [-1, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_TRUE])
@@ -130,9 +130,8 @@ def create_bip112special(node, input, txversion, address):
 
 
 def send_generic_input_tx(node, coinbases, address):
-    amount = Decimal("49.99")
     return node.sendrawtransaction(ToHex(sign_transaction(node, create_transaction(
-        node, node.getblock(coinbases.pop())['tx'][0], address, amount))))
+        node, node.getblock(coinbases.pop())['tx'][0], address, amount=Decimal("49.99")))))
 
 
 def create_bip68txs(node, bip68inputs, txversion, address, locktime_delta=0):
@@ -142,7 +141,7 @@ def create_bip68txs(node, bip68inputs, txversion, address, locktime_delta=0):
     for i, (sdf, srhb, stf, srlb) in enumerate(product(*[[True, False]] * 4)):
         locktime = relative_locktime(sdf, srhb, stf, srlb)
         tx = create_transaction(
-            node, bip68inputs[i], address, Decimal("49.98"))
+            node, bip68inputs[i], address, amount=Decimal("49.98"))
         tx.nVersion = txversion
         tx.vin[0].nSequence = locktime + locktime_delta
         tx = sign_transaction(node, tx)
@@ -160,7 +159,7 @@ def create_bip112txs(node, bip112inputs, varyOP_CSV,
     for i, (sdf, srhb, stf, srlb) in enumerate(product(*[[True, False]] * 4)):
         locktime = relative_locktime(sdf, srhb, stf, srlb)
         tx = create_transaction(
-            node, bip112inputs[i], address, Decimal("49.98"))
+            node, bip112inputs[i], address, amount=Decimal("49.98"))
         if (varyOP_CSV):  # if varying OP_CSV, nSequence is fixed
             tx.vin[0].nSequence = BASE_RELATIVE_LOCKTIME + locktime_delta
         else:  # vary nSequence instead, OP_CSV is fixed
@@ -323,11 +322,11 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # BIP113 test transaction will be modified before each use to
         # put in appropriate block time
         bip113tx_v1 = create_transaction(
-            self.nodes[0], bip113input, self.nodeaddress, Decimal("49.98"))
+            self.nodes[0], bip113input, self.nodeaddress, amount=Decimal("49.98"))
         bip113tx_v1.vin[0].nSequence = 0xFFFFFFFE
         bip113tx_v1.nVersion = 1
         bip113tx_v2 = create_transaction(
-            self.nodes[0], bip113input, self.nodeaddress, Decimal("49.98"))
+            self.nodes[0], bip113input, self.nodeaddress, amount=Decimal("49.98"))
         bip113tx_v2.vin[0].nSequence = 0xFFFFFFFE
         bip113tx_v2.nVersion = 2
 
