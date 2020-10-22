@@ -6,6 +6,12 @@ Bitcoin ABC version 0.22.5 is now available from:
 
 This release includes the following features and fixes:
 - The `-upgradewallet` command line flag has been replaced in favor of the `upgradewallet` RPC.
+- Fixed a bug where minimizing to the taskbar would not work properly when the
+  `-min` option was set on `bitcoin-qt`.
+- Minimum supported Qt version has been bumped to `5.9.5`
+- Fixed a bug where concurrent calls to the `walletpassphrase` RPC could deadlock.
+- Minor logging improvements.
+- Improved performance of verifying elliptic curve signatures.
 
 Updated RPCs
 ------------
