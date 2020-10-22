@@ -255,8 +255,8 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
 }
 
 void SignTransaction(CMutableTransaction &mtx, const SigningProvider *keystore,
-                     std::map<COutPoint, Coin> &coins, const UniValue &hashType,
-                     UniValue &result) {
+                     const std::map<COutPoint, Coin> &coins,
+                     const UniValue &hashType, UniValue &result) {
     SigHashType sigHashType = ParseSighashString(hashType);
     if (!sigHashType.hasForkId()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
