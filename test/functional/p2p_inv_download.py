@@ -297,8 +297,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
             int(time.time()) + context.constants.getdata_interval + 1
         )
         peer_fallback.wait_until(lambda: peer_fallback.getdata_count >= 1)
-        with p2p_lock:
-            assert_equal(peer_fallback.getdata_count, 1)
         # reset mocktime
         self.restart_node(0)
 
@@ -318,8 +316,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer_disconnect.peer_disconnect()
         peer_disconnect.wait_for_disconnect()
         peer_fallback.wait_until(lambda: peer_fallback.getdata_count >= 1)
-        with p2p_lock:
-            assert_equal(peer_fallback.getdata_count, 1)
 
     def test_notfound_fallback(self, context):
         self.log.info(
@@ -339,8 +335,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # Send notfound, so that fallback peer is selected
         peer_notfound.send_and_ping(msg_notfound(vec=[CInv(context.inv_type, 0xFFDD)]))
         peer_fallback.wait_until(lambda: peer_fallback.getdata_count >= 1)
-        with p2p_lock:
-            assert_equal(peer_fallback.getdata_count, 1)
 
     def test_preferred_inv(self, context, preferred=False):
         if preferred:
@@ -405,8 +399,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
         )
         peer.wait_until(lambda: peer.getdata_count == max_peer_announcements)
         peer.sync_with_ping()
-        with p2p_lock:
-            assert_equal(peer.getdata_count, max_peer_announcements)
 
     def test_spurious_notfound(self, context):
         self.log.info("Check that spurious notfound is ignored")
