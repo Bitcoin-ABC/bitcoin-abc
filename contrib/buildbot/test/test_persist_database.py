@@ -20,9 +20,6 @@ from test.test_endpoint_build import buildRequestQuery
 from test.test_endpoint_status import statusRequestData
 
 
-DB_FILE_NO_EXT = "test_database"
-DB_FILE = DB_FILE_NO_EXT + '.db'
-
 BUILD_NAME = 'build-name'
 BUILD_TYPE_ID = 'build-type-id'
 BUILD_TARGET_PHID = 'build-target-PHID'
@@ -30,7 +27,8 @@ BUILD_TARGET_PHID = 'build-target-PHID'
 
 class PersistDataTestCase(ABCBotFixture):
     def setUp(self):
-        self.db_file_no_ext = DB_FILE_NO_EXT
+        self.db_file_no_ext = os.path.join(
+            self.test_output_dir, "test_database")
         super().setUp()
 
         self.phab.get_file_content_from_master = mock.Mock()
@@ -49,10 +47,6 @@ class PersistDataTestCase(ABCBotFixture):
         self.travis.get_branch_status = mock.Mock()
         self.travis.get_branch_status.return_value = BuildStatus.Success
 
-    def tearDown(self):
-        if os.path.exists(DB_FILE):
-            os.remove(DB_FILE)
-
     def test_persist_diff_targets(self):
         queryData = buildRequestQuery()
         queryData.abcBuildName = BUILD_NAME
@@ -69,8 +63,7 @@ class PersistDataTestCase(ABCBotFixture):
         self.assertEqual(response.status_code, 200)
 
         # Check the diff target state was persisted
-        self.assertTrue(os.path.exists(DB_FILE))
-        with shelve.open(DB_FILE_NO_EXT, flag='r') as db:
+        with shelve.open(self.db_file_no_ext, flag='r') as db:
             self.assertIn('diff_targets', db)
             self.assertIn(BUILD_TARGET_PHID, db['diff_targets'])
             self.assertIn(
@@ -93,7 +86,7 @@ class PersistDataTestCase(ABCBotFixture):
             self.phab,
             self.slackbot,
             self.travis,
-            db_file_no_ext=DB_FILE_NO_EXT,
+            db_file_no_ext=self.db_file_no_ext,
             jsonEncoder=test.mocks.fixture.MockJSONEncoder).test_client()
 
         data = statusRequestData()
@@ -123,7 +116,7 @@ class PersistDataTestCase(ABCBotFixture):
         )
 
         # Check the diff target was cleared from persisted state
-        with shelve.open(DB_FILE_NO_EXT, flag='r') as db:
+        with shelve.open(self.db_file_no_ext, flag='r') as db:
             self.assertNotIn(BUILD_TARGET_PHID, db['diff_targets'])
 
 

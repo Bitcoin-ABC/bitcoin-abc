@@ -71,19 +71,18 @@ def create_server(tc, phab, slackbot, travis,
 
     # If db_file_no_ext is not None, attempt to restore old database state
     if db_file_no_ext:
-        db_file = db_file_no_ext + '.db'
-        app.logger.info("Loading persisted state file '{}'...".format(db_file))
-        if os.path.exists(db_file):
+        app.logger.info(
+            "Loading persisted state database with base name '{}'...".format(db_file_no_ext))
+        try:
             with shelve.open(db_file_no_ext, flag='r') as db:
                 for key in create_server.db.keys():
                     if key in db:
                         create_server.db[key] = db[key]
                         app.logger.info(
-                            "Restored key '{}' from persisted state in file '{}'".format(
-                                key, db_file))
-        else:
+                            "Restored key '{}' from persisted state".format(key))
+        except BaseException:
             app.logger.info(
-                "Persisted state file '{}' does not exist. It will be created when written to.".format(db_file))
+                "Persisted state database with base name '{}' could not be opened. A new one will be created when written to.".format(db_file_no_ext))
         app.logger.info("Done")
     else:
         app.logger.warning(

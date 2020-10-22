@@ -11,6 +11,7 @@ import hmac
 import os
 from pathlib import Path
 import server
+import shutil
 import unittest
 
 import test.mocks.fixture
@@ -38,9 +39,13 @@ class ABCBotFixture(unittest.TestCase):
             TEST_USER, TEST_PASSWORD).encode()).decode('utf-8')
         self.headers = {'Authorization': 'Basic ' + self.credentials}
 
+        self.test_output_dir = os.path.join(
+            os.path.dirname(__file__), "test_output")
         self.db_file_no_ext = None
 
     def setUp(self):
+        shutil.rmtree(self.test_output_dir, ignore_errors=True)
+        os.makedirs(self.test_output_dir, exist_ok=True)
         self.phab = test.mocks.phabricator.instance()
         self.slackbot = test.mocks.slackbot.instance()
         self.teamcity = test.mocks.teamcity.instance()
