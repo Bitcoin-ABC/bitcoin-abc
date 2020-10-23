@@ -3676,7 +3676,7 @@ void PeerManagerImpl::ProcessMessage(
             //
             // This moves an address from New to Tried table in Addrman,
             // resolves tried-table collisions, etc.
-            m_connman.MarkAddressGood(pfrom.addr);
+            m_addrman.Good(pfrom.addr);
         }
 
         std::string remoteAddr;

@@ -1055,7 +1055,6 @@ public:
     };
 
     // Addrman functions
-    void MarkAddressGood(const CAddress &addr);
     bool AddNewAddresses(const std::vector<CAddress> &vAddr,
                          const CAddress &addrFrom, int64_t nTimePenalty = 0);
     /**
