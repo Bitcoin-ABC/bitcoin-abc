@@ -10,7 +10,7 @@ import os
 
 from build import BuildStatus
 from constants import Deployment
-from phabricator import Phabricator
+from python_phabricator.phabricator import Phabricator
 
 
 BUILDNAME_IGNORE_KEYWORD = "__BOTIGNORE"
