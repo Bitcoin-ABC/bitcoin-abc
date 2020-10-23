@@ -75,7 +75,6 @@ exclude_from_source_package(
 
 	# Files
 	"[^.]+[.]md$"
-	"Dockerfile-doxygen"
 )
 
 option(ENABLE_COVERAGE "Enable coverage" OFF)
