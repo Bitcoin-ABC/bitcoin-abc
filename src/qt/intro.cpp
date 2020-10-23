@@ -153,6 +153,7 @@ Intro::Intro(QWidget *parent, uint64_t blockchain_size,
             .arg(PACKAGE_NAME) +
         " " + storageRequiresMsg.arg(requiredSpace) + " " +
         tr("The wallet will also be stored in this directory."));
+    this->adjustSize();
     startThread();
 }
 
