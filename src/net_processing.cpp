@@ -484,8 +484,7 @@ public:
 
     /** Implement NetEventsInterface */
     void InitializeNode(const Config &config, CNode *pnode) override;
-    void FinalizeNode(const Config &config, const CNode &node,
-                      bool &fUpdateConnectionTime) override;
+    void FinalizeNode(const Config &config, const CNode &node) override;
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override;
     bool SendMessages(const Config &config, CNode *pto) override
@@ -1791,13 +1790,11 @@ scheduleLater:
                               avalanchePeriodicNetworkingInterval);
 }
 
-void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
-                                   bool &fUpdateConnectionTime) {
+void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
     NodeId nodeid = node.GetId();
-    fUpdateConnectionTime = false;
+    int misbehavior{0};
     {
         LOCK(cs_main);
-        int misbehavior{0};
         {
             // We remove the PeerRef from g_peer_map here, but we don't always
             // destruct the Peer. Sometimes another thread is still holding a
@@ -1816,12 +1813,6 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
 
         if (state->fSyncStarted) {
             nSyncStarted--;
-        }
-
-        if (node.fSuccessfullyConnected && misbehavior == 0 &&
-            !node.IsBlockOnlyConn() && !node.IsInboundConn()) {
-            // Only change visible addrman state for outbound, full-relay peers
-            fUpdateConnectionTime = true;
         }
 
         for (const QueuedBlock &entry : state->vBlocksInFlight) {
@@ -1847,6 +1838,14 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
             assert(m_txrequest.Size() == 0);
         }
+    }
+
+    if (node.fSuccessfullyConnected && misbehavior == 0 &&
+        !node.IsBlockOnlyConn() && !node.IsInboundConn()) {
+        // Only change visible addrman state for full outbound peers. We don't
+        // call Connected() for feeler connections since they don't have
+        // fSuccessfullyConnected set.
+        m_addrman.Connected(node.addr);
     }
 
     WITH_LOCK(cs_proofrequest, m_proofrequest.DisconnectedPeer(nodeid));

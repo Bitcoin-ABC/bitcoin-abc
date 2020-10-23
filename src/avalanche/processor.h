@@ -243,8 +243,7 @@ public:
     }
 
     /** Handle removal of a node */
-    void FinalizeNode(const ::Config &config, const CNode &node,
-                      bool &update_connection_time) override;
+    void FinalizeNode(const ::Config &config, const CNode &node) override;
 
 private:
     void runEventLoop();

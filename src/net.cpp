@@ -3171,12 +3171,8 @@ void CConnman::StopNodes() {
 
 void CConnman::DeleteNode(CNode *pnode) {
     assert(pnode);
-    bool fUpdateConnectionTime = false;
     for (auto interface : m_msgproc) {
-        interface->FinalizeNode(*config, *pnode, fUpdateConnectionTime);
-    }
-    if (fUpdateConnectionTime) {
-        addrman.Connected(pnode->addr);
+        interface->FinalizeNode(*config, *pnode);
     }
     delete pnode;
 }

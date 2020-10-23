@@ -774,8 +774,7 @@ bool Processor::isQuorumEstablished() {
     return true;
 }
 
-void Processor::FinalizeNode(const ::Config &config, const CNode &node,
-                             bool &update_connection_time) {
+void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     WITH_LOCK(cs_peerManager, peerManager->removeNode(node.GetId()));
 }
 
