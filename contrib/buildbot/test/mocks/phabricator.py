@@ -55,6 +55,7 @@ def instance():
     phab.project.search.return_value = Result([])
 
     phab.token = mock.Mock()
+    phab.token.given.return_value = []
 
     phab.transaction = mock.Mock()
     phab.transaction.search.return_value = Result([])

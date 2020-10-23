@@ -4,6 +4,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import itertools
 import mock
 import unittest
 from unittest.mock import call
@@ -319,6 +320,118 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "build-3",
             ]
         )
+
+    def test_triggerCI_check_user_roles(self):
+        user_PHID = "PHID-USER-notabc"
+
+        # No build triggered, exit status OK
+        def check_build_triggered(expect_trigger):
+            self.teamcity.trigger_build.reset_mock()
+            self.set_transaction_return_value(["@bot build-1"], user_PHID)
+            response = self.call_endpoint()
+            self.phab.user.search.assert_called_with(
+                constraints={
+                    "phids": [user_PHID],
+                }
+            )
+            if not expect_trigger:
+                self.teamcity.trigger_build.assert_not_called()
+            else:
+                self.teamcity.trigger_build.assert_called_once_with(
+                    "BitcoinABC_BitcoinAbcStaging",
+                    "refs/tags/phabricator/diff/{}".format(self.diff_id),
+                    properties=[{
+                        'name': 'env.ABC_BUILD_NAME',
+                        'value': "build-1",
+                    }]
+                )
+            self.assertEqual(response.status_code, 200)
+
+        def set_user_roles(roles):
+            self.phab.user.search.return_value = test.mocks.phabricator.Result([
+                {
+                    "id": 1,
+                    "type": "USER",
+                    "phid": user_PHID,
+                    "fields": {
+                        "roles": roles,
+                    },
+                },
+            ])
+
+        roles = [
+            "verified",
+            "approved",
+            "activated",
+        ]
+
+        # No role, no chocolate
+        set_user_roles([])
+        check_build_triggered(False)
+
+        # Single role from the required list
+        for role in roles:
+            set_user_roles([role])
+            check_build_triggered(False)
+
+        # 2 roles out of 3
+        for role_combination in itertools.combinations(roles, 2):
+            set_user_roles(list(role_combination))
+            check_build_triggered(False)
+
+        # With all roles the build should be called...
+        set_user_roles(roles)
+        check_build_triggered(True)
+
+        permissive_tokens = [
+            "",
+            "PHID-TOKN-coin-1",
+            "PHID-TOKN-coin-2",
+            "PHID-TOKN-coin-3",
+        ]
+        restrictive_tokens = [
+            "PHID-TOKN-coin-4",
+            "PHID-TOKN-like-1",
+            "PHID-TOKN-heart-1",
+        ]
+
+        # ...until some token is awarded...
+        for token_PHID in permissive_tokens:
+            self.phab.token.given.return_value = [{"tokenPHID": token_PHID}]
+            check_build_triggered(True)
+
+        # ...then the build is denied
+        for token_PHID in restrictive_tokens:
+            self.phab.token.given.return_value = [{"tokenPHID": token_PHID}]
+            check_build_triggered(False)
+
+        # If the token is not one from the expected list, the request is denied
+        self.phab.token.given.return_value = [{"tokenPHID": "PHID-TOKN-dummy"}]
+        check_build_triggered(False)
+
+    def test_triggerCI_token_auctions(self):
+        self.set_transaction_return_value(["@bot build-1 build-2"])
+
+        tokens = [
+            "",
+            "PHID-TOKN-coin-1",
+            "PHID-TOKN-coin-2",
+            "PHID-TOKN-coin-3",
+            "PHID-TOKN-coin-4",
+            "PHID-TOKN-like-1",
+            "PHID-TOKN-heart-1",
+            "PHID-TOKN-like-1",
+            "PHID-TOKN-heart-1",
+        ]
+
+        for i in range(len(tokens) - 1):
+            self.phab.token.given.return_value = [{"tokenPHID": tokens[i]}]
+            self.call_endpoint()
+            self.phab.token.give.assert_called_once_with(
+                objectPHID=self.revision_PHID,
+                tokenPHID=tokens[i + 1],
+            )
+            self.phab.token.give.reset_mock()
 
 
 if __name__ == '__main__':

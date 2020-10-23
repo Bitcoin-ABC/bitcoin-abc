@@ -373,12 +373,6 @@ def create_server(tc, phab, slackbot, travis,
         if not comments:
             return SUCCESS, 200
 
-        # In order to prevent DoS, only ABC members are allowed to call the bot
-        # to trigger builds.
-        # FIXME implement a better anti DoS filter.
-        abc_members = phab.get_project_members(BITCOIN_ABC_PROJECT_PHID)
-        comments = [c for c in comments if c["authorPHID"] in abc_members]
-
         # Check if there is a specially crafted comment that should trigger a
         # CI build. Format:
         # @bot <build_name> [build_name ...]
@@ -389,14 +383,79 @@ def create_server(tc, phab, slackbot, travis,
             # Escape to prevent shell injection and remove duplicates
             return [quote(token) for token in list(set(tokens))]
 
+        def next_token(current_token):
+            next_token = {
+                "": "PHID-TOKN-coin-1",
+                "PHID-TOKN-coin-1": "PHID-TOKN-coin-2",
+                "PHID-TOKN-coin-2": "PHID-TOKN-coin-3",
+                "PHID-TOKN-coin-3": "PHID-TOKN-coin-4",
+                "PHID-TOKN-coin-4": "PHID-TOKN-like-1",
+                "PHID-TOKN-like-1": "PHID-TOKN-heart-1",
+                "PHID-TOKN-heart-1": "PHID-TOKN-like-1",
+            }
+            return next_token[current_token] if current_token in next_token else "PHID-TOKN-like-1"
+
+        def is_user_allowed_to_trigger_builds(user_PHID, current_token):
+            if current_token not in [
+                    "", "PHID-TOKN-coin-1", "PHID-TOKN-coin-2", "PHID-TOKN-coin-3"]:
+                return False
+
+            return all(role in phab.get_user_roles(user_PHID) for role in [
+                "verified",
+                "approved",
+                "activated",
+            ])
+
+        # Anti DoS filter
+        #
+        # Users are allowed to trigger builds if these conditions are met:
+        #  - It is an ABC member
+        #  OR
+        #  | - It is a "verified", "approved" and  "activated" user
+        #  | AND
+        #  | - The maximum number of requests for this revision has not been
+        #  |   reached yet.
+        #
+        # The number of requests is tracked by awarding a coin token to the
+        # revision each time a build request is submitted (the number of build
+        # in that request is not taken into account).
+        # The awarded coin token is graduated as follow:
+        #  "Haypence" => "Piece of Eight" => "Dubloon" => "Mountain of Wealth".
+        # If the "Mountain of Wealth" token is reached, the next request will be
+        # refused by the bot. At this stage only ABC members will be able to
+        # trigger new builds.
+        abc_members = phab.get_project_members(BITCOIN_ABC_PROJECT_PHID)
+        current_token = phab.get_object_token(revision_PHID)
+
         builds = []
         for comment in comments:
-            builds += get_builds_from_comment(comment["content"]["raw"])
+            comment_builds = get_builds_from_comment(comment["content"]["raw"])
+
+            # Parsing the string is cheaper than phabricator requests, so check
+            # if the comment is for us prior to filtering on the user.
+            if not comment_builds:
+                continue
+
+            user = comment["authorPHID"]
+
+            # ABC members can always trigger builds
+            if user in abc_members:
+                builds += comment_builds
+                continue
+
+            if is_user_allowed_to_trigger_builds(user, current_token):
+                builds += comment_builds
+
         # If there is no build provided, this request is not what we are after,
         # just return.
         # TODO return an help command to explain how to use the bot.
         if not builds:
             return SUCCESS, 200
+
+        # Give (only positive) feedback to user. If several comments are part of
+        # the same transaction then there is no way to differentiate what the
+        # token is for; however this is very unlikely to happen in real life.
+        phab.set_object_token(revision_PHID, next_token(current_token))
 
         staging_ref = phab.get_latest_diff_staging_ref(revision_PHID)
         # Trigger the requested builds
