@@ -78,6 +78,4 @@ test/cache/*
 
 !src/leveldb*/Makefile
 
-/doc/doxygen/
-
 contrib/devtools/split-debug.sh

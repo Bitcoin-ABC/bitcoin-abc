@@ -201,8 +201,7 @@ but if possible use one of the above styles.
 
 To build doxygen locally to test changes to the Doxyfile or visualize your comments before landing changes:
 ```
-# In the build directory, call:
-doxygen doc/Doxyfile
+ninja doc-doxygen
 # output goes to doc/doxygen/html/
 ```
 

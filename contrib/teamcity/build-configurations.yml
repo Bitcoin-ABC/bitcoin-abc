@@ -122,6 +122,7 @@ builds:
   build-docs:
     targets:
       - - doc-rpc
+        - doc-doxygen
     post_build: |
       xvfb-run -a -e /dev/stderr ninja install-manpages-html
     timeout: 600

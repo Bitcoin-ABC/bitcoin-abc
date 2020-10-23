@@ -18,6 +18,7 @@ PACKAGES=(
   curl
   default-jdk
   devscripts
+  doxygen
   dput
   flake8
   g++-aarch64-linux-gnu
@@ -27,6 +28,7 @@ PACKAGES=(
   golang
   g++-mingw-w64
   gnupg
+  graphviz
   gperf
   help2man
   imagemagick
