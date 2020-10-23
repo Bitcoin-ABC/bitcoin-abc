@@ -43,6 +43,11 @@
 // How often to dump addresses to peers.dat
 static constexpr std::chrono::minutes DUMP_PEERS_INTERVAL{15};
 
+/**
+ * Number of DNS seeds to query when the number of connections is low.
+ */
+static constexpr int DNSSEEDS_TO_QUERY_AT_ONCE = 3;
+
 // We add a random period time (0 to 1 seconds) to feeler connections to prevent
 // synchronization.
 #define FEELER_SLEEP_WINDOW 1
@@ -1673,39 +1678,47 @@ void StopMapPort() {
 #endif
 
 void CConnman::ThreadDNSAddressSeed() {
-    // goal: only query DNS seeds if address need is acute.
-    // Avoiding DNS seeds when we don't need them improves user privacy by
-    // creating fewer identifying DNS requests, reduces trust by giving seeds
-    // less influence on the network topology, and reduces traffic to the seeds.
-    if ((addrman.size() > 0) &&
-        (!gArgs.GetBoolArg("-forcednsseed", DEFAULT_FORCEDNSSEED))) {
-        if (!interruptNet.sleep_for(std::chrono::seconds(11))) {
-            return;
-        }
-
-        LOCK(cs_vNodes);
-        int nRelevant = 0;
-        for (const CNode *pnode : vNodes) {
-            nRelevant += pnode->fSuccessfullyConnected && !pnode->fFeeler &&
-                         !pnode->fOneShot && !pnode->m_manual_connection &&
-                         !pnode->fInbound;
-        }
-        if (nRelevant >= 2) {
-            LogPrintf("P2P peers available. Skipped DNS seeding.\n");
-            return;
-        }
-    }
-
-    const std::vector<std::string> &vSeeds =
-        config->GetChainParams().DNSSeeds();
+    FastRandomContext rng;
+    std::vector<std::string> seeds = config->GetChainParams().DNSSeeds();
+    Shuffle(seeds.begin(), seeds.end(), rng);
+    // Number of seeds left before testing if we have enough connections
+    int seeds_right_now = 0;
     int found = 0;
 
-    LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
+    if (gArgs.GetBoolArg("-forcednsseed", DEFAULT_FORCEDNSSEED)) {
+        // When -forcednsseed is provided, query all.
+        seeds_right_now = seeds.size();
+    }
 
-    for (const std::string &seed : vSeeds) {
+    for (const std::string &seed : seeds) {
+        // goal: only query DNS seed if address need is acute
+        // Avoiding DNS seeds when we don't need them improves user privacy by
+        // creating fewer identifying DNS requests, reduces trust by giving
+        // seeds less influence on the network topology, and reduces traffic to
+        // the seeds.
+        if (addrman.size() > 0 && seeds_right_now == 0) {
+            if (!interruptNet.sleep_for(std::chrono::seconds(11))) {
+                return;
+            }
+
+            LOCK(cs_vNodes);
+            int nRelevant = 0;
+            for (const CNode *pnode : vNodes) {
+                nRelevant += pnode->fSuccessfullyConnected && !pnode->fFeeler &&
+                             !pnode->fOneShot && !pnode->m_manual_connection &&
+                             !pnode->fInbound;
+            }
+            if (nRelevant >= 2) {
+                LogPrintf("P2P peers available. Skipped DNS seeding.\n");
+                return;
+            }
+            seeds_right_now += DNSSEEDS_TO_QUERY_AT_ONCE;
+        }
+
         if (interruptNet) {
             return;
         }
+        LogPrintf("Loading addresses from DNS seed %s\n", seed);
         if (HaveNameProxy()) {
             AddOneShot(seed);
         } else {
@@ -1728,7 +1741,8 @@ void CConnman::ThreadDNSAddressSeed() {
                         CService(ip, config->GetChainParams().GetDefaultPort()),
                         requiredServiceBits);
                     // Use a random age between 3 and 7 days old.
-                    addr.nTime = GetTime() - 3 * nOneDay - GetRand(4 * nOneDay);
+                    addr.nTime =
+                        GetTime() - 3 * nOneDay - rng.randrange(4 * nOneDay);
                     vAdd.push_back(addr);
                     found++;
                 }
@@ -1740,8 +1754,8 @@ void CConnman::ThreadDNSAddressSeed() {
                 AddOneShot(seed);
             }
         }
+        --seeds_right_now;
     }
-
     LogPrintf("%d addresses found from DNS seeds\n", found);
 }
 
