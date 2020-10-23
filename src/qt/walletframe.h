@@ -87,7 +87,7 @@ public Q_SLOTS:
     void gotoLoadPSBT();
 
     /** Encrypt the wallet */
-    void encryptWallet(bool status);
+    void encryptWallet();
     /** Backup the wallet */
     void backupWallet();
     /** Change encrypted wallet passphrase */
