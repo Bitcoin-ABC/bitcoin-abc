@@ -429,6 +429,76 @@ class PhabricatorTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "Failed to edit panel"):
             call_set_text_panel_content()
 
+    def test_get_object_token(self):
+        user_PHID = "PHID-USER-foobarbaz"
+        self.phab.user.whoami.return_value = {
+            "phid": user_PHID,
+        }
+
+        object_PHID = "PHID-DREV-abcdef"
+
+        def assert_token_given_called():
+            self.phab.token.given.assert_called_with(
+                authorPHIDs=[user_PHID],
+                objectPHIDs=[object_PHID],
+                tokenPHIDs=[],
+            )
+
+        # There is no token for this object
+        self.phab.token.given.return_value = []
+        token = self.phab.get_object_token(object_PHID)
+        assert_token_given_called()
+        self.assertEqual(token, "")
+
+        # There is exactly 1 token for this object
+        self.phab.token.given.return_value = [
+            {
+                "authorPHID": user_PHID,
+                "objectPHID": object_PHID,
+                "tokenPHID": "PHID-TOKN-like-1",
+                "dateCreated": 0,
+            },
+        ]
+        token = self.phab.get_object_token(object_PHID)
+        assert_token_given_called()
+        self.assertEqual(token, "PHID-TOKN-like-1")
+
+        # If there is more than a single token only the first one is returned
+        self.phab.token.given.return_value = [
+            {
+                "authorPHID": user_PHID,
+                "objectPHID": object_PHID,
+                "tokenPHID": "PHID-TOKN-like-1",
+                "dateCreated": 0,
+            },
+            {
+                "authorPHID": user_PHID,
+                "objectPHID": object_PHID,
+                "tokenPHID": "PHID-TOKN-like-2",
+                "dateCreated": 1,
+            },
+        ]
+        token = self.phab.get_object_token(object_PHID)
+        assert_token_given_called()
+        self.assertEqual(token, "PHID-TOKN-like-1")
+
+    def test_set_object_token(self):
+        object_PHID = "PHID-DREV-abcdef"
+
+        def assert_token_give_called(token_PHID):
+            self.phab.token.give.assert_called_with(
+                objectPHID=object_PHID,
+                tokenPHID=token_PHID,
+            )
+
+        # Rescind any previoulsy awarded token
+        self.phab.set_object_token(object_PHID)
+        assert_token_give_called("")
+
+        token_PHID = "PHID-TOKN-like-1"
+        self.phab.set_object_token(object_PHID, token_PHID)
+        assert_token_give_called(token_PHID)
+
 
 if __name__ == '__main__':
     unittest.main()

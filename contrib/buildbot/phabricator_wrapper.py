@@ -484,3 +484,39 @@ class PhabWrapper(Phabricator):
             buildTargetPHID=build_target.phid,
             type=harbormaster_build_status_mapping[build_target.status()]
         )
+
+    def get_object_token(self, object_PHID):
+        """ Return the current token set by the current user on target object """
+        tokens = self.token.given(
+            authorPHIDs=[self.get_current_user_phid()],
+            objectPHIDs=[object_PHID],
+            tokenPHIDs=[],
+        )
+
+        if not tokens:
+            return ""
+
+        # There should be no more than a single token from the same user for the
+        # same object.
+        if len(tokens) > 1:
+            self.logger.info(
+                "Found {} tokens for user {} on object {}: {}".format(
+                    len(tokens),
+                    self.get_current_user_phid(),
+                    object_PHID,
+                    tokens,
+                )
+            )
+
+        return tokens[0]["tokenPHID"]
+
+    def set_object_token(self, object_PHID, token_PHID=None):
+        """ Award or rescind a token for the target object """
+        # If no token is given, rescind any previously awarded token
+        if token_PHID is None:
+            token_PHID = ""
+
+        self.token.give(
+            objectPHID=object_PHID,
+            tokenPHID=token_PHID,
+        )
