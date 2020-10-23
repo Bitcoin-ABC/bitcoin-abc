@@ -56,9 +56,6 @@ struct CConnmanTest : public CConnman {
 
     NodeId nodeid = 0;
 
-    CConnmanTest() : CConnman(GetConfig(), 0x1337, 0x1337) {}
-    ~CConnmanTest() {}
-
     void AddNode(ConnectionType type) {
         CAddress addr(
             CService(ip(GetRandInt(0xffffffff)), Params().GetDefaultPort()),
@@ -294,7 +291,8 @@ static CDataStream AddrmanToStream(const CAddrManSerializationMock &_addrman) {
     return CDataStream(vchData, SER_DISK, CLIENT_VERSION);
 }
 
-BOOST_FIXTURE_TEST_SUITE(net_tests, BasicTestingSetup)
+// Use TestingSetup or a daughter class so that m_node.addrman is non-null
+BOOST_FIXTURE_TEST_SUITE(net_tests, RegTestingSetup)
 
 BOOST_AUTO_TEST_CASE(cnode_listen_port) {
     // test default
@@ -1118,7 +1116,7 @@ BOOST_AUTO_TEST_CASE(avalanche_statistics) {
 }
 
 BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
-    CConnmanTest connman(GetConfig(), 0x1337, 0x1337);
+    CConnmanTest connman(GetConfig(), 0x1337, 0x1337, *m_node.addrman);
 
     auto checkExtraFullOutboundCount = [&](size_t fullOutboundCount,
                                            size_t avalancheOutboundCount,
@@ -1162,7 +1160,8 @@ BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
 BOOST_FIXTURE_TEST_CASE(net_group_limit, TestChain100Setup) {
     const CChainParams &params = GetConfig().GetChainParams();
 
-    m_node.connman = std::make_unique<CConnmanTest>();
+    m_node.connman = std::make_unique<CConnmanTest>(GetConfig(), 0x1337, 0x1337,
+                                                    *m_node.addrman);
     m_node.peerman =
         PeerManager::make(params, *m_node.connman, m_node.banman.get(),
                           *m_node.chainman, *m_node.mempool, false);

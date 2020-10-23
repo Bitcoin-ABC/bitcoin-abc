@@ -65,7 +65,8 @@ BOOST_FIXTURE_TEST_SUITE(denialofservice_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     const Config &config = GetConfig();
 
-    auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
+    auto connman =
+        std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
     // Disable inactivity checks for this test to avoid interference
     static_cast<ConnmanTestMsg *>(connman.get())->SetPeerConnectTimeout(99999s);
     auto peerLogic =
@@ -153,7 +154,8 @@ static void AddRandomOutboundPeer(const Config &config,
 BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     const Config &config = GetConfig();
 
-    auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
+    auto connman =
+        std::make_unique<CConnmanTest>(config, 0x1337, 0x1337, *m_node.addrman);
     auto peerLogic =
         PeerManager::make(config.GetChainParams(), *connman, nullptr,
                           *m_node.chainman, *m_node.mempool, false);
@@ -239,7 +241,8 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     auto banman = std::make_unique<BanMan>(
         m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);
-    auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
+    auto connman =
+        std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
     auto peerLogic =
         PeerManager::make(config.GetChainParams(), *connman, banman.get(),
                           *m_node.chainman, *m_node.mempool, false);
@@ -303,7 +306,8 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     auto banman = std::make_unique<BanMan>(
         m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);
-    auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
+    auto connman =
+        std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
     auto peerLogic =
         PeerManager::make(config.GetChainParams(), *connman, banman.get(),
                           *m_node.chainman, *m_node.mempool, false);

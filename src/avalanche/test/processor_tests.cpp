@@ -98,7 +98,8 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         : TestChain100Setup(), config(GetConfig()),
           masterpriv(CKey::MakeCompressedKey()) {
         // Deterministic randomness for tests.
-        auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
+        auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337,
+                                                      *m_node.addrman);
         m_connman = connman.get();
         m_node.connman = std::move(connman);
         m_node.peerman = ::PeerManager::make(

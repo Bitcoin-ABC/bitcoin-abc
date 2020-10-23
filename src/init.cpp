@@ -257,6 +257,7 @@ void Shutdown(NodeContext &node) {
     g_avalanche.reset();
     node.connman.reset();
     node.banman.reset();
+    node.addrman.reset();
 
     if (node.mempool && node.mempool->IsLoaded() &&
         node.args->GetBoolArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
@@ -2358,6 +2359,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     fListen = args.GetBoolArg("-listen", DEFAULT_LISTEN);
     fDiscover = args.GetBoolArg("-discover", true);
 
+    assert(!node.addrman);
+    node.addrman = std::make_unique<CAddrMan>();
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
         gArgs.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
@@ -2365,7 +2368,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
         config, GetRand(std::numeric_limits<uint64_t>::max()),
-        GetRand(std::numeric_limits<uint64_t>::max()),
+        GetRand(std::numeric_limits<uint64_t>::max()), *node.addrman,
         gArgs.GetBoolArg("-networkactive", true));
 
     assert(!node.mempool);
