@@ -1055,8 +1055,6 @@ public:
     };
 
     // Addrman functions
-    bool AddNewAddresses(const std::vector<CAddress> &vAddr,
-                         const CAddress &addrFrom, int64_t nTimePenalty = 0);
     /**
      * Return all or many randomly selected addresses, optionally by network.
      *

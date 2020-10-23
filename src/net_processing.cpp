@@ -3900,7 +3900,7 @@ void PeerManagerImpl::ProcessMessage(
                  "from peer=%d\n",
                  vAddr.size(), num_proc, num_rate_limit, pfrom.GetId());
 
-        m_connman.AddNewAddresses(vAddrOk, pfrom.addr, 2 * 60 * 60);
+        m_addrman.Add(vAddrOk, pfrom.addr, 2 * 60 * 60);
         if (vAddr.size() < 1000) {
             peer->m_getaddr_sent = false;
         }

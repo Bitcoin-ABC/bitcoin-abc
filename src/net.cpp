@@ -3186,11 +3186,6 @@ CConnman::~CConnman() {
     Stop();
 }
 
-bool CConnman::AddNewAddresses(const std::vector<CAddress> &vAddr,
-                               const CAddress &addrFrom, int64_t nTimePenalty) {
-    return addrman.Add(vAddr, addrFrom, nTimePenalty);
-}
-
 std::vector<CAddress> CConnman::GetAddresses(size_t max_addresses,
                                              size_t max_pct,
                                              std::optional<Network> network) {
