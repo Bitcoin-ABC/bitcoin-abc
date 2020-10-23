@@ -50,25 +50,31 @@ example, to run just the `getarg_tests` verbosely:
 
 Run `test_bitcoin --help` for the full list.
 
-### Note on adding test cases
+### Adding test cases
 
 The build system is setup to compile an executable called `test_bitcoin`
 that runs all of the unit tests. The main source file for the test library
 is found in `util/setup_common.cpp`. To add a new unit test file to our
 test suite you need to add the file to `src/test/CMakeLists.txt`.
 The pattern is to create one test file for each class or source file for
-which you want to create unit tests.  The file naming convention is
+which you want to create unit tests. The file naming convention is
 `<source_filename>_tests.cpp` and such files should wrap their tests in
 a test suite called `<source_filename>_tests`. For an example of this pattern,
-examine `uint256_tests.cpp`.
+see `uint256_tests.cpp`.
 
 For further reading, I found the following website to be helpful in
 explaining how the boost unit test framework works:
 [https://legalizeadulthood.wordpress.com/2009/07/04/c-unit-tests-with-boost-test-part-1/](https://legalizeadulthood.wordpress.com/2009/07/04/c-unit-tests-with-boost-test-part-1/)
 
-### Debugging unit tests
+### Logging and debugging in unit tests
 
-Simple example of debugging unit tests with GDB on Linux:
+To write to logs from unit tests you need to use specific message methods
+provided by Boost. The simplest is `BOOST_TEST_MESSAGE`.
+
+For debugging you can launch the test_bitcoin executable with `gdb`or `lldb` and
+start debugging, just like you would with bitcoind.
+
+This is a simple example of debugging unit tests with GDB on Linux:
 ```
 cd /build/src/test
 gdb test_bitcoin
@@ -79,7 +85,7 @@ p/x opcode  # print the value of the variable (in this case, opcode) in hex
 c           # continue
 ```
 
-Simple example of debugging unit tests with LLDB (OSX or Linux):
+This is a simple example of debugging unit tests with LLDB (OSX or Linux):
 ```
 cd /build/src/test
 lldb -- test_bitcoin
