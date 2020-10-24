@@ -231,6 +231,7 @@ bool ProduceSignature(const SigningProvider &provider,
     return sigdata.complete;
 }
 
+namespace {
 class SignatureExtractorChecker final : public BaseSignatureChecker {
 private:
     SignatureData &sigdata;
@@ -242,22 +243,18 @@ public:
         : sigdata(sigdata_), checker(checker_) {}
     bool CheckSig(const std::vector<uint8_t> &scriptSig,
                   const std::vector<uint8_t> &vchPubKey,
-                  const CScript &scriptCode, uint32_t flags) const override;
+                  const CScript &scriptCode, uint32_t flags) const override {
+        if (checker.CheckSig(scriptSig, vchPubKey, scriptCode, flags)) {
+            CPubKey pubkey(vchPubKey);
+
+            sigdata.signatures.emplace(pubkey.GetID(),
+                                       SigPair(pubkey, scriptSig));
+            return true;
+        }
+        return false;
+    }
 };
 
-bool SignatureExtractorChecker::CheckSig(const std::vector<uint8_t> &scriptSig,
-                                         const std::vector<uint8_t> &vchPubKey,
-                                         const CScript &scriptCode,
-                                         uint32_t flags) const {
-    if (checker.CheckSig(scriptSig, vchPubKey, scriptCode, flags)) {
-        CPubKey pubkey(vchPubKey);
-        sigdata.signatures.emplace(pubkey.GetID(), SigPair(pubkey, scriptSig));
-        return true;
-    }
-    return false;
-}
-
-namespace {
 struct Stacks {
     std::vector<valtype> script;
 
