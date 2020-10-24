@@ -683,7 +683,7 @@ public:
     virtual bool SendMessages(const Config &config, CNode *pnode,
                               std::atomic<bool> &interrupt) = 0;
     virtual void InitializeNode(const Config &config, CNode *pnode) = 0;
-    virtual void FinalizeNode(const Config &config, NodeId id,
+    virtual void FinalizeNode(const Config &config, const CNode &node,
                               bool &update_connection_time) = 0;
 
 protected:

@@ -2950,7 +2950,7 @@ void CConnman::StopNodes() {
 void CConnman::DeleteNode(CNode *pnode) {
     assert(pnode);
     bool fUpdateConnectionTime = false;
-    m_msgproc->FinalizeNode(*config, pnode->GetId(), fUpdateConnectionTime);
+    m_msgproc->FinalizeNode(*config, *pnode, fUpdateConnectionTime);
     if (fUpdateConnectionTime) {
         addrman.Connected(pnode->addr);
     }

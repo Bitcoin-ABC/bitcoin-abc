@@ -1172,8 +1172,9 @@ void PeerManager::UpdateAvalancheStatistics() const {
     });
 }
 
-void PeerManager::FinalizeNode(const Config &config, NodeId nodeid,
+void PeerManager::FinalizeNode(const Config &config, const CNode &node,
                                bool &fUpdateConnectionTime) {
+    NodeId nodeid = node.GetId();
     fUpdateConnectionTime = false;
     {
         LOCK(cs_main);
@@ -1193,7 +1194,10 @@ void PeerManager::FinalizeNode(const Config &config, NodeId nodeid,
             nSyncStarted--;
         }
 
-        if (misbehavior == 0 && state->fCurrentlyConnected) {
+        if (misbehavior == 0 && state->fCurrentlyConnected &&
+            !node.IsBlockOnlyConn()) {
+            // Note: we avoid changing visible addrman state for
+            // block-relay-only peers
             fUpdateConnectionTime = true;
         }
 

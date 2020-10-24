@@ -82,7 +82,7 @@ public:
      * Handle removal of a peer by updating various state and removing it from
      * mapNodeState.
      */
-    void FinalizeNode(const Config &config, NodeId nodeid,
+    void FinalizeNode(const Config &config, const CNode &node,
                       bool &fUpdateConnectionTime) override;
     /**
      * Process protocol messages received from a given node.
