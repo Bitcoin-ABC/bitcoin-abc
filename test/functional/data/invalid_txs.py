@@ -24,6 +24,18 @@ import abc
 from test_framework.messages import CTransaction, CTxIn, CTxOut, COutPoint
 from test_framework import script as sc
 from test_framework.blocktools import create_tx_with_script
+from test_framework.txtools import pad_tx
+
+
+from test_framework.script import (
+    CScript,
+    OP_INVERT,
+    OP_2MUL,
+    OP_2DIV,
+    OP_MUL,
+    OP_LSHIFT,
+    OP_RSHIFT
+)
 
 basic_p2sh = sc.CScript(
     [sc.OP_HASH160, sc.hash160(sc.CScript([sc.OP_0])), sc.OP_EQUAL])
@@ -181,6 +193,37 @@ class InvalidOPIFConstruction(BadTxTemplate):
         return create_tx_with_script(
             self.spend_tx, 0, script_sig=b'\x64' * 35,
             amount=(self.spend_avail // 2))
+
+
+def getDisabledOpcodeTemplate(opcode):
+    """ Creates disabled opcode tx template class"""
+
+    def get_tx(self):
+        tx = CTransaction()
+        vin = self.valid_txin
+        vin.scriptSig = CScript([opcode])
+        tx.vin.append(vin)
+        tx.vout.append(CTxOut(1, basic_p2sh))
+        pad_tx(tx)
+        tx.calc_sha256()
+        return tx
+
+    return type('DisabledOpcode_' + str(opcode), (BadTxTemplate,), {
+        'reject_reason': "disabled opcode",
+        'expect_disconnect': True,
+        'get_tx': get_tx,
+        'valid_in_block': True
+    })
+
+
+# Disabled opcode tx templates (CVE-2010-5137)
+DisabledOpcodeTemplates = [getDisabledOpcodeTemplate(opcode) for opcode in [
+    OP_INVERT,
+    OP_2MUL,
+    OP_2DIV,
+    OP_MUL,
+    OP_LSHIFT,
+    OP_RSHIFT]]
 
 
 def iter_all_templates():
