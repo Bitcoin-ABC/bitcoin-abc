@@ -2517,15 +2517,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         RegisterValidationInterface(g_zmq_notification_interface);
     }
 #endif
-    // unlimited unless -maxuploadtarget is set
-    uint64_t nMaxOutboundLimit = 0;
-    uint64_t nMaxOutboundTimeframe = MAX_UPLOAD_TIMEFRAME;
-
-    if (args.IsArgSet("-maxuploadtarget")) {
-        nMaxOutboundLimit =
-            args.GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET) * 1024 *
-            1024;
-    }
 
     // Step 6.5 (I guess ?): Initialize Avalanche.
     bilingual_str avalancheError;
@@ -3009,8 +3000,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         1000 * args.GetArg("-maxreceivebuffer", DEFAULT_MAXRECEIVEBUFFER);
     connOptions.m_added_nodes = args.GetArgs("-addnode");
 
-    connOptions.nMaxOutboundTimeframe = nMaxOutboundTimeframe;
-    connOptions.nMaxOutboundLimit = nMaxOutboundLimit;
+    connOptions.nMaxOutboundLimit =
+        1024 * 1024 *
+        args.GetArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET);
     connOptions.m_peer_connect_timeout = peer_connect_timeout;
 
     for (const std::string &bind_arg : args.GetArgs("-bind")) {

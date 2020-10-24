@@ -655,8 +655,9 @@ static RPCHelpMan getnettotals() {
             obj.pushKV("timemillis", GetTimeMillis());
 
             UniValue outboundLimit(UniValue::VOBJ);
-            outboundLimit.pushKV("timeframe",
-                                 node.connman->GetMaxOutboundTimeframe());
+            outboundLimit.pushKV(
+                "timeframe",
+                count_seconds(node.connman->GetMaxOutboundTimeframe()));
             outboundLimit.pushKV("target",
                                  node.connman->GetMaxOutboundTarget());
             outboundLimit.pushKV("target_reached",
@@ -665,8 +666,9 @@ static RPCHelpMan getnettotals() {
                                  !node.connman->OutboundTargetReached(true));
             outboundLimit.pushKV("bytes_left_in_cycle",
                                  node.connman->GetOutboundTargetBytesLeft());
-            outboundLimit.pushKV("time_left_in_cycle",
-                                 node.connman->GetMaxOutboundTimeLeftInCycle());
+            outboundLimit.pushKV(
+                "time_left_in_cycle",
+                count_seconds(node.connman->GetMaxOutboundTimeLeftInCycle()));
             obj.pushKV("uploadtarget", outboundLimit);
             return obj;
         },
