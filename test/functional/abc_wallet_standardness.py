@@ -51,11 +51,12 @@ class WalletStandardnessTest(BitcoinTestFramework):
         nonstd_node.generate(120)
         self.sync_blocks()
 
-        def fund_and_test_wallet(scriptPubKey, shouldBeStandard, shouldBeInWallet,
+        def fund_and_test_wallet(scriptPubKey, is_standard, expected_in_std_wallet,
                                  amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)", sign_error=None):
-            """ Get the nonstandard node to fund a transaction, test its
-            standardness by trying to broadcast on the standard node, then
-            mine it and see if it ended up in the standard node's wallet.
+            """
+            Get the nonstandard node to fund a transaction, test its
+            standardness by trying to broadcast on the standard node,
+            then mine it and see if it ended up in the standard node's wallet.
             Finally, it attempts to spend the coin.
             """
 
@@ -80,7 +81,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
             balance_initial = std_node.getbalance()
 
             # try broadcasting it on the standard node
-            if shouldBeStandard:
+            if is_standard:
                 std_node.sendrawtransaction(rawtx)
                 assert txid in std_node.getrawmempool()
             else:
@@ -102,7 +103,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
 
             # calculate wallet balance change just as a double check
             balance_change = std_node.getbalance() - balance_initial
-            if shouldBeInWallet:
+            if expected_in_std_wallet:
                 assert (txid, 0) in wallet_outpoints
                 assert balance_change == amount * SATOSHI
             else:
