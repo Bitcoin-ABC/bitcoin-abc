@@ -26,6 +26,7 @@
 #include <compat/stdin.h>
 #include <univalue.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <functional>
 #include <memory>
@@ -628,13 +629,19 @@ public:
 
         // Report local addresses, ports, and scores.
         result += "\nLocal addresses";
-        const UniValue &local_addrs{networkinfo["localaddresses"]};
+        const std::vector<UniValue> &local_addrs{
+            networkinfo["localaddresses"].getValues()};
         if (local_addrs.empty()) {
             result += ": n/a\n";
         } else {
-            for (const UniValue &addr : local_addrs.getValues()) {
+            size_t max_addr_size{0};
+            for (const UniValue &addr : local_addrs) {
+                max_addr_size = std::max(addr["address"].get_str().length() + 1,
+                                         max_addr_size);
+            }
+            for (const UniValue &addr : local_addrs) {
                 result +=
-                    strprintf("\n%-40i  port %5i     score %6i",
+                    strprintf("\n%-*s    port %6i    score %6i", max_addr_size,
                               addr["address"].get_str(), addr["port"].get_int(),
                               addr["score"].get_int());
             }
