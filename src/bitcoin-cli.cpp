@@ -97,14 +97,15 @@ static void SetupCliArgs() {
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 
     gArgs.AddArg("-stdinrpcpass",
-                 strprintf("Read RPC password from standard input as a single "
-                           "line. When combined with -stdin, the first line "
-                           "from standard input is used for the RPC password."),
+                 "Read RPC password from standard input as a single "
+                 "line. When combined with -stdin, the first line "
+                 "from standard input is used for the RPC password.",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-stdin",
                  "Read extra arguments from standard input, one per line until "
                  "EOF/Ctrl-D (recommended for sensitive information such as "
-                 "passphrases)",
+                 "passphrases). When combined with -stdinrpcpass, the first "
+                 "line from standard input is used for the RPC password.",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-rpcwallet=<walletname>",
