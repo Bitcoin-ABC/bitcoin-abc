@@ -46,7 +46,7 @@
 #include <mutex>
 
 struct CUpdatedBlock {
-    uint256 hash;
+    BlockHash hash;
     int height;
 };
 
