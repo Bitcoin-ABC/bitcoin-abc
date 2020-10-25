@@ -287,7 +287,7 @@ class PortSeed:
     n = None
 
 
-def get_rpc_proxy(url, node_number, timeout=None, coveragedir=None):
+def get_rpc_proxy(url, node_number, *, timeout=None, coveragedir=None):
     """
     Args:
         url (str): URL of the RPC server to call
@@ -295,6 +295,7 @@ def get_rpc_proxy(url, node_number, timeout=None, coveragedir=None):
 
     Kwargs:
         timeout (int): HTTP timeout in seconds
+        coveragedir (str): Directory
 
     Returns:
         AuthServiceProxy. convenience object for making RPC calls.
