@@ -20,6 +20,7 @@
 #include <event2/buffer.h>
 #include <event2/keyvalq_struct.h>
 
+#include <compat/stdin.h>
 #include <univalue.h>
 
 #include <cstdio>
@@ -99,7 +100,15 @@ static void SetupCliArgs() {
     gArgs.AddArg("-stdinrpcpass",
                  "Read RPC password from standard input as a single "
                  "line. When combined with -stdin, the first line "
-                 "from standard input is used for the RPC password.",
+                 "from standard input is used for the RPC password. When "
+                 "combined with -stdinwalletpassphrase, -stdinrpcpass "
+                 "consumes the first line, and -stdinwalletpassphrase "
+                 "consumes the second.",
+                 ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-stdinwalletpassphrase",
+                 "Read wallet passphrase from standard input as a single "
+                 "line. When combined with -stdin, the first line "
+                 "from standard input is used for the wallet passphrase.",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-stdin",
                  "Read extra arguments from standard input, one per line until "
@@ -521,6 +530,11 @@ static int CommandLineRPC(int argc, char *argv[]) {
         }
         std::string rpcPass;
         if (gArgs.GetBoolArg("-stdinrpcpass", false)) {
+            NO_STDIN_ECHO();
+            if (!StdinReady()) {
+                fputs("RPC password> ", stderr);
+                fflush(stderr);
+            }
             if (!std::getline(std::cin, rpcPass)) {
                 throw std::runtime_error("-stdinrpcpass specified but failed "
                                          "to read from standard input");
@@ -529,6 +543,25 @@ static int CommandLineRPC(int argc, char *argv[]) {
         }
         std::vector<std::string> args =
             std::vector<std::string>(&argv[1], &argv[argc]);
+        if (gArgs.GetBoolArg("-stdinwalletpassphrase", false)) {
+            NO_STDIN_ECHO();
+            std::string walletPass;
+            if (args.size() < 1 ||
+                args[0].substr(0, 16) != "walletpassphrase") {
+                throw std::runtime_error(
+                    "-stdinwalletpassphrase is only applicable for "
+                    "walletpassphrase(change)");
+            }
+            if (!StdinReady()) {
+                fputs("Wallet passphrase> ", stderr);
+                fflush(stderr);
+            }
+            if (!std::getline(std::cin, walletPass)) {
+                throw std::runtime_error("-stdinwalletpassphrase specified but "
+                                         "failed to read from standard input");
+            }
+            args.insert(args.begin() + 1, walletPass);
+        }
         if (gArgs.GetBoolArg("-stdin", false)) {
             // Read one arg per line from stdin and append
             std::string line;
