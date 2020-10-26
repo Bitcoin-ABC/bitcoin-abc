@@ -1102,11 +1102,11 @@ void SetupServerArgs() {
         ArgsManager::ALLOW_BOOL, OptionsCategory::RPC);
     gArgs.AddArg(
         "-rpcauth=<userpw>",
-        "Username and hashed password for JSON-RPC connections. The field "
-        "<userpw> comes in the format: <USERNAME>:<SALT>$<HASH>. A canonical "
-        "python script is included in share/rpcauth. The client then connects "
-        "normally using the rpcuser=<USERNAME>/rpcpassword=<PASSWORD> pair of "
-        "arguments. This option can be specified multiple times",
+        "Username and HMAC-SHA-256 hashed password for JSON-RPC connections. "
+        "The field <userpw> comes in the format: <USERNAME>:<SALT>$<HASH>. A "
+        "canonical python script is included in share/rpcauth. The client then "
+        "connects normally using the rpcuser=<USERNAME>/rpcpassword=<PASSWORD> "
+        "pair of arguments. This option can be specified multiple times",
         ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE, OptionsCategory::RPC);
     gArgs.AddArg("-rpcport=<port>",
                  strprintf("Listen for JSON-RPC connections on <port> "
