@@ -93,6 +93,7 @@ TEST_PARAMS = {
     #    testName
     #    testName --param1 --param2
     #    testname --param3
+    "rpc_bind.py": [["--ipv4"], ["--ipv6"], ["--nonloopback"]],
     "rpc_deriveaddresses.py": [["--usecli"]],
     "wallet_txn_doublespend.py": [["--mineblock"]],
     "wallet_txn_clone.py": [["--mineblock"]],
