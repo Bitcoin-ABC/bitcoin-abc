@@ -4645,10 +4645,10 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
             if (fSendTrickle && pto->m_tx_relay->fSendMempool) {
                 auto vtxinfo = g_mempool.infoAll();
                 pto->m_tx_relay->fSendMempool = false;
-                Amount filterrate = Amount::zero();
+                CFeeRate filterrate;
                 {
                     LOCK(pto->m_tx_relay->cs_feeFilter);
-                    filterrate = pto->m_tx_relay->minFeeFilter;
+                    filterrate = CFeeRate(pto->m_tx_relay->minFeeFilter);
                 }
 
                 LOCK(pto->m_tx_relay->cs_filter);
@@ -4657,8 +4657,9 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     const TxId &txid = txinfo.tx->GetId();
                     CInv inv(MSG_TX, txid);
                     pto->m_tx_relay->setInventoryTxToSend.erase(txid);
-                    if (filterrate != Amount::zero() &&
-                        txinfo.feeRate.GetFeePerK() < filterrate) {
+                    // Don't send transactions that peers will not put into
+                    // their mempool
+                    if (txinfo.fee < filterrate.GetFee(txinfo.vsize)) {
                         continue;
                     }
                     if (pto->m_tx_relay->pfilter &&
@@ -4688,10 +4689,10 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                      it != pto->m_tx_relay->setInventoryTxToSend.end(); it++) {
                     vInvTx.push_back(it);
                 }
-                Amount filterrate = Amount::zero();
+                CFeeRate filterrate;
                 {
                     LOCK(pto->m_tx_relay->cs_feeFilter);
-                    filterrate = pto->m_tx_relay->minFeeFilter;
+                    filterrate = CFeeRate(pto->m_tx_relay->minFeeFilter);
                 }
                 // Topologically and fee-rate sort the inventory we send for
                 // privacy and priority reasons. A heap is used so that not all
@@ -4725,8 +4726,9 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                     if (!txinfo.tx) {
                         continue;
                     }
-                    if (filterrate != Amount::zero() &&
-                        txinfo.feeRate.GetFeePerK() < filterrate) {
+                    // Peer told you to not send transactions at that feerate?
+                    // Don't bother sending it.
+                    if (txinfo.fee < filterrate.GetFee(txinfo.vsize)) {
                         continue;
                     }
                     if (pto->m_tx_relay->pfilter &&
