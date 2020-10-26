@@ -7,7 +7,7 @@ as well as the rolling bloom filter, address encoding and decoding,
 CCoinsCaching, memory pool eviction, and wallet coin selection.
 
 After compiling bitcoin-abc, the benchmarks can be run with:
-`src/bench/bench_bitcoin`
+`src/bench/bitcoin-bench`
 
 The output will look similar to:
 ```
