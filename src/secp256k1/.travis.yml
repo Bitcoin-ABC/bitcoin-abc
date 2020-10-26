@@ -64,6 +64,9 @@ env:
     - AUTOTOOLS_EXTRA_FLAGS=CPPFLAGS=-DDETERMINISTIC CMAKE_EXTRA_FLAGS=-DCMAKE_C_FLAGS=-DDETERMINISTIC
     - AUTOTOOLS_EXTRA_FLAGS=CFLAGS=-O0               CMAKE_EXTRA_FLAGS=-DCMAKE_BUILD_TYPE=Debug CTIMETEST=no
     - AUTOTOOLS_TARGET=check-java      CMAKE_TARGET=check-secp256k1-java JNI=yes ECDH=yes EXPERIMENTAL=yes WITH_VALGRIND=no CTIMETEST=no BENCH=no
+    - CFLAGS="-fsanitize=undefined -fno-omit-frame-pointer" LDFLAGS="-fsanitize=undefined -fno-omit-frame-pointer"
+      UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1"
+      BIGNUM=no ASM=x86_64 ECDH=yes RECOVERY=yes EXPERIMENTAL=yes MULTISET=yes SCHNORRSIG=yes CTIMETEST=no
     - ECMULTGENPRECISION=2
     - ECMULTGENPRECISION=8
     - RUN_VALGRIND=yes
