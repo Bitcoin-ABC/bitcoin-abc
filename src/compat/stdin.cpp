@@ -12,9 +12,9 @@
 #include <io.h>      // for isatty()
 #include <windows.h> // for SetStdinEcho()
 #else
-#include <sys/poll.h> // for StdinReady()
-#include <termios.h>  // for SetStdinEcho()
-#include <unistd.h>   // for SetStdinEcho(), isatty()
+#include <poll.h>    // for StdinReady()
+#include <termios.h> // for SetStdinEcho()
+#include <unistd.h>  // for SetStdinEcho(), isatty()
 #endif
 
 #include <compat/stdin.h>
