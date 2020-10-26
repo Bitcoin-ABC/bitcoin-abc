@@ -16,6 +16,16 @@ from test_framework.util import (
 
 FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}"
 
+# Linux allow all characters other than \x00
+# Windows disallow control characters (0-31) and /\?%:|"<>
+FILE_CHAR_START = 32 if os.name == 'nt' else 1
+FILE_CHAR_END = 128
+FILE_CHAR_BLACKLIST = '/\\?%*:|"<>' if os.name == 'nt' else '/'
+
+
+def notify_outputname(walletname, txid):
+    return txid if os.name == 'nt' else '{}_{}'.format(walletname, txid)
+
 
 class NotificationsTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -23,6 +33,10 @@ class NotificationsTest(BitcoinTestFramework):
         self.setup_clean_chain = True
 
     def setup_network(self):
+        self.wallet = ''.join(
+            chr(i) for i in range(
+                FILE_CHAR_START,
+                FILE_CHAR_END) if chr(i) not in FILE_CHAR_BLACKLIST)
         self.alertnotify_dir = os.path.join(self.options.tmpdir, "alertnotify")
         self.blocknotify_dir = os.path.join(self.options.tmpdir, "blocknotify")
         self.walletnotify_dir = os.path.join(
@@ -37,7 +51,8 @@ class NotificationsTest(BitcoinTestFramework):
             "-blocknotify=echo > {}".format(os.path.join(self.blocknotify_dir, '%s'))],
             ["-blockversion=211",
              "-rescan",
-             "-walletnotify=echo > {}".format(os.path.join(self.walletnotify_dir, '%s'))]]
+             "-wallet={}".format(self.wallet),
+             "-walletnotify=echo > {}".format(os.path.join(self.walletnotify_dir, notify_outputname('%w', '%s')))]]
         super().setup_network()
 
     def run_test(self):
@@ -71,8 +86,8 @@ class NotificationsTest(BitcoinTestFramework):
                 timeout=10)
 
             # directory content should equal the generated transaction hashes
-            txids_rpc = list(
-                map(lambda t: t['txid'], self.nodes[1].listtransactions("*", block_count)))
+            txids_rpc = list(map(lambda t: notify_outputname(
+                self.wallet, t['txid']), self.nodes[1].listtransactions("*", block_count)))
             assert_equal(
                 sorted(txids_rpc), sorted(
                     os.listdir(
@@ -93,8 +108,8 @@ class NotificationsTest(BitcoinTestFramework):
                 timeout=10)
 
             # directory content should equal the generated transaction hashes
-            txids_rpc = list(
-                map(lambda t: t['txid'], self.nodes[1].listtransactions("*", block_count)))
+            txids_rpc = list(map(lambda t: notify_outputname(
+                self.wallet, t['txid']), self.nodes[1].listtransactions("*", block_count)))
             assert_equal(
                 sorted(txids_rpc), sorted(
                     os.listdir(
