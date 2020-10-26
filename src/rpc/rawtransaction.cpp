@@ -908,7 +908,7 @@ static UniValue sendrawtransaction(const Config &config,
              FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK()),
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
-                 CURRENCY_UNIT + "/kB\n"},
+                 CURRENCY_UNIT + "/kB\nSet to 0 to accept any fee rate.\n"},
         },
         RPCResult{"\"hex\"             (string) The transaction hash in hex\n"},
         RPCExamples{
