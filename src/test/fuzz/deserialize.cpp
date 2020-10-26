@@ -15,6 +15,7 @@
 #include <key.h>
 #include <merkleblock.h>
 #include <net.h>
+#include <netbase.h>
 #include <node/utxo_snapshot.h>
 #include <primitives/block.h>
 #include <protocol.h>
@@ -29,6 +30,7 @@
 
 #include <cstdint>
 #include <exception>
+#include <optional>
 #include <stdexcept>
 #include <unistd.h>
 #include <vector>
@@ -44,8 +46,9 @@ namespace {
 
 struct invalid_fuzzing_input_exception : public std::exception {};
 
-template <typename T> CDataStream Serialize(const T &obj) {
-    CDataStream ds(SER_NETWORK, INIT_PROTO_VERSION);
+template <typename T>
+CDataStream Serialize(const T &obj, const int version = INIT_PROTO_VERSION) {
+    CDataStream ds(SER_NETWORK, version);
     ds << obj;
     return ds;
 }
@@ -57,14 +60,20 @@ template <typename T> T Deserialize(CDataStream ds) {
 }
 
 template <typename T>
-void DeserializeFromFuzzingInput(const std::vector<uint8_t> &buffer, T &obj) {
+void DeserializeFromFuzzingInput(
+    const std::vector<uint8_t> &buffer, T &obj,
+    const std::optional<int> protocol_version = std::nullopt) {
     CDataStream ds(buffer, SER_NETWORK, INIT_PROTO_VERSION);
-    try {
-        int version;
-        ds >> version;
-        ds.SetVersion(version);
-    } catch (const std::ios_base::failure &) {
-        throw invalid_fuzzing_input_exception();
+    if (protocol_version) {
+        ds.SetVersion(*protocol_version);
+    } else {
+        try {
+            int version;
+            ds >> version;
+            ds.SetVersion(version);
+        } catch (const std::ios_base::failure &) {
+            throw invalid_fuzzing_input_exception();
+        }
     }
     try {
         ds >> obj;
@@ -74,8 +83,10 @@ void DeserializeFromFuzzingInput(const std::vector<uint8_t> &buffer, T &obj) {
     assert(buffer.empty() || !Serialize(obj).empty());
 }
 
-template <typename T> void AssertEqualAfterSerializeDeserialize(const T &obj) {
-    assert(Deserialize<T>(Serialize(obj)) == obj);
+template <typename T>
+void AssertEqualAfterSerializeDeserialize(
+    const T &obj, const int version = INIT_PROTO_VERSION) {
+    assert(Deserialize<T>(Serialize(obj, version)) == obj);
 }
 
 } // namespace
@@ -117,9 +128,18 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         CScript script;
         DeserializeFromFuzzingInput(buffer, script);
 #elif SUB_NET_DESERIALIZE
-        CSubNet sub_net;
-        DeserializeFromFuzzingInput(buffer, sub_net);
-        AssertEqualAfterSerializeDeserialize(sub_net);
+        CSubNet sub_net_1;
+        DeserializeFromFuzzingInput(buffer, sub_net_1, INIT_PROTO_VERSION);
+        AssertEqualAfterSerializeDeserialize(sub_net_1, INIT_PROTO_VERSION);
+        CSubNet sub_net_2;
+        DeserializeFromFuzzingInput(buffer, sub_net_2,
+                                    INIT_PROTO_VERSION | ADDRV2_FORMAT);
+        AssertEqualAfterSerializeDeserialize(sub_net_2, INIT_PROTO_VERSION |
+                                                            ADDRV2_FORMAT);
+        CSubNet sub_net_3;
+        DeserializeFromFuzzingInput(buffer, sub_net_3);
+        AssertEqualAfterSerializeDeserialize(sub_net_3, INIT_PROTO_VERSION |
+                                                            ADDRV2_FORMAT);
 #elif TX_IN_DESERIALIZE
         CTxIn tx_in;
         DeserializeFromFuzzingInput(buffer, tx_in);
@@ -174,11 +194,28 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
 #elif NETADDR_DESERIALIZE
         CNetAddr na;
         DeserializeFromFuzzingInput(buffer, na);
-        AssertEqualAfterSerializeDeserialize(na);
+        if (na.IsAddrV1Compatible()) {
+            AssertEqualAfterSerializeDeserialize(na);
+        }
+        AssertEqualAfterSerializeDeserialize(na, INIT_PROTO_VERSION |
+                                                     ADDRV2_FORMAT);
 #elif SERVICE_DESERIALIZE
         CService s;
         DeserializeFromFuzzingInput(buffer, s);
-        AssertEqualAfterSerializeDeserialize(s);
+        if (s.IsAddrV1Compatible()) {
+            AssertEqualAfterSerializeDeserialize(s);
+        }
+        AssertEqualAfterSerializeDeserialize(s, INIT_PROTO_VERSION |
+                                                    ADDRV2_FORMAT);
+        CService s1;
+        DeserializeFromFuzzingInput(buffer, s1, INIT_PROTO_VERSION);
+        AssertEqualAfterSerializeDeserialize(s1, INIT_PROTO_VERSION);
+        assert(s1.IsAddrV1Compatible());
+        CService s2;
+        DeserializeFromFuzzingInput(buffer, s2,
+                                    INIT_PROTO_VERSION | ADDRV2_FORMAT);
+        AssertEqualAfterSerializeDeserialize(s2, INIT_PROTO_VERSION |
+                                                     ADDRV2_FORMAT);
 #elif MESSAGEHEADER_DESERIALIZE
         const CMessageHeader::MessageMagic pchMessageStart = {
             {0x00, 0x00, 0x00, 0x00}};
