@@ -93,11 +93,19 @@ TransactionRecord::decomposeTransaction(const interfaces::WalletTx &wtx) {
 
         if (fAllFromMe && fAllToMe) {
             // Payment to self
+            std::string address;
+            for (auto it = wtx.txout_address.begin();
+                 it != wtx.txout_address.end(); ++it) {
+                if (it != wtx.txout_address.begin()) {
+                    address += ", ";
+                }
+                address += EncodeCashAddr(*it, Params());
+            }
             Amount nChange = wtx.change;
-
             parts.append(TransactionRecord(
-                txid, nTime, TransactionRecord::SendToSelf, "",
-                -1 * (nDebit - nChange), (nCredit - nChange)));
+                txid, nTime, TransactionRecord::SendToSelf, address,
+                -(nDebit - nChange), nCredit - nChange));
+
             // maybe pass to TransactionRecord as constructor argument
             parts.last().involvesWatchAddress = involvesWatchAddress;
         } else if (fAllFromMe) {
