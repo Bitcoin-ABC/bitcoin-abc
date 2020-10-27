@@ -31,12 +31,20 @@ function(make_link file)
 	# Add a phony target to make sure the files are linked by default.
 	sanitize_target_name("link-" "${file}" NAME)
 	add_custom_target(${NAME} ALL DEPENDS "${dest}")
+
+	foreach(PARENT_TARGET ${ARGN})
+		if(TARGET ${PARENT_TARGET})
+			add_dependencies(${PARENT_TARGET} ${NAME})
+		endif()
+	endforeach()
 endfunction()
 
 make_link(functional/test_runner.py)
 make_link(util/bitcoin-util-test.py)
 make_link(util/rpcauth-test.py)
-make_link(fuzz/test_runner.py)
+
+get_property(FUZZ_TARGETS GLOBAL PROPERTY FUZZ_TARGETS)
+make_link(fuzz/test_runner.py ${FUZZ_TARGETS})
 
 include(Coverage)
 include(TestSuite)

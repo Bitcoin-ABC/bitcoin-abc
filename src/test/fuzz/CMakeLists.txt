@@ -1,6 +1,13 @@
 # Fuzzer test harness
 add_custom_target(bitcoin-fuzzers)
 
+define_property(GLOBAL
+	PROPERTY FUZZ_TARGETS
+	BRIEF_DOCS "List of fuzz targets"
+	FULL_DOCS "A list of the fuzz targets"
+)
+set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS bitcoin-fuzzers)
+
 macro(add_fuzz_target TARGET EXE_NAME)
 	add_executable(${TARGET} EXCLUDE_FROM_ALL
 		fuzz.cpp
@@ -11,6 +18,8 @@ macro(add_fuzz_target TARGET EXE_NAME)
 	target_link_libraries(${TARGET} server testutil)
 
 	add_dependencies(bitcoin-fuzzers ${TARGET})
+
+	set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS ${TARGET})
 endmacro()
 
 function(add_regular_fuzz_targets)
