@@ -27,6 +27,7 @@
 #include <vector>
 
 namespace {
+const TestingSetup *g_setup;
 const Coin EMPTY_COIN{};
 
 bool operator==(const Coin &a, const Coin &b) {
@@ -40,6 +41,7 @@ bool operator==(const Coin &a, const Coin &b) {
 
 void initialize() {
     static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
+    g_setup = testing_setup.get();
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
@@ -303,7 +305,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                     (void)GetUTXOStats(
                         &coins_view_cache,
                         WITH_LOCK(::cs_main,
-                                  return std::ref(g_chainman.m_blockman)),
+                                  return std::ref(
+                                      g_setup->m_node.chainman->m_blockman)),
                         stats);
                 } catch (const std::logic_error &) {
                     expected_code_path = true;

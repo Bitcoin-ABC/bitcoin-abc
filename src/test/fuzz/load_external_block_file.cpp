@@ -14,8 +14,13 @@
 #include <cstdint>
 #include <vector>
 
+namespace {
+const TestingSetup *g_setup;
+} // namespace
+
 void initialize() {
     static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
+    g_setup = testing_setup.get();
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
@@ -26,7 +31,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         return;
     }
     FlatFilePos flat_file_pos;
-    ::ChainstateActive().LoadExternalBlockFile(
+    g_setup->m_node.chainman->ActiveChainstate().LoadExternalBlockFile(
         GetConfig(), fuzzed_block_file,
         fuzzed_data_provider.ConsumeBool() ? &flat_file_pos : nullptr);
 }
