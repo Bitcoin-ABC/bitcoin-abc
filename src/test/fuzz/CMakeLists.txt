@@ -8,6 +8,7 @@ define_property(GLOBAL
 )
 set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS bitcoin-fuzzers)
 
+include(InstallationHelper)
 macro(add_fuzz_target TARGET EXE_NAME)
 	add_executable(${TARGET} EXCLUDE_FROM_ALL
 		fuzz.cpp
@@ -20,6 +21,11 @@ macro(add_fuzz_target TARGET EXE_NAME)
 	add_dependencies(bitcoin-fuzzers ${TARGET})
 
 	set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS ${TARGET})
+
+	install_target(${TARGET}
+		COMPONENT fuzzer
+		EXCLUDE_FROM_ALL
+	)
 endmacro()
 
 function(add_regular_fuzz_targets)
