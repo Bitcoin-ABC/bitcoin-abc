@@ -129,7 +129,7 @@ void AskPassphraseDialog::accept() {
                                 encryption_reminder + "</b></qt>");
                     } else {
                         assert(model != nullptr);
-                        if (model->setWalletEncrypted(true, newpass1)) {
+                        if (model->setWalletEncrypted(newpass1)) {
                             QMessageBox::warning(
                                 this, tr("Wallet encrypted"),
                                 "<qt>" + tr("Your wallet is now encrypted. ") +
