@@ -74,9 +74,6 @@ private:
     bool showTransaction;
 };
 
-static bool fQueueNotifications = false;
-static std::vector<TransactionNotification> vQueueNotifications;
-
 // Private implementation
 class TransactionTablePriv {
 public:
@@ -90,6 +87,12 @@ public:
      * by sha256.
      */
     QList<TransactionRecord> cachedWallet;
+
+    bool fQueueNotifications = false;
+    std::vector<TransactionNotification> vQueueNotifications;
+
+    void NotifyTransactionChanged(const TxId &txidc, ChangeType status);
+    void ShowProgress(const std::string &title, int nProgress);
 
     /**
      * Query entire wallet anew from core.
@@ -713,8 +716,8 @@ void TransactionTableModel::updateDisplayUnit() {
     Q_EMIT dataChanged(index(0, Amount), index(priv->size() - 1, Amount));
 }
 
-static void NotifyTransactionChanged(TransactionTableModel *ttm,
-                                     const TxId &txid, ChangeType status) {
+void TransactionTablePriv::NotifyTransactionChanged(const TxId &txid,
+                                                    ChangeType status) {
     // Find transaction in wallet
     // Determine whether to show transaction or not (determine this here so that
     // no relocking is needed in GUI thread)
@@ -726,11 +729,11 @@ static void NotifyTransactionChanged(TransactionTableModel *ttm,
         vQueueNotifications.push_back(notification);
         return;
     }
-    notification.invoke(ttm);
+    notification.invoke(parent);
 }
 
-static void ShowProgress(TransactionTableModel *ttm, const std::string &title,
-                         int nProgress) {
+void TransactionTablePriv::ShowProgress(const std::string &title,
+                                        int nProgress) {
     if (nProgress == 0) {
         fQueueNotifications = true;
     }
@@ -740,7 +743,7 @@ static void ShowProgress(TransactionTableModel *ttm, const std::string &title,
         if (vQueueNotifications.size() > 10) {
             // prevent balloon spam, show maximum 10 balloons
             bool invoked = QMetaObject::invokeMethod(
-                ttm, "setProcessingQueuedTransactions", Qt::QueuedConnection,
+                parent, "setProcessingQueuedTransactions", Qt::QueuedConnection,
                 Q_ARG(bool, true));
             assert(invoked);
         }
@@ -748,16 +751,14 @@ static void ShowProgress(TransactionTableModel *ttm, const std::string &title,
         for (size_t i = 0; i < vQueueNotifications.size(); ++i) {
             if (vQueueNotifications.size() - i <= 10) {
                 bool invoked = QMetaObject::invokeMethod(
-                    ttm, "setProcessingQueuedTransactions",
+                    parent, "setProcessingQueuedTransactions",
                     Qt::QueuedConnection, Q_ARG(bool, false));
                 assert(invoked);
             }
 
-            vQueueNotifications[i].invoke(ttm);
+            vQueueNotifications[i].invoke(parent);
         }
-
-        // clear
-        std::vector<TransactionNotification>().swap(vQueueNotifications);
+        vQueueNotifications.clear();
     }
 }
 
@@ -765,11 +766,11 @@ void TransactionTableModel::subscribeToCoreSignals() {
     // Connect signals to wallet
     m_handler_transaction_changed =
         walletModel->wallet().handleTransactionChanged(
-            std::bind(NotifyTransactionChanged, this, std::placeholders::_1,
-                      std::placeholders::_2));
-    m_handler_show_progress =
-        walletModel->wallet().handleShowProgress(std::bind(
-            ShowProgress, this, std::placeholders::_1, std::placeholders::_2));
+            std::bind(&TransactionTablePriv::NotifyTransactionChanged, priv,
+                      std::placeholders::_1, std::placeholders::_2));
+    m_handler_show_progress = walletModel->wallet().handleShowProgress(
+        std::bind(&TransactionTablePriv::ShowProgress, priv,
+                  std::placeholders::_1, std::placeholders::_2));
 }
 
 void TransactionTableModel::unsubscribeFromCoreSignals() {
