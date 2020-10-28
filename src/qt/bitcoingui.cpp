@@ -871,12 +871,14 @@ void BitcoinGUI::createTrayIconMenu() {
     trayIconMenu->addAction(toggleHideAction);
     trayIconMenu->addSeparator();
 #endif
-    trayIconMenu->addAction(sendCoinsMenuAction);
-    trayIconMenu->addAction(receiveCoinsMenuAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(signMessageAction);
-    trayIconMenu->addAction(verifyMessageAction);
-    trayIconMenu->addSeparator();
+    if (enableWallet) {
+        trayIconMenu->addAction(sendCoinsMenuAction);
+        trayIconMenu->addAction(receiveCoinsMenuAction);
+        trayIconMenu->addSeparator();
+        trayIconMenu->addAction(signMessageAction);
+        trayIconMenu->addAction(verifyMessageAction);
+        trayIconMenu->addSeparator();
+    }
     trayIconMenu->addAction(optionsAction);
     trayIconMenu->addAction(openRPCConsoleAction);
 #ifndef Q_OS_MAC
