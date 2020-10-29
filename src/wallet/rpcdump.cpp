@@ -2100,7 +2100,8 @@ static UniValue ProcessDescriptorImport(CWallet *const pwallet,
         }
 
         // Add descriptor to the wallet
-        auto spk_manager = pwallet->AddWalletDescriptor(w_desc, keys, label);
+        auto spk_manager =
+            pwallet->AddWalletDescriptor(w_desc, keys, label, internal);
         if (spk_manager == nullptr) {
             throw JSONRPCError(
                 RPC_WALLET_ERROR,

@@ -1573,7 +1573,7 @@ public:
     ScriptPubKeyMan *
     AddWalletDescriptor(WalletDescriptor &desc,
                         const FlatSigningProvider &signing_provider,
-                        const std::string &label);
+                        const std::string &label, bool internal);
 };
 
 /**

@@ -15,6 +15,7 @@ variants.
 - `test_address()` is called to call getaddressinfo for an address on node1
   and test the values returned."""
 
+from test_framework.address import key_to_p2pkh
 from test_framework.descriptors import descsum_create
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -115,6 +116,16 @@ class ImportDescriptorsTest(BitcoinTestFramework):
                              error_code=-8,
                              error_message="Internal addresses should not have a label")
 
+        self.log.info("Internal addresses should be detected as such")
+        key = get_generate_key()
+        addr = key_to_p2pkh(key.pubkey)
+        self.test_importdesc({"desc": descsum_create("pkh(" + key.pubkey + ")"),
+                              "timestamp": "now",
+                              "internal": True},
+                             success=True)
+        info = w1.getaddressinfo(addr)
+        assert_equal(info["ismine"], True)
+        assert_equal(info["ischange"], True)
         assert_equal(w1.getwalletinfo()['keypoolsize'], 0)
 
         test_address(w1,

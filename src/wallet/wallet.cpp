@@ -5018,7 +5018,7 @@ CWallet::GetDescriptorScriptPubKeyMan(const WalletDescriptor &desc) const {
 ScriptPubKeyMan *
 CWallet::AddWalletDescriptor(WalletDescriptor &desc,
                              const FlatSigningProvider &signing_provider,
-                             const std::string &label) {
+                             const std::string &label, bool internal) {
     if (!IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS)) {
         WalletLogPrintf(
             "Cannot add WalletDescriptor to a non-descriptor wallet\n");
@@ -5042,12 +5042,12 @@ CWallet::AddWalletDescriptor(WalletDescriptor &desc,
 
         // Remove from maps of active spkMans
         auto old_spk_man_id = old_spk_man->GetID();
-        for (bool internal : {false, true}) {
+        for (bool internal_ : {false, true}) {
             for (OutputType t : OUTPUT_TYPES) {
-                auto active_spk_man = GetScriptPubKeyMan(t, internal);
+                auto active_spk_man = GetScriptPubKeyMan(t, internal_);
                 if (active_spk_man &&
                     active_spk_man->GetID() == old_spk_man_id) {
-                    if (internal) {
+                    if (internal_) {
                         m_internal_spk_managers.erase(t);
                     } else {
                         m_external_spk_managers.erase(t);
@@ -5082,7 +5082,7 @@ CWallet::AddWalletDescriptor(WalletDescriptor &desc,
         }
 
         CTxDestination dest;
-        if (ExtractDestination(script_pub_keys.at(0), dest)) {
+        if (!internal && ExtractDestination(script_pub_keys.at(0), dest)) {
             SetAddressBook(dest, label, "receive");
         }
     }
