@@ -1142,8 +1142,7 @@ static UniValue testmempoolaccept(const Config &config,
                 result_0.pushKV("reject-reason", "missing-inputs");
             } else {
                 result_0.pushKV("reject-reason",
-                                strprintf("%i: %s", state.GetRejectCode(),
-                                          state.GetRejectReason()));
+                                strprintf("%s", state.GetRejectReason()));
             }
         } else {
             result_0.pushKV("reject-reason", state.GetRejectReason());

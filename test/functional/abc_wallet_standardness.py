@@ -52,7 +52,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
         self.sync_blocks()
 
         def fund_and_test_wallet(scriptPubKey, is_standard, expected_in_std_wallet,
-                                 amount=10000, spendfee=500, nonstd_error="scriptpubkey (code 64)", sign_error=None):
+                                 amount=10000, spendfee=500, nonstd_error="scriptpubkey", sign_error=None):
             """
             Get the nonstandard node to fund a transaction, test its
             standardness by trying to broadcast on the standard node,
@@ -184,7 +184,7 @@ class WalletStandardnessTest(BitcoinTestFramework):
 
         # Dust also is nonstandard to fund but standard to spend.
         fund_and_test_wallet(
-            CScript([pubkey, OP_CHECKSIG]), False, True, amount=200, nonstd_error="dust (code 64)")
+            CScript([pubkey, OP_CHECKSIG]), False, True, amount=200, nonstd_error="dust")
 
         # and we end with an empty wallet
         assert_equal(std_node.getbalance(), 0)

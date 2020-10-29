@@ -15,10 +15,8 @@ std::string FormatStateMessage(const ValidationState &state) {
 
     const std::string debug_message = state.GetDebugMessage();
     if (!debug_message.empty()) {
-        return strprintf("%s, %s (code %i)", state.GetRejectReason(),
-                         debug_message, state.GetRejectCode());
+        return strprintf("%s, %s", state.GetRejectReason(), debug_message);
     }
 
-    return strprintf("%s (code %i)", state.GetRejectReason(),
-                     state.GetRejectCode());
+    return strprintf("%s", state.GetRejectReason());
 }

@@ -80,7 +80,7 @@ class BIP66Test(BitcoinTestFramework):
         # rejected from the mempool for exactly that reason.
         assert_equal(
             [{'txid': spendtx.hash, 'allowed': False,
-                'reject-reason': '16: mandatory-script-verify-flag-failed (Non-canonical DER signature)'}],
+                'reject-reason': 'mandatory-script-verify-flag-failed (Non-canonical DER signature)'}],
             self.nodes[0].testmempoolaccept(
                 rawtxs=[spendtx.serialize().hex()], maxfeerate=0)
         )
