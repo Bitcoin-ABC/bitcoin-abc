@@ -29,6 +29,18 @@ public:
     Amount value(bool *value = nullptr) const;
     void setValue(const Amount value);
 
+    /**
+     * If allow empty is set to false the field will be set to the minimum
+     * allowed value if left empty.
+     */
+    void SetAllowEmpty(bool allow);
+
+    /** Set the minimum value in satoshis **/
+    void SetMinValue(const Amount &value);
+
+    /** Set the maximum value in satoshis **/
+    void SetMaxValue(const Amount &value);
+
     /** Set single step in satoshis **/
     void setSingleStep(const Amount step);
 

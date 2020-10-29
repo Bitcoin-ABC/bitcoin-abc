@@ -23,9 +23,7 @@ class AmountSpinBox : public QAbstractSpinBox {
     Q_OBJECT
 
 public:
-    explicit AmountSpinBox(QWidget *parent)
-        : QAbstractSpinBox(parent), currentUnit(BitcoinUnits::BCH),
-          singleStep(100000 * SATOSHI) {
+    explicit AmountSpinBox(QWidget *parent) {
         setAlignment(Qt::AlignRight);
 
         connect(lineEdit(), &QLineEdit::textEdited, this,
@@ -44,9 +42,19 @@ public:
     }
 
     void fixup(QString &input) const override {
-        bool valid = false;
-        Amount val = parse(input, &valid);
+        bool valid;
+        Amount val;
+
+        if (input.isEmpty() && !m_allow_empty) {
+            valid = true;
+            val = m_min_amount;
+        } else {
+            valid = false;
+            val = parse(input, &valid);
+        }
+
         if (valid) {
+            val = qBound(m_min_amount, val, m_max_amount);
             input = BitcoinUnits::format(currentUnit, val, false,
                                          BitcoinUnits::separatorAlways);
             lineEdit()->setText(input);
@@ -63,11 +71,17 @@ public:
         Q_EMIT valueChanged();
     }
 
+    void SetAllowEmpty(bool allow) { m_allow_empty = allow; }
+
+    void SetMinValue(const Amount &value) { m_min_amount = value; }
+
+    void SetMaxValue(const Amount &value) { m_max_amount = value; }
+
     void stepBy(int steps) override {
         bool valid = false;
         Amount val = value(&valid);
         val = val + steps * singleStep;
-        val = qMin(qMax(val, Amount::zero()), BitcoinUnits::maxMoney());
+        val = qBound(m_min_amount, val, m_max_amount);
         setValue(val);
     }
 
@@ -129,9 +143,12 @@ public:
     }
 
 private:
-    int currentUnit;
-    Amount singleStep;
+    int currentUnit{BitcoinUnits::BCH};
+    Amount singleStep{100000 * SATOSHI};
     mutable QSize cachedMinimumSizeHint;
+    bool m_allow_empty{true};
+    Amount m_min_amount{Amount::zero()};
+    Amount m_max_amount{BitcoinUnits::maxMoney()};
 
     /**
      * Parse a string into a number of base monetary units and
@@ -182,10 +199,10 @@ protected:
         bool valid = false;
         Amount val = value(&valid);
         if (valid) {
-            if (val > Amount::zero()) {
+            if (val > m_min_amount) {
                 rv |= StepDownEnabled;
             }
-            if (val < BitcoinUnits::maxMoney()) {
+            if (val < m_max_amount) {
                 rv |= StepUpEnabled;
             }
         }
@@ -277,6 +294,17 @@ void BitcoinAmountField::setValue(const Amount value) {
     amount->setValue(value);
 }
 
+void BitcoinAmountField::SetAllowEmpty(bool allow) {
+    amount->SetAllowEmpty(allow);
+}
+
+void BitcoinAmountField::SetMinValue(const Amount &value) {
+    amount->SetMinValue(value);
+}
+
+void BitcoinAmountField::SetMaxValue(const Amount &value) {
+    amount->SetMaxValue(value);
+}
 void BitcoinAmountField::setReadOnly(bool fReadOnly) {
     amount->setReadOnly(fReadOnly);
 }
