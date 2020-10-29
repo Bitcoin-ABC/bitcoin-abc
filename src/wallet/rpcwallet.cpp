@@ -946,24 +946,32 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
             HelpExampleCli(
                 "sendmany",
                 "\"\" "
-                "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\"") +
+                "\"{\\\"bchtest:qplljx455cznj2yrtdhj0jcm7syxlzqnaqt0ku5kjl\\\":"
+                "0.01,"
+                "\\\"bchtest:qzmnuh8t24yrxq4mvjakt84r7j3f9tunlvm2p7qef9\\\":0."
+                "02}\"") +
             "\nSend two amounts to two different addresses setting the "
             "confirmation and comment:\n" +
-            HelpExampleCli("sendmany",
-                           "\"\" "
-                           "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                           "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" "
-                           "6 \"testing\"") +
+            HelpExampleCli(
+                "sendmany",
+                "\"\" "
+                "\"{\\\"bchtest:qplljx455cznj2yrtdhj0jcm7syxlzqnaqt0ku5kjl\\\":"
+                "0.01,"
+                "\\\"bchtest:qzmnuh8t24yrxq4mvjakt84r7j3f9tunlvm2p7qef9\\\":0."
+                "02}\" "
+                "6 \"testing\"") +
             "\nSend two amounts to two different addresses, subtract fee "
             "from amount:\n" +
             HelpExampleCli(
                 "sendmany",
                 "\"\" "
-                "\"{\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\":0.01,"
-                "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\":0.02}\" 1 \"\" "
-                "\"[\\\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\\\","
-                "\\\"1353tsE8YMTA4EuV7dgUXGjNFf9KpVvKHz\\\"]\"") +
+                "\"{\\\"bchtest:qplljx455cznj2yrtdhj0jcm7syxlzqnaqt0ku5kjl\\\":"
+                "0.01,"
+                "\\\"bchtest:qzmnuh8t24yrxq4mvjakt84r7j3f9tunlvm2p7qef9\\\":0."
+                "02}\" 1 \"\" "
+                "\"[\\\"bchtest:qplljx455cznj2yrtdhj0jcm7syxlzqnaqt0ku5kjl\\\","
+                "\\\"bchtest:qzmnuh8t24yrxq4mvjakt84r7j3f9tunlvm2p7qef9\\\"]"
+                "\"") +
             "\nAs a JSON-RPC call\n" +
             HelpExampleRpc(
                 "sendmany",
