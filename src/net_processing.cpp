@@ -1511,14 +1511,12 @@ void PeerLogicValidation::BlockChecked(const CBlock &block,
     std::map<BlockHash, std::pair<NodeId, bool>>::iterator it =
         mapBlockSource.find(hash);
 
-    if (state.IsInvalid()) {
-        // Don't send reject message with code 0 or an internal reject code.
-        if (it != mapBlockSource.end() && State(it->second.first) &&
-            state.GetRejectCode() > 0 &&
-            state.GetRejectCode() < REJECT_INTERNAL) {
-            MaybePunishNodeForBlock(/*nodeid=*/it->second.first, state,
-                                    /*via_compact_block=*/!it->second.second);
-        }
+    // If the block failed validation, we know where it came from and we're
+    // still connected to that peer, maybe punish.
+    if (state.IsInvalid() && it != mapBlockSource.end() &&
+        State(it->second.first)) {
+        MaybePunishNodeForBlock(/*nodeid=*/it->second.first, state,
+                                /*via_compact_block=*/!it->second.second);
     }
     // Check that:
     // 1. The block is valid
