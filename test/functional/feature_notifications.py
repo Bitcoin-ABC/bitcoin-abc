@@ -61,14 +61,16 @@ class NotificationsTest(BitcoinTestFramework):
     def run_test(self):
         self.log.info("test -blocknotify")
         block_count = 10
+        if self.is_wallet_compiled():
+            self.import_deterministic_coinbase_privkeys()
+            address = self.nodes[1].getnewaddress()
+        else:
+            address = ADDRESS_ECREG_UNSPENDABLE
+
         blocks = self.generatetoaddress(
             self.nodes[1],
             block_count,
-            (
-                self.nodes[1].getnewaddress()
-                if self.is_wallet_compiled()
-                else ADDRESS_ECREG_UNSPENDABLE
-            ),
+            address,
         )
 
         # wait at most 10 seconds for expected number of files before reading
@@ -122,13 +124,16 @@ class NotificationsTest(BitcoinTestFramework):
             # node 1, generate spends from node 0, and check notifications
             # triggered by node 1
             self.log.info("test -walletnotify with conflicting transactions")
-            self.nodes[0].sethdseed(
-                seed=self.nodes[1].dumpprivkey(
-                    keyhash_to_p2pkh(
-                        bytes.fromhex(self.nodes[1].getwalletinfo()["hdseedid"])[::-1]
+            if self.is_wallet_compiled():
+                self.nodes[0].sethdseed(
+                    seed=self.nodes[1].dumpprivkey(
+                        keyhash_to_p2pkh(
+                            bytes.fromhex(self.nodes[1].getwalletinfo()["hdseedid"])[
+                                ::-1
+                            ]
+                        )
                     )
                 )
-            )
             self.nodes[0].rescanblockchain()
             self.generatetoaddress(
                 self.nodes[0], COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE

@@ -153,6 +153,7 @@ class TestBitcoinCli(BitcoinTestFramework):
 
         self.log.info("Test -getinfo returns expected network and blockchain info")
         if self.is_wallet_compiled():
+            self.import_deterministic_coinbase_privkeys()
             self.nodes[0].encryptwallet(password)
         cli_get_info = self.nodes[0].cli().send_cli("-getinfo")
         network_info = self.nodes[0].getnetworkinfo()

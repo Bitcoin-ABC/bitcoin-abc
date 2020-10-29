@@ -445,6 +445,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         self.log.info("Check the verifyavalancheproof and sendavalancheproof RPCs")
 
         if self.is_wallet_compiled():
+            self.import_deterministic_coinbase_privkeys()
+
             self.log.info("Check a proof with the maximum number of UTXO is valid")
             new_blocks = self.generate(
                 node, AVALANCHE_MAX_PROOF_STAKES // 10 + 1, sync_fun=self.no_op

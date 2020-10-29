@@ -22,6 +22,7 @@ from test_framework.util import (
     assert_raises_rpc_error,
     p2p_port,
 )
+from test_framework.wallet import MiniWallet
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -90,8 +91,10 @@ class NetTest(BitcoinTestFramework):
 
         # Create a few getpeerinfo last_block/last_transaction/last_proof
         # values.
-        if self.is_wallet_compiled():
-            self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 1000000)
+        wallet = MiniWallet(self.nodes[0])
+        self.generate(wallet, 1)
+        # Make a transaction so we can see it in the getpeerinfo results
+        wallet.send_self_transfer(from_node=self.nodes[0])
         tip = self.generate(self.nodes[1], 1)[0]
 
         stake = create_coinbase_stakes(

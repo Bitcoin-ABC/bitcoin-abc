@@ -123,6 +123,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # skipped. If list is truncated, wallet creation is skipped and keys
         # are not imported.
         self.wallet_names = None
+        # By default the wallet is not required. Set to true by skip_if_no_wallet().
+        # When False, we ignore wallet_names regardless of what it is.
+        self._requires_wallet = False
         # Disable ThreadOpenConnections by default, so that adding entries to
         # addrman will not result in automatic connections to them.
         self.disable_autoconnect = True
@@ -308,6 +311,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.add_options(parser)
         self.options = parser.parse_args()
 
+        config = configparser.ConfigParser()
+        config.read_file(open(self.options.configfile, encoding="utf-8"))
+        self.config = config
+
         PortSeed.n = self.options.port_seed
 
     def setup(self):
@@ -316,9 +323,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         self.options.cachedir = os.path.abspath(self.options.cachedir)
 
-        config = configparser.ConfigParser()
-        config.read_file(open(self.options.configfile, encoding="utf-8"))
-        self.config = config
+        config = self.config
+
         fname_bitcoind = os.path.join(
             config["environment"]["BUILDDIR"],
             "src",
@@ -513,7 +519,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             extra_args = self.extra_args
         self.add_nodes(self.num_nodes, extra_args)
         self.start_nodes()
-        if self.is_wallet_compiled():
+        if self._requires_wallet:
             self.import_deterministic_coinbase_privkeys()
         if not self.setup_clean_chain:
             for n in self.nodes:
@@ -1076,6 +1082,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
     def skip_if_no_wallet(self):
         """Skip the running test if wallet has not been compiled."""
+        self._requires_wallet = True
         if not self.is_wallet_compiled():
             raise SkipTest("wallet has not been compiled.")
 

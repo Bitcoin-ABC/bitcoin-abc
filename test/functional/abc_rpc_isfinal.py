@@ -86,6 +86,8 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
             assert node.isfinaltransaction(txid, blockhash)
 
         if self.is_wallet_compiled():
+            self.import_deterministic_coinbase_privkeys()
+
             self.log.info("Check mempool transactions are not finalized")
             # Mature some utxos
             tip = self.generate(node, COINBASE_MATURITY, sync_fun=self.no_op)[-1]

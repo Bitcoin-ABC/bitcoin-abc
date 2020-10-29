@@ -101,6 +101,9 @@ class ZMQTest(BitcoinTestFramework):
 
     def run_test(self):
         self.ctx = zmq.Context()
+        if self.is_wallet_compiled():
+            # This can be removed after backport of core#24653
+            self.import_deterministic_coinbase_privkeys()
         try:
             self.test_basic()
             self.test_sequence()
