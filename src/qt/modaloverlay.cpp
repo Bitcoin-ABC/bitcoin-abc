@@ -11,7 +11,7 @@
 #include <QPropertyAnimation>
 #include <QResizeEvent>
 
-ModalOverlay::ModalOverlay(QWidget *parent)
+ModalOverlay::ModalOverlay(bool enable_wallet, QWidget *parent)
     : QWidget(parent), ui(new Ui::ModalOverlay), bestHeaderHeight(0),
       bestHeaderDate(QDateTime()), layerIsVisible(false), userClosed(false) {
     ui->setupUi(this);
@@ -24,6 +24,13 @@ ModalOverlay::ModalOverlay(QWidget *parent)
 
     blockProcessTime.clear();
     setVisible(false);
+    if (!enable_wallet) {
+        ui->infoText->setVisible(false);
+        ui->infoTextStrong->setText(
+            tr("Bitcoin ABC is currently syncing.  It will download headers "
+               "and blocks from peers and validate them until reaching the tip "
+               "of the block chain."));
+    }
 }
 
 ModalOverlay::~ModalOverlay() {
