@@ -89,7 +89,8 @@ public:
         bool valid = false;
         Amount val(value(&valid));
         currentUnit = unit;
-
+        lineEdit()->setPlaceholderText(BitcoinUnits::format(
+            currentUnit, m_min_amount, false, BitcoinUnits::separatorAlways));
         if (valid) {
             setValue(val);
         } else {
