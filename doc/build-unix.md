@@ -167,8 +167,8 @@ symbols, which reduces the executable size by about 90%.
 miniupnpc
 ---------
 
-[miniupnpc](http://miniupnp.free.fr/) may be used for UPnP port mapping.  It can be downloaded from [here](
-http://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
+[miniupnpc](https://miniupnp.tuxfamily.org) may be used for UPnP port mapping.  It can be downloaded from [here](
+https://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
 turned off by default.  See the cmake options for upnp behavior desired:
 
     ENABLE_UPNP            Enable UPnP support (miniupnp required, default ON)
