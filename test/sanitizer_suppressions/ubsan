@@ -1,7 +1,16 @@
-bool:wallet/wallet.cpp
+# -fsanitize=undefined suppressions
 float-divide-by-zero:policy/fees.cpp
 float-divide-by-zero:validation.cpp
 float-divide-by-zero:wallet/wallet.cpp
+
+# -fsanitize=integer suppressions
+# ===============================
+# Unsigned integer overflow occurs when the result of an unsigned integer
+# computation cannot be represented in its type. Unlike signed integer overflow,
+# this is not undefined behavior, but it is often unintentional. The list below
+# contains files in which we expect unsigned integer overflows to occur. The
+# list is used to suppress -fsanitize=integer warnings when running our CI UBSan
+# job.
 unsigned-integer-overflow:arith_uint256.h
 unsigned-integer-overflow:basic_string.h
 unsigned-integer-overflow:bench/bench.h
@@ -30,7 +39,6 @@ unsigned-integer-overflow:stl_bvector.h
 unsigned-integer-overflow:txmempool.cpp
 unsigned-integer-overflow:util/strencodings.cpp
 unsigned-integer-overflow:validation.cpp
-vptr:fs.cpp
 # False positive vptr due to boost::unit_test::decorator::timeout
 vptr:avalanche/test/processor_tests.cpp
 vptr:avalanche/test/peermanager_tests.cpp
