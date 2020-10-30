@@ -40,8 +40,8 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
         CCoinsViewCache &view = ::ChainstateActive().CoinsTip();
         for (size_t o = 0; o < tx->vout.size(); o++) {
             const Coin &existingCoin = view.AccessCoin(COutPoint(txid, o));
-            // IsSpent doesnt mean the coin is spent, it means the output
-            // doesnt' exist. So if the output does exist, then this transaction
+            // IsSpent doesn't mean the coin is spent, it means the output
+            // doesn't exist. So if the output does exist, then this transaction
             // exists in the chain.
             if (!existingCoin.IsSpent()) {
                 return TransactionError::ALREADY_IN_CHAIN;
