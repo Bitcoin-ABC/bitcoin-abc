@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <compressor.h>
+#include <script/standard.h>
 
 #include <test/util/setup_common.h>
 
@@ -63,6 +64,86 @@ BOOST_AUTO_TEST_CASE(compress_amounts) {
     for (int64_t i = 0; i < 100000; i++) {
         BOOST_CHECK(TestDecode(i));
     }
+}
+
+BOOST_AUTO_TEST_CASE(compress_script_to_ckey_id) {
+    // case CKeyID
+    CKey key;
+    key.MakeNewKey(true);
+    CPubKey pubkey = key.GetPubKey();
+
+    CScript script = CScript()
+                     << OP_DUP << OP_HASH160 << ToByteVector(pubkey.GetID())
+                     << OP_EQUALVERIFY << OP_CHECKSIG;
+    BOOST_CHECK_EQUAL(script.size(), 25);
+
+    std::vector<uint8_t> out;
+    bool done = CompressScript(script, out);
+    BOOST_CHECK_EQUAL(done, true);
+
+    // Check compressed script
+    BOOST_CHECK_EQUAL(out.size(), 21);
+    BOOST_CHECK_EQUAL(out[0], 0x00);
+    // compare the 20 relevant chars of the CKeyId in the script
+    BOOST_CHECK_EQUAL(memcmp(&out[1], &script[3], 20), 0);
+}
+
+BOOST_AUTO_TEST_CASE(compress_script_to_cscript_id) {
+    // case CScriptID
+    CScript script, redeemScript;
+    script << OP_HASH160 << ToByteVector(CScriptID(redeemScript)) << OP_EQUAL;
+    BOOST_CHECK_EQUAL(script.size(), 23);
+
+    std::vector<uint8_t> out;
+    bool done = CompressScript(script, out);
+    BOOST_CHECK_EQUAL(done, true);
+
+    // Check compressed script
+    BOOST_CHECK_EQUAL(out.size(), 21);
+    BOOST_CHECK_EQUAL(out[0], 0x01);
+    // compare the 20 relevant chars of the CScriptId in the script
+    BOOST_CHECK_EQUAL(memcmp(&out[1], &script[2], 20), 0);
+}
+
+BOOST_AUTO_TEST_CASE(compress_script_to_compressed_pubkey_id) {
+    CKey key;
+    // case compressed PubKeyID
+    key.MakeNewKey(true);
+
+    // COMPRESSED_PUBLIC_KEY_SIZE (33)
+    CScript script = CScript() << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
+    BOOST_CHECK_EQUAL(script.size(), 35);
+
+    std::vector<uint8_t> out;
+    bool done = CompressScript(script, out);
+    BOOST_CHECK_EQUAL(done, true);
+
+    // Check compressed script
+    BOOST_CHECK_EQUAL(out.size(), 33);
+    BOOST_CHECK_EQUAL(memcmp(&out[0], &script[1], 1), 0);
+    // compare the 32 chars of the compressed CPubKey
+    BOOST_CHECK_EQUAL(memcmp(&out[1], &script[2], 32), 0);
+}
+
+BOOST_AUTO_TEST_CASE(compress_script_to_uncompressed_pubkey_id) {
+    CKey key;
+    // case uncompressed PubKeyID
+    key.MakeNewKey(false);
+    // PUBLIC_KEY_SIZE (65)
+    CScript script = CScript() << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
+    // 1 char code + 65 char pubkey + OP_CHECKSIG
+    BOOST_CHECK_EQUAL(script.size(), 67);
+
+    std::vector<uint8_t> out;
+    bool done = CompressScript(script, out);
+    BOOST_CHECK_EQUAL(done, true);
+
+    // Check compressed script
+    BOOST_CHECK_EQUAL(out.size(), 33);
+    // first 32 chars of CPubKey are copied into out[1:]
+    BOOST_CHECK_EQUAL(memcmp(&out[1], &script[2], 32), 0);
+    // least significant bit (lsb) of last char of pubkey is mapped into out[0]
+    BOOST_CHECK_EQUAL(out[0], 0x04 | (script[65] & 0x01));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
