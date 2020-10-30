@@ -22,11 +22,11 @@ private:
     ProofValidationResult m_result = ProofValidationResult::NONE;
 
 public:
-    bool Invalid(ProofValidationResult result, unsigned int chRejectCodeIn = 0,
+    bool Invalid(ProofValidationResult result,
                  const std::string &reject_reason = "",
                  const std::string &debug_message = "") {
         m_result = result;
-        ValidationState::Invalid(chRejectCodeIn, reject_reason, debug_message);
+        ValidationState::Invalid(reject_reason, debug_message);
         return false;
     }
     ProofValidationResult GetResult() const { return m_result; }

@@ -1106,17 +1106,6 @@ int GetSpendHeight(const CCoinsViewCache &inputs);
 int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
                             const Consensus::Params &params);
 
-/**
- * Reject codes greater or equal to this can be returned by AcceptToMemPool or
- * AcceptBlock for blocks/transactions, to signal internal conditions. They
- * cannot and should not be sent over the P2P network.
- */
-static const unsigned int REJECT_INTERNAL = 0x100;
-/** Too high fee. Can not be triggered by P2P transactions */
-static const unsigned int REJECT_HIGHFEE = 0x100;
-/** Block conflicts with a transaction already known */
-static const unsigned int REJECT_AGAINST_FINALIZED = 0x103;
-
 /** Get block file info entry for one block file */
 CBlockFileInfo *GetBlockFileInfo(size_t n);
 

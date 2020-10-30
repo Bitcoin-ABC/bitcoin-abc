@@ -14,18 +14,18 @@ static bool CheckTransactionCommon(const CTransaction &tx,
                                    TxValidationState &state) {
     // Basic checks that don't depend on any context
     if (tx.vin.empty()) {
-        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS,
                              "bad-txns-vin-empty");
     }
 
     if (tx.vout.empty()) {
-        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS,
                              "bad-txns-vout-empty");
     }
 
     // Size limit
     if (::GetSerializeSize(tx, PROTOCOL_VERSION) > MAX_TX_SIZE) {
-        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS,
                              "bad-txns-oversize");
     }
 
@@ -34,18 +34,17 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     for (const auto &txout : tx.vout) {
         if (txout.nValue < Amount::zero()) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
-                                 REJECT_INVALID, "bad-txns-vout-negative");
+                                 "bad-txns-vout-negative");
         }
 
         if (txout.nValue > MAX_MONEY) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
-                                 REJECT_INVALID, "bad-txns-vout-toolarge");
+                                 "bad-txns-vout-toolarge");
         }
 
         nValueOut += txout.nValue;
         if (!MoneyRange(nValueOut)) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
-                                 REJECT_INVALID,
                                  "bad-txns-txouttotal-toolarge");
         }
     }
@@ -55,8 +54,8 @@ static bool CheckTransactionCommon(const CTransaction &tx,
 
 bool CheckCoinbase(const CTransaction &tx, TxValidationState &state) {
     if (!tx.IsCoinBase()) {
-        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
-                             "bad-cb-missing", "first tx is not coinbase");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-cb-missing",
+                             "first tx is not coinbase");
     }
 
     if (!CheckTransactionCommon(tx, state)) {
@@ -66,8 +65,7 @@ bool CheckCoinbase(const CTransaction &tx, TxValidationState &state) {
 
     if (tx.vin[0].scriptSig.size() < 2 ||
         tx.vin[0].scriptSig.size() > MAX_COINBASE_SCRIPTSIG_SIZE) {
-        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
-                             "bad-cb-length");
+        return state.Invalid(TxValidationResult::TX_CONSENSUS, "bad-cb-length");
     }
 
     return true;
@@ -75,7 +73,7 @@ bool CheckCoinbase(const CTransaction &tx, TxValidationState &state) {
 
 bool CheckRegularTransaction(const CTransaction &tx, TxValidationState &state) {
     if (tx.IsCoinBase()) {
-        return state.Invalid(TxValidationResult::TX_CONSENSUS, REJECT_INVALID,
+        return state.Invalid(TxValidationResult::TX_CONSENSUS,
                              "bad-tx-coinbase");
     }
 
@@ -88,7 +86,7 @@ bool CheckRegularTransaction(const CTransaction &tx, TxValidationState &state) {
     for (const auto &txin : tx.vin) {
         if (txin.prevout.IsNull()) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
-                                 REJECT_INVALID, "bad-txns-prevout-null");
+                                 "bad-txns-prevout-null");
         }
 
         // Check for duplicate inputs (see CVE-2018-17144)
@@ -99,7 +97,7 @@ bool CheckRegularTransaction(const CTransaction &tx, TxValidationState &state) {
         // implementation of the underlying coins database.
         if (!vInOutPoints.insert(txin.prevout).second) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
-                                 REJECT_INVALID, "bad-txns-inputs-duplicate");
+                                 "bad-txns-inputs-duplicate");
         }
     }
 

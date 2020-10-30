@@ -36,7 +36,6 @@ static void RunCheckOnBlock(const GlobalConfig &config, const CBlock &block,
     BlockValidationState state;
     RunCheckOnBlockImpl(config, block, state, false);
 
-    BOOST_CHECK_EQUAL(state.GetRejectCode(), REJECT_INVALID);
     BOOST_CHECK_EQUAL(state.GetRejectReason(), reason);
 }
 
