@@ -541,15 +541,19 @@ int GuiMain(int argc, char *argv[]) {
 
     BitcoinApplication app(*node);
 
-    // Register meta types used for QMetaObject::invokeMethod
+    // Register meta types used for QMetaObject::invokeMethod and
+    // Qt::QueuedConnection
     qRegisterMetaType<bool *>();
 #ifdef ENABLE_WALLET
     qRegisterMetaType<WalletModel *>();
 #endif
-    //   Need to pass name here as Amount is a typedef (see
-    //   http://qt-project.org/doc/qt-5/qmetatype.html#qRegisterMetaType)
-    //   IMPORTANT if it is no longer a typedef use the normal variant above
+    // Register typedefs (see
+    // http://qt-project.org/doc/qt-5/qmetatype.html#qRegisterMetaType)
+    // IMPORTANT: if Amount is no longer a typedef use the normal variant above
+    // (see https://doc.qt.io/qt-5/qmetatype.html#qRegisterMetaType-1)
     qRegisterMetaType<Amount>("Amount");
+    qRegisterMetaType<size_t>("size_t");
+
     qRegisterMetaType<std::function<void()>>("std::function<void()>");
     qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
 
