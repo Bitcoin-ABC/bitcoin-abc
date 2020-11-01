@@ -325,6 +325,10 @@ public:
         result.pushKV("protocolversion",
                       batch[ID_NETWORKINFO]["result"]["protocolversion"]);
         result.pushKV("blocks", batch[ID_BLOCKCHAININFO]["result"]["blocks"]);
+        result.pushKV("headers", batch[ID_BLOCKCHAININFO]["result"]["headers"]);
+        result.pushKV(
+            "verificationprogress",
+            batch[ID_BLOCKCHAININFO]["result"]["verificationprogress"]);
         result.pushKV("timeoffset",
                       batch[ID_NETWORKINFO]["result"]["timeoffset"]);
         result.pushKV("connections",
