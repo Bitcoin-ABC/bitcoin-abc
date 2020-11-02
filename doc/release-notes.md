@@ -10,8 +10,8 @@ This release includes the following features and fixes:
    accommodate the storage of Tor v3 and other BIP155 addresses. This means that if
    the file is modified by 0.23.0 or newer then older versions will not be able to
    read it. Those old versions, in the event of a downgrade, will log an error
-   message that deserialization has failed and will continue normal operation
-   as if the file was missing, creating a new empty one.
+   message "Incorrect keysize in addrman deserialization" and will continue normal
+   operation as if the file was missing, creating a new empty one.
  - The Tor onion service that is automatically created by setting the
    `-listenonion` configuration parameter will now be created as a Tor v3 service
    instead of Tor v2. The private key that was used for Tor v2 (if any) will be
