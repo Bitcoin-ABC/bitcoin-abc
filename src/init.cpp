@@ -2049,7 +2049,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
             return InitError(AmountErrMsg("minrelaytxfee",
                                           args.GetArg("-minrelaytxfee", "")));
         }
-        // High fee check is done afterward in CWallet::CreateWalletFromFile()
+        // High fee check is done afterward in CWallet::Create()
         ::minRelayTxFee = CFeeRate(n);
     }
 
