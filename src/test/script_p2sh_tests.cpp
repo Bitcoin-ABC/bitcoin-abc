@@ -222,57 +222,28 @@ BOOST_AUTO_TEST_CASE(is) {
     p2sh << OP_HASH160 << ToByteVector(dummy) << OP_EQUAL;
     BOOST_CHECK(p2sh.IsPayToScriptHash());
 
+    std::vector<uint8_t> direct = {OP_HASH160, 20};
+    direct.insert(direct.end(), 20, 0);
+    direct.push_back(OP_EQUAL);
+    BOOST_CHECK(CScript(direct.begin(), direct.end()).IsPayToScriptHash());
+
     // Not considered pay-to-script-hash if using one of the OP_PUSHDATA
     // opcodes:
-    static const uint8_t direct[] = {OP_HASH160, 20, 0, 0, 0, 0, 0,       0,
-                                     0,          0,  0, 0, 0, 0, 0,       0,
-                                     0,          0,  0, 0, 0, 0, OP_EQUAL};
-    BOOST_CHECK(CScript(direct, direct + sizeof(direct)).IsPayToScriptHash());
-    static const uint8_t pushdata1[] = {OP_HASH160, OP_PUSHDATA1,
-                                        20,         0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          OP_EQUAL};
+    std::vector<uint8_t> pushdata1 = {OP_HASH160, OP_PUSHDATA1, 20};
+    pushdata1.insert(pushdata1.end(), 20, 0);
+    pushdata1.push_back(OP_EQUAL);
     BOOST_CHECK(
-        !CScript(pushdata1, pushdata1 + sizeof(pushdata1)).IsPayToScriptHash());
-    static const uint8_t pushdata2[] = {OP_HASH160, OP_PUSHDATA2,
-                                        20,         0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        OP_EQUAL};
+        !CScript(pushdata1.begin(), pushdata1.end()).IsPayToScriptHash());
+    std::vector<uint8_t> pushdata2 = {OP_HASH160, OP_PUSHDATA2, 20, 0};
+    pushdata2.insert(pushdata2.end(), 20, 0);
+    pushdata2.push_back(OP_EQUAL);
     BOOST_CHECK(
-        !CScript(pushdata2, pushdata2 + sizeof(pushdata2)).IsPayToScriptHash());
-    static const uint8_t pushdata4[] = {OP_HASH160, OP_PUSHDATA4,
-                                        20,         0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        0,          0,
-                                        OP_EQUAL};
+        !CScript(pushdata2.begin(), pushdata2.end()).IsPayToScriptHash());
+    std::vector<uint8_t> pushdata4 = {OP_HASH160, OP_PUSHDATA4, 20, 0, 0, 0};
+    pushdata4.insert(pushdata4.end(), 20, 0);
+    pushdata4.push_back(OP_EQUAL);
     BOOST_CHECK(
-        !CScript(pushdata4, pushdata4 + sizeof(pushdata4)).IsPayToScriptHash());
+        !CScript(pushdata4.begin(), pushdata4.end()).IsPayToScriptHash());
 
     CScript not_p2sh;
     BOOST_CHECK(!not_p2sh.IsPayToScriptHash());
