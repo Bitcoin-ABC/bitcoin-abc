@@ -133,9 +133,6 @@ public:
  */
 class CRollingBloomFilter {
 public:
-    // A random bloom filter calls GetRand() at creation time. Don't create
-    // global CRollingBloomFilter objects, as they may be constructed before the
-    // randomizer is properly initialized.
     CRollingBloomFilter(const uint32_t nElements, const double nFPRate);
 
     void insert(const std::vector<uint8_t> &vKey);

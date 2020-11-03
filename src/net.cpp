@@ -2898,7 +2898,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              bool fInboundIn, bool block_relay_only)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
       addrBind(addrBindIn), fInbound(fInboundIn),
-      nKeyedNetGroup(nKeyedNetGroupIn), addrKnown(5000, 0.001),
+      nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
@@ -2910,6 +2910,10 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     hashContinue = BlockHash();
     if (!block_relay_only) {
         m_tx_relay = std::make_unique<TxRelay>();
+    }
+
+    if (m_addr_relay_peer) {
+        m_addr_known = std::make_unique<CRollingBloomFilter>(5000, 0.001);
     }
 
     for (const std::string &msg : getAllNetMessageTypes()) {
