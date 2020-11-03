@@ -571,6 +571,8 @@ class NetworkThread(threading.Thread):
                    timeout=timeout)
         self.network_event_loop.close()
         self.join(timeout)
+        # Safe to remove event loop.
+        NetworkThread.network_event_loop = None
 
 
 class P2PDataStore(P2PInterface):
