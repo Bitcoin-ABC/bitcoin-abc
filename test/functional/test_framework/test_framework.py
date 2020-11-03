@@ -105,12 +105,13 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.rpc_timeout = 60
         self.supports_cli = False
         self.bind_to_localhost_only = True
+        # We run parse_args before set_test_params for tests who need to
+        # know the parser options during setup.
+        self.parse_args()
+        self.set_test_params()
 
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
-        self.parse_args()
-
-        self.set_test_params()
         assert hasattr(
             self, "num_nodes"), "Test must set self.num_nodes in set_test_params()"
 
