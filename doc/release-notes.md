@@ -10,6 +10,7 @@ P2P and network changes
 -----------------------
 
 #### Removal of reject network messages from Bitcoin ABC (BIP61)
+
 This is a follow-up on the removal of BIP61 REJECT message support in
 Bitcoin ABC version 0.22.5:
 
@@ -32,3 +33,8 @@ New settings
   legacy /16 prefix mapping remains the default. See `bitcoind help` for more
   information. This option is experimental and subject to changes or removal in
   future releases.
+
+Build system changes
+--------------------
+
+The minimum supported miniUPnPc version is set to 1.9 (API version 10).

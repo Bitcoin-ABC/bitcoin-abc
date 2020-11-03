@@ -566,7 +566,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 if(ENABLE_UPNP)
-	find_package(MiniUPnPc 1.5 REQUIRED)
+	find_package(MiniUPnPc 1.9 REQUIRED)
 	target_link_libraries(server MiniUPnPc::miniupnpc)
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
