@@ -66,8 +66,7 @@ temporary folder. If you need more bitcoind nodes than set by default (1),
 simply increase the `num_nodes` parameter during setup.
 
 ```
->>> test2 = TestShell()
->>> test2.setup()
+>>> test2 = TestShell().setup()
 TestShell is already running!
 ```
 
