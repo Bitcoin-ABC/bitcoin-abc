@@ -434,8 +434,6 @@ namespace {
 struct CNodeState {
     //! The peer's address
     const CService address;
-    //! Whether we have a fully established connection.
-    bool fCurrentlyConnected;
     //! The best known block we know this peer has announced.
     const CBlockIndex *pindexBestKnownBlock;
     //! The hash of the last unknown block this peer has announced.
@@ -548,7 +546,6 @@ struct CNodeState {
     CNodeState(CAddress addrIn, bool is_inbound, bool is_manual)
         : address(addrIn), m_is_inbound(is_inbound),
           m_is_manual_connection(is_manual) {
-        fCurrentlyConnected = false;
         pindexBestKnownBlock = nullptr;
         hashLastUnknownBlock = BlockHash();
         pindexLastCommonBlock = nullptr;
@@ -1194,10 +1191,9 @@ void PeerManager::FinalizeNode(const Config &config, const CNode &node,
             nSyncStarted--;
         }
 
-        if (misbehavior == 0 && state->fCurrentlyConnected &&
-            !node.IsBlockOnlyConn()) {
-            // Note: we avoid changing visible addrman state for
-            // block-relay-only peers
+        if (node.fSuccessfullyConnected && misbehavior == 0 &&
+            !node.IsBlockOnlyConn() && !node.IsInboundConn()) {
+            // Only change visible addrman state for outbound, full-relay peers
             fUpdateConnectionTime = true;
         }
 
@@ -3127,10 +3123,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         }
 
         if (!pfrom.IsInboundConn()) {
-            // Mark this node as currently connected, so we update its timestamp
-            // later.
-            LOCK(cs_main);
-            State(pfrom.GetId())->fCurrentlyConnected = true;
             LogPrintf(
                 "New outbound peer connected: version: %d, blocks=%d, "
                 "peer=%d%s (%s)\n",
