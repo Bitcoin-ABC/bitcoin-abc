@@ -34,6 +34,9 @@ New settings
   information. This option is experimental and subject to changes or removal in
   future releases.
 
+- Importing blocks upon startup via the `bootstrap.dat` file no longer occurs
+  by default. The file must now be specified with `-loadblock=<file>`.
+
 Build system changes
 --------------------
 

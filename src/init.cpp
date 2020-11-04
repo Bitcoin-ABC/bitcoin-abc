@@ -474,7 +474,7 @@ void SetupServerArgs() {
                            DEFAULT_MAX_REORG_DEPTH),
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-loadblock=<file>",
-                 "Imports blocks from external blk000??.dat file on startup",
+                 "Imports blocks from external file on startup",
                  ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-maxmempool=<n>",
                  strprintf("Keep the transaction memory pool below <n> "
@@ -1329,21 +1329,6 @@ static void ThreadImport(const Config &config,
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
             LoadGenesisBlock(chainParams);
-        }
-
-        // hardcoded $DATADIR/bootstrap.dat
-        fs::path pathBootstrap = GetDataDir() / "bootstrap.dat";
-        if (fs::exists(pathBootstrap)) {
-            FILE *file = fsbridge::fopen(pathBootstrap, "rb");
-            if (file) {
-                fs::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
-                LogPrintf("Importing bootstrap.dat...\n");
-                LoadExternalBlockFile(config, file);
-                RenameOver(pathBootstrap, pathBootstrapOld);
-            } else {
-                LogPrintf("Warning: Could not open bootstrap file %s\n",
-                          pathBootstrap.string());
-            }
         }
 
         // -loadblock=
