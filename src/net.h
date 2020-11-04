@@ -877,7 +877,7 @@ public:
         // Last time a "MEMPOOL" request was serviced.
         std::atomic<std::chrono::seconds> m_last_mempool_req{
             std::chrono::seconds{0}};
-        int64_t nNextInvSend{0};
+        std::chrono::microseconds nNextInvSend{0};
 
         RecursiveMutex cs_feeFilter;
         // Minimum fee rate with which to filter inv's to this node
@@ -1047,6 +1047,15 @@ public:
  */
 int64_t PoissonNextSend(int64_t now, int average_interval_seconds);
 
+/** Wrapper to return mockable type */
+inline std::chrono::microseconds
+PoissonNextSend(std::chrono::microseconds now,
+                std::chrono::seconds average_interval) {
+    return std::chrono::microseconds{
+        PoissonNextSend(now.count(), average_interval.count())};
+}
+
 std::string getSubVersionEB(uint64_t MaxBlockSize);
 std::string userAgent(const Config &config);
+
 #endif // BITCOIN_NET_H
