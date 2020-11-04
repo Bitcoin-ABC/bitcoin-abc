@@ -339,7 +339,7 @@ public:
                       batch[ID_BLOCKCHAININFO]["result"]["difficulty"]);
         result.pushKV("chain",
                       UniValue(batch[ID_BLOCKCHAININFO]["result"]["chain"]));
-        if (!batch[ID_WALLETINFO].isNull()) {
+        if (!batch[ID_WALLETINFO]["result"].isNull()) {
             result.pushKV("walletversion",
                           batch[ID_WALLETINFO]["result"]["walletversion"]);
             result.pushKV("balance", batch[ID_WALLETINFO]["result"]["balance"]);
