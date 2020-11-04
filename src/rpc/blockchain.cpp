@@ -38,8 +38,6 @@
 #include <versionbitsinfo.h> // For VersionBitsDeploymentInfo
 #include <warnings.h>
 
-#include <boost/thread/thread.hpp> // boost::thread::interrupt
-
 #include <condition_variable>
 #include <cstdint>
 #include <memory>
@@ -2450,7 +2448,6 @@ static bool FindScriptPubKey(std::atomic<int> &scan_progress,
             return false;
         }
         if (++count % 8192 == 0) {
-            boost::this_thread::interruption_point();
             if (should_abort) {
                 // allow to abort the scan via the abort reference
                 return false;
