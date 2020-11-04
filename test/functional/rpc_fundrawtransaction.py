@@ -30,7 +30,9 @@ class RawTransactionsTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 4
         self.setup_clean_chain = True
-        self.extra_args = [[], [], [], []]
+        # This test isn't testing tx relay. Set whitelist on the peers for
+        # instant tx relay.
+        self.extra_args = [['-whitelist=127.0.0.1']] * self.num_nodes
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -492,8 +494,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # Send 1.2 BCH to msig addr.
         self.nodes[0].sendtoaddress(mSigObj, 1.2)
-        self.sync_all()
-        self.nodes[1].generate(1)
+        self.nodes[0].generate(1)
         self.sync_all()
 
         oldBalance = self.nodes[1].getbalance()
@@ -504,8 +505,7 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         signedTx = self.nodes[2].signrawtransactionwithwallet(fundedTx['hex'])
         self.nodes[2].sendrawtransaction(signedTx['hex'])
-        self.sync_all()
-        self.nodes[1].generate(1)
+        self.nodes[2].generate(1)
         self.sync_all()
 
         # Make sure funds are received at node1.
@@ -516,23 +516,6 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.log.info("Test fundrawtxn with locked wallet")
 
         self.nodes[1].encryptwallet("test")
-        self.stop_nodes()
-
-        self.start_nodes()
-        # This test is not meant to test fee estimation and we'd like
-        # to be sure all txns are sent at a consistent desired feerate.
-        for node in self.nodes:
-            node.settxfee(self.min_relay_tx_fee)
-
-        connect_nodes(self.nodes[0], self.nodes[1])
-        connect_nodes(self.nodes[1], self.nodes[2])
-        connect_nodes(self.nodes[0], self.nodes[2])
-        connect_nodes(self.nodes[0], self.nodes[3])
-        # Again lock the watchonly UTXO or nodes[0] may spend it, because
-        # lockunspent is memory-only and thus lost on restart.
-        self.nodes[0].lockunspent(
-            False, [{"txid": self.watchonly_txid, "vout": self.watchonly_vout}])
-        self.sync_all()
 
         # Drain the keypool.
         self.nodes[1].getnewaddress()
@@ -579,8 +562,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # Empty node1, send some small coins from node0 to node1.
         self.nodes[1].sendtoaddress(
             self.nodes[0].getnewaddress(), self.nodes[1].getbalance(), "", "", True)
-        self.sync_all()
-        self.nodes[0].generate(1)
+        self.nodes[1].generate(1)
         self.sync_all()
 
         for i in range(0, 20):
@@ -611,8 +593,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # Again, empty node1, send some small coins from node0 to node1.
         self.nodes[1].sendtoaddress(
             self.nodes[0].getnewaddress(), self.nodes[1].getbalance(), "", "", True)
-        self.sync_all()
-        self.nodes[0].generate(1)
+        self.nodes[1].generate(1)
         self.sync_all()
 
         for i in range(0, 20):
@@ -631,8 +612,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         fundedAndSignedTx = self.nodes[1].signrawtransactionwithwallet(
             fundedTx['hex'])
         self.nodes[1].sendrawtransaction(fundedAndSignedTx['hex'])
-        self.sync_all()
-        self.nodes[0].generate(1)
+        self.nodes[1].generate(1)
         self.sync_all()
         assert_equal(oldBalance + Decimal('50.19000000'),
                      self.nodes[0].getbalance())  # 0.19+block reward
