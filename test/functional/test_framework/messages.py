@@ -60,8 +60,8 @@ MSG_FILTERED_BLOCK = 3
 MSG_CMPCTBLOCK = 4
 MSG_TYPE_MASK = 0xffffffff >> 2
 
-# Serialization/deserialization tools
 
+# Serialization/deserialization tools
 
 def sha256(s):
     return hashlib.new('sha256', s).digest()
@@ -188,21 +188,19 @@ def ser_string_vector(v):
     return r
 
 
-# Deserialize from a hex string representation (eg from RPC)
-
-
 def FromHex(obj, hex_string):
+    """Deserialize from a hex string representation (eg from RPC)"""
     obj.deserialize(BytesIO(hex_str_to_bytes(hex_string)))
     return obj
 
-# Convert a binary-serializable object to hex (eg for submission via RPC)
-
 
 def ToHex(obj):
+    """Convert a binary-serializable object to hex
+    (eg for submission via RPC)"""
     return obj.serialize().hex()
 
-# Objects that map to bitcoind objects, which can be serialized/deserialized
 
+# Objects that map to bitcoind objects, which can be serialized/deserialized
 
 class CAddress:
     __slots__ = ("ip", "nServices", "pchReserved", "port", "time")
@@ -631,10 +629,10 @@ class P2PHeaderAndShortIDs:
             repr(self.shortids), self.prefilled_txn_length,
             repr(self.prefilled_txn))
 
-# Calculate the BIP 152-compact blocks shortid for a given transaction hash
-
 
 def calculate_shortid(k0, k1, tx_hash):
+    """Calculate the BIP 152-compact blocks shortid for a given
+    transaction hash"""
     expected_shortid = siphash256(k0, k1, tx_hash)
     expected_shortid &= 0x0000ffffffffffff
     return expected_shortid
@@ -918,7 +916,6 @@ class CMerkleBlock:
 
 # Objects that correspond to messages on the wire
 
-
 class msg_version:
     __slots__ = ("addrFrom", "addrTo", "nNonce", "nRelay", "nServices",
                  "nStartingHeight", "nTime", "nVersion", "strSubVer")
@@ -1112,8 +1109,6 @@ class msg_block:
 
 # for cases where a user needs tighter control over what is sent over the wire
 # note that the user must supply the name of the command, and the data
-
-
 class msg_generic:
     __slots__ = ("command", "data")
 
