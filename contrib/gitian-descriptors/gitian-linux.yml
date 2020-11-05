@@ -46,6 +46,7 @@ script: |
 
   WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-linux-gnu arm-linux-gnueabihf aarch64-linux-gnu"
+  CHAINS="ABC BCHN"
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
@@ -147,38 +148,45 @@ script: |
   popd
 
   ORIGPATH="$PATH"
-  # Extract the release tarball into a dir for each host and build
-  for i in ${HOSTS}; do
-    export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
-    mkdir -p distsrc-${i}
-    cd distsrc-${i}
-    INSTALLPATH=`pwd`/installed/${DISTNAME}
-    mkdir -p ${INSTALLPATH}
-    tar --strip-components=1 -xf ../$SOURCEDIST
 
-    cmake -GNinja .. \
-      -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
-      -DCLIENT_VERSION_IS_RELEASE=ON \
-      -DENABLE_CLANG_TIDY=OFF \
-      -DENABLE_REDUCE_EXPORTS=ON \
-      -DENABLE_STATIC_LIBSTDCXX=ON \
-      -DENABLE_GLIBC_BACK_COMPAT=ON \
-      -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
-      -DCCACHE=OFF \
-      -DUSE_LD_GOLD=OFF \
-      ${CMAKE_EXTRA_OPTIONS[${i}]}
+  for CHAIN in ${CHAINS}; do
+    mkdir -p ${OUTDIR}/${CHAIN}
 
-    ninja
-    ninja security-check
-    ninja symbol-check
+    # Extract the release tarball into a dir for each host and build
+    for i in ${HOSTS}; do
+      export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
+      mkdir -p ${CHAIN}/distsrc-${i}
+      cd ${CHAIN}/distsrc-${i}
+      INSTALLPATH=`pwd`/installed/${DISTNAME}
+      mkdir -p ${INSTALLPATH}
+      tar --strip-components=1 -xf ../../$SOURCEDIST
 
-    ninja install-debug
+      cmake -GNinja ${SOURCEDIR} \
+        -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
+        -DCLIENT_VERSION_IS_RELEASE=ON \
+        -DENABLE_CLANG_TIDY=OFF \
+        -DENABLE_REDUCE_EXPORTS=ON \
+        -DENABLE_STATIC_LIBSTDCXX=ON \
+        -DENABLE_GLIBC_BACK_COMPAT=ON \
+        -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
+        -DCCACHE=OFF \
+        -DUSE_LD_GOLD=OFF \
+        -DNETWORK_COMPATIBILITY=${CHAIN} \
+        ${CMAKE_EXTRA_OPTIONS[${i}]}
 
-    cd installed
-    find ${DISTNAME} -not -name "*.dbg" | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
-    find ${DISTNAME} -name "*.dbg" | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}-debug.tar.gz
-    cd ../../
-    rm -rf distsrc-${i}
+      ninja
+      ninja security-check
+      ninja symbol-check
+
+      ninja install-debug
+
+      cd installed
+      find ${DISTNAME} -not -name "*.dbg" | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${CHAIN}/${DISTNAME}-${i}.tar.gz
+      find ${DISTNAME} -name "*.dbg" | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${CHAIN}/${DISTNAME}-${i}-debug.tar.gz
+      cd ../../..
+      rm -rf ${CHAIN}/distsrc-${i}
+    done
+    mkdir -p $OUTDIR/src
   done
-  mkdir -p $OUTDIR/src
+
   mv $SOURCEDIST $OUTDIR/src

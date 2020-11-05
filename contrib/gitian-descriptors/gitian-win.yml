@@ -41,6 +41,7 @@ files: []
 script: |
   WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-w64-mingw32"
+  CHAINS="ABC BCHN"
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
@@ -167,43 +168,50 @@ script: |
   CMAKE_EXTRA_OPTIONS[x86_64-w64-mingw32]="-DCPACK_PACKAGE_FILE_NAME=${DISTNAME}-win64-setup-unsigned"
 
   ORIGPATH="$PATH"
-  # Extract the release tarball into a dir for each host and build
-  for i in ${HOSTS}; do
-    export PATH=${BASEPREFIX}/${i}/native/bin:${WRAP_DIR}:${ORIGPATH}
-    mkdir -p distsrc-${i}
-    cd distsrc-${i}
-    INSTALLPATH=`pwd`/installed/${DISTNAME}
-    mkdir -p ${INSTALLPATH}
-    tar --strip-components=1 -xf ../$SOURCEDIST
 
-    cmake -GNinja .. \
-      -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
-      -DCLIENT_VERSION_IS_RELEASE=ON \
-      -DENABLE_CLANG_TIDY=OFF \
-      -DENABLE_REDUCE_EXPORTS=ON \
-      -DBUILD_BITCOIN_SEEDER=OFF \
-      -DCPACK_STRIP_FILES=ON \
-      -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
-      -DCCACHE=OFF \
-      ${CMAKE_EXTRA_OPTIONS[${i}]}
+  for CHAIN in ${CHAINS}; do
+    mkdir -p ${OUTDIR}/${CHAIN}
 
-    ninja
-    ninja security-check
+    # Extract the release tarball into a dir for each host and build
+    for i in ${HOSTS}; do
+      export PATH=${BASEPREFIX}/${i}/native/bin:${WRAP_DIR}:${ORIGPATH}
+      mkdir -p ${CHAIN}/distsrc-${i}
+      cd ${CHAIN}/distsrc-${i}
+      INSTALLPATH=`pwd`/installed/${DISTNAME}
+      mkdir -p ${INSTALLPATH}
+      tar --strip-components=1 -xf ../../$SOURCEDIST
 
-    ninja install-debug
+      cmake -GNinja ${SOURCEDIR} \
+        -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
+        -DCLIENT_VERSION_IS_RELEASE=ON \
+        -DENABLE_CLANG_TIDY=OFF \
+        -DENABLE_REDUCE_EXPORTS=ON \
+        -DBUILD_BITCOIN_SEEDER=OFF \
+        -DCPACK_STRIP_FILES=ON \
+        -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
+        -DCCACHE=OFF \
+        -DNETWORK_COMPATIBILITY=${CHAIN} \
+        ${CMAKE_EXTRA_OPTIONS[${i}]}
 
-    ninja package
+      ninja
+      ninja security-check
 
-    cp -f bitcoin-abc-*-setup-unsigned.exe ${OUTDIR}/
-    cd installed
-    mkdir -p ${DISTNAME}/lib
-    mv ${DISTNAME}/bin/*.dll* ${DISTNAME}/lib/
-    find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i}.zip
-    find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-${i}-debug.zip
-    cd ../../
-    rm -rf distsrc-${i}
+      ninja install-debug
+
+      ninja package
+
+      cp -f bitcoin-abc-*-setup-unsigned.exe ${OUTDIR}/${CHAIN}/
+      cd installed
+      mkdir -p ${DISTNAME}/lib
+      mv ${DISTNAME}/bin/*.dll* ${DISTNAME}/lib/
+      find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${CHAIN}/${DISTNAME}-${i}.zip
+      find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${CHAIN}/${DISTNAME}-${i}-debug.zip
+      cd ../../..
+      rm -rf ${CHAIN}/distsrc-${i}
+    done
+
+    pushd $OUTDIR
+    mv ${OUTDIR}/${CHAIN}/${DISTNAME}-x86_64-*-debug.zip ${OUTDIR}/${CHAIN}/${DISTNAME}-win64-debug.zip
+    mv ${OUTDIR}/${CHAIN}/${DISTNAME}-x86_64-*.zip ${OUTDIR}/${CHAIN}/${DISTNAME}-win64.zip
+    popd
   done
-
-  cd $OUTDIR
-  mv ${OUTDIR}/${DISTNAME}-x86_64-*-debug.zip ${OUTDIR}/${DISTNAME}-win64-debug.zip
-  mv ${OUTDIR}/${DISTNAME}-x86_64-*.zip ${OUTDIR}/${DISTNAME}-win64.zip

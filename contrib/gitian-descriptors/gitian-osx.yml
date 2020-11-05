@@ -48,6 +48,7 @@ files:
 script: |
   WRAP_DIR=$HOME/wrapped
   HOSTS="x86_64-apple-darwin16"
+  CHAINS="ABC BCHN"
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
@@ -147,52 +148,59 @@ script: |
   popd
 
   ORIGPATH="$PATH"
-  # Extract the release tarball into a dir for each host and build
-  for i in ${HOSTS}; do
-    export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
-    mkdir -p distsrc-${i}
-    cd distsrc-${i}
-    INSTALLPATH=`pwd`/installed/${DISTNAME}
-    mkdir -p ${INSTALLPATH}
-    tar --strip-components=1 -xf ../$SOURCEDIST
 
-    cmake -GNinja .. \
-      -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
-      -DCLIENT_VERSION_IS_RELEASE=ON \
-      -DENABLE_CLANG_TIDY=OFF \
-      -DENABLE_REDUCE_EXPORTS=ON \
-      -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
-      -DCCACHE=OFF \
-      -DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage"
+  for CHAIN in ${CHAINS}; do
+    mkdir -p ${OUTDIR}/${CHAIN}
 
-    ninja
+    # Extract the release tarball into a dir for each host and build
+    for i in ${HOSTS}; do
+      export PATH=${BASEPREFIX}/${i}/native/bin:${ORIGPATH}
+      mkdir -p ${CHAIN}/distsrc-${i}
+      cd ${CHAIN}/distsrc-${i}
+      INSTALLPATH=`pwd`/installed/${DISTNAME}
+      mkdir -p ${INSTALLPATH}
+      tar --strip-components=1 -xf ../../$SOURCEDIST
 
-    ninja install/strip
+      cmake -GNinja ${SOURCEDIR} \
+        -DCMAKE_TOOLCHAIN_FILE=${SOURCEDIR}/cmake/platforms/${CMAKE_TOOLCHAIN_FILE[${i}]} \
+        -DCLIENT_VERSION_IS_RELEASE=ON \
+        -DENABLE_CLANG_TIDY=OFF \
+        -DENABLE_REDUCE_EXPORTS=ON \
+        -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
+        -DCCACHE=OFF \
+        -DNETWORK_COMPATIBILITY=${CHAIN} \
+        -DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage"
 
-    export PYTHONPATH="${BASEPREFIX}/${i}/native/lib/python3/dist-packages:${PYTHONPATH}"
-    ninja osx-deploydir
+      ninja
 
-    OSX_VOLNAME="$(cat osx_volname)"
-    mkdir -p unsigned-app-${i}
-    cp osx_volname unsigned-app-${i}/
-    cp contrib/macdeploy/detached-sig-apply.sh unsigned-app-${i}
-    cp contrib/macdeploy/detached-sig-create.sh unsigned-app-${i}
-    cp ${BASEPREFIX}/${i}/native/bin/dmg ${BASEPREFIX}/${i}/native/bin/genisoimage unsigned-app-${i}
-    cp ${BASEPREFIX}/${i}/native/bin/${i}-codesign_allocate unsigned-app-${i}/codesign_allocate
-    cp ${BASEPREFIX}/${i}/native/bin/${i}-pagestuff unsigned-app-${i}/pagestuff
-    mv dist unsigned-app-${i}
-    pushd unsigned-app-${i}
-    find . | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-osx-unsigned.tar.gz
-    popd
+      ninja install/strip
 
-    ninja osx-dmg
-    ${WRAP_DIR}/dmg dmg "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
+      export PYTHONPATH="${BASEPREFIX}/${i}/native/lib/python3/dist-packages:${PYTHONPATH}"
+      ninja osx-deploydir
 
-    cd installed
-    find -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
-    find ${DISTNAME} -not -path "*.app*" | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${i}.tar.gz
-    cd ../../
+      OSX_VOLNAME="$(cat osx_volname)"
+      mkdir -p unsigned-app-${i}
+      cp osx_volname unsigned-app-${i}/
+      cp contrib/macdeploy/detached-sig-apply.sh unsigned-app-${i}
+      cp contrib/macdeploy/detached-sig-create.sh unsigned-app-${i}
+      cp ${BASEPREFIX}/${i}/native/bin/dmg ${BASEPREFIX}/${i}/native/bin/genisoimage unsigned-app-${i}
+      cp ${BASEPREFIX}/${i}/native/bin/${i}-codesign_allocate unsigned-app-${i}/codesign_allocate
+      cp ${BASEPREFIX}/${i}/native/bin/${i}-pagestuff unsigned-app-${i}/pagestuff
+      mv dist unsigned-app-${i}
+      pushd unsigned-app-${i}
+      find . | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${CHAIN}/${DISTNAME}-osx-unsigned.tar.gz
+      popd
+
+      ninja osx-dmg
+      ${WRAP_DIR}/dmg dmg "${OSX_VOLNAME}.dmg" ${OUTDIR}/${CHAIN}/${DISTNAME}-osx-unsigned.dmg
+
+      cd installed
+      find -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
+      find ${DISTNAME} -not -path "*.app*" | sort | tar --mtime="${REFERENCE_DATETIME}" --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${CHAIN}/${DISTNAME}-${i}.tar.gz
+      cd ../../..
+    done
+    mkdir -p $OUTDIR/src
+    mv ${OUTDIR}/${CHAIN}/${DISTNAME}-x86_64-*.tar.gz ${OUTDIR}/${CHAIN}/${DISTNAME}-osx64.tar.gz
   done
-  mkdir -p $OUTDIR/src
+
   mv $SOURCEDIST $OUTDIR/src
-  mv ${OUTDIR}/${DISTNAME}-x86_64-*.tar.gz ${OUTDIR}/${DISTNAME}-osx64.tar.gz
