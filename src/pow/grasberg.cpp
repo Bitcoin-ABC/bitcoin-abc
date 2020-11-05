@@ -54,7 +54,7 @@ static arith_uint256 ComputeNextTarget(const CBlockIndex *pindexTip,
         return lastBlockTarget >> 32;
     }
 
-    const uint32_t e31 = (deterministicExp2(xd) >> 1) | (1 << 31);
+    const uint32_t e31 = (deterministicExp2(xd) >> 1) | (1u << 31);
     return (lastBlockTarget * e31) >> (31 - xi);
 }
 
