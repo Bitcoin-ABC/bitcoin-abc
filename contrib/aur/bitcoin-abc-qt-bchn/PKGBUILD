@@ -1,13 +1,14 @@
-# Maintainer: Josh Ellithorpe <quest@mac.com>
+# Maintainer: Fabien <fabcien@gmail.com>
+# Contributor: Josh Ellithorpe <quest@mac.com>
 
-pkgname=bitcoin-abc
+pkgname=bitcoin-abc-qt-bchn
 pkgver=0.22.6
 pkgrel=0
-pkgdesc="Bitcoin ABC (ABC network) with bitcoind, bitcoin-tx, bitcoin-seeder and bitcoin-cli"
+pkgdesc="Bitcoin ABC (BCHN network) with bitcoind, bitcoin-cli, bitcoin-tx, bitcoin-seeder and bitcoin-qt"
 arch=('i686' 'x86_64')
 url="https://bitcoinabc.org"
-depends=('boost-libs' 'libevent' 'openssl' 'zeromq' 'miniupnpc' 'jemalloc')
-makedepends=('cmake' 'ninja' 'boost' 'python' 'help2man')
+depends=('boost-libs' 'libevent' 'desktop-file-utils' 'qt5-base' 'protobuf' 'openssl' 'miniupnpc' 'zeromq' 'qrencode' 'jemalloc')
+makedepends=('cmake' 'ninja' 'boost' 'qt5-tools' 'python' 'help2man' 'xorg-server-xvfb')
 license=('MIT')
 source=(https://github.com/Bitcoin-ABC/bitcoin-abc/archive/v$pkgver.tar.gz
         bitcoin.conf
@@ -17,12 +18,12 @@ source=(https://github.com/Bitcoin-ABC/bitcoin-abc/archive/v$pkgver.tar.gz
         bitcoin.install)
 backup=('etc/bitcoin/bitcoin.conf'
         'etc/logrotate.d/bitcoin')
-provides=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-seeder')
-conflicts=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-seeder')
+provides=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-qt' 'bitcoin-seeder' 'bitcoin-wallet')
+conflicts=('bitcoin-cli' 'bitcoin-daemon' 'bitcoin-tx' 'bitcoin-qt' 'bitcoin-seeder' 'bitcoin-wallet')
 install=bitcoin.install
 
 build() {
-  cd "$srcdir/${pkgname}-$pkgver"
+  cd "$srcdir/bitcoin-abc-$pkgver"
 
   msg2 'Building...'
   mkdir -p build
@@ -33,8 +34,7 @@ build() {
     -DCLIENT_VERSION_IS_RELEASE=ON \
     -DENABLE_REDUCE_EXPORTS=ON \
     -DENABLE_STATIC_LIBSTDCXX=ON \
-    -DBUILD_BITCOIN_WALLET=OFF \
-    -DBUILD_BITCOIN_QT=OFF \
+    -DNETWORK_COMPATIBILITY=BCHN \
     -DCMAKE_INSTALL_PREFIX=$pkgdir/usr
 
   ninja
@@ -42,14 +42,20 @@ build() {
 }
 
 check() {
-  cd "$srcdir/${pkgname}-$pkgver/build"
+  cd "$srcdir/bitcoin-abc-$pkgver/build"
 
   msg2 'Testing...'
   ninja check
 }
 
 package() {
-  cd "$srcdir/${pkgname}-$pkgver"
+  cd "$srcdir/bitcoin-abc-$pkgver"
+
+  msg2 'Installing desktop shortcut...'
+  install -Dm644 contrib/debian/bitcoin-qt.desktop \
+    "$pkgdir"/usr/share/applications/bitcoin.desktop
+  install -Dm644 share/pixmaps/bitcoin-abc128.png \
+    "$pkgdir"/usr/share/pixmaps/bitcoin-abc128.png
 
   msg2 'Installing license...'
   install -Dm 644 COPYING -t "$pkgdir/usr/share/licenses/${pkgname}"
@@ -77,7 +83,7 @@ package() {
   ninja install/strip
 
   msg2 'Installing man pages...'
-  ninja install-manpages
+  xvfb-run ninja install-manpages
   popd
 
   msg2 'Installing bitcoin.conf...'
