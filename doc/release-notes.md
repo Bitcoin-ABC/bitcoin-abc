@@ -41,3 +41,8 @@ Build system changes
 --------------------
 
 The minimum supported miniUPnPc version is set to 1.9 (API version 10).
+
+GUI changes
+-----------
+
+- The "Start Bitcoin Core on system login" option has been removed on macOS.
