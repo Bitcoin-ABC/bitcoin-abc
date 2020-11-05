@@ -11,6 +11,8 @@ DEFAULT_DISTROS+=("bionic")
 DEFAULT_DISTROS+=("focal")
 
 DEFAULT_PPA="bitcoin-abc"
+DEFAULT_NETWORK="ABC"
+
 DPUT_CONFIG_FILE=~/".dput.cf"
 TOPLEVEL="$(git rev-parse --show-toplevel)"
 KEYS_TXT="${TOPLEVEL}"/contrib/gitian-signing/keys.txt
@@ -32,6 +34,7 @@ Note: This script will prompt you to sign with your PGP key.
 -D, --distro <name>       Name of the distribution to package for. Can be supplied multiple times.
                             If supplied at least once, the defaults are ignored. Defaults to: '${DEFAULT_DISTROS[@]}'
 -h, --help                Display this help message.
+-n, --network             Select which network the node software will follow (ABC or BCHN).
 -p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}
                             then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than
                             the default will require that you add the necessary settings to the config file.
@@ -47,6 +50,7 @@ DRY_RUN="false"
 NUM_EXPECTED_ARGUMENTS=1
 PACKAGE_VERSION=""
 PPA="${DEFAULT_PPA}"
+NETWORK="${DEFAULT_NETWORK}"
 
 # Parse command line arguments
 while [[ $# -ne 0 ]]; do
@@ -63,6 +67,20 @@ case $1 in
   -h|--help)
     help_message
     exit 0
+    ;;
+  -n|--network)
+    shift
+    case $1 in
+      ABC|BCHA)
+        NETWORK="ABC"
+        CONTROL_SOURCE_NAME=bitcoinabc
+        ;;
+      BCHN)
+        NETWORK="BCHN"
+        CONTROL_SOURCE_NAME=bitcoinabc-bchn
+        ;;
+    esac
+    shift # shift past argument
     ;;
   -p|--ppa)
     PPA="$2"
@@ -168,7 +186,6 @@ SOURCE_ARCHIVE="${SOURCE_BASE_NAME}.tar.gz"
 tar -zxf "${SOURCE_ARCHIVE}"
 
 # Rename the package source archive. debuild is picky about the naming.
-CONTROL_SOURCE_NAME=$(grep "Source: " "${TOPLEVEL}"/contrib/debian/control | cut -c 9-)
 PACKAGE_BASE_NAME="${CONTROL_SOURCE_NAME}_${PACKAGE_VERSION}"
 PACKAGE_ARCHIVE="${PACKAGE_BASE_NAME}.orig.tar.gz"
 mv "${SOURCE_ARCHIVE}" "${PACKAGE_ARCHIVE}"
@@ -181,6 +198,9 @@ package() {
 
   pushd "${SOURCE_BASE_NAME}"
   cp -r "${TOPLEVEL}"/contrib/debian .
+
+  sed -i "s/Source:.\+/Source: ${CONTROL_SOURCE_NAME}/" debian/control
+  sed -i "s/-DNETWORK_COMPATIBILITY=.\+/-DNETWORK_COMPATIBILITY=${NETWORK} \\\/" debian/rules
 
 # Generate the changelog for this package
 # TODO: Incorporate release notes into this changelog
