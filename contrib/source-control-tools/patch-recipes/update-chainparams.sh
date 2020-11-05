@@ -17,7 +17,7 @@ CHAINPARAMS_TESTNET_TXT="chainparams_test.txt"
 ./make_chainparams.py -a 127.0.0.1:18332 > "${CHAINPARAMS_TESTNET_TXT}"
 git add "${CHAINPARAMS_TESTNET_TXT}"
 
-CHAINPARAMS_CONSTANTS="${TOPLEVEL}"/src/chainparamsconstants.h
+CHAINPARAMS_CONSTANTS="${TOPLEVEL}"/src/chainparamsconstants.cpp
 ./generate_chainparams_constants.py . > "${CHAINPARAMS_CONSTANTS}"
 git add "${CHAINPARAMS_CONSTANTS}"
 popd

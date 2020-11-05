@@ -45,15 +45,11 @@ def main():
     indir = sys.argv[1]
 
     print('''\
-#ifndef BITCOIN_CHAINPARAMSCONSTANTS_H
-#define BITCOIN_CHAINPARAMSCONSTANTS_H
 /**
- * Chain params constants for each tracked chain.
  * @{} by contrib/devtools/chainparams/generate_chainparams_constants.py
  */
 
-#include <primitives/blockhash.h>
-#include <uint256.h>
+#include <chainparamsconstants.h>
 
 namespace ChainParamsConstants {{
     const BlockHash MAINNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("{}");
@@ -66,8 +62,6 @@ namespace ChainParamsConstants {{
     const uint64_t TESTNET_ASSUMED_BLOCKCHAIN_SIZE = {};
     const uint64_t TESTNET_ASSUMED_CHAINSTATE_SIZE = {};
 }} // namespace ChainParamsConstants
-
-#endif // BITCOIN_CHAINPARAMSCONSTANTS_H\
 '''.format(
         # 'generated' is split out so this file is not identified as generated.
         "generated",
