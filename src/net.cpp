@@ -3009,7 +3009,7 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
              bool inbound_onion, CNodeOptions &&node_opts)
     : m_deserializer{std::make_unique<V1TransportDeserializer>(
-          V1TransportDeserializer(GetConfig(), GetId()))},
+          V1TransportDeserializer(GetConfig(), idIn))},
       m_serializer{
           std::make_unique<V1TransportSerializer>(V1TransportSerializer())},
       m_permission_flags{node_opts.permission_flags}, m_sock{sock},
