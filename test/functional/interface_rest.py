@@ -161,7 +161,7 @@ class RESTTest (BitcoinTestFramework):
         bin_response = self.test_rest_request(
             "/getutxos", http_method='POST', req_type=ReqType.BIN, body=bin_request, ret_type=RetType.BYTES)
         output = BytesIO(bin_response)
-        chain_height, = unpack("i", output.read(4))
+        chain_height, = unpack("<i", output.read(4))
         response_hash = output.read(32)[::-1].hex()
 
         # Check if getutxo's chaintip during calculation was fine
