@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+# Supported Networks
+set(NETWORK_COMPATIBILITY "ABC" CACHE STRING "Network that will be supported: BCHA or BCHN")
+
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
@@ -406,6 +409,14 @@ link_boost(util filesystem thread)
 # Make sure boost uses std::atomic (it doesn't before 1.63)
 target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
 
+if(${NETWORK_COMPATIBILITY} MATCHES "ABC|BCHA")
+	set(NETWORK_FILE abc.cpp)
+elseif(${NETWORK_COMPATIBILITY} MATCHES "BCHN")
+	set(NETWORK_FILE bchn.cpp)
+else()
+	message(FATAL "${NETWORK_COMPATIBILITY} is not a supported network")
+endif()
+
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
 add_library(common
@@ -440,6 +451,8 @@ add_library(common
 	salteduint256hasher.cpp
 	versionbitsinfo.cpp
 	warnings.cpp
+
+	"networks/${NETWORK_FILE}"
 )
 
 target_link_libraries(common util secp256k1 script)

@@ -8,6 +8,7 @@
 #include <init.h>
 #include <interfaces/chain.h>
 #include <net.h>
+#include <network.h>
 #include <node/context.h>
 #include <ui_interface.h>
 #include <util/moneystr.h>

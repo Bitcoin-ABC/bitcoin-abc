@@ -6,9 +6,9 @@
 
 #include <amount.h>
 
-#include <tinyformat.h>
+#include <network.h>
 
-const std::string CURRENCY_UNIT = "BCH";
+#include <tinyformat.h>
 
 std::string Amount::ToString() const {
     return strprintf("%d.%08d %s", *this / COIN, (*this % COIN) / SATOSHI,

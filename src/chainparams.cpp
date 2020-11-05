@@ -9,6 +9,7 @@
 #include <chainparamsconstants.h>
 #include <chainparamsseeds.h>
 #include <consensus/merkle.h>
+#include <network.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/system.h>
@@ -113,7 +114,7 @@ public:
         };
 
         // The miner fund is enabled by default on mainnet.
-        consensus.enableMinerFund = true;
+        consensus.enableMinerFund = ENABLE_MINER_FUND;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =

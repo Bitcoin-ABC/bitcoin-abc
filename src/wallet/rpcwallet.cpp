@@ -11,6 +11,7 @@
 #include <core_io.h>
 #include <interfaces/chain.h>
 #include <key_io.h>
+#include <network.h>
 #include <node/context.h>
 #include <outputtype.h>
 #include <policy/fees.h>

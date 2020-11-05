@@ -7,6 +7,7 @@
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
 #include <key_io.h>
+#include <network.h>
 #include <qt/bitcoinamountfield.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>

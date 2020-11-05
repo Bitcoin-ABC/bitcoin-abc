@@ -35,6 +35,7 @@
 #include <net_permissions.h>
 #include <net_processing.h>
 #include <netbase.h>
+#include <network.h>
 #include <node/context.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>

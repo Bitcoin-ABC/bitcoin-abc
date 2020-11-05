@@ -4,6 +4,8 @@
 
 #include <qt/bitcoinunits.h>
 
+#include <network.h>
+
 #include <QStringList>
 
 BitcoinUnits::BitcoinUnits(QObject *parent)
@@ -33,11 +35,11 @@ bool BitcoinUnits::valid(int unit) {
 QString BitcoinUnits::longName(int unit) {
     switch (unit) {
         case BCH:
-            return QString("BCH");
+            return QString(CURRENCY_UNIT.c_str());
         case mBCH:
-            return QString("mBCH");
+            return QString("m") + QString(CURRENCY_UNIT.c_str());
         case uBCH:
-            return QString::fromUtf8("μBCH");
+            return QString::fromUtf8("μ") + QString(CURRENCY_UNIT.c_str());
         case SAT:
             return QString("Satoshi (sat)");
         default:

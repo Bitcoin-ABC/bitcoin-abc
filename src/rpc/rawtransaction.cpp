@@ -13,6 +13,7 @@
 #include <index/txindex.h>
 #include <key_io.h>
 #include <merkleblock.h>
+#include <network.h>
 #include <node/coin.h>
 #include <node/context.h>
 #include <node/psbt.h>
