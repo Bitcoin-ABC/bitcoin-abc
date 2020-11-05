@@ -10,6 +10,7 @@
 
 #include <clientversion.h>
 #include <init.h>
+#include <network.h>
 #include <qt/bitcoingui.h>
 #include <qt/forms/ui_helpmessagedialog.h>
 #ifdef ENABLE_BIP70
@@ -33,7 +34,8 @@ HelpMessageDialog::HelpMessageDialog(interfaces::Node &node, QWidget *parent,
     ui->setupUi(this);
 
     QString version = QString{PACKAGE_NAME} + " " + tr("version") + " " +
-                      QString::fromStdString(FormatFullVersion());
+                      QString::fromStdString(FormatFullVersion()) + " (" +
+                      QString::fromStdString(NETWORK_NAME) + " network)";
 
     if (about) {
         setWindowTitle(tr("About %1").arg(PACKAGE_NAME));

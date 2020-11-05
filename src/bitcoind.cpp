@@ -14,6 +14,7 @@
 #include <httprpc.h>
 #include <init.h>
 #include <interfaces/chain.h>
+#include <network.h>
 #include <node/context.h>
 #include <noui.h>
 #include <shutdown.h>
@@ -70,8 +71,8 @@ static bool AppInit(int argc, char *argv[]) {
 
     // Process help and version before taking care about datadir
     if (HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
-        std::string strUsage =
-            PACKAGE_NAME " version " + FormatFullVersion() + "\n";
+        std::string strUsage = PACKAGE_NAME " version " + FormatFullVersion() +
+                               " (" + NETWORK_NAME + " network)\n";
 
         if (gArgs.IsArgSet("-version")) {
             strUsage += FormatParagraph(LicenseInfo());
