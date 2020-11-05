@@ -733,33 +733,31 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
 
         if (m_deserializer->Complete()) {
             // decompose a transport agnostic CNetMessage from the deserializer
-            uint32_t out_err_raw_size{0};
-            std::optional<CNetMessage> result{
-                m_deserializer->GetMessage(time, out_err_raw_size)};
-            if (!result) {
+            bool reject_message{false};
+            CNetMessage msg = m_deserializer->GetMessage(time, reject_message);
+            if (reject_message) {
                 // Message deserialization failed.
                 // Drop the message and disconnect the peer.
                 // store the size of the corrupt message
-                mapRecvBytesPerMsgType.find(NET_MESSAGE_TYPE_OTHER)->second +=
-                    out_err_raw_size;
+                mapRecvBytesPerMsgType.at(NET_MESSAGE_TYPE_OTHER) +=
+                    msg.m_raw_message_size;
                 return false;
             }
 
-            // Store received bytes per message type.
-            // To prevent a memory DOS, only allow known message types.
-            mapMsgTypeSize::iterator i =
-                mapRecvBytesPerMsgType.find(result->m_type);
+            // Store received bytes per message command
+            // to prevent a memory DOS, only allow valid commands
+            auto i = mapRecvBytesPerMsgType.find(msg.m_type);
             if (i == mapRecvBytesPerMsgType.end()) {
                 i = mapRecvBytesPerMsgType.find(NET_MESSAGE_TYPE_OTHER);
             }
 
             assert(i != mapRecvBytesPerMsgType.end());
-            i->second += result->m_raw_message_size;
+            i->second += msg.m_raw_message_size;
 
             // push the message to the process queue,
-            vRecvMsg.push_back(std::move(*result));
+            vRecvMsg.push_back(std::move(msg));
 
-            nInflightBytes -= result->m_raw_message_size;
+            nInflightBytes -= msg.m_raw_message_size;
             complete = true;
 
             // If we completed a message but still have more bytes, then we
@@ -847,17 +845,19 @@ const uint256 &V1TransportDeserializer::GetMessageHash() const {
     return data_hash;
 }
 
-std::optional<CNetMessage>
+CNetMessage
 V1TransportDeserializer::GetMessage(const std::chrono::microseconds time,
-                                    uint32_t &out_err_raw_size) {
+                                    bool &reject_message) {
+    // Initialize out parameter
+    reject_message = false;
     // decompose a single CNetMessage from the TransportDeserializer
-    std::optional<CNetMessage> msg(std::move(vRecv));
+    CNetMessage msg(std::move(vRecv));
 
     // store message type string, time and sizes
-    msg->m_type = hdr.GetMessageType();
-    msg->m_time = time;
-    msg->m_message_size = hdr.nMessageSize;
-    msg->m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
+    msg.m_type = hdr.GetMessageType();
+    msg.m_time = time;
+    msg.m_message_size = hdr.nMessageSize;
+    msg.m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
 
     uint256 hash = GetMessageHash();
 
@@ -872,19 +872,17 @@ V1TransportDeserializer::GetMessage(const std::chrono::microseconds time,
             BCLog::NET,
             "Header error: Wrong checksum (%s, %u bytes), expected %s was %s, "
             "peer=%d\n",
-            SanitizeString(msg->m_type), msg->m_message_size,
+            SanitizeString(msg.m_type), msg.m_message_size,
             HexStr(Span<uint8_t>(hash.begin(),
                                  hash.begin() + CMessageHeader::CHECKSUM_SIZE)),
             HexStr(hdr.pchChecksum), m_node_id);
-        out_err_raw_size = msg->m_raw_message_size;
-        msg = std::nullopt;
+        reject_message = true;
     } else if (!hdr.IsMessageTypeValid()) {
         LogPrint(BCLog::NET,
                  "Header error: Invalid message type (%s, %u bytes), peer=%d\n",
-                 SanitizeString(hdr.GetMessageType()), msg->m_message_size,
+                 SanitizeString(hdr.GetMessageType()), msg.m_message_size,
                  m_node_id);
-        out_err_raw_size = msg->m_raw_message_size;
-        msg = std::nullopt;
+        reject_message = true;
     }
 
     // Always reset the network deserializer (prepare for the next message)
