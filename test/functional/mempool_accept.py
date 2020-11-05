@@ -294,6 +294,14 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             rawtxs=[ToHex(tx)],
         )
         tx = FromHex(CTransaction(), raw_tx_reference)
+        # Some too large scriptSig (>1650 bytes)
+        tx.vin[0].scriptSig = CScript([b'a' * 1648])
+        self.check_mempool_result(
+            result_expected=[{'txid': tx.rehash(), 'allowed': False,
+                              'reject-reason': 'scriptsig-size'}],
+            rawtxs=[tx.serialize().hex()],
+        )
+        tx = FromHex(CTransaction(), raw_tx_reference)
         output_p2sh_burn = CTxOut(nValue=540, scriptPubKey=CScript(
             [OP_HASH160, hash160(b'burn'), OP_EQUAL]))
         # Use enough outputs to make the tx too large for our policy
