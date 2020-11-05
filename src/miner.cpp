@@ -562,8 +562,7 @@ void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
     CMutableTransaction txCoinbase(*pblock->vtx[0]);
     txCoinbase.vin[0].scriptSig =
         (CScript() << nHeight << CScriptNum(nExtraNonce)
-                   << getExcessiveBlockSizeSig(nExcessiveBlockSize)) +
-        COINBASE_FLAGS;
+                   << getExcessiveBlockSizeSig(nExcessiveBlockSize));
 
     // Make sure the coinbase is big enough.
     uint64_t coinbaseSize = ::GetSerializeSize(txCoinbase, PROTOCOL_VERSION);

@@ -254,8 +254,7 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
     unsigned int nHeight = ::ChainActive().Tip()->nHeight + 1;
     std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());
     BOOST_CHECK(pblock->vtx[0]->vin[0].scriptSig ==
-                ((CScript() << nHeight << CScriptNum(extraNonce) << vec) +
-                 COINBASE_FLAGS));
+                (CScript() << nHeight << CScriptNum(extraNonce) << vec));
 }
 
 // Coinbase scriptSig has to contains the correct EB value

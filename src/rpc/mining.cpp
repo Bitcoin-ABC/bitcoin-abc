@@ -769,7 +769,6 @@ static UniValue getblocktemplate(const Config &config,
     }
 
     UniValue aux(UniValue::VOBJ);
-    aux.pushKV("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end()));
 
     UniValue minerFundList(UniValue::VARR);
     const Consensus::Params &consensusParams = chainparams.GetConsensus();
