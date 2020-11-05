@@ -27,7 +27,6 @@
 #include <txmempool.h> // For CTxMemPool::cs
 #include <versionbits.h>
 
-#include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <map>

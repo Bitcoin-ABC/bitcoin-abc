@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
+#include <utility>
 
 /**
  * Implements a drop-in replacement for std::vector<T> which stores up to N
