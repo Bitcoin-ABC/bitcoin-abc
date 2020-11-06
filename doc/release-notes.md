@@ -36,6 +36,16 @@ New settings
 
 - Importing blocks upon startup via the `bootstrap.dat` file no longer occurs
   by default. The file must now be specified with `-loadblock=<file>`.
+  
+Utilities
+---------
+
+- The `bitcoin-cli` utility used with the `-getinfo` parameter now returns a
+  `headers` field with the number of downloaded block headers on the best
+  headers chain (similar to the `blocks` field that is also returned) and a
+  `verificationprogress` field that estimates how much of the best block chain
+  has been synced by the local node. The information returned no longer
+  includes the `protocolversion`, `walletversion`, and `keypoololdest` fields.
 
 Build system changes
 --------------------

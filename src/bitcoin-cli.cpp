@@ -322,8 +322,6 @@ public:
             return batch[ID_BLOCKCHAININFO];
         }
         result.pushKV("version", batch[ID_NETWORKINFO]["result"]["version"]);
-        result.pushKV("protocolversion",
-                      batch[ID_NETWORKINFO]["result"]["protocolversion"]);
         result.pushKV("blocks", batch[ID_BLOCKCHAININFO]["result"]["blocks"]);
         result.pushKV("headers", batch[ID_BLOCKCHAININFO]["result"]["headers"]);
         result.pushKV(
@@ -340,11 +338,7 @@ public:
         result.pushKV("chain",
                       UniValue(batch[ID_BLOCKCHAININFO]["result"]["chain"]));
         if (!batch[ID_WALLETINFO]["result"].isNull()) {
-            result.pushKV("walletversion",
-                          batch[ID_WALLETINFO]["result"]["walletversion"]);
             result.pushKV("balance", batch[ID_WALLETINFO]["result"]["balance"]);
-            result.pushKV("keypoololdest",
-                          batch[ID_WALLETINFO]["result"]["keypoololdest"]);
             result.pushKV("keypoolsize",
                           batch[ID_WALLETINFO]["result"]["keypoolsize"]);
             if (!batch[ID_WALLETINFO]["result"]["unlocked_until"].isNull()) {
