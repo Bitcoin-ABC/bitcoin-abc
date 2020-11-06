@@ -23,6 +23,24 @@ templates:
         - install-secp256k1
       - - check-secp256k1
 
+  ibd:
+    targets:
+      - - bitcoind
+    post_build: |
+      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -debug=net
+    timeout: 14400
+    artifacts:
+      ibd/debug.log: log/debug.log
+
+  ibd-no-assumevalid-checkpoint:
+    targets:
+      - - bitcoind
+    post_build: |
+      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
+    timeout: 21600
+    artifacts:
+      ibd/debug.log: log/debug.log
+
 # The build descriptions.
 # If a script is defined, then this will be the only step to run.
 # Otherwise a list of targets can be specified, grouped by parallel runs.
@@ -130,22 +148,24 @@ builds:
       doc/*: doc
 
   build-ibd:
-    targets:
-      - - bitcoind
-    post_build: |
-      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -debug=net
-    timeout: 14400
-    artifacts:
-      ibd/debug.log: log/debug.log
+    templates:
+      - ibd
+
+  build-ibd-bchn:
+    cmake_flags:
+      - '-DNETWORK_COMPATIBILITY=BCHN'
+    templates:
+      - ibd
 
   build-ibd-no-assumevalid-checkpoint:
-    targets:
-      - - bitcoind
-    post_build: |
-      "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
-    timeout: 21600
-    artifacts:
-      ibd/debug.log: log/debug.log
+    templates:
+      - ibd-no-assumevalid-checkpoint
+
+  build-ibd-no-assumevalid-checkpoint-bchn:
+    cmake_flags:
+      - '-DNETWORK_COMPATIBILITY=BCHN'
+    templates:
+      - ibd-no-assumevalid-checkpoint
 
   build-linux32:
     cross_build:
