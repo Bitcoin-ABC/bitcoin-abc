@@ -409,13 +409,26 @@ link_boost(util filesystem thread)
 # Make sure boost uses std::atomic (it doesn't before 1.63)
 target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
 
-if(${NETWORK_COMPATIBILITY} MATCHES "ABC|BCHA")
-	set(NETWORK_FILE abc.cpp)
-elseif(${NETWORK_COMPATIBILITY} MATCHES "BCHN")
-	set(NETWORK_FILE bchn.cpp)
-else()
-	message(FATAL "${NETWORK_COMPATIBILITY} is not a supported network")
-endif()
+function(add_network_sources NETWORK_SOURCES)
+	if(${NETWORK_COMPATIBILITY} MATCHES "ABC|BCHA")
+		set(NETWORK_DIR abc)
+	elseif(${NETWORK_COMPATIBILITY} MATCHES "BCHN")
+		set(NETWORK_DIR bchn)
+	else()
+		message(FATAL "${NETWORK_COMPATIBILITY} is not a supported network")
+	endif()
+
+	list(TRANSFORM
+		ARGN
+		PREPEND "networks/${NETWORK_DIR}/"
+		OUTPUT_VARIABLE NETWORK_SOURCES
+	)
+	set(NETWORK_SOURCES ${NETWORK_SOURCES} PARENT_SCOPE)
+endfunction()
+
+add_network_sources(NETWORK_SOURCES
+	network.cpp
+)
 
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
@@ -452,7 +465,7 @@ add_library(common
 	versionbitsinfo.cpp
 	warnings.cpp
 
-	"networks/${NETWORK_FILE}"
+	${NETWORK_SOURCES}
 )
 
 target_link_libraries(common util secp256k1 script)
