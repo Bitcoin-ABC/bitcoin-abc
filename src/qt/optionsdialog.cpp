@@ -118,8 +118,6 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
                               QVariant(langStr));
         }
     }
-    ui->thirdPartyTxUrls->setPlaceholderText("https://example.com/tx/%s");
-
     ui->unit->setModel(new BitcoinUnits(this));
 
     /* Widget-to-option mapper */
