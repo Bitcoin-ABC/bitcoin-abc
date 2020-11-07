@@ -417,7 +417,7 @@ bool CCoinsViewDB::Upgrade() {
             return error("%s: cannot parse CCoins record", __func__);
         }
 
-        TxId id(key.second);
+        const TxId id(key.second);
         for (size_t i = 0; i < old_coins.vout.size(); ++i) {
             if (!old_coins.vout[i].IsNull() &&
                 !old_coins.vout[i].scriptPubKey.IsUnspendable()) {
