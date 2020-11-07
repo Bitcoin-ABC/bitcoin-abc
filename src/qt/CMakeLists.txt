@@ -435,7 +435,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		"it" "ja" "ko" "lt" "lv" "pl" "pt" "ru" "sk" "sl" "sv" "uk" "zh_CN"
 		"zh_TW"
 	)
-	string(JOIN "," QT_LOCALES ${QT_BASE_TRANSLATIONS})
 
 	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 	execute_process(
@@ -469,17 +468,17 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set(QT_TRANSLATION_DIR ${_qt_translation_dir} PARENT_SCOPE)
 	endfunction()
 
-	get_qt_translation_dir(QT_TRANSLATION_DIR ${QT_BASE_TRANSLATIONS})
-	if(NOT QT_TRANSLATION_DIR)
-		message(FATAL_ERROR "Qt translation files are not found")
-	endif()
+	string(REPLACE " " "-" OSX_VOLNAME "${PACKAGE_NAME}")
+	file(WRITE "${CMAKE_BINARY_DIR}/osx_volname" "${OSX_VOLNAME}")
 
 	set(MACDEPLOY_DIR "${CMAKE_SOURCE_DIR}/contrib/macdeploy")
 	set(MACDEPLOYQTPLUS "${MACDEPLOY_DIR}/macdeployqtplus.py")
 	set(DMG_DIST "${CMAKE_BINARY_DIR}/dist")
+	set(DMG_DSSTORE "${DMG_DIST}/.DS_Store")
 	add_custom_command(
 		OUTPUT
 			"${DMG_DIST}"
+			"${DMG_DSSTORE}"
 		COMMAND
 			"INSTALLNAMETOOL=${CMAKE_INSTALL_NAME_TOOL}"
 			"OTOOL=${CMAKE_OTOOL}"
@@ -487,8 +486,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${Python_EXECUTABLE}"
 			"${MACDEPLOYQTPLUS}"
 			"${STRIPPED_BUNDLE}"
+			"${OSX_VOLNAME}"
 			-translations-dir "${QT_TRANSLATION_DIR}"
-			-add-qt-tr "${QT_LOCALES}"
 		WORKING_DIRECTORY
 			"${CMAKE_BINARY_DIR}"
 		DEPENDS
@@ -535,24 +534,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${DMG_DIST}"
 	)
 
-	string(REPLACE " " "-" OSX_VOLNAME "${PACKAGE_NAME}")
-	file(WRITE "${CMAKE_BINARY_DIR}/osx_volname" "${OSX_VOLNAME}")
-
-	set(DMG_DSSTORE "${DMG_DIST}/.DS_Store")
-	set(GEN_DSSTORE "${MACDEPLOY_DIR}/custom_dsstore.py")
-	add_custom_command(
-		OUTPUT
-			"${DMG_DSSTORE}"
-		COMMAND
-			"${Python_EXECUTABLE}"
-			"${GEN_DSSTORE}"
-			"${DMG_DSSTORE}"
-			"${OSX_VOLNAME}"
-		DEPENDS
-			"${GEN_DSSTORE}"
-			"${DMG_DIST}"
-	)
-
 	set(OSX_APPLICATION_DIR "Applications")
 	set(OSX_APPLICATION_SYMLINK "${DMG_DIST}/${OSX_APPLICATION_DIR}")
 	add_custom_command(
@@ -595,11 +576,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 				"${Python_EXECUTABLE}"
 				"${MACDEPLOYQTPLUS}"
 				"${STRIPPED_BUNDLE}"
+				"${OSX_VOLNAME}"
 				-translations-dir "${QT_TRANSLATION_DIR}"
-				-add-qt-tr "${QT_LOCALES}"
 				-dmg
-				-fancy "${MACDEPLOY_DIR}/fancy.plist"
-				-volname "${OSX_VOLNAME}"
 			WORKING_DIRECTORY
 				"${CMAKE_BINARY_DIR}"
 			DEPENDS
