@@ -382,11 +382,9 @@ bool CCoinsViewDB::Upgrade() {
 
     int64_t count = 0;
     LogPrintf("Upgrading utxo-set database...\n");
-    LogPrintfToBeContinued("[0%%]...");
-    uiInterface.ShowProgress(_("Upgrading UTXO database").translated, 0, true);
     size_t batch_size = 1 << 24;
     CDBBatch batch(db);
-    int reportDone = 0;
+    int reportDone = -1;
     std::pair<uint8_t, uint256> key;
     std::pair<uint8_t, uint256> prev_key = {DB_COINS, uint256()};
     while (pcursor->Valid()) {
