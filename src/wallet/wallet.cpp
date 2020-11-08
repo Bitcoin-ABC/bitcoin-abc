@@ -1935,8 +1935,14 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
     double progress_current = progress_begin;
     int block_height = start_height;
     while (!fAbortRescan && !chain().shutdownRequested()) {
-        m_scanning_progress = (progress_current - progress_begin) /
-                              (progress_end - progress_begin);
+        if (progress_end - progress_begin > 0.0) {
+            m_scanning_progress = (progress_current - progress_begin) /
+                                  (progress_end - progress_begin);
+        } else {
+            // avoid divide-by-zero for single block scan range (i.e. start and
+            // stop hashes are equal)
+            m_scanning_progress = 0;
+        }
         if (block_height % 100 == 0 && progress_end - progress_begin > 0.0) {
             ShowProgress(
                 strprintf("%s " + _("Rescanning...").translated,
