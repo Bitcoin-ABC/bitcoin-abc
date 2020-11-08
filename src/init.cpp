@@ -438,13 +438,13 @@ void SetupServerArgs() {
     gArgs.AddArg(
         "-dbbatchsize",
         strprintf("Maximum database write batch size in bytes (default: %u)",
-                  nDefaultDbBatchSize),
+                  DEFAULT_DB_BATCH_SIZE),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::OPTIONS);
     gArgs.AddArg(
         "-dbcache=<n>",
         strprintf("Set database cache size in MiB (%d to %d, default: %d)",
-                  nMinDbCache, nMaxDbCache, nDefaultDbCache),
+                  MIN_DB_CACHE_MB, MAX_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-debuglogfile=<file>",
                  strprintf("Specify location of debug log file. Relative paths "
@@ -2349,24 +2349,24 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     bool fReindexChainState = gArgs.GetBoolArg("-reindex-chainstate", false);
 
     // cache size calculations
-    int64_t nTotalCache = (gArgs.GetArg("-dbcache", nDefaultDbCache) << 20);
-    // total cache cannot be less than nMinDbCache
-    nTotalCache = std::max(nTotalCache, nMinDbCache << 20);
-    // total cache cannot be greater than nMaxDbcache
-    nTotalCache = std::min(nTotalCache, nMaxDbCache << 20);
+    int64_t nTotalCache = (gArgs.GetArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
+    // total cache cannot be less than MIN_DB_CACHE_MB
+    nTotalCache = std::max(nTotalCache, MIN_DB_CACHE_MB << 20);
+    // total cache cannot be greater than MAX_DB_CACHE_MB
+    nTotalCache = std::min(nTotalCache, MAX_DB_CACHE_MB << 20);
     int64_t nBlockTreeDBCache =
-        std::min(nTotalCache / 8, nMaxBlockDBCache << 20);
+        std::min(nTotalCache / 8, MAX_BLOCK_DB_CACHE_MB << 20);
     nTotalCache -= nBlockTreeDBCache;
     int64_t nTxIndexCache =
         std::min(nTotalCache / 8, gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)
-                                      ? nMaxTxIndexCache << 20
+                                      ? MAX_TX_INDEX_CACHE_MB << 20
                                       : 0);
     nTotalCache -= nTxIndexCache;
     int64_t filter_index_cache = 0;
     if (!g_enabled_filter_types.empty()) {
         size_t n_indexes = g_enabled_filter_types.size();
         int64_t max_cache =
-            std::min(nTotalCache / 8, max_filter_index_cache << 20);
+            std::min(nTotalCache / 8, MAX_FILTER_INDEX_CACHE_MB << 20);
         filter_index_cache = max_cache / n_indexes;
         nTotalCache -= filter_index_cache * n_indexes;
     }
@@ -2374,7 +2374,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     int64_t nCoinDBCache =
         std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
     // cap total coins db cache
-    nCoinDBCache = std::min(nCoinDBCache, nMaxCoinsDBCache << 20);
+    nCoinDBCache = std::min(nCoinDBCache, MAX_COINS_DB_CACHE_MB << 20);
     nTotalCache -= nCoinDBCache;
     // the rest goes to in-memory cache
     nCoinCacheUsage = nTotalCache;

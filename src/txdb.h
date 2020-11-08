@@ -27,25 +27,25 @@ struct Params;
 
 //! No need to periodic flush if at least this much space still available.
 static constexpr int MAX_BLOCK_COINSDB_USAGE = 10;
-//! -dbcache default (MiB)
-static const int64_t nDefaultDbCache = 450;
-//! -dbbatchsize default (bytes)
-static const int64_t nDefaultDbBatchSize = 16 << 20;
-//! max. -dbcache (MiB)
-static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 16384 : 1024;
 //! min. -dbcache (MiB)
-static const int64_t nMinDbCache = 4;
+static constexpr int64_t MIN_DB_CACHE_MB = 4;
+//! max. -dbcache (MiB)
+static constexpr int64_t MAX_DB_CACHE_MB = sizeof(void *) > 4 ? 16384 : 1024;
+//! -dbcache default (MiB)
+static constexpr int64_t DEFAULT_DB_CACHE_MB = 1024;
+//! -dbbatchsize default (bytes)
+static constexpr int64_t DEFAULT_DB_BATCH_SIZE = 16 << 20;
 //! Max memory allocated to block tree DB specific cache, if no -txindex (MiB)
-static const int64_t nMaxBlockDBCache = 2;
+static constexpr int64_t MAX_BLOCK_DB_CACHE_MB = 2;
 //! Max memory allocated to block tree DB specific cache, if -txindex (MiB)
 // Unlike for the UTXO database, for the txindex scenario the leveldb cache make
 // a meaningful difference:
 // https://github.com/bitcoin/bitcoin/pull/8273#issuecomment-229601991
-static const int64_t nMaxTxIndexCache = 1024;
+static constexpr int64_t MAX_TX_INDEX_CACHE_MB = 1024;
 //! Max memory allocated to all block filter index caches combined in MiB.
-static const int64_t max_filter_index_cache = 1024;
+static constexpr int64_t MAX_FILTER_INDEX_CACHE_MB = 1024;
 //! Max memory allocated to coin DB specific cache (MiB)
-static const int64_t nMaxCoinsDBCache = 8;
+static constexpr int64_t MAX_COINS_DB_CACHE_MB = 8;
 
 /** CCoinsView backed by the coin database (chainstate/) */
 class CCoinsViewDB final : public CCoinsView {

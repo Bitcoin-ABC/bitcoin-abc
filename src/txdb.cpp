@@ -87,7 +87,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) {
     size_t count = 0;
     size_t changed = 0;
     size_t batch_size =
-        (size_t)gArgs.GetArg("-dbbatchsize", nDefaultDbBatchSize);
+        (size_t)gArgs.GetArg("-dbbatchsize", DEFAULT_DB_BATCH_SIZE);
     int crash_simulate = gArgs.GetArg("-dbcrashratio", 0);
     assert(!hashBlock.IsNull());
 
