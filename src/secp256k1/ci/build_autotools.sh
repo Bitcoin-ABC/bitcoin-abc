@@ -55,6 +55,13 @@ print_logs() {
 }
 trap 'print_logs' ERR
 
+# This tells `make check` to wrap test invocations.
+export LOG_COMPILER="$WRAPPER_CMD"
+
+# This limits the iterations in the tests and benchmarks.
+export SECP256K1_TEST_ITERS="$TEST_ITERS"
+export SECP256K1_BENCH_ITERS="$BENCH_ITERS"
+
 # We have set "-j<n>" in MAKEFLAGS.
 make $AUTOTOOLS_TARGET
 
@@ -63,32 +70,14 @@ file *tests || true
 file bench_* || true
 file .libs/* || true
 
-if [ "$RUN_VALGRIND" = "yes" ]; then
-  # the `--error-exitcode` is required to make the test fail if valgrind found
-  # errors, otherwise it'll return 0
-  # (https://www.valgrind.org/docs/manual/manual-core.html)
-  valgrind --error-exitcode=42 ./tests 16
-  valgrind --error-exitcode=42 ./exhaustive_tests
-fi
-
-if [ -n "$QEMU_CMD" ]; then
-  $QEMU_CMD ./tests 16
-  $QEMU_CMD ./exhaustive_tests
-fi
-
 if [ "$BENCH" = "yes" ]; then
   # Using the local `libtool` because on macOS the system's libtool has
   # nothing to do with GNU libtool
   EXEC='./libtool --mode=execute'
-  if [ -n "$QEMU_CMD" ]; then
-    EXEC="$EXEC $QEMU_CMD"
-  fi
-  if [ "$RUN_VALGRIND" = "yes" ]; then
-    EXEC="$EXEC valgrind --error-exitcode=42"
+  if [ -n "$WRAPPER_CMD" ]; then
+    EXEC="$EXEC $WRAPPER_CMD"
   fi
 
-  # This limits the iterations in the benchmarks below to ITER iterations.
-  export SECP256K1_BENCH_ITERS="$ITERS"
   {
     $EXEC ./bench_ecmult
     $EXEC ./bench_internal
