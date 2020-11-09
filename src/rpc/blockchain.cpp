@@ -1565,7 +1565,7 @@ UniValue getblockchaininfo(const Config &config,
     }
     obj.pushKV("softforks", softforks);
 
-    obj.pushKV("warnings", GetWarnings("statusbar"));
+    obj.pushKV("warnings", GetWarnings(false));
     return obj;
 }
 

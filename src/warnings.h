@@ -15,12 +15,13 @@ void SetfLargeWorkInvalidChainFound(bool flag);
 /**
  * Format a string that describes several potential problems detected by the
  * core.
- * strFor can have three values:
- * - "statusbar": get all warnings
- * - "gui": get all warnings, translated (where possible) for GUI
+ * @param[in] verbose bool
+ * - if true, get all warnings, translated (where possible), separated by <hr />
+ * - if false, get the most important warning
+ * @returns the warning string
  * This function only returns the highest priority warning of the set selected
  * by strFor.
  */
-std::string GetWarnings(const std::string &strFor);
+std::string GetWarnings(bool verbose);
 
 #endif // BITCOIN_WARNINGS_H
