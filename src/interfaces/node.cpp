@@ -102,9 +102,7 @@ namespace {
         std::string getNetwork() override { return Params().NetworkIDString(); }
         void initLogging() override { InitLogging(); }
         void initParameterInteraction() override { InitParameterInteraction(); }
-        std::string getWarnings(const std::string &type) override {
-            return GetWarnings(type);
-        }
+        std::string getWarnings() override { return GetWarnings("gui"); }
         bool baseInitialize(Config &config) override {
             return AppInitBasicSetup() && AppInitParameterInteraction(config) &&
                    AppInitSanityChecks() && AppInitLockDataDirectory();

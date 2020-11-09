@@ -90,7 +90,7 @@ public:
     virtual void initParameterInteraction() = 0;
 
     //! Get warnings.
-    virtual std::string getWarnings(const std::string &type) = 0;
+    virtual std::string getWarnings() = 0;
 
     //! Initialize app dependencies.
     virtual bool baseInitialize(Config &config) = 0;
