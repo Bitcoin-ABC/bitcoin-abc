@@ -219,14 +219,13 @@ bool BlockFilterTypeByName(const std::string &name,
     return false;
 }
 
-const std::vector<BlockFilterType> &AllBlockFilterTypes() {
-    static std::vector<BlockFilterType> types;
+const std::set<BlockFilterType> &AllBlockFilterTypes() {
+    static std::set<BlockFilterType> types;
 
     static std::once_flag flag;
     std::call_once(flag, []() {
-        types.reserve(g_filter_types.size());
         for (auto entry : g_filter_types) {
-            types.push_back(entry.first);
+            types.insert(entry.first);
         }
     });
 
