@@ -12,6 +12,7 @@ DEFAULT_DISTROS+=("focal")
 
 DEFAULT_PPA="bitcoin-abc"
 DEFAULT_NETWORK="ABC"
+DEFAULT_CONTROL_SOURCE_NAME="bitcoinabc"
 
 DPUT_CONFIG_FILE=~/".dput.cf"
 TOPLEVEL="$(git rev-parse --show-toplevel)"
@@ -45,6 +46,7 @@ Note: This script will prompt you to sign with your PGP key.
 EOF
 }
 
+CONTROL_SOURCE_NAME="${DEFAULT_CONTROL_SOURCE_NAME}"
 DISTROS=()
 DRY_RUN="false"
 NUM_EXPECTED_ARGUMENTS=1
