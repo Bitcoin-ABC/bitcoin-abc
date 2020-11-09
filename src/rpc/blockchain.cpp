@@ -2534,8 +2534,8 @@ static UniValue scantxoutset(const Config &config,
              "progress report (in %) of the current scan"},
             {"scanobjects",
              RPCArg::Type::ARR,
-             RPCArg::Optional::NO,
-             "Array of scan objects\n"
+             RPCArg::Optional::OMITTED,
+             "Array of scan objects. Required for \"start\" action\n"
              "                                  Every scan object is either a "
              "string descriptor or an object:",
              {
@@ -2628,6 +2628,13 @@ static UniValue scantxoutset(const Config &config,
                 RPC_INVALID_PARAMETER,
                 "Scan already in progress, use action \"abort\" or \"status\"");
         }
+
+        if (request.params.size() < 2) {
+            throw JSONRPCError(
+                RPC_MISC_ERROR,
+                "scanobjects argument is required for the start action");
+        }
+
         std::set<CScript> needles;
         std::map<CScript, std::string> descriptors;
         Amount total_in = Amount::zero();
