@@ -817,7 +817,7 @@ Current third party libraries include:
   - **Note**: Follow the instructions in [Upgrading LevelDB](#upgrading-leveldb)
     when merging upstream changes to Bitcoin ABC.
 
-- src/libsecp256k1
+- src/secp256k1
   - Upstream at <https://github.com/bitcoin-core/secp256k1/> ; actively maintained
     by Bitcoin Core contributors.
     Bitcoin ABC is using a modified version of libsecp256k1, some changes might
