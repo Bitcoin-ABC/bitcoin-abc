@@ -486,7 +486,27 @@ class ImportMultiTest(BitcoinTestFramework):
         addresses = [
             "2N7yv4p8G8yEaPddJxY41kPihnWvs39qCMf",
             "2MsHxyb2JS3pAySeNUsJ7mNnurtpeenDzLA"]
-        desc = "sh(pkh(" + xpriv + "/0'/0'/*'" + "))"
+        desc = "pkh(" + xpriv + "/0'/0'/*'" + ")"
+        self.log.info(
+            "Ranged descriptor import should fail without a specified range")
+        self.test_importmulti({"desc": descsum_create(desc),
+                               "timestamp": "now"},
+                              success=False,
+                              error_code=-8,
+                              error_message='Descriptor is ranged, please specify the range')
+
+        # Test importing of a ranged descriptor without keys
+        self.log.info(
+            "Should import the ranged descriptor with specified range as solvable")
+        self.test_importmulti({"desc": descsum_create(desc),
+                               "timestamp": "now",
+                               "range": 1},
+                              success=True,
+                              warnings=["Some private keys are missing, outputs will be considered watchonly. If this is intentional, specify the watchonly flag."])
+        for address in addresses:
+            # P2PKH are not considered solvable.
+            test_address(self.nodes[1], key.p2pkh_addr, solvable=False)
+
         self.test_importmulti({"desc": descsum_create(desc), "timestamp": "now", "range": -1},
                               success=False, error_code=-8, error_message='End of range is too high')
 
