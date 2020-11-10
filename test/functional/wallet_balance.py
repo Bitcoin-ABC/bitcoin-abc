@@ -318,7 +318,11 @@ class WalletTest(BitcoinTestFramework):
         self.nodes[1].invalidateblock(block_reorg)
         # wallet txs not in the mempool are untrusted
         assert_equal(self.nodes[0].getbalance(minconf=0), 0)
-        self.generatetoaddress(self.nodes[0], 1, ADDRESS_WATCHONLY)
+        self.generatetoaddress(
+            self.nodes[0],
+            1,
+            ADDRESS_WATCHONLY,
+            sync_fun=self.no_op)
         # wallet txs not in the mempool are untrusted
         assert_equal(self.nodes[0].getbalance(minconf=0), 0)
 

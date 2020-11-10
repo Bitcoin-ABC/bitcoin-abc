@@ -44,7 +44,7 @@ class MiningTest(BitcoinTestFramework):
         for t in range(TIME_GENESIS_BLOCK,
                        TIME_GENESIS_BLOCK + 200 * 600, 600):
             node.setmocktime(t)
-            self.generatetoaddress(node, 1, address)
+            self.generatetoaddress(node, 1, address, sync_fun=self.no_op)
         mining_info = node.getmininginfo()
         assert_equal(mining_info['blocks'], 200)
         assert_equal(mining_info['currentblocktx'], 0)

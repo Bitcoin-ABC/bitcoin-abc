@@ -66,7 +66,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         privkey, proof = gen_proof(self, node)
 
         if mature:
-            self.generate(node, 1)
+            self.generate(node, 1, sync_fun=self.no_op)
 
         return privkey, proof
 
@@ -174,6 +174,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         proofs_keys = [self.generate_proof(self.nodes[0]) for _ in self.nodes]
         proofids = set([proof_key[1].proofid for proof_key in proofs_keys])
+        # generate_proof does not sync, so do it manually
         self.sync_all()
 
         def restart_nodes_with_proof(nodes, extra_args=None):
@@ -195,7 +196,6 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         # Connect a block to make the proofs added to our pool
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         self.log.info("Nodes should eventually get the proof from their peer")
         self.sync_proofs(self.nodes[:-1])
@@ -299,7 +299,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         wait_for_proof(node, proofid_hex)
 
         # Mature the utxo then spend it
-        self.generate(node, 100)
+        self.generate(node, 100, sync_fun=self.no_op)
         utxo = proof.stakes[0].stake.utxo
         raw_tx = node.createrawtransaction(
             inputs=[{
@@ -316,7 +316,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         node.sendrawtransaction(signed_tx['hex'])
 
         # Mine the tx in a block
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         # Wait for the proof to be invalidated
         def check_proof_not_found(proofid):

@@ -152,7 +152,11 @@ class NotificationsTest(BitcoinTestFramework):
 
             # Mine a block on node0, reconnect the nodes, check that tx2_node1
             # has a conflicting tx after syncing with node0.
-            self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
+            self.generatetoaddress(
+                self.nodes[0],
+                1,
+                ADDRESS_ECREG_UNSPENDABLE,
+                sync_fun=self.no_op)
             self.connect_nodes(0, 1)
             self.sync_blocks()
             assert tx2_node0 in self.nodes[1].gettransaction(tx2_node1)[

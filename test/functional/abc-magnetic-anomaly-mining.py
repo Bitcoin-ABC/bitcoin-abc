@@ -45,7 +45,7 @@ class CTORMiningTest(BitcoinTestFramework):
         # activate magnetic anomaly
         for _ in range(150):
             update_time()
-            self.generate(mining_node, 1)
+            self.generate(mining_node, 1, sync_fun=self.no_op)
 
         update_time()
         unspent = mining_node.listunspent()

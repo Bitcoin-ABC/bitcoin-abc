@@ -211,7 +211,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Force the availability score to diverge between the responding and the
         # muted nodes.
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         def poll_all_for_block():
             with p2p_lock:
@@ -269,7 +269,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.check_all_peers_received_getavaaddr_once(avapeers)
 
         # Generate some block to poll for
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         # Because none of the avalanche peers is responding, our node should
         # fail out of option shortly and send a getavaaddr message to its
@@ -320,7 +320,7 @@ class AvaAddrTest(BitcoinTestFramework):
         p.wait_until(lambda: p.last_message.get("getavaaddr"))
 
         # Generate some block to poll for
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         # Because our avalanche peer is not responding, our node should fail
         # out of option shortly and send another getavaaddr message.
@@ -465,7 +465,7 @@ class AvaAddrTest(BitcoinTestFramework):
         count_inbound = count_getavaaddr([inbound])
         for _ in range(10):
             # Trigger a poll
-            self.generate(node, 1)
+            self.generate(node, 1, sync_fun=self.no_op)
             inbound.sync_send_with_ping()
 
             node.mockscheduler(MAX_GETAVAADDR_DELAY)

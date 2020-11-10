@@ -80,7 +80,8 @@ class ZMQTestSetupBlock:
     """
 
     def __init__(self, test_framework, node):
-        self.block_hash = test_framework.generate(node, 1)[0]
+        self.block_hash = test_framework.generate(
+            node, 1, sync_fun=test_framework.no_op)[0]
         coinbase = node.getblock(self.block_hash, 2)['tx'][0]
         self.tx_hash = coinbase['txid']
         self.raw_tx = coinbase['hex']
@@ -264,7 +265,7 @@ class ZMQTest (BitcoinTestFramework):
         payment_txid = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), 1000000)
         disconnect_block = self.generatetoaddress(self.nodes[0],
-                                                  1, ADDRESS_ECREG_UNSPENDABLE)[0]
+                                                  1, ADDRESS_ECREG_UNSPENDABLE, sync_fun=self.no_op)[0]
         disconnect_cb = self.nodes[0].getblock(disconnect_block)["tx"][0]
         assert_equal(
             self.nodes[0].getbestblockhash(),
@@ -274,7 +275,7 @@ class ZMQTest (BitcoinTestFramework):
 
         # Generate 2 blocks in nodes[1] to a different address to ensure split
         connect_blocks = self.generatetoaddress(self.nodes[1],
-                                                2, ADDRESS_ECREG_P2SH_OP_TRUE)
+                                                2, ADDRESS_ECREG_P2SH_OP_TRUE, sync_fun=self.no_op)
 
         # nodes[0] will reorg chain after connecting back nodes[1]
         self.connect_nodes(0, 1)
@@ -338,7 +339,7 @@ class ZMQTest (BitcoinTestFramework):
         txid_to_be_replaced = send_conflicting_transaction(self.nodes[0])
         replacement_txid = send_conflicting_transaction(self.nodes[1])
         block_hash = self.generatetoaddress(
-            self.nodes[1], 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
+            self.nodes[1], 1, ADDRESS_ECREG_P2SH_OP_TRUE, sync_fun=self.no_op)[0]
         self.connect_nodes(0, 1)
         self.sync_all()
 
@@ -364,7 +365,7 @@ class ZMQTest (BitcoinTestFramework):
 
         # Generate 1 block in nodes[0] and receive all notifications
         dc_block = self.generatetoaddress(self.nodes[0],
-                                          1, ADDRESS_ECREG_UNSPENDABLE)[0]
+                                          1, ADDRESS_ECREG_UNSPENDABLE, sync_fun=self.no_op)[0]
 
         # Note: We are not notified of any block transactions, coinbase or
         # mined
@@ -373,7 +374,11 @@ class ZMQTest (BitcoinTestFramework):
 
         # Generate 2 blocks in nodes[1] to a different address to ensure
         # a chain split
-        self.generatetoaddress(self.nodes[1], 2, ADDRESS_ECREG_P2SH_OP_TRUE)
+        self.generatetoaddress(
+            self.nodes[1],
+            2,
+            ADDRESS_ECREG_P2SH_OP_TRUE,
+            sync_fun=self.no_op)
 
         # nodes[0] will reorg chain after connecting back nodes[1]
         self.connect_nodes(0, 1)
@@ -657,7 +662,11 @@ class ZMQTest (BitcoinTestFramework):
         ], sync_blocks=False)
 
         # Generate 1 block in nodes[0] and receive all notifications
-        self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(
+            self.nodes[0],
+            1,
+            ADDRESS_ECREG_UNSPENDABLE,
+            sync_fun=self.no_op)
 
         # Should receive the same block hash on both subscribers
         assert_equal(self.nodes[0].getbestblockhash(),

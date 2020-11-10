@@ -82,7 +82,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         addrkey0 = node.get_deterministic_priv_key()
         node_ecash_addr = legacy_to_ecash_p2pkh(addrkey0.address)
 
-        blockhashes = self.generatetoaddress(node, 100, node_ecash_addr)
+        blockhashes = self.generatetoaddress(
+            node, 100, node_ecash_addr, sync_fun=self.no_op)
 
         self.log.info(
             "Make build a valid proof and restart the node to use it")
@@ -173,7 +174,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         self.log.info("The proof is registered at first chaintip update")
         assert_equal(len(node.getavalanchepeerinfo()), 0)
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1,
                         timeout=5)
 
@@ -191,11 +192,11 @@ class AvalancheProofTest(BitcoinTestFramework):
         # Mine a block to trigger an attempt at registering the proof
         self.connect_nodes(1, node.index)
         self.sync_all()
-        self.generate(self.nodes[1], 1)
+        self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         wait_for_proof(self.nodes[1], proofid_hex, expect_status="immature")
 
         # Mine another block to make the proof mature
-        self.generate(self.nodes[1], 1)
+        self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         wait_for_proof(self.nodes[0], proofid_hex)
 
         self.log.info(
@@ -391,13 +392,13 @@ class AvalancheProofTest(BitcoinTestFramework):
             self.log.info(
                 "Check a proof with the maximum number of UTXO is valid")
             new_blocks = self.generate(
-                node, AVALANCHE_MAX_PROOF_STAKES // 10 + 1)
+                node, AVALANCHE_MAX_PROOF_STAKES // 10 + 1, sync_fun=self.no_op)
             # confirm the coinbase UTXOs
-            self.generate(node, 101)
+            self.generate(node, 101, sync_fun=self.no_op)
             too_many_stakes = create_stakes(
                 self, node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
             # Make the newly split UTXOs mature
-            self.generate(node, stake_age)
+            self.generate(node, stake_age, sync_fun=self.no_op)
 
             maximum_stakes = too_many_stakes[:-1]
             good_proof = node.buildavalancheproof(
@@ -499,7 +500,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             node.getblock(
                 node.getbestblockhash())['mediantime'] +
             100)
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         # Wait until UpdatedBlockTip has been called so we know the proof
         # validity has updated

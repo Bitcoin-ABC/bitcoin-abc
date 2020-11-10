@@ -166,13 +166,13 @@ def get_legacy_sigopcount_tx(tx, accurate=True):
     return count
 
 
-def create_confirmed_utxos(test_framework, node, count, age=101):
+def create_confirmed_utxos(test_framework, node, count, age=101, **kwargs):
     """
     Helper to create at least "count" utxos
     """
     to_generate = int(0.5 * count) + age
     while to_generate > 0:
-        test_framework.generate(node, min(25, to_generate))
+        test_framework.generate(node, min(25, to_generate), **kwargs)
         to_generate -= 25
     utxos = node.listunspent()
     iterations = count - len(utxos)
@@ -198,7 +198,7 @@ def create_confirmed_utxos(test_framework, node, count, age=101):
         node.sendrawtransaction(signed_tx)
 
     while (node.getmempoolinfo()['size'] > 0):
-        test_framework.generate(node, 1)
+        test_framework.generate(node, 1, **kwargs)
 
     utxos = node.listunspent()
     assert len(utxos) >= count

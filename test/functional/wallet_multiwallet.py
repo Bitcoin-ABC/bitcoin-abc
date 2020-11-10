@@ -173,7 +173,11 @@ class MultiWalletTest(BitcoinTestFramework):
         self.start_node(0, ['-nowallet', '-wallet=w4', '-wallet=w5'])
         assert_equal(set(node.listwallets()), {"w4", "w5"})
         w5 = wallet("w5")
-        self.generatetoaddress(node, nblocks=1, address=w5.getnewaddress())
+        self.generatetoaddress(
+            node,
+            nblocks=1,
+            address=w5.getnewaddress(),
+            sync_fun=self.no_op)
 
         # now if wallets/ exists again, but the rootdir is specified as the
         # walletdir, w4 and w5 should still be loaded
@@ -205,7 +209,7 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # check wallet names and balances
         self.generatetoaddress(
-            node, nblocks=1, address=wallets[0].getnewaddress())
+            node, nblocks=1, address=wallets[0].getnewaddress(), sync_fun=self.no_op)
         for wallet_name, wallet in zip(wallet_names, wallets):
             info = wallet.getwalletinfo()
             assert_equal(info['immature_balance'],
@@ -221,7 +225,11 @@ class MultiWalletTest(BitcoinTestFramework):
                                 node.getwalletinfo)
 
         w1, w2, w3, w4, *_ = wallets
-        self.generatetoaddress(node, nblocks=101, address=w1.getnewaddress())
+        self.generatetoaddress(
+            node,
+            nblocks=101,
+            address=w1.getnewaddress(),
+            sync_fun=self.no_op)
         assert_equal(w1.getbalance(), 100000000)
         assert_equal(w2.getbalance(), 0)
         assert_equal(w3.getbalance(), 0)
@@ -230,7 +238,11 @@ class MultiWalletTest(BitcoinTestFramework):
         w1.sendtoaddress(w2.getnewaddress(), 1000000)
         w1.sendtoaddress(w3.getnewaddress(), 2000000)
         w1.sendtoaddress(w4.getnewaddress(), 3000000)
-        self.generatetoaddress(node, nblocks=1, address=w1.getnewaddress())
+        self.generatetoaddress(
+            node,
+            nblocks=1,
+            address=w1.getnewaddress(),
+            sync_fun=self.no_op)
         assert_equal(w2.getbalance(), 1000000)
         assert_equal(w3.getbalance(), 2000000)
         assert_equal(w4.getbalance(), 3000000)

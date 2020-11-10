@@ -27,8 +27,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
         chaintip = node.getbestblockhash()
 
         # Mine some blocks and invalidate them
-        blocks = self.generatetoaddress(node,
-                                        3, node.get_deterministic_priv_key().address)
+        blocks = self.generate(node, 3, sync_fun=self.no_op)
         assert_equal(blocks[-1], node.getbestblockhash())
         node.invalidateblock(blocks[0])
         assert_equal(chaintip, node.getbestblockhash())

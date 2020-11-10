@@ -30,7 +30,8 @@ class DumpCoinsTest(BitcoinTestFramework):
         coinbases = []
 
         def generate_and_get_txid(address, expected_coins):
-            blockhash = self.generatetoaddress(node, 1, address)[0]
+            blockhash = self.generatetoaddress(
+                node, 1, address, sync_fun=self.no_op)[0]
             assert_equal(node.dumpcoins(), expected_coins)
 
             # Get the coinbase txid

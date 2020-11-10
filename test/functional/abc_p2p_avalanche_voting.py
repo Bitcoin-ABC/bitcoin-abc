@@ -60,8 +60,6 @@ class AvalancheTest(BitcoinTestFramework):
         self.generate(node, 100 - node.getblockcount())
 
         fork_node = self.nodes[1]
-        # Make sure the fork node has synced the blocks
-        self.sync_blocks([node, fork_node])
 
         # Get the key so we can verify signatures.
         avakey = ECPubKey()
@@ -110,7 +108,7 @@ class AvalancheTest(BitcoinTestFramework):
         # We need to send the coin to a new address in order to make sure we do
         # not regenerate the same block.
         self.generatetoaddress(node,
-                               26, 'ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v')
+                               26, 'ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v', sync_fun=self.no_op)
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
@@ -171,8 +169,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Create a fork 2 blocks deep. This should trigger polling.
         fork_node.invalidateblock(fork_node.getblockhash(100))
-        fork_address = fork_node.get_deterministic_priv_key().address
-        self.generatetoaddress(fork_node, 2, fork_address)
+        self.generate(fork_node, 2, sync_fun=self.no_op)
 
         # Because the new tip is a deep reorg, the node will not accept it
         # right away, but poll for it.
@@ -199,7 +196,7 @@ class AvalancheTest(BitcoinTestFramework):
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Answer all polls to park...")
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         tip_to_park = node.getbestblockhash()
         hash_to_find = int(tip_to_park, 16)

@@ -36,7 +36,6 @@ class ListTransactionsTest(BitcoinTestFramework):
         # mine a block, confirmations should change:
         blockhash = self.generate(self.nodes[0], 1)[0]
         blockheight = self.nodes[0].getblockheader(blockhash)['height']
-        self.sync_all()
         assert_array_result(self.nodes[0].listtransactions(),
                             {"txid": txid},
                             {"category": "send", "amount": Decimal("-100000"), "confirmations": 1, "blockhash": blockhash, "blockheight": blockheight})

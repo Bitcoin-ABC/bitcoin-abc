@@ -50,7 +50,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
             "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
         ])
 
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         wait_for_proof(node, uint256_hex(local_proof.proofid))
 
         mocktime = int(time.time())

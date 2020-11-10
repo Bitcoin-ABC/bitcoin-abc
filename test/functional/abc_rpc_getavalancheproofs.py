@@ -39,7 +39,7 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
         privkey, proof = gen_proof(self, node)
 
         # Make the proof mature
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
 
         def avalancheproofs_equals(expected):
             proofs = node.getavalancheproofs()
@@ -72,7 +72,7 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
         })
 
         # Mine a block to trigger proof validation
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(
             lambda: avalancheproofs_equals({
                 "valid": [uint256_hex(proof.proofid)],
@@ -105,7 +105,7 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
             conflicting_proofs.append(conflicting_proof)
 
             # Make the proof and its conflicting proof mature
-            self.generate(node, 1)
+            self.generate(node, 1, sync_fun=self.no_op)
 
             n = AvaP2PInterface()
             n.proof = _proof
@@ -177,7 +177,7 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
         )
 
         # Make the immature proof mature
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         proofs.append(immature_proof)
 
         self.wait_until(

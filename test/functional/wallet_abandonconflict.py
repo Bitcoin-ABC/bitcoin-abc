@@ -59,7 +59,6 @@ class AbandonConflictTest(BitcoinTestFramework):
         assert_raises_rpc_error(-5, 'Transaction not eligible for abandonment',
                                 lambda: self.nodes[0].abandontransaction(txid=txA))
 
-        self.sync_blocks()
         newbalance = self.nodes[0].getbalance()
 
         # no more than fees lost
@@ -215,7 +214,7 @@ class AbandonConflictTest(BitcoinTestFramework):
         tx = self.nodes[0].createrawtransaction(inputs, outputs)
         signed = self.nodes[0].signrawtransactionwithwallet(tx)
         self.nodes[1].sendrawtransaction(signed["hex"])
-        self.generate(self.nodes[1], 1)
+        self.generate(self.nodes[1], 1, sync_fun=self.no_op)
 
         self.connect_nodes(0, 1)
         self.sync_blocks()

@@ -251,7 +251,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         res9 = index_node.gettxoutsetinfo('muhash')
         assert_equal(res8, res9)
 
-        self.generate(index_node, 1)
+        self.generate(index_node, 1, sync_fun=self.no_op)
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
         res10 = index_node.gettxoutsetinfo('muhash')
@@ -284,7 +284,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         assert_equal(index_node.gettxoutsetinfo('muhash')['height'], 110)
 
         # Add two new blocks
-        block = self.generate(index_node, 2)[1]
+        block = self.generate(index_node, 2, sync_fun=self.no_op)[1]
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))
         res = index_node.gettxoutsetinfo(

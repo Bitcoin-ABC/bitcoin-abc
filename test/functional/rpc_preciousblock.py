@@ -47,22 +47,18 @@ class PreciousTest(BitcoinTestFramework):
     def run_test(self):
         self.log.info(
             "Ensure submitblock can in principle reorg to a competing chain")
-        # A non-wallet address to mine to
-
-        def gen_address(
-            i): return self.nodes[i].get_deterministic_priv_key().address
-        self.generatetoaddress(self.nodes[0], 1, gen_address(0))
+        self.generate(self.nodes[0], 1, sync_fun=self.no_op)
         assert_equal(self.nodes[0].getblockcount(), 1)
-        hashZ = self.generatetoaddress(self.nodes[1], 2, gen_address(1))[-1]
+        hashZ = self.generate(self.nodes[1], 2, sync_fun=self.no_op)[-1]
         assert_equal(self.nodes[1].getblockcount(), 2)
         node_sync_via_rpc(self.nodes[0:3])
         assert_equal(self.nodes[0].getbestblockhash(), hashZ)
 
         self.log.info("Mine blocks A-B-C on Node 0")
-        hashC = self.generatetoaddress(self.nodes[0], 3, gen_address(0))[-1]
+        hashC = self.generate(self.nodes[0], 3, sync_fun=self.no_op)[-1]
         assert_equal(self.nodes[0].getblockcount(), 5)
         self.log.info("Mine competing blocks E-F-G on Node 1")
-        hashG = self.generatetoaddress(self.nodes[1], 3, gen_address(1))[-1]
+        hashG = self.generate(self.nodes[1], 3, sync_fun=self.no_op)[-1]
         assert_equal(self.nodes[1].getblockcount(), 5)
         assert hashC != hashG
         self.log.info("Connect nodes and check no reorg occurs")
@@ -94,7 +90,7 @@ class PreciousTest(BitcoinTestFramework):
         assert_equal(self.nodes[1].getbestblockhash(), hashC)
         self.log.info(
             "Mine another block (E-F-G-)H on Node 0 and reorg Node 1")
-        self.generatetoaddress(self.nodes[0], 1, gen_address(0))
+        self.generate(self.nodes[0], 1, sync_fun=self.no_op)
         assert_equal(self.nodes[0].getblockcount(), 6)
         self.sync_blocks(self.nodes[0:2])
         hashH = self.nodes[0].getbestblockhash()
@@ -103,7 +99,7 @@ class PreciousTest(BitcoinTestFramework):
         self.nodes[1].preciousblock(hashC)
         assert_equal(self.nodes[1].getbestblockhash(), hashH)
         self.log.info("Mine competing blocks I-J-K-L on Node 2")
-        self.generatetoaddress(self.nodes[2], 4, gen_address(2))
+        self.generate(self.nodes[2], 4, sync_fun=self.no_op)
         assert_equal(self.nodes[2].getblockcount(), 6)
         hashL = self.nodes[2].getbestblockhash()
         self.log.info("Connect nodes and check no reorg occurs")

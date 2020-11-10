@@ -95,7 +95,8 @@ def create_stakes(
         test_framework: 'BitcoinTestFramework',
         node: TestNode,
         blockhashes: List[str],
-        count: int) -> List[Dict[str, Any]]:
+        count: int,
+        sync_fun=None,) -> List[Dict[str, Any]]:
     """
     Create a list of stakes by splitting existing UTXOs from a specified list
     of blocks into 10 new coins.
@@ -127,7 +128,8 @@ def create_stakes(
     # confirm the transactions
     new_blocks = []
     while node.getmempoolinfo()['size'] > 0:
-        new_blocks += test_framework.generate(node, 1)
+        new_blocks += test_framework.generate(
+            node, 1, sync_fun=test_framework.no_op if sync_fun is None else sync_fun)
 
     utxos = get_utxos_in_blocks(node, new_blocks)
     stakes = []
@@ -360,14 +362,18 @@ def get_ava_p2p_interface(
         test_framework: 'BitcoinTestFramework',
         node: TestNode,
         services=NODE_NETWORK | NODE_AVALANCHE,
-        stake_utxo_confirmations=1) -> AvaP2PInterface:
+        stake_utxo_confirmations=1,
+        sync_fun=None,) -> AvaP2PInterface:
     """Build and return an AvaP2PInterface connected to the specified TestNode.
     """
     n = AvaP2PInterface(test_framework, node)
 
     # Make sure the proof utxos are mature
     if stake_utxo_confirmations > 1:
-        test_framework.generate(node, stake_utxo_confirmations - 1)
+        test_framework.generate(
+            node,
+            stake_utxo_confirmations - 1,
+            sync_fun=test_framework.no_op if sync_fun is None else sync_fun)
 
     assert node.verifyavalancheproof(n.proof.serialize().hex())
 
@@ -389,8 +395,11 @@ def get_ava_p2p_interface(
     return n
 
 
-def gen_proof(test_framework, node, coinbase_utxos=1):
-    blockhashes = test_framework.generate(node, coinbase_utxos)
+def gen_proof(test_framework, node, coinbase_utxos=1, sync_fun=None):
+    blockhashes = test_framework.generate(
+        node,
+        coinbase_utxos,
+        sync_fun=test_framework.no_op if sync_fun is None else sync_fun)
 
     privkey = ECKey()
     privkey.generate()

@@ -28,15 +28,9 @@ class MinerFundTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
-        address = node.get_deterministic_priv_key().address
 
         self.log.info('Create some history')
-        for _ in range(0, 50):
-            self.generatetoaddress(node, 1, address)
-
-        node = self.nodes[0]
-
-        address = node.get_deterministic_priv_key().address
+        self.generate(node, 50, sync_fun=self.no_op)
 
         def get_best_coinbase():
             return node.getblock(node.getbestblockhash(), 2)['tx'][0]

@@ -365,7 +365,7 @@ class BlockchainTest(BitcoinTestFramework):
                       lambda: self.nodes[0].process.wait(timeout=3))
         try:
             self.generatetoaddress(
-                self.nodes[0], 1, ADDRESS_ECREG_P2SH_OP_TRUE)
+                self.nodes[0], 1, ADDRESS_ECREG_P2SH_OP_TRUE, sync_fun=self.no_op)
         except (ConnectionError, http.client.BadStatusLine):
             pass  # The node already shut down before response
         self.log.debug('Node should stop at this height...')

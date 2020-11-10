@@ -37,16 +37,14 @@ class ParkedChainTest(BitcoinTestFramework):
         parking_node = self.nodes[1]
 
         self.log.info("Test chain parking...")
-        self.generate(node, 10)
+        self.generate(node, 10, sync_fun=self.no_op)
         tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         block_to_park = node.getbestblockhash()
-        self.generate(node, 10)
+        self.generate(node, 10, sync_fun=self.no_op)
         parked_tip = node.getbestblockhash()
 
-        # get parking_node caught up.
-        # (probably not needed, but just in case parking can have race
-        # condition like invalidateblock below)
+        # Get parking_node caught up.
         wait_for_tip(parking_node, parked_tip)
 
         # Let's park the chain.
@@ -64,13 +62,13 @@ class ParkedChainTest(BitcoinTestFramework):
         # and invaliding and reconsidering a block should not change its
         # parked state.  See the following test cases:
         self.log.info("Test invalidate, park, unpark, reconsider...")
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
         # Generate an extra block to check that children are invalidated as
         # expected and do not produce dangling chaintips
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -86,11 +84,11 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         self.log.info("Test park, invalidate, reconsider, unpark")
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -109,11 +107,11 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         self.log.info("Test invalidate, park, reconsider, unpark...")
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -129,11 +127,11 @@ class ParkedChainTest(BitcoinTestFramework):
         self.only_valid_tip(good_tip)
 
         self.log.info("Test park, invalidate, unpark, reconsider")
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         good_tip = node.getbestblockhash()
 
         # avoid race condition from parking_node requesting block when invalid
@@ -174,19 +172,24 @@ class ParkedChainTest(BitcoinTestFramework):
             # Mine block to create a fork of proper depth
             self.generatetoaddress(parking_node,
                                    nblocks=depth - 1,
-                                   address=parking_node.getnewaddress(label='coinbase'))
+                                   address=parking_node.getnewaddress(
+                                       label='coinbase'),
+                                   sync_fun=self.no_op,
+                                   )
             self.generatetoaddress(node,
                                    nblocks=depth,
-                                   address=node.getnewaddress(label='coinbase'))
+                                   address=node.getnewaddress(
+                                       label='coinbase'),
+                                   sync_fun=self.no_op,
+                                   )
             # extra block should now find themselves parked
             for _ in range(extra_blocks):
-                self.generate(node, 1)
+                self.generate(node, 1, sync_fun=self.no_op)
                 wait_for_parked_block(node.getbestblockhash())
 
-            # If we mine one more block, the node reorgs.
+            # If we mine one more block, the node reorgs (generate also waits
+            # for chain sync).
             self.generate(node, 1)
-            self.wait_until(lambda: parking_node.getbestblockhash()
-                            == node.getbestblockhash())
 
         check_reorg_protection(1, 0)
         check_reorg_protection(2, 0)
@@ -207,11 +210,10 @@ class ParkedChainTest(BitcoinTestFramework):
         # generate a ton of blocks at once.
         try:
             with parking_node.assert_debug_log(["Park block"]):
+                # Also waits for chain sync
                 self.generatetoaddress(node,
                                        nblocks=20,
                                        address=node.getnewaddress(label='coinbase'))
-                self.wait_until(lambda: parking_node.getbestblockhash() ==
-                                node.getbestblockhash())
         except AssertionError as exc:
             # good, we want an absence of "Park block" messages
             assert "does not partially match log" in exc.args[0]
@@ -221,10 +223,12 @@ class ParkedChainTest(BitcoinTestFramework):
         self.log.info("Test that unparking works when -parkdeepreorg=0")
         # Set up parking node height = fork + 4, node height = fork + 5
         node.invalidateblock(node.getbestblockhash())
-        self.generate(parking_node, 3)
+        self.generate(parking_node, 3, sync_fun=self.no_op)
         self.generatetoaddress(node,
                                nblocks=5,
-                               address=node.getnewaddress(label='coinbase'))
+                               address=node.getnewaddress(label='coinbase'),
+                               sync_fun=self.no_op,
+                               )
         wait_for_parked_block(node.getbestblockhash())
         # Restart the parking node without parkdeepreorg.
         self.restart_node(1, ["-parkdeepreorg=0"])
@@ -234,12 +238,11 @@ class ParkedChainTest(BitcoinTestFramework):
         wait_for_parked_block(node.getbestblockhash())
         # Three more blocks is not enough to unpark. Even though its PoW is
         # larger, we are still following the delayed-unparking rules.
-        self.generate(node, 3)
+        self.generate(node, 3, sync_fun=self.no_op)
         wait_for_parked_block(node.getbestblockhash())
-        # Final block pushes over the edge, and should unpark.
+        # Final block pushes over the edge, and should unpark (generate also
+        # waits for chain sync).
         self.generate(node, 1)
-        self.wait_until(lambda: parking_node.getbestblockhash() ==
-                        node.getbestblockhash(), timeout=5)
 
         # Do not append tests after this point without restarting node again.
         # Parking node is no longer parking.

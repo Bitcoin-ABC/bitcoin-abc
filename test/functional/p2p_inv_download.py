@@ -391,7 +391,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             "-avaproof={}".format(immature.serialize().hex()),
             "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes())),
         ])
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         wait_for_proof(node, proofid_hex, expect_status="immature")
 
         peer = node.add_p2p_connection(context.p2p_conn())

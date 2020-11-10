@@ -319,7 +319,7 @@ class BIP68Test(BitcoinTestFramework):
         cur_time = int(time.time())
         for _ in range(10):
             self.nodes[0].setmocktime(cur_time + 600)
-            self.generate(self.nodes[0], 1)
+            self.generate(self.nodes[0], 1, sync_fun=self.no_op)
             cur_time += 600
 
         assert tx2.hash in self.nodes[0].getrawmempool()
@@ -407,7 +407,7 @@ class BIP68Test(BitcoinTestFramework):
         self.nodes[0].setmocktime(0)
         self.nodes[0].invalidateblock(
             self.nodes[0].getblockhash(cur_height + 1))
-        self.generate(self.nodes[0], 10)
+        self.generate(self.nodes[0], 10, sync_fun=self.no_op)
 
     def get_csv_status(self):
         height = self.nodes[0].getblockchaininfo()['blocks']
@@ -471,10 +471,13 @@ class BIP68Test(BitcoinTestFramework):
         csv_activation_height = 576
         height = self.nodes[0].getblockcount()
         assert_greater_than(csv_activation_height - height, 1)
-        self.generate(self.nodes[0], csv_activation_height - height - 1)
+        self.generate(
+            self.nodes[0],
+            csv_activation_height - height - 1,
+            sync_fun=self.no_op)
         assert_equal(self.get_csv_status(), False)
         self.disconnect_nodes(0, 1)
-        self.generate(self.nodes[0], 1)
+        self.generate(self.nodes[0], 1, sync_fun=self.no_op)
         assert_equal(self.get_csv_status(), True)
         # We have a block that has CSV activated, but we want to be at
         # the activation point, so we invalidate the tip.

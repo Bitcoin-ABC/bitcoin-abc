@@ -132,8 +132,7 @@ class SchnorrTest(BitcoinTestFramework):
         spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
-        self.generatetoaddress(
-            node, 100, node.get_deterministic_priv_key().address)
+        self.generate(node, 100, sync_fun=self.no_op)
 
         tip = self.getbestblock(node)
 
@@ -201,8 +200,7 @@ class SchnorrTest(BitcoinTestFramework):
         node.p2ps[0].send_txs_and_test(
             [schnorrchecksigtx, ecdsachecksigtx], node)
         # They get mined as usual.
-        self.generatetoaddress(
-            node, 1, node.get_deterministic_priv_key().address)
+        self.generate(node, 1, sync_fun=self.no_op)
         tip = self.getbestblock(node)
         # Make sure they are in the block, and mempool is now empty.
         txhashes = set([schnorrchecksigtx.hash, ecdsachecksigtx.hash])
