@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
         }
 
         for (int k = 0; k < 100; k++) {
-            uint64_t s = InsecureRandRange(max);
+            uint64_t s = max > 0 ? InsecureRandRange(max) : 0;
             auto i = selectPeerImpl(slots, s, max);
             // /!\ Because of the way we construct the vector, the peer id is
             // always the index. This might not be the case in practice.
