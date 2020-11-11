@@ -13,12 +13,7 @@ Supporting RPCs are:
 - `createmultisig` and `addmultisigaddress` return descriptors as well (since v0.22.6)
 
 This document describes the language. For the specifics on usage, see the RPC
-documentation for the functions mentioned above.in the
-`scantxoutset` RPC call. This is a simple language which can be used to
-describe collections of output scripts.
-
-This document describes the language. For the specifics on usage for scanning
-the UTXO set, see the `scantxoutset` RPC help.
+documentation for the functions mentioned above.
 
 ## Features
 
