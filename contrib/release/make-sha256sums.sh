@@ -47,10 +47,10 @@ cat "${ASSET_DIR}"/linux/bitcoin-abc-*linux-res.yml | \
   grep -E "${PREFIX}.?bitcoin-abc-[0-9.]+.*-linux-.*.tar.gz" | \
   strip_prefix "${PREFIX}" | trim
 
-cat "${ASSET_DIR}"/win/bitcoin-abc-*win-res.yml | \
-  grep -E -- "${PREFIX}.?bitcoin-abc-[0-9.]+-win.*.(exe|tar.gz|zip)" | \
-  strip_prefix "${PREFIX}" | trim
-
 cat "${ASSET_DIR}"/osx/bitcoin-abc-*osx-res.yml | \
   grep -E -- "${PREFIX}.?bitcoin-abc-[0-9.]+-osx.*.(dmg|tar.gz)" | \
+  strip_prefix "${PREFIX}" | trim
+
+cat "${ASSET_DIR}"/win/bitcoin-abc-*win-res.yml | \
+  grep -E -- "${PREFIX}.?bitcoin-abc-[0-9.]+-win.*.(exe|tar.gz|zip)" | \
   strip_prefix "${PREFIX}" | trim
