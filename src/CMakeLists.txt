@@ -426,6 +426,7 @@ function(add_network_sources NETWORK_SOURCES)
 endfunction()
 
 add_network_sources(NETWORK_SOURCES
+	checkpoints.cpp
 	network.cpp
 )
 
