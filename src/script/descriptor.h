@@ -59,9 +59,10 @@ struct Descriptor {
      *           derivation.
      * output_scripts: the expanded scriptPubKeys will be put here.
      * out: scripts and public keys necessary for solving the expanded
-     * scriptPubKeys will be put here (may be equal to provider). cache: vector
-     * which will be overwritten with cache data necessary to evaluate the
-     * descriptor at this point without access to private keys.
+     *      scriptPubKeys will be put here (may be equal to provider).
+     * cache: vector which will be overwritten with cache data necessary to
+     *        evaluate the descriptor at this point without access to private
+     *        keys.
      */
     virtual bool Expand(int pos, const SigningProvider &provider,
                         std::vector<CScript> &output_scripts,
@@ -72,28 +73,32 @@ struct Descriptor {
      * Expand a descriptor at a specified position using cached expansion data.
      *
      * pos: the position at which to expand the descriptor. If IsRange() is
-     * false, this is ignored. cache: vector from which cached expansion data
-     * will be read. output_scripts: the expanded scriptPubKeys will be put
-     * here. out: scripts and public keys necessary for solving the expanded
-     * scriptPubKeys will be put here (may be equal to provider).
+     *      false, this is ignored.
+     * cache: vector from which cached expansion data will be read.
+     * output_scripts: the expanded scriptPubKeys will be put here.
+     * out: scripts and public keys necessary for solving the expanded
+     *      scriptPubKeys will be put here (may be equal to provider).
      */
     virtual bool ExpandFromCache(int pos, const std::vector<uint8_t> &cache,
                                  std::vector<CScript> &output_scripts,
                                  FlatSigningProvider &out) const = 0;
 
-    /** Expand the private key for a descriptor at a specified position, if
+    /**
+     * Expand the private key for a descriptor at a specified position, if
      * possible.
      *
      * pos: the position at which to expand the descriptor. If IsRange() is
-     * false, this is ignored. provider: the provider to query for the private
-     * keys. out: any private keys available for the specified pos will be
-     * placed here.
+     *      false, this is ignored.
+     * provider: the provider to query for the private keys.
+     * out: any private keys available for the specified pos will be placed
+     *      here.
      */
     virtual void ExpandPrivate(int pos, const SigningProvider &provider,
                                FlatSigningProvider &out) const = 0;
 };
 
-/** Parse a descriptor string. Included private keys are put in out.
+/**
+ * Parse a descriptor string. Included private keys are put in out.
  *
  * If the descriptor has a checksum, it must be valid. If require_checksum
  * is set, the checksum is mandatory - otherwise it is optional.
