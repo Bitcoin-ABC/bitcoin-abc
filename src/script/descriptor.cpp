@@ -107,12 +107,13 @@ uint64_t PolyMod(uint64_t c, int val) {
 }
 
 std::string DescriptorChecksum(const Span<const char> &span) {
-    /** A character set designed such that:
+    /**
+     * A character set designed such that:
      *  - The most common 'unprotected' descriptor characters (hex, keypaths)
-     * are in the first group of 32.
+     *    are in the first group of 32.
      *  - Case errors cause an offset that's a multiple of 32.
      *  - As many alphabetic characters are in the same group (while following
-     * the above restrictions).
+     *    the above restrictions).
      *
      * If p(x) gives the position of a character c in this character set, every
      * group of 3 characters (a,b,c) is encoded as the 4 symbols (p(a) & 31,
@@ -530,18 +531,17 @@ protected:
     /**
      * A helper function to construct the scripts for this descriptor.
      *
-     *  This function is invoked once for every CScript produced by evaluating
-     *  m_subdescriptor_arg, or just once in case m_subdescriptor_arg is
-     nullptr.
-
-     *  @param pubkeys The evaluations of the m_pubkey_args field.
-     *  @param script The evaluation of m_subdescriptor_arg (or nullptr when
-     m_subdescriptor_arg is nullptr).
-     *  @param out A FlatSigningProvider to put scripts or public keys in that
-     are necessary to the solver.
-     *             The script arguments to this function are automatically
-     added, as is the origin info of the provided pubkeys.
-     *  @return A vector with scriptPubKeys for this descriptor.
+     * This function is invoked once for every CScript produced by evaluating
+     * m_subdescriptor_arg, or just once in case m_subdescriptor_arg is nullptr.
+     *
+     * @param pubkeys The evaluations of the m_pubkey_args field.
+     * @param script The evaluation of m_subdescriptor_arg (or nullptr when
+     *               m_subdescriptor_arg is nullptr).
+     * @param out A FlatSigningProvider to put scripts or public keys in that
+     *            are necessary to the solver. The script arguments to this
+     *            function are automatically added, as is the origin info of the
+     *            provided pubkeys.
+     * @return A vector with scriptPubKeys for this descriptor.
      */
     virtual std::vector<CScript>
     MakeScripts(const std::vector<CPubKey> &pubkeys, const CScript *script,
