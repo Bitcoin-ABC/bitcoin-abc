@@ -85,24 +85,25 @@ void DoCheck(const std::string &prv, const std::string &pub, int flags,
              bool replace_apostrophe_with_h_in_pub = false) {
     FlatSigningProvider keys_priv, keys_pub;
     std::set<std::vector<uint32_t>> left_paths = paths;
-    std::string error;
+    std::string error_priv;
+    std::string error_pub;
 
     std::unique_ptr<Descriptor> parse_priv;
     std::unique_ptr<Descriptor> parse_pub;
     // Check that parsing succeeds.
     if (replace_apostrophe_with_h_in_prv) {
-        parse_priv = Parse(UseHInsteadOfApostrophe(prv), keys_priv, error);
+        parse_priv = Parse(UseHInsteadOfApostrophe(prv), keys_priv, error_priv);
     } else {
-        parse_priv = Parse(prv, keys_priv, error);
+        parse_priv = Parse(prv, keys_priv, error_priv);
     }
     if (replace_apostrophe_with_h_in_pub) {
-        parse_pub = Parse(UseHInsteadOfApostrophe(pub), keys_pub, error);
+        parse_pub = Parse(UseHInsteadOfApostrophe(pub), keys_pub, error_pub);
     } else {
-        parse_pub = Parse(pub, keys_pub, error);
+        parse_pub = Parse(pub, keys_pub, error_pub);
     }
 
-    BOOST_CHECK(parse_priv);
-    BOOST_CHECK(parse_pub);
+    BOOST_CHECK_MESSAGE(parse_priv, error_priv);
+    BOOST_CHECK_MESSAGE(parse_pub, error_pub);
 
     // Check private keys are extracted from the private version but not the
     // public one.
@@ -376,6 +377,32 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           "DMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/2147483647'/0)",
           HARDENED, {{"76a914ebdc90806a9c4356c1c88e42216611e1cb4c1c1788ac"}},
           {{0xFFFFFFFFUL, 0}});
+    Check("pkh([ffffffff/13']"
+          "xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3dKYnjwih"
+          "2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt/1/2/*)",
+          "pkh([ffffffff/13']"
+          "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7E"
+          "RfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH/1/2/*)",
+          RANGE,
+          {{"76a914326b2249e3a25d5dc60935f044ee835d090ba85988ac"},
+           {"76a914af0bd98abc2f2cae66e36896a39ffe2d32984fb788ac"},
+           {"76a9141fa798efd1cbf95cebf912c031b8a4a6e9fb9f2788ac"}},
+          {{0x8000000DUL, 1, 2, 0},
+           {0x8000000DUL, 1, 2, 1},
+           {0x8000000DUL, 1, 2, 2}});
+    Check("sh(pkh("
+          "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKm"
+          "PGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi/10/20/30/40/*'))",
+          "sh(pkh("
+          "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjq"
+          "JoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8/10/20/30/40/*'))",
+          RANGE | HARDENED,
+          {{"a9149976cc014a7c012bbc43954a38cdee554865bd1987"},
+           {"a914ad29a49cb0420b53d9d6bb8944bcd819c5ff716e87"},
+           {"a914b2d9d290b193fd23b720e738184e3eedadc7d87d87"}},
+          {{10, 20, 30, 40, 0x80000000UL},
+           {10, 20, 30, 40, 0x80000001UL},
+           {10, 20, 30, 40, 0x80000002UL}});
     Check("combo("
           "xprvA2JDeKCSNNZky6uBCviVfJSKyQ1mDYahRjijr5idH2WwLsEd4Hsb2Tyh8RfQMuPh"
           "7f7RtyzTtdrbdqqsunu5Mm3wDvUAKRHSC34sJ7in334/*)",
@@ -488,6 +515,35 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "b83321024d902e1a2fc7a8755ab5b694c575fce742c48d9ff192e63df5193e4c7a"
             "fe1f9c52ae"}},
           {{0}, {1}, {2}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}});
+    Check("sh(multi(2,"
+          "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssr"
+          "dK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U/2147483647'/"
+          "0,"
+          "xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3dKYnjwih"
+          "2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt/1/2/"
+          "*,"
+          "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKm"
+          "PGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi/10/20/30/40/*'))",
+          "sh(multi(2,"
+          "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6o"
+          "DMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/2147483647'/"
+          "0,"
+          "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7E"
+          "RfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH/1/2/"
+          "*,"
+          "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjq"
+          "JoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8/10/20/30/40/*'))",
+          HARDENED | RANGE,
+          {{"a914261bbb58cd9714f92e91668d3eed7c4c860f4cdc87"},
+           {"a914ff07ad97dc4458ed5236c52bb94ccb7339dedff887"},
+           {"a91451f96613fdd66e75a026811ba4fdb9efec2c83a987"}},
+          {{0xFFFFFFFFUL, 0},
+           {1, 2, 0},
+           {1, 2, 1},
+           {1, 2, 2},
+           {10, 20, 30, 40, 0x80000000UL},
+           {10, 20, 30, 40, 0x80000001UL},
+           {10, 20, 30, 40, 0x80000002UL}});
     // P2SH does not fit 16 compressed pubkeys in a redeemscript
     CheckUnparsable(
         "sh(multi(16,"
