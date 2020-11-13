@@ -48,7 +48,6 @@ add_library(testutil OBJECT
 	util/blockfilter.cpp
 	util/logging.cpp
 	util/mining.cpp
-	util/net.cpp
 	util/setup_common.cpp
 	util/str.cpp
 	util/transaction_utils.cpp
