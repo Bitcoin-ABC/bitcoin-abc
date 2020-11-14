@@ -300,6 +300,11 @@ private:
  */
 int TextWidth(const QFontMetrics &fm, const QString &text);
 
+/**
+ * Writes to debug.log short info about the used Qt and the host system.
+ */
+void LogQtInfo();
+
 // Fix known bugs in QProgressDialog class.
 void PolishProgressDialog(QProgressDialog *dialog);
 } // namespace GUIUtil
