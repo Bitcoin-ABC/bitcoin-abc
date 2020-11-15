@@ -54,6 +54,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Phonon activation.
         {635259, BlockHash::fromHex("00000000000000000033dfef1fc2d6a5d5"
                                     "520b078c55193a9bf498c5b27530f7")},
+        // Axion activation.
+        {661648, BlockHash::fromHex("0000000000000000029e471c41818d24b8b74c9110"
+                                    "71c4ef0b4a0509f9b5a8ce")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
