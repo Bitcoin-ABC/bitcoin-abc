@@ -261,11 +261,14 @@ bool CNetAddr::SetSpecial(const std::string &str) {
                                                   torv3::CHECKSUM_LEN,
                                               sizeof(torv3::VERSION)};
 
+            if (input_version != torv3::VERSION) {
+                return false;
+            }
+
             uint8_t calculated_checksum[torv3::CHECKSUM_LEN];
             torv3::Checksum(input_pubkey, calculated_checksum);
 
-            if (input_checksum != calculated_checksum ||
-                input_version != torv3::VERSION) {
+            if (input_checksum != calculated_checksum) {
                 return false;
             }
 
