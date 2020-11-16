@@ -1665,6 +1665,32 @@ BOOST_AUTO_TEST_CASE(util_FormatMoney) {
     BOOST_CHECK_EQUAL(FormatMoney(COIN / 1000000), "1.00");
     BOOST_CHECK_EQUAL(FormatMoney(COIN / 10000000), "0.10");
     BOOST_CHECK_EQUAL(FormatMoney(COIN / 100000000), "0.01");
+
+    BOOST_CHECK_EQUAL(
+        FormatMoney(std::numeric_limits<int64_t>::max() * SATOSHI),
+        "92233720368547758.07");
+    BOOST_CHECK_EQUAL(
+        FormatMoney((std::numeric_limits<int64_t>::max() - 1) * SATOSHI),
+        "92233720368547758.06");
+    BOOST_CHECK_EQUAL(
+        FormatMoney((std::numeric_limits<int64_t>::max() - 2) * SATOSHI),
+        "92233720368547758.05");
+    BOOST_CHECK_EQUAL(
+        FormatMoney((std::numeric_limits<int64_t>::max() - 3) * SATOSHI),
+        "92233720368547758.04");
+    // ...
+    BOOST_CHECK_EQUAL(
+        FormatMoney((std::numeric_limits<int64_t>::min() + 3) * SATOSHI),
+        "-92233720368547758.05");
+    BOOST_CHECK_EQUAL(
+        FormatMoney((std::numeric_limits<int64_t>::min() + 2) * SATOSHI),
+        "-92233720368547758.06");
+    BOOST_CHECK_EQUAL(
+        FormatMoney((std::numeric_limits<int64_t>::min() + 1) * SATOSHI),
+        "-92233720368547758.07");
+    BOOST_CHECK_EQUAL(
+        FormatMoney(std::numeric_limits<int64_t>::min() * SATOSHI),
+        "-92233720368547758.08");
 }
 
 BOOST_AUTO_TEST_CASE(util_ParseMoney) {

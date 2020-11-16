@@ -87,19 +87,9 @@ FUZZ_TARGET_INIT(transaction, initialize_transaction) {
     (void)AreInputsStandard(tx, coins_view_cache, STANDARD_SCRIPT_VERIFY_FLAGS);
 
     UniValue u(UniValue::VOBJ);
-    // Amount::operator UniValue() not defined when Amount.amount ==
-    // std::numeric_limits<int64_t>::min()
-    bool skip_tx_to_univ = false;
-    for (const CTxOut &txout : tx.vout) {
-        if (txout.nValue == std::numeric_limits<int64_t>::min() * SATOSHI) {
-            skip_tx_to_univ = true;
-        }
-    }
-    if (!skip_tx_to_univ) {
-        TxToUniv(tx, /* hashBlock */ BlockHash(), u);
-        static const BlockHash u256_max(
-            uint256S("fffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-                     "fffffff"));
-        TxToUniv(tx, u256_max, u);
-    }
+    TxToUniv(tx, /* hashBlock */ BlockHash(), u);
+    static const BlockHash u256_max(
+        uint256S("fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                 "fff"));
+    TxToUniv(tx, u256_max, u);
 }

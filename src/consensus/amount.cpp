@@ -14,8 +14,13 @@
 
 using namespace std::string_view_literals;
 
-static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"sv};
-static const Currency XEC{100 * SATOSHI, SATOSHI, 2, "XEC"sv};
+static constexpr Currency BCHA{COIN, SATOSHI, 8, "BCHA"sv};
+static constexpr Currency XEC{100 * SATOSHI, SATOSHI, 2, "XEC"sv};
+
+static_assert(BCHA.baseunit > 1 * SATOSHI,
+              "BCHA base unit must be greater than 1 satoshi");
+static_assert(XEC.baseunit > 1 * SATOSHI,
+              "XEC base unit must be greater than 1 satoshi");
 
 const Currency &Currency::get() {
     return gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? XEC : BCHA;
@@ -29,13 +34,15 @@ std::string Amount::ToString() const {
 }
 
 Amount::operator UniValue() const {
-    bool sign = *this < Amount::zero();
-    Amount n_abs(sign ? -amount : amount);
     const auto &currency = Currency::get();
-    int64_t quotient = n_abs / currency.baseunit;
-    int64_t remainder = (n_abs % currency.baseunit) / currency.subunit;
+    int64_t quotient = *this / currency.baseunit;
+    int64_t remainder = (*this % currency.baseunit) / currency.subunit;
+    if (amount < 0) {
+        quotient = -quotient;
+        remainder = -remainder;
+    }
     return UniValue(UniValue::VNUM,
-                    strprintf("%s%d.%0*d", sign ? "-" : "", quotient,
+                    strprintf("%s%d.%0*d", amount < 0 ? "-" : "", quotient,
                               currency.decimals, remainder));
 }
 

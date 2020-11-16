@@ -415,6 +415,32 @@ BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
     BOOST_CHECK_EQUAL(UniValue(COIN / 1000000).write(), "1.00");
     BOOST_CHECK_EQUAL(UniValue(COIN / 10000000).write(), "0.10");
     BOOST_CHECK_EQUAL(UniValue(COIN / 100000000).write(), "0.01");
+
+    BOOST_CHECK_EQUAL(
+        UniValue(std::numeric_limits<int64_t>::max() * SATOSHI).write(),
+        "92233720368547758.07");
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::max() - 1) * SATOSHI).write(),
+        "92233720368547758.06");
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::max() - 2) * SATOSHI).write(),
+        "92233720368547758.05");
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::max() - 3) * SATOSHI).write(),
+        "92233720368547758.04");
+    // ...
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::min() + 3) * SATOSHI).write(),
+        "-92233720368547758.05");
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::min() + 2) * SATOSHI).write(),
+        "-92233720368547758.06");
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::min() + 1) * SATOSHI).write(),
+        "-92233720368547758.07");
+    BOOST_CHECK_EQUAL(
+        UniValue((std::numeric_limits<int64_t>::min()) * SATOSHI).write(),
+        "-92233720368547758.08");
 }
 
 static UniValue ValueFromString(const std::string &str) noexcept {
