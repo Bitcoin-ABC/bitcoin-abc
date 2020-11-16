@@ -168,6 +168,11 @@ public:
     // Accssors.
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
+
+    /**
+     * Update the peer set when a nw block is connected.
+     */
+    void updatedBlockTip();
 };
 
 /**

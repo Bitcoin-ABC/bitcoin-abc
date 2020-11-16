@@ -79,6 +79,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.connman = std::move(connman);
         m_node.peer_logic = std::make_unique<PeerLogicValidation>(
             m_connman, m_node.banman.get(), *m_node.scheduler);
+        m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // The master private key we delegate to.
         masterpriv.MakeNewKey(true);
@@ -265,7 +266,7 @@ Response next(Response &r) {
 } // namespace
 
 BOOST_AUTO_TEST_CASE(block_register) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
     std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
@@ -421,7 +422,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
 }
 
 BOOST_AUTO_TEST_CASE(multi_block_register) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
     CBlockIndex indexA, indexB;
 
     std::vector<BlockUpdate> updates;
@@ -523,7 +524,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 }
 
 BOOST_AUTO_TEST_CASE(poll_and_response) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
     std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
@@ -661,7 +662,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 }
 
 BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
     std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
@@ -714,7 +715,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 }
 
 BOOST_AUTO_TEST_CASE(poll_inflight_count) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
 
     // Create enough nodes so that we run into the inflight request limit.
     PeerManager &pm = AvalancheTest::getPeerManager(p);
@@ -772,7 +773,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
 }
 
 BOOST_AUTO_TEST_CASE(quorum_diversity) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
     std::vector<BlockUpdate> updates;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
@@ -839,7 +840,7 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
 }
 
 BOOST_AUTO_TEST_CASE(event_loop) {
-    Processor p(m_node.connman.get());
+    Processor p(*m_node.chain, m_node.connman.get());
     CScheduler s;
 
     CBlock block = CreateAndProcessBlock({}, CScript());
@@ -926,7 +927,7 @@ BOOST_AUTO_TEST_CASE(destructor) {
 
     std::thread schedulerThread;
     {
-        Processor p(m_node.connman.get());
+        Processor p(*m_node.chain, m_node.connman.get());
         BOOST_CHECK(p.startEventLoop(s));
         BOOST_CHECK_EQUAL(s.getQueueInfo(start, stop), 1);
 

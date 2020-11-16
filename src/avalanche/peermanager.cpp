@@ -271,4 +271,26 @@ PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
     return NO_PEER;
 }
 
+void PeerManager::updatedBlockTip() {
+    std::vector<PeerId> invalidPeers;
+
+    {
+        LOCK(cs_main);
+
+        const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        for (const auto &p : peers) {
+            ProofValidationState state;
+            if (!p.proof.verify(state, coins)) {
+                invalidPeers.push_back(p.peerid);
+            }
+        }
+    }
+
+    for (const auto &pid : invalidPeers) {
+        removePeer(pid);
+    }
+
+    compact();
+}
+
 } // namespace avalanche

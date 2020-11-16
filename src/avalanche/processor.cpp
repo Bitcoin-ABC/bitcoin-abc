@@ -132,14 +132,32 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
     return true;
 }
 
-Processor::Processor(CConnman *connmanIn)
+class Processor::NotificationsHandler
+    : public interfaces::Chain::Notifications {
+    Processor *m_processor;
+
+public:
+    NotificationsHandler(Processor *p) : m_processor(p) {}
+
+    void updatedBlockTip() override {
+        LOCK(m_processor->cs_peerManager);
+        m_processor->peerManager->updatedBlockTip();
+    }
+};
+
+Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn)
     : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
       round(0), peerManager(std::make_unique<PeerManager>()) {
     // Pick a random key for the session.
     sessionKey.MakeNewKey(true);
+
+    // Make sure we get notified of chain state changes.
+    chainNotificationsHandler =
+        chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
 }
 
 Processor::~Processor() {
+    chainNotificationsHandler.reset();
     stopEventLoop();
 }
 

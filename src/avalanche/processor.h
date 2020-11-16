@@ -9,6 +9,8 @@
 #include <avalanche/protocol.h>
 #include <blockindexworkcomparator.h>
 #include <eventloop.h>
+#include <interfaces/chain.h>
+#include <interfaces/handler.h>
 #include <key.h>
 #include <rwcollection.h>
 
@@ -21,6 +23,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 class Config;
@@ -241,8 +244,12 @@ class Processor {
     /** Event loop machinery. */
     EventLoop eventLoop;
 
+    /** Registered interfaces::Chain::Notifications handler. */
+    class NotificationsHandler;
+    std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
+
 public:
-    explicit Processor(CConnman *connmanIn);
+    Processor(interfaces::Chain &chain, CConnman *connmanIn);
     ~Processor();
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
