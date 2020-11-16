@@ -16,3 +16,4 @@ Bitcoin ABC version 0.32.12 is now available from:
   result in errors.
 - UNIX domain sockets can now be used for proxy connections. Set `-onion` or `-proxy`
   to the local socket path with the prefix `unix:` (e.g. `-onion=unix:/home/me/torsocket`).
+- Passing an invalid `-rpcauth` argument now cause bitcoind to fail to start.
