@@ -181,6 +181,11 @@ TestingSetup::TestingSetup(const std::string &chainName)
     m_node.peer_logic = std::make_unique<PeerLogicValidation>(
         m_node.connman.get(), m_node.banman.get(), *m_node.scheduler,
         *m_node.chainman);
+    {
+        CConnman::Options options;
+        options.m_msgproc = m_node.peer_logic.get();
+        m_node.connman->Init(options);
+    }
 }
 
 TestingSetup::~TestingSetup() {

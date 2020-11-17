@@ -99,6 +99,7 @@ add_regular_fuzz_targets(
 	parse_script
 	parse_univalue
 	process_message
+	process_messages
 	psbt
 	script
 	script_flags

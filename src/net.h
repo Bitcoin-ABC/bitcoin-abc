@@ -529,6 +529,7 @@ private:
     std::atomic<int64_t> m_next_send_inv_to_incoming{0};
 
     friend struct ::CConnmanTest;
+    friend struct ConnmanTestMsg;
 };
 
 void Discover();
@@ -781,6 +782,7 @@ public:
 /** Information about a peer */
 class CNode {
     friend class CConnman;
+    friend struct ConnmanTestMsg;
 
 public:
     std::unique_ptr<TransportDeserializer> m_deserializer;
