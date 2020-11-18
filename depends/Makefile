@@ -213,7 +213,7 @@ install: check-packages $(host_prefix)/.stamp_$(final_build_id)
 download-one: check-sources $(all_sources)
 
 download-osx:
-	@$(MAKE) -s HOST=x86_64-apple-darwin16 download-one
+	@$(MAKE) -s HOST=x86_64-apple-darwin18 download-one
 download-linux:
 	@$(MAKE) -s HOST=x86_64-unknown-linux-gnu download-one
 download-win:
@@ -229,7 +229,7 @@ build-linux-arm: download-linux
 build-linux-aarch64: download-linux
 	@$(MAKE) -s HOST=aarch64-linux-gnu install
 build-osx: download-osx
-	@$(MAKE) -s HOST=x86_64-apple-darwin16 install
+	@$(MAKE) -s HOST=x86_64-apple-darwin18 install
 build-win64: download-win
 	@$(MAKE) -s HOST=x86_64-w64-mingw32 install
 

@@ -4,4 +4,5 @@ Bitcoin ABC version 0.27.4 is now available from:
 
   <https://download.bitcoinabc.org/0.27.4/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+ - From this version onwards, macOS versions earlier than 10.14 are no longer supported.
