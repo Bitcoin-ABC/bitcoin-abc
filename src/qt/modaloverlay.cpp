@@ -27,9 +27,10 @@ ModalOverlay::ModalOverlay(bool enable_wallet, QWidget *parent)
     if (!enable_wallet) {
         ui->infoText->setVisible(false);
         ui->infoTextStrong->setText(
-            tr("Bitcoin ABC is currently syncing.  It will download headers "
+            tr("%1 is currently syncing.  It will download headers "
                "and blocks from peers and validate them until reaching the tip "
-               "of the block chain."));
+               "of the block chain.")
+                .arg(PACKAGE_NAME));
     }
 }
 

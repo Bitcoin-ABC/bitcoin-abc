@@ -53,7 +53,7 @@ static bool WalletAppInit(int argc, char *argv[]) {
             strprintf("%s bitcoin-wallet version", PACKAGE_NAME) + " " +
             FormatFullVersion() + "\n\n" +
             "bitcoin-wallet is an offline tool for creating and interacting "
-            "with Bitcoin ABC wallet files.\n" +
+            "with " PACKAGE_NAME " wallet files.\n" +
             "By default bitcoin-wallet will act on wallets in the default "
             "mainnet wallet directory in the datadir.\n" +
             "To change the target wallet, use the -datadir, -wallet and "
