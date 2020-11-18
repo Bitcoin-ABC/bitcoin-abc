@@ -18,7 +18,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | libnatpmp | commit [07004b9...](https://github.com/miniupnp/libnatpmp/commit/07004b97cf691774efebe70404cf22201e4d330d) |  | No |  |  |
 | libpng |  |  |  |  | Yes |
 | librsvg | |  |  |  |  |
-| MiniUPnPc | [2.0.20180203](https://miniupnp.tuxfamily.org/files) | 1.9 | No |  |  |
+| MiniUPnPc | [2.2.2](https://miniupnp.tuxfamily.org/files) | 1.9 | No |  |  |
 | Ninja |  | [1.5.1](https://github.com/ninja-build/ninja/releases) |  |  |  |
 | OpenSSL | [1.0.1k](https://www.openssl.org/source) |  | Yes |  |  |
 | PCRE |  |  |  |  | Yes |
