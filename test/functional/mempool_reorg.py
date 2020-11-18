@@ -16,6 +16,11 @@ from test_framework.util import assert_equal, assert_raises_rpc_error
 class MempoolCoinbaseTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
+        self.extra_args = [
+            # immediate tx relay
+            ['-whitelist=noban@127.0.0.1', ],
+            []
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -80,6 +85,10 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # Broadcast and mine 103_1:
         spend_103_1_id = self.nodes[0].sendrawtransaction(spend_103_1_raw)
         last_block = self.nodes[0].generate(1)
+        # Sync blocks, so that peer 1 gets the block before timelock_tx
+        # Otherwise, peer 1 would put the timelock_tx in recentRejects
+        self.sync_all()
+
         # Time-locked transaction can now be spent
         timelock_tx_id = self.nodes[0].sendrawtransaction(timelock_tx)
 
