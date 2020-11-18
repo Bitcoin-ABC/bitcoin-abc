@@ -5,6 +5,7 @@
 """Test mempool acceptance of raw transactions."""
 
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.key import ECKey
 from test_framework.messages import (
     COIN,
     COutPoint,
@@ -18,6 +19,9 @@ from test_framework.script import (
     hash160,
     CScript,
     OP_0,
+    OP_2,
+    OP_3,
+    OP_CHECKMULTISIG,
     OP_EQUAL,
     OP_HASH160,
     OP_RETURN,
@@ -34,6 +38,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         self.extra_args = [[
             '-txindex',
             '-acceptnonstdtxn=0',  # Try to mimic main-net
+            '-permitbaremultisig=0',
         ]] * self.num_nodes
         self.supports_cli = False
 
@@ -285,6 +290,18 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             result_expected=[
                 {'txid': tx.rehash(), 'allowed': False, 'reject-reason': 'scriptpubkey'}],
             rawtxs=[ToHex(tx)],
+        )
+        tx = FromHex(CTransaction(), raw_tx_reference)
+        key = ECKey()
+        key.generate()
+        pubkey = key.get_pubkey().get_bytes()
+        # Some bare multisig script (2-of-3)
+        tx.vout[0].scriptPubKey = CScript(
+            [OP_2, pubkey, pubkey, pubkey, OP_3, OP_CHECKMULTISIG])
+        self.check_mempool_result(
+            result_expected=[{'txid': tx.rehash(), 'allowed': False,
+                              'reject-reason': 'bare-multisig'}],
+            rawtxs=[tx.serialize().hex()],
         )
         tx = FromHex(CTransaction(), raw_tx_reference)
         # Some not-pushonly scriptSig
