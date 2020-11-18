@@ -382,6 +382,7 @@ add_library(util
 	util/error.cpp
 	util/message.cpp
 	util/moneystr.cpp
+	util/readwritefile.cpp
 	util/settings.cpp
 	util/sock.cpp
 	util/spanparsing.cpp
