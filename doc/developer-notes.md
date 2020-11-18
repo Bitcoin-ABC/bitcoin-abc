@@ -38,6 +38,7 @@ Developer Notes
     - [Unit tests](#unit-tests)
     - [Third party libraries](#third-party-libraries)
     - [Git and GitHub tips](#git-and-github-tips)
+    - [Release notes](#release-notes)
     - [RPC interface guidelines](#rpc-interface-guidelines)
     - [Internal interface guidelines](#internal-interface-guidelines)
 
@@ -939,6 +940,19 @@ Git and GitHub tips
   This will add an `upstream-pull` remote to your git repository, which can be fetched using `git fetch --all`
   or `git fetch upstream-pull`. Afterwards, you can use `upstream-pull/NUMBER/head` in arguments to `git show`,
   `git checkout` and anywhere a commit id would be acceptable to see the changes from pull request NUMBER.
+
+Release notes
+-------------
+
+Release notes should be written for any PR that:
+
+- introduces a notable new feature
+- fixes a significant bug
+- changes an API or configuration model
+- makes any other visible change to the end-user experience.
+
+Release notes should be added to the [/doc/release-notes.md](/doc/release-notes.md)
+file, which is archived and cleared after each release.
 
 RPC interface guidelines
 --------------------------
