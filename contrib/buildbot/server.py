@@ -261,14 +261,24 @@ def create_server(tc, phab, slackbot, travis,
         config = yaml.safe_load(phab.get_file_content_from_master(
             "contrib/teamcity/build-configurations.yml"))
 
+        # Get the list of changed files
+        changedFiles = phab.get_revision_changed_files(
+            revision_id=revision_id)
+
         # Get a list of the builds that should run on diffs
-        builds = [
-            k for k,
-            v in config.get(
-                'builds',
-                {}).items() if v.get(
-                'runOnDiff',
-                False)]
+        builds = []
+        for build_name, v in config.get('builds', {}).items():
+            diffRegex = v.get('runOnDiffRegex', None)
+            if v.get('runOnDiff', False) or diffRegex is not None:
+                if diffRegex:
+                    # If the regex matches at least one changed file, add this
+                    # build to the list.
+                    for changedFile in changedFiles:
+                        if re.match(diffRegex, changedFile):
+                            builds.append(build_name)
+                            break
+                else:
+                    builds.append(build_name)
 
         if target_phid in create_server.db['diff_targets']:
             build_target = create_server.db['diff_targets'][target_phid]

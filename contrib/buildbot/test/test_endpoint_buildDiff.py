@@ -32,29 +32,42 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
     def test_buildDiff(self):
         data = buildDiffRequestQuery()
 
-        def set_build_configuration(builds):
+        def set_build_configuration(buildConfig):
+            # add some build configs that we expect to always be skipped
+            mergedConfig = dict()
+            mergedConfig.update({
+                "build-skip-1": {
+                    "runOnDiff": False,
+                },
+                "build-skip-2": {},
+            })
+            mergedConfig.update(buildConfig)
+
             config = {
-                "builds": {
-                }
+                "builds": mergedConfig,
             }
-            for build in builds:
-                config["builds"][build.name] = {
-                    "runOnDiff": True
-                }
             self.phab.get_file_content_from_master = mock.Mock()
             self.phab.get_file_content_from_master.return_value = json.dumps(
                 config)
 
-        def call_buildDiff(builds):
+        def call_buildDiff(expectedBuilds):
             self.teamcity.session.send.side_effect = [
-                test.mocks.teamcity.buildInfo(build_id=build.build_id, buildqueue=True) for build in builds
+                test.mocks.teamcity.buildInfo(build_id=build.build_id, buildqueue=True) for build in expectedBuilds
             ]
+
+            self.phab.differential.getcommitpaths = mock.Mock()
+            self.phab.differential.getcommitpaths.return_value = {
+                "0": "dir/subdir/file.h",
+                "1": "dir/subdir/file.cpp",
+                "2": "someotherdir/file2.txt",
+            }
 
             response = self.app.post(
                 '/buildDiff{}'.format(data),
                 headers=self.headers)
             self.assertEqual(response.status_code, 200)
 
+            self.phab.differential.getcommitpaths.assert_called()
             self.phab.get_file_content_from_master.assert_called()
 
             expected_calls = [
@@ -83,7 +96,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
                         },
                     }),
                 }))
-                for build in builds
+                for build in expectedBuilds
             ]
             self.teamcity.session.send.assert_has_calls(
                 expected_calls, any_order=True)
@@ -91,19 +104,56 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
 
         # No diff to run
         builds = []
-        set_build_configuration(builds)
+        set_build_configuration({})
         call_buildDiff(builds)
         self.teamcity.session.send.assert_not_called()
 
-        # Single diff
+        # Single diff build
         builds.append(Build(1, BuildStatus.Queued, "build-1"))
-        set_build_configuration(builds)
+        set_build_configuration({
+            "build-1": {
+                "runOnDiff": True,
+            },
+        })
         call_buildDiff(builds)
+
+        # With matching file regex
+        set_build_configuration({
+            "build-1": {
+                "runOnDiffRegex": "dir/subdir/.*",
+            },
+        })
+        call_buildDiff(builds)
+
+        # With non-matching file regex
+        set_build_configuration({
+            "build-1": {
+                "runOnDiffRegex": "dir/nonmatching/.*",
+            },
+        })
+        call_buildDiff([])
+
+        # Some builds match the file regex
+        builds.append(Build(1, BuildStatus.Queued, "build-2"))
+        set_build_configuration({
+            "build-1": {
+                "runOnDiffRegex": "dir/nonmatching/.*",
+            },
+            "build-2": {
+                "runOnDiffRegex": "someotherdir/file2.txt",
+            },
+        })
+        call_buildDiff([builds[1]])
 
         # Lot of builds
         builds = [Build(i, BuildStatus.Queued, "build-{}".format(i))
                   for i in range(10)]
-        set_build_configuration(builds)
+        buildConfig = {}
+        for build in builds:
+            buildConfig[build.name] = {
+                "runOnDiff": True,
+            }
+        set_build_configuration(buildConfig)
         call_buildDiff(builds)
 
 

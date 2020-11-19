@@ -403,6 +403,7 @@ builds:
     timeout: 1800
 
   check-buildbot:
+    runOnDiffRegex: contrib/buildbot/
     targets:
       - - check-buildbot
     timeout: 600
