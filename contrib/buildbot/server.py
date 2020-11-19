@@ -268,15 +268,20 @@ def create_server(tc, phab, slackbot, travis,
         # Get a list of the builds that should run on diffs
         builds = []
         for build_name, v in config.get('builds', {}).items():
-            diffRegex = v.get('runOnDiffRegex', None)
-            if v.get('runOnDiff', False) or diffRegex is not None:
-                if diffRegex:
+            diffRegexes = v.get('runOnDiffRegex', None)
+            if v.get('runOnDiff', False) or diffRegexes is not None:
+                if diffRegexes:
                     # If the regex matches at least one changed file, add this
                     # build to the list.
-                    for changedFile in changedFiles:
-                        if re.match(diffRegex, changedFile):
-                            builds.append(build_name)
-                            break
+                    def regexesMatchAnyFile(regexes, files):
+                        for regex in regexes:
+                            for filename in files:
+                                if re.match(regex, filename):
+                                    return True
+                        return False
+
+                    if regexesMatchAnyFile(diffRegexes, changedFiles):
+                        builds.append(build_name)
                 else:
                     builds.append(build_name)
 

@@ -120,7 +120,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
         # With matching file regex
         set_build_configuration({
             "build-1": {
-                "runOnDiffRegex": "dir/subdir/.*",
+                "runOnDiffRegex": ["dir/subdir/.*"],
             },
         })
         call_buildDiff(builds)
@@ -128,7 +128,7 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
         # With non-matching file regex
         set_build_configuration({
             "build-1": {
-                "runOnDiffRegex": "dir/nonmatching/.*",
+                "runOnDiffRegex": ["dir/nonmatching/.*"],
             },
         })
         call_buildDiff([])
@@ -137,10 +137,10 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
         builds.append(Build(1, BuildStatus.Queued, "build-2"))
         set_build_configuration({
             "build-1": {
-                "runOnDiffRegex": "dir/nonmatching/.*",
+                "runOnDiffRegex": ["dir/nonmatching/.*"],
             },
             "build-2": {
-                "runOnDiffRegex": "someotherdir/file2.txt",
+                "runOnDiffRegex": ["someotherdir/file2.txt"],
             },
         })
         call_buildDiff([builds[1]])
