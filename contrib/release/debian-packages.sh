@@ -10,7 +10,8 @@ DEFAULT_DISTROS+=("bionic")
 # Focal: Ubuntu 20.04 LTS
 DEFAULT_DISTROS+=("focal")
 
-DEFAULT_PPA="bitcoin-abc"
+DEFAULT_ABC_PPA="bitcoin-abc"
+DEFAULT_BCHN_PPA="bitcoin-abc-bchn"
 DEFAULT_NETWORK="ABC"
 DEFAULT_CONTROL_SOURCE_NAME="bitcoinabc"
 
@@ -36,9 +37,10 @@ Note: This script will prompt you to sign with your PGP key.
                             If supplied at least once, the defaults are ignored. Defaults to: '${DEFAULT_DISTROS[@]}'
 -h, --help                Display this help message.
 -n, --network             Select which network the node software will follow (ABC or BCHN).
--p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}
-                            then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than
-                            the default will require that you add the necessary settings to the config file.
+-p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_ABC_PPA}' for ABC and '${DEFAULT_BCHN_PPA}' for BCHN.
+                            If no config file exists at ${DPUT_CONFIG_FILE} then one will be created.
+                            Setting this option to a hostname other than the default will require that you add the
+                            necessary settings to the config file.
 -v, --version <version>   Set the package version. Defaults to the version returned by 'bitcoind --version'.
                             If set, version must be of the form: MAJOR.MINOR.REVISION[.OPTIONALPATCH]
                             OPTIONALPATCH may be necessary when source files have changed but the version revision has not,
@@ -51,7 +53,7 @@ DISTROS=()
 DRY_RUN="false"
 NUM_EXPECTED_ARGUMENTS=1
 PACKAGE_VERSION=""
-PPA="${DEFAULT_PPA}"
+PPA="${DEFAULT_ABC_PPA}"
 NETWORK="${DEFAULT_NETWORK}"
 
 # Parse command line arguments
@@ -76,10 +78,12 @@ case $1 in
       ABC|BCHA)
         NETWORK="ABC"
         CONTROL_SOURCE_NAME=bitcoinabc
+        PPA="${DEFAULT_ABC_PPA}"
         ;;
       BCHN)
         NETWORK="BCHN"
         CONTROL_SOURCE_NAME=bitcoinabc-bchn
+        PPA="${DEFAULT_BCHN_PPA}"
         ;;
     esac
     shift # shift past argument
@@ -155,10 +159,17 @@ fi
 if [ ! -f ${DPUT_CONFIG_FILE} ]; then
   echo "Info: No dput config file exists. Creating ${DPUT_CONFIG_FILE} now..."
   cat > ${DPUT_CONFIG_FILE} <<EOF
-[${DEFAULT_PPA}]
+[${DEFAULT_ABC_PPA}]
 fqdn = ppa.launchpad.net
 method = ftp
 incoming = ~bitcoin-abc/ubuntu/ppa/
+login = anonymous
+allow_unsigned_uploads = 0
+
+[${DEFAULT_BCHN_PPA}]
+fqdn = ppa.launchpad.net
+method = ftp
+incoming = ~bitcoin-abc/ubuntu/bitcoin-abc-bchn/
 login = anonymous
 allow_unsigned_uploads = 0
 EOF
