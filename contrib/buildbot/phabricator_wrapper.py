@@ -366,6 +366,10 @@ class PhabWrapper(Phabricator):
 
         return commit_data[0]["fields"]["identifier"]
 
+    def get_revision_changed_files(self, revision_id):
+        return list(self.differential.getcommitpaths(
+            revision_id=revision_id).values())
+
     def get_file_content_from_master(self, path):
         latest_commit_hash = self.get_latest_master_commit_hash()
 

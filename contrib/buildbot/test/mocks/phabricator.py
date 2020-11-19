@@ -36,6 +36,7 @@ def instance():
     phab.differential.diff.search.return_value = Result([])
     phab.differential.revision.return_value = Result([])
     phab.differential.revision.search.return_value = Result([])
+    phab.differential.getcommitpaths.return_value = {}
 
     phab.diffusion = mock.Mock()
     phab.diffusion.commit = mock.Mock()

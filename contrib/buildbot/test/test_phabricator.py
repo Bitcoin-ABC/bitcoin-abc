@@ -245,6 +245,18 @@ class PhabricatorTests(unittest.TestCase):
             commit_hash,
             "0000000000000000000000000000000123456789")
 
+    def test_get_revision_changed_files(self):
+        self.phab.differential.getcommitpaths.return_value = {
+            "0": "file1",
+            "1": "dir/file2",
+        }
+        self.assertEqual(
+            self.phab.get_revision_changed_files(1234),
+            [
+                "file1",
+                "dir/file2",
+            ])
+
     def test_get_file_content_from_master(self):
         commit_hash = "0000000000000000000000000000000123456789"
         file_phid = "PHID-FILE-somefile"
