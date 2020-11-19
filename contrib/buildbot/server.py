@@ -255,6 +255,7 @@ def create_server(tc, phab, slackbot, travis,
 
         staging_ref = get_mandatory_argument('stagingRef')
         target_phid = get_mandatory_argument('targetPHID')
+        revision_id = get_mandatory_argument('revisionId')
 
         # Get the configuration from master
         config = yaml.safe_load(phab.get_file_content_from_master(
@@ -278,6 +279,9 @@ def create_server(tc, phab, slackbot, travis,
             properties = [{
                 'name': 'env.ABC_BUILD_NAME',
                 'value': build_name,
+            }, {
+                'name': 'env.ABC_REVISION',
+                'value': revision_id,
             }]
             build_id = tc.trigger_build(
                 'BitcoinABC_BitcoinAbcStaging',
