@@ -23,6 +23,8 @@ templates:
       - test/
 
   secp256k1:
+    runOnDiffRegex:
+      - src/secp256k1/
     Werror: true
     targets:
       - - secp256k1
