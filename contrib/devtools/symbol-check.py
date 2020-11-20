@@ -11,10 +11,11 @@ Example usage:
     find contrib/gitian-builder/build -type f -executable | xargs python3 contrib/devtools/symbol-check.py
 '''
 import subprocess
-import re
 import sys
 import os
-from typing import List, Optional, Tuple
+from typing import List, Optional
+
+import pixie
 
 # Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS
 #
@@ -52,7 +53,6 @@ IGNORE_EXPORTS = {
     '_ZNKSt5ctypeIcE8do_widenEc', 'in6addr_any', 'optarg',
     '_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv'
 }
-READELF_CMD = os.getenv('READELF', '/usr/bin/readelf')
 CPPFILT_CMD = os.getenv('CPPFILT', '/usr/bin/c++filt')
 OBJDUMP_CMD = os.getenv('OBJDUMP', '/usr/bin/objdump')
 OTOOL_CMD = os.getenv('OTOOL', '/usr/bin/otool')
@@ -78,10 +78,10 @@ ELF_ALLOWED_LIBRARIES = {
     'libdl.so.2'  # programming interface to dynamic linker
 }
 ARCH_MIN_GLIBC_VER = {
-    '80386': (2, 1),
-    'X86-64': (2, 2, 5),
-    'ARM': (2, 4),
-    'AArch64': (2, 17)
+    pixie.EM_386: (2, 1),
+    pixie.EM_X86_64: (2, 2, 5),
+    pixie.EM_ARM: (2, 4),
+    pixie.EM_AARCH64: (2, 17),
 }
 
 MACHO_ALLOWED_LIBRARIES = {
@@ -149,31 +149,6 @@ class CPPFilt(object):
         self.proc.wait()
 
 
-def read_symbols(executable, imports=True) -> List[Tuple[str, str, str]]:
-    '''
-    Parse an ELF executable and return a list of (symbol,version, arch) tuples
-    for dynamic, imported symbols.
-    '''
-    p = subprocess.Popen([READELF_CMD, '--dyn-syms', '-W', '-h', executable], stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True)
-    (stdout, stderr) = p.communicate()
-    if p.returncode:
-        raise IOError(f'Could not read symbols for {executable}: {stderr.strip()}')
-    syms = []
-    for line in stdout.splitlines():
-        line = line.split()
-        if 'Machine:' in line:
-            arch = line[-1]
-        if len(line) > 7 and re.match('[0-9]+:$', line[0]):
-            (sym, _, version) = line[7].partition('@')
-            is_import = line[6] == 'UND'
-            if version.startswith('@'):
-                version = version[1:]
-            if is_import == imports:
-                syms.append((sym, version, arch))
-    return syms
-
-
 def check_version(max_versions, version, arch) -> bool:
     if '_' in version:
         (lib, _, ver) = version.rpartition('_')
@@ -186,47 +161,32 @@ def check_version(max_versions, version, arch) -> bool:
     return ver <= max_versions[lib] or lib == 'GLIBC' and ver <= ARCH_MIN_GLIBC_VER[arch]
 
 
-def elf_read_libraries(filename) -> List[str]:
-    p = subprocess.Popen([READELF_CMD,
-                          '-d',
-                          '-W',
-                          filename],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         stdin=subprocess.PIPE,
-                         universal_newlines=True)
-    (stdout, stderr) = p.communicate()
-    if p.returncode:
-        raise IOError('Error opening file')
-    libraries = []
-    for line in stdout.splitlines():
-        tokens = line.split()
-        if len(tokens) > 2 and tokens[1] == '(NEEDED)':
-            match = re.match(
-                r'^Shared library: \[(.*)\]$', ' '.join(tokens[2:]))
-            if match:
-                libraries.append(match.group(1))
-            else:
-                raise ValueError('Unparseable (NEEDED) specification')
-    return libraries
-
-
 def check_imported_symbols(filename) -> bool:
+    elf = pixie.load(filename)
     cppfilt = CPPFilt()
     ok = True
-    for sym, version, arch in read_symbols(filename, True):
-        if version and not check_version(MAX_VERSIONS, version, arch):
-            print(f"{filename}: symbol {cppfilt(sym)} from unsupported version "
-                  f"{version}")
+
+    for symbol in elf.dyn_symbols:
+        if not symbol.is_import:
+            continue
+        sym = symbol.name.decode()
+        version = symbol.version.decode() if symbol.version is not None else None
+        if version and not check_version(MAX_VERSIONS, version, elf.hdr.e_machine):
+            print(f'{filename}: symbol {cppfilt(sym)} from unsupported version '
+                  f'{version}')
             ok = False
     return ok
 
 
 def check_exported_symbols(filename) -> bool:
+    elf = pixie.load(filename)
     cppfilt = CPPFilt()
     ok = True
-    for sym, version, arch in read_symbols(filename, False):
-        if arch == 'RISC-V' or sym in IGNORE_EXPORTS:
+    for symbol in elf.dyn_symbols:
+        if not symbol.is_export:
+            continue
+        sym = symbol.name.decode()
+        if sym in IGNORE_EXPORTS:
             continue
         print(f'{filename}: export of symbol {cppfilt(sym)} not allowed')
         ok = False
@@ -235,9 +195,11 @@ def check_exported_symbols(filename) -> bool:
 
 def check_ELF_libraries(filename) -> bool:
     ok = True
-    for library_name in elf_read_libraries(filename):
-        if library_name not in ELF_ALLOWED_LIBRARIES:
-            print(f'{filename}: NEEDED library {library_name} is not allowed')
+    elf = pixie.load(filename)
+    for library_name in elf.query_dyn_tags(pixie.DT_NEEDED):
+        assert(isinstance(library_name, bytes))
+        if library_name.decode() not in ELF_ALLOWED_LIBRARIES:
+            print(f'{filename}: NEEDED library {library_name.decode()} is not allowed')
             ok = False
     return ok
 
