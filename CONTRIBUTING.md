@@ -122,7 +122,8 @@ your remotes.
 
 Follow instructions provided by `arc install-certificate` to provide your API token.
 
-6. Code formatting tools
+Contributing to the node software
+---------------------------------
 
 During submission of patches, arcanist will automatically run `arc lint` to
 enforce Bitcoin ABC code formatting standards, and often suggests changes.
@@ -167,6 +168,17 @@ If you are running Debian 10, it is also available in the backports repository:
 sudo apt-get -t buster-backports install shellcheck
 ```
 
+Contributing to the web projects
+--------------------------------
+
+If you intend to contribute to web projects, you will need `nodejs`.
+Follow the [installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating)
+to install node with node version manager. Then:
+
+```
+cd bitcoin-abc
+sudo npm install -g prettier
+```
 
 Working with The Bitcoin ABC Repository
 ---------------------------------------

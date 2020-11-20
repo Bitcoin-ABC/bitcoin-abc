@@ -272,6 +272,10 @@
                 "(^contrib/apple-sdk-tools/)",
                 "(^contrib/buildbot/python_phabricator/)"
             ]
+        },
+        "prettier": {
+            "type": "prettier",
+            "include": "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)"
         }
     }
 }

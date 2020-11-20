@@ -79,3 +79,6 @@ test/cache/*
 !src/leveldb*/Makefile
 
 contrib/devtools/split-debug.sh
+
+# Ignore node_modules at every level
+node_modules/
