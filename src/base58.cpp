@@ -55,7 +55,7 @@ bool DecodeBase58(const char *psz, std::vector<uint8_t> &vch, int max_ret_len) {
     std::vector<uint8_t> b256(size);
     // Process the characters.
     // guarantee not out of range
-    static_assert(sizeof(mapBase58) / sizeof(mapBase58[0]) == 256,
+    static_assert(std::size(mapBase58) == 256,
                   "mapBase58.size() should be 256");
     while (*psz && !IsSpace(*psz)) {
         // Decode base58 character

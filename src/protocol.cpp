@@ -7,7 +7,6 @@
 
 #include <chainparams.h>
 #include <config.h>
-#include <util/strencodings.h>
 #include <util/system.h>
 
 #include <atomic>
@@ -79,8 +78,8 @@ static const std::string allNetMessageTypes[] = {
     NetMsgType::CFHEADERS,   NetMsgType::GETCFCHECKPT, NetMsgType::CFCHECKPT,
 };
 static const std::vector<std::string>
-    allNetMessageTypesVec(allNetMessageTypes,
-                          allNetMessageTypes + ARRAYLEN(allNetMessageTypes));
+    allNetMessageTypesVec(std::begin(allNetMessageTypes),
+                          std::end(allNetMessageTypes));
 
 CMessageHeader::CMessageHeader(const MessageMagic &pchMessageStartIn) {
     memcpy(std::begin(pchMessageStart), std::begin(pchMessageStartIn),

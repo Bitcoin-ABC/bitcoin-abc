@@ -91,7 +91,7 @@ static void RandomScript(CScript &script) {
     script = CScript();
     int ops = (InsecureRandRange(10));
     for (int i = 0; i < ops; i++) {
-        script << oplist[InsecureRandRange(sizeof(oplist) / sizeof(oplist[0]))];
+        script << oplist[InsecureRandRange(std::size(oplist))];
     }
 }
 
