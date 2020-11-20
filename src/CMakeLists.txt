@@ -428,6 +428,7 @@ endfunction()
 add_network_sources(NETWORK_SOURCES
 	checkpoints.cpp
 	network.cpp
+	chainparamsconstants.cpp
 )
 
 # More completely unrelated features shared by all executables.
