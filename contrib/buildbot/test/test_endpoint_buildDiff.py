@@ -56,11 +56,11 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
             ]
 
             self.phab.differential.getcommitpaths = mock.Mock()
-            self.phab.differential.getcommitpaths.return_value = {
-                "0": "dir/subdir/file.h",
-                "1": "dir/subdir/file.cpp",
-                "2": "someotherdir/file2.txt",
-            }
+            self.phab.differential.getcommitpaths.return_value = [
+                "dir/subdir/file.h",
+                "dir/subdir/file.cpp",
+                "someotherdir/file2.txt",
+            ]
 
             response = self.app.post(
                 '/buildDiff{}'.format(data),

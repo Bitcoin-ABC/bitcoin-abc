@@ -246,10 +246,10 @@ class PhabricatorTests(unittest.TestCase):
             "0000000000000000000000000000000123456789")
 
     def test_get_revision_changed_files(self):
-        self.phab.differential.getcommitpaths.return_value = {
-            "0": "file1",
-            "1": "dir/file2",
-        }
+        self.phab.differential.getcommitpaths.return_value = [
+            "file1",
+            "dir/file2",
+        ]
         self.assertEqual(
             self.phab.get_revision_changed_files(1234),
             [
