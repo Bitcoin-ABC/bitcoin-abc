@@ -16,6 +16,12 @@ templates:
         - check-secp256k1
         - check-functional
 
+  diff-node:
+    runOnDiffRegex:
+      - cmake/
+      - src/
+      - test/
+
   secp256k1:
     Werror: true
     targets:
@@ -83,7 +89,6 @@ builds:
     timeout: 1200
 
   build-clang:
-    runOnDiff: true
     Werror: true
     clang: true
     targets:
@@ -92,16 +97,19 @@ builds:
         - install-secp256k1
       - - check
         - check-secp256k1
+    templates:
+      - diff-node
     timeout: 1200
 
   build-clang-tidy:
-    runOnDiff: true
     clang: true
     cmake_flags:
       - '-DENABLE_CLANG_TIDY=ON'
     targets:
       - - all
       - - check
+    templates:
+      - diff-node
     timeout: 1800
 
   build-coverage:
@@ -118,16 +126,15 @@ builds:
       coverage.tar.gz: coverage.tar.gz
 
   build-debug:
-    runOnDiff: true
     Werror: true
     cmake_flags:
       - '-DCMAKE_BUILD_TYPE=Debug'
     templates:
       - check+secp256k1
+      - diff-node
     timeout: 1200
 
   build-diff:
-    runOnDiff: true
     Werror: true
     targets:
       - - all
@@ -135,6 +142,8 @@ builds:
         - install-secp256k1
       - - check-all
         - check-upgrade-activated
+    templates:
+      - diff-node
     timeout: 1200
 
   build-docs:
@@ -380,7 +389,6 @@ builds:
     timeout: 1200
 
   build-without-wallet:
-    runOnDiff: true
     Werror: true
     cmake_flags:
       - '-DBUILD_BITCOIN_WALLET=OFF'
@@ -389,6 +397,8 @@ builds:
         - install
       - - check
         - check-functional
+    templates:
+      - diff-node
     timeout: 1200
 
   build-without-zmq:
@@ -447,5 +457,7 @@ builds:
       OS_NAME: win
 
   lint-circular-dependencies:
-    runOnDiff: true
+    runOnDiffRegex:
+      - src/
+      - test/lint/
     script: test/lint/lint-circular-dependencies.sh
