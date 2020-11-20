@@ -21,7 +21,7 @@ class buildDiffRequestQuery():
     def __init__(self):
         self.stagingRef = "refs/tags/phabricator/diff/1234"
         self.targetPHID = "PHID-HMBT-123456"
-        self.revisionId = "D1234"
+        self.revisionId = "1234"
 
     def __str__(self):
         return "?{}".format("&".join("{}={}".format(key, value)
