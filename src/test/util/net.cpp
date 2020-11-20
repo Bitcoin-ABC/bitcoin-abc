@@ -12,7 +12,7 @@
 #include <vector>
 
 void ConnmanTestMsg::NodeReceiveMsgBytes(CNode &node,
-                                         Span<const char> msg_bytes,
+                                         Span<const uint8_t> msg_bytes,
                                          bool &complete) const {
     assert(node.ReceiveMsgBytes(*config, msg_bytes, complete));
     if (complete) {
@@ -40,12 +40,8 @@ bool ConnmanTestMsg::ReceiveMsgFrom(CNode &node,
     node.m_serializer->prepareForTransport(*config, ser_msg, ser_msg_header);
 
     bool complete;
-    NodeReceiveMsgBytes(
-        node, {(const char *)ser_msg_header.data(), ser_msg_header.size()},
-        complete);
-    NodeReceiveMsgBytes(
-        node, {(const char *)ser_msg.data.data(), ser_msg.data.size()},
-        complete);
+    NodeReceiveMsgBytes(node, ser_msg_header, complete);
+    NodeReceiveMsgBytes(node, ser_msg.data, complete);
     return complete;
 }
 

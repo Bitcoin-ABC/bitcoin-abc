@@ -357,7 +357,7 @@ public:
     // set the serialization context version
     virtual void SetVersion(int version) = 0;
     /** read and deserialize data, advances msg_bytes data pointer */
-    virtual int Read(const Config &config, Span<const char> &msg_bytes) = 0;
+    virtual int Read(const Config &config, Span<const uint8_t> &msg_bytes) = 0;
     // decomposes a message from the context
     virtual CNetMessage GetMessage(const Config &config,
                                    std::chrono::microseconds time) = 0;
@@ -381,8 +381,8 @@ private:
     uint32_t nDataPos;
 
     const uint256 &GetMessageHash() const;
-    int readHeader(const Config &config, Span<const char> msg_bytes);
-    int readData(Span<const char> msg_bytes);
+    int readHeader(const Config &config, Span<const uint8_t> msg_bytes);
+    int readData(Span<const uint8_t> msg_bytes);
 
     void Reset() {
         vRecv.clear();
@@ -416,7 +416,7 @@ public:
         hdrbuf.SetVersion(nVersionIn);
         vRecv.SetVersion(nVersionIn);
     }
-    int Read(const Config &config, Span<const char> &msg_bytes) override {
+    int Read(const Config &config, Span<const uint8_t> &msg_bytes) override {
         int ret = in_data ? readData(msg_bytes) : readHeader(config, msg_bytes);
         if (ret < 0) {
             Reset();
@@ -815,7 +815,7 @@ public:
      * @return  True if the peer should stay connected,
      *          False if the peer should be disconnected from.
      */
-    bool ReceiveMsgBytes(const Config &config, Span<const char> msg_bytes,
+    bool ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
                          bool &complete);
 
     void SetCommonVersion(int greatest_common_version) {

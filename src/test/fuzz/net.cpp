@@ -113,8 +113,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 const std::vector<uint8_t> b =
                     ConsumeRandomLengthByteVector(fuzzed_data_provider);
                 bool complete;
-                node.ReceiveMsgBytes(config, {(const char *)b.data(), b.size()},
-                                     complete);
+                node.ReceiveMsgBytes(config, b, complete);
                 break;
             }
         }

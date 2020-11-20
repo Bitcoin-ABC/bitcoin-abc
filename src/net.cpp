@@ -656,7 +656,7 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_conn_type_string = ConnectionTypeAsString();
 }
 
-bool CNode::ReceiveMsgBytes(const Config &config, Span<const char> msg_bytes,
+bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
                             bool &complete) {
     complete = false;
     const auto time = GetTime<std::chrono::microseconds>();
@@ -696,7 +696,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const char> msg_bytes,
 }
 
 int V1TransportDeserializer::readHeader(const Config &config,
-                                        Span<const char> msg_bytes) {
+                                        Span<const uint8_t> msg_bytes) {
     // copy data to temporary parsing buffer
     uint32_t nRemaining = CMessageHeader::HEADER_SIZE - nHdrPos;
     uint32_t nCopy = std::min<unsigned int>(nRemaining, msg_bytes.size());
@@ -728,7 +728,7 @@ int V1TransportDeserializer::readHeader(const Config &config,
     return nCopy;
 }
 
-int V1TransportDeserializer::readData(Span<const char> msg_bytes) {
+int V1TransportDeserializer::readData(Span<const uint8_t> msg_bytes) {
     unsigned int nRemaining = hdr.nMessageSize - nDataPos;
     unsigned int nCopy = std::min<unsigned int>(nRemaining, msg_bytes.size());
 
@@ -738,7 +738,7 @@ int V1TransportDeserializer::readData(Span<const char> msg_bytes) {
         vRecv.resize(std::min(hdr.nMessageSize, nDataPos + nCopy + 256 * 1024));
     }
 
-    hasher.Write(MakeUCharSpan(msg_bytes.first(nCopy)));
+    hasher.Write(msg_bytes.first(nCopy));
     memcpy(&vRecv[nDataPos], msg_bytes.data(), nCopy);
     nDataPos += nCopy;
 
@@ -1819,20 +1819,20 @@ void CConnman::SocketHandler() {
         }
         if (recvSet || errorSet) {
             // typical socket buffer is 8K-64K
-            char pchBuf[0x10000];
+            uint8_t pchBuf[0x10000];
             int32_t nBytes = 0;
             {
                 LOCK(pnode->cs_hSocket);
                 if (pnode->hSocket == INVALID_SOCKET) {
                     continue;
                 }
-                nBytes =
-                    recv(pnode->hSocket, pchBuf, sizeof(pchBuf), MSG_DONTWAIT);
+                nBytes = recv(pnode->hSocket, (char *)pchBuf, sizeof(pchBuf),
+                              MSG_DONTWAIT);
             }
             if (nBytes > 0) {
                 bool notify = false;
                 if (!pnode->ReceiveMsgBytes(
-                        *config, Span<const char>(pchBuf, nBytes), notify)) {
+                        *config, Span<const uint8_t>(pchBuf, nBytes), notify)) {
                     pnode->CloseSocketDisconnect();
                 }
                 RecordBytesRecv(nBytes);
