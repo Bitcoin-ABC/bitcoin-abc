@@ -32,7 +32,7 @@ If you want to build the disk image with `ninja osx-dmg` (.dmg / optional), you 
 Build Bitcoin ABC
 -----------------
 
-Before you start building, please make sure that your compiler supports C++14.
+Before you start building, please make sure that your compiler supports C++17.
 
 1. Clone the Bitcoin ABC source code and cd into `bitcoin-abc`
 

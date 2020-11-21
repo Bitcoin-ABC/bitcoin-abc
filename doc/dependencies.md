@@ -7,12 +7,12 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | --- | --- | --- | --- | --- | --- |
 | Berkeley DB | [5.3.28](http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/downloads/index.html) | 5.3 | No |  |  |
 | Boost | [1.70.0](https://www.boost.org/users/download/) | 1.59.0 | No |  |  |
-| Clang |  | [3.4](https://releases.llvm.org/download.html) (C++14 support) |  |  |  |
+| Clang |  | [5](https://releases.llvm.org/download.html) (C++17 support) |  |  |  |
 | CMake |  | [3.16](https://cmake.org/download/) |  |  |  |
 | Expat | [2.2.7](https://libexpat.github.io/) |  | No | Yes |  |
 | fontconfig | [2.12.6](https://www.freedesktop.org/software/fontconfig/release/) |  | No | Yes |  |
 | FreeType | [2.7.1](http://download.savannah.gnu.org/releases/freetype) |  | No |  |  |
-| GCC |  | [5.0](https://gcc.gnu.org/) (C++14 support) |  |  |  |
+| GCC |  | [7](https://gcc.gnu.org/) (C++17 support) |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | jemalloc | [5.2.1](https://github.com/jemalloc/jemalloc/releases) | 3.6.0 |  |  |  |
 | libevent | [2.1.11-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |

@@ -20,7 +20,7 @@
 #error "Bitcoin cannot be compiled without assertions."
 #endif
 
-// Assumption: We assume a C++14 (ISO/IEC 14882:2014) compiler (minimum
+// Assumption: We assume a C++17 (ISO/IEC 14882:2017) compiler (minimum
 //             requirement).
 // Example(s): We use std::make_unique() through the codebase.
 // Note:       MSVC does not report the expected __cplusplus value due to
@@ -29,7 +29,7 @@
 // N3936* §16.8 [cpp.predefined]/p1::
 // "The name __cplusplus is defined to the value 201402L when compiling a C++
 //  translation unit."
-static_assert(__cplusplus >= 201402L, "C++14 standard assumed");
+static_assert(__cplusplus >= 201703L, "C++17 standard assumed");
 #endif
 
 // Assumption: We assume the floating-point types to fulfill the requirements of
