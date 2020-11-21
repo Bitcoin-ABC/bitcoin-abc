@@ -10,7 +10,6 @@
 #include <coins.h>
 #include <core_memusage.h>
 #include <indirectmap.h>
-#include <optional.h>
 #include <primitives/transaction.h>
 #include <salteduint256hasher.h>
 #include <sync.h>
@@ -647,7 +646,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Returns an iterator to the given txid, if found */
-    Optional<txiter> GetIter(const TxId &txid) const
+    std::optional<txiter> GetIter(const TxId &txid) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**

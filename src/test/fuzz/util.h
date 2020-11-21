@@ -6,7 +6,6 @@
 #define BITCOIN_TEST_FUZZ_UTIL_H
 
 #include <attributes.h>
-#include <optional.h>
 #include <serialize.h>
 #include <streams.h>
 #include <test/fuzz/FuzzedDataProvider.h>
@@ -25,7 +24,7 @@ ConsumeRandomLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
 }
 
 template <typename T>
-NODISCARD inline Optional<T>
+NODISCARD inline std::optional<T>
 ConsumeDeserializable(FuzzedDataProvider &fuzzed_data_provider,
                       size_t max_length = 4096) noexcept {
     const std::vector<uint8_t> &buffer =
@@ -35,7 +34,7 @@ ConsumeDeserializable(FuzzedDataProvider &fuzzed_data_provider,
     try {
         ds >> obj;
     } catch (const std::ios_base::failure &) {
-        return nullopt;
+        return std::nullopt;
     }
     return obj;
 }

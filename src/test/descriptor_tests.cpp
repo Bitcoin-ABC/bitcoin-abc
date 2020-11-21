@@ -82,7 +82,7 @@ const std::set<std::vector<uint32_t>> ONLY_EMPTY{{}};
 
 void DoCheck(const std::string &prv, const std::string &pub, int flags,
              const std::vector<std::vector<std::string>> &scripts,
-             const Optional<OutputType> &type,
+             const std::optional<OutputType> &type,
              const std::set<std::vector<uint32_t>> &paths = ONLY_EMPTY,
              bool replace_apostrophe_with_h_in_prv = false,
              bool replace_apostrophe_with_h_in_pub = false) {
@@ -321,7 +321,7 @@ void DoCheck(const std::string &prv, const std::string &pub, int flags,
 
 void Check(const std::string &prv, const std::string &pub, int flags,
            const std::vector<std::vector<std::string>> &scripts,
-           const Optional<OutputType> &type,
+           const std::optional<OutputType> &type,
            const std::set<std::vector<uint32_t>> &paths = ONLY_EMPTY) {
     bool found_apostrophes_in_prv = false;
     bool found_apostrophes_in_pub = false;
@@ -369,14 +369,14 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           {{"2103a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5"
             "bdac",
             "76a9149a1c78a507689f6f54b847ad1cef1e614ee23f1e88ac"}},
-          nullopt);
+          std::nullopt);
     Check("pk(L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
           "pk("
           "03a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd)",
           SIGNABLE,
           {{"2103a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5"
             "bdac"}},
-          nullopt);
+          std::nullopt);
     Check("pkh([deadbeef/1/2'/3/4']"
           "L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
           "pkh([deadbeef/1/2'/3/4']"
@@ -411,7 +411,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
         {{"4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd"
           "5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235ac",
           "76a914b5bd079c4d57cc7fc28ecf8213a6b791625b818388ac"}},
-        nullopt);
+        std::nullopt);
     Check("pk(5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
           "pk("
           "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b"
@@ -420,7 +420,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           {{"4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5"
             "bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abea235"
             "ac"}},
-          nullopt);
+          std::nullopt);
     Check("pkh(5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
           "pkh("
           "04a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd5b"
@@ -453,7 +453,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           {{"2102d2b36900396c9282fa14628566582f206a5dd0bcc8d5e892611806cafb0301"
             "f0ac",
             "76a91431a507b815593dfc51ffc7245ae7e5aee304246e88ac"}},
-          nullopt);
+          std::nullopt);
     Check("pk("
           "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2qaMWPrS7"
           "AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L/0)",
@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
           DEFAULT,
           {{"210379e45b3cf75f9c5f9befd8e9506fb962f6a9d185ac87001ec44a8d3df8d4a9"
             "e3ac"}},
-          nullopt, {{0}});
+          std::nullopt, {{0}});
     Check("pkh("
           "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssr"
           "dK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U/2147483647'/0)",
@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
            {"21032869a233c9adff9a994e4966e5b821fd5bac066da6c3112488dc52383b4a98"
             "ecac",
             "76a914a8409d1b6dfb1ed2a3e8aa5e0ef2ff26b15b75b788ac"}},
-          nullopt, {{0}, {1}});
+          std::nullopt, {{0}, {1}});
 
     // Too long key fingerprint
     CheckUnparsable("combo([012345678]"
@@ -555,7 +555,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
             "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
             "a23552ae"}},
-          nullopt);
+          std::nullopt);
     Check("sortedmulti(1,L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1,"
           "5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss)",
           "sortedmulti(1,"
@@ -567,7 +567,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
             "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
             "a23552ae"}},
-          nullopt);
+          std::nullopt);
     Check("sortedmulti(1,5KYZdUEo39z3FPrtuX2QbbwGnNP5zTd7yyr2SC1j299sBCnWjss,"
           "L4rK1yDtCWekvXuE6oXD9jCYfFNV2cWRpVuPLBcCU2z8TrisoyY1)",
           "sortedmulti(1,"
@@ -579,7 +579,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
             "c5bd4104a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c5"
             "40c5bd5b8dec5235a0fa8722476c7709c02559e3aa73aa03918ba2d492eea75abe"
             "a23552ae"}},
-          nullopt);
+          std::nullopt);
     Check("sh(multi(2,[00000000/111'/222]"
           "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7iAxn8L39"
           "njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc,"
@@ -614,7 +614,7 @@ BOOST_AUTO_TEST_CASE(descriptor_test) {
            {"5221022ccabda84c30bad578b13c89eb3b9544ce149787e5b538175b1d1ba259cb"
             "b83321024d902e1a2fc7a8755ab5b694c575fce742c48d9ff192e63df5193e4c7a"
             "fe1f9c52ae"}},
-          nullopt, {{0}, {1}, {2}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}});
+          std::nullopt, {{0}, {1}, {2}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}});
     Check("sh(multi(2,"
           "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3pGz6ssr"
           "dK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U/2147483647'/"

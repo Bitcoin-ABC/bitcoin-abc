@@ -5,7 +5,6 @@
 #ifndef BITCOIN_SCRIPT_DESCRIPTOR_H
 #define BITCOIN_SCRIPT_DESCRIPTOR_H
 
-#include <optional.h>
 #include <outputtype.h>
 #include <script/script.h>
 #include <script/sign.h>
@@ -161,9 +160,9 @@ struct Descriptor {
 
     /**
      * @return The OutputType of the scriptPubKey(s) produced by this
-     * descriptor. Or nullopt if indeterminate (multiple or none)
+     * descriptor. Or std::nullopt if indeterminate (multiple or none)
      */
-    virtual Optional<OutputType> GetOutputType() const = 0;
+    virtual std::optional<OutputType> GetOutputType() const = 0;
 };
 
 /**

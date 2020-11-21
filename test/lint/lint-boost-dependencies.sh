@@ -23,7 +23,6 @@ EXPECTED_BOOST_INCLUDES=(
     boost/multi_index/sequenced_index.hpp
     boost/multi_index_container.hpp
     boost/noncopyable.hpp
-    boost/optional.hpp
     boost/preprocessor/cat.hpp
     boost/preprocessor/stringize.hpp
     boost/range/iterator.hpp

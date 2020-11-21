@@ -115,8 +115,8 @@ void BlockAssembler::resetBlock() {
     nFees = Amount::zero();
 }
 
-Optional<int64_t> BlockAssembler::m_last_block_num_txs{nullopt};
-Optional<int64_t> BlockAssembler::m_last_block_size{nullopt};
+std::optional<int64_t> BlockAssembler::m_last_block_num_txs{std::nullopt};
+std::optional<int64_t> BlockAssembler::m_last_block_size{std::nullopt};
 
 std::unique_ptr<CBlockTemplate>
 BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {

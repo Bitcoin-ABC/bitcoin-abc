@@ -193,7 +193,7 @@ bool CTxMemPool::CalculateMemPoolAncestors(
         // GetMemPoolParents() is only valid for entries in the mempool, so we
         // iterate mapTx to find parents.
         for (const CTxIn &in : tx.vin) {
-            Optional<txiter> piter = GetIter(in.prevout.GetTxId());
+            std::optional<txiter> piter = GetIter(in.prevout.GetTxId());
             if (!piter) {
                 continue;
             }
@@ -1000,12 +1000,12 @@ const CTransaction *CTxMemPool::GetConflictTx(const COutPoint &prevout) const {
     return it == mapNextTx.end() ? nullptr : it->second;
 }
 
-Optional<CTxMemPool::txiter> CTxMemPool::GetIter(const TxId &txid) const {
+std::optional<CTxMemPool::txiter> CTxMemPool::GetIter(const TxId &txid) const {
     auto it = mapTx.find(txid);
     if (it != mapTx.end()) {
         return it;
     }
-    return Optional<txiter>{};
+    return std::optional<txiter>{};
 }
 
 CTxMemPool::setEntries

@@ -706,7 +706,9 @@ public:
         }
     }
 
-    Optional<OutputType> GetOutputType() const override { return nullopt; }
+    std::optional<OutputType> GetOutputType() const override {
+        return std::nullopt;
+    }
 };
 
 /** A parsed addr(A) descriptor. */
@@ -729,14 +731,14 @@ public:
           m_destination(std::move(destination)) {}
     bool IsSolvable() const final { return false; }
 
-    Optional<OutputType> GetOutputType() const override {
+    std::optional<OutputType> GetOutputType() const override {
         switch (m_destination.which()) {
             case 1 /* PKHash */:
             case 2 /* ScriptHash */:
                 return OutputType::LEGACY;
             case 0 /* CNoDestination */:
             default:
-                return nullopt;
+                return std::nullopt;
         }
     }
     bool IsSingleType() const final { return true; }
@@ -761,7 +763,7 @@ public:
         : DescriptorImpl({}, {}, "raw"), m_script(std::move(script)) {}
     bool IsSolvable() const final { return false; }
 
-    Optional<OutputType> GetOutputType() const override {
+    std::optional<OutputType> GetOutputType() const override {
         CTxDestination dest;
         ExtractDestination(m_script, dest);
         switch (dest.which()) {
@@ -770,7 +772,7 @@ public:
                 return OutputType::LEGACY;
             case 0 /* CNoDestination */:
             default:
-                return nullopt;
+                return std::nullopt;
         }
     }
     bool IsSingleType() const final { return true; }
@@ -805,7 +807,7 @@ protected:
 public:
     PKHDescriptor(std::unique_ptr<PubkeyProvider> prov)
         : DescriptorImpl(Vector(std::move(prov)), {}, "pkh") {}
-    Optional<OutputType> GetOutputType() const override {
+    std::optional<OutputType> GetOutputType() const override {
         return OutputType::LEGACY;
     }
     bool IsSingleType() const final { return true; }
@@ -875,7 +877,7 @@ protected:
 public:
     SHDescriptor(std::unique_ptr<DescriptorImpl> desc)
         : DescriptorImpl({}, std::move(desc), "sh") {}
-    Optional<OutputType> GetOutputType() const override {
+    std::optional<OutputType> GetOutputType() const override {
         return OutputType::LEGACY;
     }
     bool IsSingleType() const final { return true; }

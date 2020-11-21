@@ -19,7 +19,6 @@
 #include <compat/assumptions.h>
 #include <fs.h>
 #include <logging.h>
-#include <optional.h>
 #include <sync.h>
 #include <tinyformat.h>
 #include <util/settings.h>
@@ -356,9 +355,9 @@ public:
 
     /**
      * Return Flags for known arg.
-     * Return nullopt for unknown arg.
+     * Return std::nullopt for unknown arg.
      */
-    Optional<unsigned int> GetArgFlags(const std::string &name) const;
+    std::optional<unsigned int> GetArgFlags(const std::string &name) const;
 
     /**
      * Read and update settings file with saved settings. This needs to be

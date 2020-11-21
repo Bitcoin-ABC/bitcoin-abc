@@ -6,7 +6,6 @@
 #include <config.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
-#include <optional.h>
 #include <test/util/mining.h>
 #include <test/util/setup_common.h>
 #include <test/util/wallet.h>
@@ -34,16 +33,16 @@ static void WalletBalance(benchmark::State &state, const bool set_dirty,
 
     auto handler = chain->handleNotifications({&wallet, [](CWallet *) {}});
 
-    const Optional<std::string> address_mine{
-        add_mine ? Optional<std::string>{getnewaddress(config, wallet)}
-                 : nullopt};
+    const std::optional<std::string> address_mine{
+        add_mine ? std::optional<std::string>{getnewaddress(config, wallet)}
+                 : std::nullopt};
     if (add_watchonly) {
         importaddress(wallet, ADDRESS_WATCHONLY);
     }
 
     for (int i = 0; i < 100; ++i) {
         generatetoaddress(config, g_testing_setup->m_node,
-                          address_mine.get_value_or(ADDRESS_WATCHONLY));
+                          address_mine.value_or(ADDRESS_WATCHONLY));
         generatetoaddress(config, g_testing_setup->m_node, ADDRESS_WATCHONLY);
     }
     SyncWithValidationInterfaceQueue();

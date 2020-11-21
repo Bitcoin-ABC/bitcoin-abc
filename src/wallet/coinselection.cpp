@@ -4,7 +4,6 @@
 
 #include <wallet/coinselection.h>
 
-#include <optional.h>
 #include <util/moneystr.h>
 #include <util/system.h>
 
@@ -256,7 +255,7 @@ bool KnapsackSolver(const Amount nTargetValue, std::vector<OutputGroup> &groups,
     nValueRet = Amount::zero();
 
     // List of values less than target
-    Optional<OutputGroup> lowest_larger;
+    std::optional<OutputGroup> lowest_larger;
     std::vector<OutputGroup> applicable_groups;
     Amount nTotalLower = Amount::zero();
 

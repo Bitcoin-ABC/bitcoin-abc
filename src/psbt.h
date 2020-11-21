@@ -7,7 +7,6 @@
 
 #include <attributes.h>
 #include <node/transaction.h>
-#include <optional.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <script/sign.h>
@@ -334,7 +333,7 @@ struct PSBTOutput {
  * A version of CTransaction with the PSBT format.
  */
 struct PartiallySignedTransaction {
-    Optional<CMutableTransaction> tx;
+    std::optional<CMutableTransaction> tx;
     std::vector<PSBTInput> inputs;
     std::vector<PSBTOutput> outputs;
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> unknown;

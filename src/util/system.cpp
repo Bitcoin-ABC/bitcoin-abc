@@ -335,7 +335,7 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
         key.erase(0, 1);
         std::string section;
         util::SettingsValue value = InterpretOption(section, key, val);
-        Optional<unsigned int> flags = GetArgFlags('-' + key);
+        std::optional<unsigned int> flags = GetArgFlags('-' + key);
         if (flags) {
             if (!CheckValid(key, value, *flags, error)) {
                 return false;
@@ -367,7 +367,8 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
     return success;
 }
 
-Optional<unsigned int> ArgsManager::GetArgFlags(const std::string &name) const {
+std::optional<unsigned int>
+ArgsManager::GetArgFlags(const std::string &name) const {
     LOCK(cs_args);
     for (const auto &arg_map : m_available_args) {
         const auto search = arg_map.second.find(name);
@@ -375,7 +376,7 @@ Optional<unsigned int> ArgsManager::GetArgFlags(const std::string &name) const {
             return search->second.m_flags;
         }
     }
-    return nullopt;
+    return std::nullopt;
 }
 
 std::vector<std::string> ArgsManager::GetArgs(const std::string &strArg) const {
@@ -888,7 +889,7 @@ bool ArgsManager::ReadConfigStream(std::istream &stream,
         std::string key = option.first;
         util::SettingsValue value =
             InterpretOption(section, key, option.second);
-        Optional<unsigned int> flags = GetArgFlags('-' + key);
+        std::optional<unsigned int> flags = GetArgFlags('-' + key);
         if (flags) {
             if (!CheckValid(key, value, *flags, error)) {
                 return false;
@@ -1065,7 +1066,7 @@ void ArgsManager::logArgsPrefix(
     std::string section_str = section.empty() ? "" : "[" + section + "] ";
     for (const auto &arg : args) {
         for (const auto &value : arg.second) {
-            Optional<unsigned int> flags = GetArgFlags('-' + arg.first);
+            std::optional<unsigned int> flags = GetArgFlags('-' + arg.first);
             if (flags) {
                 std::string value_str =
                     (*flags & SENSITIVE) ? "****" : value.write();

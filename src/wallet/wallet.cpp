@@ -14,7 +14,6 @@
 #include <interfaces/wallet.h>
 #include <key.h>
 #include <key_io.h>
-#include <optional.h>
 #include <policy/mempool.h>
 #include <policy/policy.h>
 #include <primitives/transaction.h>
@@ -944,7 +943,7 @@ void CWallet::LoadToWallet(CWalletTx &wtxIn) {
     // If wallet doesn't have a chain (e.g wallet-tool), don't bother to update
     // txn.
     if (HaveChain()) {
-        Optional<int> block_height =
+        std::optional<int> block_height =
             chain().getBlockHeight(wtxIn.m_confirm.hashBlock);
         if (block_height) {
             // Update cached block height variable since it not stored in the
@@ -1772,8 +1771,9 @@ int64_t CWallet::RescanFromTime(int64_t startTime,
  * transactions for.
  */
 CWallet::ScanResult CWallet::ScanForWalletTransactions(
-    const BlockHash &start_block, int start_height, Optional<int> max_height,
-    const WalletRescanReserver &reserver, bool fUpdate) {
+    const BlockHash &start_block, int start_height,
+    std::optional<int> max_height, const WalletRescanReserver &reserver,
+    bool fUpdate) {
     int64_t nNow = GetTime();
     int64_t start_time = GetTimeMillis();
 
@@ -4409,14 +4409,14 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         WalletBatch batch(*walletInstance->database);
         CBlockLocator locator;
         if (batch.ReadBestBlock(locator)) {
-            if (const Optional<int> fork_height =
+            if (const std::optional<int> fork_height =
                     chain.findLocatorFork(locator)) {
                 rescan_height = *fork_height;
             }
         }
     }
 
-    const Optional<int> tip_height = chain.getHeight();
+    const std::optional<int> tip_height = chain.getHeight();
     if (tip_height) {
         walletInstance->m_last_block_processed =
             chain.getBlockHash(*tip_height);
@@ -4457,9 +4457,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
 
         // No need to read and scan block if block was created before our wallet
         // birthday (as adjusted for block time variability)
-        // The way the 'time_first_key' is initialized is just a workaround for
-        // the gcc bug #47679 since version 4.6.0.
-        Optional<int64_t> time_first_key = MakeOptional(false, int64_t());
+        std::optional<int64_t> time_first_key;
         for (auto spk_man : walletInstance->GetAllScriptPubKeyMans()) {
             int64_t time = spk_man->GetTimeFirstKey();
             if (!time_first_key || time < *time_first_key) {
@@ -4467,7 +4465,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             }
         }
         if (time_first_key) {
-            if (Optional<int> first_block =
+            if (std::optional<int> first_block =
                     chain.findFirstBlockWithTimeAndHeight(
                         *time_first_key - TIMESTAMP_WINDOW, rescan_height,
                         nullptr)) {

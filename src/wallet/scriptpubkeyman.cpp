@@ -1556,7 +1556,7 @@ bool DescriptorScriptPubKeyMan::GetNewDestination(const OutputType type,
             return false;
         }
 
-        Optional<OutputType> out_script_type =
+        std::optional<OutputType> out_script_type =
             m_wallet_descriptor.descriptor->GetOutputType();
         if (out_script_type && out_script_type == type) {
             ExtractDestination(scripts_temp[0], dest);

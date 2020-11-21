@@ -1062,7 +1062,7 @@ public:
         //! Unset if no blocks were scanned due to read errors or the chain
         //! being empty.
         BlockHash last_scanned_block;
-        Optional<int> last_scanned_height;
+        std::optional<int> last_scanned_height;
 
         //! Hash of the most recent block that could not be scanned due to
         //! read errors or pruning. Will be set if status is FAILURE, unset if
@@ -1072,7 +1072,7 @@ public:
     };
     ScanResult ScanForWalletTransactions(const BlockHash &start_block,
                                          int start_height,
-                                         Optional<int> max_height,
+                                         std::optional<int> max_height,
                                          const WalletRescanReserver &reserver,
                                          bool fUpdate);
     void transactionRemovedFromMempool(const CTransactionRef &ptx) override;

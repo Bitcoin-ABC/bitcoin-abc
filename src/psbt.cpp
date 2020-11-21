@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <psbt.h>
+
 #include <util/strencodings.h>
 
 PartiallySignedTransaction::PartiallySignedTransaction(
@@ -185,9 +186,9 @@ void UpdatePSBTOutput(const SigningProvider &provider,
     // Note that ProduceSignature is used to fill in metadata (not actual
     // signatures), so provider does not need to provide any private keys (it
     // can be a HidingSigningProvider).
-    MutableTransactionSignatureCreator creator(psbt.tx.get_ptr(), /* index */ 0,
-                                               out.nValue,
-                                               SigHashType().withForkId());
+    MutableTransactionSignatureCreator creator(
+        psbt.tx ? &psbt.tx.value() : nullptr, /* index */ 0, out.nValue,
+        SigHashType().withForkId());
     ProduceSignature(provider, creator, out.scriptPubKey, sigdata);
 
     // Put redeem_script and key paths, into PSBTOutput.

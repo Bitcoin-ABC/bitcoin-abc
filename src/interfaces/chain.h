@@ -5,13 +5,14 @@
 #ifndef BITCOIN_INTERFACES_CHAIN_H
 #define BITCOIN_INTERFACES_CHAIN_H
 
-#include <optional.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -105,14 +106,14 @@ public:
     virtual ~Chain() {}
 
     //! Get current chain height, not including genesis block (returns 0 if
-    //! chain only contains genesis block, nullopt if chain does not contain
-    //! any blocks)
-    virtual Optional<int> getHeight() = 0;
+    //! chain only contains genesis block, std::nullopt if chain does not
+    //! contain any blocks)
+    virtual std::optional<int> getHeight() = 0;
 
     //! Get block height above genesis block. Returns 0 for genesis block,
-    //! 1 for following block, and so on. Returns nullopt for a block not
+    //! 1 for following block, and so on. Returns std::nullopt for a block not
     //! included in the current chain.
-    virtual Optional<int> getBlockHeight(const BlockHash &hash) = 0;
+    virtual std::optional<int> getBlockHeight(const BlockHash &hash) = 0;
 
     //! Get block hash. Height must be valid or this function will abort.
     virtual BlockHash getBlockHash(int height) = 0;
@@ -123,13 +124,13 @@ public:
 
     //! Return height of the first block in the chain with timestamp equal
     //! or greater than the given time and height equal or greater than the
-    //! given height, or nullopt if there is no block with a high enough
+    //! given height, or std::nullopt if there is no block with a high enough
     //! timestamp and height. Also return the block hash as an optional output
     //! parameter (to avoid the cost of a second lookup in case this information
     //! is needed.)
-    virtual Optional<int> findFirstBlockWithTimeAndHeight(int64_t time,
-                                                          int height,
-                                                          BlockHash *hash) = 0;
+    virtual std::optional<int>
+    findFirstBlockWithTimeAndHeight(int64_t time, int height,
+                                    BlockHash *hash) = 0;
 
     //! Get locator for the current chain tip.
     virtual CBlockLocator getTipLocator() = 0;
@@ -137,7 +138,8 @@ public:
     //! Return height of the highest block on chain in common with the locator,
     //! which will either be the original block used to create the locator,
     //! or one of its ancestors.
-    virtual Optional<int> findLocatorFork(const CBlockLocator &locator) = 0;
+    virtual std::optional<int>
+    findLocatorFork(const CBlockLocator &locator) = 0;
 
     //! Check if transaction will be final given chain height current time.
     virtual bool
@@ -197,7 +199,7 @@ public:
     //! of blocks. This checks all blocks that are ancestors of block_hash in
     //! the height range from min_height to max_height, inclusive.
     virtual bool hasBlocks(const BlockHash &block_hash, int min_height = 0,
-                           Optional<int> max_height = {}) = 0;
+                           std::optional<int> max_height = {}) = 0;
 
     //! Check if transaction has descendants in mempool.
     virtual bool hasDescendantsInMempool(const TxId &txid) = 0;

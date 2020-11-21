@@ -166,21 +166,21 @@ namespace {
     public:
         explicit ChainImpl(NodeContext &node, const CChainParams &params)
             : m_node(node), m_params(params) {}
-        Optional<int> getHeight() override {
+        std::optional<int> getHeight() override {
             LOCK(::cs_main);
             int height = ::ChainActive().Height();
             if (height >= 0) {
                 return height;
             }
-            return nullopt;
+            return std::nullopt;
         }
-        Optional<int> getBlockHeight(const BlockHash &hash) override {
+        std::optional<int> getBlockHeight(const BlockHash &hash) override {
             LOCK(::cs_main);
             CBlockIndex *block = LookupBlockIndex(hash);
             if (block && ::ChainActive().Contains(block)) {
                 return block->nHeight;
             }
-            return nullopt;
+            return std::nullopt;
         }
         BlockHash getBlockHash(int height) override {
             LOCK(::cs_main);
@@ -193,7 +193,7 @@ namespace {
             CBlockIndex *block = ::ChainActive()[height];
             return block && (block->nStatus.hasData() != 0) && block->nTx > 0;
         }
-        Optional<int>
+        std::optional<int>
         findFirstBlockWithTimeAndHeight(int64_t time, int height,
                                         BlockHash *hash) override {
             LOCK(cs_main);
@@ -205,7 +205,7 @@ namespace {
                 }
                 return block->nHeight;
             }
-            return nullopt;
+            return std::nullopt;
         }
         CBlockLocator getTipLocator() override {
             LOCK(cs_main);
@@ -217,13 +217,14 @@ namespace {
             return ContextualCheckTransactionForCurrentBlock(
                 m_params.GetConsensus(), tx, state);
         }
-        Optional<int> findLocatorFork(const CBlockLocator &locator) override {
+        std::optional<int>
+        findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);
             if (CBlockIndex *fork =
                     FindForkInGlobalIndex(::ChainActive(), locator)) {
                 return fork->nHeight;
             }
-            return nullopt;
+            return std::nullopt;
         }
         bool findBlock(const BlockHash &hash,
                        const FoundBlock &block) override {
@@ -297,7 +298,7 @@ namespace {
                                              LookupBlockIndex(block_hash));
         }
         bool hasBlocks(const BlockHash &block_hash, int min_height,
-                       Optional<int> max_height) override {
+                       std::optional<int> max_height) override {
             // hasBlocks returns true if all ancestors of block_hash in
             // specified range have block data (are not pruned), false if any
             // ancestors in specified range are missing data.

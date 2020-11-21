@@ -6,7 +6,6 @@
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
 
-#include <optional.h>
 #include <primitives/block.h>
 #include <txmempool.h>
 
@@ -175,8 +174,8 @@ public:
 
     uint64_t GetMaxGeneratedBlockSize() const { return nMaxGeneratedBlockSize; }
 
-    static Optional<int64_t> m_last_block_num_txs;
-    static Optional<int64_t> m_last_block_size;
+    static std::optional<int64_t> m_last_block_num_txs;
+    static std::optional<int64_t> m_last_block_size;
 
 private:
     // utility functions
