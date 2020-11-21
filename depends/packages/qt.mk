@@ -10,7 +10,7 @@ $(package)_qt_libs=corelib network widgets gui plugins testlib
 $(package)_patches=fix_qt_pkgconfig.patch mac-qmake.conf fix_configure_mac.patch fix_no_printer.patch
 $(package)_patches+= fix_rcc_determinism.patch xkb-default.patch no-xlib.patch dont_hardcode_pwd.patch
 $(package)_patches+= drop_lrelease_dependency.patch
-$(package)_patches+= fix_mingw_cross_compile.patch
+$(package)_patches+= fix_mingw_cross_compile.patch fix_qpainter_non_determinism.patch
 $(package)_patches+= fix_numeric_limits_compile_error.patch
 
 # Update OSX_QT_TRANSLATIONS when this is updated
@@ -190,6 +190,7 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/xkb-default.patch && \
   patch -p1 -i $($(package)_patch_dir)/no-xlib.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_mingw_cross_compile.patch && \
+  patch -p1 -i $($(package)_patch_dir)/fix_qpainter_non_determinism.patch && \
   sed -i.old "s|updateqm.commands = \$$$$\$$$$LRELEASE|updateqm.commands = $($(package)_extract_dir)/qttools/bin/lrelease|" qttranslations/translations/translations.pro && \
   mkdir -p qtbase/mkspecs/macx-clang-linux &&\
   cp -f qtbase/mkspecs/macx-clang/qplatformdefs.h qtbase/mkspecs/macx-clang-linux/ &&\
