@@ -62,8 +62,8 @@ void ForceActivation();
 namespace GUIUtil {
 
 QString dateTimeStr(const QDateTime &date) {
-    return date.date().toString(Qt::SystemLocaleShortDate) + QString(" ") +
-           date.toString("hh:mm");
+    return date.date().toString(QLocale().dateFormat(QLocale::ShortFormat)) +
+           QString(" ") + date.toString("hh:mm");
 }
 
 QString dateTimeStr(qint64 nTime) {
