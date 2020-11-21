@@ -39,8 +39,9 @@ class Stake {
 
 public:
     explicit Stake() = default;
-    Stake(COutPoint utxo_, Amount amount_, uint32_t height_, CPubKey pubkey_)
-        : utxo(utxo_), amount(amount_), height(height_),
+    Stake(COutPoint utxo_, Amount amount_, uint32_t height_, bool is_coinbase,
+          CPubKey pubkey_)
+        : utxo(utxo_), amount(amount_), height(height_ << 1 | is_coinbase),
           pubkey(std::move(pubkey_)) {}
 
     ADD_SERIALIZE_METHODS;

@@ -34,7 +34,8 @@ public:
         : sequence(sequence_), expirationTime(expirationTime_),
           master(std::move(master_)) {}
 
-    bool addUTXO(COutPoint utxo, Amount amount, uint32_t height, CKey key);
+    bool addUTXO(COutPoint utxo, Amount amount, uint32_t height,
+                 bool is_coinbase, CKey key);
 
     Proof build();
 

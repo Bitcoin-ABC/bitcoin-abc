@@ -183,7 +183,7 @@ static UniValue buildavalancheproof(const Config &config,
             iscbparam.isNull() ? false : iscbparam.get_bool();
         CKey key = DecodeSecret(find_value(stake, "privatekey").get_str());
 
-        if (!pb.addUTXO(utxo, amount, uint32_t(height) << 1 | iscoinbase,
+        if (!pb.addUTXO(utxo, amount, uint32_t(height), iscoinbase,
                         std::move(key))) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid private key");
         }

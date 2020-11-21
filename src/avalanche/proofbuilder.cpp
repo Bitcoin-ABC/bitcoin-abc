@@ -25,13 +25,14 @@ SignedStake ProofBuilder::StakeSigner::sign(const ProofId &proofid) {
 }
 
 bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
-                           CKey key) {
+                           bool is_coinbase, CKey key) {
     if (!key.IsValid()) {
         return false;
     }
 
-    stakes.emplace_back(Stake(std::move(utxo), amount, height, key.GetPubKey()),
-                        std::move(key));
+    stakes.emplace_back(
+        Stake(std::move(utxo), amount, height, is_coinbase, key.GetPubKey()),
+        std::move(key));
     return true;
 }
 
@@ -70,7 +71,7 @@ Proof ProofBuilder::buildRandom(uint32_t score) {
 
     ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), CPubKey());
     pb.addUTXO(COutPoint(TxId(GetRandHash()), 0), (int64_t(score) * COIN) / 100,
-               0, std::move(key));
+               0, false, std::move(key));
     return pb.build();
 }
 

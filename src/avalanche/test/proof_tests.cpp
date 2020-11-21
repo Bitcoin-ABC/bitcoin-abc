@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
         key.MakeNewKey(true);
         pb.addUTXO(COutPoint(TxId(GetRandHash()), InsecureRand32()),
                    int64_t(InsecureRand32()) * COIN / 100, InsecureRand32(),
-                   key);
+                   InsecureRandBool(), key);
     }
 
     Proof p = pb.build();

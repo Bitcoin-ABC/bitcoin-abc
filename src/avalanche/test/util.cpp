@@ -19,7 +19,7 @@ Proof buildRandomProof(uint32_t score) {
 
     ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), CPubKey());
     pb.addUTXO(COutPoint(TxId(GetRandHash()), 0), (int64_t(score) * COIN) / 100,
-               0, std::move(key));
+               0, false, std::move(key));
     return pb.build();
 }
 
