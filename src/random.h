@@ -198,6 +198,9 @@ public:
     /** Generate a random 32-bit integer. */
     uint32_t rand32() noexcept { return randbits(32); }
 
+    /** generate a random uint160. */
+    uint160 rand160() noexcept;
+
     /** generate a random uint256. */
     uint256 rand256() noexcept;
 

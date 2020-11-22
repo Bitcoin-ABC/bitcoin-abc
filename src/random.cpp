@@ -665,6 +665,16 @@ void FastRandomContext::RandomSeed() {
     requires_seed = false;
 }
 
+uint160 FastRandomContext::rand160() noexcept {
+    if (bytebuf_size < 20) {
+        FillByteBuffer();
+    }
+    uint160 ret;
+    memcpy(ret.begin(), bytebuf + 64 - bytebuf_size, 20);
+    bytebuf_size -= 20;
+    return ret;
+}
+
 uint256 FastRandomContext::rand256() noexcept {
     if (bytebuf_size < 32) {
         FillByteBuffer();
@@ -674,7 +684,6 @@ uint256 FastRandomContext::rand256() noexcept {
     bytebuf_size -= 32;
     return ret;
 }
-
 std::vector<uint8_t> FastRandomContext::randbytes(size_t len) {
     if (requires_seed) {
         RandomSeed();

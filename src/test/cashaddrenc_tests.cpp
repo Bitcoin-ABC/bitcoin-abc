@@ -23,14 +23,6 @@ std::vector<std::string> GetNetworks() {
             CBaseChainParams::REGTEST};
 }
 
-uint160 insecure_GetRandUInt160(FastRandomContext &rand) {
-    uint160 n;
-    for (uint8_t *c = n.begin(); c != n.end(); ++c) {
-        *c = static_cast<uint8_t>(rand.rand32());
-    }
-    return n;
-}
-
 std::vector<uint8_t> insecure_GetRandomByteArray(FastRandomContext &rand,
                                                  size_t n) {
     std::vector<uint8_t> out;
@@ -146,13 +138,11 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
 }
 
 BOOST_AUTO_TEST_CASE(random_dst) {
-    FastRandomContext rand(true);
-
     const size_t NUM_TESTS = 5000;
     const auto params = CreateChainParams(CBaseChainParams::MAIN);
 
     for (size_t i = 0; i < NUM_TESTS; ++i) {
-        uint160 hash = insecure_GetRandUInt160(rand);
+        uint160 hash = InsecureRand160();
         const CTxDestination dst_key = PKHash(hash);
         const CTxDestination dst_scr = ScriptHash(hash);
 

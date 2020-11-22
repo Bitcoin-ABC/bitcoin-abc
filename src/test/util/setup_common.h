@@ -73,6 +73,9 @@ static inline void SeedInsecureRand(SeedRand seed = SeedRand::SEED) {
 static inline uint32_t InsecureRand32() {
     return g_insecure_rand_ctx.rand32();
 }
+static inline uint160 InsecureRand160() {
+    return g_insecure_rand_ctx.rand160();
+}
 static inline uint256 InsecureRand256() {
     return g_insecure_rand_ctx.rand256();
 }
