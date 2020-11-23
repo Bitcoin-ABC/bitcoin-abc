@@ -97,10 +97,10 @@ class P2PFingerprintTest(BitcoinTestFramework):
 
         # Longest chain is extended so stale is much older than chain tip
         self.nodes[0].setmocktime(0)
-        self.nodes[0].generatetoaddress(
-            1, self.nodes[0].get_deterministic_priv_key().address)[0]
+        block_hash = int(self.nodes[0].generatetoaddress(
+            1, self.nodes[0].get_deterministic_priv_key().address)[-1], 16)
         assert_equal(self.nodes[0].getblockcount(), 14)
-        node0.sync_with_ping()
+        node0.wait_for_block(block_hash, timeout=3)
 
         # Request for very old stale block should now fail
         with p2p_lock:
