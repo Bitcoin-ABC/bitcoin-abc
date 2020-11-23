@@ -249,6 +249,7 @@ struct RPCResult {
         NUM,
         BOOL,
         NONE,
+        ANY,        //!< Special type to disable type checks (for testing only)
         STR_AMOUNT, //!< Special string to represent a floating point amount
         STR_HEX,    //!< Special string with only hex chars
         OBJ_DYN,    //!< Special dictionary with keys that are not literals
@@ -305,6 +306,8 @@ struct RPCResult {
     std::string ToStringObj() const;
     /** Return the description string, including the result type. */
     std::string ToDescriptionString() const;
+    /** Check whether the result JSON type matches. */
+    bool MatchesType(const UniValue &result) const;
 };
 
 struct RPCResults {
@@ -339,7 +342,8 @@ public:
                std::vector<RPCArg> args, RPCResults results,
                RPCExamples examples, RPCMethodImpl fun);
 
-    UniValue HandleRequest(const Config &config, const JSONRPCRequest &request);
+    UniValue HandleRequest(const Config &config,
+                           const JSONRPCRequest &request) const;
     std::string ToString() const;
     /**
      * Return the named args that need to be converted from string to another

@@ -470,7 +470,12 @@ RPCHelpMan::RPCHelpMan(std::string name_, std::string description,
 
 std::string RPCResults::ToDescriptionString() const {
     std::string result;
+
     for (const auto &r : m_results) {
+        if (r.m_type == RPCResult::Type::ANY) {
+            // for testing only
+            continue;
+        }
         if (r.m_cond.empty()) {
             result += "\nResult:\n";
         } else {
@@ -488,7 +493,7 @@ std::string RPCExamples::ToDescriptionString() const {
 }
 
 UniValue RPCHelpMan::HandleRequest(const Config &config,
-                                   const JSONRPCRequest &request) {
+                                   const JSONRPCRequest &request) const {
     if (request.mode == JSONRPCRequest::GET_ARGS) {
         return GetArgMap();
     }
@@ -500,7 +505,11 @@ UniValue RPCHelpMan::HandleRequest(const Config &config,
         !IsValidNumArgs(request.params.size())) {
         throw std::runtime_error(ToString());
     }
-    return m_fun(*this, config, request);
+    const UniValue ret = m_fun(*this, config, request);
+    CHECK_NONFATAL(std::any_of(
+        m_results.m_results.begin(), m_results.m_results.end(),
+        [ret](const RPCResult &res) { return res.MatchesType(ret); }));
+    return ret;
 }
 
 bool RPCHelpMan::IsValidNumArgs(size_t num_args) const {
@@ -716,6 +725,10 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
                 {indent + "..." + maybe_separator, m_description});
             return;
         }
+        case Type::ANY: {
+            // Only for testing
+            CHECK_NONFATAL(false);
+        }
         case Type::NONE: {
             sections.PushSection(
                 {indent + "null" + maybe_separator, Description("json null")});
@@ -792,6 +805,41 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
             return;
         } // no default case, so the compiler can warn about missing cases
     }
+    CHECK_NONFATAL(false);
+}
+
+bool RPCResult::MatchesType(const UniValue &result) const {
+    switch (m_type) {
+        case Type::ELISION: {
+            return false;
+        }
+        case Type::ANY: {
+            return true;
+        }
+        case Type::NONE: {
+            return UniValue::VNULL == result.getType();
+        }
+        case Type::STR:
+        case Type::STR_HEX: {
+            return UniValue::VSTR == result.getType();
+        }
+        case Type::NUM:
+        case Type::STR_AMOUNT:
+        case Type::NUM_TIME: {
+            return UniValue::VNUM == result.getType();
+        }
+        case Type::BOOL: {
+            return UniValue::VBOOL == result.getType();
+        }
+        case Type::ARR_FIXED:
+        case Type::ARR: {
+            return UniValue::VARR == result.getType();
+        }
+        case Type::OBJ_DYN:
+        case Type::OBJ: {
+            return UniValue::VOBJ == result.getType();
+        }
+    } // no default case, so the compiler can warn about missing cases
     CHECK_NONFATAL(false);
 }
 

@@ -18,7 +18,13 @@ static RPCHelpMan getexcessiveblock() {
         "getexcessiveblock",
         "Return the excessive block size.",
         {},
-        RPCResult{RPCResult::Type::NUM, "", "excessive block size in bytes"},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      RPCResult{RPCResult::Type::NUM, "",
+                                "excessive block size in bytes"},
+                  }},
         RPCExamples{HelpExampleCli("getexcessiveblock", "") +
                     HelpExampleRpc("getexcessiveblock", "")},
         [&](const RPCHelpMan &self, const Config &config,

@@ -26,7 +26,7 @@ static RPCHelpMan rpcNestedTest_rpc() {
             {"arg2", RPCArg::Type::STR, RPCArg::Optional::OMITTED, ""},
             {"arg3", RPCArg::Type::STR, RPCArg::Optional::OMITTED, ""},
         },
-        {},
+        RPCResult{RPCResult::Type::ANY, "", ""},
         RPCExamples{""},
         [](const RPCHelpMan &self, const Config &config,
            const JSONRPCRequest &request) -> UniValue {
