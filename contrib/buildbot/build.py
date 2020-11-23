@@ -40,6 +40,9 @@ class BuildTarget:
         self.builds[build_id].status = status
 
     def status(self):
+        # If there are no builds, the build target is by default a success
+        if len(self.builds.values()) == 0:
+            return BuildStatus.Success
         # If any build is a failure, the build target is a failure
         if any([build.status == BuildStatus.Failure for build in self.builds.values()]):
             return BuildStatus.Failure

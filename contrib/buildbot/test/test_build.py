@@ -22,6 +22,10 @@ class BuildTests(unittest.TestCase):
         # Create a build target
         build_target = BuildTarget(build_target_phid)
 
+        # With no builds, the target has default status of success
+        self.assertEqual(build_target.status(), BuildStatus.Success)
+        self.assertEqual(build_target.is_finished(), True)
+
         # Queue a few builds
         for i in range(10):
             name = "build-{}".format(i)
