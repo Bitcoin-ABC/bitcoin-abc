@@ -9,6 +9,7 @@ import mock
 import os
 import unittest
 
+from build import BuildStatus, BuildTarget
 from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID, BITCOIN_ABC_REPO
 import test.mocks.phabricator
 
@@ -440,6 +441,41 @@ class PhabricatorTests(unittest.TestCase):
         self.phab.dashboard.panel.edit.return_value["error"] = "You shall not pass !"
         with self.assertRaisesRegex(AssertionError, "Failed to edit panel"):
             call_set_text_panel_content()
+
+    def test_update_build_target_status(self):
+        build_target = BuildTarget("PHID-HMBT-1234")
+
+        # With no builds queued, default to pass
+        self.phab.update_build_target_status(build_target)
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            buildTargetPHID=build_target.phid, type="pass")
+
+        # Queue a build
+        build_target.queue_build("build-1", "build-name")
+        self.phab.update_build_target_status(build_target)
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            buildTargetPHID=build_target.phid, type="work")
+
+        # Test various statuses
+        self.phab.update_build_target_status(
+            build_target, "build-1", BuildStatus.Queued)
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            buildTargetPHID=build_target.phid, type="work")
+
+        self.phab.update_build_target_status(
+            build_target, "build-1", BuildStatus.Running)
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            buildTargetPHID=build_target.phid, type="work")
+
+        self.phab.update_build_target_status(
+            build_target, "build-1", BuildStatus.Failure)
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            buildTargetPHID=build_target.phid, type="fail")
+
+        self.phab.update_build_target_status(
+            build_target, "build-1", BuildStatus.Success)
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            buildTargetPHID=build_target.phid, type="pass")
 
     def test_get_object_token(self):
         user_PHID = "PHID-USER-foobarbaz"

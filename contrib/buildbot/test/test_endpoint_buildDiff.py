@@ -70,6 +70,10 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
             self.phab.differential.getcommitpaths.assert_called()
             self.phab.get_file_content_from_master.assert_called()
 
+            if len(expectedBuilds) == 0:
+                self.phab.harbormaster.sendmessage.assert_called_with(
+                    buildTargetPHID=data.targetPHID, type="pass")
+
             expected_calls = [
                 call(AnyWith(requests.PreparedRequest, {
                     "url": "https://teamcity.test/app/rest/buildQueue",

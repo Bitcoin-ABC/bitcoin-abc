@@ -474,7 +474,8 @@ class PhabWrapper(Phabricator):
                 )
             )
 
-    def update_build_target_status(self, build_target, build_id, status):
+    def update_build_target_status(
+            self, build_target, build_id=None, status=None):
         harbormaster_build_status_mapping = {
             BuildStatus.Queued: "work",
             BuildStatus.Running: "work",
@@ -482,7 +483,8 @@ class PhabWrapper(Phabricator):
             BuildStatus.Failure: "fail",
         }
 
-        build_target.update_build_status(build_id, status)
+        if build_id and status:
+            build_target.update_build_status(build_id, status)
 
         self.harbormaster.sendmessage(
             buildTargetPHID=build_target.phid,

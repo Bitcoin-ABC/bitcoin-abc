@@ -305,7 +305,11 @@ def create_server(tc, phab, slackbot, travis,
                 properties)['id']
             build_target.queue_build(build_id, build_name)
 
-        create_server.db['diff_targets'][target_phid] = build_target
+        if len(build_target.builds) > 0:
+            create_server.db['diff_targets'][target_phid] = build_target
+        else:
+            phab.update_build_target_status(build_target)
+
         return SUCCESS, 200
 
     @app.route("/land", methods=['POST'])
