@@ -26,7 +26,7 @@ class WalletDescriptorTest(BitcoinTestFramework):
         self.nodes[0].createwallet(wallet_name="desc1", descriptors=True)
         self.nodes[0].unloadwallet("")
 
-        # A descriptor wallet should have 100 addresses = 300 keys
+        # A descriptor wallet should have 100 addresses = 100 keys
         self.log.info("Checking wallet info")
         wallet_info = self.nodes[0].getwalletinfo()
         assert_equal(wallet_info['keypoolsize'], 100)
