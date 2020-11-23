@@ -7,6 +7,7 @@
 #define BITCOIN_STREAMS_H
 
 #include <serialize.h>
+#include <span.h>
 #include <support/allocators/zeroafterfree.h>
 
 #include <algorithm>
@@ -16,6 +17,7 @@
 #include <cstring>
 #include <ios>
 #include <limits>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -196,9 +198,9 @@ public:
  */
 class CDataStream {
 protected:
-    typedef CSerializeData vector_type;
+    using vector_type = SerializeData;
     vector_type vch;
-    unsigned int nReadPos;
+    unsigned int nReadPos{0};
 
     int nType;
     int nVersion;
@@ -214,58 +216,22 @@ public:
     typedef vector_type::const_iterator const_iterator;
     typedef vector_type::reverse_iterator reverse_iterator;
 
-    explicit CDataStream(int nTypeIn, int nVersionIn) {
-        Init(nTypeIn, nVersionIn);
-    }
+    explicit CDataStream(int nTypeIn, int nVersionIn)
+        : nType{nTypeIn}, nVersion{nVersionIn} {}
 
-    CDataStream(const_iterator pbegin, const_iterator pend, int nTypeIn,
-                int nVersionIn)
-        : vch(pbegin, pend) {
-        Init(nTypeIn, nVersionIn);
-    }
-
-    CDataStream(const char *pbegin, const char *pend, int nTypeIn,
-                int nVersionIn)
-        : vch(pbegin, pend) {
-        Init(nTypeIn, nVersionIn);
-    }
-
-    CDataStream(const vector_type &vchIn, int nTypeIn, int nVersionIn)
-        : vch(vchIn.begin(), vchIn.end()) {
-        Init(nTypeIn, nVersionIn);
-    }
-
-    CDataStream(const std::vector<char> &vchIn, int nTypeIn, int nVersionIn)
-        : vch(vchIn.begin(), vchIn.end()) {
-        Init(nTypeIn, nVersionIn);
-    }
-
-    CDataStream(const std::vector<uint8_t> &vchIn, int nTypeIn, int nVersionIn)
-        : vch(vchIn.begin(), vchIn.end()) {
-        Init(nTypeIn, nVersionIn);
-    }
+    explicit CDataStream(Span<const uint8_t> sp, int nTypeIn, int nVersionIn)
+        : vch(sp.data(), sp.data() + sp.size()), nType{nTypeIn},
+          nVersion{nVersionIn} {}
 
     template <typename... Args>
-    CDataStream(int nTypeIn, int nVersionIn, Args &&...args) {
-        Init(nTypeIn, nVersionIn);
+    CDataStream(int nTypeIn, int nVersionIn, Args &&...args)
+        : nType{nTypeIn}, nVersion{nVersionIn} {
         ::SerializeMany(*this, std::forward<Args>(args)...);
-    }
-
-    void Init(int nTypeIn, int nVersionIn) {
-        nReadPos = 0;
-        nType = nTypeIn;
-        nVersion = nVersionIn;
     }
 
     CDataStream &operator+=(const CDataStream &b) {
         vch.insert(vch.end(), b.begin(), b.end());
         return *this;
-    }
-
-    friend CDataStream operator+(const CDataStream &a, const CDataStream &b) {
-        CDataStream ret = a;
-        ret += b;
-        return (ret);
     }
 
     std::string str() const { return (std::string(begin(), end())); }
@@ -289,17 +255,15 @@ public:
         vch.clear();
         nReadPos = 0;
     }
-    iterator insert(iterator it, const char x = char()) {
-        return vch.insert(it, x);
-    }
-    void insert(iterator it, size_type n, const char x) {
+    iterator insert(iterator it, const uint8_t x) { return vch.insert(it, x); }
+    void insert(iterator it, size_type n, const uint8_t x) {
         vch.insert(it, n, x);
     }
     value_type *data() { return vch.data() + nReadPos; }
     const value_type *data() const { return vch.data() + nReadPos; }
 
-    void insert(iterator it, std::vector<char>::const_iterator first,
-                std::vector<char>::const_iterator last) {
+    void insert(iterator it, std::vector<uint8_t>::const_iterator first,
+                std::vector<uint8_t>::const_iterator last) {
         if (last == first) {
             return;
         }
@@ -365,12 +329,17 @@ public:
         nReadPos = 0;
     }
 
-    bool Rewind(size_type n) {
+    bool Rewind(std::optional<size_type> n = std::nullopt) {
+        // Total rewind if no size is passed
+        if (!n) {
+            nReadPos = 0;
+            return true;
+        }
         // Rewind by n characters if the buffer hasn't been compacted yet
-        if (n > nReadPos) {
+        if (*n > nReadPos) {
             return false;
         }
-        nReadPos -= n;
+        nReadPos -= *n;
         return true;
     }
 
@@ -446,11 +415,6 @@ public:
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
-    }
-
-    void GetAndClear(CSerializeData &d) {
-        d.insert(d.end(), begin(), end());
-        clear();
     }
 
     /**

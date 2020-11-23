@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(bitstream_reader_writer) {
 }
 
 BOOST_AUTO_TEST_CASE(streams_serializedata_xor) {
-    std::vector<char> in;
+    std::vector<uint8_t> in;
     std::vector<char> expected_xor;
     std::vector<uint8_t> key;
     CDataStream ds(in, 0, 0);
@@ -203,14 +203,14 @@ BOOST_AUTO_TEST_CASE(streams_serializedata_xor) {
 }
 
 BOOST_AUTO_TEST_CASE(streams_empty_vector) {
-    std::vector<char> in;
+    std::vector<uint8_t> in;
     CDataStream ds(in, 0, 0);
 
     // read 0 bytes used to cause a segfault on some older systems.
     BOOST_CHECK_NO_THROW(ds.read(nullptr, 0));
 
     // Same goes for writing 0 bytes from a vector ...
-    const std::vector<char> vdata{'f', 'o', 'o', 'b', 'a', 'r'};
+    const std::vector<uint8_t> vdata{'f', 'o', 'o', 'b', 'a', 'r'};
     BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), vdata.begin(), vdata.begin()));
     BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), vdata.begin(), vdata.end()));
 

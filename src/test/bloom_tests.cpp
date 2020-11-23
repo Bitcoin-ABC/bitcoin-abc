@@ -54,12 +54,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << filter;
 
-    std::vector<uint8_t> vch = ParseHex("03614e9b050000000000000001");
-    std::vector<char> expected(vch.size());
-
-    for (size_t i = 0; i < vch.size(); i++) {
-        expected[i] = (char)vch[i];
-    }
+    std::vector<uint8_t> expected = ParseHex("03614e9b050000000000000001");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(stream.begin(), stream.end(),
                                   expected.begin(), expected.end());
@@ -95,12 +90,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize_with_tweak) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << filter;
 
-    std::vector<uint8_t> vch = ParseHex("03ce4299050000000100008001");
-    std::vector<char> expected(vch.size());
-
-    for (size_t i = 0; i < vch.size(); i++) {
-        expected[i] = (char)vch[i];
-    }
+    std::vector<uint8_t> expected = ParseHex("03ce4299050000000100008001");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(stream.begin(), stream.end(),
                                   expected.begin(), expected.end());
@@ -121,12 +111,7 @@ BOOST_AUTO_TEST_CASE(bloom_create_insert_key) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << filter;
 
-    std::vector<uint8_t> vch = ParseHex("038fc16b080000000000000001");
-    std::vector<char> expected(vch.size());
-
-    for (size_t i = 0; i < vch.size(); i++) {
-        expected[i] = (char)vch[i];
-    }
+    std::vector<uint8_t> expected = ParseHex("038fc16b080000000000000001");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(stream.begin(), stream.end(),
                                   expected.begin(), expected.end());
@@ -721,16 +706,11 @@ BOOST_AUTO_TEST_CASE(merkle_block_3_and_serialize) {
     CDataStream merkleStream(SER_NETWORK, PROTOCOL_VERSION);
     merkleStream << merkleBlock;
 
-    std::vector<uint8_t> vch =
+    std::vector<uint8_t> expected =
         ParseHex("0100000079cda856b143d9db2c1caff01d1aecc8630d30625d10e8b4b8b00"
                  "00000000000b50cc069d6a3e33e3ff84a5c41d9d3febe7c770fdcc96b2c3f"
                  "f60abe184f196367291b4d4c86041b8fa45d630100000001b50cc069d6a3e"
                  "33e3ff84a5c41d9d3febe7c770fdcc96b2c3ff60abe184f19630101");
-    std::vector<char> expected(vch.size());
-
-    for (size_t i = 0; i < vch.size(); i++) {
-        expected[i] = (char)vch[i];
-    }
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expected.begin(), expected.end(),
                                   merkleStream.begin(), merkleStream.end());

@@ -531,12 +531,13 @@ bool BerkeleyDatabase::Rewrite(const char *pszSkip) {
                                 break;
                             }
                             if (pszSkip &&
-                                strncmp(ssKey.data(), pszSkip,
+                                strncmp((const char *)ssKey.data(), pszSkip,
                                         std::min(ssKey.size(),
                                                  strlen(pszSkip))) == 0) {
                                 continue;
                             }
-                            if (strncmp(ssKey.data(), "\x07version", 8) == 0) {
+                            if (strncmp((const char *)ssKey.data(),
+                                        "\x07version", 8) == 0) {
                                 // Update version:
                                 ssValue.clear();
                                 ssValue << CLIENT_VERSION;

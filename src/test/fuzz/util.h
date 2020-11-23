@@ -48,8 +48,9 @@ ConsumeRandomLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
 [[nodiscard]] inline CDataStream
 ConsumeDataStream(FuzzedDataProvider &fuzzed_data_provider,
                   const size_t max_length = 4096) noexcept {
-    return {ConsumeRandomLengthByteVector(fuzzed_data_provider, max_length),
-            SER_NETWORK, INIT_PROTO_VERSION};
+    return CDataStream{
+        ConsumeRandomLengthByteVector(fuzzed_data_provider, max_length),
+        SER_NETWORK, INIT_PROTO_VERSION};
 }
 
 [[nodiscard]] inline std::vector<std::string>

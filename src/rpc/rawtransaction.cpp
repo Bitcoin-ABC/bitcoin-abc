@@ -1465,7 +1465,7 @@ static RPCHelpMan combinepsbt() {
 
             CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
             ssTx << merged_psbt;
-            return EncodeBase64(MakeUCharSpan(ssTx));
+            return EncodeBase64(ssTx);
         },
     };
 }
@@ -1648,7 +1648,7 @@ static RPCHelpMan createpsbt() {
             CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
             ssTx << psbtx;
 
-            return EncodeBase64(MakeUCharSpan(ssTx));
+            return EncodeBase64(ssTx);
         },
     };
 }
@@ -1717,7 +1717,7 @@ static RPCHelpMan converttopsbt() {
             CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
             ssTx << psbtx;
 
-            return EncodeBase64(MakeUCharSpan(ssTx));
+            return EncodeBase64(ssTx);
         },
     };
 }
@@ -1826,7 +1826,7 @@ RPCHelpMan utxoupdatepsbt() {
 
             CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
             ssTx << psbtx;
-            return EncodeBase64(MakeUCharSpan(ssTx));
+            return EncodeBase64(ssTx);
         },
     };
 }
@@ -1938,7 +1938,7 @@ RPCHelpMan joinpsbts() {
 
             CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
             ssTx << shuffled_psbt;
-            return EncodeBase64(MakeUCharSpan(ssTx));
+            return EncodeBase64(ssTx);
         },
     };
 }
