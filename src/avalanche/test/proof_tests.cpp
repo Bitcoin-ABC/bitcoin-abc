@@ -18,7 +18,7 @@
 
 using namespace avalanche;
 
-BOOST_FIXTURE_TEST_SUITE(proof_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(proof_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(proof_random) {
     for (int i = 0; i < 1000; i++) {

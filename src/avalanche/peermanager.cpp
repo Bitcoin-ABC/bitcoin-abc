@@ -6,6 +6,7 @@
 
 #include <avalanche/validation.h>
 #include <random.h>
+#include <validation.h> // For ChainstateActive()
 
 #include <cassert>
 
@@ -18,10 +19,15 @@ PeerId PeerManager::getPeer(const Proof &proof) {
         return it->peerid;
     }
 
-    // Reject invalid proof.
-    ProofValidationState state;
-    if (!proof.verify(state)) {
-        return NO_PEER;
+    {
+        // Reject invalid proof.
+        LOCK(cs_main);
+        const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+
+        ProofValidationState state;
+        if (!proof.verify(state, coins)) {
+            return NO_PEER;
+        }
     }
 
     // We have no peer for this proof, time to create it.

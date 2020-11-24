@@ -8,6 +8,8 @@
 #include <key.h>
 #include <primitives/transaction.h>
 #include <random.h>
+#include <script/standard.h>
+#include <validation.h>
 
 #include <limits>
 
@@ -17,9 +19,21 @@ Proof buildRandomProof(uint32_t score) {
     CKey key;
     key.MakeNewKey(true);
 
+    const COutPoint o(TxId(GetRandHash()), 0);
+    const Amount v = (int64_t(score) * COIN) / 100;
+    const int height = 1234;
+    const bool is_coinbase = false;
+
+    {
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(o, Coin(CTxOut(v, script), height, is_coinbase), false);
+    }
+
     ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), CPubKey());
-    pb.addUTXO(COutPoint(TxId(GetRandHash()), 0), (int64_t(score) * COIN) / 100,
-               0, false, std::move(key));
+    pb.addUTXO(o, v, height, is_coinbase, std::move(key));
     return pb.build();
 }
 

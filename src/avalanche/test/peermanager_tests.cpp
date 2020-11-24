@@ -12,7 +12,7 @@
 
 using namespace avalanche;
 
-BOOST_FIXTURE_TEST_SUITE(peermanager_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(peermanager_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(select_peer_linear) {
     // No peers.

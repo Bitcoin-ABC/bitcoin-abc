@@ -5,7 +5,7 @@
 #include <avalanche/processor.h>
 
 #include <avalanche/peermanager.h>
-#include <avalanche/test/util.h>
+#include <avalanche/proofbuilder.h>
 #include <chain.h>
 #include <config.h>
 #include <net_processing.h> // For PeerLogicValidation
@@ -69,13 +69,19 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     const Config &config;
     CConnmanTest *m_connman;
 
-    AvalancheTestingSetup() : TestChain100Setup(), config(GetConfig()) {
+    CKey masterpriv;
+
+    AvalancheTestingSetup()
+        : TestChain100Setup(), config(GetConfig()), masterpriv() {
         // Deterministic randomness for tests.
         auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
         m_connman = connman.get();
         m_node.connman = std::move(connman);
         m_node.peer_logic = std::make_unique<PeerLogicValidation>(
             m_connman, m_node.banman.get(), *m_node.scheduler);
+
+        // The master private key we delegate to.
+        masterpriv.MakeNewKey(true);
     }
 
     ~AvalancheTestingSetup() { m_connman->ClearNodes(); }
@@ -97,14 +103,26 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         return node;
     }
 
+    size_t next_coinbase = 0;
+    Proof GetProof() {
+        size_t current_coinbase = next_coinbase++;
+        const CTransaction &coinbase = *m_coinbase_txns[current_coinbase];
+        ProofBuilder pb(0, 0, masterpriv.GetPubKey());
+        BOOST_CHECK(pb.addUTXO(COutPoint(coinbase.GetId(), 0),
+                               coinbase.vout[0].nValue, current_coinbase + 1,
+                               true, coinbaseKey));
+        return pb.build();
+    }
+
     std::array<CNode *, 8> ConnectNodes(Processor &p) {
         PeerManager &pm = AvalancheTest::getPeerManager(p);
-        Proof proof = buildRandomProof(100);
+
+        Proof proof = GetProof();
 
         std::array<CNode *, 8> nodes;
         for (CNode *&n : nodes) {
             n = ConnectNode(NODE_AVALANCHE);
-            BOOST_CHECK(pm.addNode(n->GetId(), proof, CPubKey()));
+            BOOST_CHECK(pm.addNode(n->GetId(), proof, masterpriv.GetPubKey()));
         }
 
         return nodes;
@@ -523,7 +541,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     ConnectNode(NODE_NONE);
     auto avanode = ConnectNode(NODE_AVALANCHE);
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(p.addNode(avanodeid, buildRandomProof(100), CPubKey()));
+    BOOST_CHECK(p.addNode(avanodeid, GetProof(), CPubKey()));
 
     // It returns the avalanche peer.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), avanodeid);
@@ -660,7 +678,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(NODE_AVALANCHE);
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(p.addNode(avanodeid, buildRandomProof(100), CPubKey()));
+    BOOST_CHECK(p.addNode(avanodeid, GetProof(), CPubKey()));
 
     // Expire requests after some time.
     auto queryTimeDuration = std::chrono::milliseconds(10);
@@ -700,7 +718,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
 
     // Create enough nodes so that we run into the inflight request limit.
     PeerManager &pm = AvalancheTest::getPeerManager(p);
-    Proof proof = buildRandomProof(100);
+    Proof proof = GetProof();
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
@@ -848,7 +866,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(NODE_AVALANCHE);
     NodeId nodeid = avanode->GetId();
-    BOOST_CHECK(p.addNode(nodeid, buildRandomProof(100), CPubKey()));
+    BOOST_CHECK(p.addNode(nodeid, GetProof(), CPubKey()));
 
     // There is no query in flight at the moment.
     BOOST_CHECK_EQUAL(AvalancheTest::getSuitableNodeToQuery(p), nodeid);
