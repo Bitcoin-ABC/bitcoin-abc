@@ -116,7 +116,6 @@ final class CppCheckLinter extends ArcanistExternalLinter {
     '-j2',
     '--enable=all',
     '--language=c++',
-    '--std=c++17',
   );
 
   const CPPCHECK_DEFINITIONS = array(
