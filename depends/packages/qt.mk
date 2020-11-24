@@ -11,6 +11,7 @@ $(package)_linguist_tools = lrelease lupdate lconvert
 $(package)_patches = qt.pro qttools_src.pro
 $(package)_patches += fix_qt_pkgconfig.patch mac-qmake.conf fix_no_printer.patch no-xlib.patch
 $(package)_patches+= dont_hardcode_pwd.patch
+$(package)_patches += dont_hardcode_x86_64.patch
 $(package)_patches+= fix_lib_paths.patch
 $(package)_patches+= fix_numeric_limits_compile_error.patch
 $(package)_patches+= fix_montery_include.patch
@@ -121,6 +122,11 @@ $(package)_config_opts_darwin += -device-option MAC_TARGET=$(host)
 $(package)_config_opts_darwin += -device-option XCODE_VERSION=$(XCODE_VERSION)
 endif
 
+ifneq ($(build_arch),$(host_arch))
+$(package)_config_opts_aarch64_darwin += -device-option QMAKE_APPLE_DEVICE_ARCHS=arm64
+$(package)_config_opts_x86_64_darwin += -device-option QMAKE_APPLE_DEVICE_ARCHS=x86_64
+endif
+
 $(package)_config_opts_linux = -qt-xcb
 $(package)_config_opts_linux += -no-xcb-xlib
 $(package)_config_opts_linux += -no-feature-xlib
@@ -190,6 +196,7 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/fix_qt_pkgconfig.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_no_printer.patch && \
   patch -p1 -i $($(package)_patch_dir)/no-xlib.patch && \
+  patch -p1 -i $($(package)_patch_dir)/dont_hardcode_x86_64.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_lib_paths.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_montery_include.patch && \
   mkdir -p qtbase/mkspecs/macx-clang-linux &&\
