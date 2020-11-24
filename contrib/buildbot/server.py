@@ -6,6 +6,7 @@
 
 
 from build import BuildStatus, BuildTarget
+from deepmerge import always_merger
 from flask import abort, Flask, request
 from functools import wraps
 import hashlib
@@ -265,11 +266,31 @@ def create_server(tc, phab, slackbot, travis,
         changedFiles = phab.get_revision_changed_files(
             revision_id=revision_id)
 
+        # Get a list of the templates, if any
+        templates = config.get("templates", {})
+
         # Get a list of the builds that should run on diffs
         builds = []
         for build_name, v in config.get('builds', {}).items():
-            diffRegexes = v.get('runOnDiffRegex', None)
-            if v.get('runOnDiff', False) or diffRegexes is not None:
+            # Merge the templates
+            template_config = {}
+            template_names = v.get("templates", [])
+            for template_name in template_names:
+                # Raise an error if the template does not exist
+                if template_name not in templates:
+                    raise AssertionError(
+                        "Build {} configuration inherits from template {}, but the template does not exist.".format(
+                            build_name,
+                            template_name
+                        )
+                    )
+                always_merger.merge(
+                    template_config, templates.get(template_name))
+            # Retrieve the full build configuration by applying the templates
+            build_config = always_merger.merge(template_config, v)
+
+            diffRegexes = build_config.get('runOnDiffRegex', None)
+            if build_config.get('runOnDiff', False) or diffRegexes is not None:
                 if diffRegexes:
                     # If the regex matches at least one changed file, add this
                     # build to the list.

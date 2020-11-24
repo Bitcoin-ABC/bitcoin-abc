@@ -160,6 +160,25 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
         set_build_configuration(buildConfig)
         call_buildDiff(builds)
 
+        # Using a template
+        builds = [Build(1, BuildStatus.Queued, "build-1")]
+        config = {
+            "templates": {
+                "template1": {
+                    "runOnDiffRegex": ["dir/subdir/"]
+                }
+            },
+            "builds": {
+                "build-1": {
+                    "templates": ["template1"]
+                }
+            }
+        }
+        self.phab.get_file_content_from_master = mock.Mock()
+        self.phab.get_file_content_from_master.return_value = json.dumps(
+            config)
+        call_buildDiff(builds)
+
 
 if __name__ == '__main__':
     unittest.main()
