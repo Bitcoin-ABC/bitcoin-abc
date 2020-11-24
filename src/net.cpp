@@ -1203,11 +1203,20 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     int nInbound = 0;
     int nMaxInbound = nMaxConnections - m_max_outbound;
 
-    if (hSocket != INVALID_SOCKET) {
-        if (!addr.SetSockAddr((const struct sockaddr *)&sockaddr)) {
-            LogPrintf("Warning: Unknown socket family\n");
+    if (hSocket == INVALID_SOCKET) {
+        const int nErr = WSAGetLastError();
+        if (nErr != WSAEWOULDBLOCK) {
+            LogPrintf("socket error accept failed: %s\n",
+                      NetworkErrorString(nErr));
         }
+        return;
     }
+
+    if (!addr.SetSockAddr((const struct sockaddr *)&sockaddr)) {
+        LogPrintf("Warning: Unknown socket family\n");
+    }
+
+    const CAddress addr_bind = GetBindAddress(hSocket);
 
     NetPermissionFlags permissionFlags = NetPermissionFlags::PF_NONE;
     hListenSocket.AddSocketPermissionFlags(permissionFlags);
@@ -1235,15 +1244,6 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
                 nInbound++;
             }
         }
-    }
-
-    if (hSocket == INVALID_SOCKET) {
-        int nErr = WSAGetLastError();
-        if (nErr != WSAEWOULDBLOCK) {
-            LogPrintf("socket error accept failed: %s\n",
-                      NetworkErrorString(nErr));
-        }
-        return;
     }
 
     if (!fNetworkActive) {
@@ -1306,7 +1306,6 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
         GetDeterministicRandomizer(RANDOMIZER_ID_EXTRAENTROPY)
             .Write(id)
             .Finalize();
-    CAddress addr_bind = GetBindAddress(hSocket);
 
     ServiceFlags nodeServices = nLocalServices;
     if (NetPermissions::HasFlag(permissionFlags, PF_BLOOMFILTER)) {
