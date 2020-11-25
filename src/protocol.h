@@ -333,13 +333,9 @@ enum ServiceFlags : uint64_t {
     // NODE_XTHIN means the node supports Xtreme Thinblocks. If this is turned
     // off then the node will not service nor make xthin requests.
     NODE_XTHIN = (1 << 4),
-    // NODE_BITCOIN_CASH means the node supports Bitcoin Cash and the
-    // associated consensus rule changes.
-    // This service bit is intended to be used prior until some time after the
-    // UAHF activation when the Bitcoin Cash network has adequately separated.
-    // TODO: remove (free up) the NODE_BITCOIN_CASH service bit once no longer
-    // needed.
-    NODE_BITCOIN_CASH = (1 << 5),
+
+    // Bit 5 was NODE_BITCOIN_CASH, removed in v0.22.8
+
     // NODE_NETWORK_LIMITED means the same as NODE_NETWORK with the limitation
     // of only serving the last 288 (2 day) blocks
     // See BIP159 for details on how this is implemented.

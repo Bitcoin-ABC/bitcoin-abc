@@ -1976,11 +1976,6 @@ bool AppInitParameterInteraction(Config &config) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_BLOOM);
     }
 
-    // Signal Bitcoin Cash support.
-    // TODO: remove some time after the hardfork when no longer needed
-    // to differentiate the network nodes.
-    nLocalServices = ServiceFlags(nLocalServices | NODE_BITCOIN_CASH);
-
     nMaxTipAge = gArgs.GetArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
 
     return true;

@@ -73,8 +73,7 @@ static const int SEEDER_INIT_VERSION = 0;
 
 BOOST_AUTO_TEST_CASE(seeder_node_version_test) {
     CService serviceFrom;
-    CAddress addrFrom(serviceFrom,
-                      ServiceFlags(NODE_NETWORK | NODE_BITCOIN_CASH));
+    CAddress addrFrom(serviceFrom, ServiceFlags(NODE_NETWORK));
 
     CDataStream versionMessage =
         CreateVersionMessage(time(nullptr), vAddr[0], addrFrom,

@@ -12,7 +12,6 @@ from test_framework.messages import (
     CInv,
     msg_getdata,
     msg_verack,
-    NODE_BITCOIN_CASH,
     NODE_BLOOM,
     NODE_NETWORK_LIMITED,
 )
@@ -70,7 +69,7 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0].add_p2p_connection(P2PIgnoreInv())
 
-        expected_services = NODE_BLOOM | NODE_BITCOIN_CASH | NODE_NETWORK_LIMITED
+        expected_services = NODE_BLOOM | NODE_NETWORK_LIMITED
 
         self.log.info("Check that node has signalled expected services.")
         assert_equal(node.nServices, expected_services)

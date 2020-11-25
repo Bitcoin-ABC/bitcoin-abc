@@ -880,9 +880,6 @@ UniValue GetServicesNames(ServiceFlags services) {
     if (services & NODE_XTHIN) {
         servicesNames.push_back("XTHIN");
     }
-    if (services & NODE_BITCOIN_CASH) {
-        servicesNames.push_back("BITCOIN_CASH");
-    }
     if (services & NODE_NETWORK_LIMITED) {
         servicesNames.push_back("NETWORK_LIMITED");
     }
