@@ -24,6 +24,7 @@
 #include <sync.h>
 #include <threadinterrupt.h>
 #include <uint256.h>
+#include <validation.h> // For cs_main
 
 #include <atomic>
 #include <condition_variable>
@@ -178,14 +179,20 @@ public:
     void Init(const Options &connOptions) {
         nLocalServices = connOptions.nLocalServices;
         nMaxConnections = connOptions.nMaxConnections;
-        m_max_outbound_full_relay = std::min(
-            connOptions.m_max_outbound_full_relay, connOptions.nMaxConnections);
-        m_max_outbound_block_relay = connOptions.m_max_outbound_block_relay;
         m_use_addrman_outgoing = connOptions.m_use_addrman_outgoing;
         nMaxAddnode = connOptions.nMaxAddnode;
         nMaxFeeler = connOptions.nMaxFeeler;
-        m_max_outbound =
-            m_max_outbound_full_relay + m_max_outbound_block_relay + nMaxFeeler;
+        {
+            // Lock cs_main to prevent a potential race with the peer validation
+            // logic thread.
+            LOCK(::cs_main);
+            m_max_outbound_full_relay =
+                std::min(connOptions.m_max_outbound_full_relay,
+                         connOptions.nMaxConnections);
+            m_max_outbound_block_relay = connOptions.m_max_outbound_block_relay;
+            m_max_outbound = m_max_outbound_full_relay +
+                             m_max_outbound_block_relay + nMaxFeeler;
+        }
         nBestHeight = connOptions.nBestHeight;
         clientInterface = connOptions.uiInterface;
         m_banman = connOptions.m_banman;
