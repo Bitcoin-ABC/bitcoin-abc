@@ -91,6 +91,14 @@ bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
             return state.Invalid(ProofValidationResult::MISSING_UTXO);
         }
 
+        if (s.isCoinbase() != coin.IsCoinBase()) {
+            return state.Invalid(ProofValidationResult::COINBASE_MISMATCH);
+        }
+
+        if (s.getHeight() != coin.GetHeight()) {
+            return state.Invalid(ProofValidationResult::HEIGHT_MISMATCH);
+        }
+
         const CTxOut &out = coin.GetTxOut();
         if (s.getAmount() != out.nValue) {
             // Wrong amount.

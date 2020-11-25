@@ -376,6 +376,14 @@ BOOST_AUTO_TEST_CASE(verify) {
     runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
              key);
 
+    // Coinbase mismatch
+    runCheck(ProofValidationResult::COINBASE_MISMATCH, pkh_outpoint, value,
+             height, true, key);
+
+    // Height mismatch
+    runCheck(ProofValidationResult::HEIGHT_MISMATCH, pkh_outpoint, value,
+             height + 1, false, key);
+
     // Amount mismatch
     runCheck(ProofValidationResult::AMOUNT_MISMATCH, pkh_outpoint,
              value + 1 * SATOSHI, height, false, key);

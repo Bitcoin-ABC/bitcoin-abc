@@ -18,6 +18,8 @@ enum class ProofValidationResult {
 
     // UTXO based errors.
     MISSING_UTXO,
+    COINBASE_MISMATCH,
+    HEIGHT_MISMATCH,
     AMOUNT_MISMATCH,
     NON_STANDARD_DESTINATION,
     DESTINATION_NOT_SUPPORTED,
