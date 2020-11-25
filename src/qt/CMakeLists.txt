@@ -149,7 +149,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 	target_link_libraries(bitcoin-qt-base
 		"-framework Foundation"
-		"-framework ApplicationServices"
 		"-framework AppKit"
 	)
 endif()
