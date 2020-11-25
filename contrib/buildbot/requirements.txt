@@ -1,3 +1,4 @@
+deepmerge
 mock
 flask
 pyyaml
