@@ -104,7 +104,18 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Generate many block and poll for them.
         address = node.get_deterministic_priv_key().address
-        node.generatetoaddress(100, address)
+        blocks = node.generatetoaddress(100, address)
+
+        def get_coinbase(h):
+            b = node.getblock(h, 2)
+            return {
+                'height': b['height'],
+                'txid': b['tx'][0]['txid'],
+                'n': 0,
+                'value': b['tx'][0]['vout'][0]['value'],
+            }
+
+        coinbases = [get_coinbase(h) for h in blocks]
 
         fork_node = self.nodes[1]
         # Make sure the fork node has synced the blocks
@@ -189,10 +200,11 @@ class AvalancheTest(BitcoinTestFramework):
 
         privatekey = node.get_deterministic_priv_key().key
         proof = node.buildavalancheproof(11, 12, pubkey.get_bytes().hex(), [{
-            'txid': "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747",
-            'vout': 0,
-            'amount': 10,
-            'height': 100,
+            'txid': coinbases[0]['txid'],
+            'vout': coinbases[0]['n'],
+            'amount': coinbases[0]['value'],
+            'height': coinbases[0]['height'],
+            'iscoinbase': True,
             'privatekey': privatekey,
         }])
 
