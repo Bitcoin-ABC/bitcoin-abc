@@ -567,6 +567,7 @@ add_library(server
 	flatfile.cpp
 	httprpc.cpp
 	httpserver.cpp
+	i2p.cpp
 	index/base.cpp
 	index/blockfilterindex.cpp
 	index/txindex.cpp
