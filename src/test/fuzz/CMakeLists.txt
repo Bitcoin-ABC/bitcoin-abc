@@ -168,7 +168,9 @@ add_regular_fuzz_targets(
 
 add_deserialize_fuzz_targets(
 	addr_info_deserialize
-	address_deserialize
+	address_deserialize_v1_notime
+	address_deserialize_v1_withtime
+	address_deserialize_v2
 	addrman_deserialize
 	banentry_deserialize
 	block_deserialize
