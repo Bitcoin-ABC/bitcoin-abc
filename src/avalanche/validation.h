@@ -23,7 +23,7 @@ enum class ProofValidationResult {
     AMOUNT_MISMATCH,
     NON_STANDARD_DESTINATION,
     DESTINATION_NOT_SUPPORTED,
-    DESTINATION_MISMACTCH,
+    DESTINATION_MISMATCH,
 };
 
 class ProofValidationState : public ValidationState<ProofValidationResult> {};

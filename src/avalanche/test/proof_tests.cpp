@@ -408,7 +408,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     {
         CKey altkey;
         altkey.MakeNewKey(true);
-        runCheck(ProofValidationResult::DESTINATION_MISMACTCH, pkh_outpoint,
+        runCheck(ProofValidationResult::DESTINATION_MISMATCH, pkh_outpoint,
                  value, height, false, altkey);
     }
 

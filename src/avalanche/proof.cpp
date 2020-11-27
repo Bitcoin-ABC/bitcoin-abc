@@ -122,7 +122,7 @@ bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
         const CPubKey &pubkey = s.getPubkey();
         if (*pkhash != PKHash(pubkey)) {
             // Wrong pubkey.
-            return state.Invalid(ProofValidationResult::DESTINATION_MISMACTCH);
+            return state.Invalid(ProofValidationResult::DESTINATION_MISMATCH);
         }
     }
 
