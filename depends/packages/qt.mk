@@ -66,7 +66,6 @@ $(package)_config_opts += -nomake tests
 $(package)_config_opts += -nomake tools
 $(package)_config_opts += -opensource
 $(package)_config_opts += -openssl-linked
-$(package)_config_opts += -pch
 $(package)_config_opts += -pkg-config
 $(package)_config_opts += -prefix $(host_prefix)
 $(package)_config_opts += -qt-libpng
@@ -108,6 +107,7 @@ $(package)_config_opts += -no-feature-wizard
 $(package)_config_opts += -no-feature-xml
 
 $(package)_config_opts_darwin = -no-dbus
+$(package)_config_opts_darwin += -pch
 $(package)_config_opts_darwin += QMAKE_MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION)
 
 ifneq ($(build_os),darwin)
@@ -137,6 +137,7 @@ $(package)_config_opts_mingw32 += "QMAKE_CFLAGS = '$($(package)_cflags) $($(pack
 $(package)_config_opts_mingw32 += "QMAKE_CXXFLAGS = '$($(package)_cflags) $($(package)_cppflags)'"
 $(package)_config_opts_mingw32 += "QMAKE_LFLAGS = '$($(package)_ldflags)'"
 $(package)_config_opts_mingw32 += -device-option CROSS_COMPILE="$(host)-"
+$(package)_config_opts_mingw32 += -pch
 $(package)_config_opts_mingw32 += OPENSSL_LIBS="-lssl -lcrypto -lws2_32"
 endef
 
