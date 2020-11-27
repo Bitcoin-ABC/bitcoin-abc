@@ -3,6 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <avalanche/peermanager.h>
+#include <avalanche/proofbuilder.h>
+#include <script/standard.h>
+#include <validation.h>
 
 #include <avalanche/test/util.h>
 
@@ -50,7 +53,7 @@ BOOST_AUTO_TEST_CASE(select_peer_linear) {
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 142, 500), 69);
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 199, 500), 69);
 
-    // In betwenn
+    // In between
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 200, 500), NO_PEER);
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 242, 500), NO_PEER);
     BOOST_CHECK_EQUAL(selectPeerImpl(twoslots, 299, 500), NO_PEER);
@@ -344,6 +347,79 @@ BOOST_AUTO_TEST_CASE(node_crud) {
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
+}
+
+BOOST_AUTO_TEST_CASE(proof_conflict) {
+    CKey key;
+    key.MakeNewKey(true);
+    const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    TxId txid1(GetRandHash());
+    TxId txid2(GetRandHash());
+    BOOST_CHECK(txid1 != txid2);
+
+    const Amount v = 5 * COIN;
+    const int height = 1234;
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+
+        for (int i = 0; i < 10; i++) {
+            coins.AddCoin(COutPoint(txid1, i),
+                          Coin(CTxOut(v, script), height, false), false);
+            coins.AddCoin(COutPoint(txid2, i),
+                          Coin(CTxOut(v, script), height, false), false);
+        }
+    }
+
+    PeerManager pm;
+    const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
+        ProofBuilder pb(0, 0, CPubKey());
+        for (const auto &o : outpoints) {
+            pb.addUTXO(o, v, height, false, key);
+        }
+
+        return pm.getPeer(pb.build());
+    };
+
+    // Add one peer.
+    const PeerId peer1 = getPeerId({COutPoint(txid1, 0)});
+    BOOST_CHECK(peer1 != NO_PEER);
+
+    // Same proof, same peer.
+    BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 0)}), peer1);
+
+    // Different txid, different proof.
+    const PeerId peer2 = getPeerId({COutPoint(txid2, 0)});
+    BOOST_CHECK(peer2 != NO_PEER && peer2 != peer1);
+
+    // Different index, different proof.
+    const PeerId peer3 = getPeerId({COutPoint(txid1, 1)});
+    BOOST_CHECK(peer3 != NO_PEER && peer3 != peer1);
+
+    // Empty proof, no peer.
+    BOOST_CHECK_EQUAL(getPeerId({}), NO_PEER);
+
+    // Multiple inputs.
+    const PeerId peer4 = getPeerId({COutPoint(txid1, 2), COutPoint(txid2, 2)});
+    BOOST_CHECK(peer4 != NO_PEER && peer4 != peer1);
+
+    // Duplicated input.
+    BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 3), COutPoint(txid1, 3)}),
+                      NO_PEER);
+
+    // Multiple inputs, collision on first input.
+    BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 0), COutPoint(txid2, 4)}),
+                      NO_PEER);
+
+    // Mutliple inputs, collision on second input.
+    BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 4), COutPoint(txid2, 0)}),
+                      NO_PEER);
+
+    // Mutliple inputs, collision on both inputs.
+    BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 0), COutPoint(txid2, 2)}),
+                      NO_PEER);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

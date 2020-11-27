@@ -7,6 +7,7 @@
 
 #include <avalanche/node.h>
 #include <avalanche/proof.h>
+#include <coins.h>
 #include <net.h>
 #include <pubkey.h>
 #include <salteduint256hasher.h>
@@ -103,6 +104,8 @@ class PeerManager {
 
     PeerId nextPeerId = 0;
     PeerSet peers;
+
+    std::unordered_map<COutPoint, PeerId, SaltedOutpointHasher> utxos;
 
     using NodeSet = boost::multi_index_container<
         Node,

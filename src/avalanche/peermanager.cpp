@@ -13,10 +13,13 @@
 namespace avalanche {
 
 PeerId PeerManager::getPeer(const Proof &proof) {
-    auto &pview = peers.get<proof_index>();
-    auto it = pview.find(proof.getId());
-    if (it != pview.end()) {
-        return it->peerid;
+    {
+        // Check if we already know of that peer.
+        auto &pview = peers.get<proof_index>();
+        auto it = pview.find(proof.getId());
+        if (it != pview.end()) {
+            return it->peerid;
+        }
     }
 
     {
@@ -30,8 +33,35 @@ PeerId PeerManager::getPeer(const Proof &proof) {
         }
     }
 
-    // We have no peer for this proof, time to create it.
+    // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
+
+    // Attach UTXOs to this proof.
+    std::unordered_set<PeerId> conflicting_peerids;
+    for (const auto &s : proof.getStakes()) {
+        auto p = utxos.emplace(s.getStake().getUTXO(), peerid);
+        if (!p.second) {
+            // We have a collision with an existing proof.
+            conflicting_peerids.insert(p.first->second);
+        }
+    }
+
+    // For now, if there is a conflict, just ceanup the mess.
+    if (conflicting_peerids.size() > 0) {
+        for (const auto &s : proof.getStakes()) {
+            auto it = utxos.find(s.getStake().getUTXO());
+            assert(it != utxos.end());
+
+            // We need to delete that one.
+            if (it->second == peerid) {
+                utxos.erase(it);
+            }
+        }
+
+        return NO_PEER;
+    }
+
+    // We have no peer for this proof, time to create it.
     auto inserted = peers.emplace(peerid, uint32_t(slots.size()), proof);
     assert(inserted.second);
 
@@ -66,6 +96,12 @@ bool PeerManager::removePeer(const PeerId peerid) {
     nview.erase(nview.lower_bound(boost::make_tuple(peerid, TimePoint())),
                 nview.upper_bound(boost::make_tuple(
                     peerid, std::chrono::steady_clock::now())));
+
+    // Release UTXOs attached to this proof.
+    for (const auto &s : it->proof.getStakes()) {
+        bool deleted = utxos.erase(s.getStake().getUTXO()) > 0;
+        assert(deleted);
+    }
 
     peers.erase(it);
     return true;
@@ -289,8 +325,6 @@ void PeerManager::updatedBlockTip() {
     for (const auto &pid : invalidPeers) {
         removePeer(pid);
     }
-
-    compact();
 }
 
 } // namespace avalanche
