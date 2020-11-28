@@ -307,7 +307,7 @@ extern const char *AVARESPONSE;
 bool IsBlockLike(const std::string &strCommand);
 }; // namespace NetMsgType
 
-/* Get a vector of all valid message types (see above) */
+/** Get a vector of all valid message types (see above) */
 const std::vector<std::string> &getAllNetMessageTypes();
 
 /**
@@ -462,7 +462,8 @@ public:
 /** getdata message type flags */
 const uint32_t MSG_TYPE_MASK = 0xffffffff >> 3;
 
-/** getdata / inv message types.
+/**
+ * getdata / inv message types.
  * These numbers are defined by the protocol. When adding a new value, be sure
  * to mention it in the respective BIP.
  */
