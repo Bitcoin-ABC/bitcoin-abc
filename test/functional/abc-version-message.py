@@ -5,7 +5,7 @@
 """Test version message behavior"""
 
 from test_framework.messages import NODE_NETWORK, msg_version
-from test_framework.p2p import P2PInterface
+from test_framework.p2p import P2P_SUBVERSION, P2P_VERSION, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 
 
@@ -20,6 +20,9 @@ class ModifiedVersionTimestampP2PInterface(P2PInterface):
 
         # Send version message with invalid timestamp
         vt = msg_version()
+        vt.nVersion = P2P_VERSION
+        vt.strSubVer = P2P_SUBVERSION
+
         vt.nTime = self.versionTimestamp
 
         vt.nServices = services

@@ -14,7 +14,12 @@ into sending us something it shouldn't.
 import time
 
 from test_framework.messages import msg_getaddr, msg_ping, msg_version
-from test_framework.p2p import P2PInterface
+from test_framework.p2p import (
+    P2P_SERVICES,
+    P2P_SUBVERSION,
+    P2P_VERSION_RELAY,
+    P2PInterface,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
@@ -166,13 +171,16 @@ class P2PLeakTest(BitcoinTestFramework):
         assert_equal(ver.addrFrom.port, 0)
         assert_equal(ver.addrFrom.ip, '0.0.0.0')
         assert_equal(ver.nStartingHeight, 201)
-        assert_equal(ver.nRelay, 1)
+        assert_equal(ver.relay, 1)
 
         self.log.info('Check that old peers are disconnected')
         p2p_old_peer = self.nodes[0].add_p2p_connection(
             P2PInterface(), send_version=False, wait_for_verack=False)
         old_version_msg = msg_version()
         old_version_msg.nVersion = 31799
+        old_version_msg.strSubVer = P2P_SUBVERSION
+        old_version_msg.nServices = P2P_SERVICES
+        old_version_msg.relay = P2P_VERSION_RELAY
         with self.nodes[0].assert_debug_log(['peer=4 using obsolete version 31799; disconnecting']):
             p2p_old_peer.send_message(old_version_msg)
             p2p_old_peer.wait_for_disconnect()

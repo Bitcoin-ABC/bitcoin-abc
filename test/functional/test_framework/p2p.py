@@ -30,7 +30,6 @@ from io import BytesIO
 
 from test_framework.messages import (
     MAX_HEADERS_RESULTS,
-    MIN_VERSION_SUPPORTED,
     MSG_BLOCK,
     MSG_TX,
     MSG_TYPE_MASK,
@@ -75,6 +74,19 @@ from test_framework.messages import (
 from test_framework.util import MAX_NODES, p2p_port, wait_until_helper
 
 logger = logging.getLogger("TestFramework.p2p")
+
+# The minimum P2P version that this test framework supports
+MIN_P2P_VERSION_SUPPORTED = 60001
+# The P2P version that this test framework implements and sends in its `version`
+# message. Past bip-31 for ping/pong
+P2P_VERSION = 70014
+# The services that this test framework offers in its `version` message
+P2P_SERVICES = NODE_NETWORK
+# The P2P user agent string that this test framework sends in its `version`
+# message
+P2P_SUBVERSION = "/python-p2p-tester:0.0.3/"
+# Value for relay that this test framework sends in its `version` message
+P2P_VERSION_RELAY = 1
 
 MESSAGEMAP = {
     b"addr": msg_addr,
@@ -356,6 +368,9 @@ class P2PInterface(P2PConnection):
     def peer_connect_send_version(self, services):
         # Send a version msg
         vt = msg_version()
+        vt.nVersion = P2P_VERSION
+        vt.strSubVer = P2P_SUBVERSION
+        vt.relay = P2P_VERSION_RELAY
         vt.nServices = services
         vt.addrTo.ip = self.dstaddr
         vt.addrTo.port = self.dstport
@@ -365,7 +380,7 @@ class P2PInterface(P2PConnection):
         # Will be sent in connection_made callback
         self.on_connection_send_msg = vt
 
-    def peer_connect(self, *args, services=NODE_NETWORK,
+    def peer_connect(self, *args, services=P2P_SERVICES,
                      send_version=True, **kwargs):
         create_conn = super().peer_connect(*args, **kwargs)
 
@@ -482,8 +497,8 @@ class P2PInterface(P2PConnection):
         pass
 
     def on_version(self, message):
-        assert message.nVersion >= MIN_VERSION_SUPPORTED, "Version {} received. Test framework only supports versions greater than {}".format(
-            message.nVersion, MIN_VERSION_SUPPORTED)
+        assert message.nVersion >= MIN_P2P_VERSION_SUPPORTED, "Version {} received. Test framework only supports versions greater than {}".format(
+            message.nVersion, MIN_P2P_VERSION_SUPPORTED)
         self.send_message(msg_verack())
         if self.support_addrv2:
             self.send_message(msg_sendaddrv2())
