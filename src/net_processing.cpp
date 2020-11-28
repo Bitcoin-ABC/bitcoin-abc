@@ -1830,10 +1830,9 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     std::vector<CInv> vNotFound;
     const CNetMsgMaker msgMaker(pfrom.GetSendVersion());
 
-    // Note that if we receive a getdata for a MSG_TX or MSG_WITNESS_TX from a
-    // block-relay-only outbound peer, we will stop processing further getdata
-    // messages from this peer (likely resulting in our peer eventually
-    // disconnecting us).
+    // Note that if we receive a getdata for a MSG_TX from a block-relay-only
+    // outbound peer, we will stop processing further getdata messages from this
+    // peer (likely resulting in our peer eventually disconnecting us).
     if (pfrom.m_tx_relay != nullptr) {
         // mempool entries added before this time have likely expired from
         // mapRelay
