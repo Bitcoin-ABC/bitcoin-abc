@@ -4851,11 +4851,9 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
                         connman->PoissonNextSendInbound(
                             nNow, INVENTORY_BROADCAST_INTERVAL)};
                 } else {
-                    // Use half the delay for outbound peers, as there is less
+                    // Skip delay for outbound peers, as there is less
                     // privacy concern for them.
-                    pto->m_tx_relay->nNextInvSend = PoissonNextSend(
-                        current_time, std::chrono::seconds{
-                                          INVENTORY_BROADCAST_INTERVAL >> 1});
+                    pto->m_tx_relay->nNextInvSend = current_time;
                 }
             }
 
