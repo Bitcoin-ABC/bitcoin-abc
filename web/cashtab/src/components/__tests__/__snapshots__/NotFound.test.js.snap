@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Render NotFound component 1`] = `
+<div
+  className="ant-row-flex ant-row-flex-center"
+  style={Object {}}
+>
+  <div
+    className="ant-col ant-col-8"
+    style={Object {}}
+  >
+    <h1>
+      Page not found
+    </h1>
+  </div>
+</div>
+`;

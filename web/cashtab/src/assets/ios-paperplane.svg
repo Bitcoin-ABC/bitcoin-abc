@@ -1,0 +1,49 @@
+<svg
+   height="127"
+   width="135"
+   viewBox="0 0 691.2 650.24">
+  <defs
+     id="defs74">
+    <style
+       id="style72"
+       type="text/css" />
+    <clipPath
+       id="clipPath89"
+       clipPathUnits="userSpaceOnUse">
+      <rect
+         y="192"
+         x="177.60765"
+         height="638.46899"
+         width="654.39233"
+         id="rect91"
+         style="fill:#00ce8c;fill-opacity:1;stroke:#008000;stroke-width:5.11999989" />
+    </clipPath>
+    <clipPath
+       id="clipPath93"
+       clipPathUnits="userSpaceOnUse">
+      <rect
+         y="192"
+         x="177.60765"
+         height="638.46899"
+         width="654.39233"
+         id="rect95"
+         style="fill:#00ce8c;fill-opacity:1;stroke:#008000;stroke-width:5.11999989" />
+    </clipPath>
+  </defs>
+  <g
+     transform="translate(-176.38277,-186.3533)"
+     id="g99">
+    <path
+       style="fill:#3e3f42"
+       d="M 192,499.2 404,592.6 832,192 Z"
+       p-id="9782"
+       id="path76"
+       clip-path="url(#clipPath93)" />
+    <path
+       style="fill:#3e3f42"
+       d="M 832,192 435.8,623.4 539.6,832 Z"
+       p-id="9783"
+       id="path78"
+       clip-path="url(#clipPath89)" />
+  </g>
+</svg>

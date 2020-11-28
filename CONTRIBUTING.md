@@ -171,13 +171,17 @@ sudo apt-get -t buster-backports install shellcheck
 Contributing to the web projects
 --------------------------------
 
-If you intend to contribute to web projects, you will need `nodejs`.
-Follow the [installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating)
-to install node with node version manager. Then:
+To contribute to web projects, you will need `nodejs` > 15 and `npm` > 6.14.8.
+Follow these [installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating)
+to install `nodejs` with node version manager.
+
+Then:
 
 ```
 cd bitcoin-abc
-sudo npm install -g prettier
+[sudo] nvm install 15
+[sudo] npm install -g npm@latest
+[sudo] npm install -g prettier
 ```
 
 Working with The Bitcoin ABC Repository
