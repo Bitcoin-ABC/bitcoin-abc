@@ -51,7 +51,7 @@ namespace {
         ChainstateManager &chainman() { return *Assert(m_context->chainman); }
 
     public:
-        NodeImpl(NodeContext *context) { setContext(context); }
+        explicit NodeImpl(NodeContext *context) { setContext(context); }
         void initLogging() override { InitLogging(*Assert(m_context->args)); }
         void initParameterInteraction() override {
             InitParameterInteraction(*Assert(m_context->args));

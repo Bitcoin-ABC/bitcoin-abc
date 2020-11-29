@@ -202,7 +202,7 @@ class ByInvIdViewExtractor {
     const PriorityComputer &m_computer;
 
 public:
-    ByInvIdViewExtractor(const PriorityComputer &computer)
+    explicit ByInvIdViewExtractor(const PriorityComputer &computer)
         : m_computer(computer) {}
     using result_type = ByInvIdView;
     result_type operator()(const Announcement &ann) const {
@@ -587,7 +587,7 @@ private:
                       EmplaceExpiredFun emplaceExpired) {
         clearExpired();
         // Iterate over all CANDIDATE_DELAYED and REQUESTED from old to new, as
-        // long as they're in the past, and convert them to CANDIDATE_READY and
+        // long as they're in the past, and convert them to CANDIDATE_READY andc
         // COMPLETED respectively.
         while (!m_index.empty()) {
             auto it = m_index.get<ByTime>().begin();
@@ -620,7 +620,7 @@ private:
     }
 
 public:
-    InvRequestTrackerImpl(bool deterministic)
+    explicit InvRequestTrackerImpl(bool deterministic)
         : m_computer(deterministic),
           // Explicitly initialize m_index as we need to pass a reference to
           // m_computer to ByInvIdViewExtractor.

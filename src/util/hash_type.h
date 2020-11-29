@@ -11,7 +11,7 @@ protected:
 
 public:
     BaseHash() : m_hash() {}
-    BaseHash(const HashType &in) : m_hash(in) {}
+    explicit BaseHash(const HashType &in) : m_hash(in) {}
 
     uint8_t *begin() { return m_hash.begin(); }
 
