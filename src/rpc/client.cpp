@@ -162,6 +162,8 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"stop", 0, "wait"},
     // Avalanche
     {"addavalanchenode", 0, "nodeid"},
+    {"buildavalancheproof", 0, "sequence"},
+    {"buildavalancheproof", 1, "expiration"},
     {"buildavalancheproof", 3, "stakes"},
     // ABC specific RPC
     {"setexcessiveblock", 0, "blockSize"},
