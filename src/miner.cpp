@@ -67,8 +67,7 @@ BlockAssembler::BlockAssembler(const CChainParams &params,
         1000, std::min<uint64_t>(options.nExcessiveBlockSize - 1000,
                                  options.nMaxGeneratedBlockSize));
     // Calculate the max consensus sigchecks for this block.
-    auto nMaxBlockSigChecks =
-        GetMaxBlockSigChecksCount(options.nExcessiveBlockSize);
+    auto nMaxBlockSigChecks = GetMaxBlockSigChecksCount(nMaxGeneratedBlockSize);
     // Allow the full amount of signature check operations in lieu of a separate
     // config option. (We are mining relayed transactions with validity cached
     // by everyone else, and so the block will propagate quickly, regardless of
