@@ -11,10 +11,14 @@ export default function useBCH() {
         MAX_UNCONFIRMED_TXS: 64,
     };
 
-    const getRestUrl = () =>
-        process.env.REACT_APP_NETWORK === `mainnet`
-            ? process.env.REACT_APP_API
-            : process.env.REACT_APP_API_TEST;
+    const getRestUrl = (apiIndex = 0) => {
+        const apiString =
+            process.env.REACT_APP_NETWORK === `mainnet`
+                ? process.env.REACT_APP_BCHA_APIS
+                : process.env.REACT_APP_BCHA_APIS_TEST;
+        const apiArray = apiString.split(',');
+        return apiArray[apiIndex];
+    };
 
     const getTxHistory = async (BCH, addresses) => {
         let txHistoryResponse;
@@ -679,10 +683,10 @@ export default function useBCH() {
         }
     };
 
-    const getBCH = (fromWindowObject = true) => {
+    const getBCH = (apiIndex = 0, fromWindowObject = true) => {
         if (fromWindowObject && window.SlpWallet) {
             const SlpWallet = new window.SlpWallet('', {
-                restURL: getRestUrl(),
+                restURL: getRestUrl(apiIndex),
             });
             return SlpWallet.bchjs;
         }

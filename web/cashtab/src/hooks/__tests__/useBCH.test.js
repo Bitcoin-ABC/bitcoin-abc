@@ -12,26 +12,28 @@ describe('useBCH hook', () => {
         process = {
             env: {
                 REACT_APP_NETWORK: `testnet`,
-                REACT_APP_API_TEST: `https://free-test.fullstack.cash/v3/`,
-                REACT_APP_API: `https://free-main.fullstack.cash/v3/`,
+                REACT_APP_BCHA_APIS:
+                    'https://rest.kingbch.com/v3/,https://wallet-service-prod.bitframe.org/v3/,notevenaurl,https://rest.kingbch.com/v3/',
+                REACT_APP_BCHA_APIS_TEST:
+                    'https://free-test.fullstack.cash/v3/',
             },
         };
         const { getRestUrl } = useBCH();
         const expectedApiUrl = `https://free-test.fullstack.cash/v3/`;
-        expect(getRestUrl()).toBe(expectedApiUrl);
+        expect(getRestUrl(0)).toBe(expectedApiUrl);
     });
 
-    it('gets Rest Api Url on mainnet', () => {
+    it('gets primary Rest API URL on mainnet', () => {
         process = {
             env: {
-                REACT_APP_NETWORK: `mainnet`,
-                REACT_APP_API_TEST: `https://free-test.fullstack.cash/v3/`,
-                REACT_APP_API: `https://free-main.fullstack.cash/v3/`,
+                REACT_APP_BCHA_APIS:
+                    'https://rest.kingbch.com/v3/,https://wallet-service-prod.bitframe.org/v3/,notevenaurl,https://rest.kingbch.com/v3/',
+                REACT_APP_NETWORK: 'mainnet',
             },
         };
         const { getRestUrl } = useBCH();
-        const expectedApiUrl = `https://free-main.fullstack.cash/v3/`;
-        expect(getRestUrl()).toBe(expectedApiUrl);
+        const expectedApiUrl = `https://rest.kingbch.com/v3/`;
+        expect(getRestUrl(0)).toBe(expectedApiUrl);
     });
 
     it('calculates fee correctly for 2 P2PKH outputs', () => {

@@ -24,13 +24,48 @@ const useWallet = () => {
     });
     const { getBCH, getUtxos, getSlpBalancesAndUtxos, getTxHistory } = useBCH();
     const [loading, setLoading] = useState(true);
-    const [BCH] = useState(getBCH());
+    const [apiIndex, setApiIndex] = useState(0);
+    const [BCH, setBCH] = useState(getBCH(apiIndex));
     const [utxos, setUtxos] = useState(null);
     const { balances, tokens, slpBalancesAndUtxos, txHistory } = walletState;
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
     const previousWallet = usePrevious(wallet);
     const previousUtxos = usePrevious(utxos);
+
+    // If you catch API errors, call this function
+    const tryNextAPI = () => {
+        let currentApiIndex = apiIndex;
+        // How many APIs do you have?
+        const apiString = process.env.REACT_APP_BCHA_APIS;
+
+        const apiArray = apiString.split(',');
+
+        console.log(`You have ${apiArray.length} APIs to choose from`);
+        console.log(`Current selection: ${apiIndex}`);
+        // If only one, exit
+        if (apiArray.length === 0) {
+            console.log(
+                `There are no backup APIs, you are stuck with this error`,
+            );
+            return;
+        } else if (currentApiIndex < apiArray.length - 1) {
+            currentApiIndex += 1;
+            console.log(
+                `Incrementing API index from ${apiIndex} to ${currentApiIndex}`,
+            );
+        } else {
+            // Otherwise use the first option again
+            console.log(`Retrying first API index`);
+            currentApiIndex = 0;
+        }
+        //return setApiIndex(currentApiIndex);
+        console.log(`Setting Api Index to ${currentApiIndex}`);
+        setApiIndex(currentApiIndex);
+        return setBCH(getBCH(currentApiIndex));
+        // If you have more than one, use the next one
+        // If you are at the "end" of the array, use the first one
+    };
 
     const normalizeSlpBalancesAndUtxos = (slpBalancesAndUtxos, wallet) => {
         const Accounts = [wallet.Path245, wallet.Path145];
@@ -122,7 +157,7 @@ const useWallet = () => {
             //console.log(`utxos`, utxos);
 
             // If an error is returned or utxos from only 1 address are returned
-            if (utxos.error || utxos.length < 2) {
+            if (!utxos || _.isEmpty(utxos) || utxos.error || utxos.length < 2) {
                 // Throw error here to prevent more attempted api calls
                 // as you are likely already at rate limits
                 throw new Error('Error fetching utxos');
@@ -182,6 +217,9 @@ const useWallet = () => {
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
             //console.timeEnd("update");
+            // Try another endpoint
+            console.log(`Trying next API...`);
+            tryNextAPI();
         }
         //console.timeEnd("update");
     };
@@ -737,7 +775,12 @@ const useWallet = () => {
                 );
 
                 // Subscribe to new addresses
-                ws.send(JSON.stringify({ op: 'addr_sub', addr: cashAddress }));
+                ws.send(
+                    JSON.stringify({
+                        op: 'addr_sub',
+                        addr: cashAddress,
+                    }),
+                );
                 console.log(`Subscribed to BCH address at ${cashAddress}`);
                 // Subscribe to SLP address
                 ws.send(
@@ -841,7 +884,10 @@ const useWallet = () => {
 
                 // Subscribe to BCH address
                 newWs.send(
-                    JSON.stringify({ op: 'addr_sub', addr: cashAddress }),
+                    JSON.stringify({
+                        op: 'addr_sub',
+                        addr: cashAddress,
+                    }),
                 );
 
                 console.log(`Subscribed to BCH address at ${cashAddress}`);
@@ -865,7 +911,10 @@ const useWallet = () => {
                 // Unsubscribe on close to prevent double subscribing
                 //{"op":"addr_unsub", "addr":"$bitcoin_address"}
                 newWs.send(
-                    JSON.stringify({ op: 'addr_unsub', addr: cashAddress }),
+                    JSON.stringify({
+                        op: 'addr_unsub',
+                        addr: cashAddress,
+                    }),
                 );
                 console.log(`Unsubscribed from BCH address at ${cashAddress}`);
                 newWs.send(

@@ -9,7 +9,7 @@
 
 ## Development
 
-Cashtab relies on some modules that retain legacy dependencies. NPM version 7 or later no longer supports automatic resolution of these peer dependencies. To successfully install modules such as `qrcode.react`, with NPM > 7, run `npm install` with the flag `--legacy-peer-deps`
+CashTab relies on some modules that retain legacy dependencies. NPM version 7 or later no longer supports automatic resolution of these peer dependencies. To successfully install modules such as `qrcode.react`, with NPM > 7, run `npm install` with the flag `--legacy-peer-deps`
 
 ```
 npm install --legacy-peer-deps
@@ -50,6 +50,22 @@ docker-compose build
 docker-compose up
 ```
 
+## Redundant APIs
+
+CashTab accepts multiple instances of `bch-api` as its backend. Input your desired API URLs separated commas into the `REACT_APP_BCHA_APIS` variable. For example, to run CashTab with three redundant APIs, use:
+
+```
+REACT_APP_BCHA_APIS=https://rest.kingbch.com/v3/,https://wallet-service-prod.bitframe.org/v3/,https://free-main.fullstack.cash/v3/
+```
+
+You can also run CashTab with a single API, e.g.
+
+```
+REACT_APP_BCHA_APIS=https://rest.kingbch.com/v3/
+```
+
+CashTab will start with the first API in your list. If it receives an error from that API, it will try the next one.
+
 Navigate to `localhost:8080` to see the app.
 
 ## CashTab Roadmap
@@ -58,4 +74,4 @@ The following features are under active development:
 
 -   Transaction history
 -   Simple Ledger Postage Protocol Support
--   Cashtab as browser extension
+-   CashTab browser extension
