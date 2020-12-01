@@ -154,9 +154,6 @@ public:
     //! Get network active.
     virtual bool getNetworkActive() = 0;
 
-    //! Estimate smart fee.
-    virtual CFeeRate estimateSmartFee() = 0;
-
     //! Get dust relay fee.
     virtual CFeeRate getDustRelayFee() = 0;
 

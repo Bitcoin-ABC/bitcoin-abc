@@ -2395,6 +2395,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // is not yet setup and may end up being set up twice if we
     // need to reindex later.
 
+    fListen = args.GetBoolArg("-listen", DEFAULT_LISTEN);
+    fDiscover = args.GetBoolArg("-discover", true);
+
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
         GetDataDir() / "banlist.dat", config.GetChainParams(), &uiInterface,
@@ -2531,9 +2534,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             SetReachable(NET_ONION, true);
         }
     }
-
-    fListen = args.GetBoolArg("-listen", DEFAULT_LISTEN);
-    fDiscover = args.GetBoolArg("-discover", true);
 
     for (const std::string &strAddr : args.GetArgs("-externalip")) {
         CService addrLocal;

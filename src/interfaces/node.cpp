@@ -220,10 +220,6 @@ namespace {
         bool getNetworkActive() override {
             return m_context->connman && m_context->connman->GetNetworkActive();
         }
-        CFeeRate estimateSmartFee() override {
-            return m_context->mempool ? m_context->mempool->estimateFee()
-                                      : CFeeRate();
-        }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
         UniValue executeRpc(Config &config, const std::string &command,
                             const UniValue &params,
