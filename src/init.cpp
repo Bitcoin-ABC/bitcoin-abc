@@ -1195,6 +1195,8 @@ void SetupServerArgs() {
         strprintf("Mandatory cooldown between two avapoll (default: %u)",
                   AVALANCHE_DEFAULT_COOLDOWN),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    gArgs.AddArg("-avasessionkey", "Avalanche session key (default: random)",
+                 ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
 
     // Add the hidden options
     gArgs.AddHiddenArgs(hidden_args);

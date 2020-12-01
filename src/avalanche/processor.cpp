@@ -6,6 +6,7 @@
 
 #include <avalanche/peermanager.h>
 #include <chain.h>
+#include <key_io.h> // For DecodeSecret
 #include <netmessagemaker.h>
 #include <reverse_iterator.h>
 #include <scheduler.h>
@@ -148,8 +149,12 @@ public:
 Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn)
     : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
       round(0), peerManager(std::make_unique<PeerManager>()) {
-    // Pick a random key for the session.
-    sessionKey.MakeNewKey(true);
+    if (gArgs.IsArgSet("-avasessionkey")) {
+        sessionKey = DecodeSecret(gArgs.GetArg("-avasessionkey", ""));
+    } else {
+        // Pick a random key for the session.
+        sessionKey.MakeNewKey(true);
+    }
 
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
