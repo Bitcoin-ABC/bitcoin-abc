@@ -3844,6 +3844,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                 switch (u.getStatus()) {
                     case avalanche::BlockUpdate::Status::Invalid:
                     case avalanche::BlockUpdate::Status::Rejected: {
+                        LogPrintf("Avalanche rejected %s, parking\n",
+                                  pindex->GetBlockHash().GetHex());
                         BlockValidationState state;
                         ::ChainstateActive().ParkBlock(config, state, pindex);
                         if (!state.IsValid()) {
@@ -3853,6 +3855,8 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                     } break;
                     case avalanche::BlockUpdate::Status::Accepted:
                     case avalanche::BlockUpdate::Status::Finalized: {
+                        LogPrintf("Avalanche accepted %s\n",
+                                  pindex->GetBlockHash().GetHex());
                         LOCK(cs_main);
                         UnparkBlock(pindex);
                     } break;
