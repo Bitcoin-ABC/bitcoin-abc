@@ -1284,7 +1284,6 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
     in_addr peer_us_addr;
     peer_us_addr.s_addr = htonl(0x02030405);
     const CService peer_us{peer_us_addr, 20002};
-    const CAddress addr_us{peer_us, NODE_NETWORK};
 
     // Create a peer with a routable IPv4 address.
     in_addr peer_in_addr;
@@ -1318,8 +1317,9 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
     std::atomic<bool> interrupt_dummy{false};
     std::chrono::microseconds time_received_dummy{0};
 
-    const auto msg_version = msg_maker.Make(
-        NetMsgType::VERSION, PROTOCOL_VERSION, services, time, addr_us);
+    const auto msg_version =
+        msg_maker.Make(NetMsgType::VERSION, PROTOCOL_VERSION, services, time,
+                       services, peer_us);
     CDataStream msg_version_stream{msg_version.data, SER_NETWORK,
                                    PROTOCOL_VERSION};
 

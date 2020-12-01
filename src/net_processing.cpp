@@ -1646,7 +1646,7 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
     // Note that pnode.GetLocalServices() is a reflection of the local
     // services we were offering when the CNode object was created for this
     // peer.
-    ServiceFlags nLocalNodeServices = pnode.GetLocalServices();
+    uint64_t my_services{pnode.GetLocalServices()};
     const int64_t nTime{count_seconds(GetTime<std::chrono::seconds>())};
     uint64_t nonce = pnode.GetLocalNonce();
     const int nNodeStartingHeight{m_best_height};
@@ -1654,33 +1654,36 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
     CAddress addr = pnode.addr;
     uint64_t extraEntropy = pnode.GetLocalExtraEntropy();
 
-    CAddress addrYou =
+    CService addr_you =
         addr.IsRoutable() && !IsProxy(addr) && addr.IsAddrV1Compatible()
             ? addr
-            : CAddress(CService(), addr.nServices);
-    CAddress addrMe = CAddress(CService(), nLocalNodeServices);
+            : CService();
+    uint64_t your_services{addr.nServices};
 
     const bool tx_relay = !m_ignore_incoming_txs && !pnode.IsBlockOnlyConn() &&
                           !pnode.IsFeelerConn();
     m_connman.PushMessage(
+        // your_services, addr_you: Together the pre-version-31402 serialization
+        //     of CAddress "addrYou" (without nTime)
+        // my_services, CService(): Together the pre-version-31402 serialization
+        //     of CAddress "addrMe" (without nTime)
         &pnode, CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
-                          uint64_t(nLocalNodeServices), nTime, addrYou, addrMe,
-                          nonce, userAgent(config), nNodeStartingHeight,
-                          tx_relay, extraEntropy));
+                    .Make(NetMsgType::VERSION, PROTOCOL_VERSION, my_services,
+                          nTime, your_services, addr_you, my_services,
+                          CService(), nonce, userAgent(config),
+                          nNodeStartingHeight, tx_relay, extraEntropy));
 
     if (fLogIPs) {
         LogPrint(BCLog::NET,
-                 "send version message: version %d, blocks=%d, us=%s, them=%s, "
+                 "send version message: version %d, blocks=%d, them=%s, "
                  "txrelay=%d, peer=%d\n",
-                 PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
-                 addrYou.ToString(), tx_relay, nodeid);
+                 PROTOCOL_VERSION, nNodeStartingHeight, addr_you.ToString(),
+                 tx_relay, nodeid);
     } else {
         LogPrint(BCLog::NET,
-                 "send version message: version %d, blocks=%d, us=%s, "
+                 "send version message: version %d, blocks=%d, "
                  "txrelay=%d, peer=%d\n",
-                 PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
-                 tx_relay, nodeid);
+                 PROTOCOL_VERSION, nNodeStartingHeight, tx_relay, nodeid);
     }
 }
 
@@ -3664,10 +3667,8 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         int64_t nTime;
-        CAddress addrMe;
-        CAddress addrFrom;
+        CService addrMe;
         uint64_t nNonce = 1;
-        uint64_t nServiceInt;
         ServiceFlags nServices;
         int nVersion;
         std::string cleanSubVer;
@@ -3675,11 +3676,13 @@ void PeerManagerImpl::ProcessMessage(
         bool fRelay = true;
         uint64_t nExtraEntropy = 1;
 
-        vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+        vRecv >> nVersion >> Using<CustomUintFormatter<8>>(nServices) >> nTime;
         if (nTime < 0) {
             nTime = 0;
         }
-        nServices = ServiceFlags(nServiceInt);
+        // Ignore the addrMe service bits sent by the peer
+        vRecv.ignore(8);
+        vRecv >> addrMe;
         if (!pfrom.IsInboundConn()) {
             m_addrman.SetServices(pfrom.addr, nServices);
         }
@@ -3714,7 +3717,13 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         if (!vRecv.empty()) {
-            vRecv >> addrFrom >> nNonce;
+            // The version message includes information about the sending node
+            // which we don't use:
+            //   - 8 bytes (service bits)
+            //   - 16 bytes (ipv6 address)
+            //   - 2 bytes (port)
+            vRecv.ignore(26);
+            vRecv >> nNonce;
         }
         if (!vRecv.empty()) {
             std::string strSubVer;
