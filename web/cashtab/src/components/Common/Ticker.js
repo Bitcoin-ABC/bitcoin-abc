@@ -7,7 +7,7 @@ export const currency = {
     logo: mainLogo,
     prefix: 'bitcoincash:',
     coingeckoId: 'bitcoin-cash-abc-2',
-    defaultFee: 83.3,
+    defaultFee: 5.01,
     blockExplorerUrl: 'https://explorer.bitcoinabc.org',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
     tokenName: 'Bitcoin ABC SLP',
