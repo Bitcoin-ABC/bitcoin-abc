@@ -2510,6 +2510,11 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             InvalidChainFound(pindexNew);
         }
 
+        const bool fAvalancheEnabled =
+            gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED);
+        const bool fAutoUnpark =
+            gArgs.GetBoolArg("-automaticunparking", !fAvalancheEnabled);
+
         const CBlockIndex *pindexFork = m_chain.FindFork(pindexNew);
 
         // Check whether all blocks on the path between the currently active
@@ -2523,7 +2528,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             // If this is a parked chain, but it has enough PoW, clear the park
             // state.
             bool fParkedChain = pindexTest->nStatus.isOnParkedChain();
-            if (fParkedChain && gArgs.GetBoolArg("-automaticunparking", true)) {
+            if (fAutoUnpark && fParkedChain) {
                 const CBlockIndex *pindexTip = m_chain.Tip();
 
                 // During initialization, pindexTip and/or pindexFork may be
@@ -2630,8 +2635,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             }
         }
 
-        if (g_avalanche &&
-            gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        if (fAvalancheEnabled && g_avalanche) {
             g_avalanche->addBlockToReconcile(pindexNew);
         }
 
