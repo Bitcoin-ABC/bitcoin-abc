@@ -3789,15 +3789,63 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                 CInv inv;
                 vRecv >> inv;
 
-                uint32_t error = -1;
-                if (inv.type == MSG_BLOCK) {
-                    auto blockIndex = LookupBlockIndex(BlockHash(inv.hash));
-                    if (blockIndex) {
-                        error = ::ChainActive().Contains(blockIndex) ? 0 : 1;
-                    }
+                const auto insertVote = [&](uint32_t e) {
+                    votes.emplace_back(e, inv.hash);
+                };
+
+                // Not a block.
+                if (inv.type != MSG_BLOCK) {
+                    insertVote(-1);
+                    continue;
                 }
 
-                votes.emplace_back(error, inv.hash);
+                // We have a block.
+                const CBlockIndex *pindex =
+                    LookupBlockIndex(BlockHash(inv.hash));
+
+                // Unknown block.
+                if (!pindex) {
+                    insertVote(-1);
+                    continue;
+                }
+
+                // Invalid block
+                if (pindex->nStatus.isInvalid()) {
+                    insertVote(1);
+                    continue;
+                }
+
+                // Parked block
+                if (pindex->nStatus.isOnParkedChain()) {
+                    insertVote(2);
+                    continue;
+                }
+
+                const CBlockIndex *pindexTip = ::ChainActive().Tip();
+                const CBlockIndex *pindexFork =
+                    LastCommonAncestor(pindex, pindexTip);
+
+                // Active block.
+                if (pindex == pindexFork) {
+                    insertVote(0);
+                    continue;
+                }
+
+                // Fork block.
+                if (pindexFork != pindexTip) {
+                    insertVote(3);
+                    continue;
+                }
+
+                // Missing block data.
+                if (!pindex->nStatus.hasData()) {
+                    insertVote(-2);
+                    continue;
+                }
+
+                // This block is built on top of the tip, we have the data, it
+                // is pending connection or rejection.
+                insertVote(-3);
             }
         }
 

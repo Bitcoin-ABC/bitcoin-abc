@@ -26,8 +26,12 @@ from test_framework.util import (
 
 
 BLOCK_ACCEPTED = 0
-BLOCK_REJECTED = 1
+BLOCK_INVALID = 1
+BLOCK_PARKED = 2
+BLOCK_FORK = 3
 BLOCK_UNKNOWN = -1
+BLOCK_MISSING = -2
+BLOCK_PENDING = -3
 
 
 class TestNode(P2PInterface):
@@ -172,7 +176,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         poll_node.send_poll(various_block_hashes)
         assert_response([AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:5]] +
-                        [AvalancheVote(BLOCK_REJECTED, h) for h in various_block_hashes[-3:]])
+                        [AvalancheVote(BLOCK_FORK, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Poll for unknown blocks...")
         various_block_hashes = [
@@ -188,7 +192,7 @@ class AvalancheTest(BitcoinTestFramework):
         ]
         poll_node.send_poll(various_block_hashes)
         assert_response([AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:3]] +
-                        [AvalancheVote(BLOCK_REJECTED, h) for h in various_block_hashes[3:6]] +
+                        [AvalancheVote(BLOCK_FORK, h) for h in various_block_hashes[3:6]] +
                         [AvalancheVote(BLOCK_UNKNOWN, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Trigger polling from the node...")
@@ -286,7 +290,7 @@ class AvalancheTest(BitcoinTestFramework):
         assert(tip_to_park != fork_tip)
 
         def has_parked_new_tip():
-            can_find_block_in_poll(hash_to_find, BLOCK_REJECTED)
+            can_find_block_in_poll(hash_to_find, BLOCK_PARKED)
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
