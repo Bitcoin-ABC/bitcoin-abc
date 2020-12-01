@@ -42,6 +42,16 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+## Docker deployment
+
+```
+npm install --legacy-peer-deps
+docker-compose build
+docker-compose up
+```
+
+Navigate to `localhost:8080` to see the app.
+
 ## CashTab Roadmap
 
 The following features are under active development:
