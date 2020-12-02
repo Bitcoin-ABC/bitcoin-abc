@@ -127,7 +127,8 @@ struct CNodeStateStats {
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
-void Misbehaving(NodeId nodeid, int howmuch, const std::string &reason = "");
+void Misbehaving(NodeId nodeid, int howmuch, const std::string &reason = "")
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);

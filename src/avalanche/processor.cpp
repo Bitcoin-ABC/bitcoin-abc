@@ -6,7 +6,8 @@
 
 #include <avalanche/peermanager.h>
 #include <chain.h>
-#include <key_io.h> // For DecodeSecret
+#include <key_io.h>         // For DecodeSecret
+#include <net_processing.h> // For Misbehaving
 #include <netmessagemaker.h>
 #include <reverse_iterator.h>
 #include <scheduler.h>
@@ -270,7 +271,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            // NB: The request may be old, so we don't increase banscore.
+            LOCK(cs_main);
+            Misbehaving(nodeid, 2, "unexpcted-ava-response");
             return false;
         }
 
@@ -282,15 +284,15 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     const std::vector<Vote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
-        // TODO: increase banscore for inconsistent response.
-        // NB: This isn't timeout but actually node misbehaving.
+        LOCK(cs_main);
+        Misbehaving(nodeid, 100, "invalid-ava-response-size");
         return false;
     }
 
     for (size_t i = 0; i < size; i++) {
         if (invs[i].hash != votes[i].GetHash()) {
-            // TODO: increase banscore for inconsistent response.
-            // NB: This isn't timeout but actually node misbehaving.
+            LOCK(cs_main);
+            Misbehaving(nodeid, 100, "invalid-ava-response-content");
             return false;
         }
     }

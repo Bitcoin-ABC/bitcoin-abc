@@ -1166,8 +1166,8 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
 /**
  * Mark a misbehaving peer to be banned depending upon the value of `-banscore`.
  */
-void Misbehaving(NodeId pnode, int howmuch, const std::string &reason)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+void Misbehaving(NodeId pnode, int howmuch, const std::string &reason) {
+    AssertLockHeld(cs_main);
     if (howmuch == 0) {
         return;
     }
@@ -3882,8 +3882,6 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
 
         std::vector<avalanche::BlockUpdate> updates;
         if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates)) {
-            LOCK(cs_main);
-            Misbehaving(pfrom, 100, "invalid-ava-response-content");
             return true;
         }
 
