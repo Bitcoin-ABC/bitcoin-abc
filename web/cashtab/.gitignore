@@ -10,8 +10,6 @@
 
 # production
 /build
-/dist
-/extension
 
 # misc
 .DS_Store
@@ -28,3 +26,4 @@ yarn-error.log*
 *.crx
 *.zip
 *.pem
+dist/

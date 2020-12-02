@@ -42,6 +42,15 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+## Browser Extension
+
+1. `npm run extension`
+2. Open Chrome or Brave
+3. Navigate to `chrome://extensions/` (or `brave://extensions/`)
+4. Enable Developer Mode
+5. Click "Load unpacked"
+6. Select the `extension/dist` folder that was created with `npm run extension`
+
 ## Docker deployment
 
 ```
