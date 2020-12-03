@@ -13,13 +13,13 @@
 int secp256k1_schnorr_verify(
     const secp256k1_context* ctx,
     const unsigned char *sig64,
-    const unsigned char *msg32,
+    const unsigned char *msghash32,
     const secp256k1_pubkey *pubkey
 ) {
     secp256k1_ge q;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(sig64 != NULL);
     ARG_CHECK(pubkey != NULL);
 
@@ -27,13 +27,13 @@ int secp256k1_schnorr_verify(
         return 0;
     }
 
-    return secp256k1_schnorr_sig_verify(&ctx->ecmult_ctx, sig64, &q, msg32);
+    return secp256k1_schnorr_sig_verify(&ctx->ecmult_ctx, sig64, &q, msghash32);
 }
 
 int secp256k1_schnorr_sign(
     const secp256k1_context *ctx,
     unsigned char *sig64,
-    const unsigned char *msg32,
+    const unsigned char *msghash32,
     const unsigned char *seckey,
     secp256k1_nonce_function noncefp,
     const void *ndata
@@ -46,7 +46,7 @@ int secp256k1_schnorr_sign(
     int pubkeyret;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(secp256k1_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(sig64 != NULL);
     ARG_CHECK(seckey != NULL);
 
@@ -65,7 +65,7 @@ int secp256k1_schnorr_sign(
     overflow |= secp256k1_scalar_is_zero(&sec);
     secp256k1_scalar_cmov(&sec, &secp256k1_scalar_one, overflow);
 
-    ret = secp256k1_schnorr_sig_sign(ctx, sig64, msg32, &sec, &p, noncefp, ndata);
+    ret = secp256k1_schnorr_sig_sign(ctx, sig64, msghash32, &sec, &p, noncefp, ndata);
     if (!ret) {
         memset(sig64, 0, 64);
     }
