@@ -4,7 +4,7 @@ import { Alert, Form, notification, message } from 'antd';
 import { CashSpin, CashSpinIcon } from '../Common/CustomSpinner';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import PrimaryButton, { SecondaryButton } from '../Common/PrimaryButton';
+import { SecondaryButton } from '../Common/PrimaryButton';
 import { CashLoader } from '../Common/CustomIcons';
 import {
     FormItemWithMaxAddon,
@@ -44,6 +44,8 @@ const SendToken = ({ tokenId }) => {
     const { getBCH, getRestUrl, sendToken } = useBCH();
     const BCH = getBCH();
 
+    // Keep this function around for re-enabling later
+    // eslint-disable-next-line no-unused-vars
     async function submit() {
         setFormData({
             ...formData,
@@ -283,11 +285,9 @@ const SendToken = ({ tokenId }) => {
                                                 {apiError && <CashLoader />}
                                             </>
                                         ) : (
-                                            <PrimaryButton
-                                                onClick={() => submit()}
-                                            >
+                                            <SecondaryButton>
                                                 Send {token.info.tokenName}
-                                            </PrimaryButton>
+                                            </SecondaryButton>
                                         )}
                                     </div>
                                     {apiError && (
@@ -301,7 +301,7 @@ const SendToken = ({ tokenId }) => {
                                 </Form>
                                 <Alert
                                     message="Warning"
-                                    description="This wallet sends transactions with a Bitcoin ABC node. SLP tokens existing before the Nov 15, 2020 fork may not be supported on both chains."
+                                    description="Sending SLPA tokens is currently disabled."
                                     type="warning"
                                     showIcon
                                     closable
