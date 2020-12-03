@@ -17,12 +17,12 @@ namespace {
 const TestingSetup *g_setup;
 } // namespace
 
-void initialize() {
+void initialize_connman() {
     static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
     g_setup = testing_setup.get();
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(connman, initialize_connman) {
     const Config &config = GetConfig();
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     CConnman connman{config, fuzzed_data_provider.ConsumeIntegral<uint64_t>(),

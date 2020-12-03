@@ -328,8 +328,8 @@ public:
 };
 } // namespace
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
-    // Tester object (which encapsulates a InvRequestTracker).
+FUZZ_TARGET(txrequest) {
+    // Tester object (which encapsulates a TxRequestTracker).
     Tester tester;
 
     // Decode the input as a sequence of instructions with parameters

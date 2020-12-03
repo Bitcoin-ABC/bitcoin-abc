@@ -10,11 +10,11 @@
 #include <limits>
 #include <memory>
 
-void initialize() {
+void initialize_eval_script() {
     static const ECCVerifyHandle verify_handle;
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(eval_script, initialize_eval_script) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const unsigned int flags =
         fuzzed_data_provider.ConsumeIntegral<unsigned int>();

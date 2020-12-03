@@ -18,12 +18,13 @@ namespace {
 const TestingSetup *g_setup;
 } // namespace
 
-void initialize() {
+void initialize_load_external_block_file() {
     static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
     g_setup = testing_setup.get();
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(load_external_block_file,
+                 initialize_load_external_block_file) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     FuzzedFileProvider fuzzed_file_provider = ConsumeFile(fuzzed_data_provider);
     FILE *fuzzed_block_file = fuzzed_file_provider.open();

@@ -29,11 +29,11 @@ ConsumeBanTimeOffset(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 }
 } // namespace
 
-void initialize() {
+void initialize_banman() {
     static const auto testing_setup = MakeFuzzingContext<>();
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(banman, initialize_banman) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     const fs::path banlist_file = gArgs.GetDataDirNet() / "fuzzed_banlist.dat";
     fs::remove(banlist_file);

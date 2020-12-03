@@ -33,7 +33,7 @@ public:
 };
 } // namespace
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(cuckoocache) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     fuzzed_data_provider_ptr = &fuzzed_data_provider;
     CuckooCache::cache<CuckooCache::KeyOnly<FuzzCuckooCacheKey>, RandomHasher>

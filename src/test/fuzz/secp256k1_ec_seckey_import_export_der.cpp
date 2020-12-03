@@ -17,7 +17,7 @@ int ec_privkey_export_der(const secp256k1_context *ctx, uint8_t *seckey,
                           size_t *seckeylen, const uint8_t *key32,
                           bool compressed);
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(secp256k1_ec_seckey_import_export_der) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     secp256k1_context *secp256k1_context_sign =
         secp256k1_context_create(SECP256K1_CONTEXT_SIGN);

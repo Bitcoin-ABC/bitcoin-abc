@@ -29,14 +29,14 @@
 #include <string>
 #include <vector>
 
-void initialize() {
+void initialize_script() {
     // Fuzzers using pubkey must hold an ECCVerifyHandle.
     static const ECCVerifyHandle verify_handle;
 
     SelectParams(CBaseChainParams::REGTEST);
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(script, initialize_script) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const std::optional<CScript> script_opt =
         ConsumeDeserializable<CScript>(fuzzed_data_provider);

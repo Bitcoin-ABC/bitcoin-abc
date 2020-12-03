@@ -43,7 +43,7 @@ std::vector<uint64_t> BuildHashedSet(
 }
 } // namespace
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(golomb_rice) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     std::vector<uint8_t> golomb_rice_data;
     std::vector<uint64_t> encoded_deltas;

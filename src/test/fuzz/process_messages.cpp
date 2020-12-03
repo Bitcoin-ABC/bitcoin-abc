@@ -22,7 +22,7 @@ namespace {
 const TestingSetup *g_setup;
 } // namespace
 
-void initialize() {
+void initialize_process_messages() {
     static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
     g_setup = testing_setup.get();
     for (int i = 0; i < 2 * COINBASE_MATURITY; i++) {
@@ -31,7 +31,7 @@ void initialize() {
     SyncWithValidationInterfaceQueue();
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(process_messages, initialize_process_messages) {
     const Config &config = GetConfig();
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
 

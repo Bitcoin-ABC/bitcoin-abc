@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(cashaddr) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const std::string random_string =
         fuzzed_data_provider.ConsumeRandomLengthString(112);

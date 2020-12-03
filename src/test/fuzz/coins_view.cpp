@@ -38,12 +38,12 @@ bool operator==(const Coin &a, const Coin &b) {
 }
 } // namespace
 
-void initialize() {
+void initialize_coins_view() {
     static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
     g_setup = testing_setup.get();
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     CCoinsView backend_coins_view;
     CCoinsViewCache coins_view_cache{&backend_coins_view};

@@ -227,7 +227,8 @@ ConsumeFixedLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
     return result;
 }
 
-CNetAddr ConsumeNetAddr(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+inline CNetAddr
+ConsumeNetAddr(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     const Network network = fuzzed_data_provider.PickValueInArray(
         {Network::NET_IPV4, Network::NET_IPV6, Network::NET_INTERNAL,
          Network::NET_ONION});
@@ -252,17 +253,20 @@ CNetAddr ConsumeNetAddr(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return net_addr;
 }
 
-CSubNet ConsumeSubNet(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+inline CSubNet
+ConsumeSubNet(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return {ConsumeNetAddr(fuzzed_data_provider),
             fuzzed_data_provider.ConsumeIntegral<uint8_t>()};
 }
 
-CService ConsumeService(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+inline CService
+ConsumeService(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return {ConsumeNetAddr(fuzzed_data_provider),
             fuzzed_data_provider.ConsumeIntegral<uint16_t>()};
 }
 
-CAddress ConsumeAddress(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+inline CAddress
+ConsumeAddress(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return {ConsumeService(fuzzed_data_provider),
             static_cast<ServiceFlags>(
                 fuzzed_data_provider.ConsumeIntegral<uint64_t>()),
@@ -270,7 +274,7 @@ CAddress ConsumeAddress(FuzzedDataProvider &fuzzed_data_provider) noexcept {
                 fuzzed_data_provider.ConsumeIntegral<uint32_t>()}}};
 }
 
-CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+inline CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     const NodeId node_id = fuzzed_data_provider.ConsumeIntegral<NodeId>();
     const SOCKET socket = INVALID_SOCKET;
     const CAddress address = ConsumeAddress(fuzzed_data_provider);

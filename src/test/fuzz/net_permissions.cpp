@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(net_permissions) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const std::string s = fuzzed_data_provider.ConsumeRandomLengthString(32);
     const NetPermissionFlags net_permission_flags =

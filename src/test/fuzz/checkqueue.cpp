@@ -26,7 +26,7 @@ struct DumbCheck {
 };
 } // namespace
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(checkqueue) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
 
     const unsigned int batch_size =

@@ -15,7 +15,7 @@
 
 using namespace fuzzer;
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(script_bitcoin_consensus) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const std::vector<uint8_t> random_bytes_1 =
         ConsumeRandomLengthByteVector(fuzzed_data_provider);

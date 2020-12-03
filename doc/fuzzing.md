@@ -80,7 +80,7 @@ To start the actual fuzzing use:
 ```
 export FUZZ_TARGET=eval_script  # Pick a fuzz_target
 mkdir ${AFLOUT}/${FUZZ_TARGET}
-${AFLPATH}/afl-fuzz -i ${DIR_FUZZ_IN}/${FUZZ_TARGET} -o ${AFLOUT}/${FUZZ_TARGET} -m80 -- src/test/fuzz/${FUZZ_TARGET}
+FUZZ=${FUZZ_TARGET} ${AFLPATH}/afl-fuzz -i ${DIR_FUZZ_IN}/${FUZZ_TARGET} -o ${AFLOUT}/${FUZZ_TARGET} -m80 -- src/test/fuzz/fuzz
 ```
 
 You may have to change a few kernel parameters to test optimally - `afl-fuzz`
@@ -90,7 +90,7 @@ On macOS you may need to set `AFL_NO_FORKSRV=1` to get the target to run.
 ```
 export FUZZ_TARGET=eval_script  # Pick a fuzz_target
 mkdir ${AFLOUT}/${FUZZ_TARGET}
-AFL_NO_FORKSRV=1 ${AFLPATH}/afl-fuzz -i ${DIR_FUZZ_IN}/${FUZZ_TARGET} -o ${AFLOUT}/${FUZZ_TARGET} -m80 -- src/test/fuzz/${FUZZ_TARGET}
+FUZZ=${FUZZ_TARGET} AFL_NO_FORKSRV=1 ${AFLPATH}/afl-fuzz -i ${DIR_FUZZ_IN}/${FUZZ_TARGET} -o ${AFLOUT}/${FUZZ_TARGET} -m80 -- src/test/fuzz/fuzz
 ```
 
 ## libFuzzer

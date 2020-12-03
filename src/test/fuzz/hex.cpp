@@ -18,11 +18,11 @@
 #include <string>
 #include <vector>
 
-void initialize() {
+void initialize_hex() {
     static const ECCVerifyHandle verify_handle;
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(hex, initialize_hex) {
     const std::string random_hex_string(buffer.begin(), buffer.end());
     const std::vector<uint8_t> data = ParseHex(random_hex_string);
     const std::string hex_data = HexStr(data);

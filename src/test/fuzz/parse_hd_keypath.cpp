@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <vector>
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(parse_hd_keypath) {
     const std::string keypath_str(buffer.begin(), buffer.end());
     std::vector<uint32_t> keypath;
     (void)ParseHDKeypath(keypath_str, keypath);

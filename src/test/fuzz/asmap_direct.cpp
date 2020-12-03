@@ -12,7 +12,9 @@
 #include <optional>
 #include <vector>
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+#include <cassert>
+
+FUZZ_TARGET(asmap_direct) {
     // Encoding: [asmap using 1 bit / byte] 0xFF [addr using 1 bit / byte]
     std::optional<size_t> sep_pos_opt;
     for (size_t pos = 0; pos < buffer.size(); ++pos) {

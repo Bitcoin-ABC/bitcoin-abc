@@ -16,13 +16,13 @@
 #include <string>
 #include <vector>
 
-void initialize() {
+void initialize_key_io() {
     static const ECCVerifyHandle verify_handle;
     ECC_Start();
     SelectParams(CBaseChainParams::MAIN);
 }
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET_INIT(key_io, initialize_key_io) {
     const std::string random_string(buffer.begin(), buffer.end());
 
     const CKey key = DecodeSecret(random_string);

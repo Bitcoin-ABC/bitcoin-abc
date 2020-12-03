@@ -6,252 +6,129 @@ define_property(GLOBAL
 	BRIEF_DOCS "List of fuzz targets"
 	FULL_DOCS "A list of the fuzz targets"
 )
-set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS bitcoin-fuzzers)
+
+add_executable(fuzz EXCLUDE_FROM_ALL
+	fuzz.cpp
+
+	addition_overflow.cpp
+	addrdb.cpp
+	asmap.cpp
+	asmap_direct.cpp
+	autofile.cpp
+	banman.cpp
+	base_encode_decode.cpp
+	block.cpp
+	block_header.cpp
+	blockfilter.cpp
+	bloom_filter.cpp
+	buffered_file.cpp
+	cashaddr.cpp
+	chain.cpp
+	checkqueue.cpp
+	coins_view.cpp
+	connman.cpp
+	crypto.cpp
+	crypto_aes256.cpp
+	crypto_aes256cbc.cpp
+	crypto_chacha20.cpp
+	crypto_chacha20_poly1305_aead.cpp
+	crypto_common.cpp
+	crypto_hkdf_hmac_sha256_l32.cpp
+	crypto_poly1305.cpp
+	cuckoocache.cpp
+	descriptor_parse.cpp
+	deserialize.cpp
+	eval_script.cpp
+	fee_rate.cpp
+	fees.cpp
+	flatfile.cpp
+	float.cpp
+	golomb_rice.cpp
+	hex.cpp
+	http_request.cpp
+	integer.cpp
+	key.cpp
+	key_io.cpp
+	kitchen_sink.cpp
+	load_external_block_file.cpp
+	locale.cpp
+	merkleblock.cpp
+	message.cpp
+	multiplication_overflow.cpp
+	net.cpp
+	net_permissions.cpp
+	netaddress.cpp
+	p2p_transport_deserializer.cpp
+	parse_hd_keypath.cpp
+	parse_iso8601.cpp
+	parse_numbers.cpp
+	parse_script.cpp
+	parse_univalue.cpp
+	prevector.cpp
+	pow.cpp
+	primitives_transaction.cpp
+	process_message.cpp
+	process_messages.cpp
+	protocol.cpp
+	psbt.cpp
+	random.cpp
+	rolling_bloom_filter.cpp
+	script.cpp
+	script_bitcoin_consensus.cpp
+	script_descriptor_cache.cpp
+	script_flags.cpp
+	script_interpreter.cpp
+	script_ops.cpp
+	script_sigcache.cpp
+	script_sign.cpp
+	scriptnum_ops.cpp
+	secp256k1_ecdsa_signature_parse_der_lax.cpp
+	secp256k1_ec_seckey_import_export_der.cpp
+	signature_checker.cpp
+	span.cpp
+	spanparsing.cpp
+	string.cpp
+	strprintf.cpp
+	system.cpp
+	timedata.cpp
+	transaction.cpp
+	tx_in.cpp
+	tx_out.cpp
+	txrequest.cpp
+)
+
+# Get the link options for this target and reuse them for checking if a
+# main() is needed.
+get_target_property(CMAKE_REQUIRED_LINK_OPTIONS fuzz LINK_OPTIONS)
 
 include(SanitizeHelper)
+sanitize_c_cxx_definition("fuzz_target_builds_without_main_" fuzz _builds_without_main)
+
 include(CheckCXXSourceCompiles)
+# Try to compile without main to check if we need to provide one
+check_cxx_source_compiles("
+#include <cstdint>
+#include <cstddef>
+extern \"C\" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) { return 0; }
+" ${_builds_without_main})
+
+if(NOT ${_builds_without_main})
+target_compile_definitions(fuzz PRIVATE PROVIDE_MAIN_FUNCTION)
+endif()
+
+target_link_libraries(fuzz server testutil rpcclient)
+if(TARGET bitcoinconsensus-shared)
+target_link_libraries(fuzz bitcoinconsensus-shared)
+else()
+target_link_libraries(fuzz bitcoinconsensus)
+endif()
+
+add_dependencies(bitcoin-fuzzers fuzz)
+
+set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS fuzz)
+
 include(InstallationHelper)
-function(add_fuzz_target TARGET EXE_NAME)
-	add_executable(${TARGET} EXCLUDE_FROM_ALL
-		fuzz.cpp
-		${ARGN}
-	)
-	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${EXE_NAME})
-
-	# Get the link options for this target and reuse them for checking if a
-	# main() is needed.
-	get_target_property(CMAKE_REQUIRED_LINK_OPTIONS ${TARGET} LINK_OPTIONS)
-
-	sanitize_c_cxx_definition("fuzz_target_builds_without_main_" ${TARGET} _builds_without_main)
-
-	# Try to compile without main to check if we need to provide one
-	check_cxx_source_compiles("
-		#include <cstdint>
-		#include <cstddef>
-		extern \"C\" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) { return 0; }
-	" ${_builds_without_main})
-
-	if(NOT ${_builds_without_main})
-		target_compile_definitions(${TARGET} PUBLIC PROVIDE_MAIN_FUNCTION)
-	endif()
-
-	target_link_libraries(${TARGET} server testutil rpcclient)
-	if(TARGET bitcoinconsensus-shared)
-		target_link_libraries(${TARGET} bitcoinconsensus-shared)
-	else()
-		target_link_libraries(${TARGET} bitcoinconsensus)
-	endif()
-
-	add_dependencies(bitcoin-fuzzers ${TARGET})
-
-	set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS ${TARGET})
-
-	install_target(${TARGET}
-		COMPONENT fuzzer
-		EXCLUDE_FROM_ALL
-	)
-endfunction()
-
-function(add_regular_fuzz_targets)
-	foreach(_fuzz_test_name ${ARGN})
-		sanitize_target_name("fuzz-" ${_fuzz_test_name} _fuzz_target_name)
-		add_fuzz_target(
-			${_fuzz_target_name}
-			${_fuzz_test_name}
-
-			# Sources
-			"${_fuzz_test_name}.cpp"
-		)
-	endforeach()
-endfunction()
-
-include(SanitizeHelper)
-function(add_deserialize_fuzz_targets)
-	foreach(_fuzz_test_name ${ARGN})
-		sanitize_target_name("fuzz-" ${_fuzz_test_name} _fuzz_target_name)
-		add_fuzz_target(
-			${_fuzz_target_name}
-			${_fuzz_test_name}
-
-			# Sources
-			deserialize.cpp
-		)
-
-		sanitize_c_cxx_definition("" ${_fuzz_test_name} _target_definition)
-		string(TOUPPER ${_target_definition} _target_definition)
-		target_compile_definitions(${_fuzz_target_name} PRIVATE ${_target_definition})
-	endforeach()
-endfunction()
-
-function(add_process_message_fuzz_targets)
-	foreach(_fuzz_test_name ${ARGN})
-		sanitize_target_name("fuzz-process_message_" ${_fuzz_test_name} _fuzz_target_name)
-		add_fuzz_target(
-			${_fuzz_target_name}
-			process_message_${_fuzz_test_name}
-
-			# Sources
-			process_message.cpp
-		)
-
-		target_compile_definitions(${_fuzz_target_name} PRIVATE MESSAGE_TYPE=${_fuzz_test_name})
-	endforeach()
-endfunction()
-
-add_regular_fuzz_targets(
-	addition_overflow
-	addrdb
-	asmap
-	asmap_direct
-	autofile
-	banman
-	base_encode_decode
-	block
-	block_header
-	blockfilter
-	bloom_filter
-	buffered_file
-	cashaddr
-	chain
-	checkqueue
-	coins_view
-	connman
-	crypto
-	crypto_aes256
-	crypto_aes256cbc
-	crypto_chacha20
-	crypto_chacha20_poly1305_aead
-	crypto_common
-	crypto_hkdf_hmac_sha256_l32
-	crypto_poly1305
-	cuckoocache
-	descriptor_parse
-	eval_script
-	fee_rate
-	fees
-	flatfile
-	float
-	golomb_rice
-	hex
-	http_request
-	integer
-	key
-	key_io
-	kitchen_sink
-	load_external_block_file
-	locale
-	merkleblock
-	message
-	multiplication_overflow
-	net
-	net_permissions
-	netaddress
-	p2p_transport_deserializer
-	parse_hd_keypath
-	parse_iso8601
-	parse_numbers
-	parse_script
-	parse_univalue
-	prevector
-	pow
-	primitives_transaction
-	process_message
-	process_messages
-	protocol
-	psbt
-	random
-	rolling_bloom_filter
-	script
-	script_bitcoin_consensus
-	script_descriptor_cache
-	script_flags
-	script_interpreter
-	script_ops
-	script_sigcache
-	script_sign
-	scriptnum_ops
-	secp256k1_ecdsa_signature_parse_der_lax
-	secp256k1_ec_seckey_import_export_der
-	signature_checker
-	span
-	spanparsing
-	string
-	strprintf
-	system
-	timedata
-	transaction
-	tx_in
-	tx_out
-	txrequest
-)
-
-add_deserialize_fuzz_targets(
-	addr_info_deserialize
-	address_deserialize_v1_notime
-	address_deserialize_v1_withtime
-	address_deserialize_v2
-	addrman_deserialize
-	banentry_deserialize
-	block_deserialize
-	block_file_info_deserialize
-	block_filter_deserialize
-	block_header_and_short_txids_deserialize
-	blockheader_deserialize
-	blocklocator_deserialize
-	blockmerkleroot
-	blocktransactions_deserialize
-	blocktransactionsrequest_deserialize
-	blockundo_deserialize
-	bloomfilter_deserialize
-	coins_deserialize
-	diskblockindex_deserialize
-	fee_rate_deserialize
-	flat_file_pos_deserialize
-	inv_deserialize
-	key_origin_info_deserialize
-	merkle_block_deserialize
-	messageheader_deserialize
-	netaddr_deserialize
-	out_point_deserialize
-	partial_merkle_tree_deserialize
-	partially_signed_transaction_deserialize
-	psbt_input_deserialize
-	psbt_output_deserialize
-	pub_key_deserialize
-	script_deserialize
-	service_deserialize
-	snapshotmetadata_deserialize
-	sub_net_deserialize
-	tx_in_deserialize
-	txoutcompressor_deserialize
-	txundo_deserialize
-	uint160_deserialize
-	uint256_deserialize
-)
-
-add_process_message_fuzz_targets(
-	addr
-	block
-	blocktxn
-	cmpctblock
-	feefilter
-	filteradd
-	filterclear
-	filterload
-	getaddr
-	getblocks
-	getblocktxn
-	getdata
-	getheaders
-	headers
-	inv
-	mempool
-	notfound
-	ping
-	pong
-	sendcmpct
-	sendheaders
-	tx
-	verack
-	version
+install_target(fuzz
+COMPONENT fuzzer
+	EXCLUDE_FROM_ALL
 )

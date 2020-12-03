@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-void test_one_input(const std::vector<uint8_t> &buffer) {
+FUZZ_TARGET(span) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
 
     std::string str = fuzzed_data_provider.ConsumeBytesAsString(32);
