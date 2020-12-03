@@ -12,12 +12,7 @@ SignedStake ProofBuilder::StakeSigner::sign(const ProofId &proofid) {
     const uint256 h = stake.getHash(proofid);
 
     std::array<uint8_t, 64> sig;
-    std::vector<uint8_t> vchSig;
-    if (key.SignSchnorr(h, vchSig)) {
-        // Schnorr sig are always 64 bytes in size.
-        assert(vchSig.size() == 64);
-        std::copy(vchSig.begin(), vchSig.end(), sig.begin());
-    } else {
+    if (!key.SignSchnorr(h, sig)) {
         sig.fill(0);
     }
 

@@ -269,20 +269,35 @@ bool CKey::SignECDSA(const uint256 &hash, std::vector<uint8_t> &vchSig,
     return true;
 }
 
+static bool DoSignSchnorr(const CKey &key, const uint256 &hash, uint8_t *buf,
+                          uint32_t test_case) {
+    if (!key.IsValid()) {
+        return false;
+    }
+
+    uint8_t extra_entropy[32] = {0};
+    WriteLE32(extra_entropy, test_case);
+
+    int ret = secp256k1_schnorr_sign(
+        secp256k1_context_sign, buf, hash.begin(), key.begin(),
+        secp256k1_nonce_function_rfc6979, test_case ? extra_entropy : nullptr);
+    assert(ret);
+    return true;
+}
+
+bool CKey::SignSchnorr(const uint256 &hash,
+                       std::array<uint8_t, CPubKey::SCHNORR_SIZE> &sig,
+                       uint32_t test_case) const {
+    return DoSignSchnorr(*this, hash, sig.data(), test_case);
+}
+
 bool CKey::SignSchnorr(const uint256 &hash, std::vector<uint8_t> &vchSig,
                        uint32_t test_case) const {
     if (!fValid) {
         return false;
     }
-    vchSig.resize(64);
-    uint8_t extra_entropy[32] = {0};
-    WriteLE32(extra_entropy, test_case);
-
-    int ret = secp256k1_schnorr_sign(
-        secp256k1_context_sign, &vchSig[0], hash.begin(), begin(),
-        secp256k1_nonce_function_rfc6979, test_case ? extra_entropy : nullptr);
-    assert(ret);
-    return true;
+    vchSig.resize(CPubKey::SCHNORR_SIZE);
+    return DoSignSchnorr(*this, hash, vchSig.data(), test_case);
 }
 
 bool CKey::VerifyPubKey(const CPubKey &pubkey) const {

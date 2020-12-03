@@ -120,6 +120,9 @@ public:
      * Create a Schnorr signature.
      * The test_case parameter tweaks the deterministic nonce.
      */
+    bool SignSchnorr(const uint256 &hash,
+                     std::array<uint8_t, CPubKey::SCHNORR_SIZE> &sig,
+                     uint32_t test_case = 0) const;
     bool SignSchnorr(const uint256 &hash, std::vector<uint8_t> &vchSig,
                      uint32_t test_case = 0) const;
 

@@ -222,12 +222,7 @@ namespace {
             const uint256 hash = hasher.GetHash();
 
             // Now let's sign!
-            std::vector<uint8_t> vchSig;
-            if (key.SignSchnorr(hash, vchSig)) {
-                // Schnorr sigs are 64 bytes in size.
-                assert(vchSig.size() == 64);
-                std::copy(vchSig.begin(), vchSig.end(), sig.begin());
-            } else {
+            if (!key.SignSchnorr(hash, sig)) {
                 sig.fill(0);
             }
         }

@@ -21,9 +21,7 @@ uint256 Stake::getHash(const ProofId &proofid) const {
 }
 
 bool SignedStake::verify(const ProofId &proofid) const {
-    // Unfortunately, the verify API require a vector.
-    std::vector<uint8_t> vchSig{sig.begin(), sig.end()};
-    return stake.getPubkey().VerifySchnorr(stake.getHash(proofid), vchSig);
+    return stake.getPubkey().VerifySchnorr(stake.getHash(proofid), sig);
 }
 
 ProofId Proof::computeProofId() const {

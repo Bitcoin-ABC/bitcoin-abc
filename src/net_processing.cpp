@@ -3870,10 +3870,7 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         if (!g_avalanche->forNode(pfrom.GetId(), [&](const avalanche::Node &n) {
                 std::array<uint8_t, 64> sig;
                 vRecv >> sig;
-
-                // Unfortunately, the verify API require a vector.
-                std::vector<uint8_t> vchSig{sig.begin(), sig.end()};
-                return n.pubkey.VerifySchnorr(verifier.GetHash(), vchSig);
+                return n.pubkey.VerifySchnorr(verifier.GetHash(), sig);
             })) {
             LOCK(cs_main);
             Misbehaving(pfrom, 100, "invalid-ava-response-signature");

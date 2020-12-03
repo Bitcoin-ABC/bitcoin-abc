@@ -25,7 +25,7 @@ public:
     explicit CKeyID(const uint160 &in) : uint160(in) {}
 };
 
-typedef uint256 ChainCode;
+using ChainCode = uint256;
 
 /** An encapsulated public key. */
 class CPubKey {
@@ -35,6 +35,7 @@ public:
      */
     static constexpr unsigned int SIZE = 65;
     static constexpr unsigned int COMPRESSED_SIZE = 33;
+    static constexpr unsigned int SCHNORR_SIZE = 64;
     static constexpr unsigned int SIGNATURE_SIZE = 72;
     static constexpr unsigned int COMPACT_SIGNATURE_SIZE = 65;
     /**
@@ -163,6 +164,8 @@ public:
      * Verify a Schnorr signature (=64 bytes).
      * If this public key is not fully valid, the return value will be false.
      */
+    bool VerifySchnorr(const uint256 &hash,
+                       const std::array<uint8_t, SCHNORR_SIZE> &sig) const;
     bool VerifySchnorr(const uint256 &hash,
                        const std::vector<uint8_t> &vchSig) const;
 
