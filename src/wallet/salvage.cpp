@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <config.h>
 #include <fs.h>
 #include <streams.h>
 #include <wallet/salvage.h>
@@ -15,11 +16,7 @@ static const char *HEADER_END = "HEADER=END";
 static const char *DATA_END = "DATA=END";
 typedef std::pair<std::vector<uint8_t>, std::vector<uint8_t>> KeyValPair;
 
-bool RecoverDatabaseFile(const fs::path &file_path, void *callbackDataIn,
-                         bool (*recoverKVcallback)(void *callbackData,
-                                                   CDataStream ssKey,
-                                                   CDataStream ssValue),
-                         std::string &newFilename) {
+bool RecoverDatabaseFile(const fs::path &file_path) {
     std::string filename;
     std::shared_ptr<BerkeleyEnvironment> env =
         GetWalletEnv(file_path, filename);
@@ -32,7 +29,7 @@ bool RecoverDatabaseFile(const fs::path &file_path, void *callbackDataIn,
     // Set -rescan so any missing transactions will be
     // found.
     int64_t now = GetTime();
-    newFilename = strprintf("%s.%d.bak", filename, now);
+    std::string newFilename = strprintf("%s.%d.bak", filename, now);
 
     int result = env->dbenv->dbrename(nullptr, filename.c_str(), nullptr,
                                       newFilename.c_str(), DB_AUTO_COMMIT);
@@ -126,13 +123,28 @@ bool RecoverDatabaseFile(const fs::path &file_path, void *callbackDataIn,
     }
 
     DbTxn *ptxn = env->TxnBegin();
+    CWallet dummyWallet(GetConfig().GetChainParams(), nullptr, WalletLocation(),
+                        WalletDatabase::CreateDummy());
     for (KeyValPair &row : salvagedData) {
-        if (recoverKVcallback) {
-            CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION);
-            if (!(*recoverKVcallback)(callbackDataIn, ssKey, ssValue)) {
-                continue;
-            }
+        /* Filter for only private key type KV pairs to be added to the salvaged
+         * wallet */
+        CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
+        CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION);
+        std::string strType, strErr;
+        bool fReadOK;
+        {
+            // Required in LoadKeyMetadata():
+            LOCK(dummyWallet.cs_wallet);
+            fReadOK =
+                ReadKeyValue(&dummyWallet, ssKey, ssValue, strType, strErr);
+        }
+        if (!WalletBatch::IsKeyType(strType) && strType != DBKeys::HDCHAIN) {
+            continue;
+        }
+        if (!fReadOK) {
+            LogPrintf("WARNING: WalletBatch::Recover skipping %s: %s\n",
+                      strType, strErr);
+            continue;
         }
         Dbt datKey(&row.first[0], row.first.size());
         Dbt datValue(&row.second[0], row.second.size());
@@ -145,26 +157,4 @@ bool RecoverDatabaseFile(const fs::path &file_path, void *callbackDataIn,
     pdbCopy->close(0);
 
     return fSuccess;
-}
-
-bool RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey,
-                           CDataStream ssValue) {
-    CWallet *dummyWallet = reinterpret_cast<CWallet *>(callbackData);
-    std::string strType, strErr;
-    bool fReadOK;
-    {
-        // Required in LoadKeyMetadata():
-        LOCK(dummyWallet->cs_wallet);
-        fReadOK = ReadKeyValue(dummyWallet, ssKey, ssValue, strType, strErr);
-    }
-    if (!WalletBatch::IsKeyType(strType) && strType != DBKeys::HDCHAIN) {
-        return false;
-    }
-    if (!fReadOK) {
-        LogPrintf("WARNING: WalletBatch::Recover skipping %s: %s\n", strType,
-                  strErr);
-        return false;
-    }
-
-    return true;
 }
