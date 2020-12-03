@@ -6,12 +6,13 @@
 #define BITCOIN_AVALANCHE_TEST_UTIL_H
 
 #include <avalanche/proof.h>
+#include <pubkey.h>
 
 #include <cstdio>
 
 namespace avalanche {
 
-Proof buildRandomProof(uint32_t score);
+Proof buildRandomProof(uint32_t score, const CPubKey &master = CPubKey());
 
 } // namespace avalanche
 

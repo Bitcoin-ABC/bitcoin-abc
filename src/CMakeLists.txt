@@ -519,6 +519,8 @@ endif()
 add_library(server
 	addrdb.cpp
 	addrman.cpp
+	avalanche/delegation.cpp
+	avalanche/delegationbuilder.cpp
 	avalanche/peermanager.cpp
 	avalanche/processor.cpp
 	avalanche/proof.cpp

@@ -13,6 +13,7 @@ add_boost_unit_tests_to_suite(avalanche test-avalanche
 	util.cpp
 
 	TESTS
+		delegation_tests.cpp
 		peermanager_tests.cpp
 		processor_tests.cpp
 		proof_tests.cpp

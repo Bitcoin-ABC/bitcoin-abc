@@ -1,0 +1,45 @@
+// Copyright (c) 2020 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <avalanche/delegationbuilder.h>
+
+#include <key.h>
+
+namespace avalanche {
+
+DelegationBuilder::DelegationBuilder(const Proof &p)
+    : proofid(p.getId()), dgid(proofid) {
+    levels.push_back({p.getMaster(), {}});
+}
+
+bool DelegationBuilder::addLevel(const CKey &key, const CPubKey &master) {
+    // Ensures that the private key provided is the one we need.
+    if (levels.back().pubkey != key.GetPubKey()) {
+        return false;
+    }
+
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << dgid;
+    ss << master;
+    auto hash = ss.GetHash();
+
+    if (!key.SignSchnorr(hash, levels.back().sig)) {
+        return false;
+    }
+
+    dgid = DelegationId(hash);
+    levels.push_back({master, {}});
+    return true;
+}
+
+Delegation DelegationBuilder::build() const {
+    std::vector<Delegation::Level> dglvls;
+    for (size_t i = 1; i < levels.size(); i++) {
+        dglvls.push_back({levels[i].pubkey, levels[i - 1].sig});
+    }
+
+    return Delegation(proofid, dgid, std::move(dglvls));
+}
+
+} // namespace avalanche

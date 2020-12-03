@@ -6,10 +6,10 @@
 #define BITCOIN_AVALANCHE_PROOF_H
 
 #include <amount.h>
+#include <avalanche/proofid.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <serialize.h>
-#include <uint256.h>
 
 #include <array>
 #include <cstdint>
@@ -20,17 +20,6 @@ class CCoinsView;
 namespace avalanche {
 
 class ProofValidationState;
-
-struct ProofId : public uint256 {
-    explicit ProofId() : uint256() {}
-    explicit ProofId(const uint256 &b) : uint256(b) {}
-
-    static ProofId fromHex(const std::string &str) {
-        ProofId r;
-        r.SetHex(str);
-        return r;
-    }
-};
 
 class Stake {
     COutPoint utxo;

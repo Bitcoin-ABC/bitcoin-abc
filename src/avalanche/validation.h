@@ -28,6 +28,14 @@ enum class ProofValidationResult {
 
 class ProofValidationState : public ValidationState<ProofValidationResult> {};
 
+enum class DelegationResult {
+    NONE = 0,
+    INCORRECT_PROOF,
+    INVALID_SIGNATURE,
+};
+
+class DelegationState : public ValidationState<DelegationResult> {};
+
 } // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_VALIDATION_H

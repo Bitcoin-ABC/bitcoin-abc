@@ -15,7 +15,7 @@
 
 namespace avalanche {
 
-Proof buildRandomProof(uint32_t score) {
+Proof buildRandomProof(uint32_t score, const CPubKey &master) {
     CKey key;
     key.MakeNewKey(true);
 
@@ -32,7 +32,7 @@ Proof buildRandomProof(uint32_t score) {
         coins.AddCoin(o, Coin(CTxOut(v, script), height, is_coinbase), false);
     }
 
-    ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), CPubKey());
+    ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), master);
     pb.addUTXO(o, v, height, is_coinbase, std::move(key));
     return pb.build();
 }

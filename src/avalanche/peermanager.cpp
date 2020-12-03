@@ -4,6 +4,7 @@
 
 #include <avalanche/peermanager.h>
 
+#include <avalanche/proofid.h>
 #include <avalanche/validation.h>
 #include <random.h>
 #include <validation.h> // For ChainstateActive()
