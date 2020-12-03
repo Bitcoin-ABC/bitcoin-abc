@@ -36,7 +36,7 @@ templates:
       - - bitcoind
     post_build: |
       "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -debug=net
-    timeout: 14400
+    timeout: 28800
     artifacts:
       ibd/debug.log: log/debug.log
 
@@ -45,7 +45,7 @@ templates:
       - - bitcoind
     post_build: |
       "${TOPLEVEL}/contrib/teamcity/ibd.sh" -disablewallet -assumevalid=0 -checkpoints=0 -debug=net
-    timeout: 21600
+    timeout: 28800
     artifacts:
       ibd/debug.log: log/debug.log
 
