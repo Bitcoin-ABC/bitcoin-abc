@@ -353,9 +353,9 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 }
 
 bool Processor::addNode(NodeId nodeid, const Proof &proof,
-                        const CPubKey &pubkey) {
+                        const Delegation &delegation) {
     LOCK(cs_peerManager);
-    return peerManager->addNode(nodeid, proof, pubkey);
+    return peerManager->addNode(nodeid, proof, delegation);
 }
 
 bool Processor::forNode(NodeId nodeid,

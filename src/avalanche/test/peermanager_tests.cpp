@@ -2,11 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/test/util.h>
 #include <script/standard.h>
 #include <validation.h>
-#include <avalanche/test/util.h>
 
 #include <test/util/setup_common.h>
 
@@ -162,11 +163,14 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
 
     // One peer, we always return it.
     Proof proof0 = buildRandomProof(100);
-    pm.addNode(node0, buildRandomProof(100), CPubKey());
+    Delegation dg0 = DelegationBuilder(proof0).build();
+    pm.addNode(node0, proof0, dg0);
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    pm.addNode(node1, buildRandomProof(200), CPubKey());
+    Proof proof1 = buildRandomProof(200);
+    Delegation dg1 = DelegationBuilder(proof1).build();
+    pm.addNode(node1, proof1, dg1);
 
     std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
@@ -178,7 +182,9 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    pm.addNode(node2, buildRandomProof(100), CPubKey());
+    Proof proof2 = buildRandomProof(100);
+    Delegation dg2 = DelegationBuilder(proof2).build();
+    pm.addNode(node2, proof2, dg2);
 
     results.clear();
     for (int i = 0; i < 10000; i++) {
@@ -294,11 +300,12 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Create one peer.
     Proof proof = buildRandomProof(100000000);
+    Delegation dg = DelegationBuilder(proof).build();
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
     for (int i = 0; i < 4; i++) {
-        BOOST_CHECK(pm.addNode(i, proof, CPubKey()));
+        BOOST_CHECK(pm.addNode(i, proof, dg));
     }
 
     for (int i = 0; i < 100; i++) {
@@ -332,7 +339,8 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     // Move a node from a peer to another. This peer has a very low score such
     // as chances of being picked are 1 in a billion.
     Proof altproof = buildRandomProof(1);
-    BOOST_CHECK(pm.addNode(3, altproof, CPubKey()));
+    Delegation altdg = DelegationBuilder(altproof).build();
+    BOOST_CHECK(pm.addNode(3, altproof, altdg));
 
     int node3selected = 0;
     for (int i = 0; i < 100; i++) {

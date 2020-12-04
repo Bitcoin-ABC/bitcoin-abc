@@ -4,7 +4,7 @@
 
 #include <avalanche/peermanager.h>
 
-#include <avalanche/proofid.h>
+#include <avalanche/delegation.h>
 #include <avalanche/validation.h>
 #include <random.h>
 #include <validation.h> // For ChainstateActive()
@@ -109,21 +109,27 @@ bool PeerManager::removePeer(const PeerId peerid) {
 }
 
 bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
-                          const CPubKey &pubkey) {
+                          const Delegation &delegation) {
     const PeerId peerid = getPeer(proof);
     if (peerid == NO_PEER) {
         return false;
     }
 
+    DelegationState state;
+    CPubKey pubkey;
+    if (!delegation.verify(state, proof, pubkey)) {
+        return false;
+    }
+
     auto nit = nodes.find(nodeid);
     if (nit == nodes.end()) {
-        return nodes.emplace(nodeid, peerid, pubkey).second;
+        return nodes.emplace(nodeid, peerid, std::move(pubkey)).second;
     }
 
     // We actually have this node already, we need to update it.
     return nodes.modify(nit, [&](Node &n) {
         n.peerid = peerid;
-        n.pubkey = pubkey;
+        n.pubkey = std::move(pubkey);
     });
 }
 

@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/delegationbuilder.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
@@ -78,7 +79,13 @@ static UniValue addavalanchenode(const Config &config,
     avalanche::Proof proof;
     ss >> proof;
 
-    return g_avalanche->addNode(nodeid, proof, key);
+    if (key != proof.getMaster()) {
+        // TODO: we want to provide a proper delegation.
+        return false;
+    }
+
+    return g_avalanche->addNode(nodeid, proof,
+                                avalanche::DelegationBuilder(proof).build());
 }
 
 static UniValue buildavalancheproof(const Config &config,

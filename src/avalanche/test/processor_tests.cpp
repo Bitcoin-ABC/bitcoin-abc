@@ -4,6 +4,7 @@
 
 #include <avalanche/processor.h>
 
+#include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
 #include <chain.h>
@@ -122,14 +123,21 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         return pb.build();
     }
 
+    bool addNode(NodeId nodeid) {
+        Proof proof = GetProof();
+        return m_processor->addNode(nodeid, proof,
+                                    DelegationBuilder(proof).build());
+    }
+
     std::array<CNode *, 8> ConnectNodes() {
         PeerManager &pm = getPeerManager();
         Proof proof = GetProof();
+        Delegation dg = DelegationBuilder(proof).build();
 
         std::array<CNode *, 8> nodes;
         for (CNode *&n : nodes) {
             n = ConnectNode(NODE_AVALANCHE);
-            BOOST_CHECK(pm.addNode(n->GetId(), proof, masterpriv.GetPubKey()));
+            BOOST_CHECK(pm.addNode(n->GetId(), proof, dg));
         }
 
         return nodes;
@@ -561,7 +569,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     ConnectNode(NODE_NONE);
     auto avanode = ConnectNode(NODE_AVALANCHE);
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(m_processor->addNode(avanodeid, GetProof(), CPubKey()));
+    BOOST_CHECK(addNode(avanodeid));
 
     // It returns the avalanche peer.
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
@@ -693,7 +701,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(NODE_AVALANCHE);
     NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(m_processor->addNode(avanodeid, GetProof(), CPubKey()));
+    BOOST_CHECK(addNode(avanodeid));
 
     // Expire requests after some time.
     auto queryTimeDuration = std::chrono::milliseconds(10);
@@ -733,11 +741,12 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Create enough nodes so that we run into the inflight request limit.
     PeerManager &pm = getPeerManager();
     Proof proof = GetProof();
+    Delegation dg = DelegationBuilder(proof).build();
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
         n = ConnectNode(NODE_AVALANCHE);
-        BOOST_CHECK(pm.addNode(n->GetId(), proof, CPubKey()));
+        BOOST_CHECK(pm.addNode(n->GetId(), proof, dg));
     }
 
     // Add a block to poll
@@ -879,7 +888,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(NODE_AVALANCHE);
     NodeId nodeid = avanode->GetId();
-    BOOST_CHECK(m_processor->addNode(nodeid, GetProof(), CPubKey()));
+    BOOST_CHECK(addNode(nodeid));
 
     // There is no query in flight at the moment.
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), nodeid);

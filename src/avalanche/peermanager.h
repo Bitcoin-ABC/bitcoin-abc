@@ -24,6 +24,8 @@
 
 namespace avalanche {
 
+class Delegation;
+
 struct Slot {
 private:
     uint64_t start;
@@ -143,7 +145,8 @@ public:
     /**
      * Node API.
      */
-    bool addNode(NodeId nodeid, const Proof &proof, const CPubKey &pubkey);
+    bool addNode(NodeId nodeid, const Proof &proof,
+                 const Delegation &delegation);
     bool removeNode(NodeId nodeid);
 
     NodeId selectNode();
