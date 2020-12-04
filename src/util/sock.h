@@ -6,6 +6,7 @@
 #define BITCOIN_UTIL_SOCK_H
 
 #include <compat.h>
+#include <threadinterrupt.h>
 #include <util/time.h>
 
 #include <chrono>
@@ -124,6 +125,38 @@ public:
      */
     virtual bool Wait(std::chrono::milliseconds timeout, Event requested,
                       Event *occurred = nullptr) const;
+
+    /* Higher level, convenience, methods. These may throw. */
+
+    /**
+     * Send the given data, retrying on transient errors.
+     * @param[in] data Data to send.
+     * @param[in] timeout Timeout for the entire operation.
+     * @param[in] interrupt If this is signaled then the operation is canceled.
+     * @throws std::runtime_error if the operation cannot be completed. In this
+     * case only some of the data will be written to the socket.
+     */
+    virtual void SendComplete(const std::string &data,
+                              std::chrono::milliseconds timeout,
+                              CThreadInterrupt &interrupt) const;
+
+    /**
+     * Read from socket until a terminator character is encountered. Will never
+     * consume bytes past the terminator from the socket.
+     * @param[in] terminator Character up to which to read from the socket.
+     * @param[in] timeout Timeout for the entire operation.
+     * @param[in] interrupt If this is signaled then the operation is canceled.
+     * @param[in] max_data The maximum amount of data (in bytes) to receive.
+     *     If this many bytes are received and there is still no terminator,
+     *     then this method will throw an exception.
+     * @return The data that has been read, without the terminating character.
+     * @throws std::runtime_error if the operation cannot be completed. In this
+     *     case some bytes may have been consumed from the socket.
+     */
+    virtual std::string RecvUntilTerminator(uint8_t terminator,
+                                            std::chrono::milliseconds timeout,
+                                            CThreadInterrupt &interrupt,
+                                            size_t max_data) const;
 
 private:
     /**
