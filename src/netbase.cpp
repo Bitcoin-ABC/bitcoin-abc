@@ -14,6 +14,7 @@
 #include <util/time.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -366,9 +367,6 @@ static IntrRecvError InterruptibleRecv(uint8_t *data, size_t len, int timeout,
                                        const Sock &sock) {
     int64_t curTime = GetTimeMillis();
     int64_t endTime = curTime + timeout;
-    // Maximum time to wait for I/O readiness. It will take up until this time
-    // (in millis) to break off in case of an interruption.
-    const int64_t maxWait = 1000;
     while (len > 0 && curTime < endTime) {
         // Optimistically try the recv first
         ssize_t ret = sock.Recv(data, len, 0);
@@ -383,11 +381,13 @@ static IntrRecvError InterruptibleRecv(uint8_t *data, size_t len, int timeout,
             int nErr = WSAGetLastError();
             if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK ||
                 nErr == WSAEINVAL) {
-                // Only wait at most maxWait milliseconds at a time, unless
+                // Only wait at most MAX_WAIT_FOR_IO at a time, unless
                 // we're approaching the end of the specified total timeout
-                int timeout_ms = std::min(endTime - curTime, maxWait);
-                if (!sock.Wait(std::chrono::milliseconds{timeout_ms},
-                               Sock::RECV)) {
+                const auto remaining =
+                    std::chrono::milliseconds{endTime - curTime};
+                const auto timeout_ = std::min(
+                    remaining, std::chrono::milliseconds{MAX_WAIT_FOR_IO});
+                if (!sock.Wait(timeout_, Sock::RECV)) {
                     return IntrRecvError::NetworkError;
                 }
             } else {
