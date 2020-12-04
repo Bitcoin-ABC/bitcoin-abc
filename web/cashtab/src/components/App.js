@@ -20,6 +20,7 @@ import {
     useHistory,
 } from 'react-router-dom';
 
+import fbt from 'fbt';
 const { Footer } = Layout;
 const { TabPane } = Tabs;
 
@@ -216,7 +217,9 @@ const App = () => {
                                                     type="folder-open"
                                                     theme="filled"
                                                 />
-                                                Wallet
+                                                <fbt desc="Wallet menu button">
+                                                    Wallet
+                                                </fbt>
                                             </span>
                                         }
                                         key="wallet"
@@ -232,7 +235,9 @@ const App = () => {
                                                     type="caret-right"
                                                     theme="filled"
                                                 />
-                                                Send
+                                                <fbt desc="Send menu button">
+                                                    Send
+                                                </fbt>
                                             </span>
                                         }
                                         key="send"
@@ -249,7 +254,9 @@ const App = () => {
                                                     type="setting"
                                                     theme="filled"
                                                 />
-                                                Settings
+                                                <fbt desc="Settings menu button">
+                                                    Settings
+                                                </fbt>
                                             </span>
                                         }
                                         key="configure"
