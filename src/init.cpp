@@ -733,6 +733,20 @@ void SetupServerArgs(NodeContext &node) {
                              "onion services (default: %s)",
                              "-proxy"),
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-i2psam=<ip:port>",
+                   "I2P SAM proxy to reach I2P peers and accept I2P "
+                   "connections (default: none)",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg(
+        "-i2pacceptincoming",
+        "If set and -i2psam is also set then incoming I2P connections are "
+        "accepted via the SAM proxy. If this is not set but -i2psam is set "
+        "then only outgoing connections will be made to the I2P network. "
+        "Ignored if -i2psam is not set. Listening for incoming I2P connections "
+        "is done through the SAM proxy, not by binding to a local address and "
+        "port (default: 1)",
+        ArgsManager::ALLOW_BOOL, OptionsCategory::CONNECTION);
+
     argsman.AddArg(
         "-onlynet=<net>",
         "Make outgoing connections only through network <net> (ipv4, ipv6 or "
@@ -1655,6 +1669,11 @@ void InitParameterInteraction(ArgsManager &args) {
         if (args.SoftSetBoolArg("-listenonion", false)) {
             LogPrintf("%s: parameter interaction: -listen=0 -> setting "
                       "-listenonion=0\n",
+                      __func__);
+        }
+        if (args.SoftSetBoolArg("-i2pacceptincoming", false)) {
+            LogPrintf("%s: parameter interaction: -listen=0 -> setting "
+                      "-i2pacceptincoming=0\n",
                       __func__);
         }
     }
@@ -3092,6 +3111,23 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             connOptions.m_specified_outgoing = connect;
         }
     }
+
+    const std::string &i2psam_arg = args.GetArg("-i2psam", "");
+    if (!i2psam_arg.empty()) {
+        CService addr;
+        if (!Lookup(i2psam_arg, addr, 7656, fNameLookup) || !addr.IsValid()) {
+            return InitError(strprintf(
+                _("Invalid -i2psam address or hostname: '%s'"), i2psam_arg));
+        }
+        SetReachable(NET_I2P, true);
+        SetProxy(NET_I2P, proxyType{addr});
+    } else {
+        SetReachable(NET_I2P, false);
+    }
+
+    connOptions.m_i2p_accept_incoming =
+        args.GetBoolArg("-i2pacceptincoming", true);
+
     if (!node.connman->Start(*node.scheduler, connOptions)) {
         return false;
     }

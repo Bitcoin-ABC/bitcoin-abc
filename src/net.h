@@ -16,6 +16,7 @@
 #include <compat.h>
 #include <crypto/siphash.h>
 #include <hash.h>
+#include <i2p.h>
 #include <net_permissions.h>
 #include <netaddress.h>
 #include <nodeid.h>
@@ -946,6 +947,7 @@ public:
         bool m_use_addrman_outgoing = true;
         std::vector<std::string> m_specified_outgoing;
         std::vector<std::string> m_added_nodes;
+        bool m_i2p_accept_incoming = true;
     };
 
     void Init(const Options &connOptions) {
@@ -1357,7 +1359,19 @@ private:
     Mutex mutexMsgProc;
     std::atomic<bool> flagInterruptMsgProc{false};
 
+    /**
+     * This is signaled when network activity should cease.
+     * A pointer to it is saved in `m_i2p_sam_session`, so make sure that
+     * the lifetime of `interruptNet` is not shorter than
+     * the lifetime of `m_i2p_sam_session`.
+     */
     CThreadInterrupt interruptNet;
+
+    /**
+     * I2P SAM session.
+     * Used to accept incoming and make outgoing I2P connections.
+     */
+    std::unique_ptr<i2p::sam::Session> m_i2p_sam_session;
 
     std::thread threadDNSAddressSeed;
     std::thread threadSocketHandler;
