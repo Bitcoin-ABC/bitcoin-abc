@@ -24,11 +24,10 @@ from test_framework.util import (
 got_loading_error = False
 
 
-def test_load_unload(node, name):
+def test_load_unload(node, name, timeout=60.):
     global got_loading_error
-    for _ in range(10):
-        if got_loading_error:
-            return
+    t0 = time.time()
+    while time.time() - t0 < timeout and not got_loading_error:
         try:
             node.loadwallet(name)
             node.unloadwallet(name)
@@ -37,6 +36,9 @@ def test_load_unload(node, name):
                     4 and 'Wallet already being loading' in e.error['message']:
                 got_loading_error = True
                 return
+        # Add a small sleep to avoid CPU exhaustion in the unlikely case
+        # the race never happens.
+        time.sleep(0.001)
 
 
 class MultiWalletTest(BitcoinTestFramework):
