@@ -32,7 +32,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
     : tx(_tx), nFee(_nFee), nTxSize(tx->GetTotalSize()),
       nUsageSize(RecursiveDynamicUsage(tx)), nTime(_nTime),
       entryHeight(_entryHeight), spendsCoinbase(_spendsCoinbase),
-      sigOpCount(_sigOpsCount), lockPoints(lp), m_epoch(0) {
+      sigOpCount(_sigOpsCount), lockPoints(lp) {
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nSigOpCountWithDescendants = sigOpCount;
@@ -164,7 +164,7 @@ void CTxMemPool::UpdateTransactionsFromBlock(
         // include them, and update their CTxMemPoolEntry::m_parents to include
         // this tx. we cache the in-mempool children to avoid duplicate updates
         {
-            const auto epoch = GetFreshEpoch();
+            WITH_FRESH_EPOCH(m_epoch);
             for (; iter != mapNextTx.end() && iter->first->GetTxId() == txid;
                  ++iter) {
                 const TxId &childTxId = iter->second->GetId();
@@ -1456,20 +1456,4 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
                        1000000,
                    std::chrono::hours{
                        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
-}
-
-CTxMemPool::EpochGuard CTxMemPool::GetFreshEpoch() const {
-    return EpochGuard(*this);
-}
-
-CTxMemPool::EpochGuard::EpochGuard(const CTxMemPool &in) : pool(in) {
-    assert(!pool.m_has_epoch_guard);
-    ++pool.m_epoch;
-    pool.m_has_epoch_guard = true;
-}
-
-CTxMemPool::EpochGuard::~EpochGuard() {
-    // prevents stale results being used
-    ++pool.m_epoch;
-    pool.m_has_epoch_guard = false;
 }

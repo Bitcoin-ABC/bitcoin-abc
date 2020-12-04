@@ -13,6 +13,7 @@
 #include <primitives/transaction.h>
 #include <salteduint256hasher.h>
 #include <sync.h>
+#include <util/epochguard.h>
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -187,7 +188,7 @@ public:
     //! Index in mempool's vTxHashes
     mutable size_t vTxHashesIdx;
     //! epoch when last touched, useful for graph algorithms
-    mutable uint64_t m_epoch;
+    mutable Epoch::Marker m_epoch_marker;
 };
 
 // Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
@@ -510,8 +511,7 @@ private:
     mutable bool blockSinceLastRollingFeeBump GUARDED_BY(cs);
     //! minimum fee to get into the pool, decreases exponentially
     mutable double rollingMinimumFeeRate GUARDED_BY(cs);
-    mutable uint64_t m_epoch{0};
-    mutable bool m_has_epoch_guard{false};
+    mutable Epoch m_epoch GUARDED_BY(cs);
 
     // In-memory counter for external mempool tracking purposes.
     // This number is incremented once every time a transaction
@@ -708,7 +708,7 @@ public:
      * disconnected block that have been accepted back into the mempool.
      */
     void UpdateTransactionsFromBlock(const std::vector<TxId> &txidsToUpdate)
-        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main) LOCKS_EXCLUDED(m_epoch);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -887,54 +887,22 @@ private:
 
 public:
     /**
-     * EpochGuard: RAII-style guard for using epoch-based graph traversal
-     * algorithms. When walking ancestors or descendants, we generally want to
-     * avoid visiting the same transactions twice. Some traversal algorithms use
-     * std::set (or setEntries) to deduplicate the transaction we visit.
-     * However, use of std::set is algorithmically undesirable because it both
-     * adds an asymptotic factor of O(log n) to traverals cost and triggers O(n)
-     * more dynamic memory allocations.
-     *     In many algorithms we can replace std::set with an internal mempool
-     * counter to track the time (or, "epoch") that we began a traversal, and
-     * check + update a per-transaction epoch for each transaction we look at to
-     * determine if that transaction has not yet been visited during the current
-     * traversal's epoch.
-     *     Algorithms using std::set can be replaced on a one by one basis.
-     * Both techniques are not fundamentally incompatible across the codebase.
-     * Generally speaking, however, the remaining use of std::set for mempool
-     * traversal should be viewed as a TODO for replacement with an epoch based
-     * traversal, rather than a preference for std::set over epochs in that
-     * algorithm.
-     */
-    class EpochGuard {
-        const CTxMemPool &pool;
-
-    public:
-        EpochGuard(const CTxMemPool &in);
-        ~EpochGuard();
-    };
-    // N.B. GetFreshEpoch modifies mutable state via the EpochGuard construction
-    // (and later destruction)
-    EpochGuard GetFreshEpoch() const EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    /**
      * visited marks a CTxMemPoolEntry as having been traversed
-     * during the lifetime of the most recently created EpochGuard
+     * during the lifetime of the most recently created Epoch::Guard
      * and returns false if we are the first visitor, true otherwise.
      *
-     * An EpochGuard must be held when visited is called or an assert will be
+     * An Epoch::Guard must be held when visited is called or an assert will be
      * triggered.
      *
      */
-    bool visited(txiter it) const EXCLUSIVE_LOCKS_REQUIRED(cs) {
-        assert(m_has_epoch_guard);
-        bool ret = it->m_epoch >= m_epoch;
-        it->m_epoch = std::max(it->m_epoch, m_epoch);
-        return ret;
+    bool visited(const txiter it) const EXCLUSIVE_LOCKS_REQUIRED(cs, m_epoch) {
+        return m_epoch.visited(it->m_epoch_marker);
     }
 
-    bool visited(std::optional<txiter> it) const EXCLUSIVE_LOCKS_REQUIRED(cs) {
-        assert(m_has_epoch_guard);
+    bool visited(std::optional<txiter> it) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs, m_epoch) {
+        // verify guard even when it==nullopt
+        assert(m_epoch.guarded());
         return !it || visited(*it);
     }
 };
