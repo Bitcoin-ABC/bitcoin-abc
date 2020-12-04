@@ -1169,7 +1169,7 @@ bool TruncateFile(FILE *file, unsigned int length) {
  */
 int RaiseFileDescriptorLimit(int nMinFD) {
 #if defined(WIN32)
-    return 2048;
+    return 8192;
 #else
     struct rlimit limitFD;
     if (getrlimit(RLIMIT_NOFILE, &limitFD) != -1) {

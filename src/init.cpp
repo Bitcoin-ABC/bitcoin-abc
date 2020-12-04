@@ -1744,7 +1744,8 @@ bool AppInitParameterInteraction(Config &config) {
     // Trim requested connection counts, to fit into system limitations
     // <int> in std::min<int>(...) to work around FreeBSD compilation issue
     // described in #2695
-    nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS +
+    nFD = RaiseFileDescriptorLimit(nMaxConnections + nBind +
+                                   MIN_CORE_FILEDESCRIPTORS +
                                    MAX_ADDNODE_CONNECTIONS);
 #ifdef USE_POLL
     int fd_max = nFD;
