@@ -204,7 +204,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.getPeer(buildRandomProof(100));
+        peerids[i] = pm.getPeerId(buildRandomProof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -234,7 +234,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        peerids[i + 4] = pm.getPeer(buildRandomProof(100));
+        peerids[i + 4] = pm.getPeerId(buildRandomProof(100));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
@@ -274,7 +274,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        peerids[i] = pm.getPeer(buildRandomProof(100));
+        peerids[i] = pm.getPeerId(buildRandomProof(100));
     }
 
     // Remove all peers.
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
             pb.addUTXO(o, v, height, false, key);
         }
 
-        return pm.getPeer(pb.build());
+        return pm.getPeerId(pb.build());
     };
 
     // Add one peer.

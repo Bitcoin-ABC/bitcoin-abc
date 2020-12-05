@@ -171,8 +171,10 @@ Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn)
             CDataStream stream(ParseHex(gArgs.GetArg("-avaproof", "")),
                                SER_NETWORK, 0);
             stream >> peerData->proof;
+
+            // Ensure the peer manager knows about it.
             LOCK(cs_peerManager);
-            peerManager->getPeer(peerData->proof);
+            peerManager->getPeerId(peerData->proof);
         }
 
         // Generate the delegation to the session key.

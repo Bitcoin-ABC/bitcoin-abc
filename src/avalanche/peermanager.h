@@ -131,31 +131,41 @@ class PeerManager {
 
 public:
     /**
-     * Provide the peer associated with the given proof. If the peer does not
-     * exists, then it is created.
-     */
-    PeerId getPeer(const Proof &proof);
-
-    /**
-     * Remove an existing peer.
-     * This is not meant for public consumption.
-     */
-    bool removePeer(const PeerId peerid);
-
-    /**
      * Node API.
      */
     bool addNode(NodeId nodeid, const Proof &proof,
                  const Delegation &delegation);
     bool removeNode(NodeId nodeid);
 
-    NodeId selectNode();
-
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
 
     /**
-     * Exposed for tests.
+     * Randomly select a node to poll.
+     */
+    NodeId selectNode();
+
+    /**
+     * Update the peer set when a nw block is connected.
+     */
+    void updatedBlockTip();
+
+    /****************************************************
+     * Functions which are public for testing purposes. *
+     ****************************************************/
+    /**
+     * Provide the PeerId associated with the given proof. If the peer does not
+     * exists, then it is created.
+     */
+    PeerId getPeerId(const Proof &proof);
+
+    /**
+     * Remove an existing peer.
+     */
+    bool removePeer(const PeerId peerid);
+
+    /**
+     * Randomly select a peer to poll.
      */
     PeerId selectPeer() const;
 
@@ -167,7 +177,6 @@ public:
 
     /**
      * Perform consistency check on internal data structures.
-     * Mostly useful for tests.
      */
     bool verify() const;
 
@@ -175,10 +184,8 @@ public:
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
 
-    /**
-     * Update the peer set when a nw block is connected.
-     */
-    void updatedBlockTip();
+private:
+    PeerSet::iterator fetchOrCreatePeer(const Proof &proof);
 };
 
 /**
