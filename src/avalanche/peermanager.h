@@ -60,12 +60,13 @@ public:
 
 struct Peer {
     PeerId peerid;
-    uint32_t index;
+    uint32_t index = -1;
+    uint32_t node_count = 0;
 
     Proof proof;
 
-    Peer(PeerId peerid_, uint32_t index_, Proof proof_)
-        : peerid(peerid_), index(index_), proof(std::move(proof_)) {}
+    Peer(PeerId peerid_, Proof proof_)
+        : peerid(peerid_), proof(std::move(proof_)) {}
 
     const ProofId &getProofId() const { return proof.getId(); }
     uint32_t getScore() const { return proof.getScore(); }
@@ -186,6 +187,8 @@ public:
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const Proof &proof);
+    bool addNodeToPeer(const PeerSet::iterator &it);
+    bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
 };
 
 /**

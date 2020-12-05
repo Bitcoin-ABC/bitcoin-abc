@@ -15,10 +15,12 @@ namespace avalanche {
 
 bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
                           const Delegation &delegation) {
-    const PeerId peerid = getPeerId(proof);
-    if (peerid == NO_PEER) {
+    auto it = fetchOrCreatePeer(proof);
+    if (it == peers.end()) {
         return false;
     }
+
+    const PeerId peerid = it->peerid;
 
     DelegationState state;
     CPubKey pubkey;
@@ -28,18 +30,96 @@ bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
 
     auto nit = nodes.find(nodeid);
     if (nit == nodes.end()) {
-        return nodes.emplace(nodeid, peerid, std::move(pubkey)).second;
+        if (!nodes.emplace(nodeid, peerid, std::move(pubkey)).second) {
+            return false;
+        }
+    } else {
+        const PeerId oldpeerid = nit->peerid;
+        if (!nodes.modify(nit, [&](Node &n) {
+                n.peerid = peerid;
+                n.pubkey = std::move(pubkey);
+            })) {
+            return false;
+        }
+
+        // We actually have this node already, we need to update it.
+        bool success = removeNodeFromPeer(peers.find(oldpeerid));
+        assert(success);
+
+        // Make sure it is not invalidated.
+        it = peers.find(peerid);
     }
 
-    // We actually have this node already, we need to update it.
-    return nodes.modify(nit, [&](Node &n) {
-        n.peerid = peerid;
-        n.pubkey = std::move(pubkey);
+    bool success = addNodeToPeer(it);
+    assert(success);
+
+    return true;
+}
+
+bool PeerManager::addNodeToPeer(const PeerSet::iterator &it) {
+    assert(it != peers.end());
+    return peers.modify(it, [&](Peer &p) {
+        if (p.node_count++ > 0) {
+            // We are done.
+            return;
+        }
+
+        // We ned to allocate this peer.
+        p.index = uint32_t(slots.size());
+        const uint32_t score = p.getScore();
+        const uint64_t start = slotCount;
+        slots.emplace_back(start, score, it->peerid);
+        slotCount = start + score;
     });
 }
 
 bool PeerManager::removeNode(NodeId nodeid) {
-    return nodes.erase(nodeid) > 0;
+    auto it = nodes.find(nodeid);
+    if (it == nodes.end()) {
+        return false;
+    }
+
+    const PeerId peerid = it->peerid;
+    nodes.erase(it);
+
+    // Keep the track of the reference count.
+    bool success = removeNodeFromPeer(peers.find(peerid));
+    assert(success);
+
+    return true;
+}
+
+bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
+                                     uint32_t count) {
+    assert(it != peers.end());
+    assert(count <= it->node_count);
+    if (count == 0) {
+        // This is a NOOP.
+        return false;
+    }
+
+    const uint32_t new_count = it->node_count - count;
+    if (!peers.modify(it, [&](Peer &p) { p.node_count = new_count; })) {
+        return false;
+    }
+
+    if (new_count > 0) {
+        // We are done.
+        return true;
+    }
+
+    // There are no more node left, we need to cleanup.
+    const size_t i = it->index;
+    assert(i < slots.size());
+    if (i + 1 == slots.size()) {
+        slots.pop_back();
+        slotCount = slots.empty() ? 0 : slots.back().getStop();
+    } else {
+        fragmentation += slots[i].getScore();
+        slots[i] = slots[i].withPeerId(NO_PEER);
+    }
+
+    return true;
 }
 
 bool PeerManager::forNode(NodeId nodeid,
@@ -156,13 +236,8 @@ PeerManager::fetchOrCreatePeer(const Proof &proof) {
     }
 
     // We have no peer for this proof, time to create it.
-    auto inserted = peers.emplace(peerid, uint32_t(slots.size()), proof);
+    auto inserted = peers.emplace(peerid, proof);
     assert(inserted.second);
-
-    const uint32_t score = proof.getScore();
-    const uint64_t start = slotCount;
-    slots.emplace_back(start, score, peerid);
-    slotCount = start + score;
 
     return inserted.first;
 }
@@ -173,19 +248,11 @@ bool PeerManager::removePeer(const PeerId peerid) {
         return false;
     }
 
-    size_t i = it->index;
-    assert(i < slots.size());
-
-    if (i + 1 == slots.size()) {
-        slots.pop_back();
-        slotCount = slots.empty() ? 0 : slots.back().getStop();
-    } else {
-        fragmentation += slots[i].getScore();
-        slots[i] = slots[i].withPeerId(NO_PEER);
-    }
+    // Remove all nodes from this peer.
+    removeNodeFromPeer(it, it->node_count);
 
     // Remove nodes associated with this peer, unless their timeout is still
-    // active. This ensure that we don't overquery them in case their are
+    // active. This ensure that we don't overquery them in case they are
     // subsequently added to another peer.
     auto &nview = nodes.get<next_request_time>();
     nview.erase(nview.lower_bound(boost::make_tuple(peerid, TimePoint())),
@@ -224,19 +291,24 @@ uint64_t PeerManager::compact() {
         return 0;
     }
 
-    // Shrink the vector to the expected size.
-    while (slots.size() > peers.size()) {
-        slots.pop_back();
-    }
+    std::vector<Slot> newslots;
+    newslots.reserve(peers.size());
 
     uint64_t prevStop = 0;
     uint32_t i = 0;
     for (auto it = peers.begin(); it != peers.end(); it++) {
-        slots[i] = Slot(prevStop, it->getScore(), it->peerid);
-        prevStop = slots[i].getStop();
+        if (it->node_count == 0) {
+            continue;
+        }
 
-        peers.modify(it, [&](Peer &p) { p.index = i++; });
+        newslots.emplace_back(prevStop, it->getScore(), it->peerid);
+        prevStop = slots[i].getStop();
+        if (!peers.modify(it, [&](Peer &p) { p.index = i++; })) {
+            return 0;
+        }
     }
+
+    slots = std::move(newslots);
 
     const uint64_t saved = slotCount - prevStop;
     slotCount = prevStop;
@@ -270,6 +342,31 @@ bool PeerManager::verify() const {
     }
 
     for (const auto &p : peers) {
+        // Count node attached to this peer.
+        const auto count_nodes = [&]() {
+            size_t count = 0;
+            auto &nview = nodes.get<next_request_time>();
+            auto begin =
+                nview.lower_bound(boost::make_tuple(p.peerid, TimePoint()));
+            auto end =
+                nview.upper_bound(boost::make_tuple(p.peerid + 1, TimePoint()));
+
+            for (auto it = begin; it != end; ++it) {
+                count++;
+            }
+
+            return count;
+        };
+
+        if (p.node_count != count_nodes()) {
+            return false;
+        }
+
+        // If there are no nodes attached to this peer, then we are done.
+        if (p.node_count == 0) {
+            continue;
+        }
+
         // The index must point to a slot refering to this peer.
         if (p.index >= slots.size() || slots[p.index].getPeerId() != p.peerid) {
             return false;
