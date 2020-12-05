@@ -49,6 +49,7 @@ const char *GETCFHEADERS = "getcfheaders";
 const char *CFHEADERS = "cfheaders";
 const char *GETCFCHECKPT = "getcfcheckpt";
 const char *CFCHECKPT = "cfcheckpt";
+const char *AVAHELLO = "avahello";
 const char *AVAPOLL = "avapoll";
 const char *AVARESPONSE = "avaresponse";
 

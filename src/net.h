@@ -10,6 +10,7 @@
 #include <addrdb.h>
 #include <addrman.h>
 #include <amount.h>
+#include <avalanche/delegation.h>
 #include <bloom.h>
 #include <chainparams.h>
 #include <compat.h>
@@ -997,6 +998,15 @@ public:
 
     // m_tx_relay == nullptr if we're not relaying transactions with this peer
     std::unique_ptr<TxRelay> m_tx_relay;
+
+    struct AvalancheState {
+        AvalancheState() {}
+
+        avalanche::Delegation delegation;
+    };
+
+    // m_avalanche_state == nullptr if we're not using avalanche with this peer
+    std::unique_ptr<AvalancheState> m_avalanche_state;
 
     // Used for headers announcements - unfiltered blocks to relay
     std::vector<BlockHash> vBlockHashesToAnnounce GUARDED_BY(cs_inventory);

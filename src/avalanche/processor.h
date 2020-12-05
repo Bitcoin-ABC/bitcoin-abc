@@ -273,6 +273,7 @@ public:
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     CPubKey getSessionPubKey() const;
+    bool sendHello(CNode *pfrom) const;
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();

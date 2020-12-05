@@ -5,6 +5,7 @@
 #ifndef BITCOIN_AVALANCHE_PROTOCOL_H
 #define BITCOIN_AVALANCHE_PROTOCOL_H
 
+#include <avalanche/delegation.h>
 #include <protocol.h> // for CInv
 #include <serialize.h>
 #include <uint256.h>
@@ -77,6 +78,24 @@ public:
     inline void SerializationOp(Stream &s, Operation ser_action) {
         READWRITE(round);
         READWRITE(invs);
+    }
+};
+
+class Hello {
+    Delegation delegation;
+    std::array<uint8_t, 64> sig;
+
+public:
+    Hello(Delegation delegationIn, std::array<uint8_t, 64> sigIn)
+        : delegation(std::move(delegationIn)), sig(sigIn) {}
+
+    // serialization support
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream &s, Operation ser_action) {
+        READWRITE(delegation);
+        READWRITE(sig);
     }
 };
 

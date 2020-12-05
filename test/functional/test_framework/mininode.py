@@ -27,6 +27,7 @@ from test_framework.messages import (
     msg_addr,
     msg_avapoll,
     msg_tcpavaresponse,
+    msg_avahello,
     msg_block,
     MSG_BLOCK,
     msg_blocktxn,
@@ -68,6 +69,7 @@ MESSAGEMAP = {
     b"addr": msg_addr,
     b"avapoll": msg_avapoll,
     b"avaresponse": msg_tcpavaresponse,
+    b"avahello": msg_avahello,
     b"block": msg_block,
     b"blocktxn": msg_blocktxn,
     b"cfcheckpt": msg_cfcheckpt,
@@ -334,6 +336,7 @@ class P2PInterface(P2PConnection):
             vt.addrTo.port = self.dstport
             vt.addrFrom.ip = "0.0.0.0"
             vt.addrFrom.port = 0
+
             # Will be sent soon after connection_made
             self.on_connection_send_msg = vt
 
@@ -371,6 +374,8 @@ class P2PInterface(P2PConnection):
     def on_avapoll(self, message): pass
 
     def on_avaresponse(self, message): pass
+
+    def on_avahello(self, message): pass
 
     def on_block(self, message): pass
 

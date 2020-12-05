@@ -16,6 +16,8 @@ from test_framework.messages import (
     CInv,
     msg_avapoll,
     msg_tcpavaresponse,
+    NODE_AVALANCHE,
+    NODE_NETWORK,
     TCPAvalancheResponse,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -38,9 +40,26 @@ class TestNode(P2PInterface):
 
     def __init__(self):
         self.round = 0
+        self.avahello = None
         self.avaresponses = []
         self.avapolls = []
         super().__init__()
+
+    def peer_connect(self, *args, **kwargs):
+        create_conn = super().peer_connect(*args, **kwargs)
+
+        # Save the nonce and extra entropy so they can be reused later.
+        self.local_nonce = self.on_connection_send_msg.nNonce
+        self.local_extra_entropy = self.on_connection_send_msg.nExtraEntropy
+
+        return create_conn
+
+    def on_version(self, message):
+        super().on_version(message)
+
+        # Save the nonce and extra entropy so they can be reused later.
+        self.remote_nonce = message.nNonce
+        self.remote_extra_entropy = message.nExtraEntropy
 
     def on_avaresponse(self, message):
         with mininode_lock:
@@ -50,19 +69,16 @@ class TestNode(P2PInterface):
         with mininode_lock:
             self.avapolls.append(message.poll)
 
+    def on_avahello(self, message):
+        with mininode_lock:
+            assert(self.avahello is None)
+            self.avahello = message
+
     def send_avaresponse(self, round, votes, privkey):
         response = AvalancheResponse(round, 0, votes)
         sig = privkey.sign_schnorr(response.get_hash())
         msg = msg_tcpavaresponse()
         msg.response = TCPAvalancheResponse(response, sig)
-        self.send_message(msg)
-
-    def send_poll(self, hashes):
-        msg = msg_avapoll()
-        msg.poll.round = self.round
-        self.round += 1
-        for h in hashes:
-            msg.poll.invs.append(CInv(2, h))
         self.send_message(msg)
 
     def wait_for_avaresponse(self, timeout=5):
@@ -74,9 +90,26 @@ class TestNode(P2PInterface):
         with mininode_lock:
             return self.avaresponses.pop(0)
 
+    def send_poll(self, hashes):
+        msg = msg_avapoll()
+        msg.poll.round = self.round
+        self.round += 1
+        for h in hashes:
+            msg.poll.invs.append(CInv(2, h))
+        self.send_message(msg)
+
     def get_avapoll_if_available(self):
         with mininode_lock:
             return self.avapolls.pop(0) if len(self.avapolls) > 0 else None
+
+    def wait_for_avahello(self, timeout=5):
+        wait_until(
+            lambda: self.avahello is not None,
+            timeout=timeout,
+            lock=mininode_lock)
+
+        with mininode_lock:
+            return self.avahello
 
 
 class AvalancheTest(BitcoinTestFramework):
@@ -95,7 +128,8 @@ class AvalancheTest(BitcoinTestFramework):
         def get_quorum():
             def get_node():
                 n = TestNode()
-                node.add_p2p_connection(n)
+                node.add_p2p_connection(
+                    n, services=NODE_NETWORK | NODE_AVALANCHE)
                 n.wait_for_verack()
 
                 # Get our own node id so we can use it later.
@@ -105,9 +139,8 @@ class AvalancheTest(BitcoinTestFramework):
 
             return [get_node() for _ in range(0, 16)]
 
-        quorum = get_quorum()
-
         # Pick on node from the quorum for polling.
+        quorum = get_quorum()
         poll_node = quorum[0]
 
         # Generate many block and poll for them.
@@ -288,8 +321,6 @@ class AvalancheTest(BitcoinTestFramework):
         node.generate(1)
 
         tip_to_park = node.getbestblockhash()
-        self.log.info(tip_to_park)
-
         hash_to_find = int(tip_to_park, 16)
         assert(tip_to_park != fork_tip)
 
@@ -300,6 +331,21 @@ class AvalancheTest(BitcoinTestFramework):
         # Because everybody answers no, the node will park that block.
         wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
+
+        # Restart the node and rebuild the quorum
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(proof),
+            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+        ])
+        quorum = get_quorum()
+        poll_node = quorum[0]
+
+        # Check the avahello is consistent
+        avahello = poll_node.wait_for_avahello().hello
+
+        avakey.set(bytes.fromhex(node.getavalanchekey()))
+        assert avakey.verify_schnorr(
+            avahello.sig, avahello.get_sighash(poll_node))
 
 
 if __name__ == '__main__':

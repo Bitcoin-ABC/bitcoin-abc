@@ -173,8 +173,12 @@ Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn)
             stream >> peerData->proof;
 
             // Ensure the peer manager knows about it.
-            LOCK(cs_peerManager);
-            peerManager->getPeerId(peerData->proof);
+            // FIXME: There is no way to register the proof at this time because
+            // we might not have the proper chainstate at the moment. We need to
+            // find a way to delay the registration of the proof until after IBD
+            // has finished and the chain state is settled.
+            // LOCK(cs_peerManager);
+            // peerManager->getPeerId(peerData->proof);
         }
 
         // Generate the delegation to the session key.
@@ -392,6 +396,36 @@ bool Processor::forNode(NodeId nodeid,
 
 CPubKey Processor::getSessionPubKey() const {
     return sessionKey.GetPubKey();
+}
+
+bool Processor::sendHello(CNode *pfrom) const {
+    if (!peerData) {
+        // We do not have a delegation to advertise.
+        return false;
+    }
+
+    // Now let's sign!
+    std::array<uint8_t, 64> sig;
+
+    {
+        CHashWriter hasher(SER_GETHASH, 0);
+        hasher << peerData->delegation.getId();
+        hasher << pfrom->GetLocalNonce();
+        hasher << pfrom->nRemoteHostNonce;
+        hasher << pfrom->GetLocalExtraEntropy();
+        hasher << pfrom->nRemoteExtraEntropy;
+        const uint256 hash = hasher.GetHash();
+
+        if (!sessionKey.SignSchnorr(hash, sig)) {
+            return false;
+        }
+    }
+
+    connman->PushMessage(pfrom, CNetMsgMaker(pfrom->GetSendVersion())
+                                    .Make(NetMsgType::AVAHELLO,
+                                          Hello(peerData->delegation, sig)));
+
+    return true;
 }
 
 bool Processor::startEventLoop(CScheduler &scheduler) {

@@ -870,6 +870,86 @@ class TCPAvalancheResponse():
             repr(self.response), self.sig)
 
 
+class AvalancheDelegationLevel:
+    __slots__ = ("pubkey", "sig")
+
+    def __init__(self, pubkey="", sig=b"\0" * 64):
+        self.pubkey = pubkey
+        self.sig = sig
+
+    def deserialize(self, f):
+        self.pubkey = deser_string(f)
+        self.sig = f.read(64)
+
+    def serialize(self):
+        r = b""
+        r += ser_string(self.pubkey)
+        r += self.sig
+        return r
+
+    def __repr__(self):
+        return "AvalancheDelegationLevel(pubkey={}, sig={})".format(
+            self.pubkey.hex(), self.sig)
+
+
+class AvalancheDelegation:
+    __slots__ = ("proofid", "levels")
+
+    def __init__(self, proofid=0, levels=None):
+        self.proofid = proofid
+        self.levels = levels
+
+    def deserialize(self, f):
+        self.proofid = deser_uint256(f)
+        self.levels = deser_vector(f, AvalancheDelegationLevel)
+
+    def serialize(self):
+        r = b""
+        r += ser_uint256(self.proofid)
+        r += ser_vector(self.levels)
+        return r
+
+    def __repr__(self):
+        return "AvalancheDelegation(proofid={:064x}, levels={})".format(
+            self.proofid, repr(self.levels))
+
+    def getid(self):
+        h = ser_uint256(self.proofid)
+        for level in self.levels:
+            h = hash256(h + ser_string(level.pubkey))
+        return h
+
+
+class AvalancheHello():
+    __slots__ = ("delegation", "sig")
+
+    def __init__(self, delegation=AvalancheDelegation(), sig=b"\0" * 64):
+        self.delegation = delegation
+        self.sig = sig
+
+    def deserialize(self, f):
+        self.delegation.deserialize(f)
+        self.sig = f.read(64)
+
+    def serialize(self):
+        r = b""
+        r += self.delegation.serialize()
+        r += self.sig
+        return r
+
+    def __repr__(self):
+        return "AvalancheHello(delegation={}, sig={})".format(
+            repr(self.delegation), self.sig)
+
+    def get_sighash(self, node):
+        b = self.delegation.getid()
+        b += struct.pack("<Q", node.remote_nonce)
+        b += struct.pack("<Q", node.local_nonce)
+        b += struct.pack("<Q", node.remote_extra_entropy)
+        b += struct.pack("<Q", node.local_extra_entropy)
+        return hash256(b)
+
+
 class CPartialMerkleTree:
     __slots__ = ("nTransactions", "vBits", "vHash")
 
@@ -1687,3 +1767,22 @@ class msg_tcpavaresponse():
 
     def __repr__(self):
         return "msg_tcpavaresponse(response={})".format(repr(self.response))
+
+
+class msg_avahello():
+    __slots__ = ("hello",)
+    msgtype = b"avahello"
+
+    def __init__(self):
+        self.hello = AvalancheHello()
+
+    def deserialize(self, f):
+        self.hello.deserialize(f)
+
+    def serialize(self):
+        r = b""
+        r += self.hello.serialize()
+        return r
+
+    def __repr__(self):
+        return "msg_avahello(response={})".format(repr(self.hello))

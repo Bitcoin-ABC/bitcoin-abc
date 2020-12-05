@@ -289,6 +289,10 @@ extern const char *GETCFCHECKPT;
  */
 extern const char *CFCHECKPT;
 /**
+ * Contains a delegation and a signature.
+ */
+extern const char *AVAHELLO;
+/**
  * Contains an avalanche::Poll.
  * Peer should respond with "avaresponse" message.
  */

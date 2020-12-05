@@ -7,6 +7,8 @@
 
 #include <addrman.h>
 #include <avalanche/processor.h>
+#include <avalanche/proof.h>
+#include <avalanche/validation.h>
 #include <banman.h>
 #include <blockdb.h>
 #include <blockencodings.h>
@@ -2806,6 +2808,7 @@ void PeerLogicValidation::ProcessMessage(
             m_connman.PushMessage(&pfrom,
                                   msgMaker.Make(NetMsgType::SENDHEADERS));
         }
+
         if (pfrom.nVersion >= SHORT_IDS_BLOCKS_VERSION) {
             // Tell our peer we are willing to provide version 1 or 2
             // cmpctblocks. However, we do not request new block announcements
@@ -2818,6 +2821,15 @@ void PeerLogicValidation::ProcessMessage(
                                                 fAnnounceUsingCMPCTBLOCK,
                                                 nCMPCTBLOCKVersion));
         }
+
+        if ((pfrom.nServices & NODE_AVALANCHE) && g_avalanche &&
+            gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+            if (g_avalanche->sendHello(&pfrom)) {
+                LogPrint(BCLog::NET, "Send avahello to peer %d\n",
+                         pfrom.GetId());
+            }
+        }
+
         pfrom.fSuccessfullyConnected = true;
         return;
     }
@@ -3830,6 +3842,29 @@ void PeerLogicValidation::ProcessMessage(
             mapBlockSource.erase(hash);
         }
         return;
+    }
+
+    if (msg_type == NetMsgType::AVAHELLO && g_avalanche &&
+        gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        if (!pfrom.m_avalanche_state) {
+            pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
+        }
+
+        CHashVerifier<CDataStream> verifier(&vRecv);
+        avalanche::Delegation &delegation = pfrom.m_avalanche_state->delegation;
+        verifier >> delegation;
+
+        avalanche::Proof proof;
+
+        avalanche::DelegationState state;
+        CPubKey pubkey;
+        if (!delegation.verify(state, proof, pubkey)) {
+            Misbehaving(pfrom, 100, "invalid-delegation");
+            return;
+        }
+
+        std::array<uint8_t, 64> sig;
+        verifier >> sig;
     }
 
     // Ignore avalanche requests while importing
