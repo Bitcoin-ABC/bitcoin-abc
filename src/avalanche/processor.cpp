@@ -4,6 +4,7 @@
 
 #include <avalanche/processor.h>
 
+#include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <chain.h>
 #include <key_io.h>         // For DecodeSecret
@@ -134,6 +135,11 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
     return true;
 }
 
+struct Processor::PeerData {
+    Proof proof;
+    Delegation delegation;
+};
+
 class Processor::NotificationsHandler
     : public interfaces::Chain::Notifications {
     Processor *m_processor;
@@ -155,6 +161,27 @@ Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn)
     } else {
         // Pick a random key for the session.
         sessionKey.MakeNewKey(true);
+    }
+
+    if (gArgs.IsArgSet("-avaproof")) {
+        peerData = std::make_unique<PeerData>();
+
+        {
+            // The proof.
+            CDataStream stream(ParseHex(gArgs.GetArg("-avaproof", "")),
+                               SER_NETWORK, 0);
+            stream >> peerData->proof;
+            LOCK(cs_peerManager);
+            peerManager->getPeer(peerData->proof);
+        }
+
+        // Generate the delegation to the session key.
+        DelegationBuilder dgb(peerData->proof);
+        if (sessionKey.GetPubKey() != peerData->proof.getMaster()) {
+            dgb.addLevel(DecodeSecret(gArgs.GetArg("-avamasterkey", "")),
+                         sessionKey.GetPubKey());
+        }
+        peerData->delegation = dgb.build();
     }
 
     // Make sure we get notified of chain state changes.
@@ -362,6 +389,10 @@ bool Processor::forNode(NodeId nodeid,
                         std::function<bool(const Node &n)> func) const {
     LOCK(cs_peerManager);
     return peerManager->forNode(nodeid, std::move(func));
+}
+
+CPubKey Processor::getSessionPubKey() const {
+    return sessionKey.GetPubKey();
 }
 
 bool Processor::startEventLoop(CScheduler &scheduler) {

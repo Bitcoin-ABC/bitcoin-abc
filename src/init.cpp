@@ -1195,6 +1195,13 @@ void SetupServerArgs() {
         strprintf("Mandatory cooldown between two avapoll (default: %u)",
                   AVALANCHE_DEFAULT_COOLDOWN),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    gArgs.AddArg("-avaproof",
+                 "Avalanche proof to be used by this node (default: none)",
+                 ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    gArgs.AddArg("-avamasterkey",
+                 "Master key associated with the proof. If a proof is "
+                 "required, this is mandatory.",
+                 ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     gArgs.AddArg("-avasessionkey", "Avalanche session key (default: random)",
                  ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
 

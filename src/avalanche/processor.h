@@ -239,7 +239,9 @@ class Processor {
 
     RWCollection<QuerySet> queries;
 
-    /** The key used to sign responses. */
+    /** Data required to participate. */
+    struct PeerData;
+    std::unique_ptr<PeerData> peerData;
     CKey sessionKey;
 
     /** Event loop machinery. */
@@ -270,7 +272,7 @@ public:
                  const Delegation &delegation);
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
-    CPubKey getSessionPubKey() const { return sessionKey.GetPubKey(); }
+    CPubKey getSessionPubKey() const;
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
