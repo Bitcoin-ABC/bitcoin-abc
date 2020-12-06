@@ -110,7 +110,7 @@ bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats,
 }
 
 // The legacy hash serializes the hashBlock
-static void PrepareHash(CHashWriter &ss, CCoinsStats &stats) {
+static void PrepareHash(CHashWriter &ss, const CCoinsStats &stats) {
     ss << stats.hashBlock;
 }
 static void PrepareHash(std::nullptr_t, CCoinsStats &stats) {}

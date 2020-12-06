@@ -31,7 +31,7 @@ void SignTransaction(CMutableTransaction &mtx, const SigningProvider *keystore,
                      const UniValue &hashType, UniValue &result);
 void SignTransactionResultToJSON(CMutableTransaction &mtx, bool complete,
                                  const std::map<COutPoint, Coin> &coins,
-                                 std::map<int, std::string> &input_errors,
+                                 const std::map<int, std::string> &input_errors,
                                  UniValue &result);
 
 /**

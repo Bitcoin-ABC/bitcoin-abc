@@ -61,7 +61,8 @@ namespace {
     }
 
     //! Construct wallet tx status struct.
-    WalletTxStatus MakeWalletTxStatus(CWallet &wallet, const CWalletTx &wtx) {
+    WalletTxStatus MakeWalletTxStatus(const CWallet &wallet,
+                                      const CWalletTx &wtx) {
         WalletTxStatus result;
         result.block_height = wtx.m_confirm.block_height > 0
                                   ? wtx.m_confirm.block_height
@@ -82,8 +83,8 @@ namespace {
     }
 
     //! Construct wallet TxOut struct.
-    WalletTxOut MakeWalletTxOut(CWallet &wallet, const CWalletTx &wtx, int n,
-                                int depth)
+    WalletTxOut MakeWalletTxOut(const CWallet &wallet, const CWalletTx &wtx,
+                                int n, int depth)
         EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
         WalletTxOut result;
         result.txout = wtx.tx->vout[n];

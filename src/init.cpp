@@ -1784,7 +1784,7 @@ std::set<BlockFilterType> g_enabled_filter_types;
     std::terminate();
 };
 
-bool AppInitBasicSetup(ArgsManager &args) {
+bool AppInitBasicSetup(const ArgsManager &args) {
 // Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise

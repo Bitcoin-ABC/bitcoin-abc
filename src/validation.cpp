@@ -408,7 +408,7 @@ private:
     // result in the scriptcache. This should be done after
     // PolicyScriptChecks(). This requires that all inputs either be in our
     // utxo set or in the mempool.
-    bool ConsensusScriptChecks(ATMPArgs &args, Workspace &ws,
+    bool ConsensusScriptChecks(ATMPArgs &args, const Workspace &ws,
                                PrecomputedTransactionData &txdata)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -632,7 +632,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     return true;
 }
 
-bool MemPoolAccept::ConsensusScriptChecks(ATMPArgs &args, Workspace &ws,
+bool MemPoolAccept::ConsensusScriptChecks(ATMPArgs &args, const Workspace &ws,
                                           PrecomputedTransactionData &txdata) {
     const CTransaction &tx = *ws.m_ptx;
     const TxId &txid = tx.GetId();
