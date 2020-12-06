@@ -203,7 +203,7 @@ private:
      * succeed, and they're here only as an extra check in case of suboptimal
      * node configuration.
      */
-    bool TestPackageTransactions(const CTxMemPool::setEntries &package);
+    bool TestPackageTransactions(const CTxMemPool::setEntries &package) const;
     /**
      * Return true if given transaction from mapTx has already been evaluated,
      * or if the transaction's cached data in mapTx is incorrect.

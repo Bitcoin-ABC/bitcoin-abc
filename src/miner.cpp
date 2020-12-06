@@ -273,7 +273,7 @@ bool BlockAssembler::TestPackage(uint64_t packageSize,
  * - Serialized size (in case -blockmaxsize is in use)
  */
 bool BlockAssembler::TestPackageTransactions(
-    const CTxMemPool::setEntries &package) {
+    const CTxMemPool::setEntries &package) const {
     uint64_t nPotentialBlockSize = nBlockSize;
     for (CTxMemPool::txiter it : package) {
         TxValidationState state;

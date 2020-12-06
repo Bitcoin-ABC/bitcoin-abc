@@ -694,7 +694,7 @@ void CWallet::AddToSpends(const COutPoint &outpoint, const TxId &wtxid) {
 void CWallet::AddToSpends(const TxId &wtxid) {
     auto it = mapWallet.find(wtxid);
     assert(it != mapWallet.end());
-    CWalletTx &thisTx = it->second;
+    const CWalletTx &thisTx = it->second;
     // Coinbases don't spend anything!
     if (thisTx.IsCoinBase()) {
         return;
@@ -1176,7 +1176,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
     // Can't mark abandoned if confirmed or in mempool
     auto it = mapWallet.find(txid);
     assert(it != mapWallet.end());
-    CWalletTx &origtx = it->second;
+    const CWalletTx &origtx = it->second;
     if (origtx.GetDepthInMainChain() != 0 || origtx.InMempool()) {
         return false;
     }
@@ -3095,7 +3095,7 @@ static uint32_t GetLocktimeForNewTransaction(interfaces::Chain &chain,
 
 OutputType
 CWallet::TransactionChangeType(const std::optional<OutputType> &change_type,
-                               const std::vector<CRecipient> &vecSend) {
+                               const std::vector<CRecipient> &vecSend) const {
     // If -changetype is specified, always use that change type.
     if (change_type) {
         return *change_type;

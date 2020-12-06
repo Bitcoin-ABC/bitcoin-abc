@@ -725,7 +725,7 @@ CAddrInfo CAddrMan::SelectTriedCollision_() {
         return CAddrInfo();
     }
 
-    CAddrInfo &newInfo = id_new_it->second;
+    const CAddrInfo &newInfo = id_new_it->second;
 
     // which tried bucket to move the entry to
     int tried_bucket = newInfo.GetTriedBucket(nKey, m_asmap);

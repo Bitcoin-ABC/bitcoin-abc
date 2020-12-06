@@ -1108,7 +1108,7 @@ public:
 
     OutputType
     TransactionChangeType(const std::optional<OutputType> &change_type,
-                          const std::vector<CRecipient> &vecSend);
+                          const std::vector<CRecipient> &vecSend) const;
 
     /**
      * Insert additional inputs into the transaction by calling

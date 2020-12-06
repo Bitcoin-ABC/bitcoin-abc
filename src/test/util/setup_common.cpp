@@ -292,11 +292,13 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
 
 TestChain100Setup::~TestChain100Setup() {}
 
-CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) {
+CTxMemPoolEntry
+TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) const {
     return FromTx(MakeTransactionRef(tx));
 }
 
-CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx) {
+CTxMemPoolEntry
+TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx) const {
     return CTxMemPoolEntry(tx, nFee, nTime, nHeight, spendsCoinbase,
                            nSigOpCount, LockPoints());
 }

@@ -27,7 +27,7 @@ static const unsigned int QUEUE_BATCH_SIZE = 128;
 static const int SCRIPT_CHECK_THREADS = 3;
 
 struct FakeCheck {
-    bool operator()() { return true; }
+    bool operator()() const { return true; }
     void swap(FakeCheck &x){};
 };
 
@@ -44,7 +44,7 @@ struct FailingCheck {
     bool fails;
     FailingCheck(bool _fails) : fails(_fails){};
     FailingCheck() : fails(true){};
-    bool operator()() { return !fails; }
+    bool operator()() const { return !fails; }
     void swap(FailingCheck &x) { std::swap(fails, x.fails); };
 };
 
@@ -65,7 +65,7 @@ struct UniqueCheck {
 struct MemoryCheck {
     static std::atomic<size_t> fake_allocated_memory;
     bool b{false};
-    bool operator()() { return true; }
+    bool operator()() const { return true; }
     MemoryCheck(){};
     MemoryCheck(const MemoryCheck &x) {
         // We have to do this to make sure that destructor calls are paired
@@ -90,7 +90,7 @@ struct FrozenCleanupCheck {
     // Freezing can't be the default initialized behavior given how the queue
     // swaps in default initialized Checks.
     bool should_freeze{false};
-    bool operator()() { return true; }
+    bool operator()() const { return true; }
     FrozenCleanupCheck() {}
     ~FrozenCleanupCheck() {
         if (should_freeze) {
