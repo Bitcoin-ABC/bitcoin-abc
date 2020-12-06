@@ -109,7 +109,7 @@
         "extension": "./scripts/extension.sh",
         "predeploy": "npm run build",
         "test": "node scripts/test.js",
-        "test:coverage": "npm run test --coverage --watchAll=false",
+        "test:coverage": "CI=true npm run test --coverage",
         "debug": "node --inspect-brk=9229 scripts/start.js"
     },
     "eslintConfig": {
@@ -146,7 +146,9 @@
         "setupFiles": [
             "react-app-polyfill/jsdom"
         ],
-        "setupFilesAfterEnv": [],
+        "setupFilesAfterEnv": [
+            "<rootDir>/scripts/testSetup.js"
+        ],
         "testMatch": [
             "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
             "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
