@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Bitcoin developers
+// Copyright (c) 2017-2020 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -7,56 +7,13 @@
 #include <hash.h>
 #include <netbase.h>
 #include <seeder/db.h>
+#include <seeder/messagewriter.h>
 #include <serialize.h>
 #include <uint256.h>
 
 #include <algorithm>
 
 #define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
-
-static const uint32_t allones(-1);
-
-void CSeederNode::BeginMessage(const char *pszCommand) {
-    if (nHeaderStart != allones) {
-        AbortMessage();
-    }
-    nHeaderStart = vSend.size();
-    vSend << CMessageHeader(Params().NetMagic(), pszCommand, 0);
-    nMessageStart = vSend.size();
-    // tfm::format(std::cout, "%s: SEND %s\n", ToString(you),
-    // pszCommand);
-}
-
-void CSeederNode::AbortMessage() {
-    if (nHeaderStart == allones) {
-        return;
-    }
-    vSend.resize(nHeaderStart);
-    nHeaderStart = allones;
-    nMessageStart = allones;
-}
-
-void CSeederNode::EndMessage() {
-    if (nHeaderStart == allones) {
-        return;
-    }
-    uint32_t nSize = vSend.size() - nMessageStart;
-    memcpy((char *)&vSend[nHeaderStart] +
-               offsetof(CMessageHeader, nMessageSize),
-           &nSize, sizeof(nSize));
-    if (vSend.GetVersion() >= 209) {
-        uint256 hash = Hash(vSend.begin() + nMessageStart, vSend.end());
-        unsigned int nChecksum = 0;
-        memcpy(&nChecksum, &hash, sizeof(nChecksum));
-        assert(nMessageStart - nHeaderStart >=
-               offsetof(CMessageHeader, pchChecksum) + sizeof(nChecksum));
-        memcpy((char *)&vSend[nHeaderStart] +
-                   offsetof(CMessageHeader, pchChecksum),
-               &nChecksum, sizeof(nChecksum));
-    }
-    nHeaderStart = allones;
-    nMessageStart = allones;
-}
 
 void CSeederNode::Send() {
     if (sock == INVALID_SOCKET) {
@@ -72,20 +29,6 @@ void CSeederNode::Send() {
         close(sock);
         sock = INVALID_SOCKET;
     }
-}
-
-void CSeederNode::PushVersion() {
-    int64_t nTime = time(nullptr);
-    uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
-    int64_t nLocalServices = 0;
-    CService myService;
-    CAddress me(myService, ServiceFlags(NODE_NETWORK));
-    BeginMessage(NetMsgType::VERSION);
-    int nBestHeight = GetRequireHeight();
-    std::string ver = "/bitcoin-cash-seeder:0.15/";
-    vSend << PROTOCOL_VERSION << nLocalServices << nTime << you << me
-          << nLocalNonce << ver << nBestHeight;
-    EndMessage();
 }
 
 PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
@@ -104,9 +47,8 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         recv >> strSubVer;
         recv >> nStartingHeight;
 
-        BeginMessage(NetMsgType::VERACK);
-        EndMessage();
         vSend.SetVersion(std::min(nVersion, PROTOCOL_VERSION));
+        MessageWriter::WriteMessage(vSend, NetMsgType::VERACK);
         return PeerMessagingState::AwaitingMessages;
     }
 
@@ -115,8 +57,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // tfm::format(std::cout, "\n%s: version %i\n", ToString(you),
         // nVersion);
         if (vAddr) {
-            BeginMessage(NetMsgType::GETADDR);
-            EndMessage();
+            MessageWriter::WriteMessage(vSend, NetMsgType::GETADDR);
             doneAfter = time(nullptr) + GetTimeout();
         } else {
             doneAfter = time(nullptr) + 1;
@@ -270,7 +211,15 @@ bool CSeederNode::Run() {
         return false;
     }
 
-    PushVersion();
+    // Push version;
+    uint64_t nLocalServices = 0;
+    uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
+    CService myService;
+    CAddress me(myService, ServiceFlags(NODE_NETWORK));
+    std::string ver = "/bitcoin-cash-seeder:0.15/";
+    MessageWriter::WriteMessage(vSend, NetMsgType::VERSION, PROTOCOL_VERSION,
+                                nLocalServices, time(nullptr), you, me,
+                                nLocalNonce, ver, GetRequireHeight());
     Send();
 
     bool res = true;

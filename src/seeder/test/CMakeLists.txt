@@ -1,4 +1,4 @@
-# Copyright (c) 2019 The Bitcoin developers
+# Copyright (c) 2019-2020 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,6 +12,7 @@ add_boost_unit_tests_to_suite(seeder test-seeder
 	fixture.cpp
 
 	TESTS
+		message_writer_tests.cpp
 		p2p_messaging_tests.cpp
 		parse_name_tests.cpp
 		write_name_tests.cpp

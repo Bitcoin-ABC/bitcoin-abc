@@ -9,7 +9,7 @@ add_library(seeder-base
 	db.cpp
 	dns.cpp
 )
-target_link_libraries(seeder-base common)
+target_link_libraries(seeder-base server)
 
 add_executable(bitcoin-seeder
 	main.cpp
