@@ -37,7 +37,7 @@ void SignTransactionResultToJSON(CMutableTransaction &mtx, bool complete,
 /**
  * Parse a prevtxs UniValue array and get the map of coins from it
  *
- * @param  prevTxs       Array of previous txns outputs that tx depends on but
+ * @param  prevTxsUnival Array of previous txns outputs that tx depends on but
  * may not yet be in the block chain
  * @param  keystore      A pointer to the temporary keystore if there is one
  * @param  coins         Map of unspent outputs - coins in mempool and current

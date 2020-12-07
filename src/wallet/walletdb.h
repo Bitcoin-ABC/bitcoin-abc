@@ -136,7 +136,7 @@ public:
     CKeyID hd_seed_id;
     // Key origin info with path and fingerprint
     KeyOriginInfo key_origin;
-    //< Whether the key_origin is useful
+    //! Whether the key_origin is useful
     bool has_key_origin = false;
 
     CKeyMetadata() { SetNull(); }
