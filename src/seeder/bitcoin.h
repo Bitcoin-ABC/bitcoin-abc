@@ -25,7 +25,13 @@ enum class PeerMessagingState {
     Finished,
 };
 
+namespace {
+class CSeederNodeTest;
+}
+
 class CSeederNode {
+    friend class ::CSeederNodeTest;
+
 private:
     SOCKET sock;
     CDataStream vSend;
