@@ -58,6 +58,9 @@ enum Network ParseNetwork(const std::string &net_in) {
                   "in the future. You should use 'onion' instead.\n");
         return NET_ONION;
     }
+    if (net == "i2p") {
+        return NET_I2P;
+    }
     return NET_UNROUTABLE;
 }
 
@@ -88,8 +91,8 @@ std::vector<std::string> GetNetworkNames(bool append_unroutable) {
     std::vector<std::string> names;
     for (int n = 0; n < NET_MAX; ++n) {
         const enum Network network { static_cast<Network>(n) };
-        if (network == NET_UNROUTABLE || network == NET_I2P ||
-            network == NET_CJDNS || network == NET_INTERNAL) {
+        if (network == NET_UNROUTABLE || network == NET_CJDNS ||
+            network == NET_INTERNAL) {
             continue;
         }
         names.emplace_back(GetNetworkName(network));

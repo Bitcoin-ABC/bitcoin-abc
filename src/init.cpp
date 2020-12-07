@@ -753,7 +753,7 @@ void SetupServerArgs(NodeContext &node) {
             Join(GetNetworkNames(), ", ") +
             "). Incoming connections are not affected by this option. This "
             "option can be specified multiple times to allow multiple "
-            "networks. Warning: if it is used with ipv4 or ipv6 but not onion "
+            "networks. Warning: if it is used with non-onion networks "
             "and the -onion or -proxy option is set, then outbound onion "
             "connections will still be made; use -noonion or -onion=0 to "
             "disable outbound onion connections in this case",

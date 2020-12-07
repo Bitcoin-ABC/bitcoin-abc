@@ -142,7 +142,9 @@ class NetTest(BitcoinTestFramework):
 
         # Check dynamically generated networks list in getnetworkinfo help
         # output.
-        assert "(ipv4, ipv6, onion)" in self.nodes[0].help("getnetworkinfo")
+        assert (
+            "(ipv4, ipv6, onion, i2p)" in self.nodes[0].help("getnetworkinfo")
+        )
 
     def test_getaddednodeinfo(self):
         self.log.info("Test getaddednodeinfo")
@@ -219,7 +221,7 @@ class NetTest(BitcoinTestFramework):
 
         # Check dynamically generated networks list in getpeerinfo help output.
         assert (
-            "(ipv4, ipv6, onion, not_publicly_routable)" in
+            "(ipv4, ipv6, onion, i2p, not_publicly_routable)" in
             self.nodes[0].help("getpeerinfo")
         )
 
