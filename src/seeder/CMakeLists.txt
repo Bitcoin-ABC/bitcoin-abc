@@ -1,14 +1,20 @@
-# Copyright (c) 2017-2019 The Bitcoin developers
+# Copyright (c) 2017-2020 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 project(bitcoin-seeder)
 
-add_library(seeder bitcoin.cpp db.cpp dns.cpp)
-target_link_libraries(seeder common bitcoinconsensus)
+add_library(seeder-base
+	bitcoin.cpp
+	db.cpp
+	dns.cpp
+)
+target_link_libraries(seeder-base common)
 
-add_executable(bitcoin-seeder main.cpp)
-target_link_libraries(bitcoin-seeder common bitcoinconsensus seeder)
+add_executable(bitcoin-seeder
+	main.cpp
+)
+target_link_libraries(bitcoin-seeder seeder-base)
 
 include(BinaryTest)
 add_to_symbols_check(bitcoin-seeder)

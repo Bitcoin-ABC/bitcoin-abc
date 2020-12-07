@@ -18,8 +18,6 @@ add_boost_unit_tests_to_suite(seeder test-seeder
 )
 
 target_link_libraries(test-seeder
-	seeder
-	# The seeder has some bizare linking problems makign util necessary here.
-	util
+	seeder-base
 	testutil
 )

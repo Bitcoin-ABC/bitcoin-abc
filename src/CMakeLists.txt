@@ -471,7 +471,7 @@ add_library(common
 	${NETWORK_SOURCES}
 )
 
-target_link_libraries(common util secp256k1 script)
+target_link_libraries(common bitcoinconsensus util secp256k1 script)
 
 # script library
 add_library(script
