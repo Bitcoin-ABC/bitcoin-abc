@@ -99,9 +99,23 @@ BOOST_AUTO_TEST_CASE(process_verack_msg) {
     // Seeder should respond with an ADDR message
     const CMessageHeader::MessageMagic netMagic = Params().NetMagic();
     CMessageHeader header(netMagic);
-    testNode->getSendBuffer() >> header;
+    CDataStream sendBuffer = testNode->getSendBuffer();
+    sendBuffer >> header;
     BOOST_CHECK(header.IsValidWithoutConfig(netMagic));
     BOOST_CHECK_EQUAL(header.GetCommand(), NetMsgType::GETADDR);
+
+    // Next message should be GETHEADERS
+    sendBuffer >> header;
+    BOOST_CHECK(header.IsValidWithoutConfig(netMagic));
+    BOOST_CHECK_EQUAL(header.GetCommand(), NetMsgType::GETHEADERS);
+
+    CBlockLocator locator;
+    uint256 hashStop;
+    sendBuffer >> locator >> hashStop;
+    std::vector<BlockHash> expectedLocator = {
+        Params().Checkpoints().mapCheckpoints.rbegin()->second};
+    BOOST_CHECK(locator.vHave == expectedLocator);
+    BOOST_CHECK(hashStop == uint256());
 }
 
 static CDataStream CreateAddrMessage(std::vector<CAddress> sendAddrs,

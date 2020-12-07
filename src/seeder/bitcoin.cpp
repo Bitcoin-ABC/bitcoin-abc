@@ -4,8 +4,10 @@
 
 #include <seeder/bitcoin.h>
 
+#include <chainparams.h>
 #include <hash.h>
 #include <netbase.h>
+#include <primitives/blockhash.h>
 #include <seeder/db.h>
 #include <seeder/messagewriter.h>
 #include <serialize.h>
@@ -59,6 +61,10 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // nVersion);
         if (vAddr) {
             MessageWriter::WriteMessage(vSend, NetMsgType::GETADDR);
+            std::vector<BlockHash> locatorHash(
+                1, Params().Checkpoints().mapCheckpoints.rbegin()->second);
+            MessageWriter::WriteMessage(vSend, NetMsgType::GETHEADERS,
+                                        CBlockLocator(locatorHash), uint256());
             doneAfter = GetTime() + GetTimeout();
         } else {
             doneAfter = GetTime() + 1;
