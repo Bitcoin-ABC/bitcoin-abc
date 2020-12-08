@@ -87,7 +87,11 @@ static const bool DEFAULT_UPNP = USE_UPNP;
 #else
 static const bool DEFAULT_UPNP = false;
 #endif
-/** The maximum number of peer connections to maintain. */
+/**
+ * The maximum number of peer connections to maintain.
+ * This quantity might not be reachable on some systems, especially on platforms
+ * that do not provide a working poll() interface.
+ */
 static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 4096;
 /** The default for -maxuploadtarget. 0 = Unlimited */
 static const uint64_t DEFAULT_MAX_UPLOAD_TARGET = 0;

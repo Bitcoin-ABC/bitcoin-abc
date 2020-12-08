@@ -655,7 +655,9 @@ void SetupServerArgs() {
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg(
         "-maxconnections=<n>",
-        strprintf("Maintain at most <n> connections to peers (default: %u)",
+        strprintf("Maintain at most <n> connections to peers. The effective "
+                  "limit depends on system limitations and might be lower than "
+                  "the specified value (default: %u)",
                   DEFAULT_MAX_PEER_CONNECTIONS),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     gArgs.AddArg("-maxreceivebuffer=<n>",
@@ -1772,10 +1774,12 @@ bool AppInitParameterInteraction(Config &config) {
                  nMaxConnections);
 
     if (nMaxConnections < nUserMaxConnections) {
-        InitWarning(strprintf(_("Reducing -maxconnections from %d to %d, "
-                                "because of system limitations.")
-                                  .translated,
-                              nUserMaxConnections, nMaxConnections));
+        // Not categorizing as "Warning" because this is the normal behavior for
+        // platforms using the select() interface for which FD_SETSIZE is
+        // usually 1024.
+        LogPrintf("Reducing -maxconnections from %d to %d, because of system "
+                  "limitations.\n",
+                  nUserMaxConnections, nMaxConnections);
     }
 
     // Step 3: parameter-to-internal-flags
