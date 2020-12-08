@@ -1735,6 +1735,10 @@ bool AppInitBasicSetup(const ArgsManager &args) {
     // Enable Data Execution Prevention (DEP)
     SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
 #endif
+    if (!InitShutdownState()) {
+        return InitError(
+            Untranslated("Initializing wait-for-shutdown state failed."));
+    }
 
     if (!SetupNetworking()) {
         return InitError(Untranslated("Initializing networking failed"));
