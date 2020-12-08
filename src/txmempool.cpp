@@ -1005,7 +1005,7 @@ std::optional<CTxMemPool::txiter> CTxMemPool::GetIter(const TxId &txid) const {
     if (it != mapTx.end()) {
         return it;
     }
-    return std::optional<txiter>{};
+    return std::optional<txiter>{std::nullopt};
 }
 
 CTxMemPool::setEntries
