@@ -355,8 +355,7 @@ struct Peer {
     /** The pong reply we're expecting, or 0 if no pong expected. */
     std::atomic<uint64_t> m_ping_nonce_sent{0};
     /** When the last ping was sent, or 0 if no ping was ever sent */
-    std::atomic<std::chrono::microseconds> m_ping_start{
-        std::chrono::microseconds{0}};
+    std::atomic<std::chrono::microseconds> m_ping_start{0us};
     /** Whether a ping has been requested by the user */
     std::atomic<bool> m_ping_queued{false};
 
@@ -5611,8 +5610,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             // last self-announcement, but there is only a small bandwidth cost
             // that we can incur by doing this (which happens once a day on
             // average).
-            if (pto->m_next_local_addr_send !=
-                std::chrono::microseconds::zero()) {
+            if (pto->m_next_local_addr_send != 0us) {
                 pto->m_addr_known->reset();
             }
             AdvertiseLocal(pto);

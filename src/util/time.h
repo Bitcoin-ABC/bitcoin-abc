@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <string>
 
+using namespace std::chrono_literals;
+
 void UninterruptibleSleep(const std::chrono::microseconds &n);
 
 /**
