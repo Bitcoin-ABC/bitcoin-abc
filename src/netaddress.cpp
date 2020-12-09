@@ -905,6 +905,13 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const {
                 case NET_ONION:
                     return REACH_PRIVATE;
             }
+        case NET_I2P:
+            switch (ourNet) {
+                case NET_I2P:
+                    return REACH_PRIVATE;
+                default:
+                    return REACH_DEFAULT;
+            }
         case NET_TEREDO:
             switch (ourNet) {
                 default:
