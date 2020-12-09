@@ -135,7 +135,8 @@ void RelayTransaction(const TxId &txid, const CConnman &connman);
 
 bool ProcessMessage(const Config &config, CNode &pfrom,
                     const std::string &msg_type, CDataStream &vRecv,
-                    int64_t nTimeReceived, CConnman &connman, BanMan *banman,
+                    int64_t nTimeReceived, ChainstateManager &chainman,
+                    CConnman &connman, BanMan *banman,
                     const std::atomic<bool> &interruptMsgProc);
 
 #endif // BITCOIN_NET_PROCESSING_H
