@@ -137,7 +137,7 @@ function(check_linker_flag RESULT FLAG)
 	endif()
 
 	# Save the current linker flags
-	set(SAVE_CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
+	set(SAVED_CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 
 	# Append the flag under test to the linker flags
 	string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG}")
@@ -147,7 +147,7 @@ function(check_linker_flag RESULT FLAG)
 	CHECK_CXX_COMPILER_FLAG("" ${FLAG_IS_SUPPORTED})
 
 	# Restore CMAKE_EXE_LINKER_FLAGS
-	set(CMAKE_EXE_LINKER_FLAGS ${SAVE_CMAKE_EXE_LINKER_FLAGS})
+	set(CMAKE_EXE_LINKER_FLAGS ${SAVED_CMAKE_EXE_LINKER_FLAGS})
 
 	set(${RESULT} ${${FLAG_IS_SUPPORTED}} PARENT_SCOPE)
 endfunction()

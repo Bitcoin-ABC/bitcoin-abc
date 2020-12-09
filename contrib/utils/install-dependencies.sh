@@ -56,6 +56,7 @@ PACKAGES=(
   libtinfo5
   libtool
   libzmq3-dev
+  lld
   make
   ninja-build
   nsis

@@ -170,7 +170,7 @@ script: |
         -DENABLE_GLIBC_BACK_COMPAT=ON \
         -DCMAKE_INSTALL_PREFIX=${INSTALLPATH} \
         -DCCACHE=OFF \
-        -DUSE_LD_GOLD=OFF \
+        -DUSE_LINKER= \
         -DNETWORK_COMPATIBILITY=${CHAIN} \
         ${CMAKE_EXTRA_OPTIONS[${i}]}
 

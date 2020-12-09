@@ -60,7 +60,7 @@ Dependency Build Instructions: Ubuntu & Debian
 ----------------------------------------------
 Build requirements:
 
-    sudo apt-get install bsdmainutils build-essential libssl-dev libevent-dev ninja-build python3
+    sudo apt-get install bsdmainutils build-essential libssl-dev libevent-dev lld ninja-build python3
 
 **Installing cmake:**
 

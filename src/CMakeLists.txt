@@ -29,7 +29,18 @@ option(ENABLE_UPNP "Enable UPnP support" ON)
 option(START_WITH_UPNP "Make UPnP the default to map ports" OFF)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
-option(USE_LD_GOLD "Try to use gold as a linker if available" ON)
+
+# Linker option
+if(CMAKE_CROSSCOMPILING)
+	set(DEFAULT_LINKER "")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	set(DEFAULT_LINKER lld)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	set(DEFAULT_LINKER gold)
+else()
+	set(DEFAULT_LINKER "")
+endif()
+set(USE_LINKER "${DEFAULT_LINKER}" CACHE STRING "Linker to be used (default: ${DEFAULT_LINKER}). Set to empty string to use the system's default.")
 
 set(OS_WITH_JEMALLOC_AS_SYSTEM_DEFAULT
 	"Android"
@@ -85,8 +96,13 @@ endif()
 
 include(AddCompilerFlags)
 
-if(USE_LD_GOLD)
-	add_linker_flags(-fuse-ld=gold)
+if(USE_LINKER)
+	set(LINKER_FLAG "-fuse-ld=${USE_LINKER}")
+	check_linker_flag(IS_LINKER_SUPPORTED ${LINKER_FLAG})
+	if(NOT IS_LINKER_SUPPORTED)
+		message(FATAL_ERROR "The ${USE_LINKER} linker is not supported, make sure ${USE_LINKER} is properly isntalled or use -DUSE_LINKER= to use the system's linker")
+	endif()
+	add_linker_flags(${LINKER_FLAG})
 endif()
 
 # Prefer -g3, defaults to -g if unavailable
@@ -416,7 +432,7 @@ function(add_network_sources NETWORK_SOURCES)
 	elseif(${NETWORK_COMPATIBILITY} MATCHES "BCHN")
 		set(NETWORK_DIR bchn)
 	else()
-		message(FATAL "${NETWORK_COMPATIBILITY} is not a supported network")
+		message(FATAL_ERROR "${NETWORK_COMPATIBILITY} is not a supported network")
 	endif()
 
 	list(TRANSFORM
