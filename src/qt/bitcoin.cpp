@@ -748,7 +748,7 @@ int GuiMain(int argc, char *argv[]) {
     }
 
     RPCServer rpcServer;
-    util::Ref context{node};
+    util::Ref context{node_context};
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
 
     try {
