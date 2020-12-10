@@ -196,6 +196,7 @@ public:
     bool IsTor() const;
     bool IsI2P() const;
     bool IsCJDNS() const;
+    [[nodiscard]] bool HasCJDNSPrefix() const { return m_addr[0] == 0xfc; }
     bool IsLocal() const;
     bool IsRoutable() const;
     bool IsInternal() const;

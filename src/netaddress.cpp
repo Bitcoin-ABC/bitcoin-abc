@@ -478,6 +478,10 @@ bool CNetAddr::IsValid() const {
         return false;
     }
 
+    if (IsCJDNS() && !HasCJDNSPrefix()) {
+        return false;
+    }
+
     // documentation IPv6 address
     if (IsRFC3849()) {
         return false;
