@@ -618,11 +618,9 @@ class TestNode():
             try:
                 self.start(extra_args, stdout=log_stdout,
                            stderr=log_stderr, *args, **kwargs)
-                self.wait_for_rpc_connection()
-                self.stop_node()
-                self.wait_until_stopped()
-            except FailedToStartError as e:
-                self.log.debug('bitcoind failed to start: {}'.format(e))
+                ret = self.process.wait(timeout=self.rpc_timeout)
+                self.log.debug(self._node_msg(
+                    f'bitcoind exited with status {ret} during initialization'))
                 self.running = False
                 self.process = None
                 # Check stderr for expected message
@@ -642,11 +640,15 @@ class TestNode():
                         if expected_msg != stderr:
                             self._raise_assertion_error(
                                 'Expected message "{}" does not fully match stderr:\n"{}"'.format(expected_msg, stderr))
-            else:
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.running = False
+                self.process = None
+                assert_msg = f'bitcoind should have exited within {self.rpc_timeout}s '
                 if expected_msg is None:
-                    assert_msg = "bitcoind should have exited with an error"
+                    assert_msg += "with an error"
                 else:
-                    assert_msg = "bitcoind should have exited with expected error " + expected_msg
+                    assert_msg += "with expected error " + expected_msg
                 self._raise_assertion_error(assert_msg)
 
     def relay_fee(self, cached=True):
@@ -742,7 +744,7 @@ class TestNode():
     def num_test_p2p_connections(self):
         """Return number of test framework p2p connections to the node."""
         return len([peer for peer in self.getpeerinfo()
-                   if peer['subver'] == MY_SUBVERSION.decode("utf-8")])
+                    if peer['subver'] == MY_SUBVERSION.decode("utf-8")])
 
     def disconnect_p2ps(self):
         """Close all p2p connections to the node."""
