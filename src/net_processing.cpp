@@ -923,9 +923,6 @@ struct CNodeState {
     //! Whether this peer is an inbound connection
     bool m_is_inbound;
 
-    //! Whether this peer is a manual connection
-    bool m_is_manual_connection;
-
     //! A rolling bloom filter of all announced tx CInvs to this peer.
     CRollingBloomFilter m_recently_announced_invs =
         CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
@@ -934,9 +931,8 @@ struct CNodeState {
     CRollingBloomFilter m_recently_announced_proofs =
         CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
 
-    CNodeState(CAddress addrIn, bool is_inbound, bool is_manual)
-        : address(addrIn), m_is_inbound(is_inbound),
-          m_is_manual_connection(is_manual) {
+    CNodeState(CAddress addrIn, bool is_inbound)
+        : address(addrIn), m_is_inbound(is_inbound) {
         pindexBestKnownBlock = nullptr;
         hashLastUnknownBlock = BlockHash();
         pindexLastCommonBlock = nullptr;
@@ -1470,11 +1466,10 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
     NodeId nodeid = pnode->GetId();
     {
         LOCK(cs_main);
-        mapNodeState.emplace_hint(mapNodeState.end(), std::piecewise_construct,
-                                  std::forward_as_tuple(nodeid),
-                                  std::forward_as_tuple(addr,
-                                                        pnode->IsInboundConn(),
-                                                        pnode->IsManualConn()));
+        mapNodeState.emplace_hint(
+            mapNodeState.end(), std::piecewise_construct,
+            std::forward_as_tuple(nodeid),
+            std::forward_as_tuple(addr, pnode->IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
     {
@@ -1857,9 +1852,9 @@ bool PeerManagerImpl::MaybePunishNodeForBlock(NodeId nodeid,
             }
 
             // Ban outbound (but not inbound) peers if on an invalid chain.
-            // Exempt HB compact block peers and manual connections.
-            if (!via_compact_block && !node_state->m_is_inbound &&
-                !node_state->m_is_manual_connection) {
+            // Exempt HB compact block peers. Manual connections are always
+            // protected from discouragement.
+            if (!via_compact_block && !node_state->m_is_inbound) {
                 Misbehaving(nodeid, 100, message);
                 return true;
             }
