@@ -4,10 +4,12 @@
 
 #include <seeder/db.h>
 
+#include <util/time.h>
+
 #include <cstdlib>
 
 void SeederAddrInfo::Update(bool good) {
-    int64_t now = time(nullptr);
+    int64_t now = GetTime();
     if (ourLastTry == 0) {
         ourLastTry = now - MIN_RETRY;
     }
@@ -40,7 +42,7 @@ void SeederAddrInfo::Update(bool good) {
 }
 
 bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
-    int64_t now = time(nullptr);
+    int64_t now = GetTime();
     size_t tot = unkId.size() + ourId.size();
     if (tot == 0) {
         wait = 5;
@@ -57,7 +59,7 @@ bool CAddrDb::Get_(CServiceResult &ip, int &wait) {
             unkId.erase(it);
         } else {
             ret = ourId.front();
-            if (time(nullptr) - idToInfo[ret].ourLastTry < MIN_RETRY) {
+            if (GetTime() - idToInfo[ret].ourLastTry < MIN_RETRY) {
                 return false;
             }
             ourId.pop_front();
@@ -114,7 +116,7 @@ void CAddrDb::Bad_(const CService &addr, int ban) {
     unkId.erase(id);
     SeederAddrInfo &info = idToInfo[id];
     info.Update(false);
-    uint32_t now = time(nullptr);
+    uint32_t now = GetTime();
     int ter = info.GetBanTime();
     if (ter) {
         //    tfm::format(std::cout, "%s: terrible\n", ToString(addr));

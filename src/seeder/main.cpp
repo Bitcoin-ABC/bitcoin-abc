@@ -13,6 +13,7 @@
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/time.h>
 #include <util/translation.h>
 
 #include <algorithm>
@@ -173,7 +174,7 @@ extern "C" void *ThreadCrawler(void *data) {
         std::vector<CServiceResult> ips;
         int wait = 5;
         db.GetMany(ips, 16, wait);
-        int64_t now = time(nullptr);
+        int64_t now = GetTime();
         if (ips.empty()) {
             wait *= 1000;
             wait += rand() % (500 * *nThreads);
@@ -241,7 +242,7 @@ public:
             nets[NET_IPV4] = true;
             nets[NET_IPV6] = true;
         }
-        time_t now = time(nullptr);
+        int64_t now = GetTime();
         FlagSpecificData &thisflag = perflag[requestedFlags];
         thisflag.cacheHits++;
         if (force ||
@@ -413,9 +414,8 @@ extern "C" void *ThreadDumper(void *) {
                 stat[4] += rep.uptime[4];
             }
             fsbridge::ofstream ff{"dnsstats.log", std::ios_base::app};
-            tfm::format(ff, "%llu %g %g %g %g %g\n",
-                        (unsigned long long)(time(nullptr)), stat[0], stat[1],
-                        stat[2], stat[3], stat[4]);
+            tfm::format(ff, "%llu %g %g %g %g %g\n", GetTime(), stat[0],
+                        stat[1], stat[2], stat[3], stat[4]);
         }
     } while (1);
     return nullptr;

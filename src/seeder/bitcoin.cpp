@@ -10,6 +10,7 @@
 #include <seeder/messagewriter.h>
 #include <serialize.h>
 #include <uint256.h>
+#include <util/time.h>
 
 #include <algorithm>
 
@@ -58,9 +59,9 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // nVersion);
         if (vAddr) {
             MessageWriter::WriteMessage(vSend, NetMsgType::GETADDR);
-            doneAfter = time(nullptr) + GetTimeout();
+            doneAfter = GetTime() + GetTimeout();
         } else {
-            doneAfter = time(nullptr) + 1;
+            doneAfter = GetTime() + 1;
         }
         return PeerMessagingState::AwaitingMessages;
     }
@@ -71,7 +72,7 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // tfm::format(std::cout, "%s: got %i addresses\n",
         // ToString(you),
         //        (int)vAddrNew.size());
-        int64_t now = time(nullptr);
+        int64_t now = GetTime();
         std::vector<CAddress>::iterator it = vAddrNew.begin();
         if (vAddrNew.size() > 1) {
             if (doneAfter == 0 || doneAfter > now + 1) {
@@ -169,7 +170,7 @@ CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
     : sock(INVALID_SOCKET), vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0),
       nHeaderStart(-1), nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0),
       doneAfter(0), you(ip, ServiceFlags(NODE_NETWORK)) {
-    if (time(nullptr) > 1329696000) {
+    if (GetTime() > 1329696000) {
         vSend.SetVersion(209);
         vRecv.SetVersion(209);
     }
@@ -211,22 +212,21 @@ bool CSeederNode::Run() {
         return false;
     }
 
-    // Push version;
+    // Write version message
     uint64_t nLocalServices = 0;
     uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
     CService myService;
     CAddress me(myService, ServiceFlags(NODE_NETWORK));
     std::string ver = "/bitcoin-cash-seeder:0.15/";
     MessageWriter::WriteMessage(vSend, NetMsgType::VERSION, PROTOCOL_VERSION,
-                                nLocalServices, time(nullptr), you, me,
-                                nLocalNonce, ver, GetRequireHeight());
+                                nLocalServices, GetTime(), you, me, nLocalNonce,
+                                ver, GetRequireHeight());
     Send();
 
     bool res = true;
     int64_t now;
-    while (now = time(nullptr), ban == 0 &&
-                                    (doneAfter == 0 || doneAfter > now) &&
-                                    sock != INVALID_SOCKET) {
+    while (now = GetTime(), ban == 0 && (doneAfter == 0 || doneAfter > now) &&
+                                sock != INVALID_SOCKET) {
         char pchBuf[0x10000];
         fd_set fdsetRecv;
         fd_set fdsetError;

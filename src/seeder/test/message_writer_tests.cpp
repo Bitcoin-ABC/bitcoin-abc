@@ -29,7 +29,7 @@ static void CheckMessage(CDataStream &expectedMessage, std::string command,
 
 BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     SelectParams(CBaseChainParams::MAIN);
-    uint64_t now = time(nullptr);
+    int64_t now = GetTime();
     uint64_t nonce = 0;
     uint64_t serviceFlags = uint64_t(ServiceFlags(NODE_NETWORK));
     CService service;

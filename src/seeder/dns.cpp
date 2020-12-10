@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <util/time.h>
 
 #include <cctype>
 #include <cstdbool>
@@ -480,7 +481,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
 
             newpos = outpos;
             write_record_soa(&newpos, outend, "", offset, CLASS_IN, opt->nsttl,
-                             opt->ns, opt->mbox, time(NULL), 604800, 86400,
+                             opt->ns, opt->mbox, GetTime(), 604800, 86400,
                              2592000, 604800);
             if (max_auth_size < newpos - outpos) {
                 max_auth_size = newpos - outpos;
@@ -509,7 +510,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
             int ret2 =
                 write_record_soa(&outpos, outend - max_auth_size, "", offset,
                                  CLASS_IN, opt->nsttl, opt->ns, opt->mbox,
-                                 time(NULL), 604800, 86400, 2592000, 604800);
+                                 GetTime(), 604800, 86400, 2592000, 604800);
             //    tfm::format(std::cout, "wrote SOA record: %i\n", ret2);
             if (!ret2) {
                 outbuf[7]++;
@@ -562,7 +563,7 @@ static ssize_t dnshandle(dns_opt_t *opt, const uint8_t *inbuf, size_t insize,
             // resolver should try next.
             int ret2 = write_record_soa(
                 &outpos, outend, "", offset, CLASS_IN, opt->nsttl, opt->ns,
-                opt->mbox, time(NULL), 604800, 86400, 2592000, 604800);
+                opt->mbox, GetTime(), 604800, 86400, 2592000, 604800);
             //    tfm::format(std::cout, "wrote SOA record: %i\n", ret2);
             if (!ret2) {
                 outbuf[9]++;

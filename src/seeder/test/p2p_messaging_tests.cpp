@@ -75,9 +75,8 @@ BOOST_AUTO_TEST_CASE(seeder_node_version_test) {
     CService serviceFrom;
     CAddress addrFrom(serviceFrom, ServiceFlags(NODE_NETWORK));
 
-    CDataStream versionMessage =
-        CreateVersionMessage(time(nullptr), vAddr[0], addrFrom,
-                             GetRequireHeight(), INIT_PROTO_VERSION);
+    CDataStream versionMessage = CreateVersionMessage(
+        GetTime(), vAddr[0], addrFrom, GetRequireHeight(), INIT_PROTO_VERSION);
 
     // Verify the version is set as the initial value
     BOOST_CHECK_EQUAL(testNode->CSeederNode::GetClientVersion(),

@@ -11,6 +11,7 @@
 #include <seeder/bitcoin.h>
 #include <seeder/util.h>
 #include <sync.h>
+#include <util/time.h>
 #include <version.h>
 
 #include <cmath>
@@ -323,7 +324,7 @@ public:
         stats.nGood = goodId.size();
         stats.nNew = unkId.size();
         if (ourId.size() > 0) {
-            stats.nAge = time(nullptr) - idToInfo.at(ourId.at(0)).ourLastTry;
+            stats.nAge = GetTime() - idToInfo.at(ourId.at(0)).ourLastTry;
         } else {
             stats.nAge = 0;
         }
