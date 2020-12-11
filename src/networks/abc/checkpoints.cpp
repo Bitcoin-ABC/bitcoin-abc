@@ -57,6 +57,8 @@ static CCheckpointData mainNetCheckpointData = {
         // Axion activation.
         {661648, BlockHash::fromHex("000000000000000004284c9d8b2c8ff731efeaec6b"
                                     "e50729bdc9bd07f910757d")},
+        {664198, BlockHash::fromHex("00000000000000000c2f90578cede892ff39592cce"
+                                    "34b2fb89b6d2a122468260")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
