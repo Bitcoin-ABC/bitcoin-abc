@@ -665,6 +665,10 @@ void SetupServerArgs(NodeContext &node) {
             "Always query for peer addresses via DNS lookup (default: %d)",
             DEFAULT_FORCEDNSSEED),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+    argsman.AddArg("-overridednsseed",
+                   "If set, only use the specified DNS seed when "
+                   "querying for peer addresses via DNS lookup.",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-listen",
         "Accept connections from outside (default: 1 if no -proxy or -connect)",

@@ -85,7 +85,6 @@ public:
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
     /** Return the list of hostnames to look up for DNS seeds */
-    const std::vector<std::string> &DNSSeeds() const { return vSeeds; }
     const std::vector<uint8_t> &Base58Prefix(Base58Type type) const {
         return base58Prefixes[type];
     }
@@ -116,6 +115,9 @@ protected:
     bool m_is_mockable_chain;
     CCheckpointData checkpointData;
     ChainTxData chainTxData;
+
+    friend const std::vector<std::string>
+    GetRandomizedDNSSeeds(const CChainParams &params);
 };
 
 /**

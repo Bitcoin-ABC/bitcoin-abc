@@ -4,6 +4,7 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
+#include <dnsseeds.h>
 #include <fs.h>
 #include <logging.h>
 #include <protocol.h>
@@ -145,6 +146,10 @@ private:
         argsman.AddArg("-port=<port>", "UDP port to listen on (default 53)",
                        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         argsman.AddArg("-onion=<ip:port>", "Tor proxy IP/Port",
+                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg("-overridednsseed",
+                       "If set, only use the specified DNS seed when "
+                       "querying for peer addresses via DNS lookup.",
                        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         argsman.AddArg("-proxyipv4=<ip:port>", "IPV4 SOCKS5 proxy IP/Port",
                        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
@@ -458,7 +463,7 @@ const static unsigned int MAX_HOSTS_PER_SEED = 128;
 
 extern "C" void *ThreadSeeder(void *) {
     do {
-        for (const std::string &seed : Params().DNSSeeds()) {
+        for (const std::string &seed : GetRandomizedDNSSeeds(Params())) {
             std::vector<CNetAddr> ips;
             LookupHost(seed.c_str(), ips, MAX_HOSTS_PER_SEED, true);
             for (auto &ip : ips) {

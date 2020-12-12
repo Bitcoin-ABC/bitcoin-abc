@@ -553,6 +553,7 @@ add_library(server
 	consensus/activation.cpp
 	consensus/tx_verify.cpp
 	dbwrapper.cpp
+	dnsseeds.cpp
 	flatfile.cpp
 	httprpc.cpp
 	httpserver.cpp

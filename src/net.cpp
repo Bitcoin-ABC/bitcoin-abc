@@ -14,6 +14,7 @@
 #include <config.h>
 #include <consensus/consensus.h>
 #include <crypto/sha256.h>
+#include <dnsseeds.h>
 #include <netbase.h>
 #include <node/ui_interface.h>
 #include <protocol.h>
@@ -1725,8 +1726,8 @@ void StopMapPort() {
 
 void CConnman::ThreadDNSAddressSeed() {
     FastRandomContext rng;
-    std::vector<std::string> seeds = config->GetChainParams().DNSSeeds();
-    Shuffle(seeds.begin(), seeds.end(), rng);
+    std::vector<std::string> seeds =
+        GetRandomizedDNSSeeds(config->GetChainParams());
     // Number of seeds left before testing if we have enough connections
     int seeds_right_now = 0;
     int found = 0;
