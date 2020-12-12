@@ -1022,6 +1022,74 @@ UniValue dumpwallet(const Config &config, const JSONRPCRequest &request) {
     return reply;
 }
 
+static UniValue dumpcoins(const Config &config, const JSONRPCRequest &request) {
+    std::shared_ptr<CWallet> const pwallet =
+        GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet.get(), request.fHelp)) {
+        return NullUniValue;
+    }
+
+    RPCHelpMan{
+        "dumpcoins",
+        "dump all the UTXO tracked by the wallet.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::OBJ_DYN,
+            "",
+            "",
+            {{
+                RPCResult::Type::ARR,
+                "address",
+                "The list of UTXO corresponding to this address.",
+                {{
+                    RPCResult::Type::OBJ,
+                    "",
+                    "",
+                    {
+                        {RPCResult::Type::STR_HEX, "txid",
+                         "The transaction id"},
+                        {RPCResult::Type::NUM, "vout", "The output number"},
+                        {RPCResult::Type::NUM, "depth", "The output's depth"},
+                        {RPCResult::Type::STR_AMOUNT, "value",
+                         "The output's amount"},
+                    },
+                }},
+            }},
+        },
+        RPCExamples{HelpExampleCli("dumpcoins", "") +
+                    HelpExampleRpc("dumpcoins", "")},
+    }
+        .Check(request);
+
+    CWallet &wallet = *pwallet;
+
+    // Make sure the results are valid at least up to the most recent block
+    // the user could have gotten from another RPC command prior to now
+    wallet.BlockUntilSyncedToCurrentChain();
+
+    LOCK(wallet.cs_wallet);
+
+    EnsureWalletIsUnlocked(&wallet);
+
+    UniValue result(UniValue::VOBJ);
+    for (const auto &p : wallet.ListCoins()) {
+        UniValue coins(UniValue::VARR);
+        for (const auto &o : p.second) {
+            UniValue utxo(UniValue::VOBJ);
+            utxo.pushKV("txid", o.tx->GetId().ToString());
+            utxo.pushKV("vout", o.i);
+            utxo.pushKV("depth", o.nDepth);
+            utxo.pushKV("value", ValueFromAmount(o.tx->tx->vout[o.i].nValue));
+
+            coins.push_back(std::move(utxo));
+        }
+
+        result.pushKV(EncodeDestination(p.first, config), coins);
+    }
+
+    return result;
+}
+
 struct ImportData {
     // Input data
     //! Provided redeemScript; will be moved to `import_scripts` if relevant.
@@ -2252,6 +2320,7 @@ Span<const CRPCCommand> GetWalletDumpRPCCommands() {
         { "wallet",             "abortrescan",              abortrescan,              {} },
         { "wallet",             "dumpprivkey",              dumpprivkey,              {"address"}  },
         { "wallet",             "dumpwallet",               dumpwallet,               {"filename"} },
+        { "wallet",             "dumpcoins",                dumpcoins,                {} },
         { "wallet",             "importdescriptors",        importdescriptors,        {"requests"} },
         { "wallet",             "importmulti",              importmulti,              {"requests","options"} },
         { "wallet",             "importprivkey",            importprivkey,            {"privkey","label","rescan"} },
