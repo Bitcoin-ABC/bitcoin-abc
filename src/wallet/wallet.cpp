@@ -4986,8 +4986,7 @@ CWallet::AddWalletDescriptor(WalletDescriptor &desc,
     }
 
     LOCK(cs_wallet);
-    auto new_spk_man = std::unique_ptr<DescriptorScriptPubKeyMan>(
-        new DescriptorScriptPubKeyMan(*this, desc));
+    auto new_spk_man = std::make_unique<DescriptorScriptPubKeyMan>(*this, desc);
 
     // If we already have this descriptor, remove it from the maps but add the
     // existing cache to desc

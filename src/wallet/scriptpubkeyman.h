@@ -156,7 +156,7 @@ public:
     }
 };
 
-/*
+/**
  * A class implementing ScriptPubKeyMan manages some (or all) scriptPubKeys used
  * in a wallet. It contains the scripts and keys related to the scriptPubKeys it
  * manages. A ScriptPubKeyMan will be able to give out scriptPubKeys to be used,
