@@ -9,6 +9,8 @@
 #include <wallet/transaction.h>
 #include <wallet/wallet.h>
 
+#include <optional>
+
 /**
  * Get the marginal bytes if spending the specified output from this
  * transaction
@@ -161,16 +163,24 @@ bool SelectCoins(const CWallet &wallet,
                  CoinSelectionParams &coin_selection_params, bool &bnb_used)
     EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet);
 
+struct CreatedTransactionResult {
+    CTransactionRef tx;
+    Amount fee;
+    int change_pos;
+
+    CreatedTransactionResult(CTransactionRef tx, Amount fee, int change_pos)
+        : tx(tx), fee(fee), change_pos(change_pos) {}
+};
+
 /**
  * Create a new transaction paying the recipients with a set of coins
  * selected by SelectCoins(); Also create the change output, when needed
- * @note passing nChangePosInOut as -1 will result in setting a random
- * position
+ * @note passing change_pos as -1 will result in setting a random position
  */
-bool CreateTransaction(CWallet &wallet, const std::vector<CRecipient> &vecSend,
-                       CTransactionRef &tx, Amount &nFeeRet,
-                       int &nChangePosInOut, bilingual_str &error,
-                       const CCoinControl &coin_control, bool sign = true);
+std::optional<CreatedTransactionResult>
+CreateTransaction(CWallet &wallet, const std::vector<CRecipient> &vecSend,
+                  int change_pos, bilingual_str &error,
+                  const CCoinControl &coin_control, bool sign = true);
 
 /**
  * Insert additional inputs into the transaction by

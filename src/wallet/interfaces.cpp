@@ -246,12 +246,16 @@ namespace {
                           int &change_pos, Amount &fee,
                           bilingual_str &fail_reason) override {
             LOCK(m_wallet->cs_wallet);
-            CTransactionRef tx;
-            if (!CreateTransaction(*m_wallet, recipients, tx, fee, change_pos,
-                                   fail_reason, coin_control, sign)) {
+            std::optional<CreatedTransactionResult> txr =
+                CreateTransaction(*m_wallet, recipients, change_pos,
+                                  fail_reason, coin_control, sign);
+            if (!txr) {
                 return {};
             }
-            return tx;
+            fee = txr->fee;
+            change_pos = txr->change_pos;
+
+            return txr->tx;
         }
         void commitTransaction(CTransactionRef tx, WalletValueMap value_map,
                                WalletOrderForm order_form) override {

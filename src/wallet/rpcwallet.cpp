@@ -285,17 +285,15 @@ UniValue SendMoney(CWallet *const pwallet, const CCoinControl &coin_control,
     std::shuffle(recipients.begin(), recipients.end(), FastRandomContext());
 
     // Send
-    Amount nFeeRequired = Amount::zero();
-    int nChangePosRet = -1;
+    constexpr int RANDOM_CHANGE_POSITION = -1;
     bilingual_str error;
-    CTransactionRef tx;
-    bool fCreated = CreateTransaction(
-        *pwallet, recipients, tx, nFeeRequired, nChangePosRet, error,
-        coin_control,
+    std::optional<CreatedTransactionResult> txr = CreateTransaction(
+        *pwallet, recipients, RANDOM_CHANGE_POSITION, error, coin_control,
         !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
-    if (!fCreated) {
+    if (!txr) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
     }
+    CTransactionRef tx = txr->tx;
     pwallet->CommitTransaction(tx, std::move(map_value), {} /* orderForm */,
                                broadcast);
     return tx->GetId().GetHex();

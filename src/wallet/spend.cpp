@@ -608,14 +608,19 @@ bool SelectCoins(const CWallet &wallet,
     return res;
 }
 
-static bool CreateTransactionInternal(
-    CWallet &wallet, const std::vector<CRecipient> &vecSend,
-    CTransactionRef &tx, Amount &nFeeRet, int &nChangePosInOut,
+static std::optional<CreatedTransactionResult> CreateTransactionInternal(
+    CWallet &wallet, const std::vector<CRecipient> &vecSend, int change_pos,
     bilingual_str &error, const CCoinControl &coin_control, bool sign) {
     // TODO: remember to add the lock annotation when adding AssertLockHeld.
     //       The lock annotation was added by core in PR22100, but due to
     //       other missing backports it was not possible to add it during that
     //       backport.
+
+    // out variables, to be packed into returned result structure
+    CTransactionRef tx;
+    Amount nFeeRet;
+    int nChangePosInOut = change_pos;
+
     Amount nValue = Amount::zero();
     const OutputType change_type = wallet.TransactionChangeType(
         coin_control.m_change_type ? *coin_control.m_change_type
@@ -627,7 +632,7 @@ static bool CreateTransactionInternal(
     for (const auto &recipient : vecSend) {
         if (nValue < Amount::zero() || recipient.nAmount < Amount::zero()) {
             error = _("Transaction amounts must not be negative");
-            return false;
+            return std::nullopt;
         }
 
         nValue += recipient.nAmount;
@@ -639,7 +644,7 @@ static bool CreateTransactionInternal(
 
     if (vecSend.empty()) {
         error = _("Transaction must have at least one recipient");
-        return false;
+        return std::nullopt;
     }
 
     CMutableTransaction txNew;
@@ -709,7 +714,7 @@ static bool CreateTransactionInternal(
                                 "rate setting (%s)"),
                               coin_control.m_feerate->ToString(),
                               nFeeRateNeeded.ToString());
-            return false;
+            return std::nullopt;
         }
 
         nFeeRet = Amount::zero();
@@ -779,7 +784,7 @@ static bool CreateTransactionInternal(
                         error = _("Transaction amount too small");
                     }
 
-                    return false;
+                    return std::nullopt;
                 }
 
                 txNew.vout.push_back(txout);
@@ -812,7 +817,7 @@ static bool CreateTransactionInternal(
                         continue;
                     } else {
                         error = _("Insufficient funds");
-                        return false;
+                        return std::nullopt;
                     }
                 }
             } else {
@@ -838,7 +843,7 @@ static bool CreateTransactionInternal(
                     } else if ((unsigned int)nChangePosInOut >
                                txNew.vout.size()) {
                         error = _("Change index out of range");
-                        return false;
+                        return std::nullopt;
                     }
 
                     std::vector<CTxOut>::iterator position =
@@ -860,7 +865,7 @@ static bool CreateTransactionInternal(
                 txNewConst, &wallet, coin_control.fAllowWatchOnly);
             if (nBytes < 0) {
                 error = _("Signing transaction failed");
-                return false;
+                return std::nullopt;
             }
 
             Amount nFeeNeeded = GetMinimumFee(wallet, nBytes, coin_control);
@@ -912,7 +917,7 @@ static bool CreateTransactionInternal(
                 // Or we should have just subtracted fee from recipients and
                 // nFeeNeeded should not have changed.
                 error = _("Transaction fee and change calculation failed");
-                return false;
+                return std::nullopt;
             }
 
             // Try to reduce change to include necessary fee.
@@ -945,7 +950,7 @@ static bool CreateTransactionInternal(
 
         // Give up if change keypool ran out and change is required
         if (scriptChange.empty() && nChangePosInOut != -1) {
-            return false;
+            return std::nullopt;
         }
 
         // Shuffle selected coins and fill in final vin
@@ -965,7 +970,7 @@ static bool CreateTransactionInternal(
 
         if (sign && !wallet.SignTransaction(txNew)) {
             error = _("Signing transaction failed");
-            return false;
+            return std::nullopt;
         }
 
         // Return the constructed transaction data.
@@ -974,59 +979,59 @@ static bool CreateTransactionInternal(
         // Limit size.
         if (tx->GetTotalSize() > MAX_STANDARD_TX_SIZE) {
             error = _("Transaction too large");
-            return false;
+            return std::nullopt;
         }
     }
 
     if (nFeeRet > wallet.m_default_max_tx_fee) {
         error = TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
-        return false;
+        return std::nullopt;
     }
 
     // Before we return success, we assume any change key will be used to
     // prevent accidental re-use.
     reservedest.KeepDestination();
 
-    return true;
+    return CreatedTransactionResult(tx, nFeeRet, nChangePosInOut);
 }
 
-bool CreateTransaction(CWallet &wallet, const std::vector<CRecipient> &vecSend,
-                       CTransactionRef &tx, Amount &nFeeRet,
-                       int &nChangePosInOut, bilingual_str &error,
-                       const CCoinControl &coin_control, bool sign) {
-    int nChangePosIn = nChangePosInOut;
-    CTransactionRef tx2 = tx;
-    bool res =
-        CreateTransactionInternal(wallet, vecSend, tx, nFeeRet, nChangePosInOut,
-                                  error, coin_control, sign);
+std::optional<CreatedTransactionResult>
+CreateTransaction(CWallet &wallet, const std::vector<CRecipient> &vecSend,
+                  int change_pos, bilingual_str &error,
+                  const CCoinControl &coin_control, bool sign) {
+    std::optional<CreatedTransactionResult> txr_ungrouped =
+        CreateTransactionInternal(wallet, vecSend, change_pos, error,
+                                  coin_control, sign);
+    if (!txr_ungrouped) {
+        return std::nullopt;
+    }
     // try with avoidpartialspends unless it's enabled already
-    if (res &&
-        nFeeRet >
-            Amount::zero() /* 0 means non-functional fee rate estimation */
-        && wallet.m_max_aps_fee > (-1 * SATOSHI) &&
+    // 0 as fee means non-functional fee rate estimation
+    if (txr_ungrouped->fee > Amount::zero() &&
+        wallet.m_max_aps_fee > (-1 * SATOSHI) &&
         !coin_control.m_avoid_partial_spends) {
         CCoinControl tmp_cc = coin_control;
         tmp_cc.m_avoid_partial_spends = true;
-        Amount nFeeRet2;
-        int nChangePosInOut2 = nChangePosIn;
         // fired and forgotten; if an error occurs, we discard the results
         bilingual_str error2;
-        if (CreateTransactionInternal(wallet, vecSend, tx2, nFeeRet2,
-                                      nChangePosInOut2, error2, tmp_cc, sign)) {
+        std::optional<CreatedTransactionResult> txr_grouped =
+            CreateTransactionInternal(wallet, vecSend, change_pos, error2,
+                                      tmp_cc, sign);
+        if (txr_grouped) {
             // if fee of this alternative one is within the range of the max
             // fee, we use this one
-            const bool use_aps = nFeeRet2 <= nFeeRet + wallet.m_max_aps_fee;
+            const bool use_aps =
+                txr_grouped->fee <= txr_ungrouped->fee + wallet.m_max_aps_fee;
             wallet.WalletLogPrintf(
-                "Fee non-grouped = %lld, grouped = %lld, using %s\n", nFeeRet,
-                nFeeRet2, use_aps ? "grouped" : "non-grouped");
+                "Fee non-grouped = %lld, grouped = %lld, using %s\n",
+                txr_ungrouped->fee, txr_grouped->fee,
+                use_aps ? "grouped" : "non-grouped");
             if (use_aps) {
-                tx = tx2;
-                nFeeRet = nFeeRet2;
-                nChangePosInOut = nChangePosInOut2;
+                return txr_grouped;
             }
         }
     }
-    return res;
+    return txr_ungrouped;
 }
 
 bool FundTransaction(CWallet &wallet, CMutableTransaction &tx, Amount &nFeeRet,
@@ -1054,11 +1059,14 @@ bool FundTransaction(CWallet &wallet, CMutableTransaction &tx, Amount &nFeeRet,
     // CreateTransaction call and LockCoin calls (when lockUnspents is true).
     LOCK(wallet.cs_wallet);
 
-    CTransactionRef tx_new;
-    if (!CreateTransaction(wallet, vecSend, tx_new, nFeeRet, nChangePosInOut,
-                           error, coinControl, false)) {
+    std::optional<CreatedTransactionResult> txr = CreateTransaction(
+        wallet, vecSend, nChangePosInOut, error, coinControl, false);
+    if (!txr) {
         return false;
     }
+    CTransactionRef tx_new = txr->tx;
+    nFeeRet = txr->fee;
+    nChangePosInOut = txr->change_pos;
 
     if (nChangePosInOut != -1) {
         tx.vout.insert(tx.vout.begin() + nChangePosInOut,

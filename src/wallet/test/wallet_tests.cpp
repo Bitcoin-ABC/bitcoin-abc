@@ -593,13 +593,14 @@ public:
     CWalletTx &AddTx(CRecipient recipient) {
         ChainstateManager &chainman = *Assert(m_node.chainman);
         CTransactionRef tx;
-        Amount fee;
-        int changePos = -1;
         bilingual_str error;
         CCoinControl dummy;
         {
-            BOOST_CHECK(CreateTransaction(*wallet, {recipient}, tx, fee,
-                                          changePos, error, dummy));
+            constexpr int RANDOM_CHANGE_POSITION = -1;
+            std::optional<CreatedTransactionResult> txr = CreateTransaction(
+                *wallet, {recipient}, RANDOM_CHANGE_POSITION, error, dummy);
+            BOOST_CHECK(txr.has_value());
+            tx = txr->tx;
         }
         BOOST_CHECK_EQUAL(tx->nLockTime, 0);
 
