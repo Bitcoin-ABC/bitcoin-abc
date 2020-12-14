@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from '../../utils/context';
-import { Alert, Form, notification, message } from 'antd';
+import { Form, notification, message } from 'antd';
 import { CashSpin, CashSpinIcon } from '../Common/CustomSpinner';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import { SecondaryButton } from '../Common/PrimaryButton';
+import PrimaryButton, { SecondaryButton } from '../Common/PrimaryButton';
 import { CashLoader } from '../Common/CustomIcons';
 import {
     FormItemWithMaxAddon,
@@ -285,9 +285,11 @@ const SendToken = ({ tokenId }) => {
                                                 {apiError && <CashLoader />}
                                             </>
                                         ) : (
-                                            <SecondaryButton>
+                                            <PrimaryButton
+                                                onClick={() => submit()}
+                                            >
                                                 Send {token.info.tokenName}
-                                            </SecondaryButton>
+                                            </PrimaryButton>
                                         )}
                                     </div>
                                     {apiError && (
@@ -299,14 +301,6 @@ const SendToken = ({ tokenId }) => {
                                         </p>
                                     )}
                                 </Form>
-                                <Alert
-                                    message="Warning"
-                                    description="Sending SLPA tokens is currently disabled."
-                                    type="warning"
-                                    showIcon
-                                    closable
-                                    style={{ textAlign: 'left' }}
-                                />
                             </CashSpin>
                         </Col>
                     </Row>

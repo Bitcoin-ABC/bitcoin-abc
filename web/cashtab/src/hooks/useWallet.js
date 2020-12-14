@@ -664,25 +664,29 @@ const useWallet = () => {
                 tokens[receivedTokenObjectIndex].info.tokenName;
             //console.log(`receivedSlpQty`, receivedSlpQty);
 
-            // Notification
-            notification.success({
-                message: `SLP Transaction received: ${receivedSlpTicker}`,
-                description: (
-                    <Paragraph>
-                        You received {receivedSlpQty} {receivedSlpName}
-                    </Paragraph>
-                ),
-                duration: 5,
-            });
+            // Notification if you received SLP
+            if (receivedSlpQty > 0) {
+                notification.success({
+                    message: `${currency.tokenTicker} Transaction received: ${receivedSlpTicker}`,
+                    description: (
+                        <Paragraph>
+                            You received {receivedSlpQty} {receivedSlpName}
+                        </Paragraph>
+                    ),
+                    duration: 5,
+                });
+            }
 
             //
         } else {
             // If tokens[i].balance > previousTokens[i].balance, a new SLP tx of an existing token has been received
+            // Note that tokens[i].balance is of type BigNumber
             for (let i = 0; i < tokens.length; i += 1) {
-                if (tokens[i].balance > previousTokens[i].balance) {
+                if (tokens[i].balance.gt(previousTokens[i].balance)) {
                     // Received this token
                     // console.log(`previousTokenId`, previousTokens[i].tokenId);
                     // console.log(`currentTokenId`, tokens[i].tokenId);
+
                     if (previousTokens[i].tokenId !== tokens[i].tokenId) {
                         console.log(
                             `TokenIds do not match, breaking from SLP notifications`,
@@ -691,10 +695,10 @@ const useWallet = () => {
                         // Also don't 'continue' ; this means you have sent a token, just stop iterating through
                         break;
                     }
-                    const receivedSlpDecimals = tokens[i].info.decimals;
-                    const receivedSlpQty = (
-                        tokens[i].balance - previousTokens[i].balance
-                    ).toFixed(receivedSlpDecimals);
+                    const receivedSlpQty = tokens[i].balance.minus(
+                        previousTokens[i].balance,
+                    );
+
                     const receivedSlpTicker = tokens[i].info.tokenTicker;
                     const receivedSlpName = tokens[i].info.tokenName;
 
@@ -702,7 +706,8 @@ const useWallet = () => {
                         message: `SLP Transaction received: ${receivedSlpTicker}`,
                         description: (
                             <Paragraph>
-                                You received {receivedSlpQty} {receivedSlpName}
+                                You received {receivedSlpQty.toString()}{' '}
+                                {receivedSlpName}
                             </Paragraph>
                         ),
                         duration: 5,

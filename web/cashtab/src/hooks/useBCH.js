@@ -128,50 +128,50 @@ export default function useBCH() {
 
                 // Examples of slpUtxo
                 /*
-        Genesis transaction:
-        {
-          address: "bitcoincash:qrhzv5t79e2afc3rdutcu0d3q20gl7ul3ue58whah6"
-          decimals: 9
-          height: 617564
-          isValid: true
-          satoshis: 546
-          tokenDocumentHash: ""
-          tokenDocumentUrl: "developer.bitcoin.com"
-          tokenId: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
-          tokenName: "PiticoLaunch"
-          tokenTicker: "PTCL"
-          tokenType: 1
-          tx_hash: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
-          tx_pos: 2
-          txid: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
-          utxoType: "minting-baton"
-          value: 546
-          vout: 2
-        }
+                Genesis transaction:
+                {
+                address: "bitcoincash:qrhzv5t79e2afc3rdutcu0d3q20gl7ul3ue58whah6"
+                decimals: 9
+                height: 617564
+                isValid: true
+                satoshis: 546
+                tokenDocumentHash: ""
+                tokenDocumentUrl: "developer.bitcoin.com"
+                tokenId: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
+                tokenName: "PiticoLaunch"
+                tokenTicker: "PTCL"
+                tokenType: 1
+                tx_hash: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
+                tx_pos: 2
+                txid: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
+                utxoType: "minting-baton"
+                value: 546
+                vout: 2
+                }
 
-        Send transaction:
-        {
-          address: "bitcoincash:qrhzv5t79e2afc3rdutcu0d3q20gl7ul3ue58whah6"
-          decimals: 9
-          height: 655115
-          isValid: true
-          satoshis: 546
-          tokenDocumentHash: ""
-          tokenDocumentUrl: "developer.bitcoin.com"
-          tokenId: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
-          tokenName: "PiticoLaunch"
-          tokenQty: 1.123456789
-          tokenTicker: "PTCL"
-          tokenType: 1
-          transactionType: "send"
-          tx_hash: "dea400f963bc9f51e010f88533010f8d1f82fc2bcc485ff8500c3a82b25abd9e"
-          tx_pos: 1
-          txid: "dea400f963bc9f51e010f88533010f8d1f82fc2bcc485ff8500c3a82b25abd9e"
-          utxoType: "token"
-          value: 546
-          vout: 1
-        }
-        */
+                Send transaction:
+                {
+                address: "bitcoincash:qrhzv5t79e2afc3rdutcu0d3q20gl7ul3ue58whah6"
+                decimals: 9
+                height: 655115
+                isValid: true
+                satoshis: 546
+                tokenDocumentHash: ""
+                tokenDocumentUrl: "developer.bitcoin.com"
+                tokenId: "6c41f244676ecfcbe3b4fabee2c72c2dadf8d74f8849afabc8a549157db69199"
+                tokenName: "PiticoLaunch"
+                tokenQty: 1.123456789
+                tokenTicker: "PTCL"
+                tokenType: 1
+                transactionType: "send"
+                tx_hash: "dea400f963bc9f51e010f88533010f8d1f82fc2bcc485ff8500c3a82b25abd9e"
+                tx_pos: 1
+                txid: "dea400f963bc9f51e010f88533010f8d1f82fc2bcc485ff8500c3a82b25abd9e"
+                utxoType: "token"
+                value: 546
+                vout: 1
+                }
+                */
             } else {
                 token = {};
                 token.info = slpUtxo;
@@ -220,27 +220,17 @@ export default function useBCH() {
         slpBalancesAndUtxos,
         { tokenId, amount, tokenReceiverAddress },
     ) => {
+        // Handle error of user having no BCH
+        if (slpBalancesAndUtxos.nonSlpUtxos.length === 0) {
+            throw new Error(
+                `You need some ${currency.ticker} to send ${currency.tokenTicker}`,
+            );
+        }
         const largestBchUtxo = slpBalancesAndUtxos.nonSlpUtxos.reduce(
             (previous, current) =>
                 previous.satoshis > current.satoshis ? previous : current,
         );
-        // console.log(`largestBchUtxo`, largestBchUtxo);
-        // this is big enough? might need to combine utxos
-        // TODO improve utxo selection
-        /*
-    {
-      address: "bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev"
-      height: 0
-      isValid: false
-      satoshis: 1510
-      tx_hash: "faef4d8bf56353702e29c22f2aace970ddbac617144456d509e23e1192b320a8"
-      tx_pos: 0
-      txid: "faef4d8bf56353702e29c22f2aace970ddbac617144456d509e23e1192b320a8"
-      value: 1510
-      vout: 0
-      wif: "removed for git potential"
-    }
-    */
+
         const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
         const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(
             (utxo, index) => {
@@ -277,19 +267,11 @@ export default function useBCH() {
 
         let finalTokenAmountSent = new BigNumber(0);
         let tokenAmountBeingSentToAddress = new BigNumber(amount);
-        /*
-    console.log(`tokenAmountBeingSentToAddress`, tokenAmountBeingSentToAddress);
-    console.log(
-      `tokenAmountBeingSentToAddress.toString()`,
-      tokenAmountBeingSentToAddress.toString()
-    );
-    */
+
         let tokenUtxosBeingSpent = [];
         for (let i = 0; i < tokenUtxos.length; i++) {
             finalTokenAmountSent = finalTokenAmountSent.plus(
-                new BigNumber(tokenUtxos[i].tokenQty).div(
-                    Math.pow(10, tokenUtxos[i].decimals),
-                ),
+                new BigNumber(tokenUtxos[i].tokenQty),
             );
             transactionBuilder.addInput(
                 tokenUtxos[i].tx_hash,
@@ -301,16 +283,6 @@ export default function useBCH() {
             }
         }
 
-        // Run a test function to mock the outputs generated by BCH.SLP.TokenType1.generateSendOpReturn below
-        slpDebug(
-            tokenUtxosBeingSpent,
-            tokenAmountBeingSentToAddress.toString(),
-        );
-
-        // Generate the OP_RETURN code.
-        console.log(`Debug output`);
-        console.log(`tokenUtxos`, tokenUtxosBeingSpent);
-        console.log(`sendQty`, tokenAmountBeingSentToAddress.toString());
         const slpSendObj = BCH.SLP.TokenType1.generateSendOpReturn(
             tokenUtxosBeingSpent,
             tokenAmountBeingSentToAddress.toString(),
@@ -395,8 +367,6 @@ export default function useBCH() {
 
         // END transaction construction.
 
-        // Broadcast transaction to the network
-
         const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
         if (txidStr && txidStr[0]) {
             console.log(`${currency.tokenTicker} txid`, txidStr[0]);
@@ -408,141 +378,10 @@ export default function useBCH() {
         } else {
             link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
         }
+
         //console.log(`link`, link);
 
         return link;
-    };
-
-    const slpDebug = (tokenUtxos, sendQty) => {
-        console.log(`slpDebug test called with`);
-        console.log(`tokenUtxos`, tokenUtxos);
-        console.log(`sendQty`, sendQty);
-        try {
-            //const tokenId = tokenUtxos[0].tokenId;
-            const decimals = tokenUtxos[0].decimals;
-
-            // Joey patch to do
-            // totalTokens must be a big number accounting for decimals
-            // sendQty must be the same
-            /* From slp-sdk
-
-      amount = new BigNumber(amount).times(10 ** tokenDecimals) // Don't forget to account for token precision
-
-
-      This is analagous to sendQty here
-      */
-            const sendQtyBig = new BigNumber(sendQty).times(10 ** decimals);
-
-            // Calculate the total amount of tokens owned by the wallet.
-            //let totalTokens = 0;
-            //for (let i = 0; i < tokenUtxos.length; i++) totalTokens += tokenUtxos[i].tokenQty;
-
-            // Calculate total amount of tokens using Big Number throughout
-            /*
-      let totalTokens = new BigNumber(0);
-      for (let i = 0; i < tokenUtxos.length; i++) {
-        console.log(`tokenQty normal`, tokenUtxos[i].tokenQty);
-        const thisTokenQty = new BigNumber(tokenUtxos[i].tokenQty);
-        totalTokens.plus(thisTokenQty);
-      }
-      totalTokens.times(10 ** decimals);
-      */
-            let totalTokens = tokenUtxos.reduce((tot, txo) => {
-                return tot.plus(
-                    new BigNumber(txo.tokenQty).times(10 ** decimals),
-                );
-            }, new BigNumber(0));
-
-            console.log(`totalTokens`, totalTokens);
-            //test
-            //totalTokens = new BigNumber(totalTokens).times(10 ** decimals);
-
-            console.log(`sendQtyBig`, sendQtyBig);
-            const change = totalTokens.minus(sendQtyBig);
-            console.log(`change`, change);
-
-            //let script;
-            //let outputs = 1;
-
-            // The normal case, when there is token change to return to sender.
-            if (change > 0) {
-                //outputs = 2;
-
-                // Convert the send quantity to the format expected by slp-mdm.
-
-                //let baseQty = new BigNumber(sendQty).times(10 ** decimals);
-                // Update: you've done this earlier, so don't do it now
-                let baseQty = sendQtyBig.toString();
-                console.log(`baseQty: `, baseQty);
-
-                // Convert the change quantity to the format expected by slp-mdm.
-                //let baseChange = new BigNumber(change).times(10 ** decimals);
-                // Update: you've done this earlier, so don't do it now
-                let baseChange = change.toString();
-                console.log(`baseChange: `, baseChange);
-
-                const outputQty = new BigNumber(baseChange).plus(
-                    new BigNumber(baseQty),
-                );
-                const inputQty = new BigNumber(totalTokens);
-                console.log(
-                    `new BigNumber(baseChange)`,
-                    new BigNumber(baseChange),
-                );
-                console.log(`new BigNumber(baseQty)`, new BigNumber(baseQty));
-                console.log(`outputQty:`, outputQty);
-                console.log(`inputQty:`, inputQty);
-                console.log(
-                    `outputQty.minus(inputQty).toString():`,
-                    outputQty.minus(inputQty).toString(),
-                );
-                console.log(
-                    `outputQty.minus(inputQty).toString():`,
-                    outputQty.minus(inputQty).toString() === '0',
-                );
-
-                const tokenOutputDelta =
-                    outputQty.minus(inputQty).toString() !== '0';
-                if (tokenOutputDelta)
-                    console.log(
-                        'Token transaction inputs do not match outputs, cannot send transaction',
-                    );
-                // Generate the OP_RETURN as a Buffer.
-                /*
-        script = slpMdm.TokenType1.send(tokenId, [
-          new slpMdm.BN(baseQty),
-          new slpMdm.BN(baseChange)
-        ]);
-        */
-                //
-
-                // Corner case, when there is no token change to send back.
-            } else {
-                console.log(`No change case:`);
-                let baseQty = sendQtyBig.toString();
-                console.log(`baseQty: `, baseQty);
-
-                // Check for potential burns
-                const noChangeOutputQty = new BigNumber(baseQty);
-                const noChangeInputQty = new BigNumber(totalTokens);
-                console.log(`noChangeOutputQty`, noChangeOutputQty);
-                console.log(`noChangeInputQty`, noChangeInputQty);
-
-                const tokenSingleOutputError =
-                    noChangeOutputQty.minus(noChangeInputQty).toString() !==
-                    '0';
-                if (tokenSingleOutputError)
-                    console.log(
-                        'Token transaction inputs do not match outputs, cannot send transaction',
-                    );
-
-                // Generate the OP_RETURN as a Buffer.
-                //script = slpMdm.TokenType1.send(tokenId, [new slpMdm.BN(baseQty)]);
-            }
-        } catch (err) {
-            console.log(`Error in generateSendOpReturn()`);
-            throw err;
-        }
     };
 
     const sendBch = async (
@@ -553,16 +392,7 @@ export default function useBCH() {
         callbackTxId,
     ) => {
         // Note: callbackTxId is a callback function that accepts a txid as its only parameter
-        /* Debug logs
-    console.log(`sendBch called with`);
-    console.log("BCH", BCH);
-    console.log("wallet", wallet);
-    console.log("utxos", utxos);
-    console.log("addresses", addresses);
-    console.log("values", values);
-    console.log("encodedOpReturn", encodedOpReturn);
-    console.log("callbackTxid", callbackTxId);
-    */
+
         try {
             if (!values || values.length === 0) {
                 return null;
