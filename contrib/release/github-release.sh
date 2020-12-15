@@ -13,8 +13,8 @@ RELEASE_NOTES_DIR="${TOPLEVEL}/doc/release-notes"
 help_message() {
   echo "Create a draft Github release and upload binaries."
   echo "Usage: $0 <options>"
-  echo "-a, --asset-dir      (required) Path to the top-level directory outputted by a Gitian build."
-  echo "                        This directory must contain linux, osx, and win binaries in those respective sub-directories."
+  echo "-a, --asset-dir       Path to the top-level directory outputted by a Gitian build."
+  echo "                      This directory must contain linux, osx, and win binaries in those respective sub-directories."
   echo "-d, --dry-run         Run through the script, but do not touch existing tags, push to Github, or upload release files."
   echo "-h, --help            Display this help message."
   echo "-o, --oauth-token     Path to a file containing your OAuth token (defaults to: '${OAUTH_TOKEN_PATH}')."
@@ -103,37 +103,35 @@ cd "${ORIGINAL_PWD}"
 VERSION=$(echo "${TAG}" | cut -c 2-)
 
 # Collect list of assets (binaries) to upload
-if [ -z "${ASSET_DIR}" ]; then
-  echo "Error: Asset directory was not set. Try setting it with [ -a | --asset-dir ]"
-  exit 30
-fi
 ASSET_LIST=()
-if [ -d "${ASSET_DIR}" ]; then
-  # Linux binaries
-  ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-aarch64-linux-gnu.tar.gz")
-  ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-arm-linux-gnueabihf.tar.gz")
-  ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-x86_64-linux-gnu.tar.gz")
+if [ -n "${ASSET_DIR}" ]; then
+  if [ -d "${ASSET_DIR}" ]; then
+    # Linux binaries
+    ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-aarch64-linux-gnu.tar.gz")
+    ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-arm-linux-gnueabihf.tar.gz")
+    ASSET_LIST+=("${ASSET_DIR}/linux/bitcoin-abc-${VERSION}-x86_64-linux-gnu.tar.gz")
 
-  # OSX binaries
-  ASSET_LIST+=("${ASSET_DIR}/osx/bitcoin-abc-${VERSION}-osx-unsigned.dmg")
+    # OSX binaries
+    ASSET_LIST+=("${ASSET_DIR}/osx/bitcoin-abc-${VERSION}-osx-unsigned.dmg")
 
-  # Windows binaries
-  ASSET_LIST+=("${ASSET_DIR}/win/bitcoin-abc-${VERSION}-win64-setup-unsigned.exe")
+    # Windows binaries
+    ASSET_LIST+=("${ASSET_DIR}/win/bitcoin-abc-${VERSION}-win64-setup-unsigned.exe")
 
-  for FILENAME in "${ASSET_LIST[@]}"; do
-    if [ ! -f "${FILENAME}" ]; then
-      echo "Error: Expected binary '${FILENAME}' does not exist"
-      exit 31
-    fi
-  done
+    for FILENAME in "${ASSET_LIST[@]}"; do
+      if [ ! -f "${FILENAME}" ]; then
+        echo "Error: Expected binary '${FILENAME}' does not exist"
+        exit 31
+      fi
+    done
 
-  # Add any signature files
-  for FILENAME in "${ASSET_DIR}"/*"-sha256sums.${VERSION}.asc"; do
-    ASSET_LIST+=("${FILENAME}")
-  done
-else
-  echo "Error: Asset directory '${ASSET_DIR}' does not exist"
-  exit 32
+    # Add any signature files
+    for FILENAME in "${ASSET_DIR}"/*"-sha256sums.${VERSION}.asc"; do
+      ASSET_LIST+=("${FILENAME}")
+    done
+  else
+    echo "Error: Asset directory '${ASSET_DIR}' does not exist"
+    exit 32
+  fi
 fi
 
 # Fetch release notes
