@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Form, Input, Icon, Select } from 'antd';
+import { Form, Input, Select } from 'antd';
+import { DollarOutlined, WalletOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { ScanQRCode } from './ScanQRCode';
 import useBCH from '../../hooks/useBCH';
@@ -52,7 +53,16 @@ export const SendBchInput = ({
     ];
     const currencyOptions = currencies.map(currency => {
         return (
-            <Option key={currency.value} value={currency.value}>
+            <Option
+                key={currency.value}
+                value={currency.value}
+                className="selectedCurrencyOption"
+                style={{
+                    textAlign: 'left',
+                    backgroundColor: 'white',
+                    color: ' #3e3f42',
+                }}
+            >
                 {currency.label}
             </Option>
         );
@@ -72,12 +82,12 @@ export const SendBchInput = ({
         <Form.Item {...otherProps}>
             <Input.Group compact>
                 <Input
-                    style={{ width: '60%' }}
+                    style={{ width: '60%', textAlign: 'left' }}
                     type="number"
                     step="0.01"
                     prefix={
                         inputProps.dollar === 1 ? (
-                            <Icon type="dollar" />
+                            <DollarOutlined />
                         ) : (
                             <img
                                 src={currency.logo}
@@ -91,7 +101,7 @@ export const SendBchInput = ({
                 />
                 {CurrencySelect}
                 <InputNumberAddonText
-                    style={{ width: '10%' }}
+                    style={{ width: '10%', height: '60px', lineHeight: '60px' }}
                     disabled={!!(inputProps || {}).disabled}
                     onClick={!(inputProps || {}).disabled && onMax}
                 >
@@ -134,7 +144,7 @@ export const FormItemWithQRCodeAddon = ({
     return (
         <Form.Item {...otherProps}>
             <Input
-                prefix={<Icon type="wallet" />}
+                prefix={<WalletOutlined />}
                 addonAfter={
                     <ScanQRCode
                         loadWithCameraOpen={loadWithCameraOpen}

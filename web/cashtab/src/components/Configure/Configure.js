@@ -1,15 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Icon, Collapse, Form, Input, Modal } from 'antd';
-import { CashSpin, CashSpinIcon } from '../Common/CustomSpinner';
+import { Collapse, Form, Input, Modal, Spin } from 'antd';
+import {
+    PlusSquareOutlined,
+    WalletFilled,
+    ImportOutlined,
+    CopyOutlined,
+    LockOutlined,
+} from '@ant-design/icons';
+
 import { WalletContext } from '../../utils/context';
 import { StyledCollapse } from '../Common/StyledCollapse';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from '../Common/PrimaryButton';
-import { CashLoader } from '../Common/CustomIcons';
+import { CashLoader, CashLoadingIcon } from '../Common/CustomIcons';
 import { ReactComponent as Trashcan } from '../../assets/trashcan.svg';
 import { ReactComponent as Edit } from '../../assets/edit.svg';
 import { Event } from '../../utils/GoogleAnalytics';
@@ -182,8 +189,14 @@ export default () => {
     };
     const updateSavedWallets = async activeWallet => {
         if (activeWallet) {
-            const savedWallets = await getSavedWallets(activeWallet);
-            setSavedWallets(savedWallets);
+            let savedWallets;
+            try {
+                savedWallets = await getSavedWallets(activeWallet);
+                setSavedWallets(savedWallets);
+            } catch (err) {
+                console.log(`Error in getSavedWallets()`);
+                console.log(err);
+            }
         }
     };
 
@@ -340,7 +353,7 @@ export default () => {
     };
 
     return (
-        <CashSpin spinning={loading} indicator={CashSpinIcon}>
+        <Spin spinning={loading} indicator={CashLoadingIcon}>
             <StyledConfigure>
                 {walletToBeRenamed !== null && (
                     <Modal
@@ -365,7 +378,7 @@ export default () => {
                                 }
                             >
                                 <Input
-                                    prefix={<Icon type="wallet" />}
+                                    prefix={<WalletFilled />}
                                     placeholder="Enter new wallet name"
                                     name="newName"
                                     value={newWalletName}
@@ -398,7 +411,7 @@ export default () => {
                                 }
                             >
                                 <Input
-                                    prefix={<Icon type="wallet" />}
+                                    prefix={<WalletFilled />}
                                     placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
                                     name="walletToBeDeletedInput"
                                     value={confirmationOfWalletToBeDeleted}
@@ -410,7 +423,7 @@ export default () => {
                 )}
 
                 <h2>
-                    <Icon type="copy" theme="outlined" /> Seed Phrase
+                    <CopyOutlined /> Seed Phrase
                 </h2>
                 <p>
                     Your seed phrase can be used to restore your wallet in case
@@ -502,12 +515,12 @@ export default () => {
                         <PrimaryButton
                             onClick={() => updateSavedWalletsOnCreate()}
                         >
-                            <Icon type="plus-square" /> New Wallet
+                            <PlusSquareOutlined /> New Wallet
                         </PrimaryButton>
                         <SecondaryButton
                             onClick={() => openSeedInput(!seedInput)}
                         >
-                            <Icon type="import" /> Import Wallet
+                            <ImportOutlined /> Import Wallet
                         </SecondaryButton>
                         {seedInput && (
                             <>
@@ -531,7 +544,7 @@ export default () => {
                                         }
                                     >
                                         <Input
-                                            prefix={<Icon type="lock" />}
+                                            prefix={<LockOutlined />}
                                             placeholder="mnemonic (seed phrase)"
                                             name="mnemonic"
                                             onChange={e => handleChange(e)}
@@ -550,6 +563,6 @@ export default () => {
                     </>
                 )}
             </StyledConfigure>
-        </CashSpin>
+        </Spin>
     );
 };

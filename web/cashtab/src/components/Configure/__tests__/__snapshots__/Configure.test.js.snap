@@ -6,7 +6,7 @@ exports[`Configure with a wallet 1`] = `
 >
   <div>
     <div
-      className="ant-spin ant-spin-spinning sc-bdVaJa iSePjH"
+      className="ant-spin ant-spin-spinning"
     >
       <span
         aria-label="loading"
@@ -14,8 +14,7 @@ exports[`Configure with a wallet 1`] = `
         role="img"
         style={
           Object {
-            "color": "#ff8d00",
-            "fontSize": 24,
+            "fontSize": 48,
           }
         }
       >
@@ -39,16 +38,16 @@ exports[`Configure with a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-gZMcBi gcATnQ"
+      className="sc-dnqmqq cRbxeB"
     >
       <h2>
-        <i
-          aria-label="icon: copy"
+        <span
+          aria-label="copy"
           className="anticon anticon-copy"
+          role="img"
         >
           <svg
             aria-hidden="true"
-            className=""
             data-icon="copy"
             fill="currentColor"
             focusable="false"
@@ -60,34 +59,34 @@ exports[`Configure with a wallet 1`] = `
               d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"
             />
           </svg>
-        </i>
+        </span>
          Seed Phrase
       </h2>
       <p>
         Your seed phrase can be used to restore your wallet in case the original instance of it is destroyed. We highly recommend always making a copy of your seed phrase and keeping it somewhere safe.
       </p>
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-bwzfXH dvdYjx"
+        className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa jkIKTL"
         role={null}
       >
         <div
           className="ant-collapse-item"
         >
           <div
-            aria-expanded="false"
+            aria-expanded={false}
             className="ant-collapse-header"
             onClick={[Function]}
             onKeyPress={[Function]}
             role="button"
             tabIndex={0}
           >
-            <i
-              aria-label="icon: right"
+            <span
+              aria-label="right"
               className="anticon anticon-right ant-collapse-arrow"
+              role="img"
             >
               <svg
                 aria-hidden="true"
-                className=""
                 data-icon="right"
                 fill="currentColor"
                 focusable="false"
@@ -96,28 +95,28 @@ exports[`Configure with a wallet 1`] = `
                 width="1em"
               >
                 <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 0 0 302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 0 0 0-50.4z"
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
                 />
               </svg>
-            </i>
+            </span>
             Click to reveal seed phrase
           </div>
         </div>
       </div>
       <div
-        className="sc-gqjmRU dWElEI"
+        className="sc-iwsKbI eaSyhG"
       />
       <button
-        className="sc-htpNat cPiyGy"
+        className="sc-bwzfXH crkPeR"
         onClick={[Function]}
       >
-        <i
-          aria-label="icon: plus-square"
+        <span
+          aria-label="plus-square"
           className="anticon anticon-plus-square"
+          role="img"
         >
           <svg
             aria-hidden="true"
-            className=""
             data-icon="plus-square"
             fill="currentColor"
             focusable="false"
@@ -132,20 +131,20 @@ exports[`Configure with a wallet 1`] = `
               d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"
             />
           </svg>
-        </i>
+        </span>
          New Wallet
       </button>
       <button
-        className="sc-bxivhb bMNLGT"
+        className="sc-htpNat fajXvM"
         onClick={[Function]}
       >
-        <i
-          aria-label="icon: import"
+        <span
+          aria-label="import"
           className="anticon anticon-import"
+          role="img"
         >
           <svg
             aria-hidden="true"
-            className=""
             data-icon="import"
             fill="currentColor"
             focusable="false"
@@ -154,10 +153,10 @@ exports[`Configure with a wallet 1`] = `
             width="1em"
           >
             <path
-              d="M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zM902 476H588v-76c0-6.7-7.8-10.5-13-6.3l-141.9 112a8 8 0 0 0 0 12.6l141.9 112c5.3 4.2 13 .4 13-6.3v-76h314c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"
+              d="M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zM902 476H588v-76c0-6.7-7.8-10.5-13-6.3l-141.9 112a8 8 0 000 12.6l141.9 112c5.3 4.2 13 .4 13-6.3v-76h314c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"
             />
           </svg>
-        </i>
+        </span>
          Import Wallet
       </button>
     </div>
@@ -171,7 +170,7 @@ exports[`Configure without a wallet 1`] = `
 >
   <div>
     <div
-      className="ant-spin ant-spin-spinning sc-bdVaJa iSePjH"
+      className="ant-spin ant-spin-spinning"
     >
       <span
         aria-label="loading"
@@ -179,8 +178,7 @@ exports[`Configure without a wallet 1`] = `
         role="img"
         style={
           Object {
-            "color": "#ff8d00",
-            "fontSize": 24,
+            "fontSize": 48,
           }
         }
       >
@@ -204,16 +202,16 @@ exports[`Configure without a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-gZMcBi gcATnQ"
+      className="sc-dnqmqq cRbxeB"
     >
       <h2>
-        <i
-          aria-label="icon: copy"
+        <span
+          aria-label="copy"
           className="anticon anticon-copy"
+          role="img"
         >
           <svg
             aria-hidden="true"
-            className=""
             data-icon="copy"
             fill="currentColor"
             focusable="false"
@@ -225,26 +223,26 @@ exports[`Configure without a wallet 1`] = `
               d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"
             />
           </svg>
-        </i>
+        </span>
          Seed Phrase
       </h2>
       <p>
         Your seed phrase can be used to restore your wallet in case the original instance of it is destroyed. We highly recommend always making a copy of your seed phrase and keeping it somewhere safe.
       </p>
       <div
-        className="sc-gqjmRU dWElEI"
+        className="sc-iwsKbI eaSyhG"
       />
       <button
-        className="sc-htpNat cPiyGy"
+        className="sc-bwzfXH crkPeR"
         onClick={[Function]}
       >
-        <i
-          aria-label="icon: plus-square"
+        <span
+          aria-label="plus-square"
           className="anticon anticon-plus-square"
+          role="img"
         >
           <svg
             aria-hidden="true"
-            className=""
             data-icon="plus-square"
             fill="currentColor"
             focusable="false"
@@ -259,20 +257,20 @@ exports[`Configure without a wallet 1`] = `
               d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"
             />
           </svg>
-        </i>
+        </span>
          New Wallet
       </button>
       <button
-        className="sc-bxivhb bMNLGT"
+        className="sc-htpNat fajXvM"
         onClick={[Function]}
       >
-        <i
-          aria-label="icon: import"
+        <span
+          aria-label="import"
           className="anticon anticon-import"
+          role="img"
         >
           <svg
             aria-hidden="true"
-            className=""
             data-icon="import"
             fill="currentColor"
             focusable="false"
@@ -281,10 +279,10 @@ exports[`Configure without a wallet 1`] = `
             width="1em"
           >
             <path
-              d="M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zM902 476H588v-76c0-6.7-7.8-10.5-13-6.3l-141.9 112a8 8 0 0 0 0 12.6l141.9 112c5.3 4.2 13 .4 13-6.3v-76h314c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"
+              d="M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zM902 476H588v-76c0-6.7-7.8-10.5-13-6.3l-141.9 112a8 8 0 000 12.6l141.9 112c5.3 4.2 13 .4 13-6.3v-76h314c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"
             />
           </svg>
-        </i>
+        </span>
          Import Wallet
       </button>
     </div>

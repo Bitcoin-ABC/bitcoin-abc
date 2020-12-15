@@ -166,38 +166,6 @@ body {
   cursor: pointer;
 } */
 
-input.ant-input,
-.ant-select-selection {
-    background-color: #fff !important;
-    box-shadow: none !important;
-    border: 1px solid #eaedf3 !important;
-    border-radius: 4px;
-    font-weight: bold;
-    color: rgb(62, 63, 66);
-    opacity: 1;
-    padding: 11px 5px;
-    height: 50px;
-}
-
-.ant-select-selection:hover {
-    border: 1px solid #eaedf3;
-}
-
-.ant-select-selection-selected-value {
-    color: rgb(62, 63, 66);
-}
-
-.ant-select-dropdown-menu-item {
-    color: #444;
-    background-color: #fff;
-}
-
-.ant-select-dropdown-menu-item-active,
-.ant-select-dropdown-menu-item:hover {
-    color: #fff;
-    background-color: #ff8d00 !important;
-}
-
 .ant-checkbox-inner {
     border: 1px solid #eaedf3 !important;
     background: white;
@@ -406,4 +374,68 @@ input.ant-input,
     .ant-select-selection-selected-value {
         font-size: 10px;
     }
+}
+
+/*Custom color for CashSpin*/
+.ant-spin > span > svg {
+    fill: #ff8d00;
+}
+
+/*Custom Input Fields */
+input.ant-input,
+.ant-select-selection {
+    background-color: #fff !important;
+    box-shadow: none !important;
+    border-radius: 4px;
+    font-weight: bold;
+    color: rgb(62, 63, 66);
+    opacity: 1;
+    height: 50px;
+}
+
+.ant-select-selection:hover {
+    border: 1px solid #eaedf3;
+}
+
+.ant-select-selection-selected-value {
+    color: rgb(62, 63, 66);
+}
+
+.ant-select-dropdown-menu-item {
+    color: #444;
+    background-color: #fff;
+}
+
+.ant-select-dropdown-menu-item-active,
+.ant-select-dropdown-menu-item:hover {
+    color: #fff;
+    background-color: #ff8d00 !important;
+}
+.selectedCurrencyOption:hover {
+    color: #fff !important;
+    background-color: #ff8d00 !important;
+}
+.ant-input-affix-wrapper {
+    background-color: #fff;
+    border: 1px solid #eaedf3 !important;
+}
+input.ant-input,
+.ant-select-selection {
+    border: none;
+}
+.ant-input::placeholder {
+    text-align: left;
+}
+.ant-select-selector {
+    height: 60px !important;
+    border: 1px solid #eaedf3 !important;
+}
+
+/*Revs with updated Antd*/
+.ant-select-single .ant-select-selector .ant-select-selection-item,
+.ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+    line-height: 60px;
+    text-align: left;
+    color: #3e3f42;
+    font-weight: bold;
 }

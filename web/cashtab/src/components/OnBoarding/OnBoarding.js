@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '../../utils/context';
-import { Input, Icon, Form, Modal } from 'antd';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { Input, Form, Modal } from 'antd';
+import {
+    ExclamationCircleOutlined,
+    PlusSquareOutlined,
+    ImportOutlined,
+    LockOutlined,
+} from '@ant-design/icons';
 import StyledOnboarding from '../Common/StyledOnBoarding';
 import PrimaryButton, {
     SecondaryButton,
@@ -87,11 +92,11 @@ export const OnBoarding = ({ history }) => {
             </WelcomeText>
 
             <PrimaryButton onClick={() => showBackupConfirmModal()}>
-                <Icon type="plus-square" /> New Wallet
+                <PlusSquareOutlined /> New Wallet
             </PrimaryButton>
 
             <SecondaryButton onClick={() => openSeedInput(!seedInput)}>
-                <Icon type="import" /> Import Wallet
+                <ImportOutlined /> Import Wallet
             </SecondaryButton>
             {seedInput && (
                 <StyledOnboarding>
@@ -109,7 +114,7 @@ export const OnBoarding = ({ history }) => {
                             }
                         >
                             <Input
-                                prefix={<Icon type="lock" />}
+                                prefix={<LockOutlined />}
                                 placeholder="mnemonic (seed phrase)"
                                 name="mnemonic"
                                 onChange={e => handleChange(e)}

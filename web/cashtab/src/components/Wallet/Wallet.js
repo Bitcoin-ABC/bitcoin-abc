@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Icon } from 'antd';
+import { LinkOutlined, LoadingOutlined } from '@ant-design/icons';
 import { WalletContext } from '../../utils/context';
 import { OnBoarding } from '../OnBoarding/OnBoarding';
 import { QRCode } from '../Common/QRCode';
@@ -232,13 +232,12 @@ const WalletInfo = () => {
             </SwitchBtnCtn>
             {balances.totalBalance ? (
                 <>
-                    <Links to="/send">Send</Links>
                     <ExternalLink
                         href={`${currency.blockExplorerUrl}/address/${wallet.Path145.cashAddress}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <Icon type="link" theme="outlined" /> View Transactions
+                        <LinkOutlined /> View Transactions
                     </ExternalLink>
                 </>
             ) : null}
@@ -254,7 +253,7 @@ const Wallet = () => {
         <>
             {loading && (
                 <LoadingCtn>
-                    <Icon type="loading" theme="outlined" />
+                    <LoadingOutlined />
                 </LoadingCtn>
             )}
             {!loading && wallet.Path245 && <WalletInfo />}

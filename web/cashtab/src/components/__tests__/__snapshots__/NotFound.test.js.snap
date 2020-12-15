@@ -2,8 +2,9 @@
 
 exports[`Render NotFound component 1`] = `
 <div
-  className="ant-row-flex ant-row-flex-center"
+  className="ant-row ant-row-center"
   style={Object {}}
+  type="flex"
 >
   <div
     className="ant-col ant-col-8"

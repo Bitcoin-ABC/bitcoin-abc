@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from '../../utils/context';
-import { Form, notification, message } from 'antd';
-import { CashSpin, CashSpinIcon } from '../Common/CustomSpinner';
-import { Row, Col } from 'antd';
+import { Form, notification, message, Spin, Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, { SecondaryButton } from '../Common/PrimaryButton';
-import { CashLoader } from '../Common/CustomIcons';
+import { CashLoader, CashLoadingIcon } from '../Common/CustomIcons';
 import {
     FormItemWithMaxAddon,
     FormItemWithQRCodeAddon,
@@ -188,9 +186,10 @@ const SendToken = ({ tokenId }) => {
 
                     <Row type="flex">
                         <Col span={24}>
-                            <CashSpin
+                            <Spin
+                                style={{ color: 'red' }}
                                 spinning={loading}
-                                indicator={CashSpinIcon}
+                                indicator={CashLoadingIcon}
                             >
                                 <Form style={{ width: 'auto' }}>
                                     <FormItemWithQRCodeAddon
@@ -301,7 +300,7 @@ const SendToken = ({ tokenId }) => {
                                         </p>
                                     )}
                                 </Form>
-                            </CashSpin>
+                            </Spin>
                         </Col>
                     </Row>
                 </>

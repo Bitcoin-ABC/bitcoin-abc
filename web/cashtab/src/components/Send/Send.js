@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '../../utils/context';
-import { Form, notification, message } from 'antd';
-import { CashLoader } from '../Common/CustomIcons';
-import { CashSpin, CashSpinIcon } from '../Common/CustomSpinner';
+import { Form, notification, message, Spin } from 'antd';
+import { CashLoader, CashLoadingIcon } from '../Common/CustomIcons';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, { SecondaryButton } from '../Common/PrimaryButton';
@@ -288,7 +287,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
 
             <Row type="flex">
                 <Col span={24}>
-                    <CashSpin spinning={loading} indicator={CashSpinIcon}>
+                    <Spin spinning={loading} indicator={CashLoadingIcon}>
                         <Form style={{ width: 'auto' }}>
                             <FormItemWithQRCodeAddon
                                 loadWithCameraOpen={scannerSupported}
@@ -364,7 +363,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                                 </>
                             )}
                         </Form>
-                    </CashSpin>
+                    </Spin>
                 </Col>
             </Row>
         </>
