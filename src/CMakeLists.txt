@@ -9,9 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-# Supported Networks
-set(NETWORK_COMPATIBILITY "ABC" CACHE STRING "Network that will be supported: BCHA or BCHN")
-
 option(BUILD_BITCOIN_WALLET "Activate the wallet functionality" ON)
 option(BUILD_BITCOIN_ZMQ "Activate the ZeroMQ functionalities" ON)
 option(BUILD_BITCOIN_CLI "Build bitcoin-cli" ON)
@@ -427,13 +424,7 @@ link_boost(util filesystem thread)
 target_compile_definitions(util PUBLIC BOOST_SP_USE_STD_ATOMIC BOOST_AC_USE_STD_ATOMIC)
 
 function(add_network_sources NETWORK_SOURCES)
-	if(${NETWORK_COMPATIBILITY} MATCHES "ABC|BCHA")
-		set(NETWORK_DIR abc)
-	elseif(${NETWORK_COMPATIBILITY} MATCHES "BCHN")
-		set(NETWORK_DIR bchn)
-	else()
-		message(FATAL_ERROR "${NETWORK_COMPATIBILITY} is not a supported network")
-	endif()
+	set(NETWORK_DIR abc)
 
 	list(TRANSFORM
 		ARGN
