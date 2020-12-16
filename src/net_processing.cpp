@@ -3616,7 +3616,7 @@ void PeerManagerImpl::ProcessMessage(
                 pfrom.nVersion.load(), peer->m_starting_height, pfrom.GetId(),
                 (fLogIPs ? strprintf(", peeraddr=%s", pfrom.addr.ToString())
                          : ""),
-                pfrom.IsBlockOnlyConn() ? "block-relay" : "full-relay");
+                pfrom.ConnectionTypeAsString());
         }
 
         if (pfrom.GetCommonVersion() >= SENDHEADERS_VERSION) {
