@@ -10,11 +10,7 @@ DEFAULT_DISTROS+=("bionic")
 # Focal: Ubuntu 20.04 LTS
 DEFAULT_DISTROS+=("focal")
 
-DEFAULT_ABC_PPA="bitcoin-abc"
-DEFAULT_BCHN_PPA="bitcoin-abc-bchn"
-DEFAULT_NETWORK="ABC"
-DEFAULT_CONTROL_SOURCE_NAME="bitcoinabc"
-
+DEFAULT_PPA="bitcoin-abc"
 DPUT_CONFIG_FILE=~/".dput.cf"
 TOPLEVEL="$(git rev-parse --show-toplevel)"
 KEYS_TXT="${TOPLEVEL}"/contrib/gitian-signing/keys.txt
@@ -36,11 +32,9 @@ Note: This script will prompt you to sign with your PGP key.
 -D, --distro <name>       Name of the distribution to package for. Can be supplied multiple times.
                             If supplied at least once, the defaults are ignored. Defaults to: '${DEFAULT_DISTROS[@]}'
 -h, --help                Display this help message.
--n, --network             Select which network the node software will follow (ABC or BCHN).
--p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_ABC_PPA}' for ABC and '${DEFAULT_BCHN_PPA}' for BCHN.
-                            If no config file exists at ${DPUT_CONFIG_FILE} then one will be created.
-                            Setting this option to a hostname other than the default will require that you add the
-                            necessary settings to the config file.
+-p, --ppa <ppa-name>      PPA hostname. Defaults to: '${DEFAULT_PPA}'. If no config file exists at ${DPUT_CONFIG_FILE}
+                            then one will be created using '${DEFAULT_PPA}'. Setting this option to a hostname other than
+                            the default will require that you add the necessary settings to the config file.
 -v, --version <version>   Set the package version. Defaults to the version returned by 'bitcoind --version'.
                             If set, version must be of the form: MAJOR.MINOR.REVISION[.OPTIONALPATCH]
                             OPTIONALPATCH may be necessary when source files have changed but the version revision has not,
@@ -48,13 +42,11 @@ Note: This script will prompt you to sign with your PGP key.
 EOF
 }
 
-CONTROL_SOURCE_NAME="${DEFAULT_CONTROL_SOURCE_NAME}"
 DISTROS=()
 DRY_RUN="false"
 NUM_EXPECTED_ARGUMENTS=1
 PACKAGE_VERSION=""
-PPA="${DEFAULT_ABC_PPA}"
-NETWORK="${DEFAULT_NETWORK}"
+PPA="${DEFAULT_PPA}"
 
 # Parse command line arguments
 while [[ $# -ne 0 ]]; do
@@ -71,22 +63,6 @@ case $1 in
   -h|--help)
     help_message
     exit 0
-    ;;
-  -n|--network)
-    shift
-    case $1 in
-      ABC|BCHA)
-        NETWORK="ABC"
-        CONTROL_SOURCE_NAME=bitcoinabc
-        PPA="${DEFAULT_ABC_PPA}"
-        ;;
-      BCHN)
-        NETWORK="BCHN"
-        CONTROL_SOURCE_NAME=bitcoinabc-bchn
-        PPA="${DEFAULT_BCHN_PPA}"
-        ;;
-    esac
-    shift # shift past argument
     ;;
   -p|--ppa)
     PPA="$2"
@@ -159,17 +135,10 @@ fi
 if [ ! -f ${DPUT_CONFIG_FILE} ]; then
   echo "Info: No dput config file exists. Creating ${DPUT_CONFIG_FILE} now..."
   cat > ${DPUT_CONFIG_FILE} <<EOF
-[${DEFAULT_ABC_PPA}]
+[${DEFAULT_PPA}]
 fqdn = ppa.launchpad.net
 method = ftp
 incoming = ~bitcoin-abc/ubuntu/ppa/
-login = anonymous
-allow_unsigned_uploads = 0
-
-[${DEFAULT_BCHN_PPA}]
-fqdn = ppa.launchpad.net
-method = ftp
-incoming = ~bitcoin-abc/ubuntu/bitcoin-abc-bchn/
 login = anonymous
 allow_unsigned_uploads = 0
 EOF
@@ -199,6 +168,7 @@ SOURCE_ARCHIVE="${SOURCE_BASE_NAME}.tar.gz"
 tar -zxf "${SOURCE_ARCHIVE}"
 
 # Rename the package source archive. debuild is picky about the naming.
+CONTROL_SOURCE_NAME=$(grep "Source: " "${TOPLEVEL}"/contrib/debian/control | cut -c 9-)
 PACKAGE_BASE_NAME="${CONTROL_SOURCE_NAME}_${PACKAGE_VERSION}"
 PACKAGE_ARCHIVE="${PACKAGE_BASE_NAME}.orig.tar.gz"
 mv "${SOURCE_ARCHIVE}" "${PACKAGE_ARCHIVE}"
@@ -211,9 +181,6 @@ package() {
 
   pushd "${SOURCE_BASE_NAME}"
   cp -r "${TOPLEVEL}"/contrib/debian .
-
-  sed -i "s/Source:.\+/Source: ${CONTROL_SOURCE_NAME}/" debian/control
-  sed -i "s/-DNETWORK_COMPATIBILITY=.\+/-DNETWORK_COMPATIBILITY=${NETWORK} \\\/" debian/rules
 
 # Generate the changelog for this package
 # TODO: Incorporate release notes into this changelog
