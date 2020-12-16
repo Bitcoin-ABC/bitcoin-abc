@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
-import { currency } from '../Common/Ticker';
+import { currency } from '@components/Common/Ticker';
 
 const TokenIcon = styled.div`
     height: 32px;

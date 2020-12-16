@@ -3,8 +3,8 @@ import { Form, Input, Select } from 'antd';
 import { DollarOutlined, WalletOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { ScanQRCode } from './ScanQRCode';
-import useBCH from '../../hooks/useBCH';
-import { currency } from '../Common/Ticker.js';
+import useBCH from '@hooks/useBCH';
+import { currency } from '@components/Common/Ticker.js';
 
 export const InputAddonText = styled.span`
     width: 100%;

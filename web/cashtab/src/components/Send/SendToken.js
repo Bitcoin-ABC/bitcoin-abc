@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { WalletContext } from '../../utils/context';
+import { WalletContext } from '@utils/context';
 import { Form, notification, message, Spin, Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import PrimaryButton, { SecondaryButton } from '../Common/PrimaryButton';
-import { CashLoader, CashLoadingIcon } from '../Common/CustomIcons';
+import PrimaryButton, { SecondaryButton } from '@components/Common/PrimaryButton';
+import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
 import {
     FormItemWithMaxAddon,
     FormItemWithQRCodeAddon,
-} from '../Common/EnhancedInputs';
-import useBCH from '../../hooks/useBCH';
+} from '@components/Common/EnhancedInputs';
+import useBCH from '@hooks/useBCH';
 import { BalanceHeader } from './Send';
 import { Redirect } from 'react-router-dom';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
-import { currency } from '../Common/Ticker.js';
-import { Event } from '../../utils/GoogleAnalytics';
+import { currency } from '@components/Common/Ticker.js';
+import { Event } from '@utils/GoogleAnalytics';
 
 const SendToken = ({ tokenId }) => {
     const { wallet, tokens, slpBalancesAndUtxos, apiError } = React.useContext(

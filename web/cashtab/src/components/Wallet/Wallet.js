@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 import { LinkOutlined, LoadingOutlined } from '@ant-design/icons';
-import { WalletContext } from '../../utils/context';
-import { OnBoarding } from '../OnBoarding/OnBoarding';
-import { QRCode } from '../Common/QRCode';
-import { currency } from '../Common/Ticker.js';
+import { WalletContext } from '@utils/context';
+import { OnBoarding } from '@components/OnBoarding/OnBoarding';
+import { QRCode } from '@components/Common/QRCode';
+import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
-import { CashLoader } from '../Common/CustomIcons';
+import { CashLoader } from '@components/Common/CustomIcons';
 
 export const LoadingCtn = styled.div`
     width: 100%;

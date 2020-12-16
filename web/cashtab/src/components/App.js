@@ -8,15 +8,15 @@ import {
     CaretRightOutlined,
     SettingFilled,
 } from '@ant-design/icons';
-import Wallet from './Wallet/Wallet';
-import Send from './Send/Send';
-import SendToken from './Send/SendToken';
-import Configure from './Configure/Configure';
-import NotFound from './NotFound';
-import CashTab from '../assets/cashtab.png';
-import ABC from '../assets/bitcoinabclogo.png';
+import Wallet from '@components/Wallet/Wallet';
+import Send from '@components/Send/Send';
+import SendToken from '@components/Send/SendToken';
+import Configure from '@components/Configure/Configure';
+import NotFound from '@components/NotFound';
+import CashTab from '@assets/cashtab.png';
+import ABC from '@assets/bitcoinabclogo.png';
 import './App.css';
-import { WalletContext } from '../utils/context';
+import { WalletContext } from '@utils/context';
 import {
     Route,
     Redirect,

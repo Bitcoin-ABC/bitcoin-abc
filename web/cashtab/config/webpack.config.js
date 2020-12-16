@@ -31,6 +31,7 @@ const eslint = require('eslint');
 const workboxPlugin = require('workbox-webpack-plugin');
 
 const postcssNormalize = require('postcss-normalize');
+const hooks = require('html-webpack-plugin/lib/hooks');
 
 const appPackageJson = require(paths.appPackageJson);
 
@@ -415,6 +416,10 @@ module.exports = function (webpackEnv) {
                 // Support React Native Web
                 // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
                 'react-native': 'react-native-web',
+                '@hooks': path.resolve(paths.appPath, 'src/hooks/'),
+                '@components': path.resolve(paths.appPath, 'src/components/'),
+                '@utils': path.resolve(paths.appPath, 'src/utils/'),
+                '@assets': path.resolve(paths.appPath, 'src/assets/'),
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding

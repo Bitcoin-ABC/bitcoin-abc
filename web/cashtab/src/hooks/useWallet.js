@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import { notification } from 'antd';
-import useAsyncTimeout from './useAsyncTimeout';
-import usePrevious from './usePrevious';
-import useBCH from '../hooks/useBCH';
+import useAsyncTimeout from '@hooks/useAsyncTimeout';
+import usePrevious from '@hooks/usePrevious';
+import useBCH from '@hooks/useBCH';
 import BigNumber from 'bignumber.js';
 import localforage from 'localforage';
-import { currency } from '../components/Common/Ticker';
+import { currency } from '@components/Common/Ticker';
 import _ from 'lodash';
 
 const useWallet = () => {

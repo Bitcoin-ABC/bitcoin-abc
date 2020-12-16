@@ -1,5 +1,5 @@
-import mainLogo from '../../assets/12-bitcoin-cash-square-crop.svg';
-import tokenLogo from '../../assets/simple-ledger-protocol-logo.png';
+import mainLogo from '@assets/12-bitcoin-cash-square-crop.svg';
+import tokenLogo from '@assets/simple-ledger-protocol-logo.png';
 
 export const currency = {
     name: 'Bitcoin ABC',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from '../../utils/context';
+import { WalletContext } from '@utils/context';
 import { Input, Form, Modal } from 'antd';
 import {
     ExclamationCircleOutlined,
@@ -8,13 +8,13 @@ import {
     ImportOutlined,
     LockOutlined,
 } from '@ant-design/icons';
-import StyledOnboarding from '../Common/StyledOnBoarding';
+import StyledOnboarding from '@components/Common/StyledOnBoarding';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
-} from '../Common/PrimaryButton';
-import { currency } from '../Common/Ticker.js';
-import { Event } from '../../utils/GoogleAnalytics';
+} from '@components/Common/PrimaryButton';
+import { currency } from '@components/Common/Ticker.js';
+import { Event } from '@utils/GoogleAnalytics';
 
 export const WelcomeText = styled.p`
     color: #444;

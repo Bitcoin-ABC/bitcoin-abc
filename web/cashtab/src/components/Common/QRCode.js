@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
-import { currency } from '../Common/Ticker.js';
+import { currency } from '@components/Common/Ticker.js';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { Event } from '../../utils/GoogleAnalytics';
+import { Event } from '@utils/GoogleAnalytics';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;

@@ -3,8 +3,8 @@ import { Alert, Modal } from 'antd';
 import { QrcodeOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { currency } from '../Common/Ticker.js';
-import { Event } from '../../utils/GoogleAnalytics';
+import { currency } from '@components/Common/Ticker.js';
+import { Event } from '@utils/GoogleAnalytics';
 
 const StyledScanQRCode = styled.span`
     display: block;

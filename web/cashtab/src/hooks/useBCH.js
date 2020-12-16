@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { currency } from '../components/Common/Ticker';
+import { currency } from '@components/Common/Ticker';
 
 export default function useBCH() {
     const DUST = 0.000005;

@@ -9,17 +9,16 @@ import {
     CopyOutlined,
     LockOutlined,
 } from '@ant-design/icons';
-
-import { WalletContext } from '../../utils/context';
-import { StyledCollapse } from '../Common/StyledCollapse';
+import { WalletContext } from '@utils/context';
+import { StyledCollapse } from '@components/Common/StyledCollapse';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
-} from '../Common/PrimaryButton';
-import { CashLoader, CashLoadingIcon } from '../Common/CustomIcons';
-import { ReactComponent as Trashcan } from '../../assets/trashcan.svg';
-import { ReactComponent as Edit } from '../../assets/edit.svg';
-import { Event } from '../../utils/GoogleAnalytics';
+} from '@components/Common/PrimaryButton';
+import { CashLoader,  CashLoadingIcon  } from '@components/Common/CustomIcons';
+import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
+import { ReactComponent as Edit } from '@assets/edit.svg';
+import { Event } from '@utils/GoogleAnalytics';
 
 const { Panel } = Collapse;
 

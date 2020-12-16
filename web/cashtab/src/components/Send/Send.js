@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from '../../utils/context';
+import { WalletContext } from '@utils/context';
 import { Form, notification, message, Spin } from 'antd';
-import { CashLoader, CashLoadingIcon } from '../Common/CustomIcons';
+import { CashLoader,  CashLoadingIcon  } from '@components/Common/CustomIcons';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import PrimaryButton, { SecondaryButton } from '../Common/PrimaryButton';
+import PrimaryButton, {
+    SecondaryButton,
+} from '@components/Common/PrimaryButton';
 import {
     SendBchInput,
     FormItemWithQRCodeAddon,
-} from '../Common/EnhancedInputs';
-import useBCH from '../../hooks/useBCH';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+} from '@components/Common/EnhancedInputs';
+import useBCH from '@hooks/useBCH';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { currency } from '../Common/Ticker.js';
-import { Event } from '../../utils/GoogleAnalytics';
+import { currency } from '@components/Common/Ticker.js';
+import { Event } from '@utils/GoogleAnalytics';
 export const BalanceHeader = styled.div`
     p {
         color: #777;

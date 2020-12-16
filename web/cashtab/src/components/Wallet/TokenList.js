@@ -1,7 +1,7 @@
 import React from 'react';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
-import { currency } from '../Common/Ticker.js';
+import { currency } from '@components/Common/Ticker.js';
 
 const TokenList = ({ tokens }) => {
     return (
