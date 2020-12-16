@@ -433,11 +433,7 @@ export default () => {
                 </p>
                 {wallet && wallet.mnemonic && (
                     <StyledCollapse>
-                        <Panel
-                            header="Click to reveal seed phrase"
-                            key="1"
-                            disabled={!(wallet || {}).mnemonic}
-                        >
+                        <Panel header="Click to reveal seed phrase" key="1">
                             <p>
                                 {wallet && wallet.mnemonic
                                     ? wallet.mnemonic
@@ -451,13 +447,7 @@ export default () => {
                     <>
                         <StyledSpacer />
                         <StyledCollapse>
-                            <Panel
-                                header="Saved wallets"
-                                key="2"
-                                disabled={
-                                    savedWallets && savedWallets.length < 1
-                                }
-                            >
+                            <Panel header="Saved wallets" key="2">
                                 <AWRow>
                                     <h3>{wallet.name}</h3>
                                     <h4>Currently active</h4>
