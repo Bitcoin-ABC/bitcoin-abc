@@ -582,7 +582,7 @@ void CNode::SetAddrLocal(const CService &addrLocalIn) {
 }
 
 Network CNode::ConnectedThroughNetwork() const {
-    return IsInboundConn() && m_inbound_onion ? NET_ONION : addr.GetNetClass();
+    return m_inbound_onion ? NET_ONION : addr.GetNetClass();
 }
 
 void CNode::copyStats(CNodeStats &stats) {
@@ -3399,6 +3399,9 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
       nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
       nLocalServices(nLocalServicesIn), m_inbound_onion(inbound_onion) {
+    if (inbound_onion) {
+        assert(conn_type_in == ConnectionType::INBOUND);
+    }
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
     if (conn_type_in != ConnectionType::BLOCK_RELAY) {
