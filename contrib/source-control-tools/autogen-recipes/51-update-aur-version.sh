@@ -42,5 +42,3 @@ update-aur-version() {
 
 update-aur-version "bitcoin-abc"
 update-aur-version "bitcoin-abc-qt"
-update-aur-version "bitcoin-abc-bchn"
-update-aur-version "bitcoin-abc-qt-bchn"

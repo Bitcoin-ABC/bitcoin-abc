@@ -169,19 +169,7 @@ builds:
     templates:
       - ibd
 
-  build-ibd-bchn:
-    cmake_flags:
-      - '-DNETWORK_COMPATIBILITY=BCHN'
-    templates:
-      - ibd
-
   build-ibd-no-assumevalid-checkpoint:
-    templates:
-      - ibd-no-assumevalid-checkpoint
-
-  build-ibd-no-assumevalid-checkpoint-bchn:
-    cmake_flags:
-      - '-DNETWORK_COMPATIBILITY=BCHN'
     templates:
       - ibd-no-assumevalid-checkpoint
 
