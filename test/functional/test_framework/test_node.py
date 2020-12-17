@@ -367,7 +367,8 @@ class TestNode():
             wallet_path = "wallet/{}".format(urllib.parse.quote(wallet_name))
             return RPCOverloadWrapper(self.rpc / wallet_path)
 
-    def stop_node(self, expected_stderr='', wait=0):
+    def stop_node(self, expected_stderr='', *, wait=0,
+                  wait_until_stopped=True):
         """Stop the node."""
         if not self.running:
             return
@@ -392,6 +393,9 @@ class TestNode():
         self.stderr.close()
 
         del self.p2ps[:]
+
+        if wait_until_stopped:
+            self.wait_until_stopped()
 
     def is_node_stopped(self):
         """Checks whether the node has stopped.
