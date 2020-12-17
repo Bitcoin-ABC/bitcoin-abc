@@ -1262,25 +1262,26 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
             : CAddress(CService(), addr.nServices);
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
+    const bool tx_relay = !m_ignore_incoming_txs && pnode.m_tx_relay != nullptr;
     m_connman.PushMessage(
         &pnode, CNetMsgMaker(INIT_PROTO_VERSION)
                     .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
                           uint64_t(nLocalNodeServices), nTime, addrYou, addrMe,
                           nonce, userAgent(config), nNodeStartingHeight,
-                          !m_ignore_incoming_txs && pnode.m_tx_relay != nullptr,
-                          extraEntropy));
+                          tx_relay, extraEntropy));
 
     if (fLogIPs) {
         LogPrint(BCLog::NET,
                  "send version message: version %d, blocks=%d, us=%s, them=%s, "
-                 "peer=%d\n",
+                 "txrelay=%d, peer=%d\n",
                  PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
-                 addrYou.ToString(), nodeid);
+                 addrYou.ToString(), tx_relay, nodeid);
     } else {
-        LogPrint(
-            BCLog::NET,
-            "send version message: version %d, blocks=%d, us=%s, peer=%d\n",
-            PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(), nodeid);
+        LogPrint(BCLog::NET,
+                 "send version message: version %d, blocks=%d, us=%s, "
+                 "txrelay=%d, peer=%d\n",
+                 PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
+                 tx_relay, nodeid);
     }
     LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
@@ -3437,10 +3438,10 @@ void PeerManagerImpl::ProcessMessage(
 
         LogPrint(BCLog::NET,
                  "receive version message: [%s] %s: version %d, blocks=%d, "
-                 "us=%s, peer=%d%s\n",
+                 "us=%s, txrelay=%d, peer=%d%s\n",
                  pfrom.addr.ToString(), cleanSubVer, pfrom.nVersion,
-                 peer->m_starting_height, addrMe.ToString(), pfrom.GetId(),
-                 remoteAddr);
+                 peer->m_starting_height, addrMe.ToString(), fRelay,
+                 pfrom.GetId(), remoteAddr);
 
         // Ignore time offsets that are improbable (before the Genesis block)
         // and may underflow the nTimeOffset calculation.
@@ -3456,6 +3457,9 @@ void PeerManagerImpl::ProcessMessage(
 
         // Feeler connections exist only to verify if address is online.
         if (pfrom.IsFeelerConn()) {
+            LogPrint(BCLog::NET,
+                     "feeler connection completed peer=%d; disconnecting\n",
+                     pfrom.GetId());
             pfrom.fDisconnect = true;
         }
         return;
@@ -3472,6 +3476,9 @@ void PeerManagerImpl::ProcessMessage(
 
     if (msg_type == NetMsgType::VERACK) {
         if (pfrom.fSuccessfullyConnected) {
+            LogPrint(BCLog::NET,
+                     "ignoring redundant verack message from peer=%d\n",
+                     pfrom.GetId());
             return;
         }
 
@@ -3551,6 +3558,8 @@ void PeerManagerImpl::ProcessMessage(
         s >> vAddr;
 
         if (!pfrom.RelayAddrsWithConn()) {
+            LogPrint(BCLog::NET, "ignoring %s message from %s peer=%d\n",
+                     msg_type, pfrom.ConnectionTypeAsString(), pfrom.GetId());
             return;
         }
         if (vAddr.size() > GetMaxAddrToSend()) {
@@ -3604,6 +3613,9 @@ void PeerManagerImpl::ProcessMessage(
             pfrom.fGetAddr = false;
         }
         if (pfrom.IsAddrFetchConn()) {
+            LogPrint(BCLog::NET,
+                     "addrfetch connection completed peer=%d; disconnecting\n",
+                     pfrom.GetId());
             pfrom.fDisconnect = true;
         }
         return;
@@ -5002,6 +5014,10 @@ void PeerManagerImpl::ProcessMessage(
 
     if (msg_type == NetMsgType::FILTERLOAD) {
         if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+            LogPrint(BCLog::NET,
+                     "filterload received despite not offering bloom services "
+                     "from peer=%d; disconnecting\n",
+                     pfrom.GetId());
             pfrom.fDisconnect = true;
             return;
         }
@@ -5021,6 +5037,10 @@ void PeerManagerImpl::ProcessMessage(
 
     if (msg_type == NetMsgType::FILTERADD) {
         if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+            LogPrint(BCLog::NET,
+                     "filteradd received despite not offering bloom services "
+                     "from peer=%d; disconnecting\n",
+                     pfrom.GetId());
             pfrom.fDisconnect = true;
             return;
         }
@@ -5051,6 +5071,10 @@ void PeerManagerImpl::ProcessMessage(
 
     if (msg_type == NetMsgType::FILTERCLEAR) {
         if (!(pfrom.GetLocalServices() & NODE_BLOOM)) {
+            LogPrint(BCLog::NET,
+                     "filterclear received despite not offering bloom services "
+                     "from peer=%d; disconnecting\n",
+                     pfrom.GetId());
             pfrom.fDisconnect = true;
             return;
         }
