@@ -65,7 +65,7 @@ make -j2 $AUTOTOOLS_TARGET
 if [ "$RUN_VALGRIND" = "yes" ]; then
   # the `--error-exitcode` is required to make the test fail if valgrind found
   # errors, otherwise it'll return 0
-  # (http://valgrind.org/docs/manual/manual-core.html)
+  # (https://www.valgrind.org/docs/manual/manual-core.html)
   valgrind --error-exitcode=42 ./tests 16
   valgrind --error-exitcode=42 ./exhaustive_tests
 fi
