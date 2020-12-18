@@ -30,8 +30,7 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
                    CreateMockWalletDatabase()};
     {
         wallet.SetupLegacyScriptPubKeyMan();
-        bool first_run;
-        if (wallet.LoadWallet(first_run) != DBErrors::LOAD_OK) {
+        if (wallet.LoadWallet() != DBErrors::LOAD_OK) {
             assert(false);
         }
     }

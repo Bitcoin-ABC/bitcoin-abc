@@ -789,7 +789,7 @@ public:
     Amount GetDebit(const CTransaction &tx, const isminefilter &filter) const;
     void chainStateFlushed(const CBlockLocator &loc) override;
 
-    DBErrors LoadWallet(bool &fFirstRunRet);
+    DBErrors LoadWallet();
     DBErrors ZapSelectTx(std::vector<TxId> &txIdsIn,
                          std::vector<TxId> &txIdsOut)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);

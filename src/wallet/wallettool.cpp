@@ -60,8 +60,7 @@ static std::shared_ptr<CWallet> MakeWallet(const std::string &name,
         WalletToolReleaseWallet};
     DBErrors load_wallet_ret;
     try {
-        bool first_run;
-        load_wallet_ret = wallet_instance->LoadWallet(first_run);
+        load_wallet_ret = wallet_instance->LoadWallet();
     } catch (const std::runtime_error &) {
         tfm::format(
             std::cerr,

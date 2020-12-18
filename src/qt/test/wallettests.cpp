@@ -120,9 +120,7 @@ void TestGUI(interfaces::Node &node) {
     node.setContext(&test.m_node);
     std::shared_ptr<CWallet> wallet = std::make_shared<CWallet>(
         node.context()->chain.get(), "", CreateMockWalletDatabase());
-
-    bool firstRun;
-    wallet->LoadWallet(firstRun);
+    wallet->LoadWallet();
     ChainstateManager &chainman = *Assert(node.context()->chainman);
     {
         auto spk_man = wallet->GetOrCreateLegacyScriptPubKeyMan();
