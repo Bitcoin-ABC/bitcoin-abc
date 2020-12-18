@@ -47,7 +47,6 @@ class ImportWithLabel(BitcoinTestFramework):
                      address,
                      iswatchonly=True,
                      ismine=False,
-                     label=label,
                      labels=[label])
 
         self.log.info(
@@ -56,7 +55,7 @@ class ImportWithLabel(BitcoinTestFramework):
         )
         priv_key = self.nodes[0].dumpprivkey(address)
         self.nodes[1].importprivkey(priv_key)
-        test_address(self.nodes[1], address, label=label, labels=[label])
+        test_address(self.nodes[1], address, labels=[label])
 
         self.log.info(
             "Test importaddress without label and importprivkey with label."
@@ -68,7 +67,6 @@ class ImportWithLabel(BitcoinTestFramework):
                      address2,
                      iswatchonly=True,
                      ismine=False,
-                     label="",
                      labels=[""])
 
         self.log.info(
@@ -79,7 +77,7 @@ class ImportWithLabel(BitcoinTestFramework):
         label2 = "Test Label 2"
         self.nodes[1].importprivkey(priv_key2, label2)
 
-        test_address(self.nodes[1], address2, label=label2, labels=[label2])
+        test_address(self.nodes[1], address2, labels=[label2])
 
         self.log.info(
             "Test importaddress with label and importprivkey with label.")
@@ -91,7 +89,6 @@ class ImportWithLabel(BitcoinTestFramework):
                      address3,
                      iswatchonly=True,
                      ismine=False,
-                     label=label3_addr,
                      labels=[label3_addr])
 
         self.log.info(
@@ -105,7 +102,6 @@ class ImportWithLabel(BitcoinTestFramework):
         test_address(
             self.nodes[1],
             address3,
-            label=label3_priv,
             labels=[label3_priv])
 
         self.log.info(
@@ -120,7 +116,6 @@ class ImportWithLabel(BitcoinTestFramework):
                      address4,
                      iswatchonly=True,
                      ismine=False,
-                     label=label4_addr,
                      labels=[label4_addr],
                      embedded=None)
 
@@ -148,14 +143,13 @@ class ImportWithLabel(BitcoinTestFramework):
 
         test_address(self.nodes[1],
                      p2shaddr4,
-                     label="",
                      labels=[""])
 
         embedded_addr = self.nodes[1].getaddressinfo(
             p2shaddr4)['embedded']['address']
         test_address(self.nodes[1],
                      embedded_addr,
-                     label=label4_addr, labels=[label4_addr])
+                     labels=[label4_addr])
 
         self.stop_nodes()
 
