@@ -173,6 +173,9 @@ namespace {
     };
 
     class ChainImpl : public Chain {
+    private:
+        ChainstateManager &chainman() { return *Assert(m_node.chainman); }
+
     public:
         explicit ChainImpl(NodeContext &node, const CChainParams &params)
             : m_node(node), m_params(params) {}
@@ -214,8 +217,11 @@ namespace {
         findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            if (CBlockIndex *fork = g_chainman.m_blockman.FindForkInGlobalIndex(
-                    active, locator)) {
+            assert(std::addressof(g_chainman) ==
+                   std::addressof(*m_node.chainman));
+            if (CBlockIndex *fork =
+                    m_node.chainman->m_blockman.FindForkInGlobalIndex(
+                        active, locator)) {
                 return fork->nHeight;
             }
             return std::nullopt;
@@ -224,7 +230,9 @@ namespace {
                        const FoundBlock &block) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            return FillBlock(g_chainman.m_blockman.LookupBlockIndex(hash),
+            assert(std::addressof(g_chainman) ==
+                   std::addressof(*m_node.chainman));
+            return FillBlock(m_node.chainman->m_blockman.LookupBlockIndex(hash),
                              block, lock, active);
         }
         bool findFirstBlockWithTimeAndHeight(int64_t min_time, int min_height,
@@ -240,8 +248,10 @@ namespace {
                                   const FoundBlock &ancestor_out) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
+            assert(std::addressof(g_chainman) ==
+                   std::addressof(*m_node.chainman));
             if (const CBlockIndex *block =
-                    g_chainman.m_blockman.LookupBlockIndex(block_hash)) {
+                    m_node.chainman->m_blockman.LookupBlockIndex(block_hash)) {
                 if (const CBlockIndex *ancestor =
                         block->GetAncestor(ancestor_height)) {
                     return FillBlock(ancestor, ancestor_out, lock, active);
@@ -254,10 +264,12 @@ namespace {
                                 const FoundBlock &ancestor_out) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
+            assert(std::addressof(g_chainman) ==
+                   std::addressof(*m_node.chainman));
             const CBlockIndex *block =
-                g_chainman.m_blockman.LookupBlockIndex(block_hash);
+                m_node.chainman->m_blockman.LookupBlockIndex(block_hash);
             const CBlockIndex *ancestor =
-                g_chainman.m_blockman.LookupBlockIndex(ancestor_hash);
+                m_node.chainman->m_blockman.LookupBlockIndex(ancestor_hash);
             if (block && ancestor &&
                 block->GetAncestor(ancestor->nHeight) != ancestor) {
                 ancestor = nullptr;
@@ -271,10 +283,12 @@ namespace {
                                 const FoundBlock &block2_out) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
+            assert(std::addressof(g_chainman) ==
+                   std::addressof(*m_node.chainman));
             const CBlockIndex *block1 =
-                g_chainman.m_blockman.LookupBlockIndex(block_hash1);
+                m_node.chainman->m_blockman.LookupBlockIndex(block_hash1);
             const CBlockIndex *block2 =
-                g_chainman.m_blockman.LookupBlockIndex(block_hash2);
+                m_node.chainman->m_blockman.LookupBlockIndex(block_hash2);
             const CBlockIndex *ancestor =
                 block1 && block2 ? LastCommonAncestor(block1, block2) : nullptr;
             // Using & instead of && below to avoid short circuiting and leaving
@@ -289,9 +303,11 @@ namespace {
         }
         double guessVerificationProgress(const BlockHash &block_hash) override {
             LOCK(cs_main);
+            assert(std::addressof(g_chainman.m_blockman) ==
+                   std::addressof(chainman().m_blockman));
             return GuessVerificationProgress(
                 Params().TxData(),
-                g_chainman.m_blockman.LookupBlockIndex(block_hash));
+                chainman().m_blockman.LookupBlockIndex(block_hash));
         }
         bool hasBlocks(const BlockHash &block_hash, int min_height,
                        std::optional<int> max_height) override {
@@ -303,8 +319,10 @@ namespace {
             // used to limit the range, and passing min_height that's too low or
             // max_height that's too high will not crash or change the result.
             LOCK(::cs_main);
+            assert(std::addressof(g_chainman.m_blockman) ==
+                   std::addressof(chainman().m_blockman));
             if (CBlockIndex *block =
-                    g_chainman.m_blockman.LookupBlockIndex(block_hash)) {
+                    chainman().m_blockman.LookupBlockIndex(block_hash)) {
                 if (max_height && block->nHeight >= *max_height) {
                     block = block->GetAncestor(*max_height);
                 }
@@ -399,7 +417,17 @@ namespace {
             return !::fImporting && !::fReindex && !isInitialBlockDownload();
         }
         bool isInitialBlockDownload() override {
-            return ::ChainstateActive().IsInitialBlockDownload();
+            const CChainState *active_chainstate;
+            {
+                // TODO: Temporary scope to check correctness of refactored code
+                // Should be removed manually after backport of
+                // https://github.com/bitcoin/bitcoin/pull/20158
+                LOCK(::cs_main);
+                active_chainstate = &chainman().ActiveChainstate();
+                assert(std::addressof(::ChainstateActive()) ==
+                       std::addressof(*active_chainstate));
+            }
+            return active_chainstate->IsInitialBlockDownload();
         }
         bool shutdownRequested() override { return ShutdownRequested(); }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }
