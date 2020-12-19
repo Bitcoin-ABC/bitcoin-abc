@@ -94,8 +94,8 @@ bool TxIndex::DB::WriteTxs(
 static void
 WriteTxIndexMigrationBatches(CDBWrapper &newdb, CDBWrapper &olddb,
                              CDBBatch &batch_newdb, CDBBatch &batch_olddb,
-                             const std::pair<uint8_t, uint256> &begin_key,
-                             const std::pair<uint8_t, uint256> &end_key) {
+                             const std::pair<uint8_t, TxId> &begin_key,
+                             const std::pair<uint8_t, TxId> &end_key) {
     // Sync new DB changes to disk before deleting from old DB.
     newdb.WriteBatch(batch_newdb, /*fSync=*/true);
     olddb.WriteBatch(batch_olddb);
@@ -148,9 +148,9 @@ bool TxIndex::DB::MigrateData(CBlockTreeDB &block_tree_db,
     CDBBatch batch_newdb(*this);
     CDBBatch batch_olddb(block_tree_db);
 
-    std::pair<uint8_t, uint256> key;
-    std::pair<uint8_t, uint256> begin_key{DB_TXINDEX, uint256()};
-    std::pair<uint8_t, uint256> prev_key = begin_key;
+    std::pair<uint8_t, TxId> key;
+    std::pair<uint8_t, TxId> begin_key{DB_TXINDEX, TxId()};
+    std::pair<uint8_t, TxId> prev_key = begin_key;
 
     bool interrupted = false;
     std::unique_ptr<CDBIterator> cursor(block_tree_db.NewIterator());
@@ -173,7 +173,7 @@ bool TxIndex::DB::MigrateData(CBlockTreeDB &block_tree_db,
             // Since txids are uniformly random and traversed in increasing
             // order, the high 16 bits of the ID can be used to estimate the
             // current progress.
-            const uint256 &txid = key.second;
+            const TxId &txid = key.second;
             uint32_t high_nibble =
                 (static_cast<uint32_t>(*(txid.begin() + 0)) << 8) +
                 (static_cast<uint32_t>(*(txid.begin() + 1)) << 0);
