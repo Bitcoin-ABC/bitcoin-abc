@@ -2055,17 +2055,21 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
             }
         }
 
-        // Trigger the peer node to send a getblocks request for the next batch
-        // of inventory.
-        if (hash == peer.m_continuation_block) {
-            // Send immediately. This must send even if redundant, and
-            // we want it right after the last block so they don't wait for
-            // other stuff first.
-            std::vector<CInv> vInv;
-            vInv.push_back(
-                CInv(MSG_BLOCK, ::ChainActive().Tip()->GetBlockHash()));
-            connman.PushMessage(&pfrom, msgMaker.Make(NetMsgType::INV, vInv));
-            peer.m_continuation_block = BlockHash();
+        {
+            LOCK(peer.m_block_inv_mutex);
+            // Trigger the peer node to send a getblocks request for the next
+            // batch of inventory.
+            if (hash == peer.m_continuation_block) {
+                // Send immediately. This must send even if redundant, and
+                // we want it right after the last block so they don't wait for
+                // other stuff first.
+                std::vector<CInv> vInv;
+                vInv.push_back(
+                    CInv(MSG_BLOCK, ::ChainActive().Tip()->GetBlockHash()));
+                connman.PushMessage(&pfrom,
+                                    msgMaker.Make(NetMsgType::INV, vInv));
+                peer.m_continuation_block = BlockHash();
+            }
         }
     }
 }
@@ -3532,7 +3536,9 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 // trigger the peer to getblocks the next batch of inventory.
                 LogPrint(BCLog::NET, "  getblocks stopping at limit %d %s\n",
                          pindex->nHeight, pindex->GetBlockHash().ToString());
-                peer->m_continuation_block = pindex->GetBlockHash();
+                WITH_LOCK(peer->m_block_inv_mutex, {
+                    peer->m_continuation_block = pindex->GetBlockHash();
+                });
                 break;
             }
         }

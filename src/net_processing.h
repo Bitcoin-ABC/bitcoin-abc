@@ -91,15 +91,16 @@ struct Peer {
     std::vector<BlockHash>
         m_blocks_for_headers_relay GUARDED_BY(m_block_inv_mutex);
 
-    /** This peer's reported block height when we connected */
-    std::atomic<int> m_starting_height{-1};
     /**
      * The final block hash that we sent in an `inv` message to this peer.
      * When the peer requests this block, we send an `inv` message to trigger
      * the peer to request the next sequence of block hashes.
      * Most peers use headers-first syncing, which doesn't use this mechanism
      */
-    BlockHash m_continuation_block{};
+    BlockHash m_continuation_block GUARDED_BY(m_block_inv_mutex){};
+
+    /** This peer's reported block height when we connected */
+    std::atomic<int> m_starting_height{-1};
 
     /**
      * Set of txids to reconsider once their parent transactions have been
