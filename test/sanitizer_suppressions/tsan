@@ -39,6 +39,7 @@ deadlock:src/qt/test/*
 
 # External libraries
 deadlock:libdb
+thread:src/leveldb/*
 
 # Reverselock tests is triggering lock-order-inversion errors when run as part
 # of test_bitcoin.
