@@ -10,6 +10,7 @@ add_library(crypto
 	hkdf_sha256_32.cpp
 	hmac_sha256.cpp
 	hmac_sha512.cpp
+	muhash.cpp
 	poly1305.cpp
 	ripemd160.cpp
 	sha1.cpp

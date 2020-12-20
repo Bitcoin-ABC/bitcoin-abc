@@ -88,4 +88,6 @@
 /* Define if QtDBus support should be enabled */
 #cmakedefine USE_DBUS 1
 
+#cmakedefine HAVE___INT128 1
+
 #endif // BITCOIN_BITCOIN_CONFIG_H

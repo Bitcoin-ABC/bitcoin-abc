@@ -5,6 +5,7 @@
 
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
+include(CheckTypeSize)
 include(CheckCXXSymbolExists)
 include(CheckCXXSourceCompiles)
 
@@ -254,6 +255,8 @@ check_cxx_symbol_exists(::wsystem "" _HAVE_WSYSTEM)
 if(_HAVE_STD_SYSTEM OR _HAVE_WSYSTEM)
 	set(HAVE_SYSTEM 1)
 endif()
+
+check_type_size(__int128 __INT128)
 
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)

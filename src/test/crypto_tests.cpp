@@ -8,6 +8,7 @@
 #include <crypto/hkdf_sha256_32.h>
 #include <crypto/hmac_sha256.h>
 #include <crypto/hmac_sha512.h>
+#include <crypto/muhash.h>
 #include <crypto/poly1305.h>
 #include <crypto/ripemd160.h>
 #include <crypto/sha1.h>
@@ -16,6 +17,7 @@
 #include <crypto/sha512.h>
 
 #include <random.h>
+#include <streams.h>
 #include <util/strencodings.h>
 
 #include <test/util/setup_common.h>
@@ -1767,6 +1769,147 @@ BOOST_AUTO_TEST_CASE(sha3_256_tests) {
         "13eafcb0ca0c04946d7804040c0a3cd088352424b097adb7aad1ca4495952f3e6c0158"
         "c02d2bcec33bfda69301434a84d9027ce02c0b9725dad118",
         "d894b86261436362e64241e61f6b3e6589daf64dc641f60570c4c0bf3b1f2ca3");
+}
+
+static MuHash3072 FromInt(uint8_t i) {
+    uint8_t tmp[32] = {i, 0};
+    return MuHash3072(tmp);
+}
+
+BOOST_AUTO_TEST_CASE(muhash_tests) {
+    uint256 out;
+
+    for (int iter = 0; iter < 10; ++iter) {
+        uint256 res;
+        int table[4];
+        for (int i = 0; i < 4; ++i) {
+            table[i] = g_insecure_rand_ctx.randbits(3);
+        }
+        for (int order = 0; order < 4; ++order) {
+            MuHash3072 acc;
+            for (int i = 0; i < 4; ++i) {
+                int t = table[i ^ order];
+                if (t & 4) {
+                    acc /= FromInt(t & 3);
+                } else {
+                    acc *= FromInt(t & 3);
+                }
+            }
+            acc.Finalize(out);
+            if (order == 0) {
+                res = out;
+            } else {
+                BOOST_CHECK(res == out);
+            }
+        }
+
+        MuHash3072 x = FromInt(g_insecure_rand_ctx.randbits(4)); // x=X
+        MuHash3072 y = FromInt(g_insecure_rand_ctx.randbits(4)); // x=X, y=Y
+        MuHash3072 z; // x=X, y=Y, z=1
+        z *= x;       // x=X, y=Y, z=X
+        z *= y;       // x=X, y=Y, z=X*Y
+        y *= x;       // x=X, y=Y*X, z=X*Y
+        z /= y;       // x=X, y=Y*X, z=1
+        z.Finalize(out);
+
+        uint256 out2;
+        MuHash3072 a;
+        a.Finalize(out2);
+
+        BOOST_CHECK_EQUAL(out, out2);
+    }
+
+    MuHash3072 acc = FromInt(0);
+    acc *= FromInt(1);
+    acc /= FromInt(2);
+    acc.Finalize(out);
+    BOOST_CHECK_EQUAL(out, uint256S("10d312b100cbd32ada024a6646e40d3482fcff1036"
+                                    "68d2625f10002a607d5863"));
+
+    MuHash3072 acc2 = FromInt(0);
+    uint8_t tmp[32] = {1, 0};
+    acc2.Insert(tmp);
+    uint8_t tmp2[32] = {2, 0};
+    acc2.Remove(tmp2);
+    acc2.Finalize(out);
+    BOOST_CHECK_EQUAL(out, uint256S("10d312b100cbd32ada024a6646e40d3482fcff1036"
+                                    "68d2625f10002a607d5863"));
+
+    // Test MuHash3072 serialization
+    MuHash3072 serchk = FromInt(1);
+    serchk *= FromInt(2);
+    std::string ser_exp =
+        "1fa093295ea30a6a3acdc7b3f770fa538eff537528e990e2910e40bbcfd7f6696b1256"
+        "901929094694b56316de342f593303dd12ac43e06dce1be1ff8301c845beb15468fff0"
+        "ef002dbf80c29f26e6452bccc91b5cb9437ad410d2a67ea847887fa3c6a65533099468"
+        "80fe20db2c73fe0641adbd4e86edfee0d9f8cd0ee1230898873dc13ed8ddcaf045c80f"
+        "aa082774279007a2253f8922ee3ef361d378a6af3ddaf180b190ac97e556888c36b3d1"
+        "fb1c85aab9ccd46e3deaeb7b7cf5db067a7e9ff86b658cf3acd6662bbcce37232daa75"
+        "3c48b794356c020090c831a8304416e2aa7ad633c0ddb2f11be1be316a81be7f7e4720"
+        "71c042cb68faef549c221ebff209273638b741aba5a81675c45a5fa92fea4ca821d7a3"
+        "24cb1e1a2ccd3b76c4228ec8066dad2a5df6e1bd0de45c7dd5de8070bdb46db6c554cf"
+        "9aefc9b7b2bbf9f75b1864d9f95005314593905c0109b71f703d49944ae94477b51dac"
+        "10a816bb6d1c700bafabc8bd86fac8df24be519a2f2836b16392e18036cb13e48c5c01"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000";
+    CDataStream ss_chk(SER_DISK, PROTOCOL_VERSION);
+    ss_chk << serchk;
+    BOOST_CHECK_EQUAL(ser_exp, HexStr(ss_chk.str()));
+
+    // Test MuHash3072 deserialization
+    MuHash3072 deserchk;
+    ss_chk >> deserchk;
+    uint256 out3;
+    serchk.Finalize(out);
+    deserchk.Finalize(out3);
+    BOOST_CHECK_EQUAL(HexStr(out), HexStr(out3));
+
+    // Test MuHash3072 overflow, meaning the internal data is larger than the
+    // modulus.
+    CDataStream ss_max(
+        ParseHex(
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            "ffffffffffffffffffffffffffffffffffffffffff010000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000000000000000000000000000000000000000000000000000"
+            "000000000000000000"),
+        SER_DISK, PROTOCOL_VERSION);
+    MuHash3072 overflowchk;
+    ss_max >> overflowchk;
+
+    uint256 out4;
+    overflowchk.Finalize(out4);
+    BOOST_CHECK_EQUAL(
+        HexStr(out4),
+        "3a31e6903aff0de9f62f9a9f7f8b861de76ce2cda09822b90014319ae5dc2271");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
