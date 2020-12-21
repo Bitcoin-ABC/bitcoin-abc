@@ -43,6 +43,10 @@ npm run build
 # Copy extension build files to extension/ folder
 cp -r build/* extension/dist
 
+# Copy other needed extension files
+cp extension/src/contentscript.js extension/dist
+cp extension/src/background.js extension/dist
+
 # Delete extension build from build/ folder (reserved for web app builds)
 rm -Rf build
 

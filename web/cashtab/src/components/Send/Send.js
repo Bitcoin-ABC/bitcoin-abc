@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Spin } from 'antd';
-import { CashLoader,  CashLoadingIcon  } from '@components/Common/CustomIcons';
+import { Form, notification, message, Spin, Modal } from 'antd';
+import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
@@ -87,6 +87,25 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
     const [sendBchAmountError, setSendBchAmountError] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(currency.ticker);
 
+    // Support cashtab button from web pages
+    const [txInfoFromUrl, setTxInfoFromUrl] = useState(false);
+
+    // Show a confirmation modal on transactions created by populating form from web page button
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const showModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleOk = () => {
+        setIsModalVisible(false);
+        submit();
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
+
     const { getBCH, getRestUrl, sendBch, calcFee } = useBCH();
     const BCH = getBCH();
 
@@ -95,6 +114,40 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
     useEffect(() => {
         setLoading(false);
     }, [balances.totalBalance]);
+
+    useEffect(() => {
+        // Manually parse for txInfo object on page load when Send.js is loaded with a query string
+
+        // Do not set txInfo in state if query strings are not present
+        if (
+            !window.location ||
+            !window.location.hash ||
+            window.location.hash === '#/send'
+        ) {
+            console.log(`No tx info in URL`);
+            return;
+        }
+
+        const txInfoArr = window.location.hash.split('?')[1].split('&');
+
+        // Iterate over this to create object
+        const txInfo = {};
+        for (let i = 0; i < txInfoArr.length; i += 1) {
+            let txInfoKeyValue = txInfoArr[i].split('=');
+            let key = txInfoKeyValue[0];
+            let value = txInfoKeyValue[1];
+            txInfo[key] = value;
+        }
+        console.log(`txInfo from page params`, txInfo);
+        setTxInfoFromUrl(txInfo);
+        populateFormsFromUrl(txInfo);
+    }, []);
+
+    function populateFormsFromUrl(txInfo) {
+        if (txInfo && txInfo.address && txInfo.value) {
+            setFormData({ address: txInfo.address, value: txInfo.value });
+        }
+    }
 
     async function submit() {
         setFormData({
@@ -264,6 +317,17 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
 
     return (
         <>
+            <Modal
+                title="Confirm Send"
+                visible={isModalVisible}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>
+                    Are you sure you want to send {formData.value}{' '}
+                    {currency.ticker} to {formData.address}?
+                </p>
+            </Modal>
             {!balances.totalBalance ? (
                 <ZeroBalanceHeader>
                     You currently have 0 {currency.ticker}
@@ -348,9 +412,21 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                                 sendBchAmountError ? (
                                     <SecondaryButton>Send</SecondaryButton>
                                 ) : (
-                                    <PrimaryButton onClick={() => submit()}>
-                                        Send
-                                    </PrimaryButton>
+                                    <>
+                                        {txInfoFromUrl ? (
+                                            <PrimaryButton
+                                                onClick={() => showModal()}
+                                            >
+                                                Send
+                                            </PrimaryButton>
+                                        ) : (
+                                            <PrimaryButton
+                                                onClick={() => submit()}
+                                            >
+                                                Send
+                                            </PrimaryButton>
+                                        )}
+                                    </>
                                 )}
                             </div>
                             {apiError && (

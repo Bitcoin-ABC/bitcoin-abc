@@ -124,15 +124,12 @@ export const HeaderCtn = styled.div`
     margin-bottom: 20px;
     justify-content: space-between;
     border-bottom: 1px solid #e2e2e2;
-
     a {
         color: #848484;
-
         :hover {
             color: #ff8d00;
         }
     }
-
     @media (max-width: 768px) {
         a {
             font-size: 12px;
