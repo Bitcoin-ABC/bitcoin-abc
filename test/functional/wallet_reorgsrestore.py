@@ -109,7 +109,7 @@ class ReorgsRestoreTest(BitcoinTestFramework):
                 'wallet.bak'),
             os.path.join(
                 self.nodes[1].datadir,
-                'regtest',
+                self.chain,
                 'wallet.dat'))
         self.start_node(1)
         tx_after_reorg = self.nodes[1].gettransaction(txid)

@@ -40,7 +40,7 @@ class RPCInterfaceTest(BitcoinTestFramework):
             info['logpath'],
             os.path.join(
                 self.nodes[0].datadir,
-                'regtest',
+                self.chain,
                 'debug.log'))
 
     def test_batch_request(self):

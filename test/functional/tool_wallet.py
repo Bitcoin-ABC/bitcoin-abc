@@ -30,7 +30,7 @@ class ToolWalletTest(BitcoinTestFramework):
         binary = self.config["environment"]["BUILDDIR"] + \
             '/src/bitcoin-wallet' + self.config["environment"]["EXEEXT"]
         args = ['-datadir={}'.format(self.nodes[0].datadir),
-                '-regtest'] + list(args)
+                '-chain={}'.format(self.chain)] + list(args)
 
         command_line = [binary] + args
         if self.config["environment"]["EMULATOR"]:
@@ -243,7 +243,7 @@ class ToolWalletTest(BitcoinTestFramework):
 
     def run_test(self):
         self.wallet_path = os.path.join(
-            self.nodes[0].datadir, 'regtest', 'wallets', 'wallet.dat')
+            self.nodes[0].datadir, self.chain, 'wallets', 'wallet.dat')
         self.test_invalid_tool_commands_and_args()
         # Warning: The following tests are order-dependent.
         self.test_tool_wallet_info()

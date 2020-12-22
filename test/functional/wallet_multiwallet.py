@@ -41,7 +41,7 @@ class MultiWalletTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        def data_dir(*p): return os.path.join(node.datadir, 'regtest', *p)
+        def data_dir(*p): return os.path.join(node.datadir, self.chain, *p)
 
         def wallet_dir(*p): return data_dir('wallets', *p)
 
@@ -223,7 +223,7 @@ class MultiWalletTest(BitcoinTestFramework):
 
         batch = w1.batch([w1.getblockchaininfo.get_request(),
                           w1.getwalletinfo.get_request()])
-        assert_equal(batch[0]["result"]["chain"], "regtest")
+        assert_equal(batch[0]["result"]["chain"], self.chain)
         assert_equal(batch[1]["result"]["walletname"], "w1")
 
         self.log.info('Check for per-wallet settxfee call')

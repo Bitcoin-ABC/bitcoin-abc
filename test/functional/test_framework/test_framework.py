@@ -616,7 +616,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             self.nodes = []
 
             def cache_path(*paths):
-                return os.path.join(cache_node_dir, "regtest", *paths)
+                return os.path.join(cache_node_dir, self.chain, *paths)
 
             # Remove empty wallets dir
             os.rmdir(cache_path('wallets'))

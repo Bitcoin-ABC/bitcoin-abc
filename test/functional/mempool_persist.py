@@ -132,9 +132,9 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert_equal(len(self.nodes[0].getrawmempool()), 5)
 
         mempooldat0 = os.path.join(
-            self.nodes[0].datadir, 'regtest', 'mempool.dat')
+            self.nodes[0].datadir, self.chain, 'mempool.dat')
         mempooldat1 = os.path.join(
-            self.nodes[1].datadir, 'regtest', 'mempool.dat')
+            self.nodes[1].datadir, self.chain, 'mempool.dat')
         self.log.debug(
             "Remove the mempool.dat file. Verify that savemempool to disk via RPC re-creates it")
         os.remove(mempooldat0)

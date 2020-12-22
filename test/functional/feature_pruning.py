@@ -110,7 +110,7 @@ class PruneTest(BitcoinTestFramework):
         self.setup_nodes()
 
         self.prunedir = os.path.join(
-            self.nodes[2].datadir, 'regtest', 'blocks', '')
+            self.nodes[2].datadir, self.chain, 'blocks', '')
 
         connect_nodes(self.nodes[0], self.nodes[1])
         connect_nodes(self.nodes[1], self.nodes[2])
@@ -319,7 +319,7 @@ class PruneTest(BitcoinTestFramework):
 
         def has_block(index):
             return os.path.isfile(os.path.join(
-                self.nodes[node_number].datadir, "regtest", "blocks", "blk{:05}.dat".format(index)))
+                self.nodes[node_number].datadir, self.chain, "blocks", "blk{:05}.dat".format(index)))
 
         # should not prune because chain tip of node 3 (995) < PruneAfterHeight
         # (1000)
