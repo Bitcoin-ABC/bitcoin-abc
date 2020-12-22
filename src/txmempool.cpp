@@ -32,7 +32,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount _nFee,
     : tx(_tx), nFee(_nFee), nTxSize(tx->GetTotalSize()),
       nUsageSize(RecursiveDynamicUsage(tx)), nTime(_nTime),
       entryHeight(_entryHeight), spendsCoinbase(_spendsCoinbase),
-      sigOpCount(_sigOpsCount), lockPoints(lp) {
+      sigOpCount(_sigOpsCount), lockPoints(lp), m_epoch(0) {
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nSigOpCountWithDescendants = sigOpCount;
@@ -151,8 +151,6 @@ void CTxMemPool::UpdateTransactionsFromBlock(
     // setMemPoolChildren will be updated, an assumption made in
     // UpdateForDescendants.
     for (const TxId &txid : reverse_iterate(txidsToUpdate)) {
-        // we cache the in-mempool children to avoid duplicate updates
-        setEntries setChildren;
         // calculate children from mapNextTx
         txiter it = mapTx.find(txid);
         if (it == mapTx.end()) {
@@ -162,19 +160,23 @@ void CTxMemPool::UpdateTransactionsFromBlock(
         auto iter = mapNextTx.lower_bound(COutPoint(txid, 0));
         // First calculate the children, and update setMemPoolChildren to
         // include them, and update their setMemPoolParents to include this tx.
-        for (; iter != mapNextTx.end() && iter->first->GetTxId() == txid;
-             ++iter) {
-            const TxId &childTxId = iter->second->GetId();
-            txiter childIter = mapTx.find(childTxId);
-            assert(childIter != mapTx.end());
-            // We can skip updating entries we've encountered before or that are
-            // in the block (which are already accounted for).
-            if (setChildren.insert(childIter).second &&
-                !setAlreadyIncluded.count(childTxId)) {
-                UpdateChild(it, childIter, true);
-                UpdateParent(childIter, it, true);
+        // we cache the in-mempool children to avoid duplicate updates
+        {
+            const auto epoch = GetFreshEpoch();
+            for (; iter != mapNextTx.end() && iter->first->GetTxId() == txid;
+                 ++iter) {
+                const TxId &childTxId = iter->second->GetId();
+                txiter childIter = mapTx.find(childTxId);
+                assert(childIter != mapTx.end());
+                // We can skip updating entries we've encountered before or that
+                // are in the block (which are already accounted for).
+                if (!visited(childIter) &&
+                    !setAlreadyIncluded.count(childTxId)) {
+                    UpdateChild(it, childIter, true);
+                    UpdateParent(childIter, it, true);
+                }
             }
-        }
+        } // release epoch guard for UpdateForDescendants
         UpdateForDescendants(it, mapMemPoolDescendantsToUpdate,
                              setAlreadyIncluded);
     }
@@ -387,7 +389,8 @@ void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, Amount modifyFee,
     assert(int(nSigOpCountWithAncestors) >= 0);
 }
 
-CTxMemPool::CTxMemPool() : nTransactionsUpdated(0) {
+CTxMemPool::CTxMemPool()
+    : nTransactionsUpdated(0), m_epoch(0), m_has_epoch_guard(false) {
     // lock free clear
     _clear();
 
@@ -1423,4 +1426,20 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
                        1000000,
                    std::chrono::hours{
                        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+}
+
+CTxMemPool::EpochGuard CTxMemPool::GetFreshEpoch() const {
+    return EpochGuard(*this);
+}
+
+CTxMemPool::EpochGuard::EpochGuard(const CTxMemPool &in) : pool(in) {
+    assert(!pool.m_has_epoch_guard);
+    ++pool.m_epoch;
+    pool.m_has_epoch_guard = true;
+}
+
+CTxMemPool::EpochGuard::~EpochGuard() {
+    // prevents stale results being used
+    ++pool.m_epoch;
+    pool.m_has_epoch_guard = false;
 }
