@@ -941,10 +941,6 @@ void SetupServerArgs(NodeContext &node) {
                    "Allows deprecated RPC method(s) to be used",
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
-    argsman.AddArg("-dropmessagestest=<n>",
-                   "Randomly drop 1 of every <n> network messages",
-                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                   OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-stopafterblockimport",
         strprintf("Stop running after importing blocks from disk (default: %d)",
