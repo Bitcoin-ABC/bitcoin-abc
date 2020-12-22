@@ -1,7 +1,7 @@
 libsecp256k1
 ============
 
-[![Build Status](https://travis-ci.org/bitcoin-abc/secp256k1.svg?branch=master)](https://travis-ci.org/bitcoin-abc/secp256k1)
+[![Build Status](https://api.cirrus-ci.com/github/bitcoin-abc/secp256k1.svg?branch=master)](https://cirrus-ci.com/github/bitcoin-abc/secp256k1)
 
 Optimized C library for cryptographic operations on curve secp256k1.
 

@@ -253,7 +253,8 @@
         },
         "yamllint": {
             "type": "yamllint",
-            "include": "(\\.(yml|yaml)$)"
+            "include": "(\\.(yml|yaml)$)",
+            "exclude": "(^src/(secp256k1|univalue|leveldb)/)"
         },
         "lint-check-nonfatal": {
             "type": "lint-check-nonfatal",
