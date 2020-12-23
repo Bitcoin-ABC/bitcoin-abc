@@ -691,6 +691,21 @@ private:
      */
     std::map<NodeId, PeerRef> m_peer_map GUARDED_BY(m_peer_mutex);
 
+    /** Number of nodes with fSyncStarted. */
+    int nSyncStarted GUARDED_BY(cs_main) = 0;
+
+    /**
+     * Sources of received blocks, saved to be able to punish them when
+     * processing happens afterwards.
+     * Set mapBlockSource[hash].second to false if the node should not be
+     * punished if the block is invalid.
+     */
+    std::map<BlockHash, std::pair<NodeId, bool>>
+        mapBlockSource GUARDED_BY(cs_main);
+
+    /** Number of outbound peers with m_chain_sync.m_protect. */
+    int m_outbound_peers_with_protect_from_disconnect GUARDED_BY(cs_main) = 0;
+
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
@@ -703,17 +718,6 @@ private:
 } // namespace
 
 namespace {
-/** Number of nodes with fSyncStarted. */
-int nSyncStarted GUARDED_BY(cs_main) = 0;
-
-/**
- * Sources of received blocks, saved to be able to punish them when processing
- * happens afterwards.
- * Set mapBlockSource[hash].second to false if the node should not be punished
- * if the block is invalid.
- */
-std::map<BlockHash, std::pair<NodeId, bool>> mapBlockSource GUARDED_BY(cs_main);
-
 /**
  * Filter for transactions that were recently rejected by AcceptToMemoryPool.
  * These are not rerequested until the chain tip changes, at which point the
@@ -781,9 +785,6 @@ int nPreferredDownload GUARDED_BY(cs_main) = 0;
 
 /** Number of peers from which we're downloading blocks. */
 int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
-
-/** Number of outbound peers with m_chain_sync.m_protect. */
-int g_outbound_peers_with_protect_from_disconnect GUARDED_BY(cs_main) = 0;
 
 /** When our tip was last updated. */
 std::atomic<int64_t> g_last_tip_update(0);
@@ -1648,9 +1649,9 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
         nPeersWithValidatedDownloads -=
             (state->nBlocksInFlightValidHeaders != 0);
         assert(nPeersWithValidatedDownloads >= 0);
-        g_outbound_peers_with_protect_from_disconnect -=
+        m_outbound_peers_with_protect_from_disconnect -=
             state->m_chain_sync.m_protect;
-        assert(g_outbound_peers_with_protect_from_disconnect >= 0);
+        assert(m_outbound_peers_with_protect_from_disconnect >= 0);
 
         mapNodeState.erase(nodeid);
 
@@ -1659,7 +1660,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
             assert(mapBlocksInFlight.empty());
             assert(nPreferredDownload == 0);
             assert(nPeersWithValidatedDownloads == 0);
-            assert(g_outbound_peers_with_protect_from_disconnect == 0);
+            assert(m_outbound_peers_with_protect_from_disconnect == 0);
             assert(m_txrequest.Size() == 0);
         }
     }
@@ -3058,7 +3059,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
         // See ChainSyncTimeoutState.
         if (!pfrom.fDisconnect && pfrom.IsFullOutboundConn() &&
             nodestate->pindexBestKnownBlock != nullptr) {
-            if (g_outbound_peers_with_protect_from_disconnect <
+            if (m_outbound_peers_with_protect_from_disconnect <
                     MAX_OUTBOUND_PEERS_TO_PROTECT_FROM_DISCONNECT &&
                 nodestate->pindexBestKnownBlock->nChainWork >=
                     ::ChainActive().Tip()->nChainWork &&
@@ -3067,7 +3068,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                          "Protecting outbound peer=%d from eviction\n",
                          pfrom.GetId());
                 nodestate->m_chain_sync.m_protect = true;
-                ++g_outbound_peers_with_protect_from_disconnect;
+                ++m_outbound_peers_with_protect_from_disconnect;
             }
         }
     }
