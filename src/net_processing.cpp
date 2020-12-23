@@ -2161,14 +2161,14 @@ void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman) {
  * address. So within 24h we will likely relay a given address once. This is to
  * prevent a peer from unjustly giving their address better propagation by
  * sending it to us repeatedly.
- * @param[in] originator The peer that sent us the address. We don't want to
- *                       relay it back.
+ * @param[in] originator The id of the peer that sent us the address. We don't
+ *                       want to relay it back.
  * @param[in] addr Address to relay.
  * @param[in] fReachable Whether the address' network is reachable. We relay
  *                       unreachable addresses less.
  * @param[in] connman Connection manager to choose nodes to relay to.
  */
-static void RelayAddress(const CNode &originator, const CAddress &addr,
+static void RelayAddress(NodeId originator, const CAddress &addr,
                          bool fReachable, const CConnman &connman) {
     if (!fReachable && !addr.IsRelayable()) {
         return;
@@ -2191,9 +2191,9 @@ static void RelayAddress(const CNode &originator, const CAddress &addr,
         {{0, nullptr}, {0, nullptr}}};
     assert(nRelayNodes <= best.size());
 
-    auto sortfunc = [&best, &hasher, nRelayNodes, &originator,
+    auto sortfunc = [&best, &hasher, nRelayNodes, originator,
                      &addr](CNode *pnode) {
-        if (pnode->RelayAddrsWithConn() && pnode != &originator &&
+        if (pnode->RelayAddrsWithConn() && pnode->GetId() != originator &&
             pnode->IsAddrCompatible(addr)) {
             uint64_t hashKey =
                 CSipHasher(hasher).Write(pnode->GetId()).Finalize();
@@ -3600,7 +3600,7 @@ void PeerManagerImpl::ProcessMessage(
             if (addr.nTime > nSince && !pfrom.fGetAddr && vAddr.size() <= 10 &&
                 addr.IsRoutable()) {
                 // Relay to a limited number of other nodes
-                RelayAddress(pfrom, addr, fReachable, m_connman);
+                RelayAddress(pfrom.GetId(), addr, fReachable, m_connman);
             }
             // Do not store addresses outside our network
             if (fReachable) {
