@@ -126,30 +126,20 @@ public:
                 ChainstateManager &chainman, CTxMemPool &pool,
                 bool ignore_incoming_txs);
 
-    /**
-     * Overridden from CValidationInterface.
-     */
+    /** Overridden from CValidationInterface. */
     void BlockConnected(const std::shared_ptr<const CBlock> &pblock,
                         const CBlockIndex *pindexConnected) override;
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                            const CBlockIndex *pindex) override;
-    /**
-     * Overridden from CValidationInterface.
-     */
     void UpdatedBlockTip(const CBlockIndex *pindexNew,
                          const CBlockIndex *pindexFork,
                          bool fInitialDownload) override;
-    /**
-     * Overridden from CValidationInterface.
-     */
     void BlockChecked(const CBlock &block,
                       const BlockValidationState &state) override;
-    /**
-     * Overridden from CValidationInterface.
-     */
     void NewPoWValidBlock(const CBlockIndex *pindex,
                           const std::shared_ptr<const CBlock> &pblock) override;
 
+    /** Implement NetEventsInterface */
     void InitializeNode(const Config &config, CNode *pnode) override;
     void FinalizeNode(const Config &config, const CNode &node,
                       bool &fUpdateConnectionTime) override;
@@ -158,29 +148,14 @@ public:
     bool SendMessages(const Config &config, CNode *pto) override
         EXCLUSIVE_LOCKS_REQUIRED(pto->cs_sendProcessing);
 
-    /**
-     * Consider evicting an outbound peer based on the amount of time they've
-     * been behind our tip.
-     */
-    void ConsiderEviction(CNode &pto, int64_t time_in_seconds)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    /**
-     * Evict extra outbound peers. If we think our tip may be stale, connect to
-     * an extra outbound.
-     */
-    void CheckForStaleTipAndEvictPeers();
-    /**
-     * If we have extra outbound peers, try to disconnect the one with the
-     * oldest block announcement.
-     */
-    void EvictExtraOutboundPeers(int64_t time_in_seconds)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /** Get statistics from node state */
+    bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 
-    /** Process a single message from a peer. Public for fuzz testing */
-    void ProcessMessage(const Config &config, CNode &pfrom,
-                        const std::string &msg_type, CDataStream &vRecv,
-                        const std::chrono::microseconds time_received,
-                        const std::atomic<bool> &interruptMsgProc);
+    /** Whether this node ignores txs received over p2p. */
+    bool IgnoresIncomingTxs() { return m_ignore_incoming_txs; };
+
+    /** Set the best height */
+    void SetBestHeight(int height) { m_best_height = height; };
 
     /**
      * Increment peer's misbehavior score. If the new value >=
@@ -190,6 +165,32 @@ public:
      */
     void Misbehaving(const NodeId pnode, const int howmuch,
                      const std::string &message);
+
+    /**
+     * Evict extra outbound peers. If we think our tip may be stale, connect to
+     * an extra outbound.
+     */
+    void CheckForStaleTipAndEvictPeers();
+
+    /** Process a single message from a peer. Public for fuzz testing */
+    void ProcessMessage(const Config &config, CNode &pfrom,
+                        const std::string &msg_type, CDataStream &vRecv,
+                        const std::chrono::microseconds time_received,
+                        const std::atomic<bool> &interruptMsgProc);
+
+private:
+    /**
+     * Consider evicting an outbound peer based on the amount of time they've
+     * been behind our tip.
+     */
+    void ConsiderEviction(CNode &pto, int64_t time_in_seconds)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /**
+     * If we have extra outbound peers, try to disconnect the one with the
+     * oldest block announcement.
+     */
+    void EvictExtraOutboundPeers(int64_t time_in_seconds)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
      * Retrieve unbroadcast transactions from the mempool and reattempt
@@ -202,16 +203,6 @@ public:
      */
     void UpdateAvalancheStatistics() const;
 
-    /** Get statistics from node state */
-    bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
-
-    /** Set the best height */
-    void SetBestHeight(int height) { m_best_height = height; };
-
-    /** Whether this node ignores txs received over p2p. */
-    bool IgnoresIncomingTxs() { return m_ignore_incoming_txs; };
-
-private:
     /**
      * Get a shared pointer to the Peer object.
      * May return an empty shared_ptr if the Peer object can't be found.
