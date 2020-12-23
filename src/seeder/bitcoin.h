@@ -26,6 +26,8 @@ enum class PeerMessagingState {
     Finished,
 };
 
+class Sock;
+
 namespace {
 class CSeederNodeTest;
 }
@@ -34,7 +36,7 @@ class CSeederNode {
     friend class ::CSeederNodeTest;
 
 private:
-    SOCKET sock;
+    std::unique_ptr<Sock> sock;
     CDataStream vSend;
     CDataStream vRecv;
     uint32_t nHeaderStart;

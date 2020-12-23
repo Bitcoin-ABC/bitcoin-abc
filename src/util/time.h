@@ -81,4 +81,9 @@ int64_t ParseISO8601DateTime(const std::string &str);
  */
 struct timeval MillisToTimeval(int64_t nTimeout);
 
+/**
+ * Convert milliseconds to a struct timeval for e.g. select.
+ */
+struct timeval MillisToTimeval(std::chrono::milliseconds ms);
+
 #endif // BITCOIN_UTIL_TIME_H

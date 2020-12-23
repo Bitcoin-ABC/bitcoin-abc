@@ -21,18 +21,17 @@
 #define BITCOIN_SEED_NONCE 0x0539a019ca550825ULL
 
 void CSeederNode::Send() {
-    if (sock == INVALID_SOCKET) {
+    if (!sock) {
         return;
     }
     if (vSend.empty()) {
         return;
     }
-    int nBytes = send(sock, &vSend[0], vSend.size(), 0);
+    int nBytes = send(sock->Get(), &vSend[0], vSend.size(), 0);
     if (nBytes > 0) {
         vSend.erase(vSend.begin(), vSend.begin() + nBytes);
     } else {
-        close(sock);
-        sock = INVALID_SOCKET;
+        sock.reset();
     }
 }
 
@@ -175,9 +174,9 @@ bool CSeederNode::ProcessMessages() {
 }
 
 CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-    : sock(INVALID_SOCKET), vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0),
-      nHeaderStart(-1), nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0),
-      doneAfter(0), you(ip, ServiceFlags(NODE_NETWORK)) {
+    : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
+      nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
+      you(ip, ServiceFlags(NODE_NETWORK)) {
     if (GetTime() > 1329696000) {
         vSend.SetVersion(209);
         vRecv.SetVersion(209);
@@ -194,29 +193,29 @@ bool CSeederNode::Run() {
         bool proxyConnectionFailed = false;
 
         if (GetProxy(you.GetNetwork(), proxy)) {
-            sock = CreateSocket(proxy.proxy);
-            if (sock == INVALID_SOCKET) {
+            sock = CreateSock(proxy.proxy);
+            if (!sock) {
                 return false;
             }
             connected = ConnectThroughProxy(
-                proxy, you.ToStringIP(), you.GetPort(), sock, nConnectTimeout,
-                proxyConnectionFailed);
+                proxy, you.ToStringIP(), you.GetPort(), sock->Get(),
+                nConnectTimeout, proxyConnectionFailed);
         } else {
             // no proxy needed (none set for target network)
-            sock = CreateSocket(you);
-            if (sock == INVALID_SOCKET) {
+            sock = CreateSock(you);
+            if (!sock) {
                 return false;
             }
             // no proxy needed (none set for target network)
             connected =
-                ConnectSocketDirectly(you, sock, nConnectTimeout, false);
+                ConnectSocketDirectly(you, sock->Get(), nConnectTimeout, false);
         }
     }
 
     if (!connected) {
         // tfm::format(std::cout, "Cannot connect to %s\n",
         // ToString(you));
-        CloseSocket(sock);
+        sock.reset();
         return false;
     }
 
@@ -240,15 +239,15 @@ bool CSeederNode::Run() {
 
     bool res = true;
     int64_t now;
-    while (now = GetTime(), ban == 0 && (doneAfter == 0 || doneAfter > now) &&
-                                sock != INVALID_SOCKET) {
+    while (now = GetTime(),
+           ban == 0 && (doneAfter == 0 || doneAfter > now) && sock) {
         char pchBuf[0x10000];
         fd_set fdsetRecv;
         fd_set fdsetError;
         FD_ZERO(&fdsetRecv);
         FD_ZERO(&fdsetError);
-        FD_SET(sock, &fdsetRecv);
-        FD_SET(sock, &fdsetError);
+        FD_SET(sock->Get(), &fdsetRecv);
+        FD_SET(sock->Get(), &fdsetError);
         struct timeval wa;
         if (doneAfter) {
             wa.tv_sec = doneAfter - now;
@@ -257,14 +256,15 @@ bool CSeederNode::Run() {
             wa.tv_sec = GetTimeout();
             wa.tv_usec = 0;
         }
-        int ret = select(sock + 1, &fdsetRecv, nullptr, &fdsetError, &wa);
+        int ret =
+            select(sock->Get() + 1, &fdsetRecv, nullptr, &fdsetError, &wa);
         if (ret != 1) {
             if (!doneAfter) {
                 res = false;
             }
             break;
         }
-        int nBytes = recv(sock, pchBuf, sizeof(pchBuf), 0);
+        int nBytes = recv(sock->Get(), pchBuf, sizeof(pchBuf), 0);
         int nPos = vRecv.size();
         if (nBytes > 0) {
             vRecv.resize(nPos + nBytes);
@@ -284,10 +284,7 @@ bool CSeederNode::Run() {
         ProcessMessages();
         Send();
     }
-    if (sock == INVALID_SOCKET) {
-        res = false;
-    }
-    close(sock);
-    sock = INVALID_SOCKET;
+    res = sock != nullptr;
+    sock.reset();
     return (ban == 0) && res;
 }

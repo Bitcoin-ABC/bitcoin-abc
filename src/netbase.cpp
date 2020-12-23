@@ -15,6 +15,8 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
+#include <memory>
 
 #ifndef WIN32
 #include <fcntl.h>
@@ -611,28 +613,21 @@ static bool Socks5(const std::string &strDest, int port,
     return true;
 }
 
-/**
- * Try to create a socket file descriptor with specific properties in the
- * communications domain (address family) of the specified service.
- *
- * For details on the desired properties, see the inline comments in the source
- * code.
- */
-SOCKET CreateSocket(const CService &addrConnect) {
+std::unique_ptr<Sock> CreateSockTCP(const CService &address_family) {
     // Create a sockaddr from the specified service.
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
-    if (!addrConnect.GetSockAddr((struct sockaddr *)&sockaddr, &len)) {
+    if (!address_family.GetSockAddr((struct sockaddr *)&sockaddr, &len)) {
         LogPrintf("Cannot create socket for %s: unsupported network\n",
-                  addrConnect.ToString());
-        return INVALID_SOCKET;
+                  address_family.ToString());
+        return nullptr;
     }
 
     // Create a TCP socket in the address family of the specified service.
     SOCKET hSocket = socket(((struct sockaddr *)&sockaddr)->sa_family,
                             SOCK_STREAM, IPPROTO_TCP);
     if (hSocket == INVALID_SOCKET) {
-        return INVALID_SOCKET;
+        return nullptr;
     }
 
     // Ensure that waiting for I/O on this socket won't result in undefined
@@ -641,7 +636,7 @@ SOCKET CreateSocket(const CService &addrConnect) {
         CloseSocket(hSocket);
         LogPrintf("Cannot create connection: non-selectable socket created (fd "
                   ">= FD_SETSIZE ?)\n");
-        return INVALID_SOCKET;
+        return nullptr;
     }
 
 #ifdef SO_NOSIGPIPE
@@ -661,9 +656,13 @@ SOCKET CreateSocket(const CService &addrConnect) {
         LogPrintf("CreateSocket: Setting socket to non-blocking "
                   "failed, error %s\n",
                   NetworkErrorString(WSAGetLastError()));
+        return nullptr;
     }
-    return hSocket;
+    return std::make_unique<Sock>(hSocket);
 }
+
+std::function<std::unique_ptr<Sock>(const CService &)> CreateSock =
+    CreateSockTCP;
 
 template <typename... Args>
 static void LogConnectFailure(bool manual_connection, const char *fmt,
