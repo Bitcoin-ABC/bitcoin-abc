@@ -20,37 +20,25 @@ class CCoinsViewCache;
 class BlockValidationState;
 
 /**
- * Undo information for a CTxIn
+ * Formatter for undo information for a CTxIn
  *
  * Contains the prevout's CTxOut being spent, and its metadata as well (coinbase
  * or not, height). The serialization contains a dummy value of zero. This is
  * compatible with older versions which expect to see the transaction version
  * there.
  */
-class TxInUndoSerializer {
-    const Coin *pcoin;
-
-public:
-    explicit TxInUndoSerializer(const Coin *pcoinIn) : pcoin(pcoinIn) {}
-
-    template <typename Stream> void Serialize(Stream &s) const {
+struct TxInUndoFormatter {
+    template <typename Stream> void Ser(Stream &s, const Coin &txout) {
         ::Serialize(
-            s, VARINT(pcoin->GetHeight() * 2 + (pcoin->IsCoinBase() ? 1 : 0)));
-        if (pcoin->GetHeight() > 0) {
+            s, VARINT(txout.GetHeight() * 2 + (txout.IsCoinBase() ? 1 : 0)));
+        if (txout.GetHeight() > 0) {
             // Required to maintain compatibility with older undo format.
             ::Serialize(s, uint8_t(0));
         }
-        ::Serialize(s, Using<TxOutCompression>(REF(pcoin->GetTxOut())));
+        ::Serialize(s, Using<TxOutCompression>(txout.GetTxOut()));
     }
-};
 
-class TxInUndoDeserializer {
-    Coin *pcoin;
-
-public:
-    explicit TxInUndoDeserializer(Coin *pcoinIn) : pcoin(pcoinIn) {}
-
-    template <typename Stream> void Unserialize(Stream &s) {
+    template <typename Stream> void Unser(Stream &s, Coin &txout) {
         uint32_t nCode = 0;
         ::Unserialize(s, VARINT(nCode));
         uint32_t nHeight = nCode / 2;
@@ -63,15 +51,12 @@ public:
             ::Unserialize(s, VARINT(nVersionDummy));
         }
 
-        CTxOut txout;
-        ::Unserialize(s, Using<TxOutCompression>(REF(txout)));
+        CTxOut out;
+        ::Unserialize(s, Using<TxOutCompression>(out));
 
-        *pcoin = Coin(std::move(txout), nHeight, fCoinBase);
+        txout = Coin(std::move(out), nHeight, fCoinBase);
     }
 };
-
-static const size_t MAX_INPUTS_PER_TX =
-    MAX_TX_SIZE / ::GetSerializeSize(CTxIn(), PROTOCOL_VERSION);
 
 /** Restore the UTXO in a Coin at a given COutPoint */
 class CTxUndo {
@@ -79,26 +64,8 @@ public:
     // Undo information for all txins
     std::vector<Coin> vprevout;
 
-    template <typename Stream> void Serialize(Stream &s) const {
-        // TODO: avoid reimplementing vector serializer.
-        uint64_t count = vprevout.size();
-        ::Serialize(s, COMPACTSIZE(REF(count)));
-        for (const auto &prevout : vprevout) {
-            ::Serialize(s, TxInUndoSerializer(&prevout));
-        }
-    }
-
-    template <typename Stream> void Unserialize(Stream &s) {
-        // TODO: avoid reimplementing vector deserializer.
-        uint64_t count = 0;
-        ::Unserialize(s, COMPACTSIZE(count));
-        if (count > MAX_INPUTS_PER_TX) {
-            throw std::ios_base::failure("Too many input undo records");
-        }
-        vprevout.resize(count);
-        for (auto &prevout : vprevout) {
-            ::Unserialize(s, TxInUndoDeserializer(&prevout));
-        }
+    SERIALIZE_METHODS(CTxUndo, obj) {
+        READWRITE(Using<VectorFormatter<TxInUndoFormatter>>(obj.vprevout));
     }
 };
 
@@ -108,12 +75,7 @@ public:
     // For all but the coinbase
     std::vector<CTxUndo> vtxundo;
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(vtxundo);
-    }
+    SERIALIZE_METHODS(CBlockUndo, obj) { READWRITE(obj.vtxundo); }
 };
 
 /**
