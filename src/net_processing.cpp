@@ -706,6 +706,39 @@ private:
     /** Number of outbound peers with m_chain_sync.m_protect. */
     int m_outbound_peers_with_protect_from_disconnect GUARDED_BY(cs_main) = 0;
 
+    bool AlreadyHaveTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Filter for transactions that were recently rejected by
+     * AcceptToMemoryPool. These are not rerequested until the chain tip
+     * changes, at which point the entire filter is reset.
+     *
+     * Without this filter we'd be re-requesting txs from each of our peers,
+     * increasing bandwidth consumption considerably. For instance, with 100
+     * peers, half of which relay a tx we don't accept, that might be a 50x
+     * bandwidth increase. A flooding attacker attempting to roll-over the
+     * filter using minimum-sized, 60byte, transactions might manage to send
+     * 1000/sec if we have fast peers, so we pick 120,000 to give our peers a
+     * two minute window to send invs to us.
+     *
+     * Decreasing the false positive rate is fairly cheap, so we pick one in a
+     * million to make it highly unlikely for users to have issues with this
+     * filter.
+     *
+     * Memory used: 1.3 MB
+     */
+    std::unique_ptr<CRollingBloomFilter> recentRejects GUARDED_BY(cs_main);
+    uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
+
+    /**
+     * Filter for transactions that have been recently confirmed.
+     * We use this to avoid requesting transactions that have already been
+     * confirmed.
+     */
+    Mutex m_recent_confirmed_transactions_mutex;
+    std::unique_ptr<CRollingBloomFilter> m_recent_confirmed_transactions
+        GUARDED_BY(m_recent_confirmed_transactions_mutex);
+
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
@@ -719,27 +752,6 @@ private:
 
 namespace {
 /**
- * Filter for transactions that were recently rejected by AcceptToMemoryPool.
- * These are not rerequested until the chain tip changes, at which point the
- * entire filter is reset.
- *
- * Without this filter we'd be re-requesting txs from each of our peers,
- * increasing bandwidth consumption considerably. For instance, with 100 peers,
- * half of which relay a tx we don't accept, that might be a 50x bandwidth
- * increase. A flooding attacker attempting to roll-over the filter using
- * minimum-sized, 60byte, transactions might manage to send 1000/sec if we have
- * fast peers, so we pick 120,000 to give our peers a two minute window to send
- * invs to us.
- *
- * Decreasing the false positive rate is fairly cheap, so we pick one in a
- * million to make it highly unlikely for users to have issues with this filter.
- *
- * Memory used: 1.3 MB
- */
-std::unique_ptr<CRollingBloomFilter> recentRejects GUARDED_BY(cs_main);
-uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
-
-/**
  * Filter for proofs that were recently rejected but not orphaned.
  * These are not rerequested until they are rolled out of the filter.
  *
@@ -752,15 +764,6 @@ uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
 Mutex cs_rejectedProofs;
 std::unique_ptr<CRollingBloomFilter>
     rejectedProofs GUARDED_BY(cs_rejectedProofs);
-
-/**
- * Filter for transactions that have been recently confirmed.
- * We use this to avoid requesting transactions that have already been
- * confirmed.
- */
-Mutex g_cs_recent_confirmed_transactions;
-std::unique_ptr<CRollingBloomFilter> g_recent_confirmed_transactions
-    GUARDED_BY(g_cs_recent_confirmed_transactions);
 
 /**
  * Blocks that are in flight, and that are in the queue to be downloaded.
@@ -2053,7 +2056,7 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
     // The false positive rate of 1/1M should come out to less than 1
     // transaction per day that would be inadvertently ignored (which is the
     // same probability that we have in the reject filter).
-    g_recent_confirmed_transactions.reset(
+    m_recent_confirmed_transactions.reset(
         new CRollingBloomFilter(24000, 0.000001));
 
     // Stale tip checking and peer eviction are on two different timers, but we
@@ -2134,9 +2137,9 @@ void PeerManagerImpl::BlockConnected(
         g_last_tip_update = GetTime();
     }
     {
-        LOCK(g_cs_recent_confirmed_transactions);
+        LOCK(m_recent_confirmed_transactions_mutex);
         for (const CTransactionRef &ptx : pblock->vtx) {
-            g_recent_confirmed_transactions->insert(ptx->GetId());
+            m_recent_confirmed_transactions->insert(ptx->GetId());
         }
     }
     {
@@ -2157,8 +2160,8 @@ void PeerManagerImpl::BlockDisconnected(
     // block's worth of transactions in it, but that should be fine, since
     // presumably the most common case of relaying a confirmed transaction
     // should be just after a new block containing it is found.
-    LOCK(g_cs_recent_confirmed_transactions);
-    g_recent_confirmed_transactions->reset();
+    LOCK(m_recent_confirmed_transactions_mutex);
+    m_recent_confirmed_transactions->reset();
 }
 
 // All of the following cache a recent block, and are protected by
@@ -2310,7 +2313,7 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 // Messages
 //
 
-static bool AlreadyHaveTx(const TxId &txid, const CTxMemPool &mempool)
+bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     assert(recentRejects);
     if (::ChainActive().Tip()->GetBlockHash() != hashRecentRejectsChainTip) {
@@ -2330,13 +2333,13 @@ static bool AlreadyHaveTx(const TxId &txid, const CTxMemPool &mempool)
     }
 
     {
-        LOCK(g_cs_recent_confirmed_transactions);
-        if (g_recent_confirmed_transactions->contains(txid)) {
+        LOCK(m_recent_confirmed_transactions_mutex);
+        if (m_recent_confirmed_transactions->contains(txid)) {
             return true;
         }
     }
 
-    return recentRejects->contains(txid) || mempool.exists(txid);
+    return recentRejects->contains(txid) || m_mempool.exists(txid);
 }
 
 static bool AlreadyHaveBlock(const BlockHash &block_hash)
@@ -4068,7 +4071,7 @@ void PeerManagerImpl::ProcessMessage(
             if (inv.IsMsgTx()) {
                 LOCK(cs_main);
                 const TxId txid(inv.hash);
-                const bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
+                const bool fAlreadyHave = AlreadyHaveTx(txid);
                 logInv(inv, fAlreadyHave);
 
                 pfrom.AddKnownTx(txid);
@@ -4388,7 +4391,7 @@ void PeerManagerImpl::ProcessMessage(
 
         m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
 
-        if (AlreadyHaveTx(txid, m_mempool)) {
+        if (AlreadyHaveTx(txid)) {
             if (pfrom.HasPermission(PF_FORCERELAY)) {
                 // Always relay transactions received from peers with
                 // forcerelay permission, even if they were already in the
@@ -4466,7 +4469,7 @@ void PeerManagerImpl::ProcessMessage(
                 for (const TxId &parent_txid : unique_parents) {
                     // FIXME: MSG_TX should use a TxHash, not a TxId.
                     pfrom.AddKnownTx(parent_txid);
-                    if (!AlreadyHaveTx(parent_txid, m_mempool)) {
+                    if (!AlreadyHaveTx(parent_txid)) {
                         AddTxAnnouncement(pfrom, parent_txid, current_time);
                     }
                 }
@@ -6920,7 +6923,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                      entry.second.ToString(), entry.first);
         }
         for (const TxId &txid : requestable) {
-            if (!AlreadyHaveTx(txid, m_mempool)) {
+            if (!AlreadyHaveTx(txid)) {
                 addGetDataAndMaybeFlush(MSG_TX, txid);
                 m_txrequest.RequestedData(
                     pto->GetId(), txid,
