@@ -207,6 +207,15 @@ std::unique_ptr<CRollingBloomFilter> recentRejects GUARDED_BY(cs_main);
 uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
 
 /**
+ * Filter for transactions that have been recently confirmed.
+ * We use this to avoid requesting transactions that have already been
+ * confirmed.
+ */
+RecursiveMutex g_cs_recent_confirmed_transactions;
+std::unique_ptr<CRollingBloomFilter> g_recent_confirmed_transactions
+    GUARDED_BY(g_cs_recent_confirmed_transactions);
+
+/**
  * Blocks that are in flight, and that are in the queue to be downloaded.
  */
 struct QueuedBlock {
@@ -1344,6 +1353,17 @@ PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn, BanMan *banman,
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
+    // Blocks don't typically have more than 4000 transactions, so this should
+    // be at least six blocks (~1 hr) worth of transactions that we can store.
+    // If the number of transactions appearing in a block goes up, or if we are
+    // seeing getdata requests more than an hour after initial announcement, we
+    // can increase this number.
+    // The false positive rate of 1/1M should come out to less than 1
+    // transaction per day that would be inadvertently ignored (which is the
+    // same probability that we have in the reject filter).
+    g_recent_confirmed_transactions.reset(
+        new CRollingBloomFilter(24000, 0.000001));
+
     const Consensus::Params &consensusParams = Params().GetConsensus();
     // Stale tip checking and peer eviction are on two different timers, but we
     // don't want them to get out of sync due to drift in the scheduler, so we
@@ -1367,41 +1387,63 @@ PeerLogicValidation::PeerLogicValidation(CConnman *connmanIn, BanMan *banman,
 void PeerLogicValidation::BlockConnected(
     const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex,
     const std::vector<CTransactionRef> &vtxConflicted) {
-    LOCK(g_cs_orphans);
+    {
+        LOCK(g_cs_orphans);
 
-    std::vector<TxId> vOrphanErase;
+        std::vector<TxId> vOrphanErase;
 
-    for (const CTransactionRef &ptx : pblock->vtx) {
-        const CTransaction &tx = *ptx;
+        for (const CTransactionRef &ptx : pblock->vtx) {
+            const CTransaction &tx = *ptx;
 
-        // Which orphan pool entries must we evict?
-        for (const auto &txin : tx.vin) {
-            auto itByPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
-            if (itByPrev == mapOrphanTransactionsByPrev.end()) {
-                continue;
-            }
+            // Which orphan pool entries must we evict?
+            for (const auto &txin : tx.vin) {
+                auto itByPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
+                if (itByPrev == mapOrphanTransactionsByPrev.end()) {
+                    continue;
+                }
 
-            for (auto mi = itByPrev->second.begin();
-                 mi != itByPrev->second.end(); ++mi) {
-                const CTransaction &orphanTx = *(*mi)->second.tx;
-                const TxId &orphanId = orphanTx.GetId();
-                vOrphanErase.push_back(orphanId);
+                for (auto mi = itByPrev->second.begin();
+                     mi != itByPrev->second.end(); ++mi) {
+                    const CTransaction &orphanTx = *(*mi)->second.tx;
+                    const TxId &orphanId = orphanTx.GetId();
+                    vOrphanErase.push_back(orphanId);
+                }
             }
         }
-    }
 
-    // Erase orphan transactions included or precluded by this block
-    if (vOrphanErase.size()) {
-        int nErased = 0;
-        for (const auto &orphanId : vOrphanErase) {
-            nErased += EraseOrphanTx(orphanId);
+        // Erase orphan transactions included or precluded by this block
+        if (vOrphanErase.size()) {
+            int nErased = 0;
+            for (const auto &orphanId : vOrphanErase) {
+                nErased += EraseOrphanTx(orphanId);
+            }
+            LogPrint(BCLog::MEMPOOL,
+                     "Erased %d orphan tx included or conflicted by block\n",
+                     nErased);
         }
-        LogPrint(BCLog::MEMPOOL,
-                 "Erased %d orphan tx included or conflicted by block\n",
-                 nErased);
-    }
 
-    g_last_tip_update = GetTime();
+        g_last_tip_update = GetTime();
+    }
+    {
+        LOCK(g_cs_recent_confirmed_transactions);
+        for (const CTransactionRef &ptx : pblock->vtx) {
+            g_recent_confirmed_transactions->insert(ptx->GetId());
+        }
+    }
+}
+
+void PeerLogicValidation::BlockDisconnected(
+    const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) {
+    // To avoid relay problems with transactions that were previously
+    // confirmed, clear our filter of recently confirmed transactions whenever
+    // there's a reorg.
+    // This means that in a 1-block reorg (where 1 block is disconnected and
+    // then another block reconnected), our filter will drop to having only one
+    // block's worth of transactions in it, but that should be fine, since
+    // presumably the most common case of relaying a confirmed transaction
+    // should be just after a new block containing it is found.
+    LOCK(g_cs_recent_confirmed_transactions);
+    g_recent_confirmed_transactions->reset();
 }
 
 // All of the following cache a recent block, and are protected by
@@ -1562,25 +1604,22 @@ static bool AlreadyHave(const CInv &inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
                 recentRejects->reset();
             }
 
+            const TxId txid(inv.hash);
             {
                 LOCK(g_cs_orphans);
-                if (mapOrphanTransactions.count(TxId{inv.hash})) {
+                if (mapOrphanTransactions.count(txid)) {
                     return true;
                 }
             }
-            const CCoinsViewCache &coins_cache =
-                ::ChainstateActive().CoinsTip();
 
-            // Use pcoinsTip->HaveCoinInCache as a quick approximation to
-            // exclude requesting or processing some txs which have already been
-            // included in a block. As this is best effort, we only check for
-            // output 0 and 1. This works well enough in practice and we get
-            // diminishing returns with 2 onward.
-            const TxId txid(inv.hash);
-            return recentRejects->contains(inv.hash) ||
-                   g_mempool.exists(txid) ||
-                   coins_cache.HaveCoinInCache(COutPoint(txid, 0)) ||
-                   coins_cache.HaveCoinInCache(COutPoint(txid, 1));
+            {
+                LOCK(g_cs_recent_confirmed_transactions);
+                if (g_recent_confirmed_transactions->contains(txid)) {
+                    return true;
+                }
+            }
+
+            return recentRejects->contains(txid) || g_mempool.exists(txid);
         }
         case MSG_BLOCK:
             return LookupBlockIndex(BlockHash(inv.hash)) != nullptr;
