@@ -190,9 +190,10 @@ namespace {
         }
         bool getHeaderTip(int &height, int64_t &block_time) override {
             LOCK(::cs_main);
-            if (::pindexBestHeader) {
-                height = ::pindexBestHeader->nHeight;
-                block_time = ::pindexBestHeader->GetBlockTime();
+            auto best_header = chainman().pindexBestHeader;
+            if (best_header) {
+                height = best_header->nHeight;
+                block_time = best_header->GetBlockTime();
                 return true;
             }
             return false;

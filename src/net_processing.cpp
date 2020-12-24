@@ -2070,11 +2070,13 @@ bool PeerManagerImpl::BlockRequestAllowed(
         return true;
     }
     return pindex->IsValid(BlockValidity::SCRIPTS) &&
-           (pindexBestHeader != nullptr) &&
-           (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() <
+           (m_chainman.pindexBestHeader != nullptr) &&
+           (m_chainman.pindexBestHeader->GetBlockTime() -
+                pindex->GetBlockTime() <
             STALE_RELAY_AGE_LIMIT) &&
-           (GetBlockProofEquivalentTime(*pindexBestHeader, *pindex,
-                                        *pindexBestHeader, consensusParams) <
+           (GetBlockProofEquivalentTime(*m_chainman.pindexBestHeader, *pindex,
+                                        *m_chainman.pindexBestHeader,
+                                        consensusParams) <
             STALE_RELAY_AGE_LIMIT);
 }
 
@@ -2550,8 +2552,9 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
     // Disconnect node in case we have reached the outbound limit for serving
     // historical blocks.
     if (send && connman.OutboundTargetReached(true) &&
-        (((pindexBestHeader != nullptr) &&
-          (pindexBestHeader->GetBlockTime() - pindex->GetBlockTime() >
+        (((m_chainman.pindexBestHeader != nullptr) &&
+          (m_chainman.pindexBestHeader->GetBlockTime() -
+               pindex->GetBlockTime() >
            HISTORICAL_BLOCK_AGE)) ||
          inv.IsMsgFilteredBlk()) &&
         // nodes with the download permission may exceed target
@@ -2939,15 +2942,16 @@ void PeerManagerImpl::ProcessHeadersMessage(
             m_connman.PushMessage(
                 &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                       m_chainman.ActiveChain().GetLocator(
-                                          pindexBestHeader),
+                                          m_chainman.pindexBestHeader),
                                       uint256()));
             LogPrint(
                 BCLog::NET,
                 "received header %s: missing prev block %s, sending getheaders "
                 "(%d) to end (peer=%d, nUnconnectingHeaders=%d)\n",
                 headers[0].GetHash().ToString(),
-                headers[0].hashPrevBlock.ToString(), pindexBestHeader->nHeight,
-                pfrom.GetId(), nodestate->nUnconnectingHeaders);
+                headers[0].hashPrevBlock.ToString(),
+                m_chainman.pindexBestHeader->nHeight, pfrom.GetId(),
+                nodestate->nUnconnectingHeaders);
             // Set hashLastUnknownBlock for this peer, so that if we eventually
             // get the headers - even from a different peer - we can use this
             // peer to download.
@@ -3017,8 +3021,8 @@ void PeerManagerImpl::ProcessHeadersMessage(
             // Headers message had its maximum size; the peer may have more
             // headers.
             // TODO: optimize: if pindexLast is an ancestor of
-            // m_chainman.ActiveChain().Tip or pindexBestHeader, continue from
-            // there instead.
+            // m_chainman.ActiveChain().Tip or m_chainman.pindexBestHeader,
+            // continue from there instead.
             LogPrint(
                 BCLog::NET,
                 "more getheaders (%d) to end to peer=%d (startheight:%d)\n",
@@ -4119,11 +4123,11 @@ void PeerManagerImpl::ProcessMessage(
             m_connman.PushMessage(
                 &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                       m_chainman.ActiveChain().GetLocator(
-                                          pindexBestHeader),
+                                          m_chainman.pindexBestHeader),
                                       *best_block));
             LogPrint(BCLog::NET, "getheaders (%d) %s to peer=%d\n",
-                     pindexBestHeader->nHeight, best_block->ToString(),
-                     pfrom.GetId());
+                     m_chainman.pindexBestHeader->nHeight,
+                     best_block->ToString(), pfrom.GetId());
         }
 
         return;
@@ -4581,7 +4585,7 @@ void PeerManagerImpl::ProcessMessage(
                         &pfrom,
                         msgMaker.Make(NetMsgType::GETHEADERS,
                                       m_chainman.ActiveChain().GetLocator(
-                                          pindexBestHeader),
+                                          m_chainman.pindexBestHeader),
                                       uint256()));
                 }
                 return;
@@ -6566,8 +6570,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         CNodeState &state = *State(pto->GetId());
 
         // Start block sync
-        if (pindexBestHeader == nullptr) {
-            pindexBestHeader = m_chainman.ActiveChain().Tip();
+        if (m_chainman.pindexBestHeader == nullptr) {
+            m_chainman.pindexBestHeader = m_chainman.ActiveChain().Tip();
         }
 
         // Download if this is a nice peer, or we have no nice peers and this
@@ -6580,7 +6584,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             // Only actively request headers from a single peer, unless we're
             // close to today.
             if ((nSyncStarted == 0 && fFetch) ||
-                pindexBestHeader->GetBlockTime() >
+                m_chainman.pindexBestHeader->GetBlockTime() >
                     GetAdjustedTime() - 24 * 60 * 60) {
                 state.fSyncStarted = true;
                 state.m_headers_sync_timeout =
@@ -6590,10 +6594,11 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         // microseconds before scaling to maintain precision
                         std::chrono::microseconds{
                             HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER} *
-                        (GetAdjustedTime() - pindexBestHeader->GetBlockTime()) /
+                        (GetAdjustedTime() -
+                         m_chainman.pindexBestHeader->GetBlockTime()) /
                         consensusParams.nPowTargetSpacing);
                 nSyncStarted++;
-                const CBlockIndex *pindexStart = pindexBestHeader;
+                const CBlockIndex *pindexStart = m_chainman.pindexBestHeader;
                 /**
                  * If possible, start at the block preceding the currently best
                  * known header. This ensures that we always get a non-empty
@@ -7047,7 +7052,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         if (state.fSyncStarted &&
             state.m_headers_sync_timeout < std::chrono::microseconds::max()) {
             // Detect whether this is a stalling initial-headers-sync peer
-            if (pindexBestHeader->GetBlockTime() <=
+            if (m_chainman.pindexBestHeader->GetBlockTime() <=
                 GetAdjustedTime() - 24 * 60 * 60) {
                 if (current_time > state.m_headers_sync_timeout &&
                     nSyncStarted == 1 &&

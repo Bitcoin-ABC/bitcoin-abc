@@ -55,7 +55,8 @@ const CBlockIndex *BlockManager::LookupBlockIndex(const BlockHash &hash) const {
     return it == m_block_index.end() ? nullptr : &it->second;
 }
 
-CBlockIndex *BlockManager::AddToBlockIndex(const CBlockHeader &block) {
+CBlockIndex *BlockManager::AddToBlockIndex(const CBlockHeader &block,
+                                           CBlockIndex *&best_header) {
     AssertLockHeld(cs_main);
 
     const auto [mi, inserted] =
@@ -86,9 +87,9 @@ CBlockIndex *BlockManager::AddToBlockIndex(const CBlockHeader &block) {
         (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) +
         GetBlockProof(*pindexNew);
     pindexNew->RaiseValidity(BlockValidity::TREE);
-    if (pindexBestHeader == nullptr ||
-        pindexBestHeader->nChainWork < pindexNew->nChainWork) {
-        pindexBestHeader = pindexNew;
+    if (best_header == nullptr ||
+        best_header->nChainWork < pindexNew->nChainWork) {
+        best_header = pindexNew;
     }
 
     m_dirty_blockindex.insert(pindexNew);

@@ -111,7 +111,6 @@ const std::vector<std::string> CHECKLEVEL_DOC{
  */
 RecursiveMutex cs_main;
 
-CBlockIndex *pindexBestHeader = nullptr;
 Mutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
 uint256 g_best_block;
@@ -1370,9 +1369,10 @@ void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
         pindexNew->nChainWork > m_chainman.m_best_invalid->nChainWork) {
         m_chainman.m_best_invalid = pindexNew;
     }
-    if (pindexBestHeader != nullptr &&
-        pindexBestHeader->GetAncestor(pindexNew->nHeight) == pindexNew) {
-        pindexBestHeader = m_chain.Tip();
+    if (m_chainman.pindexBestHeader != nullptr &&
+        m_chainman.pindexBestHeader->GetAncestor(pindexNew->nHeight) ==
+            pindexNew) {
+        m_chainman.pindexBestHeader = m_chain.Tip();
     }
 
     // If the invalid chain found is supposed to be finalized, we need to move
@@ -1838,8 +1838,9 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
             m_blockman.m_block_index.find(hashAssumeValid);
         if (it != m_blockman.m_block_index.end()) {
             if (it->second.GetAncestor(pindex->nHeight) == pindex &&
-                pindexBestHeader->GetAncestor(pindex->nHeight) == pindex &&
-                pindexBestHeader->nChainWork >= nMinimumChainWork) {
+                m_chainman.pindexBestHeader->GetAncestor(pindex->nHeight) ==
+                    pindex &&
+                m_chainman.pindexBestHeader->nChainWork >= nMinimumChainWork) {
                 // This block is a member of the assumed verified chain and an
                 // ancestor of the best header.
                 // Script verification is skipped when connecting blocks under
@@ -1859,10 +1860,10 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                 // set the default assumed verified block further back. The test
                 // against nMinimumChainWork prevents the skipping when denied
                 // access to any chain at least as good as the expected chain.
-                fScriptChecks =
-                    (GetBlockProofEquivalentTime(
-                         *pindexBestHeader, *pindex, *pindexBestHeader,
-                         consensusParams) <= 60 * 60 * 24 * 7 * 2);
+                fScriptChecks = (GetBlockProofEquivalentTime(
+                                     *m_chainman.pindexBestHeader, *pindex,
+                                     *m_chainman.pindexBestHeader,
+                                     consensusParams) <= 60 * 60 * 24 * 7 * 2);
             }
         }
     }
@@ -3171,7 +3172,7 @@ static bool NotifyHeaderTip(CChainState &chainstate) LOCKS_EXCLUDED(cs_main) {
     CBlockIndex *pindexHeader = nullptr;
     {
         LOCK(cs_main);
-        pindexHeader = pindexBestHeader;
+        pindexHeader = chainstate.m_chainman.pindexBestHeader;
 
         if (pindexHeader != pindexHeaderOld) {
             fNotify = true;
@@ -4276,7 +4277,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
         }
     }
 
-    CBlockIndex *pindex{m_blockman.AddToBlockIndex(block)};
+    CBlockIndex *pindex{m_blockman.AddToBlockIndex(block, pindexBestHeader)};
 
     if (ppindex) {
         *ppindex = pindex;
@@ -4984,7 +4985,7 @@ void CChainState::UnloadBlockIndex() {
 void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
     AssertLockHeld(::cs_main);
     chainman.Unload();
-    pindexBestHeader = nullptr;
+    chainman.pindexBestHeader = nullptr;
     pindexBestForkTip = nullptr;
     pindexBestForkBase = nullptr;
     if (mempool) {
@@ -5128,7 +5129,8 @@ bool CChainState::LoadGenesisBlock() {
         if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
-        CBlockIndex *pindex = m_blockman.AddToBlockIndex(block);
+        CBlockIndex *pindex =
+            m_blockman.AddToBlockIndex(block, m_chainman.pindexBestHeader);
         ReceivedBlockTransactions(block, pindex, blockPos);
     } catch (const std::runtime_error &e) {
         return error("%s: failed to write genesis block: %s", __func__,
