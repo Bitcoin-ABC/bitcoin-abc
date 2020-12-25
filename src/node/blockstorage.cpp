@@ -24,7 +24,6 @@
 namespace node {
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
-bool fHavePruned = false;
 bool fPruneMode = false;
 uint64_t nPruneTarget = 0;
 
@@ -392,7 +391,7 @@ BlockManager::GetLastCheckpoint(const CCheckpointData &data) {
     return nullptr;
 }
 
-bool IsBlockPruned(const CBlockIndex *pblockindex) {
+bool BlockManager::IsBlockPruned(const CBlockIndex *pblockindex) {
     AssertLockHeld(::cs_main);
     return (fHavePruned && !pblockindex->nStatus.hasData() &&
             pblockindex->nTx > 0);

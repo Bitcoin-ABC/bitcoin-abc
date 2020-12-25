@@ -68,7 +68,6 @@ using node::BlockManager;
 using node::BlockMap;
 using node::CCoinsStats;
 using node::CoinStatsHashType;
-using node::fHavePruned;
 using node::fImporting;
 using node::fPruneMode;
 using node::fReindex;
@@ -2306,10 +2305,10 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
                 }
                 if (!setFilesToPrune.empty()) {
                     fFlushForPrune = true;
-                    if (!fHavePruned) {
+                    if (!m_blockman.fHavePruned) {
                         m_blockman.m_block_tree_db->WriteFlag(
                             "prunedblockfiles", true);
-                        fHavePruned = true;
+                        m_blockman.fHavePruned = true;
                     }
                 }
             }
@@ -4990,7 +4989,7 @@ void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
     if (mempool) {
         mempool->clear();
     }
-    fHavePruned = false;
+    chainman.m_blockman.fHavePruned = false;
 }
 
 bool ChainstateManager::LoadBlockIndex() {
@@ -5410,7 +5409,7 @@ void CChainState::CheckBlockIndex() {
         // (or VALID_TRANSACTIONS) if no pruning has occurred.
         // Unless these indexes are assumed valid and pending block download on
         // a background chainstate.
-        if (!fHavePruned && !pindex->IsAssumedValid()) {
+        if (!m_blockman.fHavePruned && !pindex->IsAssumedValid()) {
             // If we've never pruned, then HAVE_DATA should be equivalent to nTx
             // > 0
             assert(pindex->nStatus.hasData() == (pindex->nTx > 0));
@@ -5547,7 +5546,7 @@ void CChainState::CheckBlockIndex() {
             // We HAVE_DATA for this block, have received data for all parents
             // at some point, but we're currently missing data for some parent.
             // We must have pruned.
-            assert(fHavePruned);
+            assert(m_blockman.fHavePruned);
             // This block may have entered m_blocks_unlinked if:
             //  - it has a descendant that at some point had more work than the
             //    tip, and

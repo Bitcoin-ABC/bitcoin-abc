@@ -106,7 +106,6 @@ using node::ChainstateLoadingError;
 using node::ChainstateLoadVerifyError;
 using node::CleanupBlockRevFiles;
 using node::DEFAULT_STOPAFTERBLOCKIMPORT;
-using node::fHavePruned;
 using node::fPruneMode;
 using node::fReindex;
 using node::LoadChainstate;
@@ -2551,7 +2550,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                 auto check_blocks =
                     args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS);
-                if (fHavePruned && check_blocks > MIN_BLOCKS_TO_KEEP) {
+                if (chainman.m_blockman.fHavePruned &&
+                    check_blocks > MIN_BLOCKS_TO_KEEP) {
                     LogPrintf("Prune: pruned datadir may not have more than %d "
                               "blocks; only checking available blocks\n",
                               MIN_BLOCKS_TO_KEEP);

@@ -78,7 +78,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
     // Check for changed -prune state.  What we are concerned about is a
     // user who has pruned blocks in the past, but is now trying to run
     // unpruned.
-    if (fHavePruned && !fPruneMode_) {
+    if (chainman.m_blockman.fHavePruned && !fPruneMode_) {
         return ChainstateLoadingError::ERROR_PRUNED_NEEDS_REINDEX;
     }
 

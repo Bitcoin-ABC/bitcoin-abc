@@ -678,7 +678,7 @@ namespace {
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
         bool havePruned() override {
             LOCK(cs_main);
-            return node::fHavePruned;
+            return m_node.chainman->m_blockman.fHavePruned;
         }
         bool isReadyToBroadcast() override {
             return !node::fImporting && !node::fReindex &&

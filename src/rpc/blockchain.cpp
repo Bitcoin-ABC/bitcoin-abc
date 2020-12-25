@@ -51,7 +51,6 @@ using node::BlockManager;
 using node::CCoinsStats;
 using node::CoinStatsHashType;
 using node::GetUTXOStats;
-using node::IsBlockPruned;
 using node::NodeContext;
 using node::ReadBlockFromDisk;
 using node::SnapshotMetadata;
@@ -164,8 +163,9 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
     return result;
 }
 
-UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
-                     const CBlockIndex *blockindex, bool txDetails) {
+UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
+                     const CBlockIndex *tip, const CBlockIndex *blockindex,
+                     bool txDetails) {
     UniValue result = blockheaderToJSON(tip, blockindex);
 
     result.pushKV("size", (int)::GetSerializeSize(block, PROTOCOL_VERSION));
@@ -173,7 +173,7 @@ UniValue blockToJSON(const CBlock &block, const CBlockIndex *tip,
     if (txDetails) {
         CBlockUndo blockUndo;
         const bool have_undo{WITH_LOCK(
-            ::cs_main, return !IsBlockPruned(blockindex) &&
+            ::cs_main, return !blockman.IsBlockPruned(blockindex) &&
                               UndoReadFromDisk(blockUndo, blockindex))};
         for (size_t i = 0; i < block.vtx.size(); ++i) {
             const CTransactionRef &tx = block.vtx.at(i);
@@ -1065,12 +1065,12 @@ static RPCHelpMan getblockheader() {
     };
 }
 
-static CBlock GetBlockChecked(const Config &config,
+static CBlock GetBlockChecked(const Config &config, BlockManager &blockman,
                               const CBlockIndex *pblockindex)
     EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
     AssertLockHeld(::cs_main);
     CBlock block;
-    if (IsBlockPruned(pblockindex)) {
+    if (blockman.IsBlockPruned(pblockindex)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Block not available (pruned data)");
     }
 
@@ -1085,11 +1085,12 @@ static CBlock GetBlockChecked(const Config &config,
     return block;
 }
 
-static CBlockUndo GetUndoChecked(const CBlockIndex *pblockindex)
+static CBlockUndo GetUndoChecked(BlockManager &blockman,
+                                 const CBlockIndex *pblockindex)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(::cs_main);
     CBlockUndo blockUndo;
-    if (IsBlockPruned(pblockindex)) {
+    if (blockman.IsBlockPruned(pblockindex)) {
         throw JSONRPCError(RPC_MISC_ERROR,
                            "Undo data not available (pruned data)");
     }
@@ -1211,9 +1212,8 @@ static RPCHelpMan getblock() {
             CBlock block;
             const CBlockIndex *pblockindex;
             const CBlockIndex *tip;
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             {
-                ChainstateManager &chainman =
-                    EnsureAnyChainman(request.context);
                 LOCK(cs_main);
                 pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
                 tip = chainman.ActiveTip();
@@ -1223,7 +1223,8 @@ static RPCHelpMan getblock() {
                                        "Block not found");
                 }
 
-                block = GetBlockChecked(config, pblockindex);
+                block =
+                    GetBlockChecked(config, chainman.m_blockman, pblockindex);
             }
 
             if (verbosity <= 0) {
@@ -1234,7 +1235,8 @@ static RPCHelpMan getblock() {
                 return strHex;
             }
 
-            return blockToJSON(block, tip, pblockindex, verbosity >= 2);
+            return blockToJSON(chainman.m_blockman, block, tip, pblockindex,
+                               verbosity >= 2);
         },
     };
 }
@@ -2680,8 +2682,10 @@ static RPCHelpMan getblockstats() {
                 }
             }
 
-            const CBlock block = GetBlockChecked(config, pindex);
-            const CBlockUndo blockUndo = GetUndoChecked(pindex);
+            const CBlock block =
+                GetBlockChecked(config, chainman.m_blockman, pindex);
+            const CBlockUndo blockUndo =
+                GetUndoChecked(chainman.m_blockman, pindex);
 
             // Calculate everything if nothing selected (default)
             const bool do_all = stats.size() == 0;
