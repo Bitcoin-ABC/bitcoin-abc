@@ -43,6 +43,7 @@ GetRandomNodeEvictionCandidates(const int n_candidates,
             /* nKeyedNetGroup */ random_context.randrange(100),
             /* prefer_evict */ random_context.randbool(),
             /* m_is_local */ random_context.randbool(),
+            /* m_is_onion */ random_context.randbool(),
             /* availabilityScore */ double(random_context.randrange(-1)),
         });
     }
@@ -105,7 +106,7 @@ BOOST_AUTO_TEST_CASE(peer_protection_test) {
         num_peers,
         [](NodeEvictionCandidate &c) {
             c.nTimeConnected = c.id;
-            c.m_is_local = false;
+            c.m_is_onion = c.m_is_local = false;
         },
         /* protected_peer_ids */ {0, 1, 2, 3, 4, 5},
         /* unprotected_peer_ids */ {6, 7, 8, 9, 10, 11}, random_context));
@@ -115,33 +116,130 @@ BOOST_AUTO_TEST_CASE(peer_protection_test) {
         num_peers,
         [num_peers](NodeEvictionCandidate &c) {
             c.nTimeConnected = num_peers - c.id;
-            c.m_is_local = false;
+            c.m_is_onion = c.m_is_local = false;
         },
         /* protected_peer_ids */ {6, 7, 8, 9, 10, 11},
         /* unprotected_peer_ids */ {0, 1, 2, 3, 4, 5}, random_context));
 
-    // Test protection of localhost peers...
+    // Test protection of onion and localhost peers...
 
-    // Expect 1/4 localhost peers to be protected from eviction,
+    // Expect 1/4 onion peers to be protected from eviction,
     // independently of other characteristics.
     BOOST_CHECK(IsProtected(
         num_peers,
         [](NodeEvictionCandidate &c) {
-            c.m_is_local = (c.id == 1 || c.id == 9 || c.id == 11);
+            c.m_is_onion = (c.id == 3 || c.id == 8 || c.id == 9);
         },
-        /* protected_peer_ids */ {1, 9, 11},
+        /* protected_peer_ids */ {3, 8, 9},
         /* unprotected_peer_ids */ {}, random_context));
 
-    // Expect 1/4 localhost peers and 1/4 of the others to be protected
+    // Expect 1/4 onion peers and 1/4 of the others to be protected
     // from eviction, sorted by longest uptime (lowest nTimeConnected).
     BOOST_CHECK(IsProtected(
         num_peers,
         [](NodeEvictionCandidate &c) {
             c.nTimeConnected = c.id;
+            c.m_is_local = false;
+            c.m_is_onion = (c.id == 3 || c.id > 7);
+        },
+        /* protected_peer_ids */ {0, 1, 2, 3, 8, 9},
+        /* unprotected_peer_ids */ {4, 5, 6, 7, 10, 11}, random_context));
+
+    // Expect 1/4 localhost peers to be protected from eviction,
+    // if no onion peers.
+    BOOST_CHECK(IsProtected(
+        num_peers,
+        [](NodeEvictionCandidate &c) {
+            c.m_is_onion = false;
+            c.m_is_local = (c.id == 1 || c.id == 9 || c.id == 11);
+        },
+        /* protected_peer_ids */ {1, 9, 11},
+        /* unprotected_peer_ids */ {}, random_context));
+
+    // Expect 1/4 localhost peers and 1/4 of the other peers to be protected,
+    // sorted by longest uptime (lowest nTimeConnected), if no onion peers.
+    BOOST_CHECK(IsProtected(
+        num_peers,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = false;
             c.m_is_local = (c.id > 6);
         },
         /* protected_peer_ids */ {0, 1, 2, 7, 8, 9},
         /* unprotected_peer_ids */ {3, 4, 5, 6, 10, 11}, random_context));
+
+    // Combined test: expect 1/4 onion and 2 localhost peers to be protected
+    // from eviction, sorted by longest uptime.
+    BOOST_CHECK(IsProtected(
+        num_peers,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = (c.id == 0 || c.id == 5 || c.id == 10);
+            c.m_is_local = (c.id == 1 || c.id == 9 || c.id == 11);
+        },
+        /* protected_peer_ids */ {0, 1, 2, 5, 9, 10},
+        /* unprotected_peer_ids */ {3, 4, 6, 7, 8, 11}, random_context));
+
+    // Combined test: expect having only 1 onion to allow allocating the
+    // remaining 2 of the 1/4 to localhost peers, sorted by longest uptime.
+    BOOST_CHECK(IsProtected(
+        num_peers + 4,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = (c.id == 15);
+            c.m_is_local = (c.id > 6 && c.id < 11);
+        },
+        /* protected_peer_ids */ {0, 1, 2, 3, 7, 8, 9, 15},
+        /* unprotected_peer_ids */ {4, 5, 6, 10, 11, 12, 13, 14},
+        random_context));
+
+    // Combined test: expect 2 onions (< 1/4) to allow allocating the minimum 2
+    // localhost peers, sorted by longest uptime.
+    BOOST_CHECK(IsProtected(
+        num_peers,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = (c.id == 7 || c.id == 9);
+            c.m_is_local = (c.id == 6 || c.id == 11);
+        },
+        /* protected_peer_ids */ {0, 1, 6, 7, 9, 11},
+        /* unprotected_peer_ids */ {2, 3, 4, 5, 8, 10}, random_context));
+
+    // Combined test: when > 1/4, expect max 1/4 onion and 2 localhost peers
+    // to be protected from eviction, sorted by longest uptime.
+    BOOST_CHECK(IsProtected(
+        num_peers,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = (c.id > 3 && c.id < 8);
+            c.m_is_local = (c.id > 7);
+        },
+        /* protected_peer_ids */ {0, 4, 5, 6, 8, 9},
+        /* unprotected_peer_ids */ {1, 2, 3, 7, 10, 11}, random_context));
+
+    // Combined test: idem > 1/4 with only 8 peers: expect 2 onion and 2
+    // localhost peers (1/4 + 2) to be protected, sorted by longest uptime.
+    BOOST_CHECK(IsProtected(
+        8,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = (c.id > 1 && c.id < 5);
+            c.m_is_local = (c.id > 4);
+        },
+        /* protected_peer_ids */ {2, 3, 5, 6},
+        /* unprotected_peer_ids */ {0, 1, 4, 7}, random_context));
+
+    // Combined test: idem > 1/4 with only 6 peers: expect 1 onion peer and no
+    // localhost peers (1/4 + 0) to be protected, sorted by longest uptime.
+    BOOST_CHECK(IsProtected(
+        6,
+        [](NodeEvictionCandidate &c) {
+            c.nTimeConnected = c.id;
+            c.m_is_onion = (c.id == 4 || c.id == 5);
+            c.m_is_local = (c.id == 3);
+        },
+        /* protected_peer_ids */ {0, 1, 4},
+        /* unprotected_peer_ids */ {2, 3, 5}, random_context));
 }
 
 // Returns true if any of the node ids in node_ids are selected for eviction.

@@ -476,6 +476,7 @@ public:
 
     std::atomic<std::chrono::seconds> m_last_send{0s};
     std::atomic<std::chrono::seconds> m_last_recv{0s};
+    //! Unix epoch time at peer connection, in seconds.
     const int64_t nTimeConnected;
     std::atomic<int64_t> nTimeOffset{0};
     // Address of this peer
@@ -1400,15 +1401,16 @@ struct NodeEvictionCandidate {
     uint64_t nKeyedNetGroup;
     bool prefer_evict;
     bool m_is_local;
+    bool m_is_onion;
     double availabilityScore;
 };
 
 /**
  * Select an inbound peer to evict after filtering out (protecting) peers having
  * distinct, difficult-to-forge characteristics. The protection logic picks out
- * fixed numbers of desirable peers per various criteria, followed by ratios of
- * desirable or disadvantaged peers. If any eviction candidates remain, the
- * selection logic chooses a peer to evict.
+ * fixed numbers of desirable peers per various criteria, followed by (mostly)
+ * ratios of desirable or disadvantaged peers. If any eviction candidates
+ * remain, the selection logic chooses a peer to evict.
  */
 [[nodiscard]] std::optional<NodeId>
 SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates);
@@ -1420,9 +1422,13 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates);
  * longest, to replicate the non-eviction implicit behavior and preclude attacks
  * that start later.
  *
- * Half of these protected spots (1/4 of the total) are reserved for localhost
- * peers, if any, sorted by longest uptime, even if they're not longest uptime
- * overall.
+ * Half of these protected spots (1/4 of the total) are reserved for onion peers
+ * connected via our tor control service, if any, sorted by longest uptime, even
+ * if they're not longest uptime overall. Any remaining slots of the 1/4 are
+ * then allocated to protect localhost peers, if any (or up to 2 localhost peers
+ * if no slots remain and 2 or more onion peers were protected), sorted by
+ * longest uptime, as manually configured hidden services not using
+ * `-bind=addr[:port]=onion` will not be detected as inbound onion connections.
  *
  * This helps protect onion peers, which tend to be otherwise disadvantaged
  * under our eviction criteria for their higher min ping times relative to IPv4
