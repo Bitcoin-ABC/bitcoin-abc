@@ -1254,7 +1254,7 @@ void RPCConsole::updateDetailWidget() {
     QString peerAddrDetails(QString::fromStdString(stats->nodeStats.addrName) +
                             " ");
     peerAddrDetails +=
-        tr("(node id: %1)").arg(QString::number(stats->nodeStats.nodeid));
+        tr("(peer id: %1)").arg(QString::number(stats->nodeStats.nodeid));
     if (!stats->nodeStats.addrLocal.empty()) {
         peerAddrDetails += "<br />" + tr("via %1").arg(QString::fromStdString(
                                           stats->nodeStats.addrLocal));
@@ -1289,6 +1289,8 @@ void RPCConsole::updateDetailWidget() {
         QString::fromStdString(stats->nodeStats.cleanSubVer));
     ui->peerDirection->setText(stats->nodeStats.fInbound ? tr("Inbound")
                                                          : tr("Outbound"));
+    ui->peerNetwork->setText(
+        GUIUtil::NetworkToQString(stats->nodeStats.m_network));
     if (stats->nodeStats.m_permissionFlags == PF_NONE) {
         ui->peerPermissions->setText(tr("N/A"));
     } else {

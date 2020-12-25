@@ -590,7 +590,7 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.nServices = nServices;
     stats.addr = addr;
     stats.addrBind = addrBind;
-    stats.m_network = GetNetworkName(ConnectedThroughNetwork());
+    stats.m_network = ConnectedThroughNetwork();
     if (m_tx_relay != nullptr) {
         LOCK(m_tx_relay->cs_filter);
         stats.fRelayTxes = m_tx_relay->fRelayTxes;

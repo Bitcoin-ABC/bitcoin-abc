@@ -29,14 +29,16 @@ bool NodeLessThan::operator()(const CNodeCombinedStats &left,
             return pLeft->nodeid < pRight->nodeid;
         case PeerTableModel::Address:
             return pLeft->addrName.compare(pRight->addrName) < 0;
-        case PeerTableModel::Subversion:
-            return pLeft->cleanSubVer.compare(pRight->cleanSubVer) < 0;
+        case PeerTableModel::Network:
+            return pLeft->m_network < pRight->m_network;
         case PeerTableModel::Ping:
             return pLeft->m_min_ping_time < pRight->m_min_ping_time;
         case PeerTableModel::Sent:
             return pLeft->nSendBytes < pRight->nSendBytes;
         case PeerTableModel::Received:
             return pLeft->nRecvBytes < pRight->nRecvBytes;
+        case PeerTableModel::Subversion:
+            return pLeft->cleanSubVer.compare(pRight->cleanSubVer) < 0;
     }
 
     return false;
@@ -100,8 +102,6 @@ public:
 
 PeerTableModel::PeerTableModel(interfaces::Node &node, QObject *parent)
     : QAbstractTableModel(parent), m_node(node), timer(nullptr) {
-    columns << tr("NodeId") << tr("Node/Service") << tr("Ping") << tr("Sent")
-            << tr("Received") << tr("User Agent");
     priv.reset(new PeerTablePriv());
 
     // set up timer for auto refresh
@@ -152,17 +152,21 @@ QVariant PeerTableModel::data(const QModelIndex &index, int role) const {
                 // connection and up-arrow for outbound connection
                 return QString(rec->nodeStats.fInbound ? "↓ " : "↑ ") +
                        QString::fromStdString(rec->nodeStats.addrName);
-            case Subversion:
-                return QString::fromStdString(rec->nodeStats.cleanSubVer);
+            case Network:
+                return GUIUtil::NetworkToQString(rec->nodeStats.m_network);
             case Ping:
                 return GUIUtil::formatPingTime(rec->nodeStats.m_min_ping_time);
             case Sent:
                 return GUIUtil::formatBytes(rec->nodeStats.nSendBytes);
             case Received:
                 return GUIUtil::formatBytes(rec->nodeStats.nRecvBytes);
+            case Subversion:
+                return QString::fromStdString(rec->nodeStats.cleanSubVer);
         }
     } else if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
+            case Network:
+                return QVariant(Qt::AlignCenter);
             case Ping:
             case Sent:
             case Received:

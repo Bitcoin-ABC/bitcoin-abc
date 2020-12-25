@@ -242,7 +242,7 @@ static RPCHelpMan getpeerinfo() {
                 }
                 obj.pushKV("addr_relay_enabled",
                            statestats.m_addr_relay_enabled);
-                obj.pushKV("network", stats.m_network);
+                obj.pushKV("network", GetNetworkName(stats.m_network));
                 if (stats.m_mapped_as != 0) {
                     obj.pushKV("mapped_as", uint64_t(stats.m_mapped_as));
                 }
