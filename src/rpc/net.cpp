@@ -191,6 +191,14 @@ static RPCHelpMan getpeerinfo() {
                      }},
                     {RPCResult::Type::BOOL, "addr_relay_enabled",
                      "Whether we participate in address relay with this peer"},
+                    {RPCResult::Type::ARR,
+                     "permissions",
+                     "Any special permissions that have been granted to this "
+                     "peer",
+                     {
+                         {RPCResult::Type::STR, "permission_type",
+                          Join(NET_PERMISSIONS_DOC, ",\n") + ".\n"},
+                     }},
                     {RPCResult::Type::NUM, "minfeefilter",
                      "The minimum fee rate for transactions this peer accepts"},
                     {RPCResult::Type::OBJ_DYN,
