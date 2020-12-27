@@ -26,3 +26,15 @@ Command line
 Command line options prefixed with main/test/regtest network names like
 `-main.port=8333` `-test.server=1` previously were allowed but ignored. Now
 they trigger "Invalid parameter" errors on startup.
+
+Light Clients
+-------------
+
+The [BIP157](https://github.com/bitcoin/bips/blob/master/bip-0157.mediawiki)
+protocol is now supported. To enable the feature, use the `-blockfilterindex` and
+`-peerblockfilters` flags.
+
+Misc
+----
+
+Building Bitcoin ABC for the BCHN network is no longer supported.
