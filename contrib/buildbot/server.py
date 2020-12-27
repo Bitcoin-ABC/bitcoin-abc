@@ -32,13 +32,20 @@ UNRESOLVED = "UNRESOLVED"
 
 LANDBOT_BUILD_TYPE = "BitcoinAbcLandBot"
 
-
-with open(os.path.join(os.path.dirname(__file__), 'resources', 'teamcity-icon-16.base64'), 'rb') as icon:
-    BADGE_TC_BASE = RasterBadge(
-        label='TC build',
-        logo='data:image/png;base64,{}'.format(
-            icon.read().strip().decode('utf-8')),
-    )
+# FIXME: figure out why the base64 logo started causing phabricator to
+# get a 502 response with the embedded {image} link.
+# In the meantime use the TeamCity icon from simpleicons.org
+#
+# with open(os.path.join(os.path.dirname(__file__), 'resources', 'teamcity-icon-16.base64'), 'rb') as icon:
+#     BADGE_TC_BASE = RasterBadge(
+#         label='TC build',
+#         logo='data:image/png;base64,{}'.format(
+#             icon.read().strip().decode('utf-8')),
+#     )
+BADGE_TC_BASE = RasterBadge(
+    label='TC build',
+    logo='TeamCity'
+)
 
 BADGE_TRAVIS_BASE = RasterBadge(
     label='Travis build',
