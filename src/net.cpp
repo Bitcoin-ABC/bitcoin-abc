@@ -1864,14 +1864,12 @@ void CConnman::SocketHandler() {
             }
         }
 
-        //
-        // Send
-        //
         if (sendSet) {
-            LOCK(pnode->cs_vSend);
-            size_t nBytes = SocketSendData(*pnode);
-            if (nBytes) {
-                RecordBytesSent(nBytes);
+            // Send data
+            size_t bytes_sent =
+                WITH_LOCK(pnode->cs_vSend, return SocketSendData(*pnode));
+            if (bytes_sent) {
+                RecordBytesSent(bytes_sent);
             }
         }
 

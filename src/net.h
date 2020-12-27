@@ -453,10 +453,10 @@ public:
     // socket
     std::atomic<ServiceFlags> nServices{NODE_NONE};
     SOCKET hSocket GUARDED_BY(cs_hSocket);
-    // Total size of all vSendMsg entries.
-    size_t nSendSize{0};
-    // Offset inside the first vSendMsg already sent.
-    size_t nSendOffset{0};
+    /** Total size of all vSendMsg entries. */
+    size_t nSendSize GUARDED_BY(cs_vSend){0};
+    /** Offset inside the first vSendMsg already sent */
+    size_t nSendOffset GUARDED_BY(cs_vSend){0};
     uint64_t nSendBytes GUARDED_BY(cs_vSend){0};
     std::deque<std::vector<uint8_t>> vSendMsg GUARDED_BY(cs_vSend);
     Mutex cs_vSend;
@@ -589,7 +589,7 @@ public:
     Network ConnectedThroughNetwork() const;
 
 protected:
-    mapMsgCmdSize mapSendBytesPerMsgCmd;
+    mapMsgCmdSize mapSendBytesPerMsgCmd GUARDED_BY(cs_vSend);
     mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
 
 public:
