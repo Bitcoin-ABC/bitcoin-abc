@@ -184,6 +184,12 @@ cd bitcoin-abc
 [sudo] npm install -g prettier
 ```
 
+To work on the extension, you will need `browserify`
+
+```
+[sudo] npm install -g browserify
+```
+
 Working with The Bitcoin ABC Repository
 ---------------------------------------
 

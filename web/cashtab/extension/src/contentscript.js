@@ -1,3 +1,5 @@
+const extension = require('extensionizer');
+
 // Insert flag into window object to denote CashTab is available and active as a browser extension
 // Could use a div or other approach for now, but emulate MetaMask this way so it is extensible to other items
 // Try window object approach
@@ -8,7 +10,7 @@ document.head.appendChild(cashTabInject);
 // Process page messages
 // Chrome extensions communicate with web pages through the DOM
 // Page sends a message to itself, chrome extension intercepts it
-var port = chrome.runtime.connect({ name: 'cashtabPort' });
+var port = extension.runtime.connect({ name: 'cashtabPort' });
 //console.log(`port: ${JSON.stringify(port)}`);
 //console.log(port);
 

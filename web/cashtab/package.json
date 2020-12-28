@@ -37,6 +37,7 @@
         "eslint-plugin-react": "7.14.3",
         "eslint-plugin-react-hooks": "^1.6.1",
         "ethereum-blockies-base64": "^1.0.2",
+        "extensionizer": "^1.0.1",
         "fbt": "^0.16.0",
         "file-loader": "3.0.1",
         "fs-extra": "7.0.1",

@@ -1,3 +1,5 @@
+const extension = require('extensionizer');
+
 const NOTIFICATION_HEIGHT = 600;
 const NOTIFICATION_WIDTH = 400;
 
@@ -6,8 +8,8 @@ let notificationIsOpen = false;
 const openMetamaskTabsIDs = {};
 const requestAccountTabIds = {};
 
-// This starts listening to the port created with `chrome.runtime.connect` in contentscript.js
-chrome.runtime.onConnect.addListener(function (port) {
+// This starts listening to the port created with `extension.runtime.connect` in contentscript.js
+extension.runtime.onConnect.addListener(function (port) {
     console.assert(port.name == 'cashtabPort');
     port.onMessage.addListener(function (msg) {
         console.log('msg received in background.js');
@@ -34,7 +36,7 @@ To start, just open a popup
 */
 async function triggerUi(txInfo) {
     /*
-  const tabs = await chrome.getActiveTabs();
+  const tabs = await extension.getActiveTabs();
   const currentlyActiveCashtabTab = Boolean(tabs.find(tab => openMetamaskTabsIDs[tab.id]));
   if (!popupIsOpen && !currentlyActiveCashtabTab) {
     await notificationManager.showPopup();
@@ -77,7 +79,7 @@ async function triggerUi(txInfo) {
 
 async function openWindow(options) {
     return new Promise((resolve, reject) => {
-        chrome.windows.create(options, newWindow => {
+        extension.windows.create(options, newWindow => {
             const error = checkForError();
             if (error) {
                 return reject(error);
@@ -88,7 +90,7 @@ async function openWindow(options) {
 }
 
 function checkForError() {
-    const { lastError } = chrome.runtime;
+    const { lastError } = extension.runtime;
     if (!lastError) {
         return undefined;
     }
@@ -102,7 +104,7 @@ function checkForError() {
 
 async function getLastFocusedWindow() {
     return new Promise((resolve, reject) => {
-        chrome.windows.getLastFocused(windowObject => {
+        extension.windows.getLastFocused(windowObject => {
             const error = checkForError();
             if (error) {
                 return reject(error);

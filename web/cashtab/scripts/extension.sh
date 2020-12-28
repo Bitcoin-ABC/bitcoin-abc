@@ -43,9 +43,9 @@ npm run build
 # Copy extension build files to extension/ folder
 cp -r build/* extension/dist
 
-# Copy other needed extension files
-cp extension/src/contentscript.js extension/dist
-cp extension/src/background.js extension/dist
+# Browserify contentscript.js and background.js to pull in their imports
+browserify extension/src/contentscript.js -o extension/dist/contentscript.js
+browserify extension/src/background.js -o extension/dist/background.js
 
 # Delete extension build from build/ folder (reserved for web app builds)
 rm -Rf build
