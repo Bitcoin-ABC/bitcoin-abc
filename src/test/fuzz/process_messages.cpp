@@ -46,19 +46,8 @@ FUZZ_TARGET_INIT(process_messages, initialize_process_messages) {
     for (int i = 0; i < num_peers_to_add; ++i) {
         const ServiceFlags service_flags =
             ServiceFlags(fuzzed_data_provider.ConsumeIntegral<uint64_t>());
-        const ConnectionType conn_type = fuzzed_data_provider.PickValueInArray(
-            {ConnectionType::INBOUND, ConnectionType::OUTBOUND_FULL_RELAY,
-             ConnectionType::MANUAL, ConnectionType::FEELER,
-             ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH});
         peers.push_back(
-            std::make_unique<CNode>(
-                i, INVALID_SOCKET,
-                CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0,
-                0, 0, CAddress{}, std::string{}, conn_type,
-                conn_type == ConnectionType::INBOUND
-                    ? fuzzed_data_provider.ConsumeBool()
-                    : false)
-                .release());
+            ConsumeNodeAsUniquePtr(fuzzed_data_provider, i).release());
         CNode &p2p_node = *peers.back();
 
         p2p_node.fSuccessfullyConnected = true;

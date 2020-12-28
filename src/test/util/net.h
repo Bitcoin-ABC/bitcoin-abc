@@ -53,6 +53,26 @@ struct ConnmanTestMsg : public CConnman {
     bool ReceiveMsgFrom(CNode &node, CSerializedNetMsg &ser_msg) const;
 };
 
+constexpr ServiceFlags ALL_SERVICE_FLAGS[]{
+    NODE_NONE,      NODE_NETWORK,         NODE_GETUTXO,
+    NODE_BLOOM,     NODE_COMPACT_FILTERS, NODE_NETWORK_LIMITED,
+    NODE_AVALANCHE,
+};
+
+constexpr NetPermissionFlags ALL_NET_PERMISSION_FLAGS[]{
+    NetPermissionFlags::None,     NetPermissionFlags::BloomFilter,
+    NetPermissionFlags::Relay,    NetPermissionFlags::ForceRelay,
+    NetPermissionFlags::NoBan,    NetPermissionFlags::Mempool,
+    NetPermissionFlags::Addr,     NetPermissionFlags::Download,
+    NetPermissionFlags::Implicit, NetPermissionFlags::All,
+};
+
+constexpr ConnectionType ALL_CONNECTION_TYPES[]{
+    ConnectionType::INBOUND,     ConnectionType::OUTBOUND_FULL_RELAY,
+    ConnectionType::MANUAL,      ConnectionType::FEELER,
+    ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH,
+};
+
 constexpr std::array<Network, 7> ALL_NETWORKS = {{
     Network::NET_UNROUTABLE,
     Network::NET_IPV4,

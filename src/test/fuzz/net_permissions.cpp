@@ -19,21 +19,7 @@ FUZZ_TARGET(net_permissions) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const std::string s = fuzzed_data_provider.ConsumeRandomLengthString(32);
     const NetPermissionFlags net_permission_flags =
-        fuzzed_data_provider.ConsumeBool()
-            ? fuzzed_data_provider.PickValueInArray<NetPermissionFlags>({
-                  NetPermissionFlags::None,
-                  NetPermissionFlags::BloomFilter,
-                  NetPermissionFlags::Relay,
-                  NetPermissionFlags::ForceRelay,
-                  NetPermissionFlags::NoBan,
-                  NetPermissionFlags::Mempool,
-                  NetPermissionFlags::Addr,
-                  NetPermissionFlags::BypassProofRequestLimits,
-                  NetPermissionFlags::Implicit,
-                  NetPermissionFlags::All,
-              })
-            : static_cast<NetPermissionFlags>(
-                  fuzzed_data_provider.ConsumeIntegral<uint32_t>());
+        ConsumeWeakEnum(fuzzed_data_provider, ALL_NET_PERMISSION_FLAGS);
 
     NetWhitebindPermissions net_whitebind_permissions;
     bilingual_str error_net_whitebind_permissions;

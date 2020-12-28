@@ -63,22 +63,18 @@ void fuzz_target(const std::vector<uint8_t> &buffer,
         random_message_type != LIMIT_TO_MESSAGE_TYPE) {
         return;
     }
-    CDataStream random_bytes_data_stream{
-        fuzzed_data_provider.ConsumeRemainingBytes<uint8_t>(), SER_NETWORK,
-        PROTOCOL_VERSION};
-    CNode &p2p_node =
-        *std::make_unique<CNode>(
-             0, INVALID_SOCKET,
-             CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0,
-             0, CAddress{}, std::string{}, ConnectionType::OUTBOUND_FULL_RELAY,
-             false)
-             .release();
+    CNode &p2p_node = *ConsumeNodeAsUniquePtr(fuzzed_data_provider).release();
+
     p2p_node.fSuccessfullyConnected = true;
     p2p_node.nVersion = PROTOCOL_VERSION;
     p2p_node.SetCommonVersion(PROTOCOL_VERSION);
     connman.AddTestNode(p2p_node);
     g_setup->m_node.peerman->InitializeNode(
         config, p2p_node, ServiceFlags(NODE_NETWORK | NODE_BLOOM));
+    // fuzzed_data_provider is fully consumed after this call, don't use it
+    CDataStream random_bytes_data_stream{
+        fuzzed_data_provider.ConsumeRemainingBytes<uint8_t>(), SER_NETWORK,
+        PROTOCOL_VERSION};
     try {
         g_setup->m_node.peerman->ProcessMessage(
             config, p2p_node, random_message_type, random_bytes_data_stream,
