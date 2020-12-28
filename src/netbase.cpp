@@ -363,7 +363,7 @@ enum class IntrRecvError {
  *      SOCKET&, bool).
  */
 static IntrRecvError InterruptibleRecv(uint8_t *data, size_t len, int timeout,
-                                       const SOCKET &hSocket) {
+                                       const Sock &hSocket) {
     int64_t curTime = GetTimeMillis();
     int64_t endTime = curTime + timeout;
     // Maximum time to wait for I/O readiness. It will take up until this time
@@ -371,7 +371,7 @@ static IntrRecvError InterruptibleRecv(uint8_t *data, size_t len, int timeout,
     const int64_t maxWait = 1000;
     while (len > 0 && curTime < endTime) {
         // Optimistically try the recv first
-        ssize_t ret = recv(hSocket, (char *)data, len, 0);
+        ssize_t ret = hSocket.Recv(data, len, 0);
         if (ret > 0) {
             len -= ret;
             data += ret;
@@ -383,25 +383,11 @@ static IntrRecvError InterruptibleRecv(uint8_t *data, size_t len, int timeout,
             int nErr = WSAGetLastError();
             if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK ||
                 nErr == WSAEINVAL) {
-                if (!IsSelectableSocket(hSocket)) {
-                    return IntrRecvError::NetworkError;
-                }
                 // Only wait at most maxWait milliseconds at a time, unless
                 // we're approaching the end of the specified total timeout
                 int timeout_ms = std::min(endTime - curTime, maxWait);
-#ifdef USE_POLL
-                struct pollfd pollfd = {};
-                pollfd.fd = hSocket;
-                pollfd.events = POLLIN;
-                int nRet = poll(&pollfd, 1, timeout_ms);
-#else
-                struct timeval tval = MillisToTimeval(timeout_ms);
-                fd_set fdset;
-                FD_ZERO(&fdset);
-                FD_SET(hSocket, &fdset);
-                int nRet = select(hSocket + 1, &fdset, nullptr, nullptr, &tval);
-#endif
-                if (nRet == SOCKET_ERROR) {
+                if (!hSocket.Wait(std::chrono::milliseconds{timeout_ms},
+                                  Sock::RECV)) {
                     return IntrRecvError::NetworkError;
                 }
             } else {
@@ -465,7 +451,7 @@ static std::string Socks5ErrorString(uint8_t err) {
  *      Version 5</a>
  */
 static bool Socks5(const std::string &strDest, int port,
-                   const ProxyCredentials *auth, const SOCKET &hSocket) {
+                   const ProxyCredentials *auth, const Sock &hSocket) {
     IntrRecvError recvr;
     LogPrint(BCLog::NET, "SOCKS5 connecting %s\n", strDest);
     if (strDest.size() > 255) {
@@ -485,8 +471,8 @@ static bool Socks5(const std::string &strDest, int port,
         vSocks5Init.push_back(0x01);
         vSocks5Init.push_back(SOCKS5Method::NOAUTH);
     }
-    ssize_t ret = send(hSocket, (const char *)vSocks5Init.data(),
-                       vSocks5Init.size(), MSG_NOSIGNAL);
+    ssize_t ret =
+        hSocket.Send(vSocks5Init.data(), vSocks5Init.size(), MSG_NOSIGNAL);
     if (ret != (ssize_t)vSocks5Init.size()) {
         return error("Error sending to proxy");
     }
@@ -513,8 +499,7 @@ static bool Socks5(const std::string &strDest, int port,
         vAuth.insert(vAuth.end(), auth->username.begin(), auth->username.end());
         vAuth.push_back(auth->password.size());
         vAuth.insert(vAuth.end(), auth->password.begin(), auth->password.end());
-        ret = send(hSocket, (const char *)vAuth.data(), vAuth.size(),
-                   MSG_NOSIGNAL);
+        ret = hSocket.Send(vAuth.data(), vAuth.size(), MSG_NOSIGNAL);
         if (ret != (ssize_t)vAuth.size()) {
             return error("Error sending authentication to proxy");
         }
@@ -548,8 +533,7 @@ static bool Socks5(const std::string &strDest, int port,
     vSocks5.insert(vSocks5.end(), strDest.begin(), strDest.end());
     vSocks5.push_back((port >> 8) & 0xFF);
     vSocks5.push_back((port >> 0) & 0xFF);
-    ret = send(hSocket, (const char *)vSocks5.data(), vSocks5.size(),
-               MSG_NOSIGNAL);
+    ret = hSocket.Send(vSocks5.data(), vSocks5.size(), MSG_NOSIGNAL);
     if (ret != (ssize_t)vSocks5.size()) {
         return error("Error sending to proxy");
     }
@@ -861,10 +845,10 @@ bool IsProxy(const CNetAddr &addr) {
  * @returns Whether or not the operation succeeded.
  */
 bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
-                         int port, const SOCKET &hSocket, int nTimeout,
+                         int port, const Sock &hSocket, int nTimeout,
                          bool &outProxyConnectionFailed) {
     // first connect to proxy server
-    if (!ConnectSocketDirectly(proxy.proxy, hSocket, nTimeout, true)) {
+    if (!ConnectSocketDirectly(proxy.proxy, hSocket.Get(), nTimeout, true)) {
         outProxyConnectionFailed = true;
         return false;
     }

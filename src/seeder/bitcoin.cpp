@@ -27,7 +27,7 @@ void CSeederNode::Send() {
     if (vSend.empty()) {
         return;
     }
-    int nBytes = send(sock->Get(), &vSend[0], vSend.size(), 0);
+    int nBytes = sock->Send(&vSend[0], vSend.size(), 0);
     if (nBytes > 0) {
         vSend.erase(vSend.begin(), vSend.begin() + nBytes);
     } else {
@@ -198,8 +198,8 @@ bool CSeederNode::Run() {
                 return false;
             }
             connected = ConnectThroughProxy(
-                proxy, you.ToStringIP(), you.GetPort(), sock->Get(),
-                nConnectTimeout, proxyConnectionFailed);
+                proxy, you.ToStringIP(), you.GetPort(), *sock, nConnectTimeout,
+                proxyConnectionFailed);
         } else {
             // no proxy needed (none set for target network)
             sock = CreateSock(you);
@@ -264,7 +264,7 @@ bool CSeederNode::Run() {
             }
             break;
         }
-        int nBytes = recv(sock->Get(), pchBuf, sizeof(pchBuf), 0);
+        int nBytes = sock->Recv(pchBuf, sizeof(pchBuf), 0);
         int nPos = vRecv.size();
         if (nBytes > 0) {
             vRecv.resize(nPos + nBytes);
