@@ -27,7 +27,7 @@ inline bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,
                                   Consensus::DeploymentPos dep) {
     assert(Consensus::ValidDeployment(dep));
     return ThresholdState::ACTIVE ==
-           VersionBitsState(pindexPrev, params, dep, g_versionbitscache);
+           g_versionbitscache.State(pindexPrev, params, dep);
 }
 
 /** Determine if a deployment is active for this block */
