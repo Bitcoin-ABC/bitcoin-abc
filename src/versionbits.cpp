@@ -220,6 +220,7 @@ ThresholdState VersionBitsState(const CBlockIndex *pindexPrev,
                                 const Consensus::Params &params,
                                 Consensus::DeploymentPos pos,
                                 VersionBitsCache &cache) {
+    LOCK(cache.mutex);
     return VersionBitsConditionChecker(pos).GetStateFor(pindexPrev, params,
                                                         cache.caches[pos]);
 }
@@ -235,6 +236,7 @@ int VersionBitsStateSinceHeight(const CBlockIndex *pindexPrev,
                                 const Consensus::Params &params,
                                 Consensus::DeploymentPos pos,
                                 VersionBitsCache &cache) {
+    LOCK(cache.mutex);
     return VersionBitsConditionChecker(pos).GetStateSinceHeightFor(
         pindexPrev, params, cache.caches[pos]);
 }
@@ -245,6 +247,7 @@ uint32_t VersionBitsMask(const Consensus::Params &params,
 }
 
 void VersionBitsCache::Clear() {
+    LOCK(mutex);
     for (unsigned int d = 0; d < Consensus::MAX_VERSION_BITS_DEPLOYMENTS; d++) {
         caches[d].clear();
     }

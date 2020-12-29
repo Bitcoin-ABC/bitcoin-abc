@@ -1637,8 +1637,7 @@ static RPCHelpMan verifychain() {
 static void BIP9SoftForkDescPushBack(const CBlockIndex *active_chain_tip,
                                      UniValue &softforks,
                                      const Consensus::Params &consensusParams,
-                                     Consensus::DeploymentPos id)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+                                     Consensus::DeploymentPos id) {
     // For BIP9 deployments.
     // Deployments (e.g. testdummy) with timeout value before Jan 1, 2009 are
     // hidden. A timeout value of 0 guarantees a softfork will never be
