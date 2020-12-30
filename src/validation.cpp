@@ -277,41 +277,43 @@ static bool IsReplayProtectionEnabled(const Consensus::Params &params,
     return IsReplayProtectionEnabled(params, pindexPrev->GetMedianTimePast());
 }
 
-// Used to avoid mempool polluting consensus critical paths if CCoinsViewMempool
-// were somehow broken and returning the wrong scriptPubKeys
+/**
+ * Checks to avoid mempool polluting consensus critical paths since cached
+ * signature and script validity results will be reused if we validate this
+ * transaction again during block validation.
+ */
 static bool CheckInputsFromMempoolAndCache(
     const CTransaction &tx, TxValidationState &state,
     const CCoinsViewCache &view, const CTxMemPool &pool, const uint32_t flags,
     PrecomputedTransactionData &txdata, int &nSigChecksOut,
-    CCoinsViewCache &coins_tip) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    CCoinsViewCache &coins_tip) EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs) {
     AssertLockHeld(cs_main);
-
-    // pool.cs should be locked already, but go ahead and re-take the lock here
-    // to enforce that mempool doesn't change between when we check the view and
-    // when we actually call through to CheckInputScripts
-    LOCK(pool.cs);
+    AssertLockHeld(pool.cs);
 
     assert(!tx.IsCoinBase());
     for (const CTxIn &txin : tx.vin) {
         const Coin &coin = view.AccessCoin(txin.prevout);
 
-        // AcceptToMemoryPoolWorker has already checked that the coins are
-        // available, so this shouldn't fail. If the inputs are not available
-        // here then return false.
+        // This coin was checked in PreChecks and MemPoolAccept
+        // has been holding cs_main since then.
+        Assume(!coin.IsSpent());
         if (coin.IsSpent()) {
             return false;
         }
 
-        // Check equivalence for available inputs.
+        // If the Coin is available, there are 2 possibilities:
+        // it is available in our current ChainstateActive UTXO set,
+        // or it's a UTXO provided by a transaction in our mempool.
+        // Ensure the scriptPubKeys in Coins from CoinsView are correct.
         const CTransactionRef &txFrom = pool.get(txin.prevout.GetTxId());
         if (txFrom) {
             assert(txFrom->GetId() == txin.prevout.GetTxId());
             assert(txFrom->vout.size() > txin.prevout.GetN());
             assert(txFrom->vout[txin.prevout.GetN()] == coin.GetTxOut());
         } else {
-            const Coin &coinFromDisk = coins_tip.AccessCoin(txin.prevout);
-            assert(!coinFromDisk.IsSpent());
-            assert(coinFromDisk.GetTxOut() == coin.GetTxOut());
+            const Coin &coinFromUTXOSet = coins_tip.AccessCoin(txin.prevout);
+            assert(!coinFromUTXOSet.IsSpent());
+            assert(coinFromUTXOSet.GetTxOut() == coin.GetTxOut());
         }
     }
 
@@ -400,7 +402,7 @@ private:
     // utxo set or in the mempool.
     bool ConsensusScriptChecks(ATMPArgs &args, const Workspace &ws,
                                PrecomputedTransactionData &txdata)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
 
     // Try to add the transaction to the mempool, removing any conflicts first.
     // Returns true if the transaction is in the mempool after any size
