@@ -191,11 +191,9 @@ static const int64_t ADDRMAN_TEST_WINDOW = 40 * 60;
 class CAddrMan {
     friend class CAddrManTest;
 
-protected:
     //! critical section to protect the inner data structures
     mutable RecursiveMutex cs;
 
-private:
     //! Serialization versions.
     enum Format : uint8_t {
         //! historic format, before commit e6b343d88
@@ -254,9 +252,6 @@ private:
     //! entries. Test-before-evict discipline used to resolve these collisions.
     std::set<int> m_tried_collisions;
 
-    //! Source of random numbers for randomization in inner loops
-    FastRandomContext insecure_rand;
-
     //! Use deterministic bucket selection and inner loops randomization.
     //! For testing purpose only.
     bool deterministic = false;
@@ -265,6 +260,10 @@ protected:
     //! secret key to randomize bucket select with
     uint256 nKey;
 
+    //! Source of random numbers for randomization in inner loops
+    FastRandomContext insecure_rand;
+
+private:
     //! Find an entry.
     CAddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
