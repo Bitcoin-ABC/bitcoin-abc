@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Bitcoin Core developers
+// Copyright (c) 2017-2021 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -17,9 +17,8 @@
 #include <univalue.h>
 #include <util/check.h>
 
-#include <boost/variant.hpp>
-
 #include <string>
+#include <variant>
 #include <vector>
 
 class CChainParams;
@@ -173,8 +172,8 @@ struct RPCArg {
         OMITTED,
     };
     using Fallback =
-        boost::variant<Optional,
-                       /* default value for optional args */ std::string>;
+        std::variant<Optional,
+                     /* default value for optional args */ std::string>;
 
     //! The name of the arg (can be empty for inner args, can contain multiple
     //! aliases separated by | for named request arguments)
