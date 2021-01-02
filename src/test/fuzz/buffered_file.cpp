@@ -35,8 +35,9 @@ FUZZ_TARGET(buffered_file) {
     if (opt_buffered_file && fuzzed_file != nullptr) {
         bool setpos_fail = false;
         while (fuzzed_data_provider.ConsumeBool()) {
-            switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 4)) {
-                case 0: {
+            CallOneOf(
+                fuzzed_data_provider,
+                [&] {
                     std::array<uint8_t, 4096> arr{};
                     try {
                         opt_buffered_file->read(
@@ -45,40 +46,34 @@ FUZZ_TARGET(buffered_file) {
                                 0, 4096));
                     } catch (const std::ios_base::failure &) {
                     }
-                    break;
-                }
-                case 1: {
+                },
+                [&] {
                     opt_buffered_file->SetLimit(
                         fuzzed_data_provider.ConsumeIntegralInRange<uint64_t>(
                             0, 4096));
-                    break;
-                }
-                case 2: {
+                },
+                [&] {
                     if (!opt_buffered_file->SetPos(
                             fuzzed_data_provider
                                 .ConsumeIntegralInRange<uint64_t>(0, 4096))) {
                         setpos_fail = true;
                     }
-                    break;
-                }
-                case 3: {
+                },
+                [&] {
                     if (setpos_fail) {
                         // Calling FindByte(...) after a failed SetPos(...) call
                         // may result in an infinite loop.
-                        break;
+                        return;
                     }
                     try {
                         opt_buffered_file->FindByte(
                             fuzzed_data_provider.ConsumeIntegral<char>());
                     } catch (const std::ios_base::failure &) {
                     }
-                    break;
-                }
-                case 4: {
+                },
+                [&] {
                     ReadFromStream(fuzzed_data_provider, *opt_buffered_file);
-                    break;
-                }
-            }
+                });
         }
         opt_buffered_file->GetPos();
         opt_buffered_file->GetType();

@@ -33,8 +33,9 @@ FUZZ_TARGET(crypto_chacha20_poly1305_aead) {
         buffer_size + CHACHA20_POLY1305_AEAD_AAD_LEN + POLY1305_TAGLEN, 0);
     bool is_encrypt = fuzzed_data_provider.ConsumeBool();
     while (fuzzed_data_provider.ConsumeBool()) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 6)) {
-            case 0: {
+        CallOneOf(
+            fuzzed_data_provider,
+            [&] {
                 buffer_size =
                     fuzzed_data_provider.ConsumeIntegralInRange<size_t>(64,
                                                                         4096);
@@ -46,50 +47,31 @@ FUZZ_TARGET(crypto_chacha20_poly1305_aead) {
                                                CHACHA20_POLY1305_AEAD_AAD_LEN +
                                                POLY1305_TAGLEN,
                                            0);
-                break;
-            }
-            case 1: {
+            },
+            [&] {
                 (void)aead.Crypt(seqnr_payload, seqnr_aad, aad_pos, out.data(),
                                  out.size(), in.data(), buffer_size,
                                  is_encrypt);
-                break;
-            }
-            case 2: {
+            },
+            [&] {
                 uint32_t len = 0;
                 const bool ok =
                     aead.GetLength(&len, seqnr_aad, aad_pos, in.data());
                 assert(ok);
-                break;
-            }
-            case 3: {
-                if (AdditionOverflow(seqnr_payload, static_cast<uint64_t>(1))) {
-                    break;
-                }
+            },
+            [&] {
                 seqnr_payload += 1;
                 aad_pos += CHACHA20_POLY1305_AEAD_AAD_LEN;
                 if (aad_pos + CHACHA20_POLY1305_AEAD_AAD_LEN >
                     CHACHA20_ROUND_OUTPUT) {
                     aad_pos = 0;
-                    if (AdditionOverflow(seqnr_aad, static_cast<uint64_t>(1))) {
-                        break;
-                    }
                     seqnr_aad += 1;
                 }
-                break;
-            }
-            case 4: {
-                seqnr_payload =
-                    fuzzed_data_provider.ConsumeIntegral<uint64_t>();
-                break;
-            }
-            case 5: {
-                seqnr_aad = fuzzed_data_provider.ConsumeIntegral<uint64_t>();
-                break;
-            }
-            case 6: {
-                is_encrypt = fuzzed_data_provider.ConsumeBool();
-                break;
-            }
-        }
+            },
+            [&] {
+                seqnr_payload = fuzzed_data_provider.ConsumeIntegral<int>();
+            },
+            [&] { seqnr_aad = fuzzed_data_provider.ConsumeIntegral<int>(); },
+            [&] { is_encrypt = fuzzed_data_provider.ConsumeBool(); });
     }
 }

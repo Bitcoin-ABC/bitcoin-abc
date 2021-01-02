@@ -39,8 +39,9 @@ FUZZ_TARGET(crypto) {
                           fuzzed_data_provider.ConsumeIntegral<uint64_t>()};
 
     while (fuzzed_data_provider.ConsumeBool()) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 2)) {
-            case 0: {
+        CallOneOf(
+            fuzzed_data_provider,
+            [&] {
                 if (fuzzed_data_provider.ConsumeBool()) {
                     data = ConsumeRandomLengthByteVector(fuzzed_data_provider);
                     if (data.empty()) {
@@ -64,68 +65,54 @@ FUZZ_TARGET(crypto) {
                 (void)Hash(data);
                 (void)Hash160(data);
                 (void)sha512.Size();
-                break;
-            }
-            case 1: {
+            },
+            [&] {
                 (void)hash160.Reset();
                 (void)hash256.Reset();
                 (void)ripemd160.Reset();
                 (void)sha1.Reset();
                 (void)sha256.Reset();
                 (void)sha512.Reset();
-                break;
-            }
-            case 2: {
-                switch (
-                    fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 8)) {
-                    case 0: {
+            },
+            [&] {
+                CallOneOf(
+                    fuzzed_data_provider,
+                    [&] {
                         data.resize(CHash160::OUTPUT_SIZE);
                         hash160.Finalize(data);
-                        break;
-                    }
-                    case 1: {
+                    },
+                    [&] {
                         data.resize(CHash256::OUTPUT_SIZE);
                         hash256.Finalize(data);
-                        break;
-                    }
-                    case 2: {
+                    },
+                    [&] {
                         data.resize(CHMAC_SHA256::OUTPUT_SIZE);
                         hmac_sha256.Finalize(data.data());
-                        break;
-                    }
-                    case 3: {
+                    },
+                    [&] {
                         data.resize(CHMAC_SHA512::OUTPUT_SIZE);
                         hmac_sha512.Finalize(data.data());
-                        break;
-                    }
-                    case 4: {
+                    },
+                    [&] {
                         data.resize(CRIPEMD160::OUTPUT_SIZE);
                         ripemd160.Finalize(data.data());
-                        break;
-                    }
-                    case 5: {
+                    },
+                    [&] {
                         data.resize(CSHA1::OUTPUT_SIZE);
                         sha1.Finalize(data.data());
-                        break;
-                    }
-                    case 6: {
+                    },
+                    [&] {
                         data.resize(CSHA256::OUTPUT_SIZE);
                         sha256.Finalize(data.data());
-                        break;
-                    }
-                    case 7: {
+                    },
+                    [&] {
                         data.resize(CSHA512::OUTPUT_SIZE);
                         sha512.Finalize(data.data());
-                        break;
-                    }
-                    case 8: {
+                    },
+                    [&] {
                         data.resize(1);
                         data[0] = sip_hasher.Finalize() % 256;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
+                    });
+            });
     }
 }

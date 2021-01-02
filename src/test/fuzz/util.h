@@ -37,6 +37,18 @@ constexpr int64_t MAX_MONEY_AS_INT = int64_t(21000000) * int64_t(100000000);
 
 using namespace fuzzer;
 
+template <typename... Callables>
+void CallOneOf(FuzzedDataProvider &fuzzed_data_provider,
+               Callables... callables) {
+    constexpr size_t call_size{sizeof...(callables)};
+    static_assert(call_size >= 1);
+    const size_t call_index{
+        fuzzed_data_provider.ConsumeIntegralInRange<size_t>(0, call_size - 1)};
+
+    size_t i{0};
+    return ((i++ == call_index ? callables() : void()), ...);
+}
+
 [[nodiscard]] inline std::vector<uint8_t>
 ConsumeRandomLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
                               const size_t max_length = 4096) noexcept {
@@ -149,20 +161,12 @@ ConsumeArithUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 [[nodiscard]] inline CTxDestination
 ConsumeTxDestination(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     CTxDestination tx_destination;
-    switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 3)) {
-        case 0: {
-            tx_destination = CNoDestination{};
-            break;
-        }
-        case 1: {
-            tx_destination = PKHash{ConsumeUInt160(fuzzed_data_provider)};
-            break;
-        }
-        case 2: {
+    CallOneOf(
+        fuzzed_data_provider, [&] { tx_destination = CNoDestination{}; },
+        [&] { tx_destination = PKHash{ConsumeUInt160(fuzzed_data_provider)}; },
+        [&] {
             tx_destination = ScriptHash{ConsumeUInt160(fuzzed_data_provider)};
-            break;
-        }
-    }
+        });
     return tx_destination;
 }
 
@@ -325,32 +329,17 @@ public:
             return nullptr;
         }
         std::string mode;
-        switch (m_fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 5)) {
-            case 0: {
-                mode = "r";
-                break;
-            }
-            case 1: {
-                mode = "r+";
-                break;
-            }
-            case 2: {
-                mode = "w";
-                break;
-            }
-            case 3: {
-                mode = "w+";
-                break;
-            }
-            case 4: {
-                mode = "a";
-                break;
-            }
-            case 5: {
-                mode = "a+";
-                break;
-            }
-        }
+        // clang-format off
+        CallOneOf(
+            m_fuzzed_data_provider,
+            [&] { mode = "r"; },
+            [&] { mode = "r+"; },
+            [&] { mode = "w"; },
+            [&] { mode = "w+"; },
+            [&] { mode = "a"; },
+            [&] { mode = "a+"; }
+        );
+        // clang-format on
 #ifdef _GNU_SOURCE
         const cookie_io_functions_t io_hooks = {
             FuzzedFileProvider::read,
@@ -446,87 +435,83 @@ ConsumeAutoFile(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return {fuzzed_data_provider};
 }
 
-#define WRITE_TO_STREAM_CASE(id, type, consume)                                \
-    case id: {                                                                 \
+#define WRITE_TO_STREAM_CASE(type, consume)                                    \
+    [&] {                                                                      \
         type o = consume;                                                      \
         stream << o;                                                           \
-        break;                                                                 \
     }
 template <typename Stream>
 void WriteToStream(FuzzedDataProvider &fuzzed_data_provider,
                    Stream &stream) noexcept {
     while (fuzzed_data_provider.ConsumeBool()) {
         try {
-            switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 13)) {
-                WRITE_TO_STREAM_CASE(0, bool,
-                                     fuzzed_data_provider.ConsumeBool())
+            CallOneOf(
+                fuzzed_data_provider,
+                WRITE_TO_STREAM_CASE(bool, fuzzed_data_provider.ConsumeBool()),
                 WRITE_TO_STREAM_CASE(
-                    1, char, fuzzed_data_provider.ConsumeIntegral<char>())
+                    char, fuzzed_data_provider.ConsumeIntegral<char>()),
                 WRITE_TO_STREAM_CASE(
-                    2, int8_t, fuzzed_data_provider.ConsumeIntegral<int8_t>())
+                    int8_t, fuzzed_data_provider.ConsumeIntegral<int8_t>()),
                 WRITE_TO_STREAM_CASE(
-                    3, uint8_t, fuzzed_data_provider.ConsumeIntegral<uint8_t>())
+                    uint8_t, fuzzed_data_provider.ConsumeIntegral<uint8_t>()),
                 WRITE_TO_STREAM_CASE(
-                    4, int16_t, fuzzed_data_provider.ConsumeIntegral<int16_t>())
+                    int16_t, fuzzed_data_provider.ConsumeIntegral<int16_t>()),
                 WRITE_TO_STREAM_CASE(
-                    5, uint16_t,
-                    fuzzed_data_provider.ConsumeIntegral<uint16_t>())
+                    uint16_t, fuzzed_data_provider.ConsumeIntegral<uint16_t>()),
                 WRITE_TO_STREAM_CASE(
-                    6, int32_t, fuzzed_data_provider.ConsumeIntegral<int32_t>())
+                    int32_t, fuzzed_data_provider.ConsumeIntegral<int32_t>()),
                 WRITE_TO_STREAM_CASE(
-                    7, uint32_t,
-                    fuzzed_data_provider.ConsumeIntegral<uint32_t>())
+                    uint32_t, fuzzed_data_provider.ConsumeIntegral<uint32_t>()),
                 WRITE_TO_STREAM_CASE(
-                    8, int64_t, fuzzed_data_provider.ConsumeIntegral<int64_t>())
+                    int64_t, fuzzed_data_provider.ConsumeIntegral<int64_t>()),
                 WRITE_TO_STREAM_CASE(
-                    9, uint64_t,
-                    fuzzed_data_provider.ConsumeIntegral<uint64_t>())
+                    uint64_t, fuzzed_data_provider.ConsumeIntegral<uint64_t>()),
                 WRITE_TO_STREAM_CASE(
-                    10, float,
-                    fuzzed_data_provider.ConsumeFloatingPoint<float>())
+                    float, fuzzed_data_provider.ConsumeFloatingPoint<float>()),
                 WRITE_TO_STREAM_CASE(
-                    11, double,
-                    fuzzed_data_provider.ConsumeFloatingPoint<double>())
+                    double,
+                    fuzzed_data_provider.ConsumeFloatingPoint<double>()),
                 WRITE_TO_STREAM_CASE(
-                    12, std::string,
-                    fuzzed_data_provider.ConsumeRandomLengthString(32))
-                WRITE_TO_STREAM_CASE(13, std::vector<char>,
+                    std::string,
+                    fuzzed_data_provider.ConsumeRandomLengthString(32)),
+                WRITE_TO_STREAM_CASE(std::vector<char>,
                                      ConsumeRandomLengthIntegralVector<char>(
-                                         fuzzed_data_provider))
-            }
+                                         fuzzed_data_provider)));
         } catch (const std::ios_base::failure &) {
             break;
         }
     }
 }
 
-#define READ_FROM_STREAM_CASE(id, type)                                        \
-    case id: {                                                                 \
+#define READ_FROM_STREAM_CASE(type)                                            \
+    [&] {                                                                      \
         type o;                                                                \
         stream >> o;                                                           \
-        break;                                                                 \
     }
 template <typename Stream>
 void ReadFromStream(FuzzedDataProvider &fuzzed_data_provider,
                     Stream &stream) noexcept {
     while (fuzzed_data_provider.ConsumeBool()) {
         try {
-            switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 13)) {
-                READ_FROM_STREAM_CASE(0, bool)
-                READ_FROM_STREAM_CASE(1, char)
-                READ_FROM_STREAM_CASE(2, int8_t)
-                READ_FROM_STREAM_CASE(3, uint8_t)
-                READ_FROM_STREAM_CASE(4, int16_t)
-                READ_FROM_STREAM_CASE(5, uint16_t)
-                READ_FROM_STREAM_CASE(6, int32_t)
-                READ_FROM_STREAM_CASE(7, uint32_t)
-                READ_FROM_STREAM_CASE(8, int64_t)
-                READ_FROM_STREAM_CASE(9, uint64_t)
-                READ_FROM_STREAM_CASE(10, float)
-                READ_FROM_STREAM_CASE(11, double)
-                READ_FROM_STREAM_CASE(12, std::string)
-                READ_FROM_STREAM_CASE(13, std::vector<char>)
-            }
+            // clang-format off
+            CallOneOf(
+                fuzzed_data_provider,
+                READ_FROM_STREAM_CASE(bool),
+                READ_FROM_STREAM_CASE(char),
+                READ_FROM_STREAM_CASE(int8_t),
+                READ_FROM_STREAM_CASE(uint8_t),
+                READ_FROM_STREAM_CASE(int16_t),
+                READ_FROM_STREAM_CASE(uint16_t),
+                READ_FROM_STREAM_CASE(int32_t),
+                READ_FROM_STREAM_CASE(uint32_t),
+                READ_FROM_STREAM_CASE(int64_t),
+                READ_FROM_STREAM_CASE(uint64_t),
+                READ_FROM_STREAM_CASE(float),
+                READ_FROM_STREAM_CASE(double),
+                READ_FROM_STREAM_CASE(std::string),
+                READ_FROM_STREAM_CASE(std::vector<char>)
+            );
+            // clang-format on
         } catch (const std::ios_base::failure &) {
             break;
         }

@@ -34,8 +34,9 @@ FUZZ_TARGET(scriptnum_ops) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     CScriptNum script_num = ConsumeScriptNum(fuzzed_data_provider);
     while (fuzzed_data_provider.remaining_bytes() > 0) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange(0, 11)) {
-            case 0: {
+        CallOneOf(
+            fuzzed_data_provider,
+            [&] {
                 const int64_t i =
                     fuzzed_data_provider.ConsumeIntegral<int64_t>();
                 assert((script_num == i) != (script_num != i));
@@ -55,9 +56,8 @@ FUZZ_TARGET(scriptnum_ops) {
                 if (IsValidSubtraction(script_num, CScriptNum{i})) {
                     assert((script_num - i) + i == script_num);
                 }
-                break;
-            }
-            case 1: {
+            },
+            [&] {
                 const CScriptNum random_script_num =
                     ConsumeScriptNum(fuzzed_data_provider);
                 assert((script_num == random_script_num) !=
@@ -66,10 +66,6 @@ FUZZ_TARGET(scriptnum_ops) {
                        (script_num > random_script_num));
                 assert((script_num >= random_script_num) !=
                        (script_num < random_script_num));
-                // Avoid signed integer overflow:
-                // script/script.h:264:93: runtime error: signed integer
-                // overflow: -9223126527765971126 + -9223372036854756825 cannot
-                // be represented in type 'long'
                 if (IsValidAddition(script_num, random_script_num)) {
                     assert((script_num + random_script_num) -
                                random_script_num ==
@@ -84,9 +80,8 @@ FUZZ_TARGET(scriptnum_ops) {
                                random_script_num ==
                            script_num);
                 }
-                break;
-            }
-            case 2: {
+            },
+            [&] {
                 const CScriptNum random_script_num =
                     ConsumeScriptNum(fuzzed_data_provider);
                 if (!IsValidAddition(script_num, random_script_num)) {
@@ -97,12 +92,11 @@ FUZZ_TARGET(scriptnum_ops) {
                     // std::numeric_limits<int64_t>::max() - rhs) || (rhs < 0 &&
                     // m_value >= std::numeric_limits<int64_t>::min() - rhs)'
                     // failed.
-                    break;
+                    return;
                 }
                 script_num += random_script_num;
-                break;
-            }
-            case 3: {
+            },
+            [&] {
                 const CScriptNum random_script_num =
                     ConsumeScriptNum(fuzzed_data_provider);
                 if (!IsValidSubtraction(script_num, random_script_num)) {
@@ -113,37 +107,34 @@ FUZZ_TARGET(scriptnum_ops) {
                     // std::numeric_limits<int64_t>::min() + rhs) || (rhs < 0 &&
                     // m_value <= std::numeric_limits<int64_t>::max() + rhs)'
                     // failed.
-                    break;
+                    return;
                 }
                 script_num -= random_script_num;
-                break;
-            }
-            case 4:
+            },
+            [&] {
                 script_num = script_num &
                              fuzzed_data_provider.ConsumeIntegral<int64_t>();
-                break;
-            case 5:
+            },
+            [&] {
                 script_num =
                     script_num & ConsumeScriptNum(fuzzed_data_provider);
-                break;
-            case 6:
-                script_num &= ConsumeScriptNum(fuzzed_data_provider);
-                break;
-            case 7:
+            },
+            [&] { script_num &= ConsumeScriptNum(fuzzed_data_provider); },
+            [&] {
                 if (script_num ==
                     CScriptNum{std::numeric_limits<int64_t>::min()}) {
                     // Avoid assertion failure:
                     // ./script/script.h:279: CScriptNum CScriptNum::operator-()
                     // const: Assertion `m_value !=
                     // std::numeric_limits<int64_t>::min()' failed.
-                    break;
+                    return;
                 }
                 script_num = -script_num;
-                break;
-            case 8:
+            },
+            [&] {
                 script_num = fuzzed_data_provider.ConsumeIntegral<int64_t>();
-                break;
-            case 9: {
+            },
+            [&] {
                 const int64_t random_integer =
                     fuzzed_data_provider.ConsumeIntegral<int64_t>();
                 if (!IsValidAddition(script_num, CScriptNum{random_integer})) {
@@ -154,12 +145,11 @@ FUZZ_TARGET(scriptnum_ops) {
                     // std::numeric_limits<int64_t>::max() - rhs) || (rhs < 0 &&
                     // m_value >= std::numeric_limits<int64_t>::min() - rhs)'
                     // failed.
-                    break;
+                    return;
                 }
                 script_num += random_integer;
-                break;
-            }
-            case 10: {
+            },
+            [&] {
                 const int64_t random_integer =
                     fuzzed_data_provider.ConsumeIntegral<int64_t>();
                 if (!IsValidSubtraction(script_num,
@@ -171,15 +161,13 @@ FUZZ_TARGET(scriptnum_ops) {
                     // std::numeric_limits<int64_t>::min() + rhs) || (rhs < 0 &&
                     // m_value <= std::numeric_limits<int64_t>::max() + rhs)'
                     // failed.
-                    break;
+                    return;
                 }
                 script_num -= random_integer;
-                break;
-            }
-            case 11:
+            },
+            [&] {
                 script_num &= fuzzed_data_provider.ConsumeIntegral<int64_t>();
-                break;
-        }
+            });
         (void)script_num.getint();
         (void)script_num.getvch();
     }

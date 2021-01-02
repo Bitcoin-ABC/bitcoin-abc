@@ -58,44 +58,35 @@ FUZZ_TARGET_INIT(net, initialize_net) {
         fuzzed_data_provider.ConsumeBool()};
     node.SetCommonVersion(fuzzed_data_provider.ConsumeIntegral<int>());
     while (fuzzed_data_provider.ConsumeBool()) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 6)) {
-            case 0: {
-                node.CloseSocketDisconnect();
-                break;
-            }
-            case 1: {
+        CallOneOf(
+            fuzzed_data_provider, [&] { node.CloseSocketDisconnect(); },
+            [&] {
                 CNodeStats stats;
                 node.copyStats(stats);
-                break;
-            }
-            case 2: {
+            },
+            [&] {
                 const CNode *add_ref_node = node.AddRef();
                 assert(add_ref_node == &node);
-                break;
-            }
-            case 3: {
+            },
+            [&] {
                 if (node.GetRefCount() > 0) {
                     node.Release();
                 }
-                break;
-            }
-            case 4: {
+            },
+            [&] {
                 const std::optional<CService> service_opt =
                     ConsumeDeserializable<CService>(fuzzed_data_provider);
                 if (!service_opt) {
-                    break;
+                    return;
                 }
                 node.SetAddrLocal(*service_opt);
-                break;
-            }
-            case 5: {
+            },
+            [&] {
                 const std::vector<uint8_t> b =
                     ConsumeRandomLengthByteVector(fuzzed_data_provider);
                 bool complete;
                 node.ReceiveMsgBytes(config, b, complete);
-                break;
-            }
-        }
+            });
     }
 
     (void)node.GetAddrLocal();
