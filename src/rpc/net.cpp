@@ -311,7 +311,8 @@ static RPCHelpMan getpeerinfo() {
                     }
                 }
                 obj.pushKV("bytesrecv_per_msg", recvPerMsgCmd);
-                obj.pushKV("connection_type", stats.m_conn_type_string);
+                obj.pushKV("connection_type",
+                           ConnectionTypeAsString(stats.m_conn_type));
 
                 if (stats.m_availabilityScore) {
                     obj.pushKV("availability_score",

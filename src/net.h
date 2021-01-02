@@ -207,6 +207,8 @@ enum class ConnectionType {
     AVALANCHE_OUTBOUND,
 };
 
+/** Convert ConnectionType enum to a string value */
+std::string ConnectionTypeAsString(ConnectionType conn_type);
 void Discover();
 uint16_t GetListenPort();
 
@@ -306,7 +308,7 @@ struct CNodeStats {
     // Network the peer connected through
     Network m_network;
     uint32_t m_mapped_as;
-    std::string m_conn_type_string;
+    ConnectionType m_conn_type;
     std::optional<double> m_availabilityScore;
 };
 
@@ -858,7 +860,9 @@ public:
 
     ServiceFlags GetLocalServices() const { return nLocalServices; }
 
-    std::string ConnectionTypeAsString() const;
+    std::string ConnectionTypeAsString() const {
+        return ::ConnectionTypeAsString(m_conn_type);
+    }
 };
 
 /**

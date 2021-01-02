@@ -537,8 +537,8 @@ void CConnman::AddWhitelistPermissionFlags(NetPermissionFlags &flags,
     }
 }
 
-std::string CNode::ConnectionTypeAsString() const {
-    switch (m_conn_type) {
+std::string ConnectionTypeAsString(ConnectionType conn_type) {
+    switch (conn_type) {
         case ConnectionType::INBOUND:
             return "inbound";
         case ConnectionType::MANUAL:
@@ -633,7 +633,7 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.addrLocal =
         addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
 
-    stats.m_conn_type_string = ConnectionTypeAsString();
+    stats.m_conn_type = m_conn_type;
 
     stats.m_availabilityScore = m_avalanche_enabled
                                     ? std::make_optional(getAvailabilityScore())
