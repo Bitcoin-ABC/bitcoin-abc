@@ -45,7 +45,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         fuzzed_data_provider.ConsumeIntegral<NodeId>(),
         static_cast<ServiceFlags>(
             fuzzed_data_provider.ConsumeIntegral<uint64_t>()),
-        fuzzed_data_provider.ConsumeIntegral<int>(),
         INVALID_SOCKET,
         *address,
         fuzzed_data_provider.ConsumeIntegral<uint64_t>(),
@@ -152,7 +151,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)node.GetId();
     (void)node.GetLocalNonce();
     (void)node.GetLocalServices();
-    (void)node.GetMyStartingHeight();
     const int ref_count = node.GetRefCount();
     assert(ref_count >= 0);
     (void)node.GetCommonVersion();

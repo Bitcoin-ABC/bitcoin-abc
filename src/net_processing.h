@@ -205,6 +205,9 @@ public:
     /** Get statistics from node state */
     bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 
+    /** Set the best height */
+    void SetBestHeight(int height) { m_best_height = height; };
+
     /** Whether this node ignores txs received over p2p. */
     bool IgnoresIncomingTxs() { return m_ignore_incoming_txs; };
 
@@ -310,6 +313,9 @@ private:
     Mutex cs_proofrequest;
     InvRequestTracker<avalanche::ProofId>
         m_proofrequest GUARDED_BY(cs_proofrequest);
+
+    /** The height of the best chain */
+    std::atomic<int> m_best_height{-1};
 
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;

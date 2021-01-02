@@ -75,7 +75,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         PROTOCOL_VERSION};
     CNode &p2p_node =
         *std::make_unique<CNode>(
-             0, ServiceFlags(NODE_NETWORK | NODE_BLOOM), 0, INVALID_SOCKET,
+             0, ServiceFlags(NODE_NETWORK | NODE_BLOOM), INVALID_SOCKET,
              CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0, 0,
              0, CAddress{}, std::string{}, ConnectionType::OUTBOUND_FULL_RELAY)
              .release();

@@ -966,7 +966,7 @@ void PeerManager::PushNodeVersion(const Config &config, CNode &pnode,
     // peer.
     ServiceFlags nLocalNodeServices = pnode.GetLocalServices();
     uint64_t nonce = pnode.GetLocalNonce();
-    int nNodeStartingHeight = pnode.GetMyStartingHeight();
+    const int nNodeStartingHeight{m_best_height};
     NodeId nodeid = pnode.GetId();
     CAddress addr = pnode.addr;
     uint64_t extraEntropy = pnode.GetLocalExtraEntropy();
@@ -1703,7 +1703,7 @@ void PeerManager::NewPoWValidBlock(
 void PeerManager::UpdatedBlockTip(const CBlockIndex *pindexNew,
                                   const CBlockIndex *pindexFork,
                                   bool fInitialDownload) {
-    m_connman.SetBestHeight(pindexNew->nHeight);
+    m_best_height = pindexNew->nHeight;
     SetServiceFlagsIBDCache(!fInitialDownload);
 
     // Don't relay inventory during initial block download.
