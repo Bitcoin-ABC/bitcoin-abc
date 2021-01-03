@@ -951,11 +951,10 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     // Whether this or any UTXO with the same CTxDestination has been spent.
-    bool IsUsedDestination(const TxId &txid, unsigned int n) const
+    bool IsSpentKey(const TxId &txid, unsigned int n) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
-    void SetUsedDestinationState(WalletBatch &batch, const TxId &txid,
-                                 unsigned int n, bool used,
-                                 std::set<CTxDestination> &tx_destinations)
+    void SetSpentKeyState(WalletBatch &batch, const TxId &txid, unsigned int n,
+                          bool used, std::set<CTxDestination> &tx_destinations)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     std::vector<OutputGroup> GroupOutputs(const std::vector<COutput> &outputs,

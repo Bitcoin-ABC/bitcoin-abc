@@ -797,9 +797,9 @@ void CWallet::MarkDirty() {
     }
 }
 
-void CWallet::SetUsedDestinationState(
-    WalletBatch &batch, const TxId &txid, unsigned int n, bool used,
-    std::set<CTxDestination> &tx_destinations) {
+void CWallet::SetSpentKeyState(WalletBatch &batch, const TxId &txid,
+                               unsigned int n, bool used,
+                               std::set<CTxDestination> &tx_destinations) {
     AssertLockHeld(cs_wallet);
     const CWalletTx *srctx = GetWalletTx(txid);
     if (!srctx) {
@@ -821,7 +821,7 @@ void CWallet::SetUsedDestinationState(
     }
 }
 
-bool CWallet::IsUsedDestination(const TxId &txid, unsigned int n) const {
+bool CWallet::IsSpentKey(const TxId &txid, unsigned int n) const {
     AssertLockHeld(cs_wallet);
     CTxDestination dst;
     const CWalletTx *srctx = GetWalletTx(txid);
@@ -862,8 +862,8 @@ bool CWallet::AddToWallet(const CWalletTx &wtxIn, bool fFlushOnClose) {
 
         for (const CTxIn &txin : wtxIn.tx->vin) {
             const COutPoint &op = txin.prevout;
-            SetUsedDestinationState(batch, op.GetTxId(), op.GetN(), true,
-                                    tx_destinations);
+            SetSpentKeyState(batch, op.GetTxId(), op.GetN(), true,
+                             tx_destinations);
         }
 
         MarkDestinationsDirty(tx_destinations);
@@ -2065,7 +2065,7 @@ Amount CWalletTx::GetAvailableCredit(bool fUseCache,
     const TxId &txid = GetId();
     for (uint32_t i = 0; i < tx->vout.size(); i++) {
         if (!pwallet->IsSpent(COutPoint(txid, i)) &&
-            (allow_used_addresses || !pwallet->IsUsedDestination(txid, i))) {
+            (allow_used_addresses || !pwallet->IsSpentKey(txid, i))) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, filter);
             if (!MoneyRange(nCredit)) {
@@ -2410,7 +2410,7 @@ void CWallet::AvailableCoins(std::vector<COutput> &vCoins, bool fOnlySafe,
                 continue;
             }
 
-            if (!allow_used_addresses && IsUsedDestination(wtxid, i)) {
+            if (!allow_used_addresses && IsSpentKey(wtxid, i)) {
                 continue;
             }
 
