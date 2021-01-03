@@ -92,16 +92,20 @@ class AvalancheTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         # Build a fake quorum of nodes.
-        quorum = []
-        for i in range(0, 16):
-            n = TestNode()
-            quorum.append(n)
+        def get_quorum():
+            def get_node():
+                n = TestNode()
+                node.add_p2p_connection(n)
+                n.wait_for_verack()
 
-            node.add_p2p_connection(n)
-            n.wait_for_verack()
+                # Get our own node id so we can use it later.
+                n.nodeid = node.getpeerinfo()[-1]['id']
 
-            # Get our own node id so we can use it later.
-            n.nodeid = node.getpeerinfo()[-1]['id']
+                return n
+
+            return [get_node() for _ in range(0, 16)]
+
+        quorum = get_quorum()
 
         # Pick on node from the quorum for polling.
         poll_node = quorum[0]
