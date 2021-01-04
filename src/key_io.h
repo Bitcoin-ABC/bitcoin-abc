@@ -16,7 +16,9 @@ class Config;
 class CChainParams;
 
 CKey DecodeSecret(const std::string &str);
+CKey DecodeSecret(const std::string &str, const CChainParams &params);
 std::string EncodeSecret(const CKey &key);
+std::string EncodeSecret(const CKey &key, const CChainParams &params);
 
 CExtKey DecodeExtKey(const std::string &str);
 std::string EncodeExtKey(const CExtKey &extkey);
