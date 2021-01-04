@@ -19,7 +19,10 @@
  * JSON but use AmountFromValue and ValueFromAmount for that.
  */
 std::string FormatMoney(const Amount n);
+/**
+ * Parse an amount denoted in full coins. E.g. "0.0034" supplied on the command
+ * line.
+ **/
 NODISCARD bool ParseMoney(const std::string &str, Amount &nRet);
-NODISCARD bool ParseMoney(const char *pszIn, Amount &nRet);
 
 #endif // BITCOIN_UTIL_MONEYSTR_H

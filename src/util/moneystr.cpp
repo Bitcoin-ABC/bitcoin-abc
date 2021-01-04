@@ -35,13 +35,14 @@ bool ParseMoney(const std::string &str, Amount &nRet) {
     if (!ValidAsCString(str)) {
         return false;
     }
-    return ParseMoney(str.c_str(), nRet);
-}
 
-bool ParseMoney(const char *pszIn, Amount &nRet) {
+    if (str.empty()) {
+        return false;
+    }
+
     std::string strWhole;
     Amount nUnits = Amount::zero();
-    const char *p = pszIn;
+    const char *p = str.c_str();
     while (IsSpace(*p)) {
         p++;
     }
