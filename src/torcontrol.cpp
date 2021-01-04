@@ -14,6 +14,7 @@
 #include <netbase.h>
 #include <util/strencodings.h>
 #include <util/system.h>
+#include <util/time.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
