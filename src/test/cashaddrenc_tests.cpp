@@ -16,6 +16,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <variant>
+
 namespace {
 
 std::vector<std::string> GetNetworks() {
@@ -34,7 +36,7 @@ std::vector<uint8_t> insecure_GetRandomByteArray(FastRandomContext &rand,
     return out;
 }
 
-class DstTypeChecker : public boost::static_visitor<void> {
+class DstTypeChecker {
 public:
     void operator()(const PKHash &id) { isKey = true; }
     void operator()(const ScriptHash &id) { isScript = true; }
@@ -42,13 +44,13 @@ public:
 
     static bool IsScriptDst(const CTxDestination &d) {
         DstTypeChecker checker;
-        boost::apply_visitor(checker, d);
+        std::visit(checker, d);
         return checker.isScript;
     }
 
     static bool IsKeyDst(const CTxDestination &d) {
         DstTypeChecker checker;
-        boost::apply_visitor(checker, d);
+        std::visit(checker, d);
         return checker.isKey;
     }
 
@@ -132,7 +134,7 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
 
             const auto otherNetParams = CreateChainParams(otherNet);
             CTxDestination decoded = DecodeCashAddr(encoded, *otherNetParams);
-            BOOST_CHECK(decoded != dst);
+            BOOST_CHECK(!std::holds_alternative<PKHash>(decoded));
             BOOST_CHECK(decoded == invalidDst);
         }
     }
@@ -191,7 +193,7 @@ BOOST_AUTO_TEST_CASE(check_padding) {
         if (i & 0x03) {
             BOOST_CHECK(dst == nodst);
         } else {
-            BOOST_CHECK(dst != nodst);
+            BOOST_CHECK(!std::holds_alternative<CNoDestination>(dst));
         }
     }
 }
@@ -225,7 +227,6 @@ BOOST_AUTO_TEST_CASE(check_type) {
  * We ensure size is extracted and checked properly.
  */
 BOOST_AUTO_TEST_CASE(check_size) {
-    const CTxDestination nodst = CNoDestination{};
     const std::string prefix = "ecash";
 
     std::vector<uint8_t> data;

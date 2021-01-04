@@ -18,6 +18,7 @@
 
 #include <numeric>
 #include <unordered_set>
+#include <variant>
 
 namespace avalanche {
 
@@ -235,7 +236,7 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
                 "non-standard-destination");
         }
 
-        PKHash *pkhash = boost::get<PKHash>(&dest);
+        PKHash *pkhash = std::get_if<PKHash>(&dest);
         if (!pkhash) {
             // Only PKHash are supported.
             return state.Invalid(

@@ -35,6 +35,8 @@
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>
 
+#include <variant>
+
 using interfaces::FoundBlock;
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
@@ -2614,7 +2616,7 @@ unsigned int CWallet::ComputeTimeSmart(const CWalletTx &wtx) const {
 
 bool CWallet::AddDestData(WalletBatch &batch, const CTxDestination &dest,
                           const std::string &key, const std::string &value) {
-    if (boost::get<CNoDestination>(&dest)) {
+    if (std::get_if<CNoDestination>(&dest)) {
         return false;
     }
 

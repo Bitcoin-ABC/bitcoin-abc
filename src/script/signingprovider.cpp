@@ -8,6 +8,8 @@
 
 #include <util/system.h>
 
+#include <variant>
+
 const SigningProvider &DUMMY_SIGNING_PROVIDER = SigningProvider();
 
 template <typename M, typename K, typename V>
@@ -163,7 +165,7 @@ bool FillableSigningProvider::GetCScript(const CScriptID &hash,
 CKeyID GetKeyForDestination(const SigningProvider &store,
                             const CTxDestination &dest) {
     // Only supports destinations which map to single public keys, i.e. P2PKH.
-    if (auto id = boost::get<PKHash>(&dest)) {
+    if (auto id = std::get_if<PKHash>(&dest)) {
         return ToKeyID(*id);
     }
     return CKeyID();

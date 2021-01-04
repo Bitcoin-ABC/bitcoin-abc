@@ -12,9 +12,8 @@
 #include <uint256.h>
 #include <util/hash_type.h>
 
-#include <boost/variant.hpp>
-
 #include <string>
+#include <variant>
 
 static const bool DEFAULT_ACCEPT_DATACARRIER = true;
 
@@ -90,7 +89,7 @@ struct ScriptHash : public BaseHash<uint160> {
  *  * ScriptHash: TxoutType::SCRIPTHASH destination (P2SH)
  *  A CTxDestination is the internal data type encoded in a bitcoin address
  */
-typedef boost::variant<CNoDestination, PKHash, ScriptHash> CTxDestination;
+using CTxDestination = std::variant<CNoDestination, PKHash, ScriptHash>;
 
 /** Check whether a CTxDestination is a CNoDestination. */
 bool IsValidDestination(const CTxDestination &dest);

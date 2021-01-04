@@ -60,7 +60,7 @@ RPCHelpMan signmessage() {
                 throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
             }
 
-            const PKHash *pkhash = boost::get<PKHash>(&dest);
+            const PKHash *pkhash = std::get_if<PKHash>(&dest);
             if (!pkhash) {
                 throw JSONRPCError(RPC_TYPE_ERROR,
                                    "Address does not refer to key");

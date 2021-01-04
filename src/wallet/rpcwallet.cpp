@@ -43,6 +43,7 @@
 #include <event2/http.h>
 
 #include <optional>
+#include <variant>
 
 using interfaces::FoundBlock;
 
@@ -3238,7 +3239,7 @@ static RPCHelpMan listunspent() {
                     if (provider) {
                         if (scriptPubKey.IsPayToScriptHash()) {
                             const CScriptID &hash =
-                                CScriptID(boost::get<ScriptHash>(address));
+                                CScriptID(std::get<ScriptHash>(address));
                             CScript redeemScript;
                             if (provider->GetCScript(hash, redeemScript)) {
                                 entry.pushKV("redeemScript",
@@ -3803,7 +3804,7 @@ RPCHelpMan rescanblockchain() {
     };
 }
 
-class DescribeWalletAddressVisitor : public boost::static_visitor<UniValue> {
+class DescribeWalletAddressVisitor {
 public:
     const SigningProvider *const provider;
 
@@ -3820,7 +3821,7 @@ public:
             UniValue subobj(UniValue::VOBJ);
             UniValue detail = DescribeAddress(embedded);
             subobj.pushKVs(detail);
-            UniValue wallet_detail = boost::apply_visitor(*this, embedded);
+            UniValue wallet_detail = std::visit(*this, embedded);
             subobj.pushKVs(wallet_detail);
             subobj.pushKV("address", EncodeDestination(embedded, GetConfig()));
             subobj.pushKV("scriptPubKey", HexStr(subscript));
@@ -3884,8 +3885,7 @@ static UniValue DescribeWalletAddress(const CWallet *const pwallet,
         provider = pwallet->GetSolvingProvider(script);
     }
     ret.pushKVs(detail);
-    ret.pushKVs(boost::apply_visitor(
-        DescribeWalletAddressVisitor(provider.get()), dest));
+    ret.pushKVs(std::visit(DescribeWalletAddressVisitor(provider.get()), dest));
     return ret;
 }
 

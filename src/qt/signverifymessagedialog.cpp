@@ -15,6 +15,7 @@
 
 #include <QClipboard>
 
+#include <variant>
 #include <vector>
 
 SignVerifyMessageDialog::SignVerifyMessageDialog(
@@ -121,7 +122,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked() {
             tr("Please check the address and try again."));
         return;
     }
-    const PKHash *pkhash = boost::get<PKHash>(&destination);
+    const PKHash *pkhash = std::get_if<PKHash>(&destination);
     if (!pkhash) {
         ui->addressIn_SM->setValid(false);
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");

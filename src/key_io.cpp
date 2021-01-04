@@ -10,15 +10,12 @@
 #include <config.h>
 #include <util/strencodings.h>
 
-#include <boost/variant/apply_visitor.hpp>
-#include <boost/variant/static_visitor.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <cstring>
 
 namespace {
-class DestinationEncoder : public boost::static_visitor<std::string> {
+class DestinationEncoder {
 private:
     const CChainParams &m_params;
 
@@ -190,7 +187,7 @@ bool IsValidDestinationString(const std::string &str,
 
 std::string EncodeLegacyAddr(const CTxDestination &dest,
                              const CChainParams &params) {
-    return boost::apply_visitor(DestinationEncoder(params), dest);
+    return std::visit(DestinationEncoder(params), dest);
 }
 
 CTxDestination DecodeLegacyAddr(const std::string &str,

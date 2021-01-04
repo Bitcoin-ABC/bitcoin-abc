@@ -15,8 +15,7 @@
 #include <util/translation.h>
 
 #include <tuple>
-
-#include <boost/variant/static_visitor.hpp>
+#include <variant>
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
 const std::string EXAMPLE_ADDRESS =
@@ -303,7 +302,7 @@ CTxDestination AddAndGetMultisigDestination(const int required,
     return dest;
 }
 
-class DescribeAddressVisitor : public boost::static_visitor<UniValue> {
+class DescribeAddressVisitor {
 public:
     explicit DescribeAddressVisitor() {}
 
@@ -325,7 +324,7 @@ public:
 };
 
 UniValue DescribeAddress(const CTxDestination &dest) {
-    return boost::apply_visitor(DescribeAddressVisitor(), dest);
+    return std::visit(DescribeAddressVisitor(), dest);
 }
 
 std::string GetAllOutputTypes() {

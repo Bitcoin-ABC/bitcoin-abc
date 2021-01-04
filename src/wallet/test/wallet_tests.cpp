@@ -30,6 +30,7 @@
 #include <cstdint>
 #include <future>
 #include <memory>
+#include <variant>
 #include <vector>
 
 using node::MAX_BLOCKFILE_SIZE;
@@ -617,7 +618,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoinsTest, ListCoinsTestingSetup) {
         list = ListCoins(*wallet);
     }
     BOOST_CHECK_EQUAL(list.size(), 1U);
-    BOOST_CHECK_EQUAL(boost::get<PKHash>(list.begin()->first).ToString(),
+    BOOST_CHECK_EQUAL(std::get<PKHash>(list.begin()->first).ToString(),
                       coinbaseAddress);
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 1U);
 
@@ -635,7 +636,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoinsTest, ListCoinsTestingSetup) {
         list = ListCoins(*wallet);
     }
     BOOST_CHECK_EQUAL(list.size(), 1U);
-    BOOST_CHECK_EQUAL(boost::get<PKHash>(list.begin()->first).ToString(),
+    BOOST_CHECK_EQUAL(std::get<PKHash>(list.begin()->first).ToString(),
                       coinbaseAddress);
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 2U);
 
@@ -665,7 +666,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoinsTest, ListCoinsTestingSetup) {
         list = ListCoins(*wallet);
     }
     BOOST_CHECK_EQUAL(list.size(), 1U);
-    BOOST_CHECK_EQUAL(boost::get<PKHash>(list.begin()->first).ToString(),
+    BOOST_CHECK_EQUAL(std::get<PKHash>(list.begin()->first).ToString(),
                       coinbaseAddress);
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 2U);
 }

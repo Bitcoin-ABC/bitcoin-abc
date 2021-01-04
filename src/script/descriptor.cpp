@@ -728,7 +728,7 @@ public:
     bool IsSolvable() const final { return false; }
 
     std::optional<OutputType> GetOutputType() const override {
-        switch (m_destination.which()) {
+        switch (m_destination.index()) {
             case 1 /* PKHash */:
             case 2 /* ScriptHash */:
                 return OutputType::LEGACY;
@@ -760,7 +760,7 @@ public:
     std::optional<OutputType> GetOutputType() const override {
         CTxDestination dest;
         ExtractDestination(m_script, dest);
-        switch (dest.which()) {
+        switch (dest.index()) {
             case 1 /* PKHash */:
             case 2 /* ScriptHash */:
                 return OutputType::LEGACY;

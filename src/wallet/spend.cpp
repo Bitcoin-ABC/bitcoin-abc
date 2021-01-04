@@ -653,7 +653,7 @@ static bool CreateTransactionInternal(
         CScript scriptChange;
 
         // coin control: send change to custom address
-        if (!boost::get<CNoDestination>(&coin_control.destChange)) {
+        if (!std::get_if<CNoDestination>(&coin_control.destChange)) {
             scriptChange = GetScriptForDestination(coin_control.destChange);
 
             // no coin control: send change to newly generated address
