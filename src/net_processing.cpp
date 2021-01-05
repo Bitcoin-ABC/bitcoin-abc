@@ -1169,7 +1169,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
 /**
  * Mark a misbehaving peer to be banned depending upon the value of `-banscore`.
  */
-void Misbehaving(NodeId pnode, int howmuch, const std::string &reason) {
+void Misbehaving(NodeId pnode, int howmuch, const std::string &message) {
     AssertLockHeld(cs_main);
     if (howmuch == 0) {
         return;
@@ -1182,25 +1182,26 @@ void Misbehaving(NodeId pnode, int howmuch, const std::string &reason) {
 
     state->nMisbehavior += howmuch;
     int banscore = gArgs.GetArg("-banscore", DEFAULT_BANSCORE_THRESHOLD);
+    std::string message_prefixed = message.empty() ? "" : (": " + message);
     if (state->nMisbehavior >= banscore &&
         state->nMisbehavior - howmuch < banscore) {
-        LogPrintf(
-            "%s: %s peer=%d (%d -> %d) reason: %s BAN THRESHOLD EXCEEDED\n",
-            __func__, state->name, pnode, state->nMisbehavior - howmuch,
-            state->nMisbehavior, reason);
+        LogPrint(BCLog::NET,
+                 "%s: %s peer=%d (%d -> %d) BAN THRESHOLD EXCEEDED%s\n",
+                 __func__, state->name, pnode, state->nMisbehavior - howmuch,
+                 state->nMisbehavior, message_prefixed);
         state->m_should_discourage = true;
     } else {
-        LogPrintf("%s: %s peer=%d (%d -> %d) reason: %s\n", __func__,
-                  state->name, pnode, state->nMisbehavior - howmuch,
-                  state->nMisbehavior, reason);
+        LogPrint(BCLog::NET, "%s: %s peer=%d (%d -> %d)%s\n", __func__,
+                 state->name, pnode, state->nMisbehavior - howmuch,
+                 state->nMisbehavior, message_prefixed);
     }
 }
 
 // overloaded variant of above to operate on CNode*s
 static void Misbehaving(const CNode &node, int howmuch,
-                        const std::string &reason)
+                        const std::string &message)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    Misbehaving(node.GetId(), howmuch, reason);
+    Misbehaving(node.GetId(), howmuch, message);
 }
 
 /**
@@ -1960,10 +1961,9 @@ inline static void SendBlockTransactions(const CBlock &block,
     for (size_t i = 0; i < req.indices.size(); i++) {
         if (req.indices[i] >= block.vtx.size()) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 100, "out-of-bound-tx-index");
-            LogPrintf(
-                "Peer %d sent us a getblocktxn with out-of-bounds tx indices\n",
-                pfrom.GetId());
+            Misbehaving(pfrom, 100,
+                        strprintf("Peer sent us a getblocktxn with "
+                                  "out-of-bounds tx indices"));
             return;
         }
         resp.txn[i] = block.vtx[req.indices[i]];
@@ -2035,8 +2035,8 @@ static bool ProcessHeadersMessage(const Config &config, CNode &pfrom,
         for (const CBlockHeader &header : headers) {
             if (!hashLastBlock.IsNull() &&
                 header.hashPrevBlock != hashLastBlock) {
-                Misbehaving(pfrom, 20, "disconnected-header");
-                return error("non-continuous headers sequence");
+                Misbehaving(pfrom, 20, "non-continuous headers sequence");
+                return false;
             }
             hashLastBlock = header.GetHash();
         }
@@ -2785,8 +2785,10 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         }
         if (vAddr.size() > 1000) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 20, "oversized-addr");
-            return error("message addr size() = %u", vAddr.size());
+            Misbehaving(pfrom, 20,
+                        strprintf("oversized-addr: message addr size() = %u",
+                                  vAddr.size()));
+            return false;
         }
 
         // Store the new addresses
@@ -2872,8 +2874,10 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 20, "oversized-inv");
-            return error("message inv size() = %u", vInv.size());
+            Misbehaving(pfrom, 20,
+                        strprintf("oversized-inv: message inv size() = %u",
+                                  vInv.size()));
+            return false;
         }
 
         // We won't accept tx inv's if we're in blocks-only mode, or this is a
@@ -2944,8 +2948,10 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 20, "too-many-inv");
-            return error("message getdata size() = %u", vInv.size());
+            Misbehaving(pfrom, 20,
+                        strprintf("too-many-inv: message getdata size() = %u",
+                                  vInv.size()));
+            return false;
         }
 
         LogPrint(BCLog::NET, "received getdata (%u invsz) peer=%d\n",
@@ -3481,9 +3487,9 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
                     if (status == READ_STATUS_INVALID) {
                         // Reset in-flight state in case of whitelist
                         MarkBlockAsReceived(pindex->GetBlockHash());
-                        Misbehaving(pfrom, 100, "invalid-cmpctblk");
-                        LogPrintf("Peer %d sent us invalid compact block\n",
-                                  pfrom.GetId());
+                        Misbehaving(pfrom, 100,
+                                    strprintf("invalid-cmpctblk: Peer sent us "
+                                              "invalid compact block"));
                         return true;
                     } else if (status == READ_STATUS_FAILED) {
                         // Duplicate txindices, the block is now in-flight, so
@@ -3643,10 +3649,10 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
             if (status == READ_STATUS_INVALID) {
                 // Reset in-flight state in case of whitelist.
                 MarkBlockAsReceived(resp.blockhash);
-                Misbehaving(pfrom, 100, "invalid-cmpctblk-txns");
-                LogPrintf("Peer %d sent us invalid compact block/non-matching "
-                          "block transactions\n",
-                          pfrom.GetId());
+                Misbehaving(
+                    pfrom, 100,
+                    strprintf("invalid-cmpctblk-txns: Peer sent us invalid "
+                              "compact block/non-matching block transactions"));
                 return true;
             } else if (status == READ_STATUS_FAILED) {
                 // Might have collided, fall back to getdata now :(
@@ -3723,8 +3729,10 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 20, "too-many-headers");
-            return error("headers message size = %u", nCount);
+            Misbehaving(pfrom, 20,
+                        strprintf("too-many-headers: headers message size = %u",
+                                  nCount));
+            return false;
         }
         headers.resize(nCount);
         for (unsigned int n = 0; n < nCount; n++) {
@@ -3807,8 +3815,10 @@ bool ProcessMessage(const Config &config, CNode &pfrom,
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > AVALANCHE_MAX_ELEMENT_POLL) {
             LOCK(cs_main);
-            Misbehaving(pfrom, 20, "too-many-ava-poll");
-            return error("poll message size = %u", nCount);
+            Misbehaving(
+                pfrom, 20,
+                strprintf("too-many-ava-poll: poll message size = %u", nCount));
+            return false;
         }
 
         std::vector<avalanche::Vote> votes;
