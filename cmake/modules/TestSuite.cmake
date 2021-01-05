@@ -168,7 +168,7 @@ function(add_boost_unit_tests_to_suite SUITE NAME)
 	add_executable(${NAME} EXCLUDE_FROM_ALL ${ARG_UNPARSED_ARGUMENTS})
 	add_dependencies("${SUITE_TARGET}" ${NAME})
 
-	set(HRF_LOGGER "HRF,test_suite")
+	set(HRF_LOGGER "HRF,message")
 
 	foreach(_test_source ${ARG_TESTS})
 		target_sources(${NAME} PRIVATE "${_test_source}")
