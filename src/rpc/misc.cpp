@@ -445,7 +445,7 @@ static UniValue setmocktime(const Config &config,
     }
         .Check(request);
 
-    if (!config.GetChainParams().MineBlocksOnDemand()) {
+    if (!config.GetChainParams().IsMockableChain()) {
         throw std::runtime_error(
             "setmocktime for regression testing (-regtest mode) only");
     }
