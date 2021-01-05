@@ -41,7 +41,8 @@ private:
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
 
-    bool CheckIfBanned(CNode &pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool MaybeDiscourageAndDisconnect(CNode &pnode)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 public:
     PeerLogicValidation(CConnman &connman, BanMan *banman,

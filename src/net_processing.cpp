@@ -4237,7 +4237,7 @@ void PeerLogicValidation::ProcessMessage(
     return;
 }
 
-bool PeerLogicValidation::CheckIfBanned(CNode &pnode) {
+bool PeerLogicValidation::MaybeDiscourageAndDisconnect(CNode &pnode) {
     AssertLockHeld(cs_main);
     CNodeState &state = *State(pnode.GetId());
 
@@ -4386,7 +4386,7 @@ bool PeerLogicValidation::ProcessMessages(const Config &config, CNode *pfrom,
     }
 
     LOCK(cs_main);
-    CheckIfBanned(*pfrom);
+    MaybeDiscourageAndDisconnect(*pfrom);
 
     return fMoreWork;
 }
@@ -4652,7 +4652,7 @@ bool PeerLogicValidation::SendMessages(const Config &config, CNode *pto,
         return true;
     }
 
-    if (CheckIfBanned(*pto)) {
+    if (MaybeDiscourageAndDisconnect(*pto)) {
         return true;
     }
     CNodeState &state = *State(pto->GetId());
