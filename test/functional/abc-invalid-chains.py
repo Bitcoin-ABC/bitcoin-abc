@@ -21,7 +21,7 @@ class InvalidChainsTest(BitcoinTestFramework):
         self.tip = None
         self.blocks = {}
         self.block_heights = {}
-        self.extra_args = [["-whitelist=127.0.0.1"]]
+        self.extra_args = [["-whitelist=noban@127.0.0.1"]]
 
     def next_block(self, number):
         if self.tip is None:

@@ -38,7 +38,7 @@ def unDERify(tx):
 class BIP66Test(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [['-whitelist=127.0.0.1']]
+        self.extra_args = [['-whitelist=noban@127.0.0.1']]
         self.setup_clean_chain = True
         self.rpc_timeout = 120
 

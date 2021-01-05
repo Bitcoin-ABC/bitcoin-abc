@@ -77,7 +77,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # that segwit spending txn are not resulting in bans, node_nonstd
         # doesn't get banned when forwarding this kind of transactions to
         # node_std.
-        self.extra_args = [['-whitelist=127.0.0.1',
+        self.extra_args = [['-whitelist=noban@127.0.0.1',
                             "-acceptnonstdtxn"],
                            ["-acceptnonstdtxn=0"]]
 

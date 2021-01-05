@@ -130,7 +130,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         self.block_heights = {}
         self.tip = None
         self.blocks = {}
-        self.extra_args = [['-whitelist=127.0.0.1',
+        self.extra_args = [['-whitelist=noban@127.0.0.1',
                             EXTRA_ARG,
                             '-acceptnonstdtxn=1']]
 
