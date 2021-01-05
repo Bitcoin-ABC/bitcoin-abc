@@ -7,6 +7,11 @@
 
 #include <primitives/transaction.h>
 
+#include <array>
+
+class FillableSigningProvider;
+class CCoinsViewCache;
+
 // create crediting transaction
 // [1 coinbase input => 1 output with given scriptPubkey and value]
 CMutableTransaction BuildCreditingTransaction(const CScript &scriptPubKey,
@@ -17,5 +22,13 @@ CMutableTransaction BuildCreditingTransaction(const CScript &scriptPubKey,
 //  1 output with empty scriptPubKey, full value of referenced transaction]
 CMutableTransaction BuildSpendingTransaction(const CScript &scriptSig,
                                              const CTransaction &txCredit);
+
+// Helper: create two dummy transactions, each with two outputs.
+// The first has nValues[0] and nValues[1] outputs paid to a TX_PUBKEY,
+// the second nValues[2] and nValues[3] outputs paid to a TX_PUBKEYHASH.
+std::vector<CMutableTransaction>
+SetupDummyInputs(FillableSigningProvider &keystoreRet,
+                 CCoinsViewCache &coinsRet,
+                 const std::array<Amount, 4> &nValues);
 
 #endif // BITCOIN_TEST_UTIL_TRANSACTION_UTILS_H
