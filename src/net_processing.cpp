@@ -549,6 +549,7 @@ static void PushNodeVersion(const Config &config, CNode &pnode,
     int nNodeStartingHeight = pnode.GetMyStartingHeight();
     NodeId nodeid = pnode.GetId();
     CAddress addr = pnode.addr;
+    uint64_t extraEntropy = pnode.GetLocalExtraEntropy();
 
     CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr)
                             ? addr
@@ -556,11 +557,12 @@ static void PushNodeVersion(const Config &config, CNode &pnode,
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
     connman.PushMessage(
-        &pnode, CNetMsgMaker(INIT_PROTO_VERSION)
-                    .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
-                          uint64_t(nLocalNodeServices), nTime, addrYou, addrMe,
-                          nonce, userAgent(config), nNodeStartingHeight,
-                          ::g_relay_txes && pnode.m_tx_relay != nullptr));
+        &pnode,
+        CNetMsgMaker(INIT_PROTO_VERSION)
+            .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
+                  uint64_t(nLocalNodeServices), nTime, addrYou, addrMe, nonce,
+                  userAgent(config), nNodeStartingHeight,
+                  ::g_relay_txes && pnode.m_tx_relay != nullptr, extraEntropy));
 
     if (fLogIPs) {
         LogPrint(BCLog::NET,
@@ -2612,6 +2614,7 @@ void PeerLogicValidation::ProcessMessage(
         std::string cleanSubVer;
         int nStartingHeight = -1;
         bool fRelay = true;
+        uint64_t nExtraEntropy = 1;
 
         vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
         nSendVersion = std::min(nVersion, PROTOCOL_VERSION);
@@ -2652,6 +2655,9 @@ void PeerLogicValidation::ProcessMessage(
         }
         if (!vRecv.empty()) {
             vRecv >> fRelay;
+        }
+        if (!vRecv.empty()) {
+            vRecv >> nExtraEntropy;
         }
         // Disconnect if we connected to ourself
         if (pfrom.IsInboundConn() && !m_connman.CheckIncomingNonce(nNonce)) {
@@ -2700,6 +2706,8 @@ void PeerLogicValidation::ProcessMessage(
         // Change version
         pfrom.SetSendVersion(nSendVersion);
         pfrom.nVersion = nVersion;
+        pfrom.nRemoteHostNonce = nNonce;
+        pfrom.nRemoteExtraEntropy = nExtraEntropy;
 
         // Potentially mark this peer as a preferred download peer.
         {

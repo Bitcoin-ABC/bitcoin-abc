@@ -101,6 +101,8 @@ const std::string NET_MESSAGE_COMMAND_OTHER = "*other*";
 static const uint64_t RANDOMIZER_ID_NETGROUP = 0x6c0edd8036ef4036ULL;
 // SHA256("localhostnonce")[0:8]
 static const uint64_t RANDOMIZER_ID_LOCALHOSTNONCE = 0xd93e69e2bbfa5735ULL;
+// SHA256("localhostnonce")[8:16]
+static const uint64_t RANDOMIZER_ID_EXTRAENTROPY = 0x94b05d41679a4ff7ULL;
 //
 // Global state variables
 //
@@ -469,16 +471,20 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     uint64_t nonce = GetDeterministicRandomizer(RANDOMIZER_ID_LOCALHOSTNONCE)
                          .Write(id)
                          .Finalize();
+    uint64_t extra_entropy =
+        GetDeterministicRandomizer(RANDOMIZER_ID_EXTRAENTROPY)
+            .Write(id)
+            .Finalize();
     CAddress addr_bind = GetBindAddress(hSocket);
     CNode *pnode =
         new CNode(id, nLocalServices, GetBestHeight(), hSocket, addrConnect,
-                  CalculateKeyedNetGroup(addrConnect), nonce, addr_bind,
-                  pszDest ? pszDest : "", conn_type);
+                  CalculateKeyedNetGroup(addrConnect), nonce, extra_entropy,
+                  addr_bind, pszDest ? pszDest : "", conn_type);
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
     // peer count)
-    RandAddEvent((uint32_t)id);
+    RandAddEvent(uint32_t(id));
 
     return pnode;
 }
@@ -1151,6 +1157,10 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     uint64_t nonce = GetDeterministicRandomizer(RANDOMIZER_ID_LOCALHOSTNONCE)
                          .Write(id)
                          .Finalize();
+    uint64_t extra_entropy =
+        GetDeterministicRandomizer(RANDOMIZER_ID_EXTRAENTROPY)
+            .Write(id)
+            .Finalize();
     CAddress addr_bind = GetBindAddress(hSocket);
 
     ServiceFlags nodeServices = nLocalServices;
@@ -1158,8 +1168,8 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
         nodeServices = static_cast<ServiceFlags>(nodeServices | NODE_BLOOM);
     }
     CNode *pnode = new CNode(id, nodeServices, GetBestHeight(), hSocket, addr,
-                             CalculateKeyedNetGroup(addr), nonce, addr_bind, "",
-                             ConnectionType::INBOUND);
+                             CalculateKeyedNetGroup(addr), nonce, extra_entropy,
+                             addr_bind, "", ConnectionType::INBOUND);
     pnode->AddRef();
     pnode->m_permissionFlags = permissionFlags;
     // If this flag is present, the user probably expect that RPC and QT report
@@ -1177,7 +1187,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
 
     // We received a new connection, harvest entropy from the time (and our peer
     // count)
-    RandAddEvent((uint32_t)id);
+    RandAddEvent(uint32_t(id));
 }
 
 void CConnman::DisconnectNodes() {
@@ -2998,14 +3008,15 @@ unsigned int CConnman::GetReceiveFloodSize() const {
 CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
              int nMyStartingHeightIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
-             const CAddress &addrBindIn, const std::string &addrNameIn,
-             ConnectionType conn_type_in)
+             uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
+             const std::string &addrNameIn, ConnectionType conn_type_in)
     : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
       addrBind(addrBindIn), nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
-      id(idIn), nLocalHostNonce(nLocalHostNonceIn), m_conn_type(conn_type_in),
+      id(idIn), nLocalHostNonce(nLocalHostNonceIn),
+      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
       nLocalServices(nLocalServicesIn), nMyStartingHeight(nMyStartingHeightIn) {
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;

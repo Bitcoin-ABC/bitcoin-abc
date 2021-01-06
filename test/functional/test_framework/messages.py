@@ -927,7 +927,7 @@ class CMerkleBlock:
 
 class msg_version:
     __slots__ = ("addrFrom", "addrTo", "nNonce", "nRelay", "nServices",
-                 "nStartingHeight", "nTime", "nVersion", "strSubVer")
+                 "nStartingHeight", "nTime", "nVersion", "strSubVer", "nExtraEntropy")
     msgtype = b"version"
 
     def __init__(self):
@@ -940,6 +940,7 @@ class msg_version:
         self.strSubVer = MY_SUBVERSION
         self.nStartingHeight = -1
         self.nRelay = MY_RELAY
+        self.nExtraEntropy = random.getrandbits(64)
 
     def deserialize(self, f):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
@@ -957,6 +958,8 @@ class msg_version:
 
         self.nRelay = struct.unpack("<b", f.read(1))[0]
 
+        self.nExtraEntropy = struct.unpack("<Q", f.read(8))[0]
+
     def serialize(self):
         r = b""
         r += struct.pack("<i", self.nVersion)
@@ -968,13 +971,14 @@ class msg_version:
         r += ser_string(self.strSubVer)
         r += struct.pack("<i", self.nStartingHeight)
         r += struct.pack("<b", self.nRelay)
+        r += struct.pack("<Q", self.nExtraEntropy)
         return r
 
     def __repr__(self):
-        return 'msg_version(nVersion={} nServices={} nTime={} addrTo={} addrFrom={} nNonce=0x{:016X} strSubVer={} nStartingHeight={} nRelay={})'.format(
+        return 'msg_version(nVersion={} nServices={} nTime={} addrTo={} addrFrom={} nNonce=0x{:016X} strSubVer={} nStartingHeight={} nRelay={} nExtraEntropy={})'.format(
             self.nVersion, self.nServices, self.nTime,
             repr(self.addrTo), repr(self.addrFrom), self.nNonce,
-            self.strSubVer, self.nStartingHeight, self.nRelay)
+            self.strSubVer, self.nStartingHeight, self.nRelay, self.nExtraEntropy)
 
 
 class msg_verack:

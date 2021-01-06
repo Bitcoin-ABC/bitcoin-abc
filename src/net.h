@@ -854,11 +854,15 @@ public:
     // Bind address of our side of the connection
     const CAddress addrBind;
     std::atomic<int> nVersion{0};
-    RecursiveMutex cs_SubVer;
+    // The nonce provided by the remote host.
+    uint64_t nRemoteHostNonce{0};
+    // The extra entropy provided by the remote host.
+    uint64_t nRemoteExtraEntropy{0};
     /**
      * cleanSubVer is a sanitized string of the user agent byte array we read
      * from the wire. This cleaned string can safely be logged or displayed.
      */
+    RecursiveMutex cs_SubVer;
     std::string cleanSubVer GUARDED_BY(cs_SubVer){};
     // This peer is preferred for eviction.
     bool m_prefer_evict{false};
@@ -1017,8 +1021,9 @@ public:
 
     CNode(NodeId id, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn,
           SOCKET hSocketIn, const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
-          uint64_t nLocalHostNonceIn, const CAddress &addrBindIn,
-          const std::string &addrNameIn, ConnectionType conn_type_in);
+          uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,
+          const CAddress &addrBindIn, const std::string &addrNameIn,
+          ConnectionType conn_type_in);
     ~CNode();
     CNode(const CNode &) = delete;
     CNode &operator=(const CNode &) = delete;
@@ -1026,6 +1031,7 @@ public:
 private:
     const NodeId id;
     const uint64_t nLocalHostNonce;
+    const uint64_t nLocalExtraEntropy;
     const ConnectionType m_conn_type;
 
     //! Services offered to this peer.
@@ -1062,6 +1068,7 @@ public:
     NodeId GetId() const { return id; }
 
     uint64_t GetLocalNonce() const { return nLocalHostNonce; }
+    uint64_t GetLocalExtraEntropy() const { return nLocalExtraEntropy; }
 
     int GetMyStartingHeight() const { return nMyStartingHeight; }
 
