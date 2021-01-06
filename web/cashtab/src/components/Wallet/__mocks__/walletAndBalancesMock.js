@@ -2,29 +2,76 @@ import BigNumber from 'bignumber.js';
 
 export const walletWithBalancesMock = {
     wallet: {
+        name: 'MigrationTestAlpha',
         Path245: {
+            cashAddress:
+                'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
             slpAddress:
-                'simpleledger:qryupy05jz7tlhtda2xth8vyvdqksyqh5cp5kf5vth',
+                'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
+            fundingWif: 'KwgNkyijAaxFr5XQdnaYyNMXVSZobgHzSoKKfWiC3Q7Xr4n7iYMG',
+            fundingAddress:
+                'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
+            legacyAddress: '1EgPUfBgU7ekho3EjtGze87dRADnUE8ojP',
         },
         Path145: {
             cashAddress:
-                'bitcoincash:qrn4er57cvr5fulyl4hduef6czgu6u2yu522f4gv6f',
+                'bitcoincash:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9v0lgx569z',
+            slpAddress:
+                'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
+            fundingWif: 'L2xvTe6CdNxroR6pbdpGWNjAa55AZX5Wm59W5TXMuH31ihNJdDjt',
+            fundingAddress:
+                'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
+            legacyAddress: '1511T3ynXKgCwXhFijCUWKuTfqbPxFV1AF',
+        },
+        Path1899: {
+            cashAddress:
+                'bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6',
+            slpAddress:
+                'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
+            fundingWif: 'Kx4FiBMvKK1iXjFk5QTaAK6E4mDGPjmwDZ2HDKGUZpE4gCXMaPe9',
+            fundingAddress:
+                'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
+            legacyAddress: '1J1Aq5tAAYxZgSDRo8soKM2Rb41z3xrYpm',
         },
     },
     balances: {
-        totalBalance: 0.000546,
+        totalBalanceInSatoshis: 6047469,
+        totalBalance: 0.06047469,
     },
 };
 
 export const walletWithoutBalancesMock = {
     wallet: {
+        name: 'MigrationTestAlpha',
         Path245: {
+            cashAddress:
+                'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
             slpAddress:
-                'simpleledger:qryupy05jz7tlhtda2xth8vyvdqksyqh5cp5kf5vth',
+                'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
+            fundingWif: 'KwgNkyijAaxFr5XQdnaYyNMXVSZobgHzSoKKfWiC3Q7Xr4n7iYMG',
+            fundingAddress:
+                'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
+            legacyAddress: '1EgPUfBgU7ekho3EjtGze87dRADnUE8ojP',
         },
         Path145: {
             cashAddress:
-                'bitcoincash:qrn4er57cvr5fulyl4hduef6czgu6u2yu522f4gv6f',
+                'bitcoincash:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9v0lgx569z',
+            slpAddress:
+                'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
+            fundingWif: 'L2xvTe6CdNxroR6pbdpGWNjAa55AZX5Wm59W5TXMuH31ihNJdDjt',
+            fundingAddress:
+                'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
+            legacyAddress: '1511T3ynXKgCwXhFijCUWKuTfqbPxFV1AF',
+        },
+        Path1899: {
+            cashAddress:
+                'bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6',
+            slpAddress:
+                'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
+            fundingWif: 'Kx4FiBMvKK1iXjFk5QTaAK6E4mDGPjmwDZ2HDKGUZpE4gCXMaPe9',
+            fundingAddress:
+                'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
+            legacyAddress: '1J1Aq5tAAYxZgSDRo8soKM2Rb41z3xrYpm',
         },
     },
     tokens: [],
@@ -35,48 +82,72 @@ export const walletWithoutBalancesMock = {
 
 export const walletWithBalancesAndTokens = {
     wallet: {
+        name: 'MigrationTestAlpha',
         Path245: {
+            cashAddress:
+                'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
             slpAddress:
-                'simpleledger:qryupy05jz7tlhtda2xth8vyvdqksyqh5cp5kf5vth',
+                'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
+            fundingWif: 'KwgNkyijAaxFr5XQdnaYyNMXVSZobgHzSoKKfWiC3Q7Xr4n7iYMG',
+            fundingAddress:
+                'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
+            legacyAddress: '1EgPUfBgU7ekho3EjtGze87dRADnUE8ojP',
         },
         Path145: {
             cashAddress:
-                'bitcoincash:qrn4er57cvr5fulyl4hduef6czgu6u2yu522f4gv6f',
+                'bitcoincash:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9v0lgx569z',
+            slpAddress:
+                'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
+            fundingWif: 'L2xvTe6CdNxroR6pbdpGWNjAa55AZX5Wm59W5TXMuH31ihNJdDjt',
+            fundingAddress:
+                'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
+            legacyAddress: '1511T3ynXKgCwXhFijCUWKuTfqbPxFV1AF',
+        },
+        Path1899: {
+            cashAddress:
+                'bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6',
+            slpAddress:
+                'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
+            fundingWif: 'Kx4FiBMvKK1iXjFk5QTaAK6E4mDGPjmwDZ2HDKGUZpE4gCXMaPe9',
+            fundingAddress:
+                'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
+            legacyAddress: '1J1Aq5tAAYxZgSDRo8soKM2Rb41z3xrYpm',
         },
     },
     balances: {
-        totalBalances: 0.0000546,
+        totalBalanceInSatoshis: 6047469,
+        totalBalance: 0.06047469,
     },
     tokens: [
         {
             info: {
-                height: 659843,
+                height: 666987,
                 tx_hash:
-                    '88b7dac07cb30566a6264f330bedda690c8dff151c2307692c79e13dc59ca2ba',
+                    'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
                 tx_pos: 2,
                 value: 546,
-                address:
-                    'bitcoincash:qphazxf3vhe4qchvzz2pjempdhplaxcj957xqq8mg2',
                 satoshis: 546,
                 txid:
-                    '88b7dac07cb30566a6264f330bedda690c8dff151c2307692c79e13dc59ca2ba',
+                    'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
                 vout: 2,
                 utxoType: 'token',
                 transactionType: 'send',
                 tokenId:
-                    '2aef6e63edfded1a299e78b529286deea2a6dd5299b6911778c25632d78a9479',
-                tokenTicker: 'PTC',
-                tokenName: 'pitico',
-                tokenDocumentUrl: 'bitcoinabc.org',
+                    'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
+                tokenTicker: 'TBS',
+                tokenName: 'TestBits',
+                tokenDocumentUrl: 'https://thecryptoguy.com/',
                 tokenDocumentHash: '',
-                decimals: 5,
+                decimals: 9,
                 tokenType: 1,
-                tokenQty: 99.35,
+                tokenQty: '6.001',
                 isValid: true,
+                address:
+                    'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
             },
             tokenId:
-                '2aef6e63edfded1a299e78b529286deea2a6dd5299b6911778c25632d78a9479',
-            balance: new BigNumber(99),
+                'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
+            balance: '6.001',
             hasBaton: false,
         },
     ],

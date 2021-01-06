@@ -132,10 +132,12 @@
         "roots": [
             "<rootDir>/src"
         ],
+        "collectCoverage": true,
         "collectCoverageFrom": [
             "src/**/*.{js,jsx,ts,tsx}",
             "!src/**/*.d.ts"
         ],
+        "coverageDirectory": "<rootDir>/coverage",
         "coverageThreshold": {
             "global": {
                 "branches": 15,
@@ -198,13 +200,15 @@
     "devDependencies": {
         "@babel/core": "^7.6.0",
         "@babel/node": "^7.12.6",
-        "@testing-library/react": "^11.1.0",
+        "@testing-library/react": "^11.2.2",
+        "@testing-library/react-hooks": "^3.7.0",
         "babel-plugin-fbt": "^0.16.0",
         "babel-plugin-fbt-runtime": "^0.9.12",
         "fbt-generate-translations": "^0.0.4",
         "less": "^3.10.3",
         "less-loader": "^5.0.0",
         "react-test-renderer": "^17.0.0",
+        "sinon": "^9.2.2",
         "workbox-webpack-plugin": "^4.3.1"
     }
 }

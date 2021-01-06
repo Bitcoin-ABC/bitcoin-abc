@@ -66,11 +66,3 @@ test('Without wallet defined', () => {
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
-// test("Wallet with BCH balances and tokens", () => {
-//     useContextMock.mockReturnValue({ wallet: { mnemonic: 'test mnemonic' } });
-//     const component = renderer.create(
-//         <Configure />,
-//       );
-//       let tree = component.toJSON();
-//       expect(tree).toMatchSnapshot();
-// });

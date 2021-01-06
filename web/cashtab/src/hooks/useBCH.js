@@ -301,12 +301,22 @@ export default function useBCH() {
 
         // Return any token change back to the sender.
         if (slpSendObj.outputs > 1) {
-            transactionBuilder.addOutput(
-                BCH.SLP.Address.toLegacyAddress(
-                    tokenUtxosBeingSpent[0].address,
-                ),
-                546,
-            );
+            // Try to send this to Path1899 to move all utxos off legacy addresses
+            if (wallet.Path1899.legacyAddress) {
+                transactionBuilder.addOutput(
+                    wallet.Path1899.legacyAddress,
+                    546,
+                );
+            } else {
+                // If you can't, send it back from whence it came
+
+                transactionBuilder.addOutput(
+                    BCH.SLP.Address.toLegacyAddress(
+                        tokenUtxosBeingSpent[0].address,
+                    ),
+                    546,
+                );
+            }
         }
 
         // get byte count to calculate fee. paying 1 sat
@@ -323,11 +333,21 @@ export default function useBCH() {
         if (remainder < 1) {
             throw new Error('Selected UTXO does not have enough satoshis');
         }
+
         // Last output: send the BCH change back to the wallet.
-        transactionBuilder.addOutput(
-            BCH.Address.toLegacyAddress(largestBchUtxo.address),
-            remainder,
-        );
+        // If Path1899, send it to Path1899 address
+        if (wallet.Path1899.legacyAddress) {
+            transactionBuilder.addOutput(
+                wallet.Path1899.legacyAddress,
+                remainder,
+            );
+        } else {
+            // Otherwise send it back from whence it came
+            transactionBuilder.addOutput(
+                BCH.Address.toLegacyAddress(largestBchUtxo.address),
+                remainder,
+            );
+        }
 
         // Sign the transaction with the private key for the BCH UTXO paying the fees.
         let redeemScript;
@@ -342,7 +362,7 @@ export default function useBCH() {
         // Sign each token UTXO being consumed.
         for (let i = 0; i < tokenUtxosBeingSpent.length; i++) {
             const thisUtxo = tokenUtxosBeingSpent[i];
-            const accounts = [wallet.Path245, wallet.Path145];
+            const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
             const utxoEcPair = BCH.ECPair.fromWIF(
                 accounts
                     .filter(acc => acc.cashAddress === thisUtxo.address)
@@ -402,7 +422,7 @@ export default function useBCH() {
                 (previous, current) => new BigNumber(current).plus(previous),
                 new BigNumber(0),
             );
-            const REMAINDER_ADDR = wallet.Path145.cashAddress;
+            const REMAINDER_ADDR = wallet.Path1899.cashAddress;
             const inputUtxos = [];
             let transactionBuilder;
 

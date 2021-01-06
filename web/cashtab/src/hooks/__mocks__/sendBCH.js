@@ -20,6 +20,10 @@ export default {
             cashAddress:
                 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
         },
+        Path1899: {
+            cashAddress:
+                'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
+        },
     },
     addresses: ['bitcoincash:qr2npxqwznhp7gphatcqzexeclx0hhwdxg386ez36n'],
     values: ['0.00000546'],

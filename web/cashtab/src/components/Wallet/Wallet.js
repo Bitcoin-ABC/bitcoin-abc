@@ -203,14 +203,30 @@ const WalletInfo = () => {
                 </>
             )}
 
-            <QRCode
-                id="borderedQRCode"
-                address={
-                    address === 'slpAddress'
-                        ? wallet.Path245.slpAddress
-                        : wallet.Path145.cashAddress
-                }
-            />
+            {wallet &&
+                ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
+                    <>
+                        {wallet.Path1899 ? (
+                            <QRCode
+                                id="borderedQRCode"
+                                address={
+                                    address === 'slpAddress'
+                                        ? wallet.Path1899.slpAddress
+                                        : wallet.Path1899.cashAddress
+                                }
+                            />
+                        ) : (
+                            <QRCode
+                                id="borderedQRCode"
+                                address={
+                                    address === 'slpAddress'
+                                        ? wallet.Path245.slpAddress
+                                        : wallet.Path145.cashAddress
+                                }
+                            />
+                        )}
+                    </>
+                )}
 
             <SwitchBtnCtn>
                 <SwitchBtn
@@ -233,7 +249,7 @@ const WalletInfo = () => {
             {balances.totalBalance ? (
                 <>
                     <ExternalLink
-                        href={`${currency.blockExplorerUrl}/address/${wallet.Path145.cashAddress}`}
+                        href={`${currency.blockExplorerUrl}/address/${wallet.Path1899.cashAddress}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >

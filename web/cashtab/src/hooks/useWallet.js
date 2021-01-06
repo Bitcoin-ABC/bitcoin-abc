@@ -68,7 +68,7 @@ const useWallet = () => {
     };
 
     const normalizeSlpBalancesAndUtxos = (slpBalancesAndUtxos, wallet) => {
-        const Accounts = [wallet.Path245, wallet.Path145];
+        const Accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
         slpBalancesAndUtxos.nonSlpUtxos.forEach(utxo => {
             const derivatedAccount = Accounts.find(
                 account => account.cashAddress === utxo.address,
@@ -90,7 +90,7 @@ const useWallet = () => {
         };
     };
 
-    const deriveAccount = async ({ masterHDNode, path }) => {
+    const deriveAccount = async (BCH, { masterHDNode, path }) => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
         const cashAddress = BCH.HDNode.toCashAddress(node);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
@@ -151,6 +151,7 @@ const useWallet = () => {
             const cashAddresses = [
                 wallet.Path245.cashAddress,
                 wallet.Path145.cashAddress,
+                wallet.Path1899.cashAddress,
             ];
 
             const utxos = await getUtxos(BCH, cashAddresses);
@@ -224,47 +225,110 @@ const useWallet = () => {
         //console.timeEnd("update");
     };
 
-    const getWallet = async () => {
+    const getActiveWalletFromLocalForage = async () => {
         let wallet;
         try {
-            let existingWallet;
-            try {
-                existingWallet = await localforage.getItem('wallet');
-                // If not in localforage then existingWallet = false, check localstorage
-                if (!existingWallet) {
-                    console.log(`no existing wallet, checking local storage`);
-                    existingWallet = JSON.parse(
-                        window.localStorage.getItem('wallet'),
-                    );
-                    console.log(
-                        `existingWallet from localStorage`,
-                        existingWallet,
-                    );
-                    // If you find it here, move it to indexedDb
-                    if (existingWallet !== null) {
-                        wallet = await getWalletDetails(existingWallet);
-                        await localforage.setItem('wallet', wallet);
-                        return wallet;
-                    }
-                }
-            } catch (e) {
-                console.log(e);
-                existingWallet = null;
-            }
-            // If no wallet in indexedDb or localforage or caught error above or the initial 'false' is in indexedDB
-            if (existingWallet === null || !existingWallet) {
-                wallet = await getWalletDetails(existingWallet);
-                await localforage.setItem('wallet', wallet);
-            } else {
-                wallet = existingWallet;
-            }
-
-            // todo: only do this if you didn't get it out of storage
-            //wallet = await getWalletDetails(existingWallet);
-            //await localforage.setItem("wallet", wallet);
-        } catch (error) {
-            console.log(error);
+            wallet = await localforage.getItem('wallet');
+        } catch (err) {
+            console.log(`Error in getActiveWalletFromLocalForage`, err);
+            wallet = null;
         }
+        return wallet;
+    };
+
+    /*
+    const getSavedWalletsFromLocalForage = async () => {
+        let savedWallets;
+        try {
+            savedWallets = await localforage.getItem('savedWallets');
+        } catch (err) {
+            console.log(`Error in getSavedWalletsFromLocalForage`, err);
+            savedWallets = null;
+        }
+        return savedWallets;
+    };
+    */
+
+    const getWallet = async () => {
+        let wallet;
+        let existingWallet;
+        try {
+            existingWallet = await getActiveWalletFromLocalForage();
+            // existing wallet will be
+            // 1 - the 'wallet' value from localForage, if it exists
+            // 2 - false if it does not exist in localForage
+            // 3 - null if error
+
+            // If the wallet does not have Path1899, add it
+            if (existingWallet && !existingWallet.Path1899) {
+                console.log(`Wallet does not have Path1899`);
+                existingWallet = await migrateLegacyWallet(BCH, existingWallet);
+            }
+            // If not in localforage then existingWallet = false, check localstorage
+            if (!existingWallet) {
+                console.log(`no existing wallet, checking local storage`);
+                existingWallet = JSON.parse(
+                    window.localStorage.getItem('wallet'),
+                );
+                console.log(`existingWallet from localStorage`, existingWallet);
+                // If you find it here, move it to indexedDb
+                if (existingWallet !== null) {
+                    wallet = await getWalletDetails(existingWallet);
+                    await localforage.setItem('wallet', wallet);
+                    return wallet;
+                }
+            }
+        } catch (err) {
+            console.log(`Error in getWallet()`, err);
+            /* 
+            Error here implies problem interacting with localForage or localStorage API
+            
+            Have not seen this error in testing
+
+            In this case, you still want to return 'wallet' using the logic below based on 
+            the determination of 'existingWallet' from the logic above
+            */
+        }
+
+        if (existingWallet === null || !existingWallet) {
+            wallet = await getWalletDetails(existingWallet);
+            await localforage.setItem('wallet', wallet);
+        } else {
+            wallet = existingWallet;
+        }
+        return wallet;
+    };
+
+    const migrateLegacyWallet = async (BCH, wallet) => {
+        console.log(`migrateLegacyWallet`);
+        console.log(`legacyWallet`, wallet);
+        const NETWORK = process.env.REACT_APP_NETWORK;
+        const mnemonic = wallet.mnemonic;
+        const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
+
+        let masterHDNode;
+
+        if (NETWORK === `mainnet`) {
+            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
+        } else {
+            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
+        }
+        const Path1899 = await deriveAccount(BCH, {
+            masterHDNode,
+            path: "m/44'/1899'/0'/0/0",
+        });
+
+        wallet.Path1899 = Path1899;
+
+        try {
+            await localforage.setItem('wallet', wallet);
+        } catch (err) {
+            console.log(
+                `Error setting wallet to wallet indexedDb in migrateLegacyWallet()`,
+            );
+            console.log(err);
+        }
+
         return wallet;
     };
 
@@ -278,17 +342,23 @@ const useWallet = () => {
         const rootSeedBuffer = await BCH.Mnemonic.toSeed(mnemonic);
         let masterHDNode;
 
-        if (NETWORK === `mainnet`)
+        if (NETWORK === `mainnet`) {
             masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer);
-        else masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
+        } else {
+            masterHDNode = BCH.HDNode.fromSeed(rootSeedBuffer, 'testnet');
+        }
 
-        const Path245 = await deriveAccount({
+        const Path245 = await deriveAccount(BCH, {
             masterHDNode,
             path: "m/44'/245'/0'/0/0",
         });
-        const Path145 = await deriveAccount({
+        const Path145 = await deriveAccount(BCH, {
             masterHDNode,
             path: "m/44'/145'/0'/0/0",
+        });
+        const Path1899 = await deriveAccount(BCH, {
+            masterHDNode,
+            path: "m/44'/1899'/0'/0/0",
         });
 
         let name = Path145.cashAddress.slice(12, 17);
@@ -302,6 +372,7 @@ const useWallet = () => {
             name,
             Path245,
             Path145,
+            Path1899,
         };
     };
 
@@ -356,14 +427,52 @@ const useWallet = () => {
             );
             return false;
         }
+        /*
+        When a legacy user runs cashtabapp.com/, their active wallet will be migrated to Path1899 by 
+        the getWallet function
+
+        Wallets in savedWallets are migrated when they are activated, in this function
+
+        Two cases to handle
+
+        1 - currentlyActiveWallet has Path1899, but its stored keyvalue pair in savedWallets does not
+            > Update savedWallets so that Path1899 is added to currentlyActiveWallet
+        
+        2 - walletToActivate does not have Path1899
+            > Update walletToActivate with Path1899 before activation
+        */
 
         // Check savedWallets for currentlyActiveWallet
         let walletInSavedWallets = false;
+        let walletUnmigrated = false;
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === currentlyActiveWallet.name) {
                 walletInSavedWallets = true;
+                // Check savedWallets for unmigrated currentlyActiveWallet
+                if (!savedWallets[i].Path1899) {
+                    // Case 1, described above
+                    console.log(
+                        `Case 1: Wallet migration in saved wallets still pending, adding Path1899`,
+                    );
+                    savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
+                    walletUnmigrated = true;
+                }
             }
         }
+
+        // Case 1
+        if (walletUnmigrated) {
+            // resave savedWallets
+            try {
+                // Set walletName as the active wallet
+                await localforage.setItem('savedWallets', savedWallets);
+            } catch (err) {
+                console.log(
+                    `Error in localforage.setItem("savedWallets") in activateWallet() for unmigrated wallet`,
+                );
+            }
+        }
+
         if (!walletInSavedWallets) {
             console.log(`Wallet is not in saved Wallets, adding`);
             savedWallets.push(currentlyActiveWallet);
@@ -377,16 +486,29 @@ const useWallet = () => {
                 );
             }
         }
+        // If wallet does not have Path1899, add it
 
-        // Now that we have verified the last wallet was saved, we can activate the new wallet
-        try {
-            await localforage.setItem('wallet', walletToActivate);
-        } catch (err) {
+        if (!walletToActivate.Path1899) {
+            // Case 2, described above
+            console.log(`Case 2: Wallet to activate does not have Path1899`);
             console.log(
-                `Error in localforage.setItem("wallet", walletToActivate) in activateWallet()`,
+                `Wallet to activate from SavedWallets does not have Path1899`,
             );
-            return false;
+            console.log(`walletToActivate`, walletToActivate);
+            walletToActivate = await migrateLegacyWallet(BCH, walletToActivate);
+        } else {
+            // Otherwise activate it as normal
+            // Now that we have verified the last wallet was saved, we can activate the new wallet
+            try {
+                await localforage.setItem('wallet', walletToActivate);
+            } catch (err) {
+                console.log(
+                    `Error in localforage.setItem("wallet", walletToActivate) in activateWallet()`,
+                );
+                return false;
+            }
         }
+
         return walletToActivate;
     };
 
@@ -1067,10 +1189,12 @@ const useWallet = () => {
         txHistory,
         loading,
         apiError,
+        getActiveWalletFromLocalForage,
         getWallet,
         validateMnemonic,
         getWalletDetails,
         getSavedWallets,
+        migrateLegacyWallet,
         update: async () =>
             update({
                 wallet: await getWallet(),
