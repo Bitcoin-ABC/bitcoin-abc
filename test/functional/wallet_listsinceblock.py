@@ -2,7 +2,8 @@
 # Copyright (c) 2017-2019 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
-"""Test the listsincelast RPC."""
+"""Test the listsinceblock RPC."""
+
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_array_result,
@@ -35,6 +36,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         self.test_double_send()
 
     def test_no_blockhash(self):
+        self.log.info("Test no blockhash")
         txid = self.nodes[2].sendtoaddress(self.nodes[0].getnewaddress(), 1)
         blockhash, = self.nodes[2].generate(1)
         blockheight = self.nodes[2].getblockheader(blockhash)['height']
@@ -60,6 +62,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
              "transactions": txs})
 
     def test_invalid_blockhash(self):
+        self.log.info("Test invalid blockhash")
         assert_raises_rpc_error(-5, "Block not found", self.nodes[0].listsinceblock,
                                 "42759cde25462784395a337460bde75f58e73d3f08bd31fdc3507cbac856a2c4")
         assert_raises_rpc_error(-5, "Block not found", self.nodes[0].listsinceblock,
@@ -97,6 +100,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
 
         This test only checks that [tx0] is present.
         '''
+        self.log.info("Test reorg")
 
         # Split network into two
         self.split_network()
@@ -107,7 +111,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         # generate on both sides
         lastblockhash = self.nodes[1].generate(6)[5]
         self.nodes[2].generate(7)
-        self.log.info('lastblockhash={}'.format(lastblockhash))
+        self.log.debug('lastblockhash={}'.format(lastblockhash))
 
         self.sync_all(self.nodes[:2])
         self.sync_all(self.nodes[2:])
@@ -153,6 +157,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         until the fork point, and to include all transactions that relate to the
         node wallet.
         '''
+        self.log.info("Test double spend")
 
         self.sync_all()
 
@@ -235,6 +240,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         3. It is listed with a confirmation count of 2 (bb3, bb4), not
            3 (aa1, aa2, aa3).
         '''
+        self.log.info("Test double send")
 
         self.sync_all()
 
