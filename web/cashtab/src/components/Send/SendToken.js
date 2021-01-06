@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { WalletContext } from '@utils/context';
 import { Form, notification, message, Spin, Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import PrimaryButton, { SecondaryButton } from '@components/Common/PrimaryButton';
+import PrimaryButton, {
+    SecondaryButton,
+} from '@components/Common/PrimaryButton';
 import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
 import {
     FormItemWithMaxAddon,

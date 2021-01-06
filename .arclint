@@ -275,7 +275,8 @@
         },
         "prettier": {
             "type": "prettier",
-            "include": "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)"
+            "include": "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
+            "exclude": "(^web/.*/translations/.*\\.json$)"
         }
     }
 }

@@ -15,7 +15,7 @@ import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from '@components/Common/PrimaryButton';
-import { CashLoader,  CashLoadingIcon  } from '@components/Common/CustomIcons';
+import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
