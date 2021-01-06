@@ -390,7 +390,7 @@ static CTransactionRef SendMoney(CWallet *const pwallet,
     CScript scriptPubKey = GetScriptForDestination(address);
 
     // Create and send the transaction
-    Amount nFeeRequired;
+    Amount nFeeRequired = Amount::zero();
     bilingual_str error;
     std::vector<CRecipient> vecSend;
     int nChangePosRet = -1;
