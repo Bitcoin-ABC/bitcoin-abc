@@ -124,26 +124,37 @@ class BuildConfiguration:
             "TOPLEVEL": str(self.project_root),
         }
 
+    def create_script_file(self, dest, content):
+        # Write the content to a script file using a template
+        with open(self.script_root.joinpath("bash_script.sh.in"), encoding='utf-8') as f:
+            script_template_content = f.read()
+
+        template = Template(script_template_content)
+
+        with open(dest, 'w', encoding='utf-8') as f:
+            f.write(
+                template.safe_substitute(
+                    **self.environment_variables,
+                    SCRIPT_CONTENT=content,
+                )
+            )
+        dest.chmod(dest.stat().st_mode | stat.S_IEXEC)
+
     def create_build_steps(self, artifact_dir):
         # There are 2 possibilities to define the build steps:
-        #  - By defining a script to run. If such a script is set and is
-        #    executable, it is the only thing to run.
+        #  - By manually defining a script to run.
         #  - By defining the configuration options and a list of target groups to
         #    run. The configuration step should be run once then all the targets
         #    groups. Each target group can contain 1 or more targets which
         #    should be run parallel.
         script = self.config.get("script", None)
         if script:
-            script_path = Path(self.project_root.joinpath(script))
-            if not script_path.is_file() or not os.access(script_path, os.X_OK):
-                raise FileNotFoundError(
-                    "The script file {} does not exist or does not have execution permission".format(
-                        str(script_path)
-                    )
-                )
+            script_file = self.build_directory.joinpath("script.sh")
+            self.create_script_file(script_file, script)
+
             self.build_steps = [
                 {
-                    "bin": str(script_path),
+                    "bin": str(script_file),
                     "args": [],
                 }
             ]
@@ -253,22 +264,8 @@ class BuildConfiguration:
         # If a post build script is defined, add it as a last step
         post_build = self.config.get("post_build", None)
         if post_build:
-            # Write the content to a script file using a template
             script_file = self.build_directory.joinpath("post_build.sh")
-
-            with open(self.script_root.joinpath("bash_script.sh.in"), encoding='utf-8') as f:
-                script_template_content = f.read()
-
-            template = Template(script_template_content)
-
-            with open(script_file, 'w', encoding='utf-8') as f:
-                f.write(
-                    template.safe_substitute(
-                        **self.environment_variables,
-                        SCRIPT_CONTENT=post_build,
-                    )
-                )
-            script_file.chmod(script_file.stat().st_mode | stat.S_IEXEC)
+            self.create_script_file(script_file, post_build)
 
             self.build_steps.append(
                 {

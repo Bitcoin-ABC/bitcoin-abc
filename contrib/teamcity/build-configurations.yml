@@ -457,4 +457,5 @@ builds:
     runOnDiffRegex:
       - src/
       - test/lint/
-    script: test/lint/lint-circular-dependencies.sh
+    script: |
+      "${TOPLEVEL}/test/lint/lint-circular-dependencies.sh"
