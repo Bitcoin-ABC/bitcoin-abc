@@ -83,7 +83,7 @@
         "semver": "6.3.0",
         "style-loader": "1.0.0",
         "styled-components": "^4.4.0",
-        "terser-webpack-plugin": "^5.0.3",
+        "terser-webpack-plugin": "^4.2.3",
         "ts-pnp": "1.1.4",
         "url-loader": "2.1.0",
         "webpack": "4.40.2",
