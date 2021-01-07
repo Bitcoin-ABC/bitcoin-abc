@@ -137,7 +137,7 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
-export default () => {
+const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading, apiError } = ContextValue;
 
@@ -555,3 +555,5 @@ export default () => {
         </Spin>
     );
 };
+
+export default Configure;

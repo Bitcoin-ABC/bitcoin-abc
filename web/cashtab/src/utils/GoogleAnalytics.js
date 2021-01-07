@@ -68,8 +68,10 @@ export const Event = (category, action, label) => {
     });
 };
 
-export default {
+const GoogleAnalyticsDefault = {
     GoogleAnalytics,
     RouteTracker,
     init,
 };
+
+export default GoogleAnalyticsDefault;
