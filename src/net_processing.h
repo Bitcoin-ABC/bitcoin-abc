@@ -149,33 +149,11 @@ public:
     void NewPoWValidBlock(const CBlockIndex *pindex,
                           const std::shared_ptr<const CBlock> &pblock) override;
 
-    /**
-     * Initialize a peer by adding it to mapNodeState and pushing a message
-     * requesting its version.
-     */
     void InitializeNode(const Config &config, CNode *pnode) override;
-    /**
-     * Handle removal of a peer by updating various state and removing it from
-     * mapNodeState.
-     */
     void FinalizeNode(const Config &config, const CNode &node,
                       bool &fUpdateConnectionTime) override;
-    /**
-     * Process protocol messages received from a given node
-     *
-     * @param[in]   config      The applicable configuration object.
-     * @param[in]   pfrom       The node which we have received messages from.
-     * @param[in]   interrupt   Interrupt condition for processing threads
-     */
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override;
-    /**
-     * Send queued protocol messages to be sent to a give node.
-     *
-     * @param[in]   config      The applicable configuration object.
-     * @param[in]   pto         The node which we are sending messages to.
-     * @return                  True if there is more work to be done
-     */
     bool SendMessages(const Config &config, CNode *pto) override
         EXCLUSIVE_LOCKS_REQUIRED(pto->cs_sendProcessing);
 
