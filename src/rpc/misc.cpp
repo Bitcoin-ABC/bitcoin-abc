@@ -94,7 +94,7 @@ static UniValue createmultisig(const Config &config,
             {"keys",
              RPCArg::Type::ARR,
              RPCArg::Optional::NO,
-             "A json array of hex-encoded public keys.",
+             "The hex-encoded public keys.",
              {
                  {"key", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
                   "The hex-encoded public key"},
@@ -652,7 +652,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
             {"include",
              RPCArg::Type::ARR,
              RPCArg::Optional::OMITTED_NAMED_ARG,
-             "A json array of categories to add debug logging",
+             "The categories to add to debug logging",
              {
                  {"include_category", RPCArg::Type::STR,
                   RPCArg::Optional::OMITTED, "the valid logging category"},
@@ -660,7 +660,7 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
             {"exclude",
              RPCArg::Type::ARR,
              RPCArg::Optional::OMITTED_NAMED_ARG,
-             "A json array of categories to remove debug logging",
+             "The categories to remove from debug logging",
              {
                  {"exclude_category", RPCArg::Type::STR,
                   RPCArg::Optional::OMITTED, "the valid logging category"},

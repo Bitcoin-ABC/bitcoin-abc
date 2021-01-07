@@ -608,7 +608,7 @@ static UniValue getblocktemplate(const Config &config,
             {"template_request",
              RPCArg::Type::OBJ,
              "{}",
-             "A json object in the following spec",
+             "Format of the template",
              {
                  {"mode", RPCArg::Type::STR, /* treat as named arg */
                   RPCArg::Optional::OMITTED_NAMED_ARG,

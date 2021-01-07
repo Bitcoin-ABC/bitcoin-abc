@@ -920,7 +920,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                 "amounts",
                 RPCArg::Type::OBJ,
                 RPCArg::Optional::NO,
-                "A json object with addresses and amounts",
+                "The addresses and amounts",
                 {
                     {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
                      "The bitcoin address is the key, the numeric amount (can "
@@ -936,7 +936,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                 "subtractfeefrom",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::OMITTED_NAMED_ARG,
-                "A json array with addresses.\n"
+                "The addresses.\n"
                 "                           The fee will be equally deducted "
                 "from the amount of each selected address.\n"
                 "                           Those recipients will receive less "
@@ -1100,7 +1100,7 @@ static UniValue addmultisigaddress(const Config &config,
                 "keys",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of bitcoin addresses or hex-encoded public keys",
+                "The bitcoin addresses or hex-encoded public keys",
                 {
                     {"key", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
                      "bitcoin address or hex-encoded public key"},
@@ -2621,7 +2621,7 @@ static UniValue lockunspent(const Config &config,
                 "transactions",
                 RPCArg::Type::ARR,
                 /* default */ "empty array",
-                "A json array of objects. Each object the txid (string) vout "
+                "The transaction outputs and within each, txid (string) vout "
                 "(numeric).",
                 {
                     {
@@ -3467,7 +3467,7 @@ static UniValue listunspent(const Config &config,
                 "addresses",
                 RPCArg::Type::ARR,
                 /* default */ "empty array",
-                "A json array of bitcoin addresses to filter",
+                "The bitcoin addresses to filter",
                 {
                     {"address", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
                      "bitcoin address"},
@@ -3890,7 +3890,7 @@ static UniValue fundrawtransaction(const Config &config,
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
                      /* default */ "empty array",
-                     "A json array of integers.\n"
+                     "The integers.\n"
                      "                              The fee will be equally "
                      "deducted from the amount of each specified output.\n"
                      "                              Those recipients will "
@@ -3982,7 +3982,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
                 "prevtxs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::OMITTED_NAMED_ARG,
-                "A json array of previous dependent transaction outputs",
+                "The previous dependent transaction outputs",
                 {
                     {
                         "",
@@ -4512,7 +4512,7 @@ UniValue getaddressesbylabel(const Config &config,
                   {
                       {RPCResult::Type::OBJ,
                        "address",
-                       "json object with information about address",
+                       "Information about address",
                        {
                            {RPCResult::Type::STR, "purpose",
                             "Purpose of address (\"send\" for sending address, "
@@ -4847,7 +4847,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                 "outputs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "a json array with outputs (key-value pairs), where none of "
+                "The outputs (key-value pairs), where none of "
                 "the keys are duplicated.\n"
                 "That is, each address can only appear once and there can only "
                 "be one 'data' object.\n"
@@ -4913,7 +4913,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
                      /* default */ "empty array",
-                     "A json array of integers.\n"
+                     "The outputs to subtract the fee from.\n"
                      "                              The fee will be equally "
                      "deducted from the amount of each specified output.\n"
                      "                              Those recipients will "

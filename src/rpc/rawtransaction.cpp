@@ -282,7 +282,7 @@ static UniValue gettxoutproof(const Config &config,
                 "txids",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of txids to filter",
+                "The txids to filter",
                 {
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
                      "A transaction hash"},
@@ -459,7 +459,7 @@ static UniValue createrawtransaction(const Config &config,
                 "inputs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of json objects",
+                "The inputs",
                 {
                     {
                         "",
@@ -482,7 +482,7 @@ static UniValue createrawtransaction(const Config &config,
                 "outputs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "a json array with outputs (key-value pairs), where none of "
+                "The outputs (key-value pairs), where none of "
                 "the keys are duplicated.\n"
                 "That is, each address can only appear once and there can only "
                 "be one 'data' object.\n"
@@ -729,7 +729,7 @@ static UniValue combinerawtransaction(const Config &config,
                 "txs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of hex strings of partially signed "
+                "The hex strings of partially signed "
                 "transactions",
                 {
                     {"hexstring", RPCArg::Type::STR_HEX,
@@ -832,7 +832,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
                 "privkeys",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of base58-encoded private keys for signing",
+                "The base58-encoded private keys for signing",
                 {
                     {"privatekey", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
                      "private key in base58-encoding"},
@@ -842,7 +842,7 @@ static UniValue signrawtransactionwithkey(const Config &config,
                 "prevtxs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::OMITTED_NAMED_ARG,
-                "A json array of previous dependent transaction outputs",
+                "The previous dependent transaction outputs",
                 {
                     {
                         "",
@@ -1520,8 +1520,7 @@ static UniValue combinepsbt(const Config &config,
                 "txs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of base64 strings of partially signed "
-                "transactions",
+                "The base64 strings of partially signed transactions",
                 {
                     {"psbt", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
                      "A base64 string of a PSBT"},
@@ -1646,7 +1645,7 @@ static UniValue createpsbt(const Config &config,
                 "inputs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "A json array of json objects",
+                "The json objects",
                 {
                     {
                         "",
@@ -1669,7 +1668,7 @@ static UniValue createpsbt(const Config &config,
                 "outputs",
                 RPCArg::Type::ARR,
                 RPCArg::Optional::NO,
-                "a json array with outputs (key-value pairs), where none of "
+                "The outputs (key-value pairs), where none of "
                 "the keys are duplicated.\n"
                 "That is, each address can only appear once and there can only "
                 "be one 'data' object.\n"
@@ -1922,7 +1921,7 @@ UniValue joinpsbts(const Config &config, const JSONRPCRequest &request) {
         {{"txs",
           RPCArg::Type::ARR,
           RPCArg::Optional::NO,
-          "A json array of base64 strings of partially signed transactions",
+          "The base64 strings of partially signed transactions",
           {{"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
             "A base64 string of a PSBT"}}}},
         RPCResult{RPCResult::Type::STR, "",
