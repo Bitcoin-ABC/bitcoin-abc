@@ -70,6 +70,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         node.submitblock(ToHex(block))
 
         # Transaction should not be rebroadcast
+        node.syncwithvalidationinterfacequeue()
         node.p2ps[1].sync_with_ping()
         assert_equal(node.p2ps[1].tx_invs_received[txid], 0)
 
