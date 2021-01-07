@@ -14,7 +14,7 @@ RUN apt-get update && \
   apt-get install -y git && \
   apt-get install -y python
 # install node modules and build assets
-RUN npm install --legacy-peer-deps && npm run build
+RUN npm install && npm run build
 
 # Stage 2
 FROM nginx

@@ -9,10 +9,8 @@
 
 ## Development
 
-CashTab relies on some modules that retain legacy dependencies. NPM version 7 or later no longer supports automatic resolution of these peer dependencies. To successfully install modules such as `qrcode.react`, with NPM > 7, run `npm install` with the flag `--legacy-peer-deps`
-
 ```
-npm install --legacy-peer-deps
+npm install
 npm start
 ```
 
@@ -67,7 +65,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 ## Docker deployment
 
 ```
-npm install --legacy-peer-deps
+npm install
 docker-compose build
 docker-compose up
 ```
