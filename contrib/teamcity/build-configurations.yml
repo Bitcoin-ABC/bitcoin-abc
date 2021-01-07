@@ -466,9 +466,14 @@ builds:
     env:
       # Any string will work, CI just needs to be defined
       CI: 'teamcity'
+      JEST_SUITE_NAME: "Cashtab Test suites"
+      JEST_JUNIT_SUITE_NAME: "CashTab Unit Tests"
+      JEST_JUNIT_OUTPUT_DIR: "test/junit"
+      JEST_JUNIT_OUTPUT_NAME: "cashtab.xml"
     script: |
       pushd "${TOPLEVEL}/web/cashtab"
       npm install
       npm run build
-      npm run test
+      npm run test -- --reporters=jest-junit
+      mv test "${BUILD_DIR}/"
       popd
