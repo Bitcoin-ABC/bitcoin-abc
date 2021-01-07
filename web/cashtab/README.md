@@ -24,15 +24,28 @@ You will also see any lint errors in the console.
 
 ## Testing
 
-### 'npm test'
+Run the tests in watch mode (interactive):
 
-### 'npm run test:coverage'
+```
+npm test
+```
+
+Run the tests and generate a coverage report (non-interactive):
+
+```
+npm run test:coverage
+```
+
+You can then browse the HTML coverage report by opening the
+`coverage/lcov-report/index.html` file in your web browser.
 
 ## Production
 
 In the project directory, run:
 
-### `npm run build`
+```
+npm run build
+```
 
 Builds the app for production to the `build` folder.<br>
 It correctly bundles React in production mode and optimizes the build for the best performance.
