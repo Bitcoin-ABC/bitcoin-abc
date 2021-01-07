@@ -994,7 +994,7 @@ private:
     void InvalidChainFound(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     CBlockIndex *FindMostWorkChain() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-    bool MarkBlockAsFinal(const Config &config, BlockValidationState &state,
+    bool MarkBlockAsFinal(BlockValidationState &state,
                           const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void ReceivedBlockTransactions(const CBlock &block, CBlockIndex *pindexNew,

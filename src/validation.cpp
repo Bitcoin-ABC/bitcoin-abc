@@ -2419,8 +2419,7 @@ public:
     }
 };
 
-bool CChainState::MarkBlockAsFinal(const Config &config,
-                                   BlockValidationState &state,
+bool CChainState::MarkBlockAsFinal(BlockValidationState &state,
                                    const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
     if (pindex->nStatus.isInvalid()) {
@@ -2451,8 +2450,7 @@ bool CChainState::MarkBlockAsFinal(const Config &config,
     return true;
 }
 
-static const CBlockIndex *FindBlockToFinalize(const Config &config,
-                                              CBlockIndex *pindexNew)
+static const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
 
@@ -2556,10 +2554,8 @@ bool CChainState::ConnectTip(const Config &config, BlockValidationState &state,
         }
 
         // Update the finalized block.
-        const CBlockIndex *pindexToFinalize =
-            FindBlockToFinalize(config, pindexNew);
-        if (pindexToFinalize &&
-            !MarkBlockAsFinal(config, state, pindexToFinalize)) {
+        const CBlockIndex *pindexToFinalize = FindBlockToFinalize(pindexNew);
+        if (pindexToFinalize && !MarkBlockAsFinal(state, pindexToFinalize)) {
             return error("ConnectTip(): MarkBlockAsFinal %s failed (%s)",
                          pindexNew->GetBlockHash().ToString(),
                          state.ToString());
@@ -3373,7 +3369,7 @@ bool CChainState::FinalizeBlock(const Config &config,
     CBlockIndex *pindexToInvalidate = nullptr;
     {
         LOCK(cs_main);
-        if (!MarkBlockAsFinal(config, state, pindex)) {
+        if (!MarkBlockAsFinal(state, pindex)) {
             // state is set by MarkBlockAsFinal.
             return false;
         }
