@@ -474,6 +474,13 @@ builds:
       pushd "${TOPLEVEL}/web/cashtab"
       npm install
       npm run build
-      npm run test -- --reporters=jest-junit
-      mv test "${BUILD_DIR}/"
-      popd
+
+      # Make sure the report is available even if the tests fail
+      move_junit_report() {
+        mv test "${BUILD_DIR}/"
+      }
+      trap "move_junit_report" EXIT
+
+      npm run test -- \
+        --reporters=default \
+        --reporters=jest-junit
