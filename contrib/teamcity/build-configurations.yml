@@ -459,3 +459,16 @@ builds:
       - test/lint/
     script: |
       "${TOPLEVEL}/test/lint/lint-circular-dependencies.sh"
+
+  cashtab-tests:
+    runOnDiffRegex:
+      - web/cashtab/
+    env:
+      # Any string will work, CI just needs to be defined
+      CI: 'teamcity'
+    script: |
+      pushd "${TOPLEVEL}/web/cashtab"
+      npm install
+      npm run build
+      npm run test
+      popd

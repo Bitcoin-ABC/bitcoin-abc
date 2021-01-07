@@ -59,6 +59,7 @@ PACKAGES=(
   lld
   make
   ninja-build
+  npm
   nsis
   php-codesniffer
   pkg-config
