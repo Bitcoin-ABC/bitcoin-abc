@@ -59,7 +59,6 @@ PACKAGES=(
   lld
   make
   ninja-build
-  npm
   nsis
   php-codesniffer
   pkg-config
@@ -92,7 +91,6 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}"
 
 BACKPORTS=(
   cmake
-  npm
   shellcheck
 )
 
@@ -129,3 +127,7 @@ pip3 install pytest
 wget https://github.com/jgm/pandoc/releases/download/2.10.1/pandoc-2.10.1-1-amd64.deb
 echo "4515d6fe2bf8b82765d8dfa1e1b63ccb0ff3332d60389f948672eaa37932e936 pandoc-2.10.1-1-amd64.deb" | sha256sum -c
 DEBIAN_FRONTEND=noninteractive dpkg -i pandoc-2.10.1-1-amd64.deb
+
+# Install npm v7.x and nodejs v15.x
+curl -sL https://deb.nodesource.com/setup_15.x | bash -
+apt-get install -y nodejs
