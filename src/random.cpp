@@ -17,7 +17,7 @@
 #include <support/allocators/secure.h>
 #include <support/cleanse.h>
 #include <sync.h>      // for Mutex
-#include <util/time.h> // for GetTime()
+#include <util/time.h> // for GetTimeMicros()
 
 #include <cstdlib>
 #include <memory>
@@ -356,13 +356,11 @@ void GetOSRand(uint8_t *ent32) {
         RandFailure();
     }
 #elif defined(HAVE_GETENTROPY_RAND) && defined(MAC_OSX)
-    // We need a fallback for OSX < 10.12
-    if (&getentropy != nullptr) {
-        if (getentropy(ent32, NUM_OS_RANDOM_BYTES) != 0) {
-            RandFailure();
-        }
-    } else {
-        GetDevURandom(ent32);
+    /**
+     * getentropy() is available on macOS 10.12 and later.
+     */
+    if (getentropy(ent32, NUM_OS_RANDOM_BYTES) != 0) {
+        RandFailure();
     }
 #elif defined(HAVE_SYSCTL_ARND)
     /**
