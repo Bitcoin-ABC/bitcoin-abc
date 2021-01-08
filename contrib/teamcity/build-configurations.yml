@@ -2,7 +2,8 @@
 # Templates can be referenced in builds to avoid duplication
 templates:
   gitian_builds:
-    script: contrib/teamcity/gitian.sh
+    script: |
+      "${TOPLEVEL}/contrib/teamcity/gitian.sh"
     timeout: 7200
     artifacts:
       gitian-results: ''
