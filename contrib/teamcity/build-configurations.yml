@@ -463,6 +463,8 @@ builds:
   cashtab-tests:
     runOnDiffRegex:
       - web/cashtab/
+    artifacts:
+      coverage.tar.gz: coverage.tar.gz
     env:
       # Any string will work, CI just needs to be defined
       CI: 'teamcity'
@@ -481,6 +483,14 @@ builds:
       }
       trap "move_junit_report" EXIT
 
-      npm run test -- \
+      npm run test --coverage -- \
         --reporters=default \
-        --reporters=jest-junit
+        --reporters=jest-junit \
+        --coverageReporters=text \
+        --coverageReporters=lcov \
+        --coverageReporters=teamcity
+
+      pushd coverage/lcov-report
+      tar -czf ../coverage.tar.gz -- *
+      popd
+      mv coverage/coverage.tar.gz "${BUILD_DIR}/"
