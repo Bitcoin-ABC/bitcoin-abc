@@ -12,6 +12,7 @@ from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
     satoshi_round,
+    wait_until,
 )
 
 # default limits
@@ -20,15 +21,25 @@ MAX_DESCENDANTS = 50
 
 # custom limits for node1
 MAX_ANCESTORS_CUSTOM = 5
+MAX_DESCENDANTS_CUSTOM = 10
+assert MAX_DESCENDANTS_CUSTOM >= MAX_ANCESTORS_CUSTOM
 
 
 class MempoolPackagesTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        common_params = ["-maxorphantx=1000"]
         self.extra_args = [
-            common_params, common_params +
-            ["-limitancestorcount={}".format(MAX_ANCESTORS_CUSTOM)]]
+            [
+                "-maxorphantx=1000",
+                # immediate tx relay
+                "-whitelist=noban@127.0.0.1",
+            ],
+            [
+                "-maxorphantx=1000",
+                "-limitancestorcount={}".format(MAX_ANCESTORS_CUSTOM),
+                "-limitdescendantcount={}".format(MAX_DESCENDANTS_CUSTOM),
+            ],
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -246,10 +257,14 @@ class MempoolPackagesTest(BitcoinTestFramework):
 
         # Sign and send up to MAX_DESCENDANT transactions chained off the
         # parent tx
+        # Save sent txs for the purpose of checking node1's mempool later
+        # (see below)
+        chain = []
         for i in range(MAX_DESCENDANTS - 1):
             utxo = transaction_package.pop(0)
             (txid, sent_value) = self.chain_transaction(
                 self.nodes[0], utxo['txid'], utxo['vout'], utxo['amount'], fee, 10)
+            chain.append(txid)
             if utxo['txid'] is parent_transaction:
                 tx_children.append(txid)
             for j in range(10):
@@ -270,7 +285,21 @@ class MempoolPackagesTest(BitcoinTestFramework):
         assert_raises_rpc_error(-26, "too-long-mempool-chain", self.chain_transaction,
                                 self.nodes[0], utxo['txid'], utxo['vout'], utxo['amount'], fee, 10)
 
-        # TODO: check that node1's mempool is as expected
+        # Check that node1's mempool is as expected, containing:
+        # - txs from previous ancestor test (-> custom ancestor limit)
+        # - parent tx for descendant test
+        # - txs chained off parent tx (-> custom descendant limit)
+        wait_until(lambda: len(self.nodes[1].getrawmempool(False)) ==
+                   MAX_ANCESTORS_CUSTOM + MAX_DESCENDANTS_CUSTOM, timeout=10)
+        mempool0 = self.nodes[0].getrawmempool(False)
+        mempool1 = self.nodes[1].getrawmempool(False)
+        assert set(mempool1).issubset(set(mempool0))
+        assert parent_transaction in mempool1
+        for tx in chain[:MAX_DESCENDANTS_CUSTOM - 1]:
+            assert tx in mempool1
+        for tx in chain[MAX_DESCENDANTS_CUSTOM - 1:]:
+            assert tx not in mempool1
+        # TODO: more detailed check of node1's mempool (fees etc.)
 
         # TODO: test descendant size limits
 
