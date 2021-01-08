@@ -25,3 +25,6 @@ update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(comman
 # rebasing, or cherry-picking of commits just work out of the box.
 git config --global user.name "abc-bot"
 git config --global user.email "no-email-abc-bot@bitcoinabc.org"
+
+# npm uses ssh to connect to github by default, use https instead
+git config --global url."https://github.com".insteadOf ssh://git@github.com

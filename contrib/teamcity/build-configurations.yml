@@ -475,7 +475,7 @@ builds:
       JEST_JUNIT_OUTPUT_NAME: "cashtab.xml"
     script: |
       pushd "${TOPLEVEL}/web/cashtab"
-      npm install
+      npm ci
       npm run build
 
       # Make sure the report is available even if the tests fail

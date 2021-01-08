@@ -92,6 +92,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}"
 
 BACKPORTS=(
   cmake
+  npm
   shellcheck
 )
 
