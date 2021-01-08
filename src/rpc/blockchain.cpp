@@ -432,7 +432,7 @@ syncwithvalidationinterfacequeue(const Config &config,
         "Waits for the validation interface queue to catch up on everything "
         "that was there when we entered this function.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("syncwithvalidationinterfacequeue", "") +
                     HelpExampleRpc("syncwithvalidationinterfacequeue", "")},
     }
@@ -1778,7 +1778,7 @@ static UniValue preciousblock(const Config &config,
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to mark as precious"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("preciousblock", "\"blockhash\"") +
                     HelpExampleRpc("preciousblock", "\"blockhash\"")},
     }
@@ -1816,7 +1816,7 @@ UniValue finalizeblock(const Config &config, const JSONRPCRequest &request) {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to mark as invalid"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("finalizeblock", "\"blockhash\"") +
                     HelpExampleRpc("finalizeblock", "\"blockhash\"")},
     }
@@ -1858,7 +1858,7 @@ static UniValue invalidateblock(const Config &config,
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to mark as invalid"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("invalidateblock", "\"blockhash\"") +
                     HelpExampleRpc("invalidateblock", "\"blockhash\"")},
     }
@@ -1896,7 +1896,7 @@ UniValue parkblock(const Config &config, const JSONRPCRequest &request) {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to park"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("parkblock", "\"blockhash\"") +
                     HelpExampleRpc("parkblock", "\"blockhash\"")},
     }
@@ -1938,7 +1938,7 @@ static UniValue reconsiderblock(const Config &config,
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to reconsider"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("reconsiderblock", "\"blockhash\"") +
                     HelpExampleRpc("reconsiderblock", "\"blockhash\"")},
     }
@@ -1976,7 +1976,7 @@ UniValue unparkblock(const Config &config, const JSONRPCRequest &request) {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hash of the block to unpark"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("unparkblock", "\"blockhash\"") +
                     HelpExampleRpc("unparkblock", "\"blockhash\"")},
     }
@@ -2425,7 +2425,7 @@ static UniValue savemempool(const Config &config,
         "Dumps the mempool to disk. It will fail until the previous dump is "
         "fully loaded.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("savemempool", "") +
                     HelpExampleRpc("savemempool", "")},
     }

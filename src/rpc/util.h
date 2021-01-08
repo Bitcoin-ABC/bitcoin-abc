@@ -307,8 +307,6 @@ struct RPCResult {
 struct RPCResults {
     const std::vector<RPCResult> m_results;
 
-    RPCResults() : m_results{} {}
-
     RPCResults(RPCResult result) : m_results{{result}} {}
 
     RPCResults(std::initializer_list<RPCResult> results) : m_results{results} {}

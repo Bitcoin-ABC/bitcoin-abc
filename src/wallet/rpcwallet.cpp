@@ -338,7 +338,7 @@ static UniValue setlabel(const Config &config, const JSONRPCRequest &request) {
             {"label", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The label to assign to the address."},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{
             HelpExampleCli("setlabel",
                            "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"") +
@@ -886,7 +886,7 @@ static UniValue getunconfirmedbalance(const Config &config,
         "getunconfirmedbalance",
         "DEPRECATED\nIdentical to getbalances().mine.untrusted_pending\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::NUM, "", "The balance"},
         RPCExamples{""},
     }
         .Check(request);
@@ -2173,7 +2173,7 @@ static UniValue abandontransaction(const Config &config,
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("abandontransaction",
                                    "\"1075db55d416d3ca199f55b6084e2115b9345e16c"
                                    "5cf302fc80e9d5fbf5d48d\"") +
@@ -2221,7 +2221,7 @@ static UniValue backupwallet(const Config &config,
             {"destination", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The destination directory or file"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("backupwallet", "\"backup.dat\"") +
                     HelpExampleRpc("backupwallet", "\"backup.dat\"")},
     }
@@ -2257,7 +2257,7 @@ static UniValue keypoolrefill(const Config &config,
             {"newsize", RPCArg::Type::NUM, /* default */ "100",
              "The new keypool size"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("keypoolrefill", "") +
                     HelpExampleRpc("keypoolrefill", "")},
     }
@@ -2317,7 +2317,7 @@ static UniValue walletpassphrase(const Config &config,
              "The time to keep the decryption key in seconds; capped at "
              "100000000 (~3 years)."},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{
             "\nUnlock the wallet for 60 seconds\n" +
             HelpExampleCli("walletpassphrase", "\"my pass phrase\" 60") +
@@ -2427,7 +2427,7 @@ static UniValue walletpassphrasechange(const Config &config,
             {"newpassphrase", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The new passphrase"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("walletpassphrasechange",
                                    "\"old one\" \"new one\"") +
                     HelpExampleRpc("walletpassphrasechange",
@@ -2486,7 +2486,7 @@ static UniValue walletlock(const Config &config,
         "before being able to call any methods which require the wallet to be "
         "unlocked.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{
             "\nSet the passphrase for 2 minutes to perform a transaction\n" +
             HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
@@ -2538,7 +2538,8 @@ static UniValue encryptwallet(const Config &config,
              "The pass phrase to encrypt the wallet with. It must be at least "
              "1 character, but should be long."},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::STR, "",
+                  "A string with further instructions"},
         RPCExamples{
             "\nEncrypt your wallet\n" +
             HelpExampleCli("encryptwallet", "\"my pass phrase\"") +
@@ -3409,7 +3410,7 @@ static UniValue unloadwallet(const Config &config,
              /* default */ "the wallet name from the RPC request",
              "The name of the wallet to unload."},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("unloadwallet", "wallet_name") +
                     HelpExampleRpc("unloadwallet", "wallet_name")},
     }
@@ -3530,9 +3531,8 @@ static UniValue listunspent(const Config &config,
                      {RPCResult::Type::BOOL, "safe",
                       "Whether this output is considered safe to spend. "
                       "Unconfirmed transactions\n"
-                      "                              from outside keys and "
-                      "unconfirmed replacement transactions are considered "
-                      "unsafe\n"
+                      "from outside keys and unconfirmed replacement "
+                      "transactions are considered unsafe\n"
                       "and are not eligible for spending by fundrawtransaction "
                       "and sendtoaddress."},
                  }},
@@ -4654,7 +4654,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
              "using the dumpwallet command. It is the private key marked "
              "hdseed=1"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("sethdseed", "") +
                     HelpExampleCli("sethdseed", "false") +
                     HelpExampleCli("sethdseed", "true \"wifkey\"") +
@@ -5014,7 +5014,7 @@ static UniValue upgradewallet(const Config &config,
                  /* default */ strprintf("%d", FEATURE_LATEST),
                  "The version number to upgrade to. Default is the latest "
                  "wallet version"}},
-               RPCResults{},
+               RPCResult{RPCResult::Type::NONE, "", ""},
                RPCExamples{HelpExampleCli("upgradewallet", "200300") +
                            HelpExampleRpc("upgradewallet", "200300")}}
         .Check(request);

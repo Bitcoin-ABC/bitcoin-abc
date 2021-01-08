@@ -61,7 +61,7 @@ static UniValue ping(const Config &config, const JSONRPCRequest &request) {
         "Ping command is handled in queue with all other commands, so it "
         "measures processing backlog, not just network ping.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("ping", "") + HelpExampleRpc("ping", "")},
     }
         .Check(request);
@@ -311,7 +311,7 @@ static UniValue addnode(const Config &config, const JSONRPCRequest &request) {
                  "node from the list, 'onetry' to try a connection to the "
                  "node once"},
             },
-            RPCResults{},
+            RPCResult{RPCResult::Type::NONE, "", ""},
             RPCExamples{
                 HelpExampleCli("addnode", "\"192.168.0.6:8333\" \"onetry\"") +
                 HelpExampleRpc("addnode", "\"192.168.0.6:8333\", \"onetry\"")},
@@ -364,7 +364,7 @@ static UniValue disconnectnode(const Config &config,
              /* default */ "fallback to address",
              "The node ID (see getpeerinfo for node IDs)"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("disconnectnode", "\"192.168.0.6:8333\"") +
                     HelpExampleCli("disconnectnode", "\"\" 1") +
                     HelpExampleRpc("disconnectnode", "\"192.168.0.6:8333\"") +
@@ -720,7 +720,7 @@ static UniValue setban(const Config &config, const JSONRPCRequest &request) {
              "If set, the bantime must be an absolute timestamp expressed in " +
                  UNIX_EPOCH_TIME},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{
             HelpExampleCli("setban", "\"192.168.0.6\" \"add\" 86400") +
             HelpExampleCli("setban", "\"192.168.0.0/24\" \"add\"") +
@@ -810,7 +810,20 @@ static UniValue listbanned(const Config &config,
         "listbanned",
         "List all manually banned IPs/Subnets.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::OBJ,
+                       "",
+                       "",
+                       {
+                           {RPCResult::Type::STR, "address", ""},
+                           {RPCResult::Type::NUM_TIME, "banned_until", ""},
+                           {RPCResult::Type::NUM_TIME, "ban_created", ""},
+                           {RPCResult::Type::STR, "ban_reason", ""},
+                       }},
+                  }},
         RPCExamples{HelpExampleCli("listbanned", "") +
                     HelpExampleRpc("listbanned", "")},
     }
@@ -845,7 +858,7 @@ static UniValue clearbanned(const Config &config,
         "clearbanned",
         "Clear all banned IPs.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{HelpExampleCli("clearbanned", "") +
                     HelpExampleRpc("clearbanned", "")},
     }
@@ -872,7 +885,7 @@ static UniValue setnetworkactive(const Config &config,
             {"state", RPCArg::Type::BOOL, RPCArg::Optional::NO,
              "true to enable networking, false to disable"},
         },
-        RPCResults{},
+        RPCResult{RPCResult::Type::BOOL, "", "The value that was passed in"},
         RPCExamples{""},
     }
         .Check(request);

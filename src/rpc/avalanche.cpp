@@ -20,7 +20,7 @@ static UniValue getavalanchekey(const Config &config,
         "getavalanchekey",
         "Returns the key used to sign avalanche messages.\n",
         {},
-        RPCResults{},
+        RPCResult{RPCResult::Type::STR_HEX, "", ""},
         RPCExamples{HelpExampleRpc("getavalanchekey", "")},
     }
         .Check(request);
