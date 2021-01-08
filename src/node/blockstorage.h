@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <vector>
 
+#include <chain.h>
 #include <fs.h>
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <txdb.h>
@@ -17,7 +18,6 @@ class BlockValidationState;
 class CBlock;
 class CBlockFileInfo;
 class CBlockHeader;
-class CBlockIndex;
 class CBlockUndo;
 class CChain;
 class CChainParams;
@@ -50,7 +50,11 @@ extern bool fPruneMode;
 /** Number of MiB of block files that we're trying to stay below. */
 extern uint64_t nPruneTarget;
 
-typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
+// Because validation code takes pointers to the map's CBlockIndex objects, if
+// we ever switch to another associative container, we need to either use a
+// container that has stable addressing (true of all std associative
+// containers), or make the key a `std::unique_ptr<CBlockIndex>`
+using BlockMap = std::unordered_map<BlockHash, CBlockIndex, BlockHasher>;
 
 /**
  * Maintains a tree of blocks (stored in `m_block_index`) which is consulted
@@ -158,7 +162,9 @@ public:
     void PruneOneBlockFile(const int fileNumber)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    CBlockIndex *LookupBlockIndex(const BlockHash &hash) const
+    CBlockIndex *LookupBlockIndex(const BlockHash &hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    const CBlockIndex *LookupBlockIndex(const BlockHash &hash) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** Get block file info entry for one block file */

@@ -1837,7 +1837,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
         BlockMap::const_iterator it =
             m_blockman.m_block_index.find(hashAssumeValid);
         if (it != m_blockman.m_block_index.end()) {
-            if (it->second->GetAncestor(pindex->nHeight) == pindex &&
+            if (it->second.GetAncestor(pindex->nHeight) == pindex &&
                 pindexBestHeader->GetAncestor(pindex->nHeight) == pindex &&
                 pindexBestHeader->nChainWork >= nMinimumChainWork) {
                 // This block is a member of the assumed verified chain and an
@@ -3413,8 +3413,8 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
 
     {
         LOCK(cs_main);
-        for (const auto &entry : m_blockman.m_block_index) {
-            CBlockIndex *candidate = entry.second;
+        for (auto &entry : m_blockman.m_block_index) {
+            CBlockIndex *candidate = &entry.second;
             // We don't need to put anything in our active chain into the
             // multimap, because those candidates will be found and considered
             // as we disconnect.
@@ -3552,13 +3552,13 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         // it up here, this should be an essentially unobservable error.
         // Loop back over all block index entries and add any missing entries
         // to setBlockIndexCandidates.
-        for (const std::pair<const BlockHash, CBlockIndex *> &it :
+        for (std::pair<const BlockHash, CBlockIndex> &it :
              m_blockman.m_block_index) {
-            CBlockIndex *i = it.second;
-            if (i->IsValid(BlockValidity::TRANSACTIONS) &&
-                i->HaveTxsDownloaded() &&
-                !setBlockIndexCandidates.value_comp()(i, m_chain.Tip())) {
-                setBlockIndexCandidates.insert(i);
+            CBlockIndex &i = it.second;
+            if (i.IsValid(BlockValidity::TRANSACTIONS) &&
+                i.HaveTxsDownloaded() &&
+                !setBlockIndexCandidates.value_comp()(&i, m_chain.Tip())) {
+                setBlockIndexCandidates.insert(&i);
             }
         }
 
@@ -3689,8 +3689,8 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset,
     // Update all blocks under modified blocks.
     BlockMap::iterator it = m_blockman.m_block_index.begin();
     while (it != m_blockman.m_block_index.end()) {
-        UpdateFlagsForBlock(pindex, it->second, fChild);
-        UpdateFlagsForBlock(pindexDeepestChanged, it->second,
+        UpdateFlagsForBlock(pindex, &it->second, fChild);
+        UpdateFlagsForBlock(pindexDeepestChanged, &it->second,
                             fAncestorWasChanged);
         it++;
     }
@@ -4180,7 +4180,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
         if (miSelf != m_blockman.m_block_index.end()) {
             // Block header is already known.
-            CBlockIndex *pindex = miSelf->second;
+            CBlockIndex *pindex = &(miSelf->second);
             if (ppindex) {
                 *ppindex = pindex;
             }
@@ -4214,7 +4214,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
                                  "prev-blk-not-found");
         }
 
-        CBlockIndex *pindexPrev = (*mi).second;
+        CBlockIndex *pindexPrev = &((*mi).second);
         assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
             LogPrint(BCLog::VALIDATION,
@@ -4901,7 +4901,7 @@ bool CChainState::ReplayBlocks() {
             "ReplayBlocks(): reorganization to unknown block requested");
     }
 
-    pindexNew = m_blockman.m_block_index[hashHeads[0]];
+    pindexNew = &(m_blockman.m_block_index[hashHeads[0]]);
 
     if (!hashHeads[1].IsNull()) {
         // The old tip is allowed to be 0, indicating it's the first flush.
@@ -4910,7 +4910,7 @@ bool CChainState::ReplayBlocks() {
                 "ReplayBlocks(): reorganization from unknown block requested");
         }
 
-        pindexOld = m_blockman.m_block_index[hashHeads[1]];
+        pindexOld = &(m_blockman.m_block_index[hashHeads[1]]);
         pindexFork = LastCommonAncestor(pindexOld, pindexNew);
         assert(pindexFork != nullptr);
     }
@@ -5223,8 +5223,8 @@ void CChainState::CheckBlockIndex() {
 
     // Build forward-pointing map of the entire block tree.
     std::multimap<CBlockIndex *, CBlockIndex *> forward;
-    for (const auto &entry : m_blockman.m_block_index) {
-        forward.emplace(entry.second->pprev, entry.second);
+    for (auto &entry : m_blockman.m_block_index) {
+        forward.emplace(entry.second.pprev, &entry.second);
     }
 
     assert(forward.size() == m_blockman.m_block_index.size());

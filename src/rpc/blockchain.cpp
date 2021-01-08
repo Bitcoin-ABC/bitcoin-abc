@@ -2017,11 +2017,11 @@ static RPCHelpMan getchaintips() {
             std::set<const CBlockIndex *> setOrphans;
             std::set<const CBlockIndex *> setPrevs;
 
-            for (const std::pair<const BlockHash, CBlockIndex *> &item :
+            for (const std::pair<const BlockHash, CBlockIndex> &item :
                  chainman.BlockIndex()) {
-                if (!active_chain.Contains(item.second)) {
-                    setOrphans.insert(item.second);
-                    setPrevs.insert(item.second->pprev);
+                if (!active_chain.Contains(&item.second)) {
+                    setOrphans.insert(&item.second);
+                    setPrevs.insert(item.second.pprev);
                 }
             }
 
