@@ -11,6 +11,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <string>
 #include <thread>
 
 /////////////////////////////////////////////////
