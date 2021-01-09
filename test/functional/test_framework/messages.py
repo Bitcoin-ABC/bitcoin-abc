@@ -955,14 +955,7 @@ class msg_version:
 
         self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
 
-        if self.nVersion >= 70001:
-            # Relay field is optional for version 70001 onwards
-            try:
-                self.nRelay = struct.unpack("<b", f.read(1))[0]
-            except Exception:
-                self.nRelay = 0
-        else:
-            self.nRelay = 0
+        self.nRelay = struct.unpack("<b", f.read(1))[0]
 
     def serialize(self):
         r = b""
