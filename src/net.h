@@ -583,11 +583,6 @@ public:
      */
     Network ConnectedThroughNetwork() const;
 
-protected:
-    mapMsgCmdSize mapSendBytesPerMsgCmd GUARDED_BY(cs_vSend);
-    mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
-
-public:
     // We selected peer as (compact blocks) high-bandwidth peer (BIP152)
     std::atomic<bool> m_bip152_highbandwidth_to{false};
     // Peer selected us as (compact blocks) high-bandwidth peer (BIP152)
@@ -732,49 +727,6 @@ public:
         m_min_ping_time = std::min(m_min_ping_time.load(), ping_time);
     }
 
-private:
-    const NodeId id;
-    const uint64_t nLocalHostNonce;
-    const uint64_t nLocalExtraEntropy;
-    const ConnectionType m_conn_type;
-    std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
-
-    //! Services offered to this peer.
-    //!
-    //! This is supplied by the parent CConnman during peer connection
-    //! (CConnman::ConnectNode()) from its attribute of the same name.
-    //!
-    //! This is const because there is no protocol defined for renegotiating
-    //! services initially offered to a peer. The set of local services we
-    //! offer should not change after initialization.
-    //!
-    //! An interesting example of this is NODE_NETWORK and initial block
-    //! download: a node which starts up from scratch doesn't have any blocks
-    //! to serve, but still advertises NODE_NETWORK because it will eventually
-    //! fulfill this role after IBD completes. P2P code is written in such a
-    //! way that it can gracefully handle peers who don't make good on their
-    //! service advertisements.
-    const ServiceFlags nLocalServices;
-
-    NetPermissionFlags m_permissionFlags{PF_NONE};
-    // Used only by SocketHandler thread
-    std::list<CNetMessage> vRecvMsg;
-
-    // Our address, as reported by the peer
-    CService addrLocal GUARDED_BY(cs_addrLocal);
-    mutable RecursiveMutex cs_addrLocal;
-
-    /**
-     * The inventories polled and voted counters since last score
-     * computation, stored as a pair of uint32_t with the poll counter
-     * being the 32 lowest bits and the vote counter the 32 highest bits.
-     */
-    std::atomic<uint64_t> invCounters{0};
-
-    /** The last computed score */
-    std::atomic<double> availabilityScore{0.};
-
-public:
     NodeId GetId() const { return id; }
 
     uint64_t GetLocalNonce() const { return nLocalHostNonce; }
@@ -858,6 +810,51 @@ public:
     std::string ConnectionTypeAsString() const {
         return ::ConnectionTypeAsString(m_conn_type);
     }
+
+private:
+    const NodeId id;
+    const uint64_t nLocalHostNonce;
+    const uint64_t nLocalExtraEntropy;
+    const ConnectionType m_conn_type;
+    std::atomic<int> m_greatest_common_version{INIT_PROTO_VERSION};
+
+    //! Services offered to this peer.
+    //!
+    //! This is supplied by the parent CConnman during peer connection
+    //! (CConnman::ConnectNode()) from its attribute of the same name.
+    //!
+    //! This is const because there is no protocol defined for renegotiating
+    //! services initially offered to a peer. The set of local services we
+    //! offer should not change after initialization.
+    //!
+    //! An interesting example of this is NODE_NETWORK and initial block
+    //! download: a node which starts up from scratch doesn't have any blocks
+    //! to serve, but still advertises NODE_NETWORK because it will eventually
+    //! fulfill this role after IBD completes. P2P code is written in such a
+    //! way that it can gracefully handle peers who don't make good on their
+    //! service advertisements.
+    const ServiceFlags nLocalServices;
+
+    NetPermissionFlags m_permissionFlags{PF_NONE};
+    // Used only by SocketHandler thread
+    std::list<CNetMessage> vRecvMsg;
+
+    // Our address, as reported by the peer
+    mutable RecursiveMutex cs_addrLocal;
+    CService addrLocal GUARDED_BY(cs_addrLocal);
+
+    /**
+     * The inventories polled and voted counters since last score
+     * computation, stored as a pair of uint32_t with the poll counter
+     * being the 32 lowest bits and the vote counter the 32 highest bits.
+     */
+    std::atomic<uint64_t> invCounters{0};
+
+    /** The last computed score */
+    std::atomic<double> availabilityScore{0.};
+
+    mapMsgCmdSize mapSendBytesPerMsgCmd GUARDED_BY(cs_vSend);
+    mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
 };
 
 /**
