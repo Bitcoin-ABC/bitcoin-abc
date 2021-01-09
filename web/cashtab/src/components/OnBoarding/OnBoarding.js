@@ -117,6 +117,7 @@ export const OnBoarding = ({ history }) => {
                                 prefix={<LockOutlined />}
                                 placeholder="mnemonic (seed phrase)"
                                 name="mnemonic"
+                                autoComplete="off"
                                 onChange={e => handleChange(e)}
                                 required
                             />

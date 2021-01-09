@@ -145,6 +145,7 @@ export const FormItemWithQRCodeAddon = ({
         <Form.Item {...otherProps}>
             <Input
                 prefix={<WalletOutlined />}
+                autoComplete="off"
                 addonAfter={
                     <ScanQRCode
                         loadWithCameraOpen={loadWithCameraOpen}
