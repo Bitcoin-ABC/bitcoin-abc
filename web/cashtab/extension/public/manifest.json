@@ -3,7 +3,7 @@
 
     "name": "CashTab",
     "description": "A browser-integrated BCHA wallet from Bitcoin ABC",
-    "version": "0.0.1",
+    "version": "0.0.4",
     "content_scripts": [
         {
             "matches": ["file://*/*", "http://*/*", "https://*/*"],
@@ -26,6 +26,5 @@
         "128": "bch128.png",
         "192": "bch192.png",
         "512": "bch512.png"
-    },
-    "content_security_policy": "script-src 'self' https://unpkg.com/minimal-slp-wallet-web-joey 'sha256-03cee7e881f6cdd32ce620d5787d7e6a0eaef8acc55557bded61dd6ad82ff0e6'; object-src 'self'"
+    }
 }
