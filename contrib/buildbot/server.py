@@ -75,6 +75,8 @@ def create_server(tc, phab, slackbot, travis,
         'panel_data': {},
         # Whether the last status check of master was green
         'master_is_green': True,
+        # Coverage panel data
+        'coverage_data': {},
     }
 
     # If db_file_no_ext is not None, attempt to restore old database state
@@ -768,9 +770,9 @@ def create_server(tc, phab, slackbot, travis,
 
         phab.set_text_panel_content(17, panel_content)
 
-    def update_coverage_panel(coverage_summary):
-        # FIXME don't harcode the permalink but pull it from some configuration
-        coverage_permalink = "**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=BitcoinABC_Master_BitcoinAbcMasterCoverage&tab=report__Root_Code_Coverage&guest=1 | HTML coverage report ]]**\n\n"
+    def update_coverage_panel(build_type_id, project_name, coverage_summary):
+        coverage_permalink = "**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId={}&tab=report__Root_Code_Coverage&guest=1 | {} coverage report ]]**\n\n".format(
+            build_type_id, project_name)
 
         coverage_report = "| Granularity | % hit | # hit | # total |\n"
         coverage_report += "| ----------- | ----- | ----- | ------- |\n"
@@ -800,11 +802,15 @@ def create_server(tc, phab, slackbot, travis,
                 match.group('total'),
             )
 
+        # Cache the coverage data for this build type
+        coverage_data = create_server.db['coverage_data']
+        coverage_data[build_type_id] = coverage_permalink + coverage_report
+
         # Update the coverage panel with our remarkup content
-        phab.set_text_panel_content(21, coverage_permalink + coverage_report)
+        phab.set_text_panel_content(21, "\n".join(coverage_data.values()))
 
     def handle_build_result(buildName, buildTypeId, buildResult,
-                            buildURL, branch, buildId, buildTargetPHID, **kwargs):
+                            buildURL, branch, buildId, buildTargetPHID, projectName, **kwargs):
         # Do not report build status for ignored builds
         if phab.getIgnoreKeyword() in buildTypeId:
             return SUCCESS, 200
@@ -835,7 +841,8 @@ def create_server(tc, phab, slackbot, travis,
                     coverage_summary = None
 
                 if coverage_summary:
-                    update_coverage_panel(coverage_summary)
+                    update_coverage_panel(
+                        buildTypeId, projectName, coverage_summary)
 
         # If we have a buildTargetPHID, report the status.
         build_target = create_server.db['diff_targets'].get(

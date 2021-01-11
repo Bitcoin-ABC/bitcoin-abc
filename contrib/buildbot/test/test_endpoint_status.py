@@ -25,7 +25,7 @@ from test.mocks.teamcity import DEFAULT_BUILD_ID, TEAMCITY_CI_USER
 class statusRequestData(test.mocks.fixture.MockData):
     def __init__(self):
         self.buildName = 'build-name'
-        self.project = 'bitcoin-abc-test'
+        self.projectName = 'bitcoin-abc-test'
         self.buildId = DEFAULT_BUILD_ID
         self.buildTypeId = 'build-type-id'
         self.buildResult = 'success'
@@ -1500,6 +1500,8 @@ class EndpointStatusTestCase(ABCBotFixture):
 
     def test_update_coverage_panel(self):
         panel_id = 21
+        buildTypeId = 'DummyBuildType'
+        projectName = 'Dummy Project'
 
         self.phab.set_text_panel_content = mock.Mock()
 
@@ -1508,6 +1510,8 @@ class EndpointStatusTestCase(ABCBotFixture):
         def call_status(status, expected_status_code=None):
             data = statusRequestData()
             data.buildResult = status.value
+            data.buildTypeId = buildTypeId
+            data.projectName = projectName
 
             response = self.app.post(
                 '/status', headers=self.headers, json=data)
@@ -1543,6 +1547,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.set_text_panel_content.assert_not_called_with(
             panel_id=panel_id)
 
+        # Generate coverage report for one project
         self.teamcity.get_coverage_summary.return_value = \
             """
 Reading tracefile check-extended_combined.info
@@ -1554,13 +1559,79 @@ Summary coverage rate:
 
         call_status(BuildStatus.Success, expected_status_code=500)
         assert_panel_content(
-            """**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=BitcoinABC_Master_BitcoinAbcMasterCoverage&tab=report__Root_Code_Coverage&guest=1 | HTML coverage report ]]**
+            """**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=DummyBuildType&tab=report__Root_Code_Coverage&guest=1 | Dummy Project coverage report ]]**
 
 | Granularity | % hit | # hit | # total |
 | ----------- | ----- | ----- | ------- |
 | Lines | 82.3% | 91410 | 111040 |
 | Functions | 74.1% | 6686 | 9020 |
 | Branches | 45.0% | 188886 | 420030 |
+"""
+        )
+
+        # Generate coverage report for another project
+        buildTypeId = 'AnotherBuildType'
+        projectName = 'Another Project'
+
+        self.teamcity.get_coverage_summary.return_value = \
+            """
+Reading tracefile coverage/lcov.info
+Summary coverage rate:
+  lines......: 20.0% (261 of 1305 lines)
+  functions..: 16.9% (41 of 242 functions)
+  branches...: 18.2% (123 of 676 branches)
+"""
+
+        call_status(BuildStatus.Success, expected_status_code=500)
+        assert_panel_content(
+            """**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=DummyBuildType&tab=report__Root_Code_Coverage&guest=1 | Dummy Project coverage report ]]**
+
+| Granularity | % hit | # hit | # total |
+| ----------- | ----- | ----- | ------- |
+| Lines | 82.3% | 91410 | 111040 |
+| Functions | 74.1% | 6686 | 9020 |
+| Branches | 45.0% | 188886 | 420030 |
+
+**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=AnotherBuildType&tab=report__Root_Code_Coverage&guest=1 | Another Project coverage report ]]**
+
+| Granularity | % hit | # hit | # total |
+| ----------- | ----- | ----- | ------- |
+| Lines | 20.0% | 261 | 1305 |
+| Functions | 16.9% | 41 | 242 |
+| Branches | 18.2% | 123 | 676 |
+"""
+        )
+
+        # Update one of the existing coverage reports
+        buildTypeId = 'DummyBuildType'
+        projectName = 'Renamed Dummy Project'
+
+        self.teamcity.get_coverage_summary.return_value = \
+            """
+Reading tracefile check-extended_combined.info
+Summary coverage rate:
+  lines......: 82.4% (91411 of 111030 lines)
+  functions..: 74.2% (6687 of 9010 functions)
+  branches...: 45.1% (188887 of 420020 branches)
+"""
+
+        call_status(BuildStatus.Success, expected_status_code=500)
+        assert_panel_content(
+            """**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=DummyBuildType&tab=report__Root_Code_Coverage&guest=1 | Renamed Dummy Project coverage report ]]**
+
+| Granularity | % hit | # hit | # total |
+| ----------- | ----- | ----- | ------- |
+| Lines | 82.4% | 91411 | 111030 |
+| Functions | 74.2% | 6687 | 9010 |
+| Branches | 45.1% | 188887 | 420020 |
+
+**[[ https://build.bitcoinabc.org/viewLog.html?buildId=lastSuccessful&buildTypeId=AnotherBuildType&tab=report__Root_Code_Coverage&guest=1 | Another Project coverage report ]]**
+
+| Granularity | % hit | # hit | # total |
+| ----------- | ----- | ----- | ------- |
+| Lines | 20.0% | 261 | 1305 |
+| Functions | 16.9% | 41 | 242 |
+| Branches | 18.2% | 123 | 676 |
 """
         )
 
