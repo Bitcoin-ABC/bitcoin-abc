@@ -54,7 +54,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             std::make_unique<CNode>(
                 i, service_flags, 0, INVALID_SOCKET,
                 CAddress{CService{in_addr{0x0100007f}, 7777}, NODE_NETWORK}, 0,
-                0, CAddress{}, std::string{}, conn_type)
+                0, 0, CAddress{}, std::string{}, conn_type)
                 .release());
         CNode &p2p_node = *peers.back();
 
