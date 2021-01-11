@@ -491,6 +491,12 @@ builds:
         --coverageReporters=lcov \
         --coverageReporters=teamcity
 
+      # Generate a summary report
+      lcov \
+        --rc lcov_branch_coverage=1 \
+        --summary coverage/lcov.info \
+        > coverage/lcov-report/coverage-summary.txt
+
       pushd coverage/lcov-report
       tar -czf ../coverage.tar.gz -- *
       popd
