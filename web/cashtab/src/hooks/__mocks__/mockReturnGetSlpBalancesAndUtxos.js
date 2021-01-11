@@ -9,7 +9,6 @@ export default {
                     'bb055d815e795d7a4fe41fd67288d71886678e7d1e5ba9ddd7f6daffa5f70ceb',
                 tx_pos: 2,
                 value: 546,
-                satoshis: 546,
                 txid:
                     'bb055d815e795d7a4fe41fd67288d71886678e7d1e5ba9ddd7f6daffa5f70ceb',
                 vout: 2,
@@ -40,7 +39,6 @@ export default {
                     '88b7dac07cb30566a6264f330bedda690c8dff151c2307692c79e13dc59ca2ba',
                 tx_pos: 2,
                 value: 546,
-                satoshis: 546,
                 txid:
                     '88b7dac07cb30566a6264f330bedda690c8dff151c2307692c79e13dc59ca2ba',
                 vout: 2,
@@ -72,7 +70,6 @@ export default {
                 '5ebb5272b6f875b65f41f2cfca031e6f07f9cf519ee7577f0f63cb79aa86fd0a',
             tx_pos: 1,
             value: 2196,
-            satoshis: 2196,
             txid:
                 '5ebb5272b6f875b65f41f2cfca031e6f07f9cf519ee7577f0f63cb79aa86fd0a',
             vout: 1,
@@ -87,7 +84,6 @@ export default {
                 'bb055d815e795d7a4fe41fd67288d71886678e7d1e5ba9ddd7f6daffa5f70ceb',
             tx_pos: 2,
             value: 546,
-            satoshis: 546,
             txid:
                 'bb055d815e795d7a4fe41fd67288d71886678e7d1e5ba9ddd7f6daffa5f70ceb',
             vout: 2,
@@ -111,7 +107,6 @@ export default {
                 '88b7dac07cb30566a6264f330bedda690c8dff151c2307692c79e13dc59ca2ba',
             tx_pos: 2,
             value: 546,
-            satoshis: 546,
             txid:
                 '88b7dac07cb30566a6264f330bedda690c8dff151c2307692c79e13dc59ca2ba',
             vout: 2,
