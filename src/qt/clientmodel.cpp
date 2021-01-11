@@ -103,6 +103,13 @@ int64_t ClientModel::getHeaderTipTime() const {
     return cachedBestHeaderTime;
 }
 
+int ClientModel::getNumBlocks() const {
+    if (m_cached_num_blocks == -1) {
+        m_cached_num_blocks = m_node.getNumBlocks();
+    }
+    return m_cached_num_blocks;
+}
+
 void ClientModel::updateNumConnections(int numConnections) {
     Q_EMIT numConnectionsChanged(numConnections);
 }
@@ -221,6 +228,8 @@ static void BlockTipChanged(ClientModel *clientmodel,
         // cache best headers time and height to reduce future cs_main locks
         clientmodel->cachedBestHeaderHeight = height;
         clientmodel->cachedBestHeaderTime = blockTime;
+    } else {
+        clientmodel->m_cached_num_blocks = height;
     }
 
     // Throttle GUI notifications about (a) blocks during initial sync, and (b)

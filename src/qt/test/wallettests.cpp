@@ -9,6 +9,7 @@
 #include <key_io.h>
 #include <network.h>
 #include <qt/bitcoinamountfield.h>
+#include <qt/clientmodel.h>
 #include <qt/optionsmodel.h>
 #include <qt/overviewpage.h>
 #include <qt/platformstyle.h>
@@ -148,9 +149,10 @@ void TestGUI(interfaces::Node &node) {
     std::unique_ptr<const PlatformStyle> platformStyle(
         PlatformStyle::instantiate("other"));
     OptionsModel optionsModel;
+    ClientModel clientModel(node, &optionsModel);
     AddWallet(wallet);
-    WalletModel walletModel(interfaces::MakeWallet(wallet), node,
-                            platformStyle.get(), &optionsModel);
+    WalletModel walletModel(interfaces::MakeWallet(wallet), clientModel,
+                            platformStyle.get());
     RemoveWallet(wallet);
     SendCoinsDialog sendCoinsDialog(platformStyle.get(), &walletModel);
 

@@ -21,6 +21,7 @@
 #include <vector>
 
 class AddressTableModel;
+class ClientModel;
 class OptionsModel;
 class PlatformStyle;
 class RecentRequestsTableModel;
@@ -48,9 +49,9 @@ class WalletModel : public QObject {
 
 public:
     explicit WalletModel(std::unique_ptr<interfaces::Wallet> wallet,
-                         interfaces::Node &node,
+                         ClientModel &client_model,
                          const PlatformStyle *platformStyle,
-                         OptionsModel *optionsModel, QObject *parent = nullptr);
+                         QObject *parent = nullptr);
     ~WalletModel();
 
     // Returned by sendCoins
@@ -147,6 +148,7 @@ public:
 
     interfaces::Node &node() const { return m_node; }
     interfaces::Wallet &wallet() const { return *m_wallet; }
+    ClientModel &clientModel() const { return m_client_model; }
 
     const CChainParams &getChainParams() const;
 
@@ -168,6 +170,7 @@ private:
     std::unique_ptr<interfaces::Handler> m_handler_show_progress;
     std::unique_ptr<interfaces::Handler> m_handler_watch_only_changed;
     std::unique_ptr<interfaces::Handler> m_handler_can_get_addrs_changed;
+    ClientModel &m_client_model;
     interfaces::Node &m_node;
 
     bool fHaveWatchOnly;

@@ -380,7 +380,7 @@ void BitcoinApplication::initializeResult(bool success) {
 #ifdef ENABLE_WALLET
     if (WalletModel::isWalletEnabled()) {
         m_wallet_controller =
-            new WalletController(node(), platformStyle, optionsModel, this);
+            new WalletController(*clientModel, platformStyle, this);
         window->setWalletController(m_wallet_controller);
         if (paymentServer) {
             paymentServer->setOptionsModel(optionsModel);

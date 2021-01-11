@@ -7,6 +7,7 @@
 #include <core_io.h>
 #include <interfaces/handler.h>
 #include <qt/addresstablemodel.h>
+#include <qt/clientmodel.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
@@ -170,7 +171,8 @@ public:
 
     int size() { return cachedWallet.size(); }
 
-    TransactionRecord *index(interfaces::Wallet &wallet, int idx) {
+    TransactionRecord *index(interfaces::Wallet &wallet,
+                             const int cur_num_blocks, const int idx) {
         if (idx >= 0 && idx < cachedWallet.size()) {
             TransactionRecord *rec = &cachedWallet[idx];
 
@@ -184,8 +186,8 @@ public:
             interfaces::WalletTxStatus wtx;
             int numBlocks;
             int64_t block_time;
-            if (wallet.tryGetTxStatus(rec->txid, wtx, numBlocks, block_time) &&
-                rec->statusUpdateNeeded(numBlocks)) {
+            if (rec->statusUpdateNeeded(cur_num_blocks) &&
+                wallet.tryGetTxStatus(rec->txid, wtx, numBlocks, block_time)) {
                 rec->updateStatus(wtx, numBlocks, block_time);
             }
             return rec;
@@ -669,10 +671,10 @@ QVariant TransactionTableModel::headerData(int section,
 QModelIndex TransactionTableModel::index(int row, int column,
                                          const QModelIndex &parent) const {
     Q_UNUSED(parent);
-    TransactionRecord *data = priv->index(walletModel->wallet(), row);
+    TransactionRecord *data = priv->index(
+        walletModel->wallet(), walletModel->clientModel().getNumBlocks(), row);
     if (data) {
-        return createIndex(row, column,
-                           priv->index(walletModel->wallet(), row));
+        return createIndex(row, column, data);
     }
     return QModelIndex();
 }
