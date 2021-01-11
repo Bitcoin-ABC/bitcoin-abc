@@ -495,7 +495,7 @@ builds:
       lcov \
         --rc lcov_branch_coverage=1 \
         --summary coverage/lcov.info \
-        > coverage/lcov-report/coverage-summary.txt
+        > coverage/lcov-report/coverage-summary.txt 2>&1
 
       pushd coverage/lcov-report
       tar -czf ../coverage.tar.gz -- *
