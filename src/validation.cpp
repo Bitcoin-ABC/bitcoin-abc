@@ -3012,6 +3012,12 @@ bool CChainState::PreciousBlock(const Config &config,
 
 bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
                               CBlockIndex *pindex, bool invalidate) {
+    // Genesis block can't be invalidated or parked
+    assert(pindex);
+    if (pindex->nHeight == 0) {
+        return false;
+    }
+
     CBlockIndex *to_mark_failed_or_parked = pindex;
     bool pindex_was_in_chain = false;
     int disconnected = 0;
