@@ -343,6 +343,11 @@ public:
                RPCExamples examples, RPCMethodImpl fun);
 
     std::string ToString() const;
+    /**
+     * Append the named args that need to be converted from string to another
+     * JSON type
+     */
+    void AppendArgMap(UniValue &arr) const;
     UniValue HandleRequest(const Config &config,
                            const JSONRPCRequest &request) {
         Check(request);
