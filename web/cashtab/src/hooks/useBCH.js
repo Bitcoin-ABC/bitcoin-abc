@@ -102,9 +102,7 @@ export default function useBCH() {
         // Do not classify any utxos that include token information as nonSlpUtxos
         const nonSlpUtxos = hydratedUtxos.filter(
             utxo =>
-                utxo.isValid === false &&
-                utxo.satoshis !== 546 &&
-                !utxo.tokenName,
+                utxo.isValid === false && utxo.value !== 546 && !utxo.tokenName,
         );
         const slpUtxos = hydratedUtxos.filter(utxo => utxo.isValid);
 
@@ -229,7 +227,7 @@ export default function useBCH() {
         }
         const largestBchUtxo = slpBalancesAndUtxos.nonSlpUtxos.reduce(
             (previous, current) =>
-                previous.satoshis > current.satoshis ? previous : current,
+                previous.value > current.value ? previous : current,
         );
 
         const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
@@ -437,7 +435,7 @@ export default function useBCH() {
             let txFee = 0;
             for (let i = 0; i < utxos.length; i++) {
                 const utxo = utxos[i];
-                originalAmount = originalAmount.plus(utxo.satoshis);
+                originalAmount = originalAmount.plus(utxo.value);
                 const vout = utxo.vout;
                 const txid = utxo.txid;
                 // add input with txid and index of vout
@@ -488,7 +486,7 @@ export default function useBCH() {
                     BCH.ECPair.fromWIF(utxo.wif),
                     undefined,
                     transactionBuilder.hashTypes.SIGHASH_ALL,
-                    utxo.satoshis,
+                    utxo.value,
                 );
             }
 

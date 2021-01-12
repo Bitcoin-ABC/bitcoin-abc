@@ -81,7 +81,7 @@ const useWallet = () => {
 
     const normalizeBalance = slpBalancesAndUtxos => {
         const totalBalanceInSatoshis = slpBalancesAndUtxos.nonSlpUtxos.reduce(
-            (previousBalance, utxo) => previousBalance + utxo.satoshis,
+            (previousBalance, utxo) => previousBalance + utxo.value,
             0,
         );
         return {
