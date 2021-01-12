@@ -4809,14 +4809,6 @@ void CChainState::UnloadBlockIndex() {
     setBlockIndexCandidates.clear();
 }
 
-// May NOT be used after any connections are up as much
-// of the peer-processing logic assumes a consistent
-// block index state
-void UnloadBlockIndex(ChainstateManager &chainman) {
-    AssertLockHeld(::cs_main);
-    chainman.Unload();
-}
-
 bool ChainstateManager::LoadBlockIndex() {
     AssertLockHeld(cs_main);
     // Load block index from databases
@@ -6074,21 +6066,6 @@ bool ChainstateManager::IsSnapshotActive() const {
     return m_snapshot_chainstate &&
            m_active_chainstate == m_snapshot_chainstate.get();
 }
-
-void ChainstateManager::Unload() {
-    AssertLockHeld(::cs_main);
-    for (CChainState *chainstate : this->GetAll()) {
-        chainstate->m_chain.SetTip(nullptr);
-        chainstate->UnloadBlockIndex();
-    }
-
-    m_failed_blocks.clear();
-    m_blockman.Unload();
-    m_best_header = nullptr;
-    m_best_invalid = nullptr;
-    m_best_parked = nullptr;
-}
-
 void ChainstateManager::MaybeRebalanceCaches() {
     AssertLockHeld(::cs_main);
     if (m_ibd_chainstate && !m_snapshot_chainstate) {
@@ -6120,9 +6097,4 @@ void ChainstateManager::MaybeRebalanceCaches() {
                                                 m_total_coinsdb_cache * 0.95);
         }
     }
-}
-
-ChainstateManager::~ChainstateManager() {
-    LOCK(::cs_main);
-    UnloadBlockIndex(*this);
 }

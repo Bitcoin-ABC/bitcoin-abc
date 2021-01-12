@@ -150,9 +150,6 @@ public:
     bool WriteBlockIndexDB() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
     bool LoadBlockIndexDB() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
-    /** Clear all data members. */
-    void Unload() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
     CBlockIndex *AddToBlockIndex(const CBlockHeader &block,
                                  CBlockIndex *&best_header)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -198,8 +195,6 @@ public:
     //! not.
     bool IsBlockPruned(const CBlockIndex *pblockindex)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
-    ~BlockManager() { Unload(); }
 };
 
 //! Find the first block that is not pruned

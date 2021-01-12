@@ -187,12 +187,6 @@ public:
 };
 
 /**
- * Unload database information.
- */
-void UnloadBlockIndex(ChainstateManager &chainman)
-    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
-/**
  * Run instances of script checking worker threads
  */
 void StartScriptCheckWorkerThreads(int threads_num);
@@ -1272,14 +1266,9 @@ public:
     //! we're running with -reindex
     bool LoadBlockIndex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    //! Unload block index and chain data before shutdown.
-    void Unload() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
     //! Check to see if caches are out of balance and if so, call
     //! ResizeCoinsCaches() as needed.
     void MaybeRebalanceCaches() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
-    ~ChainstateManager();
 };
 
 /** Dump the mempool to disk. */
