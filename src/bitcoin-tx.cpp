@@ -18,6 +18,7 @@
 #include <script/signingprovider.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/translation.h>
 
@@ -381,8 +382,8 @@ static void MutateTxAddOutMultiSig(CMutableTransaction &tx,
     if (required < 1 || required > MAX_PUBKEYS_PER_MULTISIG || numkeys < 1 ||
         numkeys > MAX_PUBKEYS_PER_MULTISIG || numkeys < required) {
         throw std::runtime_error("multisig parameter mismatch. Required " +
-                                 std::to_string(required) + " of " +
-                                 std::to_string(numkeys) + "signatures.");
+                                 ToString(required) + " of " +
+                                 ToString(numkeys) + "signatures.");
     }
 
     // extract and validate PUBKEYs

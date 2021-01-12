@@ -15,7 +15,8 @@
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/intro.h>
-#include <txdb.h>       // for -dbcache defaults
+#include <txdb.h> // for -dbcache defaults
+#include <util/string.h>
 #include <validation.h> // For DEFAULT_SCRIPTCHECK_THREADS
 
 #include <QNetworkProxy>
@@ -288,7 +289,7 @@ void OptionsModel::SetPrune(bool prune, bool force) {
     // Convert prune size from GB to MiB:
     const uint64_t nPruneSizeMiB =
         (settings.value("nPruneSize").toInt() * GB_BYTES) >> 20;
-    std::string prune_val = prune ? std::to_string(nPruneSizeMiB) : "0";
+    std::string prune_val = prune ? ToString(nPruneSizeMiB) : "0";
     if (force) {
         gArgs.ForceSetArg("-prune", prune_val);
         return;

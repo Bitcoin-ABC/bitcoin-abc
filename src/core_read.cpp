@@ -12,6 +12,7 @@
 #include <serialize.h>
 #include <streams.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <version.h>
 
 #include <univalue.h>
@@ -122,8 +123,7 @@ CScript ParseScript(const std::string &s) {
         if (push_size != 0 && size_change != push_size) {
             throw std::runtime_error(
                 "Wrong number of bytes being pushed. Expected:" +
-                std::to_string(push_size) +
-                " Pushed:" + std::to_string(size_change));
+                ToString(push_size) + " Pushed:" + ToString(size_change));
         }
 
         // If push_size is set, and we have push_data_size set, then we have a

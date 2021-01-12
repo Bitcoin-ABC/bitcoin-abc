@@ -125,6 +125,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
     "snprintf",
     "sprintf",
     "sscanf",
+    "std::to_string",
     "stod",
     "stof",
     "stoi",

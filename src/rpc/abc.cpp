@@ -8,6 +8,7 @@
 #include <rpc/util.h>
 #include <sync.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <validation.h>
 
 #include <univalue.h>
@@ -39,7 +40,7 @@ static UniValue setexcessiveblock(Config &config,
         {
             {"blockSize", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "Excessive block size in bytes.  Must be greater than " +
-                 std::to_string(LEGACY_MAX_BLOCK_SIZE) + "."},
+                 ToString(LEGACY_MAX_BLOCK_SIZE) + "."},
         },
         RPCResult{RPCResult::Type::NUM, "", "excessive block size in bytes"},
         RPCExamples{HelpExampleCli("setexcessiveblock", "25000000") +
@@ -62,7 +63,7 @@ static UniValue setexcessiveblock(Config &config,
             RPC_INVALID_PARAMETER,
             std::string(
                 "Invalid parameter, excessiveblock must be larger than ") +
-                std::to_string(LEGACY_MAX_BLOCK_SIZE));
+                ToString(LEGACY_MAX_BLOCK_SIZE));
     }
 
     // Set the new max block size.

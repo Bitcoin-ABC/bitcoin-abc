@@ -21,6 +21,7 @@
 #include <script/standard.h>
 #include <streams.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <validation.h>
 
@@ -702,7 +703,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
      * Check when a custom value is used for -datacarriersize .
      */
     unsigned newMaxSize = 90;
-    gArgs.ForceSetArg("-datacarriersize", std::to_string(newMaxSize));
+    gArgs.ForceSetArg("-datacarriersize", ToString(newMaxSize));
 
     // Max user provided payload size is standard
     t.vout[0].scriptPubKey =

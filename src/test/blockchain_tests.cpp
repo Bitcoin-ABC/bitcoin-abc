@@ -1,6 +1,7 @@
 #include <rpc/blockchain.h>
 
 #include <chain.h>
+#include <util/string.h>
 
 #include <test/util/setup_common.h>
 
@@ -27,9 +28,9 @@ static CBlockIndex *CreateBlockIndexWithNbits(uint32_t nbits) {
 static void RejectDifficultyMismatch(double difficulty,
                                      double expected_difficulty) {
     BOOST_CHECK_MESSAGE(DoubleEquals(difficulty, expected_difficulty, 0.00001),
-                        "Difficulty was " + std::to_string(difficulty) +
+                        "Difficulty was " + ToString(difficulty) +
                             " but was expected to be " +
-                            std::to_string(expected_difficulty));
+                            ToString(expected_difficulty));
 }
 
 /**

@@ -15,6 +15,7 @@
 #include <random.h>
 #include <scheduler.h>
 #include <util/check.h>
+#include <util/string.h>
 #include <util/system.h>
 
 #include <boost/thread.hpp> // For boost::thread_group

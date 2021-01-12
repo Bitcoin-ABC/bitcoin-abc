@@ -1066,7 +1066,7 @@ struct ArgsMergeTestingSetup : public BasicTestingSetup {
             if (action == SET || action == SECTION_SET) {
                 for (int i = 0; i < 2; ++i) {
                     values.push_back(prefix + name + "=" + value_prefix +
-                                     std::to_string(++suffix));
+                                     ToString(++suffix));
                 }
             }
             if (action == NEGATE || action == SECTION_NEGATE) {

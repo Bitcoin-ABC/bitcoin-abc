@@ -519,7 +519,7 @@ std::string RPCHelpMan::ToString() const {
         }
 
         // Push named argument name and description
-        sections.m_sections.emplace_back(std::to_string(i + 1) + ". " +
+        sections.m_sections.emplace_back(::ToString(i + 1) + ". " +
                                              arg.GetFirstName(),
                                          arg.ToDescriptionString());
         sections.m_max_pad = std::max(sections.m_max_pad,

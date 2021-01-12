@@ -12,6 +12,7 @@
 #include <netbase.h>
 #include <serialize.h>
 #include <streams.h>
+#include <util/string.h>
 
 #include <test/util/setup_common.h>
 
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE(cnode_listen_port) {
     BOOST_CHECK(port == Params().GetDefaultPort());
     // test set port
     unsigned short altPort = 12345;
-    BOOST_CHECK(gArgs.SoftSetArg("-port", std::to_string(altPort)));
+    BOOST_CHECK(gArgs.SoftSetArg("-port", ToString(altPort)));
     port = GetListenPort();
     BOOST_CHECK(port == altPort);
 }
@@ -215,9 +216,9 @@ BOOST_AUTO_TEST_CASE(test_userAgent) {
     gArgs.ForceSetMultiArg("-uacomment", {uacomment});
 
     const std::string versionMessage =
-        "/Bitcoin ABC:" + std::to_string(CLIENT_VERSION_MAJOR) + "." +
-        std::to_string(CLIENT_VERSION_MINOR) + "." +
-        std::to_string(CLIENT_VERSION_REVISION) + "(EB8.0; " + uacomment + ")/";
+        "/Bitcoin ABC:" + ToString(CLIENT_VERSION_MAJOR) + "." +
+        ToString(CLIENT_VERSION_MINOR) + "." +
+        ToString(CLIENT_VERSION_REVISION) + "(EB8.0; " + uacomment + ")/";
 
     BOOST_CHECK_EQUAL(userAgent(config), versionMessage);
 }

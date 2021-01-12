@@ -7,6 +7,7 @@
 #include <test/util/setup_common.h>
 #include <test/util/str.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 
 #include <univalue.h>
@@ -212,8 +213,7 @@ BOOST_FIXTURE_TEST_CASE(Merge, MergeTestingSetup) {
                                std::vector<util::SettingsValue> &dest) {
             if (action == SET || action == SECTION_SET) {
                 for (int i = 0; i < 2; ++i) {
-                    dest.push_back(value_prefix +
-                                   std::to_string(++value_suffix));
+                    dest.push_back(value_prefix + ToString(++value_suffix));
                     desc +=
                         " " + name_prefix + name + "=" + dest.back().get_str();
                 }

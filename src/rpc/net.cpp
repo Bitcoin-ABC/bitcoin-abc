@@ -22,6 +22,7 @@
 #include <sync.h>
 #include <timedata.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <validation.h>
 #include <version.h>
@@ -911,8 +912,8 @@ static UniValue getnodeaddresses(const Config &config,
         {
             {"count", RPCArg::Type::NUM, /* default */ "1",
              "How many addresses to return. Limited to the smaller of " +
-                 std::to_string(ADDRMAN_GETADDR_MAX) + " or " +
-                 std::to_string(ADDRMAN_GETADDR_MAX_PCT) +
+                 ToString(ADDRMAN_GETADDR_MAX) + " or " +
+                 ToString(ADDRMAN_GETADDR_MAX_PCT) +
                  "% of all known addresses."},
         },
         RPCResult{

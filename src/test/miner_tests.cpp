@@ -18,6 +18,7 @@
 #include <txmempool.h>
 #include <uint256.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/time.h>
 #include <validation.h>
@@ -687,7 +688,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
 void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,
                        uint64_t size, uint64_t expected) {
-    gArgs.ForceSetArg("-blockmaxsize", std::to_string(size));
+    gArgs.ForceSetArg("-blockmaxsize", ToString(size));
 
     BlockAssembler ba(config, mempool);
     BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), expected);

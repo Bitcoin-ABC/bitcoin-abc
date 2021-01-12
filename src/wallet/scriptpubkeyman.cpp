@@ -10,6 +10,7 @@
 #include <script/sign.h>
 #include <util/bip32.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/translation.h>
 #include <wallet/scriptpubkeyman.h>
 
@@ -963,9 +964,8 @@ void LegacyScriptPubKeyMan::DeriveNewChildKey(WalletBatch &batch,
         if (internal) {
             chainChildKey.Derive(childKey, hdChain.nInternalChainCounter |
                                                BIP32_HARDENED_KEY_LIMIT);
-            metadata.hdKeypath = "m/0'/1'/" +
-                                 std::to_string(hdChain.nInternalChainCounter) +
-                                 "'";
+            metadata.hdKeypath =
+                "m/0'/1'/" + ToString(hdChain.nInternalChainCounter) + "'";
             metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
             metadata.key_origin.path.push_back(1 | BIP32_HARDENED_KEY_LIMIT);
             metadata.key_origin.path.push_back(hdChain.nInternalChainCounter |
@@ -974,9 +974,8 @@ void LegacyScriptPubKeyMan::DeriveNewChildKey(WalletBatch &batch,
         } else {
             chainChildKey.Derive(childKey, hdChain.nExternalChainCounter |
                                                BIP32_HARDENED_KEY_LIMIT);
-            metadata.hdKeypath = "m/0'/0'/" +
-                                 std::to_string(hdChain.nExternalChainCounter) +
-                                 "'";
+            metadata.hdKeypath =
+                "m/0'/0'/" + ToString(hdChain.nExternalChainCounter) + "'";
             metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
             metadata.key_origin.path.push_back(0 | BIP32_HARDENED_KEY_LIMIT);
             metadata.key_origin.path.push_back(hdChain.nExternalChainCounter |
