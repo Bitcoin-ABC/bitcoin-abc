@@ -76,6 +76,16 @@ CScript ParseScript(const std::string &s) {
              std::all_of(w.begin() + 1, w.end(), ::IsDigit))) {
             // Number
             int64_t n = atoi64(w);
+
+            // limit the range of numbers ParseScript accepts in decimal
+            // since numbers outside -0xFFFFFFFF...0xFFFFFFFF are illegal in
+            // scripts
+            if (n > int64_t{0xffffffff} || n < -1 * int64_t{0xffffffff}) {
+                throw std::runtime_error("script parse error: decimal numeric "
+                                         "value only allowed in the "
+                                         "range -0xFFFFFFFF...0xFFFFFFFF");
+            }
+
             result << n;
             goto next;
         }
