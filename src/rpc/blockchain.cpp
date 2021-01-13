@@ -328,7 +328,7 @@ static UniValue waitforblock(const Config &config,
                   }},
         RPCExamples{HelpExampleCli("waitforblock",
                                    "\"0000000000079f8ef3d2c688c244eb7a4570b24c9"
-                                   "ed7b4a8c619eb02596f8862\", 1000") +
+                                   "ed7b4a8c619eb02596f8862\" 1000") +
                     HelpExampleRpc("waitforblock",
                                    "\"0000000000079f8ef3d2c688c244eb7a4570b24c9"
                                    "ed7b4a8c619eb02596f8862\", 1000")},
@@ -388,8 +388,8 @@ static UniValue waitforblockheight(const Config &config,
                       {RPCResult::Type::STR_HEX, "hash", "The blockhash"},
                       {RPCResult::Type::NUM, "height", "Block height"},
                   }},
-        RPCExamples{HelpExampleCli("waitforblockheight", "\"100\", 1000") +
-                    HelpExampleRpc("waitforblockheight", "\"100\", 1000")},
+        RPCExamples{HelpExampleCli("waitforblockheight", "100 1000") +
+                    HelpExampleRpc("waitforblockheight", "100, 1000")},
     }
         .Check(request);
 
