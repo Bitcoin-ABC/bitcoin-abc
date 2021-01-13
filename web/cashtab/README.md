@@ -1,4 +1,4 @@
-# CashTab
+# Cashtab
 
 ## Bitcoin Cash Web Wallet
 
@@ -72,26 +72,26 @@ docker-compose up
 
 ## Redundant APIs
 
-CashTab accepts multiple instances of `bch-api` as its backend. Input your desired API URLs separated commas into the `REACT_APP_BCHA_APIS` variable. For example, to run CashTab with three redundant APIs, use:
+Cashtab accepts multiple instances of `bch-api` as its backend. Input your desired API URLs separated commas into the `REACT_APP_BCHA_APIS` variable. For example, to run Cashtab with three redundant APIs, use:
 
 ```
 REACT_APP_BCHA_APIS=https://rest.kingbch.com/v3/,https://wallet-service-prod.bitframe.org/v3/,https://free-main.fullstack.cash/v3/
 ```
 
-You can also run CashTab with a single API, e.g.
+You can also run Cashtab with a single API, e.g.
 
 ```
 REACT_APP_BCHA_APIS=https://rest.kingbch.com/v3/
 ```
 
-CashTab will start with the first API in your list. If it receives an error from that API, it will try the next one.
+Cashtab will start with the first API in your list. If it receives an error from that API, it will try the next one.
 
 Navigate to `localhost:8080` to see the app.
 
-## CashTab Roadmap
+## Cashtab Roadmap
 
 The following features are under active development:
 
 -   Transaction history
 -   Simple Ledger Postage Protocol Support
--   CashTab browser extension
+-   Cashtab browser extension
