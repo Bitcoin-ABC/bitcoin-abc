@@ -67,7 +67,7 @@
         "qrcode.react": "^1.0.0",
         "react": "^17.0.1",
         "react-app-polyfill": "^2.0.0",
-        "react-copy-to-clipboard": "^5.0.2",
+        "react-copy-to-clipboard": "^5.0.3",
         "react-dev-utils": "^9.1.0",
         "react-device-detect": "^1.15.0",
         "react-dom": "^17.0.1",
