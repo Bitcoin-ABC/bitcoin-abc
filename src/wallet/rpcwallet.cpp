@@ -2924,8 +2924,6 @@ static UniValue getbalances(const Config &config,
 
     LOCK(wallet.cs_wallet);
 
-    UniValue obj(UniValue::VOBJ);
-
     const auto bal = wallet.GetBalance();
     UniValue balances{UniValue::VOBJ};
     {
