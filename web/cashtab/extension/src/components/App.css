@@ -42,7 +42,7 @@ body {
     overflow-x: hidden;
 }
 
-.ant-modal-wrap.ant-modal-centered::-webkit-scrollbar {
+body::-webkit-scrollbar {
     display: none;
 }
 
