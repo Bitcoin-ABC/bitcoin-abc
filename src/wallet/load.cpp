@@ -77,22 +77,27 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 
 bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
                  const std::vector<std::string> &wallet_files) {
-    for (const std::string &walletFile : wallet_files) {
-        bilingual_str error;
-        std::vector<bilingual_str> warnings;
-        std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
-            chainParams, chain, WalletLocation(walletFile), error, warnings);
-        if (!warnings.empty()) {
-            chain.initWarning(Join(warnings, Untranslated("\n")));
+    try {
+        for (const std::string &walletFile : wallet_files) {
+            bilingual_str error;
+            std::vector<bilingual_str> warnings;
+            std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
+                chainParams, chain, WalletLocation(walletFile), error,
+                warnings);
+            if (!warnings.empty()) {
+                chain.initWarning(Join(warnings, Untranslated("\n")));
+            }
+            if (!pwallet) {
+                chain.initError(error);
+                return false;
+            }
+            AddWallet(pwallet);
         }
-        if (!pwallet) {
-            chain.initError(error);
-            return false;
-        }
-        AddWallet(pwallet);
+        return true;
+    } catch (const std::runtime_error &e) {
+        chain.initError(Untranslated(e.what()));
+        return false;
     }
-
-    return true;
 }
 
 void StartWallets(CScheduler &scheduler, const ArgsManager &args) {

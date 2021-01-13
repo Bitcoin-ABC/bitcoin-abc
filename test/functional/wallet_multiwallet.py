@@ -283,13 +283,13 @@ class MultiWalletTest(BitcoinTestFramework):
             'wallet.dat')
 
         # Fail to load if one wallet is a copy of another
-        assert_raises_rpc_error(-1, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
+        assert_raises_rpc_error(-4, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
                                 self.nodes[0].loadwallet, 'w8_copy')
 
         # Fail to load if one wallet is a copy of another.
         # Test this twice to make sure that we don't re-introduce
         # https://github.com/bitcoin/bitcoin/issues/14304
-        assert_raises_rpc_error(-1, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
+        assert_raises_rpc_error(-4, "BerkeleyBatch: Can't open database w8_copy (duplicates fileid",
                                 self.nodes[0].loadwallet, 'w8_copy')
 
         # Fail to load if wallet file is a symlink
