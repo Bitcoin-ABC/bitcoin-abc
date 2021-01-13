@@ -72,8 +72,8 @@ bool VerifyWallets(interfaces::Chain &chain) {
     std::set<fs::path> wallet_paths;
 
     for (const auto &wallet_file : gArgs.GetArgs("-wallet")) {
-        const fs::path path =
-            fs::absolute(fs::PathFromString(wallet_file), GetWalletDir());
+        const fs::path path = fsbridge::AbsPathJoin(
+            GetWalletDir(), fs::PathFromString(wallet_file));
 
         if (!wallet_paths.insert(path).second) {
             chain.initWarning(

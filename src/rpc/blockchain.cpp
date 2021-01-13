@@ -3179,13 +3179,13 @@ static RPCHelpMan dumptxoutset() {
         RPCExamples{HelpExampleCli("dumptxoutset", "utxo.dat")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            fs::path path = fs::absolute(
-                fs::u8path(request.params[0].get_str()), gArgs.GetDataDirNet());
+            const fs::path path = fsbridge::AbsPathJoin(
+                gArgs.GetDataDirNet(), fs::u8path(request.params[0].get_str()));
             // Write to a temporary path and then move into `path` on completion
             // to avoid confusion due to an interruption.
-            fs::path temppath = fs::absolute(
-                fs::u8path(request.params[0].get_str() + ".incomplete"),
-                gArgs.GetDataDirNet());
+            const fs::path temppath = fsbridge::AbsPathJoin(
+                gArgs.GetDataDirNet(),
+                fs::u8path(request.params[0].get_str() + ".incomplete"));
 
             if (fs::exists(path)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,

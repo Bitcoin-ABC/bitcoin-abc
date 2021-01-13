@@ -510,9 +510,9 @@ bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp) const {
     }
     if (filepath) {
         std::string settings = GetArg("-settings", BITCOIN_SETTINGS_FILENAME);
-        *filepath = fs::absolute(
-            fs::PathFromString(temp ? settings + ".tmp" : settings),
-            GetDataDirNet());
+        *filepath = fsbridge::AbsPathJoin(
+            GetDataDirNet(),
+            fs::PathFromString(temp ? settings + ".tmp" : settings));
     }
     return true;
 }
@@ -1383,8 +1383,8 @@ fs::path AbsPathForConfigVal(const fs::path &path, bool net_specific) {
     if (path.is_absolute()) {
         return path;
     }
-    return fs::absolute(path, net_specific ? gArgs.GetDataDirNet()
-                                           : gArgs.GetDataDirBase());
+    return fsbridge::AbsPathJoin(
+        net_specific ? gArgs.GetDataDirNet() : gArgs.GetDataDirBase(), path);
 }
 
 void ScheduleBatchPriority() {
