@@ -300,7 +300,7 @@ UniValue JSONRPCTransactionError(TransactionError terr,
 struct Section {
     Section(const std::string &left, const std::string &right)
         : m_left{left}, m_right{right} {}
-    const std::string m_left;
+    std::string m_left;
     const std::string m_right;
 };
 
@@ -695,6 +695,10 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
             }
             if (m_type == Type::ARR) {
                 sections.PushSection({indent_next + "...", ""});
+            } else {
+                CHECK_NONFATAL(!m_inner.empty());
+                // Remove final comma, which would be invalid JSON
+                sections.m_sections.back().m_left.pop_back();
             }
             sections.PushSection({indent + "]" + maybe_separator, ""});
             return;
@@ -710,6 +714,10 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
                 // If the dictionary keys are dynamic, use three dots for
                 // continuation
                 sections.PushSection({indent_next + "...", ""});
+            } else {
+                CHECK_NONFATAL(!m_inner.empty());
+                // Remove final comma, which would be invalid JSON
+                sections.m_sections.back().m_left.pop_back();
             }
             sections.PushSection({indent + "}" + maybe_separator, ""});
             return;
