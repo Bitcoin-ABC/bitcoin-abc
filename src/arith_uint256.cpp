@@ -272,3 +272,7 @@ arith_uint256 UintToArith256(const uint256 &a) {
     }
     return b;
 }
+
+// Explicit instantiations for base_uint<6144> (used in test/fuzz/muhash.cpp).
+template base_uint<6144> &base_uint<6144>::operator*=(const base_uint<6144> &b);
+template base_uint<6144> &base_uint<6144>::operator/=(const base_uint<6144> &b);

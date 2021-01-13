@@ -56,6 +56,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	locale.cpp
 	merkleblock.cpp
 	message.cpp
+	muhash.cpp
 	multiplication_overflow.cpp
 	net.cpp
 	net_permissions.cpp

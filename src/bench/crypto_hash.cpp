@@ -119,6 +119,18 @@ static void MuHashPrecompute(benchmark::Bench &bench) {
     bench.run([&] { MuHash3072{key}; });
 }
 
+static void MuHashFinalize(benchmark::Bench &bench) {
+    FastRandomContext rng(true);
+    MuHash3072 acc{rng.randbytes(32)};
+    acc /= MuHash3072{rng.rand256()};
+
+    bench.run([&] {
+        uint256 out;
+        acc.Finalize(out);
+        acc /= MuHash3072{out};
+    });
+}
+
 BENCHMARK(RIPEMD160);
 BENCHMARK(SHA1);
 BENCHMARK(SHA256);
@@ -135,3 +147,4 @@ BENCHMARK(MuHash);
 BENCHMARK(MuHashMul);
 BENCHMARK(MuHashDiv);
 BENCHMARK(MuHashPrecompute);
+BENCHMARK(MuHashFinalize);
