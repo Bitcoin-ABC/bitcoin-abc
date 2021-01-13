@@ -36,6 +36,7 @@
 #include <util/translation.h>
 #include <validation.h>
 
+#include <functional>
 #include <memory>
 
 #include <QAction>

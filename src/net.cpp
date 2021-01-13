@@ -47,6 +47,7 @@ static_assert(MINIUPNPC_API_VERSION >= 10,
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <unordered_map>

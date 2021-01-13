@@ -15,6 +15,8 @@
 #include <validation.h>
 #include <warnings.h>
 
+#include <functional>
+
 constexpr char DB_BEST_BLOCK = 'B';
 
 constexpr int64_t SYNC_LOG_INTERVAL = 30;           // seconds

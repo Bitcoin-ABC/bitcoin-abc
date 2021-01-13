@@ -7,6 +7,7 @@
 #include <random.h>
 
 #include <cassert>
+#include <functional>
 #include <utility>
 
 CScheduler::CScheduler() {}

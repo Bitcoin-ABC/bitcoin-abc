@@ -26,6 +26,7 @@
 #include <QTimer>
 
 #include <cstdint>
+#include <functional>
 
 WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet,
                          ClientModel &client_model,

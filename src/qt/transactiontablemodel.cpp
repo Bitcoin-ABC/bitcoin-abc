@@ -18,6 +18,7 @@
 #include <uint256.h>
 
 #include <algorithm>
+#include <functional>
 
 #include <QColor>
 #include <QDateTime>

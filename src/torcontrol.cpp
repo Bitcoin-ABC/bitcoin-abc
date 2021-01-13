@@ -28,6 +28,7 @@
 
 #include <cstdlib>
 #include <deque>
+#include <functional>
 #include <set>
 #include <vector>
 

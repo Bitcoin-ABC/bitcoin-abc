@@ -25,6 +25,9 @@
 #include <boost/mpl/list.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include <functional>
+#include <vector>
+
 using namespace avalanche;
 
 namespace avalanche {
