@@ -37,7 +37,6 @@ Span<const CRPCCommand> GetWalletRPCCommands();
 std::shared_ptr<CWallet>
 GetWalletForJSONRPCRequest(const JSONRPCRequest &request);
 
-std::string HelpRequiringPassphrase(const CWallet *);
 void EnsureWalletIsUnlocked(const CWallet *);
 bool EnsureWalletIsAvailable(const CWallet *, bool avoidException);
 WalletContext &EnsureWalletContext(const util::Ref &context);

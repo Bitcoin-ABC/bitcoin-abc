@@ -43,6 +43,9 @@
 using interfaces::FoundBlock;
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
+static const std::string HELP_REQUIRING_PASSPHRASE{
+    "\nRequires wallet passphrase to be set with walletpassphrase call if "
+    "wallet is encrypted.\n"};
 
 static inline bool GetAvoidReuseFlag(const CWallet *const pwallet,
                                      const UniValue &param) {
@@ -113,13 +116,6 @@ GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
     return wallets.size() == 1 || (request.fHelp && wallets.size() > 0)
                ? wallets[0]
                : nullptr;
-}
-
-std::string HelpRequiringPassphrase(const CWallet *pwallet) {
-    return pwallet && pwallet->IsCrypted()
-               ? "\nRequires wallet passphrase to be set with walletpassphrase "
-                 "call."
-               : "";
 }
 
 bool EnsureWalletIsAvailable(const CWallet *pwallet, bool avoidException) {
@@ -422,8 +418,7 @@ static UniValue sendtoaddress(const Config &config,
 
     RPCHelpMan{
         "sendtoaddress",
-        "Send an amount to a given address.\n" +
-            HelpRequiringPassphrase(pwallet) + "\n",
+        "Send an amount to a given address.\n" + HELP_REQUIRING_PASSPHRASE,
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to send to."},
@@ -595,7 +590,7 @@ static UniValue signmessage(const Config &config,
     RPCHelpMan{
         "signmessage",
         "Sign a message with the private key of an address" +
-            HelpRequiringPassphrase(pwallet) + "\n",
+            HELP_REQUIRING_PASSPHRASE,
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to use for the private key."},
@@ -912,7 +907,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
         "sendmany",
         "Send multiple times. Amounts are double-precision "
         "floating point numbers." +
-            HelpRequiringPassphrase(pwallet) + "\n",
+            HELP_REQUIRING_PASSPHRASE,
         {
             {"dummy", RPCArg::Type::STR, RPCArg::Optional::NO,
              "Must be set to \"\" for backwards compatibility.", "\"\""},
@@ -2252,7 +2247,7 @@ static UniValue keypoolrefill(const Config &config,
 
     RPCHelpMan{
         "keypoolrefill",
-        "Fills the keypool." + HelpRequiringPassphrase(pwallet) + "\n",
+        "Fills the keypool." + HELP_REQUIRING_PASSPHRASE,
         {
             {"newsize", RPCArg::Type::NUM, /* default */ "100",
              "The new keypool size"},
@@ -3972,7 +3967,7 @@ UniValue signrawtransactionwithwallet(const Config &config,
         "The second optional argument (may be null) is an array of previous "
         "transaction outputs that\n"
         "this transaction depends on but may not yet be in the block chain.\n" +
-            HelpRequiringPassphrase(pwallet) + "\n",
+            HELP_REQUIRING_PASSPHRASE,
         {
             {"hexstring", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The transaction hex string"},
@@ -4633,7 +4628,7 @@ static UniValue sethdseed(const Config &config, const JSONRPCRequest &request) {
         "will be derived from this new seed.\n"
         "\nNote that you will need to MAKE A NEW BACKUP of your wallet after "
         "setting the HD wallet seed.\n" +
-            HelpRequiringPassphrase(pwallet) + "\n",
+            HELP_REQUIRING_PASSPHRASE,
         {
             {"newkeypool", RPCArg::Type::BOOL, /* default */ "true",
              "Whether to flush old unused addresses, including change "
@@ -4732,7 +4727,7 @@ static UniValue walletprocesspsbt(const Config &config,
         "walletprocesspsbt",
         "Update a PSBT with input information from our wallet and then sign "
         "inputs that we can sign for." +
-            HelpRequiringPassphrase(pwallet) + "\n",
+            HELP_REQUIRING_PASSPHRASE,
         {
             {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The transaction base64 string"},
