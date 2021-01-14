@@ -446,11 +446,13 @@ void SetupServerArgs(NodeContext &node) {
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-blocksonly",
-        strprintf(
-            "Whether to reject transactions from network peers. Transactions "
-            "from the wallet, RPC and relay whitelisted inbound peers RPC are"
-            " not affected. (default: %u)",
-            DEFAULT_BLOCKSONLY),
+        strprintf("Whether to reject transactions from network peers.  "
+                  "Automatic broadcast and rebroadcast of any transactions "
+                  "from inbound peers is disabled, unless "
+                  "'-whitelistforcerelay' is '1', in which case whitelisted "
+                  "peers' transactions will be relayed. RPC transactions are"
+                  " not affected. (default: %u)",
+                  DEFAULT_BLOCKSONLY),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-conf=<file>",
