@@ -306,6 +306,15 @@ void Shutdown(NodeContext &node) {
     }
 #endif
 
+    node.chain_clients.clear();
+    UnregisterAllValidationInterfaces();
+    GetMainSignals().UnregisterBackgroundSignalScheduler();
+    globalVerifyHandle.reset();
+    ECC_Stop();
+    node.mempool = nullptr;
+    node.chainman = nullptr;
+    node.scheduler.reset();
+
     try {
         if (!fs::remove(GetPidFile(*node.args))) {
             LogPrintf("%s: Unable to remove PID file: File does not exist\n",
@@ -315,15 +324,8 @@ void Shutdown(NodeContext &node) {
         LogPrintf("%s: Unable to remove PID file: %s\n", __func__,
                   fsbridge::get_filesystem_error_message(e));
     }
-    node.chain_clients.clear();
-    UnregisterAllValidationInterfaces();
-    GetMainSignals().UnregisterBackgroundSignalScheduler();
-    globalVerifyHandle.reset();
-    ECC_Stop();
+
     node.args = nullptr;
-    node.mempool = nullptr;
-    node.chainman = nullptr;
-    node.scheduler.reset();
     LogPrintf("%s: done\n", __func__);
 }
 
