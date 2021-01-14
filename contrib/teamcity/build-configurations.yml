@@ -161,6 +161,7 @@ builds:
 
   build-fuzzer:
     clang: true
+    Werror: true
     cmake_flags:
       - '-DENABLE_SANITIZERS=fuzzer'
     targets:

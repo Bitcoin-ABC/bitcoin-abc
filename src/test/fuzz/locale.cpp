@@ -807,8 +807,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     const int64_t random_int64 =
         fuzzed_data_provider.ConsumeIntegral<int64_t>();
     const std::string tostring_without_locale = ToString(random_int64);
-    const int32_t random_int32 =
-        fuzzed_data_provider.ConsumeIntegral<int32_t>();
     const std::string strprintf_int_without_locale =
         strprintf("%d", random_int64);
     const double random_double =
