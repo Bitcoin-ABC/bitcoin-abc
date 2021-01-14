@@ -19,6 +19,10 @@ extern UniValue CallRPC(const std::string &args, const util::Ref &context);
 
 class ExcessiveBlockTestingSetup : public TestingSetup {
 public:
+    ExcessiveBlockTestingSetup()
+        : TestingSetup(CBaseChainParams::MAIN,
+                       {"-deprecatedrpc=setexcessiveblock"}){};
+
     UniValue CallRPC(const std::string &args) {
         const util::Ref context{m_node};
         return ::CallRPC(args, context);

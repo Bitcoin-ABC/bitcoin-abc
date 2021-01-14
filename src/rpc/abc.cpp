@@ -34,9 +34,9 @@ static UniValue setexcessiveblock(Config &config,
                                   const JSONRPCRequest &request) {
     RPCHelpMan{
         "setexcessiveblock",
-        "Set the excessive block size. Excessive blocks will not be used in "
-        "the active chain or relayed. This discourages the propagation of "
-        "blocks that you consider excessively large.",
+        "DEPRECATED. Set the excessive block size. Excessive blocks will not "
+        "be used in the active chain or relayed. This discourages the "
+        "propagation of blocks that you consider excessively large.",
         {
             {"blockSize", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "Excessive block size in bytes.  Must be greater than " +
@@ -47,6 +47,16 @@ static UniValue setexcessiveblock(Config &config,
                     HelpExampleRpc("setexcessiveblock", "25000000")},
     }
         .Check(request);
+
+    if (!IsDeprecatedRPCEnabled(gArgs, "setexcessiveblock")) {
+        // setexcessiveblock is deprecated in v0.22.12 for removal in v0.23
+        throw JSONRPCError(
+            RPC_METHOD_DEPRECATED,
+            std::string(
+                "The setexcessiveblock RPC is deprecated and will be removed "
+                "in a future version. Use the -deprecatedrpc=setexcessiveblock "
+                "option to continue using it."));
+    }
 
     if (!request.params[0].isNum()) {
         throw JSONRPCError(

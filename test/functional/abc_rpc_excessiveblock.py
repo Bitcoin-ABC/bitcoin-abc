@@ -25,6 +25,7 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.tip = None
         self.setup_clean_chain = True
+        self.extra_args = [["-deprecatedrpc=setexcessiveblock"]]
 
     def check_subversion(self, pattern_str):
         # Check that the subversion is set as expected
@@ -84,7 +85,6 @@ class ExcessiveBlockSizeRPCTest(BitcoinTestFramework):
         self.check_subversion(r"/Bitcoin ABC:.*\(EB13\.1; .*\)/")
 
     def run_test(self):
-        self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
         self.test_excessiveblock()
 
 
