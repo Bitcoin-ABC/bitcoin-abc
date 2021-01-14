@@ -296,6 +296,7 @@ public:
     const int ID_NETWORKINFO = 0;
     const int ID_BLOCKCHAININFO = 1;
     const int ID_WALLETINFO = 2;
+    const int ID_BALANCES = 3;
 
     /** Create a simulated `getinfo` request. */
     UniValue PrepareRequest(const std::string &method,
@@ -310,16 +311,19 @@ public:
                                            ID_BLOCKCHAININFO));
         result.push_back(
             JSONRPCRequestObj("getwalletinfo", NullUniValue, ID_WALLETINFO));
+        result.push_back(
+            JSONRPCRequestObj("getbalances", NullUniValue, ID_BALANCES));
         return result;
     }
 
     /** Collect values from the batch and form a simulated `getinfo` reply. */
     UniValue ProcessReply(const UniValue &batch_in) override {
         UniValue result(UniValue::VOBJ);
-        std::vector<UniValue> batch = JSONRPCProcessBatchReply(batch_in, 3);
+        std::vector<UniValue> batch =
+            JSONRPCProcessBatchReply(batch_in, batch_in.size());
         // Errors in getnetworkinfo() and getblockchaininfo() are fatal, pass
-        // them on getwalletinfo() is allowed to fail in case there is no
-        // wallet.
+        // them on; getwalletinfo() and getbalances are allowed to fail if there
+        // is no wallet.
         if (!batch[ID_NETWORKINFO]["error"].isNull()) {
             return batch[ID_NETWORKINFO];
         }
@@ -343,7 +347,6 @@ public:
         result.pushKV("chain",
                       UniValue(batch[ID_BLOCKCHAININFO]["result"]["chain"]));
         if (!batch[ID_WALLETINFO]["result"].isNull()) {
-            result.pushKV("balance", batch[ID_WALLETINFO]["result"]["balance"]);
             result.pushKV("keypoolsize",
                           batch[ID_WALLETINFO]["result"]["keypoolsize"]);
             if (!batch[ID_WALLETINFO]["result"]["unlocked_until"].isNull()) {
@@ -352,6 +355,10 @@ public:
             }
             result.pushKV("paytxfee",
                           batch[ID_WALLETINFO]["result"]["paytxfee"]);
+        }
+        if (!batch[ID_BALANCES]["result"].isNull()) {
+            result.pushKV("balance",
+                          batch[ID_BALANCES]["result"]["mine"]["trusted"]);
         }
         result.pushKV("relayfee", batch[ID_NETWORKINFO]["result"]["relayfee"]);
         result.pushKV("warnings", batch[ID_NETWORKINFO]["result"]["warnings"]);
