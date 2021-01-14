@@ -34,8 +34,18 @@ final class CppCheckLinter extends ArcanistExternalLinter {
       "Class 'CCoinsViewCache' has a constructor with 1 argument that is not explicit.",
       "Class 'CCoinsViewCursor' has a constructor with 1 argument that is not explicit.",
     ),
+    "src/compat/glibcxx_sanity.cpp" => array(
+      // This is a deliberate sanity check and not a real issue
+      "Out of bounds access in expression 'test.at(1)' because 'test' is empty and 'at' may be non-zero.",
+    ),
     "src/cuckoocache.h" => array(
       "Struct 'KeyOnly' has a constructor with 1 argument that is not explicit.",
+    ),
+    "src/init.cpp" => array(
+      // This is a cppcheck issue, occurring on Debian Buster's version 1.86.
+      // This no longer occurs with version 2.3, and maybe other earlier
+      // versions (untested). FIXME: remove when the bug is fixed.
+      "Syntax Error: AST broken, binary operator '=' doesn't have two operands.",
     ),
     "src/net.h" => array(
       "Class 'CNetMessage' has a constructor with 1 argument that is not explicit.",
