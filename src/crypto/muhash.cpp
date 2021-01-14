@@ -17,7 +17,6 @@ namespace {
 using limb_t = Num3072::limb_t;
 using double_limb_t = Num3072::double_limb_t;
 constexpr int LIMB_SIZE = Num3072::LIMB_SIZE;
-constexpr int LIMBS = Num3072::LIMBS;
 /**
  * 2^3072 - 1103717, the largest 3072-bit safe prime number, is used as the
  * modulus.
@@ -127,7 +126,7 @@ inline void square_n_mul(Num3072 &in_out, const int sq, const Num3072 &mul) {
 
 } // namespace
 
-/** Indicates wether d is larger than the modulus. */
+/** Indicates whether d is larger than the modulus. */
 bool Num3072::IsOverflow() const {
     if (this->limbs[0] <= std::numeric_limits<limb_t>::max() - MAX_PRIME_DIFF) {
         return false;
@@ -316,18 +315,34 @@ void Num3072::Divide(const Num3072 &a) {
     }
 }
 
-Num3072 MuHash3072::ToNum3072(Span<const uint8_t> in) {
-    Num3072 out{};
-    uint256 hashed_in = (CHashWriter(SER_DISK, 0) << in).GetSHA256();
-    uint8_t tmp[BYTE_SIZE];
-    ChaCha20(hashed_in.data(), hashed_in.size()).Keystream(tmp, BYTE_SIZE);
+Num3072::Num3072(const uint8_t (&data)[BYTE_SIZE]) {
     for (int i = 0; i < LIMBS; ++i) {
         if (sizeof(limb_t) == 4) {
-            out.limbs[i] = ReadLE32(tmp + 4 * i);
+            this->limbs[i] = ReadLE32(data + 4 * i);
         } else if (sizeof(limb_t) == 8) {
-            out.limbs[i] = ReadLE64(tmp + 8 * i);
+            this->limbs[i] = ReadLE64(data + 8 * i);
         }
     }
+}
+
+void Num3072::ToBytes(uint8_t (&out)[BYTE_SIZE]) {
+    for (int i = 0; i < LIMBS; ++i) {
+        if (sizeof(limb_t) == 4) {
+            WriteLE32(out + i * 4, this->limbs[i]);
+        } else if (sizeof(limb_t) == 8) {
+            WriteLE64(out + i * 8, this->limbs[i]);
+        }
+    }
+}
+
+Num3072 MuHash3072::ToNum3072(Span<const uint8_t> in) {
+    uint8_t tmp[Num3072::BYTE_SIZE];
+
+    uint256 hashed_in = (CHashWriter(SER_DISK, 0) << in).GetSHA256();
+    ChaCha20(hashed_in.data(), hashed_in.size())
+        .Keystream(tmp, Num3072::BYTE_SIZE);
+    Num3072 out{tmp};
+
     return out;
 }
 
@@ -340,14 +355,8 @@ void MuHash3072::Finalize(uint256 &out) noexcept {
     // Needed to keep the MuHash object valid
     m_denominator.SetToOne();
 
-    uint8_t data[384];
-    for (int i = 0; i < LIMBS; ++i) {
-        if (sizeof(limb_t) == 4) {
-            WriteLE32(data + i * 4, m_numerator.limbs[i]);
-        } else if (sizeof(limb_t) == 8) {
-            WriteLE64(data + i * 8, m_numerator.limbs[i]);
-        }
-    }
+    uint8_t data[Num3072::BYTE_SIZE];
+    m_numerator.ToBytes(data);
 
     out = (CHashWriter(SER_DISK, 0) << data).GetSHA256();
 }
