@@ -2337,8 +2337,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     FastRandomContext rng;
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
-        args.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
-        &uiInterface, args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
+        args.GetDataDirNet() / "banlist", config.GetChainParams(), &uiInterface,
+        args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
         config, rng.rand64(), rng.rand64(), *node.addrman,

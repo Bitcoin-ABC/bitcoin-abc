@@ -276,8 +276,8 @@ TestingSetup::TestingSetup(const ChainType chainType,
         /*asmap=*/std::vector<bool>(), /*deterministic=*/false,
         /*consistency_check_ratio=*/0);
     m_node.banman = std::make_unique<BanMan>(
-        m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
-        nullptr, DEFAULT_MISBEHAVING_BANTIME);
+        m_args.GetDataDirBase() / "banlist", config.GetChainParams(), nullptr,
+        DEFAULT_MISBEHAVING_BANTIME);
     // Deterministic randomness for tests.
     m_node.connman =
         std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);

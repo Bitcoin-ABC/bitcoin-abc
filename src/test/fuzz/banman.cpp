@@ -12,7 +12,9 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <test/util/setup_common.h>
+#include <util/readwritefile.h>
 
+#include <cassert>
 #include <cstdint>
 #include <limits>
 #include <string>
@@ -36,8 +38,23 @@ void initialize_banman() {
 
 FUZZ_TARGET_INIT(banman, initialize_banman) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
-    const fs::path banlist_file = gArgs.GetDataDirNet() / "fuzzed_banlist.dat";
-    fs::remove(banlist_file);
+    SetMockTime(ConsumeTime(fuzzed_data_provider));
+    fs::path banlist_file = gArgs.GetDataDirNet() / "fuzzed_banlist";
+
+    const bool start_with_corrupted_banlist{fuzzed_data_provider.ConsumeBool()};
+    if (start_with_corrupted_banlist) {
+        const auto sfx{fuzzed_data_provider.ConsumeBool() ? ".dat" : ".json"};
+        assert(
+            WriteBinaryFile(banlist_file + sfx,
+                            fuzzed_data_provider.ConsumeRandomLengthString()));
+    } else {
+        const bool force_read_and_write_to_err{
+            fuzzed_data_provider.ConsumeBool()};
+        if (force_read_and_write_to_err) {
+            banlist_file =
+                fs::path{"path"} / "to" / "inaccessible" / "fuzzed_banlist";
+        }
+    }
     const CChainParams &chainparams = GetConfig().GetChainParams();
     {
         BanMan ban_man{banlist_file, chainparams, nullptr,
@@ -70,5 +87,6 @@ FUZZ_TARGET_INIT(banman, initialize_banman) {
                 });
         }
     }
-    fs::remove(fs::PathToString(banlist_file));
+    fs::remove(fs::PathToString(banlist_file) + ".dat");
+    fs::remove(fs::PathToString(banlist_file) + ".json");
 }

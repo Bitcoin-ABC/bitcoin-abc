@@ -21,25 +21,19 @@ BanMan::BanMan(fs::path ban_file, const CChainParams &chainparams,
     }
 
     int64_t n_start = GetTimeMillis();
-    m_is_dirty = false;
-    banmap_t banmap;
-    if (m_ban_db.Read(banmap)) {
-        // thread save setter
-        SetBanned(banmap);
-        // no need to write down, just read data
-        SetBannedSetDirty(false);
+    if (m_ban_db.Read(m_banned, m_is_dirty)) {
         // sweep out unused entries
         SweepBanned();
 
-        LogPrint(BCLog::NET,
-                 "Loaded %d banned node ips/subnets from banlist.dat  %dms\n",
+        LogPrint(BCLog::NET, "Loaded %d banned node addresses/subnets  %dms\n",
                  m_banned.size(), GetTimeMillis() - n_start);
     } else {
-        LogPrintf("Recreating banlist.dat\n");
-        // force write
-        SetBannedSetDirty(true);
-        DumpBanlist();
+        LogPrintf("Recreating the banlist database\n");
+        m_banned = {};
+        m_is_dirty = true;
     }
+
+    DumpBanlist();
 }
 
 BanMan::~BanMan() {
@@ -63,7 +57,7 @@ void BanMan::DumpBanlist() {
     }
 
     LogPrint(BCLog::NET,
-             "Flushed %d banned node ips/subnets to banlist.dat  %dms\n",
+             "Flushed %d banned node addresses/subnets to disk  %dms\n",
              banmap.size(), GetTimeMillis() - n_start);
 }
 
@@ -184,12 +178,6 @@ void BanMan::GetBanned(banmap_t &banmap) {
     banmap = m_banned;
 }
 
-void BanMan::SetBanned(const banmap_t &banmap) {
-    LOCK(m_cs_banned);
-    m_banned = banmap;
-    m_is_dirty = true;
-}
-
 void BanMan::SweepBanned() {
     int64_t now = GetTime();
     bool notify_ui = false;
@@ -203,10 +191,8 @@ void BanMan::SweepBanned() {
                 m_banned.erase(it++);
                 m_is_dirty = true;
                 notify_ui = true;
-                LogPrint(
-                    BCLog::NET,
-                    "%s: Removed banned node ip/subnet from banlist.dat: %s\n",
-                    __func__, sub_net.ToString());
+                LogPrint(BCLog::NET, "Removed banned node address/subnet: %s\n",
+                         sub_net.ToString());
             } else {
                 ++it;
             }
