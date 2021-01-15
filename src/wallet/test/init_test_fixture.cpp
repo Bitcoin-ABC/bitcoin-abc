@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <fs.h>
+#include <univalue.h>
 #include <util/check.h>
 #include <util/system.h>
 
@@ -38,6 +39,9 @@ InitWalletDirTestingSetup::InitWalletDirTestingSetup(
 }
 
 InitWalletDirTestingSetup::~InitWalletDirTestingSetup() {
+    gArgs.LockSettings([&](util::Settings &settings) {
+        settings.forced_settings.erase("walletdir");
+    });
     fs::current_path(m_cwd);
 }
 
