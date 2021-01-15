@@ -15,6 +15,7 @@
 #include <random.h>
 #include <script/standard.h>
 #include <test/util/random.h>
+#include <test/util/script.h>
 #include <test/util/setup_common.h>
 #include <util/time.h>
 #include <validation.h>
@@ -79,21 +80,13 @@ std::shared_ptr<CBlock> MinerTestingSetup::Block(const Config &config,
     static int i = 0;
     static uint64_t time = config.GetChainParams().GenesisBlock().nTime;
 
-    CScript pubKey;
-    pubKey << i++ << OP_TRUE;
-
     auto ptemplate = BlockAssembler{config, m_node.chainman->ActiveChainstate(),
                                     m_node.mempool.get()}
-                         .CreateNewBlock(pubKey);
+                         .CreateNewBlock(CScript{} << i++ << OP_TRUE);
     auto pblock = std::make_shared<CBlock>(ptemplate->block);
     pblock->hashPrevBlock = prev_hash;
     pblock->nTime = ++time;
 
-    pubKey.clear();
-    {
-        pubKey << OP_HASH160 << ToByteVector(CScriptID(CScript() << OP_TRUE))
-               << OP_EQUAL;
-    }
     // Make the coinbase transaction with two outputs:
     // One zero-value one that has a unique pubkey to make sure that blocks at
     // the same height can have a different hash. Another one that has the
@@ -101,7 +94,7 @@ std::shared_ptr<CBlock> MinerTestingSetup::Block(const Config &config,
     // spend
     CMutableTransaction txCoinbase(*pblock->vtx[0]);
     txCoinbase.vout.resize(2);
-    txCoinbase.vout[1].scriptPubKey = pubKey;
+    txCoinbase.vout[1].scriptPubKey = P2SH_OP_TRUE;
     txCoinbase.vout[1].nValue = txCoinbase.vout[0].nValue;
     txCoinbase.vout[0].nValue = Amount::zero();
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
