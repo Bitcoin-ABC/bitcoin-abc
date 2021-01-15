@@ -18,17 +18,13 @@
 #include <test/util/net.h>
 #include <test/util/setup_common.h>
 
+namespace {
 const TestingSetup *g_setup;
+} // namespace
 
 void initialize() {
-    static TestingSetup setup{
-        CBaseChainParams::REGTEST,
-        {
-            "-nodebuglogfile",
-        },
-    };
-    g_setup = &setup;
-
+    static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
+    g_setup = testing_setup.get();
     for (int i = 0; i < 2 * COINBASE_MATURITY; i++) {
         MineBlock(GetConfig(), g_setup->m_node, CScript() << OP_TRUE);
     }

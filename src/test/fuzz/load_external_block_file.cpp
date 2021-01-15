@@ -15,7 +15,7 @@
 #include <vector>
 
 void initialize() {
-    InitializeFuzzingContext();
+    static const auto testing_setup = MakeFuzzingContext<>();
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {

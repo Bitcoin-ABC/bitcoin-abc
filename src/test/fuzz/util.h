@@ -16,6 +16,7 @@
 #include <serialize.h>
 #include <streams.h>
 #include <uint256.h>
+#include <util/vector.h>
 #include <version.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>
@@ -255,10 +256,18 @@ CSubNet ConsumeSubNet(FuzzedDataProvider &fuzzed_data_provider) noexcept {
             fuzzed_data_provider.ConsumeIntegral<uint8_t>()};
 }
 
-void InitializeFuzzingContext(
-    const std::string &chain_name = CBaseChainParams::REGTEST) {
-    static const BasicTestingSetup basic_testing_setup{chain_name,
-                                                       {"-nodebuglogfile"}};
+template <class T = const BasicTestingSetup>
+std::unique_ptr<T>
+MakeFuzzingContext(const std::string &chain_name = CBaseChainParams::REGTEST,
+                   const std::vector<const char *> &extra_args = {}) {
+    // Prepend default arguments for fuzzing
+    const std::vector<const char *> arguments = Cat(
+        {
+            "-nodebuglogfile",
+        },
+        extra_args);
+
+    return std::make_unique<T>(chain_name, arguments);
 }
 
 class FuzzedFileProvider {

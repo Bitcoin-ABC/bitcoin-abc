@@ -23,7 +23,8 @@
 #include <vector>
 
 void initialize() {
-    static const BasicTestingSetup basic_testing_setup;
+    static const auto testing_setup =
+        MakeFuzzingContext<>(CBaseChainParams::MAIN);
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
