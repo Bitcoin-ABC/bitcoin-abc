@@ -7,7 +7,11 @@ import asyncio
 import struct
 
 from test_framework import messages
-from test_framework.mininode import P2PDataStore, NetworkThread
+from test_framework.mininode import (
+    NetworkThread,
+    P2PDataStore,
+    P2PInterface,
+)
 from test_framework.test_framework import BitcoinTestFramework
 
 
@@ -46,6 +50,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         self.test_checksum()
         self.test_size()
         self.test_msgtype()
+        self.test_large_inv()
 
         node = self.nodes[0]
         self.node = node
@@ -208,6 +213,19 @@ class InvalidMessagesTest(BitcoinTestFramework):
             self.nodes[0].p2p.send_raw_message(msg)
             conn.sync_with_ping(timeout=1)
             self.nodes[0].disconnect_p2ps()
+
+    def test_large_inv(self):
+        conn = self.nodes[0].add_p2p_connection(P2PInterface())
+        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (0 -> 20): oversized-inv: message inv size() = 50001']):
+            msg = messages.msg_inv([messages.CInv(1, 1)] * 50001)
+            conn.send_and_ping(msg)
+        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (20 -> 40): too-many-inv: message getdata size() = 50001']):
+            msg = messages.msg_getdata([messages.CInv(1, 1)] * 50001)
+            conn.send_and_ping(msg)
+        with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=4 (40 -> 60): too-many-headers: headers message size = 2001']):
+            msg = messages.msg_headers([messages.CBlockHeader()] * 2001)
+            conn.send_and_ping(msg)
+        self.nodes[0].disconnect_p2ps()
 
     def _tweak_msg_data_size(self, message, wrong_size):
         """

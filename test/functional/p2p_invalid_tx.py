@@ -113,7 +113,10 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         tx_orphan_1 = CTransaction()
         tx_orphan_1.vin.append(
             CTxIn(outpoint=COutPoint(tx_withhold.sha256, 0)))
-        tx_orphan_1.vout = [CTxOut(nValue=10 * COIN, scriptPubKey=b'\x51')] * 3
+        tx_orphan_1.vout = [
+            CTxOut(
+                nValue=10 * COIN,
+                scriptPubKey=b'\x51')] * 3
         pad_tx(tx_orphan_1)
         tx_orphan_1.calc_sha256()
 
@@ -141,6 +144,7 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         tx_orphan_2_invalid.vout.append(
             CTxOut(nValue=11 * COIN, scriptPubKey=b'\x51'))
         pad_tx(tx_orphan_2_invalid)
+        tx_orphan_2_invalid.calc_sha256()
 
         self.log.info('Send the orphans ... ')
         # Send valid orphan txs from p2ps[0]
@@ -177,6 +181,34 @@ class InvalidTxRequestTest(BitcoinTestFramework):
         # p2ps[1] is no longer connected
         wait_until(lambda: 1 == len(node.getpeerinfo()), timeout=12)
         assert_equal(expected_mempool, set(node.getrawmempool()))
+
+        self.log.info('Test orphan pool overflow')
+        orphan_tx_pool = [CTransaction() for _ in range(101)]
+        for i in range(len(orphan_tx_pool)):
+            orphan_tx_pool[i].vin.append(CTxIn(outpoint=COutPoint(i, 333)))
+            orphan_tx_pool[i].vout.append(
+                CTxOut(
+                    nValue=11 * COIN,
+                    scriptPubKey=b'\x51'))
+            pad_tx(orphan_tx_pool[i])
+
+        with node.assert_debug_log(['mapOrphan overflow, removed 1 tx']):
+            node.p2p.send_txs_and_test(orphan_tx_pool, node, success=False)
+
+        rejected_parent = CTransaction()
+        rejected_parent.vin.append(
+            CTxIn(
+                outpoint=COutPoint(
+                    tx_orphan_2_invalid.sha256,
+                    0)))
+        rejected_parent.vout.append(
+            CTxOut(
+                nValue=11 * COIN,
+                scriptPubKey=b'\x51'))
+        pad_tx(rejected_parent)
+        rejected_parent.rehash()
+        with node.assert_debug_log(['not keeping orphan with rejected parents {}'.format(rejected_parent.hash)]):
+            node.p2p.send_txs_and_test([rejected_parent], node, success=False)
 
 
 if __name__ == '__main__':
