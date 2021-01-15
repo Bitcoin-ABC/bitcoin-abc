@@ -236,9 +236,6 @@ class FullBlockTest(BitcoinTestFramework):
         default_p2p = node.add_p2p_connection(P2PDataStore())
         test_p2p = node.add_p2p_connection(TestP2PConn())
 
-        # Set the blocksize to 2MB as initial condition
-        node.setexcessiveblock(self.excessive_block_size)
-
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
