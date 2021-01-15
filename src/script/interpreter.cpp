@@ -163,6 +163,43 @@ public:
 };
 } // namespace
 
+/**
+ * Helper for OP_CHECKSIG and OP_CHECKSIGVERIFY
+ *
+ * A return value of false means the script fails entirely. When true is
+ * returned, the fSuccess variable indicates whether the signature check itself
+ * succeeded.
+ */
+static bool EvalChecksig(const valtype &vchSig, const valtype &vchPubKey,
+                         CScript::const_iterator pbegincodehash,
+                         CScript::const_iterator pend, uint32_t flags,
+                         const BaseSignatureChecker &checker,
+                         ScriptExecutionMetrics &metrics, ScriptError *serror,
+                         bool &fSuccess) {
+    if (!CheckTransactionSignatureEncoding(vchSig, flags, serror) ||
+        !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
+        // serror is set
+        return false;
+    }
+
+    if (vchSig.size()) {
+        // Subset of script starting at the most recent
+        // codeseparator
+        CScript scriptCode(pbegincodehash, pend);
+
+        // Remove signature for pre-fork scripts
+        CleanupScriptCode(scriptCode, vchSig, flags);
+
+        fSuccess = checker.CheckSig(vchSig, vchPubKey, scriptCode, flags);
+        metrics.nSigChecks += 1;
+
+        if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
+            return set_error(serror, ScriptError::SIG_NULLFAIL);
+        }
+    }
+    return true;
+}
+
 bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                 uint32_t flags, const BaseSignatureChecker &checker,
                 ScriptExecutionMetrics &metrics, ScriptError *serror) {
@@ -930,32 +967,12 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         valtype &vchSig = stacktop(-2);
                         valtype &vchPubKey = stacktop(-1);
 
-                        if (!CheckTransactionSignatureEncoding(vchSig, flags,
-                                                               serror) ||
-                            !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
-                            // serror is set
+                        bool fSuccess = false;
+                        if (!EvalChecksig(vchSig, vchPubKey, pbegincodehash,
+                                          pend, flags, checker, metrics, serror,
+                                          fSuccess)) {
                             return false;
                         }
-
-                        bool fSuccess = false;
-                        if (vchSig.size()) {
-                            // Subset of script starting at the most recent
-                            // codeseparator
-                            CScript scriptCode(pbegincodehash, pend);
-
-                            // Remove signature for pre-fork scripts
-                            CleanupScriptCode(scriptCode, vchSig, flags);
-
-                            fSuccess = checker.CheckSig(vchSig, vchPubKey,
-                                                        scriptCode, flags);
-                            metrics.nSigChecks += 1;
-
-                            if (!fSuccess && (flags & SCRIPT_VERIFY_NULLFAIL)) {
-                                return set_error(serror,
-                                                 ScriptError::SIG_NULLFAIL);
-                            }
-                        }
-
                         popstack(stack);
                         popstack(stack);
                         stack.push_back(fSuccess ? vchTrue : vchFalse);
