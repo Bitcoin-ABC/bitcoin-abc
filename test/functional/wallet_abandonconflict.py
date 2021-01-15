@@ -138,9 +138,11 @@ class AbandonConflictTest(BitcoinTestFramework):
         # Unconfirmed received funds that are not in mempool also shouldn't show
         # up in unconfirmed balance.  Note that the transactions stored in the wallet
         # are not necessarily in the node's mempool.
-        unconfbalance = self.nodes[0].getunconfirmedbalance(
-        ) + self.nodes[0].getbalance()
-        assert_equal(unconfbalance, newbalance)
+        balances = self.nodes[0].getbalances()['mine']
+        assert_equal(
+            balances['untrusted_pending'] +
+            balances['trusted'],
+            newbalance)
         # Unconfirmed transactions which are not in the mempool should also
         # not be in listunspent
         assert txABC2 not in [utxo["txid"]
