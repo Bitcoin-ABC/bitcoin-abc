@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Spin, Modal } from 'antd';
+import { Form, notification, message, Spin, Modal, Alert } from 'antd';
 import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
@@ -15,7 +15,12 @@ import {
 import useBCH from '@hooks/useBCH';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { currency } from '@components/Common/Ticker.js';
+import {
+    currency,
+    isToken,
+    parseAddress,
+    toLegacy,
+} from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 export const BalanceHeader = styled.div`
     p {
@@ -84,6 +89,8 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         address: filledAddress || '',
     });
     const [loading, setLoading] = useState(false);
+    const [queryStringText, setQueryStringText] = useState(null);
+    const [sendBchAddressError, setSendBchAddressError] = useState(false);
     const [sendBchAmountError, setSendBchAmountError] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(currency.ticker);
 
@@ -124,7 +131,6 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
             !window.location.hash ||
             window.location.hash === '#/send'
         ) {
-            console.log(`No tx info in URL`);
             return;
         }
 
@@ -171,6 +177,20 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         setLoading(true);
         const { address, value } = formData;
 
+        // Get the param-free address
+        let cleanAddress = address.split('?')[0];
+
+        // Ensure address has bitcoincash: prefix and checksum
+        cleanAddress = toLegacy(cleanAddress);
+
+        // If there was an error converting the address
+        if (!cleanAddress.startsWith('bitcoincash:')) {
+            // return as above with other errors
+            console.log(`toLegacy() returned an error:`, cleanAddress);
+            // Note: the address must be valid to get to this point, so unsure if this can be produced
+            return;
+        }
+
         // Calculate the amount in BCH
         let bchValue = value;
 
@@ -184,7 +204,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                 wallet,
                 slpBalancesAndUtxos.nonSlpUtxos,
                 {
-                    addresses: [filledAddress || address],
+                    addresses: [filledAddress || cleanAddress],
                     values: [bchValue],
                 },
                 callbackTxId,
@@ -235,10 +255,60 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         }
     }
 
-    const handleChange = e => {
+    const handleAddressChange = e => {
         const { value, name } = e.target;
+        let error = false;
+        let addressString = value;
 
-        setFormData(p => ({ ...p, [name]: value }));
+        // parse address
+        const addressInfo = parseAddress(BCH, addressString);
+        /*
+        Model
+
+        addressInfo = 
+        {
+            address: '',
+            isValid: false,
+            queryString: '',
+            amount: null,
+        };
+        */
+
+        const { address, isValid, queryString, amount } = addressInfo;
+
+        // If query string,
+        // Show an alert that only amount and currency.ticker are supported
+        setQueryStringText(queryString);
+
+        // Is this valid address?
+        if (!isValid) {
+            error = 'Address is not a valid cash address';
+            // If valid address but token format
+            if (isToken(address)) {
+                error = `Token addresses are not supported for ${currency.ticker} sends`;
+            }
+        }
+        setSendBchAddressError(error);
+
+        // Set amount if it's in the query string
+        if (amount !== null) {
+            // Set currency to BCHA
+            setSelectedCurrency(currency.ticker);
+
+            // Use this object to mimic user input and get validation for the value
+            let amountObj = { target: { name: 'value', value: amount } };
+            handleBchAmountChange(amountObj);
+            setFormData({
+                ...formData,
+                value: amount,
+            });
+        }
+
+        // Set address field to user input
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
     };
 
     const handleSelectedCurrencyChange = e => {
@@ -359,26 +429,26 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                                 loadWithCameraOpen={scannerSupported}
                                 disabled={Boolean(filledAddress)}
                                 validateStatus={
-                                    !formData.dirty && !formData.address
-                                        ? 'error'
-                                        : ''
+                                    sendBchAddressError ? 'error' : ''
                                 }
                                 help={
-                                    !formData.dirty && !formData.address
-                                        ? `Should be a valid ${currency.ticker} address`
+                                    sendBchAddressError
+                                        ? sendBchAddressError
                                         : ''
                                 }
                                 onScan={result =>
-                                    setFormData({
-                                        ...formData,
-                                        address: result,
+                                    handleAddressChange({
+                                        target: {
+                                            name: 'address',
+                                            value: result,
+                                        },
                                     })
                                 }
                                 inputProps={{
                                     disabled: Boolean(filledAddress),
                                     placeholder: `${currency.ticker} Address`,
                                     name: 'address',
-                                    onChange: e => handleChange(e),
+                                    onChange: e => handleAddressChange(e),
                                     required: true,
                                     value: filledAddress || formData.address,
                                 }}
@@ -401,6 +471,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                                 }}
                                 selectProps={{
                                     value: selectedCurrency,
+                                    disabled: queryStringText !== null,
                                     onChange: e =>
                                         handleSelectedCurrencyChange(e),
                                 }}
@@ -409,7 +480,8 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                             <div style={{ paddingTop: '12px' }}>
                                 {!balances.totalBalance ||
                                 apiError ||
-                                sendBchAmountError ? (
+                                sendBchAmountError ||
+                                sendBchAddressError ? (
                                     <SecondaryButton>Send</SecondaryButton>
                                 ) : (
                                     <>
@@ -429,6 +501,12 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                                     </>
                                 )}
                             </div>
+                            {queryStringText && (
+                                <Alert
+                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
+                                    type="warning"
+                                />
+                            )}
                             {apiError && (
                                 <>
                                     <CashLoader />

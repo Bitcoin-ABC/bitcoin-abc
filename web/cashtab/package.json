@@ -9,6 +9,7 @@
         "@zxing/library": "0.8.0",
         "antd": "^4.9.3",
         "bignumber.js": "^9.0.0",
+        "cashaddrjs": "^0.3.12",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0",
         "ethereum-blockies-base64": "^1.0.2",

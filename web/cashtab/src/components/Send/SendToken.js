@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Spin, Row, Col } from 'antd';
+import { Form, notification, message, Spin, Row, Col, Alert } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
     SecondaryButton,
@@ -18,7 +18,7 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
-import { currency } from '@components/Common/Ticker.js';
+import { currency, parseAddress, isToken } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 
 const SendToken = ({ tokenId }) => {
@@ -26,6 +26,8 @@ const SendToken = ({ tokenId }) => {
         WalletContext,
     );
     const token = tokens.find(token => token.tokenId === tokenId);
+    const [queryStringText, setQueryStringText] = useState(null);
+    const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
 
     // Get device window width
@@ -69,10 +71,13 @@ const SendToken = ({ tokenId }) => {
         setLoading(true);
         const { address, value } = formData;
 
+        // Clear params from address
+        let cleanAddress = address.split('?')[0];
+
         try {
             const link = await sendToken(BCH, wallet, slpBalancesAndUtxos, {
                 tokenId: tokenId,
-                tokenReceiverAddress: address,
+                tokenReceiverAddress: cleanAddress,
                 amount: value,
             });
 
@@ -141,10 +146,47 @@ const SendToken = ({ tokenId }) => {
         setFormData(p => ({ ...p, [name]: value }));
     };
 
-    const handleChange = e => {
+    const handleTokenAddressChange = e => {
         const { value, name } = e.target;
+        // validate for token address
+        // validate for parameters
+        // show warning that query strings are not supported
 
-        setFormData(p => ({ ...p, [name]: value }));
+        let error = false;
+        let addressString = value;
+        // parse address
+        const addressInfo = parseAddress(BCH, addressString);
+        /*
+        Model
+
+        addressInfo = 
+        {
+            address: '',
+            isValid: false,
+            queryString: '',
+            amount: null,
+        };
+        */
+
+        const { address, isValid, queryString } = addressInfo;
+
+        // If query string,
+        // Show an alert that only amount and currency.ticker are supported
+        setQueryStringText(queryString);
+
+        // Is this valid address?
+        if (!isValid) {
+            error = 'Address is not valid';
+            // If valid address but token format
+        } else if (!isToken(address)) {
+            error = `Cashtab only supports sending to ${currency.tokenPrefixes[0]} prefixed addresses`;
+        }
+        setSendTokenAddressError(error);
+
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
     };
 
     const onMax = async () => {
@@ -197,25 +239,26 @@ const SendToken = ({ tokenId }) => {
                                     <FormItemWithQRCodeAddon
                                         loadWithCameraOpen={scannerSupported}
                                         validateStatus={
-                                            !formData.dirty && !formData.address
-                                                ? 'error'
-                                                : ''
+                                            sendTokenAddressError ? 'error' : ''
                                         }
                                         help={
-                                            !formData.dirty && !formData.address
-                                                ? 'Should be a valid bch address'
+                                            sendTokenAddressError
+                                                ? sendTokenAddressError
                                                 : ''
                                         }
                                         onScan={result =>
-                                            setFormData({
-                                                ...formData,
-                                                address: result,
+                                            handleTokenAddressChange({
+                                                target: {
+                                                    name: 'address',
+                                                    value: result,
+                                                },
                                             })
                                         }
                                         inputProps={{
                                             placeholder: `${currency.tokenTicker} Address`,
                                             name: 'address',
-                                            onChange: e => handleChange(e),
+                                            onChange: e =>
+                                                handleTokenAddressChange(e),
                                             required: true,
                                             value: formData.address,
                                         }}
@@ -278,7 +321,9 @@ const SendToken = ({ tokenId }) => {
                                         }}
                                     />
                                     <div style={{ paddingTop: '12px' }}>
-                                        {apiError || sendTokenAmountError ? (
+                                        {apiError ||
+                                        sendTokenAmountError ||
+                                        sendTokenAddressError ? (
                                             <>
                                                 <SecondaryButton>
                                                     Send {token.info.tokenName}
@@ -293,6 +338,12 @@ const SendToken = ({ tokenId }) => {
                                             </PrimaryButton>
                                         )}
                                     </div>
+                                    {queryStringText && (
+                                        <Alert
+                                            message={`You are sending a transaction to an address including query parameters "${queryStringText}." Token transactions do not support query parameters and they will be ignored.`}
+                                            type="warning"
+                                        />
+                                    )}
                                     {apiError && (
                                         <p style={{ color: 'red' }}>
                                             <b>
