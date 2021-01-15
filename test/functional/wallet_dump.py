@@ -4,7 +4,9 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the dumpwallet RPC."""
 
+import datetime
 import os
+import time
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -20,13 +22,18 @@ def read_dump(file_name, addrs, script_addrs, hd_master_addr_old):
     """
     with open(file_name, encoding='utf8') as inputfile:
         found_addr = 0
+        found_comments = []
         found_script_addr = 0
         found_addr_chg = 0
         found_addr_rsv = 0
         hd_master_addr_ret = None
         for line in inputfile:
-            # only read non comment lines
-            if line[0] != "#" and len(line) > 10:
+            line = line.strip()
+            if not line:
+                continue
+            if line[0] == '#':
+                found_comments.append(line)
+            else:
                 # split out some data
                 key_date_label, comment = line.split("#")
                 key_date_label = key_date_label.split(" ")
@@ -74,7 +81,7 @@ def read_dump(file_name, addrs, script_addrs, hd_master_addr_old):
                         found_script_addr += 1
                         break
 
-        return found_addr, found_script_addr, found_addr_chg, found_addr_rsv, hd_master_addr_ret
+        return found_comments, found_addr, found_script_addr, found_addr_chg, found_addr_rsv, hd_master_addr_ret
 
 
 class WalletDumpTest(BitcoinTestFramework):
@@ -111,12 +118,43 @@ class WalletDumpTest(BitcoinTestFramework):
         multisig_addr = self.nodes[0].addmultisigaddress(
             1, [addrs[0]["address"]])["address"]
 
-        # dump unencrypted wallet
+        self.log.info('Mine a block one second before the wallet is dumped')
+        dump_time = int(time.time())
+        self.nodes[0].setmocktime(dump_time - 1)
+        self.nodes[0].generate(1)
+        self.nodes[0].setmocktime(dump_time)
+        dump_time_str = '# * Created on {}Z'.format(
+            datetime.datetime.fromtimestamp(
+                dump_time,
+                tz=datetime.timezone.utc,
+            ).replace(tzinfo=None).isoformat())
+        dump_best_block_1 = '# * Best block at time of backup was {} ({}),'.format(
+            self.nodes[0].getblockcount(),
+            self.nodes[0].getbestblockhash(),
+        )
+        dump_best_block_2 = '#   mined on {}Z'.format(
+            datetime.datetime.fromtimestamp(
+                dump_time - 1,
+                tz=datetime.timezone.utc,
+            ).replace(tzinfo=None).isoformat())
+
+        self.log.info('Dump unencrypted wallet')
         result = self.nodes[0].dumpwallet(wallet_unenc_dump)
         assert_equal(result['filename'], wallet_unenc_dump)
 
-        found_addr, found_script_addr, found_addr_chg, found_addr_rsv, hd_master_addr_unenc = \
+        found_comments, found_addr, found_script_addr, found_addr_chg, found_addr_rsv, hd_master_addr_unenc = \
             read_dump(wallet_unenc_dump, addrs, [multisig_addr], None)
+        # Check that file is not corrupt
+        assert '# End of dump' in found_comments
+        assert_equal(
+            dump_time_str, next(
+                c for c in found_comments if c.startswith('# * Created on')))
+        assert_equal(
+            dump_best_block_1, next(
+                c for c in found_comments if c.startswith('# * Best block')))
+        assert_equal(
+            dump_best_block_2, next(
+                c for c in found_comments if c.startswith('#   mined on')))
         # all keys must be in the dump
         assert_equal(found_addr, test_addr_count)
         # all scripts must be in the dump
@@ -133,13 +171,24 @@ class WalletDumpTest(BitcoinTestFramework):
         self.nodes[0].keypoolrefill()
         self.nodes[0].dumpwallet(wallet_enc_dump)
 
-        found_addr, found_script_addr, found_addr_chg, found_addr_rsv, _ = \
+        found_comments, found_addr, found_script_addr, found_addr_chg, found_addr_rsv, _ = \
             read_dump(
                 wallet_enc_dump,
                 addrs,
                 [multisig_addr],
                 hd_master_addr_unenc)
+        # Check that file is not corrupt
+        assert '# End of dump' in found_comments
         assert_equal(found_addr, test_addr_count)
+        assert_equal(
+            dump_time_str, next(
+                c for c in found_comments if c.startswith('# * Created on')))
+        assert_equal(
+            dump_best_block_1, next(
+                c for c in found_comments if c.startswith('# * Best block')))
+        assert_equal(
+            dump_best_block_2, next(
+                c for c in found_comments if c.startswith('#   mined on')))
         assert_equal(found_script_addr, 1)
         # old reserve keys are marked as change now
         assert_equal(found_addr_chg, 90 * 2)
