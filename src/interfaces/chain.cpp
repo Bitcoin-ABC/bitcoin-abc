@@ -282,6 +282,8 @@ namespace {
             const CBlockIndex *block2 = LookupBlockIndex(block_hash2);
             const CBlockIndex *ancestor =
                 block1 && block2 ? LastCommonAncestor(block1, block2) : nullptr;
+            // Using & instead of && below to avoid short circuiting and leaving
+            // output uninitialized.
             return FillBlock(ancestor, ancestor_out, lock) &
                    FillBlock(block1, block1_out, lock) &
                    FillBlock(block2, block2_out, lock);

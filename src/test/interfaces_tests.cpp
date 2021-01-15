@@ -131,6 +131,16 @@ BOOST_AUTO_TEST_CASE(findCommonAncestor) {
     BOOST_CHECK_EQUAL(orig_height, orig_tip->nHeight);
     BOOST_CHECK_EQUAL(fork_height, orig_tip->nHeight - 10);
     BOOST_CHECK_EQUAL(fork_hash, active[fork_height]->GetBlockHash());
+
+    BlockHash active_hash, orig_hash;
+    BOOST_CHECK(!chain->findCommonAncestor(active.Tip()->GetBlockHash(),
+                                           BlockHash(), {},
+                                           FoundBlock().hash(active_hash), {}));
+    BOOST_CHECK(!chain->findCommonAncestor(BlockHash(),
+                                           orig_tip->GetBlockHash(), {}, {},
+                                           FoundBlock().hash(orig_hash)));
+    BOOST_CHECK_EQUAL(active_hash, active.Tip()->GetBlockHash());
+    BOOST_CHECK_EQUAL(orig_hash, orig_tip->GetBlockHash());
 }
 
 BOOST_AUTO_TEST_CASE(hasBlocks) {
