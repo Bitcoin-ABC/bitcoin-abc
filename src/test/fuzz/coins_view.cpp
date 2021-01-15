@@ -39,9 +39,7 @@ bool operator==(const Coin &a, const Coin &b) {
 } // namespace
 
 void initialize() {
-    static const ECCVerifyHandle ecc_verify_handle;
-    ECC_Start();
-    SelectParams(CBaseChainParams::REGTEST);
+    static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
 }
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
