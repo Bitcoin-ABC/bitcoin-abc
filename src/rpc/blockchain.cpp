@@ -2018,6 +2018,7 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     ret.pushKV("size", (int64_t)pool.size());
     ret.pushKV("bytes", (int64_t)pool.GetTotalTxSize());
     ret.pushKV("usage", (int64_t)pool.DynamicMemoryUsage());
+    ret.pushKV("total_fee", pool.GetTotalFee());
     size_t maxmempool =
         gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     ret.pushKV("maxmempool", (int64_t)maxmempool);
@@ -2030,6 +2031,7 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
 }
 
 static RPCHelpMan getmempoolinfo() {
+    const auto &ticker = Currency::get().ticker;
     return RPCHelpMan{
         "getmempoolinfo",
         "Returns details on the active state of the TX memory pool.\n",
@@ -2047,8 +2049,11 @@ static RPCHelpMan getmempoolinfo() {
                  "Total memory usage for the mempool"},
                 {RPCResult::Type::NUM, "maxmempool",
                  "Maximum memory usage for the mempool"},
+                {RPCResult::Type::STR_AMOUNT, "total_fee",
+                 "Total fees for the mempool in " + ticker +
+                     ", ignoring modified fees through prioritizetransaction"},
                 {RPCResult::Type::STR_AMOUNT, "mempoolminfee",
-                 "Minimum fee rate in " + Currency::get().ticker +
+                 "Minimum fee rate in " + ticker +
                      "/kB for tx to be accepted. Is the maximum of "
                      "minrelaytxfee and minimum mempool fee"},
                 {RPCResult::Type::STR_AMOUNT, "minrelaytxfee",

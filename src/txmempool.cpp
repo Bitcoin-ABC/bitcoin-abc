@@ -461,6 +461,7 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
 
     nTransactionsUpdated++;
     totalTxSize += entry.GetTxSize();
+    m_total_fee += entry.GetFee();
 
     vTxHashes.emplace_back(tx.GetHash(), newit);
     newit->vTxHashesIdx = vTxHashes.size() - 1;
@@ -499,6 +500,7 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     }
 
     totalTxSize -= it->GetTxSize();
+    m_total_fee -= it->GetFee();
     cachedInnerUsage -= it->DynamicMemoryUsage();
     cachedInnerUsage -= memusage::DynamicUsage(it->GetMemPoolParentsConst()) +
                         memusage::DynamicUsage(it->GetMemPoolChildrenConst());
@@ -687,6 +689,7 @@ void CTxMemPool::_clear() {
     mapNextTx.clear();
     vTxHashes.clear();
     totalTxSize = 0;
+    m_total_fee = Amount::zero();
     cachedInnerUsage = 0;
     lastRollingFeeUpdate = GetTime();
     blockSinceLastRollingFeeBump = false;
@@ -729,6 +732,7 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
              (unsigned int)mapTx.size(), (unsigned int)mapNextTx.size());
 
     uint64_t checkTotal = 0;
+    Amount check_total_fee{Amount::zero()};
     uint64_t innerUsage = 0;
 
     CCoinsViewCache &active_coins_tip = active_chainstate.CoinsTip();
@@ -741,6 +745,7 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
          it != mapTx.end(); it++) {
         unsigned int i = 0;
         checkTotal += it->GetTxSize();
+        check_total_fee += it->GetFee();
         innerUsage += it->DynamicMemoryUsage();
         const CTransaction &tx = it->GetTx();
         innerUsage += memusage::DynamicUsage(it->GetMemPoolParentsConst()) +
@@ -854,6 +859,7 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
     }
 
     assert(totalTxSize == checkTotal);
+    assert(m_total_fee == check_total_fee);
     assert(innerUsage == cachedInnerUsage);
 }
 

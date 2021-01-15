@@ -71,12 +71,23 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert_equal(len(self.nodes[0].getrawmempool()), 5)
         assert_equal(len(self.nodes[1].getrawmempool()), 5)
 
+        total_fee_old = self.nodes[0].getmempoolinfo()['total_fee']
+
         self.log.debug("Prioritize a transaction on node0")
         fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
         assert_equal(fees['base'], fees['modified'])
         self.nodes[0].prioritisetransaction(txid=last_txid, fee_delta=1000)
         fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
         assert_equal(fees['base'] + Decimal('10.0'), fees['modified'])
+
+        self.log.info(
+            'Check the total base fee is unchanged after prioritisetransaction')
+        assert_equal(
+            total_fee_old,
+            self.nodes[0].getmempoolinfo()['total_fee'])
+        assert_equal(total_fee_old,
+                     sum(v['fees']['base'] for k, v
+                         in self.nodes[0].getrawmempool(verbose=True).items()))
 
         tx_creation_time = self.nodes[0].getmempoolentry(txid=last_txid)[
             'time']

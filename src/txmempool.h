@@ -502,10 +502,12 @@ private:
     std::atomic<uint32_t> nTransactionsUpdated{0};
 
     //! sum of all mempool tx's sizes.
-    uint64_t totalTxSize;
+    uint64_t totalTxSize GUARDED_BY(cs);
+    //! sum of all mempool tx's fees (NOT modified fee)
+    Amount m_total_fee GUARDED_BY(cs);
     //! sum of dynamic memory usage of all the map elements (NOT the maps
     //! themselves)
-    uint64_t cachedInnerUsage;
+    uint64_t cachedInnerUsage GUARDED_BY(cs);
 
     mutable int64_t lastRollingFeeUpdate GUARDED_BY(cs);
     mutable bool blockSinceLastRollingFeeBump GUARDED_BY(cs);
@@ -790,6 +792,11 @@ public:
     uint64_t GetTotalTxSize() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         AssertLockHeld(cs);
         return totalTxSize;
+    }
+
+    Amount GetTotalFee() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        AssertLockHeld(cs);
+        return m_total_fee;
     }
 
     bool exists(const TxId &txid) const {
