@@ -51,6 +51,13 @@ test('toLegacy() converts a valid ecash: prefix address to a valid bitcoincash: 
     );
 });
 
+test('toLegacy() accepts a valid BCH address with no prefix and returns with prefix', async () => {
+    const result = toLegacy('qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0');
+    expect(result).toStrictEqual(
+        'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
+    );
+});
+
 test('toLegacy() returns a valid bitcoincash: prefix address unchanged', async () => {
     const result = toLegacy(
         'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
@@ -76,6 +83,8 @@ test('toLegacy throws error if input address has invalid prefix', async () => {
     );
 
     expect(result).toStrictEqual(
-        new Error('Address prefix is not in Ticker.prefixes array'),
+        new Error(
+            'Address prefix is not a valid cash address with a prefix from the Ticker.prefixes array',
+        ),
     );
 });

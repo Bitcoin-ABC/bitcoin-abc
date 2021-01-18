@@ -183,11 +183,22 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         // Ensure address has bitcoincash: prefix and checksum
         cleanAddress = toLegacy(cleanAddress);
 
-        // If there was an error converting the address
-        if (!cleanAddress.startsWith('bitcoincash:')) {
-            // return as above with other errors
+        let hasValidCashPrefix;
+        try {
+            hasValidCashPrefix = cleanAddress.startsWith('bitcoincash:');
+        } catch (err) {
+            hasValidCashPrefix = false;
             console.log(`toLegacy() returned an error:`, cleanAddress);
-            // Note: the address must be valid to get to this point, so unsure if this can be produced
+        }
+
+        if (!hasValidCashPrefix) {
+            // set loading to false and set address validation to false
+            // Now that the no-prefix case is handled, this happens when user tries to send
+            // BCHA to an SLPA address
+            setLoading(false);
+            setSendBchAddressError(
+                `Destination is not a valid ${currency.ticker} address`,
+            );
             return;
         }
 

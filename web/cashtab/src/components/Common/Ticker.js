@@ -47,14 +47,24 @@ export function isToken(addressString) {
 }
 
 export function toLegacy(address) {
+    let testedAddress;
     let legacyAddress;
+    let hasPrefix = address.includes(':');
+
+    if (!hasPrefix) {
+        testedAddress = `bitcoincash:` + address;
+    } else {
+        testedAddress = address;
+    }
     try {
-        if (isCash(address)) {
-            const { type, hash } = cashaddr.decode(address);
+        if (isCash(testedAddress)) {
+            const { type, hash } = cashaddr.decode(testedAddress);
             legacyAddress = cashaddr.encode('bitcoincash', type, hash);
-            console.log(`legacyAddress`);
         } else {
-            throw new Error('Address prefix is not in Ticker.prefixes array');
+            console.log(`Error: ${address} is not a cash address`);
+            throw new Error(
+                'Address prefix is not a valid cash address with a prefix from the Ticker.prefixes array',
+            );
         }
     } catch (err) {
         return err;
