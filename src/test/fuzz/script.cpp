@@ -34,10 +34,12 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     std::vector<uint8_t> compressed;
     if (CompressScript(script, compressed)) {
         const unsigned int size = compressed[0];
+        compressed.erase(compressed.begin());
         assert(size >= 0 && size <= 5);
         CScript decompressed_script;
         const bool ok = DecompressScript(decompressed_script, size, compressed);
         assert(ok);
+        assert(script == decompressed_script);
     }
 
     CTxDestination address;
