@@ -13,7 +13,11 @@ class EstimateFeeTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 3
-        self.extra_args = [[], ["-minrelaytxfee=0.001"], ["-mintxfee=0.00002"]]
+        self.extra_args = [
+            [],
+            ["-minrelaytxfee=0.001"],
+            ["-mintxfee=0.00002", "-maxtxfee=0.000025"],
+        ]
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -37,6 +41,8 @@ class EstimateFeeTest(BitcoinTestFramework):
                                     diff_tx_fee_node.settxfee, Decimal('0.000005'))
             assert_raises_rpc_error(-8, "txfee cannot be less than wallet min fee",
                                     diff_tx_fee_node.settxfee, Decimal('0.000015'))
+            assert_raises_rpc_error(-8, "txfee cannot be more than wallet max tx fee",
+                                    diff_tx_fee_node.settxfee, Decimal('0.00003'))
 
 
 if __name__ == '__main__':

@@ -2826,7 +2826,9 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "settxfee",
         "Set the transaction fee per kB for this wallet. Overrides the "
-        "global -paytxfee command line parameter.\n",
+        "global -paytxfee command line parameter.\n"
+        "Can be deactivated by passing 0 as the fee. In that case automatic "
+        "fee selection will be used by default.\n",
         {
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
              "The transaction fee in " + CURRENCY_UNIT + "/kB"},
@@ -2841,6 +2843,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
 
     Amount nAmount = AmountFromValue(request.params[0]);
     CFeeRate tx_fee_rate(nAmount, 1000);
+    CFeeRate max_tx_fee_rate(pwallet->m_default_max_tx_fee, 1000);
     if (tx_fee_rate == CFeeRate()) {
         // automatic selection
     } else if (tx_fee_rate < pwallet->chain().relayMinFee()) {
@@ -2853,6 +2856,11 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
             RPC_INVALID_PARAMETER,
             strprintf("txfee cannot be less than wallet min fee (%s)",
                       pwallet->m_min_fee.ToString()));
+    } else if (tx_fee_rate > max_tx_fee_rate) {
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            strprintf("txfee cannot be more than wallet max tx fee (%s)",
+                      max_tx_fee_rate.ToString()));
     }
 
     pwallet->m_pay_tx_fee = tx_fee_rate;
