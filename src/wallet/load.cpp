@@ -127,7 +127,7 @@ bool LoadWallets(interfaces::Chain &chain) {
             chain.initMessage(_("Loading wallet...").translated);
             std::shared_ptr<CWallet> pwallet =
                 database
-                    ? CWallet::Create(chain, name, std::move(database),
+                    ? CWallet::Create(&chain, name, std::move(database),
                                       options.create_flags, error, warnings)
                     : nullptr;
 

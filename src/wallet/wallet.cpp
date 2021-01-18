@@ -239,7 +239,7 @@ LoadWalletInternal(interfaces::Chain &chain, const std::string &name,
 
         chain.initMessage(_("Loading wallet...").translated);
         std::shared_ptr<CWallet> wallet =
-            CWallet::Create(chain, name, std::move(database),
+            CWallet::Create(&chain, name, std::move(database),
                             options.create_flags, error, warnings);
         if (!wallet) {
             error = Untranslated("Wallet loading failed.") + Untranslated(" ") +
@@ -322,8 +322,8 @@ CreateWallet(interfaces::Chain &chain, const std::string &name,
     // Make the wallet
     chain.initMessage(_("Loading wallet...").translated);
     std::shared_ptr<CWallet> wallet =
-        CWallet::Create(chain, name, std::move(database), wallet_creation_flags,
-                        error, warnings);
+        CWallet::Create(&chain, name, std::move(database),
+                        wallet_creation_flags, error, warnings);
     if (!wallet) {
         error =
             Untranslated("Wallet creation failed.") + Untranslated(" ") + error;
@@ -2700,7 +2700,7 @@ MakeWalletDatabase(const std::string &name, const DatabaseOptions &options,
 }
 
 std::shared_ptr<CWallet>
-CWallet::Create(interfaces::Chain &chain, const std::string &name,
+CWallet::Create(interfaces::Chain *chain, const std::string &name,
                 std::unique_ptr<WalletDatabase> database,
                 uint64_t wallet_creation_flags, bilingual_str &error,
                 std::vector<bilingual_str> &warnings) {
@@ -2710,7 +2710,7 @@ CWallet::Create(interfaces::Chain &chain, const std::string &name,
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(&chain, name, std::move(database)), ReleaseWallet);
+        new CWallet(chain, name, std::move(database)), ReleaseWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet();
     if (nLoadWalletRet != DBErrors::LOAD_OK) {
         if (nLoadWalletRet == DBErrors::CORRUPT) {
@@ -2778,7 +2778,9 @@ CWallet::Create(interfaces::Chain &chain, const std::string &name,
             }
         }
 
-        walletInstance->chainStateFlushed(chain.getTipLocator());
+        if (chain) {
+            walletInstance->chainStateFlushed(chain->getTipLocator());
+        }
     } else if (wallet_creation_flags & WALLET_FLAG_DISABLE_PRIVATE_KEYS) {
         // Make it impossible to disable private keys after creation
         error = strprintf(_("Error loading %s: Private keys can only be "
@@ -2863,11 +2865,11 @@ CWallet::Create(interfaces::Chain &chain, const std::string &name,
                                  "you send a transaction."));
         }
         walletInstance->m_pay_tx_fee = CFeeRate(nFeePerK, 1000);
-        if (walletInstance->m_pay_tx_fee < chain.relayMinFee()) {
+        if (chain && walletInstance->m_pay_tx_fee < chain->relayMinFee()) {
             error = strprintf(_("Invalid amount for -paytxfee=<amount>: '%s' "
                                 "(must be at least %s)"),
                               gArgs.GetArg("-paytxfee", ""),
-                              chain.relayMinFee().ToString());
+                              chain->relayMinFee().ToString());
             return nullptr;
         }
     }
@@ -2882,18 +2884,18 @@ CWallet::Create(interfaces::Chain &chain, const std::string &name,
             warnings.push_back(_("-maxtxfee is set very high! Fees this large "
                                  "could be paid on a single transaction."));
         }
-        if (CFeeRate(nMaxFee, 1000) < chain.relayMinFee()) {
+        if (chain && CFeeRate(nMaxFee, 1000) < chain->relayMinFee()) {
             error = strprintf(
                 _("Invalid amount for -maxtxfee=<amount>: '%s' (must be at "
                   "least the minrelay fee of %s to prevent stuck "
                   "transactions)"),
-                gArgs.GetArg("-maxtxfee", ""), chain.relayMinFee().ToString());
+                gArgs.GetArg("-maxtxfee", ""), chain->relayMinFee().ToString());
             return nullptr;
         }
         walletInstance->m_default_max_tx_fee = nMaxFee;
     }
 
-    if (chain.relayMinFee().GetFeePerK() > HIGH_TX_FEE_PER_KB) {
+    if (chain && chain->relayMinFee().GetFeePerK() > HIGH_TX_FEE_PER_KB) {
         warnings.push_back(
             AmountHighWarn("-minrelaytxfee") + Untranslated(" ") +
             _("The wallet will avoid paying less than the minimum relay fee."));
@@ -2912,7 +2914,7 @@ CWallet::Create(interfaces::Chain &chain, const std::string &name,
 
     LOCK(walletInstance->cs_wallet);
 
-    if (!AttachChain(walletInstance, chain, error, warnings)) {
+    if (chain && !AttachChain(walletInstance, *chain, error, warnings)) {
         return nullptr;
     }
 

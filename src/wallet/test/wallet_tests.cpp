@@ -39,7 +39,7 @@ extern RecursiveMutex cs_wallets;
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 
-static std::shared_ptr<CWallet> TestLoadWallet(interfaces::Chain &chain) {
+static std::shared_ptr<CWallet> TestLoadWallet(interfaces::Chain *chain) {
     DatabaseOptions options;
     DatabaseStatus status;
     bilingual_str error;
@@ -47,7 +47,9 @@ static std::shared_ptr<CWallet> TestLoadWallet(interfaces::Chain &chain) {
     auto database = MakeWalletDatabase("", options, status, error);
     auto wallet = CWallet::Create(chain, "", std::move(database),
                                   options.create_flags, error, warnings);
-    wallet->postInitProcess();
+    if (chain) {
+        wallet->postInitProcess();
+    }
     return wallet;
 }
 
@@ -777,7 +779,7 @@ BOOST_FIXTURE_TEST_CASE(wallet_descriptor_test, BasicTestingSetup) {
 //! rescanning where new transactions in new blocks could be lost.
 BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
     // Create new wallet with known key and unload it.
-    auto wallet = TestLoadWallet(*m_node.chain);
+    auto wallet = TestLoadWallet(m_node.chain.get());
     CKey key;
     key.MakeNewKey(true);
     AddKey(*wallet, key);
@@ -828,7 +830,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
 
     // Reload wallet and make sure new transactions are detected despite events
     // being blocked
-    wallet = TestLoadWallet(*m_node.chain);
+    wallet = TestLoadWallet(m_node.chain.get());
     BOOST_CHECK(rescan_completed);
     BOOST_CHECK_EQUAL(addtx_count, 2);
     {
@@ -881,7 +883,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
                 ENTER_CRITICAL_SECTION(wallet_param->wallet()->cs_wallet);
                 ENTER_CRITICAL_SECTION(cs_wallets);
             });
-    wallet = TestLoadWallet(*m_node.chain);
+    wallet = TestLoadWallet(m_node.chain.get());
     BOOST_CHECK_EQUAL(addtx_count, 4);
     {
         LOCK(wallet->cs_wallet);
@@ -892,8 +894,14 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
     TestUnloadWallet(std::move(wallet));
 }
 
+BOOST_FIXTURE_TEST_CASE(CreateWalletWithoutChain, BasicTestingSetup) {
+    auto wallet = TestLoadWallet(nullptr);
+    BOOST_CHECK(wallet);
+    UnloadWallet(std::move(wallet));
+}
+
 BOOST_FIXTURE_TEST_CASE(ZapSelectTx, TestChain100Setup) {
-    auto wallet = TestLoadWallet(*m_node.chain);
+    auto wallet = TestLoadWallet(m_node.chain.get());
     CKey key;
     key.MakeNewKey(true);
     AddKey(*wallet, key);

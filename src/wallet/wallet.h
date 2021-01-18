@@ -899,7 +899,7 @@ public:
      * in case of an error.
      */
     static std::shared_ptr<CWallet>
-    Create(interfaces::Chain &chain, const std::string &name,
+    Create(interfaces::Chain *chain, const std::string &name,
            std::unique_ptr<WalletDatabase> database,
            uint64_t wallet_creation_flags, bilingual_str &error,
            std::vector<bilingual_str> &warnings);
