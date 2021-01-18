@@ -160,6 +160,9 @@ builds:
       doc/*: doc
 
   build-fuzzer:
+    runOnDiffRegex:
+      - src/test/fuzz/
+      - test/fuzz/
     clang: true
     Werror: true
     cmake_flags:
