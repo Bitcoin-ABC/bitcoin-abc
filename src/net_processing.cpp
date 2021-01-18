@@ -3670,6 +3670,11 @@ void PeerManagerImpl::ProcessMessage(
                              addr.ToString());
                     PushAddress(*peer, addr, insecure_rand);
                 } else if (IsPeerAddrLocalGood(&pfrom)) {
+                    // Override just the address with whatever the peer sees us
+                    // as. Leave the port in addr as it was returned by
+                    // GetLocalAddress() above, as this is an outbound
+                    // connection and the peer cannot observe our listening
+                    // port.
                     addr.SetIP(addrMe);
                     LogPrint(BCLog::NET,
                              "ProcessMessages: advertising address %s\n",

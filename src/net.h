@@ -37,6 +37,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -210,7 +211,15 @@ enum class ConnectionType {
 
 /** Convert ConnectionType enum to a string value */
 std::string ConnectionTypeAsString(ConnectionType conn_type);
+
+/**
+ * Look up IP addresses from all interfaces on the machine and add them to the
+ * list of local addresses to self-advertise.
+ * The loopback interface is skipped and only the first address from each
+ * interface is used.
+ */
 void Discover();
+
 uint16_t GetListenPort();
 
 enum {
@@ -1427,8 +1436,15 @@ std::string getSubVersionEB(uint64_t MaxBlockSize);
 std::string userAgent(const Config &config);
 
 /** Dump binary message to file, with timestamp */
-void CaptureMessage(const CAddress &addr, const std::string &msg_type,
-                    const Span<const uint8_t> &data, bool is_incoming);
+void CaptureMessageToFile(const CAddress &addr, const std::string &msg_type,
+                          Span<const uint8_t> data, bool is_incoming);
+
+/**
+ * Defaults to `CaptureMessageToFile()`, but can be overridden by unit tests.
+ */
+extern std::function<void(const CAddress &addr, const std::string &msg_type,
+                          Span<const uint8_t> data, bool is_incoming)>
+    CaptureMessage;
 
 struct NodeEvictionCandidate {
     NodeId id;

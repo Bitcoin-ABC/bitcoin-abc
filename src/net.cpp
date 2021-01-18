@@ -134,6 +134,36 @@ void CConnman::AddAddrFetch(const std::string &strDest) {
 }
 
 uint16_t GetListenPort() {
+    // If -bind= is provided with ":port" part, use that (first one if multiple
+    // are provided).
+    for (const std::string &bind_arg : gArgs.GetArgs("-bind")) {
+        CService bind_addr;
+        constexpr uint16_t dummy_port = 0;
+
+        if (Lookup(bind_arg, bind_addr, dummy_port, /*fAllowLookup=*/false)) {
+            if (bind_addr.GetPort() != dummy_port) {
+                return bind_addr.GetPort();
+            }
+        }
+    }
+
+    // Otherwise, if -whitebind= without NetPermissionFlags::NoBan is provided,
+    // use that
+    // (-whitebind= is required to have ":port").
+    for (const std::string &whitebind_arg : gArgs.GetArgs("-whitebind")) {
+        NetWhitebindPermissions whitebind;
+        bilingual_str error;
+        if (NetWhitebindPermissions::TryParse(whitebind_arg, whitebind,
+                                              error)) {
+            if (!NetPermissions::HasFlag(whitebind.m_flags,
+                                         NetPermissionFlags::NoBan)) {
+                return whitebind.m_service.GetPort();
+            }
+        }
+    }
+
+    // Otherwise, if -port= is provided, use that. Otherwise use the default
+    // port.
     return static_cast<uint16_t>(
         gArgs.GetIntArg("-port", Params().GetDefaultPort()));
 }
@@ -226,7 +256,17 @@ std::optional<CAddress> GetLocalAddrForPeer(CNode *pnode) {
     if (IsPeerAddrLocalGood(pnode) &&
         (!addrLocal.IsRoutable() ||
          rng.randbits((GetnScore(addrLocal) > LOCAL_MANUAL) ? 3 : 1) == 0)) {
-        addrLocal.SetIP(pnode->GetAddrLocal());
+        if (pnode->IsInboundConn()) {
+            // For inbound connections, assume both the address and the port
+            // as seen from the peer.
+            addrLocal = CAddress{pnode->GetAddrLocal(), addrLocal.nServices};
+        } else {
+            // For outbound connections, assume just the address as seen from
+            // the peer and leave the port in `addrLocal` as returned by
+            // `GetLocalAddress()` above. The peer has no way to observe our
+            // listening port when we have initiated the connection.
+            addrLocal.SetIP(pnode->GetAddrLocal());
+        }
     }
     if (addrLocal.IsRoutable() || gArgs.GetBoolArg("-addrmantest", false)) {
         LogPrint(BCLog::NET, "Advertising address %s to peer=%d\n",
@@ -3622,8 +3662,8 @@ std::string userAgent(const Config &config) {
     return FormatUserAgent(client_name, client_version, uacomments);
 }
 
-void CaptureMessage(const CAddress &addr, const std::string &msg_type,
-                    const Span<const uint8_t> &data, bool is_incoming) {
+void CaptureMessageToFile(const CAddress &addr, const std::string &msg_type,
+                          Span<const uint8_t> data, bool is_incoming) {
     // Note: This function captures the message at the time of processing,
     // not at socket receive/send time.
     // This ensures that the messages are always in order from an application
@@ -3650,3 +3690,7 @@ void CaptureMessage(const CAddress &addr, const std::string &msg_type,
     ser_writedata32(f, size);
     f.write((const char *)data.data(), data.size());
 }
+
+std::function<void(const CAddress &addr, const std::string &msg_type,
+                   Span<const uint8_t> data, bool is_incoming)>
+    CaptureMessage = CaptureMessageToFile;

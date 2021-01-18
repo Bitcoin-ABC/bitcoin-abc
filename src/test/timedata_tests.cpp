@@ -105,10 +105,11 @@ BOOST_AUTO_TEST_CASE(addtimedata) {
 
     // filter median is 100 now, but nTimeOffset will not change
     MultiAddTimeData(2, 100);
-    BOOST_CHECK_EQUAL(GetTimeOffset(), 0);
-
     // We want this test to end with nTimeOffset==0, otherwise subsequent tests
     // of the suite will fail.
+    BOOST_CHECK_EQUAL(GetTimeOffset(), 0);
+
+    TestOnlyResetTimeData();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

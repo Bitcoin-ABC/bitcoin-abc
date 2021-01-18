@@ -2686,8 +2686,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         node.peerman->SetBestHeight(chain_active_height);
     }
 
-    Discover();
-
     // Map ports with UPnP or NAT-PMP.
     StartMapPort(args.GetBoolArg("-upnp", DEFAULT_UPNP),
                  args.GetBoolArg("-natpmp", DEFAULT_NATPMP));
@@ -2727,6 +2725,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         args.GetIntArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET);
     connOptions.m_peer_connect_timeout = peer_connect_timeout;
 
+    // Port to bind to if `-bind=addr` is provided without a `:port` suffix.
+    const uint16_t default_bind_port = static_cast<uint16_t>(
+        args.GetIntArg("-port", config.GetChainParams().GetDefaultPort()));
+
     const auto BadPortWarning = [](const char *prefix, uint16_t port) {
         return strprintf(_("%s request to listen on port %u. This port is "
                            "considered \"bad\" and "
@@ -2740,7 +2742,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         CService bind_addr;
         const size_t index = bind_arg.rfind('=');
         if (index == std::string::npos) {
-            if (Lookup(bind_arg, bind_addr, GetListenPort(), false)) {
+            if (Lookup(bind_arg, bind_addr, default_bind_port,
+                       /*fAllowLookup=*/false)) {
                 connOptions.vBinds.push_back(bind_addr);
                 if (IsBadPort(bind_addr.GetPort())) {
                     InitWarning(BadPortWarning("-bind", bind_addr.GetPort()));
@@ -2801,6 +2804,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 onion_service_target.ToStringIPPort()));
         }
         StartTorControl(onion_service_target);
+    }
+
+    if (connOptions.bind_on_any) {
+        // Only add all IP addresses of the machine if we would be listening on
+        // any address - 0.0.0.0 (IPv4) and :: (IPv6).
+        Discover();
     }
 
     for (const auto &net : args.GetArgs("-whitelist")) {

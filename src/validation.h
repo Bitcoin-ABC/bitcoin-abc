@@ -650,7 +650,7 @@ enum class CoinsCacheSizeState {
  * kept in `BlockManager`.
  */
 class Chainstate {
-private:
+protected:
     /**
      * The ChainState Mutex.
      * A lock that must be held when modifying this ChainState.
