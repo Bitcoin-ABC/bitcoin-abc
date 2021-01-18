@@ -17,7 +17,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import {
     currency,
-    isToken,
+    isValidTokenPrefix,
     parseAddress,
     toLegacy,
 } from '@components/Common/Ticker.js';
@@ -185,7 +185,9 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
 
         let hasValidCashPrefix;
         try {
-            hasValidCashPrefix = cleanAddress.startsWith('bitcoincash:');
+            hasValidCashPrefix = cleanAddress.startsWith(
+                currency.legacyPrefix + ':',
+            );
         } catch (err) {
             hasValidCashPrefix = false;
             console.log(`toLegacy() returned an error:`, cleanAddress);
@@ -295,7 +297,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         if (!isValid) {
             error = 'Address is not a valid cash address';
             // If valid address but token format
-            if (isToken(address)) {
+            if (isValidTokenPrefix(address)) {
                 error = `Token addresses are not supported for ${currency.ticker} sends`;
             }
         }

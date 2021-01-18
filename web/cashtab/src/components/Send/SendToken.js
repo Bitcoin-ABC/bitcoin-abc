@@ -18,7 +18,11 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
-import { currency, parseAddress, isToken } from '@components/Common/Ticker.js';
+import {
+    currency,
+    parseAddress,
+    isValidTokenPrefix,
+} from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 
 const SendToken = ({ tokenId }) => {
@@ -178,7 +182,7 @@ const SendToken = ({ tokenId }) => {
         if (!isValid) {
             error = 'Address is not valid';
             // If valid address but token format
-        } else if (!isToken(address)) {
+        } else if (!isValidTokenPrefix(address)) {
             error = `Cashtab only supports sending to ${currency.tokenPrefixes[0]} prefixed addresses`;
         }
         setSendTokenAddressError(error);

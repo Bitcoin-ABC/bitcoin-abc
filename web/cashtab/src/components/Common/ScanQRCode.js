@@ -3,7 +3,11 @@ import { Alert, Modal } from 'antd';
 import { QrcodeOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { currency, isCash, isToken } from '@components/Common/Ticker.js';
+import {
+    currency,
+    isValidCashPrefix,
+    isValidTokenPrefix,
+} from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 
 const StyledScanQRCode = styled.span`
@@ -54,7 +58,7 @@ export const ScanQRCode = ({
         let values = {};
 
         // If what scanner reads from QR code begins with 'bitcoincash:' or 'simpleledger:' or their successor prefixes
-        if (isCash(content) || isToken(content)) {
+        if (isValidCashPrefix(content) || isValidTokenPrefix(content)) {
             type = 'address';
             values = { address: content };
             // Event("Category", "Action", "Label")

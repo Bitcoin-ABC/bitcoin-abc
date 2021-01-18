@@ -1,44 +1,71 @@
 import { ValidationError } from 'cashaddrjs';
-import { isCash, isToken, toLegacy } from '../Ticker';
+import { isValidCashPrefix, isValidTokenPrefix, toLegacy } from '../Ticker';
 
 test('Correctly validates cash address with bitcoincash: prefix', async () => {
-    const result = isCash(
+    const result = isValidCashPrefix(
         'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
     );
     expect(result).toStrictEqual(true);
 });
 
+test('Correctly validates cash address with bitcoincash: checksum but no prefix', async () => {
+    const result = isValidCashPrefix(
+        'qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
+    );
+    expect(result).toStrictEqual(true);
+});
+
+test('Correctly validates cash address with ecash: checksum but no prefix', async () => {
+    const result = isValidCashPrefix(
+        'qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
+    );
+    expect(result).toStrictEqual(true);
+});
+
 test('Correctly validates cash address with ecash: prefix', async () => {
-    const result = isCash('ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc');
+    const result = isValidCashPrefix(
+        'ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
+    );
     expect(result).toStrictEqual(true);
 });
 
 test('Correctly validates token address with simpleledger: prefix', async () => {
-    const result = isToken(
+    const result = isValidTokenPrefix(
         'simpleledger:qpmytrdsakt0axrrlswvaj069nat3p9s7c8w5tu8gm',
     );
     expect(result).toStrictEqual(true);
 });
 
+test('Does not accept a valid token address without a prefix', async () => {
+    const result = isValidTokenPrefix(
+        'qpmytrdsakt0axrrlswvaj069nat3p9s7c8w5tu8gm',
+    );
+    expect(result).toStrictEqual(false);
+});
+
 test('Correctly validates token address with etoken: prefix (prefix only, not checksum)', async () => {
-    const result = isToken('etoken:qpmytrdsakt0axrrlswvaj069nat3p9s7c8w5tu8gm');
+    const result = isValidTokenPrefix(
+        'etoken:qpmytrdsakt0axrrlswvaj069nat3p9s7c8w5tu8gm',
+    );
     expect(result).toStrictEqual(true);
 });
 
 test('Recognizes unaccepted token prefix (prefix only, not checksum)', async () => {
-    const result = isToken(
+    const result = isValidTokenPrefix(
         'wtftoken:qpmytrdsakt0axrrlswvaj069nat3p9s7c8w5tu8gm',
     );
     expect(result).toStrictEqual(false);
 });
 
 test('Knows that acceptable cash prefixes are not tokens', async () => {
-    const result = isToken('ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc');
+    const result = isValidTokenPrefix(
+        'ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
+    );
     expect(result).toStrictEqual(false);
 });
 
 test('Address with unlisted prefix is invalid', async () => {
-    const result = isCash(
+    const result = isValidCashPrefix(
         'ecashdoge:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
     );
     expect(result).toStrictEqual(false);

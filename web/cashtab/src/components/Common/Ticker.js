@@ -7,7 +7,8 @@ export const currency = {
     name: 'Bitcoin ABC',
     ticker: 'BCHA',
     logo: mainLogo,
-    prefixes: ['bitcoincash:', 'ecash:'],
+    legacyPrefix: 'bitcoincash',
+    prefixes: ['bitcoincash', 'ecash'],
     coingeckoId: 'bitcoin-cash-abc-2',
     defaultFee: 5.01,
     blockExplorerUrl: 'https://explorer.bitcoinabc.org',
@@ -15,31 +16,38 @@ export const currency = {
     tokenName: 'Bitcoin ABC SLP',
     tokenTicker: 'SLPA',
     tokenLogo: tokenLogo,
-    tokenPrefixes: ['simpleledger:', 'etoken:'],
+    tokenPrefixes: ['simpleledger', 'etoken'],
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
     useBlockchainWs: false,
 };
 
-export function isCash(addressString) {
+export function isValidCashPrefix(addressString) {
     // Note that this function validates prefix only
     // Check for prefix included in currency.prefixes array
     // For now, validation is handled by converting to bitcoincash: prefix and checksum
     // and relying on legacy validation methods of bitcoincash: prefix addresses
 
+    // Also accept an address with no prefix, as some exchanges provide these
     for (let i = 0; i < currency.prefixes.length; i += 1) {
-        if (addressString.startsWith(currency.prefixes[i])) {
+        // If the addressString being tested starts with an accepted prefix or no prefix at all
+        if (
+            addressString.startsWith(currency.prefixes[i] + ':') ||
+            !addressString.includes(':')
+        ) {
             return true;
         }
     }
     return false;
 }
 
-export function isToken(addressString) {
+export function isValidTokenPrefix(addressString) {
     // Check for prefix included in currency.tokenPrefixes array
     // For now, validation is handled by converting to simpleledger: prefix and checksum
     // and relying on legacy validation methods of simpleledger: prefix addresses
+
+    // For token addresses, do not accept an address with no prefix
     for (let i = 0; i < currency.tokenPrefixes.length; i += 1) {
-        if (addressString.startsWith(currency.tokenPrefixes[i])) {
+        if (addressString.startsWith(currency.tokenPrefixes[i] + ':')) {
             return true;
         }
     }
@@ -49,17 +57,25 @@ export function isToken(addressString) {
 export function toLegacy(address) {
     let testedAddress;
     let legacyAddress;
-    let hasPrefix = address.includes(':');
 
-    if (!hasPrefix) {
-        testedAddress = `bitcoincash:` + address;
-    } else {
-        testedAddress = address;
-    }
     try {
-        if (isCash(testedAddress)) {
+        if (isValidCashPrefix(address)) {
+            // Prefix-less addresses may be valid, but the cashaddr.decode function used below
+            // will throw an error without a prefix. Hence, must ensure prefix to use that function.
+            const hasPrefix = address.includes(':');
+            if (!hasPrefix) {
+                testedAddress = currency.legacyPrefix + ':' + address;
+            } else {
+                testedAddress = address;
+            }
+
+            // Note: an `ecash:` checksum address with no prefix will not be validated by
+            // parseAddress in Send.js
+
+            // Only handle the case of prefixless address that is valid `bitcoincash:` address
+
             const { type, hash } = cashaddr.decode(testedAddress);
-            legacyAddress = cashaddr.encode('bitcoincash', type, hash);
+            legacyAddress = cashaddr.encode(currency.legacyPrefix, type, hash);
         } else {
             console.log(`Error: ${address} is not a cash address`);
             throw new Error(
