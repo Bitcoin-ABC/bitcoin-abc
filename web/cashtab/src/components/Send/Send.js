@@ -344,8 +344,8 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
             error = 'Amount must be a number';
         } else if (bchValue <= 0) {
             error = 'Amount must be greater than 0';
-        } else if (bchValue < 0.00001) {
-            error = `Send amount must be at least 0.00001 ${currency.ticker}`;
+        } else if (bchValue < currency.dust) {
+            error = `Send amount must be at least ${currency.dust} ${currency.ticker}`;
         } else if (bchValue > balances.totalBalance) {
             error = `Amount cannot exceed your ${currency.ticker} balance`;
         } else if (!isNaN(bchValue) && bchValue.toString().includes('.')) {

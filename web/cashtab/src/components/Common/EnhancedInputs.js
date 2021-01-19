@@ -84,7 +84,7 @@ export const SendBchInput = ({
                 <Input
                     style={{ width: '60%', textAlign: 'left' }}
                     type="number"
-                    step="0.01"
+                    step={currency.dust}
                     prefix={
                         inputProps.dollar === 1 ? (
                             <DollarOutlined />
