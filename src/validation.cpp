@@ -359,11 +359,12 @@ public:
          */
         std::vector<COutPoint> &m_coins_to_uncache;
         const bool m_test_accept;
-        Amount *m_fee_out;
+        Amount m_fee_out;
     };
 
     // Single transaction acceptance
-    bool AcceptSingleTransaction(const CTransactionRef &ptx, ATMPArgs &args)
+    MempoolAcceptResult AcceptSingleTransaction(const CTransactionRef &ptx,
+                                                ATMPArgs &args)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 private:
@@ -551,10 +552,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
         return false;
     }
 
-    // If fee_out is passed, return the fee to the caller
-    if (args.m_fee_out) {
-        *args.m_fee_out = nFees;
-    }
+    args.m_fee_out = nFees;
 
     // Check for non-standard pay-to-script-hash in inputs
     if (fRequireStandard &&
@@ -697,8 +695,9 @@ bool MemPoolAccept::Finalize(ATMPArgs &args, Workspace &ws) {
     return true;
 }
 
-bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
-                                            ATMPArgs &args) {
+MempoolAcceptResult
+MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
+                                       ATMPArgs &args) {
     AssertLockHeld(cs_main);
     // mempool "read lock" (held through
     // GetMainSignals().TransactionAddedToMempool())
@@ -709,7 +708,7 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
                                  m_active_chainstate.m_chain.Tip()));
 
     if (!PreChecks(args, workspace)) {
-        return false;
+        return MempoolAcceptResult(args.m_state);
     }
 
     // Only compute the precomputed transaction data if we need to verify
@@ -719,22 +718,22 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     PrecomputedTransactionData txdata(*ptx);
 
     if (!ConsensusScriptChecks(args, workspace, txdata)) {
-        return false;
+        return MempoolAcceptResult(args.m_state);
     }
 
     // Tx was accepted, but not added
     if (args.m_test_accept) {
-        return true;
+        return MempoolAcceptResult(args.m_fee_out);
     }
 
     if (!Finalize(args, workspace)) {
-        return false;
+        return MempoolAcceptResult(args.m_state);
     }
 
     GetMainSignals().TransactionAddedToMempool(
         ptx, m_pool.GetAndIncrementSequence());
 
-    return true;
+    return MempoolAcceptResult(args.m_fee_out);
 }
 
 } // namespace
@@ -742,19 +741,19 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 /**
  * (try to) add transaction to memory pool with a specified acceptance time.
  */
-static bool AcceptToMemoryPoolWithTime(
+static MempoolAcceptResult AcceptToMemoryPoolWithTime(
     const Config &config, CTxMemPool &pool, CChainState &active_chainstate,
-    TxValidationState &state, const CTransactionRef &tx, int64_t nAcceptTime,
-    bool bypass_limits, bool test_accept, Amount *fee_out = nullptr)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    const CTransactionRef &tx, int64_t nAcceptTime, bool bypass_limits,
+    bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     AssertLockHeld(cs_main);
+    TxValidationState state;
     std::vector<COutPoint> coins_to_uncache;
     MemPoolAccept::ATMPArgs args{
         config,           state,       nAcceptTime, bypass_limits,
-        coins_to_uncache, test_accept, fee_out};
-    bool res = MemPoolAccept(pool, active_chainstate)
-                   .AcceptSingleTransaction(tx, args);
-    if (!res) {
+        coins_to_uncache, test_accept, {}};
+    const MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
+                                           .AcceptSingleTransaction(tx, args);
+    if (result.m_result_type != MempoolAcceptResult::ResultType::VALID) {
         // Remove coins that were not present in the coins cache before calling
         // ATMPW; this is to prevent memory DoS in case we receive a large
         // number of invalid transactions that attempt to overrun the in-memory
@@ -771,16 +770,15 @@ static bool AcceptToMemoryPoolWithTime(
     BlockValidationState stateDummy;
     active_chainstate.FlushStateToDisk(config.GetChainParams(), stateDummy,
                                        FlushStateMode::PERIODIC);
-    return res;
+    return result;
 }
 
-bool AcceptToMemoryPool(CChainState &active_chainstate, const Config &config,
-                        CTxMemPool &pool, TxValidationState &state,
-                        const CTransactionRef &tx, bool bypass_limits,
-                        bool test_accept, Amount *fee_out) {
-    return AcceptToMemoryPoolWithTime(config, pool, active_chainstate, state,
-                                      tx, GetTime(), bypass_limits, test_accept,
-                                      fee_out);
+MempoolAcceptResult AcceptToMemoryPool(CChainState &active_chainstate,
+                                       const Config &config, CTxMemPool &pool,
+                                       const CTransactionRef &tx,
+                                       bool bypass_limits, bool test_accept) {
+    return AcceptToMemoryPoolWithTime(config, pool, active_chainstate, tx,
+                                      GetTime(), bypass_limits, test_accept);
 }
 
 CTransactionRef GetTransaction(const CBlockIndex *const block_index,
@@ -5760,13 +5758,13 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
             if (amountdelta != Amount::zero()) {
                 pool.PrioritiseTransaction(tx->GetId(), amountdelta);
             }
-            TxValidationState state;
             if (nTime > nNow - nExpiryTimeout) {
                 LOCK(cs_main);
-                AcceptToMemoryPoolWithTime(
-                    config, pool, active_chainstate, state, tx, nTime,
-                    false /* bypass_limits */, false /* test_accept */);
-                if (state.IsValid()) {
+                if (AcceptToMemoryPoolWithTime(
+                        config, pool, active_chainstate, tx, nTime,
+                        false /* bypass_limits */, false /* test_accept */)
+                        .m_result_type ==
+                    MempoolAcceptResult::ResultType::VALID) {
                     ++count;
                 } else {
                     // mempool may contain the transaction already, e.g. from

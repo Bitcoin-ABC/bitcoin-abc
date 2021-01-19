@@ -1156,20 +1156,19 @@ static RPCHelpMan testmempoolaccept() {
             UniValue result_0(UniValue::VOBJ);
             result_0.pushKV("txid", txid.GetHex());
 
-            TxValidationState state;
-            bool test_accept_res;
-            Amount fee = Amount::zero();
             ChainstateManager &chainman = EnsureChainman(node);
 
-            test_accept_res = WITH_LOCK(
-                cs_main, return AcceptToMemoryPool(
-                             chainman.ActiveChainstate(), config, mempool,
-                             state, std::move(tx), false /* bypass_limits */,
-                             true /* test_accept */, &fee));
+            const MempoolAcceptResult accept_result = WITH_LOCK(
+                cs_main,
+                return AcceptToMemoryPool(
+                    chainman.ActiveChainstate(), config, mempool, std::move(tx),
+                    false /* bypass_limits */, true /* test_accept */));
 
             // Only return the fee and size if the transaction would pass ATMP.
             // These can be used to calculate the feerate.
-            if (test_accept_res) {
+            if (accept_result.m_result_type ==
+                MempoolAcceptResult::ResultType::VALID) {
+                const Amount fee = accept_result.m_base_fees.value();
                 // Check that fee does not exceed maximum fee
                 if (max_raw_tx_fee != Amount::zero() && fee > max_raw_tx_fee) {
                     result_0.pushKV("allowed", false);
@@ -1184,6 +1183,7 @@ static RPCHelpMan testmempoolaccept() {
                 result.push_back(std::move(result_0));
             } else {
                 result_0.pushKV("allowed", false);
+                const TxValidationState state = accept_result.m_state;
                 if (state.GetResult() ==
                     TxValidationResult::TX_MISSING_INPUTS) {
                     result_0.pushKV("reject-reason", "missing-inputs");

@@ -52,12 +52,10 @@ static void AssembleBlock(benchmark::Bench &bench) {
         LOCK(::cs_main);
 
         for (const auto &txr : txs) {
-            TxValidationState vstate;
-            bool ret{::AcceptToMemoryPool(
+            const MempoolAcceptResult res = ::AcceptToMemoryPool(
                 test_setup.m_node.chainman->ActiveChainstate(), config,
-                *test_setup.m_node.mempool, vstate, txr,
-                false /* bypass_limits */)};
-            assert(ret);
+                *test_setup.m_node.mempool, txr, false /* bypass_limits */);
+            assert(res.m_result_type == MempoolAcceptResult::ResultType::VALID);
         }
     }
 

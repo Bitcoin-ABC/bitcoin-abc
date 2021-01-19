@@ -32,10 +32,10 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     const auto ToMemPool = [this](const CMutableTransaction &tx) {
         LOCK(cs_main);
 
-        TxValidationState state;
-        return AcceptToMemoryPool(
+        const MempoolAcceptResult result = AcceptToMemoryPool(
             m_node.chainman->ActiveChainstate(), GetConfig(), *m_node.mempool,
-            state, MakeTransactionRef(tx), true /* bypass_limits */);
+            MakeTransactionRef(tx), true /* bypass_limits */);
+        return result.m_result_type == MempoolAcceptResult::ResultType::VALID;
     };
 
     // Create a double-spend of mature coinbase txn:

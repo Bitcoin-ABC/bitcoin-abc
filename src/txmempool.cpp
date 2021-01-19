@@ -1413,10 +1413,10 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
     for (const CTransactionRef &tx :
          reverse_iterate(queuedTx.get<insertion_order>())) {
         // ignore validation errors in resurrected transactions
-        TxValidationState stateDummy;
         if (!fAddToMempool || tx->IsCoinBase() ||
-            !AcceptToMemoryPool(active_chainstate, config, pool, stateDummy, tx,
-                                true /* bypass_limits */)) {
+            AcceptToMemoryPool(active_chainstate, config, pool, tx,
+                               true /* bypass_limits */)
+                    .m_result_type != MempoolAcceptResult::ResultType::VALID) {
             // If the transaction doesn't make it in to the mempool, remove any
             // transactions that depend on it (which would now be orphans).
             pool.removeRecursive(*tx, MemPoolRemovalReason::REORG);

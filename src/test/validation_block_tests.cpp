@@ -329,13 +329,15 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
         // Add the txs to the tx pool
         {
             LOCK(cs_main);
-            TxValidationState state;
             for (const auto &tx : txs) {
-                BOOST_REQUIRE_MESSAGE(
+                const MempoolAcceptResult result =
                     AcceptToMemoryPool(m_node.chainman->ActiveChainstate(),
-                                       config, *m_node.mempool, state, tx,
-                                       /* bypass_limits */ false),
-                    state.GetRejectReason());
+                                       config, *m_node.mempool, tx,
+                                       /* bypass_limits */ false);
+                BOOST_REQUIRE_MESSAGE(
+                    result.m_result_type ==
+                        MempoolAcceptResult::ResultType::VALID,
+                    result.m_state.GetRejectReason());
             }
         }
 

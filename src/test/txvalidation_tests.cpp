@@ -32,25 +32,23 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_reject_coinbase, TestChain100Setup) {
 
     BOOST_CHECK(CTransaction(coinbaseTx).IsCoinBase());
 
-    TxValidationState state;
-
     LOCK(cs_main);
 
     unsigned int initialPoolSize = m_node.mempool->size();
+    const MempoolAcceptResult result = AcceptToMemoryPool(
+        m_node.chainman->ActiveChainstate(), GetConfig(), *m_node.mempool,
+        MakeTransactionRef(coinbaseTx), true /* bypass_limits */);
 
-    BOOST_CHECK_EQUAL(false,
-                      AcceptToMemoryPool(m_node.chainman->ActiveChainstate(),
-                                         GetConfig(), *m_node.mempool, state,
-                                         MakeTransactionRef(coinbaseTx),
-                                         true /* bypass_limits */));
+    BOOST_CHECK(result.m_result_type ==
+                MempoolAcceptResult::ResultType::INVALID);
 
     // Check that the transaction hasn't been added to mempool.
     BOOST_CHECK_EQUAL(m_node.mempool->size(), initialPoolSize);
 
     // Check that the validation state reflects the unsuccesful attempt.
-    BOOST_CHECK(state.IsInvalid());
-    BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-tx-coinbase");
-    BOOST_CHECK(state.GetResult() == TxValidationResult::TX_CONSENSUS);
+    BOOST_CHECK(result.m_state.IsInvalid());
+    BOOST_CHECK_EQUAL(result.m_state.GetRejectReason(), "bad-tx-coinbase");
+    BOOST_CHECK(result.m_state.GetResult() == TxValidationResult::TX_CONSENSUS);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
