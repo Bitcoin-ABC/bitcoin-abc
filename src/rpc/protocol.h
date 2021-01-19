@@ -109,6 +109,8 @@ enum RPCErrorCode {
     RPC_WALLET_NOT_FOUND = -18,
     //! No wallet specified (error when there are multiple wallets loaded)
     RPC_WALLET_NOT_SPECIFIED = -19,
+    //! This same wallet is already loaded
+    RPC_WALLET_ALREADY_LOADED = -35,
     //! Backwards compatible aliases
     RPC_WALLET_INVALID_ACCOUNT_NAME = RPC_WALLET_INVALID_LABEL_NAME,
 
