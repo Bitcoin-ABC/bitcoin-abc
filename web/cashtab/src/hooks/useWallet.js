@@ -22,7 +22,13 @@ const useWallet = () => {
         slpBalancesAndUtxos: [],
         txHistory: [],
     });
-    const { getBCH, getUtxos, getSlpBalancesAndUtxos, getTxHistory } = useBCH();
+    const {
+        getBCH,
+        getUtxos,
+        getHydratedUtxoDetails,
+        getSlpBalancesAndUtxos,
+        getTxHistory,
+    } = useBCH();
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
@@ -155,7 +161,6 @@ const useWallet = () => {
             ];
 
             const utxos = await getUtxos(BCH, cashAddresses);
-            //console.log(`utxos`, utxos);
 
             // If an error is returned or utxos from only 1 address are returned
             if (!utxos || _.isEmpty(utxos) || utxos.error || utxos.length < 2) {
@@ -177,10 +182,13 @@ const useWallet = () => {
                 return;
             }
 
-            // todo: another available optimization, update slpBalancesandUtxos by hydrating only the new utxos
-            const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
+            const hydratedUtxoDetails = await getHydratedUtxoDetails(
                 BCH,
                 utxos,
+            );
+
+            const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
+                hydratedUtxoDetails,
             );
             const txHistory = await getTxHistory(BCH, cashAddresses);
 

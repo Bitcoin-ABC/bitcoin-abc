@@ -60,18 +60,22 @@ export default function useBCH() {
         }
     };
 
-    const getSlpBalancesAndUtxos = async (BCH, utxos) => {
+    const getHydratedUtxoDetails = async (BCH, utxos) => {
         let hydratedUtxoDetails;
 
         try {
             hydratedUtxoDetails = await BCH.SLP.Utils.hydrateUtxos(utxos);
-            //console.log(`hydratedUtxoDetails`, hydratedUtxoDetails);
+            return hydratedUtxoDetails;
         } catch (err) {
             console.log(
                 `Error in BCH.SLP.Utils.hydrateUtxos(utxosResponse.utxos)`,
             );
             console.log(err);
+            return err;
         }
+    };
+
+    const getSlpBalancesAndUtxos = hydratedUtxoDetails => {
         const hydratedUtxos = [];
         for (let i = 0; i < hydratedUtxoDetails.slpUtxos.length; i += 1) {
             const hydratedUtxosAtAddress = hydratedUtxoDetails.slpUtxos[i];
@@ -545,6 +549,7 @@ export default function useBCH() {
         getBCH,
         calcFee,
         getUtxos,
+        getHydratedUtxoDetails,
         getSlpBalancesAndUtxos,
         getTxHistory,
         getRestUrl,

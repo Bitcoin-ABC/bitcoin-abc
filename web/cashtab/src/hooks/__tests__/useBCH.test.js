@@ -1,6 +1,7 @@
 /* eslint-disable no-native-reassign */
 import useBCH from '../useBCH';
 import mockReturnGetUtxos from '../__mocks__/mockReturnGetUtxos';
+import mockReturnGetHydratedUtxoDetails from '../__mocks__/mockReturnGetHydratedUtxoDetails';
 import mockReturnGetSlpBalancesAndUtxos from '../__mocks__/mockReturnGetSlpBalancesAndUtxos';
 import sendBCHMock from '../__mocks__/sendBCH';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
@@ -52,25 +53,12 @@ describe('useBCH hook', () => {
         expect(calcFee(BCH, utxosMock)).toBe(expectedTxFee);
     });
 
-    it('gets utxos', async () => {
-        const { getUtxos } = useBCH();
-        const BCH = new BCHJS();
-
-        const addresses = [
-            'bitcoincash:qphazxf3vhe4qchvzz2pjempdhplaxcj957xqq8mg2',
-            'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
-        ];
-
-        const result = await getUtxos(BCH, addresses);
-        expect(result).toStrictEqual(mockReturnGetUtxos);
-    });
-
-    it('gets SLP and BCH balances and utxos', async () => {
+    it('gets SLP and BCH balances and utxos from hydrated utxo details', async () => {
         const { getSlpBalancesAndUtxos } = useBCH();
-        const BCH = new BCHJS();
-        const utxos = mockReturnGetUtxos;
 
-        const result = await getSlpBalancesAndUtxos(BCH, utxos);
+        const result = await getSlpBalancesAndUtxos(
+            mockReturnGetHydratedUtxoDetails,
+        );
 
         expect(result).toStrictEqual(mockReturnGetSlpBalancesAndUtxos);
     });
