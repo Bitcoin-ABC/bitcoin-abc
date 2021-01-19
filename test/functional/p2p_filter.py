@@ -8,6 +8,8 @@ Test BIP 37
 
 from test_framework.messages import (
     CInv,
+    MAX_BLOOM_FILTER_SIZE,
+    MAX_BLOOM_HASH_FUNCS,
     MSG_BLOCK,
     MSG_FILTERED_BLOCK,
     msg_filteradd,
@@ -16,6 +18,7 @@ from test_framework.messages import (
     msg_getdata,
 )
 from test_framework.mininode import P2PInterface
+from test_framework.script import MAX_SCRIPT_ELEMENT_SIZE
 from test_framework.test_framework import BitcoinTestFramework
 
 
@@ -70,9 +73,16 @@ class FilterTest(BitcoinTestFramework):
             filter_node.send_and_ping(
                 msg_filterload(
                     data=b'\xaa',
-                    nHashFuncs=51,
-                    nTweak=0,
-                    nFlags=1))
+                    nHashFuncs=MAX_BLOOM_HASH_FUNCS + 1))
+        with self.nodes[0].assert_debug_log(['Misbehaving']):
+            filter_node.send_and_ping(msg_filterload(
+                data=b'\xbb' * (MAX_BLOOM_FILTER_SIZE + 1)))
+
+        self.log.info(
+            'Check that too large data element to add to the filter is rejected')
+        with self.nodes[0].assert_debug_log(['Misbehaving']):
+            filter_node.send_and_ping(msg_filteradd(
+                data=b'\xcc' * (MAX_SCRIPT_ELEMENT_SIZE + 1)))
 
         self.log.info('Add filtered P2P connection to the node')
         filter_node.send_and_ping(filter_node.watch_filter_init)
