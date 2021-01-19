@@ -115,8 +115,10 @@ static RPCHelpMan getpeerinfo() {
                      "The total number of addresses dropped due to rate "
                      "limiting"},
                     {RPCResult::Type::STR, "network",
-                     "Network (ipv4, ipv6, or onion) the peer connected "
-                     "through"},
+                     "Network (" +
+                         Join(GetNetworkNames(/* append_unroutable */ true),
+                              ", ") +
+                         ")"},
                     {RPCResult::Type::NUM, "mapped_as",
                      "The AS in the BGP route to the peer used for "
                      "diversifying\n"
@@ -768,7 +770,7 @@ static RPCHelpMan getnetworkinfo() {
                       "",
                       {
                           {RPCResult::Type::STR, "name",
-                           "network (ipv4, ipv6 or onion)"},
+                           "network (" + Join(GetNetworkNames(), ", ") + ")"},
                           {RPCResult::Type::BOOL, "limited",
                            "is the network limited using -onlynet?"},
                           {RPCResult::Type::BOOL, "reachable",

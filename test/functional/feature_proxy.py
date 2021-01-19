@@ -45,9 +45,8 @@ from test_framework.util import PORT_MIN, PORT_RANGE, assert_equal
 
 RANGE_BEGIN = PORT_MIN + 2 * PORT_RANGE  # Start after p2p and rpc ports
 
-# Networks returned by RPC getpeerinfo, defined in
-# src/netbase.cpp::GetNetworkName()
-NET_UNROUTABLE = "unroutable"
+# Networks returned by RPC getpeerinfo.
+NET_UNROUTABLE = "not_publicly_routable"
 NET_IPV4 = "ipv4"
 NET_IPV6 = "ipv6"
 NET_ONION = "onion"

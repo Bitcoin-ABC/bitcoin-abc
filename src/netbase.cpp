@@ -64,7 +64,7 @@ enum Network ParseNetwork(const std::string &net_in) {
 std::string GetNetworkName(enum Network net) {
     switch (net) {
         case NET_UNROUTABLE:
-            return "unroutable";
+            return "not_publicly_routable";
         case NET_IPV4:
             return "ipv4";
         case NET_IPV6:
@@ -82,6 +82,22 @@ std::string GetNetworkName(enum Network net) {
     } // no default case, so the compiler can warn about missing cases
 
     assert(false);
+}
+
+std::vector<std::string> GetNetworkNames(bool append_unroutable) {
+    std::vector<std::string> names;
+    for (int n = 0; n < NET_MAX; ++n) {
+        const enum Network network { static_cast<Network>(n) };
+        if (network == NET_UNROUTABLE || network == NET_I2P ||
+            network == NET_CJDNS || network == NET_INTERNAL) {
+            continue;
+        }
+        names.emplace_back(GetNetworkName(network));
+    }
+    if (append_unroutable) {
+        names.emplace_back(GetNetworkName(NET_UNROUTABLE));
+    }
+    return names;
 }
 
 static bool LookupIntern(const std::string &name, std::vector<CNetAddr> &vIP,

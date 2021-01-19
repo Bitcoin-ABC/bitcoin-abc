@@ -749,13 +749,14 @@ void SetupServerArgs(NodeContext &node) {
 
     argsman.AddArg(
         "-onlynet=<net>",
-        "Make outgoing connections only through network <net> (ipv4, ipv6 or "
-        "onion). Incoming connections are not affected by this option. This "
-        "option can be specified multiple times to allow multiple networks. "
-        "Warning: if it is used with ipv4 or ipv6 but not onion and the -onion "
-        "or -proxy option is set, then outbound onion connections will still "
-        "be made; use -noonion or -onion=0 to disable outbound onion "
-        "connections in this case",
+        "Make outgoing connections only through network <net> (" +
+            Join(GetNetworkNames(), ", ") +
+            "). Incoming connections are not affected by this option. This "
+            "option can be specified multiple times to allow multiple "
+            "networks. Warning: if it is used with ipv4 or ipv6 but not onion "
+            "and the -onion or -proxy option is set, then outbound onion "
+            "connections will still be made; use -noonion or -onion=0 to "
+            "disable outbound onion connections in this case",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg("-peerbloomfilters",
                    strprintf("Support filtering of blocks and transaction with "
