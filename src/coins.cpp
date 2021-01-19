@@ -142,13 +142,14 @@ void CCoinsViewCache::AddCoin(const COutPoint &outpoint, Coin coin,
 }
 
 void AddCoins(CCoinsViewCache &cache, const CTransaction &tx, int nHeight,
-              bool check) {
+              bool check_for_overwrite) {
     bool fCoinbase = tx.IsCoinBase();
     const TxId txid = tx.GetId();
     for (size_t i = 0; i < tx.vout.size(); ++i) {
         const COutPoint outpoint(txid, i);
-        bool overwrite = check ? cache.HaveCoin(outpoint) : fCoinbase;
-        // Always set the possible_overwrite flag to AddCoin for coinbase txn,
+        bool overwrite =
+            check_for_overwrite ? cache.HaveCoin(outpoint) : fCoinbase;
+        // Coinbase transactions can always be overwritten,
         // in order to correctly deal with the pre-BIP30 occurrences of
         // duplicate coinbase transactions.
         cache.AddCoin(outpoint, Coin(tx.vout[i], nHeight, fCoinbase),
