@@ -314,9 +314,9 @@ public:
         return *this;
     }
 
-    TestBuilder &Add(const CScript &_script) {
+    TestBuilder &Opcode(const opcodetype &_op) {
         DoPush();
-        spendTx.vin[0].scriptSig += _script;
+        spendTx.vin[0].scriptSig << _op;
         return *this;
     }
 
@@ -1085,7 +1085,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                                 0)
                         .Num(0)
                         .PushSigECDSA(keys.key1)
-                        .Add(CScript() << OP_DUP));
+                        .Opcode(OP_DUP));
     tests.push_back(
         TestBuilder(
             CScript() << OP_2 << ToByteVector(keys.pubkey1C)
@@ -1095,7 +1095,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
             SCRIPT_VERIFY_SIGPUSHONLY)
             .Num(0)
             .PushSigECDSA(keys.key1)
-            .Add(CScript() << OP_DUP)
+            .Opcode(OP_DUP)
             .SetScriptError(ScriptError::SIG_PUSHONLY));
     tests.push_back(
         TestBuilder(
@@ -1103,19 +1103,19 @@ BOOST_AUTO_TEST_CASE(script_build) {
             "P2SH(P2PK) with non-push scriptSig but no P2SH or SIGPUSHONLY", 0,
             true)
             .PushSigECDSA(keys.key2)
-            .Add(CScript() << OP_NOP8)
+            .Opcode(OP_NOP8)
             .PushRedeem());
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey2C) << OP_CHECKSIG,
                     "P2PK with non-push scriptSig but with P2SH validation", 0)
             .PushSigECDSA(keys.key2)
-            .Add(CScript() << OP_NOP8));
+            .Opcode(OP_NOP8));
     tests.push_back(
         TestBuilder(CScript() << ToByteVector(keys.pubkey2C) << OP_CHECKSIG,
                     "P2SH(P2PK) with non-push scriptSig but no SIGPUSHONLY",
                     SCRIPT_VERIFY_P2SH, true)
             .PushSigECDSA(keys.key2)
-            .Add(CScript() << OP_NOP8)
+            .Opcode(OP_NOP8)
             .PushRedeem()
             .SetScriptError(ScriptError::SIG_PUSHONLY));
     tests.push_back(
@@ -1123,7 +1123,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
                     "P2SH(P2PK) with non-push scriptSig but not P2SH",
                     SCRIPT_VERIFY_SIGPUSHONLY, true)
             .PushSigECDSA(keys.key2)
-            .Add(CScript() << OP_NOP8)
+            .Opcode(OP_NOP8)
             .PushRedeem()
             .SetScriptError(ScriptError::SIG_PUSHONLY));
     tests.push_back(
@@ -3206,25 +3206,6 @@ BOOST_AUTO_TEST_CASE(script_HasValidOps) {
 
     script = CScript() << FIRST_UNDEFINED_OP_VALUE;
     BOOST_CHECK(!script.HasValidOps());
-}
-
-BOOST_AUTO_TEST_CASE(script_can_append_self) {
-    CScript s, d;
-
-    s = ScriptFromHex("00");
-    s += s;
-    d = ScriptFromHex("0000");
-    BOOST_CHECK(s == d);
-
-    // check doubling a script that's large enough to require reallocation
-    static const char hex[] =
-        "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6"
-        "bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f";
-    s = CScript() << ParseHex(hex) << OP_CHECKSIG;
-    d = CScript() << ParseHex(hex) << OP_CHECKSIG << ParseHex(hex)
-                  << OP_CHECKSIG;
-    s += s;
-    BOOST_CHECK(s == d);
 }
 
 #if defined(HAVE_CONSENSUS_LIB)
