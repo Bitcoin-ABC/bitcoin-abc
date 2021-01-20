@@ -719,6 +719,7 @@ void CTxMemPool::check(const CCoinsViewCache *pcoins) const {
         return;
     }
 
+    AssertLockHeld(::cs_main);
     LOCK(cs);
     LogPrint(BCLog::MEMPOOL,
              "Checking mempool with %u transactions and %u inputs\n",
