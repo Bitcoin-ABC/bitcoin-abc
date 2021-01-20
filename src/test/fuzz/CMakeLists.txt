@@ -80,6 +80,7 @@ add_regular_fuzz_targets(
 	base_encode_decode
 	block
 	block_header
+	blockfilter
 	bloom_filter
 	rolling_bloom_filter
 	cashaddr

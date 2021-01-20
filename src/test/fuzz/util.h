@@ -10,9 +10,11 @@
 #include <script/script.h>
 #include <serialize.h>
 #include <streams.h>
+#include <uint256.h>
+#include <version.h>
+
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
-#include <version.h>
 
 #include <cstdint>
 #include <string>
@@ -81,6 +83,16 @@ ConsumeScript(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 NODISCARD inline CScriptNum
 ConsumeScriptNum(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return CScriptNum{fuzzed_data_provider.ConsumeIntegral<int64_t>()};
+}
+
+NODISCARD inline uint256
+ConsumeUInt256(FuzzedDataProvider &fuzzed_data_provider) noexcept {
+    const std::vector<uint8_t> v256 =
+        fuzzed_data_provider.ConsumeBytes<uint8_t>(sizeof(uint256));
+    if (v256.size() != sizeof(uint256)) {
+        return {};
+    }
+    return uint256{v256};
 }
 
 template <typename T> bool MultiplicationOverflow(T i, T j) {
