@@ -33,7 +33,6 @@ const SendToken = ({ tokenId }) => {
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
-
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -279,6 +278,7 @@ const SendToken = ({ tokenId }) => {
                                         onMax={onMax}
                                         inputProps={{
                                             name: 'value',
+                                            step: 1 / 10 ** token.info.decimals,
                                             placeholder: 'Amount',
                                             prefix:
                                                 currency.tokenIconsUrl !==
