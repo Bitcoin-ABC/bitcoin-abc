@@ -3218,8 +3218,8 @@ static UniValue getwalletinfo(const Config &config,
                ValueFromAmount(pwallet->GetUnconfirmedBalance()));
     obj.pushKV("immature_balance",
                ValueFromAmount(pwallet->GetImmatureBalance()));
-    obj.pushKV("devreward_balance", ValueFromAmount(pwallet->GetDevRewardBalance()));
-    obj.pushKV("devreward_immature_balance",
+    obj.pushKV("publicfund_balance", ValueFromAmount(pwallet->GetDevRewardBalance()));
+    obj.pushKV("publicfund_immature_balance",
                ValueFromAmount(pwallet->GetDevRewardImmatureBalance()));
     obj.pushKV("txcount", (int)pwallet->mapWallet.size());
     obj.pushKV("keypoololdest", pwallet->GetOldestKeyPoolTime());
