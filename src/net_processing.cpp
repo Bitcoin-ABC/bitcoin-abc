@@ -1069,6 +1069,21 @@ void PeerLogicValidation::InitializeNode(const Config &config, CNode *pnode) {
     }
 }
 
+void PeerLogicValidation::ReattemptInitialBroadcast(
+    CScheduler &scheduler) const {
+    std::set<TxId> unbroadcast_txids = m_mempool.GetUnbroadcastTxs();
+
+    for (const TxId &txid : unbroadcast_txids) {
+        RelayTransaction(txid, m_connman);
+    }
+
+    // schedule next run for 10-15 minutes in the future
+    const std::chrono::milliseconds delta =
+        std::chrono::minutes{10} + GetRandMillis(std::chrono::minutes{5});
+    scheduler.scheduleFromNow([&] { ReattemptInitialBroadcast(scheduler); },
+                              delta);
+}
+
 void PeerLogicValidation::FinalizeNode(const Config &config, NodeId nodeid,
                                        bool &fUpdateConnectionTime) {
     fUpdateConnectionTime = false;
@@ -1499,6 +1514,12 @@ PeerLogicValidation::PeerLogicValidation(CConnman &connman, BanMan *banman,
             return true;
         },
         std::chrono::seconds{EXTRA_PEER_CHECK_INTERVAL});
+
+    // schedule next run for 10-15 minutes in the future
+    const std::chrono::milliseconds delta =
+        std::chrono::minutes{10} + GetRandMillis(std::chrono::minutes{5});
+    scheduler.scheduleFromNow([&] { ReattemptInitialBroadcast(scheduler); },
+                              delta);
 }
 
 /**

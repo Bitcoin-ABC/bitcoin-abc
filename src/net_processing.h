@@ -116,6 +116,12 @@ public:
                         int64_t nTimeReceived,
                         const std::atomic<bool> &interruptMsgProc);
 
+    /**
+     * Retrieve unbroadcast transactions from the mempool and reattempt
+     * sending to peers
+     */
+    void ReattemptInitialBroadcast(CScheduler &scheduler) const;
+
 private:
     /**
      * Maybe disconnect a peer and discourage future connections from its
