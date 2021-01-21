@@ -22,6 +22,7 @@ import {
     toLegacy,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
+import { shouldRejectAmountInput } from '@utils/validation';
 export const BalanceHeader = styled.div`
     p {
         color: #777;
@@ -332,27 +333,13 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
 
     const handleBchAmountChange = e => {
         const { value, name } = e.target;
-        let error = false;
         let bchValue = value;
-
-        if (selectedCurrency === 'USD') {
-            bchValue = (value / fiatPrice).toFixed(8);
-        }
-
-        // Validate value for > 0
-        if (isNaN(bchValue)) {
-            error = 'Amount must be a number';
-        } else if (bchValue <= 0) {
-            error = 'Amount must be greater than 0';
-        } else if (bchValue < currency.dust) {
-            error = `Send amount must be at least ${currency.dust} ${currency.ticker}`;
-        } else if (bchValue > balances.totalBalance) {
-            error = `Amount cannot exceed your ${currency.ticker} balance`;
-        } else if (!isNaN(bchValue) && bchValue.toString().includes('.')) {
-            if (bchValue.toString().split('.')[1].length > 8) {
-                error = `${currency.ticker} transactions do not support more than 8 decimal places`;
-            }
-        }
+        const error = shouldRejectAmountInput(
+            bchValue,
+            selectedCurrency,
+            fiatPrice,
+            balances.totalBalance,
+        );
         setSendBchAmountError(error);
 
         setFormData(p => ({ ...p, [name]: value }));
