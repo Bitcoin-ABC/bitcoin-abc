@@ -647,6 +647,11 @@ GetRandMicros(std::chrono::microseconds duration_max) noexcept {
     return std::chrono::microseconds{GetRand(duration_max.count())};
 }
 
+std::chrono::milliseconds
+GetRandMillis(std::chrono::milliseconds duration_max) noexcept {
+    return std::chrono::milliseconds{GetRand(duration_max.count())};
+}
+
 int GetRandInt(int nMax) noexcept {
     return GetRand(nMax);
 }

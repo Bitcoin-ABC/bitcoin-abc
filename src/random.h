@@ -73,6 +73,8 @@ void GetRandBytes(uint8_t *buf, int num) noexcept;
 uint64_t GetRand(uint64_t nMax) noexcept;
 std::chrono::microseconds
 GetRandMicros(std::chrono::microseconds duration_max) noexcept;
+std::chrono::milliseconds
+GetRandMillis(std::chrono::milliseconds duration_max) noexcept;
 int GetRandInt(int nMax) noexcept;
 uint256 GetRandHash() noexcept;
 
