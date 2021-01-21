@@ -150,6 +150,25 @@ describe('useBCH hook', () => {
         expect(nullValuesSendBch).toBe(null);
     });
 
+    it('Throws error on attempt to send one satoshi less than backend dust limit', async () => {
+        const { sendBch } = useBCH();
+        const BCH = new BCHJS();
+        const { expectedTxId, utxos, wallet, addresses } = sendBCHMock;
+        BCH.RawTransactions.sendRawTransaction = jest
+            .fn()
+            .mockResolvedValue(expectedTxId);
+        const failedSendBch = sendBch(BCH, wallet, utxos, {
+            addresses,
+            values: [0.00000546 - 0.00000001],
+        });
+        expect(failedSendBch).rejects.toThrow(new Error('dust'));
+        const nullValuesSendBch = await sendBch(BCH, wallet, utxos, {
+            addresses,
+            values: null,
+        });
+        expect(nullValuesSendBch).toBe(null);
+    });
+
     it('receives errors from the network and parses it', async () => {
         const { sendBch } = useBCH();
         const BCH = new BCHJS();

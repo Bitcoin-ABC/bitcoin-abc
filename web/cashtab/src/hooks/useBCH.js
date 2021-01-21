@@ -425,6 +425,12 @@ export default function useBCH() {
                 (previous, current) => new BigNumber(current).plus(previous),
                 new BigNumber(0),
             );
+
+            // If user is attempting to send less than minimum accepted by the backend
+            if (value.lt(new BigNumber('0.00000546'))) {
+                // Throw the same error given by the backend attempting to broadcast such a tx
+                throw new Error('dust');
+            }
             const REMAINDER_ADDR = wallet.Path1899.cashAddress;
             const inputUtxos = [];
             let transactionBuilder;
