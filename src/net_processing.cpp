@@ -1974,7 +1974,7 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom,
 }
 
 static void ProcessGetData(const Config &config, CNode &pfrom,
-                           CConnman &connman, const CTxMemPool &mempool,
+                           CConnman &connman, CTxMemPool &mempool,
                            const std::atomic<bool> &interruptMsgProc)
     LOCKS_EXCLUDED(cs_main) {
     AssertLockNotHeld(cs_main);
@@ -2032,7 +2032,13 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
                     push = true;
                 }
             }
-            if (!push) {
+
+            if (push) {
+                // We interpret fulfilling a GETDATA for a transaction as a
+                // successful initial broadcast and remove it from our
+                // unbroadcast set.
+                mempool.RemoveUnbroadcastTx(TxId(inv.hash));
+            } else {
                 vNotFound.push_back(inv);
             }
         }

@@ -88,6 +88,10 @@ TransactionError BroadcastTransaction(NodeContext &node, const Config &config,
     }
 
     if (relay) {
+        // the mempool tracks locally submitted transactions to make a
+        // best-effort of initial broadcast
+        node.mempool->AddUnbroadcastTx(txid);
+
         RelayTransaction(txid, *node.connman);
     }
 

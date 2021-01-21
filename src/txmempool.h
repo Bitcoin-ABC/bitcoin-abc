@@ -580,6 +580,12 @@ private:
     std::vector<indexed_transaction_set::const_iterator>
     GetSortedDepthAndScore() const EXCLUSIVE_LOCKS_REQUIRED(cs);
 
+    /**
+     * Track locally submitted transactions to periodically retry initial
+     * broadcast
+     */
+    std::set<TxId> m_unbroadcast_txids GUARDED_BY(cs);
+
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx GUARDED_BY(cs);
     std::map<TxId, Amount> mapDeltas;
@@ -776,6 +782,21 @@ public:
     CFeeRate estimateFee() const;
 
     size_t DynamicMemoryUsage() const;
+
+    /** Adds a transaction to the unbroadcast set */
+    void AddUnbroadcastTx(const TxId &txid) {
+        LOCK(cs);
+        m_unbroadcast_txids.insert(txid);
+    }
+
+    /** Removes a transaction from the unbroadcast set */
+    void RemoveUnbroadcastTx(const TxId &txid, const bool unchecked = false);
+
+    /** Returns transactions in unbroadcast set */
+    const std::set<TxId> GetUnbroadcastTxs() const {
+        LOCK(cs);
+        return m_unbroadcast_txids;
+    }
 
 private:
     /**
