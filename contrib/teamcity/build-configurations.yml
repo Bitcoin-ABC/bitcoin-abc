@@ -79,6 +79,8 @@ builds:
       LSAN_OPTIONS: log_path=stdout
 
   build-bench:
+    runOnDiffRegex:
+      - src/bench/
     Werror: true
     cmake_flags:
       - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
@@ -296,6 +298,8 @@ builds:
       Bitcoin-ABC.dmg: Bitcoin-ABC.dmg
 
   build-secp256k1:
+    runOnDiffRegex:
+      - src/secp256k1/
     cmake_flags:
       - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
       - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
@@ -304,6 +308,8 @@ builds:
     timeout: 600
 
   build-secp256k1-java:
+    runOnDiffRegex:
+      - src/secp256k1/
     cmake_flags:
       - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
       - '-DSECP256K1_ENABLE_JNI=ON'
