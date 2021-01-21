@@ -2203,7 +2203,8 @@ void CWallet::ResendWalletTransactions() {
     }
 
     bool fFirst = (nNextResend == 0);
-    nNextResend = GetTime() + GetRand(30 * 60);
+    // resend 12-36 hours from now, ~1 day on average.
+    nNextResend = GetTime() + (12 * 60 * 60) + GetRand(24 * 60 * 60);
     if (fFirst) {
         return;
     }
