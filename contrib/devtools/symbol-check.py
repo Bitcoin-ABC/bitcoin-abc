@@ -12,11 +12,12 @@ Example usage:
 '''
 import subprocess
 import sys
-import os
 from typing import Optional
 
 import lief
 import pixie
+
+from utils import determine_wellknown_cmd
 
 # Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS
 #
@@ -54,7 +55,6 @@ IGNORE_EXPORTS = {
     '_ZNKSt5ctypeIcE8do_widenEc', 'in6addr_any', 'optarg',
     '_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv'
 }
-CPPFILT_CMD = os.getenv('CPPFILT', '/usr/bin/c++filt')
 
 # Allowed NEEDED libraries
 ELF_ALLOWED_LIBRARIES = {
@@ -135,7 +135,10 @@ class CPPFilt(object):
 
     def __init__(self):
         self.proc = subprocess.Popen(
-            CPPFILT_CMD, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
+            determine_wellknown_cmd('CPPFILT', 'c++filt'),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            universal_newlines=True)
 
     def __call__(self, mangled):
         self.proc.stdin.write(mangled + '\n')
