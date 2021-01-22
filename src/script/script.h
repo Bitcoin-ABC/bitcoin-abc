@@ -366,7 +366,8 @@ public:
 
         std::vector<uint8_t> result;
         const bool neg = value < 0;
-        uint64_t absvalue = neg ? -value : value;
+        uint64_t absvalue = neg ? ~static_cast<uint64_t>(value) + 1
+                                : static_cast<uint64_t>(value);
 
         while (absvalue) {
             result.push_back(absvalue & 0xff);
