@@ -1487,12 +1487,13 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
             STALE_RELAY_AGE_LIMIT);
 }
 
-PeerLogicValidation::PeerLogicValidation(CConnman &connman, BanMan *banman,
+PeerLogicValidation::PeerLogicValidation(const CChainParams &chainparams,
+                                         CConnman &connman, BanMan *banman,
                                          CScheduler &scheduler,
                                          ChainstateManager &chainman,
                                          CTxMemPool &pool)
-    : m_connman(connman), m_banman(banman), m_chainman(chainman),
-      m_mempool(pool), m_stale_tip_check_time(0) {
+    : m_chainparams(chainparams), m_connman(connman), m_banman(banman),
+      m_chainman(chainman), m_mempool(pool), m_stale_tip_check_time(0) {
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
@@ -1507,7 +1508,7 @@ PeerLogicValidation::PeerLogicValidation(CConnman &connman, BanMan *banman,
     g_recent_confirmed_transactions.reset(
         new CRollingBloomFilter(24000, 0.000001));
 
-    const Consensus::Params &consensusParams = Params().GetConsensus();
+    const Consensus::Params &consensusParams = chainparams.GetConsensus();
     // Stale tip checking and peer eviction are on two different timers, but we
     // don't want them to get out of sync due to drift in the scheduler, so we
     // combine them in one function and schedule at the quicker (peer-eviction)
@@ -2674,7 +2675,6 @@ void PeerLogicValidation::ProcessMessage(
     const Config &config, CNode &pfrom, const std::string &msg_type,
     CDataStream &vRecv, int64_t nTimeReceived,
     const std::atomic<bool> &interruptMsgProc) {
-    const CChainParams &chainparams = config.GetChainParams();
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(msg_type), vRecv.size(), pfrom.GetId());
     if (gArgs.IsArgSet("-dropmessagestest") &&
@@ -2855,7 +2855,7 @@ void PeerLogicValidation::ProcessMessage(
         // Ignore time offsets that are improbable (before the Genesis block)
         // and may underflow the nTimeOffset calculation.
         int64_t currentTime = GetTime();
-        if (nTime >= int64_t(chainparams.GenesisBlock().nTime)) {
+        if (nTime >= int64_t(m_chainparams.GenesisBlock().nTime)) {
             int64_t nTimeOffset = nTime - currentTime;
             pfrom.nTimeOffset = nTimeOffset;
             AddTimeData(pfrom.addr, nTimeOffset);
@@ -3183,7 +3183,7 @@ void PeerLogicValidation::ProcessMessage(
             // that block relay might require.
             const int nPrunedBlocksLikelyToHave =
                 MIN_BLOCKS_TO_KEEP -
-                3600 / chainparams.GetConsensus().nPowTargetSpacing;
+                3600 / m_chainparams.GetConsensus().nPowTargetSpacing;
             if (fPruneMode &&
                 (!pindex->nStatus.hasData() ||
                  pindex->nHeight <= ::ChainActive().Tip()->nHeight -
@@ -3256,7 +3256,8 @@ void PeerLogicValidation::ProcessMessage(
         }
 
         CBlock block;
-        bool ret = ReadBlockFromDisk(block, pindex, chainparams.GetConsensus());
+        bool ret =
+            ReadBlockFromDisk(block, pindex, m_chainparams.GetConsensus());
         assert(ret);
 
         SendBlockTransactions(block, req, pfrom, m_connman);
@@ -3295,7 +3296,7 @@ void PeerLogicValidation::ProcessMessage(
                 return;
             }
 
-            if (!BlockRequestAllowed(pindex, chainparams.GetConsensus())) {
+            if (!BlockRequestAllowed(pindex, m_chainparams.GetConsensus())) {
                 LogPrint(BCLog::NET,
                          "%s: ignoring request from peer=%i for old block "
                          "header that isn't in the main chain\n",
@@ -3607,7 +3608,7 @@ void PeerLogicValidation::ProcessMessage(
             // If we're not close to tip yet, give up and let parallel block
             // fetch work its magic.
             if (!fAlreadyInFlight &&
-                !CanDirectFetch(chainparams.GetConsensus())) {
+                !CanDirectFetch(m_chainparams.GetConsensus())) {
                 return;
             }
 
@@ -3621,8 +3622,8 @@ void PeerLogicValidation::ProcessMessage(
                     std::list<QueuedBlock>::iterator *queuedBlockIt = nullptr;
                     if (!MarkBlockAsInFlight(config, m_mempool, pfrom.GetId(),
                                              pindex->GetBlockHash(),
-                                             chainparams.GetConsensus(), pindex,
-                                             &queuedBlockIt)) {
+                                             m_chainparams.GetConsensus(),
+                                             pindex, &queuedBlockIt)) {
                         if (!(*queuedBlockIt)->partialBlock) {
                             (*queuedBlockIt)
                                 ->partialBlock.reset(
@@ -4363,17 +4364,17 @@ void PeerLogicValidation::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::GETCFILTERS) {
-        ProcessGetCFilters(pfrom, vRecv, chainparams, m_connman);
+        ProcessGetCFilters(pfrom, vRecv, m_chainparams, m_connman);
         return;
     }
 
     if (msg_type == NetMsgType::GETCFHEADERS) {
-        ProcessGetCFHeaders(pfrom, vRecv, chainparams, m_connman);
+        ProcessGetCFHeaders(pfrom, vRecv, m_chainparams, m_connman);
         return;
     }
 
     if (msg_type == NetMsgType::GETCFCHECKPT) {
-        ProcessGetCFCheckPt(pfrom, vRecv, chainparams, m_connman);
+        ProcessGetCFCheckPt(pfrom, vRecv, m_chainparams, m_connman);
         return;
     }
 
