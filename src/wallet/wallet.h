@@ -700,7 +700,6 @@ private:
     int nWalletMaxVersion GUARDED_BY(cs_wallet) = FEATURE_BASE;
 
     int64_t nNextResend = 0;
-    int64_t nLastResend = 0;
     bool fBroadcastTransactions = false;
     // Local time that the tip block was received. Used to schedule wallet
     // rebroadcasts.

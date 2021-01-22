@@ -2209,13 +2209,6 @@ void CWallet::ResendWalletTransactions() {
         return;
     }
 
-    // Only do it if there's been a new block since last time
-    if (m_best_block_time < nLastResend) {
-        return;
-    }
-
-    nLastResend = GetTime();
-
     int submitted_tx_count = 0;
 
     { // cs_wallet scope
