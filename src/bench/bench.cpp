@@ -16,8 +16,6 @@
 #include <numeric>
 #include <regex>
 
-const RegTestingSetup *g_testing_setup = nullptr;
-
 void benchmark::ConsolePrinter::header() {
     std::cout << "# Benchmark, evals, iterations, total, min, max, median"
               << std::endl;
@@ -150,13 +148,7 @@ void benchmark::BenchRunner::RunAll(Printer &printer, uint64_t num_evals,
     printer.header();
 
     for (const auto &p : benchmarks()) {
-        RegTestingSetup test{};
-        assert(g_testing_setup == nullptr);
-        g_testing_setup = &test;
-        assert(::ChainActive().Height() == 0);
-
         if (!std::regex_match(p.first, baseMatch, reFilter)) {
-            g_testing_setup = nullptr;
             continue;
         }
 
@@ -170,7 +162,6 @@ void benchmark::BenchRunner::RunAll(Printer &printer, uint64_t num_evals,
             p.second.func(state);
         }
         printer.result(state);
-        g_testing_setup = nullptr;
     }
 
     printer.footer();

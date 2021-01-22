@@ -14,6 +14,7 @@
 
 static void WalletBalance(benchmark::State &state, const bool set_dirty,
                           const bool add_watchonly, const bool add_mine) {
+    RegTestingSetup test_setup;
     const auto &ADDRESS_WATCHONLY = ADDRESS_BCHREG_UNSPENDABLE;
 
     const Config &config = GetConfig();
@@ -40,9 +41,9 @@ static void WalletBalance(benchmark::State &state, const bool set_dirty,
     }
 
     for (int i = 0; i < 100; ++i) {
-        generatetoaddress(config, g_testing_setup->m_node,
+        generatetoaddress(config, test_setup.m_node,
                           address_mine.value_or(ADDRESS_WATCHONLY));
-        generatetoaddress(config, g_testing_setup->m_node, ADDRESS_WATCHONLY);
+        generatetoaddress(config, test_setup.m_node, ADDRESS_WATCHONLY);
     }
     SyncWithValidationInterfaceQueue();
 

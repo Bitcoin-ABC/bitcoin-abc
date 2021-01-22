@@ -11,10 +11,13 @@
 #include <pow/pow.h>
 #include <random.h>
 #include <script/scriptcache.h>
+#include <test/util/setup_common.h>
 #include <txmempool.h>
 #include <validation.h>
 
 static void DuplicateInputs(benchmark::State &state) {
+    RegTestingSetup test_setup;
+
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};
 
     const CChainParams &chainParams = Params();

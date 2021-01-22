@@ -16,6 +16,7 @@
 
 static void AssembleBlock(benchmark::State &state) {
     const Config &config = GetConfig();
+    RegTestingSetup test_setup;
 
     const CScript redeemScript = CScript() << OP_DROP << OP_TRUE;
     const CScript SCRIPT_PUB =
@@ -31,8 +32,7 @@ static void AssembleBlock(benchmark::State &state) {
     std::array<CTransactionRef, NUM_BLOCKS - COINBASE_MATURITY + 1> txs;
     for (size_t b = 0; b < NUM_BLOCKS; ++b) {
         CMutableTransaction tx;
-        tx.vin.push_back(
-            MineBlock(config, g_testing_setup->m_node, SCRIPT_PUB));
+        tx.vin.push_back(MineBlock(config, test_setup.m_node, SCRIPT_PUB));
         tx.vin.back().scriptSig = scriptSig;
         tx.vout.emplace_back(1337 * SATOSHI, SCRIPT_PUB);
         if (NUM_BLOCKS - b >= COINBASE_MATURITY) {
@@ -46,7 +46,8 @@ static void AssembleBlock(benchmark::State &state) {
 
         for (const auto &txr : txs) {
             TxValidationState vstate;
-            bool ret{::AcceptToMemoryPool(config, ::g_mempool, vstate, txr,
+            bool ret{::AcceptToMemoryPool(config, *test_setup.m_node.mempool,
+                                          vstate, txr,
                                           false /* bypass_limits */,
                                           /* nAbsurdFee */ Amount::zero())};
             assert(ret);
@@ -54,7 +55,7 @@ static void AssembleBlock(benchmark::State &state) {
     }
 
     while (state.KeepRunning()) {
-        PrepareBlock(config, g_testing_setup->m_node, SCRIPT_PUB);
+        PrepareBlock(config, test_setup.m_node, SCRIPT_PUB);
     }
 }
 
