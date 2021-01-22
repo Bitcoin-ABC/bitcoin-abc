@@ -523,6 +523,9 @@ static std::vector<RPCResult> MempoolEntryDescription() {
             "unconfirmed transactions spending outputs from this transaction",
             {RPCResult{RPCResult::Type::STR_HEX, "transactionid",
                        "child transaction id"}}},
+        RPCResult{RPCResult::Type::BOOL, "unbroadcast",
+                  "Whether this transaction is currently unbroadcast (initial "
+                  "broadcast not yet confirmed)"},
     };
 }
 
@@ -572,6 +575,7 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     }
 
     info.pushKV("spentby", spent);
+    info.pushKV("unbroadcast", pool.IsUnbroadcastTx(tx.GetId()));
 }
 
 UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose) {
@@ -1725,7 +1729,7 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
         ValueFromAmount(std::max(pool.GetMinFee(maxmempool), ::minRelayTxFee)
                             .GetFeePerK()));
     ret.pushKV("minrelaytxfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
-
+    ret.pushKV("unbroadcastcount", uint64_t{pool.GetUnbroadcastTxs().size()});
     return ret;
 }
 
@@ -1754,6 +1758,9 @@ static UniValue getmempoolinfo(const Config &config,
                      "minrelaytxfee and minimum mempool fee"},
                 {RPCResult::Type::STR_AMOUNT, "minrelaytxfee",
                  "Current minimum relay fee for transactions"},
+                {RPCResult::Type::NUM, "unbroadcastcount",
+                 "Current number of transactions that haven't passed initial "
+                 "broadcast yet"},
             }},
         RPCExamples{HelpExampleCli("getmempoolinfo", "") +
                     HelpExampleRpc("getmempoolinfo", "")},
