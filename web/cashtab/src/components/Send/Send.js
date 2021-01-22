@@ -22,7 +22,7 @@ import {
     toLegacy,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
-import { shouldRejectAmountInput } from '@utils/validation';
+import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
 export const BalanceHeader = styled.div`
     p {
         color: #777;
@@ -209,7 +209,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         let bchValue = value;
 
         if (selectedCurrency === 'USD') {
-            bchValue = (value / fiatPrice).toFixed(8);
+            bchValue = fiatToCrypto(value, fiatPrice);
         }
 
         try {
@@ -379,9 +379,9 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                 2,
             )} USD`;
         } else {
-            fiatPriceString = `${(Number(formData.value) / fiatPrice).toFixed(
-                8,
-            )} ${currency.ticker}`;
+            fiatPriceString = `${
+                formData.value ? fiatToCrypto(formData.value, fiatPrice) : '0'
+            } ${currency.ticker}`;
         }
     }
 

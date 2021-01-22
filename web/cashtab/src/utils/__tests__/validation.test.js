@@ -1,4 +1,4 @@
-import { shouldRejectAmountInput } from '../validation';
+import { shouldRejectAmountInput, fiatToCrypto } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 
 describe('Validation utils', () => {
@@ -70,5 +70,13 @@ describe('Validation utils', () => {
         expect(
             shouldRejectAmountInput('17.123456789', currency.ticker, 20.0, 35),
         ).toBe(expectedValidationError);
+    });
+    it(`Returns expected crypto amount with 8 decimals of precision even if inputs have higher precision`, () => {
+        expect(fiatToCrypto('10.97231694823432', 20.3231342349234234)).toBe(
+            '0.53989295',
+        );
+    });
+    it(`Returns expected crypto amount with 8 decimals of precision even if inputs have lower precision`, () => {
+        expect(fiatToCrypto('10.94', 10)).toBe('1.09400000');
     });
 });
