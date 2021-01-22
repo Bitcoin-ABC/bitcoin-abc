@@ -14,7 +14,15 @@
 
 static void WalletBalance(benchmark::State &state, const bool set_dirty,
                           const bool add_watchonly, const bool add_mine) {
-    RegTestingSetup test_setup;
+    TestingSetup test_setup{
+        CBaseChainParams::REGTEST,
+        /* extra_args */
+        {
+            "-nodebuglogfile",
+            "-nodebug",
+        },
+    };
+
     const auto &ADDRESS_WATCHONLY = ADDRESS_BCHREG_UNSPENDABLE;
 
     const Config &config = GetConfig();

@@ -16,7 +16,14 @@
 #include <validation.h>
 
 static void DuplicateInputs(benchmark::State &state) {
-    RegTestingSetup test_setup;
+    TestingSetup test_setup{
+        CBaseChainParams::REGTEST,
+        /* extra_args */
+        {
+            "-nodebuglogfile",
+            "-nodebug",
+        },
+    };
 
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};
 

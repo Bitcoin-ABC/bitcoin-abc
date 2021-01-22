@@ -22,7 +22,14 @@ static void AddTx(const CTransactionRef &tx, const Amount &nFee,
 // mempool. Code needs to be written to generate a much wider variety of
 // unique transactions for a more meaningful performance measurement.
 static void MempoolEviction(benchmark::State &state) {
-    RegTestingSetup test_setup;
+    TestingSetup test_setup{
+        CBaseChainParams::REGTEST,
+        /* extra_args */
+        {
+            "-nodebuglogfile",
+            "-nodebug",
+        },
+    };
 
     CMutableTransaction tx1 = CMutableTransaction();
     tx1.vin.resize(1);
