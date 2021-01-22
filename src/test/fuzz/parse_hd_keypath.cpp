@@ -4,10 +4,21 @@
 
 #include <util/bip32.h>
 
+#include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
+#include <test/fuzz/util.h>
+
+#include <cstdint>
+#include <vector>
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
     const std::string keypath_str(buffer.begin(), buffer.end());
     std::vector<uint32_t> keypath;
     (void)ParseHDKeypath(keypath_str, keypath);
+
+    FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
+    const std::vector<uint32_t> random_keypath =
+        ConsumeRandomLengthIntegralVector<uint32_t>(fuzzed_data_provider);
+    (void)FormatHDKeypath(random_keypath);
+    (void)WriteHDKeypath(random_keypath);
 }

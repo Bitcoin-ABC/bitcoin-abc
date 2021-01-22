@@ -99,6 +99,7 @@ add_regular_fuzz_targets(
 	integer
 	key
 	key_io
+	kitchen_sink
 	locale
 	merkleblock
 	multiplication_overflow
@@ -128,6 +129,7 @@ add_regular_fuzz_targets(
 	spanparsing
 	string
 	strprintf
+	system
 	timedata
 	transaction
 	tx_in
