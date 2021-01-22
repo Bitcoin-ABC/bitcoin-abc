@@ -34,7 +34,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         min_relay_fee = node.getnetworkinfo()["relayfee"]
-        utxos = create_confirmed_utxos(node, 10)
+        create_confirmed_utxos(node, 10)
 
         disconnect_nodes(node, self.nodes[1])
 
@@ -43,6 +43,7 @@ class MempoolUnbroadcastTest(BitcoinTestFramework):
         # generate a wallet txn
         addr = node.getnewaddress()
         wallet_tx_hsh = node.sendtoaddress(addr, 0.0001)
+        utxos = node.listunspent()
 
         # generate a txn using sendrawtransaction
         us0 = utxos.pop()
