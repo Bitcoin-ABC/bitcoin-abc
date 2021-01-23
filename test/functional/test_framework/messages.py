@@ -37,7 +37,7 @@ from test_framework.util import assert_equal, hex_str_to_bytes
 MIN_VERSION_SUPPORTED = 60001
 # past bip-31 for ping/pong
 MY_VERSION = 70014
-MY_SUBVERSION = b"/python-p2p-tester:0.0.3/"
+MY_SUBVERSION = "/python-p2p-tester:0.0.3/"
 # from version 70001 onwards, fRelay should be appended to version
 # messages (BIP37)
 MY_RELAY = 1
@@ -1285,7 +1285,7 @@ class msg_version:
         self.addrFrom = CAddress()
         self.addrFrom.deserialize(f, with_time=False)
         self.nNonce = struct.unpack("<Q", f.read(8))[0]
-        self.strSubVer = deser_string(f)
+        self.strSubVer = deser_string(f).decode('utf-8')
 
         self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
 
@@ -1301,7 +1301,7 @@ class msg_version:
         r += self.addrTo.serialize(with_time=False)
         r += self.addrFrom.serialize(with_time=False)
         r += struct.pack("<Q", self.nNonce)
-        r += ser_string(self.strSubVer)
+        r += ser_string(self.strSubVer.encode('utf-8'))
         r += struct.pack("<i", self.nStartingHeight)
         r += struct.pack("<b", self.nRelay)
         r += struct.pack("<Q", self.nExtraEntropy)
