@@ -4,8 +4,8 @@
  * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
  ***********************************************************************/
 
-#ifndef _SECP256K1_MODULE_MULTISET_MAIN_
-#define _SECP256K1_MODULE_MULTISET_MAIN_
+#ifndef SECP256K1_MODULE_MULTISET_MAIN_H
+#define SECP256K1_MODULE_MULTISET_MAIN_H
 
 
 #include "include/secp256k1_multiset.h"
@@ -207,4 +207,4 @@ int secp256k1_multiset_init(const secp256k1_context* ctx, secp256k1_multiset *mu
     return 1;
 }
 
-#endif /* _SECP256K1_MODULE_MULTISET_MAIN_ */
+#endif /* SECP256K1_MODULE_MULTISET_MAIN_H */

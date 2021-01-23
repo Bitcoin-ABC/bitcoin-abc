@@ -4,8 +4,8 @@
  * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
  ***********************************************************************/
 
-#ifndef _SECP256K1_MODULE_MULTISET_TESTS_
-#define _SECP256K1_MODULE_MULTISET_TESTS_
+#ifndef SECP256K1_MODULE_MULTISET_TESTS_H
+#define SECP256K1_MODULE_MULTISET_TESTS_H
 
 
 #include "include/secp256k1.h"
@@ -344,4 +344,4 @@ void run_multiset_tests(void) {
     test_testvector();
 }
 
-#endif /* _SECP256K1_MODULE_MULTISET_TESTS_ */
+#endif /* SECP256K1_MODULE_MULTISET_TESTS_H */

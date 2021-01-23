@@ -4,8 +4,8 @@
  * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
  ***********************************************************************/
 
-#ifndef _SECP256K1_SCHNORR_IMPL_H_
-#define _SECP256K1_SCHNORR_IMPL_H_
+#ifndef SECP256K1_MODULE_SCHNORR_IMPL_H
+#define SECP256K1_MODULE_SCHNORR_IMPL_H
 
 #include <string.h>
 
