@@ -33,7 +33,8 @@ def hash256_reversed(byte_str):
 
 class ZMQSubscriber:
     def __init__(self, socket, topic):
-        self.sequence = 0
+        # no sequence number received yet
+        self.sequence = None
         self.socket = socket
         self.topic = topic
 
@@ -45,7 +46,11 @@ class ZMQSubscriber:
         # Topic should match the subscriber topic.
         assert_equal(topic, self.topic)
         # Sequence should be incremental.
-        assert_equal(struct.unpack('<I', seq)[-1], self.sequence)
+        received_seq = struct.unpack('<I', seq)[-1]
+        if self.sequence is None:
+            self.sequence = received_seq
+        else:
+            assert_equal(received_seq, self.sequence)
         self.sequence += 1
         return body
 
