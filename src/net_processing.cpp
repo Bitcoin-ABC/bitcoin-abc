@@ -2343,9 +2343,8 @@ void PeerManager::ProcessHeadersMessage(
     }
 }
 
-void static ProcessOrphanTx(const Config &config, CConnman &connman,
-                            CTxMemPool &mempool,
-                            std::set<TxId> &orphan_work_set)
+void PeerManager::ProcessOrphanTx(const Config &config,
+                                  std::set<TxId> &orphan_work_set)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
@@ -2375,12 +2374,12 @@ void static ProcessOrphanTx(const Config &config, CConnman &connman,
             continue;
         }
 
-        if (AcceptToMemoryPool(config, mempool, orphan_state, porphanTx,
+        if (AcceptToMemoryPool(config, m_mempool, orphan_state, porphanTx,
                                false /* bypass_limits */,
                                Amount::zero() /* nAbsurdFee */)) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
-            RelayTransaction(orphanTxId, connman);
+            RelayTransaction(orphanTxId, m_connman);
             for (size_t i = 0; i < orphanTx.vout.size(); i++) {
                 auto it_by_prev =
                     mapOrphanTransactionsByPrev.find(COutPoint(orphanTxId, i));
@@ -2411,7 +2410,7 @@ void static ProcessOrphanTx(const Config &config, CConnman &connman,
             EraseOrphanTx(orphanTxId);
             done = true;
         }
-        mempool.check(&::ChainstateActive().CoinsTip());
+        m_mempool.check(&::ChainstateActive().CoinsTip());
     }
 }
 
@@ -3384,8 +3383,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
             // Recursively process any orphan transactions that depended on this
             // one
-            ProcessOrphanTx(config, m_connman, m_mempool,
-                            pfrom.orphan_work_set);
+            ProcessOrphanTx(config, pfrom.orphan_work_set);
         } else if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
             // It may be the case that the orphans parents have all been
             // rejected.
@@ -4465,7 +4463,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
 
     if (!pfrom->orphan_work_set.empty()) {
         LOCK2(cs_main, g_cs_orphans);
-        ProcessOrphanTx(config, m_connman, m_mempool, pfrom->orphan_work_set);
+        ProcessOrphanTx(config, pfrom->orphan_work_set);
     }
 
     if (pfrom->fDisconnect) {

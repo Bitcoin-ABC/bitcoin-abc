@@ -152,6 +152,8 @@ private:
      */
     bool MaybeDiscourageAndDisconnect(CNode &pnode);
 
+    void ProcessOrphanTx(const Config &config, std::set<TxId> &orphan_work_set)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans);
     /** Process a single headers message from a peer. */
     void ProcessHeadersMessage(const Config &config, CNode &pfrom,
                                const std::vector<CBlockHeader> &headers,
