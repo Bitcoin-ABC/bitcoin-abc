@@ -9,9 +9,13 @@
 #include <streams.h>
 #include <validation.h>
 
+#include <test/util/setup_common.h>
+
 #include <univalue.h>
 
 static void BlockToJsonVerbose(benchmark::Bench &bench) {
+    TestingSetup test_setup{};
+
     CDataStream stream(benchmark::data::block413567, SER_NETWORK,
                        PROTOCOL_VERSION);
     char a = '\0';
