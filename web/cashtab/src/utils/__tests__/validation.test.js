@@ -65,18 +65,18 @@ describe('Validation utils', () => {
             expectedValidationError,
         );
     });
-    it(`Returns precision error if ${currency.ticker} send amount has more than 8 decimal places`, () => {
-        const expectedValidationError = `${currency.ticker} transactions do not support more than 8 decimal places`;
+    it(`Returns precision error if ${currency.ticker} send amount has more than ${currency.cashDecimals} decimal places`, () => {
+        const expectedValidationError = `${currency.ticker} transactions do not support more than ${currency.cashDecimals} decimal places`;
         expect(
             shouldRejectAmountInput('17.123456789', currency.ticker, 20.0, 35),
         ).toBe(expectedValidationError);
     });
-    it(`Returns expected crypto amount with 8 decimals of precision even if inputs have higher precision`, () => {
+    it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
         expect(fiatToCrypto('10.97231694823432', 20.3231342349234234)).toBe(
             '0.53989295',
         );
     });
-    it(`Returns expected crypto amount with 8 decimals of precision even if inputs have lower precision`, () => {
+    it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have lower precision`, () => {
         expect(fiatToCrypto('10.94', 10)).toBe('1.09400000');
     });
 });

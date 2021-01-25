@@ -734,7 +734,7 @@ const useWallet = () => {
                     You received{' '}
                     {Number(
                         balances.totalBalance - previousBalances.totalBalance,
-                    ).toFixed(8)}{' '}
+                    ).toFixed(currency.cashDecimals)}{' '}
                     BCH!
                 </Paragraph>
             ),

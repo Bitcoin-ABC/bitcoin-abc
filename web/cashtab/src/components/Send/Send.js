@@ -353,10 +353,12 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         try {
             const txFeeSats = calcFee(BCH, slpBalancesAndUtxos.nonSlpUtxos);
 
-            const txFeeBch = txFeeSats / 1e8;
+            const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
             let value =
                 balances.totalBalance - txFeeBch >= 0
-                    ? (balances.totalBalance - txFeeBch).toFixed(8)
+                    ? (balances.totalBalance - txFeeBch).toFixed(
+                          currency.cashDecimals,
+                      )
                     : 0;
 
             setFormData({

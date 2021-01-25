@@ -27,8 +27,10 @@ export const shouldRejectAmountInput = (
     } else if (testedAmount.gt(totalCashBalance)) {
         error = `Amount cannot exceed your ${currency.ticker} balance`;
     } else if (!isNaN(testedAmount) && testedAmount.toString().includes('.')) {
-        if (testedAmount.toString().split('.')[1].length > 8) {
-            error = `${currency.ticker} transactions do not support more than 8 decimal places`;
+        if (
+            testedAmount.toString().split('.')[1].length > currency.cashDecimals
+        ) {
+            error = `${currency.ticker} transactions do not support more than ${currency.cashDecimals} decimal places`;
         }
     }
     // return false if no error, or string error msg if error
@@ -36,9 +38,8 @@ export const shouldRejectAmountInput = (
 };
 
 export const fiatToCrypto = (fiatAmount, fiatPrice) => {
-    // Return a string with no more than 8 decimal places
     let cryptoAmount = new BigNumber(fiatAmount)
         .div(new BigNumber(fiatPrice))
-        .toFixed(8);
+        .toFixed(currency.cashDecimals);
     return cryptoAmount;
 };
