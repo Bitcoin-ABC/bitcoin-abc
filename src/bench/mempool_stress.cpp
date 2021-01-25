@@ -93,8 +93,8 @@ static void ComplexMemPool(benchmark::Bench &bench) {
     }
     std::vector<CTransactionRef> ordered_coins =
         CreateOrderedCoins(det_rand, childTxs, /* min_ancestors */ 1);
-    TestingSetup test_setup;
-
+    const auto testing_setup =
+        MakeNoLogFileContext<const TestingSetup>(CBaseChainParams::MAIN);
     CTxMemPool pool;
     LOCK2(cs_main, pool.cs);
     bench.run([&]() NO_THREAD_SAFETY_ANALYSIS {

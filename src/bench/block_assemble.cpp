@@ -16,14 +16,7 @@
 
 static void AssembleBlock(benchmark::Bench &bench) {
     const Config &config = GetConfig();
-    TestingSetup test_setup{
-        CBaseChainParams::REGTEST,
-        /* extra_args */
-        {
-            "-nodebuglogfile",
-            "-nodebug",
-        },
-    };
+    const auto test_setup = MakeNoLogFileContext<const TestingSetup>();
 
     const CScript redeemScript = CScript() << OP_DROP << OP_TRUE;
     const CScript SCRIPT_PUB =
@@ -39,7 +32,7 @@ static void AssembleBlock(benchmark::Bench &bench) {
     std::array<CTransactionRef, NUM_BLOCKS - COINBASE_MATURITY + 1> txs;
     for (size_t b = 0; b < NUM_BLOCKS; ++b) {
         CMutableTransaction tx;
-        tx.vin.push_back(MineBlock(config, test_setup.m_node, SCRIPT_PUB));
+        tx.vin.push_back(MineBlock(config, test_setup->m_node, SCRIPT_PUB));
         tx.vin.back().scriptSig = scriptSig;
         tx.vout.emplace_back(1337 * SATOSHI, SCRIPT_PUB);
         if (NUM_BLOCKS - b >= COINBASE_MATURITY) {
@@ -52,12 +45,12 @@ static void AssembleBlock(benchmark::Bench &bench) {
 
         for (const auto &txr : txs) {
             const MempoolAcceptResult res =
-                test_setup.m_node.chainman->ProcessTransaction(txr);
+                test_setup->m_node.chainman->ProcessTransaction(txr);
             assert(res.m_result_type == MempoolAcceptResult::ResultType::VALID);
         }
     }
 
-    bench.run([&] { PrepareBlock(config, test_setup.m_node, SCRIPT_PUB); });
+    bench.run([&] { PrepareBlock(config, test_setup->m_node, SCRIPT_PUB); });
 }
 
 BENCHMARK(AssembleBlock);

@@ -23,14 +23,7 @@ static void AddTx(const CTransactionRef &tx, const Amount &nFee,
 // mempool. Code needs to be written to generate a much wider variety of
 // unique transactions for a more meaningful performance measurement.
 static void MempoolEviction(benchmark::Bench &bench) {
-    TestingSetup test_setup{
-        CBaseChainParams::REGTEST,
-        /* extra_args */
-        {
-            "-nodebuglogfile",
-            "-nodebug",
-        },
-    };
+    const auto testing_setup = MakeNoLogFileContext<const TestingSetup>();
 
     CMutableTransaction tx1 = CMutableTransaction();
     tx1.vin.resize(1);
@@ -102,7 +95,7 @@ static void MempoolEviction(benchmark::Bench &bench) {
     tx7.vout[1].scriptPubKey = CScript() << OP_7 << OP_EQUAL;
     tx7.vout[1].nValue = 10 * COIN;
 
-    CTxMemPool &pool = *Assert(test_setup.m_node.mempool);
+    CTxMemPool &pool = *Assert(testing_setup->m_node.mempool);
     LOCK2(cs_main, pool.cs);
     // Create transaction references outside the "hot loop"
     const CTransactionRef tx1_r{MakeTransactionRef(tx1)};

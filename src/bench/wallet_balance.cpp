@@ -19,20 +19,13 @@
 
 static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
                           const bool add_watchonly, const bool add_mine) {
-    TestingSetup test_setup{
-        CBaseChainParams::REGTEST,
-        /* extra_args */
-        {
-            "-nodebuglogfile",
-            "-nodebug",
-        },
-    };
+    const auto test_setup = MakeNoLogFileContext<const TestingSetup>();
 
     const auto &ADDRESS_WATCHONLY = ADDRESS_ECREG_UNSPENDABLE;
 
     const Config &config = GetConfig();
 
-    CWallet wallet{test_setup.m_node.chain.get(), "",
+    CWallet wallet{test_setup->m_node.chain.get(), "",
                    CreateMockWalletDatabase()};
     {
         wallet.SetupLegacyScriptPubKeyMan();
@@ -42,7 +35,7 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
         }
     }
 
-    auto handler = test_setup.m_node.chain->handleNotifications(
+    auto handler = test_setup->m_node.chain->handleNotifications(
         {&wallet, [](CWallet *) {}});
 
     const std::optional<std::string> address_mine{
@@ -53,9 +46,9 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
     }
 
     for (int i = 0; i < 100; ++i) {
-        generatetoaddress(config, test_setup.m_node,
+        generatetoaddress(config, test_setup->m_node,
                           address_mine.value_or(ADDRESS_WATCHONLY));
-        generatetoaddress(config, test_setup.m_node, ADDRESS_WATCHONLY);
+        generatetoaddress(config, test_setup->m_node, ADDRESS_WATCHONLY);
     }
     SyncWithValidationInterfaceQueue();
 

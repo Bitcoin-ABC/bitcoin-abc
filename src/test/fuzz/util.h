@@ -21,14 +21,12 @@
 
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
-#include <test/util/setup_common.h>
 
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <optional>
 #include <string>
-#include <vector>
 
 namespace fuzzer {
 // FIXME find a better way to avoid duplicating the MAX_MONEY definition
@@ -302,19 +300,6 @@ inline CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
             inbound_onion};
 }
 
-template <class T = const BasicTestingSetup>
-std::unique_ptr<T>
-MakeNoLogFileContext(const std::string &chain_name = CBaseChainParams::REGTEST,
-                     const std::vector<const char *> &extra_args = {}) {
-    // Prepend default arguments for fuzzing
-    const std::vector<const char *> arguments = Cat(
-        {
-            "-nodebuglogfile",
-        },
-        extra_args);
-
-    return std::make_unique<T>(chain_name, arguments);
-}
 
 class FuzzedFileProvider {
     FuzzedDataProvider &m_fuzzed_data_provider;
