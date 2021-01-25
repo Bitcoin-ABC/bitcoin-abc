@@ -7,6 +7,7 @@ import sendBCHMock from '../__mocks__/sendBCH';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import sendBCH from '../__mocks__/sendBCH';
+import BigNumber from 'bignumber.js';
 
 describe('useBCH hook', () => {
     it('gets Rest Api Url on testnet', () => {
@@ -159,7 +160,11 @@ describe('useBCH hook', () => {
             .mockResolvedValue(expectedTxId);
         const failedSendBch = sendBch(BCH, wallet, utxos, {
             addresses,
-            values: [0.00000546 - 0.00000001],
+            values: [
+                new BigNumber(currency.dust)
+                    .minus(new BigNumber('0.00000001'))
+                    .toString(),
+            ],
         });
         expect(failedSendBch).rejects.toThrow(new Error('dust'));
         const nullValuesSendBch = await sendBch(BCH, wallet, utxos, {

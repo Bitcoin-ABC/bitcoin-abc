@@ -427,7 +427,7 @@ export default function useBCH() {
             );
 
             // If user is attempting to send less than minimum accepted by the backend
-            if (value.lt(new BigNumber('0.00000546'))) {
+            if (value.lt(new BigNumber(currency.dust))) {
                 // Throw the same error given by the backend attempting to broadcast such a tx
                 throw new Error('dust');
             }
