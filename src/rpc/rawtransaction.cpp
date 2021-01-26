@@ -1167,39 +1167,31 @@ static RPCHelpMan testmempoolaccept() {
                              state, std::move(tx), false /* bypass_limits */,
                              true /* test_accept */, &fee));
 
-            // Check that fee does not exceed maximum fee
-            if (test_accept_res && max_raw_tx_fee != Amount::zero() &&
-                fee > max_raw_tx_fee) {
-                result_0.pushKV("allowed", false);
-                result_0.pushKV("reject-reason", "max-fee-exceeded");
-                result.push_back(std::move(result_0));
-                return result;
-            }
-            result_0.pushKV("allowed", test_accept_res);
-
             // Only return the fee and size if the transaction would pass ATMP.
             // These can be used to calculate the feerate.
             if (test_accept_res) {
-                result_0.pushKV("size", virtual_size);
-                UniValue fees(UniValue::VOBJ);
-                fees.pushKV("base", fee);
-                result_0.pushKV("fees", fees);
+                // Check that fee does not exceed maximum fee
+                if (max_raw_tx_fee != Amount::zero() && fee > max_raw_tx_fee) {
+                    result_0.pushKV("allowed", false);
+                    result_0.pushKV("reject-reason", "max-fee-exceeded");
+                } else {
+                    result_0.pushKV("allowed", true);
+                    result_0.pushKV("size", virtual_size);
+                    UniValue fees(UniValue::VOBJ);
+                    fees.pushKV("base", fee);
+                    result_0.pushKV("fees", fees);
+                }
+                result.push_back(std::move(result_0));
             } else {
-                if (state.IsInvalid()) {
-                    if (state.GetResult() ==
-                        TxValidationResult::TX_MISSING_INPUTS) {
-                        result_0.pushKV("reject-reason", "missing-inputs");
-                    } else {
-                        result_0.pushKV(
-                            "reject-reason",
-                            strprintf("%s", state.GetRejectReason()));
-                    }
+                result_0.pushKV("allowed", false);
+                if (state.GetResult() ==
+                    TxValidationResult::TX_MISSING_INPUTS) {
+                    result_0.pushKV("reject-reason", "missing-inputs");
                 } else {
                     result_0.pushKV("reject-reason", state.GetRejectReason());
                 }
+                result.push_back(std::move(result_0));
             }
-
-            result.push_back(std::move(result_0));
             return result;
         },
     };
