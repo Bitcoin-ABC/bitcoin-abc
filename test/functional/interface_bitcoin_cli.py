@@ -19,7 +19,6 @@ BALANCE = (BLOCKS - 100) * 50
 
 
 class TestBitcoinCli(BitcoinTestFramework):
-
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
@@ -67,7 +66,7 @@ class TestBitcoinCli(BitcoinTestFramework):
             "Test -getinfo returns expected network and blockchain info")
         if self.is_wallet_compiled():
             self.nodes[0].encryptwallet(password)
-        cli_get_info = self.nodes[0].cli('-getinfo').send_cli()
+        cli_get_info = self.nodes[0].cli().send_cli('-getinfo')
         network_info = self.nodes[0].getnetworkinfo()
         blockchain_info = self.nodes[0].getblockchaininfo()
         assert_equal(cli_get_info['version'], network_info['version'])
@@ -153,28 +152,21 @@ class TestBitcoinCli(BitcoinTestFramework):
             # maintain block parity with the wallet_compiled conditional branch
             self.nodes[0].generate(1)
 
-        self.stop_node(0)
-
         self.log.info("Test -version with node stopped")
-        cli_response = self.nodes[0].cli("-version").send_cli()
+        self.stop_node(0)
+        cli_response = self.nodes[0].cli().send_cli('-version')
         assert "{} RPC client version".format(
             self.config['environment']['PACKAGE_NAME']) in cli_response
 
         self.log.info(
-            "Test -rpcwait option waits for RPC connection instead of failing")
+            "Test -rpcwait option successfully waits for RPC connection")
         # Start node without RPC connection.
         self.nodes[0].start()
-        # Verify failure without -rpcwait.
-        assert_raises_process_error(1,
-                                    "Could not connect to the server",
-                                    self.nodes[0].cli('getblockcount').echo)
-        # Verify success using -rpcwait.
-        assert_equal(
-            BLOCKS + 1,
-            self.nodes[0].cli(
-                '-rpcwait',
-                'getblockcount').send_cli())
+        # ensure cookie file is available to avoid race condition
+        self.nodes[0].wait_for_cookie_credentials()
+        blocks = self.nodes[0].cli('-rpcwait').send_cli('getblockcount')
         self.nodes[0].wait_for_rpc_connection()
+        assert_equal(blocks, BLOCKS + 1)
 
 
 if __name__ == '__main__':

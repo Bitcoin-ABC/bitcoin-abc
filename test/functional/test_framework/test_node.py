@@ -28,6 +28,7 @@ from .util import (
     MAX_NODES,
     append_config,
     delete_cookie_file,
+    get_auth_cookie,
     get_rpc_proxy,
     p2p_port,
     rpc_url,
@@ -344,11 +345,34 @@ class TestNode():
             except OSError as e:
                 if e.errno != errno.ECONNREFUSED:  # Port not yet open?
                     raise  # unknown OS error
-            except ValueError as e:  # cookie file not found and no rpcuser or rpcassword. bitcoind still starting
+            except ValueError as e:
+                # cookie file not found and no rpcuser or rpcpassword;
+                # bitcoind is still starting
                 if "No RPC credentials" not in str(e):
                     raise
             time.sleep(1.0 / poll_per_s)
         self._raise_assertion_error("Unable to connect to bitcoind")
+
+    def wait_for_cookie_credentials(self):
+        """Ensures auth cookie credentials can be read, e.g. for testing CLI
+        with -rpcwait before RPC connection is up."""
+        self.log.debug("Waiting for cookie credentials")
+        # Poll at a rate of four times per second.
+        poll_per_s = 4
+        for _ in range(poll_per_s * self.rpc_timeout):
+            try:
+                get_auth_cookie(self.datadir, self.chain)
+                self.log.debug("Cookie credentials successfully retrieved")
+                return
+            except ValueError:
+                # cookie file not found and no rpcuser or rpcpassword;
+                # bitcoind is still starting so we continue polling until
+                # RPC credentials are retrieved
+                pass
+            time.sleep(1.0 / poll_per_s)
+        self._raise_assertion_error(
+            "Unable to retrieve cookie credentials after {}s".format(
+                self.rpc_timeout))
 
     def generate(self, nblocks, maxtries=1000000):
         self.log.debug(
