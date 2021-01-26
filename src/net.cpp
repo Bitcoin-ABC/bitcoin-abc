@@ -506,7 +506,8 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     CNode *pnode =
         new CNode(id, nLocalServices, hSocket, addrConnect,
                   CalculateKeyedNetGroup(addrConnect), nonce, extra_entropy,
-                  addr_bind, pszDest ? pszDest : "", conn_type);
+                  addr_bind, pszDest ? pszDest : "", conn_type,
+                  /* inbound_onion */ false);
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
@@ -3392,13 +3393,13 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
              ConnectionType conn_type_in, bool inbound_onion)
     : nTimeConnected(GetTimeSeconds()), addr(addrIn), addrBind(addrBindIn),
-      nKeyedNetGroup(nKeyedNetGroupIn),
+      m_inbound_onion(inbound_onion), nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
       nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
-      nLocalServices(nLocalServicesIn), m_inbound_onion(inbound_onion) {
+      nLocalServices(nLocalServicesIn) {
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
     }

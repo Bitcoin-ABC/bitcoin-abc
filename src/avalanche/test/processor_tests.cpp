@@ -104,9 +104,13 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         static NodeId id = 0;
 
         CAddress addr(ip(GetRandInt(0xffffffff)), NODE_NONE);
-        auto node = new CNode(id++, ServiceFlags(NODE_NETWORK), INVALID_SOCKET,
-                              addr, 0, 0, 0, CAddress(), "",
-                              ConnectionType::OUTBOUND_FULL_RELAY);
+        auto node =
+            new CNode(id++, ServiceFlags(NODE_NETWORK), INVALID_SOCKET, addr,
+                      /* nKeyedNetGroupIn */ 0,
+                      /* nLocalHostNonceIn */ 0,
+                      /* nLocalExtraEntropyIn */ 0, CAddress(),
+                      /* pszDest */ "", ConnectionType::OUTBOUND_FULL_RELAY,
+                      /* inbound_onion */ false);
         node->SetCommonVersion(PROTOCOL_VERSION);
         node->nServices = nServices;
         m_node.peerman->InitializeNode(config, node);

@@ -482,6 +482,9 @@ public:
     const CAddress addr;
     // Bind address of our side of the connection
     const CAddress addrBind;
+    //! Whether this peer is an inbound onion, i.e. connected via our Tor onion
+    //! service.
+    const bool m_inbound_onion;
     std::atomic<int> nVersion{0};
     // The nonce provided by the remote host.
     uint64_t nRemoteHostNonce{0};
@@ -727,7 +730,7 @@ public:
           const CAddress &addrIn, uint64_t nKeyedNetGroupIn,
           uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,
           const CAddress &addrBindIn, const std::string &addrNameIn,
-          ConnectionType conn_type_in, bool inbound_onion = false);
+          ConnectionType conn_type_in, bool inbound_onion);
     ~CNode();
     CNode(const CNode &) = delete;
     CNode &operator=(const CNode &) = delete;
@@ -775,10 +778,6 @@ private:
     // Our address, as reported by the peer
     CService addrLocal GUARDED_BY(cs_addrLocal);
     mutable RecursiveMutex cs_addrLocal;
-
-    //! Whether this peer is an inbound onion, e.g. connected via our Tor onion
-    //! service.
-    const bool m_inbound_onion{false};
 
 public:
     NodeId GetId() const { return id; }
@@ -866,12 +865,6 @@ public:
     void MaybeSetAddrName(const std::string &addrNameIn);
 
     std::string ConnectionTypeAsString() const;
-
-    /**
-     * Whether this peer is an inbound onion, e.g. connected via our Tor onion
-     * service.
-     */
-    bool IsInboundOnion() const { return m_inbound_onion; }
 };
 
 /**
