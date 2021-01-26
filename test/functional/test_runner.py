@@ -30,6 +30,7 @@ import json
 import threading
 import multiprocessing
 from queue import Queue, Empty
+import unittest
 
 # Formatting. Default colors to empty strings.
 BOLD, GREEN, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")
@@ -72,6 +73,10 @@ if os.name != 'nt' or sys.getwindowsversion() >= (10, 0, 14393):
 
 TEST_EXIT_PASSED = 0
 TEST_EXIT_SKIPPED = 77
+
+TEST_FRAMEWORK_MODULES = [
+    "script",
+]
 
 NON_SCRIPTS = [
     # These are python files that live in the functional tests directory, but
@@ -357,6 +362,20 @@ def run_tests(test_list, build_dir, tests_dir, junitoutput, tmpdir, num_jobs, te
     if os.path.isdir(cache_dir):
         print("{}WARNING!{} There is a cache directory here: {}. If tests fail unexpectedly, try deleting the cache directory.".format(
             BOLD[1], BOLD[0], cache_dir))
+
+    # Test Framework Tests
+    print("Running Unit Tests for Test Framework Modules")
+    test_framework_tests = unittest.TestSuite()
+    for module in TEST_FRAMEWORK_MODULES:
+        test_framework_tests.addTest(
+            unittest.TestLoader().loadTestsFromName(
+                "test_framework.{}".format(module)))
+    result = unittest.TextTestRunner(
+        verbosity=1, failfast=True).run(test_framework_tests)
+    if not result.wasSuccessful():
+        logging.debug(
+            "Early exiting after failure in TestFramework unit tests")
+        sys.exit(False)
 
     flags = ['--cachedir={}'.format(cache_dir)] + args
 
@@ -656,7 +675,7 @@ def check_script_prefixes(all_scripts):
     LEEWAY = 0
 
     good_prefixes_re = re.compile(
-        "(abc_)?(example|feature|interface|mempool|mining|p2p|rpc|wallet|tool|framework_test)_")
+        "(abc_)?(example|feature|interface|mempool|mining|p2p|rpc|wallet|tool)_")
     bad_script_names = [
         script for script in all_scripts if good_prefixes_re.match(script) is None]
 
