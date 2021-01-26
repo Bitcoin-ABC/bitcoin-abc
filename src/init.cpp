@@ -1322,12 +1322,20 @@ void SetupServerArgs(NodeContext &node) {
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::RPC);
 
-#if HAVE_DECL_DAEMON
+#if HAVE_DECL_FORK
     argsman.AddArg("-daemon",
-                   "Run in the background as a daemon and accept commands",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+                   strprintf("Run in the background as a daemon and accept "
+                             "commands (default: %d)",
+                             DEFAULT_DAEMON),
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
+    argsman.AddArg("-daemonwait",
+                   strprintf("Wait for initialization to be finished before "
+                             "exiting. This implies -daemon (default: %d)",
+                             DEFAULT_DAEMONWAIT),
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
 #else
     hidden_args.emplace_back("-daemon");
+    hidden_args.emplace_back("-daemonwait");
 #endif
 
     // Avalanche options.

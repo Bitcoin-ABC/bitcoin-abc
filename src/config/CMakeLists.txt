@@ -129,8 +129,9 @@ check_symbol_exists(malloc_info "malloc.h" HAVE_MALLOC_INFO)
 
 # Various system libraries
 check_symbol_exists(strnlen "string.h" HAVE_DECL_STRNLEN)
-# daemon() is located in unistd.h on linux and in stdlib.h on BSDs and macOS.
-check_symbol_exists(daemon "unistd.h;stdlib.h" HAVE_DECL_DAEMON)
+# These are used for daemonization in bitcoind
+check_symbol_exists(fork "unistd.h" HAVE_DECL_FORK)
+check_symbol_exists(setsid "unistd.h" HAVE_DECL_SETSID)
 
 # Check for ways to obtain entropy
 check_symbol_exists(getentropy "unistd.h" HAVE_GETENTROPY)

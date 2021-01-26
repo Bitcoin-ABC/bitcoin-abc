@@ -401,6 +401,7 @@ add_library(util
 	util/thread.cpp
 	util/threadnames.cpp
 	util/time.cpp
+	util/tokenpipe.cpp
 	util/url.cpp
 
 	# obj/build.h
