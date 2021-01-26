@@ -122,6 +122,9 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
 
+        // November 15, 2018 hard fork
+        consensus.expandOpreturnHeight = 637600;
+
         /**
          * The message start string is designed to be unlikely to occur in
          * normal data. The characters are rarely used upper ASCII, not valid as
@@ -238,6 +241,9 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 1267996;
 
+        // testnet is always on
+        consensus.expandOpreturnHeight = 0;
+
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -328,6 +334,9 @@ public:
 
         // November 15, 2018 hard fork is always on on regtest.
         consensus.magneticAnomalyHeight = 0;
+
+        // is always on on regtest
+        consensus.expandOpreturnHeight = 0;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;

@@ -29,11 +29,11 @@ public:
 };
 
 /**
- * Default setting for nMaxDatacarrierBytes. 220 bytes of data, +1 for
- * OP_RETURN, +2 for the pushdata opcodes.
+ * Default setting for nMaxDatacarrierBytes. 4000 bytes of data, +1 for
+ * OP_RETURN, +3 for the pushdata opcodes.
  */
 static const unsigned int MAX_OP_RETURN_RELAY = 223;
-
+static const unsigned int MAX_OP_RETURN_RELAY_LARGE = 4004;
 /**
  * A data carrying output is an unspendable output containing data. The script
  * type is designated as TX_NULL_DATA.

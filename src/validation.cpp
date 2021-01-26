@@ -490,9 +490,11 @@ static bool AcceptToMemoryPoolWorker(
         return false;
     }
 
+    // After the Mar 20 hard fork, we start accepting larger op_return.
+    const bool hasExOpreturn = IsExpandOpreturnEnabled(config, chainActive.Tip()->nHeight);
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason)) {
+    if (fRequireStandard && !IsStandardTx(tx, reason, hasExOpreturn)) {
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
     }
 
@@ -1836,6 +1838,7 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
 
         control.Add(vChecks);
 
+        unsigned int nDataOut = 0;
         // check outputs
         for (const CTxOut &txout : tx.vout) {
             // check op_return length
@@ -1843,18 +1846,24 @@ bool CChainState::ConnectBlock(const Config &config, const CBlock &block,
                 const CScript &scriptPubKey = txout.scriptPubKey;
                 if (scriptPubKey.size() >= 1 && scriptPubKey[0] == OP_RETURN &&
                     scriptPubKey.IsPushOnly(scriptPubKey.begin() + 1)) {
-                    if (!fAcceptDatacarrier) {
-                        return error("ConnectBlock(): output on %s failed with %s",
-                                     tx.GetId().ToString(), "not-allow-datacarrier");
+                    unsigned nMaxDatacarrierBytes;
+                    if (IsExpandOpreturnEnabled(config, pindex->nHeight)) {
+                        nMaxDatacarrierBytes = MAX_OP_RETURN_RELAY_LARGE;
+                        nDataOut++;
+                    } else {
+                        nMaxDatacarrierBytes = MAX_OP_RETURN_RELAY; //
                     }
-                    unsigned nMaxDatacarrierBytes =
-                            gArgs.GetArg("-datacarriersize", MAX_OP_RETURN_RELAY);
                     if (scriptPubKey.size() > nMaxDatacarrierBytes) {
                         return error("ConnectBlock(): output on %s failed with %s",
                                      tx.GetId().ToString(), "datacarrier-overflow");
                     }
                 }
             }
+        }
+        // only one OP_RETURN txout is permitted
+        if (nDataOut > 1) {
+            return error("ConnectBlock(): output on %s failed with %s",
+                         tx.GetId().ToString(), "multi-op-return");
         }
 
         blockundo.vtxundo.push_back(CTxUndo());

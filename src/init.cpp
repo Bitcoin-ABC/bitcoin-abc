@@ -859,8 +859,9 @@ void SetupServerArgs() {
         false, OptionsCategory::NODE_RELAY);
     gArgs.AddArg("-datacarriersize",
                  strprintf(_("Maximum size of data in data carrier "
-                             "transactions we relay and mine (default: %u)"),
-                           MAX_OP_RETURN_RELAY),
+                             "transactions we relay and mine "
+                             "(pre-fork default: %u, post-fork default: %u)"),
+                           MAX_OP_RETURN_RELAY, MAX_OP_RETURN_RELAY_LARGE),
                  false, OptionsCategory::NODE_RELAY);
     gArgs.AddArg(
         "-minrelaytxfee=<amt>",

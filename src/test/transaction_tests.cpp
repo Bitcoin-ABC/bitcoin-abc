@@ -697,6 +697,35 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY + 1, t.vout[0].scriptPubKey.size());
     BOOST_CHECK(!IsStandardTx(CTransaction(t), reason));
 
+        std::string returnData;
+        for (int i = 0; i < 400; i++) {
+            returnData.append("00000000010102030405");
+        }
+        t.vout[0].scriptPubKey =
+            CScript() << OP_RETURN
+                      << ParseHex(returnData.c_str());
+        BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY_LARGE, t.vout[0].scriptPubKey.size());
+        BOOST_CHECK(IsStandardTx(CTransaction(t), reason, true));
+
+        returnData.append("00");
+        t.vout[0].scriptPubKey =
+            CScript() << OP_RETURN
+                      << ParseHex(returnData.c_str());
+        BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY_LARGE + 1, t.vout[0].scriptPubKey.size());
+        BOOST_CHECK(!IsStandardTx(CTransaction(t), reason, true));
+
+        /**
+         * set datacarriersize bigger than MAX_OP_RETURN_RELAY_LARGE
+         * this value will not be effective
+         */
+        unsigned newSize = 4010;
+        gArgs.ForceSetArg("-datacarriersize", std::to_string(newSize));
+
+        t.vout[0].scriptPubKey =
+            CScript() << OP_RETURN
+                      << ParseHex(returnData.c_str());
+        BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY_LARGE + 1, t.vout[0].scriptPubKey.size());
+        BOOST_CHECK(!IsStandardTx(CTransaction(t), reason, true));
     /**
      * Check when a custom value is used for -datacarriersize .
      */

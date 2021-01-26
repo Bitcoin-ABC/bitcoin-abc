@@ -22,5 +22,7 @@ bool IsMagneticAnomalyEnabled(const Config &config, int32_t nHeight);
 bool IsMagneticAnomalyEnabled(const Config &config,
                               const CBlockIndex *pindexPrev);
 
+/** Check if Mar 20, 2021 HF has activated using block height. */
+bool IsExpandOpreturnEnabled(const Config &config, int32_t nHeight);
 
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H

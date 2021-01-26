@@ -107,14 +107,14 @@ Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
 bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
-bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType);
+bool IsStandard(const CScript &scriptPubKey, txnouttype &whichType, bool allowLargeOpReturn = false);
 
 /**
  * Check for standard transaction types
  * @return True if all outputs (scriptPubKeys) use only standard transaction
  * forms
  */
-bool IsStandardTx(const CTransaction &tx, std::string &reason);
+bool IsStandardTx(const CTransaction &tx, std::string &reason, bool allowLargeOpReturn = false);
 
 /**
  * Check for standard transaction types

@@ -43,3 +43,7 @@ bool IsMagneticAnomalyEnabled(const Config &config,
     return IsMagneticAnomalyEnabled(config, pindexPrev->nHeight);
 }
 
+bool IsExpandOpreturnEnabled(const Config &config, int32_t nHeight) {
+    return nHeight >=
+           config.GetChainParams().GetConsensus().expandOpreturnHeight;
+}
