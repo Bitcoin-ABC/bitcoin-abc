@@ -6,6 +6,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <qt/guiutil.h>
 #include <qt/utilitydialog.h>
 
 #include <clientversion.h>
@@ -106,6 +107,8 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
         ui->scrollArea->setVisible(false);
         ui->aboutLogo->setVisible(false);
     }
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 HelpMessageDialog::~HelpMessageDialog() {
@@ -140,6 +143,8 @@ ShutdownWindow::ShutdownWindow(QWidget *parent) : QWidget(parent) {
         tr("%1 is shutting down...").arg(PACKAGE_NAME) + "<br /><br />" +
         tr("Do not shut down the computer until this window disappears.")));
     setLayout(layout);
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 QWidget *ShutdownWindow::showShutdownWindow(QMainWindow *window) {

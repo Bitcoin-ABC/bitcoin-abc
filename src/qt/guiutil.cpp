@@ -48,6 +48,7 @@
 #include <QProgressDialog>
 #include <QScreen>
 #include <QSettings>
+#include <QShortcut>
 #include <QSize>
 #include <QString>
 #include <QTextDocument> // for Qt::mightBeRichText
@@ -381,6 +382,11 @@ void bringToFront(QWidget *w) {
         w->activateWindow();
         w->raise();
     }
+}
+
+void handleCloseWindowShortcut(QWidget *w) {
+    QObject::connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), w),
+                     &QShortcut::activated, w, &QWidget::close);
 }
 
 void openDebugLogfile() {

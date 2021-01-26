@@ -579,6 +579,8 @@ RPCConsole::RPCConsole(interfaces::Node &node,
         settings.value(fontSizeSettingsKey, QFontInfo(QFont()).pointSize())
             .toInt();
     clear();
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 RPCConsole::~RPCConsole() {

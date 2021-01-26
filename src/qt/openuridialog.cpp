@@ -16,6 +16,8 @@ OpenURIDialog::OpenURIDialog(const CChainParams &params, QWidget *parent)
       uriScheme(QString::fromStdString(params.CashAddrPrefix())) {
     ui->setupUi(this);
     ui->uriEdit->setPlaceholderText(uriScheme + ":");
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 OpenURIDialog::~OpenURIDialog() {

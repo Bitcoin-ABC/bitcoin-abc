@@ -38,6 +38,8 @@ EditAddressDialog::EditAddressDialog(Mode _mode, QWidget *parent)
     connect(delegate, &GUIUtil::ItemDelegate::keyEscapePressed, this,
             &EditAddressDialog::reject);
     mapper->setItemDelegate(delegate);
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 EditAddressDialog::~EditAddressDialog() {

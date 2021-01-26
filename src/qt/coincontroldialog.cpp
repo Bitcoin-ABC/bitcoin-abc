@@ -165,6 +165,8 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle,
                  (static_cast<Qt::SortOrder>(
                      settings.value("nCoinControlSortOrder").toInt())));
     }
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 CoinControlDialog::~CoinControlDialog() {

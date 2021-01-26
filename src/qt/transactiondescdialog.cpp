@@ -5,6 +5,7 @@
 #include <qt/forms/ui_transactiondescdialog.h>
 #include <qt/transactiondescdialog.h>
 
+#include <qt/guiutil.h>
 #include <qt/transactiontablemodel.h>
 
 #include <QModelIndex>
@@ -19,6 +20,8 @@ TransactionDescDialog::TransactionDescDialog(const QModelIndex &idx,
     QString desc =
         idx.data(TransactionTableModel::LongDescriptionRole).toString();
     ui->detailText->setHtml(desc);
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 TransactionDescDialog::~TransactionDescDialog() {

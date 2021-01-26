@@ -140,6 +140,8 @@ SplashScreen::SplashScreen(const NetworkStyle *networkStyle)
     move(QGuiApplication::primaryScreen()->geometry().center() - r.center());
 
     installEventFilter(this);
+
+    GUIUtil::handleCloseWindowShortcut(this);
 }
 
 SplashScreen::~SplashScreen() {
