@@ -225,8 +225,9 @@ static bool rest_headers(Config &config, const util::Ref &context,
             return true;
         }
         default: {
-            return RESTERR(req, HTTP_NOT_FOUND,
-                           "output format not found (available: .bin, .hex)");
+            return RESTERR(
+                req, HTTP_NOT_FOUND,
+                "output format not found (available: .bin, .hex, .json)");
         }
     }
 }
