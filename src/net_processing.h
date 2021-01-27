@@ -65,6 +65,9 @@ public:
     /** Whether this node ignores txs received over p2p. */
     virtual bool IgnoresIncomingTxs() = 0;
 
+    /** Relay transaction to all peers. */
+    virtual void RelayTransaction(const TxId &txid) = 0;
+
     /** Send ping message to all peers */
     virtual void SendPings() = 0;
 
@@ -92,9 +95,6 @@ public:
                                 const std::chrono::microseconds time_received,
                                 const std::atomic<bool> &interruptMsgProc) = 0;
 };
-
-/** Relay transaction to every node */
-void RelayTransaction(const TxId &txid, const CConnman &connman);
 
 /** Relay proof to every node */
 void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman);

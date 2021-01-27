@@ -496,6 +496,7 @@ public:
     bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) override;
     bool IgnoresIncomingTxs() override { return m_ignore_incoming_txs; }
     void SendPings() override;
+    void RelayTransaction(const TxId &txid) override;
     void SetBestHeight(int height) override { m_best_height = height; };
     void Misbehaving(const NodeId pnode, const int howmuch,
                      const std::string &message) override;
@@ -522,7 +523,7 @@ private:
      * Retrieve unbroadcast transactions from the mempool and reattempt
      * sending to peers
      */
-    void ReattemptInitialBroadcast(CScheduler &scheduler) const;
+    void ReattemptInitialBroadcast(CScheduler &scheduler);
 
     /**
      * Update the avalanche statistics for all the nodes
@@ -1628,13 +1629,13 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
     }
 }
 
-void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) const {
+void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
     std::set<TxId> unbroadcast_txids = m_mempool.GetUnbroadcastTxs();
 
     for (const TxId &txid : unbroadcast_txids) {
         // Sanity check: all unbroadcast txns should exist in the mempool
         if (m_mempool.exists(txid)) {
-            RelayTransaction(txid, m_connman);
+            RelayTransaction(txid);
         } else {
             m_mempool.RemoveUnbroadcastTx(txid, true);
         }
@@ -2366,8 +2367,8 @@ void PeerManagerImpl::SendPings() {
     }
 }
 
-void RelayTransaction(const TxId &txid, const CConnman &connman) {
-    connman.ForEachNode(
+void PeerManagerImpl::RelayTransaction(const TxId &txid) {
+    m_connman.ForEachNode(
         [&txid](CNode *pnode) { pnode->PushTxInventory(txid); });
 }
 
@@ -3107,7 +3108,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
         if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
-            RelayTransaction(orphanTxId, m_connman);
+            RelayTransaction(orphanTxId);
             m_orphanage.AddChildrenToWorkSet(*porphanTx, orphan_work_set);
             m_orphanage.EraseTx(orphanTxId);
             break;
@@ -4355,7 +4356,7 @@ void PeerManagerImpl::ProcessMessage(
                 } else {
                     LogPrintf("Force relaying tx %s from peer=%d\n",
                               tx.GetId().ToString(), pfrom.GetId());
-                    RelayTransaction(tx.GetId(), m_connman);
+                    RelayTransaction(tx.GetId());
                 }
             }
             return;
@@ -4372,7 +4373,7 @@ void PeerManagerImpl::ProcessMessage(
             // As this version of the transaction was acceptable, we can forget
             // about any requests for it.
             m_txrequest.ForgetInvId(tx.GetId());
-            RelayTransaction(tx.GetId(), m_connman);
+            RelayTransaction(tx.GetId());
             m_orphanage.AddChildrenToWorkSet(tx, peer->m_orphan_work_set);
 
             pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
