@@ -300,8 +300,6 @@ BOOST_AUTO_TEST_CASE(test_Get) {
 
     BOOST_CHECK(AreInputsStandard(CTransaction(t1), coins,
                                   STANDARD_SCRIPT_VERIFY_FLAGS));
-    BOOST_CHECK_EQUAL(coins.GetValueIn(CTransaction(t1)),
-                      (50 + 21 + 22) * CENT);
 }
 
 static void CreateCreditAndSpend(const FillableSigningProvider &keystore,
