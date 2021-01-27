@@ -412,6 +412,7 @@ export default function useBCH() {
         wallet,
         utxos,
         { addresses, values, encodedOpReturn },
+        feeInSatsPerByte,
         callbackTxId,
     ) => {
         // Note: callbackTxId is a callback function that accepts a txid as its only parameter
@@ -453,8 +454,18 @@ export default function useBCH() {
 
                 inputUtxos.push(utxo);
                 txFee = encodedOpReturn
-                    ? calcFee(BCH, inputUtxos, addresses.length + 2)
-                    : calcFee(BCH, inputUtxos, addresses.length + 1);
+                    ? calcFee(
+                          BCH,
+                          inputUtxos,
+                          addresses.length + 2,
+                          feeInSatsPerByte,
+                      )
+                    : calcFee(
+                          BCH,
+                          inputUtxos,
+                          addresses.length + 1,
+                          feeInSatsPerByte,
+                      );
 
                 if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
                     break;

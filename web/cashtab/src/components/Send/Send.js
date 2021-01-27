@@ -221,6 +221,7 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                     addresses: [filledAddress || cleanAddress],
                     values: [bchValue],
                 },
+                currency.defaultFee,
                 callbackTxId,
             );
 
