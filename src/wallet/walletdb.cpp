@@ -825,7 +825,7 @@ DBErrors WalletBatch::LoadWallet(CWallet *pwallet) {
 }
 
 DBErrors WalletBatch::FindWalletTx(std::vector<TxId> &txIds,
-                                   std::vector<CWalletTx> &vWtx) {
+                                   std::list<CWalletTx> &vWtx) {
     DBErrors result = DBErrors::LOAD_OK;
 
     try {
@@ -862,12 +862,9 @@ DBErrors WalletBatch::FindWalletTx(std::vector<TxId> &txIds,
             if (strType == DBKeys::TX) {
                 TxId txid;
                 ssKey >> txid;
-
-                CWalletTx wtx(nullptr /* pwallet */, MakeTransactionRef());
-                ssValue >> wtx;
-
                 txIds.push_back(txid);
-                vWtx.push_back(wtx);
+                vWtx.emplace_back(nullptr /* wallet */, nullptr /* tx */);
+                ssValue >> vWtx.back();
             }
         }
         pcursor->close();
@@ -882,7 +879,7 @@ DBErrors WalletBatch::ZapSelectTx(std::vector<TxId> &txIdsIn,
                                   std::vector<TxId> &txIdsOut) {
     // Build list of wallet TXs and hashes.
     std::vector<TxId> txIds;
-    std::vector<CWalletTx> vWtx;
+    std::list<CWalletTx> vWtx;
     DBErrors err = FindWalletTx(txIds, vWtx);
     if (err != DBErrors::LOAD_OK) {
         return err;
@@ -920,7 +917,7 @@ DBErrors WalletBatch::ZapSelectTx(std::vector<TxId> &txIdsIn,
     return DBErrors::LOAD_OK;
 }
 
-DBErrors WalletBatch::ZapWalletTx(std::vector<CWalletTx> &vWtx) {
+DBErrors WalletBatch::ZapWalletTx(std::list<CWalletTx> &vWtx) {
     // Build list of wallet TXs.
     std::vector<TxId> txIds;
     DBErrors err = FindWalletTx(txIds, vWtx);

@@ -3511,7 +3511,7 @@ DBErrors CWallet::ZapSelectTx(std::vector<TxId> &txIdsIn,
     return DBErrors::LOAD_OK;
 }
 
-DBErrors CWallet::ZapWalletTx(std::vector<CWalletTx> &vWtx) {
+DBErrors CWallet::ZapWalletTx(std::list<CWalletTx> &vWtx) {
     DBErrors nZapWalletTxRet = WalletBatch(*database, "cr+").ZapWalletTx(vWtx);
     if (nZapWalletTxRet == DBErrors::NEED_REWRITE) {
         if (database->Rewrite("\x04pool")) {
@@ -4171,7 +4171,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
         WalletDataFilePath(location.GetPath()).string();
 
     // Needed to restore wallet transaction meta data after -zapwallettxes
-    std::vector<CWalletTx> vWtx;
+    std::list<CWalletTx> vWtx;
 
     if (gArgs.GetBoolArg("-zapwallettxes", false)) {
         chain.initMessage(
