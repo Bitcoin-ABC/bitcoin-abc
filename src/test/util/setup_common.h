@@ -18,9 +18,8 @@
 #include <util/string.h>
 #include <util/system.h>
 
-#include <boost/thread/thread.hpp>
-
 #include <type_traits>
+#include <vector>
 
 /**
  * Version of Boost::test prior to 1.64 have issues when dealing with nullptr_t.
@@ -117,8 +116,6 @@ struct BasicTestingSetup {
  * Included are coins database, script check threads setup.
  */
 struct TestingSetup : public BasicTestingSetup {
-    boost::thread_group threadGroup;
-
     explicit TestingSetup(const std::string &chainName = CBaseChainParams::MAIN,
                           const std::vector<const char *> &extra_args = {});
     ~TestingSetup();

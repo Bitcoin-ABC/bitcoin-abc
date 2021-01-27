@@ -27,6 +27,7 @@
 #include <univalue.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <functional>
 #include <memory>

@@ -25,8 +25,6 @@
 #include <util/threadnames.h>
 #include <util/time.h>
 
-#include <boost/thread/condition_variable.hpp> // for boost::thread_interrupted
-
 #include <cstdint>
 #include <exception>
 #include <map>
@@ -470,9 +468,6 @@ template <typename Callable> void TraceThread(const char *name, Callable func) {
         LogPrintf("%s thread start\n", name);
         func();
         LogPrintf("%s thread exit\n", name);
-    } catch (const boost::thread_interrupted &) {
-        LogPrintf("%s thread interrupt\n", name);
-        throw;
     } catch (const std::exception &e) {
         PrintExceptionContinue(&e, name);
         throw;

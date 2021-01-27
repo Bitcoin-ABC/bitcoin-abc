@@ -11,6 +11,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <thread>
 
 /**
  * Simple class for background tasks that should be run periodically or once
@@ -36,6 +37,8 @@ class CScheduler {
 public:
     CScheduler();
     ~CScheduler();
+
+    std::thread m_service_thread;
 
     typedef std::function<void()> Function;
     typedef std::function<bool()> Predicate;
@@ -65,8 +68,7 @@ public:
     void MockForward(std::chrono::seconds delta_seconds);
 
     /**
-     * Services the queue 'forever'. Should be run in a thread, and interrupted
-     * using boost::interrupt_thread
+     * Services the queue 'forever'. Should be run in a thread.
      */
     void serviceQueue();
 
@@ -77,6 +79,9 @@ public:
     void stop() {
         WITH_LOCK(newTaskMutex, stopRequested = true);
         newTaskScheduled.notify_all();
+        if (m_service_thread.joinable()) {
+            m_service_thread.join();
+        }
     }
 
     /**
@@ -86,6 +91,9 @@ public:
     void StopWhenDrained() {
         WITH_LOCK(newTaskMutex, stopWhenEmpty = true);
         newTaskScheduled.notify_all();
+        if (m_service_thread.joinable()) {
+            m_service_thread.join();
+        }
     }
 
     /**

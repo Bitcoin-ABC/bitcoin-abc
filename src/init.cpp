@@ -72,7 +72,6 @@
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/signals2/signal.hpp>
-#include <boost/thread/thread.hpp>
 
 #if ENABLE_ZMQ
 #include <zmq/zmqabstractnotifier.h>
@@ -90,6 +89,8 @@
 #include <cstdio>
 #include <functional>
 #include <set>
+#include <thread>
+#include <vector>
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
@@ -158,8 +159,6 @@ static fs::path GetPidFile(const ArgsManager &args) {
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 static std::thread g_load_block;
-
-static boost::thread_group threadGroup;
 
 void Interrupt(NodeContext &node) {
     InterruptHTTPServer();
@@ -243,15 +242,13 @@ void Shutdown(NodeContext &node) {
     StopTorControl();
 
     // After everything has been shut down, but before things get flushed, stop
-    // the CScheduler/checkqueue, threadGroup and load block thread.
+    // the CScheduler/checkqueue, scheduler and load block thread.
     if (node.scheduler) {
         node.scheduler->stop();
     }
     if (g_load_block.joinable()) {
         g_load_block.join();
     }
-    threadGroup.interrupt_all();
-    threadGroup.join_all();
     StopScriptCheckWorkerThreads();
 
     // After the threads that potentially access these pointers have been
@@ -2287,7 +2284,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.scheduler = std::make_unique<CScheduler>();
 
     // Start the lightweight task scheduler thread
-    threadGroup.create_thread([&] {
+    node.scheduler->m_service_thread = std::thread([&] {
         TraceThread("scheduler", [&] { node.scheduler->serviceQueue(); });
     });
 
