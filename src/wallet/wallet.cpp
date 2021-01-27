@@ -949,33 +949,36 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
     return &wtx;
 }
 
-void CWallet::LoadToWallet(CWalletTx &wtxIn) {
+bool CWallet::LoadToWallet(const TxId &txid, const UpdateWalletTxFn &fill_wtx) {
+    const auto &ins =
+        mapWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid),
+                          std::forward_as_tuple(this, nullptr));
+    CWalletTx &wtx = ins.first->second;
+    if (!fill_wtx(wtx, ins.second)) {
+        return false;
+    }
     // If wallet doesn't have a chain (e.g wallet-tool), don't bother to update
     // txn.
     if (HaveChain()) {
         std::optional<int> block_height =
-            chain().getBlockHeight(wtxIn.m_confirm.hashBlock);
+            chain().getBlockHeight(wtx.m_confirm.hashBlock);
         if (block_height) {
             // Update cached block height variable since it not stored in the
             // serialized transaction.
-            wtxIn.m_confirm.block_height = *block_height;
-        } else if (wtxIn.isConflicted() || wtxIn.isConfirmed()) {
+            wtx.m_confirm.block_height = *block_height;
+        } else if (wtx.isConflicted() || wtx.isConfirmed()) {
             // If tx block (or conflicting block) was reorged out of chain
             // while the wallet was shutdown, change tx status to UNCONFIRMED
             // and reset block height, hash, and index. ABANDONED tx don't have
             // associated blocks and don't need to be updated. The case where a
             // transaction was reorged out while online and then reconfirmed
             // while offline is covered by the rescan logic.
-            wtxIn.setUnconfirmed();
-            wtxIn.m_confirm.hashBlock = BlockHash();
-            wtxIn.m_confirm.block_height = 0;
-            wtxIn.m_confirm.nIndex = 0;
+            wtx.setUnconfirmed();
+            wtx.m_confirm.hashBlock = BlockHash();
+            wtx.m_confirm.block_height = 0;
+            wtx.m_confirm.nIndex = 0;
         }
     }
-    const TxId &txid = wtxIn.GetId();
-    const auto &ins = mapWallet.emplace(txid, wtxIn);
-    CWalletTx &wtx = ins.first->second;
-    wtx.BindWallet(this);
     if (/* insertion took place */ ins.second) {
         wtx.m_it_wtxOrdered =
             wtxOrdered.insert(std::make_pair(wtx.nOrderPos, &wtx));
@@ -991,6 +994,7 @@ void CWallet::LoadToWallet(CWalletTx &wtxIn) {
             }
         }
     }
+    return true;
 }
 
 bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,

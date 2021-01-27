@@ -1059,7 +1059,8 @@ public:
                            const CWalletTx::Confirmation &confirm,
                            const UpdateWalletTxFn &update_wtx = nullptr,
                            bool fFlushOnClose = true);
-    void LoadToWallet(CWalletTx &wtxIn) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+    bool LoadToWallet(const TxId &txid, const UpdateWalletTxFn &fill_wtx)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
     void transactionAddedToMempool(const CTransactionRef &tx) override;
     void blockConnected(const CBlock &block, int height) override;
     void blockDisconnected(const CBlock &block, int height) override;
