@@ -882,7 +882,6 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
         mapWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid),
                           std::forward_as_tuple(this, tx));
     CWalletTx &wtx = (*ret.first).second;
-    wtx.BindWallet(this);
     bool fInsertedNew = ret.second;
     bool fUpdated = update_wtx && update_wtx(wtx, fInsertedNew);
     if (fInsertedNew) {
@@ -3429,7 +3428,7 @@ void CWallet::CommitTransaction(
     // Notify that old coins are spent.
     for (const CTxIn &txin : tx->vin) {
         CWalletTx &coin = mapWallet.at(txin.prevout.GetTxId());
-        coin.BindWallet(this);
+        coin.MarkDirty();
         NotifyTransactionChanged(this, coin.GetId(), CT_UPDATED);
     }
 

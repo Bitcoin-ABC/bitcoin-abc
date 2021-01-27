@@ -491,11 +491,6 @@ public:
         m_is_cache_empty = true;
     }
 
-    void BindWallet(CWallet *pwalletIn) {
-        pwallet = pwalletIn;
-        MarkDirty();
-    }
-
     //! filter decides which addresses will count towards the debit
     Amount GetDebit(const isminefilter &filter) const;
     Amount GetCredit(const isminefilter &filter) const;
