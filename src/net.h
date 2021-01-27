@@ -631,6 +631,20 @@ public:
     // m_tx_relay == nullptr if we're not relaying transactions with this peer
     const std::unique_ptr<TxRelay> m_tx_relay;
 
+    /**
+     * Whether we should relay transactions to this peer (their version
+     * message did not include fRelay=false and this is not a block-relay-only
+     * connection). This only changes from false to true. It will never change
+     * back to false. Used only in inbound eviction logic.
+     */
+    std::atomic_bool m_relays_txs{false};
+
+    /**
+     * Whether this peer has loaded a bloom filter. Used only in inbound
+     * eviction logic.
+     */
+    std::atomic_bool m_bloom_filter_loaded{false};
+
     struct ProofRelay {
         mutable RecursiveMutex cs_proof_inventory;
         std::set<avalanche::ProofId>

@@ -1239,13 +1239,6 @@ bool CConnman::AttemptToEvictConnection() {
             if (node->fDisconnect) {
                 continue;
             }
-            bool peer_relay_txes = false;
-            bool peer_filter_not_null = false;
-            if (node->m_tx_relay != nullptr) {
-                LOCK(node->m_tx_relay->cs_filter);
-                peer_relay_txes = node->m_tx_relay->fRelayTxes;
-                peer_filter_not_null = node->m_tx_relay->pfilter != nullptr;
-            }
 
             NodeEvictionCandidate candidate = {
                 node->GetId(),
@@ -1255,8 +1248,8 @@ bool CConnman::AttemptToEvictConnection() {
                 node->m_last_proof_time,
                 node->m_last_tx_time,
                 HasAllDesirableServiceFlags(node->nServices),
-                peer_relay_txes,
-                peer_filter_not_null,
+                node->m_relays_txs.load(),
+                node->m_bloom_filter_loaded.load(),
                 node->nKeyedNetGroup,
                 node->m_prefer_evict,
                 node->addr.IsLocal(),
