@@ -1,0 +1,93 @@
+{
+    "name": "cashtab-components",
+    "version": "0.0.4",
+    "description": "Integrate the Cashtab Wallet into your React app with ease.",
+    "main": "dist/index",
+    "typings": "dist/index",
+    "peerDependencies": {
+        "react": "^17.0.1",
+        "react-dom": "^17.0.1"
+    },
+    "dependencies": {
+        "@testing-library/jest-dom": "^5.11.4",
+        "@testing-library/react": "^11.1.0",
+        "@testing-library/user-event": "^12.1.10",
+        "@types/jest": "^26.0.15",
+        "@types/node": "^12.0.0",
+        "@types/react": "^16.9.53",
+        "@types/react-dom": "^16.9.8",
+        "bignumber.js": "^9.0.1",
+        "qrcode.react": "^1.0.0",
+        "react": "^17.0.1",
+        "react-dom": "^17.0.1",
+        "react-scripts": "4.0.1",
+        "styled-components": "4.4.1",
+        "typescript": "^4.0.3",
+        "web-vitals": "^0.2.4",
+        "webpack": "^4.44.2",
+        "webpack-bundle-analyzer": "^4.3.0",
+        "webpack-cli": "^4.3.0"
+    },
+    "scripts": {
+        "start": "npm run storybook",
+        "build": "rm -rf dist/ && webpack --mode=production",
+        "prepublish": "npm run build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject",
+        "storybook": "start-storybook -p 6006 -s public",
+        "build-storybook": "build-storybook -s public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/josephroyking/cashtab-components.git"
+    },
+    "keywords": [
+        "cashtab",
+        "bitcoin abc",
+        "web payments",
+        "react component",
+        "BCHA",
+        "cashtab button",
+        "crypto payments",
+        "crypto"
+    ],
+    "author": "Joey King <joey@bitcoinabc.org>",
+    "bugs": {
+        "url": "https://github.com/josephroyking/cashtab-components/issues"
+    },
+    "homepage": "https://github.com/josephroyking/cashtab-components#readme",
+    "license": "MIT",
+    "eslintConfig": {
+        "extends": [
+            "react-app",
+            "react-app/jest"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "@storybook/addon-actions": "^6.1.11",
+        "@storybook/addon-essentials": "^6.1.11",
+        "@storybook/addon-knobs": "^6.1.11",
+        "@storybook/addon-links": "^6.1.11",
+        "@storybook/addons": "^6.1.11",
+        "@storybook/node-logger": "^6.1.11",
+        "@storybook/preset-create-react-app": "^3.1.5",
+        "@storybook/react": "^6.1.11",
+        "@storybook/theming": "^6.1.11",
+        "@types/lodash": "^4.14.165",
+        "@types/qrcode.react": "^1.0.1",
+        "@types/styled-components": "^5.1.7",
+        "ts-loader": "^8.0.12"
+    }
+}
