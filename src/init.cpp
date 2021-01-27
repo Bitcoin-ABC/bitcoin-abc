@@ -1369,6 +1369,10 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
                 LoadExternalBlockFile(config, file, &pos);
+                if (ShutdownRequested()) {
+                    LogPrintf("Shutdown requested. Exit %s\n", __func__);
+                    return;
+                }
                 nFile++;
             }
             pblocktree->WriteReindexing(false);
@@ -1385,6 +1389,10 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
             if (file) {
                 LogPrintf("Importing blocks file %s...\n", path.string());
                 LoadExternalBlockFile(config, file);
+                if (ShutdownRequested()) {
+                    LogPrintf("Shutdown requested. Exit %s\n", __func__);
+                    return;
+                }
             } else {
                 LogPrintf("Warning: Could not open blocks file %s\n",
                           path.string());

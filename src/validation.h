@@ -211,7 +211,7 @@ public:
 /**
  * Import blocks from an external file.
  */
-bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
+void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            FlatFilePos *dbp = nullptr);
 
 /**

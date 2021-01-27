@@ -5239,7 +5239,7 @@ bool LoadGenesisBlock(const CChainParams &chainparams) {
     return ::ChainstateActive().LoadGenesisBlock(chainparams);
 }
 
-bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
+void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                            FlatFilePos *dbp) {
     // Map of disk positions for blocks with unknown parent (only used for
     // reindex)
@@ -5257,7 +5257,9 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
                              CLIENT_VERSION);
         uint64_t nRewind = blkdat.GetPos();
         while (!blkdat.eof()) {
-            boost::this_thread::interruption_point();
+            if (ShutdownRequested()) {
+                return;
+            }
 
             blkdat.SetPos(nRewind);
             // Start one byte further next time, in case of failure.
@@ -5394,12 +5396,8 @@ bool LoadExternalBlockFile(const Config &config, FILE *fileIn,
         AbortNode(std::string("System error: ") + e.what());
     }
 
-    if (nLoaded > 0) {
-        LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded,
-                  GetTimeMillis() - nStart);
-    }
-
-    return nLoaded > 0;
+    LogPrintf("Loaded %i blocks from external file in %dms\n", nLoaded,
+              GetTimeMillis() - nStart);
 }
 
 void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
