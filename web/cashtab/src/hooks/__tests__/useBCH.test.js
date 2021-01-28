@@ -1,12 +1,10 @@
 /* eslint-disable no-native-reassign */
 import useBCH from '../useBCH';
-import mockReturnGetUtxos from '../__mocks__/mockReturnGetUtxos';
 import mockReturnGetHydratedUtxoDetails from '../__mocks__/mockReturnGetHydratedUtxoDetails';
 import mockReturnGetSlpBalancesAndUtxos from '../__mocks__/mockReturnGetSlpBalancesAndUtxos';
 import sendBCHMock from '../__mocks__/sendBCH';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
-import sendBCH from '../__mocks__/sendBCH';
 import BigNumber from 'bignumber.js';
 
 describe('useBCH hook', () => {
@@ -111,26 +109,29 @@ describe('useBCH hook', () => {
         expect(callback).toHaveBeenCalledWith(expectedTxId);
     });
 
-    it('sends BCH with less BCH available on balance', async () => {
+    it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
         const { sendBch } = useBCH();
         const BCH = new BCHJS();
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            addresses,
-        } = sendBCHMock;
+        const { expectedTxId, utxos, wallet, addresses } = sendBCHMock;
+
+        const expectedTxFeeInSats = 229;
+
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()
             .mockResolvedValue(expectedTxId);
+        const oneBaseUnitMoreThanBalance = new BigNumber(utxos[0].value)
+            .minus(expectedTxFeeInSats)
+            .plus(1)
+            .div(10 ** currency.cashDecimals)
+            .toString();
+
         const failedSendBch = sendBch(
             BCH,
             wallet,
             utxos,
             {
                 addresses,
-                values: [1],
+                values: [oneBaseUnitMoreThanBalance],
             },
             1.01,
         );
