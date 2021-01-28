@@ -2886,7 +2886,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         MAX_BLOCKS_ONLY_CONNECTIONS,
         connOptions.nMaxConnections - connOptions.m_max_outbound_full_relay);
     connOptions.nMaxAddnode = MAX_ADDNODE_CONNECTIONS;
-    connOptions.nMaxFeeler = 1;
+    connOptions.nMaxFeeler = MAX_FEELER_CONNECTIONS;
     connOptions.nBestHeight = chain_active_height;
     connOptions.uiInterface = &uiInterface;
     connOptions.m_banman = node.banman.get();
