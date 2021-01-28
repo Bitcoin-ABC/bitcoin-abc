@@ -618,7 +618,7 @@ public:
     }
 
     bool ToPrivateString(const SigningProvider &arg,
-                         std::string &out) const override final {
+                         std::string &out) const final {
         bool ret = ToStringHelper(&arg, out, true);
         out = AddChecksum(out);
         return ret;

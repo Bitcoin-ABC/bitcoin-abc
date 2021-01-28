@@ -295,7 +295,7 @@ Q_SIGNALS:
     void keyEscapePressed();
 
 private:
-    bool eventFilter(QObject *object, QEvent *event);
+    bool eventFilter(QObject *object, QEvent *event) override;
 };
 
 /**

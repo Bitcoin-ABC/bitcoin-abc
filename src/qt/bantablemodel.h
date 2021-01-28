@@ -60,8 +60,9 @@ public:
                       const QModelIndex &parent) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     void sort(int column, Qt::SortOrder order) override;
-    bool shouldShow();
     /*@}*/
+
+    bool shouldShow();
 
 public Q_SLOTS:
     void refresh();

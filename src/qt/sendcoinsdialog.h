@@ -122,7 +122,7 @@ public:
                            int secDelay = SEND_CONFIRM_DELAY,
                            const QString &confirmText = "Send",
                            QWidget *parent = nullptr);
-    int exec();
+    int exec() override;
 
 private Q_SLOTS:
     void countDown();

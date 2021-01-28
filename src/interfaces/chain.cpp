@@ -146,7 +146,7 @@ namespace {
             ::tableRPC.appendCommand(m_command.name, &m_command);
         }
 
-        void disconnect() override final {
+        void disconnect() final {
             if (m_wrapped_command) {
                 m_wrapped_command = nullptr;
                 ::tableRPC.removeCommand(m_command.name, &m_command);

@@ -32,7 +32,7 @@ public:
           platformStyle(_platformStyle) {}
 
     inline void paint(QPainter *painter, const QStyleOptionViewItem &option,
-                      const QModelIndex &index) const {
+                      const QModelIndex &index) const override {
         painter->save();
 
         QIcon icon = qvariant_cast<QIcon>(
@@ -105,7 +105,7 @@ public:
     }
 
     inline QSize sizeHint(const QStyleOptionViewItem &option,
-                          const QModelIndex &index) const {
+                          const QModelIndex &index) const override {
         return QSize(DECORATION_SIZE, DECORATION_SIZE);
     }
 
