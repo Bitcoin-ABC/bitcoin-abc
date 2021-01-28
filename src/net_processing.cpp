@@ -2048,18 +2048,14 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
     } // release cs_main
 
     if (it != pfrom.vRecvGetData.end() && !pfrom.fPauseSend) {
-        const CInv &inv = *it;
+        const CInv &inv = *it++;
         if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK ||
             inv.type == MSG_CMPCT_BLOCK) {
-            it++;
             ProcessGetBlockData(config, pfrom, inv, connman, interruptMsgProc);
         }
+        // else: If the first item on the queue is an unknown type, we erase it
+        // and continue processing the queue on the next call.
     }
-
-    // Unknown types in the GetData stay in vRecvGetData and block any future
-    // message from this peer, see vRecvGetData check in ProcessMessages().
-    // Depending on future p2p changes, we might either drop unknown getdata on
-    // the floor or disconnect the peer.
 
     pfrom.vRecvGetData.erase(pfrom.vRecvGetData.begin(), it);
 
