@@ -32,7 +32,6 @@ class CCoinControlWidgetItem : public QTreeWidgetItem {
 public:
     explicit CCoinControlWidgetItem(QTreeWidget *parent, int type = Type)
         : QTreeWidgetItem(parent, type) {}
-    explicit CCoinControlWidgetItem(int type = Type) : QTreeWidgetItem(type) {}
     explicit CCoinControlWidgetItem(QTreeWidgetItem *parent, int type = Type)
         : QTreeWidgetItem(parent, type) {}
 
