@@ -35,8 +35,7 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about)
     ui->setupUi(this);
 
     QString version = QString{PACKAGE_NAME} + " " + tr("version") + " " +
-                      QString::fromStdString(FormatFullVersion()) + " (" +
-                      QString::fromStdString(NETWORK_NAME) + " network)";
+                      QString::fromStdString(FormatFullVersion());
 
     if (about) {
         setWindowTitle(tr("About %1").arg(PACKAGE_NAME));

@@ -69,8 +69,8 @@ static bool AppInit(int argc, char *argv[]) {
 
     // Process help and version before taking care about datadir
     if (HelpRequested(args) || args.IsArgSet("-version")) {
-        std::string strUsage = PACKAGE_NAME " version " + FormatFullVersion() +
-                               " (" + NETWORK_NAME + " network)\n";
+        std::string strUsage =
+            PACKAGE_NAME " version " + FormatFullVersion() + "\n";
 
         if (args.IsArgSet("-version")) {
             strUsage += FormatParagraph(LicenseInfo()) + "\n";

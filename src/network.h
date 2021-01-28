@@ -7,7 +7,6 @@
 
 #include <string>
 
-extern const std::string NETWORK_NAME;
 extern const std::string CURRENCY_UNIT;
 extern const bool ENABLE_MINER_FUND;
 

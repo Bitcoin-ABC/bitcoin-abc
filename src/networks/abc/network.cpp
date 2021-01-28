@@ -4,6 +4,5 @@
 
 #include <network.h>
 
-const std::string NETWORK_NAME = "ABC";
 const std::string CURRENCY_UNIT = "BCHA";
 const bool ENABLE_MINER_FUND = true;
