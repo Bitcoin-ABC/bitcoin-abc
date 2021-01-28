@@ -3,7 +3,6 @@ import { currency } from '@components/Common/Ticker';
 import SlpWallet from 'minimal-slp-wallet';
 
 export default function useBCH() {
-    const DUST = 0.000005;
     const SEND_BCH_ERRORS = {
         INSUFICIENT_FUNDS: 0,
         NETWORK_ERROR: 1,
@@ -495,7 +494,12 @@ export default function useBCH() {
                 );
             }
 
-            if (remainder >= BCH.BitcoinCash.toSatoshi(DUST)) {
+            if (
+                remainder >=
+                BCH.BitcoinCash.toSatoshi(
+                    parseFloat(new BigNumber(currency.dust).toFixed(8)),
+                )
+            ) {
                 transactionBuilder.addOutput(REMAINDER_ADDR, remainder);
             }
 
