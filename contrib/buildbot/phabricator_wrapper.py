@@ -389,8 +389,12 @@ class PhabWrapper(Phabricator):
         # Use a Diffusion browsequery on the parent directory because the
         # API will fail if a filename is given. If path is not set the root
         # directory is browsed.
+        # Since https://secure.phabricator.com/D21519 the browsequery endpoint
+        # will return an empty result if the trailing slash is missing from the
+        # searched path. There is an exception for the root directory for which
+        # the '/' path is invalid and will throw an error.
         browse_data = self.diffusion.browsequery(
-            path=os.path.dirname(path) or None,
+            path=os.path.join(os.path.dirname(path), '') or None,
             commit=latest_commit_hash,
             repository=BITCOIN_ABC_REPO,
             branch="master",

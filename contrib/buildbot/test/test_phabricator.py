@@ -261,7 +261,7 @@ class PhabricatorTests(unittest.TestCase):
     def test_get_file_content_from_master(self):
         commit_hash = "0000000000000000000000000000000123456789"
         file_phid = "PHID-FILE-somefile"
-        path = "some/file"
+        path = "some/file/"
 
         self.phab.get_latest_master_commit_hash = mock.Mock()
         self.phab.get_latest_master_commit_hash.return_value = commit_hash
