@@ -192,7 +192,7 @@ static RPCHelpMan help() {
             }
             if (strCommand == "dump_all_command_conversions") {
                 // Used for testing only, undocumented
-                return tableRPC.dumpArgMap();
+                return tableRPC.dumpArgMap(config, jsonRequest);
             }
 
             return tableRPC.help(config, strCommand, jsonRequest);
@@ -549,12 +549,18 @@ std::vector<std::string> CRPCTable::listCommands() const {
     return commandList;
 }
 
-UniValue CRPCTable::dumpArgMap() const {
+UniValue CRPCTable::dumpArgMap(const Config &config,
+                               const JSONRPCRequest &args_request) const {
+    JSONRPCRequest request(args_request);
+    request.mode = JSONRPCRequest::GET_ARGS;
+
     UniValue ret{UniValue::VARR};
     for (const auto &cmd : mapCommands) {
-        for (const auto &c : cmd.second) {
-            const auto help = RpcMethodFnType(c->unique_id)();
-            help.AppendArgMap(ret);
+        UniValue result;
+        if (ExecuteCommands(config, cmd.second, request, result)) {
+            for (const auto &values : result.getValues()) {
+                ret.push_back(values);
+            }
         }
     }
     return ret;
