@@ -67,7 +67,7 @@ static void SetupCliArgs(ArgsManager &argsman) {
     argsman.AddArg(
         "-generate",
         strprintf(
-            "Generate blocks immediately, equivalent to RPC generatenewaddress "
+            "Generate blocks immediately, equivalent to RPC getnewaddress "
             "followed by RPC generatetoaddress. Optional positional integer "
             "arguments are number of blocks to generate (default: %s) and "
             "maximum iterations to try (default: %s), equivalent to RPC "
