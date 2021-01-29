@@ -490,6 +490,18 @@ transformNamedArguments(const JSONRPCRequest &in,
     return out;
 }
 
+static bool ExecuteCommands(const Config &config,
+                            const std::vector<const CRPCCommand *> &commands,
+                            const JSONRPCRequest &request, UniValue &result) {
+    for (const auto &command : commands) {
+        if (ExecuteCommand(config, *command, request, result,
+                           &command == &commands.back())) {
+            return true;
+        }
+    }
+    return false;
+}
+
 UniValue CRPCTable::execute(const Config &config,
                             const JSONRPCRequest &request) const {
     // Return immediately if in warmup
@@ -504,11 +516,8 @@ UniValue CRPCTable::execute(const Config &config,
     auto it = mapCommands.find(request.strMethod);
     if (it != mapCommands.end()) {
         UniValue result;
-        for (const auto &command : it->second) {
-            if (ExecuteCommand(config, *command, request, result,
-                               &command == &it->second.back())) {
-                return result;
-            }
+        if (ExecuteCommands(config, it->second, request, result)) {
+            return result;
         }
     }
     throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
