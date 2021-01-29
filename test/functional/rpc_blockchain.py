@@ -337,6 +337,11 @@ class BlockchainTest(BitcoinTestFramework):
         header.calc_sha256()
         assert_equal(header.hash, besthash)
 
+        assert 'previousblockhash' not in node.getblockheader(
+            node.getblockhash(0))
+        assert 'nextblockhash' not in node.getblockheader(
+            node.getbestblockhash())
+
     def _test_getdifficulty(self):
         difficulty = self.nodes[0].getdifficulty()
         # 1 hash in 2 should be valid, so difficulty should be 1/2**31
@@ -440,6 +445,9 @@ class BlockchainTest(BitcoinTestFramework):
         assert_equal(
             blockinfo['nextblockhash'],
             blockheaderinfo['nextblockhash'])
+
+        assert 'previousblockhash' not in node.getblock(node.getblockhash(0))
+        assert 'nextblockhash' not in node.getblock(node.getbestblockhash())
 
 
 if __name__ == '__main__':
