@@ -128,7 +128,7 @@ std::string CRPCTable::help(const Config &config, const std::string &strCommand,
     sort(vCommands.begin(), vCommands.end());
 
     JSONRPCRequest jreq(helpreq);
-    jreq.fHelp = true;
+    jreq.mode = JSONRPCRequest::GET_HELP;
     jreq.params = UniValue();
 
     for (const std::pair<std::string, const CRPCCommand *> &command :

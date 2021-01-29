@@ -30,7 +30,6 @@ UniValue CallRPC(const std::string &args, const util::Ref &context) {
     JSONRPCRequest request(context);
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
-    request.fHelp = false;
     if (RPCIsInWarmup(nullptr)) {
         SetRPCWarmupFinished();
     }

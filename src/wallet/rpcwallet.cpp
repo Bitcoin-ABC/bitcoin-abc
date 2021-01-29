@@ -105,7 +105,7 @@ bool GetWalletNameFromJSONRPCRequest(const JSONRPCRequest &request,
 
 std::shared_ptr<CWallet>
 GetWalletForJSONRPCRequest(const JSONRPCRequest &request) {
-    CHECK_NONFATAL(!request.fHelp);
+    CHECK_NONFATAL(request.mode == JSONRPCRequest::EXECUTE);
     std::string wallet_name;
     if (GetWalletNameFromJSONRPCRequest(request, wallet_name)) {
         std::shared_ptr<CWallet> pwallet = GetWallet(wallet_name);
