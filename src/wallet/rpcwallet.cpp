@@ -1763,10 +1763,10 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue listsinceblock(const Config &config,
                                const JSONRPCRequest &request) {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    const CWallet *const pwallet = wallet.get();
+    std::shared_ptr<CWallet> const pwallet =
+        GetWalletForJSONRPCRequest(request);
 
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!EnsureWalletIsAvailable(pwallet.get(), request.fHelp)) {
         return NullUniValue;
     }
 
@@ -1886,11 +1886,12 @@ static UniValue listsinceblock(const Config &config,
     }
         .Check(request);
 
+    const CWallet &wallet = *pwallet;
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
-    pwallet->BlockUntilSyncedToCurrentChain();
+    wallet.BlockUntilSyncedToCurrentChain();
 
-    LOCK(pwallet->cs_wallet);
+    LOCK(wallet.cs_wallet);
 
     // Height of the specified block or the common ancestor, if the block
     // provided was in a deactivated chain.
@@ -1904,10 +1905,10 @@ static UniValue listsinceblock(const Config &config,
     BlockHash blockId;
     if (!request.params[0].isNull() && !request.params[0].get_str().empty()) {
         blockId = BlockHash(ParseHashV(request.params[0], "blockhash"));
-        height.emplace();
-        altheight.emplace();
-        if (!pwallet->chain().findCommonAncestor(
-                blockId, pwallet->GetLastBlockHash(),
+        height = int{};
+        altheight = int{};
+        if (!wallet.chain().findCommonAncestor(
+                blockId, wallet.GetLastBlockHash(),
                 /* ancestor out */ FoundBlock().height(*height),
                 /* blockId out */ FoundBlock().height(*altheight))) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -1922,22 +1923,22 @@ static UniValue listsinceblock(const Config &config,
         }
     }
 
-    if (ParseIncludeWatchonly(request.params[2], *pwallet)) {
+    if (ParseIncludeWatchonly(request.params[2], wallet)) {
         filter |= ISMINE_WATCH_ONLY;
     }
 
     bool include_removed =
         (request.params[3].isNull() || request.params[3].get_bool());
 
-    int depth = height ? pwallet->GetLastBlockHeight() + 1 - *height : -1;
+    int depth = height ? wallet.GetLastBlockHeight() + 1 - *height : -1;
 
     UniValue transactions(UniValue::VARR);
 
-    for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
+    for (const std::pair<const TxId, CWalletTx> &pairWtx : wallet.mapWallet) {
         const CWalletTx &tx = pairWtx.second;
 
         if (depth == -1 || tx.GetDepthInMainChain() < depth) {
-            ListTransactions(pwallet, tx, 0, true, transactions, filter,
+            ListTransactions(&wallet, tx, 0, true, transactions, filter,
                              nullptr /* filter_label */);
         }
     }
@@ -1947,18 +1948,18 @@ static UniValue listsinceblock(const Config &config,
     UniValue removed(UniValue::VARR);
     while (include_removed && altheight && *altheight > *height) {
         CBlock block;
-        if (!pwallet->chain().findBlock(blockId, FoundBlock().data(block)) ||
+        if (!wallet.chain().findBlock(blockId, FoundBlock().data(block)) ||
             block.IsNull()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                                "Can't read block from disk");
         }
         for (const CTransactionRef &tx : block.vtx) {
-            auto it = pwallet->mapWallet.find(tx->GetId());
-            if (it != pwallet->mapWallet.end()) {
+            auto it = wallet.mapWallet.find(tx->GetId());
+            if (it != wallet.mapWallet.end()) {
                 // We want all transactions regardless of confirmation count to
                 // appear here, even negative confirmation ones, hence the big
                 // negative.
-                ListTransactions(pwallet, it->second, -100000000, true, removed,
+                ListTransactions(&wallet, it->second, -100000000, true, removed,
                                  filter, nullptr /* filter_label */);
             }
         }
@@ -1967,9 +1968,9 @@ static UniValue listsinceblock(const Config &config,
     }
 
     BlockHash lastblock;
-    CHECK_NONFATAL(pwallet->chain().findAncestorByHeight(
-        pwallet->GetLastBlockHash(),
-        pwallet->GetLastBlockHeight() + 1 - target_confirms,
+    CHECK_NONFATAL(wallet.chain().findAncestorByHeight(
+        wallet.GetLastBlockHash(),
+        wallet.GetLastBlockHeight() + 1 - target_confirms,
         FoundBlock().hash(lastblock)));
 
     UniValue ret(UniValue::VOBJ);
