@@ -37,6 +37,7 @@
 #include <streams.h>
 #include <tinyformat.h>
 #include <txmempool.h>
+#include <txorphanage.h>
 #include <util/check.h> // For NDEBUG compile time check
 #include <util/strencodings.h>
 #include <util/system.h>
@@ -47,10 +48,6 @@
 #include <memory>
 #include <typeinfo>
 
-/** Expiration time for orphan transactions in seconds */
-static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
-/** Minimum time between orphan transactions expire time checks in seconds */
-static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
 /** How long to cache transactions in mapRelay for normal relay */
 static constexpr auto RELAY_TX_CACHE_TIME = 15min;
 /**
@@ -300,24 +297,6 @@ static constexpr size_t MAX_ADDR_PROCESSING_TOKEN_BUCKET{MAX_ADDR_TO_SEND};
 inline size_t GetMaxAddrToSend() {
     return gArgs.GetArg("-maxaddrtosend", MAX_ADDR_TO_SEND);
 }
-
-struct COrphanTx {
-    // When modifying, adapt the copy of this definition in tests/DoS_tests.
-    CTransactionRef tx;
-    NodeId fromPeer;
-    int64_t nTimeExpire;
-    size_t list_pos;
-};
-
-/** Guards orphan transactions and extra txs for compact blocks */
-RecursiveMutex g_cs_orphans;
-/**
- * Map from txid to orphan transaction record. Limited by
- * -maxorphantx/DEFAULT_MAX_ORPHAN_TRANSACTIONS
- */
-std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
-
-void EraseOrphansFor(NodeId peer);
 
 // Internal stuff
 namespace {
@@ -857,24 +836,6 @@ std::unique_ptr<CRollingBloomFilter>
 
 /** Number of preferable block download peers. */
 int nPreferredDownload GUARDED_BY(cs_main) = 0;
-
-struct IteratorComparator {
-    template <typename I> bool operator()(const I &a, const I &b) const {
-        return &(*a) < &(*b);
-    }
-};
-
-/**
- * Index from the parents' COutPoint into the mapOrphanTransactions. Used
- * to remove orphan transactions from the mapOrphanTransactions
- */
-std::map<COutPoint,
-         std::set<std::map<TxId, COrphanTx>::iterator, IteratorComparator>>
-    mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
-
-/** Orphan transactions in vector for quick random eviction */
-std::vector<std::map<TxId, COrphanTx>::iterator>
-    g_orphan_list GUARDED_BY(g_cs_orphans);
 
 /**
  * Orphan/conflicted/etc transactions that are kept for compact block
@@ -1828,93 +1789,6 @@ bool AddOrphanTx(const CTransactionRef &tx, NodeId peer)
              txid.ToString(), mapOrphanTransactions.size(),
              mapOrphanTransactionsByPrev.size());
     return true;
-}
-
-static int EraseOrphanTx(const TxId id) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
-    const auto it = mapOrphanTransactions.find(id);
-    if (it == mapOrphanTransactions.end()) {
-        return 0;
-    }
-    for (const CTxIn &txin : it->second.tx->vin) {
-        const auto itPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
-        if (itPrev == mapOrphanTransactionsByPrev.end()) {
-            continue;
-        }
-        itPrev->second.erase(it);
-        if (itPrev->second.empty()) {
-            mapOrphanTransactionsByPrev.erase(itPrev);
-        }
-    }
-
-    size_t old_pos = it->second.list_pos;
-    assert(g_orphan_list[old_pos] == it);
-    if (old_pos + 1 != g_orphan_list.size()) {
-        // Unless we're deleting the last entry in g_orphan_list, move the last
-        // entry to the position we're deleting.
-        auto it_last = g_orphan_list.back();
-        g_orphan_list[old_pos] = it_last;
-        it_last->second.list_pos = old_pos;
-    }
-    g_orphan_list.pop_back();
-
-    mapOrphanTransactions.erase(it);
-    return 1;
-}
-
-void EraseOrphansFor(NodeId peer) {
-    LOCK(g_cs_orphans);
-    int nErased = 0;
-    auto iter = mapOrphanTransactions.begin();
-    while (iter != mapOrphanTransactions.end()) {
-        // Increment to avoid iterator becoming invalid.
-        const auto maybeErase = iter++;
-        if (maybeErase->second.fromPeer == peer) {
-            nErased += EraseOrphanTx(maybeErase->second.tx->GetId());
-        }
-    }
-    if (nErased > 0) {
-        LogPrint(BCLog::MEMPOOL, "Erased %d orphan tx from peer=%d\n", nErased,
-                 peer);
-    }
-}
-
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
-    LOCK(g_cs_orphans);
-
-    unsigned int nEvicted = 0;
-    static int64_t nNextSweep;
-    int64_t nNow = GetTime();
-    if (nNextSweep <= nNow) {
-        // Sweep out expired orphan pool entries:
-        int nErased = 0;
-        int64_t nMinExpTime =
-            nNow + ORPHAN_TX_EXPIRE_TIME - ORPHAN_TX_EXPIRE_INTERVAL;
-        auto iter = mapOrphanTransactions.begin();
-        while (iter != mapOrphanTransactions.end()) {
-            const auto maybeErase = iter++;
-            if (maybeErase->second.nTimeExpire <= nNow) {
-                nErased += EraseOrphanTx(maybeErase->second.tx->GetId());
-            } else {
-                nMinExpTime =
-                    std::min(maybeErase->second.nTimeExpire, nMinExpTime);
-            }
-        }
-        // Sweep again 5 minutes after the next entry that expires in order to
-        // batch the linear scan.
-        nNextSweep = nMinExpTime + ORPHAN_TX_EXPIRE_INTERVAL;
-        if (nErased > 0) {
-            LogPrint(BCLog::MEMPOOL, "Erased %d orphan tx due to expiration\n",
-                     nErased);
-        }
-    }
-    FastRandomContext rng;
-    while (mapOrphanTransactions.size() > nMaxOrphans) {
-        // Evict a random orphan:
-        size_t randompos = rng.randrange(g_orphan_list.size());
-        EraseOrphanTx(g_orphan_list[randompos]->first);
-        ++nEvicted;
-    }
-    return nEvicted;
 }
 
 void PeerManagerImpl::Misbehaving(const NodeId pnode, const int howmuch,

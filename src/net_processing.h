@@ -11,7 +11,6 @@
 #include <validationinterface.h>
 
 extern RecursiveMutex cs_main;
-extern RecursiveMutex g_cs_orphans;
 
 namespace avalanche {
 struct ProofId;
