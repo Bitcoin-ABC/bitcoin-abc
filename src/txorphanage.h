@@ -24,8 +24,9 @@ struct COrphanTx {
 };
 
 int EraseOrphanTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-void EraseOrphansFor(NodeId peer);
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans);
+void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
+    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
 /**
  * Map from txid to orphan transaction record. Limited by
