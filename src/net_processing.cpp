@@ -3464,6 +3464,9 @@ void PeerManagerImpl::ProcessMessage(
         uint64_t nExtraEntropy = 1;
 
         vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+        if (nTime < 0) {
+            nTime = 0;
+        }
         nServices = ServiceFlags(nServiceInt);
         if (!pfrom.IsInboundConn()) {
             m_connman.SetServices(pfrom.addr, nServices);

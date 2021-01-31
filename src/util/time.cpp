@@ -3,12 +3,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <util/time.h>
+
 #if defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
 #endif
 
 #include <compat.h>
-#include <util/time.h>
+#include <util/check.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -22,7 +24,7 @@ void UninterruptibleSleep(const std::chrono::microseconds &n) {
     std::this_thread::sleep_for(n);
 }
 
-//! For unit testing
+//! For testing
 static std::atomic<int64_t> nMockTime(0);
 
 bool ChronoSanityCheck() {
@@ -90,7 +92,7 @@ template <typename T> static T GetSystemTime() {
 }
 
 void SetMockTime(int64_t nMockTimeIn) {
-    assert(nMockTimeIn >= 0);
+    Assert(nMockTimeIn >= 0);
     nMockTime.store(nMockTimeIn, std::memory_order_relaxed);
 }
 
