@@ -131,3 +131,13 @@ bool HaveOrphanTx(const TxId &txid) {
     LOCK(g_cs_orphans);
     return mapOrphanTransactions.count(txid);
 }
+
+std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid) {
+    AssertLockHeld(g_cs_orphans);
+
+    const auto it = mapOrphanTransactions.find(txid);
+    if (it == mapOrphanTransactions.end()) {
+        return {nullptr, -1};
+    }
+    return {it->second.tx, it->second.fromPeer};
+}

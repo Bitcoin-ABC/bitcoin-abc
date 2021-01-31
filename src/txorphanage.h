@@ -31,6 +31,8 @@ void AddChildrenToWorkSet(const CTransaction &tx,
                           std::set<TxId> &orphan_work_set)
     EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 bool HaveOrphanTx(const TxId &txid) LOCKS_EXCLUDED(g_cs_orphans);
+std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid)
+    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
 /**
  * Map from txid to orphan transaction record. Limited by
