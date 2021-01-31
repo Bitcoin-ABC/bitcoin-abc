@@ -17,16 +17,7 @@ static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
 
 RecursiveMutex g_cs_orphans;
 
-std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
-
-std::map<COutPoint,
-         std::set<std::map<TxId, COrphanTx>::iterator, IteratorComparator>>
-    mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
-
-std::vector<std::map<TxId, COrphanTx>::iterator>
-    g_orphan_list GUARDED_BY(g_cs_orphans);
-
-bool OrphanageAddTx(const CTransactionRef &tx, NodeId peer) {
+bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
     AssertLockHeld(g_cs_orphans);
 
     const TxId &txid = tx->GetId();
@@ -63,7 +54,8 @@ bool OrphanageAddTx(const CTransactionRef &tx, NodeId peer) {
     return true;
 }
 
-int EraseOrphanTx(const TxId &txid) {
+int TxOrphanage::EraseTx(const TxId &txid) {
+    AssertLockHeld(g_cs_orphans);
     std::map<TxId, COrphanTx>::iterator it = mapOrphanTransactions.find(txid);
     if (it == mapOrphanTransactions.end()) {
         return 0;
@@ -94,7 +86,7 @@ int EraseOrphanTx(const TxId &txid) {
     return 1;
 }
 
-void EraseOrphansFor(NodeId peer) {
+void TxOrphanage::EraseForPeer(NodeId peer) {
     AssertLockHeld(g_cs_orphans);
 
     int nErased = 0;
@@ -103,7 +95,7 @@ void EraseOrphansFor(NodeId peer) {
         std::map<TxId, COrphanTx>::iterator maybeErase =
             iter++; // increment to avoid iterator becoming invalid
         if (maybeErase->second.fromPeer == peer) {
-            nErased += EraseOrphanTx(maybeErase->second.tx->GetId());
+            nErased += EraseTx(maybeErase->second.tx->GetId());
         }
     }
     if (nErased > 0) {
@@ -112,7 +104,7 @@ void EraseOrphansFor(NodeId peer) {
     }
 }
 
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
+unsigned int TxOrphanage::LimitOrphans(unsigned int nMaxOrphans) {
     AssertLockHeld(g_cs_orphans);
 
     unsigned int nEvicted = 0;
@@ -128,7 +120,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
         while (iter != mapOrphanTransactions.end()) {
             std::map<TxId, COrphanTx>::iterator maybeErase = iter++;
             if (maybeErase->second.nTimeExpire <= nNow) {
-                nErased += EraseOrphanTx(maybeErase->second.tx->GetId());
+                nErased += EraseTx(maybeErase->second.tx->GetId());
             } else {
                 nMinExpTime =
                     std::min(maybeErase->second.nTimeExpire, nMinExpTime);
@@ -146,14 +138,14 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
     while (mapOrphanTransactions.size() > nMaxOrphans) {
         // Evict a random orphan:
         size_t randompos = rng.randrange(g_orphan_list.size());
-        EraseOrphanTx(g_orphan_list[randompos]->first);
+        EraseTx(g_orphan_list[randompos]->first);
         ++nEvicted;
     }
     return nEvicted;
 }
 
-void AddChildrenToWorkSet(const CTransaction &tx,
-                          std::set<TxId> &orphan_work_set) {
+void TxOrphanage::AddChildrenToWorkSet(const CTransaction &tx,
+                                       std::set<TxId> &orphan_work_set) const {
     AssertLockHeld(g_cs_orphans);
     for (size_t i = 0; i < tx.vout.size(); i++) {
         const auto it_by_prev =
@@ -166,12 +158,12 @@ void AddChildrenToWorkSet(const CTransaction &tx,
     }
 }
 
-bool HaveOrphanTx(const TxId &txid) {
+bool TxOrphanage::HaveTx(const TxId &txid) const {
     LOCK(g_cs_orphans);
     return mapOrphanTransactions.count(txid);
 }
 
-std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid) {
+std::pair<CTransactionRef, NodeId> TxOrphanage::GetTx(const TxId &txid) const {
     AssertLockHeld(g_cs_orphans);
 
     const auto it = mapOrphanTransactions.find(txid);
@@ -181,7 +173,7 @@ std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid) {
     return {it->second.tx, it->second.fromPeer};
 }
 
-void EraseOrphansForBlock(const CBlock &block) {
+void TxOrphanage::EraseForBlock(const CBlock &block) {
     LOCK(g_cs_orphans);
 
     std::vector<TxId> vOrphanErase;
@@ -209,7 +201,7 @@ void EraseOrphansForBlock(const CBlock &block) {
     if (vOrphanErase.size()) {
         int nErased = 0;
         for (const auto &orphanId : vOrphanErase) {
-            nErased += EraseOrphanTx(orphanId);
+            nErased += EraseTx(orphanId);
         }
         LogPrint(BCLog::MEMPOOL,
                  "Erased %d orphan tx included or conflicted by block\n",

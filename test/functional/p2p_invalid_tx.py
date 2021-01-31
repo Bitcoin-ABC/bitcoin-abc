@@ -189,7 +189,7 @@ class InvalidTxRequestTest(BitcoinTestFramework):
                     scriptPubKey=SCRIPT_PUB_KEY_OP_TRUE))
             pad_tx(orphan_tx_pool[i])
 
-        with node.assert_debug_log(['mapOrphan overflow, removed 1 tx']):
+        with node.assert_debug_log(['orphanage overflow, removed 1 tx']):
             node.p2ps[0].send_txs_and_test(orphan_tx_pool, node, success=False)
 
         rejected_parent = CTransaction()

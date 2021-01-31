@@ -13,50 +13,77 @@
 /** Guards orphan transactions and extra txs for compact blocks */
 extern RecursiveMutex g_cs_orphans;
 
-struct COrphanTx {
-    // When modifying, adapt the copy of this definition in tests/DoS_tests.
-    CTransactionRef tx;
-    NodeId fromPeer;
-    int64_t nTimeExpire;
-    size_t list_pos;
+/** Data structure to keep track of orphan transactions */
+class TxOrphanage {
+public:
+    /** Add a new orphan transaction */
+    bool AddTx(const CTransactionRef &tx, NodeId peer)
+        EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+
+    /** Check if we already have an orphan transaction */
+    bool HaveTx(const TxId &txid) const LOCKS_EXCLUDED(g_cs_orphans);
+
+    /**
+     * Get the details of an orphan transaction (returns nullptr if not found)
+     */
+    std::pair<CTransactionRef, NodeId> GetTx(const TxId &txid) const
+        EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+
+    /** Erase an orphan by txid */
+    int EraseTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+
+    /**
+     * Erase all orphans announced by a peer (eg, after that peer disconnects)
+     */
+    void EraseForPeer(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+
+    /** Erase all orphans included in / invalidated by a new block */
+    void EraseForBlock(const CBlock &block) LOCKS_EXCLUDED(g_cs_orphans);
+
+    /** Limit the orphanage to the given maximum */
+    unsigned int LimitOrphans(unsigned int nMaxOrphans)
+        EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+
+    /**
+     * Add any orphans that list a particular tx as a parent into a peer's work
+     * set (ie orphans that may have found their final missing parent, and so
+     * should be reconsidered for the mempool)
+     */
+    void AddChildrenToWorkSet(const CTransaction &tx,
+                              std::set<TxId> &orphan_work_set) const
+        EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+
+protected:
+    struct COrphanTx {
+        CTransactionRef tx;
+        NodeId fromPeer;
+        int64_t nTimeExpire;
+        size_t list_pos;
+    };
+
+    /**
+     * Map from txid to orphan transaction record. Limited by
+     *  -maxorphantx/DEFAULT_MAX_ORPHAN_TRANSACTIONS
+     */
+    std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
+
+    using OrphanMap = decltype(mapOrphanTransactions);
+
+    struct IteratorComparator {
+        template <typename I> bool operator()(const I &a, const I &b) const {
+            return &(*a) < &(*b);
+        }
+    };
+
+    /**
+     * Index from the parents' COutPoint into the mapOrphanTransactions. Used
+     *  to remove orphan transactions from the mapOrphanTransactions
+     */
+    std::map<COutPoint, std::set<OrphanMap ::iterator, IteratorComparator>>
+        mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
+
+    /** Orphan transactions in vector for quick random eviction */
+    std::vector<OrphanMap::iterator> g_orphan_list GUARDED_BY(g_cs_orphans);
 };
-
-int EraseOrphanTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-void EraseOrphansForBlock(const CBlock &block) LOCKS_EXCLUDED(g_cs_orphans);
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
-    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-void AddChildrenToWorkSet(const CTransaction &tx,
-                          std::set<TxId> &orphan_work_set)
-    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-bool HaveOrphanTx(const TxId &txid) LOCKS_EXCLUDED(g_cs_orphans);
-std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid)
-    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-bool OrphanageAddTx(const CTransactionRef &tx, NodeId peer)
-    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-
-/**
- * Map from txid to orphan transaction record. Limited by
- *  -maxorphantx/DEFAULT_MAX_ORPHAN_TRANSACTIONS
- */
-extern std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
-
-struct IteratorComparator {
-    template <typename I> bool operator()(const I &a, const I &b) const {
-        return &(*a) < &(*b);
-    }
-};
-
-/**
- * Index from the parents' COutPoint into the mapOrphanTransactions. Used
- *  to remove orphan transactions from the mapOrphanTransactions
- */
-extern std::map<COutPoint, std::set<std::map<TxId, COrphanTx>::iterator,
-                                    IteratorComparator>>
-    mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
-
-/** Orphan transactions in vector for quick random eviction */
-extern std::vector<std::map<TxId, COrphanTx>::iterator>
-    g_orphan_list GUARDED_BY(g_cs_orphans);
 
 #endif // BITCOIN_TXORPHANAGE_H

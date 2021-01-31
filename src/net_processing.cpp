@@ -808,6 +808,9 @@ private:
     /** Number of peers from which we're downloading blocks. */
     int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
 
+    /** Storage for orphan information */
+    TxOrphanage m_orphanage;
+
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
@@ -1640,7 +1643,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
         for (const QueuedBlock &entry : state->vBlocksInFlight) {
             mapBlocksInFlight.erase(entry.hash);
         }
-        WITH_LOCK(g_cs_orphans, EraseOrphansFor(nodeid));
+        WITH_LOCK(g_cs_orphans, m_orphanage.EraseForPeer(nodeid));
         m_txrequest.DisconnectedPeer(nodeid);
         nPreferredDownload -= state->fPreferredDownload;
         nPeersWithValidatedDownloads -=
@@ -1730,11 +1733,6 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
 
     return true;
 }
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// mapOrphanTransactions
-//
 
 static void AddToCompactExtraTransactions(const CTransactionRef &tx)
     EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
@@ -1962,13 +1960,13 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
 }
 
 /**
- * Evict orphan txn pool entries (EraseOrphanTx) based on a newly connected
+ * Evict orphan txn pool entries based on a newly connected
  * block, remember the recently confirmed transactions, and delete tracked
  * announcements for them. Also save the time of the last tip update.
  */
 void PeerManagerImpl::BlockConnected(
     const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
-    EraseOrphansForBlock(*pblock);
+    m_orphanage.EraseForBlock(*pblock);
     m_last_tip_update = GetTime();
 
     {
@@ -2159,7 +2157,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         recentRejects->reset();
     }
 
-    if (HaveOrphanTx(txid)) {
+    if (m_orphanage.HaveTx(txid)) {
         return true;
     }
 
@@ -2919,7 +2917,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
         const TxId orphanTxId = *orphan_work_set.begin();
         orphan_work_set.erase(orphan_work_set.begin());
 
-        const auto [porphanTx, from_peer] = GetOrphanTx(orphanTxId);
+        const auto [porphanTx, from_peer] = m_orphanage.GetTx(orphanTxId);
         if (porphanTx == nullptr) {
             continue;
         }
@@ -2930,8 +2928,8 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
             RelayTransaction(orphanTxId, m_connman);
-            AddChildrenToWorkSet(*porphanTx, orphan_work_set);
-            EraseOrphanTx(orphanTxId);
+            m_orphanage.AddChildrenToWorkSet(*porphanTx, orphan_work_set);
+            m_orphanage.EraseTx(orphanTxId);
             break;
         } else if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
             if (state.IsInvalid()) {
@@ -2949,7 +2947,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             assert(recentRejects);
             recentRejects->insert(orphanTxId);
 
-            EraseOrphanTx(orphanTxId);
+            m_orphanage.EraseTx(orphanTxId);
             break;
         }
     }
@@ -4231,7 +4229,7 @@ void PeerManagerImpl::ProcessMessage(
             // about any requests for it.
             m_txrequest.ForgetInvId(tx.GetId());
             RelayTransaction(tx.GetId(), m_connman);
-            AddChildrenToWorkSet(tx, peer->m_orphan_work_set);
+            m_orphanage.AddChildrenToWorkSet(tx, peer->m_orphan_work_set);
 
             pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
 
@@ -4278,7 +4276,7 @@ void PeerManagerImpl::ProcessMessage(
                     }
                 }
 
-                if (OrphanageAddTx(ptx, pfrom.GetId())) {
+                if (m_orphanage.AddTx(ptx, pfrom.GetId())) {
                     AddToCompactExtraTransactions(ptx);
                 }
 
@@ -4286,15 +4284,15 @@ void PeerManagerImpl::ProcessMessage(
                 // AlreadyHave, and we shouldn't request it anymore.
                 m_txrequest.ForgetInvId(tx.GetId());
 
-                // DoS prevention: do not allow mapOrphanTransactions to grow
+                // DoS prevention: do not allow m_orphanage to grow
                 // unbounded (see CVE-2012-3789)
                 unsigned int nMaxOrphanTx = (unsigned int)std::max(
                     int64_t(0), gArgs.GetArg("-maxorphantx",
                                              DEFAULT_MAX_ORPHAN_TRANSACTIONS));
-                unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
+                unsigned int nEvicted = m_orphanage.LimitOrphans(nMaxOrphanTx);
                 if (nEvicted > 0) {
                     LogPrint(BCLog::MEMPOOL,
-                             "mapOrphan overflow, removed %u tx\n", nEvicted);
+                             "orphanage overflow, removed %u tx\n", nEvicted);
                 }
             } else {
                 LogPrint(BCLog::MEMPOOL,
@@ -6808,14 +6806,3 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     } // release cs_main
     return true;
 }
-
-class CNetProcessingCleanup {
-public:
-    CNetProcessingCleanup() {}
-    ~CNetProcessingCleanup() {
-        // orphan transactions
-        mapOrphanTransactions.clear();
-        mapOrphanTransactionsByPrev.clear();
-    }
-};
-static CNetProcessingCleanup instance_of_cnetprocessingcleanup;
