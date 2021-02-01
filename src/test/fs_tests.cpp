@@ -4,6 +4,7 @@
 //
 #include <fs.h>
 
+#include <util/getuniquepath.h>
 #include <util/system.h>
 
 #include <test/util/setup_common.h>
@@ -83,6 +84,21 @@ BOOST_AUTO_TEST_CASE(fsbridge_fstream) {
         std::string input_buffer;
         file >> input_buffer;
         BOOST_CHECK_EQUAL(input_buffer, "bitcoin");
+    }
+    {
+        fs::path p1 = GetUniquePath(tmpfolder);
+        fs::path p2 = GetUniquePath(tmpfolder);
+        fs::path p3 = GetUniquePath(tmpfolder);
+
+        // Ensure that the parent path is always the same.
+        BOOST_CHECK_EQUAL(tmpfolder, p1.parent_path());
+        BOOST_CHECK_EQUAL(tmpfolder, p2.parent_path());
+        BOOST_CHECK_EQUAL(tmpfolder, p3.parent_path());
+
+        // Ensure that generated paths are actually different.
+        BOOST_CHECK(p1 != p2);
+        BOOST_CHECK(p2 != p3);
+        BOOST_CHECK(p1 != p3);
     }
 }
 

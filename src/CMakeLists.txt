@@ -382,6 +382,7 @@ add_library(util
 	util/bip32.cpp
 	util/bytevectorhash.cpp
 	util/error.cpp
+	util/getuniquepath.cpp
 	util/message.cpp
 	util/moneystr.cpp
 	util/readwritefile.cpp
