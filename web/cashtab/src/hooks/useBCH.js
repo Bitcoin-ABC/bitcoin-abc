@@ -406,6 +406,30 @@ export default function useBCH() {
         return link;
     };
 
+    const toSmallestDenomination = (
+        sendAmount,
+        cashDecimals = currency.cashDecimals,
+    ) => {
+        // Replace the BCH.toSatoshi method with an equivalent function that works for arbitrary decimal places
+        // Example, for an 8 decimal place currency like Bitcoin
+        // Input: a BigNumber of the amount of Bitcoin to be sent
+        // Output: a BigNumber of the amount of satoshis to be sent, or false if input is invalid
+
+        // Validate
+        // Input should be a BigNumber with cashDecimals decimal places
+        const isValidSendAmount =
+            BigNumber.isBigNumber(sendAmount) &&
+            sendAmount.dp() === cashDecimals;
+        if (!isValidSendAmount) {
+            return false;
+        }
+        const conversionFactor = new BigNumber(10 ** cashDecimals);
+        const sendAmountSmallestDenomination = sendAmount.times(
+            conversionFactor,
+        );
+        return sendAmountSmallestDenomination;
+    };
+
     const sendBch = async (
         BCH,
         wallet,
@@ -440,7 +464,15 @@ export default function useBCH() {
                 transactionBuilder = new BCH.TransactionBuilder();
             else transactionBuilder = new BCH.TransactionBuilder('testnet');
 
-            const satoshisToSend = BCH.BitcoinCash.toSatoshi(value.toFixed(8));
+            const satoshisToSend = toSmallestDenomination(value);
+
+            // Throw validation error if toSmallestDenomination returns false
+            if (!satoshisToSend) {
+                const error = new Error(
+                    `Invalid decimal places for send amount`,
+                );
+                throw error;
+            }
             let originalAmount = new BigNumber(0);
             let txFee = 0;
             for (let i = 0; i < utxos.length; i++) {
@@ -574,6 +606,7 @@ export default function useBCH() {
         getSlpBalancesAndUtxos,
         getTxHistory,
         getRestUrl,
+        toSmallestDenomination,
         sendBch,
         sendToken,
     };
