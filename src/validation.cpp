@@ -377,7 +377,7 @@ private:
         CTxMemPool::setEntries m_ancestors;
         std::unique_ptr<CTxMemPoolEntry> m_entry;
 
-        Amount m_fee_out;
+        Amount m_base_fees;
 
         Amount m_modified_fees;
 
@@ -548,7 +548,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     if (!Consensus::CheckTxInputs(
             tx, state, m_view,
             m_active_chainstate.m_blockman.GetSpendHeight(m_view),
-            ws.m_fee_out)) {
+            ws.m_base_fees)) {
         // state filled in by CheckTxInputs
         return false;
     }
@@ -561,7 +561,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     }
 
     // nModifiedFees includes any fee deltas from PrioritiseTransaction
-    nModifiedFees = ws.m_fee_out;
+    nModifiedFees = ws.m_base_fees;
     m_pool.ApplyDelta(txid, nModifiedFees);
 
     // Keep track of transactions that spend a coinbase, which we re-scan
@@ -598,7 +598,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     }
 
     entry.reset(new CTxMemPoolEntry(
-        ptx, ws.m_fee_out, nAcceptTime, m_active_chainstate.m_chain.Height(),
+        ptx, ws.m_base_fees, nAcceptTime, m_active_chainstate.m_chain.Height(),
         fSpendsCoinbase, ws.m_sig_checks_standard, lp));
 
     unsigned int nVirtualSize = entry->GetTxVirtualSize();
@@ -701,12 +701,12 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     // GetMainSignals().TransactionAddedToMempool())
     LOCK(m_pool.cs);
 
-    Workspace workspace(ptx, GetNextBlockScriptFlags(
-                                 args.m_config.GetChainParams().GetConsensus(),
-                                 m_active_chainstate.m_chain.Tip()));
+    Workspace ws(ptx, GetNextBlockScriptFlags(
+                          args.m_config.GetChainParams().GetConsensus(),
+                          m_active_chainstate.m_chain.Tip()));
 
-    if (!PreChecks(args, workspace)) {
-        return MempoolAcceptResult(workspace.m_state);
+    if (!PreChecks(args, ws)) {
+        return MempoolAcceptResult(ws.m_state);
     }
 
     // Only compute the precomputed transaction data if we need to verify
@@ -715,23 +715,23 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     // checks pass, to mitigate CPU exhaustion denial-of-service attacks.
     PrecomputedTransactionData txdata(*ptx);
 
-    if (!ConsensusScriptChecks(args, workspace, txdata)) {
-        return MempoolAcceptResult(workspace.m_state);
+    if (!ConsensusScriptChecks(args, ws, txdata)) {
+        return MempoolAcceptResult(ws.m_state);
     }
 
     // Tx was accepted, but not added
     if (args.m_test_accept) {
-        return MempoolAcceptResult(workspace.m_fee_out);
+        return MempoolAcceptResult(ws.m_base_fees);
     }
 
-    if (!Finalize(args, workspace)) {
-        return MempoolAcceptResult(workspace.m_state);
+    if (!Finalize(args, ws)) {
+        return MempoolAcceptResult(ws.m_state);
     }
 
     GetMainSignals().TransactionAddedToMempool(
         ptx, m_pool.GetAndIncrementSequence());
 
-    return MempoolAcceptResult(workspace.m_fee_out);
+    return MempoolAcceptResult(ws.m_base_fees);
 }
 
 } // namespace
