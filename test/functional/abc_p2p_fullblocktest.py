@@ -62,6 +62,9 @@ class FullBlockTest(BitcoinTestFramework):
         self.extra_args = [['-whitelist=noban@127.0.0.1',
                             "-excessiveblocksize={}".format(self.excessive_block_size)]]
         self.supports_cli = False
+        # The default timeout is not enough when submitting large blocks with
+        # TSAN enabled
+        self.rpc_timeout = 180
 
     def add_options(self, parser):
         super().add_options(parser)
