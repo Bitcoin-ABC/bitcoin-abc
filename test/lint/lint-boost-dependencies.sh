@@ -29,8 +29,6 @@ EXPECTED_BOOST_INCLUDES=(
     boost/signals2/optional_last_value.hpp
     boost/signals2/signal.hpp
     boost/test/unit_test.hpp
-    boost/thread/lock_types.hpp
-    boost/thread/shared_mutex.hpp
     boost/variant.hpp
     boost/variant/apply_visitor.hpp
     boost/variant/static_visitor.hpp

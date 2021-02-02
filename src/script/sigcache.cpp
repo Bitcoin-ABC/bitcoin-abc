@@ -11,8 +11,10 @@
 #include <uint256.h>
 #include <util/system.h>
 
-#include <boost/thread/lock_types.hpp>
-#include <boost/thread/shared_mutex.hpp>
+#include <algorithm>
+#include <mutex>
+#include <shared_mutex>
+#include <vector>
 
 namespace {
 
@@ -29,7 +31,7 @@ private:
                                SignatureCacheHasher>
         map_type;
     map_type setValid;
-    boost::shared_mutex cs_sigcache;
+    std::shared_mutex cs_sigcache;
 
 public:
     CSignatureCache() {
@@ -52,12 +54,12 @@ public:
     }
 
     bool Get(const uint256 &entry, const bool erase) {
-        boost::shared_lock<boost::shared_mutex> lock(cs_sigcache);
+        std::shared_lock<std::shared_mutex> lock(cs_sigcache);
         return setValid.contains(entry, erase);
     }
 
     void Set(const uint256 &entry) {
-        boost::unique_lock<boost::shared_mutex> lock(cs_sigcache);
+        std::unique_lock<std::shared_mutex> lock(cs_sigcache);
         setValid.insert(entry);
     }
     uint32_t setup_bytes(size_t n) { return setValid.setup_bytes(n); }
