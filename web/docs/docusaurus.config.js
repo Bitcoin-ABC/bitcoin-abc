@@ -23,7 +23,7 @@ module.exports = {
                     position: 'left',
                 },
                 {
-                    href: 'https://github.com/bitcoin-abc/bitcoin-abc',
+                    href: 'https://github.com/bitcoin-abc/bitcoin-abc/',
                     label: 'GitHub',
                     position: 'right',
                 },
@@ -59,7 +59,7 @@ module.exports = {
                     items: [
                         {
                             label: 'BCHA',
-                            href: 'https://bitcoinabc.org/BCHA',
+                            href: 'https://bitcoinabc.org/bcha/',
                         },
                     ],
                 },
@@ -73,7 +73,8 @@ module.exports = {
             {
                 docs: {
                     sidebarPath: require.resolve('./sidebars.js'),
-                    editUrl: 'https://github.com/bitcoin-abc/bitcoin-abc/',
+                    editUrl:
+                        'https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/web/docs/',
                 },
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),
