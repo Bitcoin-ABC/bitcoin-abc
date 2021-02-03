@@ -17,7 +17,7 @@ WORKDIR /app
 # This reduces cache busting when source files are changed.
 COPY package.json .
 COPY package-lock.json .
-RUN npm install
+RUN npm ci
 
 # Copy the rest of the project files and build
 COPY . .
