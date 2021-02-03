@@ -79,7 +79,7 @@ export const OnBoarding = ({ history }) => {
     return (
         <>
             <WelcomeText>
-                Welcome to CashTab! CashTab is an open source, non-custodial web
+                Welcome to Cashtab! Cashtab is an open source, non-custodial web
                 wallet for {currency.name}.
                 <br />
                 <br />

@@ -3,7 +3,7 @@
 export LC_ALL=C
 set -euo pipefail
 
-# Build CashTab as a Chrome/Brave browser extension
+# Build Cashtab as a Chrome/Brave browser extension
 
 # Create a working directory for stashing non-extension files
 WORKDIR=$(mktemp -d)
