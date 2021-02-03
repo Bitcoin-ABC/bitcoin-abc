@@ -9,6 +9,7 @@ Roughly based on http://voorloopnul.com/blog/a-python-netstat-in-less-than-100-l
 
 import array
 from binascii import unhexlify
+from errno import ENOENT, EINVAL
 import os
 import socket
 import struct
@@ -34,9 +35,20 @@ def get_socket_inodes(pid):
     base = '/proc/{}/fd'.format(pid)
     inodes = []
     for item in os.listdir(base):
-        target = os.readlink(os.path.join(base, item))
-        if target.startswith('socket:'):
-            inodes.append(int(target[8:-1]))
+        try:
+            target = os.readlink(os.path.join(base, item))
+        except OSError as err:
+            if err.errno == ENOENT:
+                # The file which is gone in the meantime
+                continue
+            elif err.errno == EINVAL:
+                # Not a link
+                continue
+            else:
+                raise
+        else:
+            if target.startswith('socket:'):
+                inodes.append(int(target[8:-1]))
     return inodes
 
 
