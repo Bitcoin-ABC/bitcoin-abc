@@ -35,6 +35,14 @@ describe('Testing functions for upgrading Cashtab', () => {
             new BigNumber('10012'),
         );
     });
+    it(`toSmallestDenomination() returns expected value if input is a BigNumber with 1 decimal place`, () => {
+        const { toSmallestDenomination } = useBCH();
+
+        const testInput = new BigNumber('100.1');
+        expect(toSmallestDenomination(testInput, 8)).toStrictEqual(
+            new BigNumber('10010000000'),
+        );
+    });
     it('toSmallestDenomination() returns exact result as toSatoshi but in BigNumber format', () => {
         const BCH = new BCHJS();
         const { toSmallestDenomination } = useBCH();

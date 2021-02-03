@@ -416,10 +416,10 @@ export default function useBCH() {
         // Output: a BigNumber of the amount of satoshis to be sent, or false if input is invalid
 
         // Validate
-        // Input should be a BigNumber with cashDecimals decimal places
+        // Input should be a BigNumber with no more decimal places than cashDecimals
         const isValidSendAmount =
             BigNumber.isBigNumber(sendAmount) &&
-            sendAmount.dp() === cashDecimals;
+            sendAmount.dp() <= cashDecimals;
         if (!isValidSendAmount) {
             return false;
         }
