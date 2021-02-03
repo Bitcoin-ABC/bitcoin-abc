@@ -4,15 +4,17 @@
 
 # Stage 1
 FROM node:15-buster-slim AS builder
-# Set working directory
-WORKDIR /app
-# Copy all files from current directory to working dir in image
-COPY . .
-# Install git, required for installing some npm modules
+
+# Install some dependencies before building
 RUN apt-get update && \
   apt-get upgrade -y && \
   apt-get install -y git && \
   apt-get install -y python
+
+WORKDIR /app
+
+# Copy all files from current directory to working dir in image
+COPY . .
 # install node modules and build assets
 RUN npm install && npm run build
 
