@@ -62,15 +62,22 @@ describe('useBCH hook', () => {
             expectedHex,
             utxos,
             wallet,
-            addresses,
-            values,
+            destinationAddress,
+            sendAmount,
         } = sendBCHMock;
 
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()
             .mockResolvedValue(expectedTxId);
         expect(
-            await sendBch(BCH, wallet, utxos, { addresses, values }, 1.01),
+            await sendBch(
+                BCH,
+                wallet,
+                utxos,
+                destinationAddress,
+                sendAmount,
+                1.01,
+            ),
         ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
         expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
             expectedHex,
@@ -86,8 +93,8 @@ describe('useBCH hook', () => {
             expectedHex,
             utxos,
             wallet,
-            addresses,
-            values,
+            destinationAddress,
+            sendAmount,
         } = sendBCHMock;
 
         BCH.RawTransactions.sendRawTransaction = jest
@@ -98,7 +105,8 @@ describe('useBCH hook', () => {
                 BCH,
                 wallet,
                 utxos,
-                { addresses, values },
+                destinationAddress,
+                sendAmount,
                 1.01,
                 callback,
             ),
@@ -112,7 +120,7 @@ describe('useBCH hook', () => {
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
         const { sendBch } = useBCH();
         const BCH = new BCHJS();
-        const { expectedTxId, utxos, wallet, addresses } = sendBCHMock;
+        const { expectedTxId, utxos, wallet, destinationAddress } = sendBCHMock;
 
         const expectedTxFeeInSats = 229;
 
@@ -129,10 +137,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values: [oneBaseUnitMoreThanBalance],
-            },
+            destinationAddress,
+            oneBaseUnitMoreThanBalance,
             1.01,
         );
         expect(failedSendBch).rejects.toThrow(new Error('Insufficient funds'));
@@ -140,10 +146,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values: null,
-            },
+            destinationAddress,
+            null,
             1.01,
         );
         expect(nullValuesSendBch).toBe(null);
@@ -152,7 +156,7 @@ describe('useBCH hook', () => {
     it('Throws error on attempt to send one satoshi less than backend dust limit', async () => {
         const { sendBch } = useBCH();
         const BCH = new BCHJS();
-        const { expectedTxId, utxos, wallet, addresses } = sendBCHMock;
+        const { expectedTxId, utxos, wallet, destinationAddress } = sendBCHMock;
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()
             .mockResolvedValue(expectedTxId);
@@ -160,14 +164,10 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values: [
-                    new BigNumber(currency.dust)
-                        .minus(new BigNumber('0.00000001'))
-                        .toString(),
-                ],
-            },
+            destinationAddress,
+            new BigNumber(currency.dust)
+                .minus(new BigNumber('0.00000001'))
+                .toString(),
             1.01,
         );
         expect(failedSendBch).rejects.toThrow(new Error('dust'));
@@ -175,10 +175,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values: null,
-            },
+            destinationAddress,
+            null,
             1.01,
         );
         expect(nullValuesSendBch).toBe(null);
@@ -187,7 +185,7 @@ describe('useBCH hook', () => {
     it('receives errors from the network and parses it', async () => {
         const { sendBch } = useBCH();
         const BCH = new BCHJS();
-        const { values, utxos, wallet, addresses } = sendBCHMock;
+        const { sendAmount, utxos, wallet, destinationAddress } = sendBCHMock;
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()
             .mockImplementation(async () => {
@@ -197,10 +195,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values,
-            },
+            destinationAddress,
+            sendAmount,
             1.01,
         );
         await expect(insufficientPriority).rejects.toThrow(
@@ -216,10 +212,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values,
-            },
+            destinationAddress,
+            sendAmount,
             1.01,
         );
         await expect(txnMempoolConflict).rejects.toThrow(
@@ -235,7 +229,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            { addresses, values },
+            destinationAddress,
+            sendAmount,
             1.01,
         );
         await expect(networkError).rejects.toThrow(new Error('Network Error'));
@@ -253,10 +248,8 @@ describe('useBCH hook', () => {
             BCH,
             wallet,
             utxos,
-            {
-                addresses,
-                values,
-            },
+            destinationAddress,
+            sendAmount,
             1.01,
         );
         await expect(tooManyAncestorsMempool).rejects.toThrow(

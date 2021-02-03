@@ -25,8 +25,9 @@ export default {
                 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
         },
     },
-    addresses: ['bitcoincash:qr2npxqwznhp7gphatcqzexeclx0hhwdxg386ez36n'],
-    values: ['0.00000546'],
+    destinationAddress:
+        'bitcoincash:qr2npxqwznhp7gphatcqzexeclx0hhwdxg386ez36n',
+    sendAmount: '0.00000546',
     expectedTxId:
         '7a39961bbd7e27d804fb3169ef38a83234710fbc53897a4eb0c98454854a26d1',
     expectedHex: [

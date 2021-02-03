@@ -217,10 +217,8 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                 BCH,
                 wallet,
                 slpBalancesAndUtxos.nonSlpUtxos,
-                {
-                    addresses: [filledAddress || cleanAddress],
-                    values: [bchValue],
-                },
+                filledAddress || cleanAddress,
+                bchValue,
                 currency.defaultFee,
                 callbackTxId,
             );

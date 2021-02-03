@@ -434,21 +434,20 @@ export default function useBCH() {
         BCH,
         wallet,
         utxos,
-        { addresses, values, encodedOpReturn },
+        destinationAddress,
+        sendAmount,
         feeInSatsPerByte,
         callbackTxId,
+        encodedOpReturn,
     ) => {
         // Note: callbackTxId is a callback function that accepts a txid as its only parameter
 
         try {
-            if (!values || values.length === 0) {
+            if (!sendAmount) {
                 return null;
             }
 
-            const value = values.reduce(
-                (previous, current) => new BigNumber(current).plus(previous),
-                new BigNumber(0),
-            );
+            const value = new BigNumber(sendAmount);
 
             // If user is attempting to send less than minimum accepted by the backend
             if (value.lt(new BigNumber(currency.dust))) {
@@ -485,18 +484,8 @@ export default function useBCH() {
 
                 inputUtxos.push(utxo);
                 txFee = encodedOpReturn
-                    ? calcFee(
-                          BCH,
-                          inputUtxos,
-                          addresses.length + 2,
-                          feeInSatsPerByte,
-                      )
-                    : calcFee(
-                          BCH,
-                          inputUtxos,
-                          addresses.length + 1,
-                          feeInSatsPerByte,
-                      );
+                    ? calcFee(BCH, inputUtxos, 3, feeInSatsPerByte)
+                    : calcFee(BCH, inputUtxos, 2, feeInSatsPerByte);
 
                 if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
                     break;
@@ -518,13 +507,11 @@ export default function useBCH() {
             }
 
             // add output w/ address and amount to send
-            for (let i = 0; i < addresses.length; i++) {
-                const address = addresses[i];
-                transactionBuilder.addOutput(
-                    BCH.Address.toCashAddress(address),
-                    BCH.BitcoinCash.toSatoshi(Number(values[i]).toFixed(8)),
-                );
-            }
+
+            transactionBuilder.addOutput(
+                BCH.Address.toCashAddress(destinationAddress),
+                BCH.BitcoinCash.toSatoshi(Number(sendAmount).toFixed(8)),
+            );
 
             if (
                 remainder >=
