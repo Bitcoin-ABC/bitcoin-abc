@@ -13,10 +13,15 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Copy all files from current directory to working dir in image
+# Copy only the package files and install necessary dependencies.
+# This reduces cache busting when source files are changed.
+COPY package.json .
+COPY package-lock.json .
+RUN npm install
+
+# Copy the rest of the project files and build
 COPY . .
-# install node modules and build assets
-RUN npm install && npm run build
+RUN npm run build
 
 # Stage 2
 FROM nginx
