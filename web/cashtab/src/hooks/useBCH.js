@@ -4,7 +4,7 @@ import SlpWallet from 'minimal-slp-wallet';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
-        INSUFICIENT_FUNDS: 0,
+        INSUFFICIENT_FUNDS: 0,
         NETWORK_ERROR: 1,
         INSUFFICIENT_PRIORITY: 66, // ~insufficient fee
         DOUBLE_SPENDING: 18,
@@ -509,7 +509,7 @@ export default function useBCH() {
             );
             if (remainder < 0) {
                 const error = new Error(`Insufficient funds`);
-                error.code = SEND_BCH_ERRORS.INSUFICIENT_FUNDS;
+                error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
                 throw error;
             }
 
