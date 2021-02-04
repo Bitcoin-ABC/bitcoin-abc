@@ -78,7 +78,7 @@ bool ConnectSocketDirectly(const CService &addrConnect,
                            const SOCKET &hSocketRet, int nTimeout,
                            bool manual_connection);
 bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
-                         int port, const Sock &hSocketRet, int nTimeout,
+                         int port, const Sock &sock, int nTimeout,
                          bool &outProxyConnectionFailed);
 /** Disable or enable blocking-mode for a socket */
 bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking);
