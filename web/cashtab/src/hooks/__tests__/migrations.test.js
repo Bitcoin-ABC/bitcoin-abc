@@ -9,6 +9,22 @@ describe('Testing functions for upgrading Cashtab', () => {
             0.00000546,
         );
     });
+    it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with toSmallestDenomination', () => {
+        const BCH = new BCHJS();
+        const { toSmallestDenomination } = useBCH();
+        const testSendAmount = '0.12345678';
+        expect(
+            parseInt(toSmallestDenomination(new BigNumber(testSendAmount), 8)),
+        ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
+    });
+    it('Replicate 2-decimal return value from instance of toSatoshi in TransactionBuilder with toSmallestDenomination', () => {
+        const BCH = new BCHJS();
+        const { toSmallestDenomination } = useBCH();
+        const testSendAmount = '0.12';
+        expect(
+            parseInt(toSmallestDenomination(new BigNumber(testSendAmount), 8)),
+        ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
+    });
     it('toSmallestDenomination() returns false if input is not a BigNumber', () => {
         const { toSmallestDenomination } = useBCH();
         const testInput = 132.12345678;

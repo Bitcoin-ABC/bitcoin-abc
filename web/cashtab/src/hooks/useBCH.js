@@ -510,7 +510,7 @@ export default function useBCH() {
 
             transactionBuilder.addOutput(
                 BCH.Address.toCashAddress(destinationAddress),
-                BCH.BitcoinCash.toSatoshi(Number(sendAmount).toFixed(8)),
+                parseInt(toSmallestDenomination(value)),
             );
 
             if (
