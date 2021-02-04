@@ -490,12 +490,12 @@ class ImportMultiTest(BitcoinTestFramework):
         xpriv = "tprv8ZgxMBicQKsPeuVhWwi6wuMQGfPKi9Li5GtX35jVNknACgqe3CY4g5xgkfDDJcmtF7o1QnxWDRYw4H5P26PXq7sbcUkEqeR4fg3Kxp2tigg"
         # hdkeypath=m/0'/0'/0' and 1'
         addresses = [
-            "bchreg:prvn9ycvgr5atuyh49sua3mapskh2mnnzg34lqtyst",
-            "bchreg:pp3n087yx0njv2e5wcvltahfxqst7l66ruyuaun8qt"]
+            "ecregtest:prvn9ycvgr5atuyh49sua3mapskh2mnnzg7t9yp6dt",
+            "ecregtest:pp3n087yx0njv2e5wcvltahfxqst7l66rutz8ceeat"]
         # pkh subscripts corresponding to the above addresses
         addresses += [
-            "bchreg:qqdkxd2xnzftq2p8wr3sqqyw8lntap7tncl2076yur",
-            "bchreg:qpyryy83jfaec5u0gpzldk6teadsuq8zly0fwmm3pq",
+            "ecregtest:qqdkxd2xnzftq2p8wr3sqqyw8lntap7tncs546s6pr",
+            "ecregtest:qpyryy83jfaec5u0gpzldk6teadsuq8zlyqh5l30uq",
         ]
         desc = "sh(pkh(" + xpriv + "/0'/0'/*'" + "))"
         self.log.info(
@@ -536,7 +536,7 @@ class ImportMultiTest(BitcoinTestFramework):
         # Note: in Core's test, this address refers to the sh(wpkh()) address.
         # For a sh(pkh()) this does not refer to a key, so we use the subscript
         # address instead, which returns the same privkey.
-        address = "bchreg:qzh6rch6st3wjvp0h2ud87gn7xnxvf6h8yvgavjk6t"
+        address = "ecregtest:qzh6rch6st3wjvp0h2ud87gn7xnxvf6h8yrk8gcg8t"
         desc = "sh(pkh(" + wif_priv + "))"
         self.log.info(
             "Should import a descriptor with a WIF private key as spendable")
@@ -770,11 +770,11 @@ class ImportMultiTest(BitcoinTestFramework):
         assert_equal(wrpc.getwalletinfo()["private_keys_enabled"], False)
         xpub = "tpubDAXcJ7s7ZwicqjprRaEWdPoHKrCS215qxGYxpusRLLmJuT69ZSicuGdSfyvyKpvUNYBW1s2U3NSrT6vrCYB9e6nZUEvrqnwXPF8ArTCRXMY"
         addresses = [
-            'bchreg:qp0v86h53rc92hjrlpwzpjtdlgzsxu25svryj39hul',  # m/0'/0'/0
-            'bchreg:qqasy0zlkdleqt4pkn8fs4ehm5gnnz6qpgzxm0035q',  # m/0'/0'/1
-            'bchreg:qp0sp4wlhctvprqvdt2dgvqcfdjssu04xgk64mmwew',  # m/0'/0'/2
-            'bchreg:qrhn24tegn04cptfv4ldhtkduxq55zcwryhvnfcm3r',  # m/0'/0'/3
-            'bchreg:qzpqhett2uwltq803vrxv7zkqhft5vsnmca8ds9jjp',  # m/0'/0'/4
+            'ecregtest:qp0v86h53rc92hjrlpwzpjtdlgzsxu25svv6g40fpl',  # m/0'/0'/0
+            'ecregtest:qqasy0zlkdleqt4pkn8fs4ehm5gnnz6qpgdcpt90fq',  # m/0'/0'/1
+            'ecregtest:qp0sp4wlhctvprqvdt2dgvqcfdjssu04xgey0l3syw',  # m/0'/0'/2
+            'ecregtest:qrhn24tegn04cptfv4ldhtkduxq55zcwrycjfdj9vr',  # m/0'/0'/3
+            'ecregtest:qzpqhett2uwltq803vrxv7zkqhft5vsnmcjeh50v0p',  # m/0'/0'/4
         ]
         result = wrpc.importmulti(
             [{

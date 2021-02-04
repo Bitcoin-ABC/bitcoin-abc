@@ -145,8 +145,8 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             "2N7yv4p8G8yEaPddJxY41kPihnWvs39qCMf",
             "2MsHxyb2JS3pAySeNUsJ7mNnurtpeenDzLA"]  # hdkeypath=m/0'/0'/0' and 1'
         # wpkh subscripts corresponding to the above addresses
-        addresses += ["bchreg:prvn9ycvgr5atuyh49sua3mapskh2mnnzg34lqtyst",
-                      "bchreg:pp3n087yx0njv2e5wcvltahfxqst7l66ruyuaun8qt"]
+        addresses += ["ecregtest:prvn9ycvgr5atuyh49sua3mapskh2mnnzg7t9yp6dt",
+                      "ecregtest:pp3n087yx0njv2e5wcvltahfxqst7l66rutz8ceeat"]
         desc = "sh(pkh(" + xpub + "/0/0/*" + "))"
 
         self.log.info("Ranged descriptors cannot have labels")
@@ -212,11 +212,11 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         self.log.info('Key ranges should be imported in order')
         xpub = "tpubDAXcJ7s7ZwicqjprRaEWdPoHKrCS215qxGYxpusRLLmJuT69ZSicuGdSfyvyKpvUNYBW1s2U3NSrT6vrCYB9e6nZUEvrqnwXPF8ArTCRXMY"
         addresses = [
-            'bchreg:qp0v86h53rc92hjrlpwzpjtdlgzsxu25svryj39hul',  # m/0'/0'/0
-            'bchreg:qqasy0zlkdleqt4pkn8fs4ehm5gnnz6qpgzxm0035q',  # m/0'/0'/1
-            'bchreg:qp0sp4wlhctvprqvdt2dgvqcfdjssu04xgk64mmwew',  # m/0'/0'/2
-            'bchreg:qrhn24tegn04cptfv4ldhtkduxq55zcwryhvnfcm3r',  # m/0'/0'/3
-            'bchreg:qzpqhett2uwltq803vrxv7zkqhft5vsnmca8ds9jjp',  # m/0'/0'/4
+            'ecregtest:qp0v86h53rc92hjrlpwzpjtdlgzsxu25svv6g40fpl',  # m/0'/0'/0
+            'ecregtest:qqasy0zlkdleqt4pkn8fs4ehm5gnnz6qpgdcpt90fq',  # m/0'/0'/1
+            'ecregtest:qp0sp4wlhctvprqvdt2dgvqcfdjssu04xgey0l3syw',  # m/0'/0'/2
+            'ecregtest:qrhn24tegn04cptfv4ldhtkduxq55zcwrycjfdj9vr',  # m/0'/0'/3
+            'ecregtest:qzpqhett2uwltq803vrxv7zkqhft5vsnmcjeh50v0p',  # m/0'/0'/4
         ]
 
         self.test_importdesc({'desc': descsum_create('sh(pkh([abcdef12/0h/0h]' + xpub + '/*))'),
@@ -264,7 +264,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
 
         # # Test importing a descriptor containing a WIF private key
         wif_priv = "cTe1f5rdT8A8DFgVWTjyPwACsDPJM9ff4QngFxUixCSvvbg1x6sh"
-        address = "bchreg:ppn85zpvym8cdccmgw8km6e48jfhnpa435c0djwhs6"
+        address = "ecregtest:ppn85zpvym8cdccmgw8km6e48jfhnpa435h3hkyfd6"
         desc = "sh(pkh(" + wif_priv + "))"
         self.log.info(
             "Should import a descriptor with a WIF private key as spendable")
@@ -317,11 +317,11 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         # Derived at m/84'/0'/0'/0
         assert_equal(
             addr,
-            'bchreg:pzkcf26dw7np58jcspnpxaupgz9csnc3wsx25fa5q3')
+            'ecregtest:pzkcf26dw7np58jcspnpxaupgz9csnc3wsf5wdh2a3')
         change_addr = wmulti_priv.getrawchangeaddress()
         assert_equal(
             change_addr,
-            'bchreg:prnkfg7pxe3kpyv3l4v00ft6q3sfseag7vuj8tutcn')
+            'ecregtest:prnkfg7pxe3kpyv3l4v00ft6q3sfseag7vnva0k49n')
 
         assert_equal(wmulti_priv.getwalletinfo()['keypoolsize'], 1000)
         txid = w0.sendtoaddress(addr, 10)
@@ -359,11 +359,11 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         # Derived at m/84'/0'/0'/1
         assert_equal(
             addr,
-            'bchreg:pr5xql8r03jp5dvrep22dns59vf7hhykr5u98cj6hh')
+            'ecregtest:pr5xql8r03jp5dvrep22dns59vf7hhykr5nmaucy2h')
         change_addr = wmulti_pub.getrawchangeaddress()
         assert_equal(
             change_addr,
-            'bchreg:prnkfg7pxe3kpyv3l4v00ft6q3sfseag7vuj8tutcn')
+            'ecregtest:prnkfg7pxe3kpyv3l4v00ft6q3sfseag7vnva0k49n')
 
         assert_equal(wmulti_pub.getwalletinfo()['keypoolsize'], 999)
         txid = w0.sendtoaddress(addr, 10)

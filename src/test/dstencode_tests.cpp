@@ -37,9 +37,9 @@ BOOST_AUTO_TEST_CASE(test_addresses) {
     const CTxDestination dstScript = ScriptHash(uint160(hash));
 
     std::string cashaddr_pubkey =
-        "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
+        "ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2";
     std::string cashaddr_script =
-        "bitcoincash:ppm2qsznhks23z7629mms6s4cwef74vcwvn0h829pq";
+        "ecash:ppm2qsznhks23z7629mms6s4cwef74vcwv2zrv3l8h";
     std::string base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
     std::string base58_script = "3CWFddi6m4ndiGyKqzYvsFYagqDLPVMTzC";
 

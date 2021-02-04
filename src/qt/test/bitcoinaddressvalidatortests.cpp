@@ -23,31 +23,31 @@ void BitcoinAddressValidatorTests::inputTests() {
 
     // invalid base58 because of I, invalid cashaddr, currently considered valid
     // anyway.
-    in = "BIIC";
+    in = "ICASH";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58, invalid cashaddr, currently considered valid anyway.
-    in = "BITCOINCASHH";
+    in = "EOASH";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58 because of I, but could be a cashaddr prefix
-    in = "BITC";
+    in = "ECASI";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58, valid cashaddr
-    in = "BITCOINCASH:QP";
+    in = "ECASH:OP";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58, valid cashaddr, lower case
-    in = "bitcoincash:qp";
+    in = "ecash:op";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // invalid base58, valid cashaddr, mixed case
-    in = "bItCoInCaSh:Qp";
+    in = "eCash:Op";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // valid base58, invalid cash
-    in = "BBBBBBBBBBBBBB";
+    in = "EEEEEEEEEEEEEE";
     QVERIFY(v.validate(in, unused) == QValidator::Acceptable);
 
     // Only alphanumeric chars are accepted.

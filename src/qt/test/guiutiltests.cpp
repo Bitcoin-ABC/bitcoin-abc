@@ -43,7 +43,8 @@ void GUIUtilTests::toCurrentEncodingTest() {
     QVERIFY(GUIUtil::convertToCashAddr(params, "garbage") == "garbage");
 
     QString cashaddr_pubkey =
-        "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
+        "ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2";
+
     QString base58_pubkey = "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu";
 
     QVERIFY(GUIUtil::convertToCashAddr(params, cashaddr_pubkey) ==

@@ -69,7 +69,7 @@ BOOST_FIXTURE_TEST_SUITE(cashaddrenc_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(encode_decode_all_sizes) {
     FastRandomContext rand(true);
-    const std::string prefix = "bitcoincash";
+    const std::string CASHADDR_PREFIX = "ecash";
 
     for (auto ps : valid_sizes) {
         std::vector<uint8_t> data =
@@ -79,10 +79,11 @@ BOOST_AUTO_TEST_CASE(encode_decode_all_sizes) {
 
         // Check that the packed size is correct
         BOOST_CHECK_EQUAL(packed_data[1] >> 2, ps.first);
-        std::string address = cashaddr::Encode(prefix, packed_data);
+        std::string address = cashaddr::Encode(CASHADDR_PREFIX, packed_data);
 
         // Check that the address decodes properly
-        CashAddrContent decoded = DecodeCashAddrContent(address, prefix);
+        CashAddrContent decoded =
+            DecodeCashAddrContent(address, CASHADDR_PREFIX);
         BOOST_CHECK_EQUAL_COLLECTIONS(
             std::begin(content.hash), std::end(content.hash),
             std::begin(decoded.hash), std::end(decoded.hash));
@@ -225,19 +226,19 @@ BOOST_AUTO_TEST_CASE(check_type) {
  */
 BOOST_AUTO_TEST_CASE(check_size) {
     const CTxDestination nodst = CNoDestination{};
-    const std::string prefix = "bitcoincash";
+    const std::string prefix = "ecash";
 
     std::vector<uint8_t> data;
 
     for (auto ps : valid_sizes) {
-        // Number of bytes required for a 5-bit packed version of a hash, with
-        // version byte.  Add half a byte(4) so integer math provides the next
-        // multiple-of-5 that would fit all the data.
+        // Number of bytes required for a 5-bit packed version of a hash,
+        // with version byte.  Add half a byte(4) so integer math provides
+        // the next multiple-of-5 that would fit all the data.
         size_t expectedSize = (8 * (1 + ps.second) + 4) / 5;
         data.resize(expectedSize);
         std::fill(begin(data), end(data), 0);
-        // After conversion from 8 bit packing to 5 bit packing, the size will
-        // be in the second 5-bit group, shifted left twice.
+        // After conversion from 8 bit packing to 5 bit packing, the size
+        // will be in the second 5-bit group, shifted left twice.
         data[1] = ps.first << 2;
 
         auto content =
@@ -273,27 +274,26 @@ BOOST_AUTO_TEST_CASE(test_encode_address) {
          213, 62, 197, 251, 195, 180, 45, 248, 237, 16}};
 
     std::vector<std::string> pubkey = {
-        "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a",
-        "bitcoincash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4y0qverfuy",
-        "bitcoincash:qqq3728yw0y47sqn6l2na30mcw6zm78dzqre909m2r"};
+        "ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2",
+        "ecash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ykdcjcn6n",
+        "ecash:qqq3728yw0y47sqn6l2na30mcw6zm78dzq653y7pv5"};
     std::vector<std::string> script = {
-        "bitcoincash:ppm2qsznhks23z7629mms6s4cwef74vcwvn0h829pq",
-        "bitcoincash:pr95sy3j9xwd2ap32xkykttr4cvcu7as4yc93ky28e",
-        "bitcoincash:pqq3728yw0y47sqn6l2na30mcw6zm78dzq5ucqzc37"};
+        "ecash:ppm2qsznhks23z7629mms6s4cwef74vcwv2zrv3l8h",
+        "ecash:pr95sy3j9xwd2ap32xkykttr4cvcu7as4ypg9alspw",
+        "ecash:pqq3728yw0y47sqn6l2na30mcw6zm78dzqd3vtezhf"};
 
     for (size_t i = 0; i < hash.size(); ++i) {
         const CTxDestination dstKey = PKHash(uint160(hash[i]));
         BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr(dstKey, *params));
 
         CashAddrContent keyContent{PUBKEY_TYPE, hash[i]};
-        BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr("bitcoincash", keyContent));
+        BOOST_CHECK_EQUAL(pubkey[i], EncodeCashAddr("ecash", keyContent));
 
         const CTxDestination dstScript = ScriptHash(uint160(hash[i]));
         BOOST_CHECK_EQUAL(script[i], EncodeCashAddr(dstScript, *params));
 
         CashAddrContent scriptContent{SCRIPT_TYPE, hash[i]};
-        BOOST_CHECK_EQUAL(script[i],
-                          EncodeCashAddr("bitcoincash", scriptContent));
+        BOOST_CHECK_EQUAL(script[i], EncodeCashAddr("ecash", scriptContent));
     }
 }
 

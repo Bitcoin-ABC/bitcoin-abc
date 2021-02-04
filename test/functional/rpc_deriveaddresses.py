@@ -17,7 +17,7 @@ class DeriveaddressesTest(BitcoinTestFramework):
                                 self.nodes[0].deriveaddresses, "a")
 
         descriptor = "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0)#rdfjd0a9"
-        address = "bchreg:qzgrvmwc8vevauc25j86hgfpduz8j98yvvyr0qx0ew"
+        address = "ecregtest:qzgrvmwc8vevauc25j86hgfpduz8j98yvvta4yv3yw"
         assert_equal(self.nodes[0].deriveaddresses(descriptor), [address])
 
         descriptor = descriptor[:-9]
@@ -27,17 +27,17 @@ class DeriveaddressesTest(BitcoinTestFramework):
                                 descriptor)
 
         descriptor_pubkey = "pkh(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/0)#7st8eans"
-        address = "bchreg:qzgrvmwc8vevauc25j86hgfpduz8j98yvvyr0qx0ew"
+        address = "ecregtest:qzgrvmwc8vevauc25j86hgfpduz8j98yvvta4yv3yw"
         assert_equal(self.nodes[0].deriveaddresses(
             descriptor_pubkey), [address])
 
         ranged_descriptor = "pkh(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)#77vpsvm5"
         assert_equal(
             self.nodes[0].deriveaddresses(ranged_descriptor, [1, 2]),
-            ["bchreg:qz7mjsvr6gglnl389gnfxmqx0asxp0hcvqjx829c6k", "bchreg:qq9q9wefpjzuna7qhuzz7rvck9tuhrzp3gvrzd8kx2"])
+            ["ecregtest:qz7mjsvr6gglnl389gnfxmqx0asxp0hcvqacaw0x8k", "ecregtest:qq9q9wefpjzuna7qhuzz7rvck9tuhrzp3gracfdgm2"])
         assert_equal(
             self.nodes[0].deriveaddresses(ranged_descriptor, 2),
-            [address, "bchreg:qz7mjsvr6gglnl389gnfxmqx0asxp0hcvqjx829c6k", "bchreg:qq9q9wefpjzuna7qhuzz7rvck9tuhrzp3gvrzd8kx2"])
+            [address, "ecregtest:qz7mjsvr6gglnl389gnfxmqx0asxp0hcvqacaw0x8k", "ecregtest:qq9q9wefpjzuna7qhuzz7rvck9tuhrzp3gracfdgm2"])
 
         assert_raises_rpc_error(
             -8,

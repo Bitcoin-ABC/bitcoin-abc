@@ -224,7 +224,7 @@ void TestGUI(interfaces::Node &node) {
             QString paymentText = rlist->toPlainText();
             QStringList paymentTextList = paymentText.split('\n');
             QCOMPARE(paymentTextList.at(0), QString("Payment information"));
-            QVERIFY(paymentTextList.at(1).indexOf(QString("URI: bchreg:")) !=
+            QVERIFY(paymentTextList.at(1).indexOf(QString("URI: ecregtest:")) !=
                     -1);
             QVERIFY(paymentTextList.at(2).indexOf(QString("Address:")) != -1);
             QCOMPARE(paymentTextList.at(3),

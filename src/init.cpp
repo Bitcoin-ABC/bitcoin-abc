@@ -384,6 +384,9 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-help-debug",
                    "Print help message with debugging options and exit", false,
                    OptionsCategory::DEBUG_TEST);
+    // whether to use eCash default unit and address prefix
+    argsman.AddArg("-ecash", "Use ecash as default unit (Default: false)",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
 
     const auto defaultBaseParams =
         CreateBaseChainParams(CBaseChainParams::MAIN);

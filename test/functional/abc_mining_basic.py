@@ -23,7 +23,7 @@ from test_framework.util import (
 from decimal import Decimal
 
 AXION_ACTIVATION_TIME = 2000000600
-MINER_FUND_ADDR = 'bchreg:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgd35g0pkl'
+MINER_FUND_ADDR = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
 MINER_FUND_LEGACY_ADDR = '2MviGxxFciGeWTgkUgYgjqehWt18c4ZsShd'
 
 

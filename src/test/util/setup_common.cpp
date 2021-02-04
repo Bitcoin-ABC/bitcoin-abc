@@ -90,6 +90,7 @@ BasicTestingSetup::BasicTestingSetup(
     const std::string &chainName, const std::vector<const char *> &extra_args)
     : m_path_root{fs::temp_directory_path() / "test_common_" PACKAGE_NAME /
                   g_insecure_rand_ctx_temp_path.rand256().ToString()} {
+    // clang-format off
     std::vector<const char *> arguments = Cat(
         {
             "dummy",
@@ -98,8 +99,10 @@ BasicTestingSetup::BasicTestingSetup(
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
+            "-ecash"
         },
         extra_args);
+    // clang-format on
     arguments = Cat(arguments, fixture_extra_args);
     auto &config = const_cast<Config &>(GetConfig());
     SetMockTime(0);

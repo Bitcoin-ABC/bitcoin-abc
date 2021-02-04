@@ -572,7 +572,7 @@ class WalletTest(BitcoinTestFramework):
         address_info = self.nodes[0].getaddressinfo(
             "mneYUmWYsuk7kySiURxCi3AGxrAqZxLgPZ")
         assert_equal(address_info['address'],
-                     "bchreg:qp8rs4qyd3aazk22eyzwg7fmdfzmxm02pywavdajx4")
+                     "ecregtest:qp8rs4qyd3aazk22eyzwg7fmdfzmxm02pyprkfhvm4")
         assert_equal(address_info["scriptPubKey"],
                      "76a9144e3854046c7bd1594ac904e4793b6a45b36dea0988ac")
         assert not address_info["ismine"]

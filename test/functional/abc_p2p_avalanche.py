@@ -217,7 +217,7 @@ class AvalancheTest(BitcoinTestFramework):
         # We need to send the coin to a new address in order to make sure we do
         # not regenerate the same block.
         node.generatetoaddress(
-            26, 'bchreg:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v7ej0fffv')
+            26, 'ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v')
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
