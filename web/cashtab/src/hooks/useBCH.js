@@ -515,9 +515,7 @@ export default function useBCH() {
 
             if (
                 remainder >=
-                BCH.BitcoinCash.toSatoshi(
-                    parseFloat(new BigNumber(currency.dust).toFixed(8)),
-                )
+                parseFloat(toSmallestDenomination(new BigNumber(currency.dust)))
             ) {
                 transactionBuilder.addOutput(REMAINDER_ADDR, remainder);
             }

@@ -25,6 +25,18 @@ describe('Testing functions for upgrading Cashtab', () => {
             parseInt(toSmallestDenomination(new BigNumber(testSendAmount), 8)),
         ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
     });
+    it('Replicate 8-decimal return value from instance of toSatoshi in remainder comparison with toSmallestDenomination', () => {
+        const BCH = new BCHJS();
+        const { toSmallestDenomination } = useBCH();
+        // note: do not specify 8 decimals as this test SHOULD fail when currency.dust changes or cashDecimals changes if not updated
+        expect(
+            parseFloat(toSmallestDenomination(new BigNumber(currency.dust))),
+        ).toBe(
+            BCH.BitcoinCash.toSatoshi(
+                parseFloat(new BigNumber(currency.dust).toFixed(8)),
+            ),
+        );
+    });
     it('toSmallestDenomination() returns false if input is not a BigNumber', () => {
         const { toSmallestDenomination } = useBCH();
         const testInput = 132.12345678;
