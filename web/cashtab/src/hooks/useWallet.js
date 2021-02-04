@@ -735,7 +735,7 @@ const useWallet = () => {
                     {Number(
                         balances.totalBalance - previousBalances.totalBalance,
                     ).toFixed(currency.cashDecimals)}{' '}
-                    BCH!
+                    {currency.ticker}!
                 </Paragraph>
             ),
             duration: 3,
@@ -987,13 +987,14 @@ const useWallet = () => {
 
                     // Best way to ignore this is to ignore any incoming utx.x with BCH or SLP address in the inputs
 
-                    // Notification for received BCH
+                    // Notification for received BCHA
                     if (bchSatsReceived > 0) {
                         notification.success({
                             message: 'Transaction received',
                             description: (
                                 <Paragraph>
-                                    You received {bchSatsReceived / 1e8} BCH!
+                                    You received {bchSatsReceived / 1e8}{' '}
+                                    {currency.ticker}!
                                 </Paragraph>
                             ),
                             duration: 3,
@@ -1119,13 +1120,14 @@ const useWallet = () => {
 
                 // Best way to ignore this is to ignore any incoming utx.x with BCH or SLP address in the inputs
 
-                // Notification for received BCH
+                // Notification for received BCHA
                 if (bchSatsReceived > 0) {
                     notification.success({
                         message: 'Transaction received',
                         description: (
                             <Paragraph>
-                                You received {bchSatsReceived / 1e8} BCH!
+                                You received {bchSatsReceived / 1e8}{' '}
+                                {currency.ticker}!
                             </Paragraph>
                         ),
                         duration: 3,
