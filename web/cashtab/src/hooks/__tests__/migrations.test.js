@@ -89,4 +89,30 @@ describe('Testing functions for upgrading Cashtab', () => {
             new BigNumber(testAmountInSatoshis),
         );
     });
+    it(`BigNumber version of remainder variable is equivalent to Math.floor version`, () => {
+        const { toSmallestDenomination } = useBCH();
+
+        // Test case for sending 0.12345678 BCHA
+        let satoshisToSendTest = toSmallestDenomination(
+            new BigNumber('0.12345678'),
+        );
+        // Assume total BCHA available in utxos is 500 sats higher than 0.123456578 BCHA
+        let originalAmountTest = satoshisToSendTest.plus(500);
+        // Assume 229 byte tx fee
+        let txFeeTest = 229;
+
+        expect(
+            Math.floor(
+                originalAmountTest.minus(satoshisToSendTest).minus(txFeeTest),
+            ),
+        ).toStrictEqual(
+            parseInt(
+                originalAmountTest.minus(satoshisToSendTest).minus(txFeeTest),
+            ),
+        );
+    });
+    it(`Using parseInt on a BigNumber returns output type required for Transaction Builder`, () => {
+        const remainder = new BigNumber('12345678');
+        expect(parseInt(remainder)).toStrictEqual(12345678);
+    });
 });

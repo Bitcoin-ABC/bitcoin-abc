@@ -493,10 +493,9 @@ export default function useBCH() {
             }
 
             // amount to send back to the remainder address.
-            const remainder = Math.floor(
-                originalAmount.minus(satoshisToSend).minus(txFee),
-            );
-            if (remainder < 0) {
+            const remainder = originalAmount.minus(satoshisToSend).minus(txFee);
+
+            if (remainder.lt(0)) {
                 const error = new Error(`Insufficient funds`);
                 error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
                 throw error;
@@ -507,17 +506,20 @@ export default function useBCH() {
             }
 
             // add output w/ address and amount to send
-
             transactionBuilder.addOutput(
                 BCH.Address.toCashAddress(destinationAddress),
                 parseInt(toSmallestDenomination(value)),
             );
 
             if (
-                remainder >=
-                parseFloat(toSmallestDenomination(new BigNumber(currency.dust)))
+                remainder.gte(
+                    toSmallestDenomination(new BigNumber(currency.dust)),
+                )
             ) {
-                transactionBuilder.addOutput(REMAINDER_ADDR, remainder);
+                transactionBuilder.addOutput(
+                    REMAINDER_ADDR,
+                    parseInt(remainder),
+                );
             }
 
             // Sign the transactions with the HD node.
