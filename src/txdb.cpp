@@ -42,7 +42,7 @@ struct CoinEntry {
     SERIALIZE_METHODS(CoinEntry, obj) {
         TxId id = obj.outpoint->GetTxId();
         uint32_t n = obj.outpoint->GetN();
-        READWRITE(obj.key, id, n);
+        READWRITE(obj.key, id, VARINT(n));
         SER_READ(obj, *obj.outpoint = COutPoint(id, n));
     }
 };
