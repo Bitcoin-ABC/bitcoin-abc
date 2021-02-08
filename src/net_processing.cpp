@@ -3333,9 +3333,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
     if (msg_type == NetMsgType::TX) {
         // Stop processing the transaction early if
-        // We are in blocks only mode and peer is either not whitelisted or
-        // whitelistrelay is off or if this peer is supposed to be a
-        // block-relay-only peer
+        // 1) We are in blocks only mode and peer has no relay permission
+        // 2) This peer is a block-relay-only peer
         if ((!g_relay_txes && !pfrom.HasPermission(PF_RELAY)) ||
             (pfrom.m_tx_relay == nullptr)) {
             LogPrint(BCLog::NET,
