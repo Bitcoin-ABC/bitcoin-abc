@@ -227,6 +227,7 @@ add_compiler_flags(
 	-Wrange-loop-analysis
 	-Wredundant-decls
 	-Wunreachable-code-loop-increment
+	-Wsign-compare
 )
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(

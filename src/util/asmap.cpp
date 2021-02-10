@@ -110,11 +110,15 @@ uint32_t Interpret(const std::vector<bool> &asmap,
                 // No input bits left
                 break;
             }
+            if (pos + jump < pos) {
+                // overflow
+                break;
+            }
+            if (pos + jump >= endpos) {
+                // Jumping past EOF
+                break;
+            }
             if (ip[ip.size() - bits]) {
-                if (jump >= endpos - pos) {
-                    // Jumping past EOF
-                    break;
-                }
                 pos += jump;
             }
             bits--;
@@ -218,7 +222,11 @@ bool SanityCheckASMap(const std::vector<bool> &asmap, int bits) {
                 // Jump offset straddles EOF
                 return false;
             }
-            if (jump > endpos - pos) {
+            if (pos + jump < pos) {
+                // overflow
+                return false;
+            }
+            if (pos + jump > endpos) {
                 // Jump out of range
                 return false;
             }

@@ -483,7 +483,7 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
         error));
 
     const auto strings = NetPermissions::ToStrings(PF_ALL);
-    BOOST_CHECK_EQUAL(strings.size(), 5);
+    BOOST_CHECK_EQUAL(strings.size(), 5U);
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "bloomfilter") !=
                 strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "forcerelay") !=

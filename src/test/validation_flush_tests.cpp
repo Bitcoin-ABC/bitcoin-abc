@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
     // (prevector<28, uint8_t>) when assigned 56 bytes of data per above.
     //
     // See also: Coin::DynamicMemoryUsage().
-    constexpr int COIN_SIZE = is_64_bit ? 80 : 72;
+    constexpr unsigned int COIN_SIZE = is_64_bit ? 80 : 72;
 
     auto print_view_mem_usage = [](CCoinsViewCache &_view) {
         BOOST_TEST_MESSAGE(
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
     }
 
     print_view_mem_usage(view);
-    BOOST_CHECK_EQUAL(view.DynamicMemoryUsage(), is_64_bit ? 32 : 16);
+    BOOST_CHECK_EQUAL(view.DynamicMemoryUsage(), is_64_bit ? 32U : 16U);
 
     // We should be able to add COINS_UNTIL_CRITICAL coins to the cache before
     // going CRITICAL. This is contingent not only on the dynamic memory usage
