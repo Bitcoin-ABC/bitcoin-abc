@@ -9,6 +9,11 @@ module.exports = {
     organizationName: 'bitcoin-abc',
     projectName: 'cashtab',
     themeConfig: {
+        colorMode: {
+            // "light" | "dark"
+            defaultMode: 'dark',
+        },
+        image: 'img/twitter-card.jpg',
         navbar: {
             title: 'Cashtab',
             logo: {
