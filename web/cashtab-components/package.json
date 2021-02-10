@@ -9,10 +9,10 @@
         "react-dom": "^17.0.1"
     },
     "dependencies": {
+        "@babel/preset-typescript": "^7.12.7",
         "@testing-library/jest-dom": "^5.11.4",
         "@testing-library/react": "^11.1.0",
         "@testing-library/user-event": "^12.1.10",
-        "@types/jest": "^26.0.15",
         "@types/node": "^12.0.0",
         "@types/react": "^16.9.53",
         "@types/react-dom": "^16.9.8",
@@ -32,7 +32,7 @@
         "start": "npm run storybook",
         "build": "rm -rf dist/ && webpack --mode=production",
         "prepublish": "npm run build",
-        "test": "react-scripts test",
+        "test": "jest",
         "eject": "react-scripts eject",
         "storybook": "start-storybook -p 6006 -s public",
         "build-storybook": "build-storybook -s public"
@@ -76,6 +76,8 @@
         ]
     },
     "devDependencies": {
+        "@babel/core": "^7.12.10",
+        "@babel/preset-env": "^7.12.11",
         "@storybook/addon-actions": "^6.1.11",
         "@storybook/addon-essentials": "^6.1.11",
         "@storybook/addon-knobs": "^6.1.11",
@@ -85,9 +87,36 @@
         "@storybook/preset-create-react-app": "^3.1.5",
         "@storybook/react": "^6.1.11",
         "@storybook/theming": "^6.1.11",
+        "@types/jest": "^26.0.19",
         "@types/lodash": "^4.14.165",
         "@types/qrcode.react": "^1.0.1",
         "@types/styled-components": "^5.1.7",
+        "babel-jest": "^26.6.3",
+        "jest": "^26.6.0",
+        "jest-environment-jsdom-fifteen": "^1.0.2",
         "ts-loader": "^8.0.12"
+    },
+    "jest": {
+        "roots": [
+            "<rootDir>/src"
+        ],
+        "setupFiles": [
+            "react-app-polyfill/jsdom"
+        ],
+        "testMatch": [
+            "<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+            "<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
+        ],
+        "testEnvironment": "jest-environment-jsdom-fifteen",
+        "transform": {
+            "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest"
+        },
+        "transformIgnorePatterns": [
+            "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
+            "^.+\\.module\\.(css|sass|scss)$"
+        ],
+        "moduleNameMapper": {
+            ".+\\.(css|styl|less|sass|scss|png|jpg|svg|ttf|woff|woff2)$": "identity-obj-proxy"
+        }
     }
 }
