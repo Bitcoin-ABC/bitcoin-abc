@@ -13,6 +13,9 @@ module.exports = {
             // "light" | "dark"
             defaultMode: 'dark',
         },
+        googleAnalytics: {
+            trackingID: 'UA-183678810-2',
+        },
         image: 'img/twitter-card.jpg',
         navbar: {
             title: 'Cashtab',
