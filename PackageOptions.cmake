@@ -1,6 +1,6 @@
 # Package options
 set(CPACK_PACKAGE_VENDOR "${COPYRIGHT_HOLDERS_FINAL}")
-set(CPACK_PACKAGE_DESCRIPTION "Bitcoin ABC is a Bitcoin Cash full node implementation.")
+set(CPACK_PACKAGE_DESCRIPTION "${PROJECT_DESCRIPTION}")
 set(CPACK_PACKAGE_HOMEPAGE_URL "${PROJECT_HOMEPAGE_URL}")
 set(CPACK_PACKAGE_CONTACT "info@bitcoinabc.org")
 
