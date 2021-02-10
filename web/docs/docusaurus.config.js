@@ -1,5 +1,5 @@
 module.exports = {
-    title: 'Build on BCHA',
+    title: 'Cashtab Docs',
     tagline: 'Add cash payments to your website',
     url: 'https://docs.cashtabapp.com',
     baseUrl: '/',
