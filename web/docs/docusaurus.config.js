@@ -1,7 +1,7 @@
 module.exports = {
     title: 'Build on BCHA',
     tagline: 'Add cash payments to your website',
-    url: 'https://bitcoinabc.org/bcha',
+    url: 'https://docs.cashtabapp.com',
     baseUrl: '/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
