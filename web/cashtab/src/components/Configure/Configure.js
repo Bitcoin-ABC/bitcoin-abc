@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Collapse, Form, Input, Modal, Spin } from 'antd';
+import { Collapse, Form, Input, Modal, Spin, Alert } from 'antd';
 import {
     PlusSquareOutlined,
     WalletFilled,
+    WalletOutlined,
     ImportOutlined,
     CopyOutlined,
     LockOutlined,
@@ -21,6 +22,15 @@ import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
 
 const { Panel } = Collapse;
+
+const SettingsLink = styled.a`
+    text-decoration: underline;
+    color: #ff8d00;
+    :visited {
+        text-decoration: underline;
+        color: #ff8d00;
+    }
+`;
 
 const SWRow = styled.div`
     border-radius: 3px;
@@ -420,16 +430,15 @@ const Configure = () => {
                         </Form>
                     </Modal>
                 )}
-
                 <h2>
-                    <CopyOutlined /> Seed Phrase
+                    <CopyOutlined /> Backup your wallet
                 </h2>
-                <p>
-                    Your seed phrase can be used to restore your wallet in case
-                    the original instance of it is destroyed. We highly
-                    recommend always making a copy of your seed phrase and
-                    keeping it somewhere safe.
-                </p>
+                <Alert
+                    style={{ marginBottom: '12px' }}
+                    description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
+                    type="warning"
+                    showIcon
+                />
                 {wallet && wallet.mnemonic && (
                     <StyledCollapse>
                         <Panel header="Click to reveal seed phrase" key="1">
@@ -441,57 +450,10 @@ const Configure = () => {
                         </Panel>
                     </StyledCollapse>
                 )}
-
-                {savedWallets && savedWallets.length > 0 && (
-                    <>
-                        <StyledSpacer />
-                        <StyledCollapse>
-                            <Panel header="Saved wallets" key="2">
-                                <AWRow>
-                                    <h3>{wallet.name}</h3>
-                                    <h4>Currently active</h4>
-                                </AWRow>
-                                <div>
-                                    {savedWallets.map(sw => (
-                                        <SWRow key={sw.name}>
-                                            <SWName>
-                                                <h3>{sw.name}</h3>
-                                            </SWName>
-
-                                            <SWButtonCtn>
-                                                <Edit
-                                                    onClick={() =>
-                                                        showPopulatedRenameWalletModal(
-                                                            sw,
-                                                        )
-                                                    }
-                                                />
-                                                <Trashcan
-                                                    onClick={() =>
-                                                        showPopulatedDeleteWalletModal(
-                                                            sw,
-                                                        )
-                                                    }
-                                                />
-                                                <button
-                                                    onClick={() =>
-                                                        updateSavedWalletsOnLoad(
-                                                            sw,
-                                                        )
-                                                    }
-                                                >
-                                                    Activate
-                                                </button>
-                                            </SWButtonCtn>
-                                        </SWRow>
-                                    ))}
-                                </div>
-                            </Panel>
-                        </StyledCollapse>
-                    </>
-                )}
-
                 <StyledSpacer />
+                <h2>
+                    <WalletOutlined /> Manage Wallets
+                </h2>
                 {apiError ? (
                     <>
                         <CashLoader />
@@ -552,6 +514,63 @@ const Configure = () => {
                         )}
                     </>
                 )}
+                {savedWallets && savedWallets.length > 0 && (
+                    <>
+                        <StyledCollapse>
+                            <Panel header="Saved wallets" key="2">
+                                <AWRow>
+                                    <h3>{wallet.name}</h3>
+                                    <h4>Currently active</h4>
+                                </AWRow>
+                                <div>
+                                    {savedWallets.map(sw => (
+                                        <SWRow key={sw.name}>
+                                            <SWName>
+                                                <h3>{sw.name}</h3>
+                                            </SWName>
+
+                                            <SWButtonCtn>
+                                                <Edit
+                                                    onClick={() =>
+                                                        showPopulatedRenameWalletModal(
+                                                            sw,
+                                                        )
+                                                    }
+                                                />
+                                                <Trashcan
+                                                    onClick={() =>
+                                                        showPopulatedDeleteWalletModal(
+                                                            sw,
+                                                        )
+                                                    }
+                                                />
+                                                <button
+                                                    onClick={() =>
+                                                        updateSavedWalletsOnLoad(
+                                                            sw,
+                                                        )
+                                                    }
+                                                >
+                                                    Activate
+                                                </button>
+                                            </SWButtonCtn>
+                                        </SWRow>
+                                    ))}
+                                </div>
+                            </Panel>
+                        </StyledCollapse>
+                    </>
+                )}
+                <StyledSpacer />[
+                <SettingsLink
+                    type="link"
+                    href="https://docs.cashtabapp.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    Documentation
+                </SettingsLink>
+                ]
             </StyledConfigure>
         </Spin>
     );

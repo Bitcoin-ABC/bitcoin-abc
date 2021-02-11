@@ -38,7 +38,7 @@ exports[`Configure with a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-dnqmqq cRbxeB"
+      className="sc-iwsKbI gJfDsi"
     >
       <h2>
         <span
@@ -60,11 +60,53 @@ exports[`Configure with a wallet 1`] = `
             />
           </svg>
         </span>
-         Seed Phrase
+         Backup your wallet
       </h2>
-      <p>
-        Your seed phrase can be used to restore your wallet in case the original instance of it is destroyed. We highly recommend always making a copy of your seed phrase and keeping it somewhere safe.
-      </p>
+      <div
+        className="ant-alert ant-alert-warning ant-alert-with-description"
+        data-show={true}
+        role="alert"
+        style={
+          Object {
+            "marginBottom": "12px",
+          }
+        }
+      >
+        <span
+          aria-label="exclamation-circle"
+          className="anticon anticon-exclamation-circle ant-alert-icon"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="exclamation-circle"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"
+            />
+            <path
+              d="M464 688a48 48 0 1096 0 48 48 0 10-96 0zm24-112h48c4.4 0 8-3.6 8-8V296c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8z"
+            />
+          </svg>
+        </span>
+        <div
+          className="ant-alert-content"
+        >
+          <div
+            className="ant-alert-message"
+          />
+          <div
+            className="ant-alert-description"
+          >
+            Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe.
+          </div>
+        </div>
+      </div>
       <div
         className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa jkIKTL"
         role={null}
@@ -104,8 +146,30 @@ exports[`Configure with a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-iwsKbI eaSyhG"
+        className="sc-gZMcBi juyJFl"
       />
+      <h2>
+        <span
+          aria-label="wallet"
+          className="anticon anticon-wallet"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="wallet"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+            />
+          </svg>
+        </span>
+         Manage Wallets
+      </h2>
       <button
         className="sc-bwzfXH crkPeR"
         onClick={[Function]}
@@ -159,6 +223,20 @@ exports[`Configure with a wallet 1`] = `
         </span>
          Import Wallet
       </button>
+      <div
+        className="sc-gZMcBi juyJFl"
+      />
+      [
+      <a
+        className="sc-EHOje chPufo"
+        href="https://docs.cashtabapp.com/"
+        rel="noreferrer"
+        target="_blank"
+        type="link"
+      >
+        Documentation
+      </a>
+      ]
     </div>
   </div>
 </div>
@@ -202,7 +280,7 @@ exports[`Configure without a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-dnqmqq cRbxeB"
+      className="sc-iwsKbI gJfDsi"
     >
       <h2>
         <span
@@ -224,14 +302,78 @@ exports[`Configure without a wallet 1`] = `
             />
           </svg>
         </span>
-         Seed Phrase
+         Backup your wallet
       </h2>
-      <p>
-        Your seed phrase can be used to restore your wallet in case the original instance of it is destroyed. We highly recommend always making a copy of your seed phrase and keeping it somewhere safe.
-      </p>
       <div
-        className="sc-iwsKbI eaSyhG"
+        className="ant-alert ant-alert-warning ant-alert-with-description"
+        data-show={true}
+        role="alert"
+        style={
+          Object {
+            "marginBottom": "12px",
+          }
+        }
+      >
+        <span
+          aria-label="exclamation-circle"
+          className="anticon anticon-exclamation-circle ant-alert-icon"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="exclamation-circle"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"
+            />
+            <path
+              d="M464 688a48 48 0 1096 0 48 48 0 10-96 0zm24-112h48c4.4 0 8-3.6 8-8V296c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8z"
+            />
+          </svg>
+        </span>
+        <div
+          className="ant-alert-content"
+        >
+          <div
+            className="ant-alert-message"
+          />
+          <div
+            className="ant-alert-description"
+          >
+            Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe.
+          </div>
+        </div>
+      </div>
+      <div
+        className="sc-gZMcBi juyJFl"
       />
+      <h2>
+        <span
+          aria-label="wallet"
+          className="anticon anticon-wallet"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="wallet"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+            />
+          </svg>
+        </span>
+         Manage Wallets
+      </h2>
       <button
         className="sc-bwzfXH crkPeR"
         onClick={[Function]}
@@ -285,6 +427,20 @@ exports[`Configure without a wallet 1`] = `
         </span>
          Import Wallet
       </button>
+      <div
+        className="sc-gZMcBi juyJFl"
+      />
+      [
+      <a
+        className="sc-EHOje chPufo"
+        href="https://docs.cashtabapp.com/"
+        rel="noreferrer"
+        target="_blank"
+        type="link"
+      >
+        Documentation
+      </a>
+      ]
     </div>
   </div>
 </div>
