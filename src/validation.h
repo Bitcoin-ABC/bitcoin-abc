@@ -289,13 +289,13 @@ struct MempoolAcceptResult {
         //! Invalid.
         INVALID,
     };
-    ResultType m_result_type;
-    TxValidationState m_state;
+    const ResultType m_result_type;
+    const TxValidationState m_state;
 
     // The following fields are only present when m_result_type =
     // ResultType::VALID
-    /** Raw base fees. */
-    std::optional<Amount> m_base_fees;
+    /** Raw base fees in satoshis. */
+    const std::optional<Amount> m_base_fees;
 
     /** Constructor for failure case */
     explicit MempoolAcceptResult(TxValidationState state)
@@ -307,8 +307,7 @@ struct MempoolAcceptResult {
 
     /** Constructor for success case */
     explicit MempoolAcceptResult(Amount fees)
-        : m_result_type(ResultType::VALID), m_state(TxValidationState{}),
-          m_base_fees(fees) {}
+        : m_result_type(ResultType::VALID), m_base_fees(fees) {}
 };
 
 /**
