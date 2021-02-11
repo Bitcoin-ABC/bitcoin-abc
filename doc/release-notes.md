@@ -15,6 +15,12 @@ RPC changes
    tracked by the node.
  - Added a new field `immature_stake_amount` to `getavalancheinfo` to report
    the total amount of stake that will mature within the next 2016 blocks.
+ - The `testmempoolaccept` RPC now accepts multiple transactions (still experimental at the moment,
+  API may be unstable). This is intended for testing transaction packages with dependency
+  relationships; it is not recommended for batch-validating independent transactions. In addition to
+  mempool policy, package policies apply: the list cannot contain more than 50 transactions or have a
+  total size exceeding 101K bytes, and cannot conflict with (spend the same inputs as) each other or
+  the mempool.
 
 P2P and network changes
 -----------------------
