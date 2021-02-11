@@ -96,8 +96,8 @@ void SetMockTime(int64_t nMockTimeIn) {
     nMockTime.store(nMockTimeIn, std::memory_order_relaxed);
 }
 
-int64_t GetMockTime() {
-    return nMockTime.load(std::memory_order_relaxed);
+std::chrono::seconds GetMockTime() {
+    return std::chrono::seconds(nMockTime.load(std::memory_order_relaxed));
 }
 
 int64_t GetTimeMillis() {

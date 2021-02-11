@@ -62,8 +62,9 @@ int64_t GetTimeSeconds();
 
 /** For testing. Set e.g. with the setmocktime rpc, or -mocktime argument */
 void SetMockTime(int64_t nMockTimeIn);
+
 /** For testing */
-int64_t GetMockTime();
+std::chrono::seconds GetMockTime();
 
 /** Return system time (or mocked time, if set) */
 template <typename T> T GetTime();
