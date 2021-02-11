@@ -174,13 +174,9 @@ bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp) {
     return true;
 }
 
-bool CheckSequenceLocks(CChainState &active_chainstate, const CTxMemPool &pool,
+bool CheckSequenceLocks(CBlockIndex *tip, const CCoinsView &coins_view,
                         const CTransaction &tx, int flags, LockPoints *lp,
                         bool useExistingLockPoints) {
-    AssertLockHeld(cs_main);
-    AssertLockHeld(pool.cs);
-
-    CBlockIndex *tip = active_chainstate.m_chain.Tip();
     assert(tip != nullptr);
 
     CBlockIndex index;
@@ -198,14 +194,12 @@ bool CheckSequenceLocks(CChainState &active_chainstate, const CTxMemPool &pool,
         lockPair.first = lp->height;
         lockPair.second = lp->time;
     } else {
-        // CoinsTip() contains the UTXO set for active_chainstate.m_chain.Tip()
-        CCoinsViewMemPool viewMemPool(&active_chainstate.CoinsTip(), pool);
         std::vector<int> prevheights;
         prevheights.resize(tx.vin.size());
         for (size_t txinIndex = 0; txinIndex < tx.vin.size(); txinIndex++) {
             const CTxIn &txin = tx.vin[txinIndex];
             Coin coin;
-            if (!viewMemPool.GetCoin(txin.prevout, coin)) {
+            if (!coins_view.GetCoin(txin.prevout, coin)) {
                 return error("%s: Missing input", __func__);
             }
             if (coin.GetHeight() == MEMPOOL_HEIGHT) {
@@ -525,10 +519,11 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     // Only accept BIP68 sequence locked transactions that can be mined in
     // the next block; we don't want our mempool filled up with transactions
-    // that can't be mined yet. Must keep pool.cs for this unless we change
-    // CheckSequenceLocks to take a CoinsViewCache instead of create its
-    // own.
-    if (!CheckSequenceLocks(m_active_chainstate, m_pool, tx,
+    // that can't be mined yet.
+    // Pass in m_view which has all of the relevant inputs cached. Note that,
+    // since m_view's backend was removed, it no longer pulls coins from the
+    // mempool.
+    if (!CheckSequenceLocks(m_active_chainstate.m_chain.Tip(), m_view, tx,
                             STANDARD_LOCKTIME_VERIFY_FLAGS, &lp)) {
         return state.Invalid(TxValidationResult::TX_PREMATURE_SPEND,
                              "non-BIP68-final");
