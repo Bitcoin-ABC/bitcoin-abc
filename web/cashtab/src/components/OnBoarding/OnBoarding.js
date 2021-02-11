@@ -24,6 +24,11 @@ export const WelcomeText = styled.p`
     text-align: left;
 `;
 
+export const WelcomeLink = styled.a`
+    text-decoration: underline;
+    color: #ff8d00;
+`;
+
 export const OnBoarding = ({ history }) => {
     const ContextValue = React.useContext(WalletContext);
     const { createWallet, validateMnemonic } = ContextValue;
@@ -78,17 +83,27 @@ export const OnBoarding = ({ history }) => {
 
     return (
         <>
+            <h2>Welcome to Cashtab!</h2>
             <WelcomeText>
-                Welcome to Cashtab! Cashtab is an open source, non-custodial web
-                wallet for {currency.name}.
+                Cashtab is an{' '}
+                <WelcomeLink
+                    href="https://github.com/bitcoin-abc/bitcoin-abc"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    open source,
+                </WelcomeLink>{' '}
+                non-custodial web wallet for {currency.name}.
                 <br />
                 <br />
-                Web wallets offer user convenience, but storing large amounts of
-                money on a web wallet is not recommended.
-                <br />
-                <br />
-                Create a new wallet below to get started, or import an existing
-                wallet using a seed phrase.
+                Want to learn more?{' '}
+                <WelcomeLink
+                    href="https://docs.cashtabapp.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    Check out the Cashtab documentation.
+                </WelcomeLink>
             </WelcomeText>
 
             <PrimaryButton onClick={() => showBackupConfirmModal()}>

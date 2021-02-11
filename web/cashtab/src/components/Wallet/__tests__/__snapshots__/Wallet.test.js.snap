@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-VigVT Hwhbd"
+    className="sc-jTzLTM jQTnZV"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-jTzLTM jiiXXt"
+    className="sc-fjdhpX ecKhYa"
   >
     $
     NaN
@@ -28,7 +28,7 @@ Array [
     }
   >
     <div
-      className="sc-bZQynM flcEFP"
+      className="sc-gzVnrw fMUVHg"
       style={
         Object {
           "display": "none",
@@ -39,7 +39,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-EHOje bCdlCK"
+      className="sc-bZQynM eUIYPw"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -64,7 +64,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-gzVnrw eRUALR"
+      className="sc-htoDjs gVjOGH"
     >
       <input
         readOnly={true}
@@ -82,23 +82,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jzJRlG QWILQ"
+    className="sc-cSHVUG bshqpY"
   >
     <div
-      className="sc-cSHVUG eKCMqR"
+      className="sc-kAzzGY dXxhGR"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-cSHVUG eKCMqR nonactiveBtn"
+      className="sc-kAzzGY dXxhGR nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-chPdSV uuZYl"
+    className="sc-kgoBCf bnLdmV"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -130,14 +130,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-VigVT Hwhbd"
+    className="sc-jTzLTM jQTnZV"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-jTzLTM jiiXXt"
+    className="sc-fjdhpX ecKhYa"
   >
     $
     NaN
@@ -155,7 +155,7 @@ Array [
     }
   >
     <div
-      className="sc-bZQynM flcEFP"
+      className="sc-gzVnrw fMUVHg"
       style={
         Object {
           "display": "none",
@@ -166,7 +166,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-EHOje bCdlCK"
+      className="sc-bZQynM eUIYPw"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -191,7 +191,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-gzVnrw eRUALR"
+      className="sc-htoDjs gVjOGH"
     >
       <input
         readOnly={true}
@@ -209,23 +209,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jzJRlG QWILQ"
+    className="sc-cSHVUG bshqpY"
   >
     <div
-      className="sc-cSHVUG eKCMqR"
+      className="sc-kAzzGY dXxhGR"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-cSHVUG eKCMqR nonactiveBtn"
+      className="sc-kAzzGY dXxhGR nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-chPdSV uuZYl"
+    className="sc-kgoBCf bnLdmV"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -267,10 +267,10 @@ Array [
       onClick={[Function]}
     >
       <div
-        className="sc-iwsKbI hEWZII"
+        className="sc-gZMcBi bFBMIL"
       >
         <div
-          className="sc-htoDjs kJflDH"
+          className="sc-dnqmqq gTuXvf"
         >
           <img
             alt="identicon of tokenId bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba "
@@ -285,7 +285,7 @@ Array [
           />
         </div>
         <div
-          className="sc-dnqmqq biYXpd"
+          className="sc-iwsKbI iUtJFY"
         >
           6.001
            
@@ -302,7 +302,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-fjdhpX chQHlX"
+    className="sc-jzJRlG fzqXAc"
   >
     <span
       aria-label="party emoji"
@@ -328,7 +328,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-VigVT Hwhbd"
+    className="sc-jTzLTM jQTnZV"
   >
     0 
     BCHA
@@ -344,7 +344,7 @@ Array [
     }
   >
     <div
-      className="sc-bZQynM flcEFP"
+      className="sc-gzVnrw fMUVHg"
       style={
         Object {
           "display": "none",
@@ -355,7 +355,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-EHOje bCdlCK"
+      className="sc-bZQynM eUIYPw"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -380,7 +380,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-gzVnrw eRUALR"
+      className="sc-htoDjs gVjOGH"
     >
       <input
         readOnly={true}
@@ -398,16 +398,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jzJRlG QWILQ"
+    className="sc-cSHVUG bshqpY"
   >
     <div
-      className="sc-cSHVUG eKCMqR"
+      className="sc-kAzzGY dXxhGR"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-cSHVUG eKCMqR nonactiveBtn"
+      className="sc-kAzzGY dXxhGR nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
@@ -418,18 +418,38 @@ Array [
 
 exports[`Without wallet defined 1`] = `
 Array [
+  <h2>
+    Welcome to Cashtab!
+  </h2>,
   <p
     className="sc-ifAKCX eZWyLZ"
   >
-    Welcome to Cashtab! Cashtab is an open source, non-custodial web wallet for 
+    Cashtab is an
+     
+    <a
+      className="sc-EHOje jAqriM"
+      href="https://github.com/bitcoin-abc/bitcoin-abc"
+      rel="noreferrer"
+      target="_blank"
+    >
+      open source,
+    </a>
+     
+    non-custodial web wallet for 
     Bitcoin ABC
     .
     <br />
     <br />
-    Web wallets offer user convenience, but storing large amounts of money on a web wallet is not recommended.
-    <br />
-    <br />
-    Create a new wallet below to get started, or import an existing wallet using a seed phrase.
+    Want to learn more?
+     
+    <a
+      className="sc-EHOje jAqriM"
+      href="https://docs.cashtabapp.com/"
+      rel="noreferrer"
+      target="_blank"
+    >
+      Check out the Cashtab documentation.
+    </a>
   </p>,
   <button
     className="sc-bwzfXH crkPeR"
