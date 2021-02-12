@@ -22,6 +22,7 @@
 #include <util/translation.h>
 #include <wallet/rpc/util.h>
 #include <wallet/rpcwallet.h>
+#include <wallet/spend.h>
 #include <wallet/wallet.h>
 
 #include <boost/algorithm/string.hpp>
@@ -1126,7 +1127,7 @@ static RPCHelpMan dumpcoins() {
             EnsureWalletIsUnlocked(&wallet);
 
             UniValue result(UniValue::VOBJ);
-            for (const auto &p : wallet.ListCoins()) {
+            for (const auto &p : ListCoins(wallet)) {
                 UniValue coins(UniValue::VARR);
                 for (const auto &o : p.second) {
                     UniValue utxo(UniValue::VOBJ);

@@ -8,6 +8,7 @@
 #include <interfaces/chain.h>
 #include <node/context.h>
 #include <validationinterface.h>
+#include <wallet/receive.h>
 #include <wallet/wallet.h>
 
 #include <test/util/mining.h>
@@ -59,13 +60,13 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
     SyncWithValidationInterfaceQueue();
 
     // Cache
-    auto bal = wallet.GetBalance();
+    auto bal = GetBalance(wallet);
 
     bench.run([&] {
         if (set_dirty) {
             wallet.MarkDirty();
         }
-        bal = wallet.GetBalance();
+        bal = GetBalance(wallet);
         if (add_mine) {
             assert(bal.m_mine_trusted > Amount::zero());
         }

@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
     s_prev_tx1 >> prev_tx1;
     m_wallet.mapWallet.emplace(std::piecewise_construct,
                                std::forward_as_tuple(prev_tx1->GetId()),
-                               std::forward_as_tuple(&m_wallet, prev_tx1));
+                               std::forward_as_tuple(prev_tx1));
 
     CDataStream s_prev_tx2(
         ParseHex(
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
     s_prev_tx2 >> prev_tx2;
     m_wallet.mapWallet.emplace(std::piecewise_construct,
                                std::forward_as_tuple(prev_tx2->GetId()),
-                               std::forward_as_tuple(&m_wallet, prev_tx2));
+                               std::forward_as_tuple(prev_tx2));
 
     // Add scripts
     CScript rs1;

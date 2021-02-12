@@ -664,7 +664,7 @@ bool CWallet::IsSpent(const COutPoint &outpoint) const {
         const TxId &wtxid = it->second;
         std::map<TxId, CWalletTx>::const_iterator mit = mapWallet.find(wtxid);
         if (mit != mapWallet.end()) {
-            int depth = mit->second.GetDepthInMainChain();
+            int depth = GetTxDepthInMainChain(mit->second);
             if (depth > 0 || (depth == 0 && !mit->second.isAbandoned())) {
                 // Spent
                 return true;
@@ -971,7 +971,7 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
     // Inserts only if not already there, returns tx inserted or tx found.
     auto ret =
         mapWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid),
-                          std::forward_as_tuple(this, tx));
+                          std::forward_as_tuple(tx));
     CWalletTx &wtx = (*ret.first).second;
     bool fInsertedNew = ret.second;
     bool fUpdated = update_wtx && update_wtx(wtx, fInsertedNew);
@@ -1042,7 +1042,7 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
 bool CWallet::LoadToWallet(const TxId &txid, const UpdateWalletTxFn &fill_wtx) {
     const auto &ins =
         mapWallet.emplace(std::piecewise_construct, std::forward_as_tuple(txid),
-                          std::forward_as_tuple(this, nullptr));
+                          std::forward_as_tuple(nullptr));
     CWalletTx &wtx = ins.first->second;
     if (!fill_wtx(wtx, ins.second)) {
         return false;
@@ -1149,7 +1149,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef &ptx,
 bool CWallet::TransactionCanBeAbandoned(const TxId &txid) const {
     LOCK(cs_wallet);
     const CWalletTx *wtx = GetWalletTx(txid);
-    return wtx && !wtx->isAbandoned() && wtx->GetDepthInMainChain() == 0 &&
+    return wtx && !wtx->isAbandoned() && GetTxDepthInMainChain(*wtx) == 0 &&
            !wtx->InMempool();
 }
 
@@ -1174,7 +1174,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
     auto it = mapWallet.find(txid);
     assert(it != mapWallet.end());
     const CWalletTx &origtx = it->second;
-    if (origtx.GetDepthInMainChain() != 0 || origtx.InMempool()) {
+    if (GetTxDepthInMainChain(origtx) != 0 || origtx.InMempool()) {
         return false;
     }
 
@@ -1187,7 +1187,7 @@ bool CWallet::AbandonTransaction(const TxId &txid) {
         it = mapWallet.find(now);
         assert(it != mapWallet.end());
         CWalletTx &wtx = it->second;
-        int currentconfirm = wtx.GetDepthInMainChain();
+        int currentconfirm = GetTxDepthInMainChain(wtx);
         // If the orig tx was not in block, none of its spends can be.
         assert(currentconfirm <= 0);
         // If (currentconfirm < 0) {Tx and spends are already conflicted, no
@@ -1250,7 +1250,7 @@ void CWallet::MarkConflicted(const BlockHash &hashBlock, int conflicting_height,
         auto it = mapWallet.find(now);
         assert(it != mapWallet.end());
         CWalletTx &wtx = it->second;
-        int currentconfirm = wtx.GetDepthInMainChain();
+        int currentconfirm = GetTxDepthInMainChain(wtx);
         if (conflictconfirms < currentconfirm) {
             // Block is 'more conflicted' than current confirm; update.
             // Mark transaction as conflicted with this block.
@@ -1856,7 +1856,7 @@ void CWallet::ReacceptWalletTransactions() {
         CWalletTx &wtx = item.second;
         assert(wtx.GetId() == wtxid);
 
-        int nDepth = wtx.GetDepthInMainChain();
+        int nDepth = GetTxDepthInMainChain(wtx);
 
         if (!wtx.IsCoinBase() && (nDepth == 0 && !wtx.isAbandoned())) {
             mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx));
@@ -1867,32 +1867,34 @@ void CWallet::ReacceptWalletTransactions() {
     for (const std::pair<const int64_t, CWalletTx *> &item : mapSorted) {
         CWalletTx &wtx = *(item.second);
         std::string unused_err_string;
-        wtx.SubmitMemoryPoolAndRelay(unused_err_string, false);
+        SubmitTxMemoryPoolAndRelay(wtx, unused_err_string, false);
     }
 }
 
-bool CWalletTx::SubmitMemoryPoolAndRelay(std::string &err_string, bool relay) {
+bool CWallet::SubmitTxMemoryPoolAndRelay(const CWalletTx &wtx,
+                                         std::string &err_string,
+                                         bool relay) const {
     // Can't relay if wallet is not broadcasting
-    if (!pwallet->GetBroadcastTransactions()) {
+    if (!GetBroadcastTransactions()) {
         return false;
     }
     // Don't relay abandoned transactions
-    if (isAbandoned()) {
+    if (wtx.isAbandoned()) {
         return false;
     }
     // Don't try to submit coinbase transactions. These would fail anyway but
     // would cause log spam.
-    if (IsCoinBase()) {
+    if (wtx.IsCoinBase()) {
         return false;
     }
     // Don't try to submit conflicted or confirmed transactions.
-    if (GetDepthInMainChain() != 0) {
+    if (GetTxDepthInMainChain(wtx) != 0) {
         return false;
     }
 
     // Submit transaction to mempool for relay
-    pwallet->WalletLogPrintf("Submitting wtx %s to mempool for relay\n",
-                             GetId().ToString());
+    WalletLogPrintf("Submitting wtx %s to mempool for relay\n",
+                    wtx.GetId().ToString());
     // We must set fInMempool here - while it will be re-set to true by the
     // entered-mempool callback, if we did not there would be a race where a
     // user could call sendmoney in a loop and hit spurious out of funds errors
@@ -1902,19 +1904,17 @@ bool CWalletTx::SubmitMemoryPoolAndRelay(std::string &err_string, bool relay) {
     // Irrespective of the failure reason, un-marking fInMempool
     // out-of-order is incorrect - it should be unmarked when
     // TransactionRemovedFromMempool fires.
-    bool ret = pwallet->chain().broadcastTransaction(
-        GetConfig(), tx, pwallet->m_default_max_tx_fee, relay, err_string);
-    fInMempool |= ret;
+    bool ret = chain().broadcastTransaction(
+        GetConfig(), wtx.tx, m_default_max_tx_fee, relay, err_string);
+    wtx.fInMempool |= ret;
     return ret;
 }
 
-std::set<TxId> CWalletTx::GetConflicts() const {
+std::set<TxId> CWallet::GetTxConflicts(const CWalletTx &wtx) const {
     std::set<TxId> result;
-    if (pwallet != nullptr) {
-        const TxId &txid = GetId();
-        result = pwallet->GetConflicts(txid);
-        result.erase(txid);
-    }
+    const TxId &txid = wtx.GetId();
+    result = GetConflicts(txid);
+    result.erase(txid);
 
     return result;
 }
@@ -1957,13 +1957,13 @@ void CWallet::ResendWalletTransactions() {
         for (std::pair<const TxId, CWalletTx> &item : mapWallet) {
             CWalletTx &wtx = item.second;
             // Attempt to rebroadcast all txes more than 5 minutes older than
-            // the last block. SubmitMemoryPoolAndRelay() will not rebroadcast
+            // the last block. SubmitTxMemoryPoolAndRelay() will not rebroadcast
             // any confirmed or conflicting txs.
             if (wtx.nTimeReceived > m_best_block_time - 5 * 60) {
                 continue;
             }
             std::string unused_err_string;
-            if (wtx.SubmitMemoryPoolAndRelay(unused_err_string, true)) {
+            if (SubmitTxMemoryPoolAndRelay(wtx, unused_err_string, true)) {
                 ++submitted_tx_count;
             }
         }
@@ -2146,7 +2146,7 @@ void CWallet::CommitTransaction(
     }
 
     std::string err_string;
-    if (!wtx.SubmitMemoryPoolAndRelay(err_string, true)) {
+    if (!SubmitTxMemoryPoolAndRelay(wtx, err_string, true)) {
         WalletLogPrintf("CommitTransaction(): Transaction cannot be broadcast "
                         "immediately, %s\n",
                         err_string);
@@ -3096,31 +3096,29 @@ CKeyPool::CKeyPool(const CPubKey &vchPubKeyIn, bool internalIn) {
     m_pre_split = false;
 }
 
-int CWalletTx::GetDepthInMainChain() const {
-    assert(pwallet != nullptr);
-    AssertLockHeld(pwallet->cs_wallet);
-    if (isUnconfirmed() || isAbandoned()) {
+int CWallet::GetTxDepthInMainChain(const CWalletTx &wtx) const {
+    AssertLockHeld(cs_wallet);
+    if (wtx.isUnconfirmed() || wtx.isAbandoned()) {
         return 0;
     }
 
-    return (pwallet->GetLastBlockHeight() - m_confirm.block_height + 1) *
-           (isConflicted() ? -1 : 1);
+    return (GetLastBlockHeight() - wtx.m_confirm.block_height + 1) *
+           (wtx.isConflicted() ? -1 : 1);
 }
 
-int CWalletTx::GetBlocksToMaturity() const {
-    if (!IsCoinBase()) {
+int CWallet::GetTxBlocksToMaturity(const CWalletTx &wtx) const {
+    if (!wtx.IsCoinBase()) {
         return 0;
     }
-
-    int chain_depth = GetDepthInMainChain();
+    int chain_depth = GetTxDepthInMainChain(wtx);
     // coinbase tx should not be conflicted
     assert(chain_depth >= 0);
     return std::max(0, (COINBASE_MATURITY + 1) - chain_depth);
 }
 
-bool CWalletTx::IsImmatureCoinBase() const {
+bool CWallet::IsTxImmatureCoinBase(const CWalletTx &wtx) const {
     // note GetBlocksToMaturity is 0 for non-coinbase tx
-    return GetBlocksToMaturity() > 0;
+    return GetTxBlocksToMaturity(wtx) > 0;
 }
 
 bool CWallet::IsCrypted() const {

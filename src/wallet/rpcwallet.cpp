@@ -30,8 +30,10 @@
 #include <wallet/coincontrol.h>
 #include <wallet/context.h>
 #include <wallet/load.h>
+#include <wallet/receive.h>
 #include <wallet/rpc/util.h>
 #include <wallet/rpcwallet.h>
+#include <wallet/spend.h>
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
@@ -54,9 +56,10 @@ bool HaveKey(const SigningProvider &wallet, const CKey &key) {
            wallet.HaveKey(key2.GetPubKey().GetID());
 }
 
-static void WalletTxToJSON(interfaces::Chain &chain, const CWalletTx &wtx,
+static void WalletTxToJSON(const CWallet &wallet, const CWalletTx &wtx,
                            UniValue &entry) {
-    int confirms = wtx.GetDepthInMainChain();
+    interfaces::Chain &chain = wallet.chain();
+    int confirms = wallet.GetTxDepthInMainChain(wtx);
     entry.pushKV("confirmations", confirms);
     if (wtx.IsCoinBase()) {
         entry.pushKV("generated", true);
@@ -70,12 +73,12 @@ static void WalletTxToJSON(interfaces::Chain &chain, const CWalletTx &wtx,
                                        FoundBlock().time(block_time)));
         entry.pushKV("blocktime", block_time);
     } else {
-        entry.pushKV("trusted", wtx.IsTrusted());
+        entry.pushKV("trusted", CachedTxIsTrusted(wallet, wtx));
     }
     uint256 hash = wtx.GetId();
     entry.pushKV("txid", hash.GetHex());
     UniValue conflicts(UniValue::VARR);
-    for (const uint256 &conflict : wtx.GetConflicts()) {
+    for (const uint256 &conflict : wallet.GetTxConflicts(wtx)) {
         conflicts.push_back(conflict.GetHex());
     }
     entry.pushKV("walletconflicts", conflicts);
@@ -296,8 +299,9 @@ UniValue SendMoney(CWallet *const pwallet, const CCoinControl &coin_control,
     int nChangePosRet = -1;
     bilingual_str error;
     CTransactionRef tx;
-    bool fCreated = pwallet->CreateTransaction(
-        recipients, tx, nFeeRequired, nChangePosRet, error, coin_control,
+    bool fCreated = CreateTransaction(
+        *pwallet, recipients, tx, nFeeRequired, nChangePosRet, error,
+        coin_control,
         !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
     if (!fCreated) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
@@ -457,9 +461,9 @@ static RPCHelpMan listaddressgroupings() {
 
             UniValue jsonGroupings(UniValue::VARR);
             std::map<CTxDestination, Amount> balances =
-                pwallet->GetAddressBalances();
+                GetAddressBalances(*pwallet);
             for (const std::set<CTxDestination> &grouping :
-                 pwallet->GetAddressGroupings()) {
+                 GetAddressGroupings(*pwallet)) {
                 UniValue jsonGrouping(UniValue::VARR);
                 for (const CTxDestination &address : grouping) {
                     UniValue addressInfo(UniValue::VARR);
@@ -519,7 +523,7 @@ static Amount GetReceived(const CWallet &wallet, const UniValue &params,
         if (wtx.IsCoinBase() ||
             !wallet.chain().contextualCheckTransactionForCurrentBlock(
                 *wtx.tx, txState) ||
-            wtx.GetDepthInMainChain() < min_depth) {
+            wallet.GetTxDepthInMainChain(wtx) < min_depth) {
             continue;
         }
 
@@ -697,7 +701,7 @@ static RPCHelpMan getbalance() {
 
             bool avoid_reuse = GetAvoidReuseFlag(pwallet, request.params[3]);
 
-            const auto bal = pwallet->GetBalance(min_depth, avoid_reuse);
+            const auto bal = GetBalance(*pwallet, min_depth, avoid_reuse);
 
             return bal.m_mine_trusted + (include_watchonly
                                              ? bal.m_watchonly_trusted
@@ -729,7 +733,7 @@ static RPCHelpMan getunconfirmedbalance() {
 
             LOCK(pwallet->cs_wallet);
 
-            return pwallet->GetBalance().m_mine_untrusted_pending;
+            return GetBalance(*pwallet).m_mine_untrusted_pending;
         },
     };
 }
@@ -1022,7 +1026,7 @@ static UniValue ListReceived(const Config &config, const CWallet *const pwallet,
             continue;
         }
 
-        int nDepth = wtx.GetDepthInMainChain();
+        int nDepth = pwallet->GetTxDepthInMainChain(wtx);
         if (nDepth < nMinDepth) {
             continue;
         }
@@ -1298,9 +1302,10 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
     std::list<COutputEntry> listReceived;
     std::list<COutputEntry> listSent;
 
-    wtx.GetAmounts(listReceived, listSent, nFee, filter_ismine);
+    CachedTxGetAmounts(*pwallet, wtx, listReceived, listSent, nFee,
+                       filter_ismine);
 
-    bool involvesWatchonly = wtx.IsFromMe(ISMINE_WATCH_ONLY);
+    bool involvesWatchonly = CachedTxIsFromMe(*pwallet, wtx, ISMINE_WATCH_ONLY);
 
     // Sent
     if (!filter_label) {
@@ -1321,7 +1326,7 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
             entry.pushKV("vout", s.vout);
             entry.pushKV("fee", -1 * nFee);
             if (fLong) {
-                WalletTxToJSON(pwallet->chain(), wtx, entry);
+                WalletTxToJSON(*pwallet, wtx, entry);
             }
             entry.pushKV("abandoned", wtx.isAbandoned());
             ret.push_back(entry);
@@ -1329,7 +1334,8 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
     }
 
     // Received
-    if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth) {
+    if (listReceived.size() > 0 &&
+        pwallet->GetTxDepthInMainChain(wtx) >= nMinDepth) {
         for (const COutputEntry &r : listReceived) {
             std::string label;
             const auto *address_book_entry =
@@ -1347,9 +1353,9 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
             }
             MaybePushAddress(entry, r.destination);
             if (wtx.IsCoinBase()) {
-                if (wtx.GetDepthInMainChain() < 1) {
+                if (pwallet->GetTxDepthInMainChain(wtx) < 1) {
                     entry.pushKV("category", "orphan");
-                } else if (wtx.IsImmatureCoinBase()) {
+                } else if (pwallet->IsTxImmatureCoinBase(wtx)) {
                     entry.pushKV("category", "immature");
                 } else {
                     entry.pushKV("category", "generate");
@@ -1363,7 +1369,7 @@ static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
             }
             entry.pushKV("vout", r.vout);
             if (fLong) {
-                WalletTxToJSON(pwallet->chain(), wtx, entry);
+                WalletTxToJSON(*pwallet, wtx, entry);
             }
             ret.push_back(entry);
         }
@@ -1747,7 +1753,7 @@ static RPCHelpMan listsinceblock() {
                  wallet.mapWallet) {
                 const CWalletTx &tx = pairWtx.second;
 
-                if (depth == -1 || tx.GetDepthInMainChain() < depth) {
+                if (depth == -1 || wallet.GetTxDepthInMainChain(tx) < depth) {
                     ListTransactions(&wallet, tx, 0, true, transactions, filter,
                                      nullptr /* filter_label */);
                 }
@@ -1932,18 +1938,19 @@ static RPCHelpMan gettransaction() {
             }
             const CWalletTx &wtx = it->second;
 
-            Amount nCredit = wtx.GetCredit(filter);
-            Amount nDebit = wtx.GetDebit(filter);
+            Amount nCredit = CachedTxGetCredit(*pwallet, wtx, filter);
+            Amount nDebit = CachedTxGetDebit(*pwallet, wtx, filter);
             Amount nNet = nCredit - nDebit;
-            Amount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit
-                                                : Amount::zero());
+            Amount nFee = (CachedTxIsFromMe(*pwallet, wtx, filter)
+                               ? wtx.tx->GetValueOut() - nDebit
+                               : Amount::zero());
 
             entry.pushKV("amount", nNet - nFee);
-            if (wtx.IsFromMe(filter)) {
+            if (CachedTxIsFromMe(*pwallet, wtx, filter)) {
                 entry.pushKV("fee", nFee);
             }
 
-            WalletTxToJSON(pwallet->chain(), wtx, entry);
+            WalletTxToJSON(*pwallet, wtx, entry);
 
             UniValue details(UniValue::VARR);
             ListTransactions(pwallet, wtx, 0, false, details, filter,
@@ -2425,7 +2432,7 @@ static RPCHelpMan getbalances() {
 
             LOCK(wallet.cs_wallet);
 
-            const auto bal = wallet.GetBalance();
+            const auto bal = GetBalance(wallet);
             UniValue balances{UniValue::VOBJ};
             {
                 UniValue balances_mine{UniValue::VOBJ};
@@ -2437,7 +2444,7 @@ static RPCHelpMan getbalances() {
                     // If the AVOID_REUSE flag is set, bal has been set to just
                     // the un-reused address balance. Get the total balance, and
                     // then subtract bal to get the reused address balance.
-                    const auto full_bal = wallet.GetBalance(0, false);
+                    const auto full_bal = GetBalance(wallet, 0, false);
                     balances_mine.pushKV("used",
                                          full_bal.m_mine_trusted +
                                              full_bal.m_mine_untrusted_pending -
@@ -2545,7 +2552,7 @@ static RPCHelpMan getwalletinfo() {
             UniValue obj(UniValue::VOBJ);
 
             size_t kpExternalSize = pwallet->KeypoolCountExternalKeys();
-            const auto bal = pwallet->GetBalance();
+            const auto bal = GetBalance(*pwallet);
             int64_t kp_oldest = pwallet->GetOldestKeyPoolTime();
             obj.pushKV("walletname", pwallet->GetName());
             obj.pushKV("walletversion", pwallet->GetVersion());
@@ -3182,9 +3189,9 @@ static RPCHelpMan listunspent() {
                 cctl.m_min_depth = nMinDepth;
                 cctl.m_max_depth = nMaxDepth;
                 LOCK(pwallet->cs_wallet);
-                pwallet->AvailableCoins(vecOutputs, !include_unsafe, &cctl,
-                                        nMinimumAmount, nMaximumAmount,
-                                        nMinimumSumAmount, nMaximumCount);
+                AvailableCoins(*pwallet, vecOutputs, !include_unsafe, &cctl,
+                               nMinimumAmount, nMaximumAmount,
+                               nMinimumSumAmount, nMaximumCount);
             }
 
             LOCK(pwallet->cs_wallet);
@@ -3414,9 +3421,9 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
 
     bilingual_str error;
 
-    if (!pwallet->FundTransaction(tx, fee_out, change_position, error,
-                                  lockUnspents, setSubtractFeeFromOutputs,
-                                  coinControl)) {
+    if (!FundTransaction(*pwallet, tx, fee_out, change_position, error,
+                         lockUnspents, setSubtractFeeFromOutputs,
+                         coinControl)) {
         throw JSONRPCError(RPC_WALLET_ERROR, error.original);
     }
 }
@@ -4032,7 +4039,7 @@ RPCHelpMan getaddressinfo() {
             UniValue detail = DescribeWalletAddress(pwallet, dest);
             ret.pushKVs(detail);
 
-            ret.pushKV("ischange", pwallet->IsChange(scriptPubKey));
+            ret.pushKV("ischange", ScriptIsChange(*pwallet, scriptPubKey));
 
             ScriptPubKeyMan *spk_man =
                 pwallet->GetScriptPubKeyMan(scriptPubKey);

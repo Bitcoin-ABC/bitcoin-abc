@@ -987,7 +987,7 @@ DBErrors WalletBatch::FindWalletTx(std::vector<TxId> &txIds,
                 TxId txid;
                 ssKey >> txid;
                 txIds.push_back(txid);
-                vWtx.emplace_back(nullptr /* wallet */, nullptr /* tx */);
+                vWtx.emplace_back(nullptr /* tx */);
                 ssValue >> vWtx.back();
             }
         }
