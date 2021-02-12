@@ -229,7 +229,7 @@ exports[`Configure with a wallet 1`] = `
       [
       <a
         className="sc-EHOje chPufo"
-        href="https://docs.cashtabapp.com/"
+        href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
         type="link"
@@ -433,7 +433,7 @@ exports[`Configure without a wallet 1`] = `
       [
       <a
         className="sc-EHOje chPufo"
-        href="https://docs.cashtabapp.com/"
+        href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
         type="link"

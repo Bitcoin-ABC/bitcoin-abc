@@ -98,7 +98,7 @@ export const OnBoarding = ({ history }) => {
                 <br />
                 Want to learn more?{' '}
                 <WelcomeLink
-                    href="https://docs.cashtabapp.com/"
+                    href="https://docs.cashtabapp.com/docs/"
                     target="_blank"
                     rel="noreferrer"
                 >
