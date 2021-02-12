@@ -22,6 +22,7 @@ templates:
       - cmake/
       - src/
       - test/
+      - CMakeLists.txt
 
   secp256k1:
     runOnDiffRegex:
