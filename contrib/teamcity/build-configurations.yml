@@ -93,6 +93,13 @@ builds:
       - - bench-bitcoin
       - - bench-secp256k1
     timeout: 1200
+    artifacts:
+      src/bench/BitcoinABC_Bench.csv: bench/BitcoinABC_Bench.csv
+      src/bench/BitcoinABC_Bench.json: bench/BitcoinABC_Bench.json
+    post_build: |
+      "${TOPLEVEL}/contrib/teamcity/nanobench_json_to_teamcity_messages.py" \
+        "Bitcoin ABC Benchmark" \
+        "${BUILD_DIR}/src/bench/BitcoinABC_Bench.json"
 
   build-clang:
     Werror: true

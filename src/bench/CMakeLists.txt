@@ -88,7 +88,14 @@ include(TestSuite)
 add_test_custom_target(bench-bitcoin
 	TEST_COMMAND
 		"$<TARGET_FILE:bitcoin-bench>"
+		-output_csv=BitcoinABC_Bench.csv
+		-output_json=BitcoinABC_Bench.json
 	CUSTOM_TARGET_ARGS
 		DEPENDS bitcoin-bench
 		USES_TERMINAL
+)
+
+set_property(DIRECTORY "${CMAKE_SOURCE_DIR}" APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+	BitcoinABC_Bench.csv
+	BitcoinABC_Bench.json
 )
