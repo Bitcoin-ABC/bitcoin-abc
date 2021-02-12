@@ -2167,7 +2167,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
                     add_fixed_seeds_now = true;
                     LogPrintf(
                         "Adding fixed seeds as -dnsseed=0, -addnode is not "
-                        "provided and and all -seednode(s) attempted\n");
+                        "provided and all -seednode(s) attempted\n");
                 }
             }
 
