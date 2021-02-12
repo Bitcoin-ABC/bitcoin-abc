@@ -483,10 +483,11 @@ private:
      * address.
      *
      * @param[in]   pnode     The node to check.
+     * @param[in]   peer      The peer object to check.
      * @return                True if the peer was marked for disconnection in
      * this function
      */
-    bool MaybeDiscourageAndDisconnect(CNode &pnode);
+    bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
     void ProcessOrphanTx(const Config &config, std::set<TxId> &orphan_work_set)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans);
@@ -5080,34 +5081,29 @@ void PeerManagerImpl::ProcessMessage(
     return;
 }
 
-bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode &pnode) {
-    const NodeId peer_id{pnode.GetId()};
-    PeerRef peer = GetPeerRef(peer_id);
-    if (peer == nullptr) {
-        return false;
-    }
+bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer) {
     {
-        LOCK(peer->m_misbehavior_mutex);
+        LOCK(peer.m_misbehavior_mutex);
 
         // There's nothing to do if the m_should_discourage flag isn't set
-        if (!peer->m_should_discourage) {
+        if (!peer.m_should_discourage) {
             return false;
         }
 
-        peer->m_should_discourage = false;
+        peer.m_should_discourage = false;
     } // peer.m_misbehavior_mutex
 
     if (pnode.HasPermission(PF_NOBAN)) {
         // We never disconnect or discourage peers for bad behavior if they have
         // the NOBAN permission flag
-        LogPrintf("Warning: not punishing noban peer %d!\n", peer_id);
+        LogPrintf("Warning: not punishing noban peer %d!\n", peer.m_id);
         return false;
     }
 
     if (pnode.IsManualConn()) {
         // We never disconnect or discourage manual peers for bad behavior
         LogPrintf("Warning: not punishing manually connected peer %d!\n",
-                  peer_id);
+                  peer.m_id);
         return false;
     }
 
@@ -5116,14 +5112,14 @@ bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode &pnode) {
         // (since that would discourage all peers on the same local address)
         LogPrintf(
             "Warning: disconnecting but not discouraging local peer %d!\n",
-            peer_id);
+            peer.m_id);
         pnode.fDisconnect = true;
         return true;
     }
 
     // Normal case: Disconnect the peer and discourage all nodes sharing the
     // address
-    LogPrintf("Disconnecting and discouraging peer %d!\n", peer_id);
+    LogPrintf("Disconnecting and discouraging peer %d!\n", peer.m_id);
     if (m_banman) {
         m_banman->Discourage(pnode.addr);
     }
@@ -5486,12 +5482,15 @@ public:
 
 bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     PeerRef peer = GetPeerRef(pto->GetId());
+    if (!peer) {
+        return false;
+    }
     const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
 
     // We must call MaybeDiscourageAndDisconnect first, to ensure that we'll
     // disconnect misbehaving peers even before the version handshake is
     // complete.
-    if (MaybeDiscourageAndDisconnect(*pto)) {
+    if (MaybeDiscourageAndDisconnect(*pto, *peer)) {
         return true;
     }
 
