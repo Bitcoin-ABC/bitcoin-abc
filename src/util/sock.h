@@ -116,9 +116,14 @@ public:
      *     events to occur.
      * @param[in] requested Wait for those events, bitwise-or of `RECV` and
      *     `SEND`.
+     * @param[out] occurred If not nullptr and `true` is returned, then upon
+     *     return this indicates which of the requested events occurred. A
+     *     timeout is indicated by return value of `true` and `occurred` being
+     *     set to 0.
      * @return true on success and false otherwise
      */
-    virtual bool Wait(std::chrono::milliseconds timeout, Event requested) const;
+    virtual bool Wait(std::chrono::milliseconds timeout, Event requested,
+                      Event *occurred = nullptr) const;
 
 private:
     /**
