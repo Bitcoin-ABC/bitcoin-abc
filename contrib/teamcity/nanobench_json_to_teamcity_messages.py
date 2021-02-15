@@ -33,9 +33,9 @@ teamcity_messages.testSuiteStarted(
 )
 
 
-def testMeta_number_message(test_name, param_name, param_value):
+def testMetadata_number_message(test_name, param_name, param_value):
     teamcity_messages.message(
-        'testMeta',
+        'testMetadata',
         type='number',
         testName=test_name,
         name=param_name,
@@ -50,25 +50,25 @@ for result in json_results.get('results', []):
         test_name
     )
 
-    testMeta_number_message(
+    testMetadata_number_message(
         test_name,
         'ns/{}'.format(result['unit']),
         1e9 * result['median(elapsed)'] / result['batch'],
     )
 
-    testMeta_number_message(
+    testMetadata_number_message(
         test_name,
         '{}/s'.format(result['unit']),
         result['batch'] / result['median(elapsed)'],
     )
 
-    testMeta_number_message(
+    testMetadata_number_message(
         test_name,
         'err%',
         100 * result['medianAbsolutePercentError(elapsed)'],
     )
 
-    testMeta_number_message(
+    testMetadata_number_message(
         test_name,
         'ins/{}'.format(result['unit']),
         result['median(instructions)'] / result['batch'],
