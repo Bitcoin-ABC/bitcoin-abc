@@ -83,15 +83,10 @@ builds:
     runOnDiffRegex:
       - src/bench/
     Werror: true
-    cmake_flags:
-      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
-      - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
     targets:
       - - all
         - install-bitcoin-bench
-        - install-secp256k1-bench
       - - bench-bitcoin
-      - - bench-secp256k1
     timeout: 1200
     artifacts:
       src/bench/BitcoinABC_Bench.csv: bench/BitcoinABC_Bench.csv
@@ -325,6 +320,17 @@ builds:
     templates:
       - secp256k1
     timeout: 600
+
+  build-secp256k1-bench:
+    runOnDiffRegex:
+      - src/secp256k1/
+    cmake_flags:
+      - '-DSECP256K1_ENABLE_MODULE_ECDH=ON'
+      - '-DSECP256K1_ENABLE_MODULE_MULTISET=ON'
+    targets:
+      - - install-secp256k1-bench
+      - - bench-secp256k1
+    timeout: 1200
 
   build-tsan:
     Werror: true
