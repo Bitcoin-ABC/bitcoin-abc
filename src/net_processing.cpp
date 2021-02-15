@@ -541,6 +541,17 @@ private:
     /** Send `addr` messages on a regular schedule. */
     void MaybeSendAddr(CNode &node, std::chrono::microseconds current_time);
 
+    /**
+     * Relay (gossip) an address to a few randomly chosen nodes.
+     *
+     * @param[in] originator   The id of the peer that sent us the address. We
+     *                         don't want to relay it back.
+     * @param[in] addr         Address to relay.
+     * @param[in] fReachable   Whether the address' network is reachable. We
+     *                         relay unreachable addresses less.
+     */
+    void RelayAddress(NodeId originator, const CAddress &addr, bool fReachable);
+
     const CChainParams &m_chainparams;
     CConnman &m_connman;
     /**
@@ -2154,32 +2165,24 @@ void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman) {
         [&proofid](CNode *pnode) { pnode->PushProofInventory(proofid); });
 }
 
-/**
- * Relay (gossip) an address to a few randomly chosen nodes.
- * We choose the same nodes within a given 24h window (if the list of connected
- * nodes does not change) and we don't relay to nodes that already know an
- * address. So within 24h we will likely relay a given address once. This is to
- * prevent a peer from unjustly giving their address better propagation by
- * sending it to us repeatedly.
- * @param[in] originator The id of the peer that sent us the address. We don't
- *                       want to relay it back.
- * @param[in] addr Address to relay.
- * @param[in] fReachable Whether the address' network is reachable. We relay
- *                       unreachable addresses less.
- * @param[in] connman Connection manager to choose nodes to relay to.
- */
-static void RelayAddress(NodeId originator, const CAddress &addr,
-                         bool fReachable, const CConnman &connman) {
+void PeerManagerImpl::RelayAddress(NodeId originator, const CAddress &addr,
+                                   bool fReachable) {
+    // We choose the same nodes within a given 24h window (if the list of
+    // connected nodes does not change) and we don't relay to nodes that already
+    // know an address. So within 24h we will likely relay a given address once.
+    // This is to prevent a peer from unjustly giving their address better
+    // propagation by sending it to us repeatedly.
+
     if (!fReachable && !addr.IsRelayable()) {
         return;
     }
 
-    // Relay to a limited number of other nodes.
-    // Use deterministic randomness to send to the same nodes for 24 hours at a
-    // time so the m_addr_knowns of the chosen nodes prevent repeats
+    // Relay to a limited number of other nodes
+    // Use deterministic randomness to send to the same nodes for 24 hours
+    // at a time so the m_addr_knowns of the chosen nodes prevent repeats
     uint64_t hashAddr = addr.GetHash();
     const CSipHasher hasher =
-        connman.GetDeterministicRandomizer(RANDOMIZER_ID_ADDRESS_RELAY)
+        m_connman.GetDeterministicRandomizer(RANDOMIZER_ID_ADDRESS_RELAY)
             .Write(hashAddr << 32)
             .Write((GetTime() + hashAddr) / (24 * 60 * 60));
     FastRandomContext insecure_rand;
@@ -2214,7 +2217,7 @@ static void RelayAddress(NodeId originator, const CAddress &addr,
         }
     };
 
-    connman.ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
+    m_connman.ForEachNodeThen(std::move(sortfunc), std::move(pushfunc));
 }
 
 static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
@@ -3600,7 +3603,7 @@ void PeerManagerImpl::ProcessMessage(
             if (addr.nTime > nSince && !pfrom.fGetAddr && vAddr.size() <= 10 &&
                 addr.IsRoutable()) {
                 // Relay to a limited number of other nodes
-                RelayAddress(pfrom.GetId(), addr, fReachable, m_connman);
+                RelayAddress(pfrom.GetId(), addr, fReachable);
             }
             // Do not store addresses outside our network
             if (fReachable) {
