@@ -23,6 +23,7 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
+
 export const BalanceHeader = styled.div`
     p {
         color: #777;

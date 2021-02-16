@@ -17,6 +17,7 @@ import CashTab from '@assets/cashtab.png';
 import ABC from '@assets/bitcoinabclogo.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
+import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
     Redirect,
@@ -173,6 +174,7 @@ const App = () => {
                             <AbcLogo src={ABC} alt="abc" />
                         </a>
                     </HeaderCtn>
+                    <WalletLabel name={wallet.name}></WalletLabel>
                     <Switch>
                         <Route path="/wallet">
                             <Wallet />
