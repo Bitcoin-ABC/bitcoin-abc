@@ -1131,10 +1131,12 @@ public:
     }
 
     /**
-     * Return true if the peer has been connected for long enough to do
-     * inactivity checks.
+     * Return true if we should disconnect the peer for failing an inactivity
+     * check.
      */
-    bool RunInactivityChecks(const CNode &node) const;
+    bool
+    ShouldRunInactivityChecks(const CNode &node,
+                              std::optional<int64_t> now = std::nullopt) const;
 
 private:
     struct ListenSocket {
