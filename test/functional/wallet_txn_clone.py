@@ -13,8 +13,8 @@ from test_framework.util import assert_equal
 
 class TxnMallTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 4
-        self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], [], []]
+        self.num_nodes = 3
+        self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], []]
         self.supports_cli = False
 
     def skip_test_if_missing_module(self):
@@ -34,10 +34,8 @@ class TxnMallTest(BitcoinTestFramework):
 
         # All nodes should start with 1,250,000,000 XEC:
         starting_balance = 1250000000
-        for i in range(4):
+        for i in range(3):
             assert_equal(self.nodes[i].getbalance(), starting_balance)
-            # bug workaround, coins generated assigned to first getnewaddress!
-            self.nodes[i].getnewaddress()
 
         self.nodes[0].settxfee(1000)
 

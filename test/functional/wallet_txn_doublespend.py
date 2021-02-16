@@ -11,8 +11,8 @@ from test_framework.util import assert_equal, find_output
 
 class TxnMallTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 4
-        self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], [], []]
+        self.num_nodes = 3
+        self.extra_args = [["-noparkdeepreorg"], ["-noparkdeepreorg"], []]
         self.supports_cli = False
 
     def skip_test_if_missing_module(self):
@@ -38,10 +38,8 @@ class TxnMallTest(BitcoinTestFramework):
         for n in self.nodes:
             assert n.getblockchaininfo()["initialblockdownload"] is False
 
-        for i in range(4):
+        for i in range(3):
             assert_equal(self.nodes[i].getbalance(), starting_balance)
-            # bug workaround, coins generated assigned to first getnewaddress!
-            self.nodes[i].getnewaddress("")
 
         # Assign coins to foo and bar addresses:
         node0_address_foo = self.nodes[0].getnewaddress()
