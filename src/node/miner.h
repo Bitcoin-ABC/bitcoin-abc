@@ -44,93 +44,6 @@ struct CBlockTemplate {
     std::vector<CBlockTemplateEntry> entries;
 };
 
-// Container for tracking updates to ancestor feerate as we include (parent)
-// transactions in a block
-struct CTxMemPoolModifiedEntry {
-    explicit CTxMemPoolModifiedEntry(CTxMemPool::txiter entry) {
-        iter = entry;
-        nSizeWithAncestors = entry->GetSizeWithAncestors();
-        nModFeesWithAncestors = entry->GetModFeesWithAncestors();
-        nSigChecksWithAncestors = entry->GetSigChecksWithAncestors();
-    }
-
-    Amount GetModifiedFee() const { return iter->GetModifiedFee(); }
-    uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
-    uint64_t GetVirtualSizeWithAncestors() const;
-    Amount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
-    size_t GetTxSize() const { return iter->GetTxSize(); }
-    size_t GetTxVirtualSize() const { return iter->GetTxVirtualSize(); }
-    const CTransaction &GetTx() const { return iter->GetTx(); }
-
-    CTxMemPool::txiter iter;
-    uint64_t nSizeWithAncestors;
-    Amount nModFeesWithAncestors;
-    int64_t nSigChecksWithAncestors;
-};
-
-/**
- * Comparator for CTxMemPool::txiter objects.
- * It simply compares the internal memory address of the CTxMemPoolEntry object
- * pointed to. This means it has no meaning, and is only useful for using them
- * as key in other indexes.
- */
-struct CompareCTxMemPoolIter {
-    bool operator()(const CTxMemPool::txiter &a,
-                    const CTxMemPool::txiter &b) const {
-        return &(*a) < &(*b);
-    }
-};
-
-struct modifiedentry_iter {
-    typedef CTxMemPool::txiter result_type;
-    result_type operator()(const CTxMemPoolModifiedEntry &entry) const {
-        return entry.iter;
-    }
-};
-
-// A comparator that sorts transactions based on number of ancestors.
-// This is sufficient to sort an ancestor package in an order that is valid
-// to appear in a block.
-struct CompareTxIterByAncestorCount {
-    bool operator()(const CTxMemPool::txiter &a,
-                    const CTxMemPool::txiter &b) const {
-        if (a->GetCountWithAncestors() != b->GetCountWithAncestors()) {
-            return a->GetCountWithAncestors() < b->GetCountWithAncestors();
-        }
-        return CompareIteratorById()(a, b);
-    }
-};
-
-typedef boost::multi_index_container<
-    CTxMemPoolModifiedEntry,
-    boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<modifiedentry_iter,
-                                           CompareCTxMemPoolIter>,
-        // sorted by modified ancestor fee rate
-        boost::multi_index::ordered_non_unique<
-            // Reuse same tag from CTxMemPool's similar index
-            boost::multi_index::tag<ancestor_score>,
-            boost::multi_index::identity<CTxMemPoolModifiedEntry>,
-            CompareTxMemPoolEntryByAncestorFee>>>
-    indexed_modified_transaction_set;
-
-typedef indexed_modified_transaction_set::nth_index<0>::type::iterator
-    modtxiter;
-typedef indexed_modified_transaction_set::index<ancestor_score>::type::iterator
-    modtxscoreiter;
-
-struct update_for_parent_inclusion {
-    explicit update_for_parent_inclusion(CTxMemPool::txiter it) : iter(it) {}
-
-    void operator()(CTxMemPoolModifiedEntry &e) {
-        e.nModFeesWithAncestors -= iter->GetModifiedFee();
-        e.nSizeWithAncestors -= iter->GetTxSize();
-        e.nSigChecksWithAncestors -= iter->GetSigChecks();
-    }
-
-    CTxMemPool::txiter iter;
-};
-
 /** Generate a new block, without valid proof-of-work */
 class BlockAssembler {
 private:
@@ -147,7 +60,6 @@ private:
     uint64_t nBlockTx;
     uint64_t nBlockSigChecks;
     Amount nFees;
-    CTxMemPool::setEntries inBlock;
 
     // Chain context for the block
     int nHeight;
@@ -193,40 +105,14 @@ private:
      * Increments nPackagesSelected / nDescendantsUpdated with corresponding
      * statistics from the package selection (for logging statistics).
      */
-    void addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated)
-        EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs);
+    void addPackageTxs() EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs);
 
     // helper functions for addPackageTxs()
-    /** Remove confirmed (inBlock) entries from given set */
-    void onlyUnconfirmed(CTxMemPool::setEntries &testSet);
     /** Test if a new package would "fit" in the block */
     bool TestPackage(uint64_t packageSize, int64_t packageSigChecks) const;
-    /**
-     * Perform checks on each transaction in a package:
-     * locktime, serialized size (if necessary). These checks should always
-     * succeed, and they're here only as an extra check in case of suboptimal
-     * node configuration.
-     */
-    bool TestPackageTransactions(const CTxMemPool::setEntries &package) const;
-    /**
-     * Return true if given transaction from mapTx has already been evaluated,
-     * or if the transaction's cached data in mapTx is incorrect.
-     */
-    bool SkipMapTxEntry(CTxMemPool::txiter it,
-                        indexed_modified_transaction_set &mapModifiedTx,
-                        CTxMemPool::setEntries &failedTx)
-        EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs);
-    /** Sort the package in an order that is valid to appear in a block */
-    void SortForBlock(const CTxMemPool::setEntries &package,
-                      std::vector<CTxMemPool::txiter> &sortedEntries);
-    /**
-     * Add descendants of given transactions to mapModifiedTx with ancestor
-     * state updated assuming given transactions are inBlock. Returns number of
-     * updated descendants.
-     */
-    int UpdatePackagesForAdded(const CTxMemPool::setEntries &alreadyAdded,
-                               indexed_modified_transaction_set &mapModifiedTx)
-        EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs);
+
+    /// Check the transaction for finality, etc before adding to block
+    bool CheckTx(const CTransaction &tx) const;
 };
 
 /** Modify the extranonce in a block */
