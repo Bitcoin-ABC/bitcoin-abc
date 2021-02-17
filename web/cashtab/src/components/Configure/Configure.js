@@ -52,6 +52,7 @@ const SWName = styled.div`
     justify-content: space-between;
     word-wrap: break-word;
     hyphens: auto;
+
     @media (max-width: 500px) {
         width: 100%;
         justify-content: center;
@@ -63,6 +64,9 @@ const SWName = styled.div`
         color: #444;
         margin: 0;
         text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 `;
 
@@ -116,6 +120,9 @@ const AWRow = styled.div`
         margin: 0;
         text-align: left;
         font-weight: bold;
+        @media (max-width: 500px) {
+            font-size: 14px;
+        }
     }
     h4 {
         font-size: 16px;

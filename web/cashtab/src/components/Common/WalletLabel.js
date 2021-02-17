@@ -7,6 +7,9 @@ const WalletName = styled.h4`
     display: inline-block;
     color: #ff8d00;
     margin-bottom: 0px;
+    @media (max-width: 400px) {
+        font-size: 16px;
+    }
 `;
 
 const WalletLabel = ({ name }) => {
