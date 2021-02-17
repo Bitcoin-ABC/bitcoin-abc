@@ -98,9 +98,7 @@ class HTTPBasicsTest(BitcoinTestFramework):
                                 password + 'wrong').status)
 
     def run_test(self):
-        ##################################################
-        # Check correctness of the rpcauth config option #
-        ##################################################
+        self.log.info('Check correctness of the rpcauth config option')
         url = urllib.parse.urlparse(self.nodes[0].url)
 
         self.test_auth(self.nodes[0], url.username, url.password)
@@ -108,12 +106,22 @@ class HTTPBasicsTest(BitcoinTestFramework):
         self.test_auth(self.nodes[0], 'rt2', self.rt2password)
         self.test_auth(self.nodes[0], self.user, self.password)
 
-        ###############################################################
-        # Check correctness of the rpcuser/rpcpassword config options #
-        ###############################################################
+        self.log.info(
+            'Check correctness of the rpcuser/rpcpassword config options')
         url = urllib.parse.urlparse(self.nodes[1].url)
 
         self.test_auth(self.nodes[1], self.rpcuser, self.rpcpassword)
+
+        self.log.info(
+            'Check that failure to write cookie file will abort the node gracefully')
+        self.stop_node(0)
+        cookie_file = os.path.join(
+            get_datadir_path(self.options.tmpdir, 0),
+            self.chain,
+            '.cookie.tmp')
+        os.mkdir(cookie_file)
+        init_error = 'Error: Unable to start HTTP server. See debug log for details.'
+        self.nodes[0].assert_start_raises_init_error(expected_msg=init_error)
 
 
 if __name__ == '__main__':

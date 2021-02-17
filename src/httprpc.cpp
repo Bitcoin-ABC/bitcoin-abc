@@ -7,7 +7,6 @@
 #include <chainparams.h>
 #include <config.h>
 #include <crypto/hmac_sha256.h>
-#include <node/ui_interface.h>
 #include <rpc/protocol.h>
 #include <util/ref.h>
 #include <util/strencodings.h>
@@ -403,11 +402,6 @@ static bool InitRPCAuthentication() {
     if (gArgs.GetArg("-rpcpassword", "") == "") {
         LogPrintf("Using random cookie authentication.\n");
         if (!GenerateAuthCookie(&strRPCUserColonPass)) {
-            // Same message as AbortNode.
-            uiInterface.ThreadSafeMessageBox(
-                _("Error: A fatal internal error occurred, see debug.log for "
-                  "details"),
-                "", CClientUIInterface::MSG_ERROR);
             return false;
         }
     } else {
