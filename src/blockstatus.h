@@ -109,12 +109,7 @@ public:
         return BlockStatus(status & ~PARKED_MASK);
     }
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(VARINT(status));
-    }
+    SERIALIZE_METHODS(BlockStatus, obj) { READWRITE(VARINT(obj.status)); }
 
     friend constexpr bool operator==(const BlockStatus a, const BlockStatus b) {
         return a.status == b.status;

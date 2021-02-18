@@ -84,12 +84,7 @@ public:
     }
     std::string ToString() const;
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(nSatoshisPerK);
-    }
+    SERIALIZE_METHODS(CFeeRate, obj) { READWRITE(obj.nSatoshisPerK); }
 };
 
 #endif // BITCOIN_FEERATE_H

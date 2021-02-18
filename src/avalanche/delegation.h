@@ -27,13 +27,7 @@ class Delegation {
         CPubKey pubkey;
         std::array<uint8_t, 64> sig;
 
-        ADD_SERIALIZE_METHODS;
-
-        template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream &s, Operation ser_action) {
-            READWRITE(pubkey);
-            READWRITE(sig);
-        }
+        SERIALIZE_METHODS(Level, obj) { READWRITE(obj.pubkey, obj.sig); }
     };
 
     std::vector<Level> levels;
@@ -49,16 +43,9 @@ public:
     const DelegationId &getId() const { return dgid; }
     const ProofId &getProofId() const { return proofid; }
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(proofid);
-        READWRITE(levels);
-
-        if (ser_action.ForRead()) {
-            dgid = computeDelegationId();
-        }
+    SERIALIZE_METHODS(Delegation, obj) {
+        READWRITE(obj.proofid, obj.levels);
+        SER_READ(obj, obj.dgid = obj.computeDelegationId());
     }
 
     bool verify(DelegationState &state, const Proof &proof,

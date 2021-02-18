@@ -35,14 +35,8 @@ public:
         : utxo(utxo_), amount(amount_), height(height_ << 1 | is_coinbase),
           pubkey(std::move(pubkey_)) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(utxo);
-        READWRITE(amount);
-        READWRITE(height);
-        READWRITE(pubkey);
+    SERIALIZE_METHODS(Stake, obj) {
+        READWRITE(obj.utxo, obj.amount, obj.height, obj.pubkey);
     }
 
     const COutPoint &getUTXO() const { return utxo; }
@@ -63,13 +57,7 @@ public:
     SignedStake(Stake stake_, std::array<uint8_t, 64> sig_)
         : stake(std::move(stake_)), sig(std::move(sig_)) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(stake);
-        READWRITE(sig);
-    }
+    SERIALIZE_METHODS(SignedStake, obj) { READWRITE(obj.stake, obj.sig); }
 
     const Stake &getStake() const { return stake; }
     const std::array<uint8_t, 64> &getSignature() const { return sig; }
@@ -94,18 +82,9 @@ public:
           master(std::move(master_)), stakes(std::move(stakes_)),
           proofid(computeProofId()) {}
 
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(sequence);
-        READWRITE(expirationTime);
-        READWRITE(master);
-        READWRITE(stakes);
-
-        if (ser_action.ForRead()) {
-            proofid = computeProofId();
-        }
+    SERIALIZE_METHODS(Proof, obj) {
+        READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
+        SER_READ(obj, obj.proofid = obj.computeProofId());
     }
 
     uint64_t getSequence() const { return sequence; }

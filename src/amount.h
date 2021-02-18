@@ -140,12 +140,7 @@ public:
     std::string ToString() const;
 
     // serialization support
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(amount);
-    }
+    SERIALIZE_METHODS(Amount, obj) { READWRITE(obj.amount); }
 };
 
 static constexpr Amount SATOSHI = Amount::satoshi();

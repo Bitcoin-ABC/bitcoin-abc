@@ -263,12 +263,8 @@ namespace {
         }
 
         // serialization support
-        ADD_SERIALIZE_METHODS;
-
-        template <typename Stream, typename Operation>
-        inline void SerializationOp(Stream &s, Operation ser_action) {
-            READWRITE(response);
-            READWRITE(sig);
+        SERIALIZE_METHODS(TCPResponse, obj) {
+            READWRITE(obj.response, obj.sig);
         }
     };
 } // namespace
