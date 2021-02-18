@@ -2966,7 +2966,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         } else {
             // Addrman can be in an inconsistent state after failure, reset it
             addrman.Clear();
-            LogPrintf("Invalid or missing peers.dat; recreating\n");
+            LogPrintf("Recreating peers.dat\n");
             DumpAddresses();
         }
     }

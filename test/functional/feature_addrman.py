@@ -58,7 +58,7 @@ class AddrmanTest(BitcoinTestFramework):
         write_addrman(peers_dat, lowest_compatible=111)
         with self.nodes[0].assert_debug_log([
                 f'ERROR: DeserializeDB: Deserialize or I/O error - Unsupported format of addrman database: 1. It is compatible with formats >=111, but the maximum supported by this version of {self.config["environment"]["PACKAGE_NAME"]} is 3.',
-                "Invalid or missing peers.dat; recreating",
+                "Recreating peers.dat",
         ]):
             self.start_node(0)
         assert_equal(self.nodes[0].getnodeaddresses(), [])
@@ -69,7 +69,7 @@ class AddrmanTest(BitcoinTestFramework):
             f.write(serialize_addrman()[:-1])
         with self.nodes[0].assert_debug_log([
                 "ERROR: DeserializeDB: Deserialize or I/O error - CAutoFile::read: end of file",
-                "Invalid or missing peers.dat; recreating",
+                "Recreating peers.dat",
         ]):
             self.start_node(0)
         assert_equal(self.nodes[0].getnodeaddresses(), [])
@@ -78,8 +78,8 @@ class AddrmanTest(BitcoinTestFramework):
         self.stop_node(0)
         os.remove(peers_dat)
         with self.nodes[0].assert_debug_log([
-                f"ERROR: DeserializeFileDB: Failed to open file {peers_dat}",
-                "Invalid or missing peers.dat; recreating",
+                f"Missing or invalid file {peers_dat}",
+                "Recreating peers.dat",
         ]):
             self.start_node(0)
         assert_equal(self.nodes[0].getnodeaddresses(), [])

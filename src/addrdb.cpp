@@ -116,8 +116,8 @@ bool DeserializeFileDB(const CChainParams &chainParams, const fs::path &path,
     FILE *file = fsbridge::fopen(path, "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull()) {
-        return error("%s: Failed to open file %s", __func__,
-                     fs::PathToString(path));
+        LogPrintf("Missing or invalid file %s\n", fs::PathToString(path));
+        return false;
     }
 
     return DeserializeDB(chainParams, filein, data);
