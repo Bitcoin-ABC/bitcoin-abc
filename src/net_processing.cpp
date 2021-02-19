@@ -2523,7 +2523,6 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
                  "historical block serving limit reached, disconnect peer=%d\n",
                  pfrom.GetId());
 
-        // disconnect node
         pfrom.fDisconnect = true;
         send = false;
     }
@@ -2538,7 +2537,7 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
            (int)NODE_NETWORK_LIMITED_MIN_BLOCKS + 2)))) {
         LogPrint(BCLog::NET,
                  "Ignore block request below NODE_NETWORK_LIMITED "
-                 "threshold from peer=%d\n",
+                 "threshold, disconnect peer=%d\n",
                  pfrom.GetId());
 
         // disconnect node and prevent it from stalling (would otherwise wait
