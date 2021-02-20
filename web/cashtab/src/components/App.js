@@ -14,9 +14,11 @@ import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab.png';
+import TabCash from '@assets/tabcash.png';
 import ABC from '@assets/bitcoinabclogo.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
+import { checkForTokenById } from '@utils/tokenMethods.js';
 import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
@@ -139,6 +141,24 @@ export const HeaderCtn = styled.div`
     }
 `;
 
+export const EasterEgg = styled.img`
+    position: fixed;
+    bottom: -195px;
+    margin: 0;
+    right: 10%;
+    transition-property: bottom;
+    transition-duration: 1.5s;
+    transition-timing-function: ease-out;
+
+    :hover {
+        bottom: 0;
+    }
+
+    @media screen and (max-width: 1250px) {
+        display: none;
+    }
+`;
+
 export const CashTabLogo = styled.img`
     width: 120px;
     @media (max-width: 768px) {
@@ -154,7 +174,12 @@ export const AbcLogo = styled.img`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet } = ContextValue;
+    const { wallet, tokens } = ContextValue;
+
+    const hasTab = checkForTokenById(
+        tokens,
+        '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+    );
     const location = useLocation();
     const history = useHistory();
     const selectedKey =
@@ -166,6 +191,7 @@ const App = () => {
                 <WalletCtn>
                     <HeaderCtn>
                         <CashTabLogo src={CashTab} alt="cashtab" />
+                        {hasTab && <EasterEgg src={TabCash} alt="tabcash" />}
                         <a
                             href="https://www.bitcoinabc.org/"
                             target="_blank"
