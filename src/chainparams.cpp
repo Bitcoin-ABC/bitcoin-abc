@@ -122,7 +122,7 @@ public:
         // November 15, 2018 hard fork
         consensus.magneticAnomalyHeight = 556766;
 
-        // November 15, 2018 hard fork
+        // March 20, 2021 hard fork
         consensus.expandOpreturnHeight = 637600;
 
         /**
