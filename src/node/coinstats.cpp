@@ -88,7 +88,6 @@ template <typename T>
 static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
                          CCoinsStats &stats, T hash_obj,
                          const std::function<void()> &interruption_point) {
-    stats = CCoinsStats();
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
     assert(pcursor);
 
@@ -134,9 +133,8 @@ static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
 }
 
 bool GetUTXOStats(CCoinsView *view, BlockManager &blockman, CCoinsStats &stats,
-                  CoinStatsHashType hash_type,
                   const std::function<void()> &interruption_point) {
-    switch (hash_type) {
+    switch (stats.m_hash_type) {
         case (CoinStatsHashType::HASH_SERIALIZED): {
             CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
             return GetUTXOStats(view, blockman, stats, ss, interruption_point);

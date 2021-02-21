@@ -299,14 +299,14 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 break;
             }
             case 3: {
-                CCoinsStats stats;
+                CCoinsStats stats{CoinStatsHashType::HASH_SERIALIZED};
                 bool expected_code_path = false;
                 try {
                     (void)GetUTXOStats(
                         &coins_view_cache,
                         WITH_LOCK(::cs_main,
                                   return std::ref(g_chainman.m_blockman)),
-                        stats, CoinStatsHashType::HASH_SERIALIZED);
+                        stats);
                 } catch (const std::logic_error &) {
                     expected_code_path = true;
                 }

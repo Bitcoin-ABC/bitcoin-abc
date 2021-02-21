@@ -6287,7 +6287,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
 
     assert(coins_cache.GetBestBlock() == base_blockhash);
 
-    CCoinsStats stats;
+    CCoinsStats stats{CoinStatsHashType::HASH_SERIALIZED};
     auto breakpoint_fnc = [] { /* TODO insert breakpoint here? */ };
 
     // As above, okay to immediately release cs_main here since no other context
@@ -6297,7 +6297,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
 
     if (!GetUTXOStats(snapshot_coinsdb,
                       WITH_LOCK(::cs_main, return std::ref(m_blockman)), stats,
-                      CoinStatsHashType::HASH_SERIALIZED, breakpoint_fnc)) {
+                      breakpoint_fnc)) {
         LogPrintf("[snapshot] failed to generate coins stats\n");
         return false;
     }
