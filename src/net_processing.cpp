@@ -3964,7 +3964,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             return;
         }
 
-        std::array<uint8_t, 64> sig;
+        SchnorrSig sig;
         verifier >> sig;
     }
 
@@ -4090,7 +4090,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         verifier >> response;
 
         if (!g_avalanche->forNode(pfrom.GetId(), [&](const avalanche::Node &n) {
-                std::array<uint8_t, 64> sig;
+                SchnorrSig sig;
                 vRecv >> sig;
                 return n.pubkey.VerifySchnorr(verifier.GetHash(), sig);
             })) {

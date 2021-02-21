@@ -67,10 +67,10 @@ public:
 
 class Hello {
     Delegation delegation;
-    std::array<uint8_t, 64> sig;
+    SchnorrSig sig;
 
 public:
-    Hello(Delegation delegationIn, std::array<uint8_t, 64> sigIn)
+    Hello(Delegation delegationIn, SchnorrSig sigIn)
         : delegation(std::move(delegationIn)), sig(sigIn) {}
 
     std::array<uint8_t, 64> GetSig() { return sig; }

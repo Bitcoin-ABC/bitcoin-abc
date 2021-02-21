@@ -7,6 +7,7 @@
 
 #include <avalanche/delegationid.h>
 #include <avalanche/proofid.h>
+#include <key.h>
 #include <pubkey.h>
 #include <serialize.h>
 
@@ -25,7 +26,7 @@ class Delegation {
 
     struct Level {
         CPubKey pubkey;
-        std::array<uint8_t, 64> sig;
+        SchnorrSig sig;
 
         SERIALIZE_METHODS(Level, obj) { READWRITE(obj.pubkey, obj.sig); }
     };

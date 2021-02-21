@@ -7,6 +7,7 @@
 
 #include <amount.h>
 #include <avalanche/proofid.h>
+#include <key.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <serialize.h>
@@ -50,17 +51,17 @@ public:
 
 class SignedStake {
     Stake stake;
-    std::array<uint8_t, 64> sig;
+    SchnorrSig sig;
 
 public:
     explicit SignedStake() = default;
-    SignedStake(Stake stake_, std::array<uint8_t, 64> sig_)
+    SignedStake(Stake stake_, SchnorrSig sig_)
         : stake(std::move(stake_)), sig(std::move(sig_)) {}
 
     SERIALIZE_METHODS(SignedStake, obj) { READWRITE(obj.stake, obj.sig); }
 
     const Stake &getStake() const { return stake; }
-    const std::array<uint8_t, 64> &getSignature() const { return sig; }
+    const SchnorrSig &getSignature() const { return sig; }
 
     bool verify(const ProofId &proofid) const;
 };

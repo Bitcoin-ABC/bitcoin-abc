@@ -11,7 +11,7 @@ namespace avalanche {
 SignedStake ProofBuilder::StakeSigner::sign(const ProofId &proofid) {
     const uint256 h = stake.getHash(proofid);
 
-    std::array<uint8_t, 64> sig;
+    SchnorrSig sig;
     if (!key.SignSchnorr(h, sig)) {
         sig.fill(0);
     }

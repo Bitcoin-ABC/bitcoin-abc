@@ -247,7 +247,7 @@ namespace {
      */
     class TCPResponse {
         Response response;
-        std::array<uint8_t, 64> sig;
+        SchnorrSig sig;
 
     public:
         TCPResponse(Response responseIn, const CKey &key)
@@ -404,7 +404,7 @@ bool Processor::sendHello(CNode *pfrom) const {
     }
 
     // Now let's sign!
-    std::array<uint8_t, 64> sig;
+    SchnorrSig sig;
 
     {
         CHashWriter hasher(SER_GETHASH, 0);

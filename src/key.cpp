@@ -285,8 +285,7 @@ static bool DoSignSchnorr(const CKey &key, const uint256 &hash, uint8_t *buf,
     return true;
 }
 
-bool CKey::SignSchnorr(const uint256 &hash,
-                       std::array<uint8_t, CPubKey::SCHNORR_SIZE> &sig,
+bool CKey::SignSchnorr(const uint256 &hash, SchnorrSig &sig,
                        uint32_t test_case) const {
     return DoSignSchnorr(*this, hash, sig.data(), test_case);
 }
