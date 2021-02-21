@@ -22,41 +22,6 @@ static uint64_t GetBogoSize(const CScript &scriptPubKey) {
            scriptPubKey.size() /* scriptPubKey */;
 }
 
-static void ApplyHash(CCoinsStats &stats, CHashWriter &ss, const TxId &txid,
-                      const std::map<uint32_t, Coin> &outputs,
-                      std::map<uint32_t, Coin>::const_iterator it) {
-    if (it == outputs.begin()) {
-        ss << txid;
-        ss << VARINT(it->second.GetHeight() * 2 + it->second.IsCoinBase());
-    }
-
-    ss << VARINT(it->first + 1);
-    ss << it->second.GetTxOut().scriptPubKey;
-    ss << VARINT_MODE(it->second.GetTxOut().nValue / SATOSHI,
-                      VarIntMode::NONNEGATIVE_SIGNED);
-
-    if (it == std::prev(outputs.end())) {
-        ss << VARINT(0u);
-    }
-}
-
-static void ApplyHash(CCoinsStats &stats, std::nullptr_t, const TxId &txid,
-                      const std::map<uint32_t, Coin> &outputs,
-                      std::map<uint32_t, Coin>::const_iterator it) {}
-
-static void ApplyHash(CCoinsStats &stats, MuHash3072 &muhash, const TxId &txid,
-                      const std::map<uint32_t, Coin> &outputs,
-                      std::map<uint32_t, Coin>::const_iterator it) {
-    COutPoint outpoint = COutPoint(txid, it->first);
-    Coin coin = it->second;
-
-    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
-    ss << outpoint;
-    ss << static_cast<uint32_t>(coin.GetHeight() * 2 + coin.IsCoinBase());
-    ss << coin.GetTxOut();
-    muhash.Insert(MakeUCharSpan(ss));
-}
-
 //! Warning: be very careful when changing this! assumeutxo and UTXO snapshot
 //! validation commitments are reliant on the hash constructed by this
 //! function.
@@ -69,14 +34,47 @@ static void ApplyHash(CCoinsStats &stats, MuHash3072 &muhash, const TxId &txid,
 //! It is also possible, though very unlikely, that a change in this
 //! construction could cause a previously invalid (and potentially malicious)
 //! UTXO snapshot to be considered valid.
-template <typename T>
-static void ApplyStats(CCoinsStats &stats, T &hash_obj, const TxId &txid,
+static void ApplyHash(CHashWriter &ss, const TxId &txid,
+                      const std::map<uint32_t, Coin> &outputs) {
+    for (auto it = outputs.begin(); it != outputs.end(); ++it) {
+        if (it == outputs.begin()) {
+            ss << txid;
+            ss << VARINT(it->second.GetHeight() * 2 + it->second.IsCoinBase());
+        }
+
+        ss << VARINT(it->first + 1);
+        ss << it->second.GetTxOut().scriptPubKey;
+        ss << VARINT_MODE(it->second.GetTxOut().nValue / SATOSHI,
+                          VarIntMode::NONNEGATIVE_SIGNED);
+
+        if (it == std::prev(outputs.end())) {
+            ss << VARINT(0u);
+        }
+    }
+}
+
+static void ApplyHash(std::nullptr_t, const TxId &txid,
+                      const std::map<uint32_t, Coin> &outputs) {}
+
+static void ApplyHash(MuHash3072 &muhash, const TxId &txid,
+                      const std::map<uint32_t, Coin> &outputs) {
+    for (auto it = outputs.begin(); it != outputs.end(); ++it) {
+        COutPoint outpoint = COutPoint(txid, it->first);
+        Coin coin = it->second;
+
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        ss << outpoint;
+        ss << static_cast<uint32_t>(coin.GetHeight() * 2 + coin.IsCoinBase());
+        ss << coin.GetTxOut();
+        muhash.Insert(MakeUCharSpan(ss));
+    }
+}
+
+static void ApplyStats(CCoinsStats &stats, const TxId &txid,
                        const std::map<uint32_t, Coin> &outputs) {
     assert(!outputs.empty());
     stats.nTransactions++;
     for (auto it = outputs.begin(); it != outputs.end(); ++it) {
-        ApplyHash(stats, hash_obj, txid, outputs, it);
-
         stats.nTransactionOutputs++;
         stats.nTotalAmount += it->second.GetTxOut().nValue;
         stats.nBogoSize += GetBogoSize(it->second.GetTxOut().scriptPubKey);
@@ -111,7 +109,8 @@ static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
         Coin coin;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
             if (!outputs.empty() && key.GetTxId() != prevkey) {
-                ApplyStats(stats, hash_obj, prevkey, outputs);
+                ApplyStats(stats, prevkey, outputs);
+                ApplyHash(hash_obj, prevkey, outputs);
                 outputs.clear();
             }
             prevkey = key.GetTxId();
@@ -123,7 +122,8 @@ static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
         pcursor->Next();
     }
     if (!outputs.empty()) {
-        ApplyStats(stats, hash_obj, prevkey, outputs);
+        ApplyStats(stats, prevkey, outputs);
+        ApplyHash(hash_obj, prevkey, outputs);
     }
 
     FinalizeHash(hash_obj, stats);
