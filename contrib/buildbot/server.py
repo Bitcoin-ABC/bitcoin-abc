@@ -182,7 +182,7 @@ def create_server(tc, phab, slackbot, travis,
 
             # Only link PRs that do not reside in code blocks
             if multilineCodeBlockDelimiters % 2 == 0:
-                def replacePRWithLink(baseUrl):
+                def replacePRWithLink(baseUrl, prefix):
                     def repl(match):
                         nonlocal foundPRs
                         # This check matches identation-based code blocks (2+ spaces)
@@ -197,25 +197,22 @@ def create_server(tc, phab, slackbot, travis,
                             foundPRs += 1
                             PRNum = match.group(1)
 
-                            remaining = ''
-                            if len(match.groups()) >= 2:
-                                remaining = match.group(2)
-
-                            return '[[{}/{} | PR{}]]{}'.format(
-                                baseUrl, PRNum, PRNum, remaining)
+                            return '[[{}/{} | {}#{}]]'.format(
+                                baseUrl, PRNum, prefix, PRNum)
                     return repl
 
-                line = re.sub(
-                    r'PR[ #]*(\d{3}\d+)',
-                    replacePRWithLink(
-                        'https://github.com/bitcoin/bitcoin/pull'),
-                    line)
+                githubUrl = 'https://github.com/{}/pull'
+                supportedRepos = dict()
+                supportedRepos = {
+                    'core': githubUrl.format('bitcoin/bitcoin'),
+                    'core-gui': githubUrl.format('bitcoin-core/gui'),
+                    'secp256k1': githubUrl.format('bitcoin-core/secp256k1')
+                }
 
-                # Be less aggressive about serving libsecp256k1 links. Check
-                # for some reference to the name first.
-                if re.search('secp', line, re.IGNORECASE):
-                    line = re.sub(r'PR[ #]*(\d{2}\d?)([^\d]|$)', replacePRWithLink(
-                        'https://github.com/bitcoin-core/secp256k1/pull'), line)
+                for prefix, url in supportedRepos.items():
+                    regEx = r'{}#(\d*)'.format(prefix)
+                    line = re.sub(regEx, replacePRWithLink(
+                        url, prefix), line)
 
             newSummary += line
 

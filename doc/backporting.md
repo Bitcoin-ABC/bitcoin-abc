@@ -73,7 +73,7 @@ Backport each diff individually
 5. Run `git show` side-by-side with `git show <commit-of-interest>` and verify that the changes are reasonable.
 	If there are additional changes caused by the merge conflict
 6. Run the build, and the rpc test suite and verify completion.
-7. `arc diff` and at the bottom of the summary note: "Backport of Bitcoin Core PR# <XXXXX>".
+7. `arc diff` and at the bottom of the summary note: `Backport of core#XXXXX`<sup>[1](#fn1)</sup>.
    the PR# can be obtained by searching on github for the commit you are backporting.
    If you are backporting a commit which depends on another commit from the same PR,
    note that you are backporting `Part 1 of X`.  Additionally, if it is the second or
@@ -87,5 +87,9 @@ Squash the commits together for backporting
 2. Perform steps 2 through 6 from "Backporting each diff individually" in repetition for each diff
    in a Bitcoin Core pull request.
 3. `git rebase -i origin/master` and squash the commits together.
-4. `arc diff` and at the bottom of the summary note: "Backport of Bitcoin Core PR# <XXXXX>".
+4. `arc diff` and at the bottom of the summary note: `Backport of core#XXXXX`<sup>[1](#fn1)</sup>.
    The title of the diff should be: `[Backport] <Description of the included changes>`
+
+<a name="fn1">[1]</a>: besides `core`, the prefixes `core-gui` and `secp256k1` will also include a
+ hyperlink to the appropriate pull request in the summary automatically, as long as they are in the
+ format `[prefix]#[pr_number]`. No spaces, all lowercase.

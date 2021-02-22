@@ -42,17 +42,10 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                 "Some text ```Ignore this PR3456``` Some more text.\n"
                 "```\nPR4567 in a multi-line code block\nPR5678 in the same code block\n```\n"
                 "  Ignore this indented PR4567"
-                # Note that short numbered PRs are much more common when referencing non-bitcoin PRs,
-                # so we'll ignore them for now.
-                "Ignore short numbered PRs: PR123"
-                # But we do support secp256k1 PRs with 2-3 digits, so make
-                # sure they're also ignored properly
                 "This is a test summary `Ignore this secp256k1 backport PR234` some text.\n"
                 "Some text ```Ignore this secp256k1 PR345``` Some more text.\n"
                 "```\nsecp256k1 PR456 in a multi-line code block\nsecp256k1 PR567 in the same code block\n```\n"
-                "  Ignore this indented secp256k1 PR456"
-                "Ignore long numbered PRs for secp256k1: PR1234"
-                "Ignore short numbered PRs for secp256k1: PR1",
+                "  Ignore this indented secp256k1 PR456",
             },
         }])
 
@@ -68,7 +61,7 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
             'id': '1234',
             'fields': {
                 'summary': "This is a test summary\n"
-                # Bitcoin Core links
+                # Bitcoin Core references that are NOT hyperlinked
                 "Backport of Core PR2345 and PR34567\n"
                 "Backports with optional separators PR 2345 and PR#34567 and PR #4567\n"
                 "PR6789 outside of a code block `PR4567 inside a code block`\n"
@@ -76,14 +69,29 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
                 "```\nPR4567 in a multi-line code block\n```\n"
                 "  PR4567 in a code block using indentation\n"
                 "Another backport PR567890\n"
-                # secp256k1 links
+                # secp256k1 references that are NOT hyperlinked
                 "Backport of Secp256k1 PR23 and PR345\n"
                 "Backport of Secp256k1 PR 23 and PR#345 and PR #45\n"
                 "SECP256K1 PR678 outside of a code block `secp256k1 PR456 inside a code block`\n"
                 "```secp256k1 PR456 in a single-line code block```\n"
                 "```\nsecp256k1 PR456 in a multi-line code block\n```\n"
                 "  secp256k1 PR456 in a code block using indentation\n"
-                "Another secp backport PR567",
+                "Another secp backport PR567\n"
+                # only canonical markdown is hyperlinked now
+                "random yourname#12345 repo that is not supported is not hyperlinked\n"
+                "a backport of secp256k1#894\n"
+                "this is a backport of core#16723 and of core-gui#2\n"
+                "this is a very unlikely backport of core#16723, core-gui#2 and secp256k1#253431\n"
+                "malformed backport of core#16400#16458 should only link to the first #\n"
+
+                "```this is a very unlikely backport of core#16723, core-gui#2"
+                " and secp256k1#253431 in a single-code block```\n"
+
+                "```\nthis is a very unlikely backport of core#16723, core-gui#2 "
+                "and secp256k1#253431 in a multi-line code block\n```\n"
+
+                "  this is a very unlikely backport of core#16723, core-gui#2 and "
+                "secp256k1#253431 in a code block using indentation\n",
             },
         }])
 
@@ -96,27 +104,44 @@ class EndpointBackportcheckTestCase(ABCBotFixture):
             "type": "summary",
             "value": "This is a test summary\n"
             # Bitcoin Core links
-            "Backport of Core [[https://github.com/bitcoin/bitcoin/pull/2345 | PR2345]] and "
-            "[[https://github.com/bitcoin/bitcoin/pull/34567 | PR34567]]\n"
-            "Backports with optional separators [[https://github.com/bitcoin/bitcoin/pull/2345 | PR2345]] and "
-            "[[https://github.com/bitcoin/bitcoin/pull/34567 | PR34567]] and "
-            "[[https://github.com/bitcoin/bitcoin/pull/4567 | PR4567]]\n"
-            "[[https://github.com/bitcoin/bitcoin/pull/6789 | PR6789]] outside of a code block `PR4567 inside a code block`\n"
+            "Backport of Core PR2345 and PR34567\n"
+            "Backports with optional separators PR 2345 and PR#34567 and PR #4567\n"
+            "PR6789 outside of a code block `PR4567 inside a code block`\n"
             "```PR4567 in a single-line code block```\n"
             "```\nPR4567 in a multi-line code block\n```\n"
             "  PR4567 in a code block using indentation\n"
-            "Another backport [[https://github.com/bitcoin/bitcoin/pull/567890 | PR567890]]\n"
+            "Another backport PR567890\n"
             # secp256k1 links
-            "Backport of Secp256k1 [[https://github.com/bitcoin-core/secp256k1/pull/23 | PR23]] and "
-            "[[https://github.com/bitcoin-core/secp256k1/pull/345 | PR345]]\n"
-            "Backport of Secp256k1 [[https://github.com/bitcoin-core/secp256k1/pull/23 | PR23]] and "
-            "[[https://github.com/bitcoin-core/secp256k1/pull/345 | PR345]] and "
-            "[[https://github.com/bitcoin-core/secp256k1/pull/45 | PR45]]\n"
-            "SECP256K1 [[https://github.com/bitcoin-core/secp256k1/pull/678 | PR678]] outside of a code block `secp256k1 PR456 inside a code block`\n"
+            "Backport of Secp256k1 PR23 and PR345\n"
+            "Backport of Secp256k1 PR 23 and PR#345 and PR #45\n"
+            "SECP256K1 PR678 outside of a code block `secp256k1 PR456 inside a code block`\n"
             "```secp256k1 PR456 in a single-line code block```\n"
             "```\nsecp256k1 PR456 in a multi-line code block\n```\n"
             "  secp256k1 PR456 in a code block using indentation\n"
-            "Another secp backport [[https://github.com/bitcoin-core/secp256k1/pull/567 | PR567]]",
+            "Another secp backport PR567\n"
+            # only canonical markdown is hyperlinked now
+            "random yourname#12345 repo that is not supported is not hyperlinked\n"
+            "a backport of [[https://github.com/bitcoin-core/secp256k1/pull/894 "
+            "| secp256k1#894]]\n"
+
+            "this is a backport of [[https://github.com/bitcoin/bitcoin/pull/16723 | "
+            "core#16723]] and of [[https://github.com/bitcoin-core/gui/pull/2 | core-gui#2]]\n"
+
+            "this is a very unlikely backport of [[https://github.com/bitcoin/bitcoin/pull/16723 "
+            "| core#16723]], [[https://github.com/bitcoin-core/gui/pull/2 | core-gui#2]] "
+            "and [[https://github.com/bitcoin-core/secp256k1/pull/253431 | secp256k1#253431]]\n"
+
+            "malformed backport of [[https://github.com/bitcoin/bitcoin/pull/16400 | "
+            "core#16400]]#16458 should only link to the first #\n"
+
+            "```this is a very unlikely backport of core#16723, core-gui#2"
+            " and secp256k1#253431 in a single-code block```\n"
+
+            "```\nthis is a very unlikely backport of core#16723, core-gui#2 "
+            "and secp256k1#253431 in a multi-line code block\n```\n"
+
+            "  this is a very unlikely backport of core#16723, core-gui#2 and "
+            "secp256k1#253431 in a code block using indentation\n",
         }], objectIdentifier='1234')]
         self.phab.differential.revision.edit.assert_has_calls(
             calls, any_order=True)
