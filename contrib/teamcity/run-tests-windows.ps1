@@ -26,17 +26,27 @@ function check_help_version {
   }
 }
 
+function New-TemporaryDirectory {
+  $parent = [System.IO.Path]::GetTempPath()
+  [string] $name = [System.Guid]::NewGuid()
+  $tempDir = New-Item -ItemType Directory -Path (Join-Path $parent $name)
+  return $tempDir.FullName
+}
+
 function check_bitcoind {
   trap {
     Stop-Process -name bitcoind -Force 
   }
 
+  $datadir = New-TemporaryDirectory
+  $datadirArg = "-datadir=$datadir"
+
   Write-Host "Launching bitcoind in the background"
-  Start-Process -NoNewWindow .\bitcoind.exe "-noprinttoconsole"
+  Start-Process -NoNewWindow .\bitcoind.exe "-noprinttoconsole $datadirArg"
 
   for($i=60; $i -gt 0; $i--) {
     Start-Sleep -Seconds 1
-    if(.\bitcoin-cli.exe help) {
+    if(.\bitcoin-cli.exe $datadirArg help) {
       break
     }
   }
@@ -45,7 +55,7 @@ function check_bitcoind {
   }
 
   Write-Host "Stopping bitcoind"
-  .\bitcoin-cli.exe stop
+  .\bitcoin-cli.exe $datadirArg stop
 
   for($i=60; $i -gt 0; $i--) {
     Start-Sleep -Seconds 1
