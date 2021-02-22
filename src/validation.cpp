@@ -3977,6 +3977,8 @@ bool ContextualCheckTransactionForCurrentBlock(
     const CBlockIndex *active_chain_tip, const Consensus::Params &params,
     const CTransaction &tx, TxValidationState &state, int flags) {
     AssertLockHeld(cs_main);
+    // TODO: Make active_chain_tip a reference
+    assert(active_chain_tip);
     assert(std::addressof(*::ChainActive().Tip()) ==
            std::addressof(*active_chain_tip));
 
@@ -3988,11 +3990,12 @@ bool ContextualCheckTransactionForCurrentBlock(
     flags = std::max(flags, 0);
 
     // ContextualCheckTransactionForCurrentBlock() uses
-    // ::ChainActive().Height()+1 to evaluate nLockTime because when IsFinalTx()
-    // is called within CBlock::AcceptBlock(), the height of the block *being*
-    // evaluated is what is used. Thus if we want to know if a transaction can
-    // be part of the *next* block, we need to call ContextualCheckTransaction()
-    // with one more than ::ChainActive().Height().
+    // active_chain_tip.Height()+1 to evaluate nLockTime because when
+    // IsFinalTx() is called within CBlock::AcceptBlock(), the height of the
+    // block *being* evaluated is what is used. Thus if we want to know if a
+    // transaction can be part of the *next* block, we need to call
+    // ContextualCheckTransaction() with one more than
+    // active_chain_tip.Height().
     const int nBlockHeight = active_chain_tip->nHeight + 1;
 
     // BIP113 will require that time-locked transactions have nLockTime set to
@@ -4000,8 +4003,7 @@ bool ContextualCheckTransactionForCurrentBlock(
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
-    const int64_t nMedianTimePast =
-        active_chain_tip == nullptr ? 0 : active_chain_tip->GetMedianTimePast();
+    const int64_t nMedianTimePast = active_chain_tip->GetMedianTimePast();
     const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
                                         ? nMedianTimePast
                                         : GetAdjustedTime();
