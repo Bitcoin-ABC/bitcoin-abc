@@ -1143,10 +1143,10 @@ void CCoinsViewMemPool::PackageAddTransaction(const CTransactionRef &tx) {
 
 size_t CTxMemPool::DynamicMemoryUsage() const {
     LOCK(cs);
-    // Estimate the overhead of mapTx to be 15 pointers + an allocation, as no
+    // Estimate the overhead of mapTx to be 12 pointers + an allocation, as no
     // exact formula for boost::multi_index_contained is implemented.
     return memusage::MallocUsage(sizeof(CTxMemPoolEntry) +
-                                 15 * sizeof(void *)) *
+                                 12 * sizeof(void *)) *
                mapTx.size() +
            memusage::DynamicUsage(mapNextTx) +
            memusage::DynamicUsage(mapDeltas) + cachedInnerUsage;
@@ -1275,16 +1275,15 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
     unsigned nTxnRemoved = 0;
     CFeeRate maxFeeRateRemoved(Amount::zero());
     while (!mapTx.empty() && DynamicMemoryUsage() > sizelimit) {
-        indexed_transaction_set::index<descendant_score>::type::iterator it =
-            mapTx.get<descendant_score>().begin();
+        auto it = mapTx.get<modified_feerate>().end();
+        --it;
 
-        // We set the new mempool min fee to the feerate of the removed set,
-        // plus the "minimum reasonable fee rate" (ie some value under which we
-        // consider txn to have 0 fee). This way, we don't allow txn to enter
-        // mempool with feerate equal to txn which were removed with no block in
-        // between.
-        CFeeRate removed(it->GetModFeesWithDescendants(),
-                         it->GetVirtualSizeWithDescendants());
+        // We set the new mempool min fee to the feerate of the removed
+        // transaction, plus the "minimum reasonable fee rate" (ie some value
+        // under which we consider txn to have 0 fee). This way, we don't allow
+        // txn to enter mempool with feerate equal to txn which were removed
+        // with no block in between.
+        CFeeRate removed = it->GetModifiedFeeRate();
         removed += MEMPOOL_FULL_FEE_INCREMENT;
 
         trackPackageRemoved(removed);
@@ -1295,12 +1294,11 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
         nTxnRemoved += stage.size();
 
         if (pvNoSpendsRemaining) {
-            for (txiter iter : stage) {
+            for (const txiter &iter : stage) {
                 for (const CTxIn &txin : iter->GetTx().vin) {
-                    if (exists(txin.prevout.GetTxId())) {
-                        continue;
+                    if (!exists(txin.prevout.GetTxId())) {
+                        pvNoSpendsRemaining->push_back(txin.prevout);
                     }
-                    pvNoSpendsRemaining->push_back(txin.prevout);
                 }
             }
         }

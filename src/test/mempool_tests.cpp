@@ -337,7 +337,6 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx1.vout.resize(1);
     tx1.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx1.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(entry.Fee(10000 * SATOSHI).FromTx(tx1));
 
     /* highest fee */
     CMutableTransaction tx2 = CMutableTransaction();
@@ -360,158 +359,23 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
     tx4.vout[0].nValue = 6 * COIN;
     pool.addUnchecked(entry.Fee(15000 * SATOSHI).FromTx(tx4));
 
-    /* equal fee rate to tx1, but newer */
+    /* equal fee rate to tx1, but arrived later to the mempool */
     CMutableTransaction tx5 = CMutableTransaction();
     tx5.vout.resize(1);
     tx5.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx5.vout[0].nValue = 11 * COIN;
-    entry.nTime = 1;
-    pool.addUnchecked(entry.Fee(10000 * SATOSHI).FromTx(tx5));
+    pool.addUnchecked(entry.Fee(10000 * SATOSHI).Time(100).FromTx(tx1));
+    pool.addUnchecked(entry.Fee(10000 * SATOSHI).Time(200).FromTx(tx5));
     BOOST_CHECK_EQUAL(pool.size(), 5UL);
 
     std::vector<std::string> sortedOrder;
     sortedOrder.resize(5);
-    sortedOrder[0] = tx3.GetId().ToString(); // 0
-    sortedOrder[1] = tx5.GetId().ToString(); // 10000
+    sortedOrder[0] = tx2.GetId().ToString(); // 20000
+    sortedOrder[1] = tx4.GetId().ToString(); // 15000
+    sortedOrder[3] = tx5.GetId().ToString(); // 10000
     sortedOrder[2] = tx1.GetId().ToString(); // 10000
-    sortedOrder[3] = tx4.GetId().ToString(); // 15000
-    sortedOrder[4] = tx2.GetId().ToString(); // 20000
-    CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest1");
-
-    /* low fee but with high fee child */
-    /* tx6 -> tx7 -> tx8, tx9 -> tx10 */
-    CMutableTransaction tx6 = CMutableTransaction();
-    tx6.vout.resize(1);
-    tx6.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-    tx6.vout[0].nValue = 20 * COIN;
-    pool.addUnchecked(entry.Fee(Amount::zero()).FromTx(tx6));
-    BOOST_CHECK_EQUAL(pool.size(), 6UL);
-    // Check that at this point, tx6 is sorted low
-    sortedOrder.insert(sortedOrder.begin(), tx6.GetId().ToString());
-    CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest2");
-
-    CTxMemPool::setEntries setAncestors;
-    setAncestors.insert(pool.mapTx.find(tx6.GetId()));
-    CMutableTransaction tx7 = CMutableTransaction();
-    tx7.vin.resize(1);
-    tx7.vin[0].prevout = COutPoint(tx6.GetId(), 0);
-    tx7.vin[0].scriptSig = CScript() << OP_11;
-    tx7.vout.resize(2);
-    tx7.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-    tx7.vout[0].nValue = 10 * COIN;
-    tx7.vout[1].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-    tx7.vout[1].nValue = 1 * COIN;
-
-    CTxMemPool::setEntries setAncestorsCalculated;
-    std::string dummy;
-    BOOST_CHECK_EQUAL(
-        pool.CalculateMemPoolAncestors(entry.Fee(2000000 * SATOSHI).FromTx(tx7),
-                                       setAncestorsCalculated, 100, 1000000,
-                                       1000, 1000000, dummy),
-        true);
-    BOOST_CHECK(setAncestorsCalculated == setAncestors);
-
-    pool.addUnchecked(entry.FromTx(tx7), setAncestors);
-    BOOST_CHECK_EQUAL(pool.size(), 7UL);
-
-    // Now tx6 should be sorted higher (high fee child): tx7, tx6, tx2, ...
-    sortedOrder.erase(sortedOrder.begin());
-    sortedOrder.push_back(tx6.GetId().ToString());
-    sortedOrder.push_back(tx7.GetId().ToString());
-    CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest3");
-
-    /* low fee child of tx7 */
-    CMutableTransaction tx8 = CMutableTransaction();
-    tx8.vin.resize(1);
-    tx8.vin[0].prevout = COutPoint(tx7.GetId(), 0);
-    tx8.vin[0].scriptSig = CScript() << OP_11;
-    tx8.vout.resize(1);
-    tx8.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-    tx8.vout[0].nValue = 10 * COIN;
-    setAncestors.insert(pool.mapTx.find(tx7.GetId()));
-    pool.addUnchecked(entry.Fee(Amount::zero()).Time(2).FromTx(tx8),
-                      setAncestors);
-
-    // Now tx8 should be sorted low, but tx6/tx both high
-    sortedOrder.insert(sortedOrder.begin(), tx8.GetId().ToString());
-    CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest4");
-
-    /* low fee child of tx7 */
-    CMutableTransaction tx9 = CMutableTransaction();
-    tx9.vin.resize(1);
-    tx9.vin[0].prevout = COutPoint(tx7.GetId(), 1);
-    tx9.vin[0].scriptSig = CScript() << OP_11;
-    tx9.vout.resize(1);
-    tx9.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-    tx9.vout[0].nValue = 1 * COIN;
-    pool.addUnchecked(entry.Fee(Amount::zero()).Time(3).FromTx(tx9),
-                      setAncestors);
-
-    // tx9 should be sorted low
-    BOOST_CHECK_EQUAL(pool.size(), 9UL);
-    sortedOrder.insert(sortedOrder.begin(), tx9.GetId().ToString());
-    CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest5");
-
-    std::vector<std::string> snapshotOrder = sortedOrder;
-
-    setAncestors.insert(pool.mapTx.find(tx8.GetId()));
-    setAncestors.insert(pool.mapTx.find(tx9.GetId()));
-    /* tx10 depends on tx8 and tx9 and has a high fee*/
-    CMutableTransaction tx10 = CMutableTransaction();
-    tx10.vin.resize(2);
-    tx10.vin[0].prevout = COutPoint(tx8.GetId(), 0);
-    tx10.vin[0].scriptSig = CScript() << OP_11;
-    tx10.vin[1].prevout = COutPoint(tx9.GetId(), 0);
-    tx10.vin[1].scriptSig = CScript() << OP_11;
-    tx10.vout.resize(1);
-    tx10.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-    tx10.vout[0].nValue = 10 * COIN;
-
-    setAncestorsCalculated.clear();
-    BOOST_CHECK_EQUAL(pool.CalculateMemPoolAncestors(
-                          entry.Fee(200000 * SATOSHI).Time(4).FromTx(tx10),
-                          setAncestorsCalculated, 100, 1000000, 1000, 1000000,
-                          dummy),
-                      true);
-    BOOST_CHECK(setAncestorsCalculated == setAncestors);
-
-    pool.addUnchecked(entry.FromTx(tx10), setAncestors);
-
-    /**
-     *  tx8 and tx9 should both now be sorted higher
-     *  Final order after tx10 is added:
-     *
-     *  tx3 = 0 (1)
-     *  tx5 = 10000 (1)
-     *  tx1 = 10000 (1)
-     *  tx4 = 15000 (1)
-     *  tx2 = 20000 (1)
-     *  tx9 = 200k (2 txs)
-     *  tx8 = 200k (2 txs)
-     *  tx10 = 200k (1 tx)
-     *  tx6 = 2.2M (5 txs)
-     *  tx7 = 2.2M (4 txs)
-     */
-    // take out tx9, tx8 from the beginning
-    sortedOrder.erase(sortedOrder.begin(), sortedOrder.begin() + 2);
-    sortedOrder.insert(sortedOrder.begin() + 5, tx9.GetId().ToString());
-    sortedOrder.insert(sortedOrder.begin() + 6, tx8.GetId().ToString());
-    // tx10 is just before tx6
-    sortedOrder.insert(sortedOrder.begin() + 7, tx10.GetId().ToString());
-    CheckSort<descendant_score>(pool, sortedOrder, "MempoolIndexingTest6");
-
-    // there should be 10 transactions in the mempool
-    BOOST_CHECK_EQUAL(pool.size(), 10UL);
-
-    // Now try removing tx10 and verify the sort order returns to normal
-    pool.removeRecursive(pool.mapTx.find(tx10.GetId())->GetTx(),
-                         REMOVAL_REASON_DUMMY);
-    CheckSort<descendant_score>(pool, snapshotOrder, "MempoolIndexingTest7");
-
-    pool.removeRecursive(pool.mapTx.find(tx9.GetId())->GetTx(),
-                         REMOVAL_REASON_DUMMY);
-    pool.removeRecursive(pool.mapTx.find(tx8.GetId())->GetTx(),
-                         REMOVAL_REASON_DUMMY);
+    sortedOrder[4] = tx3.GetId().ToString(); // 0
+    CheckSort<modified_feerate>(pool, sortedOrder, "MempoolIndexingTest1");
 }
 
 BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest) {
@@ -668,7 +532,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx1.vout.resize(1);
     tx1.vout[0].scriptPubKey = CScript() << OP_1 << OP_EQUAL;
     tx1.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(entry.Fee(10000 * SATOSHI).FromTx(tx1));
+    pool.addUnchecked(entry.Fee(20000 * SATOSHI).FromTx(tx1));
 
     CMutableTransaction tx2 = CMutableTransaction();
     tx2.vin.resize(1);
@@ -676,7 +540,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx2.vout.resize(1);
     tx2.vout[0].scriptPubKey = CScript() << OP_2 << OP_EQUAL;
     tx2.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(entry.Fee(5000 * SATOSHI).FromTx(tx2));
+    pool.addUnchecked(entry.Fee(4000 * SATOSHI).FromTx(tx2));
 
     // should do nothing
     pool.TrimToSize(pool.DynamicMemoryUsage());
@@ -696,13 +560,14 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     tx3.vout.resize(1);
     tx3.vout[0].scriptPubKey = CScript() << OP_3 << OP_EQUAL;
     tx3.vout[0].nValue = 10 * COIN;
-    pool.addUnchecked(entry.Fee(20000 * SATOSHI).FromTx(tx3));
+    pool.addUnchecked(entry.Fee(16000 * SATOSHI).FromTx(tx3));
 
-    // tx3 should pay for tx2 (CPFP)
+    // tx2 should be removed, tx3 is a child of tx2, so it should be removed
+    // even though it has highest fee.
     pool.TrimToSize(pool.DynamicMemoryUsage() * 3 / 4);
-    BOOST_CHECK(!pool.exists(tx1.GetId()));
-    BOOST_CHECK(pool.exists(tx2.GetId()));
-    BOOST_CHECK(pool.exists(tx3.GetId()));
+    BOOST_CHECK(pool.exists(tx1.GetId()));
+    BOOST_CHECK(!pool.exists(tx2.GetId()));
+    BOOST_CHECK(!pool.exists(tx3.GetId()));
 
     // mempool is limited to tx1's size in memory usage, so nothing fits
     std::vector<COutPoint> vNoSpendsRemaining;
@@ -715,9 +580,10 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
     BOOST_CHECK_EQUAL(vNoSpendsRemaining.size(), 1);
     BOOST_CHECK(vNoSpendsRemaining == std::vector<COutPoint>{COutPoint()});
 
-    CFeeRate maxFeeRateRemoved(25000 * SATOSHI,
-                               CTransaction(tx3).GetTotalSize() +
-                                   CTransaction(tx2).GetTotalSize());
+    // maxFeeRateRemoved was set by the transaction with the highest fee,
+    // that was not removed because it was a child of another tx.
+    CFeeRate maxFeeRateRemoved(20000 * SATOSHI,
+                               CTransaction(tx1).GetTotalSize());
     BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(),
                       maxFeeRateRemoved.GetFeePerK() + feeIncrement);
 
@@ -810,6 +676,7 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
 
     SetMockTime(42 + 2 * CTxMemPool::ROLLING_FEE_HALFLIFE +
                 CTxMemPool::ROLLING_FEE_HALFLIFE / 2);
+
     BOOST_CHECK_EQUAL(
         pool.GetMinFee(pool.DynamicMemoryUsage() * 5 / 2).GetFeePerK(),
         (maxFeeRateRemoved.GetFeePerK() + feeIncrement) / 4);
