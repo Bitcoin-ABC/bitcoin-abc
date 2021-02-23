@@ -50,7 +50,7 @@ on their own.
 - Sometimes you want to replace one subsystem by another implementation,
 in which case it is not possible to do things incrementally. In such cases,
 you keep both implementations in the codebase for a while, as described
-[here](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php).
+[here](http://sevangelatos.com/john-carmack-on-parallel-implementations/)
 - There are no "development" branches, all Diffs apply to the master
 branch, and should always improve it (no regressions).
 - Don't break the build, it is important to keep master green as much as possible.
@@ -64,11 +64,10 @@ Here are some handy links for development practices aligned with Bitcoin ABC:
 
 - [Developer Notes](doc/developer-notes.md)
 - [Statement of Bitcoin ABC Values and Visions](https://www.yours.org/content/bitcoin-abc---our-values-and-vision-a282afaade7c)
-- [How to Do Code Reviews Like a Human - Part 1](https://mtlynch.io/human-code-reviews-1/)
-- [How to Do Code Reviews Like a Human - Part 2](https://mtlynch.io/human-code-reviews-2/)
+- [How to Make Your Code Reviewer Fall in Love with You](https://mtlynch.io/code-review-love/)
 - [Large Diffs Are Hurting Your Ability To Ship](https://medium.com/@kurtisnusbaum/large-diffs-are-hurting-your-ability-to-ship-e0b2b41e8acf)
 - [Stacked Diffs: Keeping Phabricator Diffs Small](https://medium.com/@kurtisnusbaum/stacked-diffs-keeping-phabricator-diffs-small-d9964f4dcfa6)
-- [Parallel Implementations](https://www.gamasutra.com/view/news/128325/Opinion_Parallel_Implementations.php)
+- [Parallel Implementations](http://sevangelatos.com/john-carmack-on-parallel-implementations/)
 - [The Pragmatic Programmer: From Journeyman to Master](https://www.amazon.com/Pragmatic-Programmer-Journeyman-Master/dp/020161622X)
 - [Monorepo: Advantages of monolithic version control](https://danluu.com/monorepo/)
 - [Monorepo: Why Google Stores Billions of Lines of Code in a Single Repository](https://www.youtube.com/watch?v=W71BTkUbdqE)
