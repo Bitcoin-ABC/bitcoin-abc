@@ -1619,7 +1619,7 @@ std::set<CKeyID> LegacyScriptPubKeyMan::GetKeys() const {
     return set_address;
 }
 
-void LegacyScriptPubKeyMan::SetType(OutputType type, bool internal) {}
+void LegacyScriptPubKeyMan::SetInternal(bool internal) {}
 
 bool DescriptorScriptPubKeyMan::GetNewDestination(const OutputType type,
                                                   CTxDestination &dest,
@@ -1635,7 +1635,10 @@ bool DescriptorScriptPubKeyMan::GetNewDestination(const OutputType type,
         LOCK(cs_desc_man);
         // This is a combo descriptor which should not be an active descriptor
         assert(m_wallet_descriptor.descriptor->IsSingleType());
-        if (type != m_address_type) {
+        std::optional<OutputType> desc_addr_type =
+            m_wallet_descriptor.descriptor->GetOutputType();
+        assert(desc_addr_type);
+        if (type != *desc_addr_type) {
             throw std::runtime_error(std::string(__func__) +
                                      ": Types are inconsistent");
         }
@@ -1953,7 +1956,7 @@ bool DescriptorScriptPubKeyMan::AddDescriptorKeyWithDB(WalletBatch &batch,
 }
 
 bool DescriptorScriptPubKeyMan::SetupDescriptorGeneration(
-    const CExtKey &master_key) {
+    const CExtKey &master_key, OutputType addr_type) {
     LOCK(cs_desc_man);
     assert(m_storage.IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS));
 
@@ -1969,7 +1972,7 @@ bool DescriptorScriptPubKeyMan::SetupDescriptorGeneration(
     // Build descriptor string
     std::string desc_prefix;
     std::string desc_suffix = "/*)";
-    switch (m_address_type) {
+    switch (addr_type) {
         case OutputType::LEGACY: {
             desc_prefix = "pkh(" + xpub + "/44'";
             break;
@@ -2258,8 +2261,7 @@ uint256 DescriptorScriptPubKeyMan::GetID() const {
     return id;
 }
 
-void DescriptorScriptPubKeyMan::SetType(OutputType type, bool internal) {
-    this->m_address_type = type;
+void DescriptorScriptPubKeyMan::SetInternal(bool internal) {
     this->m_internal = internal;
 }
 

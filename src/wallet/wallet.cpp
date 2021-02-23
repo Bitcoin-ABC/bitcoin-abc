@@ -4896,7 +4896,7 @@ void CWallet::SetupDescriptorScriptPubKeyMans() {
     for (bool internal : {false, true}) {
         for (OutputType t : OUTPUT_TYPES) {
             auto spk_manager =
-                std::make_unique<DescriptorScriptPubKeyMan>(*this, t, internal);
+                std::make_unique<DescriptorScriptPubKeyMan>(*this, internal);
             if (IsCrypted()) {
                 if (IsLocked()) {
                     throw std::runtime_error(
@@ -4910,7 +4910,7 @@ void CWallet::SetupDescriptorScriptPubKeyMans() {
                         ": Could not encrypt new descriptors");
                 }
             }
-            spk_manager->SetupDescriptorGeneration(master_key);
+            spk_manager->SetupDescriptorGeneration(master_key, t);
             uint256 id = spk_manager->GetID();
             m_spk_managers[id] = std::move(spk_manager);
             SetActiveScriptPubKeyMan(id, t, internal);
@@ -4926,7 +4926,7 @@ void CWallet::SetActiveScriptPubKeyMan(uint256 id, OutputType type,
     auto &spk_mans =
         internal ? m_internal_spk_managers : m_external_spk_managers;
     auto spk_man = m_spk_managers.at(id).get();
-    spk_man->SetType(type, internal);
+    spk_man->SetInternal(internal);
     spk_mans[type] = spk_man;
 
     if (!memonly) {
