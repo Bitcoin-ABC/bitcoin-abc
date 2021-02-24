@@ -51,12 +51,15 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
     /**
-     * Add any orphans that list a particular tx as a parent into a peer's work
-     * set (ie orphans that may have found their final missing parent, and so
-     * should be reconsidered for the mempool)
+     * Which peer provided a parent tx of orphans that need to be reconsidered
      */
-    void AddChildrenToWorkSet(const CTransaction &tx,
-                              std::set<TxId> &orphan_work_set) const
+    std::map<NodeId, std::set<TxId>> m_peer_work_set GUARDED_BY(g_cs_orphans);
+
+    /**
+     * Add any orphans that list a particular tx as a parent into a peer's work
+     * set
+     */
+    void AddChildrenToWorkSet(const CTransaction &tx, NodeId peer)
         EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
     /** Return how many entries exist in the orphange */
