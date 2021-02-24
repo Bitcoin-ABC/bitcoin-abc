@@ -61,9 +61,10 @@ ONE_MEGABYTE = 1000000
 LEGACY_MAX_BLOCK_SIZE = ONE_MEGABYTE
 
 # Default setting for maximum allowed size for a block, in bytes
-DEFAULT_MAX_BLOCK_SIZE = eval(
-    re.search(r'DEFAULT_MAX_BLOCK_SIZE = (.+);',
-              _consensus_h_contents).group(1))
+match = re.search(r'DEFAULT_MAX_BLOCK_SIZE = (.+);', _consensus_h_contents)
+if match is None:
+    raise RuntimeError("DEFAULT_MAX_BLOCK_SIZE value not found in consensus.h")
+DEFAULT_MAX_BLOCK_SIZE = eval(match.group(1))
 
 # The following consensus parameters should not be automatically imported.
 # They *should* cause test failures if application code is changed in ways
