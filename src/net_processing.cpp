@@ -3975,25 +3975,16 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(g_cs_orphans);
     AssertLockHeld(g_msgproc_mutex);
 
-    auto work_set_it = m_orphanage.m_peer_work_set.find(peer.m_id);
-    if (work_set_it == m_orphanage.m_peer_work_set.end()) {
-        return false;
-    }
+    NodeId from_peer = -1;
+    bool more = false;
 
-    std::set<TxId> &orphan_work_set = work_set_it->second;
-
-    while (!orphan_work_set.empty()) {
-        const TxId orphanTxId = *orphan_work_set.begin();
-        orphan_work_set.erase(orphan_work_set.begin());
-
-        const auto [porphanTx, from_peer] = m_orphanage.GetTx(orphanTxId);
-        if (porphanTx == nullptr) {
-            continue;
-        }
-
+    while (CTransactionRef porphanTx =
+               m_orphanage.GetTxToReconsider(peer.m_id, from_peer, more)) {
         const MempoolAcceptResult result =
             m_chainman.ProcessTransaction(porphanTx);
         const TxValidationState &state = result.m_state;
+        const TxId &orphanTxId = porphanTx->GetId();
+
         if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
@@ -4021,7 +4012,7 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
         }
     }
 
-    return !orphan_work_set.empty();
+    return more;
 }
 
 bool PeerManagerImpl::PrepareBlockFilterRequest(

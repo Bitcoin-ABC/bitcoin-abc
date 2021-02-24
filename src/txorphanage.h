@@ -10,6 +10,9 @@
 #include <primitives/transaction.h>
 #include <sync.h>
 
+#include <map>
+#include <set>
+
 /** Guards orphan transactions */
 extern RecursiveMutex g_cs_orphans;
 
@@ -29,10 +32,16 @@ public:
     bool HaveTx(const TxId &txid) const LOCKS_EXCLUDED(g_cs_orphans);
 
     /**
-     * Get an orphan transaction and its originating peer
-     * (Transaction ref will be nullptr if not found)
+     * Extract a transaction from a peer's work set
+     *
+     * Returns nullptr and sets more to false if there are no transactions to
+     * work on. Otherwise returns the transaction reference, removes the
+     * transaction from the work set, and populates its arguments with the
+     * originating peer, and whether there are more orphans for this peer to
+     * work on after this tx.
      */
-    std::pair<CTransactionRef, NodeId> GetTx(const TxId &txid) const
+    CTransactionRef GetTxToReconsider(NodeId peer, NodeId &originator,
+                                      bool &more)
         EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
     /** Erase an orphan by txid */
@@ -49,11 +58,6 @@ public:
     /** Limit the orphanage to the given maximum */
     unsigned int LimitOrphans(unsigned int max_orphans)
         EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
-
-    /**
-     * Which peer provided a parent tx of orphans that need to be reconsidered
-     */
-    std::map<NodeId, std::set<TxId>> m_peer_work_set GUARDED_BY(g_cs_orphans);
 
     /**
      * Add any orphans that list a particular tx as a parent into a peer's work
@@ -81,6 +85,11 @@ protected:
      *  -maxorphantx/DEFAULT_MAX_ORPHAN_TRANSACTIONS
      */
     std::map<TxId, OrphanTx> m_orphans GUARDED_BY(g_cs_orphans);
+
+    /**
+     * Which peer provided a parent tx of orphans that need to be reconsidered
+     */
+    std::map<NodeId, std::set<TxId>> m_peer_work_set GUARDED_BY(g_cs_orphans);
 
     using OrphanMap = decltype(m_orphans);
 
