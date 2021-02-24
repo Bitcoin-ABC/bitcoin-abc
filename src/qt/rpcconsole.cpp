@@ -1283,22 +1283,21 @@ void RPCConsole::updateDetailWidget() {
         bip152_hb_settings = "No";
     }
     ui->peerHighBandwidth->setText(bip152_hb_settings);
+    const int64_t time_now{GetTimeSeconds()};
+    ui->peerConnTime->setText(
+        GUIUtil::formatDurationStr(time_now - stats->nodeStats.nTimeConnected));
+    ui->peerLastBlock->setText(
+        TimeDurationField(time_now, stats->nodeStats.nLastBlockTime));
+    ui->peerLastTx->setText(
+        TimeDurationField(time_now, stats->nodeStats.nLastTXTime));
     ui->peerLastSend->setText(
-        stats->nodeStats.m_last_send
-            ? GUIUtil::formatDurationStr(GetTimeSeconds() -
-                                         stats->nodeStats.m_last_send)
-            : tr("never"));
+        TimeDurationField(time_now, stats->nodeStats.m_last_send));
     ui->peerLastRecv->setText(
-        stats->nodeStats.m_last_recv
-            ? GUIUtil::formatDurationStr(GetTimeSeconds() -
-                                         stats->nodeStats.m_last_recv)
-            : tr("never"));
+        TimeDurationField(time_now, stats->nodeStats.m_last_recv));
     ui->peerBytesSent->setText(
         GUIUtil::formatBytes(stats->nodeStats.nSendBytes));
     ui->peerBytesRecv->setText(
         GUIUtil::formatBytes(stats->nodeStats.nRecvBytes));
-    ui->peerConnTime->setText(GUIUtil::formatDurationStr(
-        GetTimeSeconds() - stats->nodeStats.nTimeConnected));
     ui->peerPingTime->setText(
         GUIUtil::formatPingTime(stats->nodeStats.m_last_ping_time));
     ui->peerMinPing->setText(
