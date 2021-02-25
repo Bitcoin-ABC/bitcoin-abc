@@ -275,6 +275,32 @@ public:
     }
 };
 
+/**
+ * \class CompareTxMemPoolEntryByModifiedFeeRate
+ *
+ *  Sort by feerate of entry (modfee/vsize) in descending order.
+ *  This is used by the block assembler (mining).
+ */
+struct CompareTxMemPoolEntryByModifiedFeeRate {
+    bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
+        const CFeeRate frA = a.GetModifiedFeeRate();
+        const CFeeRate frB = b.GetModifiedFeeRate();
+
+        // Sort by modified fee rate first
+        if (frA != frB) {
+            return frA > frB;
+        }
+
+        // Then by whichever was seen first
+        if (a.GetTime() != b.GetTime()) {
+            return a.GetTime() < b.GetTime();
+        }
+
+        // If nothing else, sort by txid
+        return a.GetSharedTx()->GetId() < b.GetSharedTx()->GetId();
+    }
+};
+
 /** \class CompareTxMemPoolEntryByAncestorScore
  *
  *  Sort an entry by min(score/size of entry's tx, score/size with all
@@ -322,6 +348,7 @@ public:
 struct descendant_score {};
 struct entry_time {};
 struct ancestor_score {};
+struct modified_feerate {};
 
 /**
  * Information about a mempool transaction.
@@ -474,7 +501,12 @@ public:
                              // indexed by txid
                              boost::multi_index::hashed_unique<
                                  mempoolentry_txid, SaltedTxIdHasher>,
-                             // sorted by fee rate
+                             // sorted by fee rate (non-CPFP)
+                             boost::multi_index::ordered_non_unique<
+                                 boost::multi_index::tag<modified_feerate>,
+                                 boost::multi_index::identity<CTxMemPoolEntry>,
+                                 CompareTxMemPoolEntryByModifiedFeeRate>,
+                             // sorted by fee rate (with CPFP)
                              boost::multi_index::ordered_non_unique<
                                  boost::multi_index::tag<descendant_score>,
                                  boost::multi_index::identity<CTxMemPoolEntry>,
