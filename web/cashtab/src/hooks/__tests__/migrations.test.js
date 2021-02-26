@@ -2,6 +2,7 @@ import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import BCHJS from '@psf/bch-js';
 import useBCH from '../useBCH';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
     it('Replacement currency.dust parameter parsing matches legacy DUST parameter', () => {
@@ -114,5 +115,27 @@ describe('Testing functions for upgrading Cashtab', () => {
     it(`Using parseInt on a BigNumber returns output type required for Transaction Builder`, () => {
         const remainder = new BigNumber('12345678');
         expect(parseInt(remainder)).toStrictEqual(12345678);
+    });
+    it('Replicates return value from instance of toBitcoinCash with fromSmallestDenomination and cashDecimals = 8', () => {
+        const BCH = new BCHJS();
+        const testSendAmount = '12345678';
+        expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
+            BCH.BitcoinCash.toBitcoinCash(testSendAmount),
+        );
+    });
+    it('Replicates largest possible digits return value from instance of toBitcoinCash with fromSmallestDenomination and cashDecimals = 8', () => {
+        const BCH = new BCHJS();
+        const testSendAmount = '1000000012345678';
+        expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
+            BCH.BitcoinCash.toBitcoinCash(testSendAmount),
+        );
+    });
+
+    it('Replicates smallest unit value return value from instance of toBitcoinCash with fromSmallestDenomination and cashDecimals = 8', () => {
+        const BCH = new BCHJS();
+        const testSendAmount = '1';
+        expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
+            BCH.BitcoinCash.toBitcoinCash(testSendAmount),
+        );
     });
 });

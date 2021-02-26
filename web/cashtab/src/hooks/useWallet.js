@@ -7,6 +7,7 @@ import useAsyncTimeout from '@hooks/useAsyncTimeout';
 import usePrevious from '@hooks/usePrevious';
 import useBCH from '@hooks/useBCH';
 import BigNumber from 'bignumber.js';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 import localforage from 'localforage';
 import { currency } from '@components/Common/Ticker';
 import _ from 'lodash';
@@ -92,7 +93,7 @@ const useWallet = () => {
         );
         return {
             totalBalanceInSatoshis,
-            totalBalance: BCH.BitcoinCash.toBitcoinCash(totalBalanceInSatoshis),
+            totalBalance: fromSmallestDenomination(totalBalanceInSatoshis),
         };
     };
 
