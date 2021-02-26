@@ -10,3 +10,24 @@ export const fromSmallestDenomination = (
     const amountInBaseUnits = amountBig.times(multiplier);
     return amountInBaseUnits.toNumber();
 };
+
+export const toSmallestDenomination = (
+    sendAmount,
+    cashDecimals = currency.cashDecimals,
+) => {
+    // Replace the BCH.toSatoshi method with an equivalent function that works for arbitrary decimal places
+    // Example, for an 8 decimal place currency like Bitcoin
+    // Input: a BigNumber of the amount of Bitcoin to be sent
+    // Output: a BigNumber of the amount of satoshis to be sent, or false if input is invalid
+
+    // Validate
+    // Input should be a BigNumber with no more decimal places than cashDecimals
+    const isValidSendAmount =
+        BigNumber.isBigNumber(sendAmount) && sendAmount.dp() <= cashDecimals;
+    if (!isValidSendAmount) {
+        return false;
+    }
+    const conversionFactor = new BigNumber(10 ** cashDecimals);
+    const sendAmountSmallestDenomination = sendAmount.times(conversionFactor);
+    return sendAmountSmallestDenomination;
+};

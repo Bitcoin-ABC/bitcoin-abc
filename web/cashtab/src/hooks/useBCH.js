@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import SlpWallet from 'minimal-slp-wallet';
+import { toSmallestDenomination } from '@utils/cashMethods';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -406,30 +407,6 @@ export default function useBCH() {
         return link;
     };
 
-    const toSmallestDenomination = (
-        sendAmount,
-        cashDecimals = currency.cashDecimals,
-    ) => {
-        // Replace the BCH.toSatoshi method with an equivalent function that works for arbitrary decimal places
-        // Example, for an 8 decimal place currency like Bitcoin
-        // Input: a BigNumber of the amount of Bitcoin to be sent
-        // Output: a BigNumber of the amount of satoshis to be sent, or false if input is invalid
-
-        // Validate
-        // Input should be a BigNumber with no more decimal places than cashDecimals
-        const isValidSendAmount =
-            BigNumber.isBigNumber(sendAmount) &&
-            sendAmount.dp() <= cashDecimals;
-        if (!isValidSendAmount) {
-            return false;
-        }
-        const conversionFactor = new BigNumber(10 ** cashDecimals);
-        const sendAmountSmallestDenomination = sendAmount.times(
-            conversionFactor,
-        );
-        return sendAmountSmallestDenomination;
-    };
-
     const sendBch = async (
         BCH,
         wallet,
@@ -593,7 +570,6 @@ export default function useBCH() {
         getSlpBalancesAndUtxos,
         getTxHistory,
         getRestUrl,
-        toSmallestDenomination,
         sendBch,
         sendToken,
     };
