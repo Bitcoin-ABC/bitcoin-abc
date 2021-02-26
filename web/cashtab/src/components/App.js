@@ -2,7 +2,6 @@ import React from 'react';
 import 'antd/dist/antd.less';
 import '../index.css';
 import styled from 'styled-components';
-import { Tabs } from 'antd';
 import {
     FolderOpenFilled,
     CaretRightOutlined,
@@ -30,8 +29,6 @@ import {
 
 import fbt from 'fbt';
 
-const { TabPane } = Tabs;
-
 const Footer = styled.div`
     background-color: #fff;
     border-radius: 20px;
@@ -42,53 +39,37 @@ const Footer = styled.div`
         width: 100%;
     }
     border-top: 1px solid #e2e2e2;
-    .ant-tabs-nav-list {
+`;
+
+export const NavButton = styled.button`
+    :focus,
+    :active {
+        outline: none;
     }
-    .ant-tabs-top > .ant-tabs-nav::before,
-    .ant-tabs-bottom > .ant-tabs-nav::before,
-    .ant-tabs-top > div > .ant-tabs-nav::before,
-    .ant-tabs-bottom > div > .ant-tabs-nav::before {
-        border-bottom: none;
+    cursor: pointer;
+    padding: 24px 12px 12px 12px;
+    margin: 0 28px;
+    @media (max-width: 360px) {
+        margin: 0 12px;
     }
-    .ant-tabs-tab {
-        padding: 24px 12px 12px 12px;
-        margin: 0 24px;
-        @media (max-width: 360px) {
-            margin: 0 12px;
-        }
-        span {
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .anticon {
-            display: block;
-            color: rgb(148, 148, 148);
-            font-size: 24px;
-            margin-left: 8px;
-            margin-bottom: 3px;
-        }
+    background-color: #fff;
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    .anticon {
+        display: block;
+        color: rgb(148, 148, 148);
+        font-size: 24px;
+        margin-bottom: 6px;
     }
-    .ant-tabs-tab:hover {
+    ${({ active }) =>
+        active &&
+        `    
         color: #ff8d00;
         .anticon {
             color: #ff8d00;
         }
-    }
-    .ant-tabs-tab-active > div > span {
-        color: #ff8d00;
-    }
-    .ant-tabs-tab-active.ant-tabs-tab {
-        color: #ff8d00;
-        .anticon {
-            color: #ff8d00;
-        }
-    }
-    .ant-tabs-ink-bar {
-        display: none !important;
-    }
-    .ant-tabs-nav {
-        margin: -3.5px 0 0 0;
-    }
+  `}
 `;
 
 export const WalletBody = styled.div`
@@ -225,51 +206,28 @@ const App = () => {
                 </WalletCtn>
                 {wallet ? (
                     <Footer>
-                        <Tabs
-                            activeKey={selectedKey}
-                            tabPosition="bottom"
-                            centered
+                        <NavButton
+                            active={selectedKey === 'wallet'}
+                            onClick={() => history.push('/wallet')}
                         >
-                            <TabPane
-                                tab={
-                                    <span
-                                        onClick={() => history.push('/wallet')}
-                                    >
-                                        <FolderOpenFilled />
-                                        <fbt desc="Wallet menu button">
-                                            Wallet
-                                        </fbt>
-                                    </span>
-                                }
-                                key="wallet"
-                            />
-                            <TabPane
-                                tab={
-                                    <span onClick={() => history.push('/send')}>
-                                        <CaretRightOutlined />
-                                        <fbt desc="Send menu button">Send</fbt>
-                                    </span>
-                                }
-                                key="send"
-                                disabled={!wallet}
-                            />
-                            <TabPane
-                                tab={
-                                    <span
-                                        onClick={() =>
-                                            history.push('/configure')
-                                        }
-                                    >
-                                        <SettingFilled />
-                                        <fbt desc="Settings menu button">
-                                            Settings
-                                        </fbt>
-                                    </span>
-                                }
-                                key="configure"
-                                disabled={!wallet}
-                            />
-                        </Tabs>
+                            <FolderOpenFilled />
+                            <fbt desc="Wallet menu button">Wallet</fbt>
+                        </NavButton>
+
+                        <NavButton
+                            active={selectedKey === 'send'}
+                            onClick={() => history.push('/send')}
+                        >
+                            <CaretRightOutlined />
+                            <fbt desc="Send menu button">Send</fbt>
+                        </NavButton>
+                        <NavButton
+                            active={selectedKey === 'configure'}
+                            onClick={() => history.push('/configure')}
+                        >
+                            <SettingFilled />
+                            <fbt desc="Settings menu button">Settings</fbt>
+                        </NavButton>
                     </Footer>
                 ) : null}
             </WalletBody>
