@@ -23,6 +23,7 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
+import { formatBalance } from '@utils/cashMethods';
 
 export const BalanceHeader = styled.div`
     p {
@@ -411,7 +412,8 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                     <BalanceHeader>
                         <p>Available balance</p>
                         <h3>
-                            {balances.totalBalance} {currency.ticker}
+                            {formatBalance(balances.totalBalance)}{' '}
+                            {currency.ticker}
                         </h3>
                     </BalanceHeader>
                     {fiatPrice !== null && (

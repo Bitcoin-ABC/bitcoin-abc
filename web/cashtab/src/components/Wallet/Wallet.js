@@ -8,6 +8,7 @@ import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
 import { CashLoader } from '@components/Common/CustomIcons';
+import { formatBalance } from '@utils/cashMethods';
 
 export const LoadingCtn = styled.div`
     width: 100%;
@@ -183,7 +184,7 @@ const WalletInfo = () => {
             ) : (
                 <>
                     <BalanceHeader>
-                        {balances.totalBalance} {currency.ticker}
+                        {formatBalance(balances.totalBalance)} {currency.ticker}
                     </BalanceHeader>
                     {fiatPrice !== null && !isNaN(balances.totalBalance) && (
                         <BalanceHeaderFiat>

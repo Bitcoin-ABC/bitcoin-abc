@@ -24,6 +24,7 @@ import {
     isValidTokenPrefix,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
+import { formatBalance } from '@utils/cashMethods';
 
 const SendToken = ({ tokenId }) => {
     const { wallet, tokens, slpBalancesAndUtxos, apiError } = React.useContext(
@@ -227,7 +228,8 @@ const SendToken = ({ tokenId }) => {
                     <BalanceHeader>
                         <p>Available balance</p>
                         <h3>
-                            {token.balance.toString()} {token.info.tokenTicker}
+                            {formatBalance(token.balance)}{' '}
+                            {token.info.tokenTicker}
                         </h3>
                     </BalanceHeader>
 
