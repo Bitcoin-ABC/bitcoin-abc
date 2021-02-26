@@ -31,12 +31,6 @@ $CC --version
 mkdir buildautotools
 pushd buildautotools
 
-# Nix doesn't store GNU file in /usr/bin, see https://lists.gnu.org/archive/html/bug-libtool/2015-09/msg00000.html .
-# The -i'' is necessary for macOS portability, see https://stackoverflow.com/a/4247319 .
-if [ "${CIRRUS_CI}" = "true" ]; then
-  sed -i'' -e 's@/usr/bin/file@$(which file)@g' ../configure
-fi
-
 ../configure \
   --enable-experimental=$EXPERIMENTAL \
   --with-test-override-wide-multiply=$WIDEMUL \
@@ -63,7 +57,13 @@ print_logs() {
 }
 trap 'print_logs' ERR
 
-make -j2 $AUTOTOOLS_TARGET
+# We have set "-j<n>" in MAKEFLAGS.
+make $AUTOTOOLS_TARGET
+
+# Print information about binaries so that we can see that the architecture is correct
+file *tests || true
+file bench_* || true
+file .libs/* || true
 
 if [ "$RUN_VALGRIND" = "yes" ]; then
   # the `--error-exitcode` is required to make the test fail if valgrind found
