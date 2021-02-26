@@ -59,6 +59,10 @@ class TxVersionTest(BitcoinTestFramework):
             blocks.append(block)
         peer.send_blocks_and_test(blocks[1:], node, success=True)
 
+        # Get out of IBD to avoid the node rejecting the transactions
+        self.generate(node, 1)
+        assert not node.getblockchaininfo()["initialblockdownload"]
+
         def test_mempool_accepts_ok_versions():
             for ok_version in OK_VERSIONS:
                 spendable_tx = spendable_txs.pop(0)
