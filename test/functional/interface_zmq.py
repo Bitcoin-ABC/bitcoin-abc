@@ -70,6 +70,31 @@ class ZMQSubscriber:
         return (hash, label, mempool_sequence)
 
 
+class ZMQTestSetupBlock:
+    """Helper class for setting up a ZMQ test via the "sync up" procedure.
+    Generates a block on the specified node on instantiation and provides a
+    method to check whether a ZMQ notification matches, i.e. the event was
+    caused by this generated block.  Assumes that a notification either contains
+    the generated block's hash, it's (coinbase) transaction id, the raw block or
+    raw transaction data.
+    """
+
+    def __init__(self, node):
+        self.block_hash = node.generate(1)[0]
+        coinbase = node.getblock(self.block_hash, 2)['tx'][0]
+        self.tx_hash = coinbase['txid']
+        self.raw_tx = coinbase['hex']
+        self.raw_block = node.getblock(self.block_hash, 0)
+
+    def caused_notification(self, notification):
+        return (
+            self.block_hash in notification
+            or self.tx_hash in notification
+            or self.raw_block in notification
+            or self.raw_tx in notification
+        )
+
+
 class ZMQTest (BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
@@ -112,17 +137,20 @@ class ZMQTest (BitcoinTestFramework):
         # Ensure that all zmq publisher notification interfaces are ready by
         # running the following "sync up" procedure:
         #   1. Generate a block on the node
-        #   2. Try to receive a notification on all subscribers
-        #   3. If all subscribers get a message within the timeout (1 second),
+        #   2. Try to receive the corresponding notification on all subscribers
+        #   3. If all subscribers get the message within the timeout (1 second),
         #      we are done, otherwise repeat starting from step 1
         for sub in subscribers:
             sub.socket.set(zmq.RCVTIMEO, 1000)
         while True:
-            self.nodes[0].generate(1)
+            test_block = ZMQTestSetupBlock(self.nodes[0])
             recv_failed = False
             for sub in subscribers:
                 try:
-                    sub.receive()
+                    while not test_block.caused_notification(
+                            sub.receive().hex()):
+                        self.log.debug(
+                            "Ignoring sync-up notification for previously generated block.")
                 except zmq.error.Again:
                     self.log.debug(
                         "Didn't receive sync-up notification, trying again.")
