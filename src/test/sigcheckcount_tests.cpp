@@ -335,8 +335,8 @@ BOOST_AUTO_TEST_CASE(test_verifyscript) {
     CHECK_VERIFYSCRIPT(CScript() << OP_1, CScript(), SCRIPT_VERIFY_NONE, 0);
 
     // Common example
-    CHECK_VERIFYSCRIPT(CScript() << sigschnorr, CScript() << pub << OP_CHECKSIG,
-                       SCRIPT_VERIFY_NONE, 1);
+    CHECK_VERIFYSCRIPT(CScript() << txsigschnorr,
+                       CScript() << pub << OP_CHECKSIG, SCRIPT_VERIFY_NONE, 1);
 
     // Correct behaviour occurs for segwit recovery special case (which returns
     // success from an alternative location)
