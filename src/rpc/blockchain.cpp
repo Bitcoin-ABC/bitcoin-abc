@@ -1297,6 +1297,8 @@ static RPCHelpMan gettxoutsetinfo() {
              "with coinstatsindex).",
              "",
              {"", "string or numeric"}},
+            {"use_index", RPCArg::Type::BOOL, /* default */ "true",
+             "Use coinstatsindex, if available."},
         },
         RPCResult{
             RPCResult::Type::OBJ,
@@ -1377,6 +1379,8 @@ static RPCHelpMan gettxoutsetinfo() {
                     ? CoinStatsHashType::HASH_SERIALIZED
                     : ParseHashType(request.params[0].get_str())};
             CCoinsStats stats{hash_type};
+            stats.index_requested =
+                request.params[2].isNull() || request.params[2].get_bool();
 
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
@@ -1416,7 +1420,7 @@ static RPCHelpMan gettxoutsetinfo() {
                     ret.pushKV("muhash", stats.hashSerialized.GetHex());
                 }
                 ret.pushKV("total_amount", stats.nTotalAmount);
-                if (!stats.from_index) {
+                if (!stats.index_used) {
                     ret.pushKV("transactions",
                                static_cast<int64_t>(stats.nTransactions));
                     ret.pushKV("disk_size", stats.nDiskSize);
