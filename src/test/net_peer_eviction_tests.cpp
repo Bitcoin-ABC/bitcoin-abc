@@ -10,6 +10,7 @@
 #include <functional>
 #include <numeric>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 
 BOOST_FIXTURE_TEST_SUITE(net_peer_eviction_tests, BasicTestingSetup)
@@ -45,7 +46,7 @@ GetRandomNodeEvictionCandidates(const int n_candidates,
 
 // Returns true if any of the node ids in node_ids are selected for eviction.
 bool IsEvicted(std::vector<NodeEvictionCandidate> candidates,
-               const std::vector<NodeId> &node_ids,
+               const std::unordered_set<NodeId> &node_ids,
                FastRandomContext &random_context) {
     Shuffle(candidates.begin(), candidates.end(), random_context);
     const std::optional<NodeId> evicted_node_id =
@@ -53,8 +54,7 @@ bool IsEvicted(std::vector<NodeEvictionCandidate> candidates,
     if (!evicted_node_id) {
         return false;
     }
-    return std::find(node_ids.begin(), node_ids.end(), *evicted_node_id) !=
-           node_ids.end();
+    return node_ids.count(*evicted_node_id);
 }
 
 // Create number_of_nodes random nodes, apply setup function candidate_setup_fn,
@@ -62,7 +62,7 @@ bool IsEvicted(std::vector<NodeEvictionCandidate> candidates,
 // are selected for eviction.
 bool IsEvicted(const int number_of_nodes,
                std::function<void(NodeEvictionCandidate &)> candidate_setup_fn,
-               const std::vector<NodeId> &node_ids,
+               const std::unordered_set<NodeId> &node_ids,
                FastRandomContext &random_context) {
     std::vector<NodeEvictionCandidate> candidates =
         GetRandomNodeEvictionCandidates(number_of_nodes, random_context);
@@ -185,7 +185,9 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                     candidate.availabilityScore =
                         double(number_of_nodes - candidate.id);
                 },
-                protectedNodes, random_context));
+                std::unordered_set(protectedNodes.begin(),
+                                   protectedNodes.end()),
+                random_context));
 
             // An eviction is expected given >= 161 random eviction candidates.
             // The eviction logic protects at most four peers by net group,
