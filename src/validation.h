@@ -512,7 +512,8 @@ public:
     CVerifyDB();
     ~CVerifyDB();
     bool VerifyDB(const Config &config, CChainState &active_chainstate,
-                  CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
+                  CCoinsView *coinsview, int nCheckLevel, int nCheckDepth)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 
 /** @see CChainState::FlushStateToDisk */

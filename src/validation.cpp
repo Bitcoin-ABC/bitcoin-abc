@@ -4929,7 +4929,8 @@ CVerifyDB::~CVerifyDB() {
 bool CVerifyDB::VerifyDB(const Config &config, CChainState &active_chainstate,
                          CCoinsView *coinsview, int nCheckLevel,
                          int nCheckDepth) {
-    LOCK(cs_main);
+    AssertLockHeld(cs_main);
+
     assert(std::addressof(::ChainstateActive()) ==
            std::addressof(active_chainstate));
 
