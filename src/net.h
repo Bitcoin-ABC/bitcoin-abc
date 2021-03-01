@@ -264,7 +264,7 @@ extern bool fListen;
 
 struct LocalServiceInfo {
     int nScore;
-    int nPort;
+    uint16_t nPort;
 };
 
 extern RecursiveMutex cs_mapLocalHost;

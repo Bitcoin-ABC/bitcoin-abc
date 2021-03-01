@@ -75,7 +75,7 @@ private Q_SLOTS:
     void updateThirdPartyTxUrlsState();
 
 Q_SIGNALS:
-    void proxyIpChecks(QValidatedLineEdit *pUiProxyIp, int nProxyPort);
+    void proxyIpChecks(QValidatedLineEdit *pUiProxyIp, uint16_t nProxyPort);
 
 private:
     Ui::OptionsDialog *ui;

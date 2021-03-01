@@ -110,7 +110,7 @@ std::vector<uint8_t> ParseHex(const std::string &str) {
     return ParseHex(str.c_str());
 }
 
-void SplitHostPort(std::string in, int &portOut, std::string &hostOut) {
+void SplitHostPort(std::string in, uint16_t &portOut, std::string &hostOut) {
     size_t colon = in.find_last_of(':');
     // if a : is found, and it either follows a [...], or no other : is in the
     // string, treat it as port separator

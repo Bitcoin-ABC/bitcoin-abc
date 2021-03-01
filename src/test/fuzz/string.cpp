@@ -89,7 +89,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         random_string_1,
         fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 3));
     (void)ShellEscape(random_string_1);
-    int port_out;
+    uint16_t port_out;
     std::string host_out;
     SplitHostPort(random_string_1, port_out, host_out);
     (void)TimingResistantEqual(random_string_1, random_string_2);

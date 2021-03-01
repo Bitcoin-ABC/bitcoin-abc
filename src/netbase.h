@@ -95,7 +95,7 @@ extern DNSLookupFn g_dns_lookup;
  * @returns Whether or not the specified host string successfully resolved to
  *          any resulting network addresses.
  *
- * @see Lookup(const std::string&, std::vector<CService>&, int, bool,
+ * @see Lookup(const std::string&, std::vector<CService>&, uint16_t, bool,
  *      unsigned int, DNSLookupFn) for additional parameter descriptions.
  */
 bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
@@ -105,7 +105,7 @@ bool LookupHost(const std::string &name, std::vector<CNetAddr> &vIP,
 /**
  * Resolve a host string to its first corresponding network address.
  *
- * @see LookupHost(const std::string&, std::vector<CNetAddr>&, unsigned int,
+ * @see LookupHost(const std::string&, std::vector<CNetAddr>&, uint16_t,
  *      bool, DNSLookupFn) for additional parameter descriptions.
  */
 bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
@@ -116,8 +116,8 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
  *
  * @param name    The string representing a service. Could be a name or a
  *                numerical IP address (IPv6 addresses should be in their
- *                disambiguated bracketed form), optionally followed by a port
- *                number. (e.g. example.com:8333 or
+ *                disambiguated bracketed form), optionally followed by a
+ * uint16_t port number. (e.g. example.com:8333 or
  *                [2001:db8:85a3:8d3:1319:8a2e:370:7348]:420)
  * @param[out] vAddr The resulting services to which the specified service
  * string resolved.
@@ -132,7 +132,7 @@ bool LookupHost(const std::string &name, CNetAddr &addr, bool fAllowLookup,
  *          resulting services.
  */
 bool Lookup(const std::string &name, std::vector<CService> &vAddr,
-            int portDefault, bool fAllowLookup, unsigned int nMaxSolutions,
+            uint16_t portDefault, bool fAllowLookup, unsigned int nMaxSolutions,
             DNSLookupFn dns_lookup_function = g_dns_lookup);
 
 /**
@@ -141,7 +141,7 @@ bool Lookup(const std::string &name, std::vector<CService> &vAddr,
  * @see Lookup(const std::string&, std::vector<CService>&, int, bool,
  *      unsigned int, DNSLookupFn) for additional parameter descriptions.
  */
-bool Lookup(const std::string &name, CService &addr, int portDefault,
+bool Lookup(const std::string &name, CService &addr, uint16_t portDefault,
             bool fAllowLookup, DNSLookupFn dns_lookup_function = g_dns_lookup);
 
 /**
@@ -154,7 +154,7 @@ bool Lookup(const std::string &name, CService &addr, int portDefault,
  * @see Lookup(const std::string&, CService&, int, bool, DNSLookupFn) for
  *      additional parameter descriptions.
  */
-CService LookupNumeric(const std::string &name, int portDefault = 0,
+CService LookupNumeric(const std::string &name, uint16_t portDefault = 0,
                        DNSLookupFn dns_lookup_function = g_dns_lookup);
 
 /**
@@ -217,7 +217,7 @@ bool ConnectSocketDirectly(const CService &addrConnect, const Sock &sock,
  * @returns Whether or not the operation succeeded.
  */
 bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
-                         int port, const Sock &sock, int nTimeout,
+                         uint16_t port, const Sock &sock, int nTimeout,
                          bool &outProxyConnectionFailed);
 
 /** Disable or enable blocking-mode for a socket */
