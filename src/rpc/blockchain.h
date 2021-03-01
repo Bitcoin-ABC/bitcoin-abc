@@ -5,6 +5,7 @@
 #ifndef BITCOIN_RPC_BLOCKCHAIN_H
 #define BITCOIN_RPC_BLOCKCHAIN_H
 
+#include <core_io.h>
 #include <streams.h>
 #include <sync.h>
 #include <util/fs.h>
@@ -39,7 +40,7 @@ void RPCNotifyBlockChange(const CBlockIndex *pindex);
 /** Block description to JSON */
 UniValue blockToJSON(node::BlockManager &blockman, const CBlock &block,
                      const CBlockIndex &tip, const CBlockIndex &blockindex,
-                     bool txDetails = false) LOCKS_EXCLUDED(cs_main);
+                     TxVerbosity verbosity) LOCKS_EXCLUDED(cs_main);
 
 /** Block header to JSON */
 UniValue blockheaderToJSON(const CBlockIndex &tip,

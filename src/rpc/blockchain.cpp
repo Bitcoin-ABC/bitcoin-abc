@@ -179,31 +179,38 @@ UniValue blockheaderToJSON(const CBlockIndex &tip,
 
 UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
                      const CBlockIndex &tip, const CBlockIndex &blockindex,
-                     bool txDetails) {
+                     TxVerbosity verbosity) {
     UniValue result = blockheaderToJSON(tip, blockindex);
 
     result.pushKV("size", (int)::GetSerializeSize(block, PROTOCOL_VERSION));
     UniValue txs(UniValue::VARR);
-    if (txDetails) {
-        CBlockUndo blockUndo;
-        const bool is_not_pruned{
-            WITH_LOCK(::cs_main, return !blockman.IsBlockPruned(blockindex))};
-        const bool have_undo{is_not_pruned &&
-                             blockman.UndoReadFromDisk(blockUndo, blockindex)};
-        for (size_t i = 0; i < block.vtx.size(); ++i) {
-            const CTransactionRef &tx = block.vtx.at(i);
-            // coinbase transaction (i == 0) doesn't have undo data
-            const CTxUndo *txundo =
-                (have_undo && i) ? &blockUndo.vtxundo.at(i - 1) : nullptr;
-            UniValue objTx(UniValue::VOBJ);
-            TxToUniv(*tx, BlockHash(), objTx, true, txundo);
-            txs.push_back(objTx);
-        }
-    } else {
-        for (const CTransactionRef &tx : block.vtx) {
-            txs.push_back(tx->GetId().GetHex());
-        }
+    switch (verbosity) {
+        case TxVerbosity::SHOW_TXID:
+            for (const CTransactionRef &tx : block.vtx) {
+                txs.push_back(tx->GetId().GetHex());
+            }
+            break;
+
+        case TxVerbosity::SHOW_DETAILS:
+        case TxVerbosity::SHOW_DETAILS_AND_PREVOUT:
+            CBlockUndo blockUndo;
+            const bool is_not_pruned{WITH_LOCK(
+                ::cs_main, return !blockman.IsBlockPruned(blockindex))};
+            const bool have_undo{is_not_pruned && blockman.UndoReadFromDisk(
+                                                      blockUndo, blockindex)};
+            for (size_t i = 0; i < block.vtx.size(); ++i) {
+                const CTransactionRef &tx = block.vtx.at(i);
+                // coinbase transaction (i == 0) doesn't have undo data
+                const CTxUndo *txundo = (have_undo && i > 0)
+                                            ? &blockUndo.vtxundo.at(i - 1)
+                                            : nullptr;
+                UniValue objTx(UniValue::VOBJ);
+                TxToUniv(*tx, BlockHash(), objTx, true, txundo, verbosity);
+                txs.push_back(objTx);
+            }
+            break;
     }
+
     result.pushKV("tx", txs);
 
     return result;
@@ -698,7 +705,11 @@ static RPCHelpMan getblock() {
         "If verbosity is 1 or true, returns an Object with information about "
         "block <hash>.\n"
         "If verbosity is 2, returns an Object with information about block "
-        "<hash> and information about each transaction.\n",
+        "<hash> and information about each transaction.\n"
+        "If verbosity is 3, returns an Object with information about block "
+        "<hash> and information about each transaction, including prevout "
+        "information for inputs (only for unpruned blocks in the current best "
+        "chain).\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The block hash"},
@@ -822,8 +833,17 @@ static RPCHelpMan getblock() {
                 return strHex;
             }
 
+            TxVerbosity tx_verbosity;
+            if (verbosity == 1) {
+                tx_verbosity = TxVerbosity::SHOW_TXID;
+            } else if (verbosity == 2) {
+                tx_verbosity = TxVerbosity::SHOW_DETAILS;
+            } else {
+                tx_verbosity = TxVerbosity::SHOW_DETAILS_AND_PREVOUT;
+            }
+
             return blockToJSON(chainman.m_blockman, block, *tip, *pblockindex,
-                               verbosity >= 2);
+                               tx_verbosity);
         },
     };
 }

@@ -21,6 +21,19 @@ class uint256;
 class UniValue;
 class CTxUndo;
 
+/**
+ * Verbose level for block's transaction
+ */
+enum class TxVerbosity {
+    /// Only TXID for each block's transaction
+    SHOW_TXID,
+    /// Include TXID, inputs, outputs, and other common block's transaction
+    /// information
+    SHOW_DETAILS,
+    /// The same as previous option with information about prevouts if available
+    SHOW_DETAILS_AND_PREVOUT,
+};
+
 // core_read.cpp
 CScript ParseScript(const std::string &s);
 std::string ScriptToAsmStr(const CScript &script,
@@ -51,6 +64,7 @@ void ScriptPubKeyToUniv(const CScript &scriptPubKey, UniValue &out,
 void ScriptToUniv(const CScript &script, UniValue &out, bool include_address);
 void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
               UniValue &entry, bool include_hex = true,
-              const CTxUndo *txundo = nullptr);
+              const CTxUndo *txundo = nullptr,
+              TxVerbosity verbosity = TxVerbosity::SHOW_DETAILS);
 
 #endif // BITCOIN_CORE_IO_H
