@@ -64,7 +64,7 @@ class FullBlockTest(BitcoinTestFramework):
         self.supports_cli = False
         # The default timeout is not enough when submitting large blocks with
         # TSAN enabled
-        self.rpc_timeout = 180
+        self.rpc_timeout = 360
 
     def add_options(self, parser):
         super().add_options(parser)
