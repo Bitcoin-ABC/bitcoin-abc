@@ -9,17 +9,6 @@
     font-weight: normal;
 }
 
-aside::-webkit-scrollbar {
-    width: 0.3em;
-}
-aside::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px #13171f;
-}
-aside::-webkit-scrollbar-thumb {
-    background-color: darkgrey;
-    outline: 1px solid slategrey;
-}
-
 /* Hide up and down arros on input type="number" */
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
@@ -44,55 +33,12 @@ body {
     display: none;
 }
 
-.App {
-    text-align: center;
-    font-family: 'Gilroy', sans-serif;
-    background-color: #fbfbfd;
-}
-.App-logo {
-    width: 100%;
-    display: block;
-}
-
-.logo img {
-    width: 100%;
-    min-width: 193px;
-    display: block;
-    padding-left: 24px;
-    padding-right: 34px;
-    padding-top: 24px;
-    max-width: 200px;
-}
 .ant-list-item-meta .ant-list-item-meta-content {
     display: flex;
 }
 
 #react-qrcode-logo {
     border-radius: 8px;
-}
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #f59332;
-}
-.ant-menu-item-group-title {
-    padding-left: 30px;
-    font-size: 20px !important;
-    font-weight: 500 !important;
-}
-
-.ant-menu-item > span {
-    font-size: 14px !important;
-    font-weight: 500 !important;
 }
 
 .ant-card-actions > li > span:hover,
@@ -128,13 +74,6 @@ body {
     overflow: visible !important;
 }
 
-/* .ant-radio-group-solid .ant-radio-button-wrapper {
-  margin-top: 0px;
-}
-.ant-radio-group-solid .ant-radio-button-wrapper-checked {
-  border: none !important;
-  box-shadow: none !important;
-} */
 .identicon {
     border-radius: 50%;
     width: 200px;
@@ -148,21 +87,6 @@ body {
     width: 40px;
     height: 40px;
 }
-
-/* .ant-radio-group-solid .ant-radio-button-wrapper-checked {
-  background: #ff8d00 !important;
-}
-.ant-radio-group.ant-radio-group-solid.ant-radio-group-small {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  vertical-align: middle;
-  border-radius: 100px;
-  overflow: auto;
-  background: rgba(255, 255, 255, 0.5) !important;
-  margin-top: 14px;
-  margin-bottom: 10px;
-  cursor: pointer;
-} */
 
 .ant-checkbox-inner {
     border: 1px solid #eaedf3 !important;
@@ -190,10 +114,6 @@ body {
     background-color: #f4f4f4 !important;
     border: 1px solid rgb(234, 237, 243);
     color: #3e3f42 !important;
-
-    * {
-        color: #3e3f42 !important;
-    }
 }
 
 .ant-menu-item.ant-menu-item-selected > * {
@@ -227,17 +147,6 @@ body {
     margin-right: -70px;
 }
 
-/* Removing these for ABC SLP warning
-.ant-alert-warning {
-  background-color: #20242d;
-  border: 1px solid #17171f;
-  border-radius: 0;
-}
-.ant-alert-message {
-  color: #fff;
-}
-*/
-
 .ant-layout-sider-dark {
     background: linear-gradient(0deg, #040c3c, #212c6e);
 }
@@ -266,28 +175,6 @@ body {
     border-left-color: #20242d !important;
 }
 
-.audit {
-    a,
-    a:active {
-        color: #46464a;
-    }
-
-    a:hover {
-        color: #111117;
-    }
-}
-
-.dividends {
-    a,
-    a:active {
-        color: #111117;
-    }
-
-    a:hover {
-        color: #46464a;
-    }
-}
-
 .ant-popover-inner-content {
     color: white;
 }
@@ -305,17 +192,6 @@ body {
 .ant-upload-list-item:hover .ant-upload-list-item-info {
     background-color: #ffffff;
 }
-
-/* .ant-radio-button-wrapper {
-  border: none;
-}
-.ant-radio-button-wrapper-checked {
-  border-radius: none !important;
-} */
-
-/* .ant-radio-button-wrapper:first-child, .ant-radio-button-wrapper:last-child {
-  border-radius: 0 0 0 0;
-} */
 
 .ant-radio-group {
     width: 100%;

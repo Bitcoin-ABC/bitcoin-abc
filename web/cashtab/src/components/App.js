@@ -29,6 +29,11 @@ import {
 
 import fbt from 'fbt';
 
+const CustomApp = styled.div`
+    text-align: center;
+    font-family: 'Gilroy', sans-serif;
+    background-color: #fbfbfd;
+`;
 const Footer = styled.div`
     background-color: #fff;
     border-radius: 20px;
@@ -167,7 +172,7 @@ const App = () => {
         location && location.pathname ? location.pathname.substr(1) : '';
 
     return (
-        <div className="App">
+        <CustomApp>
             <WalletBody>
                 <WalletCtn>
                     <HeaderCtn>
@@ -231,7 +236,7 @@ const App = () => {
                     </Footer>
                 ) : null}
             </WalletBody>
-        </div>
+        </CustomApp>
     );
 };
 
