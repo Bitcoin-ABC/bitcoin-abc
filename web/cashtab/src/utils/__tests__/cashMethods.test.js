@@ -17,10 +17,15 @@ describe('Correctly executes cash utility functions', () => {
             10000000.12345678,
         );
     });
-    it(`Formats a large number to add commas`, () => {
-        expect(formatBalance(1000000012345678)).toBe('1,000,000,012,345,678');
+    it(`Formats a large number to add spaces as thousands separator`, () => {
+        expect(formatBalance(1000000012345678)).toBe('1 000 000 012 345 678');
     });
-    it(`Formats a large number with 2 decimal places to add commas`, () => {
-        expect(formatBalance(10000000123456.78)).toBe('10,000,000,123,456.78');
+    it(`Formats a large number with 2 decimal places to add as thousands separator`, () => {
+        expect(formatBalance(10000000123456.78)).toBe('10 000 000 123 456.78');
+    });
+    it(`Formats a large number with 9 decimal places to add as thousands separator without adding them to decimals`, () => {
+        expect(formatBalance('10000000123456.789123456')).toBe(
+            '10 000 000 123 456.789123456',
+        );
     });
 });

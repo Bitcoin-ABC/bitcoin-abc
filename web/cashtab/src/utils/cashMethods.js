@@ -34,6 +34,6 @@ export const toSmallestDenomination = (
 
 export const formatBalance = x => {
     let balanceInParts = x.toString().split('.');
-    balanceInParts[0] = balanceInParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    balanceInParts[0] = balanceInParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     return balanceInParts.join('.');
 };
