@@ -33,5 +33,7 @@ export const toSmallestDenomination = (
 };
 
 export const formatBalance = x => {
-    return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ',');
+    let balanceInParts = x.toString().split('.');
+    balanceInParts[0] = balanceInParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return balanceInParts.join('.');
 };
