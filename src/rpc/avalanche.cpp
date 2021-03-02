@@ -3,10 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <avalanche/delegationbuilder.h>
+#include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
 #include <config.h>
+#include <core_io.h>
 #include <key_io.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
@@ -203,6 +205,110 @@ static UniValue buildavalancheproof(const Config &config,
     return HexStr(ss);
 }
 
+static UniValue getavalanchepeerinfo(const Config &config,
+                                     const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "getavalanchepeerinfo",
+        "Returns data about each connected avalanche peer as a json array of "
+        "objects.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::ARR,
+            "",
+            "",
+            {{
+                RPCResult::Type::OBJ,
+                "",
+                "",
+                {{
+                    {RPCResult::Type::NUM, "peerid", "The peer id"},
+                    {RPCResult::Type::STR_HEX, "proof",
+                     "The avalanche proof used by this peer"},
+                    {RPCResult::Type::NUM, "sequence", "The proof's sequence"},
+                    {RPCResult::Type::NUM_TIME, "expiration",
+                     "The proof's expiration timestamp"},
+                    {RPCResult::Type::STR_HEX, "master",
+                     "The proof's master public key"},
+                    {
+                        RPCResult::Type::ARR,
+                        "stakes",
+                        "",
+                        {{
+                            RPCResult::Type::OBJ,
+                            "",
+                            "",
+                            {{
+                                {RPCResult::Type::STR_HEX, "txid", ""},
+                                {RPCResult::Type::NUM, "vout", ""},
+                                {RPCResult::Type::STR_AMOUNT, "amount",
+                                 "The amount in this UTXO"},
+                                {RPCResult::Type::NUM, "height",
+                                 "The height at which this UTXO was mined"},
+                                {RPCResult::Type::BOOL, "iscoinbase",
+                                 "Indicate wether the UTXO is a coinbase"},
+                                {RPCResult::Type::STR_HEX, "pubkey", ""},
+                            }},
+                        }},
+                    },
+                    {RPCResult::Type::ARR,
+                     "nodes",
+                     "",
+                     {
+                         {RPCResult::Type::NUM, "nodeid",
+                          "Node id, as returned by getpeerinfo"},
+                     }},
+                }},
+            }},
+        },
+        RPCExamples{HelpExampleCli("getavalanchepeerinfo", "") +
+                    HelpExampleRpc("getavalanchepeerinfo", "")},
+    }
+        .Check(request);
+
+    if (!g_avalanche) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
+    }
+
+    UniValue ret(UniValue::VARR);
+
+    for (const auto &peer : g_avalanche->getPeers()) {
+        UniValue obj(UniValue::VOBJ);
+
+        CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
+        serproof << peer.proof;
+
+        obj.pushKV("peerid", uint64_t(peer.peerid));
+        obj.pushKV("proof", HexStr(serproof));
+        obj.pushKV("sequence", peer.proof.getSequence());
+        obj.pushKV("expiration", peer.proof.getExpirationTime());
+        obj.pushKV("master", HexStr(peer.proof.getMaster()));
+
+        UniValue stakes(UniValue::VARR);
+        for (const auto &s : peer.proof.getStakes()) {
+            UniValue stake(UniValue::VOBJ);
+            stake.pushKV("txid", s.getStake().getUTXO().GetTxId().GetHex());
+            stake.pushKV("vout", uint64_t(s.getStake().getUTXO().GetN()));
+            stake.pushKV("amount", ValueFromAmount(s.getStake().getAmount()));
+            stake.pushKV("height", uint64_t(s.getStake().getHeight()));
+            stake.pushKV("iscoinbase", s.getStake().isCoinbase());
+            stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));
+            stakes.push_back(stake);
+        }
+        obj.pushKV("stakes", stakes);
+
+        UniValue nodes(UniValue::VARR);
+        for (const auto &id : g_avalanche->getNodeIdsForPeer(peer.peerid)) {
+            nodes.push_back(id);
+        }
+        obj.pushKV("nodes", nodes);
+        obj.pushKV("nodecount", uint64_t(peer.node_count));
+
+        ret.push_back(obj);
+    }
+
+    return ret;
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -211,6 +317,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
         { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
         { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
+        { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
     };
     // clang-format on
 

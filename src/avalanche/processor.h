@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_PROCESSOR_H
 
 #include <avalanche/node.h>
+#include <avalanche/peermanager.h>
 #include <avalanche/protocol.h>
 #include <blockindexworkcomparator.h>
 #include <eventloop.h>
@@ -279,6 +280,9 @@ public:
 
     CPubKey getSessionPubKey() const;
     bool sendHello(CNode *pfrom) const;
+
+    std::vector<avalanche::Peer> getPeers() const;
+    std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();

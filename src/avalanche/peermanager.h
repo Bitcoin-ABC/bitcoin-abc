@@ -185,6 +185,9 @@ public:
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
 
+    std::vector<Peer> getPeers() const;
+    std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
+
 private:
     PeerSet::iterator fetchOrCreatePeer(const Proof &proof);
     bool addNodeToPeer(const PeerSet::iterator &it);

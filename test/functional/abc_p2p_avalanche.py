@@ -35,6 +35,8 @@ BLOCK_UNKNOWN = -1
 BLOCK_MISSING = -2
 BLOCK_PENDING = -3
 
+QUORUM_NODE_COUNT = 16
+
 
 class TestNode(P2PInterface):
 
@@ -137,7 +139,7 @@ class AvalancheTest(BitcoinTestFramework):
 
                 return n
 
-            return [get_node() for _ in range(0, 16)]
+            return [get_node() for _ in range(0, QUORUM_NODE_COUNT)]
 
         # Pick on node from the quorum for polling.
         quorum = get_quorum()
@@ -240,20 +242,40 @@ class AvalancheTest(BitcoinTestFramework):
         pubkey = privkey.get_pubkey()
 
         privatekey = node.get_deterministic_priv_key().key
-        proof = node.buildavalancheproof(11, 12, pubkey.get_bytes().hex(), [{
-            'txid': coinbases[0]['txid'],
-            'vout': coinbases[0]['n'],
-            'amount': coinbases[0]['value'],
-            'height': coinbases[0]['height'],
-            'iscoinbase': True,
-            'privatekey': privatekey,
-        }])
+        proof_sequence = 11
+        proof_expiration = 12
+        proof = node.buildavalancheproof(
+            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
+            [{
+                'txid': coinbases[0]['txid'],
+                'vout': coinbases[0]['n'],
+                'amount': coinbases[0]['value'],
+                'height': coinbases[0]['height'],
+                'iscoinbase': True,
+                'privatekey': privatekey,
+            }])
 
         # Activate the quorum.
         for n in quorum:
             success = node.addavalanchenode(
                 n.nodeid, pubkey.get_bytes().hex(), proof)
             assert success is True
+
+        self.log.info("Testing getavalanchepeerinfo...")
+        avapeerinfo = node.getavalanchepeerinfo()
+        # There is a single peer because all nodes share the same proof.
+        assert_equal(len(avapeerinfo), 1)
+        assert_equal(avapeerinfo[0]["peerid"], 0)
+        assert_equal(avapeerinfo[0]["nodecount"], len(quorum))
+        # The first avalanche node index is 1, because 0 is self.nodes[1].
+        assert_equal(sorted(avapeerinfo[0]["nodes"]),
+                     list(range(1, QUORUM_NODE_COUNT + 1)))
+        assert_equal(avapeerinfo[0]["sequence"], proof_sequence)
+        assert_equal(avapeerinfo[0]["expiration"], proof_expiration)
+        assert_equal(avapeerinfo[0]["master"], pubkey.get_bytes().hex())
+        assert_equal(avapeerinfo[0]["proof"], proof)
+        assert_equal(len(avapeerinfo[0]["stakes"]), 1)
+        assert_equal(avapeerinfo[0]["stakes"][0]["txid"], coinbases[0]['txid'])
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
             found_hash = False

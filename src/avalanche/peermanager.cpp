@@ -438,4 +438,22 @@ PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
     return NO_PEER;
 }
 
+std::vector<Peer> PeerManager::getPeers() const {
+    std::vector<Peer> vpeers;
+    for (auto &it : peers.get<0>()) {
+        vpeers.emplace_back(it);
+    }
+    return vpeers;
+}
+
+std::vector<NodeId> PeerManager::getNodeIdsForPeer(PeerId peerId) const {
+    std::vector<NodeId> nodeids;
+    auto &nview = nodes.get<next_request_time>();
+    auto nodeRange = nview.equal_range(peerId);
+    for (auto it = nodeRange.first; it != nodeRange.second; ++it) {
+        nodeids.emplace_back(it->nodeid);
+    }
+    return nodeids;
+}
+
 } // namespace avalanche

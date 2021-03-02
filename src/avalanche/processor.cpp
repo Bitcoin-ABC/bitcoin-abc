@@ -587,4 +587,14 @@ void Processor::runEventLoop() {
     } while (nodeid != NO_NODE);
 }
 
+std::vector<avalanche::Peer> Processor::getPeers() const {
+    LOCK(cs_peerManager);
+    return peerManager->getPeers();
+}
+
+std::vector<NodeId> Processor::getNodeIdsForPeer(PeerId peerId) const {
+    LOCK(cs_peerManager);
+    return peerManager->getNodeIdsForPeer(peerId);
+}
+
 } // namespace avalanche
