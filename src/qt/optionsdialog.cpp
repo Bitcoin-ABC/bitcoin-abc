@@ -144,6 +144,12 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
     connect(ui->proxyPortTor, &QLineEdit::textChanged, this,
             &OptionsDialog::updateProxyValidationState);
 
+    /* setup/change UI elements when third party tx URLs are invalid/valid */
+    ui->thirdPartyTxUrls->setCheckValidator(
+        new ThirdPartyTxUrlsValidator(parent));
+    connect(ui->thirdPartyTxUrls, &QValidatedLineEdit::validationDidChange,
+            this, &OptionsDialog::updateThirdPartyTxUrlsState);
+
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         ui->hideTrayIcon->setChecked(true);
         ui->hideTrayIcon->setEnabled(false);
@@ -419,6 +425,35 @@ QValidator::State ProxyAddressValidator::validate(QString &input,
     CService serv(LookupNumeric(input.toStdString(), DEFAULT_GUI_PROXY_PORT));
     proxyType addrProxy = proxyType(serv, true);
     if (addrProxy.IsValid()) {
+        return QValidator::Acceptable;
+    }
+
+    return QValidator::Invalid;
+}
+
+void OptionsDialog::updateThirdPartyTxUrlsState() {
+    QValidatedLineEdit *thirdPartyTxUrls = ui->thirdPartyTxUrls;
+    if (thirdPartyTxUrls->isValid()) {
+        // Only enable OK button if the third party tx URLS pattern is valid
+        setOkButtonState(true);
+        clearStatusLabel();
+    } else {
+        setOkButtonState(false);
+        ui->statusLabel->setStyleSheet("QLabel { color: red; }");
+        ui->statusLabel->setText(
+            tr("The third party transaction URLs should start with https://."));
+    }
+}
+
+ThirdPartyTxUrlsValidator::ThirdPartyTxUrlsValidator(QObject *parent)
+    : QValidator(parent) {}
+
+QValidator::State ThirdPartyTxUrlsValidator::validate(QString &input,
+                                                      int &pos) const {
+    Q_UNUSED(pos);
+    // Check the URL starts with https. All other schemes are rejected for
+    // security reasons.
+    if (input.isEmpty() || input.startsWith("https://")) {
         return QValidator::Acceptable;
     }
 

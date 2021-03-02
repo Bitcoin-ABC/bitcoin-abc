@@ -29,6 +29,16 @@ public:
     State validate(QString &input, int &pos) const override;
 };
 
+/** Third party tx URL validator, checks for an https link. */
+class ThirdPartyTxUrlsValidator : public QValidator {
+    Q_OBJECT
+
+public:
+    explicit ThirdPartyTxUrlsValidator(QObject *parent);
+
+    State validate(QString &input, int &pos) const override;
+};
+
 /** Preferences dialog. */
 class OptionsDialog : public QDialog {
     Q_OBJECT
@@ -62,6 +72,7 @@ private Q_SLOTS:
     void updateProxyValidationState();
     /* query the networks, for which the default proxy is used */
     void updateDefaultProxyNets();
+    void updateThirdPartyTxUrlsState();
 
 Q_SIGNALS:
     void proxyIpChecks(QValidatedLineEdit *pUiProxyIp, int nProxyPort);
