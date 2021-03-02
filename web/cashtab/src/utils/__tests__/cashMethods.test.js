@@ -28,4 +28,13 @@ describe('Correctly executes cash utility functions', () => {
             '10 000 000 123 456.789123456',
         );
     });
+    it(`formatBalance handles an input of 0`, () => {
+        expect(formatBalance('0')).toBe('0');
+    });
+    it(`formatBalance handles an input of undefined`, () => {
+        expect(formatBalance(undefined)).toBe(undefined);
+    });
+    it(`formatBalance handles an input of null`, () => {
+        expect(formatBalance(null)).toBe(null);
+    });
 });
