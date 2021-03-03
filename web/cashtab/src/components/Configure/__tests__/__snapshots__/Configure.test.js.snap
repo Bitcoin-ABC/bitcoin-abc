@@ -14,6 +14,7 @@ exports[`Configure with a wallet 1`] = `
         role="img"
         style={
           Object {
+            "color": "#ff8d00",
             "fontSize": 48,
           }
         }
@@ -256,6 +257,7 @@ exports[`Configure without a wallet 1`] = `
         role="img"
         style={
           Object {
+            "color": "#ff8d00",
             "fontSize": 48,
           }
         }

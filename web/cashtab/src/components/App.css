@@ -248,11 +248,6 @@ body {
     }
 }
 
-/*Custom color for CashSpin*/
-.ant-spin > span > svg {
-    fill: #ff8d00;
-}
-
 /*Custom Input Fields */
 input.ant-input,
 .ant-select-selection {

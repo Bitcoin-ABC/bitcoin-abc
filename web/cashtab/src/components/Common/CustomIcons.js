@@ -6,6 +6,7 @@ export const CashLoadingIcon = (
     <LoadingOutlined
         style={{
             fontSize: 48,
+            color: '#ff8d00',
         }}
     />
 );
