@@ -24,6 +24,8 @@ void QValidatedLineEdit::setValid(bool _valid) {
         setStyleSheet(STYLE_INVALID);
     }
     this->valid = _valid;
+
+    Q_EMIT validationDidChange(this);
 }
 
 void QValidatedLineEdit::focusInEvent(QFocusEvent *evt) {
@@ -81,8 +83,6 @@ void QValidatedLineEdit::checkValidity() {
     } else {
         setValid(false);
     }
-
-    Q_EMIT validationDidChange(this);
 }
 
 void QValidatedLineEdit::setCheckValidator(const QValidator *v) {
