@@ -531,8 +531,11 @@ private:
     /**
      * Send a ping message every PING_INTERVAL or if requested via RPC. May mark
      * the peer to be disconnected if a ping has timed out.
+     * We use mockable time for ping timeouts, so setmocktime may cause pings
+     * to time out.
      */
-    void MaybeSendPing(CNode &node_to, Peer &peer);
+    void MaybeSendPing(CNode &node_to, Peer &peer,
+                       std::chrono::microseconds now);
 
     const CChainParams &m_chainparams;
     CConnman &m_connman;
@@ -5560,11 +5563,8 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
     }
 }
 
-void PeerManagerImpl::MaybeSendPing(CNode &node_to, Peer &peer) {
-    // Use mockable time for ping timeouts.
-    // This means that setmocktime may cause pings to time out.
-    auto now = GetTime<std::chrono::microseconds>();
-
+void PeerManagerImpl::MaybeSendPing(CNode &node_to, Peer &peer,
+                                    std::chrono::microseconds now) {
     if (m_connman.RunInactivityChecks(node_to) && peer.m_ping_nonce_sent &&
         now >
             peer.m_ping_start.load() + std::chrono::seconds{TIMEOUT_INTERVAL}) {
@@ -5649,14 +5649,15 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     // can't change.
     const CNetMsgMaker msgMaker(pto->GetCommonVersion());
 
-    MaybeSendPing(*pto, *peer);
+    const auto current_time = GetTime<std::chrono::microseconds>();
+
+    MaybeSendPing(*pto, *peer, current_time);
 
     // MaybeSendPing may have marked peer for disconnection
     if (pto->fDisconnect) {
         return true;
     }
 
-    auto current_time = GetTime<std::chrono::microseconds>();
     bool fFetch;
 
     {
@@ -6061,7 +6062,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     addInvAndMaybeFlush(MSG_TX, txid);
                 }
                 pto->m_tx_relay->m_last_mempool_req =
-                    GetTime<std::chrono::seconds>();
+                    std::chrono::duration_cast<std::chrono::seconds>(
+                        current_time);
             }
 
             // Determine transactions to relay
@@ -6157,7 +6159,6 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         CNodeState &state = *State(pto->GetId());
 
         // Detect whether we're stalling
-        current_time = GetTime<std::chrono::microseconds>();
         if (state.m_stalling_since.count() &&
             state.m_stalling_since < current_time - BLOCK_STALLING_TIMEOUT) {
             // Stalling only triggers when the block download window cannot
