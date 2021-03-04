@@ -2,13 +2,6 @@
 @import '~@fortawesome/fontawesome-free/css/all.css';
 @import url('https://fonts.googleapis.com/css?family=Khula&display=swap&.css');
 
-@font-face {
-    font-family: 'Roboto Mono';
-    src: local('Roboto Mono'),
-        url(../assets/fonts/RobotoMono-Regular.ttf) format('truetype');
-    font-weight: normal;
-}
-
 /* Hide up and down arros on input type="number" */
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
@@ -29,210 +22,29 @@ body {
     overflow-x: hidden;
 }
 
+/* Hide scroll bars on antd modals*/
 .ant-modal-wrap.ant-modal-centered::-webkit-scrollbar {
     display: none;
 }
 
-.ant-list-item-meta .ant-list-item-meta-content {
-    display: flex;
-}
+/* ITEMS BELOW TO BE MOVED TO STYLED COMPONENTS*/
 
+/* QRCode.js */
 #react-qrcode-logo {
     border-radius: 8px;
 }
-
-.ant-card-actions > li > span:hover,
-.ant-btn:hover,
-.ant-btn:focus {
-    color: #f59332;
-    transition: color 0.3s;
-    background-color: white;
-}
-
-.ant-card-actions > li {
-    color: #3e3f42;
-}
+/* Configure.js, CustomIcons.js */
 .anticon {
     color: #3e3f42;
 }
-.ant-list-item-meta-description,
-.ant-list-item-meta-title {
-    color: #3e3f42;
-}
-
-.ant-list-item-meta-description > :first-child {
-    right: 20px !important;
-    position: absolute;
-}
-
-.ant-modal-body .ant-list-item-meta {
-    height: 85px;
-    width: 85px;
-    padding-left: 10px;
-    padding-top: 10px;
-    padding-bottom: 20px;
-    overflow: visible !important;
-}
-
-.identicon {
-    border-radius: 50%;
-    width: 200px;
-    height: 200px;
-    margin-top: -75px;
-    margin-left: -75px;
-    margin-bottom: 20px;
-    box-shadow: 1px 1px 2px 1px #444;
-}
-.ant-list-item-meta {
-    width: 40px;
-    height: 40px;
-}
-
-.ant-checkbox-inner {
-    border: 1px solid #eaedf3 !important;
-    background: white;
-}
-
-.ant-checkbox-inner::after {
-    border-color: white !important;
-}
-
-.ant-card-bordered {
-    border: 1px solid rgb(234, 237, 243);
-    border-radius: 8px;
-}
-
-.ant-card-actions {
-    border-top: 1px solid rgb(234, 237, 243);
-    border-bottom: 1px solid rgb(234, 237, 243);
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    box-shadow: 0px 5px 8px rgba(0, 0, 0, 0.35);
-}
-
+/* EnhancedInputs.js */
 .ant-input-group-addon {
     background-color: #f4f4f4 !important;
     border: 1px solid rgb(234, 237, 243);
     color: #3e3f42 !important;
 }
 
-.ant-menu-item.ant-menu-item-selected > * {
-    color: #fff !important;
-}
-
-.ant-menu-item.ant-menu-item-selected {
-    border: 0;
-    overflow: hidden;
-    text-align: left;
-    padding-left: 28px;
-    background-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-.ant-btn {
-    border-radius: 8px;
-    background-color: #fff;
-    color: rgb(62, 63, 66);
-    font-weight: bold;
-}
-
-.ant-card-actions > li:not(:last-child) {
-    border-right: 0;
-}
-.ant-list-item-meta-avatar > img {
-    margin-left: -12px;
-    transform: translate(0, -6px);
-}
-
-.ant-list-item-meta-avatar > svg {
-    margin-right: -70px;
-}
-
-.ant-layout-sider-dark {
-    background: linear-gradient(0deg, #040c3c, #212c6e);
-}
-
-.ant-menu-dark {
-    background: none;
-}
-
-.ant-layout-sider-zero-width-trigger.ant-layout-sider-zero-width-trigger-left
-    .anticon.anticon-bars {
-    color: #fff;
-    transform: scale(1.3);
-}
-
-.ant-layout-sider-zero-width-trigger.ant-layout-sider-zero-width-trigger-left {
-    background: #3e3f42;
-    border-radius: 0 8px 8px 0;
-}
-
-.ant-btn-group .ant-btn-primary:first-child:not(:last-child) {
-    border-right-color: transparent !important;
-}
-
-.ant-btn-group .ant-btn-primary:last-child:not(:first-child),
-.ant-btn-group .ant-btn-primary + .ant-btn-primary {
-    border-left-color: #20242d !important;
-}
-
-.ant-popover-inner-content {
-    color: white;
-}
-
-.ant-modal-body .ant-card {
-    max-width: 100%;
-}
-
-.ant-upload.ant-upload-drag {
-    border: 1px solid #eaedf3;
-    border-radius: 8px;
-    background: #d3d3d3;
-}
-
-.ant-upload-list-item:hover .ant-upload-list-item-info {
-    background-color: #ffffff;
-}
-
-.ant-radio-group {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.ant-radio-button-wrapper {
-    background: rgba(255, 255, 255, 0.2);
-    width: 104px;
-    border: none;
-    text-align: center;
-    color: #fff;
-}
-
-.ant-radio-button-wrapper:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.ant-radio-group-small .ant-radio-button-wrapper {
-    height: 35px;
-    line-height: 35px;
-}
-
-.ant-radio-button-wrapper-checked {
-    background: #ff8d00 !important;
-    border: none !important;
-}
-
-.ant-radio-button-wrapper:first-child {
-    border-radius: 100px 0 0 100px;
-}
-
-.ant-radio-button-wrapper:last-child {
-    border-radius: 0 100px 100px 0;
-}
-
-::selection {
-    background-color: #ff8d00;
-}
-
+/* useWallet.js, useBCH.js */
 @media (max-width: 768px) {
     .ant-notification {
         width: 100%;
@@ -242,10 +54,19 @@ body {
     }
 }
 
-@media (max-width: 350px) {
-    .ant-select-selection-selected-value {
-        font-size: 10px;
-    }
+/* OK and Cancel button colors on Modals*/
+.ant-card-actions > li > span:hover,
+.ant-btn:hover,
+.ant-btn:focus {
+    color: #f59332;
+    transition: color 0.3s;
+    background-color: white;
+}
+.ant-btn {
+    border-radius: 8px;
+    background-color: #fff;
+    color: rgb(62, 63, 66);
+    font-weight: bold;
 }
 
 /*Custom Input Fields */
