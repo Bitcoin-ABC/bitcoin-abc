@@ -1399,6 +1399,12 @@ static RPCHelpMan gettxoutsetinfo() {
                                        "requires coinstatsindex");
                 }
 
+                if (stats.m_hash_type == CoinStatsHashType::HASH_SERIALIZED) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "hash_serialized hash type cannot be "
+                                       "queried for a specific block");
+                }
+
                 pindex = ParseHashOrHeight(request.params[1], chainman);
             }
 
