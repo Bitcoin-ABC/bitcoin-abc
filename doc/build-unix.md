@@ -54,7 +54,7 @@ C++ compilers are memory-hungry. It is recommended to have at least 1.5 GB of
 memory available when compiling Bitcoin ABC. On systems with less, gcc can be
 tuned to conserve memory with additional CXXFLAGS:
 
-    cmake -GNinja .. -DCXXFLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768"
+    cmake -GNinja .. -DCMAKE_CXX_FLAGS="--param ggc-min-expand=1 --param ggc-min-heapsize=32768"
 
 Dependency Build Instructions: Ubuntu & Debian
 ----------------------------------------------
