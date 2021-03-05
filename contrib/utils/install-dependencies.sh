@@ -58,6 +58,7 @@ PACKAGES=(
   libzmq3-dev
   lld
   make
+  mypy
   ninja-build
   nsis
   php-codesniffer
