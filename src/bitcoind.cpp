@@ -19,12 +19,13 @@
 #include <node/ui_interface.h>
 #include <noui.h>
 #include <shutdown.h>
-#include <util/ref.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 
+#include <any>
 #include <functional>
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
@@ -49,7 +50,7 @@ static bool AppInit(int argc, char *argv[]) {
     RPCServer rpcServer;
 
     NodeContext node;
-    util::Ref context{node};
+    std::any context{&node};
 
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
 

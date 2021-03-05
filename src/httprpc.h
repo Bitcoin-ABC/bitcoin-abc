@@ -8,11 +8,9 @@
 #include <httpserver.h>
 #include <rpc/server.h>
 
-class Config;
+#include <any>
 
-namespace util {
-class Ref;
-} // namespace util
+class Config;
 
 class HTTPRPCRequestProcessor {
 private:
@@ -22,10 +20,10 @@ private:
     bool ProcessHTTPRequest(HTTPRequest *request);
 
 public:
-    const util::Ref &context;
+    const std::any &context;
 
     HTTPRPCRequestProcessor(Config &configIn, RPCServer &rpcServerIn,
-                            const util::Ref &contextIn)
+                            const std::any &contextIn)
         : config(configIn), rpcServer(rpcServerIn), context(contextIn) {}
 
     static bool DelegateHTTPRequest(HTTPRPCRequestProcessor *requestProcessor,
@@ -53,7 +51,7 @@ void StopHTTPRPC();
  * Start HTTP REST subsystem.
  * Precondition; HTTP and RPC has been started.
  */
-void StartREST(const util::Ref &context);
+void StartREST(const std::any &context);
 
 /** Interrupt RPC REST subsystem */
 void InterruptREST();

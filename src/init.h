@@ -23,10 +23,6 @@ struct BlockAndHeaderTipInfo;
 }
 class RPCServer;
 
-namespace util {
-class Ref;
-} // namespace util
-
 /** Interrupt threads */
 void Interrupt(NodeContext &node);
 void Shutdown(NodeContext &node);

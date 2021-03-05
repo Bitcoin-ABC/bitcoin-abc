@@ -24,7 +24,6 @@
 #include <util/error.h>
 #include <util/message.h> // For MessageSign()
 #include <util/moneystr.h>
-#include <util/ref.h>
 #include <util/string.h>
 #include <util/system.h>
 #include <util/translation.h>
@@ -143,11 +142,12 @@ void EnsureWalletIsUnlocked(const CWallet *pwallet) {
     }
 }
 
-WalletContext &EnsureWalletContext(const util::Ref &context) {
-    if (!context.Has<WalletContext>()) {
+WalletContext &EnsureWalletContext(const std::any &context) {
+    auto wallet_context = util::AnyPtr<WalletContext>(context);
+    if (!wallet_context) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Wallet context not found");
     }
-    return context.Get<WalletContext>();
+    return *wallet_context;
 }
 
 // also_create should only be set to true only when the RPC is expected to add

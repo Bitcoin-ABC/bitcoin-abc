@@ -17,7 +17,6 @@
 #include <support/allocators/secure.h>
 #include <sync.h>
 #include <util/check.h>
-#include <util/ref.h>
 #include <util/system.h>
 #include <util/ui_change_type.h>
 #include <wallet/context.h>
@@ -479,7 +478,7 @@ namespace {
                     [this, &command](const Config &config,
                                      const JSONRPCRequest &request,
                                      UniValue &result, bool last_handler) {
-                        return command.actor(config, {request, m_context},
+                        return command.actor(config, {request, &m_context},
                                              result, last_handler);
                     },
                     command.argNames, command.unique_id);

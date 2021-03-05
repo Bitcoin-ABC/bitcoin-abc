@@ -25,7 +25,6 @@
 #include <qt/utilitydialog.h>
 #include <qt/winshutdownmonitor.h>
 #include <uint256.h>
-#include <util/ref.h>
 #include <util/system.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
@@ -48,6 +47,8 @@
 #include <QTranslator>
 
 #include <boost/signals2/connection.hpp>
+
+#include <any>
 
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
@@ -776,7 +777,7 @@ int GuiMain(int argc, char *argv[]) {
     app.setNode(*node);
 
     RPCServer rpcServer;
-    util::Ref context{node_context};
+    std::any context{&node_context};
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
 
     try {

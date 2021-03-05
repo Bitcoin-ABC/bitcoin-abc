@@ -127,7 +127,7 @@ std::string CRPCTable::help(const Config &config, const std::string &strCommand,
     }
     sort(vCommands.begin(), vCommands.end());
 
-    JSONRPCRequest jreq(helpreq);
+    JSONRPCRequest jreq = helpreq;
     jreq.mode = JSONRPCRequest::GET_HELP;
     jreq.params = UniValue();
 
@@ -551,7 +551,7 @@ std::vector<std::string> CRPCTable::listCommands() const {
 
 UniValue CRPCTable::dumpArgMap(const Config &config,
                                const JSONRPCRequest &args_request) const {
-    JSONRPCRequest request(args_request);
+    JSONRPCRequest request = args_request;
     request.mode = JSONRPCRequest::GET_ARGS;
 
     UniValue ret{UniValue::VARR};

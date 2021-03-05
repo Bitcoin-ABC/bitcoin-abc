@@ -10,6 +10,8 @@
 
 #include <univalue.h>
 
+#include <any>
+
 class CBlock;
 class CBlockIndex;
 class CChainState;
@@ -17,9 +19,6 @@ class ChainstateManager;
 class CTxMemPool;
 class RPCHelpMan;
 struct NodeContext;
-namespace util {
-class Ref;
-} // namespace util
 
 extern RecursiveMutex cs_main;
 
@@ -53,9 +52,9 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
                            const CBlockIndex *blockindex)
     LOCKS_EXCLUDED(cs_main);
 
-NodeContext &EnsureNodeContext(const util::Ref &context);
-CTxMemPool &EnsureMemPool(const util::Ref &context);
-ChainstateManager &EnsureChainman(const util::Ref &context);
+NodeContext &EnsureNodeContext(const std::any &context);
+CTxMemPool &EnsureMemPool(const std::any &context);
+ChainstateManager &EnsureChainman(const std::any &context);
 
 /**
  * Helper to create UTXO snapshots given a chainstate and a file handle.

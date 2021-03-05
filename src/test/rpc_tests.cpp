@@ -11,7 +11,6 @@
 #include <core_io.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
-#include <util/ref.h>
 #include <util/time.h>
 
 #include <test/util/setup_common.h>
@@ -21,7 +20,9 @@
 
 #include <univalue.h>
 
-UniValue CallRPC(const std::string &args, const util::Ref &context) {
+#include <any>
+
+UniValue CallRPC(const std::string &args, const std::any &context) {
     std::vector<std::string> vArgs;
     boost::split(vArgs, args, boost::is_any_of(" \t"));
     std::string strMethod = vArgs[0];
@@ -44,7 +45,7 @@ UniValue CallRPC(const std::string &args, const util::Ref &context) {
 class RPCTestingSetup : public TestingSetup {
 public:
     UniValue CallRPC(const std::string &args) {
-        const util::Ref context{m_node};
+        const std::any context{&m_node};
         return ::CallRPC(args, context);
     }
 };

@@ -14,7 +14,6 @@
 #include <qt/rpcconsole.h>
 #include <rpc/server.h>
 #include <shutdown.h>
-#include <util/ref.h>
 #include <validation.h>
 
 #if defined(HAVE_CONFIG_H)
@@ -34,6 +33,8 @@
 #include <QtGlobal>
 #include <QtTest/QtTestGui>
 #include <QtTest/QtTestWidgets>
+
+#include <any>
 
 namespace {
 //! Call getblockchaininfo RPC and check first field of JSON output.
@@ -95,7 +96,7 @@ void AppTests::appTests() {
     m_app.baseInitialize(config);
 
     RPCServer rpcServer;
-    util::Ref context;
+    std::any context;
     HTTPRPCRequestProcessor httpRPCRequestProcessor(config, rpcServer, context);
     m_app.requestInitialize(config, rpcServer, httpRPCRequestProcessor);
     m_app.exec();

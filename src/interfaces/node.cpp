@@ -28,7 +28,6 @@
 #include <sync.h>
 #include <txmempool.h>
 #include <util/check.h>
-#include <util/ref.h>
 #include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -41,6 +40,8 @@
 #include <univalue.h>
 
 #include <boost/signals2/signal.hpp>
+
+#include <any>
 
 class HTTPRPCRequestProcessor;
 namespace interfaces {
@@ -334,13 +335,13 @@ namespace {
         void setContext(NodeContext *context) override {
             m_context = context;
             if (context) {
-                m_context_ref.Set(*context);
+                m_context_ref = context;
             } else {
-                m_context_ref.Clear();
+                m_context_ref.reset();
             }
         }
         NodeContext *m_context{nullptr};
-        util::Ref m_context_ref{m_context};
+        std::any m_context_ref{m_context};
     };
 } // namespace
 

@@ -8,13 +8,13 @@
 
 #include <chainparams.h>
 #include <config.h>
-#include <util/ref.h>
 #include <util/system.h>
 
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
 
+#include <any>
 #include <string>
 
 BOOST_FIXTURE_TEST_SUITE(rpc_server_tests, TestingSetup)
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command) {
     args.pushKV("arg1", "value1");
 
     // Registered commands execute and return values correctly
-    util::Ref context{m_node};
+    std::any context{&m_node};
     JSONRPCRequest request(context);
     request.strMethod = commandName;
     request.params = args;
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command_from_request_context) {
     args.pushKV("arg2", "value2");
 
     // Registered commands execute and return values correctly
-    util::Ref context{m_node};
+    std::any context{&m_node};
     JSONRPCRequest request(context);
     request.strMethod = commandName;
     request.params = args;
