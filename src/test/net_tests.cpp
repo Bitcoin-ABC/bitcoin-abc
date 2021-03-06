@@ -9,6 +9,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
+#include <netaddress.h>
 #include <netbase.h>
 #include <serialize.h>
 #include <span.h>

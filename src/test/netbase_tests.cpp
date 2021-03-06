@@ -5,6 +5,7 @@
 #include <netbase.h>
 
 #include <net_permissions.h>
+#include <netaddress.h>
 #include <protocol.h>
 #include <serialize.h>
 #include <streams.h>
