@@ -10,6 +10,9 @@ import time
 from test_framework.messages import (
     CBlockHeader,
     CInv,
+    msg_avahello,
+    msg_avapoll,
+    msg_avaresponse,
     msg_getdata,
     msg_headers,
     msg_inv,
@@ -71,6 +74,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
         self.test_addrv2_too_long_address()
         self.test_addrv2_unrecognized_network()
         self.test_large_inv()
+        self.test_unsolicited_ava_messages()
 
         node = self.nodes[0]
         self.node = node
@@ -347,6 +351,26 @@ class InvalidMessagesTest(BitcoinTestFramework):
             conn.send_and_ping(msg)
         with self.nodes[0].assert_debug_log(['Misbehaving', 'peer=8 (40 -> 60): too-many-headers: headers message size = 2001']):
             msg = msg_headers([CBlockHeader()] * 2001)
+            conn.send_and_ping(msg)
+        self.nodes[0].disconnect_p2ps()
+
+    def test_unsolicited_ava_messages(self):
+        """Node 0 has avalanche disabled by default. If a node does not
+        advertise the avalanche service flag, it does not expect to receive
+        any avalanche related message and should consider it as spam.
+        """
+        conn = self.nodes[0].add_p2p_connection(P2PInterface())
+        with self.nodes[0].assert_debug_log(
+                ['Misbehaving', 'peer=9 (0 -> 20): unsolicited-avahello']):
+            msg = msg_avahello()
+            conn.send_and_ping(msg)
+        with self.nodes[0].assert_debug_log(
+                ['Misbehaving', 'peer=9 (20 -> 40): unsolicited-avapoll']):
+            msg = msg_avapoll()
+            conn.send_and_ping(msg)
+        with self.nodes[0].assert_debug_log(
+                ['Misbehaving', 'peer=9 (40 -> 60): unsolicited-avaresponse']):
+            msg = msg_avaresponse()
             conn.send_and_ping(msg)
         self.nodes[0].disconnect_p2ps()
 

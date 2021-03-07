@@ -3945,8 +3945,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         return;
     }
 
-    if (msg_type == NetMsgType::AVAHELLO && g_avalanche &&
-        gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+    if (msg_type == NetMsgType::AVAHELLO && g_avalanche) {
+        if (!gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+            Misbehaving(pfrom, 20, "unsolicited-avahello");
+            return;
+        }
         if (!pfrom.m_avalanche_state) {
             pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
         }
@@ -3970,8 +3973,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
     // Ignore avalanche requests while importing
     if (msg_type == NetMsgType::AVAPOLL && !fImporting && !fReindex &&
-        g_avalanche &&
-        gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        g_avalanche) {
+        if (!gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+            Misbehaving(pfrom, 20, "unsolicited-avapoll");
+            return;
+        }
         auto now = std::chrono::steady_clock::now();
         int64_t cooldown =
             gArgs.GetArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
@@ -4080,8 +4086,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
     // Ignore avalanche requests while importing
     if (msg_type == NetMsgType::AVARESPONSE && !fImporting && !fReindex &&
-        g_avalanche &&
-        gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        g_avalanche) {
+        if (!gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+            Misbehaving(pfrom, 20, "unsolicited-avaresponse");
+            return;
+        }
         // As long as QUIC is not implemented, we need to sign response and
         // verify response's signatures in order to avoid any manipulation of
         // messages at the transport level.
