@@ -13,7 +13,6 @@ $(package)_linguist_tools = lrelease lupdate lconvert
 $(package)_patches = qt.pro
 $(package)_patches += qttools_src.pro
 $(package)_patches += mac-qmake.conf
-$(package)_patches += fix_qt_pkgconfig.patch
 $(package)_patches += no-xlib.patch
 $(package)_patches += dont_hardcode_pwd.patch
 $(package)_patches += qtbase-moc-ignore-gcc-macro.patch
@@ -63,6 +62,7 @@ $(package)_config_opts += -no-mimetype-database
 $(package)_config_opts += -no-mtdev
 $(package)_config_opts += -no-opengl
 $(package)_config_opts += -no-openvg
+$(package)_config_opts += -no-pkg-config
 $(package)_config_opts += -no-reduce-relocations
 $(package)_config_opts += -no-schannel
 $(package)_config_opts += -no-sctp
@@ -88,7 +88,6 @@ $(package)_config_opts += -openssl-linked
 else
 $(package)_config_opts += -no-openssl
 endif
-$(package)_config_opts += -pkg-config
 $(package)_config_opts += -prefix $(host_prefix)
 $(package)_config_opts += -qt-libpng
 $(package)_config_opts += -qt-pcre
@@ -211,7 +210,6 @@ define $(package)_preprocess_cmds
   cp $($(package)_patch_dir)/qt.pro qt.pro && \
   cp $($(package)_patch_dir)/qttools_src.pro qttools/src/src.pro && \
   patch -p1 -i $($(package)_patch_dir)/dont_hardcode_pwd.patch && \
-  patch -p1 -i $($(package)_patch_dir)/fix_qt_pkgconfig.patch && \
   patch -p1 -i $($(package)_patch_dir)/no-xlib.patch && \
   patch -p1 -i $($(package)_patch_dir)/qtbase-moc-ignore-gcc-macro.patch && \
   patch -p1 -i $($(package)_patch_dir)/memory_resource.patch && \
@@ -255,5 +253,6 @@ define $(package)_stage_cmds
 endef
 
 define $(package)_postprocess_cmds
-  rm -rf native/lib/ lib/lib*.la
+  rm -rf native/lib/ lib/pkgconfig/ && \
+  rm -f lib/lib*.la lib/Qt5*.la
 endef

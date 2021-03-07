@@ -23,5 +23,5 @@ define $(package)_stage_cmds
 endef
 
 define $(package)_postprocess_cmds
-  rm -rf var lib/*.la
+  rm -rf bin etc share var lib/*.la
 endef

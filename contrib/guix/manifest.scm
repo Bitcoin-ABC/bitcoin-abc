@@ -534,7 +534,6 @@ inspecting signatures in Mach-O binaries.")
         libtool
         autoconf-2.71
         automake
-        pkg-config
         bison
         (list gcc "lib")
         ;; Scripting
@@ -559,6 +558,7 @@ inspecting signatures in Mach-O binaries.")
                  zip))
           ((string-contains target "-linux-")
            (list
+                 pkg-config
                  (list gcc-toolchain-13 "static")
                  (make-bitcoin-cross-toolchain target)
                  clang-18))
