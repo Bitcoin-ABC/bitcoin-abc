@@ -63,6 +63,11 @@ static constexpr std::chrono::milliseconds AVALANCHE_DEFAULT_QUERY_TIMEOUT{
  */
 static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
 
+/**
+ * How many UTXOs can be used for a single proof.
+ */
+static constexpr int AVALANCHE_MAX_PROOF_STAKES = 1000;
+
 namespace avalanche {
 
 class Delegation;

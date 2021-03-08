@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the resolution of forks via avalanche."""
 import random
+from typing import List, Dict
 
 from test_framework.key import (
     ECKey,
@@ -23,9 +24,11 @@ from test_framework.messages import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
+    assert_raises_rpc_error,
     wait_until,
 )
 
+AVALANCHE_MAX_PROOF_STAKES = 1000
 
 BLOCK_ACCEPTED = 0
 BLOCK_INVALID = 1
@@ -114,6 +117,18 @@ class TestNode(P2PInterface):
             return self.avahello
 
 
+def get_stakes(coinbases: List[Dict],
+               priv_key: str) -> List[Dict]:
+    return [{
+        'txid': coinbase['txid'],
+        'vout': coinbase['n'],
+        'amount': coinbase['value'],
+        'height': coinbase['height'],
+        'iscoinbase': True,
+        'privatekey': priv_key,
+    } for coinbase in coinbases]
+
+
 class AvalancheTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -132,18 +147,18 @@ class AvalancheTest(BitcoinTestFramework):
             NODE_AVALANCHE)
 
         # Build a fake quorum of nodes.
+        def get_node():
+            n = TestNode()
+            node.add_p2p_connection(
+                n, services=NODE_NETWORK | NODE_AVALANCHE)
+            n.wait_for_verack()
+
+            # Get our own node id so we can use it later.
+            n.nodeid = node.getpeerinfo()[-1]['id']
+
+            return n
+
         def get_quorum():
-            def get_node():
-                n = TestNode()
-                node.add_p2p_connection(
-                    n, services=NODE_NETWORK | NODE_AVALANCHE)
-                n.wait_for_verack()
-
-                # Get our own node id so we can use it later.
-                n.nodeid = node.getpeerinfo()[-1]['id']
-
-                return n
-
             return [get_node() for _ in range(0, QUORUM_NODE_COUNT)]
 
         # Pick on node from the quorum for polling.
@@ -151,8 +166,8 @@ class AvalancheTest(BitcoinTestFramework):
         poll_node = quorum[0]
 
         # Generate many block and poll for them.
-        address = node.get_deterministic_priv_key().address
-        blocks = node.generatetoaddress(100, address)
+        addrkey0 = node.get_deterministic_priv_key()
+        blocks = node.generatetoaddress(100, addrkey0.address)
 
         def get_coinbase(h):
             b = node.getblock(h, 2)
@@ -246,7 +261,6 @@ class AvalancheTest(BitcoinTestFramework):
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
         pubkey = privkey.get_pubkey()
 
-        privatekey = node.get_deterministic_priv_key().key
         proof_sequence = 11
         proof_expiration = 12
         proof = node.buildavalancheproof(
@@ -257,7 +271,7 @@ class AvalancheTest(BitcoinTestFramework):
                 'amount': coinbases[0]['value'],
                 'height': coinbases[0]['height'],
                 'iscoinbase': True,
-                'privatekey': privatekey,
+                'privatekey': addrkey0.key,
             }])
 
         # Activate the quorum.
@@ -373,6 +387,32 @@ class AvalancheTest(BitcoinTestFramework):
         avakey.set(bytes.fromhex(node.getavalanchekey()))
         assert avakey.verify_schnorr(
             avahello.sig, avahello.get_sighash(poll_node))
+
+        # Check the maximum number of stakes policy
+        blocks = node.generatetoaddress(AVALANCHE_MAX_PROOF_STAKES + 1,
+                                        addrkey0.address)
+
+        too_many_coinbases = [get_coinbase(h) for h in blocks]
+        too_many_stakes = get_stakes(too_many_coinbases, addrkey0.key)
+
+        self.log.info(
+            "A proof using the maximum number of stakes is accepted...")
+        maximum_stakes = get_stakes(too_many_coinbases[:-1],
+                                    addrkey0.key)
+        good_proof = node.buildavalancheproof(
+            proof_sequence, proof_expiration,
+            pubkey.get_bytes().hex(), maximum_stakes)
+        node.addavalanchenode(
+            get_node().nodeid, pubkey.get_bytes().hex(), good_proof)
+
+        self.log.info("A proof using too many stakes should be rejected...")
+        bad_proof = node.buildavalancheproof(
+            proof_sequence, proof_expiration,
+            pubkey.get_bytes().hex(), too_many_stakes)
+        assert_raises_rpc_error(-32602, "Avalanche proof has too many UTXOs",
+                                node.addavalanchenode,
+                                get_node().nodeid, pubkey.get_bytes().hex(),
+                                bad_proof)
 
 
 if __name__ == '__main__':
