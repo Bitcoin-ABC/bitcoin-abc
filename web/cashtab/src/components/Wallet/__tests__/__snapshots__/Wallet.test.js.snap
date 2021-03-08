@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-jTzLTM jQTnZV"
+    className="sc-kAzzGY bElNTc"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-fjdhpX ecKhYa"
+    className="sc-chPdSV lhiFJb"
   >
     $
     NaN
@@ -82,23 +82,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cSHVUG bshqpY"
+    className="sc-kGXeez fnpdWl"
   >
     <div
-      className="sc-kAzzGY dXxhGR"
+      className="sc-kpOJdX bKzLjA"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kAzzGY dXxhGR nonactiveBtn"
+      className="sc-kpOJdX bKzLjA nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-kgoBCf bnLdmV"
+    className="sc-ckVGcZ fkbLHM"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -130,14 +130,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-jTzLTM jQTnZV"
+    className="sc-kAzzGY bElNTc"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-fjdhpX ecKhYa"
+    className="sc-chPdSV lhiFJb"
   >
     $
     NaN
@@ -209,23 +209,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cSHVUG bshqpY"
+    className="sc-kGXeez fnpdWl"
   >
     <div
-      className="sc-kAzzGY dXxhGR"
+      className="sc-kpOJdX bKzLjA"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kAzzGY dXxhGR nonactiveBtn"
+      className="sc-kpOJdX bKzLjA nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-kgoBCf bnLdmV"
+    className="sc-ckVGcZ fkbLHM"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -302,7 +302,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-jzJRlG fzqXAc"
+    className="sc-kgoBCf gFTGSe"
   >
     <span
       aria-label="party emoji"
@@ -328,7 +328,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-jTzLTM jQTnZV"
+    className="sc-kAzzGY bElNTc"
   >
     0 
     BCHA
@@ -398,16 +398,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cSHVUG bshqpY"
+    className="sc-kGXeez fnpdWl"
   >
     <div
-      className="sc-kAzzGY dXxhGR"
+      className="sc-kpOJdX bKzLjA"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kAzzGY dXxhGR nonactiveBtn"
+      className="sc-kpOJdX bKzLjA nonactiveBtn"
       onClick={[Function]}
     >
       SLPA

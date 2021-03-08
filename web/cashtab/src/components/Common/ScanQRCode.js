@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Modal } from 'antd';
-import { QrcodeOutlined } from '@ant-design/icons';
+import { ThemedQrcodeOutlined } from '@components/Common/CustomIcons';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
 import {
@@ -135,7 +135,7 @@ export const ScanQRCode = ({
                 {...otherProps}
                 onClick={() => setVisible(!visible)}
             >
-                <QrcodeOutlined />
+                <ThemedQrcodeOutlined />
             </StyledScanQRCode>
             <StyledModal
                 title="Scan QR code"

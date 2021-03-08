@@ -39,12 +39,12 @@ exports[`Configure with a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-iwsKbI gJfDsi"
+      className="sc-jTzLTM lYoFl"
     >
       <h2>
         <span
           aria-label="copy"
-          className="anticon anticon-copy"
+          className="anticon anticon-copy sc-ifAKCX bxlMcO"
           role="img"
         >
           <svg
@@ -147,12 +147,12 @@ exports[`Configure with a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-gZMcBi juyJFl"
+        className="sc-fjdhpX iUdZQY"
       />
       <h2>
         <span
           aria-label="wallet"
-          className="anticon anticon-wallet"
+          className="anticon anticon-wallet sc-bZQynM cOFHGb"
           role="img"
         >
           <svg
@@ -225,11 +225,11 @@ exports[`Configure with a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-gZMcBi juyJFl"
+        className="sc-fjdhpX iUdZQY"
       />
       [
       <a
-        className="sc-EHOje chPufo"
+        className="sc-dnqmqq fnVGsZ"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
@@ -282,12 +282,12 @@ exports[`Configure without a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-iwsKbI gJfDsi"
+      className="sc-jTzLTM lYoFl"
     >
       <h2>
         <span
           aria-label="copy"
-          className="anticon anticon-copy"
+          className="anticon anticon-copy sc-ifAKCX bxlMcO"
           role="img"
         >
           <svg
@@ -352,12 +352,12 @@ exports[`Configure without a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-gZMcBi juyJFl"
+        className="sc-fjdhpX iUdZQY"
       />
       <h2>
         <span
           aria-label="wallet"
-          className="anticon anticon-wallet"
+          className="anticon anticon-wallet sc-bZQynM cOFHGb"
           role="img"
         >
           <svg
@@ -430,11 +430,11 @@ exports[`Configure without a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-gZMcBi juyJFl"
+        className="sc-fjdhpX iUdZQY"
       />
       [
       <a
-        className="sc-EHOje chPufo"
+        className="sc-dnqmqq fnVGsZ"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"

@@ -1,6 +1,12 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { LoadingOutlined } from '@ant-design/icons';
+import {
+    CopyOutlined,
+    DollarOutlined,
+    LoadingOutlined,
+    WalletOutlined,
+    QrcodeOutlined,
+} from '@ant-design/icons';
 
 export const CashLoadingIcon = (
     <LoadingOutlined
@@ -10,6 +16,19 @@ export const CashLoadingIcon = (
         }}
     />
 );
+
+export const ThemedCopyOutlined = styled(CopyOutlined)`
+    color: ${props => props.theme.iconOutlined} !important;
+`;
+export const ThemedDollarOutlined = styled(DollarOutlined)`
+    color: ${props => props.theme.iconOutlined} !important;
+`;
+export const ThemedWalletOutlined = styled(WalletOutlined)`
+    color: ${props => props.theme.iconOutlined} !important;
+`;
+export const ThemedQrcodeOutlined = styled(QrcodeOutlined)`
+    color: ${props => props.theme.iconOutlined} !important;
+`;
 
 export const LoadingBlock = styled.div`
     width: 100%;

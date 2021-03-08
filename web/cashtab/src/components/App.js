@@ -1,7 +1,8 @@
 import React from 'react';
 import 'antd/dist/antd.less';
 import '../index.css';
-import styled from 'styled-components';
+import styled, { ThemeProvider } from 'styled-components';
+import { theme } from '@assets/styles/theme';
 import {
     FolderOpenFilled,
     CaretRightOutlined,
@@ -172,71 +173,75 @@ const App = () => {
         location && location.pathname ? location.pathname.substr(1) : '';
 
     return (
-        <CustomApp>
-            <WalletBody>
-                <WalletCtn>
-                    <HeaderCtn>
-                        <CashTabLogo src={CashTab} alt="cashtab" />
-                        {hasTab && <EasterEgg src={TabCash} alt="tabcash" />}
-                        <a
-                            href="https://www.bitcoinabc.org/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <AbcLogo src={ABC} alt="abc" />
-                        </a>
-                    </HeaderCtn>
-                    <WalletLabel name={wallet.name}></WalletLabel>
-                    <Switch>
-                        <Route path="/wallet">
-                            <Wallet />
-                        </Route>
-                        <Route path="/send">
-                            <Send />
-                        </Route>
-                        <Route
-                            path="/send-token/:tokenId"
-                            render={props => (
-                                <SendToken
-                                    tokenId={props.match.params.tokenId}
-                                />
+        <ThemeProvider theme={theme}>
+            <CustomApp>
+                <WalletBody>
+                    <WalletCtn>
+                        <HeaderCtn>
+                            <CashTabLogo src={CashTab} alt="cashtab" />
+                            {hasTab && (
+                                <EasterEgg src={TabCash} alt="tabcash" />
                             )}
-                        />
-                        <Route path="/configure">
-                            <Configure />
-                        </Route>
-                        <Redirect exact from="/" to="/wallet" />
-                        <Route component={NotFound} />
-                    </Switch>
-                </WalletCtn>
-                {wallet ? (
-                    <Footer>
-                        <NavButton
-                            active={selectedKey === 'wallet'}
-                            onClick={() => history.push('/wallet')}
-                        >
-                            <FolderOpenFilled />
-                            <fbt desc="Wallet menu button">Wallet</fbt>
-                        </NavButton>
+                            <a
+                                href="https://www.bitcoinabc.org/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <AbcLogo src={ABC} alt="abc" />
+                            </a>
+                        </HeaderCtn>
+                        <WalletLabel name={wallet.name}></WalletLabel>
+                        <Switch>
+                            <Route path="/wallet">
+                                <Wallet />
+                            </Route>
+                            <Route path="/send">
+                                <Send />
+                            </Route>
+                            <Route
+                                path="/send-token/:tokenId"
+                                render={props => (
+                                    <SendToken
+                                        tokenId={props.match.params.tokenId}
+                                    />
+                                )}
+                            />
+                            <Route path="/configure">
+                                <Configure />
+                            </Route>
+                            <Redirect exact from="/" to="/wallet" />
+                            <Route component={NotFound} />
+                        </Switch>
+                    </WalletCtn>
+                    {wallet ? (
+                        <Footer>
+                            <NavButton
+                                active={selectedKey === 'wallet'}
+                                onClick={() => history.push('/wallet')}
+                            >
+                                <FolderOpenFilled />
+                                <fbt desc="Wallet menu button">Wallet</fbt>
+                            </NavButton>
 
-                        <NavButton
-                            active={selectedKey === 'send'}
-                            onClick={() => history.push('/send')}
-                        >
-                            <CaretRightOutlined />
-                            <fbt desc="Send menu button">Send</fbt>
-                        </NavButton>
-                        <NavButton
-                            active={selectedKey === 'configure'}
-                            onClick={() => history.push('/configure')}
-                        >
-                            <SettingFilled />
-                            <fbt desc="Settings menu button">Settings</fbt>
-                        </NavButton>
-                    </Footer>
-                ) : null}
-            </WalletBody>
-        </CustomApp>
+                            <NavButton
+                                active={selectedKey === 'send'}
+                                onClick={() => history.push('/send')}
+                            >
+                                <CaretRightOutlined />
+                                <fbt desc="Send menu button">Send</fbt>
+                            </NavButton>
+                            <NavButton
+                                active={selectedKey === 'configure'}
+                                onClick={() => history.push('/configure')}
+                            >
+                                <SettingFilled />
+                                <fbt desc="Settings menu button">Settings</fbt>
+                            </NavButton>
+                        </Footer>
+                    ) : null}
+                </WalletBody>
+            </CustomApp>
+        </ThemeProvider>
     );
 };
 

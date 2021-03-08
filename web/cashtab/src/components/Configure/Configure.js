@@ -5,9 +5,7 @@ import { Collapse, Form, Input, Modal, Spin, Alert } from 'antd';
 import {
     PlusSquareOutlined,
     WalletFilled,
-    WalletOutlined,
     ImportOutlined,
-    CopyOutlined,
     LockOutlined,
 } from '@ant-design/icons';
 import { WalletContext } from '@utils/context';
@@ -16,7 +14,12 @@ import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from '@components/Common/PrimaryButton';
-import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
+import {
+    CashLoader,
+    CashLoadingIcon,
+    ThemedCopyOutlined,
+    ThemedWalletOutlined,
+} from '@components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
@@ -438,7 +441,7 @@ const Configure = () => {
                     </Modal>
                 )}
                 <h2>
-                    <CopyOutlined /> Backup your wallet
+                    <ThemedCopyOutlined /> Backup your wallet
                 </h2>
                 <Alert
                     style={{ marginBottom: '12px' }}
@@ -459,7 +462,7 @@ const Configure = () => {
                 )}
                 <StyledSpacer />
                 <h2>
-                    <WalletOutlined /> Manage Wallets
+                    <ThemedWalletOutlined /> Manage Wallets
                 </h2>
                 {apiError ? (
                     <>

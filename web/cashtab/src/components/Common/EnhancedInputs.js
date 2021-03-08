@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { Form, Input, Select } from 'antd';
-import { DollarOutlined, WalletOutlined } from '@ant-design/icons';
+import {
+    ThemedDollarOutlined,
+    ThemedWalletOutlined,
+} from '@components/Common/CustomIcons';
 import styled from 'styled-components';
 import { ScanQRCode } from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
@@ -91,7 +94,7 @@ export const SendBchInput = ({
                     }
                     prefix={
                         inputProps.dollar === 1 ? (
-                            <DollarOutlined />
+                            <ThemedDollarOutlined />
                         ) : (
                             <img
                                 src={currency.logo}
@@ -148,7 +151,7 @@ export const FormItemWithQRCodeAddon = ({
     return (
         <Form.Item {...otherProps}>
             <Input
-                prefix={<WalletOutlined />}
+                prefix={<ThemedWalletOutlined />}
                 autoComplete="off"
                 addonAfter={
                     <ScanQRCode

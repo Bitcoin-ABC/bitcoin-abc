@@ -29,10 +29,6 @@ body {
 
 /* ITEMS BELOW TO BE MOVED TO STYLED COMPONENTS*/
 
-/* Configure.js, CustomIcons.js */
-.anticon {
-    color: #3e3f42;
-}
 /* EnhancedInputs.js */
 .ant-input-group-addon {
     background-color: #f4f4f4 !important;
