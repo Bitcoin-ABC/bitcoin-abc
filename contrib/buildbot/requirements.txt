@@ -1,6 +1,7 @@
 deepmerge
 mock
 flask
+phabricator>=0.8.0
 pyyaml
 requests
 responses

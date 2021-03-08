@@ -19,8 +19,7 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/python_phabricator/)"
+                "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
                 "--aggressive",
@@ -33,8 +32,7 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/python_phabricator/)"
+                "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
                 "--ignore=E501,E704,W503,W504"
@@ -63,8 +61,7 @@
             "exclude": [
                 "(^test/lint/lint-python-format\\.py$)",
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/python_phabricator/)"
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "phpcs": {
@@ -168,8 +165,7 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/python_phabricator/)"
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "lint-python-shebang": {
@@ -178,8 +174,7 @@
             "exclude": [
                 "(__init__\\.py$)",
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/python_phabricator/)"
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "lint-bash-shebang": {
@@ -258,10 +253,7 @@
         },
         "yamllint": {
             "type": "yamllint",
-            "include": "(\\.(yml|yaml)$)",
-            "exclude": [
-                "(^contrib/buildbot/python_phabricator/)"
-            ]
+            "include": "(\\.(yml|yaml)$)"
         },
         "lint-check-nonfatal": {
             "type": "lint-check-nonfatal",
@@ -291,8 +283,7 @@
             "include": "(\\.py$)",
             "exclude": [
                 "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^contrib/buildbot/python_phabricator/)"
+                "(^contrib/apple-sdk-tools/)"
             ]
         },
         "prettier": {

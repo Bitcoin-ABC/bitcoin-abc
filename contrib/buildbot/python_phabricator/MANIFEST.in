@@ -1,2 +1,0 @@
-include setup.py README.rst MANIFEST.in LICENSE phabricator/interfaces.json
-global-exclude *~
