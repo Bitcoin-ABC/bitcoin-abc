@@ -149,6 +149,9 @@ public:
     unsigned int GetHeight() const { return entryHeight; }
     int64_t GetSigChecks() const { return sigChecks; }
     Amount GetModifiedFee() const { return nFee + feeDelta; }
+    CFeeRate GetModifiedFeeRate() const {
+        return CFeeRate(GetModifiedFee(), GetTxVirtualSize());
+    }
     size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints &GetLockPoints() const { return lockPoints; }
 

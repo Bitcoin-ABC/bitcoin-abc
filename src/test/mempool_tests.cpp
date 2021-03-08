@@ -1138,4 +1138,37 @@ BOOST_AUTO_TEST_CASE(MempoolAncestryTests) {
     BOOST_CHECK_EQUAL(descendants, 4ULL);
 }
 
+BOOST_AUTO_TEST_CASE(GetModifiedFeeRateTest) {
+    CMutableTransaction tx = CMutableTransaction();
+    tx.vin.resize(1);
+
+    // Make tx exactly 1000 bytes.
+    const size_t dummyDataSize =
+        1000 -
+        (GetSerializeSize(tx, PROTOCOL_VERSION) + 5 /* OP_PUSHDATA2 and ?? */);
+
+    tx.vin[0].scriptSig << std::vector<uint8_t>(dummyDataSize);
+    assert(GetSerializeSize(tx, PROTOCOL_VERSION) == 1000);
+
+    TestMemPoolEntryHelper entry;
+
+    auto entryNormal = entry.Fee(1000 * SATOSHI).FromTx(tx);
+    BOOST_CHECK_EQUAL(1000 * SATOSHI,
+                      entryNormal.GetModifiedFeeRate().GetFee(1000));
+
+    // Add modified fee
+    CTxMemPoolEntry entryFeeModified = entry.Fee(1000 * SATOSHI).FromTx(tx);
+    entryFeeModified.UpdateFeeDelta(1000 * SATOSHI);
+    BOOST_CHECK_EQUAL(2000 * SATOSHI,
+                      entryFeeModified.GetModifiedFeeRate().GetFee(1000));
+
+    // Excessive sigop count "modifies" size
+    CTxMemPoolEntry entrySizeModified =
+        entry.Fee(1000 * SATOSHI)
+            .SigChecks(2000 / DEFAULT_BYTES_PER_SIGCHECK)
+            .FromTx(tx);
+    BOOST_CHECK_EQUAL(500 * SATOSHI,
+                      entrySizeModified.GetModifiedFeeRate().GetFee(1000));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
