@@ -29,10 +29,6 @@ body {
 
 /* ITEMS BELOW TO BE MOVED TO STYLED COMPONENTS*/
 
-/* QRCode.js */
-#react-qrcode-logo {
-    border-radius: 8px;
-}
 /* Configure.js, CustomIcons.js */
 .anticon {
     color: #3e3f42;
