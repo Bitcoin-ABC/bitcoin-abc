@@ -1015,8 +1015,6 @@ namespace {
  * and we're no longer holding the node's locks.
  */
 struct CNodeState {
-    //! The peer's address
-    const CService address;
     //! The best known block we know this peer has announced.
     const CBlockIndex *pindexBestKnownBlock{nullptr};
     //! The hash of the last unknown block this peer has announced.
@@ -1122,8 +1120,7 @@ struct CNodeState {
     CRollingBloomFilter m_recently_announced_proofs =
         CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
 
-    CNodeState(CAddress addrIn, bool is_inbound)
-        : address(addrIn), m_is_inbound(is_inbound) {}
+    CNodeState(bool is_inbound) : m_is_inbound(is_inbound) {}
 };
 
 /** Map maintaining per-node state. */
@@ -1613,14 +1610,13 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
 }
 
 void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
-    CAddress addr = pnode->addr;
     NodeId nodeid = pnode->GetId();
     {
         LOCK(cs_main);
         mapNodeState.emplace_hint(
             mapNodeState.end(), std::piecewise_construct,
             std::forward_as_tuple(nodeid),
-            std::forward_as_tuple(addr, pnode->IsInboundConn()));
+            std::forward_as_tuple(pnode->IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
     {
