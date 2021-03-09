@@ -29,13 +29,6 @@ body {
 
 /* ITEMS BELOW TO BE MOVED TO STYLED COMPONENTS*/
 
-/* EnhancedInputs.js */
-.ant-input-group-addon {
-    background-color: #f4f4f4 !important;
-    border: 1px solid rgb(234, 237, 243);
-    color: #3e3f42 !important;
-}
-
 /* useWallet.js, useBCH.js */
 @media (max-width: 768px) {
     .ant-notification {
