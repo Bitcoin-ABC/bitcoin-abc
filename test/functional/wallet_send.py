@@ -42,6 +42,7 @@ class WalletSendTest(BitcoinTestFramework):
         psbt=None,
         inputs=None,
         add_inputs=None,
+        include_unsafe=None,
         change_address=None,
         change_position=None,
         include_watching=None,
@@ -53,7 +54,12 @@ class WalletSendTest(BitcoinTestFramework):
     ):
         assert (amount is None) != (data is None)
 
-        from_balance_before = from_wallet.getbalance()
+        from_balance_before = from_wallet.getbalances()["mine"]["trusted"]
+        if include_unsafe:
+            from_balance_before += from_wallet.getbalances()["mine"][
+                "untrusted_pending"
+            ]
+
         if to_wallet is None:
             assert amount is None
         else:
@@ -81,6 +87,8 @@ class WalletSendTest(BitcoinTestFramework):
             options["inputs"] = inputs
         if add_inputs is not None:
             options["add_inputs"] = add_inputs
+        if include_unsafe is not None:
+            options["include_unsafe"] = include_unsafe
         if change_address is not None:
             options["change_address"] = change_address
         if change_position is not None:
@@ -143,6 +151,10 @@ class WalletSendTest(BitcoinTestFramework):
             assert "txid" not in res
             assert "psbt" in res
 
+        from_balance = from_wallet.getbalances()["mine"]["trusted"]
+        if include_unsafe:
+            from_balance += from_wallet.getbalances()["mine"]["untrusted_pending"]
+
         if add_to_wallet and not include_watching:
             # Ensure transaction exists in the wallet:
             tx = from_wallet.gettransaction(res["txid"])
@@ -152,11 +164,9 @@ class WalletSendTest(BitcoinTestFramework):
             assert tx
             if amount:
                 if subtract_fee_from_outputs:
-                    assert_equal(from_balance_before - from_wallet.getbalance(), amount)
+                    assert_equal(from_balance_before - from_balance, amount)
                 else:
-                    assert_greater_than(
-                        from_balance_before - from_wallet.getbalance(), amount
-                    )
+                    assert_greater_than(from_balance_before - from_balance, amount)
             else:
                 assert next(
                     (
@@ -167,7 +177,7 @@ class WalletSendTest(BitcoinTestFramework):
                     None,
                 )
         else:
-            assert_equal(from_balance_before, from_wallet.getbalance())
+            assert_equal(from_balance_before, from_balance)
 
         if to_wallet:
             self.sync_mempools()
@@ -473,6 +483,21 @@ class WalletSendTest(BitcoinTestFramework):
             amount=1_000_000,
             subtract_fee_from_outputs=[0],
         )
+
+        self.log.info("Include unsafe inputs")
+        self.nodes[1].createwallet(wallet_name="w5")
+        w5 = self.nodes[1].get_wallet_rpc("w5")
+        self.test_send(from_wallet=w0, to_wallet=w5, amount=2_000_000)
+        self.test_send(
+            from_wallet=w5,
+            to_wallet=w0,
+            amount=1_000_000,
+            expect_error=(-4, "Insufficient funds"),
+        )
+        res = self.test_send(
+            from_wallet=w5, to_wallet=w0, amount=1_000_000, include_unsafe=True
+        )
+        assert res["complete"]
 
 
 if __name__ == "__main__":

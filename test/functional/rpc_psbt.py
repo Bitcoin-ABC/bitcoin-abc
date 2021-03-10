@@ -269,6 +269,25 @@ class PSBTTest(BitcoinTestFramework):
         # We don't care about the decode result, but decoding must succeed.
         self.nodes[0].decodepsbt(double_processed_psbt["psbt"])
 
+        # Make sure unsafe inputs are included if specified
+        self.nodes[2].createwallet(wallet_name="unsafe")
+        wunsafe = self.nodes[2].get_wallet_rpc("unsafe")
+        self.nodes[0].sendtoaddress(wunsafe.getnewaddress(), 2_000_000)
+        self.sync_mempools()
+        assert_raises_rpc_error(
+            -4,
+            "Insufficient funds",
+            wunsafe.walletcreatefundedpsbt,
+            [],
+            [{self.nodes[0].getnewaddress(): 1_000_000}],
+        )
+        wunsafe.walletcreatefundedpsbt(
+            [],
+            [{self.nodes[0].getnewaddress(): 1_000_000}],
+            0,
+            {"include_unsafe": True},
+        )
+
         # BIP 174 Test Vectors
 
         # Check that unknown values are just passed through

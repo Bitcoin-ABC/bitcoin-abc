@@ -3076,8 +3076,7 @@ static RPCHelpMan listunspent() {
                      {RPCResult::Type::BOOL, "safe",
                       "Whether this output is considered safe to spend. "
                       "Unconfirmed transactions\n"
-                      "from outside keys and unconfirmed replacement "
-                      "transactions are considered unsafe\n"
+                      "from outside keys are considered unsafe\n"
                       "and are not eligible for spending by fundrawtransaction "
                       "and sendtoaddress."},
                  }},
@@ -3297,6 +3296,7 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
                 options,
                 {
                     {"add_inputs", UniValueType(UniValue::VBOOL)},
+                    {"include_unsafe", UniValueType(UniValue::VBOOL)},
                     {"add_to_wallet", UniValueType(UniValue::VBOOL)},
                     {"changeAddress", UniValueType(UniValue::VSTR)},
                     {"change_address", UniValueType(UniValue::VSTR)},
@@ -3360,6 +3360,11 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
                     (options.exists("lock_unspents") ? options["lock_unspents"]
                                                      : options["lockUnspents"])
                         .get_bool();
+            }
+
+            if (options.exists("include_unsafe")) {
+                coinControl.m_include_unsafe_inputs =
+                    options["include_unsafe"].get_bool();
             }
 
             if (options.exists("feeRate") || options.exists("fee_rate")) {
@@ -3460,6 +3465,13 @@ static RPCHelpMan fundrawtransaction() {
                  {"add_inputs", RPCArg::Type::BOOL, /* default */ "true",
                   "For a transaction with existing inputs, automatically "
                   "include more if they are not enough."},
+                 {"include_unsafe", RPCArg::Type::BOOL, /* default */ "false",
+                  "Include inputs that are not safe to spend (unconfirmed "
+                  "transactions from outside keys).\n"
+                  "Warning: the resulting transaction may become invalid if "
+                  "one of the unsafe inputs disappears.\n"
+                  "If that happens, you will need to fund the transaction with "
+                  "different inputs and republish it."},
                  {"changeAddress", RPCArg::Type::STR,
                   /* default */ "pool address",
                   "The bitcoin address to receive the change"},
@@ -4255,6 +4267,13 @@ static RPCHelpMan send() {
                  {"add_inputs", RPCArg::Type::BOOL, /* default */ "false",
                   "If inputs are specified, automatically include more if they "
                   "are not enough."},
+                 {"include_unsafe", RPCArg::Type::BOOL, /* default */ "false",
+                  "Include inputs that are not safe to spend (unconfirmed "
+                  "transactions from outside keys).\n"
+                  "Warning: the resulting transaction may become invalid if "
+                  "one of the unsafe inputs disappears.\n"
+                  "If that happens, you will need to fund the transaction with "
+                  "different inputs and republish it."},
                  {"add_to_wallet", RPCArg::Type::BOOL, /* default */ "true",
                   "When false, returns a serialized transaction which will not "
                   "be added to the wallet or broadcast"},
@@ -4717,6 +4736,13 @@ static RPCHelpMan walletcreatefundedpsbt() {
                  {"add_inputs", RPCArg::Type::BOOL, /* default */ "false",
                   "If inputs are specified, automatically include more if they "
                   "are not enough."},
+                 {"include_unsafe", RPCArg::Type::BOOL, /* default */ "false",
+                  "Include inputs that are not safe to spend (unconfirmed "
+                  "transactions from outside keys).\n"
+                  "Warning: the resulting transaction may become invalid if "
+                  "one of the unsafe inputs disappears.\n"
+                  "If that happens, you will need to fund the transaction with "
+                  "different inputs and republish it."},
                  {"changeAddress", RPCArg::Type::STR_HEX,
                   /* default */ "pool address",
                   "The bitcoin address to receive the change"},

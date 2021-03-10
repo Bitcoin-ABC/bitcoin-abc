@@ -582,6 +582,15 @@ bool SelectCoins(const CWallet &wallet,
          SelectCoinsMinConf(
              wallet, value_to_select,
              CoinEligibilityFilter(0, 1, /*include_partial_groups=*/true),
+             vCoins, setCoinsRet, nValueRet, coin_selection_params,
+             bnb_used)) ||
+        // Try with unsafe inputs if they are allowed. This may spend
+        // unconfirmed outputs received from other wallets.
+        (coin_control.m_include_unsafe_inputs &&
+         SelectCoinsMinConf(
+             wallet, value_to_select,
+             CoinEligibilityFilter(/*conf_mine=*/0, /*conf_theirs=*/0,
+                                   /*include_partial_groups=*/true),
              vCoins, setCoinsRet, nValueRet, coin_selection_params, bnb_used));
 
     // Because SelectCoinsMinConf clears the setCoinsRet, we now add the
@@ -641,7 +650,8 @@ static bool CreateTransactionInternal(
         // of the current block height.
         txNew.nLockTime = 0;
         std::vector<COutput> vAvailableCoins;
-        AvailableCoins(wallet, vAvailableCoins, true, &coin_control);
+        AvailableCoins(wallet, vAvailableCoins,
+                       !coin_control.m_include_unsafe_inputs, &coin_control);
         // Parameters for coin selection, init with dummy
         CoinSelectionParams coin_selection_params;
         coin_selection_params.m_avoid_partial_spends =
