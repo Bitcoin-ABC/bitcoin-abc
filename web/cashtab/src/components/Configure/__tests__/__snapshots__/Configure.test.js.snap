@@ -39,12 +39,12 @@ exports[`Configure with a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-jTzLTM lYoFl"
+      className="sc-cSHVUG gFAtPI"
     >
       <h2>
         <span
           aria-label="copy"
-          className="anticon anticon-copy sc-ifAKCX bxlMcO"
+          className="anticon anticon-copy sc-bwzfXH kkSAEb"
           role="img"
         >
           <svg
@@ -147,12 +147,12 @@ exports[`Configure with a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-fjdhpX iUdZQY"
+        className="sc-kAzzGY kTUYnJ"
       />
       <h2>
         <span
           aria-label="wallet"
-          className="anticon anticon-wallet sc-bZQynM cOFHGb"
+          className="anticon anticon-wallet sc-bxivhb jGiKCf"
           role="img"
         >
           <svg
@@ -172,7 +172,7 @@ exports[`Configure with a wallet 1`] = `
          Manage Wallets
       </h2>
       <button
-        className="sc-bwzfXH crkPeR"
+        className="sc-dnqmqq jIVAvI"
         onClick={[Function]}
       >
         <span
@@ -200,7 +200,7 @@ exports[`Configure with a wallet 1`] = `
          New Wallet
       </button>
       <button
-        className="sc-htpNat fajXvM"
+        className="sc-iwsKbI fjowBY"
         onClick={[Function]}
       >
         <span
@@ -225,11 +225,11 @@ exports[`Configure with a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-fjdhpX iUdZQY"
+        className="sc-kAzzGY kTUYnJ"
       />
       [
       <a
-        className="sc-dnqmqq fnVGsZ"
+        className="sc-gqjmRU kDdVjH"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
@@ -282,12 +282,12 @@ exports[`Configure without a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-jTzLTM lYoFl"
+      className="sc-cSHVUG gFAtPI"
     >
       <h2>
         <span
           aria-label="copy"
-          className="anticon anticon-copy sc-ifAKCX bxlMcO"
+          className="anticon anticon-copy sc-bwzfXH kkSAEb"
           role="img"
         >
           <svg
@@ -352,12 +352,12 @@ exports[`Configure without a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-fjdhpX iUdZQY"
+        className="sc-kAzzGY kTUYnJ"
       />
       <h2>
         <span
           aria-label="wallet"
-          className="anticon anticon-wallet sc-bZQynM cOFHGb"
+          className="anticon anticon-wallet sc-bxivhb jGiKCf"
           role="img"
         >
           <svg
@@ -377,7 +377,7 @@ exports[`Configure without a wallet 1`] = `
          Manage Wallets
       </h2>
       <button
-        className="sc-bwzfXH crkPeR"
+        className="sc-dnqmqq jIVAvI"
         onClick={[Function]}
       >
         <span
@@ -405,7 +405,7 @@ exports[`Configure without a wallet 1`] = `
          New Wallet
       </button>
       <button
-        className="sc-htpNat fajXvM"
+        className="sc-iwsKbI fjowBY"
         onClick={[Function]}
       >
         <span
@@ -430,11 +430,11 @@ exports[`Configure without a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-fjdhpX iUdZQY"
+        className="sc-kAzzGY kTUYnJ"
       />
       [
       <a
-        className="sc-dnqmqq fnVGsZ"
+        className="sc-gqjmRU kDdVjH"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"

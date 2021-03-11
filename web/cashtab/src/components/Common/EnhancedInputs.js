@@ -16,7 +16,58 @@ export const AntdFormCss = css`
         border: 1px solid ${props => props.theme.formBorders};
         color: ${props => props.theme.formAddonForeground} !important;
     }
+    input.ant-input,
+    .ant-select-selection {
+        background-color: #fff !important;
+        box-shadow: none !important;
+        border-radius: 4px;
+        font-weight: bold;
+        color: rgb(62, 63, 66);
+        opacity: 1;
+        height: 50px;
+    }
+    .ant-input-affix-wrapper {
+        background-color: #fff;
+        border: 1px solid #eaedf3 !important;
+    }
+    .ant-select-selector {
+        height: 60px !important;
+        border: 1px solid #eaedf3 !important;
+    }
+    .ant-form-item-has-error
+        > div
+        > div.ant-form-item-control-input
+        > div
+        > span
+        > span
+        > span.ant-input-affix-wrapper {
+        background-color: #fff;
+        border-color: #f04134 !important;
+    }
+
+    .ant-form-item-has-error .ant-input,
+    .ant-form-item-has-error .ant-input-affix-wrapper,
+    .ant-form-item-has-error .ant-input:hover,
+    .ant-form-item-has-error .ant-input-affix-wrapper:hover {
+        background-color: #fff;
+        border-color: #f04134 !important;
+    }
+
+    .ant-form-item-has-error
+        .ant-select:not(.ant-select-disabled):not(.ant-select-customize-input)
+        .ant-select-selector {
+        background-color: #fff;
+        border-color: #f04134 !important;
+    }
+    .ant-select-single .ant-select-selector .ant-select-selection-item,
+    .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+        line-height: 60px;
+        text-align: left;
+        color: #3e3f42;
+        font-weight: bold;
+    }
 `;
+
 export const AntdFormWrapper = styled.div`
     ${AntdFormCss}
 `;
@@ -95,40 +146,46 @@ export const SendBchInput = ({
         </Select>
     );
     return (
-        <Form.Item {...otherProps}>
-            <Input.Group compact>
-                <Input
-                    style={{ width: '60%', textAlign: 'left' }}
-                    type="number"
-                    step={
-                        inputProps.dollar === 1
-                            ? 0.01
-                            : 1 / 10 ** currency.cashDecimals
-                    }
-                    prefix={
-                        inputProps.dollar === 1 ? (
-                            <ThemedDollarOutlined />
-                        ) : (
-                            <img
-                                src={currency.logo}
-                                alt=""
-                                width={16}
-                                height={16}
-                            />
-                        )
-                    }
-                    {...inputProps}
-                />
-                {CurrencySelect}
-                <InputNumberAddonText
-                    style={{ width: '10%', height: '60px', lineHeight: '60px' }}
-                    disabled={!!(inputProps || {}).disabled}
-                    onClick={!(inputProps || {}).disabled && onMax}
-                >
-                    max
-                </InputNumberAddonText>
-            </Input.Group>
-        </Form.Item>
+        <AntdFormWrapper>
+            <Form.Item {...otherProps}>
+                <Input.Group compact>
+                    <Input
+                        style={{ width: '60%', textAlign: 'left' }}
+                        type="number"
+                        step={
+                            inputProps.dollar === 1
+                                ? 0.01
+                                : 1 / 10 ** currency.cashDecimals
+                        }
+                        prefix={
+                            inputProps.dollar === 1 ? (
+                                <ThemedDollarOutlined />
+                            ) : (
+                                <img
+                                    src={currency.logo}
+                                    alt=""
+                                    width={16}
+                                    height={16}
+                                />
+                            )
+                        }
+                        {...inputProps}
+                    />
+                    {CurrencySelect}
+                    <InputNumberAddonText
+                        style={{
+                            width: '10%',
+                            height: '60px',
+                            lineHeight: '60px',
+                        }}
+                        disabled={!!(inputProps || {}).disabled}
+                        onClick={!(inputProps || {}).disabled && onMax}
+                    >
+                        max
+                    </InputNumberAddonText>
+                </Input.Group>
+            </Form.Item>
+        </AntdFormWrapper>
     );
 };
 

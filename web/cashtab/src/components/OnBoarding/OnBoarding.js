@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
 import { Input, Form, Modal } from 'antd';
+import { AntdFormWrapper } from '@components/Common/EnhancedInputs';
 import {
     ExclamationCircleOutlined,
     PlusSquareOutlined,
@@ -115,36 +116,38 @@ export const OnBoarding = ({ history }) => {
             </SecondaryButton>
             {seedInput && (
                 <StyledOnboarding>
-                    <Form style={{ width: 'auto' }}>
-                        <Form.Item
-                            validateStatus={
-                                !formData.dirty && !formData.mnemonic
-                                    ? 'error'
-                                    : ''
-                            }
-                            help={
-                                !formData.mnemonic || !isValidMnemonic
-                                    ? 'Valid mnemonic seed phrase required'
-                                    : ''
-                            }
-                        >
-                            <Input
-                                prefix={<LockOutlined />}
-                                placeholder="mnemonic (seed phrase)"
-                                name="mnemonic"
-                                autoComplete="off"
-                                onChange={e => handleChange(e)}
-                                required
-                            />
-                        </Form.Item>
+                    <AntdFormWrapper>
+                        <Form style={{ width: 'auto' }}>
+                            <Form.Item
+                                validateStatus={
+                                    !formData.dirty && !formData.mnemonic
+                                        ? 'error'
+                                        : ''
+                                }
+                                help={
+                                    !formData.mnemonic || !isValidMnemonic
+                                        ? 'Valid mnemonic seed phrase required'
+                                        : ''
+                                }
+                            >
+                                <Input
+                                    prefix={<LockOutlined />}
+                                    placeholder="mnemonic (seed phrase)"
+                                    name="mnemonic"
+                                    autoComplete="off"
+                                    onChange={e => handleChange(e)}
+                                    required
+                                />
+                            </Form.Item>
 
-                        <SmartButton
-                            disabled={!isValidMnemonic}
-                            onClick={() => submit()}
-                        >
-                            Import
-                        </SmartButton>
-                    </Form>
+                            <SmartButton
+                                disabled={!isValidMnemonic}
+                                onClick={() => submit()}
+                            >
+                                Import
+                            </SmartButton>
+                        </Form>
+                    </AntdFormWrapper>
                 </StyledOnboarding>
             )}
         </>
