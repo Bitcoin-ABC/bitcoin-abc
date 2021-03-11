@@ -21,7 +21,7 @@ Dependencies
 
 Install dependencies:
 
-    brew install berkeley-db boost cmake jemalloc libevent librsvg miniupnpc ninja openssl protobuf python qrencode qt zeromq
+    brew install berkeley-db boost cmake jemalloc libevent librsvg miniupnpc ninja openssl protobuf python qrencode qt@5 zeromq
 
 See [dependencies.md](dependencies.md) for a complete overview.
 
