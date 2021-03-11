@@ -38,24 +38,3 @@ body {
         margin-right: 0;
     }
 }
-
-/* OK and Cancel button colors on Modals*/
-.ant-card-actions > li > span:hover,
-.ant-btn:hover,
-.ant-btn:focus {
-    color: #f59332;
-    transition: color 0.3s;
-    background-color: white;
-}
-.ant-btn {
-    border-radius: 8px;
-    background-color: #fff;
-    color: rgb(62, 63, 66);
-    font-weight: bold;
-}
-
-/*Hover on currency dropdowns */
-.selectedCurrencyOption:hover {
-    color: #fff !important;
-    background-color: #ff8d00 !important;
-}

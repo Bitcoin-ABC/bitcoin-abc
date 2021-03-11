@@ -1,7 +1,7 @@
 import React from 'react';
 import 'antd/dist/antd.less';
 import '../index.css';
-import styled, { ThemeProvider } from 'styled-components';
+import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from '@assets/styles/theme';
 import {
     FolderOpenFilled,
@@ -29,6 +29,26 @@ import {
 } from 'react-router-dom';
 
 import fbt from 'fbt';
+
+const GlobalStyle = createGlobalStyle`    
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
+        border-radius: 8px;
+        background-color: #fff;
+        color: rgb(62, 63, 66);
+        font-weight: bold;
+    }    
+    
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover {
+        color: #f59332;
+        transition: color 0.3s;
+        background-color: white;
+    }   
+
+    .selectedCurrencyOption:hover {
+        color: #fff !important;
+        background-color: #ff8d00 !important;
+    }
+`;
 
 const CustomApp = styled.div`
     text-align: center;
@@ -174,6 +194,7 @@ const App = () => {
 
     return (
         <ThemeProvider theme={theme}>
+            <GlobalStyle />
             <CustomApp>
                 <WalletBody>
                     <WalletCtn>

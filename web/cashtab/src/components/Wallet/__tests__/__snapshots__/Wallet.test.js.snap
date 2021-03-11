@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-kGXeez bXxoky"
+    className="sc-ckVGcZ Triz"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-kpOJdX ixShQP"
+    className="sc-jKJlTe ebnPwP"
   >
     $
     NaN
@@ -28,7 +28,7 @@ Array [
     }
   >
     <div
-      className="sc-fjdhpX evqXiz"
+      className="sc-kAzzGY ftitEJ"
       style={
         Object {
           "display": "none",
@@ -39,7 +39,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-jTzLTM jkoajf"
+      className="sc-cSHVUG kwIRBG"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -64,7 +64,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-jzJRlG bpIvuT"
+      className="sc-chPdSV gvzZdH"
     >
       <input
         readOnly={true}
@@ -82,23 +82,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ dYdxKM"
+    className="sc-hMqMXs eKilOO"
   >
     <div
-      className="sc-jKJlTe dtEbSm"
+      className="sc-kEYyzF fnNhXj"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-jKJlTe dtEbSm nonactiveBtn"
+      className="sc-kEYyzF fnNhXj nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-hMqMXs jmPirE"
+    className="sc-iAyFgw eBhcwl"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -130,14 +130,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kGXeez bXxoky"
+    className="sc-ckVGcZ Triz"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-kpOJdX ixShQP"
+    className="sc-jKJlTe ebnPwP"
   >
     $
     NaN
@@ -155,7 +155,7 @@ Array [
     }
   >
     <div
-      className="sc-fjdhpX evqXiz"
+      className="sc-kAzzGY ftitEJ"
       style={
         Object {
           "display": "none",
@@ -166,7 +166,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-jTzLTM jkoajf"
+      className="sc-cSHVUG kwIRBG"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -191,7 +191,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-jzJRlG bpIvuT"
+      className="sc-chPdSV gvzZdH"
     >
       <input
         readOnly={true}
@@ -209,23 +209,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ dYdxKM"
+    className="sc-hMqMXs eKilOO"
   >
     <div
-      className="sc-jKJlTe dtEbSm"
+      className="sc-kEYyzF fnNhXj"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-jKJlTe dtEbSm nonactiveBtn"
+      className="sc-kEYyzF fnNhXj nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-hMqMXs jmPirE"
+    className="sc-iAyFgw eBhcwl"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -267,10 +267,10 @@ Array [
       onClick={[Function]}
     >
       <div
-        className="sc-chPdSV WAexJ"
+        className="sc-kpOJdX gkdlTa"
       >
         <div
-          className="sc-cSHVUG eUoWbq"
+          className="sc-kgoBCf hstPXZ"
         >
           <img
             alt="identicon of tokenId bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba "
@@ -285,7 +285,7 @@ Array [
           />
         </div>
         <div
-          className="sc-kAzzGY dVrNzc"
+          className="sc-kGXeez XjiFU"
         >
           6.001
            
@@ -302,7 +302,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-dxgOiQ jdZKNz"
+    className="sc-eNQAEJ caxZGu"
   >
     <span
       aria-label="party emoji"
@@ -328,7 +328,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-kGXeez bXxoky"
+    className="sc-ckVGcZ Triz"
   >
     0 
     BCHA
@@ -344,7 +344,7 @@ Array [
     }
   >
     <div
-      className="sc-fjdhpX evqXiz"
+      className="sc-kAzzGY ftitEJ"
       style={
         Object {
           "display": "none",
@@ -355,7 +355,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-jTzLTM jkoajf"
+      className="sc-cSHVUG kwIRBG"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -380,7 +380,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-jzJRlG bpIvuT"
+      className="sc-chPdSV gvzZdH"
     >
       <input
         readOnly={true}
@@ -398,16 +398,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ dYdxKM"
+    className="sc-hMqMXs eKilOO"
   >
     <div
-      className="sc-jKJlTe dtEbSm"
+      className="sc-kEYyzF fnNhXj"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-jKJlTe dtEbSm nonactiveBtn"
+      className="sc-kEYyzF fnNhXj nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
@@ -422,12 +422,12 @@ Array [
     Welcome to Cashtab!
   </h2>,
   <p
-    className="sc-gqjmRU gzTbtu"
+    className="sc-fjdhpX bWsFww"
   >
     Cashtab is an
      
     <a
-      className="sc-VigVT EDxrO"
+      className="sc-jzJRlG irkdme"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -443,7 +443,7 @@ Array [
     Want to learn more?
      
     <a
-      className="sc-VigVT EDxrO"
+      className="sc-jzJRlG irkdme"
       href="https://docs.cashtabapp.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -452,7 +452,7 @@ Array [
     </a>
   </p>,
   <button
-    className="sc-dnqmqq jIVAvI"
+    className="sc-gqjmRU XGywS"
     onClick={[Function]}
   >
     <span
@@ -480,7 +480,7 @@ Array [
      New Wallet
   </button>,
   <button
-    className="sc-iwsKbI fjowBY"
+    className="sc-VigVT fqMxLW"
     onClick={[Function]}
   >
     <span

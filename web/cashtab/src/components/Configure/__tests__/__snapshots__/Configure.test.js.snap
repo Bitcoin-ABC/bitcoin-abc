@@ -39,7 +39,7 @@ exports[`Configure with a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-cSHVUG gFAtPI"
+      className="sc-kgoBCf EyPCT"
     >
       <h2>
         <span
@@ -147,7 +147,7 @@ exports[`Configure with a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-kAzzGY kTUYnJ"
+        className="sc-kGXeez kTnHvP"
       />
       <h2>
         <span
@@ -172,7 +172,7 @@ exports[`Configure with a wallet 1`] = `
          Manage Wallets
       </h2>
       <button
-        className="sc-dnqmqq jIVAvI"
+        className="sc-gqjmRU XGywS"
         onClick={[Function]}
       >
         <span
@@ -200,7 +200,7 @@ exports[`Configure with a wallet 1`] = `
          New Wallet
       </button>
       <button
-        className="sc-iwsKbI fjowBY"
+        className="sc-VigVT fqMxLW"
         onClick={[Function]}
       >
         <span
@@ -225,11 +225,11 @@ exports[`Configure with a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-kAzzGY kTUYnJ"
+        className="sc-kGXeez kTnHvP"
       />
       [
       <a
-        className="sc-gqjmRU kDdVjH"
+        className="sc-fjdhpX eJaZHQ"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
@@ -282,7 +282,7 @@ exports[`Configure without a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-cSHVUG gFAtPI"
+      className="sc-kgoBCf EyPCT"
     >
       <h2>
         <span
@@ -352,7 +352,7 @@ exports[`Configure without a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-kAzzGY kTUYnJ"
+        className="sc-kGXeez kTnHvP"
       />
       <h2>
         <span
@@ -377,7 +377,7 @@ exports[`Configure without a wallet 1`] = `
          Manage Wallets
       </h2>
       <button
-        className="sc-dnqmqq jIVAvI"
+        className="sc-gqjmRU XGywS"
         onClick={[Function]}
       >
         <span
@@ -405,7 +405,7 @@ exports[`Configure without a wallet 1`] = `
          New Wallet
       </button>
       <button
-        className="sc-iwsKbI fjowBY"
+        className="sc-VigVT fqMxLW"
         onClick={[Function]}
       >
         <span
@@ -430,11 +430,11 @@ exports[`Configure without a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-kAzzGY kTUYnJ"
+        className="sc-kGXeez kTnHvP"
       />
       [
       <a
-        className="sc-gqjmRU kDdVjH"
+        className="sc-fjdhpX eJaZHQ"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
