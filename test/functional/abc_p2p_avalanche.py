@@ -126,6 +126,11 @@ class AvalancheTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
+        self.log.info("Check the node is signalling the avalanche service.")
+        assert_equal(
+            int(node.getnetworkinfo()['localservices'], 16) & NODE_AVALANCHE,
+            NODE_AVALANCHE)
+
         # Build a fake quorum of nodes.
         def get_quorum():
             def get_node():

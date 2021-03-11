@@ -2433,6 +2433,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // Step 6.5 (I guess ?): Initialize Avalanche.
     g_avalanche = std::make_unique<avalanche::Processor>(
         *node.chain, node.connman.get(), node.peerman.get());
+    if (args.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
+    }
 
     // Step 7: load block chain
 
