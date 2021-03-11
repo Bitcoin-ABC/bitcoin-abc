@@ -13,3 +13,20 @@ const struct VBDeploymentInfo
             /*.gbt_force =*/true,
         },
 };
+
+[[maybe_unused]] std::string DeploymentName(Consensus::BuriedDeployment dep) {
+    assert(ValidDeployment(dep));
+    switch (dep) {
+        case Consensus::DEPLOYMENT_P2SH:
+            return "bip22";
+        case Consensus::DEPLOYMENT_HEIGHTINCB:
+            return "bip34";
+        case Consensus::DEPLOYMENT_CLTV:
+            return "bip65";
+        case Consensus::DEPLOYMENT_DERSIG:
+            return "bip66";
+        case Consensus::DEPLOYMENT_CSV:
+            return "csv";
+    } // no default case, so the compiler can warn about missing cases
+    return "";
+}
