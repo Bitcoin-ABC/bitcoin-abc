@@ -1123,10 +1123,7 @@ struct CNodeState {
         CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
 
     CNodeState(CAddress addrIn, bool is_inbound)
-        : address(addrIn), m_is_inbound(is_inbound) {
-        m_recently_announced_invs.reset();
-        m_recently_announced_proofs.reset();
-    }
+        : address(addrIn), m_is_inbound(is_inbound) {}
 };
 
 /** Map maintaining per-node state. */
