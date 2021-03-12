@@ -8,26 +8,19 @@ import {
     QrcodeOutlined,
 } from '@ant-design/icons';
 
-export const CashLoadingIcon = (
-    <LoadingOutlined
-        style={{
-            fontSize: 48,
-            color: '#ff8d00',
-        }}
-    />
-);
+export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
 export const ThemedCopyOutlined = styled(CopyOutlined)`
-    color: ${props => props.theme.iconOutlined} !important;
+    color: ${props => props.theme.icons.outlined} !important;
 `;
 export const ThemedDollarOutlined = styled(DollarOutlined)`
-    color: ${props => props.theme.iconOutlined} !important;
+    color: ${props => props.theme.icons.outlined} !important;
 `;
 export const ThemedWalletOutlined = styled(WalletOutlined)`
-    color: ${props => props.theme.iconOutlined} !important;
+    color: ${props => props.theme.icons.outlined} !important;
 `;
 export const ThemedQrcodeOutlined = styled(QrcodeOutlined)`
-    color: ${props => props.theme.iconOutlined} !important;
+    color: ${props => props.theme.icons.outlined} !important;
 `;
 
 export const LoadingBlock = styled.div`
@@ -40,7 +33,7 @@ export const LoadingBlock = styled.div`
     svg {
         width: 50px;
         height: 50px;
-        fill: #ff8d00;
+        fill: ${props => props.theme.primary};
     }
 `;
 

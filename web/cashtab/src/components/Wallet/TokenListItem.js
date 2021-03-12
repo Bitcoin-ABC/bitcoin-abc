@@ -19,14 +19,13 @@ const Wrapper = styled.div`
     align-items: center;
     padding: 15px 25px;
     border-radius: 3px;
-    background: #ffffff;
+    background: ${props => props.theme.tokenListItem.background};
     margin-bottom: 3px;
-    box-shadow: rgba(0, 0, 0, 0.01) 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 4px 8px,
-        rgba(0, 0, 0, 0.04) 0px 16px 24px, rgba(0, 0, 0, 0.01) 0px 24px 32px;
-    border: 1px solid #e9eaed;
+    box-shadow: ${props => props.theme.tokenListItem.boxShadow};
+    border: 1px solid ${props => props.theme.tokenListItem.border};
 
     :hover {
-        border-color: #5ebd6d;
+        border-color: ${props => props.theme.tokenListItem.hoverBorder};
     }
 `;
 

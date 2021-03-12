@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { QRCode } from '../QRCode';
+import { ThemeProvider } from 'styled-components';
+import { theme } from '@assets/styles/theme';
 
 describe('<QRCode />', () => {
     jest.useFakeTimers();
@@ -8,11 +10,13 @@ describe('<QRCode />', () => {
     it('QRCode copying cash address', async () => {
         const OnClick = jest.fn();
         const { container } = render(
-            <QRCode
-                pixelRatio={25}
-                onClick={OnClick}
-                address="bitcoincash:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
-            />,
+            <ThemeProvider theme={theme}>
+                <QRCode
+                    pixelRatio={25}
+                    onClick={OnClick}
+                    address="bitcoincash:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
+                />
+            </ThemeProvider>,
         );
 
         const qrCodeElement = container.querySelector('#borderedQRCode');
@@ -28,11 +32,13 @@ describe('<QRCode />', () => {
     it('QRCode copying SLP address', () => {
         const OnClick = jest.fn();
         const { container } = render(
-            <QRCode
-                pixelRatio={25}
-                onClick={OnClick}
-                address="simpleledger:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
-            />,
+            <ThemeProvider theme={theme}>
+                <QRCode
+                    pixelRatio={25}
+                    onClick={OnClick}
+                    address="simpleledger:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
+                />
+            </ThemeProvider>,
         );
         const qrCodeElement = container.querySelector('#borderedQRCode');
         fireEvent.click(qrCodeElement);
@@ -40,7 +46,11 @@ describe('<QRCode />', () => {
     });
 
     it('QRCode without address', () => {
-        const { container } = render(<QRCode pixelRatio={25} />);
+        const { container } = render(
+            <ThemeProvider theme={theme}>
+                <QRCode pixelRatio={25} />
+            </ThemeProvider>,
+        );
 
         const qrCodeElement = container.querySelector('#borderedQRCode');
         fireEvent.click(qrCodeElement);

@@ -9,7 +9,6 @@ import {
     ImportOutlined,
     LockOutlined,
 } from '@ant-design/icons';
-import StyledOnboarding from '@components/Common/StyledOnBoarding';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
@@ -18,7 +17,7 @@ import { currency } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 
 export const WelcomeText = styled.p`
-    color: #444;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 16px;
     margin-bottom: 60px;
@@ -27,7 +26,7 @@ export const WelcomeText = styled.p`
 
 export const WelcomeLink = styled.a`
     text-decoration: underline;
-    color: #ff8d00;
+    color: ${props => props.theme.primary};
 `;
 
 export const OnBoarding = ({ history }) => {
@@ -115,40 +114,38 @@ export const OnBoarding = ({ history }) => {
                 <ImportOutlined /> Import Wallet
             </SecondaryButton>
             {seedInput && (
-                <StyledOnboarding>
-                    <AntdFormWrapper>
-                        <Form style={{ width: 'auto' }}>
-                            <Form.Item
-                                validateStatus={
-                                    !formData.dirty && !formData.mnemonic
-                                        ? 'error'
-                                        : ''
-                                }
-                                help={
-                                    !formData.mnemonic || !isValidMnemonic
-                                        ? 'Valid mnemonic seed phrase required'
-                                        : ''
-                                }
-                            >
-                                <Input
-                                    prefix={<LockOutlined />}
-                                    placeholder="mnemonic (seed phrase)"
-                                    name="mnemonic"
-                                    autoComplete="off"
-                                    onChange={e => handleChange(e)}
-                                    required
-                                />
-                            </Form.Item>
+                <AntdFormWrapper>
+                    <Form style={{ width: 'auto' }}>
+                        <Form.Item
+                            validateStatus={
+                                !formData.dirty && !formData.mnemonic
+                                    ? 'error'
+                                    : ''
+                            }
+                            help={
+                                !formData.mnemonic || !isValidMnemonic
+                                    ? 'Valid mnemonic seed phrase required'
+                                    : ''
+                            }
+                        >
+                            <Input
+                                prefix={<LockOutlined />}
+                                placeholder="mnemonic (seed phrase)"
+                                name="mnemonic"
+                                autoComplete="off"
+                                onChange={e => handleChange(e)}
+                                required
+                            />
+                        </Form.Item>
 
-                            <SmartButton
-                                disabled={!isValidMnemonic}
-                                onClick={() => submit()}
-                            >
-                                Import
-                            </SmartButton>
-                        </Form>
-                    </AntdFormWrapper>
-                </StyledOnboarding>
+                        <SmartButton
+                            disabled={!isValidMnemonic}
+                            onClick={() => submit()}
+                        >
+                            Import
+                        </SmartButton>
+                    </Form>
+                </AntdFormWrapper>
             )}
         </>
     );

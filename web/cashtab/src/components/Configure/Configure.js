@@ -29,10 +29,10 @@ const { Panel } = Collapse;
 
 const SettingsLink = styled.a`
     text-decoration: underline;
-    color: #ff8d00;
+    color: ${props => props.theme.primary};
     :visited {
         text-decoration: underline;
-        color: #ff8d00;
+        color: ${props => props.theme.primary};
     }
 `;
 
@@ -65,7 +65,7 @@ const SWName = styled.div`
 
     h3 {
         font-size: 16px;
-        color: #444;
+        color: ${props => props.theme.wallet.text.secondary};
         margin: 0;
         text-align: left;
         white-space: nowrap;
@@ -93,20 +93,20 @@ const SWButtonCtn = styled.div`
     }
 
     svg {
-        stroke: #444;
-        fill: #444;
+        stroke: ${props => props.theme.wallet.text.secondary};
+        fill: ${props => props.theme.wallet.text.secondary};
         width: 25px;
         height: 25px;
         margin-right: 20px;
         cursor: pointer;
 
         :first-child:hover {
-            stroke: #ff8d00;
-            fill: #ff8d00;
+            stroke: ${props => props.theme.primary};
+            fill: ${props => props.theme.primary};
         }
         :hover {
-            stroke: red;
-            fill: red;
+            stroke: ${props => props.theme.settings.delete};
+            fill: ${props => props.theme.settings.delete};
         }
     }
 `;
@@ -120,7 +120,7 @@ const AWRow = styled.div`
     h3 {
         font-size: 16px;
         display: inline-block;
-        color: #444;
+        color: ${props => props.theme.wallet.text.secondary};
         margin: 0;
         text-align: left;
         font-weight: bold;
@@ -131,7 +131,7 @@ const AWRow = styled.div`
     h4 {
         font-size: 16px;
         display: inline-block;
-        color: #ff8d00 !important;
+        color: ${props => props.theme.primary} !important;
         margin: 0;
         text-align: right;
     }
@@ -143,18 +143,18 @@ const AWRow = styled.div`
 
 const StyledConfigure = styled.div`
     h2 {
-        color: #444;
+        color: ${props => props.theme.wallet.text.secondary};
         font-size: 25px;
     }
     p {
-        color: #444;
+        color: ${props => props.theme.wallet.text.secondary};
     }
 `;
 
 const StyledSpacer = styled.div`
     height: 1px;
     width: 100%;
-    background-color: #e2e2e2;
+    background-color: ${props => props.theme.wallet.borders.color};
     margin: 60px 0 50px;
 `;
 

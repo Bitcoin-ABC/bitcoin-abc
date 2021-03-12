@@ -27,14 +27,14 @@ import { formatBalance } from '@utils/cashMethods';
 
 export const BalanceHeader = styled.div`
     p {
-        color: #777;
+        color: ${props => props.theme.wallet.text.secondary}
         width: 100%;
         font-size: 14px;
         margin-bottom: 0px;
     }
 
     h3 {
-        color: #444;
+        color: ${props => props.theme.wallet.text.primary};
         width: 100%;
         font-size: 26px;
         font-weight: bold;
@@ -43,7 +43,7 @@ export const BalanceHeader = styled.div`
 `;
 
 export const BalanceHeaderFiat = styled.div`
-    color: #444;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 18px;
     margin-bottom: 20px;
@@ -54,14 +54,14 @@ export const BalanceHeaderFiat = styled.div`
 `;
 
 export const ZeroBalanceHeader = styled.div`
-    color: #444;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 14px;
     margin-bottom: 20px;
 `;
 
 const ConvertAmount = styled.div`
-    color: #777;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 14px;
     margin-bottom: 10px;

@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-ckVGcZ Triz"
+    className="sc-ckVGcZ ddfzZr"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-jKJlTe ebnPwP"
+    className="sc-jKJlTe dCEfcW"
   >
     $
     NaN
@@ -28,7 +28,7 @@ Array [
     }
   >
     <div
-      className="sc-kAzzGY ftitEJ"
+      className="sc-cSHVUG gIRqBE"
       style={
         Object {
           "display": "none",
@@ -39,7 +39,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-cSHVUG kwIRBG"
+      className="sc-jzJRlG jklgUU"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -64,7 +64,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-chPdSV gvzZdH"
+      className="sc-kAzzGY iklfzZ"
     >
       <input
         readOnly={true}
@@ -82,23 +82,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs eKilOO"
+    className="sc-hMqMXs kPUXCE"
   >
     <div
-      className="sc-kEYyzF fnNhXj"
+      className="sc-kEYyzF kRhXaZ"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kEYyzF fnNhXj nonactiveBtn"
+      className="sc-kEYyzF kRhXaZ nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-iAyFgw eBhcwl"
+    className="sc-iAyFgw bFkCIi"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -130,14 +130,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-ckVGcZ Triz"
+    className="sc-ckVGcZ ddfzZr"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-jKJlTe ebnPwP"
+    className="sc-jKJlTe dCEfcW"
   >
     $
     NaN
@@ -155,7 +155,7 @@ Array [
     }
   >
     <div
-      className="sc-kAzzGY ftitEJ"
+      className="sc-cSHVUG gIRqBE"
       style={
         Object {
           "display": "none",
@@ -166,7 +166,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-cSHVUG kwIRBG"
+      className="sc-jzJRlG jklgUU"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -191,7 +191,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-chPdSV gvzZdH"
+      className="sc-kAzzGY iklfzZ"
     >
       <input
         readOnly={true}
@@ -209,23 +209,23 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs eKilOO"
+    className="sc-hMqMXs kPUXCE"
   >
     <div
-      className="sc-kEYyzF fnNhXj"
+      className="sc-kEYyzF kRhXaZ"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kEYyzF fnNhXj nonactiveBtn"
+      className="sc-kEYyzF kRhXaZ nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-iAyFgw eBhcwl"
+    className="sc-iAyFgw bFkCIi"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
     target="_blank"
@@ -253,11 +253,7 @@ Array [
   </a>,
   <div>
     <h2
-      style={
-        Object {
-          "color": "#444",
-        }
-      }
+      className="sc-kpOJdX hYnFjl"
     >
       SLPA
        Tokens
@@ -267,10 +263,10 @@ Array [
       onClick={[Function]}
     >
       <div
-        className="sc-kpOJdX gkdlTa"
+        className="sc-kGXeez dudtdA"
       >
         <div
-          className="sc-kgoBCf hstPXZ"
+          className="sc-chPdSV jpaFBk"
         >
           <img
             alt="identicon of tokenId bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba "
@@ -285,7 +281,7 @@ Array [
           />
         </div>
         <div
-          className="sc-kGXeez XjiFU"
+          className="sc-kgoBCf epUkOc"
         >
           6.001
            
@@ -302,7 +298,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ caxZGu"
+    className="sc-eNQAEJ coUote"
   >
     <span
       aria-label="party emoji"
@@ -328,7 +324,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-ckVGcZ Triz"
+    className="sc-ckVGcZ ddfzZr"
   >
     0 
     BCHA
@@ -344,7 +340,7 @@ Array [
     }
   >
     <div
-      className="sc-kAzzGY ftitEJ"
+      className="sc-cSHVUG gIRqBE"
       style={
         Object {
           "display": "none",
@@ -355,7 +351,7 @@ Array [
     </div>
     <svg
       bch={1}
-      className="sc-cSHVUG kwIRBG"
+      className="sc-jzJRlG jklgUU"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -380,7 +376,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-chPdSV gvzZdH"
+      className="sc-kAzzGY iklfzZ"
     >
       <input
         readOnly={true}
@@ -398,16 +394,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs eKilOO"
+    className="sc-hMqMXs kPUXCE"
   >
     <div
-      className="sc-kEYyzF fnNhXj"
+      className="sc-kEYyzF kRhXaZ"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kEYyzF fnNhXj nonactiveBtn"
+      className="sc-kEYyzF kRhXaZ nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
@@ -422,12 +418,12 @@ Array [
     Welcome to Cashtab!
   </h2>,
   <p
-    className="sc-fjdhpX bWsFww"
+    className="sc-jTzLTM hSUTAU"
   >
     Cashtab is an
      
     <a
-      className="sc-jzJRlG irkdme"
+      className="sc-fjdhpX dmoGyj"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -443,7 +439,7 @@ Array [
     Want to learn more?
      
     <a
-      className="sc-jzJRlG irkdme"
+      className="sc-fjdhpX dmoGyj"
       href="https://docs.cashtabapp.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -452,7 +448,7 @@ Array [
     </a>
   </p>,
   <button
-    className="sc-gqjmRU XGywS"
+    className="sc-gZMcBi iqApGK"
     onClick={[Function]}
   >
     <span
@@ -480,7 +476,7 @@ Array [
      New Wallet
   </button>,
   <button
-    className="sc-VigVT fqMxLW"
+    className="sc-gqjmRU eEPviq"
     onClick={[Function]}
   >
     <span

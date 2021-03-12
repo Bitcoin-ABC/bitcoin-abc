@@ -2,7 +2,7 @@
 
 exports[`Render StyledCollapse component 1`] = `
 <div
-  className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa jkIKTL"
+  className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa bWyEBD"
   role={null}
 />
 `;

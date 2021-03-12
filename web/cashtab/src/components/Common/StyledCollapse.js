@@ -2,11 +2,11 @@ import styled from 'styled-components';
 import { Collapse } from 'antd';
 
 export const StyledCollapse = styled(Collapse)`
-    background: #fbfcfd !important;
-    border: 1px solid #eaedf3 !important;
+    background: ${props => props.theme.collapses.background} !important;
+    border: 1px solid ${props => props.theme.collapses.border} !important;
 
     .ant-collapse-content {
-        border: 1px solid #eaedf3;
+        border: 1px solid ${props => props.theme.collapses.border};
         border-top: none;
     }
 
@@ -15,6 +15,6 @@ export const StyledCollapse = styled(Collapse)`
     }
 
     * {
-        color: rgb(62, 63, 66) !important;
+        color: ${props => props.theme.collapses.color} !important;
     }
 `;

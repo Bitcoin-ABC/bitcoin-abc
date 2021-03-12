@@ -1,5 +1,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
+import { ThemeProvider } from 'styled-components';
+import { theme } from '@assets/styles/theme';
 import Wallet from '../Wallet';
 import {
     walletWithBalancesAndTokens,
@@ -23,9 +25,11 @@ afterEach(() => {
 test('Wallet without BCH balance', () => {
     useContextMock.mockReturnValue(walletWithoutBalancesMock);
     const component = renderer.create(
-        <Router>
-            <Wallet />
-        </Router>,
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Wallet />
+            </Router>
+        </ThemeProvider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
@@ -34,9 +38,11 @@ test('Wallet without BCH balance', () => {
 test('Wallet with BCH balances', () => {
     useContextMock.mockReturnValue(walletWithBalancesMock);
     const component = renderer.create(
-        <Router>
-            <Wallet />
-        </Router>,
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Wallet />
+            </Router>
+        </ThemeProvider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
@@ -45,9 +51,11 @@ test('Wallet with BCH balances', () => {
 test('Wallet with BCH balances and tokens', () => {
     useContextMock.mockReturnValue(walletWithBalancesAndTokens);
     const component = renderer.create(
-        <Router>
-            <Wallet />
-        </Router>,
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Wallet />
+            </Router>
+        </ThemeProvider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
@@ -59,9 +67,11 @@ test('Without wallet defined', () => {
         balances: { totalBalance: 0 },
     });
     const component = renderer.create(
-        <Router>
-            <Wallet />
-        </Router>,
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Wallet />
+            </Router>
+        </ThemeProvider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();

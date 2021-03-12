@@ -33,30 +33,38 @@ import fbt from 'fbt';
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
         border-radius: 8px;
-        background-color: #fff;
-        color: rgb(62, 63, 66);
+        background-color: ${props => props.theme.modals.buttons.background};
+        color: ${props => props.theme.wallet.text.secondary};
         font-weight: bold;
     }    
     
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover {
-        color: #f59332;
+        color: ${props => props.theme.primary};
         transition: color 0.3s;
-        background-color: white;
+        background-color: ${props => props.theme.modals.buttons.background};
     }   
-
+    .selectedCurrencyOption {
+        text-align: left;
+        color: ${props => props.theme.wallet.text.secondary} !important;
+        background-color: ${props => props.theme.contrast} !important;
+    }
+    .cashLoadingIcon {
+        color: ${props => props.theme.primary} !important
+        font-size: 48px !important;
+    }
     .selectedCurrencyOption:hover {
-        color: #fff !important;
-        background-color: #ff8d00 !important;
+        color: ${props => props.theme.contrast} !important;
+        background-color: ${props => props.theme.primary} !important;
     }
 `;
 
 const CustomApp = styled.div`
     text-align: center;
     font-family: 'Gilroy', sans-serif;
-    background-color: #fbfbfd;
+    background-color: ${props => props.theme.app.background};
 `;
 const Footer = styled.div`
-    background-color: #fff;
+    background-color: ${props => props.theme.footer.background};
     border-radius: 20px;
     position: fixed;
     bottom: 0;
@@ -64,7 +72,7 @@ const Footer = styled.div`
     @media (max-width: 768px) {
         width: 100%;
     }
-    border-top: 1px solid #e2e2e2;
+    border-top: 1px solid ${props => props.theme.wallet.borders.color};
 `;
 
 export const NavButton = styled.button`
@@ -78,22 +86,22 @@ export const NavButton = styled.button`
     @media (max-width: 360px) {
         margin: 0 12px;
     }
-    background-color: #fff;
+    background-color: ${props => props.theme.footer.background};
     border: none;
     font-size: 12px;
     font-weight: bold;
     .anticon {
         display: block;
-        color: rgb(148, 148, 148);
+        color: ${props => props.theme.footer.navIconInactive};
         font-size: 24px;
         margin-bottom: 6px;
     }
-    ${({ active }) =>
+    ${({ active, ...props }) =>
         active &&
         `    
-        color: #ff8d00;
+        color: ${props.theme.primary};
         .anticon {
-            color: #ff8d00;
+            color: ${props.theme.primary};
         }
   `}
 `;
@@ -104,19 +112,19 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background: linear-gradient(270deg, #040c3c, #212c6e);
+    background: ${props => props.theme.app.sidebars};
 `;
 
 export const WalletCtn = styled.div`
     position: relative;
     width: 500px;
-    background-color: #fff;
+    background-color: ${props => props.theme.footerBackground};
     min-height: 100vh;
     padding: 10px 30px 120px 30px;
-    background: #fff;
-    -webkit-box-shadow: 0px 0px 24px 1px rgba(0, 0, 0, 1);
-    -moz-box-shadow: 0px 0px 24px 1px rgba(0, 0, 0, 1);
-    box-shadow: 0px 0px 24px 1px rgba(0, 0, 0, 1);
+    background: ${props => props.theme.wallet.background};
+    -webkit-box-shadow: 0px 0px 24px 1px ${props => props.theme.wallet.shadow};
+    -moz-box-shadow: 0px 0px 24px 1px ${props => props.theme.wallet.shadow};
+    box-shadow: 0px 0px 24px 1px ${props => props.theme.wallet.shadow};
     @media (max-width: 768px) {
         width: 100%;
         -webkit-box-shadow: none;
@@ -133,13 +141,8 @@ export const HeaderCtn = styled.div`
     padding: 20px 0 30px;
     margin-bottom: 20px;
     justify-content: space-between;
-    border-bottom: 1px solid #e2e2e2;
-    a {
-        color: #848484;
-        :hover {
-            color: #ff8d00;
-        }
-    }
+    border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
+
     @media (max-width: 768px) {
         a {
             font-size: 12px;

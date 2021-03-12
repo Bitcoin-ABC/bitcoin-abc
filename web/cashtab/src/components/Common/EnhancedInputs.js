@@ -12,27 +12,28 @@ import { currency } from '@components/Common/Ticker.js';
 export const AntdFormCss = css`
     .ant-input-group-addon {
         background-color: ${props =>
-            props.theme.formAddonBackground} !important;
-        border: 1px solid ${props => props.theme.formBorders};
-        color: ${props => props.theme.formAddonForeground} !important;
+            props.theme.forms.addonBackground} !important;
+        border: 1px solid ${props => props.theme.forms.border};
+        color: ${props => props.theme.forms.addonForeground} !important;
     }
     input.ant-input,
     .ant-select-selection {
-        background-color: #fff !important;
+        background-color: ${props =>
+            props.theme.forms.selectionBackground} !important;
         box-shadow: none !important;
         border-radius: 4px;
         font-weight: bold;
-        color: rgb(62, 63, 66);
+        color: ${props => props.theme.wallet.text.secondary};
         opacity: 1;
         height: 50px;
     }
     .ant-input-affix-wrapper {
-        background-color: #fff;
-        border: 1px solid #eaedf3 !important;
+        background-color: ${props => props.theme.forms.selectionBackground};
+        border: 1px solid ${props => props.theme.wallet.borders.color} !important;
     }
     .ant-select-selector {
         height: 60px !important;
-        border: 1px solid #eaedf3 !important;
+        border: 1px solid ${props => props.theme.wallet.borders.color} !important;
     }
     .ant-form-item-has-error
         > div
@@ -41,29 +42,29 @@ export const AntdFormCss = css`
         > span
         > span
         > span.ant-input-affix-wrapper {
-        background-color: #fff;
-        border-color: #f04134 !important;
+        background-color: ${props => props.theme.forms.selectionBackground};
+        border-color: ${props => props.theme.forms.error} !important;
     }
 
     .ant-form-item-has-error .ant-input,
     .ant-form-item-has-error .ant-input-affix-wrapper,
     .ant-form-item-has-error .ant-input:hover,
     .ant-form-item-has-error .ant-input-affix-wrapper:hover {
-        background-color: #fff;
-        border-color: #f04134 !important;
+        background-color: ${props => props.theme.forms.selectionBackground};
+        border-color: ${props => props.theme.forms.error} !important;
     }
 
     .ant-form-item-has-error
         .ant-select:not(.ant-select-disabled):not(.ant-select-customize-input)
         .ant-select-selector {
-        background-color: #fff;
-        border-color: #f04134 !important;
+        background-color: ${props => props.theme.forms.selectionBackground};
+        border-color: ${props => props.theme.forms.error} !important;
     }
     .ant-select-single .ant-select-selector .ant-select-selection-item,
     .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
         line-height: 60px;
         text-align: left;
-        color: #3e3f42;
+        color: ${props => props.theme.wallet.text.secondary};
         font-weight: bold;
     }
 `;
@@ -86,23 +87,22 @@ export const InputAddonText = styled.span`
 `;
 
 export const InputNumberAddonText = styled.span`
-           background-color: ${props =>
-               props.theme.formAddonBackground} !important;
-           border: border: 1px solid ${props => props.theme.formBorders};
-           color: ${props => props.theme.formAddonForeground} !important;
-           height: 50px;
-           line-height: 47px;
+    background-color: ${props => props.theme.forms.addonBackground} !important;
+    border: 1px solid ${props => props.theme.forms.border};
+    color: ${props => props.theme.forms.addonForeground} !important;
+    height: 50px;
+    line-height: 47px;
 
-           * {
-               color: ${props => props.theme.formAddonForeground} !important;
-           }
-           ${props =>
-               props.disabled
-                   ? `
+    * {
+        color: ${props => props.theme.forms.addonForeground} !important;
+    }
+    ${props =>
+        props.disabled
+            ? `
       cursor: not-allowed;
       `
-                   : `cursor: pointer;`}
-       `;
+            : `cursor: pointer;`}
+`;
 
 export const SendBchInput = ({
     onMax,
@@ -124,11 +124,6 @@ export const SendBchInput = ({
                 key={currency.value}
                 value={currency.value}
                 className="selectedCurrencyOption"
-                style={{
-                    textAlign: 'left',
-                    backgroundColor: 'white',
-                    color: ' #3e3f42',
-                }}
             >
                 {currency.label}
             </Option>

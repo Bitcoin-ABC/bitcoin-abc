@@ -21,12 +21,12 @@ export const LoadingCtn = styled.div`
     svg {
         width: 50px;
         height: 50px;
-        fill: #ff8d00;
+        fill: ${props => props.theme.primary};
     }
 `;
 
 export const BalanceHeader = styled.div`
-    color: #444;
+    color: ${props => props.theme.wallet.text.primary};
     width: 100%;
     font-size: 30px;
     font-weight: bold;
@@ -36,7 +36,7 @@ export const BalanceHeader = styled.div`
 `;
 
 export const BalanceHeaderFiat = styled.div`
-    color: #444;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 18px;
     margin-bottom: 20px;
@@ -47,7 +47,7 @@ export const BalanceHeaderFiat = styled.div`
 `;
 
 export const ZeroBalanceHeader = styled.div`
-    color: #444;
+    color: ${props => props.theme.wallet.text.primary};
     width: 100%;
     font-size: 14px;
     margin-bottom: 5px;
@@ -60,13 +60,16 @@ export const SwitchBtnCtn = styled.div`
     align-content: space-between;
     margin-bottom: 15px;
     .nonactiveBtn {
-        color: #444;
-        background: linear-gradient(145deg, #eeeeee, #c8c8c8) !important;
+        color: ${props => props.theme.wallet.text.secondary};
+        background: ${props =>
+            props.theme.wallet.switch.inactive.background} !important;
         box-shadow: none !important;
     }
     .slpActive {
-        background: #5ebd6d !important;
-        box-shadow: inset 5px 5px 11px #4e9d5a, inset -5px -5px 11px #6edd80 !important;
+        background: ${props =>
+            props.theme.wallet.switch.activeToken.background} !important;
+        box-shadow: ${props =>
+            props.theme.wallet.switch.activeToken.shadow} !important;
     }
 `;
 
@@ -74,14 +77,14 @@ export const SwitchBtn = styled.div`
     font-weight: bold;
     display: inline-block;
     cursor: pointer;
-    color: #ffffff;
+    color: ${props => props.theme.contrast};
     font-size: 14px;
     padding: 6px 0;
     width: 100px;
     margin: 0 1px;
     text-decoration: none;
-    background: #ff8d00;
-    box-shadow: inset 8px 8px 16px #d67600, inset -8px -8px 16px #ffa400;
+    background: ${props => props.theme.primary};
+    box-shadow: ${props => props.theme.wallet.switch.activeCash.shadow};
     user-select: none;
     :first-child {
         border-radius: 100px 0 0 100px;
@@ -92,23 +95,23 @@ export const SwitchBtn = styled.div`
 `;
 
 export const Links = styled(Link)`
-    color: #444;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 16px;
     margin: 10px 0 20px 0;
-    border: 1px solid #444;
+    border: 1px solid ${props => props.theme.wallet.text.secondary};
     padding: 14px 0;
     display: inline-block;
     border-radius: 3px;
     transition: all 200ms ease-in-out;
     svg {
-        fill: #444;
+        fill: ${props => props.theme.wallet.text.secondary};
     }
     :hover {
-        color: #ff8d00;
-        border-color: #ff8d00;
+        color: ${props => props.theme.primary};
+        border-color: ${props => props.theme.primary};
         svg {
-            fill: #444;
+            fill: ${props => props.theme.primary};
         }
     }
     @media (max-width: 768px) {
@@ -118,24 +121,24 @@ export const Links = styled(Link)`
 `;
 
 export const ExternalLink = styled.a`
-    color: #444;
+    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 16px;
     margin: 0 0 20px 0;
-    border: 1px solid #444;
+    border: 1px solid ${props => props.theme.wallet.text.secondary};
     padding: 14px 0;
     display: inline-block;
     border-radius: 3px;
     transition: all 200ms ease-in-out;
     svg {
-        fill: #444;
+        fill: ${props => props.theme.wallet.text.secondary};
         transition: all 200ms ease-in-out;
     }
     :hover {
-        color: #ff8d00;
-        border-color: #ff8d00;
+        color: ${props => props.theme.primary};
+        border-color: ${props => props.theme.primary};
         svg {
-            fill: #ff8d00;
+            fill: ${props => props.theme.primary};
         }
     }
     @media (max-width: 768px) {

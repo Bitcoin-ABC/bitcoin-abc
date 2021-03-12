@@ -8,16 +8,16 @@ import { Event } from '@utils/GoogleAnalytics';
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
     border-radius: 23px;
-    background: #ffffff;
-    box-shadow: rgba(0, 0, 0, 0.01) 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 4px 8px,
-        rgba(0, 0, 0, 0.04) 0px 16px 24px, rgba(0, 0, 0, 0.01) 0px 24px 32px;
+    background: ${props => props.theme.qr.background};
+    box-shadow: ${props => props.theme.qr.shadow};
     margin-bottom: 10px;
-    border: 1px solid #e9eaed;
+    border: 1px solid ${props => props.theme.wallet.borders.color};
     path:first-child {
-        fill: #fff;
+        fill: ${props => props.theme.qr.background};
     }
     :hover {
-        border-color: ${({ bch = 0 }) => (bch === 1 ? '#ff8d00;' : '#5ebd6d')};
+        border-color: ${({ bch = 0, ...props }) =>
+            bch === 1 ? props.theme.primary : props.theme.qr.token};
     }
     @media (max-width: 768px) {
         border-radius: 18px;
@@ -32,8 +32,9 @@ const Copied = styled.div`
     width: 100%;
     text-align: center;
 
-    background-color: ${({ bch = 0 }) => (bch === 1 ? '#f59332;' : '#5ebd6d')};
-    color: #fff;
+    background-color: ${({ bch = 0, ...props }) =>
+        bch === 1 ? props.theme.primary : props.theme.qr.token};
+    color: ${props => props.theme.contrast};
     position: absolute;
     top: 65px;
     padding: 30px 0;
@@ -45,7 +46,7 @@ const Copied = styled.div`
 
 const CustomInput = styled.div`
     font-size: 15px;
-    color: #8e8e8e;
+    color: ${props => props.theme.wallet.text.secondary};
     text-align: center;
     cursor: pointer;
     margin-bottom: 15px;
@@ -55,7 +56,7 @@ const CustomInput = styled.div`
 
     span {
         font-weight: bold;
-        color: #444;
+        color: ${props => props.theme.wallet.text.primary};
         font-size: 16px;
     }
     input {
@@ -67,7 +68,7 @@ const CustomInput = styled.div`
         -ms-user-select: none;
         user-select: none;
         cursor: pointer;
-        color: #444;
+        color: ${props => props.theme.wallet.text.primary};
         padding: 10px 0;
         background: transparent;
         margin-bottom: 15px;
@@ -78,7 +79,7 @@ const CustomInput = styled.div`
     }
     input::selection {
         background: transparent;
-        color: #444;
+        color: ${props => props.theme.wallet.text.primary};
     }
     @media (max-width: 768px) {
         font-size: 11px;
