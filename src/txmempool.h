@@ -258,52 +258,8 @@ struct CompareTxMemPoolEntryByModifiedFeeRate {
     }
 };
 
-/** \class CompareTxMemPoolEntryByAncestorScore
- *
- *  Sort an entry by min(score/size of entry's tx, score/size with all
- * ancestors).
- */
-class CompareTxMemPoolEntryByAncestorFee {
-public:
-    template <typename T> bool operator()(const T &a, const T &b) const {
-        double a_mod_fee, a_size, b_mod_fee, b_size;
-
-        GetModFeeAndSize(a, a_mod_fee, a_size);
-        GetModFeeAndSize(b, b_mod_fee, b_size);
-
-        // Avoid division by rewriting (a/b > c/d) as (a*d > c*b).
-        double f1 = a_mod_fee * b_size;
-        double f2 = a_size * b_mod_fee;
-
-        if (f1 == f2) {
-            return a.GetTx().GetId() < b.GetTx().GetId();
-        }
-        return f1 > f2;
-    }
-
-    // Return the fee/size we're using for sorting this entry.
-    template <typename T>
-    void GetModFeeAndSize(const T &a, double &mod_fee, double &size) const {
-        // Compare feerate with ancestors to feerate of the transaction, and
-        // return the fee/size for the min.
-        double f1 =
-            a.GetVirtualSizeWithAncestors() * (a.GetModifiedFee() / SATOSHI);
-        double f2 =
-            a.GetTxVirtualSize() * (a.GetModFeesWithAncestors() / SATOSHI);
-
-        if (f1 > f2) {
-            mod_fee = a.GetModFeesWithAncestors() / SATOSHI;
-            size = a.GetVirtualSizeWithAncestors();
-        } else {
-            mod_fee = a.GetModifiedFee() / SATOSHI;
-            size = a.GetTxVirtualSize();
-        }
-    }
-};
-
 // Multi_index tag names
 struct entry_time {};
-struct ancestor_score {};
 struct modified_feerate {};
 
 /**
@@ -464,12 +420,7 @@ public:
                              boost::multi_index::ordered_non_unique<
                                  boost::multi_index::tag<entry_time>,
                                  boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByEntryTime>,
-                             // sorted by fee rate with ancestors
-                             boost::multi_index::ordered_non_unique<
-                                 boost::multi_index::tag<ancestor_score>,
-                                 boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByAncestorFee>>>
+                                 CompareTxMemPoolEntryByEntryTime>>>
         indexed_transaction_set;
 
     /**
