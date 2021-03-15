@@ -18,6 +18,7 @@ FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {
 FILE_CHAR_START = 32 if os.name == "nt" else 1
 FILE_CHAR_END = 128
 FILE_CHAR_BLACKLIST = '/\\?%*:|"<>' if os.name == "nt" else "/"
+UNCONFIRMED_HASH_STRING = "unconfirmed"
 
 
 def notify_outputname(walletname, txid):
@@ -51,7 +52,7 @@ class NotificationsTest(BitcoinTestFramework):
             [
                 "-rescan",
                 (
-                    "-walletnotify=echo >"
+                    "-walletnotify=echo %h_%b >"
                     f" {os.path.join(self.walletnotify_dir, notify_outputname('%w', '%s'))}"
                 ),
             ],
@@ -93,14 +94,12 @@ class NotificationsTest(BitcoinTestFramework):
             )
 
             # directory content should equal the generated transaction hashes
-            txids_rpc = [
-                notify_outputname(self.wallet, t["txid"])
+            tx_details = [
+                (t["txid"], t["blockheight"], t["blockhash"])
                 for t in self.nodes[1].listtransactions("*", block_count)
             ]
-            assert_equal(sorted(txids_rpc), sorted(os.listdir(self.walletnotify_dir)))
             self.stop_node(1)
-            for tx_file in os.listdir(self.walletnotify_dir):
-                os.remove(os.path.join(self.walletnotify_dir, tx_file))
+            self.expect_wallet_notify(tx_details)
 
             self.log.info("test -walletnotify after rescan")
             # restart node to rescan to force wallet notifications
@@ -113,13 +112,11 @@ class NotificationsTest(BitcoinTestFramework):
             )
 
             # directory content should equal the generated transaction hashes
-            txids_rpc = [
-                notify_outputname(self.wallet, t["txid"])
+            tx_details = [
+                (t["txid"], t["blockheight"], t["blockhash"])
                 for t in self.nodes[1].listtransactions("*", block_count)
             ]
-            assert_equal(sorted(txids_rpc), sorted(os.listdir(self.walletnotify_dir)))
-            for tx_file in os.listdir(self.walletnotify_dir):
-                os.remove(os.path.join(self.walletnotify_dir, tx_file))
+            self.expect_wallet_notify(tx_details)
 
             # Conflicting transactions tests. Give node 0 same wallet seed as
             # node 1, generate spends from node 0, and check notifications
@@ -147,13 +144,16 @@ class NotificationsTest(BitcoinTestFramework):
             )
             assert_equal(tx1 in self.nodes[0].getrawmempool(), True)
             self.sync_mempools()
-            self.expect_wallet_notify([tx1])
+            self.expect_wallet_notify([(tx1, -1, UNCONFIRMED_HASH_STRING)])
 
             # Add tx1 transaction to new block, checking for a notification
             # and the correct number of confirmations.
-            self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
+            blockhash1 = self.generatetoaddress(
+                self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE
+            )[0]
+            blockheight1 = self.nodes[0].getblockcount()
             self.sync_blocks()
-            self.expect_wallet_notify([tx1])
+            self.expect_wallet_notify([(tx1, blockheight1, blockhash1)])
             assert_equal(self.nodes[1].gettransaction(tx1)["confirmations"], 1)
 
             # Generate conflicting transactions with the nodes disconnected.
@@ -169,15 +169,16 @@ class NotificationsTest(BitcoinTestFramework):
                 address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 21
             )
             assert tx2_node0 != tx2_node1
-            self.expect_wallet_notify([tx2_node1])
+            self.expect_wallet_notify([(tx2_node1, -1, UNCONFIRMED_HASH_STRING)])
             # So far tx2_node1 has no conflicting tx
             assert not self.nodes[1].gettransaction(tx2_node1)["walletconflicts"]
 
             # Mine a block on node0, reconnect the nodes, check that tx2_node1
             # has a conflicting tx after syncing with node0.
-            self.generatetoaddress(
+            blockhash2 = self.generatetoaddress(
                 self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE, sync_fun=self.no_op
-            )
+            )[0]
+            blockheight2 = self.nodes[0].getblockcount()
             self.connect_nodes(0, 1)
             self.sync_blocks()
             assert (
@@ -186,7 +187,12 @@ class NotificationsTest(BitcoinTestFramework):
 
             # node1's wallet will notify of the new confirmed transaction tx2_0
             # and about the conflicted transaction tx2_1.
-            self.expect_wallet_notify([tx2_node0, tx2_node1])
+            self.expect_wallet_notify(
+                [
+                    (tx2_node0, blockheight2, blockhash2),
+                    (tx2_node1, -1, UNCONFIRMED_HASH_STRING),
+                ]
+            )
 
         # Create an invalid chain and ensure the node warns.
         self.log.info("test -alertnotify for forked chain")
@@ -211,14 +217,35 @@ class NotificationsTest(BitcoinTestFramework):
         for notify_file in os.listdir(self.alertnotify_dir):
             os.remove(os.path.join(self.alertnotify_dir, notify_file))
 
-    def expect_wallet_notify(self, tx_ids):
+    def expect_wallet_notify(self, tx_details):
         self.wait_until(
-            lambda: len(os.listdir(self.walletnotify_dir)) >= len(tx_ids), timeout=10
+            lambda: len(os.listdir(self.walletnotify_dir)) >= len(tx_details),
+            timeout=10,
         )
+        # Should have no more and no less files than expected
         assert_equal(
-            sorted(notify_outputname(self.wallet, tx_id) for tx_id in tx_ids),
+            sorted(notify_outputname(self.wallet, tx_id) for tx_id, _, _ in tx_details),
             sorted(os.listdir(self.walletnotify_dir)),
         )
+        # Should now verify contents of each file
+        for tx_id, blockheight, blockhash in tx_details:
+            fname = os.path.join(
+                self.walletnotify_dir, notify_outputname(self.wallet, tx_id)
+            )
+            # Wait for the cached writes to hit storage
+            self.wait_until(lambda: os.path.getsize(fname) > 0, timeout=10)
+            with open(fname, "rt", encoding="utf-8") as f:
+                text = f.read()
+                # Universal newline ensures '\n' on 'nt'
+                assert_equal(text[-1], "\n")
+                text = text[:-1]
+                if os.name == "nt":
+                    # On Windows, echo as above will append a whitespace
+                    assert_equal(text[-1], " ")
+                    text = text[:-1]
+                expected = str(blockheight) + "_" + blockhash
+                assert_equal(text, expected)
+
         for tx_file in os.listdir(self.walletnotify_dir):
             os.remove(os.path.join(self.walletnotify_dir, tx_file))
 

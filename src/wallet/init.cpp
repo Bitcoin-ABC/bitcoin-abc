@@ -130,11 +130,14 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
 #if defined(HAVE_SYSTEM)
     argsman.AddArg(
         "-walletnotify=<cmd>",
-        "Execute command when a wallet transaction changes. %s in cmd "
-        "is replaced by TxID and %w is replaced by wallet name. %w is "
-        "not currently implemented on windows. On systems where %w is "
-        "supported, it should NOT be quoted because this would break "
-        "shell escaping used to invoke the command.",
+        "Execute command when a wallet transaction changes. %s in cmd is "
+        "replaced by TxID, %w is replaced by wallet name, %b is replaced by "
+        "the hash of the block including the transaction (set to "
+        "'unconfirmed' if the transaction is not included) and %h is replaced "
+        "by the block height (-1 if not included). %w is not currently "
+        "implemented on windows. On systems where %w is supported, it should "
+        "NOT be quoted because this would break shell escaping used to invoke "
+        "the command.",
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
 #endif
     argsman.AddArg(

@@ -47,6 +47,7 @@ using common::AmountHighWarn;
 using common::PSBTError;
 using interfaces::FoundBlock;
 using util::ReplaceAll;
+using util::ToString;
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
     {WALLET_FLAG_AVOID_REUSE,
@@ -1099,6 +1100,13 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
 
     if (!strCmd.empty()) {
         ReplaceAll(strCmd, "%s", txid.GetHex());
+        if (confirm.status == CWalletTx::Status::CONFIRMED) {
+            ReplaceAll(strCmd, "%b", confirm.hashBlock.GetHex());
+            ReplaceAll(strCmd, "%h", ToString(confirm.block_height));
+        } else {
+            ReplaceAll(strCmd, "%b", "unconfirmed");
+            ReplaceAll(strCmd, "%h", "-1");
+        }
 #ifndef WIN32
         // Substituting the wallet name isn't currently supported on windows
         // because windows shell escaping has not been implemented yet:
