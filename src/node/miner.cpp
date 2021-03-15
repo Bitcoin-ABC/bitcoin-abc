@@ -60,7 +60,9 @@ BlockAssembler::BlockAssembler(Chainstate &chainstate,
                                const CChainParams &params,
                                const CTxMemPool &mempool,
                                const Options &options)
-    : chainParams(params), m_mempool(mempool), m_chainstate(chainstate) {
+    : chainParams(params), m_mempool(mempool), m_chainstate(chainstate),
+      fPrintPriority(
+          gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY)) {
     blockMinFeeRate = options.blockMinFeeRate;
     // Limit size to between 1K and options.nExcessiveBlockSize -1K for sanity:
     nMaxGeneratedBlockSize = std::max<uint64_t>(
@@ -155,7 +157,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
             ? nMedianTimePast
             : pblock->GetBlockTime();
 
-    addPackageTxs();
+    addTxs();
 
     if (IsMagneticAnomalyEnabled(consensusParams, pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
@@ -232,21 +234,19 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     LogPrint(
         BCLog::BENCH,
-        "CreateNewBlock() packages: %.2fms, validity: %.2fms (total %.2fms)\n",
+        "CreateNewBlock() addTxs: %.2fms, validity: %.2fms (total %.2fms)\n",
         0.001 * (nTime1 - nTimeStart), 0.001 * (nTime2 - nTime1),
         0.001 * (nTime2 - nTimeStart));
 
     return std::move(pblocktemplate);
 }
 
-bool BlockAssembler::TestPackage(uint64_t packageSize,
-                                 int64_t packageSigChecks) const {
-    auto blockSizeWithPackage = nBlockSize + packageSize;
-    if (blockSizeWithPackage >= nMaxGeneratedBlockSize) {
+bool BlockAssembler::TestTxFits(uint64_t txSize, int64_t txSigChecks) const {
+    if (nBlockSize + txSize >= nMaxGeneratedBlockSize) {
         return false;
     }
 
-    if (nBlockSigChecks + packageSigChecks >= nMaxGeneratedBlockSigChecks) {
+    if (nBlockSigChecks + txSigChecks >= nMaxGeneratedBlockSigChecks) {
         return false;
     }
 
@@ -261,8 +261,6 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter) {
     nBlockSigChecks += iter->GetSigChecks();
     nFees += iter->GetFee();
 
-    bool fPrintPriority =
-        gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY);
     if (fPrintPriority) {
         LogPrintf(
             "fee rate %s txid %s\n",
@@ -278,17 +276,18 @@ bool BlockAssembler::CheckTx(const CTransaction &tx) const {
 }
 
 /**
- * addPackageTx includes transactions paying a fee by ensuring that
+ * addTxs includes transactions paying a fee by ensuring that
  * the partial ordering of transactions is maintained.  That is to say
  * children come after parents, despite having a potentially larger fee.
  */
-void BlockAssembler::addPackageTxs() {
+void BlockAssembler::addTxs() {
     // mapped_value is the number of mempool parents that are still needed for
     // the entry. We decrement this count each time we add a parent of the entry
     // to the block.
     std::unordered_map<const CTxMemPoolEntry *, size_t> missingParentCount;
     missingParentCount.reserve(m_mempool.size() / 2);
 
+    // set of children we skipped because we have not yet added their parents
     CTxMemPoolEntry::Children skippedChildren;
 
     auto hasMissingParents =
@@ -347,7 +346,7 @@ void BlockAssembler::addPackageTxs() {
         }
 
         // Check whether the tx will exceed the block limits.
-        if (!TestPackage(iter->GetTxSize(), iter->GetSigChecks())) {
+        if (!TestTxFits(iter->GetTxSize(), iter->GetSigChecks())) {
             ++nConsecutiveFailed;
             if (nConsecutiveFailed > MAX_CONSECUTIVE_FAILURES &&
                 nBlockSize > nMaxGeneratedBlockSize - 1000) {
@@ -366,7 +365,7 @@ void BlockAssembler::addPackageTxs() {
         // This transaction will make it in; reset the failed counter.
         nConsecutiveFailed = 0;
 
-        // Package can be added.
+        // Tx can be added.
         AddToBlock(iter);
 
         // This tx's children may now be candidates for addition if they have
@@ -377,9 +376,7 @@ void BlockAssembler::addPackageTxs() {
         // ends up taking O(n) time to process a single tx with n children,
         // that's okay because the amount of time taken is proportional to the
         // tx's byte size and fee paid.
-        const CTxMemPoolEntry::Children &children =
-            iter->GetMemPoolChildrenConst();
-        for (const CTxMemPoolEntry &child : children) {
+        for (const CTxMemPoolEntry &child : iter->GetMemPoolChildrenConst()) {
             const auto it = m_mempool.GetIter(child.GetTx().GetId());
             if (!it.has_value()) {
                 continue;
