@@ -373,15 +373,29 @@ class AvalancheTest(BitcoinTestFramework):
         wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
-        # Restart the node and rebuild the quorum
+        # Restart the node
+        minchainwork = int(node.getblockchaininfo()["chainwork"], 16) + 1
         self.restart_node(0, self.extra_args[0] + [
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+            "-minimumchainwork=0x{:x}".format(minchainwork),
         ])
+        self.log.info(
+            "The proof verification should be delayed until IBD is complete")
+        assert node.getblockchaininfo()["initialblockdownload"] is True
+        # Our proof cannot be verified during IBD, so we should have no peer
+        assert not node.getavalanchepeerinfo()
+        # Mining a few more blocks should cause us to leave IBD
+        node.generate(2)
+        # Our proof is now verified and our node is added as a peer
+        assert node.getblockchaininfo()["initialblockdownload"] is False
+        assert_equal(len(node.getavalanchepeerinfo()), 1)
+
+        # Rebuild the quorum
+        self.log.info("Test the avahello signature")
         quorum = get_quorum()
         poll_node = quorum[0]
 
-        # Check the avahello is consistent
         avahello = poll_node.wait_for_avahello().hello
 
         avakey.set(bytes.fromhex(node.getavalanchekey()))

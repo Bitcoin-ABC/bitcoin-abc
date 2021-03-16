@@ -6,6 +6,7 @@
 
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
+#include <avalanche/validation.h>
 #include <chain.h>
 #include <key_io.h>         // For DecodeSecret
 #include <net_processing.h> // For ::PeerManager
@@ -149,6 +150,13 @@ public:
 
     void updatedBlockTip() override {
         LOCK(m_processor->cs_peerManager);
+
+        if (m_processor->mustRegisterProof &&
+            !::ChainstateActive().IsInitialBlockDownload()) {
+            m_processor->peerManager->getPeerId(m_processor->peerData->proof);
+            m_processor->mustRegisterProof = false;
+        }
+
         m_processor->peerManager->updatedBlockTip();
     }
 };
@@ -174,13 +182,8 @@ Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
                                SER_NETWORK, 0);
             stream >> peerData->proof;
 
-            // Ensure the peer manager knows about it.
-            // FIXME: There is no way to register the proof at this time because
-            // we might not have the proper chainstate at the moment. We need to
-            // find a way to delay the registration of the proof until after IBD
-            // has finished and the chain state is settled.
-            // LOCK(cs_peerManager);
-            // peerManager->getPeerId(peerData->proof);
+            // Schedule proof registration at the first new block after IBD.
+            mustRegisterProof = true;
         }
 
         // Generate the delegation to the session key.
