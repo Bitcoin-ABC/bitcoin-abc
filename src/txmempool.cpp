@@ -14,6 +14,7 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <policy/fees.h>
+#include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <reverse_iterator.h>
@@ -122,12 +123,12 @@ void CTxMemPoolEntry::UpdateLockPoints(const LockPoints &lp) {
     lockPoints = lp;
 }
 
-// Update the given tx for any in-mempool descendants.
-// Assumes that CTxMemPool::m_children is correct for the given tx and all
-// descendants.
 void CTxMemPool::UpdateForDescendants(txiter updateIt,
                                       cacheMap &cachedDescendants,
-                                      const std::set<TxId> &setExclude) {
+                                      const std::set<TxId> &setExclude,
+                                      std::set<TxId> &descendants_to_remove,
+                                      uint64_t ancestor_size_limit,
+                                      uint64_t ancestor_count_limit) {
     CTxMemPoolEntry::Children stageEntries, descendants;
     stageEntries = updateIt->GetMemPoolChildrenConst();
 
@@ -170,6 +171,13 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
                          update_ancestor_state(updateIt->GetTxSize(),
                                                updateIt->GetModifiedFee(), 1,
                                                updateIt->GetSigOpCount()));
+            // Don't directly remove the transaction here -- doing so would
+            // invalidate iterators in cachedDescendants. Mark it for removal
+            // by inserting into descendants_to_remove.
+            if (descendant.GetCountWithAncestors() > ancestor_count_limit ||
+                descendant.GetSizeWithAncestors() > ancestor_size_limit) {
+                descendants_to_remove.insert(descendant.GetTx().GetId());
+            }
         }
     }
     mapTx.modify(updateIt,
@@ -177,13 +185,9 @@ void CTxMemPool::UpdateForDescendants(txiter updateIt,
                                          modifySigOpCount));
 }
 
-// txidsToUpdate is the set of transaction hashes from a disconnected block
-// which has been re-added to the mempool. For each entry, look for descendants
-// that are outside txidsToUpdate, and add fee/size information for such
-// descendants to the parent. For each such descendant, also update the ancestor
-// state to include the parent.
 void CTxMemPool::UpdateTransactionsFromBlock(
-    const std::vector<TxId> &txidsToUpdate) {
+    const std::vector<TxId> &txidsToUpdate, uint64_t ancestor_size_limit,
+    uint64_t ancestor_count_limit) {
     AssertLockHeld(cs);
     // For each entry in txidsToUpdate, store the set of in-mempool, but not
     // in-txidsToUpdate transactions, so that we don't have to recalculate
@@ -194,6 +198,8 @@ void CTxMemPool::UpdateTransactionsFromBlock(
     // accounted for in the state of their ancestors)
     std::set<TxId> setAlreadyIncluded(txidsToUpdate.begin(),
                                       txidsToUpdate.end());
+
+    std::set<TxId> descendants_to_remove;
 
     // Iterate in reverse, so that whenever we are looking at a transaction
     // we are sure that all in-mempool descendants have already been processed.
@@ -228,7 +234,17 @@ void CTxMemPool::UpdateTransactionsFromBlock(
             }
         } // release epoch guard for UpdateForDescendants
         UpdateForDescendants(it, mapMemPoolDescendantsToUpdate,
-                             setAlreadyIncluded);
+                             setAlreadyIncluded, descendants_to_remove,
+                             ancestor_size_limit, ancestor_count_limit);
+    }
+
+    for (const auto &txid : descendants_to_remove) {
+        // This txid may have been removed already in a prior call to
+        // removeRecursive. Therefore we ensure it is not yet removed already.
+        if (const std::optional<txiter> txiter = GetIter(txid)) {
+            removeRecursive((*txiter)->GetTx(),
+                            MemPoolRemovalReason::SIZELIMIT);
+        }
     }
 }
 
@@ -1507,7 +1523,13 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
     // previously-confirmed transactions back to the mempool.
     // UpdateTransactionsFromBlock finds descendants of any transactions in the
     // disconnectpool that were added back and cleans up the mempool state.
-    pool.UpdateTransactionsFromBlock(txidsUpdate);
+    const uint64_t ancestor_count_limit =
+        gArgs.GetIntArg("-limitancestorcount", DEFAULT_ANCESTOR_LIMIT);
+    const uint64_t ancestor_size_limit =
+        gArgs.GetIntArg("-limitancestorsize", DEFAULT_ANCESTOR_SIZE_LIMIT) *
+        1000;
+    pool.UpdateTransactionsFromBlock(txidsUpdate, ancestor_size_limit,
+                                     ancestor_count_limit);
 
     // Predicate to use for filtering transactions in removeForReorg.
     // Checks whether the transaction is still final and, if it spends a
