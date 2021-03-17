@@ -149,7 +149,7 @@ BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
       checkMerkleRoot(true) {}
 
-CBlockIndex *BlockManager::LookupBlockIndex(const BlockHash &hash) {
+CBlockIndex *BlockManager::LookupBlockIndex(const BlockHash &hash) const {
     AssertLockHeld(cs_main);
     assert(std::addressof(g_chainman.BlockIndex()) ==
            std::addressof(m_block_index));

@@ -637,7 +637,7 @@ public:
                            BlockValidationState &state, CBlockIndex **ppindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    CBlockIndex *LookupBlockIndex(const BlockHash &hash)
+    CBlockIndex *LookupBlockIndex(const BlockHash &hash) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** Find the last common block between the parameter chain and a locator. */
