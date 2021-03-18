@@ -397,6 +397,26 @@ CPubKey Processor::getSessionPubKey() const {
     return sessionKey.GetPubKey();
 }
 
+uint256 Processor::buildLocalSighash(CNode *pfrom) const {
+    CHashWriter hasher(SER_GETHASH, 0);
+    hasher << peerData->delegation.getId();
+    hasher << pfrom->GetLocalNonce();
+    hasher << pfrom->nRemoteHostNonce;
+    hasher << pfrom->GetLocalExtraEntropy();
+    hasher << pfrom->nRemoteExtraEntropy;
+    return hasher.GetHash();
+}
+
+uint256 Processor::buildRemoteSighash(CNode *pfrom) const {
+    CHashWriter hasher(SER_GETHASH, 0);
+    hasher << pfrom->m_avalanche_state->delegation.getId();
+    hasher << pfrom->nRemoteHostNonce;
+    hasher << pfrom->GetLocalNonce();
+    hasher << pfrom->nRemoteExtraEntropy;
+    hasher << pfrom->GetLocalExtraEntropy();
+    return hasher.GetHash();
+}
+
 bool Processor::sendHello(CNode *pfrom) const {
     if (!peerData) {
         // We do not have a delegation to advertise.
@@ -407,13 +427,7 @@ bool Processor::sendHello(CNode *pfrom) const {
     SchnorrSig sig;
 
     {
-        CHashWriter hasher(SER_GETHASH, 0);
-        hasher << peerData->delegation.getId();
-        hasher << pfrom->GetLocalNonce();
-        hasher << pfrom->nRemoteHostNonce;
-        hasher << pfrom->GetLocalExtraEntropy();
-        hasher << pfrom->nRemoteExtraEntropy;
-        const uint256 hash = hasher.GetHash();
+        const uint256 hash = buildLocalSighash(pfrom);
 
         if (!sessionKey.SignSchnorr(hash, sig)) {
             return false;

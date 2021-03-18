@@ -286,6 +286,12 @@ public:
     CPubKey getSessionPubKey() const;
     bool sendHello(CNode *pfrom) const;
 
+    /**
+     * Build and return the challenge whose signature we expect a peer to
+     * include in his AVAHELLO message.
+     */
+    uint256 buildRemoteSighash(CNode *pfrom) const;
+
     std::vector<avalanche::Peer> getPeers() const;
     std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
@@ -297,6 +303,12 @@ private:
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
     NodeId getSuitableNodeToQuery();
+
+    /**
+     * Build and return the challenge whose signature is included in the
+     * AVAHELLO message that we send to a peer.
+     */
+    uint256 buildLocalSighash(CNode *pfrom) const;
 
     friend struct ::avalanche::AvalancheTest;
 };
