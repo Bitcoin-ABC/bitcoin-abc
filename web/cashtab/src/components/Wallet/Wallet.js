@@ -7,6 +7,7 @@ import { QRCode } from '@components/Common/QRCode';
 import { currency } from '@components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
+import TxHistory from './TxHistory';
 import { CashLoader } from '@components/Common/CustomIcons';
 import { formatBalance } from '@utils/cashMethods';
 
@@ -149,18 +150,16 @@ export const ExternalLink = styled.a`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, balances, txHistory, apiError } = ContextValue;
+    const {
+        wallet,
+        fiatPrice,
+        balances,
+        parsedTxHistory,
+        apiError,
+    } = ContextValue;
     const [address, setAddress] = React.useState('cashAddress');
 
-    const hasHistory =
-        (txHistory &&
-            txHistory[0] &&
-            txHistory[0].transactions &&
-            txHistory[0].transactions.length > 0) ||
-        (txHistory &&
-            txHistory[1] &&
-            txHistory[1].transactions &&
-            txHistory[1].transactions.length > 0);
+    const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     const handleChangeAddress = () => {
         setAddress(address === 'cashAddress' ? 'slpAddress' : 'cashAddress');
@@ -250,14 +249,18 @@ const WalletInfo = () => {
                     {currency.tokenTicker}
                 </SwitchBtn>
             </SwitchBtnCtn>
+            {hasHistory && parsedTxHistory && (
+                <TxHistory txs={parsedTxHistory} />
+            )}
             {balances.totalBalance ? (
                 <>
                     <ExternalLink
+                        style={{ marginTop: '24px' }}
                         href={`${currency.blockExplorerUrl}/address/${wallet.Path1899.cashAddress}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <LinkOutlined /> View Transactions
+                        <LinkOutlined /> More transactions
                     </ExternalLink>
                 </>
             ) : null}
@@ -277,6 +280,7 @@ const Wallet = () => {
                 </LoadingCtn>
             )}
             {!loading && wallet.Path245 && <WalletInfo />}
+
             {!loading && wallet.Path245 && tokens && tokens.length > 0 && (
                 <TokenList tokens={tokens} />
             )}

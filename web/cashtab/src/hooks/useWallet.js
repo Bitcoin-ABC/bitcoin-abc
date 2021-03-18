@@ -21,7 +21,7 @@ const useWallet = () => {
         balances: {},
         tokens: [],
         slpBalancesAndUtxos: [],
-        txHistory: [],
+        parsedTxHistory: [],
     });
     const {
         getBCH,
@@ -29,12 +29,18 @@ const useWallet = () => {
         getHydratedUtxoDetails,
         getSlpBalancesAndUtxos,
         getTxHistory,
+        getTxData,
     } = useBCH();
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
     const [utxos, setUtxos] = useState(null);
-    const { balances, tokens, slpBalancesAndUtxos, txHistory } = walletState;
+    const {
+        balances,
+        tokens,
+        slpBalancesAndUtxos,
+        parsedTxHistory,
+    } = walletState;
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
     const previousWallet = usePrevious(wallet);
@@ -192,6 +198,8 @@ const useWallet = () => {
                 hydratedUtxoDetails,
             );
             const txHistory = await getTxHistory(BCH, cashAddresses);
+            const parsedTxHistory = await getTxData(BCH, txHistory);
+            console.log(`parsedTxHistory`, parsedTxHistory);
 
             console.log(`slpBalancesAndUtxos`, slpBalancesAndUtxos);
             if (typeof slpBalancesAndUtxos === 'undefined') {
@@ -215,7 +223,7 @@ const useWallet = () => {
 
             newState.tokens = tokens;
 
-            newState.txHistory = txHistory;
+            newState.parsedTxHistory = parsedTxHistory;
 
             setWalletState(newState);
 
@@ -1197,7 +1205,7 @@ const useWallet = () => {
         slpBalancesAndUtxos,
         balances,
         tokens,
-        txHistory,
+        parsedTxHistory,
         loading,
         apiError,
         getActiveWalletFromLocalForage,

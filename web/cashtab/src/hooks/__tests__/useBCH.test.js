@@ -3,6 +3,15 @@ import useBCH from '../useBCH';
 import mockReturnGetHydratedUtxoDetails from '../__mocks__/mockReturnGetHydratedUtxoDetails';
 import mockReturnGetSlpBalancesAndUtxos from '../__mocks__/mockReturnGetSlpBalancesAndUtxos';
 import sendBCHMock from '../__mocks__/sendBCH';
+import mockTxHistory from '../__mocks__/mockTxHistory';
+import mockFlatTxHistory from '../__mocks__/mockFlatTxHistory';
+import mockTxDataWithPassthrough from '../__mocks__/mockTxDataWithPassthrough';
+import {
+    mockSentCashTx,
+    mockReceivedCashTx,
+    mockSentTokenTx,
+    mockReceivedTokenTx,
+} from '../__mocks__/mockParsedTxs';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
@@ -256,6 +265,41 @@ describe('useBCH hook', () => {
             new Error(
                 'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)',
             ),
+        );
+    });
+
+    it('Correctly flattens transaction history', () => {
+        const { flattenTransactions } = useBCH();
+        expect(flattenTransactions(mockTxHistory)).toStrictEqual(
+            mockFlatTxHistory,
+        );
+    });
+
+    it(`Correctly parses a "send ${currency.ticker}" transaction`, () => {
+        const { parseTxData } = useBCH();
+        expect(parseTxData([mockTxDataWithPassthrough[0]])).toStrictEqual(
+            mockSentCashTx,
+        );
+    });
+
+    it(`Correctly parses a "receive ${currency.ticker}" transaction`, () => {
+        const { parseTxData } = useBCH();
+        expect(parseTxData([mockTxDataWithPassthrough[5]])).toStrictEqual(
+            mockReceivedCashTx,
+        );
+    });
+
+    it(`Correctly parses a "send ${currency.tokenTicker}" transaction`, () => {
+        const { parseTxData } = useBCH();
+        expect(parseTxData([mockTxDataWithPassthrough[1]])).toStrictEqual(
+            mockSentTokenTx,
+        );
+    });
+
+    it(`Correctly parses a "receive ${currency.tokenTicker}" transaction`, () => {
+        const { parseTxData } = useBCH();
+        expect(parseTxData([mockTxDataWithPassthrough[3]])).toStrictEqual(
+            mockReceivedTokenTx,
         );
     });
 });

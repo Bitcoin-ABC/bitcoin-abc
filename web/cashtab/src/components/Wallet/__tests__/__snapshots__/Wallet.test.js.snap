@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-ckVGcZ ddfzZr"
+    className="sc-jWBwVP kCdTeF"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-jKJlTe dCEfcW"
+    className="sc-brqgnP jQVGsS"
   >
     $
     NaN
@@ -82,25 +82,30 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kPUXCE"
+    className="sc-jAaTju hBUeDX"
   >
     <div
-      className="sc-kEYyzF kRhXaZ"
+      className="sc-jDwBTQ cQmVmM"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kEYyzF kRhXaZ nonactiveBtn"
+      className="sc-jDwBTQ cQmVmM nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-iAyFgw bFkCIi"
+    className="sc-iRbamj iQMsuO"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
+    style={
+      Object {
+        "marginTop": "24px",
+      }
+    }
     target="_blank"
   >
     <span
@@ -122,7 +127,7 @@ Array [
         />
       </svg>
     </span>
-     View Transactions
+     More transactions
   </a>,
 ]
 `;
@@ -130,14 +135,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-ckVGcZ ddfzZr"
+    className="sc-jWBwVP kCdTeF"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-jKJlTe dCEfcW"
+    className="sc-brqgnP jQVGsS"
   >
     $
     NaN
@@ -209,25 +214,30 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kPUXCE"
+    className="sc-jAaTju hBUeDX"
   >
     <div
-      className="sc-kEYyzF kRhXaZ"
+      className="sc-jDwBTQ cQmVmM"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kEYyzF kRhXaZ nonactiveBtn"
+      className="sc-jDwBTQ cQmVmM nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
     </div>
   </div>,
   <a
-    className="sc-iAyFgw bFkCIi"
+    className="sc-iRbamj iQMsuO"
     href="https://explorer.bitcoinabc.org/address/bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
     rel="noopener noreferrer"
+    style={
+      Object {
+        "marginTop": "24px",
+      }
+    }
     target="_blank"
   >
     <span
@@ -249,7 +259,7 @@ Array [
         />
       </svg>
     </span>
-     View Transactions
+     More transactions
   </a>,
   <div>
     <h2
@@ -298,7 +308,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ coUote"
+    className="sc-cMljjf flbcfP"
   >
     <span
       aria-label="party emoji"
@@ -324,7 +334,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-ckVGcZ ddfzZr"
+    className="sc-jWBwVP kCdTeF"
   >
     0 
     BCHA
@@ -394,16 +404,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kPUXCE"
+    className="sc-jAaTju hBUeDX"
   >
     <div
-      className="sc-kEYyzF kRhXaZ"
+      className="sc-jDwBTQ cQmVmM"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-kEYyzF kRhXaZ nonactiveBtn"
+      className="sc-jDwBTQ cQmVmM nonactiveBtn"
       onClick={[Function]}
     >
       SLPA

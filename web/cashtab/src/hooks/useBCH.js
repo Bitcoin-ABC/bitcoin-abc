@@ -21,6 +21,121 @@ export default function useBCH() {
         return apiArray[apiIndex];
     };
 
+    const flattenTransactions = txHistory => {
+        /*   
+            Convert txHistory, format
+            [{address: '', transactions: [{height: '', tx_hash: ''}, ...{}]}, {}, {}]
+
+            to flatTxHistory
+            [{txid: '', blockheight: '', address: ''}]
+            sorted by blockheight, newest transactions to oldest transactions
+        */
+        let flatTxHistory = [];
+        for (let i = 0; i < txHistory.length; i += 1) {
+            const { address, transactions } = txHistory[i];
+            for (let j = 0; j < transactions.length; j += 1) {
+                let flatTx = {};
+                flatTx.address = address;
+                // If tx is unconfirmed, give arbitrarily high blockheight
+                flatTx.height =
+                    transactions[j].height <= 0
+                        ? 10000000
+                        : transactions[j].height;
+                flatTx.txid = transactions[j].tx_hash;
+                flatTxHistory.push(flatTx);
+            }
+        }
+
+        // Sort with most recent transaction at index 0
+        flatTxHistory.sort((a, b) => b.height - a.height);
+
+        return flatTxHistory;
+    };
+
+    const parseTxData = txData => {
+        /*
+        Desired output
+        [
+        {
+        txid: '',
+        type: send, receive
+        receivingAddress: '',
+        quantity: amount bcha
+        token: true/false
+        tokenInfo: {
+            tokenId:
+            tokenQty:
+            txType: mint, send, other
+        }
+        }
+        ]
+        */
+
+        const parsedTxHistory = [];
+        for (let i = 0; i < txData.length; i += 1) {
+            const tx = txData[i];
+            const parsedTx = {};
+            // Move over info that does not need to be calculated
+            parsedTx.txid = tx.txid;
+            parsedTx.confirmations = tx.confirmations;
+            parsedTx.height = tx.height;
+            parsedTx.blocktime = tx.blocktime;
+            let amountSent = 0;
+            let amountReceived = 0;
+            // Assume an incoming transaction
+            let outgoingTx = false;
+            let tokenTx = false;
+            let destinationAddress = tx.address;
+
+            // If vin includes tx address, this is an outgoing tx
+            // Note that with bch-input data, we do not have input amounts
+            for (let j = 0; j < tx.vin.length; j += 1) {
+                const thisInput = tx.vin[j];
+                if (thisInput.address === tx.address) {
+                    // This is an outgoing transaction
+                    outgoingTx = true;
+                }
+            }
+            // Iterate over vout to find how much was sent or received
+            for (let j = 0; j < tx.vout.length; j += 1) {
+                const thisOutput = tx.vout[j];
+
+                // If there is no addresses object in the output, OP_RETURN or token tx
+                if (
+                    !Object.keys(thisOutput.scriptPubKey).includes('addresses')
+                ) {
+                    // For now, assume this is a token tx
+                    tokenTx = true;
+                    continue;
+                }
+                if (
+                    thisOutput.scriptPubKey.addresses &&
+                    thisOutput.scriptPubKey.addresses[0] === tx.address
+                ) {
+                    if (outgoingTx) {
+                        // This amount is change; ignore
+                        continue;
+                    }
+                    amountReceived += thisOutput.value;
+                } else if (outgoingTx) {
+                    amountSent += thisOutput.value;
+                    // Assume there's only one destination address, i.e. it was sent by a Cashtab wallet
+                    destinationAddress = thisOutput.scriptPubKey.addresses[0];
+                }
+            }
+            // Construct parsedTx
+            parsedTx.txid = tx.txid;
+            parsedTx.amountSent = amountSent;
+            parsedTx.amountReceived = amountReceived;
+            parsedTx.tokenTx = tokenTx;
+            parsedTx.outgoingTx = outgoingTx;
+            parsedTx.destinationAddress = destinationAddress;
+
+            parsedTxHistory.push(parsedTx);
+        }
+        return parsedTxHistory;
+    };
+
     const getTxHistory = async (BCH, addresses) => {
         let txHistoryResponse;
         try {
@@ -29,6 +144,7 @@ export default function useBCH() {
             txHistoryResponse = await BCH.Electrumx.transactions(addresses);
             //console.log(`BCH.Electrumx.transactions(addresses) succeeded`);
             //console.log(`txHistoryResponse`, txHistoryResponse);
+
             if (txHistoryResponse.success && txHistoryResponse.transactions) {
                 return txHistoryResponse.transactions;
             } else {
@@ -37,6 +153,46 @@ export default function useBCH() {
             }
         } catch (err) {
             console.log(`Error in BCH.Electrumx.transactions(addresses):`);
+            console.log(err);
+            return err;
+        }
+    };
+
+    const getTxDataWithPassThrough = async (BCH, flatTx) => {
+        // necessary as BCH.RawTransactions.getTxData does not return address or blockheight
+        const txDataWithPassThrough = await BCH.RawTransactions.getTxData(
+            flatTx.txid,
+        );
+        txDataWithPassThrough.height = flatTx.height;
+        txDataWithPassThrough.address = flatTx.address;
+        return txDataWithPassThrough;
+    };
+
+    const getTxData = async (BCH, txHistory) => {
+        // Flatten tx history
+        let flatTxs = flattenTransactions(txHistory);
+
+        // Get most recent 10 txs
+        flatTxs = flatTxs.splice(0, 10);
+
+        // Build array of promises to get tx data for all 10 transactions
+        let txDataPromises = [];
+        for (let i = 0; i < flatTxs.length; i += 1) {
+            const txDataPromise = await getTxDataWithPassThrough(
+                BCH,
+                flatTxs[i],
+            );
+            txDataPromises.push(txDataPromise);
+        }
+
+        // Get txData for the 10 most recent transactions
+        let txDataPromiseResponse;
+        try {
+            txDataPromiseResponse = await Promise.all(txDataPromises);
+            const parsed = parseTxData(txDataPromiseResponse);
+            return parsed;
+        } catch (err) {
+            console.log(`Error in Promise.all(txDataPromises):`);
             console.log(err);
             return err;
         }
@@ -569,6 +725,9 @@ export default function useBCH() {
         getHydratedUtxoDetails,
         getSlpBalancesAndUtxos,
         getTxHistory,
+        flattenTransactions,
+        parseTxData,
+        getTxData,
         getRestUrl,
         sendBch,
         sendToken,
