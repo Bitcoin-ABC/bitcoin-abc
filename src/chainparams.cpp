@@ -184,8 +184,6 @@ public:
         // possible.
         // Bitcoin ABC seeder
         vSeeds.emplace_back("seed.bitcoinabc.org");
-        // bitcoinforks seeders
-        vSeeds.emplace_back("seed-bch.bitcoinforks.org");
         // BU backed seeder
         vSeeds.emplace_back("btccash-seeder.bitcoinunlimited.info");
         // Jason B. Cox
@@ -194,6 +192,8 @@ public:
         vSeeds.emplace_back("seed.deadalnix.me");
         // BCHD
         vSeeds.emplace_back("seed.bchd.cash");
+        // Fabien
+        vSeeds.emplace_back("seeder.fabien.cash");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
@@ -332,12 +332,12 @@ public:
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
         vSeeds.emplace_back("testnet-seed.bitcoinabc.org");
-        // bitcoinforks seeders
-        vSeeds.emplace_back("testnet-seed-bch.bitcoinforks.org");
         // Amaury SÉCHET
         vSeeds.emplace_back("testnet-seed.deadalnix.me");
         // BCHD
         vSeeds.emplace_back("testnet-seed.bchd.cash");
+        // Fabien
+        vSeeds.emplace_back("testnet-seeder.fabien.cash");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 111);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 196);
