@@ -12,6 +12,7 @@
 #include <addrman.h>
 #include <amount.h>
 #include <avalanche/processor.h>
+#include <avalanche/validation.h>
 #include <banman.h>
 #include <blockdb.h>
 #include <blockfilter.h>
@@ -2435,6 +2436,40 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         *node.chain, node.connman.get(), node.peerman.get());
     if (args.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
+
+        // If avalanche is enabled and a proof is supplied, make sure it does
+        // not contain garbage. At this point the validity of the utxos cannot
+        // be checked, so only basic verification is performed.
+        try {
+            avalanche::Proof proof;
+            proof = g_avalanche->getProof();
+
+            avalanche::ProofValidationState proof_state;
+            if (!proof.verify(proof_state)) {
+                switch (proof_state.GetResult()) {
+                    case avalanche::ProofValidationResult::NO_STAKE:
+                        InitError(_("the avalanche proof has no stake"));
+                        return false;
+                    case avalanche::ProofValidationResult::DUST_THRESOLD:
+                        InitError(_("the avalanche proof stake is too low"));
+                        return false;
+                    case avalanche::ProofValidationResult::DUPLICATE_STAKE:
+                        InitError(
+                            _("the avalanche proof has duplicated stake"));
+                        return false;
+                    case avalanche::ProofValidationResult::INVALID_SIGNATURE:
+                        InitError(_("the avalanche proof has invalid stake "
+                                    "signatures"));
+                        return false;
+                    default:
+                        InitError(_("the avalanche proof is invalid"));
+                        return false;
+                }
+            }
+        } catch (const std::runtime_error &e) {
+            LogPrintf("Avalanche is enabled but no proof supplied, the node "
+                      "will not be able to vote\n");
+        }
     }
 
     // Step 7: load block chain

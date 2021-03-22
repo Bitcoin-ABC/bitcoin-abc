@@ -414,6 +414,61 @@ class AvalancheTest(BitcoinTestFramework):
                                 get_node().nodeid, pubkey.get_bytes().hex(),
                                 bad_proof)
 
+        self.log.info("Bad proof should be rejected at startup")
+
+        no_stake = node.buildavalancheproof(
+            proof_sequence, proof_expiration, pubkey.get_bytes().hex(), [])
+
+        dust = node.buildavalancheproof(
+            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
+            [{
+                'txid': coinbases[0]['txid'],
+                'vout': coinbases[0]['n'],
+                'amount': '0',
+                'height': coinbases[0]['height'],
+                'iscoinbase': True,
+                'privatekey': addrkey0.key,
+            }])
+
+        duplicate_stake = node.buildavalancheproof(
+            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
+            [{
+                'txid': coinbases[0]['txid'],
+                'vout': coinbases[0]['n'],
+                'amount': coinbases[0]['value'],
+                'height': coinbases[0]['height'],
+                'iscoinbase': True,
+                'privatekey': addrkey0.key,
+            }] * 2)
+
+        bad_sig = ("0b000000000000000c0000000000000021030b4c866585dd868a9d62348"
+                   "a9cd008d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085"
+                   "583e75ee79340eb4eff208c89988e7ed0efb30b87298fa30000000000f20"
+                   "52a0100000003000000210227d85ba011276cf25b51df6a188b75e604b3"
+                   "8770a462b2d0e9fb2fc839ef5d3faf07f001dd38e9b4a43d07d5d449cc0"
+                   "f7d2888d96b82962b3ce516d1083c0e031773487fc3c4f2e38acd1db974"
+                   "1321b91a79b82d1c2cfd47793261e4ba003cf5")
+
+        self.stop_node(0)
+
+        def check_proof_init_error(proof, message):
+            node.assert_start_raises_init_error(
+                self.extra_args[0] + [
+                    "-avaproof={}".format(proof),
+                    "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+                ],
+                expected_msg="Error: " + message,
+            )
+
+        check_proof_init_error(no_stake,
+                               "the avalanche proof has no stake")
+        check_proof_init_error(dust,
+                               "the avalanche proof stake is too low")
+        check_proof_init_error(duplicate_stake,
+                               "the avalanche proof has duplicated stake")
+        check_proof_init_error(bad_sig,
+                               "the avalanche proof has invalid stake signatures")
+
 
 if __name__ == '__main__':
     AvalancheTest().main()
