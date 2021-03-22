@@ -7036,7 +7036,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         // Message: feefilter
         //
         // peers with the forcerelay permission should not filter txs to us
-        if (pto->m_tx_relay != nullptr &&
+        if (pto->m_tx_relay != nullptr && !m_ignore_incoming_txs &&
             pto->GetCommonVersion() >= FEEFILTER_VERSION &&
             gArgs.GetBoolArg("-feefilter", DEFAULT_FEEFILTER) &&
             !pto->HasPermission(PF_FORCERELAY)) {
