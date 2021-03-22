@@ -459,7 +459,6 @@ add_library(common
 	cashaddr.cpp
 	cashaddrenc.cpp
 	chainparams.cpp
-	chainparamsconstants.cpp
 	config.cpp
 	consensus/merkle.cpp
 	coins.cpp
