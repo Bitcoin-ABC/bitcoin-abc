@@ -54,6 +54,59 @@ export const ZeroBalanceHeader = styled.div`
     margin-bottom: 5px;
 `;
 
+export const Tabs = styled.div`
+    margin: auto;
+    margin-bottom: 12px;
+    display: inline-block;
+    text-align: center;
+`;
+export const TabLabel = styled.button`
+    :focus,
+    :active {
+        outline: none;
+    }
+
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+
+    @media (max-width: 400px) {
+        font-size: 16px;
+    }
+
+    ${({ active, ...props }) =>
+        active &&
+        `    
+        color: ${props.theme.primary};       
+  `}
+`;
+export const TabLine = styled.div`
+    margin: auto;
+    transition: margin-left 0.5s ease-in-out, width 0.5s 0.1s;
+    height: 4px;
+    border-radius: 5px;
+    background-color: ${props => props.theme.primary};
+    pointer-events: none;
+
+    margin-left: 72%;
+    width: 28%;
+
+    ${({ left, ...props }) =>
+        left &&
+        `
+        margin-left: 1%
+        width: 69%;
+  `}
+`;
+export const TabPane = styled.div`
+    ${({ active }) =>
+        !active &&
+        `    
+        display: none;
+  `}
+`;
+
 export const SwitchBtnCtn = styled.div`
     display: flex;
     align-items: center;
@@ -154,10 +207,12 @@ const WalletInfo = () => {
         wallet,
         fiatPrice,
         balances,
+        tokens,
         parsedTxHistory,
         apiError,
     } = ContextValue;
     const [address, setAddress] = React.useState('cashAddress');
+    const [activeTab, setActiveTab] = React.useState('txHistory');
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
@@ -250,41 +305,63 @@ const WalletInfo = () => {
                 </SwitchBtn>
             </SwitchBtnCtn>
             {hasHistory && parsedTxHistory && (
-                <TxHistory txs={parsedTxHistory} />
-            )}
-            {balances.totalBalance ? (
                 <>
-                    <ExternalLink
-                        style={{ marginTop: '24px' }}
-                        href={`${currency.blockExplorerUrl}/address/${wallet.Path1899.cashAddress}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <LinkOutlined /> More transactions
-                    </ExternalLink>
+                    <Tabs>
+                        <TabLabel
+                            active={activeTab === 'txHistory'}
+                            onClick={() => setActiveTab('txHistory')}
+                        >
+                            Transaction History
+                        </TabLabel>
+                        <TabLabel
+                            active={activeTab === 'tokens'}
+                            onClick={() => setActiveTab('tokens')}
+                        >
+                            Tokens
+                        </TabLabel>
+                        <TabLine left={activeTab === 'txHistory'} />
+                    </Tabs>
+
+                    <TabPane active={activeTab === 'txHistory'}>
+                        <TxHistory txs={parsedTxHistory} />
+                        <ExternalLink
+                            style={{ marginTop: '24px' }}
+                            href={`${currency.blockExplorerUrl}/address/${wallet.Path1899.cashAddress}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <LinkOutlined /> More transactions
+                        </ExternalLink>
+                    </TabPane>
+                    <TabPane active={activeTab === 'tokens'}>
+                        {tokens && tokens.length > 0 ? (
+                            <TokenList tokens={tokens} />
+                        ) : (
+                            <p>
+                                Tokens sent to your {currency.tokenTicker}{' '}
+                                address will appear here
+                            </p>
+                        )}
+                    </TabPane>
                 </>
-            ) : null}
+            )}
         </>
     );
 };
 
 const Wallet = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, tokens, loading } = ContextValue;
+    const { wallet, loading } = ContextValue;
 
     return (
         <>
-            {loading && (
+            {loading ? (
                 <LoadingCtn>
                     <LoadingOutlined />
                 </LoadingCtn>
+            ) : (
+                <>{wallet.Path1899 ? <WalletInfo /> : <OnBoarding />}</>
             )}
-            {!loading && wallet.Path245 && <WalletInfo />}
-
-            {!loading && wallet.Path245 && tokens && tokens.length > 0 && (
-                <TokenList tokens={tokens} />
-            )}
-            {!loading && !wallet.Path245 ? <OnBoarding /> : null}
         </>
     );
 };

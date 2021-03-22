@@ -1,12 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
-import { UpCircleOutlined, DownCircleOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
 
-const SentTx = styled(UpCircleOutlined)`
+const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.secondary} !important;
 `;
-const ReceivedTx = styled(DownCircleOutlined)`
+const ReceivedTx = styled(ArrowDownOutlined)`
     color: ${props => props.theme.primary} !important;
 `;
 const DateType = styled.div`
