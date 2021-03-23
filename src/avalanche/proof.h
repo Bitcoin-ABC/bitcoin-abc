@@ -25,6 +25,9 @@ static constexpr int AVALANCHE_MAX_PROOF_STAKES = 1000;
 
 namespace avalanche {
 
+/** Minimum amount per utxo */
+static constexpr Amount PROOF_DUST_THRESHOLD = 1 * COIN;
+
 class ProofValidationState;
 
 class Stake {

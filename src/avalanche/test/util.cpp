@@ -37,4 +37,13 @@ Proof buildRandomProof(uint32_t score, const CPubKey &master) {
     return pb.build();
 }
 
+bool hasDustStake(const Proof &proof) {
+    for (const SignedStake &s : proof.getStakes()) {
+        if (s.getStake().getAmount() < PROOF_DUST_THRESHOLD) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace avalanche

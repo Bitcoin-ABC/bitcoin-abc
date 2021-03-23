@@ -3,6 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test building avalanche proofs and using them to add avalanche peers."""
+from decimal import Decimal
 
 from test_framework.avatools import (
     create_coinbase_stakes,
@@ -20,6 +21,9 @@ from test_framework.util import (
 )
 
 AVALANCHE_MAX_PROOF_STAKES = 1000
+
+PROOF_DUST_THRESHOLD = 1.0
+"""Minimum amount per UTXO in a proof (in coins, not in satoshis)"""
 
 
 def add_interface_node(test_node) -> str:
@@ -180,6 +184,12 @@ class AvalancheProofTest(BitcoinTestFramework):
             proof_sequence, proof_expiration, proof_master,
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key, amount="0"))
 
+        dust_amount = Decimal(f"{PROOF_DUST_THRESHOLD * 0.9999:.4f}")
+        dust2 = node.buildavalancheproof(
+            proof_sequence, proof_expiration, proof_master,
+            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key,
+                                   amount=str(dust_amount)))
+
         duplicate_stake = node.buildavalancheproof(
             proof_sequence, proof_expiration, proof_master,
             create_coinbase_stakes(node, [blockhashes[0]] * 2, addrkey0.key))
@@ -228,6 +238,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         check_proof_init_error(no_stake,
                                "the avalanche proof has no stake")
         check_proof_init_error(dust,
+                               "the avalanche proof stake is too low")
+        check_proof_init_error(dust2,
                                "the avalanche proof stake is too low")
         check_proof_init_error(duplicate_stake,
                                "the avalanche proof has duplicated stake")

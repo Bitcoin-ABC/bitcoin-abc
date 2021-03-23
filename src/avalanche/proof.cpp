@@ -47,8 +47,6 @@ uint32_t Proof::getScore() const {
     return uint32_t((100 * total) / COIN);
 }
 
-static constexpr Amount PROOF_DUST_THRESOLD = 1 * SATOSHI;
-
 bool Proof::verify(ProofValidationState &state) const {
     if (stakes.empty()) {
         return state.Invalid(ProofValidationResult::NO_STAKE);
@@ -61,7 +59,7 @@ bool Proof::verify(ProofValidationState &state) const {
     std::unordered_set<COutPoint, SaltedOutpointHasher> utxos;
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();
-        if (s.getAmount() < PROOF_DUST_THRESOLD) {
+        if (s.getAmount() < PROOF_DUST_THRESHOLD) {
             return state.Invalid(ProofValidationResult::DUST_THRESOLD);
         }
 

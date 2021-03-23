@@ -162,13 +162,13 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     const NodeId node0 = 42, node1 = 69, node2 = 37;
 
     // One peer, we always return it.
-    Proof proof0 = buildRandomProof(100);
+    Proof proof0 = buildRandomProof(MIN_VALID_PROOF_SCORE);
     Delegation dg0 = DelegationBuilder(proof0).build();
     pm.addNode(node0, proof0, dg0);
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    Proof proof1 = buildRandomProof(200);
+    Proof proof1 = buildRandomProof(2 * MIN_VALID_PROOF_SCORE);
     Delegation dg1 = DelegationBuilder(proof1).build();
     pm.addNode(node1, proof1, dg1);
 
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    Proof proof2 = buildRandomProof(100);
+    Proof proof2 = buildRandomProof(MIN_VALID_PROOF_SCORE);
     Delegation dg2 = DelegationBuilder(proof2).build();
     pm.addNode(node2, proof2, dg2);
 
@@ -308,7 +308,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     avalanche::PeerManager pm;
 
     // Create one peer.
-    Proof proof = buildRandomProof(100000000);
+    Proof proof = buildRandomProof(10000000 * MIN_VALID_PROOF_SCORE);
     Delegation dg = DelegationBuilder(proof).build();
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
@@ -346,8 +346,8 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     }
 
     // Move a node from a peer to another. This peer has a very low score such
-    // as chances of being picked are 1 in a billion.
-    Proof altproof = buildRandomProof(1);
+    // as chances of being picked are 1 in 10 million.
+    Proof altproof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     Delegation altdg = DelegationBuilder(altproof).build();
     BOOST_CHECK(pm.addNode(3, altproof, altdg));
 

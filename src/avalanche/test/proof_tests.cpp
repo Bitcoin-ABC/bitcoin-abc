@@ -26,9 +26,14 @@ BOOST_AUTO_TEST_CASE(proof_random) {
         const Proof p = buildRandomProof(score);
         BOOST_CHECK_EQUAL(p.getScore(), score);
 
+        ProofValidationResult expected_state =
+            hasDustStake(p) ? ProofValidationResult::DUST_THRESOLD
+                            : ProofValidationResult::NONE;
+
         ProofValidationState state;
-        BOOST_CHECK(p.verify(state));
-        BOOST_CHECK(state.GetResult() == ProofValidationResult::NONE);
+        BOOST_CHECK_EQUAL(p.verify(state),
+                          state.GetResult() == ProofValidationResult::NONE);
+        BOOST_CHECK(state.GetResult() == expected_state);
     }
 }
 
@@ -340,7 +345,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     key.MakeNewKey(true);
     const CPubKey pubkey = key.GetPubKey();
 
-    const Amount value = 12345 * SATOSHI;
+    const Amount value = 12345 * COIN;
     const uint32_t height = 10;
 
     COutPoint pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
@@ -425,6 +430,17 @@ BOOST_AUTO_TEST_CASE(verify) {
     {
         ProofBuilder pb(0, 0, pubkey);
         pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key);
+        Proof p = pb.build();
+
+        ProofValidationState state;
+        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESOLD);
+    }
+
+    {
+        ProofBuilder pb(0, 0, pubkey);
+        pb.addUTXO(pkh_outpoint, PROOF_DUST_THRESHOLD - 1 * SATOSHI, height,
+                   false, key);
         Proof p = pb.build();
 
         ProofValidationState state;
