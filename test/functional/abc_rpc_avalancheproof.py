@@ -5,13 +5,15 @@
 """Test building avalanche proofs and using them to add avalanche peers."""
 
 from test_framework.avatools import get_stakes
-from test_framework.key import ECKey
+from test_framework.key import ECKey, bytes_to_wif
+from test_framework.messages import AvalancheDelegation
 from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import (
     append_config,
     wait_until,
+    assert_raises_rpc_error,
 )
 
 AVALANCHE_MAX_PROOF_STAKES = 1000
@@ -47,7 +49,10 @@ class AvalancheProofTest(BitcoinTestFramework):
         privkey.set(bytes.fromhex(
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
 
-        proof_master = privkey.get_pubkey().get_bytes().hex()
+        def get_hex_pubkey(privkey):
+            return privkey.get_pubkey().get_bytes().hex()
+
+        proof_master = get_hex_pubkey(privkey)
         proof_sequence = 11
         proof_expiration = 12
         proof = node.buildavalancheproof(
@@ -92,6 +97,72 @@ class AvalancheProofTest(BitcoinTestFramework):
             proof_master, too_many_stakes)
         peerid2 = add_interface_node(node)
         assert not node.addavalanchenode(peerid2, proof_master, too_many_utxos)
+
+        self.log.info("Generate delegations for the proof")
+
+        # Stack up a few delegation levels
+        def gen_privkey():
+            pk = ECKey()
+            pk.generate()
+            return pk
+
+        delegator_privkey = privkey
+        delegation = None
+        for _ in range(10):
+            delegated_privkey = gen_privkey()
+            delegation = node.delegateavalancheproof(
+                proof,
+                bytes_to_wif(delegator_privkey.get_bytes()),
+                get_hex_pubkey(delegated_privkey),
+                delegation,
+            )
+            delegator_privkey = delegated_privkey
+
+        random_privkey = gen_privkey()
+        random_pubkey = get_hex_pubkey(random_privkey)
+
+        # Invalid proof
+        assert_raises_rpc_error(-8, "The proof is invalid",
+                                node.delegateavalancheproof,
+                                too_many_utxos,
+                                bytes_to_wif(privkey.get_bytes()),
+                                random_pubkey,
+                                )
+
+        # Invalid privkey
+        assert_raises_rpc_error(-5, "The private key is invalid",
+                                node.delegateavalancheproof,
+                                proof,
+                                bytes_to_wif(bytes(32)),
+                                random_pubkey,
+                                )
+
+        # Invalid delegation
+        bad_dg = AvalancheDelegation()
+        assert_raises_rpc_error(-8, "The supplied delegation is not valid",
+                                node.delegateavalancheproof,
+                                proof,
+                                bytes_to_wif(privkey.get_bytes()),
+                                random_pubkey,
+                                bad_dg.serialize().hex(),
+                                )
+
+        # Wrong privkey, does not match the proof
+        assert_raises_rpc_error(-8, "The private key does not match the proof or the delegation",
+                                node.delegateavalancheproof,
+                                proof,
+                                bytes_to_wif(random_privkey.get_bytes()),
+                                random_pubkey,
+                                )
+
+        # Wrong privkey, match the proof but does not match the delegation
+        assert_raises_rpc_error(-8, "The private key does not match the proof or the delegation",
+                                node.delegateavalancheproof,
+                                proof,
+                                bytes_to_wif(privkey.get_bytes()),
+                                random_pubkey,
+                                delegation,
+                                )
 
         # Test invalid proofs
         self.log.info("Bad proof should be rejected at startup")

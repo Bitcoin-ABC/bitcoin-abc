@@ -24,7 +24,9 @@ class DelegationBuilder {
     std::vector<Delegation::Level> levels;
 
 public:
-    DelegationBuilder(const Proof &p);
+    explicit DelegationBuilder(const Proof &p);
+
+    bool importDelegation(const Delegation &d);
 
     bool addLevel(const CKey &key, const CPubKey &newMaster);
 

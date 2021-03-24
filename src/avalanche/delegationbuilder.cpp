@@ -13,6 +13,29 @@ DelegationBuilder::DelegationBuilder(const Proof &p)
     levels.push_back({p.getMaster(), {}});
 }
 
+bool DelegationBuilder::importDelegation(const Delegation &d) {
+    if (d.getProofId() != proofid) {
+        return false;
+    }
+
+    if (levels.size() > 1) {
+        // We already imported a delegation
+        return false;
+    }
+
+    if (!d.levels.size()) {
+        return true;
+    }
+
+    dgid = d.getId();
+    for (auto &l : d.levels) {
+        levels.back().sig = l.sig;
+        levels.push_back({l.pubkey, {}});
+    }
+
+    return true;
+}
+
 bool DelegationBuilder::addLevel(const CKey &key, const CPubKey &master) {
     // Ensures that the private key provided is the one we need.
     if (levels.back().pubkey != key.GetPubKey()) {

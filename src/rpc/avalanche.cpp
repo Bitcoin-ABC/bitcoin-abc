@@ -2,11 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/delegation.h>
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/validation.h>
 #include <config.h>
 #include <core_io.h>
 #include <key_io.h>
@@ -205,6 +207,95 @@ static UniValue buildavalancheproof(const Config &config,
     return HexStr(ss);
 }
 
+static UniValue delegateavalancheproof(const Config &config,
+                                       const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "delegateavalancheproof",
+        "Delegate the avalanche proof to another public key.\n",
+        {
+            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The proof to be delegated."},
+            {"privatekey", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "The private key in base58-encoding. Must match the proof master "
+             "public key or the upper level parent delegation public key if "
+             " supplied."},
+            {"publickey", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The public key to delegate the proof to."},
+            {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
+             "A string that is the serialized, hex-encoded delegation for the "
+             "proof and which is a parent for the delegation to build."},
+        },
+        RPCResult{RPCResult::Type::STR_HEX, "delegation",
+                  "A string that is a serialized, hex-encoded delegation."},
+        RPCExamples{HelpExampleRpc("delegateavalancheproof",
+                                   "\"<proof>\" \"<privkey>\" \"<pubkey>\"")},
+    }
+        .Check(request);
+
+    RPCTypeCheck(request.params,
+                 {UniValue::VSTR, UniValue::VSTR, UniValue::VSTR});
+
+    if (!g_avalanche) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
+    }
+
+    avalanche::Proof proof;
+    {
+        CDataStream ss(ParseHexV(request.params[0], "proof"), SER_NETWORK,
+                       PROTOCOL_VERSION);
+        ss >> proof;
+    }
+    avalanche::ProofValidationState proofState;
+    if (!proof.verify(proofState)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The proof is invalid");
+    }
+
+    const CKey privkey = DecodeSecret(request.params[1].get_str());
+    if (!privkey.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           "The private key is invalid");
+    }
+
+    const CPubKey pubkey = ParsePubKey(request.params[2]);
+
+    avalanche::DelegationBuilder dgb(proof);
+    CPubKey auth;
+    if (request.params.size() >= 4 && !request.params[3].isNull()) {
+        avalanche::Delegation dg;
+        CDataStream ss(ParseHexV(request.params[3], "delegation"), SER_NETWORK,
+                       PROTOCOL_VERSION);
+        ss >> dg;
+
+        avalanche::DelegationState dgState;
+        if (!dg.verify(dgState, proof, auth)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "The supplied delegation is not valid");
+        }
+
+        if (!dgb.importDelegation(dg)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "Failed to import the delegation");
+        }
+
+    } else {
+        auth = proof.getMaster();
+    }
+
+    if (privkey.GetPubKey() != auth) {
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            "The private key does not match the proof or the delegation");
+    }
+
+    if (!dgb.addLevel(privkey, pubkey)) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Unable to build the delegation");
+    }
+
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << dgb.build();
+    return HexStr(ss);
+}
+
 static UniValue getavalanchepeerinfo(const Config &config,
                                      const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -317,6 +408,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
         { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
         { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
+        { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
     };
     // clang-format on
