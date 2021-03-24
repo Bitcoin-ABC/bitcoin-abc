@@ -21,6 +21,7 @@ export const currency = {
     tokenPrefixes: ['simpleledger', 'etoken'],
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
     useBlockchainWs: false,
+    txHistoryCount: 5,
 };
 
 export function isValidCashPrefix(addressString) {

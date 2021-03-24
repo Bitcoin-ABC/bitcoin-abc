@@ -41,7 +41,7 @@ const TokenListItem = ({ ticker, balance, tokenId }) => {
                         unloader={
                             <img
                                 alt={`identicon of tokenId ${tokenId} `}
-                                heigh="32"
+                                height="32"
                                 width="32"
                                 style={{
                                     borderRadius: '50%',
@@ -54,7 +54,7 @@ const TokenListItem = ({ ticker, balance, tokenId }) => {
                 ) : (
                     <img
                         alt={`identicon of tokenId ${tokenId} `}
-                        heigh="32"
+                        height="32"
                         width="32"
                         style={{
                             borderRadius: '50%',

@@ -7,6 +7,10 @@ import mockTxHistory from '../__mocks__/mockTxHistory';
 import mockFlatTxHistory from '../__mocks__/mockFlatTxHistory';
 import mockTxDataWithPassthrough from '../__mocks__/mockTxDataWithPassthrough';
 import {
+    tokenSendWdt,
+    tokenReceiveTBS,
+} from '../__mocks__/mockParseTokenInfoForTxHistory';
+import {
     mockSentCashTx,
     mockReceivedCashTx,
     mockSentTokenTx,
@@ -270,7 +274,7 @@ describe('useBCH hook', () => {
 
     it('Correctly flattens transaction history', () => {
         const { flattenTransactions } = useBCH();
-        expect(flattenTransactions(mockTxHistory)).toStrictEqual(
+        expect(flattenTransactions(mockTxHistory, 10)).toStrictEqual(
             mockFlatTxHistory,
         );
     });
@@ -301,5 +305,25 @@ describe('useBCH hook', () => {
         expect(parseTxData([mockTxDataWithPassthrough[3]])).toStrictEqual(
             mockReceivedTokenTx,
         );
+    });
+
+    it(`Correctly parses a "send ${currency.tokenTicker}" transaction with token details`, () => {
+        const { parseTokenInfoForTxHistory } = useBCH();
+        expect(
+            parseTokenInfoForTxHistory(
+                tokenSendWdt.parsedTx,
+                tokenSendWdt.tokenInfo,
+            ),
+        ).toStrictEqual(tokenSendWdt.cashtabTokenInfo);
+    });
+
+    it(`Correctly parses a "receive ${currency.tokenTicker}" transaction with token details and 9 decimals of precision`, () => {
+        const { parseTokenInfoForTxHistory } = useBCH();
+        expect(
+            parseTokenInfoForTxHistory(
+                tokenReceiveTBS.parsedTx,
+                tokenReceiveTBS.tokenInfo,
+            ),
+        ).toStrictEqual(tokenReceiveTBS.cashtabTokenInfo);
     });
 });

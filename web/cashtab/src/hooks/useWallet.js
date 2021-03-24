@@ -30,6 +30,7 @@ const useWallet = () => {
         getSlpBalancesAndUtxos,
         getTxHistory,
         getTxData,
+        addTokenTxData,
     } = useBCH();
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
@@ -199,7 +200,8 @@ const useWallet = () => {
             );
             const txHistory = await getTxHistory(BCH, cashAddresses);
             const parsedTxHistory = await getTxData(BCH, txHistory);
-            console.log(`parsedTxHistory`, parsedTxHistory);
+
+            const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
 
             console.log(`slpBalancesAndUtxos`, slpBalancesAndUtxos);
             if (typeof slpBalancesAndUtxos === 'undefined') {
@@ -223,7 +225,7 @@ const useWallet = () => {
 
             newState.tokens = tokens;
 
-            newState.parsedTxHistory = parsedTxHistory;
+            newState.parsedTxHistory = parsedWithTokens;
 
             setWalletState(newState);
 

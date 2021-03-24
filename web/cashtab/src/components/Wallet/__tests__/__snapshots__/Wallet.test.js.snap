@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-eHgmQL glxlGN"
+    className="sc-cMljjf bDpRBY"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-cvbbAY gpBFnQ"
+    className="sc-jAaTju eXqqXt"
   >
     $
     NaN
@@ -82,16 +82,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-gPEVay hopBRi"
+    className="sc-csuQGl bBvITO"
   >
     <div
-      className="sc-iRbamj iyJFPN"
+      className="sc-Rmtcm cAICwQ"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-iRbamj iyJFPN nonactiveBtn"
+      className="sc-Rmtcm cAICwQ nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
@@ -103,14 +103,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-eHgmQL glxlGN"
+    className="sc-cMljjf bDpRBY"
   >
     0.06047469
      
     BCHA
   </div>,
   <div
-    className="sc-cvbbAY gpBFnQ"
+    className="sc-jAaTju eXqqXt"
   >
     $
     NaN
@@ -182,16 +182,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-gPEVay hopBRi"
+    className="sc-csuQGl bBvITO"
   >
     <div
-      className="sc-iRbamj iyJFPN"
+      className="sc-Rmtcm cAICwQ"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-iRbamj iyJFPN nonactiveBtn"
+      className="sc-Rmtcm cAICwQ nonactiveBtn"
       onClick={[Function]}
     >
       SLPA
@@ -203,7 +203,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-jWBwVP kfOXkq"
+    className="sc-jDwBTQ jcGieQ"
   >
     <span
       aria-label="party emoji"
@@ -229,7 +229,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-eHgmQL glxlGN"
+    className="sc-cMljjf bDpRBY"
   >
     0 
     BCHA
@@ -299,16 +299,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-gPEVay hopBRi"
+    className="sc-csuQGl bBvITO"
   >
     <div
-      className="sc-iRbamj iyJFPN"
+      className="sc-Rmtcm cAICwQ"
       onClick={[Function]}
     >
       BCHA
     </div>
     <div
-      className="sc-iRbamj iyJFPN nonactiveBtn"
+      className="sc-Rmtcm cAICwQ nonactiveBtn"
       onClick={[Function]}
     >
       SLPA

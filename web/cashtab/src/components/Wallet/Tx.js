@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
+import makeBlockie from 'ethereum-blockies-base64';
+import { Img } from 'react-image';
 
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.secondary} !important;
@@ -16,6 +18,7 @@ const DateType = styled.div`
         font-size: 0.8rem;
     }
 `;
+
 const SentLabel = styled.span`
     font-weight: bold;
 
@@ -45,6 +48,7 @@ const TxIcon = styled.div`
 const TxInfo = styled.div`
     padding: 12px;
     font-size: 1rem;
+    text-align: right;
 
     color: ${props =>
         props.outgoing ? props.theme.secondary : props.theme.primary};
@@ -53,13 +57,61 @@ const TxInfo = styled.div`
         font-size: 0.8rem;
     }
 `;
+const TokenInfo = styled.div`
+    display: grid;
+    grid-template-rows: 50%;
+    grid-template-columns: 24px auto;
+    padding: 12px;
+    font-size: 1rem;
+
+    color: ${props =>
+        props.outgoing ? props.theme.secondary : props.theme.primary};
+
+    @media screen and (max-width: 500px) {
+        font-size: 0.8rem;
+        grid-template-columns: 16px auto;
+    }
+`;
+const TxTokenIcon = styled.div`
+    img {
+        height: 24px;
+        width: 24px;
+    }
+    @media screen and (max-width: 500px) {
+        img {
+            height: 16px;
+            width: 16px;
+        }
+    }
+    grid-column-start: 1;
+    grid-column-end: span 1;
+    grid-row-start: 1;
+    grid-row-end: span 2;
+    align-self: center;
+`;
+const TokenTxAmt = styled.div`
+    padding-left: 12px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+const TokenName = styled.div`
+    padding-left: 12px;
+    font-size: 0.8rem;
+    @media screen and (max-width: 500px) {
+        font-size: 0.6rem;
+    }
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
 
 const TxWrapper = styled.div`
     display: grid;
     grid-template-columns: 36px 30% 50%;
-    @media screen and (max-width: 500px) {
-        grid-template-columns: 24px 30% 50%;
-    }
+
     justify-content: space-between;
     align-items: center;
     padding: 15px 25px;
@@ -71,6 +123,10 @@ const TxWrapper = styled.div`
 
     :hover {
         border-color: ${props => props.theme.primary};
+    }
+    @media screen and (max-width: 500px) {
+        grid-template-columns: 24px 30% 50%;
+        padding: 12px 12px;
     }
 `;
 
@@ -92,11 +148,70 @@ const Tx = ({ data }) => {
                 <br />
                 {txDate}
             </DateType>
-            <TxInfo outgoing={data.outgoingTx}>
-                {data.tokenTx ? (
-                    <span>Token Tx</span>
-                ) : (
-                    <>
+            {data.tokenTx ? (
+                <TokenInfo outgoing={data.outgoingTx}>
+                    {data.tokenTx && data.tokenInfo ? (
+                        <>
+                            <TxTokenIcon>
+                                {currency.tokenIconsUrl !== '' ? (
+                                    <Img
+                                        src={`${currency.tokenIconsUrl}/${data.tokenInfo.tokenId}.png`}
+                                        unloader={
+                                            <img
+                                                alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
+                                                style={{
+                                                    borderRadius: '50%',
+                                                }}
+                                                key={`identicon-${data.tokenInfo.tokenId}`}
+                                                src={makeBlockie(
+                                                    data.tokenInfo.tokenId,
+                                                )}
+                                            />
+                                        }
+                                    />
+                                ) : (
+                                    <img
+                                        alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
+                                        style={{
+                                            borderRadius: '50%',
+                                        }}
+                                        key={`identicon-${data.tokenInfo.tokenId}`}
+                                        src={makeBlockie(
+                                            data.tokenInfo.tokenId,
+                                        )}
+                                    />
+                                )}
+                            </TxTokenIcon>
+                            {data.outgoingTx ? (
+                                <>
+                                    <TokenTxAmt>
+                                        - {data.tokenInfo.qtySent.toString()}
+                                        &nbsp;{data.tokenInfo.tokenTicker}
+                                    </TokenTxAmt>
+                                    <TokenName>
+                                        {data.tokenInfo.tokenName}
+                                    </TokenName>
+                                </>
+                            ) : (
+                                <>
+                                    <TokenTxAmt>
+                                        +{' '}
+                                        {data.tokenInfo.qtyReceived.toString()}
+                                        &nbsp;{data.tokenInfo.tokenTicker}
+                                    </TokenTxAmt>
+                                    <TokenName>
+                                        {data.tokenInfo.tokenName}
+                                    </TokenName>
+                                </>
+                            )}
+                        </>
+                    ) : (
+                        <span>Token Tx</span>
+                    )}
+                </TokenInfo>
+            ) : (
+                <>
+                    <TxInfo outgoing={data.outgoingTx}>
                         {data.outgoingTx
                             ? `- ${data.amountSent.toFixed(8)} ${
                                   currency.ticker
@@ -104,9 +219,9 @@ const Tx = ({ data }) => {
                             : `+ ${data.amountReceived.toFixed(8)} ${
                                   currency.ticker
                               }`}
-                    </>
-                )}
-            </TxInfo>
+                    </TxInfo>
+                </>
+            )}
         </TxWrapper>
     );
 };
