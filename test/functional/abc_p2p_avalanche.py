@@ -137,6 +137,7 @@ class AvalancheTest(BitcoinTestFramework):
             ['-enableavalanche=1', '-avacooldown=0'],
             ['-enableavalanche=1', '-avacooldown=0', '-noparkdeepreorg', '-maxreorgdepth=-1']]
         self.supports_cli = False
+        self.rpc_timeout = 120
 
     def run_test(self):
         node = self.nodes[0]
@@ -389,7 +390,7 @@ class AvalancheTest(BitcoinTestFramework):
         node.generate(2)
         # Our proof is now verified and our node is added as a peer
         assert node.getblockchaininfo()["initialblockdownload"] is False
-        assert_equal(len(node.getavalanchepeerinfo()), 1)
+        wait_until(lambda: len(node.getavalanchepeerinfo()) == 1, timeout=5)
 
         # Rebuild the quorum
         self.log.info("Test the avahello signature")
