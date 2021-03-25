@@ -31,14 +31,11 @@ public:
     /**
      * Extract a transaction from a peer's work set
      *
-     * Returns nullptr and sets more to false if there are no transactions to
-     * work on. Otherwise returns the transaction reference, removes the
-     * transaction from the work set, and populates its arguments with the
-     * originating peer, and whether there are more orphans for this peer to
-     * work on after this tx.
+     * Returns nullptr if there are no transactions to work on.
+     * Otherwise returns the transaction reference, and removes it from the work
+     * set.
      */
-    CTransactionRef GetTxToReconsider(NodeId peer, NodeId &originator,
-                                      bool &more)
+    CTransactionRef GetTxToReconsider(NodeId peer)
         EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /** Erase an orphan by txid */
@@ -57,11 +54,14 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /**
-     * Add any orphans that list a particular tx as a parent into a peer's work
-     * set
+     * Add any orphans that list a particular tx as a parent into the from
+     * peer's work set
      */
-    void AddChildrenToWorkSet(const CTransaction &tx, NodeId peer)
+    void AddChildrenToWorkSet(const CTransaction &tx)
         EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+
+    /** Does this peer have any work to do? */
+    bool HaveTxToReconsider(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /** Return how many entries exist in the orphange */
     size_t Size() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
@@ -86,9 +86,7 @@ protected:
      */
     std::map<TxId, OrphanTx> m_orphans GUARDED_BY(m_mutex);
 
-    /**
-     * Which peer provided a parent tx of orphans that need to be reconsidered
-     */
+    /** Which peer provided the orphans that need to be reconsidered */
     std::map<NodeId, std::set<TxId>> m_peer_work_set GUARDED_BY(m_mutex);
 
     using OrphanMap = decltype(m_orphans);
