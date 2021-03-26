@@ -2461,6 +2461,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                         InitError(_("the avalanche proof has invalid stake "
                                     "signatures"));
                         return false;
+                    case avalanche::ProofValidationResult::TOO_MANY_UTXOS:
+                        InitError(strprintf(_("the avalanche proof has too "
+                                              "many utxos (max: %u)"),
+                                            AVALANCHE_MAX_PROOF_STAKES));
+                        return false;
                     default:
                         InitError(_("the avalanche proof is invalid"));
                         return false;

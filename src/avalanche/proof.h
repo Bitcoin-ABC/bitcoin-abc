@@ -18,6 +18,11 @@
 
 class CCoinsView;
 
+/**
+ * How many UTXOs can be used for a single proof.
+ */
+static constexpr int AVALANCHE_MAX_PROOF_STAKES = 1000;
+
 namespace avalanche {
 
 class ProofValidationState;

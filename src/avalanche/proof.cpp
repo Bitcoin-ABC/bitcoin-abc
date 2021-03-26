@@ -54,6 +54,10 @@ bool Proof::verify(ProofValidationState &state) const {
         return state.Invalid(ProofValidationResult::NO_STAKE);
     }
 
+    if (stakes.size() > AVALANCHE_MAX_PROOF_STAKES) {
+        return state.Invalid(ProofValidationResult::TOO_MANY_UTXOS);
+    }
+
     std::unordered_set<COutPoint, SaltedOutpointHasher> utxos;
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();

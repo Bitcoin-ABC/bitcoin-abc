@@ -3984,12 +3984,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         verifier >> delegation;
 
         avalanche::Proof proof;
-        // TODO: read proof from message
-        if (proof.getStakes().size() > AVALANCHE_MAX_PROOF_STAKES) {
-            Misbehaving(pfrom, 100, "too-large-avalanche-proof");
-            return;
-        }
-
         avalanche::DelegationState state;
         CPubKey pubkey;
         if (!delegation.verify(state, proof, pubkey)) {

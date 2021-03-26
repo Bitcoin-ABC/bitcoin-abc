@@ -6,13 +6,12 @@
 
 from test_framework.avatools import get_stakes
 from test_framework.key import ECKey
-
 from test_framework.mininode import P2PInterface
-
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_node import ErrorMatch
 from test_framework.util import (
+    append_config,
     assert_equal,
-    assert_raises_rpc_error,
 )
 
 AVALANCHE_MAX_PROOF_STAKES = 1000
@@ -83,18 +82,14 @@ class AvalancheProofTest(BitcoinTestFramework):
             proof_sequence, proof_expiration,
             proof_master, maximum_stakes)
         peerid1 = add_interface_node(node)
-        node.addavalanchenode(
-            peerid1, proof_master, good_proof)
+        assert node.addavalanchenode(peerid1, proof_master, good_proof)
 
         self.log.info("A proof using too many stakes should be rejected...")
-        bad_proof = node.buildavalancheproof(
+        too_many_utxos = node.buildavalancheproof(
             proof_sequence, proof_expiration,
             proof_master, too_many_stakes)
-
         peerid2 = add_interface_node(node)
-        assert_raises_rpc_error(-32602, "Avalanche proof has too many UTXOs",
-                                node.addavalanchenode,
-                                peerid2, proof_master, bad_proof)
+        assert not node.addavalanchenode(peerid2, proof_master, too_many_utxos)
 
         # Test invalid proofs
         self.log.info("Bad proof should be rejected at startup")
@@ -136,6 +131,16 @@ class AvalancheProofTest(BitcoinTestFramework):
                                "the avalanche proof has duplicated stake")
         check_proof_init_error(bad_sig,
                                "the avalanche proof has invalid stake signatures")
+        # The too many utxos case creates a proof which is that large that it
+        # cannot fit on the command line
+        append_config(node.datadir, ["avaproof={}".format(too_many_utxos)])
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+            ],
+            expected_msg="Error: the avalanche proof has too many utxos",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
 
 
 if __name__ == '__main__':

@@ -86,11 +86,6 @@ static UniValue addavalanchenode(const Config &config,
         return false;
     }
 
-    if (proof.getStakes().size() > AVALANCHE_MAX_PROOF_STAKES) {
-        throw JSONRPCError(RPC_INVALID_PARAMS,
-                           "Avalanche proof has too many UTXOs");
-    }
-
     return g_avalanche->addNode(nodeid, proof,
                                 avalanche::DelegationBuilder(proof).build());
 }
