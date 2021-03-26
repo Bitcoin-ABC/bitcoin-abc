@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# Copyright (c) 2018 The Bitcoin developers
+# Copyright (c) 2020-2021 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the resolution of forks via avalanche."""
 import random
-from typing import List, Dict
 
+from test_framework.avatools import get_stakes
 from test_framework.key import (
     ECKey,
     ECPubKey,
@@ -24,11 +24,8 @@ from test_framework.messages import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
-    assert_raises_rpc_error,
     wait_until,
 )
-
-AVALANCHE_MAX_PROOF_STAKES = 1000
 
 BLOCK_ACCEPTED = 0
 BLOCK_INVALID = 1
@@ -117,18 +114,6 @@ class TestNode(P2PInterface):
             return self.avahello
 
 
-def get_stakes(coinbases: List[Dict],
-               priv_key: str) -> List[Dict]:
-    return [{
-        'txid': coinbase['txid'],
-        'vout': coinbase['n'],
-        'amount': coinbase['value'],
-        'height': coinbase['height'],
-        'iscoinbase': True,
-        'privatekey': priv_key,
-    } for coinbase in coinbases]
-
-
 class AvalancheTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -168,18 +153,9 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Generate many block and poll for them.
         addrkey0 = node.get_deterministic_priv_key()
-        blocks = node.generatetoaddress(100, addrkey0.address)
-
-        def get_coinbase(h):
-            b = node.getblock(h, 2)
-            return {
-                'height': b['height'],
-                'txid': b['tx'][0]['txid'],
-                'n': 0,
-                'value': b['tx'][0]['vout'][0]['value'],
-            }
-
-        coinbases = [get_coinbase(h) for h in blocks]
+        blockhashes = node.generatetoaddress(100, addrkey0.address)
+        # Use the first coinbase to create a stake
+        stakes = get_stakes(node, [blockhashes[0]], addrkey0.key)
 
         fork_node = self.nodes[1]
         # Make sure the fork node has synced the blocks
@@ -266,14 +242,7 @@ class AvalancheTest(BitcoinTestFramework):
         proof_expiration = 12
         proof = node.buildavalancheproof(
             proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
-            [{
-                'txid': coinbases[0]['txid'],
-                'vout': coinbases[0]['n'],
-                'amount': coinbases[0]['value'],
-                'height': coinbases[0]['height'],
-                'iscoinbase': True,
-                'privatekey': addrkey0.key,
-            }])
+            stakes)
 
         # Activate the quorum.
         for n in quorum:
@@ -295,7 +264,7 @@ class AvalancheTest(BitcoinTestFramework):
         assert_equal(avapeerinfo[0]["master"], pubkey.get_bytes().hex())
         assert_equal(avapeerinfo[0]["proof"], proof)
         assert_equal(len(avapeerinfo[0]["stakes"]), 1)
-        assert_equal(avapeerinfo[0]["stakes"][0]["txid"], coinbases[0]['txid'])
+        assert_equal(avapeerinfo[0]["stakes"][0]["txid"], stakes[0]['txid'])
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
             found_hash = False
@@ -375,24 +344,11 @@ class AvalancheTest(BitcoinTestFramework):
         assert_equal(node.getbestblockhash(), fork_tip)
 
         # Restart the node
-        minchainwork = int(node.getblockchaininfo()["chainwork"], 16) + 1
         self.restart_node(0, self.extra_args[0] + [
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
-            "-minimumchainwork=0x{:x}".format(minchainwork),
         ])
-        self.log.info(
-            "The proof verification should be delayed until IBD is complete")
-        assert node.getblockchaininfo()["initialblockdownload"] is True
-        # Our proof cannot be verified during IBD, so we should have no peer
-        assert not node.getavalanchepeerinfo()
-        # Mining a few more blocks should cause us to leave IBD
-        node.generate(2)
-        # Our proof is now verified and our node is added as a peer
-        assert node.getblockchaininfo()["initialblockdownload"] is False
-        wait_until(lambda: len(node.getavalanchepeerinfo()) == 1, timeout=5)
 
-        # Rebuild the quorum
         self.log.info("Test the avahello signature")
         quorum = get_quorum()
         poll_node = quorum[0]
@@ -402,87 +358,6 @@ class AvalancheTest(BitcoinTestFramework):
         avakey.set(bytes.fromhex(node.getavalanchekey()))
         assert avakey.verify_schnorr(
             avahello.sig, avahello.get_sighash(poll_node))
-
-        # Check the maximum number of stakes policy
-        blocks = node.generatetoaddress(AVALANCHE_MAX_PROOF_STAKES + 1,
-                                        addrkey0.address)
-
-        too_many_coinbases = [get_coinbase(h) for h in blocks]
-        too_many_stakes = get_stakes(too_many_coinbases, addrkey0.key)
-
-        self.log.info(
-            "A proof using the maximum number of stakes is accepted...")
-        maximum_stakes = get_stakes(too_many_coinbases[:-1],
-                                    addrkey0.key)
-        good_proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration,
-            pubkey.get_bytes().hex(), maximum_stakes)
-        node.addavalanchenode(
-            get_node().nodeid, pubkey.get_bytes().hex(), good_proof)
-
-        self.log.info("A proof using too many stakes should be rejected...")
-        bad_proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration,
-            pubkey.get_bytes().hex(), too_many_stakes)
-        assert_raises_rpc_error(-32602, "Avalanche proof has too many UTXOs",
-                                node.addavalanchenode,
-                                get_node().nodeid, pubkey.get_bytes().hex(),
-                                bad_proof)
-
-        self.log.info("Bad proof should be rejected at startup")
-
-        no_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, pubkey.get_bytes().hex(), [])
-
-        dust = node.buildavalancheproof(
-            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
-            [{
-                'txid': coinbases[0]['txid'],
-                'vout': coinbases[0]['n'],
-                'amount': '0',
-                'height': coinbases[0]['height'],
-                'iscoinbase': True,
-                'privatekey': addrkey0.key,
-            }])
-
-        duplicate_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
-            [{
-                'txid': coinbases[0]['txid'],
-                'vout': coinbases[0]['n'],
-                'amount': coinbases[0]['value'],
-                'height': coinbases[0]['height'],
-                'iscoinbase': True,
-                'privatekey': addrkey0.key,
-            }] * 2)
-
-        bad_sig = ("0b000000000000000c0000000000000021030b4c866585dd868a9d62348"
-                   "a9cd008d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085"
-                   "583e75ee79340eb4eff208c89988e7ed0efb30b87298fa30000000000f20"
-                   "52a0100000003000000210227d85ba011276cf25b51df6a188b75e604b3"
-                   "8770a462b2d0e9fb2fc839ef5d3faf07f001dd38e9b4a43d07d5d449cc0"
-                   "f7d2888d96b82962b3ce516d1083c0e031773487fc3c4f2e38acd1db974"
-                   "1321b91a79b82d1c2cfd47793261e4ba003cf5")
-
-        self.stop_node(0)
-
-        def check_proof_init_error(proof, message):
-            node.assert_start_raises_init_error(
-                self.extra_args[0] + [
-                    "-avaproof={}".format(proof),
-                    "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
-                ],
-                expected_msg="Error: " + message,
-            )
-
-        check_proof_init_error(no_stake,
-                               "the avalanche proof has no stake")
-        check_proof_init_error(dust,
-                               "the avalanche proof stake is too low")
-        check_proof_init_error(duplicate_stake,
-                               "the avalanche proof has duplicated stake")
-        check_proof_init_error(bad_sig,
-                               "the avalanche proof has invalid stake signatures")
 
 
 if __name__ == '__main__':
