@@ -337,8 +337,8 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard) {
     txTo.vout[0].scriptPubKey =
         GetScriptForDestination(PKHash(key[1].GetPubKey()));
 
-    txTo.vin.resize(5);
-    for (int i = 0; i < 5; i++) {
+    txTo.vin.resize(3);
+    for (int i = 0; i < 3; i++) {
         txTo.vin[i].prevout = COutPoint(txFrom.GetId(), i);
     }
 
