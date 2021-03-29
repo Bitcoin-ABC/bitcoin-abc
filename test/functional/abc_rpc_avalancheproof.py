@@ -11,7 +11,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import (
     append_config,
-    assert_equal,
+    wait_until,
 )
 
 AVALANCHE_MAX_PROOF_STAKES = 1000
@@ -32,6 +32,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [['-enableavalanche=1', '-avacooldown=0'], ]
+        self.supports_cli = False
+        self.rpc_timeout = 120
 
     def run_test(self):
         node = self.nodes[0]
@@ -69,7 +71,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         node.generate(2)
         # Our proof is now verified and our node is added as a peer
         assert node.getblockchaininfo()["initialblockdownload"] is False
-        assert_equal(len(node.getavalanchepeerinfo()), 1)
+        wait_until(lambda: len(node.getavalanchepeerinfo()) == 1, timeout=5)
 
         self.log.info(
             "A proof using the maximum number of stakes is accepted...")
