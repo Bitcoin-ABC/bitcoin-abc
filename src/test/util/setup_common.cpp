@@ -401,8 +401,10 @@ TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) const {
 
 CTxMemPoolEntry
 TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx) const {
-    return CTxMemPoolEntry(tx, nFee, nTime, nHeight, spendsCoinbase, nSigChecks,
-                           LockPoints());
+    CTxMemPoolEntry ret(tx, nFee, nTime, nHeight, spendsCoinbase, nSigChecks,
+                        LockPoints());
+    ret.SetEntryId(entryId);
+    return ret;
 }
 
 /**

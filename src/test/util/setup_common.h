@@ -203,6 +203,7 @@ struct TestMemPoolEntryHelper {
     unsigned int nHeight;
     bool spendsCoinbase;
     unsigned int nSigChecks;
+    uint64_t entryId = 0;
 
     TestMemPoolEntryHelper()
         : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), nSigChecks(1) {}
@@ -229,6 +230,10 @@ struct TestMemPoolEntryHelper {
     }
     TestMemPoolEntryHelper &SigChecks(unsigned int _nSigChecks) {
         nSigChecks = _nSigChecks;
+        return *this;
+    }
+    TestMemPoolEntryHelper &EntryId(uint64_t _entryId) {
+        entryId = _entryId;
         return *this;
     }
 };

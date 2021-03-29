@@ -919,16 +919,16 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
         BOOST_CHECK(!compare(b, a));
     };
 
-    // If the fees and the time are the same, lower ID should sort before
+    // If the fees and entryId are the same, lower TxId should sort before
     checkOrdering(entry.Fee(100 * SATOSHI).FromTx(b),
                   entry.Fee(100 * SATOSHI).FromTx(a));
-    // Earlier time, same fee, should sort before
-    checkOrdering(entry.Fee(100 * SATOSHI).Time(1).FromTx(a),
-                  entry.Fee(100 * SATOSHI).Time(2).FromTx(b));
-    // Higher fee, earlier time should sort before
-    checkOrdering(entry.Fee(101 * SATOSHI).Time(1).FromTx(a),
-                  entry.Fee(100 * SATOSHI).Time(2).FromTx(b));
-    // Higher fee, same time should sort before
+    // Earlier entryId, same fee, should sort before
+    checkOrdering(entry.Fee(100 * SATOSHI).EntryId(1).FromTx(a),
+                  entry.Fee(100 * SATOSHI).EntryId(2).FromTx(b));
+    // Higher fee, earlier entryId should sort before
+    checkOrdering(entry.Fee(101 * SATOSHI).EntryId(1).FromTx(a),
+                  entry.Fee(100 * SATOSHI).EntryId(2).FromTx(b));
+    // Higher fee, same entryId should sort before
     checkOrdering(entry.Fee(101 * SATOSHI).FromTx(a),
                   entry.Fee(100 * SATOSHI).FromTx(b));
 
@@ -940,9 +940,9 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
         entryA.UpdateFeeDelta(100 * SATOSHI);
         checkOrdering(entryB, entryA);
     }
-    // .. A is first seen
-    CTxMemPoolEntry entryA = entry.Fee(100 * SATOSHI).Time(1).FromTx(a);
-    CTxMemPoolEntry entryB = entry.Fee(100 * SATOSHI).Time(2).FromTx(b);
+    // .. A is first entering the mempool
+    CTxMemPoolEntry entryA = entry.Fee(100 * SATOSHI).EntryId(1).FromTx(a);
+    CTxMemPoolEntry entryB = entry.Fee(100 * SATOSHI).EntryId(2).FromTx(b);
     checkOrdering(entryA, entryB);
     // .. B has higher modified fee.
     entryB.UpdateFeeDelta(1 * SATOSHI);

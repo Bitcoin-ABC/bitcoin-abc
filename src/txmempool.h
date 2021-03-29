@@ -245,12 +245,14 @@ struct CompareTxMemPoolEntryByModifiedFeeRate {
             return frA > frB;
         }
 
-        // Then by whichever was seen first
-        if (a.GetTime() != b.GetTime()) {
-            return a.GetTime() < b.GetTime();
+        // Ties are broken by whichever is topologically earlier
+        // (this helps mining code avoid some backtracking).
+        if (a.GetEntryId() != b.GetEntryId()) {
+            return a.GetEntryId() < b.GetEntryId();
         }
 
-        // If nothing else, sort by txid
+        // If nothing else, sort by txid (this should never happen as entryID is
+        // expected to be unique).
         return a.GetSharedTx()->GetId() < b.GetSharedTx()->GetId();
     }
 };
