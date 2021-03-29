@@ -323,7 +323,10 @@ const WalletInfo = () => {
                     </Tabs>
 
                     <TabPane active={activeTab === 'txHistory'}>
-                        <TxHistory txs={parsedTxHistory} />
+                        <TxHistory
+                            txs={parsedTxHistory}
+                            fiatPrice={fiatPrice}
+                        />
                         <ExternalLink
                             style={{ marginTop: '24px' }}
                             href={`${currency.blockExplorerUrl}/address/${wallet.Path1899.cashAddress}`}

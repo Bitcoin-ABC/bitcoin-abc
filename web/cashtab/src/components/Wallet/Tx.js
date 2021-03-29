@@ -57,6 +57,9 @@ const TxInfo = styled.div`
         font-size: 0.8rem;
     }
 `;
+const TxFiatPrice = styled.span`
+    font-size: 0.8rem;
+`;
 const TokenInfo = styled.div`
     display: grid;
     grid-template-rows: 50%;
@@ -130,7 +133,7 @@ const TxWrapper = styled.div`
     }
 `;
 
-const Tx = ({ data }) => {
+const Tx = ({ data, fiatPrice }) => {
     const txDate =
         typeof data.blocktime === 'undefined'
             ? new Date().toLocaleDateString()
@@ -212,13 +215,39 @@ const Tx = ({ data }) => {
             ) : (
                 <>
                     <TxInfo outgoing={data.outgoingTx}>
-                        {data.outgoingTx
-                            ? `- ${data.amountSent.toFixed(8)} ${
-                                  currency.ticker
-                              }`
-                            : `+ ${data.amountReceived.toFixed(8)} ${
-                                  currency.ticker
-                              }`}
+                        {data.outgoingTx ? (
+                            <>
+                                - {data.amountSent.toFixed(8)}
+                                {currency.ticker}
+                                <br />
+                                {fiatPrice !== null &&
+                                    !isNaN(data.amountSent) && (
+                                        <TxFiatPrice>
+                                            - $
+                                            {(
+                                                data.amountSent * fiatPrice
+                                            ).toFixed(2)}{' '}
+                                            USD
+                                        </TxFiatPrice>
+                                    )}
+                            </>
+                        ) : (
+                            <>
+                                + {data.amountReceived.toFixed(8)}
+                                {currency.ticker}
+                                <br />
+                                {fiatPrice !== null &&
+                                    !isNaN(data.amountReceived) && (
+                                        <TxFiatPrice>
+                                            + $
+                                            {(
+                                                data.amountReceived * fiatPrice
+                                            ).toFixed(2)}{' '}
+                                            USD
+                                        </TxFiatPrice>
+                                    )}
+                            </>
+                        )}
                     </TxInfo>
                 </>
             )}
