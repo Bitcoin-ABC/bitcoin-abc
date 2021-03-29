@@ -1,22 +1,23 @@
 import React from 'react';
 import 'antd/dist/antd.less';
 import '../index.css';
-import styled from 'styled-components';
-import { Tabs } from 'antd';
+import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import { theme } from '@assets/styles/theme';
 import {
     FolderOpenFilled,
     CaretRightOutlined,
     SettingFilled,
 } from '@ant-design/icons';
-import Wallet from './Wallet/Wallet';
-import Send from './Send/Send';
-import SendToken from './Send/SendToken';
-import Configure from './Configure/Configure';
-import NotFound from './NotFound';
-import CashTab from '../assets/cashtab.png';
-import PopOut from '../assets/popout.svg';
+import Wallet from '@components/Wallet/Wallet';
+import Send from '@components/Send/Send';
+import SendToken from '@components/Send/SendToken';
+import Configure from '@components/Configure/Configure';
+import NotFound from '@components/NotFound';
+import CashTab from '@assets/cashtab.png';
+import PopOut from '@assets/popout.svg';
 import './App.css';
-import { WalletContext } from '../utils/context';
+import { WalletContext } from '@utils/context';
+import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
     Redirect,
@@ -27,10 +28,42 @@ import {
 
 import fbt from 'fbt';
 
-const { TabPane } = Tabs;
+const GlobalStyle = createGlobalStyle`    
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
+        border-radius: 8px;
+        background-color: ${props => props.theme.modals.buttons.background};
+        color: ${props => props.theme.wallet.text.secondary};
+        font-weight: bold;
+    }    
+    
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover {
+        color: ${props => props.theme.primary};
+        transition: color 0.3s;
+        background-color: ${props => props.theme.modals.buttons.background};
+    }   
+    .selectedCurrencyOption {
+        text-align: left;
+        color: ${props => props.theme.wallet.text.secondary} !important;
+        background-color: ${props => props.theme.contrast} !important;
+    }
+    .cashLoadingIcon {
+        color: ${props => props.theme.primary} !important
+        font-size: 48px !important;
+    }
+    .selectedCurrencyOption:hover {
+        color: ${props => props.theme.contrast} !important;
+        background-color: ${props => props.theme.primary} !important;
+    }
+`;
+
+const CustomApp = styled.div`
+    text-align: center;
+    font-family: 'Gilroy', sans-serif;
+    background-color: ${props => props.theme.app.background};
+`;
 
 const Footer = styled.div`
-    background-color: #fff;
+    background-color: ${props => props.theme.footer.background};
     border-radius: 20px;
     position: fixed;
     bottom: 0;
@@ -38,54 +71,7 @@ const Footer = styled.div`
     @media (max-width: 768px) {
         width: 100%;
     }
-    border-top: 1px solid #e2e2e2;
-    .ant-tabs-nav-list {
-    }
-    .ant-tabs-top > .ant-tabs-nav::before,
-    .ant-tabs-bottom > .ant-tabs-nav::before,
-    .ant-tabs-top > div > .ant-tabs-nav::before,
-    .ant-tabs-bottom > div > .ant-tabs-nav::before {
-        border-bottom: none;
-    }
-    .ant-tabs-tab {
-        padding: 24px 12px 12px 12px;
-        margin: 0 24px;
-        @media (max-width: 360px) {
-            margin: 0 12px;
-        }
-        span {
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .anticon {
-            display: block;
-            color: rgb(148, 148, 148);
-            font-size: 24px;
-            margin-left: 8px;
-            margin-bottom: 3px;
-        }
-    }
-    .ant-tabs-tab:hover {
-        color: #ff8d00;
-        .anticon {
-            color: #ff8d00;
-        }
-    }
-    .ant-tabs-tab-active > div > span {
-        color: #ff8d00;
-    }
-    .ant-tabs-tab-active.ant-tabs-tab {
-        color: #ff8d00;
-        .anticon {
-            color: #ff8d00;
-        }
-    }
-    .ant-tabs-ink-bar {
-        display: none !important;
-    }
-    .ant-tabs-nav {
-        margin: -3.5px 0 0 0;
-    }
+    border-top: 1px solid ${props => props.theme.wallet.borders.color};
 `;
 
 const OpenInTabBtn = styled.button`
@@ -95,6 +81,36 @@ const OpenInTabBtn = styled.button`
 const ExtTabImg = styled.img`
     max-width: 20px;
 `;
+export const NavButton = styled.button`
+    :focus,
+    :active {
+        outline: none;
+    }
+    cursor: pointer;
+    padding: 24px 12px 12px 12px;
+    margin: 0 28px;
+    @media (max-width: 360px) {
+        margin: 0 12px;
+    }
+    background-color: ${props => props.theme.footer.background};
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    .anticon {
+        display: block;
+        color: ${props => props.theme.footer.navIconInactive};
+        font-size: 24px;
+        margin-bottom: 6px;
+    }
+    ${({ active, ...props }) =>
+        active &&
+        `    
+        color: ${props.theme.primary};
+        .anticon {
+            color: ${props.theme.primary};
+        }
+  `}
+`;
 
 export const WalletBody = styled.div`
     display: flex;
@@ -102,20 +118,18 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background: linear-gradient(270deg, #040c3c, #212c6e);
+    background: ${props => props.theme.app.sidebars};
 `;
-
 export const WalletCtn = styled.div`
     position: relative;
     width: 500px;
-    background-color: #fff;
+    background-color: ${props => props.theme.footerBackground};
     min-height: 100vh;
-    padding-top: 30px;
-    padding: 10px 30px 100px 30px;
-    background: #fff;
-    -webkit-box-shadow: 0px 0px 24px 1px rgba(0, 0, 0, 1);
-    -moz-box-shadow: 0px 0px 24px 1px rgba(0, 0, 0, 1);
-    box-shadow: 0px 0px 24px 1px rgba(0, 0, 0, 1);
+    padding: 10px 30px 120px 30px;
+    background: ${props => props.theme.wallet.background};
+    -webkit-box-shadow: 0px 0px 24px 1px ${props => props.theme.wallet.shadow};
+    -moz-box-shadow: 0px 0px 24px 1px ${props => props.theme.wallet.shadow};
+    box-shadow: 0px 0px 24px 1px ${props => props.theme.wallet.shadow};
     @media (max-width: 768px) {
         width: 100%;
         -webkit-box-shadow: none;
@@ -132,13 +146,13 @@ export const HeaderCtn = styled.div`
     padding: 20px 0 30px;
     margin-bottom: 20px;
     justify-content: space-between;
-    border-bottom: 1px solid #e2e2e2;
+    border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
 
     a {
-        color: #848484;
+        color: ${props => props.theme.wallet.text.secondary};
 
         :hover {
-            color: #ff8d00;
+            color: ${props => props.theme.primary};
         }
     }
 
@@ -175,91 +189,72 @@ const App = () => {
     };
 
     return (
-        <div className="App">
-            <WalletBody>
-                <WalletCtn>
-                    <HeaderCtn>
-                        <CashTabLogo src={CashTab} alt="cashtab" />
-                        <OpenInTabBtn
-                            data-tip="Open in tab"
-                            onClick={() => openInTab()}
-                        >
-                            <ExtTabImg src={PopOut} alt="Open in tab" />
-                        </OpenInTabBtn>
-                    </HeaderCtn>
-                    <Switch>
-                        <Route path="/wallet">
-                            <Wallet />
-                        </Route>
-                        <Route path="/send">
-                            <Send />
-                        </Route>
-                        <Route
-                            path="/send-token/:tokenId"
-                            render={props => (
-                                <SendToken
-                                    tokenId={props.match.params.tokenId}
-                                />
-                            )}
-                        />
-                        <Route path="/configure">
-                            <Configure />
-                        </Route>
-                        <Redirect exact from="/" to="/wallet" />
-                        <Route component={NotFound} />
-                    </Switch>
-                </WalletCtn>
-                {wallet ? (
-                    <Footer>
-                        <Tabs
-                            activeKey={selectedKey}
-                            tabPosition="bottom"
-                            centered
-                        >
-                            <TabPane
-                                tab={
-                                    <span
-                                        onClick={() => history.push('/wallet')}
-                                    >
-                                        <FolderOpenFilled />
-                                        <fbt desc="Wallet menu button">
-                                            Wallet
-                                        </fbt>
-                                    </span>
-                                }
-                                key="wallet"
+        <ThemeProvider theme={theme}>
+            <GlobalStyle />
+            <CustomApp>
+                <WalletBody>
+                    <WalletCtn>
+                        <HeaderCtn>
+                            <CashTabLogo src={CashTab} alt="cashtab" />
+                            <OpenInTabBtn
+                                data-tip="Open in tab"
+                                onClick={() => openInTab()}
+                            >
+                                <ExtTabImg src={PopOut} alt="Open in tab" />
+                            </OpenInTabBtn>
+                        </HeaderCtn>
+                        <WalletLabel name={wallet.name}></WalletLabel>
+                        <Switch>
+                            <Route path="/wallet">
+                                <Wallet />
+                            </Route>
+                            <Route path="/send">
+                                <Send />
+                            </Route>
+                            <Route
+                                path="/send-token/:tokenId"
+                                render={props => (
+                                    <SendToken
+                                        tokenId={props.match.params.tokenId}
+                                    />
+                                )}
                             />
-                            <TabPane
-                                tab={
-                                    <span onClick={() => history.push('/send')}>
-                                        <CaretRightOutlined />
-                                        <fbt desc="Send menu button">Send</fbt>
-                                    </span>
-                                }
-                                key="send"
-                                disabled={!wallet}
-                            />
-                            <TabPane
-                                tab={
-                                    <span
-                                        onClick={() =>
-                                            history.push('/configure')
-                                        }
-                                    >
-                                        <SettingFilled />
-                                        <fbt desc="Settings menu button">
-                                            Settings
-                                        </fbt>
-                                    </span>
-                                }
-                                key="configure"
-                                disabled={!wallet}
-                            />
-                        </Tabs>
-                    </Footer>
-                ) : null}
-            </WalletBody>
-        </div>
+                            <Route path="/configure">
+                                <Configure />
+                            </Route>
+                            <Redirect exact from="/" to="/wallet" />
+                            <Route component={NotFound} />
+                        </Switch>
+                    </WalletCtn>
+                    {wallet ? (
+                        <Footer>
+                            <NavButton
+                                active={selectedKey === 'wallet'}
+                                onClick={() => history.push('/wallet')}
+                            >
+                                <FolderOpenFilled />
+                                <fbt desc="Wallet menu button">Wallet</fbt>
+                            </NavButton>
+
+                            <NavButton
+                                active={selectedKey === 'send'}
+                                onClick={() => history.push('/send')}
+                            >
+                                <CaretRightOutlined />
+                                <fbt desc="Send menu button">Send</fbt>
+                            </NavButton>
+                            <NavButton
+                                active={selectedKey === 'configure'}
+                                onClick={() => history.push('/configure')}
+                            >
+                                <SettingFilled />
+                                <fbt desc="Settings menu button">Settings</fbt>
+                            </NavButton>
+                        </Footer>
+                    ) : null}
+                </WalletBody>
+            </CustomApp>
+        </ThemeProvider>
     );
 };
 
