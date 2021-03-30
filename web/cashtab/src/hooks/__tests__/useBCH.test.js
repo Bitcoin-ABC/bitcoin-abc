@@ -2,6 +2,8 @@
 import useBCH from '../useBCH';
 import mockReturnGetHydratedUtxoDetails from '../__mocks__/mockReturnGetHydratedUtxoDetails';
 import mockReturnGetSlpBalancesAndUtxos from '../__mocks__/mockReturnGetSlpBalancesAndUtxos';
+import mockReturnGetHydratedUtxoDetailsWithZeroBalance from '../__mocks__/mockReturnGetHydratedUtxoDetailsWithZeroBalance';
+import mockReturnGetSlpBalancesAndUtxosNoZeroBalance from '../__mocks__/mockReturnGetSlpBalancesAndUtxosNoZeroBalance';
 import sendBCHMock from '../__mocks__/sendBCH';
 import mockTxHistory from '../__mocks__/mockTxHistory';
 import mockFlatTxHistory from '../__mocks__/mockFlatTxHistory';
@@ -65,6 +67,18 @@ describe('useBCH hook', () => {
         );
 
         expect(result).toStrictEqual(mockReturnGetSlpBalancesAndUtxos);
+    });
+
+    it(`Ignores SLP utxos with utxo.tokenQty === '0'`, async () => {
+        const { getSlpBalancesAndUtxos } = useBCH();
+
+        const result = await getSlpBalancesAndUtxos(
+            mockReturnGetHydratedUtxoDetailsWithZeroBalance,
+        );
+
+        expect(result).toStrictEqual(
+            mockReturnGetSlpBalancesAndUtxosNoZeroBalance,
+        );
     });
 
     it('sends BCH correctly', async () => {

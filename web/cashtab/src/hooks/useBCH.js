@@ -351,7 +351,12 @@ export default function useBCH() {
             utxo =>
                 utxo.isValid === false && utxo.value !== 546 && !utxo.tokenName,
         );
-        const slpUtxos = hydratedUtxos.filter(utxo => utxo.isValid);
+        // To be included in slpUtxos, the utxo must
+        // have utxo.isValid = true
+        // If utxo has a utxo.tokenQty field, i.e. not a minting baton, then utxo.tokenQty !== '0'
+        const slpUtxos = hydratedUtxos.filter(
+            utxo => utxo.isValid && !(utxo.tokenQty === '0'),
+        );
 
         let tokensById = {};
 
