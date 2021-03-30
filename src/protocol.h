@@ -310,6 +310,12 @@ extern const char *AVAPOLL;
  * Sent in response to a "avapoll" message.
  */
 extern const char *AVARESPONSE;
+/**
+ * Contains an avalanche::Proof.
+ * Sent in response to a "getdata" message with inventory type
+ * MSG_AVA_PROOF.
+ */
+extern const char *AVAPROOF;
 
 /**
  * Indicate if the message is used to transmit the content of a block.
@@ -495,6 +501,7 @@ enum GetDataMsg {
     MSG_FILTERED_BLOCK = 3,
     //! Defined in BIP152
     MSG_CMPCT_BLOCK = 4,
+    MSG_AVA_PROOF = 0x1f000001,
 };
 
 /**

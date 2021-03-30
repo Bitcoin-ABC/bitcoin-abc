@@ -77,6 +77,7 @@ TEST_EXIT_SKIPPED = 77
 TEST_FRAMEWORK_MODULES = [
     "address",
     "blocktools",
+    "messages",
     "script",
 ]
 

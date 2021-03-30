@@ -26,6 +26,7 @@ import random
 import socket
 import struct
 import time
+import unittest
 
 from typing import List
 
@@ -63,6 +64,7 @@ MSG_TX = 1
 MSG_BLOCK = 2
 MSG_FILTERED_BLOCK = 3
 MSG_CMPCT_BLOCK = 4
+MSG_AVA_PROOF = 0x1f000001
 MSG_TYPE_MASK = 0xffffffff >> 2
 
 FILTER_TYPE_BASIC = 0
@@ -302,7 +304,8 @@ class CInv:
         MSG_TX: "TX",
         MSG_BLOCK: "Block",
         MSG_FILTERED_BLOCK: "filtered Block",
-        MSG_CMPCT_BLOCK: "CompactBlock"
+        MSG_CMPCT_BLOCK: "CompactBlock",
+        MSG_AVA_PROOF: "avalanche proof",
     }
 
     def __init__(self, t=0, h=0):
@@ -828,6 +831,24 @@ class BlockTransactions:
     def __repr__(self):
         return "BlockTransactions(hash={:064x} transactions={})".format(
             self.blockhash, repr(self.transactions))
+
+
+class AvalancheProof:
+    __slots__ = ("blob")
+
+    def __init__(self, blob: bytes = b""):
+        self.blob: bytes = blob
+
+    def deserialize(self, f):
+        self.blob = f.read()
+
+    def serialize(self):
+        r = b""
+        r += self.blob
+        return r
+
+    def __repr__(self):
+        return "AvalancheProof({})".format(self.serialize().hex())
 
 
 class AvalanchePoll():
@@ -1800,6 +1821,25 @@ class msg_cfcheckpt:
             self.filter_type, self.stop_hash)
 
 
+class msg_avaproof():
+    __slots__ = ("proof",)
+    msgtype = b"avaproof"
+
+    def __init__(self):
+        self.proof = AvalancheProof()
+
+    def deserialize(self, f):
+        self.proof.deserialize(f)
+
+    def serialize(self):
+        r = b""
+        r += self.proof.serialize()
+        return r
+
+    def __repr__(self):
+        return "msg_avaproof(proof={})".format(repr(self.proof))
+
+
 class msg_avapoll():
     __slots__ = ("poll",)
     msgtype = b"avapoll"
@@ -1874,3 +1914,27 @@ class msg_avahello():
 
     def __repr__(self):
         return "msg_avahello(response={})".format(repr(self.hello))
+
+
+class TestFrameworkMessages(unittest.TestCase):
+    def test_serialization_round_trip(self):
+        """Verify that messages and serialized objects are unchanged after
+        a round-trip of deserialization-serialization.
+        """
+        avaproof = AvalancheProof()
+        proof_hex = (
+            "2a00000000000000fff053650000000021030b4c866585dd868a9d62348a9cd00"
+            "8d6a312937048fff31670e7e920cfc7a74401b7fc19792583e9cb39843fc5e22a"
+            "4e3648ab1cb18a70290b341ee8d4f550ae2400000000102700000000000078881"
+            "4004104d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df"
+            "42645cd85228a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c9764"
+            "8cb0ac3052d58da74de7404e84ebe2940ed2b0fe85578d8230788d8387aeaa618"
+            "274b0f2edc73679fd398f60e6315258c9ec348df7fcc09340ae1af37d009719b0"
+            "665"
+        )
+        avaproof.deserialize(BytesIO(bytes.fromhex(proof_hex)))
+        self.assertEqual(avaproof.serialize().hex(), proof_hex)
+
+        msg_proof = msg_avaproof()
+        msg_proof.proof = avaproof
+        self.assertEqual(msg_proof.serialize().hex(), proof_hex)
