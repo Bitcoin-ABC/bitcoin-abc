@@ -884,4 +884,56 @@ BOOST_AUTO_TEST_CASE(txsize_activation_test) {
     BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-undersize");
 }
 
+BOOST_AUTO_TEST_CASE(tx_getvalueout) {
+    CMutableTransaction mtx;
+
+    // Negative output value
+    mtx.vout.resize(1);
+    mtx.vout[0].nValue = -1 * SATOSHI;
+    CTransaction negative_tx{mtx};
+    BOOST_CHECK_THROW(negative_tx.GetValueOut(), std::runtime_error);
+
+    // Good output
+    mtx.vout[0].nValue = 10000 * SATOSHI;
+    CTransaction valid_one_output_tx{mtx};
+    BOOST_CHECK_EQUAL(valid_one_output_tx.GetValueOut(), 10000 * SATOSHI);
+
+    // Maximum output
+    mtx.vout[0].nValue = MAX_MONEY;
+    CTransaction max_one_output_tx{mtx};
+    BOOST_CHECK_EQUAL(max_one_output_tx.GetValueOut(), MAX_MONEY);
+
+    // Too high output
+    mtx.vout[0].nValue = MAX_MONEY + 1 * SATOSHI;
+    CTransaction too_high_tx{mtx};
+    BOOST_CHECK_THROW(too_high_tx.GetValueOut(), std::runtime_error);
+
+    // Valid sum
+    mtx.vout.resize(2);
+    mtx.vout[0].nValue = 42 * SATOSHI;
+    mtx.vout[1].nValue = 1337 * SATOSHI;
+    CTransaction valid_tx{mtx};
+    BOOST_CHECK_EQUAL(valid_tx.GetValueOut(), 1379 * SATOSHI);
+
+    // Maximum sum
+    mtx.vout[0].nValue = MAX_MONEY - 1 * SATOSHI;
+    mtx.vout[1].nValue = 1 * SATOSHI;
+    CTransaction max_two_outputs_tx{mtx};
+    BOOST_CHECK_EQUAL(max_two_outputs_tx.GetValueOut(), MAX_MONEY);
+
+    // Too high sum
+    mtx.vout[0].nValue = MAX_MONEY - 1 * SATOSHI;
+    mtx.vout[1].nValue = 2 * SATOSHI;
+    CTransaction too_high_sum_tx{mtx};
+    BOOST_CHECK_THROW(too_high_sum_tx.GetValueOut(), std::runtime_error);
+
+    // First output valid, but the second output would cause an int64 overflow.
+    // This issue was encountered while fuzzing:
+    // https://github.com/bitcoin/bitcoin/issues/18046
+    mtx.vout[0].nValue = 2 * SATOSHI;
+    mtx.vout[1].nValue = (std::numeric_limits<int64_t>::max() - 1) * SATOSHI;
+    CTransaction overflow_sum_tx{mtx};
+    BOOST_CHECK_THROW(overflow_sum_tx.GetValueOut(), std::runtime_error);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
