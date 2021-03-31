@@ -1862,6 +1862,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
             assert(m_peers_downloading_from == 0);
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
             assert(m_txrequest.Size() == 0);
+            assert(m_orphanage.Size() == 0);
         }
     }
 
