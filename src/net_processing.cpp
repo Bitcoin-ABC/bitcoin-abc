@@ -739,7 +739,7 @@ private:
      *
      * Memory used: 1.3 MB
      */
-    std::unique_ptr<CRollingBloomFilter> recentRejects GUARDED_BY(cs_main);
+    CRollingBloomFilter recentRejects GUARDED_BY(::cs_main){120'000, 0.000'001};
     uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
 
     /**
@@ -2145,9 +2145,6 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
     : m_chainparams(chainparams), m_connman(connman), m_addrman(addrman),
       m_banman(banman), m_chainman(chainman), m_mempool(pool),
       m_ignore_incoming_txs(ignore_incoming_txs) {
-    // Initialize global variables that cannot be constructed at startup.
-    recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
-
     {
         LOCK(cs_invalidProofs);
         invalidProofs = std::make_unique<CRollingBloomFilter>(100000, 0.000001);
@@ -2387,7 +2384,6 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 //
 
 bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
-    assert(recentRejects);
     if (m_chainman.ActiveChain().Tip()->GetBlockHash() !=
         hashRecentRejectsChainTip) {
         // If the chain tip has changed previously rejected transactions
@@ -2396,7 +2392,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         // those txs a second chance.
         hashRecentRejectsChainTip =
             m_chainman.ActiveChain().Tip()->GetBlockHash();
-        recentRejects->reset();
+        recentRejects.reset();
     }
 
     if (m_orphanage.HaveTx(txid)) {
@@ -2410,7 +2406,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         }
     }
 
-    return recentRejects->contains(txid) || m_mempool.exists(txid);
+    return recentRejects.contains(txid) || m_mempool.exists(txid);
 }
 
 bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
@@ -3185,8 +3181,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             LogPrint(BCLog::MEMPOOL, "   removed orphan tx %s\n",
                      orphanTxId.ToString());
 
-            assert(recentRejects);
-            recentRejects->insert(orphanTxId);
+            recentRejects.insert(orphanTxId);
 
             m_orphanage.EraseTx(orphanTxId);
             break;
@@ -3443,8 +3438,7 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
     }
 
     // Invalid tx
-    assert(recentRejects);
-    if (recentRejects->contains(id)) {
+    if (recentRejects.contains(id)) {
         return 1;
     }
 
@@ -4464,7 +4458,7 @@ void PeerManagerImpl::ProcessMessage(
                 std::unique(unique_parents.begin(), unique_parents.end()),
                 unique_parents.end());
             for (const TxId &parent_txid : unique_parents) {
-                if (recentRejects->contains(parent_txid)) {
+                if (recentRejects.contains(parent_txid)) {
                     fRejectedParents = true;
                     break;
                 }
@@ -4505,12 +4499,11 @@ void PeerManagerImpl::ProcessMessage(
                          tx.GetId().ToString());
                 // We will continue to reject this tx since it has rejected
                 // parents so avoid re-requesting it from other peers.
-                recentRejects->insert(tx.GetId());
+                recentRejects.insert(tx.GetId());
                 m_txrequest.ForgetInvId(tx.GetId());
             }
         } else {
-            assert(recentRejects);
-            recentRejects->insert(tx.GetId());
+            recentRejects.insert(tx.GetId());
             m_txrequest.ForgetInvId(tx.GetId());
 
             if (RecursiveDynamicUsage(*ptx) < 100000) {
