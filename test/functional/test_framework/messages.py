@@ -833,22 +833,108 @@ class BlockTransactions:
             self.blockhash, repr(self.transactions))
 
 
-class AvalancheProof:
-    __slots__ = ("blob")
+class AvalancheStake:
+    def __init__(self, utxo=None, amount=0, height=0,
+                 pubkey=b"", is_coinbase=False):
+        self.utxo: COutPoint = utxo or COutPoint()
+        self.amount: int = amount
+        """Amount in satoshis (int64)"""
+        self.height: int = height
+        """Block height containing this utxo (uint32)"""
+        self.pubkey: bytes = pubkey
+        """Public key"""
 
-    def __init__(self, blob: bytes = b""):
-        self.blob: bytes = blob
+        self.is_coinbase: bool = is_coinbase
 
     def deserialize(self, f):
-        self.blob = f.read()
+        self.utxo = COutPoint()
+        self.utxo.deserialize(f)
+        self.amount = struct.unpack("<q", f.read(8))[0]
+        height_ser = struct.unpack("<I", f.read(4))[0]
+        self.is_coinbase = bool(height_ser & 1)
+        self.height = height_ser >> 1
+        self.pubkey = deser_string(f)
+
+    def serialize(self) -> bytes:
+        r = self.utxo.serialize()
+        height_ser = self.height << 1 | int(self.is_coinbase)
+        r += struct.pack('<q', self.amount)
+        r += struct.pack('<I', height_ser)
+        r += ser_compact_size(len(self.pubkey))
+        r += self.pubkey
+        return r
+
+    def get_hash(self, proofid) -> bytes:
+        """Return the bitcoin hash of the concatenation of proofid
+        and the serialized stake."""
+        return hash256(proofid + self.serialize())
+
+    def __repr__(self):
+        return f"AvalancheStake(utxo={self.utxo}, amount={self.amount}," \
+               f" height={self.height}, " \
+               f"pubkey={self.pubkey.hex()})"
+
+
+class AvalancheSignedStake:
+    def __init__(self, stake=None, sig=b""):
+        self.stake: AvalancheStake = stake or AvalancheStake()
+        self.sig: bytes = sig
+        """Signature for this stake, bytes of length 64"""
+
+    def deserialize(self, f):
+        self.stake = AvalancheStake()
+        self.stake.deserialize(f)
+        self.sig = f.read(64)
+
+    def serialize(self) -> bytes:
+        return self.stake.serialize() + self.sig
+
+
+class AvalancheProof:
+    __slots__ = ("sequence", "expiration", "master", "stakes", "proofid")
+
+    def __init__(self, sequence=0, expiration=0,
+                 master=b"", signed_stakes=None):
+        self.sequence: int = sequence
+        self.expiration: int = expiration
+        self.master: bytes = master
+
+        self.stakes: List[AvalancheSignedStake] = signed_stakes or [
+            AvalancheSignedStake()]
+        self.proofid: int = self.compute_proof_id()
+
+    def compute_proof_id(self) -> int:
+        """Return Bitcoin's 256-bit hash (double SHA-256) of the
+        serialized proof data.
+        :return: bytes of length 32
+        """
+        ss = struct.pack("<Qq", self.sequence, self.expiration)
+        ss += ser_string(self.master)
+        ss += ser_vector(self.stakes)
+        h = hash256(ss)
+        # make it an int, for comparing with Delegation.proofid
+        return uint256_from_str(h)
+
+    def deserialize(self, f):
+        self.sequence = struct.unpack("<Q", f.read(8))[0]
+        self.expiration = struct.unpack("<q", f.read(8))[0]
+        self.master = deser_string(f)
+        self.stakes = deser_vector(f, AvalancheSignedStake)
+        self.proofid = self.compute_proof_id()
 
     def serialize(self):
         r = b""
-        r += self.blob
+        r += struct.pack("<Q", self.sequence)
+        r += struct.pack("<q", self.expiration)
+        r += ser_string(self.master)
+        r += ser_vector(self.stakes)
         return r
 
     def __repr__(self):
-        return "AvalancheProof({})".format(self.serialize().hex())
+        return f"AvalancheProof(sequence={self.sequence}, " \
+               f"expiration={self.expiration}, " \
+               f"master={self.master.hex()}, " \
+               f"stakes={self.stakes})"
 
 
 class AvalanchePoll():
