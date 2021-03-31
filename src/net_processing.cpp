@@ -749,8 +749,8 @@ private:
      * confirmed.
      */
     mutable Mutex m_recent_confirmed_transactions_mutex;
-    std::unique_ptr<CRollingBloomFilter> m_recent_confirmed_transactions
-        GUARDED_BY(m_recent_confirmed_transactions_mutex);
+    CRollingBloomFilter m_recent_confirmed_transactions
+        GUARDED_BY(m_recent_confirmed_transactions_mutex){24'000, 0.000'001};
 
     /** Have we requested this block from a peer */
     bool IsBlockRequested(const BlockHash &hash)
@@ -2150,17 +2150,6 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
         LOCK(cs_invalidProofs);
         invalidProofs = std::make_unique<CRollingBloomFilter>(100000, 0.000001);
     }
-
-    // Blocks don't typically have more than 4000 transactions, so this should
-    // be at least six blocks (~1 hr) worth of transactions that we can store.
-    // If the number of transactions appearing in a block goes up, or if we are
-    // seeing getdata requests more than an hour after initial announcement, we
-    // can increase this number.
-    // The false positive rate of 1/1M should come out to less than 1
-    // transaction per day that would be inadvertently ignored (which is the
-    // same probability that we have in the reject filter).
-    m_recent_confirmed_transactions.reset(
-        new CRollingBloomFilter(24000, 0.000001));
 }
 
 void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
@@ -2210,7 +2199,7 @@ void PeerManagerImpl::BlockConnected(
     {
         LOCK(m_recent_confirmed_transactions_mutex);
         for (const CTransactionRef &ptx : pblock->vtx) {
-            m_recent_confirmed_transactions->insert(ptx->GetId());
+            m_recent_confirmed_transactions.insert(ptx->GetId());
         }
     }
     {
@@ -2232,7 +2221,7 @@ void PeerManagerImpl::BlockDisconnected(
     // presumably the most common case of relaying a confirmed transaction
     // should be just after a new block containing it is found.
     LOCK(m_recent_confirmed_transactions_mutex);
-    m_recent_confirmed_transactions->reset();
+    m_recent_confirmed_transactions.reset();
 }
 
 // All of the following cache a recent block, and are protected by
@@ -2402,7 +2391,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
 
     {
         LOCK(m_recent_confirmed_transactions_mutex);
-        if (m_recent_confirmed_transactions->contains(txid)) {
+        if (m_recent_confirmed_transactions.contains(txid)) {
             return true;
         }
     }
@@ -3434,7 +3423,7 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
     // Accepted in mempool, or in a recent block
     if (m_mempool.exists(id) ||
         WITH_LOCK(m_recent_confirmed_transactions_mutex,
-                  return m_recent_confirmed_transactions->contains(id))) {
+                  return m_recent_confirmed_transactions.contains(id))) {
         return 0;
     }
 
