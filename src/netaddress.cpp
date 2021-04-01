@@ -560,42 +560,77 @@ enum Network CNetAddr::GetNetwork() const {
     return m_net;
 }
 
-static std::string IPv6ToString(Span<const uint8_t> a) {
+static std::string IPv4ToString(Span<const uint8_t> a) {
+    return strprintf("%u.%u.%u.%u", a[0], a[1], a[2], a[3]);
+}
+
+//! Return an IPv6 address text representation with zero compression as
+//! described in RFC 5952 ("A Recommendation for IPv6 Address Text
+//! Representation").
+static std::string IPv6ToString(Span<const uint8_t> a, uint32_t scope_id) {
     assert(a.size() == ADDR_IPV6_SIZE);
-    // clang-format off
-    return strprintf("%x:%x:%x:%x:%x:%x:%x:%x",
-                     ReadBE16(&a[0]),
-                     ReadBE16(&a[2]),
-                     ReadBE16(&a[4]),
-                     ReadBE16(&a[6]),
-                     ReadBE16(&a[8]),
-                     ReadBE16(&a[10]),
-                     ReadBE16(&a[12]),
-                     ReadBE16(&a[14]));
-    // clang-format on
+    const std::array<uint16_t, 8> groups{{
+        ReadBE16(&a[0]),
+        ReadBE16(&a[2]),
+        ReadBE16(&a[4]),
+        ReadBE16(&a[6]),
+        ReadBE16(&a[8]),
+        ReadBE16(&a[10]),
+        ReadBE16(&a[12]),
+        ReadBE16(&a[14]),
+    }};
+
+    // The zero compression implementation is inspired by Rust's
+    // std::net::Ipv6Addr, see
+    // https://github.com/rust-lang/rust/blob/cc4103089f40a163f6d143f06359cba7043da29b/library/std/src/net/ip.rs#L1635-L1683
+    struct ZeroSpan {
+        size_t start_index{0};
+        size_t len{0};
+    };
+
+    // Find longest sequence of consecutive all-zero fields. Use first zero
+    // sequence if two or more zero sequences of equal length are found.
+    ZeroSpan longest, current;
+    for (size_t i{0}; i < groups.size(); ++i) {
+        if (groups[i] != 0) {
+            current = {i + 1, 0};
+            continue;
+        }
+        current.len += 1;
+        if (current.len > longest.len) {
+            longest = current;
+        }
+    }
+
+    std::string r;
+    r.reserve(39);
+    for (size_t i{0}; i < groups.size(); ++i) {
+        // Replace the longest sequence of consecutive all-zero fields with
+        // two colons ("::").
+        if (longest.len >= 2 && i >= longest.start_index &&
+            i < longest.start_index + longest.len) {
+            if (i == longest.start_index) {
+                r += "::";
+            }
+            continue;
+        }
+        r += strprintf("%s%x", ((!r.empty() && r.back() != ':') ? ":" : ""),
+                       groups[i]);
+    }
+
+    if (scope_id != 0) {
+        r += strprintf("%%%u", scope_id);
+    }
+
+    return r;
 }
 
 std::string CNetAddr::ToStringIP() const {
     switch (m_net) {
         case NET_IPV4:
-        case NET_IPV6: {
-            CService serv(*this, 0);
-            struct sockaddr_storage sockaddr;
-            socklen_t socklen = sizeof(sockaddr);
-            if (serv.GetSockAddr((struct sockaddr *)&sockaddr, &socklen)) {
-                char name[1025] = "";
-                if (!getnameinfo((const struct sockaddr *)&sockaddr, socklen,
-                                 name, sizeof(name), nullptr, 0,
-                                 NI_NUMERICHOST)) {
-                    return std::string(name);
-                }
-            }
-            if (m_net == NET_IPV4) {
-                return strprintf("%u.%u.%u.%u", m_addr[0], m_addr[1], m_addr[2],
-                                 m_addr[3]);
-            }
-            return IPv6ToString(m_addr);
-        }
+            return IPv4ToString(m_addr);
+        case NET_IPV6:
+            return IPv6ToString(m_addr, m_scope_id);
         case NET_ONION:
             switch (m_addr.size()) {
                 case ADDR_TORV2_SIZE:
@@ -622,7 +657,7 @@ std::string CNetAddr::ToStringIP() const {
             return EncodeBase32(m_addr, false /* don't pad with = */) +
                    ".b32.i2p";
         case NET_CJDNS:
-            return IPv6ToString(m_addr);
+            return IPv6ToString(m_addr, 0);
         case NET_INTERNAL:
             return EncodeBase32(m_addr) + ".internal";
         case NET_UNROUTABLE:
