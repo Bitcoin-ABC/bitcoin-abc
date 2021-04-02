@@ -158,7 +158,8 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
                 }
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
-                ::ChainstateActive().LoadExternalBlockFile(config, file, &pos);
+                chainman.ActiveChainstate().LoadExternalBlockFile(config, file,
+                                                                  &pos);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
@@ -170,7 +171,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
-            ::ChainstateActive().LoadGenesisBlock(chainParams);
+            chainman.ActiveChainstate().LoadGenesisBlock(chainParams);
         }
 
         // -loadblock=
@@ -179,7 +180,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
             if (file) {
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
-                ::ChainstateActive().LoadExternalBlockFile(config, file);
+                chainman.ActiveChainstate().LoadExternalBlockFile(config, file);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
