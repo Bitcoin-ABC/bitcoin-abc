@@ -21,13 +21,19 @@
 
 #include <any>
 
-UniValue CallRPC(const std::string &args, const std::any &context) {
+class RPCTestingSetup : public TestingSetup {
+public:
+    UniValue CallRPC(const std::string &args);
+};
+
+UniValue RPCTestingSetup::CallRPC(const std::string &args) {
     std::vector<std::string> vArgs;
     boost::split(vArgs, args, boost::is_any_of(" \t"));
     std::string strMethod = vArgs[0];
     vArgs.erase(vArgs.begin());
     GlobalConfig config;
-    JSONRPCRequest request(context);
+    JSONRPCRequest request;
+    request.context = &m_node;
     request.strMethod = strMethod;
     request.params = RPCConvertValues(strMethod, vArgs);
     if (RPCIsInWarmup(nullptr)) {
@@ -40,14 +46,6 @@ UniValue CallRPC(const std::string &args, const std::any &context) {
         throw std::runtime_error(find_value(objError, "message").get_str());
     }
 }
-
-class RPCTestingSetup : public TestingSetup {
-public:
-    UniValue CallRPC(const std::string &args) {
-        const std::any context{&m_node};
-        return ::CallRPC(args, context);
-    }
-};
 
 BOOST_FIXTURE_TEST_SUITE(rpc_tests, RPCTestingSetup)
 

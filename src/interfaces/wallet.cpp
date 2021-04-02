@@ -478,8 +478,10 @@ namespace {
                     [this, &command](const Config &config,
                                      const JSONRPCRequest &request,
                                      UniValue &result, bool last_handler) {
-                        return command.actor(config, {request, &m_context},
-                                             result, last_handler);
+                        JSONRPCRequest wallet_request = request;
+                        wallet_request.context = &m_context;
+                        return command.actor(config, wallet_request, result,
+                                             last_handler);
                     },
                     command.argNames, command.unique_id);
                 m_rpc_handlers.emplace_back(

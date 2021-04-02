@@ -229,8 +229,7 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
                    newTip->GetBlockTimeMax() + TIMESTAMP_WINDOW + 1);
         key.pushKV("internal", UniValue(true));
         keys.push_back(key);
-        std::any context;
-        JSONRPCRequest request(context);
+        JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back(keys);
 
@@ -298,8 +297,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
                 ::ChainActive().Height(),
                 ::ChainActive().Tip()->GetBlockHash());
         }
-        std::any context;
-        JSONRPCRequest request(context);
+        JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back(backup_file);
         ::dumpwallet().HandleRequest(GetConfig(), request);
@@ -314,8 +312,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         LOCK(wallet->cs_wallet);
         wallet->SetupLegacyScriptPubKeyMan();
 
-        std::any context;
-        JSONRPCRequest request(context);
+        JSONRPCRequest request;
         request.params.setArray();
         request.params.push_back(backup_file);
         AddWallet(wallet);

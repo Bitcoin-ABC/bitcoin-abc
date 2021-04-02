@@ -1523,7 +1523,7 @@ static bool AppInitServers(Config &config,
         return false;
     }
     if (args.GetBoolArg("-rest", DEFAULT_REST_ENABLE)) {
-        StartREST(httpRPCRequestProcessor.context);
+        StartREST(&node);
     }
 
     StartHTTPServer();

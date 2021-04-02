@@ -48,15 +48,16 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command) {
     args.pushKV("arg1", "value1");
 
     // Registered commands execute and return values correctly
-    std::any context{&m_node};
-    JSONRPCRequest request(context);
+    JSONRPCRequest request;
+    request.context = &m_node;
     request.strMethod = commandName;
     request.params = args;
     UniValue output = rpcServer.ExecuteCommand(config, request);
     BOOST_CHECK_EQUAL(output.get_str(), "testing1");
 
     // Not-registered commands throw an exception as expected
-    JSONRPCRequest badCommandRequest(context);
+    JSONRPCRequest badCommandRequest;
+    badCommandRequest.context = &m_node;
     badCommandRequest.strMethod = "this-command-does-not-exist";
     BOOST_CHECK_EXCEPTION(rpcServer.ExecuteCommand(config, badCommandRequest),
                           UniValue, isRpcMethodNotFound);
@@ -88,8 +89,8 @@ BOOST_AUTO_TEST_CASE(rpc_server_execute_command_from_request_context) {
     args.pushKV("arg2", "value2");
 
     // Registered commands execute and return values correctly
-    std::any context{&m_node};
-    JSONRPCRequest request(context);
+    JSONRPCRequest request;
+    request.context = &m_node;
     request.strMethod = commandName;
     request.params = args;
     UniValue output = rpcServer.ExecuteCommand(config, request);

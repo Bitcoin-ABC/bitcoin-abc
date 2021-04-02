@@ -345,7 +345,8 @@ static bool rest_chaininfo(Config &config, const std::any &context,
 
     switch (rf) {
         case RetFormat::JSON: {
-            JSONRPCRequest jsonRequest(context);
+            JSONRPCRequest jsonRequest;
+            jsonRequest.context = context;
             jsonRequest.params = UniValue(UniValue::VARR);
             UniValue chainInfoObject =
                 getblockchaininfo().HandleRequest(config, jsonRequest);
@@ -787,8 +788,8 @@ static const struct {
 
 void StartREST(const std::any &context) {
     for (const auto &up : uri_prefixes) {
-        auto handler = [&context, up](Config &config, HTTPRequest *req,
-                                      const std::string &prefix) {
+        auto handler = [context, up](Config &config, HTTPRequest *req,
+                                     const std::string &prefix) {
             return up.handler(config, context, req, prefix);
         };
         RegisterHTTPHandler(up.prefix, false, handler);

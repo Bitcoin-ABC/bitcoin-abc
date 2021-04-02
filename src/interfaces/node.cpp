@@ -252,7 +252,8 @@ namespace {
         UniValue executeRpc(const Config &config, const std::string &command,
                             const UniValue &params,
                             const std::string &uri) override {
-            JSONRPCRequest req(m_context_ref);
+            JSONRPCRequest req;
+            req.context = m_context;
             req.params = params;
             req.strMethod = command;
             req.URI = uri;
@@ -332,16 +333,8 @@ namespace {
                 }));
         }
         NodeContext *context() override { return m_context; }
-        void setContext(NodeContext *context) override {
-            m_context = context;
-            if (context) {
-                m_context_ref = context;
-            } else {
-                m_context_ref.reset();
-            }
-        }
+        void setContext(NodeContext *context) override { m_context = context; }
         NodeContext *m_context{nullptr};
-        std::any m_context_ref{m_context};
     };
 } // namespace
 
