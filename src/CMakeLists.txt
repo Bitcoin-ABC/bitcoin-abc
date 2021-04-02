@@ -579,6 +579,7 @@ add_library(server
 	minerfund.cpp
 	net.cpp
 	net_processing.cpp
+	node/blockstorage.cpp
 	node/coin.cpp
 	node/coinstats.cpp
 	node/context.cpp
