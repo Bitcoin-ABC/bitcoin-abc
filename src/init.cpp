@@ -157,8 +157,6 @@ static fs::path GetPidFile(const ArgsManager &args) {
 
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
-static std::thread g_load_block;
-
 void Interrupt(NodeContext &node) {
     InterruptHTTPServer();
     InterruptHTTPRPC();
@@ -233,8 +231,8 @@ void Shutdown(NodeContext &node) {
     if (node.scheduler) {
         node.scheduler->stop();
     }
-    if (g_load_block.joinable()) {
-        g_load_block.join();
+    if (node.chainman && node.chainman->m_load_block.joinable()) {
+        node.chainman->m_load_block.join();
     }
     StopScriptCheckWorkerThreads();
 
@@ -3022,7 +3020,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         vImportFiles.push_back(fs::PathFromString(strFile));
     }
 
-    g_load_block =
+    chainman.m_load_block =
         std::thread(&TraceThread<std::function<void()>>, "loadblk",
                     [=, &config, &chainman, &args] {
                         ThreadImport(config, chainman, vImportFiles, args);
