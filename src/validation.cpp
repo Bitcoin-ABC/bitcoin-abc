@@ -26,6 +26,7 @@
 #include <logging.h>
 #include <logging/timer.h>
 #include <minerfund.h>
+#include <node/blockstorage.h>
 #include <node/coinstats.h>
 #include <node/ui_interface.h>
 #include <policy/fees.h>
@@ -852,35 +853,6 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
         }
     }
     return nullptr;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// CBlock and CBlockIndex
-//
-
-static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
-                             const CMessageHeader::MessageMagic &messageStart) {
-    // Open history file to append
-    CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-    if (fileout.IsNull()) {
-        return error("WriteBlockToDisk: OpenBlockFile failed");
-    }
-
-    // Write index header
-    unsigned int nSize = GetSerializeSize(block, fileout.GetVersion());
-    fileout << messageStart << nSize;
-
-    // Write block
-    long fileOutPos = ftell(fileout.Get());
-    if (fileOutPos < 0) {
-        return error("WriteBlockToDisk: ftell failed");
-    }
-
-    pos.nPos = (unsigned int)fileOutPos;
-    fileout << block;
-
-    return true;
 }
 
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
@@ -3675,9 +3647,9 @@ void CChainState::ReceivedBlockTransactions(const CBlock &block,
     }
 }
 
-static bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
-                         unsigned int nHeight, CChain &active_chain,
-                         uint64_t nTime, bool fKnown = false) {
+// TODO move to blockstorage
+bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int nHeight,
+                  CChain &active_chain, uint64_t nTime, bool fKnown = false) {
     LOCK(cs_LastBlockFile);
 
     unsigned int nFile = fKnown ? pos.nFile : nLastBlockFile;
@@ -4257,33 +4229,6 @@ bool ChainstateManager::ProcessNewBlockHeaders(
         }
     }
     return true;
-}
-
-/**
- * Store block on disk. If dbp is non-nullptr, the file is known to already
- * reside on disk.
- */
-static FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
-                                   CChain &active_chain,
-                                   const CChainParams &chainparams,
-                                   const FlatFilePos *dbp) {
-    unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
-    FlatFilePos blockPos;
-    if (dbp != nullptr) {
-        blockPos = *dbp;
-    }
-    if (!FindBlockPos(blockPos, nBlockSize + 8, nHeight, active_chain,
-                      block.GetBlockTime(), dbp != nullptr)) {
-        error("%s: FindBlockPos failed", __func__);
-        return FlatFilePos();
-    }
-    if (dbp == nullptr) {
-        if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
-            AbortNode("Failed to write block");
-            return FlatFilePos();
-        }
-    }
-    return blockPos;
 }
 
 /**

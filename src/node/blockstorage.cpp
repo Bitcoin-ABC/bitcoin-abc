@@ -5,13 +5,121 @@
 #include <node/blockstorage.h>
 
 #include <blockdb.h>
+#include <chain.h>
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/validation.h>
+#include <flatfile.h>
 #include <fs.h>
+#include <pow/pow.h>
 #include <shutdown.h>
+#include <streams.h>
 #include <util/system.h>
 #include <validation.h>
+
+// From validation. TODO move here
+bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int nHeight,
+                  CChain &active_chain, uint64_t nTime, bool fKnown = false);
+
+static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
+                             const CMessageHeader::MessageMagic &messageStart) {
+    // Open history file to append
+    CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
+    if (fileout.IsNull()) {
+        return error("WriteBlockToDisk: OpenBlockFile failed");
+    }
+
+    // Write index header
+    unsigned int nSize = GetSerializeSize(block, fileout.GetVersion());
+    fileout << messageStart << nSize;
+
+    // Write block
+    long fileOutPos = ftell(fileout.Get());
+    if (fileOutPos < 0) {
+        return error("WriteBlockToDisk: ftell failed");
+    }
+
+    pos.nPos = (unsigned int)fileOutPos;
+    fileout << block;
+
+    return true;
+}
+
+bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
+                       const Consensus::Params &params) {
+    block.SetNull();
+
+    // Open history file to read
+    CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+    if (filein.IsNull()) {
+        return error("ReadBlockFromDisk: OpenBlockFile failed for %s",
+                     pos.ToString());
+    }
+
+    // Read block
+    try {
+        filein >> block;
+    } catch (const std::exception &e) {
+        return error("%s: Deserialize or I/O error - %s at %s", __func__,
+                     e.what(), pos.ToString());
+    }
+
+    // Check the header
+    if (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {
+        return error("ReadBlockFromDisk: Errors in block header at %s",
+                     pos.ToString());
+    }
+
+    return true;
+}
+
+bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
+                       const Consensus::Params &params) {
+    FlatFilePos blockPos;
+    {
+        LOCK(cs_main);
+        blockPos = pindex->GetBlockPos();
+    }
+
+    if (!ReadBlockFromDisk(block, blockPos, params)) {
+        return false;
+    }
+
+    if (block.GetHash() != pindex->GetBlockHash()) {
+        return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() "
+                     "doesn't match index for %s at %s",
+                     pindex->ToString(), pindex->GetBlockPos().ToString());
+    }
+
+    return true;
+}
+
+/**
+ * Store block on disk. If dbp is non-nullptr, the file is known to already
+ * reside on disk.
+ */
+FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
+                            CChain &active_chain,
+                            const CChainParams &chainparams,
+                            const FlatFilePos *dbp) {
+    unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
+    FlatFilePos blockPos;
+    if (dbp != nullptr) {
+        blockPos = *dbp;
+    }
+    if (!FindBlockPos(blockPos, nBlockSize + 8, nHeight, active_chain,
+                      block.GetBlockTime(), dbp != nullptr)) {
+        error("%s: FindBlockPos failed", __func__);
+        return FlatFilePos();
+    }
+    if (dbp == nullptr) {
+        if (!WriteBlockToDisk(block, blockPos, chainparams.DiskMagic())) {
+            AbortNode("Failed to write block");
+            return FlatFilePos();
+        }
+    }
+    return blockPos;
+}
 
 struct CImportingNow {
     CImportingNow() {

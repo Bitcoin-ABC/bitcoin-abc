@@ -6,6 +6,7 @@
 
 #include <blockdb.h>
 #include <chainparams.h>
+#include <node/blockstorage.h>
 #include <validation.h>
 
 bool ComputeFilter(BlockFilterType filter_type, const CBlockIndex *block_index,

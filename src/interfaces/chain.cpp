@@ -4,13 +4,13 @@
 
 #include <interfaces/chain.h>
 
-#include <blockdb.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <interfaces/handler.h>
 #include <interfaces/wallet.h>
 #include <net.h>
 #include <net_processing.h>
+#include <node/blockstorage.h>
 #include <node/coin.h>
 #include <node/context.h>
 #include <node/transaction.h>

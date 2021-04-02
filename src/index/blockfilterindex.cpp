@@ -4,9 +4,9 @@
 
 #include <dbwrapper.h>
 #include <index/blockfilterindex.h>
+#include <node/blockstorage.h>
 #include <primitives/blockhash.h>
 #include <util/system.h>
-#include <validation.h>
 
 #include <map>
 

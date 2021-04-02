@@ -17,6 +17,7 @@
 #include <hash.h>
 #include <index/blockfilterindex.h>
 #include <network.h>
+#include <node/blockstorage.h>
 #include <node/coinstats.h>
 #include <node/context.h>
 #include <node/utxo_snapshot.h>

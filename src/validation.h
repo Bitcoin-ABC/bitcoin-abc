@@ -472,8 +472,6 @@ public:
     ScriptExecutionMetrics GetScriptExecutionMetrics() const { return metrics; }
 };
 
-bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex);
-
 /** Functions for validating blocks and updating the block tree */
 
 /**

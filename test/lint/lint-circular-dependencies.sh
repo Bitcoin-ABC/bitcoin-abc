@@ -14,7 +14,9 @@ set -euo pipefail
 
 EXPECTED_CIRCULAR_DEPENDENCIES=(
     "index/txindex -> validation -> index/txindex"
-    "index/blockfilterindex -> validation -> index/blockfilterindex"
+    "node/blockstorage -> validation -> node/blockstorage"
+    "index/blockfilterindex -> node/blockstorage -> validation -> index/blockfilterindex"
+    "index/base -> validation -> index/blockfilterindex -> index/base"
     "qt/addresstablemodel -> qt/walletmodel -> qt/addresstablemodel"
     "qt/bitcoingui -> qt/walletframe -> qt/bitcoingui"
     "qt/recentrequeststablemodel -> qt/walletmodel -> qt/recentrequeststablemodel"

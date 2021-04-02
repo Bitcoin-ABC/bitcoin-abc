@@ -4,10 +4,10 @@
 
 #include <zmq/zmqpublishnotifier.h>
 
-#include <blockdb.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <node/blockstorage.h>
 #include <primitives/blockhash.h>
 #include <primitives/txid.h>
 #include <rpc/server.h>

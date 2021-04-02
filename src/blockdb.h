@@ -33,10 +33,4 @@ fs::path GetBlockPosFilename(const FlatFilePos &pos);
  */
 FILE *OpenBlockFile(const FlatFilePos &pos, bool fReadOnly = false);
 
-/** Functions for disk access for blocks */
-bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
-                       const Consensus::Params &params);
-bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
-                       const Consensus::Params &params);
-
 #endif // BITCOIN_BLOCKDB_H
