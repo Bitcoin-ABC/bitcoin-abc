@@ -59,6 +59,8 @@ static CCheckpointData mainNetCheckpointData = {
                                     "e50729bdc9bd07f910757d")},
         {664198, BlockHash::fromHex("00000000000000000c2f90578cede892ff39592cce"
                                     "34b2fb89b6d2a122468260")},
+        {680140, BlockHash::fromHex("0000000000000000232c48568b63451d4ac445210"
+                                    "9aa46f8b38c65c3f62f7c0b")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
