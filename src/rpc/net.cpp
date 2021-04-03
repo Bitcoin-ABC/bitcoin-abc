@@ -1069,31 +1069,35 @@ static RPCHelpMan setnetworkactive() {
 static RPCHelpMan getnodeaddresses() {
     return RPCHelpMan{
         "getnodeaddresses",
-        "Return known addresses which can potentially be used to find new "
-        "nodes in the network\n",
+        "Return known addresses, which can potentially be used to find new "
+        "nodes in the network.\n",
         {
             {"count", RPCArg::Type::NUM, /* default */ "1",
              "The maximum number of addresses to return. Specify 0 to return "
              "all known addresses."},
         },
-        RPCResult{
-            RPCResult::Type::ARR,
-            "",
-            "",
-            {
-                {RPCResult::Type::OBJ,
-                 "",
-                 "",
-                 {
-                     {RPCResult::Type::NUM_TIME, "time",
-                      "The " + UNIX_EPOCH_TIME +
-                          " of when the node was last seen"},
-                     {RPCResult::Type::NUM, "services", "The services offered"},
-                     {RPCResult::Type::STR, "address",
-                      "The address of the node"},
-                     {RPCResult::Type::NUM, "port", "The port of the node"},
-                 }},
-            }},
+        RPCResult{RPCResult::Type::ARR,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::OBJ,
+                       "",
+                       "",
+                       {
+                           {RPCResult::Type::NUM_TIME, "time",
+                            "The " + UNIX_EPOCH_TIME +
+                                " when the node was last seen"},
+                           {RPCResult::Type::NUM, "services",
+                            "The services offered by the node"},
+                           {RPCResult::Type::STR, "address",
+                            "The address of the node"},
+                           {RPCResult::Type::NUM, "port",
+                            "The port number of the node"},
+                           {RPCResult::Type::STR, "network",
+                            "The network (" + Join(GetNetworkNames(), ", ") +
+                                ") the node connected through"},
+                       }},
+                  }},
         RPCExamples{HelpExampleCli("getnodeaddresses", "8") +
                     HelpExampleRpc("getnodeaddresses", "8")},
         [&](const RPCHelpMan &self, const Config &config,
@@ -1105,17 +1109,16 @@ static RPCHelpMan getnodeaddresses() {
                     "Error: Peer-to-peer functionality missing or disabled");
             }
 
-            int count = 1;
-            if (!request.params[0].isNull()) {
-                count = request.params[0].get_int();
-                if (count < 0) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                       "Address count out of range");
-                }
+            const int count{
+                request.params[0].isNull() ? 1 : request.params[0].get_int()};
+            if (count < 0) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "Address count out of range");
             }
+
             // returns a shuffled list of CAddress
-            std::vector<CAddress> vAddr =
-                node.connman->GetAddresses(count, /* max_pct */ 0);
+            const std::vector<CAddress> vAddr{
+                node.connman->GetAddresses(count, /* max_pct */ 0)};
             UniValue ret(UniValue::VARR);
 
             for (const CAddress &addr : vAddr) {
@@ -1124,6 +1127,7 @@ static RPCHelpMan getnodeaddresses() {
                 obj.pushKV("services", uint64_t(addr.nServices));
                 obj.pushKV("address", addr.ToStringIP());
                 obj.pushKV("port", addr.GetPort());
+                obj.pushKV("network", GetNetworkName(addr.GetNetClass()));
                 ret.push_back(obj);
             }
             return ret;
