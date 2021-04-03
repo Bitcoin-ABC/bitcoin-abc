@@ -907,14 +907,14 @@ void CoinsViews::InitCache() {
 }
 
 CChainState::CChainState(CTxMemPool &mempool, BlockManager &blockman,
-                         BlockHash from_snapshot_blockhash)
+                         std::optional<BlockHash> from_snapshot_blockhash)
     : m_mempool(mempool), m_blockman(blockman),
       m_from_snapshot_blockhash(from_snapshot_blockhash) {}
 
 void CChainState::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
                               bool should_wipe, std::string leveldb_name) {
-    if (!m_from_snapshot_blockhash.IsNull()) {
-        leveldb_name += "_" + m_from_snapshot_blockhash.ToString();
+    if (m_from_snapshot_blockhash) {
+        leveldb_name += "_" + m_from_snapshot_blockhash->ToString();
     }
     m_coins_views = std::make_unique<CoinsViews>(leveldb_name, cache_size_bytes,
                                                  in_memory, should_wipe);
@@ -4976,7 +4976,7 @@ bool CVerifyDB::VerifyDB(CChainState &chainstate, const Config &config,
     int reportDone = 0;
     LogPrintfToBeContinued("[0%%]...");
 
-    bool is_snapshot_cs = !chainstate.m_from_snapshot_blockhash.IsNull();
+    const bool is_snapshot_cs{!chainstate.m_from_snapshot_blockhash};
 
     for (pindex = chainstate.m_chain.Tip(); pindex && pindex->pprev;
          pindex = pindex->pprev) {
@@ -5826,7 +5826,7 @@ void CChainState::CheckBlockIndex(const Consensus::Params &consensusParams) {
 std::string CChainState::ToString() {
     CBlockIndex *tip = m_chain.Tip();
     return strprintf("Chainstate [%s] @ height %d (%s)",
-                     m_from_snapshot_blockhash.IsNull() ? "ibd" : "snapshot",
+                     m_from_snapshot_blockhash ? "snapshot" : "ibd",
                      tip ? tip->nHeight : -1,
                      tip ? tip->GetBlockHash().ToString() : "null");
 }
@@ -6080,8 +6080,7 @@ double GuessVerificationProgress(const ChainTxData &data,
 std::optional<BlockHash> ChainstateManager::SnapshotBlockhash() const {
     // for m_active_chainstate access
     LOCK(::cs_main);
-    if (m_active_chainstate != nullptr &&
-        !m_active_chainstate->m_from_snapshot_blockhash.IsNull()) {
+    if (m_active_chainstate && m_active_chainstate->m_from_snapshot_blockhash) {
         // If a snapshot chainstate exists, it will always be our active.
         return m_active_chainstate->m_from_snapshot_blockhash;
     }
@@ -6102,10 +6101,9 @@ std::vector<CChainState *> ChainstateManager::GetAll() {
     return out;
 }
 
-CChainState &
-ChainstateManager::InitializeChainstate(CTxMemPool &mempool,
-                                        const BlockHash &snapshot_blockhash) {
-    bool is_snapshot = !snapshot_blockhash.IsNull();
+CChainState &ChainstateManager::InitializeChainstate(
+    CTxMemPool &mempool, const std::optional<BlockHash> &snapshot_blockhash) {
+    bool is_snapshot = snapshot_blockhash.has_value();
     std::unique_ptr<CChainState> &to_modify =
         is_snapshot ? m_snapshot_chainstate : m_ibd_chainstate;
 

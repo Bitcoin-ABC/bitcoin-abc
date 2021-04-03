@@ -240,9 +240,8 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
 
     // Snapshot should refuse to load at this height.
     BOOST_REQUIRE(!CreateAndActivateUTXOSnapshot(m_node, m_path_root));
-    BOOST_CHECK(chainman.ActiveChainstate().m_from_snapshot_blockhash.IsNull());
-    BOOST_CHECK_EQUAL(chainman.ActiveChainstate().m_from_snapshot_blockhash,
-                      chainman.SnapshotBlockhash().value_or(BlockHash{}));
+    BOOST_CHECK(!chainman.ActiveChainstate().m_from_snapshot_blockhash);
+    BOOST_CHECK(!chainman.SnapshotBlockhash());
 
     // Mine 10 more blocks, putting at us height 110 where a valid assumeutxo
     // value can be found.
@@ -292,8 +291,8 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
 
     // Ensure our active chain is the snapshot chainstate.
     BOOST_CHECK(
-        !chainman.ActiveChainstate().m_from_snapshot_blockhash.IsNull());
-    BOOST_CHECK_EQUAL(chainman.ActiveChainstate().m_from_snapshot_blockhash,
+        !chainman.ActiveChainstate().m_from_snapshot_blockhash->IsNull());
+    BOOST_CHECK_EQUAL(*chainman.ActiveChainstate().m_from_snapshot_blockhash,
                       *chainman.SnapshotBlockhash());
 
     const AssumeutxoData &au_data =
@@ -369,7 +368,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
     BOOST_REQUIRE(!CreateAndActivateUTXOSnapshot(m_node, m_path_root));
 
     // Snapshot blockhash should be unchanged.
-    BOOST_CHECK_EQUAL(chainman.ActiveChainstate().m_from_snapshot_blockhash,
+    BOOST_CHECK_EQUAL(*chainman.ActiveChainstate().m_from_snapshot_blockhash,
                       loaded_snapshot_blockhash);
 }
 
