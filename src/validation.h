@@ -929,20 +929,20 @@ public:
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
     /** Mark a block as invalid. */
     bool InvalidateBlock(const Config &config, BlockValidationState &state,
-                         CBlockIndex *pindex)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, !m_cs_chainstate);
+                         CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_cs_chainstate);
     /** Park a block. */
     bool ParkBlock(const Config &config, BlockValidationState &state,
-                   CBlockIndex *pindex)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, !m_cs_chainstate);
+                   CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_cs_chainstate);
 
     /**
      * Finalize a block.
      * A finalized block can not be reorged in any way.
      */
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
-                       CBlockIndex *pindex)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, !m_cs_chainstate);
+                       CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_cs_chainstate);
     /** Return the currently finalized block index. */
     const CBlockIndex *GetFinalizedBlock() const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);

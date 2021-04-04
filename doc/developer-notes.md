@@ -769,7 +769,7 @@ void CTxMemPool::UpdateTransactionsFromBlock(...) {
 class ChainstateManager {
 public:
     ...
-    bool ProcessNewBlock(...) EXCLUSIVE_LOCKS_REQUIRED(!::cs_main);
+    bool ProcessNewBlock(...) LOCKS_EXCLUDED(::cs_main);
     ...
 }
 

@@ -1424,8 +1424,8 @@ public:
      * Obviously holding cs_main/cs_wallet when going into this call may cause
      * deadlock
      */
-    void BlockUntilSyncedToCurrentChain() const
-        EXCLUSIVE_LOCKS_REQUIRED(!::cs_main, !cs_wallet);
+    void BlockUntilSyncedToCurrentChain() const LOCKS_EXCLUDED(::cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_wallet);
 
     /**
      * Set a single wallet flag.

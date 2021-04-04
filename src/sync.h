@@ -59,8 +59,7 @@ void AssertLockHeldInternal(const char *pszName, const char *pszFile, int nLine,
                             MutexType *cs) EXCLUSIVE_LOCKS_REQUIRED(cs);
 template <typename MutexType>
 void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
-                               int nLine, MutexType *cs)
-    EXCLUSIVE_LOCKS_REQUIRED(!cs);
+                               int nLine, MutexType *cs) LOCKS_EXCLUDED(cs);
 void DeleteLock(void *cs);
 bool LockStackEmpty();
 
@@ -83,8 +82,7 @@ inline void AssertLockHeldInternal(const char *pszName, const char *pszFile,
     EXCLUSIVE_LOCKS_REQUIRED(cs) {}
 template <typename MutexType>
 void AssertLockNotHeldInternal(const char *pszName, const char *pszFile,
-                               int nLine, MutexType *cs)
-    EXCLUSIVE_LOCKS_REQUIRED(!cs) {}
+                               int nLine, MutexType *cs) LOCKS_EXCLUDED(cs) {}
 inline void DeleteLock(void *cs) {}
 inline bool LockStackEmpty() {
     return true;
