@@ -145,7 +145,7 @@ class CScript;
  * Testing fixture that pre-creates a 100-block REGTEST-mode block chain
  */
 struct TestChain100Setup : public RegTestingSetup {
-    TestChain100Setup(bool deterministic = false);
+    TestChain100Setup();
 
     /**
      * Create a new block with just given transactions, coinbase paying to
@@ -185,15 +185,10 @@ struct TestChain100Setup : public RegTestingSetup {
 
     ~TestChain100Setup();
 
-    bool m_deterministic;
     // For convenience, coinbase transactions.
     std::vector<CTransactionRef> m_coinbase_txns;
     // private/public key needed to spend coinbase transactions.
     CKey coinbaseKey;
-};
-
-struct TestChain100DeterministicSetup : public TestChain100Setup {
-    TestChain100DeterministicSetup() : TestChain100Setup(true) {}
 };
 
 class CTxMemPoolEntry;

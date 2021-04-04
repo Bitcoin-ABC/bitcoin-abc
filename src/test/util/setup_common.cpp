@@ -250,23 +250,17 @@ TestingSetup::TestingSetup(const std::string &chainName,
     }
 }
 
-TestChain100Setup::TestChain100Setup(bool deterministic) {
-    m_deterministic = deterministic;
-
-    if (m_deterministic) {
-        SetMockTime(1598887952);
-        constexpr std::array<uint8_t, 32> vchKey = {
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}};
-        coinbaseKey.Set(vchKey.begin(), vchKey.end(), true);
-    } else {
-        coinbaseKey.MakeNewKey(true);
-    }
+TestChain100Setup::TestChain100Setup() {
+    SetMockTime(1598887952);
+    constexpr std::array<uint8_t, 32> vchKey = {
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}};
+    coinbaseKey.Set(vchKey.begin(), vchKey.end(), true);
 
     // Generate a 100-block chain:
     this->mineBlocks(COINBASE_MATURITY);
 
-    if (m_deterministic) {
+    {
         LOCK(::cs_main);
         assert(
             m_node.chainman->ActiveTip()->GetBlockHash().ToString() ==
@@ -280,9 +274,7 @@ void TestChain100Setup::mineBlocks(int num_blocks) {
     for (int i = 0; i < num_blocks; i++) {
         std::vector<CMutableTransaction> noTxns;
         CBlock b = CreateAndProcessBlock(noTxns, scriptPubKey);
-        if (m_deterministic) {
-            SetMockTime(GetTime() + 1);
-        }
+        SetMockTime(GetTime() + 1);
         m_coinbase_txns.push_back(b.vtx[0]);
     }
 }
@@ -389,9 +381,7 @@ CMutableTransaction TestChain100Setup::CreateValidMempoolTransaction(
 }
 
 TestChain100Setup::~TestChain100Setup() {
-    if (m_deterministic) {
-        SetMockTime(0);
-    }
+    SetMockTime(0);
 }
 
 CTxMemPoolEntry

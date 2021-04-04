@@ -2053,15 +2053,15 @@ BOOST_AUTO_TEST_CASE(proof_expiry) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
-    const int64_t tipMTP = chainman.ActiveTip()->GetMedianTimePast();
+    const int64_t tipTime = chainman.ActiveTip()->GetBlockTime();
 
     CKey key = CKey::MakeCompressedKey();
 
     auto utxo = createUtxo(chainman.ActiveChainstate(), key);
     auto proofToExpire = buildProof(key, {{utxo, PROOF_DUST_THRESHOLD}}, key, 2,
-                                    100, false, tipMTP + 1);
+                                    100, false, tipTime + 1);
     auto conflictingProof = buildProof(key, {{utxo, PROOF_DUST_THRESHOLD}}, key,
-                                       1, 100, false, tipMTP + 2);
+                                       1, 100, false, tipTime + 2);
 
     // Our proofToExpire is not expired yet, so it registers fine
     BOOST_CHECK(pm.registerProof(proofToExpire));

@@ -1345,7 +1345,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     BOOST_CHECK(!m_processor->isQuorumEstablished());
 
     // Add the rest of the stake, but we are still lacking connected stake
-    const int64_t tipMTP = chainman.ActiveTip()->GetMedianTimePast();
+    const int64_t tipTime = chainman.ActiveTip()->GetBlockTime();
     const COutPoint utxo{TxId(GetRandHash()), 0};
     const Amount amount = (int64_t(minScore / 4) * COIN) / 100;
     const int height = 100;
@@ -1359,7 +1359,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
                            height, isCoinbase),
                       false);
     }
-    ProofBuilder pb(1, tipMTP + 1, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+    ProofBuilder pb(1, tipTime + 1, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
     BOOST_CHECK(pb.addUTXO(utxo, amount, height, isCoinbase, key));
     auto proof2 = pb.build();
 
