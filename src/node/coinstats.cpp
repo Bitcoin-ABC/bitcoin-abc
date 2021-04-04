@@ -10,6 +10,7 @@
 #include <hash.h>
 #include <primitives/txid.h>
 #include <serialize.h>
+#include <util/check.h>
 #include <util/system.h>
 #include <validation.h>
 
@@ -93,8 +94,9 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats, T hash_obj,
     stats.hashBlock = pcursor->GetBestBlock();
     {
         LOCK(cs_main);
-        stats.nHeight =
-            g_chainman.m_blockman.LookupBlockIndex(stats.hashBlock)->nHeight;
+        const CBlockIndex *block =
+            g_chainman.m_blockman.LookupBlockIndex(stats.hashBlock);
+        stats.nHeight = Assert(block)->nHeight;
     }
 
     PrepareHash(hash_obj, stats);
