@@ -258,7 +258,7 @@ TestChain100Setup::TestChain100Setup(bool deterministic) {
         constexpr std::array<uint8_t, 32> vchKey = {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}};
-        coinbaseKey.Set(vchKey.begin(), vchKey.end(), false);
+        coinbaseKey.Set(vchKey.begin(), vchKey.end(), true);
     } else {
         coinbaseKey.MakeNewKey(true);
     }
@@ -270,7 +270,7 @@ TestChain100Setup::TestChain100Setup(bool deterministic) {
         LOCK(::cs_main);
         assert(
             m_node.chainman->ActiveTip()->GetBlockHash().ToString() ==
-            "7709f3c48b74400f751dc88fcb318431cbe43f2284c43d830775defb89b50168");
+            "7487ae41496da318b430ad04cc5039507a9365bdb26275d79b3fc148c6eea1e9");
     }
 }
 

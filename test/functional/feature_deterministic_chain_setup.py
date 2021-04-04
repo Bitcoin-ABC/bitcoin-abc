@@ -72,7 +72,7 @@ class DeterministicChainSetupTest(BitcoinTestFramework):
         genesis_hash = node.getbestblockhash()
 
         coinbase_key = ECKey()
-        coinbase_key.set(31 * b"\x00" + b"\x01", compressed=False)
+        coinbase_key.set(31 * b"\x00" + b"\x01", compressed=True)
         coinbase_pubkey = coinbase_key.get_pubkey().get_bytes()
 
         tip = genesis_hash
@@ -96,19 +96,19 @@ class DeterministicChainSetupTest(BitcoinTestFramework):
             "Reproduce the assertion in the TestChain100Setup constructor.")
         mine_blocks(100)
         assert_equal(tip,
-                     "7709f3c48b74400f751dc88fcb318431cbe43f2284c43d830775defb89b50168")
+                     "7487ae41496da318b430ad04cc5039507a9365bdb26275d79b3fc148c6eea1e9")
 
         self.log.info("Check m_assumeutxo_data at height 110.")
         mine_blocks(10)
         assert_equal(node.getblockchaininfo()["blocks"], 110)
         assert_equal(node.gettxoutsetinfo()["hash_serialized"],
-                     "f5a6cff6749a5a2e1f01a706cd6d139739cd029d14912c2fab284f1d22e79268")
+                     "ff755939f6fd81bf966e2f347f5d3660d6239334050eb557a6f005d7d8184ea9")
 
         self.log.info("Check m_assumeutxo_data at height 210.")
         mine_blocks(100)
         assert_equal(node.getblockchaininfo()["blocks"], 210)
         assert_equal(node.gettxoutsetinfo()["hash_serialized"],
-                     "37636b5bb17459fe77f2d77fcae80992ae03dff848033c7225dab8a9722821a6")
+                     "d6089fa8d2100926326cacdd452231e30bb4e64f07aa5bfec96e055ac2a9a87a")
 
 
 if __name__ == '__main__':

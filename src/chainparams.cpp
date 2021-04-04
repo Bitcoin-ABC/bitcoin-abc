@@ -493,16 +493,14 @@ public:
         m_assumeutxo_data = MapAssumeutxo{
             {
                 110,
-                {AssumeutxoHash{uint256S(
-                     "0xf5a6cff6749a5a2e1f01a706cd6d139739cd029d14912c2fab"
-                     "284f1d22e79268")},
+                {AssumeutxoHash{uint256S("0xff755939f6fd81bf966e2f347f5d3660d62"
+                                         "39334050eb557a6f005d7d8184ea9")},
                  110},
             },
             {
                 210,
-                {AssumeutxoHash{uint256S(
-                     "0x37636b5bb17459fe77f2d77fcae80992ae03dff848033c7225"
-                     "dab8a9722821a6")},
+                {AssumeutxoHash{uint256S("0xd6089fa8d2100926326cacdd452231e30bb"
+                                         "4e64f07aa5bfec96e055ac2a9a87a")},
                  210},
             },
         };
