@@ -24,6 +24,7 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
                 '-limitancestorsize=5000',
                 f'-limitancestorcount={self.limit_ancestor_descendant_count}',
                 f'-limitdescendantcount={self.limit_ancestor_descendant_count}',
+                '-deprecatedrpc=mempool_ancestors_descendants',
             ],
         ]
 

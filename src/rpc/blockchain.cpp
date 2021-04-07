@@ -460,6 +460,83 @@ static RPCHelpMan getdifficulty() {
 
 static std::vector<RPCResult> MempoolEntryDescription() {
     const auto &ticker = Currency::get().ticker;
+    // Deprecated in v0.27.0
+    if (IsDeprecatedRPCEnabled(gArgs, "mempool_ancestors_descendants")) {
+        return {
+            RPCResult{RPCResult::Type::NUM, "size", "transaction size."},
+            RPCResult{
+                RPCResult::Type::NUM_TIME, "time",
+                "local time transaction entered pool in seconds since 1 Jan "
+                "1970 GMT"},
+            RPCResult{RPCResult::Type::NUM, "height",
+                      "block height when transaction entered pool"},
+            RPCResult{
+                RPCResult::Type::NUM, "descendantcount",
+                "DEPRECATED: number of in-mempool descendant transactions "
+                "(including this one). Only displayed if the "
+                "-deprecatedrpc=mempool_ancestors_descendants option is set"},
+            RPCResult{
+                RPCResult::Type::NUM, "descendantsize",
+                "DEPRECATED: transaction size of in-mempool descendants "
+                "(including this one). Only displayed if the "
+                "-deprecatedrpc=mempool_ancestors_descendants option is set"},
+            RPCResult{
+                RPCResult::Type::NUM, "ancestorcount",
+                "DEPRECATED: number of in-mempool ancestor transactions "
+                "(including this one). Only displayed if the "
+                "-deprecatedrpc=mempool_ancestors_descendants option is set"},
+            RPCResult{
+                RPCResult::Type::NUM, "ancestorsize",
+                "DEPRECATED: transaction size of in-mempool ancestors "
+                "(including this one). Only displayed if the "
+                "-deprecatedrpc=mempool_ancestors_descendants option is set"},
+            RPCResult{
+                RPCResult::Type::OBJ,
+                "fees",
+                "",
+                {
+                    RPCResult{RPCResult::Type::STR_AMOUNT, "base",
+                              "transaction fee in " + ticker},
+                    RPCResult{RPCResult::Type::STR_AMOUNT, "modified",
+                              "transaction fee with fee deltas used for "
+                              "mining priority in " +
+                                  ticker},
+                    RPCResult{
+                        RPCResult::Type::STR_AMOUNT, "ancestor",
+                        "DEPRECATED: modified fees (see above) of in-mempool "
+                        "ancestors (including this one) in " +
+                            ticker +
+                            ". Only displayed if the "
+                            "-deprecatedrpc=mempool_ancestors_descendants "
+                            "option is set"},
+                    RPCResult{
+                        RPCResult::Type::STR_AMOUNT, "descendant",
+                        "DEPRECATED: modified fees (see above) of in-mempool "
+                        "descendants (including this one) in " +
+                            ticker +
+                            ". Only displayed if the "
+                            "-deprecatedrpc=mempool_ancestors_descendants "
+                            "option is set"},
+                }},
+            RPCResult{
+                RPCResult::Type::ARR,
+                "depends",
+                "unconfirmed transactions used as inputs for this transaction",
+                {RPCResult{RPCResult::Type::STR_HEX, "transactionid",
+                           "parent transaction id"}}},
+            RPCResult{RPCResult::Type::ARR,
+                      "spentby",
+                      "unconfirmed transactions spending outputs from this "
+                      "transaction",
+                      {RPCResult{RPCResult::Type::STR_HEX, "transactionid",
+                                 "child transaction id"}}},
+            RPCResult{
+                RPCResult::Type::BOOL, "unbroadcast",
+                "Whether this transaction is currently unbroadcast (initial "
+                "broadcast not yet acknowledged by any peers)"},
+        };
+    }
+
     return {
         RPCResult{RPCResult::Type::NUM, "size", "transaction size."},
         RPCResult{RPCResult::Type::NUM_TIME, "time",
@@ -467,18 +544,6 @@ static std::vector<RPCResult> MempoolEntryDescription() {
                   "1970 GMT"},
         RPCResult{RPCResult::Type::NUM, "height",
                   "block height when transaction entered pool"},
-        RPCResult{RPCResult::Type::NUM, "descendantcount",
-                  "number of in-mempool descendant transactions (including "
-                  "this one)"},
-        RPCResult{RPCResult::Type::NUM, "descendantsize",
-                  "transaction size of in-mempool descendants "
-                  "(including this one)"},
-        RPCResult{
-            RPCResult::Type::NUM, "ancestorcount",
-            "number of in-mempool ancestor transactions (including this one)"},
-        RPCResult{
-            RPCResult::Type::NUM, "ancestorsize",
-            "transaction size of in-mempool ancestors (including this one)"},
         RPCResult{RPCResult::Type::OBJ,
                   "fees",
                   "",
@@ -488,14 +553,6 @@ static std::vector<RPCResult> MempoolEntryDescription() {
                       RPCResult{RPCResult::Type::STR_AMOUNT, "modified",
                                 "transaction fee with fee deltas used for "
                                 "mining priority in " +
-                                    ticker},
-                      RPCResult{RPCResult::Type::STR_AMOUNT, "ancestor",
-                                "modified fees (see above) of in-mempool "
-                                "ancestors (including this one) in " +
-                                    ticker},
-                      RPCResult{RPCResult::Type::STR_AMOUNT, "descendant",
-                                "modified fees (see above) of in-mempool "
-                                "descendants (including this one) in " +
                                     ticker},
                   }},
         RPCResult{
@@ -521,20 +578,27 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     EXCLUSIVE_LOCKS_REQUIRED(pool.cs) {
     AssertLockHeld(pool.cs);
 
+    const bool deprecated_ancestors_descendants =
+        IsDeprecatedRPCEnabled(gArgs, "mempool_ancestors_descendants");
+
     UniValue fees(UniValue::VOBJ);
     fees.pushKV("base", e.GetFee());
     fees.pushKV("modified", e.GetModifiedFee());
-    fees.pushKV("ancestor", e.GetModFeesWithAncestors());
-    fees.pushKV("descendant", e.GetModFeesWithDescendants());
+    if (deprecated_ancestors_descendants) {
+        fees.pushKV("ancestor", e.GetModFeesWithAncestors());
+        fees.pushKV("descendant", e.GetModFeesWithDescendants());
+    }
     info.pushKV("fees", fees);
 
     info.pushKV("size", (int)e.GetTxSize());
     info.pushKV("time", count_seconds(e.GetTime()));
     info.pushKV("height", (int)e.GetHeight());
-    info.pushKV("descendantcount", e.GetCountWithDescendants());
-    info.pushKV("descendantsize", e.GetSizeWithDescendants());
-    info.pushKV("ancestorcount", e.GetCountWithAncestors());
-    info.pushKV("ancestorsize", e.GetSizeWithAncestors());
+    if (deprecated_ancestors_descendants) {
+        info.pushKV("descendantcount", e.GetCountWithDescendants());
+        info.pushKV("descendantsize", e.GetSizeWithDescendants());
+        info.pushKV("ancestorcount", e.GetCountWithAncestors());
+        info.pushKV("ancestorsize", e.GetSizeWithAncestors());
+    }
     const CTransaction &tx = e.GetTx();
     std::set<std::string> setDepends;
     for (const CTxIn &txin : tx.vin) {

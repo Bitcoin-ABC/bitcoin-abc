@@ -25,7 +25,9 @@ MAX_ANCESTORS_CUSTOM = 5
 class MempoolPackagesTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        common_params = ["-maxorphantx=1000"]
+        common_params = [
+            "-maxorphantx=1000",
+            "-deprecatedrpc=mempool_ancestors_descendants"]
         self.extra_args = [
             common_params, common_params +
             ["-limitancestorcount={}".format(MAX_ANCESTORS_CUSTOM)]]
@@ -112,7 +114,6 @@ class MempoolPackagesTest(BitcoinTestFramework):
             # Check that getmempoolentry is consistent with getrawmempool
             entry = self.nodes[0].getmempoolentry(x)
             assert_equal(entry, mempool[x])
-
             # Check that the descendant calculations are correct
             assert_equal(mempool[x]['descendantcount'], descendant_count)
             descendant_fees += mempool[x]['fees']['base']
