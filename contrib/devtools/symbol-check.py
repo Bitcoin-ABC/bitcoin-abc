@@ -13,8 +13,9 @@ Example usage:
 import subprocess
 import sys
 import os
-from typing import List, Optional
+from typing import Optional
 
+import lief
 import pixie
 
 # Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS
@@ -54,8 +55,6 @@ IGNORE_EXPORTS = {
     '_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv'
 }
 CPPFILT_CMD = os.getenv('CPPFILT', '/usr/bin/c++filt')
-OBJDUMP_CMD = os.getenv('OBJDUMP', '/usr/bin/objdump')
-OTOOL_CMD = os.getenv('OTOOL', '/usr/bin/otool')
 
 # Allowed NEEDED libraries
 ELF_ALLOWED_LIBRARIES = {
@@ -204,57 +203,21 @@ def check_ELF_libraries(filename) -> bool:
     return ok
 
 
-def macho_read_libraries(filename) -> List[str]:
-    p = subprocess.Popen([OTOOL_CMD,
-                          '-L',
-                          filename],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         stdin=subprocess.PIPE,
-                         universal_newlines=True)
-    (stdout, stderr) = p.communicate()
-    if p.returncode:
-        raise IOError('Error opening file')
-    libraries = []
-    for line in stdout.splitlines():
-        tokens = line.split()
-        if len(tokens) == 1:  # skip executable name
-            continue
-        libraries.append(tokens[0].split('/')[-1])
-    return libraries
-
-
 def check_MACHO_libraries(filename) -> bool:
-    ok = True
-    for dylib in macho_read_libraries(filename):
-        if dylib not in MACHO_ALLOWED_LIBRARIES:
-            print(f'{dylib} is not in ALLOWED_LIBRARIES!')
+    ok: bool = True
+    binary = lief.parse(filename)
+    for dylib in binary.libraries:
+        split = dylib.name.split('/')
+        if split[-1] not in MACHO_ALLOWED_LIBRARIES:
+            print(f'{split[-1]} is not in ALLOWED_LIBRARIES!')
             ok = False
     return ok
 
 
-def pe_read_libraries(filename) -> List[str]:
-    p = subprocess.Popen([OBJDUMP_CMD,
-                          '-x',
-                          filename],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         stdin=subprocess.PIPE,
-                         universal_newlines=True)
-    (stdout, stderr) = p.communicate()
-    if p.returncode:
-        raise IOError('Error opening file')
-    libraries = []
-    for line in stdout.splitlines():
-        if 'DLL Name:' in line:
-            tokens = line.split(': ')
-            libraries.append(tokens[1])
-    return libraries
-
-
 def check_PE_libraries(filename) -> bool:
-    ok = True
-    for dylib in pe_read_libraries(filename):
+    ok: bool = True
+    binary = lief.parse(filename)
+    for dylib in binary.libraries:
         if dylib not in PE_ALLOWED_LIBRARIES:
             print(f'{dylib} is not in ALLOWED_LIBRARIES!')
             ok = False
