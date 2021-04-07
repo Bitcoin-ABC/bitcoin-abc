@@ -6494,14 +6494,14 @@ class CompareInvMempoolOrder {
     CTxMemPool *mp;
 
 public:
-    explicit CompareInvMempoolOrder(CTxMemPool *_mempool) { mp = _mempool; }
+    explicit CompareInvMempoolOrder(CTxMemPool *_mempool) : mp(_mempool) {}
 
     bool operator()(std::set<TxId>::iterator a, std::set<TxId>::iterator b) {
         /**
-         * As std::make_heap produces a max-heap, we want the entries with the
-         * fewest ancestors/highest fee to sort later.
+         * As std::make_heap produces a max-heap, we want the entries which
+         * are topologically earlier to sort later.
          */
-        return mp->CompareDepthAndScore(*b, *a);
+        return mp->CompareTopologically(*b, *a);
     }
 };
 } // namespace
@@ -6937,9 +6937,10 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     LOCK(pto->m_tx_relay->cs_feeFilter);
                     filterrate = CFeeRate(pto->m_tx_relay->minFeeFilter);
                 }
-                // Topologically and fee-rate sort the inventory we send for
-                // privacy and priority reasons. A heap is used so that not
-                // all items need sorting if only a few are being sent.
+                // Send out the inventory in the order of admission to our
+                // mempool, which is guaranteed to be a topological sort order.
+                // A heap is used so that not all items need sorting if only a
+                // few are being sent.
                 CompareInvMempoolOrder compareInvMempoolOrder(&m_mempool);
                 std::make_heap(vInvTx.begin(), vInvTx.end(),
                                compareInvMempoolOrder);

@@ -306,6 +306,9 @@ class ZMQTest (BitcoinTestFramework):
             hashtx.receive().hex(),
             self.nodes[1].getblock(
                 connect_blocks[1])["tx"][0])
+        # And the payment transaction again due to mempool entry (it was removed
+        # from the mempool due to the reorg)
+        assert_equal(hashtx.receive().hex(), payment_txid)
         # And the current tip
         assert_equal(
             hashtx.receive().hex(),
@@ -473,6 +476,9 @@ class ZMQTest (BitcoinTestFramework):
             assert self.nodes[0].getrawmempool(
                 mempool_sequence=True)["mempool_sequence"] > seq_num
 
+            assert_equal((payment_txid_2, "R", seq_num),
+                         seq.receive_sequence())
+            seq_num += 1
             assert_equal((best_hash, "D", None), seq.receive_sequence())
             assert_equal((payment_txid, "A", seq_num), seq.receive_sequence())
             seq_num += 1

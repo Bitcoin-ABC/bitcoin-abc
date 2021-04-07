@@ -908,6 +908,27 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
         return MempoolAcceptResult::Failure(ws.m_state);
     }
 
+    const TxId txid = ptx->GetId();
+
+    // Mempool sanity check -- in our new mempool no tx can be added if its
+    // outputs are already spent in the mempool (that is, no children before
+    // parents allowed; the mempool must be consistent at all times).
+    //
+    // This means that on reorg, the disconnectpool *must* always import
+    // the existing mempool tx's, clear the mempool, and then re-add
+    // remaining tx's in topological order via this function. Our new mempool
+    // has fast adds, so this is ok.
+    if (auto it = m_pool.mapNextTx.lower_bound(COutPoint{txid, 0});
+        it != m_pool.mapNextTx.end() && it->first->GetTxId() == txid) {
+        LogPrintf("%s: BUG! PLEASE REPORT THIS! Attempt to add txid %s, but "
+                  "its outputs are already spent in the "
+                  "mempool\n",
+                  __func__, txid.ToString());
+        ws.m_state.Invalid(TxValidationResult::TX_CONFLICT,
+                           "txn-mempool-conflict");
+        return MempoolAcceptResult::Failure(ws.m_state);
+    }
+
     // Tx was accepted, but not added
     if (args.m_test_accept) {
         return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees);
@@ -2918,6 +2939,14 @@ bool Chainstate::ActivateBestChainStep(
     bool fBlocksDisconnected = false;
     DisconnectedBlockTransactions disconnectpool;
     while (m_chain.Tip() && m_chain.Tip() != pindexFork) {
+        if (!fBlocksDisconnected) {
+            // Import and clear mempool; we must do this to preserve
+            // topological ordering in the mempool index. This is ok since
+            // inserts into the mempool are very fast now in our new
+            // implementation.
+            disconnectpool.importMempool(*m_mempool);
+        }
+
         if (!DisconnectTip(state, &disconnectpool)) {
             // This is likely a fatal error, but keep the mempool consistent,
             // just in case. Only remove from the mempool in this case.
@@ -3250,6 +3279,15 @@ bool Chainstate::PreciousBlock(const Config &config,
     return ActivateBestChain(config, state);
 }
 
+namespace {
+// Leverage RAII to run a functor at scope end
+template <typename Func> struct Defer {
+    Func func;
+    Defer(Func &&f) : func(std::move(f)) {}
+    ~Defer() { func(); }
+};
+} // namespace
+
 bool Chainstate::UnwindBlock(const Config &config, BlockValidationState &state,
                              CBlockIndex *pindex, bool invalidate) {
     // Genesis block can't be invalidated or parked
@@ -3297,99 +3335,136 @@ bool Chainstate::UnwindBlock(const Config &config, BlockValidationState &state,
         }
     }
 
-    // Disconnect (descendants of) pindex, and mark them invalid.
-    while (true) {
-        if (ShutdownRequested()) {
-            break;
-        }
-
-        // Make sure the queue of validation callbacks doesn't grow unboundedly.
-        LimitValidationInterfaceQueue();
-
+    {
         LOCK(cs_main);
         // Lock for as long as disconnectpool is in scope to make sure
         // UpdateMempoolForReorg is called after DisconnectTip without unlocking
         // in between
         LOCK(MempoolMutex());
 
-        if (!m_chain.Contains(pindex)) {
-            break;
-        }
-
-        pindex_was_in_chain = true;
-        CBlockIndex *invalid_walk_tip = m_chain.Tip();
-
-        // ActivateBestChain considers blocks already in m_chain
-        // unconditionally valid already, so force disconnect away from it.
-
+        constexpr int maxDisconnectPoolBlocks = 10;
+        bool ret = false;
         DisconnectedBlockTransactions disconnectpool;
+        // After 10 blocks this becomes nullptr, so that DisconnectTip will
+        // stop giving us unwound block txs if we are doing a deep unwind.
+        DisconnectedBlockTransactions *optDisconnectPool = &disconnectpool;
 
-        bool ret = DisconnectTip(state, &disconnectpool);
-
-        // DisconnectTip will add transactions to disconnectpool.
-        // Adjust the mempool to be consistent with the new tip, adding
-        // transactions back to the mempool if disconnecting was successful,
-        // and we're not doing a very deep invalidation (in which case
-        // keeping the mempool up to date is probably futile anyway).
-        if (m_mempool) {
-            disconnectpool.updateMempoolForReorg(
-                config, *this,
-                /* fAddToMempool = */ (++disconnected <= 10) && ret,
-                *m_mempool);
-        }
-
-        if (!ret) {
-            return false;
-        }
-
-        assert(invalid_walk_tip->pprev == m_chain.Tip());
-
-        // We immediately mark the disconnected blocks as invalid.
-        // This prevents a case where pruned nodes may fail to invalidateblock
-        // and be left unable to start as they have no tip candidates (as there
-        // are no blocks that meet the "have data and are not invalid per
-        // nStatus" criteria for inclusion in setBlockIndexCandidates).
-
-        invalid_walk_tip->nStatus =
-            invalidate ? invalid_walk_tip->nStatus.withFailed()
-                       : invalid_walk_tip->nStatus.withParked();
-
-        m_blockman.m_dirty_blockindex.insert(invalid_walk_tip);
-        setBlockIndexCandidates.insert(invalid_walk_tip->pprev);
-
-        if (invalid_walk_tip == to_mark_failed_or_parked->pprev &&
-            (invalidate ? to_mark_failed_or_parked->nStatus.hasFailed()
-                        : to_mark_failed_or_parked->nStatus.isParked())) {
-            // We only want to mark the last disconnected block as
-            // Failed (or Parked); its children need to be FailedParent (or
-            // ParkedParent) instead.
-            to_mark_failed_or_parked->nStatus =
-                (invalidate
-                     ? to_mark_failed_or_parked->nStatus.withFailed(false)
-                           .withFailedParent()
-                     : to_mark_failed_or_parked->nStatus.withParked(false)
-                           .withParkedParent());
-
-            m_blockman.m_dirty_blockindex.insert(to_mark_failed_or_parked);
-        }
-
-        // Add any equal or more work headers to setBlockIndexCandidates
-        auto candidate_it = candidate_blocks_by_work.lower_bound(
-            invalid_walk_tip->pprev->nChainWork);
-        while (candidate_it != candidate_blocks_by_work.end()) {
-            if (!CBlockIndexWorkComparator()(candidate_it->second,
-                                             invalid_walk_tip->pprev)) {
-                setBlockIndexCandidates.insert(candidate_it->second);
-                candidate_it = candidate_blocks_by_work.erase(candidate_it);
-            } else {
-                ++candidate_it;
+        // Disable thread safety analysis because we can't require m_mempool->cs
+        // as m_mempool can be null. We keep the runtime analysis though.
+        Defer deferred([&]() NO_THREAD_SAFETY_ANALYSIS {
+            AssertLockHeld(cs_main);
+            if (m_mempool && !disconnectpool.isEmpty()) {
+                AssertLockHeld(m_mempool->cs);
+                // DisconnectTip will add transactions to disconnectpool.
+                // When all unwinding is done and we are on a new tip, we must
+                // add all transactions back to the mempool against the new tip.
+                disconnectpool.updateMempoolForReorg(config, *this,
+                                                     /* fAddToMempool = */ ret,
+                                                     *m_mempool);
             }
-        }
+        });
 
-        // Track the last disconnected block, so we can correct its
-        // FailedParent (or ParkedParent) status in future iterations, or, if
-        // it's the last one, call InvalidChainFound on it.
-        to_mark_failed_or_parked = invalid_walk_tip;
+        // Disconnect (descendants of) pindex, and mark them invalid.
+        while (true) {
+            if (ShutdownRequested()) {
+                break;
+            }
+
+            // Make sure the queue of validation callbacks doesn't grow
+            // unboundedly.
+            // FIXME this commented code is a regression and could cause OOM if
+            // a very old block is invalidated via the invalidateblock RPC.
+            // This can be uncommented if the main signals are moved away from
+            // cs_main or this code is refactored so that cs_main can be
+            // released at this point.
+            //
+            // LimitValidationInterfaceQueue();
+
+            if (!m_chain.Contains(pindex)) {
+                break;
+            }
+
+            if (m_mempool && disconnected == 0) {
+                // On first iteration, we grab all the mempool txs to preserve
+                // topological ordering. This has the side-effect of temporarily
+                // clearing the mempool, but we will re-add later in
+                // updateMempoolForReorg() (above). This technique guarantees
+                // mempool consistency as well as ensures that our topological
+                // entry_id index is always correct.
+                disconnectpool.importMempool(*m_mempool);
+            }
+
+            pindex_was_in_chain = true;
+            CBlockIndex *invalid_walk_tip = m_chain.Tip();
+
+            // ActivateBestChain considers blocks already in m_chain
+            // unconditionally valid already, so force disconnect away from it.
+
+            ret = DisconnectTip(state, optDisconnectPool);
+            ++disconnected;
+
+            if (optDisconnectPool && disconnected > maxDisconnectPoolBlocks) {
+                // Stop using the disconnect pool after 10 blocks. After 10
+                // blocks we no longer add block tx's to the disconnectpool.
+                // However, when this scope ends we will reconcile what's
+                // in the pool with the new tip (in the deferred d'tor above).
+                optDisconnectPool = nullptr;
+            }
+
+            if (!ret) {
+                return false;
+            }
+
+            assert(invalid_walk_tip->pprev == m_chain.Tip());
+
+            // We immediately mark the disconnected blocks as invalid.
+            // This prevents a case where pruned nodes may fail to
+            // invalidateblock and be left unable to start as they have no tip
+            // candidates (as there are no blocks that meet the "have data and
+            // are not invalid per nStatus" criteria for inclusion in
+            // setBlockIndexCandidates).
+
+            invalid_walk_tip->nStatus =
+                invalidate ? invalid_walk_tip->nStatus.withFailed()
+                           : invalid_walk_tip->nStatus.withParked();
+
+            m_blockman.m_dirty_blockindex.insert(invalid_walk_tip);
+            setBlockIndexCandidates.insert(invalid_walk_tip->pprev);
+
+            if (invalid_walk_tip == to_mark_failed_or_parked->pprev &&
+                (invalidate ? to_mark_failed_or_parked->nStatus.hasFailed()
+                            : to_mark_failed_or_parked->nStatus.isParked())) {
+                // We only want to mark the last disconnected block as
+                // Failed (or Parked); its children need to be FailedParent (or
+                // ParkedParent) instead.
+                to_mark_failed_or_parked->nStatus =
+                    (invalidate
+                         ? to_mark_failed_or_parked->nStatus.withFailed(false)
+                               .withFailedParent()
+                         : to_mark_failed_or_parked->nStatus.withParked(false)
+                               .withParkedParent());
+
+                m_blockman.m_dirty_blockindex.insert(to_mark_failed_or_parked);
+            }
+
+            // Add any equal or more work headers to setBlockIndexCandidates
+            auto candidate_it = candidate_blocks_by_work.lower_bound(
+                invalid_walk_tip->pprev->nChainWork);
+            while (candidate_it != candidate_blocks_by_work.end()) {
+                if (!CBlockIndexWorkComparator()(candidate_it->second,
+                                                 invalid_walk_tip->pprev)) {
+                    setBlockIndexCandidates.insert(candidate_it->second);
+                    candidate_it = candidate_blocks_by_work.erase(candidate_it);
+                } else {
+                    ++candidate_it;
+                }
+            }
+
+            // Track the last disconnected block, so we can correct its
+            // FailedParent (or ParkedParent) status in future iterations, or,
+            // if it's the last one, call InvalidChainFound on it.
+            to_mark_failed_or_parked = invalid_walk_tip;
+        }
     }
 
     CheckBlockIndex();

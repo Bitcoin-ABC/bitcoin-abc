@@ -26,6 +26,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -93,6 +94,9 @@ public:
     typedef std::set<CTxMemPoolEntryRef, CompareIteratorById> Children;
 
 private:
+    //! Unique identifier -- used for topological sorting
+    uint64_t entryId = 0;
+
     const CTransactionRef tx;
     mutable Parents m_parents;
     mutable Children m_children;
@@ -139,9 +143,14 @@ public:
                     unsigned int entry_height, bool spends_coinbase,
                     int64_t sigchecks, LockPoints lp);
 
+    uint64_t GetEntryId() const { return entryId; }
+    //! This should only be set by addUnchecked() before entry insertion into
+    //! mempool
+    void SetEntryId(uint64_t eid) { entryId = eid; }
+
     const CTransaction &GetTx() const { return *this->tx; }
     CTransactionRef GetSharedTx() const { return this->tx; }
-    const Amount GetFee() const { return nFee; }
+    Amount GetFee() const { return nFee; }
     size_t GetTxSize() const { return nTxSize; }
     size_t GetTxVirtualSize() const;
 
@@ -206,29 +215,17 @@ struct mempoolentry_txid {
     }
 };
 
-/** \class CompareTxMemPoolEntryByScore
- *
- *  Sort by feerate of entry (fee/size) in descending order
- *  This is only used for transaction relay, so we use GetFee()
- *  instead of GetModifiedFee() to avoid leaking prioritization
- *  information via the sort order.
- */
-class CompareTxMemPoolEntryByScore {
-public:
+// used by the entry_time index
+struct CompareTxMemPoolEntryByEntryTime {
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        double f1 = b.GetTxSize() * (a.GetFee() / SATOSHI);
-        double f2 = a.GetTxSize() * (b.GetFee() / SATOSHI);
-        if (f1 == f2) {
-            return b.GetTx().GetId() < a.GetTx().GetId();
-        }
-        return f1 > f2;
+        return a.GetTime() < b.GetTime();
     }
 };
 
-class CompareTxMemPoolEntryByEntryTime {
-public:
+// used by the entry_id index
+struct CompareTxMemPoolEntryByEntryId {
     bool operator()(const CTxMemPoolEntry &a, const CTxMemPoolEntry &b) const {
-        return a.GetTime() < b.GetTime();
+        return a.GetEntryId() < b.GetEntryId();
     }
 };
 
@@ -261,6 +258,7 @@ struct CompareTxMemPoolEntryByModifiedFeeRate {
 // Multi_index tag names
 struct entry_time {};
 struct modified_feerate {};
+struct entry_id {};
 
 /**
  * Information about a mempool transaction.
@@ -318,22 +316,14 @@ enum class MemPoolRemovalReason {
  * mapTx is a boost::multi_index that sorts the mempool on 3 criteria:
  * - transaction hash
  * - time in mempool
- * - ancestor feerate [we use min(feerate of tx, feerate of tx with all
- * unconfirmed ancestors)]
+ * - entry id (this is a topological index)
  *
  * Note: the term "descendant" refers to in-mempool transactions that depend on
  * this one, while "ancestor" refers to in-mempool transactions that a given
  * transaction depends on.
  *
- * In order for the feerate sort to remain correct, we must update transactions
- * in the mempool when new descendants arrive. To facilitate this, we track the
- * set of in-mempool direct parents and direct children in m_parents and
- * m_children. Within each CTxMemPoolEntry, we track the size and fees of all
- * descendants.
- *
- * Usually when a new transaction is added to the mempool, it has no in-mempool
- * children (because any such children would be an orphan). So in
- * addUnchecked(), we:
+ * When a new transaction is added to the mempool, it has no in-mempool children
+ * (because any such children would be an orphan). So in addUnchecked(), we:
  * - update a new entry's setMemPoolParents to include all in-mempool parents
  * - update the new entry's direct parents to include the new tx as a child
  * - update all ancestors of the transaction to include the new tx's size/fee
@@ -349,21 +339,11 @@ enum class MemPoolRemovalReason {
  * be in an inconsistent state where it's impossible to walk the ancestors of a
  * transaction.)
  *
- * In the event of a reorg, the assumption that a newly added tx has no
- * in-mempool children is false.  In particular, the mempool is in an
- * inconsistent state while new transactions are being added, because there may
- * be descendant transactions of a tx coming from a disconnected block that are
- * unreachable from just looking at transactions in the mempool (the linking
- * transactions may also be in the disconnected block, waiting to be added).
- * Because of this, there's not much benefit in trying to search for in-mempool
- * children in addUnchecked(). Instead, in the special case of transactions
- * being added from a disconnected block, we require the caller to clean up the
- * state, to account for in-mempool, out-of-block descendants for all the
- * in-block transactions by calling UpdateTransactionsFromBlock(). Note that
- * until this is called, the mempool state is not consistent, and in particular
- * m_parents and m_children may not be correct (and therefore functions like
- * CalculateMemPoolAncestors() and CalculateDescendants() that rely on them to
- * walk the mempool are not generally safe to use).
+ * In the event of a reorg, the invariant that all newly-added tx's have no
+ * in-mempool children must be maintained.  On top of this, we use a topological
+ * index (GetEntryId).  As such, we always dump mempool tx's into a disconnect
+ * pool on reorg, and simply add them one by one, along with tx's from
+ * disconnected blocks, when the reorg is complete.
  *
  * Computational limits:
  *
@@ -402,6 +382,10 @@ private:
 
     bool m_is_loaded GUARDED_BY(cs){false};
 
+    //! Used by addUnchecked to generate ever-increasing
+    //! CTxMemPoolEntry::entryId's
+    uint64_t nextEntryId GUARDED_BY(cs) = 1;
+
 public:
     // public only for testing
     static const int ROLLING_FEE_HALFLIFE = 60 * 60 * 12;
@@ -420,7 +404,12 @@ public:
                              boost::multi_index::ordered_non_unique<
                                  boost::multi_index::tag<entry_time>,
                                  boost::multi_index::identity<CTxMemPoolEntry>,
-                                 CompareTxMemPoolEntryByEntryTime>>>
+                                 CompareTxMemPoolEntryByEntryTime>,
+                             // sorted topologically (insertion order)
+                             boost::multi_index::ordered_unique<
+                                 boost::multi_index::tag<entry_id>,
+                                 boost::multi_index::identity<CTxMemPoolEntry>,
+                                 CompareTxMemPoolEntryByEntryId>>>
         indexed_transaction_set;
 
     /**
@@ -460,15 +449,10 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 private:
-    typedef std::map<txiter, setEntries, CompareIteratorById> cacheMap;
-
     void UpdateParent(txiter entry, txiter parent, bool add)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     void UpdateChild(txiter entry, txiter child, bool add)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    std::vector<indexed_transaction_set::const_iterator>
-    GetSortedDepthAndScore() const EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Track locally submitted transactions to periodically retry initial
@@ -533,18 +517,6 @@ public:
 
     void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
-    /**
-     * After reorg, filter the entries that would no longer be valid in the
-     * next block, and update the entries' cached LockPoints if needed.
-     * The mempool does not have any knowledge of consensus rules. It just
-     * applies the callable function and removes the ones for which it
-     * returns true.
-     * @param[in]   filter_final_and_mature   Predicate that checks the
-     *     relevant validation rules and updates an entry's LockPoints.
-     */
-    void removeForReorg(const Config &config, CChain &chain,
-                        std::function<bool(txiter)> filter_final_and_mature)
-        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
     void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForBlock(const std::vector<CTransactionRef> &vtx,
                         unsigned int nBlockHeight) EXCLUSIVE_LOCKS_REQUIRED(cs);
@@ -552,7 +524,7 @@ public:
     void clear();
     // lock free
     void _clear() EXCLUSIVE_LOCKS_REQUIRED(cs);
-    bool CompareDepthAndScore(const TxId &txida, const TxId &txidb);
+    bool CompareTopologically(const TxId &txida, const TxId &txidb) const;
     void getAllTxIds(std::vector<TxId> &vtxid) const;
     bool isSpent(const COutPoint &outpoint) const;
     unsigned int GetTransactionsUpdated() const;
@@ -595,29 +567,6 @@ public:
      */
     void RemoveStaged(setEntries &stage, bool updateDescendants,
                       MemPoolRemovalReason reason) EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    /**
-     * UpdateTransactionsFromBlock is called when adding transactions from a
-     * disconnected block back to the mempool, new mempool entries may have
-     * children in the mempool (which is generally not the case when otherwise
-     * adding transactions).
-     * @post updated descendant state for descendants of each transaction in
-     *        txidsToUpdate (excluding any child transactions present in
-     *        txidsToUpdate, which are already accounted for). Updated state
-     *        includes add fee/size information for such descendants to the
-     *        parent and updated ancestor state to include the parent.
-     *
-     * @param[in] txidsToUpdate            The set of txids from the
-     *     disconnected block that have been accepted back into the mempool.
-     * @param[in] ancestor_size_limit      The maximum allowed size in virtual
-     *     bytes of an entry and its ancestors
-     * @param[in] ancestor_count_limit     The maximum allowed number of
-     *     transactions including the entry and its ancestors.
-     */
-    void UpdateTransactionsFromBlock(const std::vector<TxId> &txidsToUpdate,
-                                     uint64_t ancestor_size_limit,
-                                     uint64_t ancestor_count_limit)
-        EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main) LOCKS_EXCLUDED(m_epoch);
 
     /**
      * Try to calculate all in-mempool ancestors of entry.
@@ -787,47 +736,6 @@ public:
 
 private:
     /**
-     * UpdateForDescendants is used by UpdateTransactionsFromBlock to update
-     * the descendants for a single transaction that has been added to the
-     * mempool but may have child transactions in the mempool, eg during a
-     * chain reorg.
-     *
-     * @pre CTxMemPool::m_children is correct for the given tx and all
-     *      descendants.
-     * @pre cachedDescendants is an accurate cache where each entry has all
-     *      descendants of the corresponding key, including those that should
-     *      be removed for violation of ancestor limits.
-     * @post if updateIt has any non-excluded descendants, cachedDescendants
-     *       has a new cache line for updateIt.
-     * @post descendants_to_remove has a new entry for any descendant which
-     *       exceeded ancestor limits relative to updateIt.
-     *
-     * @param[in] updateIt the entry to update for its descendants
-     * @param[in,out] cachedDescendants a cache where each line corresponds to
-     *     all descendants. It will be updated with the descendants of the
-     *     transaction being updated, so that future invocations don't need to
-     *     walk the same transaction again, if encountered in another
-     *     transaction chain.
-     * @param[in] setExclude the set of descendant transactions in the mempool
-     *     that must not be accounted for (because any descendants in
-     *     setExclude were added to the mempool after the transaction being
-     *     updated and hence their state is already reflected in the parent
-     *     state).
-     * @param[out] descendants_to_remove Populated with the txids of entries
-     *     that exceed ancestor limits. It's the responsibility of the caller
-     *     to removeRecursive them.
-     * @param[in] ancestor_size_limit the max number of ancestral bytes allowed
-     *     for any descendant
-     * @param[in] ancestor_count_limit the max number of ancestor transactions
-     *     allowed for any descendant
-     */
-    void UpdateForDescendants(txiter updateIt, cacheMap &cachedDescendants,
-                              const std::set<TxId> &setExclude,
-                              std::set<TxId> &descendants_to_remove,
-                              uint64_t ancestor_size_limit,
-                              uint64_t ancestor_count_limit)
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
-    /**
      * Update ancestors of hash to add/remove it as a descendant transaction.
      */
     void UpdateAncestorsOf(bool add, txiter hash, setEntries &setAncestors)
@@ -940,7 +848,7 @@ class DisconnectedBlockTransactions {
 private:
     typedef boost::multi_index_container<
         CTransactionRef, boost::multi_index::indexed_by<
-                             // sorted by txid
+                             // hashed by txid
                              boost::multi_index::hashed_unique<
                                  boost::multi_index::tag<txid_index>,
                                  mempoolentry_txid, SaltedTxIdHasher>,
@@ -952,10 +860,24 @@ private:
     indexed_disconnected_transactions queuedTx;
     uint64_t cachedInnerUsage = 0;
 
+    struct TxInfo {
+        const std::chrono::seconds time;
+        const Amount feeDelta;
+    };
+
+    using TxInfoMap = std::unordered_map<TxId, TxInfo, SaltedTxIdHasher>;
+    /// populated by importMempool(); the original tx entry times and feeDeltas
+    TxInfoMap txInfo;
+
     void addTransaction(const CTransactionRef &tx) {
         queuedTx.insert(tx);
         cachedInnerUsage += RecursiveDynamicUsage(tx);
     }
+
+    /// @returns a pointer into the txInfo map if tx->GetId() exists in the map,
+    /// or nullptr otherwise. Note that the returned pointer is only valid for
+    /// as long as its underlying map node is valid.
+    const TxInfo *getTxInfo(const CTransactionRef &tx) const;
 
 public:
     // It's almost certainly a logic bug if we don't clear out queuedTx before
@@ -974,7 +896,7 @@ public:
         return memusage::MallocUsage(sizeof(CTransactionRef) +
                                      6 * sizeof(void *)) *
                    queuedTx.size() +
-               cachedInnerUsage;
+               memusage::DynamicUsage(txInfo) + cachedInnerUsage;
     }
 
     const indexed_disconnected_transactions &GetQueuedTx() const {
@@ -1002,6 +924,7 @@ public:
             if (it != queuedTx.end()) {
                 cachedInnerUsage -= RecursiveDynamicUsage(*it);
                 queuedTx.erase(it);
+                txInfo.erase(tx->GetId());
             }
         }
     }
@@ -1010,6 +933,7 @@ public:
     void removeEntry(indexed_disconnected_transactions::index<
                      insertion_order>::type::iterator entry) {
         cachedInnerUsage -= RecursiveDynamicUsage(*entry);
+        txInfo.erase((*entry)->GetId());
         queuedTx.get<insertion_order>().erase(entry);
     }
 
@@ -1018,6 +942,7 @@ public:
     void clear() {
         cachedInnerUsage = 0;
         queuedTx.clear();
+        txInfo.clear();
     }
 
     /**
