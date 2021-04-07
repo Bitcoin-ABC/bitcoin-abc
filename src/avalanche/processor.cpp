@@ -551,6 +551,11 @@ void Processor::clearTimedoutRequests() {
 }
 
 void Processor::runEventLoop() {
+    // Don't do Avalanche while node is IBD'ing
+    if (::ChainstateActive().IsInitialBlockDownload()) {
+        return;
+    }
+
     // First things first, check if we have requests that timed out and clear
     // them.
     clearTimedoutRequests();
