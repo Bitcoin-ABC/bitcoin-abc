@@ -137,6 +137,7 @@ struct RegTestingSetup : public TestingSetup {
 };
 
 class CBlock;
+class CChainState;
 class CMutableTransaction;
 class CScript;
 
@@ -149,9 +150,18 @@ struct TestChain100Setup : public RegTestingSetup {
     /**
      * Create a new block with just given transactions, coinbase paying to
      * scriptPubKey, and try to add it to the current chain.
+     * If no chainstate is specified, default to the active.
      */
     CBlock CreateAndProcessBlock(const std::vector<CMutableTransaction> &txns,
-                                 const CScript &scriptPubKey);
+                                 const CScript &scriptPubKey,
+                                 CChainState *chainstate = nullptr);
+
+    /**
+     * Create a new block with just given transactions, coinbase paying to
+     * scriptPubKey.
+     */
+    CBlock CreateBlock(const std::vector<CMutableTransaction> &txns,
+                       const CScript &scriptPubKey, CChainState &chainstate);
 
     //! Mine a series of new blocks on the active chain.
     void mineBlocks(int num_blocks);

@@ -287,14 +287,15 @@ void TestChain100Setup::mineBlocks(int num_blocks) {
     }
 }
 
-CBlock TestChain100Setup::CreateAndProcessBlock(
-    const std::vector<CMutableTransaction> &txns, const CScript &scriptPubKey) {
+CBlock
+TestChain100Setup::CreateBlock(const std::vector<CMutableTransaction> &txns,
+                               const CScript &scriptPubKey,
+                               CChainState &chainstate) {
     const Config &config = GetConfig();
     CTxMemPool empty_pool;
-    CBlock block =
-        BlockAssembler(config, m_node.chainman->ActiveChainstate(), empty_pool)
-            .CreateNewBlock(scriptPubKey)
-            ->block;
+    CBlock block = BlockAssembler(config, chainstate, empty_pool)
+                       .CreateNewBlock(scriptPubKey)
+                       ->block;
 
     Assert(block.vtx.size() == 1);
     for (const CMutableTransaction &tx : txns) {
@@ -321,10 +322,21 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
         ++block.nNonce;
     }
 
+    return block;
+}
+
+CBlock TestChain100Setup::CreateAndProcessBlock(
+    const std::vector<CMutableTransaction> &txns, const CScript &scriptPubKey,
+    CChainState *chainstate) {
+    if (!chainstate) {
+        chainstate = &Assert(m_node.chainman)->ActiveChainstate();
+    }
+
+    const CBlock block = this->CreateBlock(txns, scriptPubKey, *chainstate);
     std::shared_ptr<const CBlock> shared_pblock =
         std::make_shared<const CBlock>(block);
     Assert(m_node.chainman)
-        ->ProcessNewBlock(config, shared_pblock, true, nullptr);
+        ->ProcessNewBlock(GetConfig(), shared_pblock, true, nullptr);
 
     return block;
 }
