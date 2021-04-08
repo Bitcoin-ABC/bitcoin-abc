@@ -16,6 +16,7 @@ add_compiler_flags(
 	-Wno-shadow
 	-Wno-sign-compare
 	-Wno-unused-const-variable
+	-Wno-conditional-uninitialized
 )
 add_c_compiler_flags(-Wno-strict-prototypes)
 

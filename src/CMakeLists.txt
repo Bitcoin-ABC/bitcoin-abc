@@ -228,6 +228,7 @@ add_compiler_flags(
 	-Wredundant-decls
 	-Wunreachable-code-loop-increment
 	-Wsign-compare
+	-Wconditional-uninitialized
 )
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(
