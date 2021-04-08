@@ -182,6 +182,8 @@ protected:
     std::map<OptionsCategory, std::map<std::string, Arg>>
         m_available_args GUARDED_BY(cs_args);
     std::list<SectionInfo> m_config_sections GUARDED_BY(cs_args);
+    mutable fs::path m_cached_datadir_path GUARDED_BY(cs_args);
+    mutable fs::path m_cached_network_datadir_path GUARDED_BY(cs_args);
 
     NODISCARD bool ReadConfigStream(std::istream &stream,
                                     const std::string &filepath,
@@ -236,6 +238,21 @@ public:
      * Log warnings for unrecognized section names in the config file.
      */
     const std::list<SectionInfo> GetUnrecognizedSections() const;
+
+    /**
+     * Get data directory path
+     *
+     * @param net_specific Append network identifier to the returned path
+     * @return Absolute path on success, otherwise an empty path when a
+     *         non-directory path would be returned
+     * @post Returned directory path is created unless it is empty
+     */
+    const fs::path &GetDataDirPath(bool net_specific = true) const;
+
+    /**
+     * For testing
+     */
+    void ClearDatadirPathCache();
 
     /**
      * Return a vector of strings of the given argument

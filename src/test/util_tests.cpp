@@ -1366,6 +1366,7 @@ BOOST_FIXTURE_TEST_CASE(util_ChainMerge, ChainMergeTestingSetup) {
 BOOST_AUTO_TEST_CASE(util_ReadWriteSettings) {
     // Test writing setting.
     TestArgsManager args1;
+    args1.ForceSetArg("-datadir", m_path_root.string());
     args1.LockSettings([&](util::Settings &settings) {
         settings.rw_settings["name"] = "value";
     });
@@ -1373,6 +1374,7 @@ BOOST_AUTO_TEST_CASE(util_ReadWriteSettings) {
 
     // Test reading setting.
     TestArgsManager args2;
+    args2.ForceSetArg("-datadir", m_path_root.string());
     args2.ReadSettingsFile();
     args2.LockSettings([&](util::Settings &settings) {
         BOOST_CHECK_EQUAL(settings.rw_settings["name"].get_str(), "value");
@@ -1381,10 +1383,10 @@ BOOST_AUTO_TEST_CASE(util_ReadWriteSettings) {
     // Test error logging, and remove previously written setting.
     {
         ASSERT_DEBUG_LOG("Failed renaming settings file");
-        fs::remove(GetDataDir() / "settings.json");
-        fs::create_directory(GetDataDir() / "settings.json");
+        fs::remove(args1.GetDataDirPath() / "settings.json");
+        fs::create_directory(args1.GetDataDirPath() / "settings.json");
         args2.WriteSettingsFile();
-        fs::remove(GetDataDir() / "settings.json");
+        fs::remove(args1.GetDataDirPath() / "settings.json");
     }
 }
 

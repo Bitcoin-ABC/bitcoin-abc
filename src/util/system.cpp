@@ -401,6 +401,46 @@ ArgsManager::GetArgFlags(const std::string &name) const {
     return std::nullopt;
 }
 
+const fs::path &ArgsManager::GetDataDirPath(bool net_specific) const {
+    LOCK(cs_args);
+    fs::path &path =
+        net_specific ? m_cached_network_datadir_path : m_cached_datadir_path;
+
+    // Cache the path to avoid calling fs::create_directories on every call of
+    // this function
+    if (!path.empty()) {
+        return path;
+    }
+    std::string datadir = GetArg("-datadir", "");
+    if (!datadir.empty()) {
+        path = fs::system_complete(datadir);
+        if (!fs::is_directory(path)) {
+            path = "";
+            return path;
+        }
+    } else {
+        path = GetDefaultDataDir();
+    }
+    if (net_specific) {
+        path /= BaseParams().DataDir();
+    }
+
+    if (fs::create_directories(path)) {
+        // This is the first run, create wallets subdirectory too
+        fs::create_directories(path / "wallets");
+    }
+
+    path = StripRedundantLastElementsOfPath(path);
+    return path;
+}
+
+void ArgsManager::ClearDatadirPathCache() {
+    LOCK(cs_args);
+
+    m_cached_datadir_path = fs::path();
+    m_cached_network_datadir_path = fs::path();
+}
+
 std::vector<std::string> ArgsManager::GetArgs(const std::string &strArg) const {
     std::vector<std::string> result;
     for (const util::SettingsValue &value : GetSettingsList(strArg)) {
@@ -440,7 +480,7 @@ bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp) const {
     if (filepath) {
         std::string settings = GetArg("-settings", BITCOIN_SETTINGS_FILENAME);
         *filepath = fs::absolute(temp ? settings + ".tmp" : settings,
-                                 GetDataDir(/* net_specific= */ true));
+                                 GetDataDirPath(/* net_specific= */ true));
     }
     return true;
 }
@@ -758,8 +798,6 @@ fs::path GetDefaultDataDir() {
 }
 
 static fs::path g_blocks_path_cache_net_specific;
-static fs::path pathCached;
-static fs::path pathCachedNetSpecific;
 static RecursiveMutex csPathCached;
 
 const fs::path &GetBlocksDir() {
@@ -790,43 +828,7 @@ const fs::path &GetBlocksDir() {
 }
 
 const fs::path &GetDataDir(bool fNetSpecific) {
-    LOCK(csPathCached);
-    fs::path &path = fNetSpecific ? pathCachedNetSpecific : pathCached;
-
-    // Cache the path to avoid calling fs::create_directories on every call of
-    // this function
-    if (!path.empty()) {
-        return path;
-    }
-
-    std::string datadir = gArgs.GetArg("-datadir", "");
-    if (!datadir.empty()) {
-        path = fs::system_complete(datadir);
-        if (!fs::is_directory(path)) {
-            path = "";
-            return path;
-        }
-    } else {
-        path = GetDefaultDataDir();
-    }
-
-    if (fNetSpecific) {
-        path /= BaseParams().DataDir();
-    }
-
-    if (fs::create_directories(path)) {
-        // This is the first run, create wallets subdirectory too
-        //
-        // TODO: this is an ugly way to create the wallets/ directory and
-        // really shouldn't be done here. Once this is fixed, please
-        // also remove the corresponding line in bitcoind.cpp AppInit.
-        // See more info at:
-        // https://reviews.bitcoinabc.org/D3312
-        fs::create_directories(path / "wallets");
-    }
-
-    path = StripRedundantLastElementsOfPath(path);
-    return path;
+    return gArgs.GetDataDirPath(fNetSpecific);
 }
 
 bool CheckDataDirOption() {
@@ -835,10 +837,7 @@ bool CheckDataDirOption() {
 }
 
 void ClearDatadirCache() {
-    LOCK(csPathCached);
-
-    pathCached = fs::path();
-    pathCachedNetSpecific = fs::path();
+    gArgs.ClearDatadirPathCache();
     g_blocks_path_cache_net_specific = fs::path();
 }
 

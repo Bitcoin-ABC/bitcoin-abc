@@ -108,7 +108,6 @@ struct BasicTestingSetup {
         const std::vector<const char *> &extra_args = {});
     ~BasicTestingSetup();
 
-private:
     const fs::path m_path_root;
 };
 
