@@ -329,7 +329,8 @@ const SendToken = ({ tokenId }) => {
                                     <div style={{ paddingTop: '12px' }}>
                                         {apiError ||
                                         sendTokenAmountError ||
-                                        sendTokenAddressError ? (
+                                        sendTokenAddressError ||
+                                        token.info.decimals === 9 ? (
                                             <>
                                                 <SecondaryButton>
                                                     Send {token.info.tokenName}
@@ -344,6 +345,13 @@ const SendToken = ({ tokenId }) => {
                                             </PrimaryButton>
                                         )}
                                     </div>
+                                    {token.info.decimals === 9 && (
+                                        <Alert
+                                            message={`Sending ${currency.tokenTicker} tokens with 9 decimal places is currently disabled.`}
+                                            type="warning"
+                                            showIcon
+                                        />
+                                    )}
                                     {queryStringText && (
                                         <Alert
                                             message={`You are sending a transaction to an address including query parameters "${queryStringText}." Token transactions do not support query parameters and they will be ignored.`}
