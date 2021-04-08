@@ -5275,7 +5275,10 @@ void CChainState::CheckBlockIndex() {
         if (pindexFirstParked == nullptr && pindex->nStatus.isParked()) {
             pindexFirstParked = pindex;
         }
-        if (pindexFirstMissing == nullptr && !pindex->nStatus.hasData()) {
+        // Assumed-valid index entries will not have data since we haven't
+        // downloaded the full block yet.
+        if (pindexFirstMissing == nullptr && !pindex->nStatus.hasData() &&
+            !pindex->IsAssumedValid()) {
             pindexFirstMissing = pindex;
         }
         if (pindexFirstNeverProcessed == nullptr && pindex->nTx == 0) {
@@ -5285,18 +5288,19 @@ void CChainState::CheckBlockIndex() {
             pindex->nStatus.getValidity() < BlockValidity::TREE) {
             pindexFirstNotTreeValid = pindex;
         }
-        if (pindex->pprev != nullptr &&
-            pindexFirstNotTransactionsValid == nullptr &&
-            pindex->nStatus.getValidity() < BlockValidity::TRANSACTIONS) {
-            pindexFirstNotTransactionsValid = pindex;
-        }
-        if (pindex->pprev != nullptr && pindexFirstNotChainValid == nullptr &&
-            pindex->nStatus.getValidity() < BlockValidity::CHAIN) {
-            pindexFirstNotChainValid = pindex;
-        }
-        if (pindex->pprev != nullptr && pindexFirstNotScriptsValid == nullptr &&
-            pindex->nStatus.getValidity() < BlockValidity::SCRIPTS) {
-            pindexFirstNotScriptsValid = pindex;
+        if (pindex->pprev != nullptr && !pindex->IsAssumedValid()) {
+            if (pindexFirstNotTransactionsValid == nullptr &&
+                pindex->nStatus.getValidity() < BlockValidity::TRANSACTIONS) {
+                pindexFirstNotTransactionsValid = pindex;
+            }
+            if (pindexFirstNotChainValid == nullptr &&
+                pindex->nStatus.getValidity() < BlockValidity::CHAIN) {
+                pindexFirstNotChainValid = pindex;
+            }
+            if (pindexFirstNotScriptsValid == nullptr &&
+                pindex->nStatus.getValidity() < BlockValidity::SCRIPTS) {
+                pindexFirstNotScriptsValid = pindex;
+            }
         }
 
         // Begin: actual consistency checks.
@@ -5316,7 +5320,9 @@ void CChainState::CheckBlockIndex() {
         // VALID_TRANSACTIONS is equivalent to nTx > 0 for all nodes (whether or
         // not pruning has occurred). HAVE_DATA is only equivalent to nTx > 0
         // (or VALID_TRANSACTIONS) if no pruning has occurred.
-        if (!fHavePruned) {
+        // Unless these indexes are assumed valid and pending block download on
+        // a background chainstate.
+        if (!fHavePruned && !pindex->IsAssumedValid()) {
             // If we've never pruned, then HAVE_DATA should be equivalent to nTx
             // > 0
             assert(pindex->nStatus.hasData() == (pindex->nTx > 0));
@@ -5329,9 +5335,18 @@ void CChainState::CheckBlockIndex() {
         if (pindex->nStatus.hasUndo()) {
             assert(pindex->nStatus.hasData());
         }
-        // This is pruning-independent.
-        assert((pindex->nStatus.getValidity() >= BlockValidity::TRANSACTIONS) ==
-               (pindex->nTx > 0));
+        if (pindex->IsAssumedValid()) {
+            // Assumed-valid blocks should have some nTx value.
+            assert(pindex->nTx > 0);
+            // Assumed-valid blocks should connect to the main chain.
+            assert(pindex->nStatus.getValidity() >= BlockValidity::TREE);
+        } else {
+            // Otherwise there should only be an nTx value if we have
+            // actually seen a block's transactions.
+            // This is pruning-independent.
+            assert((pindex->nStatus.getValidity() >=
+                    BlockValidity::TRANSACTIONS) == (pindex->nTx > 0));
+        }
         // All parents having had data (at some point) is equivalent to all
         // parents being VALID_TRANSACTIONS, which is equivalent to
         // HaveTxsDownloaded(). All parents having had data (at some point) is
@@ -5378,17 +5393,23 @@ void CChainState::CheckBlockIndex() {
         if (!CBlockIndexWorkComparator()(pindex, m_chain.Tip()) &&
             pindexFirstNeverProcessed == nullptr) {
             if (pindexFirstInvalid == nullptr) {
-                // If this block sorts at least as good as the current tip and
-                // is valid and we have all data for its parents, it must be in
-                // setBlockIndexCandidates or be parked.
-                if (pindexFirstMissing == nullptr) {
-                    assert(pindex->nStatus.isOnParkedChain() ||
-                           setBlockIndexCandidates.count(pindex));
-                }
-                // m_chain.Tip() must also be there even if some data has
-                // been pruned.
-                if (pindex == m_chain.Tip()) {
-                    assert(setBlockIndexCandidates.count(pindex));
+                // Don't perform this check for the background chainstate since
+                // its setBlockIndexCandidates shouldn't have some entries (i.e.
+                // those past the snapshot block) which do exist in the block
+                // index for the active chainstate.
+                if (this == &m_chainman.ActiveChainstate()) {
+                    // If this block sorts at least as good as the current tip
+                    // and is valid and we have all data for its parents, it
+                    // must be in setBlockIndexCandidates or be parked.
+                    if (pindexFirstMissing == nullptr) {
+                        assert(pindex->nStatus.isOnParkedChain() ||
+                               setBlockIndexCandidates.count(pindex));
+                    }
+                    // m_chain.Tip() must also be there even if some data has
+                    // been pruned.
+                    if (pindex == m_chain.Tip()) {
+                        assert(setBlockIndexCandidates.count(pindex));
+                    }
                 }
                 // If some parent is missing, then it could be that this block
                 // was in setBlockIndexCandidates but had to be removed because
