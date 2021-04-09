@@ -254,7 +254,7 @@ const WalletInfo = () => {
             {apiError && (
                 <>
                     <p style={{ color: 'red' }}>
-                        <b>An error occured on our end.</b>
+                        <b>An error occurred on our end.</b>
                         <br></br> Re-establishing connection...
                     </p>
                     <CashLoader />
