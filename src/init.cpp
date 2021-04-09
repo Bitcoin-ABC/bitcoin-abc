@@ -1372,8 +1372,7 @@ static void CleanupBlockRevFiles() {
     // ordered map keyed by block file index.
     LogPrintf("Removing unusable blk?????.dat and rev?????.dat files for "
               "-reindex with -prune\n");
-    const auto directoryIterator = fs::directory_iterator{GetBlocksDir()};
-    for (const auto &file : directoryIterator) {
+    for (const auto &file : fs::directory_iterator{gArgs.GetBlocksDirPath()}) {
         const auto fileName = file.path().filename().string();
         if (fs::is_regular_file(file) && fileName.length() == 12 &&
             fileName.substr(8, 4) == ".dat") {
@@ -1798,7 +1797,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         InitWarning(warnings);
     }
 
-    if (!fs::is_directory(GetBlocksDir())) {
+    if (!fs::is_directory(gArgs.GetBlocksDirPath())) {
         return InitError(
             strprintf(_("Specified blocks directory \"%s\" does not exist."),
                       args.GetArg("-blocksdir", "")));
@@ -2895,9 +2894,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             strprintf(_("Error: Disk space is low for %s"), GetDataDir()));
         return false;
     }
-    if (!CheckDiskSpace(GetBlocksDir())) {
-        InitError(
-            strprintf(_("Error: Disk space is low for %s"), GetBlocksDir()));
+    if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {
+        InitError(strprintf(_("Error: Disk space is low for %s"),
+                            gArgs.GetBlocksDirPath()));
         return false;
     }
 

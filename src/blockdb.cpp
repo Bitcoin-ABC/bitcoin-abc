@@ -10,11 +10,11 @@
 extern RecursiveMutex cs_main;
 
 FlatFileSeq BlockFileSeq() {
-    return FlatFileSeq(GetBlocksDir(), "blk", BLOCKFILE_CHUNK_SIZE);
+    return FlatFileSeq(gArgs.GetBlocksDirPath(), "blk", BLOCKFILE_CHUNK_SIZE);
 }
 
 FlatFileSeq UndoFileSeq() {
-    return FlatFileSeq(GetBlocksDir(), "rev", UNDOFILE_CHUNK_SIZE);
+    return FlatFileSeq(gArgs.GetBlocksDirPath(), "rev", UNDOFILE_CHUNK_SIZE);
 }
 
 FILE *OpenBlockFile(const FlatFilePos &pos, bool fReadOnly) {
