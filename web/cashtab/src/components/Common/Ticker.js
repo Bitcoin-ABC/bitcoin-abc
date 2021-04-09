@@ -22,6 +22,7 @@ export const currency = {
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
     useBlockchainWs: false,
     txHistoryCount: 5,
+    hydrateUtxoBatchSize: 20,
 };
 
 export function isValidCashPrefix(addressString) {

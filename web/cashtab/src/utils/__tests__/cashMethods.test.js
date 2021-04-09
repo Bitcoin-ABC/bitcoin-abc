@@ -1,4 +1,20 @@
-import { fromSmallestDenomination, formatBalance } from '@utils/cashMethods';
+import {
+    fromSmallestDenomination,
+    formatBalance,
+    batchArray,
+    flattenBatchedHydratedUtxos,
+} from '@utils/cashMethods';
+import {
+    unbatchedArray,
+    arrayBatchedByThree,
+} from '../__mocks__/mockBatchedArrays';
+
+import {
+    originalFinal,
+    batchedFinal,
+    unflattenedHydrateUtxosResponse,
+    flattenedHydrateUtxosResponse,
+} from '../__mocks__/flattenBatchedHydratedUtxosMocks';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -36,5 +52,18 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`formatBalance handles an input of null`, () => {
         expect(formatBalance(null)).toBe(null);
+    });
+    it(`Correctly converts an array of length 10 to an array of 4 arrays, each with max length 3`, () => {
+        expect(batchArray(unbatchedArray, 3)).toStrictEqual(
+            arrayBatchedByThree,
+        );
+    });
+    it(`If array length is less than batch size, return original array as first and only element of new array`, () => {
+        expect(batchArray(unbatchedArray, 20)).toStrictEqual([unbatchedArray]);
+    });
+    it(`Flattens hydrateUtxos from Promise.all() response into array that can be parsed by getSlpBalancesAndUtxos`, () => {
+        expect(
+            flattenBatchedHydratedUtxos(unflattenedHydrateUtxosResponse),
+        ).toStrictEqual(flattenedHydrateUtxosResponse);
     });
 });

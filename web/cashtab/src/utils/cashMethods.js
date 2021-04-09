@@ -46,3 +46,59 @@ export const formatBalance = x => {
         return x;
     }
 };
+
+export const batchArray = (inputArray, batchSize) => {
+    // take an array of n elements, return an array of arrays each of length batchSize
+
+    const batchedArray = [];
+    for (let i = 0; i < inputArray.length; i += batchSize) {
+        const tempArray = inputArray.slice(i, i + batchSize);
+        batchedArray.push(tempArray);
+    }
+    return batchedArray;
+};
+
+export const flattenBatchedHydratedUtxos = batchedHydratedUtxoDetails => {
+    // Return same result as if only the bulk API call were made
+    // to do this, just need to move all utxos under one slpUtxos
+    /*
+    given 
+    [
+      {
+        slpUtxos: [
+            {
+                utxos: [],
+                address: '',
+            }
+          ],
+      },
+      {
+        slpUtxos: [
+            {
+                utxos: [],
+                address: '',
+            }
+          ],
+      }
+    ]
+  return [
+    {
+        slpUtxos: [
+            {
+            utxos: [],
+            address: ''
+            },
+            {
+            utxos: [],
+            address: ''
+            },
+          ]
+        }
+  */
+    const flattenedBatchedHydratedUtxos = { slpUtxos: [] };
+    for (let i = 0; i < batchedHydratedUtxoDetails.length; i += 1) {
+        const theseSlpUtxos = batchedHydratedUtxoDetails[i].slpUtxos[0];
+        flattenedBatchedHydratedUtxos.slpUtxos.push(theseSlpUtxos);
+    }
+    return flattenedBatchedHydratedUtxos;
+};

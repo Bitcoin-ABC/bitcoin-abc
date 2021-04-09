@@ -2,7 +2,11 @@ import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import SlpWallet from 'minimal-slp-wallet';
 
-import { toSmallestDenomination } from '@utils/cashMethods';
+import {
+    toSmallestDenomination,
+    batchArray,
+    flattenBatchedHydratedUtxos,
+} from '@utils/cashMethods';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -304,15 +308,36 @@ export default function useBCH() {
     };
 
     const getHydratedUtxoDetails = async (BCH, utxos) => {
+        const hydrateUtxosPromises = [];
+        for (let i = 0; i < utxos.length; i += 1) {
+            let thisAddress = utxos[i].address;
+            let theseUtxos = utxos[i].utxos;
+            const batchedUtxos = batchArray(
+                theseUtxos,
+                currency.hydrateUtxoBatchSize,
+            );
+
+            // Iterate over each utxo in this address field
+            for (let j = 0; j < batchedUtxos.length; j += 1) {
+                const utxoSetForThisPromise = [
+                    { utxos: batchedUtxos[j], address: thisAddress },
+                ];
+                const thisPromise = BCH.SLP.Utils.hydrateUtxos(
+                    utxoSetForThisPromise,
+                );
+                hydrateUtxosPromises.push(thisPromise);
+            }
+        }
         let hydratedUtxoDetails;
 
         try {
-            hydratedUtxoDetails = await BCH.SLP.Utils.hydrateUtxos(utxos);
-            return hydratedUtxoDetails;
-        } catch (err) {
-            console.log(
-                `Error in BCH.SLP.Utils.hydrateUtxos(utxosResponse.utxos)`,
+            hydratedUtxoDetails = await Promise.all(hydrateUtxosPromises);
+            const flattenedBatchedHydratedUtxos = flattenBatchedHydratedUtxos(
+                hydratedUtxoDetails,
             );
+            return flattenedBatchedHydratedUtxos;
+        } catch (err) {
+            console.log(`Error in Promise.all(hydrateUtxosPromises)`);
             console.log(err);
             return err;
         }

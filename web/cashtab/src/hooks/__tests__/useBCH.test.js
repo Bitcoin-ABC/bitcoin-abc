@@ -9,6 +9,10 @@ import mockTxHistory from '../__mocks__/mockTxHistory';
 import mockFlatTxHistory from '../__mocks__/mockFlatTxHistory';
 import mockTxDataWithPassthrough from '../__mocks__/mockTxDataWithPassthrough';
 import {
+    flattenedHydrateUtxosResponse,
+    legacyHydrateUtxosResponse,
+} from '../__mocks__/mockHydrateUtxosBatched';
+import {
     tokenSendWdt,
     tokenReceiveTBS,
 } from '../__mocks__/mockParseTokenInfoForTxHistory';
@@ -79,6 +83,20 @@ describe('useBCH hook', () => {
         expect(result).toStrictEqual(
             mockReturnGetSlpBalancesAndUtxosNoZeroBalance,
         );
+    });
+
+    it(`Parses flattened batched hydrateUtxosResponse to yield same result as legacy unbatched hydrateUtxosResponse`, async () => {
+        const { getSlpBalancesAndUtxos } = useBCH();
+
+        const batchedResult = await getSlpBalancesAndUtxos(
+            flattenedHydrateUtxosResponse,
+        );
+
+        const legacyResult = await getSlpBalancesAndUtxos(
+            legacyHydrateUtxosResponse,
+        );
+
+        expect(batchedResult).toStrictEqual(legacyResult);
     });
 
     it('sends BCH correctly', async () => {
