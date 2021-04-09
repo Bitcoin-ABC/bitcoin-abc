@@ -29,7 +29,6 @@ macro(add_to_security_check BINARY)
 	add_custom_target("${CUSTOM_TARGET_NAME}"
 		COMMENT "Running security-check.py on ${BINARY}..."
 		COMMAND
-			"OTOOL=${CMAKE_OTOOL}"
 			"${Python_EXECUTABLE}"
 			"${CMAKE_SOURCE_DIR}/contrib/devtools/security-check.py"
 			"$<TARGET_FILE:${BINARY}>"

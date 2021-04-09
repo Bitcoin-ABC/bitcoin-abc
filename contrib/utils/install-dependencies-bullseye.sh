@@ -140,6 +140,8 @@ pip3 install pytest
 # For en/-decoding protobuf messages
 # This version is compatible with Debian's "protobuf-compiler" package
 pip3 install "protobuf<=3.20"
+# For security-check.py and symbol-check.py
+pip3 install "lief>=0.11.4"
 
 # Up-to-date mypy, isort and flynt packages are required python linters
 pip3 install isort==5.6.4 mypy==0.780 flynt==0.78
