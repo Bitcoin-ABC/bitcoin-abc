@@ -2864,7 +2864,7 @@ bool CConnman::Bind(const CService &addr, unsigned int flags,
     }
 
     if (addr.IsRoutable() && fDiscover && !(flags & BF_DONT_ADVERTISE) &&
-        !(permissions & PF_NOBAN)) {
+        !NetPermissions::HasFlag(permissions, NetPermissionFlags::PF_NOBAN)) {
         AddLocal(addr, LOCAL_BIND);
     }
 

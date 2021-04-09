@@ -45,7 +45,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         assert(NetPermissions::HasFlag(net_whitebind_permissions.m_flags,
                                        net_permission_flags));
         (void)NetPermissions::ClearFlag(net_whitebind_permissions.m_flags,
-                                        net_permission_flags);
+                                        NetPermissionFlags::PF_ISIMPLICIT);
         (void)NetPermissions::ToStrings(net_whitebind_permissions.m_flags);
     }
 
@@ -59,7 +59,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         assert(NetPermissions::HasFlag(net_whitelist_permissions.m_flags,
                                        net_permission_flags));
         (void)NetPermissions::ClearFlag(net_whitelist_permissions.m_flags,
-                                        net_permission_flags);
+                                        NetPermissionFlags::PF_ISIMPLICIT);
         (void)NetPermissions::ToStrings(net_whitelist_permissions.m_flags);
     }
 }
