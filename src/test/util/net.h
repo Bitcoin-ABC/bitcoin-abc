@@ -7,8 +7,10 @@
 
 #include <compat.h>
 #include <net.h>
+#include <netaddress.h>
 #include <util/sock.h>
 
+#include <array>
 #include <cassert>
 #include <cstring>
 #include <string>
@@ -41,6 +43,16 @@ struct ConnmanTestMsg : public CConnman {
 
     bool ReceiveMsgFrom(CNode &node, CSerializedNetMsg &ser_msg) const;
 };
+
+constexpr std::array<Network, 7> ALL_NETWORKS = {{
+    Network::NET_UNROUTABLE,
+    Network::NET_IPV4,
+    Network::NET_IPV6,
+    Network::NET_ONION,
+    Network::NET_I2P,
+    Network::NET_CJDNS,
+    Network::NET_INTERNAL,
+}};
 
 /**
  * A mocked Sock alternative that returns a statically contained data upon read
