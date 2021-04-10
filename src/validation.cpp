@@ -317,6 +317,7 @@ public:
          */
         std::vector<COutPoint> &m_coins_to_uncache;
         const bool m_test_accept;
+        const unsigned int m_heightOverride;
         /**
          * When true, the mempool will not be trimmed when individual
          * transactions are submitted in Finalize(). Instead, limits should be
@@ -328,12 +329,14 @@ public:
         static ATMPArgs SingleAccept(const Config &config, int64_t accept_time,
                                      bool bypass_limits,
                                      std::vector<COutPoint> &coins_to_uncache,
-                                     bool test_accept) {
+                                     bool test_accept,
+                                     unsigned int heightOverride) {
             return ATMPArgs{config,
                             accept_time,
                             bypass_limits,
                             coins_to_uncache,
                             test_accept,
+                            heightOverride,
                             /*m_package_submission=*/false};
         }
 
@@ -347,6 +350,7 @@ public:
             return ATMPArgs{config, accept_time,
                             /*m_bypass_limits=*/false, coins_to_uncache,
                             /*m_test_accept=*/true,
+                            /*m_heightOverride=*/0,
                             // not submitting to mempool
                             /*m_package_submission=*/false};
         }
@@ -360,6 +364,7 @@ public:
                             /*m_bypass_limits=*/false,
                             coins_to_uncache,
                             /*m_test_accept=*/false,
+                            /*m_heightOverride=*/0,
                             /*m_package_submission=*/true};
         }
         // No default ctor to avoid exposing details to clients and allowing the
@@ -509,6 +514,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     const int64_t nAcceptTime = args.m_accept_time;
     const bool bypass_limits = args.m_bypass_limits;
     std::vector<COutPoint> &coins_to_uncache = args.m_coins_to_uncache;
+    const unsigned int heightOverride = args.m_heightOverride;
 
     // Alias what we need out of ws
     TxValidationState &state = ws.m_state;
@@ -671,7 +677,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     }
 
     entry.reset(new CTxMemPoolEntry(
-        ptx, ws.m_base_fees, nAcceptTime, m_active_chainstate.m_chain.Height(),
+        ptx, ws.m_base_fees, nAcceptTime,
+        heightOverride ? heightOverride : m_active_chainstate.m_chain.Height(),
         fSpendsCoinbase, ws.m_sig_checks_standard, lp));
 
     ws.m_vsize = entry->GetTxVirtualSize();
@@ -1133,14 +1140,16 @@ MempoolAcceptResult AcceptToMemoryPool(const Config &config,
                                        Chainstate &active_chainstate,
                                        const CTransactionRef &tx,
                                        int64_t accept_time, bool bypass_limits,
-                                       bool test_accept) {
+                                       bool test_accept,
+                                       unsigned int heightOverride) {
     AssertLockHeld(::cs_main);
     assert(active_chainstate.GetMempool() != nullptr);
     CTxMemPool &pool{*active_chainstate.GetMempool()};
 
     std::vector<COutPoint> coins_to_uncache;
     auto args = MemPoolAccept::ATMPArgs::SingleAccept(
-        config, accept_time, bypass_limits, coins_to_uncache, test_accept);
+        config, accept_time, bypass_limits, coins_to_uncache, test_accept,
+        heightOverride);
     const MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
                                            .AcceptSingleTransaction(tx, args);
     if (result.m_result_type != MempoolAcceptResult::ResultType::VALID) {

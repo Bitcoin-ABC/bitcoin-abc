@@ -316,6 +316,8 @@ struct PackageMempoolAcceptResult {
  *                                capacity limits.
  * @param[in]  test_accept        When true, run validation checks but don't
  *                                submit to mempool.
+ * @param[in]  heightOverride     Override the block height of the transaction.
+ *                                Used only upon reorg.
  *
  * @returns a MempoolAcceptResult indicating whether the transaction was
  *     accepted/rejected with reason.
@@ -323,7 +325,8 @@ struct PackageMempoolAcceptResult {
 MempoolAcceptResult
 AcceptToMemoryPool(const Config &config, Chainstate &active_chainstate,
                    const CTransactionRef &tx, int64_t accept_time,
-                   bool bypass_limits, bool test_accept = false)
+                   bool bypass_limits, bool test_accept = false,
+                   unsigned int heightOverride = 0)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**

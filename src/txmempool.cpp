@@ -1268,10 +1268,11 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
     txInfo.reserve(pool.mapTx.size());
     for (const CTxMemPoolEntry &e : pool.mapTx.get<entry_id>()) {
         vtx.push_back(e.GetSharedTx());
-        // save entry time and feeDelta for use in updateMempoolForReorg()
-        txInfo.try_emplace(
-            e.GetTx().GetId(),
-            TxInfo{e.GetTime(), e.GetModifiedFee() - e.GetFee()});
+        // save entry time, feeDelta, and height for use in
+        // updateMempoolForReorg()
+        txInfo.try_emplace(e.GetTx().GetId(),
+                           TxInfo{e.GetTime(), e.GetModifiedFee() - e.GetFee(),
+                                  e.GetHeight()});
         // Notify all observers of this (possibly temporary) removal. This is
         // necessary for tracking the transactions that are removed from the
         // mempool during a reorg and can't be added back due to missing parent.
@@ -1340,7 +1341,8 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
             auto result = AcceptToMemoryPool(
                 config, active_chainstate, tx,
                 /*accept_time=*/ptxInfo ? ptxInfo->time.count() : GetTime(),
-                /*bypass_limits=*/true);
+                /*bypass_limits=*/true, /*test_accept=*/false,
+                /*heightOverride=*/ptxInfo ? ptxInfo->height : 0);
             if (result.m_result_type !=
                     MempoolAcceptResult::ResultType::VALID &&
                 hasFeeDelta) {

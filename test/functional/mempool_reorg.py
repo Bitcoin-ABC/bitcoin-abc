@@ -115,6 +115,12 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
                      spend_1_id, spend_2_1_id, timelock_tx_id})
         self.sync_all()
 
+        # save acceptance heights of 2 of the txs to later test that they are
+        # preserved across reorgs
+        spend_1_height = self.nodes[0].getmempoolentry(spend_1_id)["height"]
+        spend_2_1_height = self.nodes[0].getmempoolentry(spend_2_1_id)[
+            "height"]
+
         self.log.info("invalidate the last block")
         for node in self.nodes:
             node.invalidateblock(last_block[0])
@@ -124,6 +130,20 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
             "spend_3_1 has been re-orged out of the chain and is back in the mempool")
         assert_equal(set(self.nodes[0].getrawmempool()), {
                      spend_1_id, spend_2_1_id, spend_3_1_id})
+
+        # now ensure that the acceptance height of the two txs was preserved
+        # across reorgs (and is not the same as the current tip height)
+        tip_height = self.nodes[0].getblockchaininfo()["blocks"]
+        assert spend_1_height != tip_height
+        assert spend_2_1_height != tip_height
+        assert_equal(
+            spend_1_height, self.nodes[0].getmempoolentry(spend_1_id)["height"])
+        assert_equal(
+            spend_2_1_height, self.nodes[0].getmempoolentry(spend_2_1_id)["height"])
+        # The new resurrected tx should just have height equal to current tip
+        # height
+        assert_equal(
+            tip_height, self.nodes[0].getmempoolentry(spend_3_1_id)["height"])
 
         self.log.info(
             "Use invalidateblock to re-org back and make all those coinbase spends immature/invalid")
