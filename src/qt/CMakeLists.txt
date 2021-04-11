@@ -31,6 +31,7 @@ add_custom_command(OUTPUT qrc_bitcoin_locale.cpp
 		temp_bitcoin_locale.qrc
 		-name bitcoin_locale
 		-o qrc_bitcoin_locale.cpp
+		--format-version 1
 	MAIN_DEPENDENCY temp_bitcoin_locale.qrc
 	DEPENDS locales
 	VERBATIM
