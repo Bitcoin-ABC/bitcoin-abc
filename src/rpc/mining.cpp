@@ -114,7 +114,7 @@ static RPCHelpMan getnetworkhashps() {
             const JSONRPCRequest &request) -> UniValue {
             LOCK(cs_main);
             const CChain &active_chain =
-                EnsureChainman(request.context).ActiveChain();
+                EnsureAnyChainman(request.context).ActiveChain();
             return GetNetworkHashPS(
                 !request.params[0].isNull() ? request.params[0].get_int() : 120,
                 !request.params[1].isNull() ? request.params[1].get_int() : -1,
@@ -281,8 +281,8 @@ static RPCHelpMan generatetodescriptor() {
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
             }
 
-            const CTxMemPool &mempool = EnsureMemPool(request.context);
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
 
             return generateBlocks(config, chainman, mempool, coinbase_script,
                                   num_blocks, max_tries);
@@ -344,8 +344,8 @@ static RPCHelpMan generatetoaddress() {
                                    "Error: Invalid address");
             }
 
-            const CTxMemPool &mempool = EnsureMemPool(request.context);
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
 
             CScript coinbase_script = GetScriptForDestination(destination);
 
@@ -411,7 +411,7 @@ static RPCHelpMan generateblock() {
                 coinbase_script = GetScriptForDestination(destination);
             }
 
-            const CTxMemPool &mempool = EnsureMemPool(request.context);
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
 
             std::vector<CTransactionRef> txs;
             const auto raw_txs_or_txids = request.params[1].get_array();
@@ -441,7 +441,7 @@ static RPCHelpMan generateblock() {
 
             CBlock block;
 
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             {
                 LOCK(cs_main);
 
@@ -528,9 +528,9 @@ static RPCHelpMan getmininginfo() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             LOCK(cs_main);
-            const CTxMemPool &mempool = EnsureMemPool(request.context);
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
             const CChain &active_chain =
-                EnsureChainman(request.context).ActiveChain();
+                EnsureAnyChainman(request.context).ActiveChain();
 
             UniValue obj(UniValue::VOBJ);
             obj.pushKV("blocks", int(active_chain.Height()));
@@ -593,7 +593,8 @@ static RPCHelpMan prioritisetransaction() {
                     "prioritisetransaction must be 0.");
             }
 
-            EnsureMemPool(request.context).PrioritiseTransaction(txid, nAmount);
+            EnsureAnyMemPool(request.context)
+                .PrioritiseTransaction(txid, nAmount);
             return true;
         },
     };
@@ -791,7 +792,7 @@ static RPCHelpMan getblocktemplate() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             LOCK(cs_main);
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
 
             const CChainParams &chainparams = config.GetChainParams();
 
@@ -858,7 +859,7 @@ static RPCHelpMan getblocktemplate() {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
             }
 
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -877,7 +878,7 @@ static RPCHelpMan getblocktemplate() {
             }
 
             static unsigned int nTransactionsUpdatedLast;
-            const CTxMemPool &mempool = EnsureMemPool(request.context);
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
 
             if (!lpval.isNull()) {
                 // Wait to respond until either the best block changes, OR a
@@ -1125,7 +1126,7 @@ static RPCHelpMan submitblock() {
                                    "Block does not start with a coinbase");
             }
 
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             const BlockHash hash = block.GetHash();
             {
                 LOCK(cs_main);
@@ -1183,7 +1184,7 @@ static RPCHelpMan submitheader() {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                    "Block header decode failed");
             }
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             {
                 LOCK(cs_main);
                 if (!chainman.m_blockman.LookupBlockIndex(h.hashPrevBlock)) {
@@ -1217,7 +1218,7 @@ static RPCHelpMan estimatefee() {
         RPCExamples{HelpExampleCli("estimatefee", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const CTxMemPool &mempool = EnsureMemPool(request.context);
+            const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
             return mempool.estimateFee().GetFeePerK();
         },
     };

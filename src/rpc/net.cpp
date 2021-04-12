@@ -43,7 +43,7 @@ static RPCHelpMan getconnectioncount() {
                     HelpExampleRpc("getconnectioncount", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -69,7 +69,7 @@ static RPCHelpMan ping() {
         RPCExamples{HelpExampleCli("ping", "") + HelpExampleRpc("ping", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.peerman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -225,7 +225,7 @@ static RPCHelpMan getpeerinfo() {
                     HelpExampleRpc("getpeerinfo", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman || !node.peerman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -385,7 +385,7 @@ static RPCHelpMan addnode() {
                 throw std::runtime_error(self.ToString());
             }
 
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -477,7 +477,7 @@ static RPCHelpMan addconnection() {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, self.ToString());
             }
 
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -524,7 +524,7 @@ static RPCHelpMan disconnectnode() {
                     HelpExampleRpc("disconnectnode", "\"\", 1")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -603,7 +603,7 @@ static RPCHelpMan getaddednodeinfo() {
                     HelpExampleRpc("getaddednodeinfo", "\"192.168.0.201\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -688,7 +688,7 @@ static RPCHelpMan getnettotals() {
                     HelpExampleRpc("getnettotals", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -829,7 +829,7 @@ static RPCHelpMan getnetworkinfo() {
             obj.pushKV("version", CLIENT_VERSION);
             obj.pushKV("subversion", userAgent(config));
             obj.pushKV("protocolversion", PROTOCOL_VERSION);
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (node.connman) {
                 ServiceFlags services = node.connman->GetLocalServices();
                 obj.pushKV("localservices", strprintf("%016x", services));
@@ -905,7 +905,7 @@ static RPCHelpMan setban() {
                 throw std::runtime_error(help.ToString());
             }
 
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.banman) {
                 throw JSONRPCError(RPC_DATABASE_ERROR,
                                    "Error: Ban database not loaded");
@@ -998,7 +998,7 @@ static RPCHelpMan listbanned() {
                     HelpExampleRpc("listbanned", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.banman) {
                 throw JSONRPCError(RPC_DATABASE_ERROR,
                                    "Error: Ban database not loaded");
@@ -1033,7 +1033,7 @@ static RPCHelpMan clearbanned() {
                     HelpExampleRpc("clearbanned", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.banman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -1059,7 +1059,7 @@ static RPCHelpMan setnetworkactive() {
         RPCExamples{""},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.banman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -1116,7 +1116,7 @@ static RPCHelpMan getnodeaddresses() {
                     HelpExampleRpc("getnodeaddresses", "4, \"i2p\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.banman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,
@@ -1184,7 +1184,7 @@ static RPCHelpMan addpeeraddress() {
                     HelpExampleRpc("addpeeraddress", "\"1.2.3.4\", 8333")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (!node.connman) {
                 throw JSONRPCError(
                     RPC_CLIENT_P2P_DISABLED,

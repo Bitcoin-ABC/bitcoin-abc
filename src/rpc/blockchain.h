@@ -52,9 +52,11 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
                            const CBlockIndex *blockindex)
     LOCKS_EXCLUDED(cs_main);
 
-NodeContext &EnsureNodeContext(const std::any &context);
-CTxMemPool &EnsureMemPool(const std::any &context);
-ChainstateManager &EnsureChainman(const std::any &context);
+NodeContext &EnsureAnyNodeContext(const std::any &context);
+CTxMemPool &EnsureMemPool(const NodeContext &node);
+CTxMemPool &EnsureAnyMemPool(const std::any &context);
+ChainstateManager &EnsureChainman(const NodeContext &node);
+ChainstateManager &EnsureAnyChainman(const std::any &context);
 
 /**
  * Helper to create UTXO snapshots given a chainstate and a file handle.

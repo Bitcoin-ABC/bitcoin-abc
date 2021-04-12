@@ -125,7 +125,7 @@ static RPCHelpMan addavalanchenode() {
             CPubKey key = ParsePubKey(request.params[1]);
 
             auto proof = RCUPtr<avalanche::Proof>::make();
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             verifyProofOrThrow(node, *proof, request.params[2].get_str());
 
             const avalanche::ProofId &proofid = proof->getId();
@@ -939,7 +939,7 @@ static RPCHelpMan sendavalancheproof() {
             }
 
             auto proof = RCUPtr<avalanche::Proof>::make();
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
 
             // Verify the proof. Note that this is redundant with the
             // verification done when adding the proof to the pool, but we get a
@@ -983,7 +983,7 @@ static RPCHelpMan verifyavalancheproof() {
             RPCTypeCheck(request.params, {UniValue::VSTR});
 
             avalanche::Proof proof;
-            verifyProofOrThrow(EnsureNodeContext(request.context), proof,
+            verifyProofOrThrow(EnsureAnyNodeContext(request.context), proof,
                                request.params[0].get_str());
 
             return true;

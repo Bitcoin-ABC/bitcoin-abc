@@ -193,8 +193,8 @@ static RPCHelpMan getrawtransaction() {
                                    "\"mytxid\" true \"myblockhash\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const NodeContext &node = EnsureNodeContext(request.context);
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
 
             bool in_active_chain = true;
             TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
@@ -331,7 +331,7 @@ static RPCHelpMan gettxoutproof() {
             CBlockIndex *pblockindex = nullptr;
 
             BlockHash hashBlock;
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             if (!request.params[1].isNull()) {
                 LOCK(cs_main);
                 hashBlock =
@@ -448,7 +448,7 @@ static RPCHelpMan verifytxoutproof() {
 
             LOCK(cs_main);
 
-            ChainstateManager &chainman = EnsureChainman(request.context);
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
 
             const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(
                 merkleBlock.header.GetHash());
@@ -783,10 +783,10 @@ static RPCHelpMan combinerawtransaction() {
             CCoinsView viewDummy;
             CCoinsViewCache view(&viewDummy);
             {
-                const CTxMemPool &mempool = EnsureMemPool(request.context);
+                const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
                 LOCK(cs_main);
                 LOCK(mempool.cs);
-                CCoinsViewCache &viewChain = EnsureChainman(request.context)
+                CCoinsViewCache &viewChain = EnsureAnyChainman(request.context)
                                                  .ActiveChainstate()
                                                  .CoinsTip();
                 CCoinsViewMemPool viewMempool(&viewChain, mempool);
@@ -964,7 +964,7 @@ static RPCHelpMan signrawtransactionwithkey() {
                 // Create empty map entry keyed by prevout.
                 coins[txin.prevout];
             }
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             FindCoins(node, coins);
 
             // Parse the prevtxs array
@@ -1036,7 +1036,7 @@ static RPCHelpMan sendrawtransaction() {
 
             std::string err_string;
             AssertLockNotHeld(cs_main);
-            NodeContext &node = EnsureNodeContext(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
             const TransactionError err = BroadcastTransaction(
                 node, config, tx, err_string, max_raw_tx_fee, /*relay*/ true,
                 /*wait_callback*/ true);
@@ -1145,7 +1145,7 @@ static RPCHelpMan testmempoolaccept() {
                     ? DEFAULT_MAX_RAW_TX_FEE_RATE
                     : CFeeRate(AmountFromValue(request.params[1]));
 
-            CTxMemPool &mempool = EnsureMemPool(request.context);
+            CTxMemPool &mempool = EnsureAnyMemPool(request.context);
             int64_t virtual_size = GetVirtualTransactionSize(*tx);
             Amount max_raw_tx_fee = max_raw_tx_fee_rate.GetFee(virtual_size);
 
@@ -1159,9 +1159,9 @@ static RPCHelpMan testmempoolaccept() {
             {
                 LOCK(cs_main);
                 test_accept_res = AcceptToMemoryPool(
-                    EnsureChainman(request.context).ActiveChainstate(), config,
-                    mempool, state, std::move(tx), false /* bypass_limits */,
-                    true /* test_accept */, &fee);
+                    EnsureAnyChainman(request.context).ActiveChainstate(),
+                    config, mempool, state, std::move(tx),
+                    false /* bypass_limits */, true /* test_accept */, &fee);
             }
 
             // Check that fee does not exceed maximum fee
@@ -1914,9 +1914,9 @@ RPCHelpMan utxoupdatepsbt() {
             CCoinsView viewDummy;
             CCoinsViewCache view(&viewDummy);
             {
-                const CTxMemPool &mempool = EnsureMemPool(request.context);
+                const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
                 LOCK2(cs_main, mempool.cs);
-                CCoinsViewCache &viewChain = EnsureChainman(request.context)
+                CCoinsViewCache &viewChain = EnsureAnyChainman(request.context)
                                                  .ActiveChainstate()
                                                  .CoinsTip();
                 CCoinsViewMemPool viewMempool(&viewChain, mempool);
