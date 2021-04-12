@@ -213,12 +213,12 @@ static bool rest_headers(Config &config, const std::any &context,
     std::vector<const CBlockIndex *> headers;
     headers.reserve(count);
     {
-        LOCK(cs_main);
         ChainstateManager *maybe_chainman = GetChainman(context, req);
         if (!maybe_chainman) {
             return false;
         }
         ChainstateManager &chainman = *maybe_chainman;
+        LOCK(cs_main);
         CChain &active_chain = chainman.ActiveChain();
         tip = active_chain.Tip();
         const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(hash);
@@ -294,12 +294,12 @@ static bool rest_block(const Config &config, const std::any &context,
     CBlockIndex *pblockindex = nullptr;
     CBlockIndex *tip = nullptr;
     {
-        LOCK(cs_main);
         ChainstateManager *maybe_chainman = GetChainman(context, req);
         if (!maybe_chainman) {
             return false;
         }
         ChainstateManager &chainman = *maybe_chainman;
+        LOCK(cs_main);
         tip = chainman.ActiveTip();
         pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
         if (!pblockindex) {

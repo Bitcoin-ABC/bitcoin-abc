@@ -179,8 +179,9 @@ static RPCHelpMan getblockcount() {
                     HelpExampleRpc("getblockcount", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            return EnsureAnyChainman(request.context).ActiveHeight();
+            return chainman.ActiveHeight();
         },
     };
 }
@@ -196,11 +197,9 @@ static RPCHelpMan getbestblockhash() {
                     HelpExampleRpc("getbestblockhash", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            return EnsureAnyChainman(request.context)
-                .ActiveTip()
-                ->GetBlockHash()
-                .GetHex();
+            return chainman.ActiveTip()->GetBlockHash().GetHex();
         },
     };
 }
@@ -215,9 +214,9 @@ RPCHelpMan getfinalizedblockhash() {
                     HelpExampleRpc("getfinalizedblockhash", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            CChainState &active_chainstate =
-                EnsureAnyChainman(request.context).ActiveChainstate();
+            CChainState &active_chainstate = chainman.ActiveChainstate();
             const CBlockIndex *blockIndexFinalized =
                 active_chainstate.GetFinalizedBlock();
             if (blockIndexFinalized) {
@@ -446,9 +445,9 @@ static RPCHelpMan getdifficulty() {
                     HelpExampleRpc("getdifficulty", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            return GetDifficulty(
-                EnsureAnyChainman(request.context).ActiveTip());
+            return GetDifficulty(chainman.ActiveTip());
         },
     };
 }
@@ -875,9 +874,9 @@ static RPCHelpMan getblockhash() {
                     HelpExampleRpc("getblockhash", "1000")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            const CChain &active_chain =
-                EnsureAnyChainman(request.context).ActiveChain();
+            const CChain &active_chain = chainman.ActiveChain();
 
             int nHeight = request.params[0].get_int();
             if (nHeight < 0 || nHeight > active_chain.Height()) {
@@ -963,9 +962,9 @@ static RPCHelpMan getblockheader() {
             const CBlockIndex *pblockindex;
             const CBlockIndex *tip;
             {
-                LOCK(cs_main);
                 ChainstateManager &chainman =
                     EnsureAnyChainman(request.context);
+                LOCK(cs_main);
                 pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
                 tip = chainman.ActiveTip();
             }
@@ -1125,9 +1124,9 @@ static RPCHelpMan getblock() {
             const CBlockIndex *pblockindex;
             const CBlockIndex *tip;
             {
-                LOCK(cs_main);
                 ChainstateManager &chainman =
                     EnsureAnyChainman(request.context);
+                LOCK(cs_main);
                 pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
                 tip = chainman.ActiveTip();
 
@@ -1176,8 +1175,8 @@ static RPCHelpMan pruneblockchain() {
                     "Cannot prune blocks because node is not in prune mode.");
             }
 
-            LOCK(cs_main);
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            LOCK(cs_main);
 
             int heightParam = request.params[0].get_int();
             if (heightParam < 0) {
@@ -1286,8 +1285,9 @@ static RPCHelpMan gettxoutsetinfo() {
             UniValue ret(UniValue::VOBJ);
 
             CCoinsStats stats;
-            CChainState &active_chainstate =
-                EnsureAnyChainman(request.context).ActiveChainstate();
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
+            CChainState &active_chainstate = chainman.ActiveChainstate();
             active_chainstate.ForceFlushStateToDisk();
 
             const CoinStatsHashType hash_type{
@@ -1302,7 +1302,6 @@ static RPCHelpMan gettxoutsetinfo() {
                 coins_view = &active_chainstate.CoinsDB();
                 blockman = &active_chainstate.m_blockman;
             }
-            NodeContext &node = EnsureAnyNodeContext(request.context);
             if (GetUTXOStats(coins_view, *blockman, stats, hash_type,
                              node.rpc_interruption_point)) {
                 ret.pushKV("height", int64_t(stats.nHeight));
@@ -1380,6 +1379,8 @@ RPCHelpMan gettxout() {
                     HelpExampleRpc("gettxout", "\"txid\", 1")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             LOCK(cs_main);
 
             UniValue ret(UniValue::VOBJ);
@@ -1393,12 +1394,11 @@ RPCHelpMan gettxout() {
             }
 
             Coin coin;
-            CChainState &active_chainstate =
-                EnsureAnyChainman(request.context).ActiveChainstate();
+            CChainState &active_chainstate = chainman.ActiveChainstate();
             CCoinsViewCache *coins_view = &active_chainstate.CoinsTip();
 
             if (fMempool) {
-                const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+                const CTxMemPool &mempool = EnsureMemPool(node);
                 LOCK(mempool.cs);
                 CCoinsViewMemPool view(coins_view, mempool);
                 if (!view.GetCoin(out, coin) || mempool.isSpent(out)) {
@@ -1456,10 +1456,10 @@ static RPCHelpMan verifychain() {
                                       ? DEFAULT_CHECKBLOCKS
                                       : request.params[1].get_int()};
 
+            ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
 
-            CChainState &active_chainstate =
-                EnsureAnyChainman(request.context).ActiveChainstate();
+            CChainState &active_chainstate = chainman.ActiveChainstate();
             return CVerifyDB().VerifyDB(active_chainstate, config,
                                         active_chainstate.CoinsTip(),
                                         check_level, check_depth);
@@ -1646,11 +1646,10 @@ RPCHelpMan getblockchaininfo() {
                     HelpExampleRpc("getblockchaininfo", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            LOCK(cs_main);
-
             const CChainParams &chainparams = config.GetChainParams();
 
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            LOCK(cs_main);
 
             const CBlockIndex *tip = chainman.ActiveTip();
             CHECK_NONFATAL(tip);
@@ -2387,8 +2386,8 @@ static RPCHelpMan getblockstats() {
                            R"(1000, ["minfeerate","avgfeerate"])")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            LOCK(cs_main);
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            LOCK(cs_main);
 
             CBlockIndex *pindex;
             if (request.params[0].isNum()) {
@@ -2870,10 +2869,10 @@ static RPCHelpMan scantxoutset() {
                 int64_t count = 0;
                 std::unique_ptr<CCoinsViewCursor> pcursor;
                 CBlockIndex *tip;
+                NodeContext &node = EnsureAnyNodeContext(request.context);
                 {
+                    ChainstateManager &chainman = EnsureChainman(node);
                     LOCK(cs_main);
-                    ChainstateManager &chainman =
-                        EnsureAnyChainman(request.context);
                     chainman.ActiveChainstate().ForceFlushStateToDisk();
                     pcursor = std::unique_ptr<CCoinsViewCursor>(
                         chainman.ActiveChainstate().CoinsDB().Cursor());
@@ -2881,7 +2880,6 @@ static RPCHelpMan scantxoutset() {
                     tip = chainman.ActiveTip();
                     CHECK_NONFATAL(tip);
                 }
-                NodeContext &node = EnsureAnyNodeContext(request.context);
                 bool res = FindScriptPubKey(
                     g_scan_progress, g_should_abort_scan, count, pcursor.get(),
                     needles, coins, node.rpc_interruption_point);
@@ -2968,9 +2966,10 @@ static RPCHelpMan getblockfilter() {
             const CBlockIndex *block_index;
             bool block_was_connected;
             {
+                ChainstateManager &chainman =
+                    EnsureAnyChainman(request.context);
                 LOCK(cs_main);
-                block_index = EnsureAnyChainman(request.context)
-                                  .m_blockman.LookupBlockIndex(block_hash);
+                block_index = chainman.m_blockman.LookupBlockIndex(block_hash);
                 if (!block_index) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                                        "Block not found");

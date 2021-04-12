@@ -194,7 +194,7 @@ static RPCHelpMan getrawtransaction() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
 
             bool in_active_chain = true;
             TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
@@ -446,9 +446,8 @@ static RPCHelpMan verifytxoutproof() {
                 return res;
             }
 
-            LOCK(cs_main);
-
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            LOCK(cs_main);
 
             const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(
                 merkleBlock.header.GetHash());
@@ -783,12 +782,12 @@ static RPCHelpMan combinerawtransaction() {
             CCoinsView viewDummy;
             CCoinsViewCache view(&viewDummy);
             {
-                const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
-                LOCK(cs_main);
-                LOCK(mempool.cs);
-                CCoinsViewCache &viewChain = EnsureAnyChainman(request.context)
-                                                 .ActiveChainstate()
-                                                 .CoinsTip();
+                NodeContext &node = EnsureAnyNodeContext(request.context);
+                const CTxMemPool &mempool = EnsureMemPool(node);
+                ChainstateManager &chainman = EnsureChainman(node);
+                LOCK2(cs_main, mempool.cs);
+                CCoinsViewCache &viewChain =
+                    chainman.ActiveChainstate().CoinsTip();
                 CCoinsViewMemPool viewMempool(&viewChain, mempool);
                 // temporarily switch cache backend to db+mempool view
                 view.SetBackend(viewMempool);
@@ -1145,7 +1144,9 @@ static RPCHelpMan testmempoolaccept() {
                     ? DEFAULT_MAX_RAW_TX_FEE_RATE
                     : CFeeRate(AmountFromValue(request.params[1]));
 
-            CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+
+            CTxMemPool &mempool = EnsureMemPool(node);
             int64_t virtual_size = GetVirtualTransactionSize(*tx);
             Amount max_raw_tx_fee = max_raw_tx_fee_rate.GetFee(virtual_size);
 
@@ -1156,13 +1157,13 @@ static RPCHelpMan testmempoolaccept() {
             TxValidationState state;
             bool test_accept_res;
             Amount fee = Amount::zero();
-            {
-                LOCK(cs_main);
-                test_accept_res = AcceptToMemoryPool(
-                    EnsureAnyChainman(request.context).ActiveChainstate(),
-                    config, mempool, state, std::move(tx),
-                    false /* bypass_limits */, true /* test_accept */, &fee);
-            }
+            ChainstateManager &chainman = EnsureChainman(node);
+
+            test_accept_res = WITH_LOCK(
+                cs_main, return AcceptToMemoryPool(
+                             chainman.ActiveChainstate(), config, mempool,
+                             state, std::move(tx), false /* bypass_limits */,
+                             true /* test_accept */, &fee));
 
             // Check that fee does not exceed maximum fee
             if (test_accept_res && max_raw_tx_fee != Amount::zero() &&
@@ -1914,11 +1915,12 @@ RPCHelpMan utxoupdatepsbt() {
             CCoinsView viewDummy;
             CCoinsViewCache view(&viewDummy);
             {
-                const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
+                NodeContext &node = EnsureAnyNodeContext(request.context);
+                const CTxMemPool &mempool = EnsureMemPool(node);
+                ChainstateManager &chainman = EnsureChainman(node);
                 LOCK2(cs_main, mempool.cs);
-                CCoinsViewCache &viewChain = EnsureAnyChainman(request.context)
-                                                 .ActiveChainstate()
-                                                 .CoinsTip();
+                CCoinsViewCache &viewChain =
+                    chainman.ActiveChainstate().CoinsTip();
                 CCoinsViewMemPool viewMempool(&viewChain, mempool);
                 // temporarily switch cache backend to db+mempool view
                 view.SetBackend(viewMempool);
