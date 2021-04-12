@@ -23,6 +23,7 @@ from decimal import Decimal
 
 AXION_ACTIVATION_TIME = 2000000600
 MINER_FUND_ADDR = 'bchreg:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgd35g0pkl'
+MINER_FUND_LEGACY_ADDR = '2MviGxxFciGeWTgkUgYgjqehWt18c4ZsShd'
 
 
 class AbcMiningRPCTest(BitcoinTestFramework):
@@ -31,10 +32,13 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         self.extra_args = [[
             '-enableminerfund',
             '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
-        ], []]
+        ], [
+            '-enableminerfund',
+            '-usecashaddr=0',
+            '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
+        ]]
 
-    def run_test(self):
-        node = self.nodes[0]
+    def run_for_node(self, node, expectedMinerFundAddress):
         address = node.get_deterministic_priv_key().address
 
         # Assert the results of getblocktemplate have expected values. Keys not
@@ -84,7 +88,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 # We expect to start seeing the miner fund addresses since the
                 # next block will start enforcing them.
                 'minerfund': {
-                    'addresses': [MINER_FUND_ADDR],
+                    'addresses': [expectedMinerFundAddress],
                     'minimumvalue': block_reward * 8 // 100 * COIN,
                 },
             },
@@ -110,7 +114,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         assert_getblocktemplate({
             'coinbasetxn': {
                 'minerfund': {
-                    'addresses': [MINER_FUND_ADDR],
+                    'addresses': [expectedMinerFundAddress],
                     'minimumvalue': block_reward * 8 // 100 * COIN,
                 },
             },
@@ -125,13 +129,17 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         assert_getblocktemplate({
             'coinbasetxn': {
                 'minerfund': {
-                    'addresses': [MINER_FUND_ADDR],
+                    'addresses': [expectedMinerFundAddress],
                     'minimumvalue': block_reward * 8 // 100 * COIN,
                 },
             },
             'coinbasevalue': block_reward * COIN,
             'mintime': AXION_ACTIVATION_TIME + 2,
         })
+
+    def run_test(self):
+        self.run_for_node(self.nodes[0], MINER_FUND_ADDR)
+        self.run_for_node(self.nodes[1], MINER_FUND_LEGACY_ADDR)
 
 
 if __name__ == '__main__':

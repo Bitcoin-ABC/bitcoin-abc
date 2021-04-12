@@ -951,7 +951,7 @@ static UniValue getblocktemplate(const Config &config,
     const Consensus::Params &consensusParams = chainparams.GetConsensus();
     for (auto fundDestination :
          GetMinerFundWhitelist(consensusParams, pindexPrev)) {
-        minerFundList.push_back(EncodeCashAddr(fundDestination, chainparams));
+        minerFundList.push_back(EncodeDestination(fundDestination, config));
     }
 
     int64_t minerFundMinValue = 0;
