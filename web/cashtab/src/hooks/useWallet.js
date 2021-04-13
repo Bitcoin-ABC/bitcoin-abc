@@ -229,6 +229,8 @@ const useWallet = () => {
 
             setWalletState(newState);
 
+            // Write this state to indexedDb using localForage
+            writeWalletState(wallet, newState);
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
@@ -351,6 +353,19 @@ const useWallet = () => {
         return wallet;
     };
 
+    const writeWalletState = async (wallet, newState) => {
+        // Add new state as an object on the active wallet
+        wallet.state = newState;
+        console.log(`wallet with state`, wallet);
+        try {
+            await localforage.setItem('wallet', wallet);
+            console.log(`Wallet new state successfully written`);
+        } catch (err) {
+            console.log(`Error in writeWalletState()`);
+            console.log(err);
+        }
+    };
+
     const getWalletDetails = async wallet => {
         if (!wallet) {
             return false;
@@ -461,35 +476,38 @@ const useWallet = () => {
             > Update walletToActivate with Path1899 before activation
         */
 
+        // Need to handle a similar situation with state
+        // If you find the activeWallet in savedWallets but without state, resave active wallet with state
+        // Note you do not have the Case 2 described above here, as wallet state is added in the update() function of useWallet.js
+        // Also note, since state can be expected to change frequently (unlike path deriv), you will likely save it every time you activate a new wallet
         // Check savedWallets for currentlyActiveWallet
         let walletInSavedWallets = false;
-        let walletUnmigrated = false;
         for (let i = 0; i < savedWallets.length; i += 1) {
             if (savedWallets[i].name === currentlyActiveWallet.name) {
                 walletInSavedWallets = true;
                 // Check savedWallets for unmigrated currentlyActiveWallet
                 if (!savedWallets[i].Path1899) {
                     // Case 1, described above
-                    console.log(
-                        `Case 1: Wallet migration in saved wallets still pending, adding Path1899`,
-                    );
                     savedWallets[i].Path1899 = currentlyActiveWallet.Path1899;
-                    walletUnmigrated = true;
                 }
+
+                /*
+                Update wallet state
+                Note, this makes previous `walletUnmigrated` variable redundant
+                savedWallets[i] should always be updated, since wallet state can be expected to change most of the time
+                */
+                savedWallets[i].state = currentlyActiveWallet.state;
             }
         }
 
-        // Case 1
-        if (walletUnmigrated) {
-            // resave savedWallets
-            try {
-                // Set walletName as the active wallet
-                await localforage.setItem('savedWallets', savedWallets);
-            } catch (err) {
-                console.log(
-                    `Error in localforage.setItem("savedWallets") in activateWallet() for unmigrated wallet`,
-                );
-            }
+        // resave savedWallets
+        try {
+            // Set walletName as the active wallet
+            await localforage.setItem('savedWallets', savedWallets);
+        } catch (err) {
+            console.log(
+                `Error in localforage.setItem("savedWallets") in activateWallet() for unmigrated wallet`,
+            );
         }
 
         if (!walletInSavedWallets) {
