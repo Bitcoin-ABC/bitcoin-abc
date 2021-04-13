@@ -803,6 +803,8 @@ static RPCHelpMan getblocktemplate() {
             std::string strMode = "template";
             UniValue lpval = NullUniValue;
             std::set<std::string> setClientRules;
+            CChainState &active_chainstate = chainman.ActiveChainstate();
+            CChain &active_chain = active_chainstate.m_chain;
             if (!request.params[0].isNull()) {
                 const UniValue &oparam = request.params[0].get_obj();
                 const UniValue &modeval = find_value(oparam, "mode");
@@ -842,16 +844,15 @@ static RPCHelpMan getblocktemplate() {
                         return "duplicate-inconclusive";
                     }
 
-                    CBlockIndex *const pindexPrev = chainman.ActiveTip();
+                    CBlockIndex *const pindexPrev = active_chain.Tip();
                     // TestBlockValidity only supports blocks built on the
                     // current Tip
                     if (block.hashPrevBlock != pindexPrev->GetBlockHash()) {
                         return "inconclusive-not-best-prevblk";
                     }
                     BlockValidationState state;
-                    TestBlockValidity(state, chainparams,
-                                      chainman.ActiveChainstate(), block,
-                                      pindexPrev,
+                    TestBlockValidity(state, chainparams, active_chainstate,
+                                      block, pindexPrev,
                                       BlockValidationOptions(config)
                                           .withCheckPoW(false)
                                           .withCheckMerkleRoot(true));
@@ -874,7 +875,7 @@ static RPCHelpMan getblocktemplate() {
                                    "Bitcoin is not connected!");
             }
 
-            if (chainman.ActiveChainstate().IsInitialBlockDownload()) {
+            if (active_chainstate.IsInitialBlockDownload()) {
                 throw JSONRPCError(
                     RPC_CLIENT_IN_INITIAL_DOWNLOAD, PACKAGE_NAME
                     " is in initial sync and waiting for blocks...");
@@ -900,7 +901,7 @@ static RPCHelpMan getblocktemplate() {
                 } else {
                     // NOTE: Spec does not specify behaviour for non-string
                     // longpollid, but this makes testing easier
-                    hashWatchedChain = chainman.ActiveTip()->GetBlockHash();
+                    hashWatchedChain = active_chain.Tip()->GetBlockHash();
                     nTransactionsUpdatedLastLP = nTransactionsUpdatedLast;
                 }
 
@@ -939,7 +940,7 @@ static RPCHelpMan getblocktemplate() {
             static CBlockIndex *pindexPrev;
             static int64_t nStart;
             static std::unique_ptr<CBlockTemplate> pblocktemplate;
-            if (pindexPrev != chainman.ActiveTip() ||
+            if (pindexPrev != active_chain.Tip() ||
                 (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast &&
                  GetTime() - nStart > 5)) {
                 // Clear pindexPrev so future calls make a new block, despite
@@ -949,13 +950,13 @@ static RPCHelpMan getblocktemplate() {
                 // Store the pindexBest used before CreateNewBlock, to avoid
                 // races
                 nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-                CBlockIndex *pindexPrevNew = chainman.ActiveTip();
+                CBlockIndex *pindexPrevNew = active_chain.Tip();
                 nStart = GetTime();
 
                 // Create new block
                 CScript scriptDummy = CScript() << OP_TRUE;
                 pblocktemplate =
-                    BlockAssembler(config, chainman.ActiveChainstate(), mempool)
+                    BlockAssembler(config, active_chainstate, mempool)
                         .CreateNewBlock(scriptDummy);
                 if (!pblocktemplate) {
                     throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
@@ -1054,7 +1055,7 @@ static RPCHelpMan getblocktemplate() {
             result.pushKV("coinbasetxn", coinbasetxn);
             result.pushKV("coinbasevalue", int64_t(coinbasevalue / SATOSHI));
             result.pushKV("longpollid",
-                          chainman.ActiveTip()->GetBlockHash().GetHex() +
+                          active_chain.Tip()->GetBlockHash().GetHex() +
                               ToString(nTransactionsUpdatedLast));
             result.pushKV("target", hashTarget.GetHex());
             result.pushKV("mintime",
