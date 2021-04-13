@@ -2839,12 +2839,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                             break;
                         }
 
-                        // Only verify the DB of the active chainstate. This is
-                        // fixed in later work when we allow VerifyDB to be
-                        // parameterized by chainstate.
-                        if (&::ChainstateActive() == chainstate &&
-                            !CVerifyDB().VerifyDB(
-                                config, *chainstate, &chainstate->CoinsDB(),
+                        if (!CVerifyDB().VerifyDB(
+                                *chainstate, config, chainstate->CoinsDB(),
                                 args.GetArg("-checklevel", DEFAULT_CHECKLEVEL),
                                 args.GetArg("-checkblocks",
                                             DEFAULT_CHECKBLOCKS))) {

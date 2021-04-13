@@ -513,9 +513,11 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
 class CVerifyDB {
 public:
     CVerifyDB();
+
     ~CVerifyDB();
-    bool VerifyDB(const Config &config, CChainState &active_chainstate,
-                  CCoinsView *coinsview, int nCheckLevel, int nCheckDepth)
+
+    bool VerifyDB(CChainState &chainstate, const Config &config,
+                  CCoinsView &coinsview, int nCheckLevel, int nCheckDepth)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 
@@ -1194,6 +1196,8 @@ public:
         return m_blockman.m_block_index;
     }
 
+    //! @returns true if a snapshot-based chainstate is in use. Also implies
+    //!          that a background validation chainstate is also in use.
     bool IsSnapshotActive() const;
 
     std::optional<BlockHash> SnapshotBlockhash() const;
