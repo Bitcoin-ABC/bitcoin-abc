@@ -250,8 +250,6 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
 
 /** Disable or enable blocking-mode for a socket */
 bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking);
-/** Set the TCP_NODELAY flag on a socket */
-bool SetSocketNoDelay(const SOCKET &hSocket);
 void InterruptSocks5(bool interrupt);
 
 bool Socks5(const std::string &strDest, uint16_t port,

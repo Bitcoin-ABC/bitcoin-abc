@@ -116,6 +116,18 @@ std::unique_ptr<Sock> FuzzedSock::Accept(sockaddr *addr,
     return std::make_unique<FuzzedSock>(m_fuzzed_data_provider);
 }
 
+int FuzzedSock::SetSockOpt(int, int, const void *, socklen_t) const {
+    constexpr std::array<int, 2> setsockopt_errnos{{
+        ENOMEM,
+        ENOBUFS,
+    }};
+    if (m_fuzzed_data_provider.ConsumeBool()) {
+        SetFuzzedErrNo(m_fuzzed_data_provider, setsockopt_errnos);
+        return -1;
+    }
+    return 0;
+}
+
 bool FuzzedSock::Wait(std::chrono::milliseconds timeout, Event requested,
                       Event *occurred) const {
     return m_fuzzed_data_provider.ConsumeBool();
