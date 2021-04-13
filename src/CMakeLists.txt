@@ -391,6 +391,7 @@ add_library(util
 	util/strencodings.cpp
 	util/string.cpp
 	util/system.cpp
+	util/thread.cpp
 	util/threadnames.cpp
 	util/time.cpp
 	util/url.cpp

@@ -29,6 +29,8 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <util/strencodings.h>
+#include <util/thread.h>
+#include <util/threadnames.h>
 #include <util/time.h>
 #include <util/translation.h>
 #include <util/vector.h>
@@ -156,9 +158,9 @@ ChainTestingSetup::ChainTestingSetup(
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.
     m_node.scheduler = std::make_unique<CScheduler>();
-    m_node.scheduler->m_service_thread = std::thread([&] {
-        TraceThread("scheduler", [&] { m_node.scheduler->serviceQueue(); });
-    });
+    m_node.scheduler->m_service_thread =
+        std::thread(util::TraceThread, "scheduler",
+                    [&] { m_node.scheduler->serviceQueue(); });
     GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));

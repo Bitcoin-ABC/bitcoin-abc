@@ -26,6 +26,7 @@
 #include <scheduler.h>
 #include <util/sock.h>
 #include <util/strencodings.h>
+#include <util/thread.h>
 #include <util/translation.h>
 
 #ifdef WIN32
@@ -2003,8 +2004,7 @@ static void ThreadMapPort() {
 void StartMapPort() {
     if (!g_upnp_thread.joinable()) {
         assert(!g_upnp_interrupt);
-        g_upnp_thread = std::thread(
-            (std::bind(&TraceThread<void (*)()>, "upnp", &ThreadMapPort)));
+        g_upnp_thread = std::thread(&util::TraceThread, "upnp", &ThreadMapPort);
     }
 }
 
@@ -3128,24 +3128,19 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     }
 
     // Send and receive from sockets, accept connections
-    threadSocketHandler = std::thread(
-        &TraceThread<std::function<void()>>, "net",
-        std::function<void()>(std::bind(&CConnman::ThreadSocketHandler, this)));
+    threadSocketHandler = std::thread(&util::TraceThread, "net",
+                                      [this] { ThreadSocketHandler(); });
 
     if (!gArgs.GetBoolArg("-dnsseed", DEFAULT_DNSSEED)) {
         LogPrintf("DNS seeding disabled\n");
     } else {
-        threadDNSAddressSeed =
-            std::thread(&TraceThread<std::function<void()>>, "dnsseed",
-                        std::function<void()>(
-                            std::bind(&CConnman::ThreadDNSAddressSeed, this)));
+        threadDNSAddressSeed = std::thread(&util::TraceThread, "dnsseed",
+                                           [this] { ThreadDNSAddressSeed(); });
     }
 
     // Initiate manual connections
-    threadOpenAddedConnections =
-        std::thread(&TraceThread<std::function<void()>>, "addcon",
-                    std::function<void()>(std::bind(
-                        &CConnman::ThreadOpenAddedConnections, this)));
+    threadOpenAddedConnections = std::thread(
+        &util::TraceThread, "addcon", [this] { ThreadOpenAddedConnections(); });
 
     if (connOptions.m_use_addrman_outgoing &&
         !connOptions.m_specified_outgoing.empty()) {
@@ -3160,24 +3155,21 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     if (connOptions.m_use_addrman_outgoing ||
         !connOptions.m_specified_outgoing.empty()) {
         threadOpenConnections =
-            std::thread(&TraceThread<std::function<void()>>, "opencon",
-                        std::function<void()>(std::bind(
-                            &CConnman::ThreadOpenConnections, this,
-                            connOptions.m_specified_outgoing, nullptr)));
+            std::thread(&util::TraceThread, "opencon",
+                        [this, connect = connOptions.m_specified_outgoing] {
+                            ThreadOpenConnections(connect, nullptr);
+                        });
     }
 
     // Process messages
-    threadMessageHandler =
-        std::thread(&TraceThread<std::function<void()>>, "msghand",
-                    std::function<void()>(
-                        std::bind(&CConnman::ThreadMessageHandler, this)));
+    threadMessageHandler = std::thread(&util::TraceThread, "msghand",
+                                       [this] { ThreadMessageHandler(); });
 
     if (connOptions.m_i2p_accept_incoming &&
         m_i2p_sam_session.get() != nullptr) {
         threadI2PAcceptIncoming =
-            std::thread(&TraceThread<std::function<void()>>, "i2paccept",
-                        std::function<void()>(std::bind(
-                            &CConnman::ThreadI2PAcceptIncoming, this)));
+            std::thread(&util::TraceThread, "i2paccept",
+                        [this] { ThreadI2PAcceptIncoming(); });
     }
 
     // Dump network addresses

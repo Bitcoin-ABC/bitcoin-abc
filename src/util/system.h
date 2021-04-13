@@ -22,7 +22,6 @@
 #include <sync.h>
 #include <tinyformat.h>
 #include <util/settings.h>
-#include <util/threadnames.h>
 #include <util/time.h>
 
 #include <any>
@@ -474,24 +473,6 @@ std::string HelpMessageOpt(const std::string &option,
  * HyperThreading.
  */
 int GetNumCores();
-
-/**
- * .. and a wrapper that just calls func once
- */
-template <typename Callable> void TraceThread(const char *name, Callable func) {
-    util::ThreadRename(name);
-    try {
-        LogPrintf("%s thread start\n", name);
-        func();
-        LogPrintf("%s thread exit\n", name);
-    } catch (const std::exception &e) {
-        PrintExceptionContinue(&e, name);
-        throw;
-    } catch (...) {
-        PrintExceptionContinue(nullptr, name);
-        throw;
-    }
-}
 
 std::string CopyrightHolders(const std::string &strPrefix);
 

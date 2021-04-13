@@ -64,6 +64,7 @@
 #include <util/check.h>
 #include <util/moneystr.h>
 #include <util/string.h>
+#include <util/thread.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -2286,9 +2287,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.scheduler = std::make_unique<CScheduler>();
 
     // Start the lightweight task scheduler thread
-    node.scheduler->m_service_thread = std::thread([&] {
-        TraceThread("scheduler", [&] { node.scheduler->serviceQueue(); });
-    });
+    node.scheduler->m_service_thread =
+        std::thread(&util::TraceThread, "scheduler",
+                    [&] { node.scheduler->serviceQueue(); });
 
     // Gather some entropy once per minute.
     node.scheduler->scheduleEvery(
@@ -2944,11 +2945,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         vImportFiles.push_back(fs::PathFromString(strFile));
     }
 
-    chainman.m_load_block =
-        std::thread(&TraceThread<std::function<void()>>, "loadblk",
-                    [=, &config, &chainman, &args] {
-                        ThreadImport(config, chainman, vImportFiles, args);
-                    });
+    chainman.m_load_block = std::thread(
+        &util::TraceThread, "loadblk", [=, &config, &chainman, &args] {
+            ThreadImport(config, chainman, vImportFiles, args);
+        });
 
     // Wait for genesis block to be processed
     {
