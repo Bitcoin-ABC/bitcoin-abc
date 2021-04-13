@@ -159,7 +159,7 @@ task:
         # found errors, otherwise it'll return 0
         # (https://www.valgrind.org/docs/manual/manual-core.html)
         WRAPPER_CMD: "valgrind --error-exitcode=42"
-        TEST_ITERS: 16
+        TEST_ITERS: 2
         AUTOTOOLS_TARGET:
         CMAKE_TARGET: "secp256k1-tests secp256k1-exhaustive_tests"
     - name: "UBSan, ASan, LSan"
