@@ -145,7 +145,7 @@ bool CTxMemPool::CalculateAncestorsAndCheckLimits(
         txiter stageit = mapTx.iterator_to(stage);
 
         setAncestors.insert(stageit);
-        staged_ancestors.erase(stage);
+        staged_ancestors.erase(staged_ancestors.begin());
         totalSizeWithAncestors += stageit->GetTxSize();
 
         if (stageit->GetSizeWithDescendants() + entry_size >
@@ -524,7 +524,7 @@ void CTxMemPool::CalculateDescendants(txiter entryit,
     while (!stage.empty()) {
         txiter it = *stage.begin();
         setDescendants.insert(it);
-        stage.erase(it);
+        stage.erase(stage.begin());
 
         const CTxMemPoolEntry::Children &children =
             it->GetMemPoolChildrenConst();
