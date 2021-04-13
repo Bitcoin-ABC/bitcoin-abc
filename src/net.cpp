@@ -2291,7 +2291,7 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
 #endif
     }
 
-    if (::bind(sock->Get(), (struct sockaddr *)&sockaddr, len) ==
+    if (sock->Bind(reinterpret_cast<struct sockaddr *>(&sockaddr), len) ==
         SOCKET_ERROR) {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE) {
@@ -2312,7 +2312,7 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
     LogPrintf("Bound to %s\n", addrBind.ToStringAddrPort());
 
     // Listen for incoming connections
-    if (listen(sock->Get(), SOMAXCONN) == SOCKET_ERROR) {
+    if (sock->Listen(SOMAXCONN) == SOCKET_ERROR) {
         strError = strprintf(_("Listening for incoming connections "
                                "failed (listen returned error %s)"),
                              NetworkErrorString(WSAGetLastError()));

@@ -60,6 +60,10 @@ public:
 
     ssize_t Recv(void *buf, size_t len, int flags) const override;
 
+    int Bind(const sockaddr *, socklen_t) const override;
+
+    int Listen(int backlog) const override;
+
     std::unique_ptr<Sock> Accept(sockaddr *addr,
                                  socklen_t *addr_len) const override;
 
