@@ -146,6 +146,11 @@ public:
         return 0;
     }
 
+    int GetSockName(sockaddr *name, socklen_t *name_len) const override {
+        std::memset(name, 0x0, *name_len);
+        return 0;
+    }
+
     bool Wait(std::chrono::milliseconds timeout, Event requested,
               Event *occurred = nullptr) const override {
         if (occurred != nullptr) {

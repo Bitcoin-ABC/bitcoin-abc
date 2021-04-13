@@ -407,13 +407,13 @@ bool CConnman::CheckIncomingNonce(uint64_t nonce) {
 }
 
 /** Get the bind address for a socket as CAddress */
-static CAddress GetBindAddress(SOCKET sock) {
+static CAddress GetBindAddress(const Sock &sock) {
     CAddress addr_bind;
     struct sockaddr_storage sockaddr_bind;
     socklen_t sockaddr_bind_len = sizeof(sockaddr_bind);
-    if (sock != INVALID_SOCKET) {
-        if (!getsockname(sock, (struct sockaddr *)&sockaddr_bind,
-                         &sockaddr_bind_len)) {
+    if (sock.Get() != INVALID_SOCKET) {
+        if (!sock.GetSockName((struct sockaddr *)&sockaddr_bind,
+                              &sockaddr_bind_len)) {
             addr_bind.SetSockAddr((const struct sockaddr *)&sockaddr_bind);
         } else {
             LogPrintLevel(BCLog::NET, BCLog::Level::Warning,
@@ -552,7 +552,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
             .Write(id)
             .Finalize();
     if (!addr_bind.IsValid()) {
-        addr_bind = GetBindAddress(sock->Get());
+        addr_bind = GetBindAddress(*sock);
     }
     CNode *pnode = new CNode(
         id, std::move(sock), addrConnect, CalculateKeyedNetGroup(addrConnect),
@@ -977,7 +977,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
                       "Unknown socket family\n");
     }
 
-    const CAddress addr_bind = GetBindAddress(sock->Get());
+    const CAddress addr_bind = GetBindAddress(*sock);
 
     NetPermissionFlags permission_flags = NetPermissionFlags::None;
     hListenSocket.AddSocketPermissionFlags(permission_flags);
