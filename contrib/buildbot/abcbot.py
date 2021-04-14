@@ -13,10 +13,10 @@ import slack
 
 from logging.handlers import RotatingFileHandler
 
+from cirrus import Cirrus
 from phabricator_wrapper import PhabWrapper
 from slackbot import SlackBot
 from teamcity_wrapper import TeamCity
-from travis import Travis
 
 import server
 
@@ -41,7 +41,7 @@ slack_channels = {
     'infra': 'G016CFAV8KS',
 }
 slackbot = SlackBot(slack.WebClient, slack_token, slack_channels)
-travis = Travis()
+cirrus = Cirrus()
 
 
 def main(args):
@@ -59,7 +59,7 @@ def main(args):
         tc,
         phab,
         slackbot,
-        travis,
+        cirrus,
         db_file_no_ext=db_file_no_ext)
 
     formater = logging.Formatter(

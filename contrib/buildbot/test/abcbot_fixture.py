@@ -14,6 +14,7 @@ import server
 import shutil
 import unittest
 
+import test.mocks.cirrus
 import test.mocks.fixture
 import test.mocks.phabricator
 import test.mocks.slackbot
@@ -49,12 +50,12 @@ class ABCBotFixture(unittest.TestCase):
         self.phab = test.mocks.phabricator.instance()
         self.slackbot = test.mocks.slackbot.instance()
         self.teamcity = test.mocks.teamcity.instance()
-        self.travis = test.mocks.travis.instance()
+        self.cirrus = test.mocks.cirrus.instance()
         self.app = server.create_server(
             self.teamcity,
             self.phab,
             self.slackbot,
-            self.travis,
+            self.cirrus,
             db_file_no_ext=self.db_file_no_ext,
             jsonEncoder=test.mocks.fixture.MockJSONEncoder).test_client()
 

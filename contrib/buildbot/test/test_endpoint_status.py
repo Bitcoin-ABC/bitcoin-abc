@@ -58,8 +58,8 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.teamcity.getIgnoreList = mock.Mock()
         self.teamcity.getIgnoreList.return_value = []
 
-        self.travis.get_branch_status = mock.Mock()
-        self.travis.get_branch_status.return_value = BuildStatus.Success
+        self.cirrus.get_default_branch_status = mock.Mock()
+        self.cirrus.get_default_branch_status.return_value = BuildStatus.Success
 
     def setup_master_failureAndTaskDoesNotExist(self, latestCompletedBuildId=DEFAULT_BUILD_ID,
                                                 numRecentFailedBuilds=0, numCommits=1,
@@ -1223,14 +1223,14 @@ class EndpointStatusTestCase(ABCBotFixture):
 
         self.teamcity.getBuildInfo.side_effect = _get_build_info
 
-        def get_travis_panel_content(status=None):
+        def get_cirrus_panel_content(status=None):
             if not status:
                 status = BuildStatus.Success
 
             return (
                 '| secp256k1 ([[https://github.com/Bitcoin-ABC/secp256k1 | Github]]) | Status |\n'
                 '|---|---|\n'
-                '| [[https://travis-ci.org/github/bitcoin-abc/secp256k1 | master]] | {{image uri="https://raster.shields.io/static/v1?label=Travis build&message={}&color={}&logo=travis", alt="{}"}} |\n\n'
+                '| [[https://cirrus-ci.com/github/Bitcoin-ABC/secp256k1 | master]] | {{image uri="https://raster.shields.io/static/v1?label=Cirrus build&message={}&color={}&logo=cirrus-ci", alt="{}"}} |\n\n'
             ).format(
                 status.value,
                 'brightgreen' if status == BuildStatus.Success else 'red',
@@ -1328,7 +1328,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         # teamcity content
         set_config_file([], [])
         call_status('dont_care', BuildStatus.Success)
-        assert_panel_content(get_travis_panel_content())
+        assert_panel_content(get_cirrus_panel_content())
 
         # If branch is not master the panel is not updated
         self.phab.set_text_panel_content.reset_mock()
@@ -1340,23 +1340,23 @@ class EndpointStatusTestCase(ABCBotFixture):
         )
         self.phab.set_text_panel_content.assert_not_called()
 
-        # Turn travis build into failure
-        self.travis.get_branch_status.return_value = BuildStatus.Failure
+        # Turn cirrus build into failure
+        self.cirrus.get_default_branch_status.return_value = BuildStatus.Failure
         call_status('dont_care', BuildStatus.Success)
-        assert_panel_content(get_travis_panel_content(BuildStatus.Failure))
-        self.travis.get_branch_status.return_value = BuildStatus.Success
+        assert_panel_content(get_cirrus_panel_content(BuildStatus.Failure))
+        self.cirrus.get_default_branch_status.return_value = BuildStatus.Success
 
         # Some builds in config file but no associated teamcity build
         set_config_file(["show_me11"], [])
         call_status('dont_care', BuildStatus.Success)
-        assert_panel_content(get_travis_panel_content())
+        assert_panel_content(get_cirrus_panel_content())
 
         # Set one build to be shown and associate it. This is not the build that
         # just finished.
         associate_build("show_me11")
         call_status('hide_me_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name') +
             build_line('show_me11') +
@@ -1369,7 +1369,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         associate_build("show_me13")
         call_status('hide_me_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name') +
             build_line('show_me11') +
@@ -1393,7 +1393,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         for i in range(10):
             call_status('hide_me_Type', BuildStatus.Success)
             assert_panel_content(
-                get_travis_panel_content() +
+                get_cirrus_panel_content() +
 
                 header('Project Name') +
                 build_line('show_me11') +
@@ -1411,7 +1411,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         del associated_builds["show_me12"]
         call_status('hide_me_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name') +
             build_line('show_me11') +
@@ -1430,7 +1430,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         del associated_builds["show_me13"]
         call_status('hide_me_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name') +
             build_line('show_me11') +
@@ -1447,7 +1447,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         del associated_builds["show_me11"]
         call_status('hide_me_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name 2') +
             build_line('show_me21') +
@@ -1460,7 +1460,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         failing_build_type_ids = ['show_me21_Type']
         call_status('hide_me_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name 2') +
             build_line('show_me21') +
@@ -1473,7 +1473,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         # and will be fetched from Teamcity anyway.
         call_status('show_me21_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name 2') +
             build_line('show_me21', status=BuildStatus.Failure) +
@@ -1489,7 +1489,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         no_complete_build_type_ids = ['show_me23_Type']
         call_status('show_me21_Type', BuildStatus.Success)
         assert_panel_content(
-            get_travis_panel_content() +
+            get_cirrus_panel_content() +
 
             header('Project Name 2') +
             build_line('show_me21', status=BuildStatus.Failure) +

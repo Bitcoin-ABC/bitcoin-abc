@@ -47,13 +47,13 @@ BADGE_TC_BASE = RasterBadge(
     logo='TeamCity'
 )
 
-BADGE_TRAVIS_BASE = RasterBadge(
-    label='Travis build',
-    logo='travis'
+BADGE_CIRRUS_BASE = RasterBadge(
+    label='Cirrus build',
+    logo='cirrus-ci'
 )
 
 
-def create_server(tc, phab, slackbot, travis,
+def create_server(tc, phab, slackbot, cirrus,
                   db_file_no_ext=None, jsonEncoder=None):
     # Create Flask app for use as decorator
     app = Flask("abcbot")
@@ -65,7 +65,7 @@ def create_server(tc, phab, slackbot, travis,
 
     phab.setLogger(app.logger)
     tc.set_logger(app.logger)
-    travis.set_logger(app.logger)
+    cirrus.set_logger(app.logger)
 
     # Optionally persistable database
     create_server.db = {
@@ -597,26 +597,28 @@ def create_server(tc, phab, slackbot, travis,
                 '|---|---|\n'
             ).format(project_name)
 
-        # secp256k1 is a special case because it has a Travis build from a
+        # secp256k1 is a special case because it has a Cirrus build from a
         # Github repo that is not managed by the build-configurations.yml config.
         # The status always need to be fetched.
-        sepc256k1_default_branch = 'master'
-        sepc256k1_travis_status = travis.get_branch_status(
-            27431354, sepc256k1_default_branch)
-        travis_badge_url = BADGE_TRAVIS_BASE.get_badge_url(
-            message=sepc256k1_travis_status.value,
-            color='brightgreen' if sepc256k1_travis_status == BuildStatus.Success else 'red',
+        sepc256k1_cirrus_status = cirrus.get_default_branch_status()
+        cirrus_badge_url = BADGE_CIRRUS_BASE.get_badge_url(
+            message=sepc256k1_cirrus_status.value,
+            color=('brightgreen' if sepc256k1_cirrus_status == BuildStatus.Success else
+                   'red' if sepc256k1_cirrus_status == BuildStatus.Failure else
+                   'blue' if sepc256k1_cirrus_status == BuildStatus.Running else
+                   'lightblue' if sepc256k1_cirrus_status == BuildStatus.Queued else
+                   'inactive'),
         )
 
-        # Add secp256k1 Travis to the status panel.
+        # Add secp256k1 Cirrus to the status panel.
         panel_content = add_project_header_to_panel(
             'secp256k1 ([[https://github.com/Bitcoin-ABC/secp256k1 | Github]])')
         panel_content = add_line_to_panel(
             '| [[{} | {}]] | {{image uri="{}", alt="{}"}} |'.format(
-                'https://travis-ci.org/github/bitcoin-abc/secp256k1',
-                sepc256k1_default_branch,
-                travis_badge_url,
-                sepc256k1_travis_status.value,
+                'https://cirrus-ci.com/github/Bitcoin-ABC/secp256k1',
+                'master',
+                cirrus_badge_url,
+                sepc256k1_cirrus_status.value,
             )
         )
         panel_content = add_line_to_panel('')
