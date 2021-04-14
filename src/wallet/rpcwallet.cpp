@@ -100,14 +100,14 @@ static RPCHelpMan getnewaddress() {
         "so payments received with the address will be associated with "
         "'label'.\n",
         {
-            {"label", RPCArg::Type::STR, /* default */ "null",
+            {"label", RPCArg::Type::STR, RPCArg::Default{""},
              "The label name for the address to be linked to. If not provided, "
              "the default label \"\" is used. It can also be set to the empty "
              "string \"\" to represent the default label. The label does not "
              "need to exist, it will be created if there is no label by the "
              "given name."},
             {"address_type", RPCArg::Type::STR,
-             /* default */ "set by -addresstype",
+             RPCArg::DefaultHint{"set by -addresstype"},
              "The address type to use. Options are \"legacy\"."},
         },
         RPCResult{RPCResult::Type::STR, "address", "The new bitcoin address"},
@@ -121,7 +121,6 @@ static RPCHelpMan getnewaddress() {
                 return NullUniValue;
             }
             CWallet *const pwallet = wallet.get();
-
             LOCK(pwallet->cs_wallet);
 
             if (!pwallet->CanGetAddresses()) {
@@ -335,12 +334,11 @@ static RPCHelpMan sendtoaddress() {
              "                             transaction, just kept in "
              "your wallet."},
             {"subtractfeefromamount", RPCArg::Type::BOOL,
-             /* default */ "false",
+             RPCArg::Default{false},
              "The fee will be deducted from the amount being sent.\n"
              "                             The recipient will receive "
              "less bitcoins than you enter in the amount field."},
-            {"avoid_reuse", RPCArg::Type::BOOL,
-             /* default */ "true",
+            {"avoid_reuse", RPCArg::Type::BOOL, RPCArg::Default{true},
              "(only available if avoid_reuse wallet flag is set) Avoid "
              "spending from dirty addresses; addresses are considered\n"
              "                             dirty if they have previously "
@@ -547,7 +545,7 @@ static RPCHelpMan getreceivedbyaddress() {
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address for transactions."},
-            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
              "Only include transactions confirmed at least this many times."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
@@ -597,7 +595,7 @@ static RPCHelpMan getreceivedbylabel() {
         {
             {"label", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The selected label, may be the default label using \"\"."},
-            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
              "Only include transactions confirmed at least this many times."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
@@ -647,14 +645,14 @@ static RPCHelpMan getbalance() {
             {"dummy", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
              "Remains for backward compatibility. Must be excluded or set to "
              "\"*\"."},
-            {"minconf", RPCArg::Type::NUM, /* default */ "0",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{0},
              "Only include transactions confirmed at least this many times."},
             {"include_watchonly", RPCArg::Type::BOOL,
-             /* default */ "true for watch-only wallets, otherwise false",
+             RPCArg::DefaultHint{
+                 "true for watch-only wallets, otherwise false"},
              "Also include balance in watch-only addresses (see "
              "'importaddress')"},
-            {"avoid_reuse", RPCArg::Type::BOOL,
-             /* default */ "true",
+            {"avoid_reuse", RPCArg::Type::BOOL, RPCArg::Default{true},
              "(only available if avoid_reuse wallet flag is set) Do not "
              "include balance in dirty outputs; addresses are considered dirty "
              "if they have previously been used in a transaction."},
@@ -759,7 +757,7 @@ static RPCHelpMan sendmany() {
                          Currency::get().ticker + " is the value"},
                 },
             },
-            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
              "Only use the balance confirmed at least this many times."},
             {"comment", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
              "A comment"},
@@ -1140,14 +1138,15 @@ static RPCHelpMan listreceivedbyaddress() {
         "listreceivedbyaddress",
         "List balances by receiving address.\n",
         {
-            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
              "The minimum number of confirmations before payments are "
              "included."},
-            {"include_empty", RPCArg::Type::BOOL, /* default */ "false",
+            {"include_empty", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Whether to include addresses that haven't received any "
              "payments."},
             {"include_watchonly", RPCArg::Type::BOOL,
-             /* default */ "true for watch-only wallets, otherwise false",
+             RPCArg::DefaultHint{
+                 "true for watch-only wallets, otherwise false"},
              "Whether to include watch-only addresses (see 'importaddress')."},
             {"address_filter", RPCArg::Type::STR,
              RPCArg::Optional::OMITTED_NAMED_ARG,
@@ -1217,13 +1216,14 @@ static RPCHelpMan listreceivedbylabel() {
         "listreceivedbylabel",
         "List received transactions by label.\n",
         {
-            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
              "The minimum number of confirmations before payments are "
              "included."},
-            {"include_empty", RPCArg::Type::BOOL, /* default */ "false",
+            {"include_empty", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Whether to include labels that haven't received any payments."},
             {"include_watchonly", RPCArg::Type::BOOL,
-             /* default */ "true for watch-only wallets, otherwise false",
+             RPCArg::DefaultHint{
+                 "true for watch-only wallets, otherwise false"},
              "Whether to include watch-only addresses (see 'importaddress')."},
         },
         RPCResult{
@@ -1423,12 +1423,13 @@ RPCHelpMan listtransactions() {
              "If set, should be a valid label name to return only incoming "
              "transactions with the specified label, or \"*\" to disable "
              "filtering and return all transactions."},
-            {"count", RPCArg::Type::NUM, /* default */ "10",
+            {"count", RPCArg::Type::NUM, RPCArg::Default{10},
              "The number of transactions to return"},
-            {"skip", RPCArg::Type::NUM, /* default */ "0",
+            {"skip", RPCArg::Type::NUM, RPCArg::Default{0},
              "The number of transactions to skip"},
             {"include_watchonly", RPCArg::Type::BOOL,
-             /* default */ "true for watch-only wallets, otherwise false",
+             RPCArg::DefaultHint{
+                 "true for watch-only wallets, otherwise false"},
              "Include transactions to watch-only addresses (see "
              "'importaddress')"},
         },
@@ -1583,15 +1584,16 @@ static RPCHelpMan listsinceblock() {
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "If set, the block hash to list transactions since, otherwise "
              "list all transactions."},
-            {"target_confirmations", RPCArg::Type::NUM, /* default */ "1",
+            {"target_confirmations", RPCArg::Type::NUM, RPCArg::Default{1},
              "Return the nth block hash from the main chain. e.g. 1 would mean "
              "the best block hash. Note: this is not used as a filter, but "
              "only affects [lastblock] in the return value"},
             {"include_watchonly", RPCArg::Type::BOOL,
-             /* default */ "true for watch-only wallets, otherwise false",
+             RPCArg::DefaultHint{
+                 "true for watch-only wallets, otherwise false"},
              "Include transactions to watch-only addresses (see "
              "'importaddress')"},
-            {"include_removed", RPCArg::Type::BOOL, /* default */ "true",
+            {"include_removed", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Show transactions that were removed due to a reorg in the "
              "\"removed\" array\n"
              "                                                           (not "
@@ -1811,10 +1813,11 @@ static RPCHelpMan gettransaction() {
             {"txid", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The transaction id"},
             {"include_watchonly", RPCArg::Type::BOOL,
-             /* default */ "true for watch-only wallets, otherwise false",
+             RPCArg::DefaultHint{
+                 "true for watch-only wallets, otherwise false"},
              "Whether to include watch-only addresses in balance calculation "
              "and details[]"},
-            {"verbose", RPCArg::Type::BOOL, /* default */ "false",
+            {"verbose", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Whether to include a `decoded` field containing the decoded "
              "transaction (equivalent to RPC decoderawtransaction)"},
         },
@@ -2029,7 +2032,7 @@ static RPCHelpMan keypoolrefill() {
         "keypoolrefill",
         "Fills the keypool." + HELP_REQUIRING_PASSPHRASE,
         {
-            {"newsize", RPCArg::Type::NUM, /* default */ "100",
+            {"newsize", RPCArg::Type::NUM, RPCArg::Default{100},
              "The new keypool size"},
         },
         RPCResult{RPCResult::Type::NONE, "", ""},
@@ -2101,7 +2104,7 @@ static RPCHelpMan lockunspent() {
             {
                 "transactions",
                 RPCArg::Type::ARR,
-                /* default */ "empty array",
+                RPCArg::Default{UniValue::VARR},
                 "The transaction outputs and within each, txid (string) vout "
                 "(numeric).",
                 {
@@ -2677,7 +2680,8 @@ static RPCHelpMan loadwallet() {
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet directory or .dat file."},
-            {"load_on_startup", RPCArg::Type::BOOL, /* default */ "null",
+            {"load_on_startup", RPCArg::Type::BOOL,
+             RPCArg::Default{UniValue::VNULL},
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},
@@ -2724,7 +2728,7 @@ static RPCHelpMan setwalletflag() {
             {"flag", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The name of the flag to change. Current available flags: " +
                  flags},
-            {"value", RPCArg::Type::BOOL, /* default */ "true",
+            {"value", RPCArg::Type::BOOL, RPCArg::Default{true},
              "The new state."},
         },
         RPCResult{RPCResult::Type::OBJ,
@@ -2802,21 +2806,22 @@ static RPCHelpMan createwallet() {
             {"wallet_name", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The name for the new wallet. If this is a path, the wallet will "
              "be created at the path location."},
-            {"disable_private_keys", RPCArg::Type::BOOL, /* default */ "false",
+            {"disable_private_keys", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Disable the possibility of private keys (only watchonlys are "
              "possible in this mode)."},
-            {"blank", RPCArg::Type::BOOL, /* default */ "false",
+            {"blank", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Create a blank wallet. A blank wallet has no keys or HD seed. "
              "One can be set using sethdseed."},
             {"passphrase", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
              "Encrypt the wallet with this passphrase."},
-            {"avoid_reuse", RPCArg::Type::BOOL, /* default */ "false",
+            {"avoid_reuse", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Keep track of coin reuse, and treat dirty and clean coins "
              "differently with privacy considerations in mind."},
-            {"descriptors", RPCArg::Type::BOOL, /* default */ "false",
+            {"descriptors", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Create a native descriptor wallet. The wallet will use "
              "descriptors internally to handle address creation"},
-            {"load_on_startup", RPCArg::Type::BOOL, /* default */ "null",
+            {"load_on_startup", RPCArg::Type::BOOL,
+             RPCArg::Default{UniValue::VNULL},
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},
@@ -2914,9 +2919,10 @@ static RPCHelpMan unloadwallet() {
         "Specifying the wallet name on a wallet endpoint is invalid.",
         {
             {"wallet_name", RPCArg::Type::STR,
-             /* default */ "the wallet name from the RPC request",
+             RPCArg::DefaultHint{"the wallet name from the RPC request"},
              "The name of the wallet to unload."},
-            {"load_on_startup", RPCArg::Type::BOOL, /* default */ "null",
+            {"load_on_startup", RPCArg::Type::BOOL,
+             RPCArg::Default{UniValue::VNULL},
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},
@@ -2981,21 +2987,21 @@ static RPCHelpMan listunspent() {
         "Optionally filter to only include txouts paid to specified "
         "addresses.\n",
         {
-            {"minconf", RPCArg::Type::NUM, /* default */ "1",
+            {"minconf", RPCArg::Type::NUM, RPCArg::Default{1},
              "The minimum confirmations to filter"},
-            {"maxconf", RPCArg::Type::NUM, /* default */ "9999999",
+            {"maxconf", RPCArg::Type::NUM, RPCArg::Default{9999999},
              "The maximum confirmations to filter"},
             {
                 "addresses",
                 RPCArg::Type::ARR,
-                /* default */ "empty array",
+                RPCArg::Default{UniValue::VARR},
                 "The bitcoin addresses to filter",
                 {
                     {"address", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
                      "bitcoin address"},
                 },
             },
-            {"include_unsafe", RPCArg::Type::BOOL, /* default */ "true",
+            {"include_unsafe", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Include outputs that are not safe to spend\n"
              "                  See description of \"safe\" attribute below."},
             {"query_options",
@@ -3003,15 +3009,16 @@ static RPCHelpMan listunspent() {
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "JSON with query options",
              {
-                 {"minimumAmount", RPCArg::Type::AMOUNT, /* default */ "0",
+                 {"minimumAmount", RPCArg::Type::AMOUNT,
+                  RPCArg::Default{FormatMoney(Amount::zero())},
                   "Minimum value of each UTXO in " + ticker + ""},
                  {"maximumAmount", RPCArg::Type::AMOUNT,
-                  /* default */ "unlimited",
+                  RPCArg::DefaultHint{"unlimited"},
                   "Maximum value of each UTXO in " + ticker + ""},
-                 {"maximumCount", RPCArg::Type::NUM, /* default */ "unlimited",
-                  "Maximum number of UTXOs"},
+                 {"maximumCount", RPCArg::Type::NUM,
+                  RPCArg::DefaultHint{"unlimited"}, "Maximum number of UTXOs"},
                  {"minimumSumAmount", RPCArg::Type::AMOUNT,
-                  /* default */ "unlimited",
+                  RPCArg::DefaultHint{"unlimited"},
                   "Minimum sum value of all UTXOs in " + ticker + ""},
              },
              "query_options"},
@@ -3463,10 +3470,10 @@ static RPCHelpMan fundrawtransaction() {
              "for backward compatibility: passing in a true instead of an "
              "object will result in {\"includeWatching\":true}",
              {
-                 {"add_inputs", RPCArg::Type::BOOL, /* default */ "true",
+                 {"add_inputs", RPCArg::Type::BOOL, RPCArg::Default{true},
                   "For a transaction with existing inputs, automatically "
                   "include more if they are not enough."},
-                 {"include_unsafe", RPCArg::Type::BOOL, /* default */ "false",
+                 {"include_unsafe", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "Include inputs that are not safe to spend (unconfirmed "
                   "transactions from outside keys).\n"
                   "Warning: the resulting transaction may become invalid if "
@@ -3474,27 +3481,30 @@ static RPCHelpMan fundrawtransaction() {
                   "If that happens, you will need to fund the transaction with "
                   "different inputs and republish it."},
                  {"changeAddress", RPCArg::Type::STR,
-                  /* default */ "pool address",
+                  RPCArg::DefaultHint{"pool address"},
                   "The bitcoin address to receive the change"},
-                 {"changePosition", RPCArg::Type::NUM, /* default */ "",
+                 {"changePosition", RPCArg::Type::NUM,
+                  RPCArg::DefaultHint{"random"},
                   "The index of the change output"},
                  {"includeWatching", RPCArg::Type::BOOL,
-                  /* default */ "true for watch-only wallets, otherwise false",
+                  RPCArg::DefaultHint{
+                      "true for watch-only wallets, otherwise false"},
                   "Also select inputs which are watch only.\n"
                   "Only solvable inputs can be used. Watch-only destinations "
                   "are solvable if the public key and/or output script was "
                   "imported,\n"
                   "e.g. with 'importpubkey' or 'importmulti' with the "
                   "'pubkeys' or 'desc' field."},
-                 {"lockUnspents", RPCArg::Type::BOOL, /* default */ "false",
+                 {"lockUnspents", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "Lock selected unspent outputs"},
-                 {"feeRate", RPCArg::Type::AMOUNT, /* default */
-                  "not set: makes wallet determine the fee",
+                 {"feeRate", RPCArg::Type::AMOUNT,
+                  RPCArg::DefaultHint{
+                      "not set: makes wallet determine the fee"},
                   "Set a specific fee rate in " + ticker + "/kB"},
                  {
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
-                     /* default */ "empty array",
+                     RPCArg::Default{UniValue::VARR},
                      "The integers.\n"
                      "                              The fee will be equally "
                      "deducted from the amount of each specified output.\n"
@@ -3609,7 +3619,7 @@ RPCHelpMan signrawtransactionwithwallet() {
                     },
                 },
             },
-            {"sighashtype", RPCArg::Type::STR, /* default */ "ALL|FORKID",
+            {"sighashtype", RPCArg::Type::STR, RPCArg::Default{"ALL|FORKID"},
              "The signature hash type. Must be one of\n"
              "       \"ALL|FORKID\"\n"
              "       \"NONE|FORKID\"\n"
@@ -3713,7 +3723,7 @@ RPCHelpMan rescanblockchain() {
         "Rescan the local blockchain for wallet related transactions.\n"
         "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
         {
-            {"start_height", RPCArg::Type::NUM, /* default */ "0",
+            {"start_height", RPCArg::Type::NUM, RPCArg::Default{0},
              "block height where the rescan should start"},
             {"stop_height", RPCArg::Type::NUM,
              RPCArg::Optional::OMITTED_NAMED_ARG,
@@ -4265,30 +4275,33 @@ static RPCHelpMan send() {
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "",
              {
-                 {"add_inputs", RPCArg::Type::BOOL, /* default */ "false",
+                 {"add_inputs", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "If inputs are specified, automatically include more if they "
                   "are not enough."},
-                 {"include_unsafe", RPCArg::Type::BOOL, /* default */ "false",
+                 {"include_unsafe", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "Include inputs that are not safe to spend (unconfirmed "
                   "transactions from outside keys).\n"
                   "Warning: the resulting transaction may become invalid if "
                   "one of the unsafe inputs disappears.\n"
                   "If that happens, you will need to fund the transaction with "
                   "different inputs and republish it."},
-                 {"add_to_wallet", RPCArg::Type::BOOL, /* default */ "true",
+                 {"add_to_wallet", RPCArg::Type::BOOL, RPCArg::Default{true},
                   "When false, returns a serialized transaction which will not "
                   "be added to the wallet or broadcast"},
                  {"change_address", RPCArg::Type::STR_HEX,
-                  /* default */ "pool address",
+                  RPCArg::DefaultHint{"pool address"},
                   "The bitcoin address to receive the change"},
-                 {"change_position", RPCArg::Type::NUM, /* default */ "random",
+                 {"change_position", RPCArg::Type::NUM,
+                  RPCArg::DefaultHint{"random"},
                   "The index of the change output"},
-                 {"fee_rate", RPCArg::Type::AMOUNT, /* default */
-                  "not set: makes wallet determine the fee",
+                 {"fee_rate", RPCArg::Type::AMOUNT,
+                  RPCArg::DefaultHint{
+                      "not set: makes wallet determine the fee"},
                   "Set a specific fee rate in " + Currency::get().ticker +
                       "/kB"},
                  {"include_watching", RPCArg::Type::BOOL,
-                  /* default */ "true for watch-only wallets, otherwise false",
+                  RPCArg::DefaultHint{
+                      "true for watch-only wallets, otherwise false"},
                   "Also select inputs which are watch only.\n"
                   "Only solvable inputs can be used. Watch-only destinations "
                   "are solvable if the public key and/or output script was "
@@ -4298,7 +4311,7 @@ static RPCHelpMan send() {
                  {
                      "inputs",
                      RPCArg::Type::ARR,
-                     /* default */ "empty array",
+                     RPCArg::Default{UniValue::VARR},
                      "Specify inputs instead of adding them automatically. A "
                      "JSON array of JSON objects",
                      {
@@ -4310,16 +4323,16 @@ static RPCHelpMan send() {
                           "The sequence number"},
                      },
                  },
-                 {"locktime", RPCArg::Type::NUM, /* default */ "0",
+                 {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
                   "Raw locktime. Non-0 value also locktime-activates inputs"},
-                 {"lock_unspents", RPCArg::Type::BOOL, /* default */ "false",
+                 {"lock_unspents", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "Lock selected unspent outputs"},
-                 {"psbt", RPCArg::Type::BOOL, /* default */ "automatic",
+                 {"psbt", RPCArg::Type::BOOL, RPCArg::DefaultHint{"automatic"},
                   "Always return a PSBT, implies add_to_wallet=false."},
                  {
                      "subtract_fee_from_outputs",
                      RPCArg::Type::ARR,
-                     /* default */ "empty array",
+                     RPCArg::Default{UniValue::VARR},
                      "Outputs to subtract the fee from, specified as integer "
                      "indices.\n"
                      "The fee will be equally deducted from the amount of each "
@@ -4476,7 +4489,7 @@ static RPCHelpMan sethdseed() {
         "setting the HD wallet seed.\n" +
             HELP_REQUIRING_PASSPHRASE,
         {
-            {"newkeypool", RPCArg::Type::BOOL, /* default */ "true",
+            {"newkeypool", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Whether to flush old unused addresses, including change "
              "addresses, from the keypool and regenerate it.\n"
              "                             If true, the next address from "
@@ -4487,7 +4500,7 @@ static RPCHelpMan sethdseed() {
              "enabled) from the existing\n"
              "                             keypool will be used until it has "
              "been depleted."},
-            {"seed", RPCArg::Type::STR, /* default */ "random seed",
+            {"seed", RPCArg::Type::STR, RPCArg::DefaultHint{"random seed"},
              "The WIF private key to use as the new HD seed.\n"
              "                             The seed value can be retrieved "
              "using the dumpwallet command. It is the private key marked "
@@ -4573,9 +4586,9 @@ static RPCHelpMan walletprocesspsbt() {
         {
             {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The transaction base64 string"},
-            {"sign", RPCArg::Type::BOOL, /* default */ "true",
+            {"sign", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Also sign the transaction when updating"},
-            {"sighashtype", RPCArg::Type::STR, /* default */ "ALL|FORKID",
+            {"sighashtype", RPCArg::Type::STR, RPCArg::Default{"ALL|FORKID"},
              "The signature hash type to sign with if not specified by "
              "the PSBT. Must be one of\n"
              "       \"ALL|FORKID\"\n"
@@ -4584,7 +4597,7 @@ static RPCHelpMan walletprocesspsbt() {
              "       \"ALL|FORKID|ANYONECANPAY\"\n"
              "       \"NONE|FORKID|ANYONECANPAY\"\n"
              "       \"SINGLE|FORKID|ANYONECANPAY\""},
-            {"bip32derivs", RPCArg::Type::BOOL, /* default */ "true",
+            {"bip32derivs", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Includes the BIP 32 derivation paths for public keys if we know "
              "them"},
         },
@@ -4676,9 +4689,9 @@ static RPCHelpMan walletcreatefundedpsbt() {
                             {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO,
                              "The output number"},
                             {"sequence", RPCArg::Type::NUM,
-                             /* default */
-                             "depends on the value of the 'locktime' and "
-                             "'options.replaceable' arguments",
+                             RPCArg::DefaultHint{
+                                 "depends on the value of the 'locktime' and "
+                                 "'options.replaceable' arguments"},
                              "The sequence number"},
                         },
                     },
@@ -4724,7 +4737,7 @@ static RPCHelpMan walletcreatefundedpsbt() {
                     },
                 },
             },
-            {"locktime", RPCArg::Type::NUM, /* default */ "0",
+            {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
              "Raw locktime. Non-0 value also locktime-activates inputs\n"
              "                             Allows this transaction to be "
              "replaced by a transaction with higher fees. If provided, it is "
@@ -4734,10 +4747,10 @@ static RPCHelpMan walletcreatefundedpsbt() {
              RPCArg::Optional::OMITTED_NAMED_ARG,
              "",
              {
-                 {"add_inputs", RPCArg::Type::BOOL, /* default */ "false",
+                 {"add_inputs", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "If inputs are specified, automatically include more if they "
                   "are not enough."},
-                 {"include_unsafe", RPCArg::Type::BOOL, /* default */ "false",
+                 {"include_unsafe", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "Include inputs that are not safe to spend (unconfirmed "
                   "transactions from outside keys).\n"
                   "Warning: the resulting transaction may become invalid if "
@@ -4745,22 +4758,25 @@ static RPCHelpMan walletcreatefundedpsbt() {
                   "If that happens, you will need to fund the transaction with "
                   "different inputs and republish it."},
                  {"changeAddress", RPCArg::Type::STR_HEX,
-                  /* default */ "pool address",
+                  RPCArg::DefaultHint{"pool address"},
                   "The bitcoin address to receive the change"},
                  {"changePosition", RPCArg::Type::NUM,
-                  /* default */ "random", "The index of the change output"},
+                  RPCArg::DefaultHint{"random"},
+                  "The index of the change output"},
                  {"includeWatching", RPCArg::Type::BOOL,
-                  /* default */ "true for watch-only wallets, otherwise false",
+                  RPCArg::DefaultHint{
+                      "true for watch-only wallets, otherwise false"},
                   "Also select inputs which are watch only"},
-                 {"lockUnspents", RPCArg::Type::BOOL, /* default */ "false",
+                 {"lockUnspents", RPCArg::Type::BOOL, RPCArg::Default{false},
                   "Lock selected unspent outputs"},
-                 {"feeRate", RPCArg::Type::AMOUNT, /* default */
-                  "not set: makes wallet determine the fee",
+                 {"feeRate", RPCArg::Type::AMOUNT,
+                  RPCArg::DefaultHint{
+                      "not set: makes wallet determine the fee"},
                   "Set a specific fee rate in " + ticker + "/kB"},
                  {
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
-                     /* default */ "empty array",
+                     RPCArg::Default{UniValue::VARR},
                      "The outputs to subtract the fee from.\n"
                      "                              The fee will be equally "
                      "deducted from the amount of each specified output.\n"
@@ -4778,7 +4794,7 @@ static RPCHelpMan walletcreatefundedpsbt() {
                  },
              },
              "options"},
-            {"bip32derivs", RPCArg::Type::BOOL, /* default */ "true",
+            {"bip32derivs", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Includes the BIP 32 derivation paths for public keys if we know "
              "them"},
         },
@@ -4860,8 +4876,7 @@ static RPCHelpMan upgradewallet() {
         "version number is specified\n"
         "New keys may be generated and a new wallet backup will need to "
         "be made.",
-        {{"version", RPCArg::Type::NUM,
-          /* default */ strprintf("%d", FEATURE_LATEST),
+        {{"version", RPCArg::Type::NUM, RPCArg::Default{FEATURE_LATEST},
           "The version number to upgrade to. Default is the latest "
           "wallet version"}},
         RPCResult{RPCResult::Type::NONE, "", ""},

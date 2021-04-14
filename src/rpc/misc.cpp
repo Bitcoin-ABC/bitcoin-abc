@@ -564,7 +564,7 @@ static RPCHelpMan getmemoryinfo() {
         "getmemoryinfo",
         "Returns an object containing information about memory usage.\n",
         {
-            {"mode", RPCArg::Type::STR, /* default */ "\"stats\"",
+            {"mode", RPCArg::Type::STR, RPCArg::Default{"stats"},
              "determines what kind of information is returned.\n"
              "  - \"stats\" returns general statistics about memory usage in "
              "the daemon.\n"

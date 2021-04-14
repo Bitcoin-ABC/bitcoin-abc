@@ -241,7 +241,7 @@ static RPCHelpMan buildavalancheproof() {
                             {"height", RPCArg::Type::NUM, RPCArg::Optional::NO,
                              "The height at which this UTXO was mined"},
                             {"iscoinbase", RPCArg::Type::BOOL,
-                             /* default */ "false",
+                             RPCArg::Default{false},
                              "Indicate wether the UTXO is a coinbase"},
                             {"privatekey", RPCArg::Type::STR,
                              RPCArg::Optional::NO,

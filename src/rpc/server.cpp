@@ -178,7 +178,7 @@ static RPCHelpMan help() {
         "help",
         "List all commands, or get help for a specified command.\n",
         {
-            {"command", RPCArg::Type::STR, /* default */ "all commands",
+            {"command", RPCArg::Type::STR, RPCArg::DefaultHint{"all commands"},
              "The command to get help on"},
         },
         {

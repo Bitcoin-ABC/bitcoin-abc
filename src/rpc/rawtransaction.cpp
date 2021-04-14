@@ -103,7 +103,7 @@ static RPCHelpMan getrawtransaction() {
         {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id"},
-            {"verbose", RPCArg::Type::BOOL, /* default */ "false",
+            {"verbose", RPCArg::Type::BOOL, RPCArg::Default{false},
              "If false, return a string, otherwise return a json object"},
             {"blockhash", RPCArg::Type::STR_HEX,
              RPCArg::Optional::OMITTED_NAMED_ARG,
@@ -313,8 +313,9 @@ static RPCHelpMan createrawtransaction() {
                              RPCArg::Optional::NO, "The transaction id"},
                             {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO,
                              "The output number"},
-                            {"sequence", RPCArg::Type::NUM, /* default */
-                             "depends on the value of the 'locktime' argument",
+                            {"sequence", RPCArg::Type::NUM,
+                             RPCArg::DefaultHint{"depends on the value of the "
+                                                 "'locktime' argument"},
                              "The sequence number"},
                         },
                     },
@@ -360,7 +361,7 @@ static RPCHelpMan createrawtransaction() {
                     },
                 },
             },
-            {"locktime", RPCArg::Type::NUM, /* default */ "0",
+            {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
              "Raw locktime. Non-0 value also locktime-activates inputs"},
         },
         RPCResult{RPCResult::Type::STR_HEX, "transaction",
@@ -703,7 +704,7 @@ static RPCHelpMan signrawtransactionwithkey() {
                     },
                 },
             },
-            {"sighashtype", RPCArg::Type::STR, /* default */ "ALL|FORKID",
+            {"sighashtype", RPCArg::Type::STR, RPCArg::Default{"ALL|FORKID"},
              "The signature hash type. Must be one of:\n"
              "       \"ALL|FORKID\"\n"
              "       \"NONE|FORKID\"\n"
@@ -805,8 +806,8 @@ static RPCHelpMan sendrawtransaction() {
             {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The hex string of the raw transaction"},
             {"maxfeerate", RPCArg::Type::AMOUNT,
-             /* default */
-             FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK()),
+             RPCArg::Default{
+                 FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK())},
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
                  Currency::get().ticker +
@@ -898,8 +899,8 @@ static RPCHelpMan testmempoolaccept() {
                 },
             },
             {"maxfeerate", RPCArg::Type::AMOUNT,
-             /* default */
-             FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK()),
+             RPCArg::Default{
+                 FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK())},
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
                  Currency::get().ticker + "/kB\n"},
@@ -1482,7 +1483,7 @@ static RPCHelpMan finalizepsbt() {
         {
             {"psbt", RPCArg::Type::STR, RPCArg::Optional::NO,
              "A base64 string of a PSBT"},
-            {"extract", RPCArg::Type::BOOL, /* default */ "true",
+            {"extract", RPCArg::Type::BOOL, RPCArg::Default{true},
              "If true and the transaction is complete,\n"
              "                             extract and return the complete "
              "transaction in normal network serialization instead of the "
@@ -1563,8 +1564,9 @@ static RPCHelpMan createpsbt() {
                              RPCArg::Optional::NO, "The transaction id"},
                             {"vout", RPCArg::Type::NUM, RPCArg::Optional::NO,
                              "The output number"},
-                            {"sequence", RPCArg::Type::NUM, /* default */
-                             "depends on the value of the 'locktime' argument",
+                            {"sequence", RPCArg::Type::NUM,
+                             RPCArg::DefaultHint{"depends on the value of the "
+                                                 "'locktime' argument"},
                              "The sequence number"},
                         },
                     },
@@ -1610,7 +1612,7 @@ static RPCHelpMan createpsbt() {
                     },
                 },
             },
-            {"locktime", RPCArg::Type::NUM, /* default */ "0",
+            {"locktime", RPCArg::Type::NUM, RPCArg::Default{0},
              "Raw locktime. Non-0 value also locktime-activates inputs"},
         },
         RPCResult{RPCResult::Type::STR, "",
@@ -1662,7 +1664,7 @@ static RPCHelpMan converttopsbt() {
         {
             {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The hex string of a raw transaction"},
-            {"permitsigdata", RPCArg::Type::BOOL, /* default */ "false",
+            {"permitsigdata", RPCArg::Type::BOOL, RPCArg::Default{false},
              "If true, any signatures in the input will be discarded and "
              "conversion.\n"
              "                              will continue. If false, RPC will "
@@ -1742,7 +1744,7 @@ RPCHelpMan utxoupdatepsbt() {
                   {
                       {"desc", RPCArg::Type::STR, RPCArg::Optional::NO,
                        "An output descriptor"},
-                      {"range", RPCArg::Type::RANGE, "1000",
+                      {"range", RPCArg::Type::RANGE, RPCArg::Default{1000},
                        "Up to what index HD chains should be explored (either "
                        "end or [begin,end])"},
                   }},

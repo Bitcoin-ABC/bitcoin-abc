@@ -108,10 +108,10 @@ static RPCHelpMan getnetworkhashps() {
         "Pass in [height] to estimate the network speed at the time when a "
         "certain block was found.\n",
         {
-            {"nblocks", RPCArg::Type::NUM, /* default */ "120",
+            {"nblocks", RPCArg::Type::NUM, RPCArg::Default{120},
              "The number of blocks, or -1 for blocks since last difficulty "
              "change."},
-            {"height", RPCArg::Type::NUM, /* default */ "-1",
+            {"height", RPCArg::Type::NUM, RPCArg::Default{-1},
              "To estimate at the time of the given height."},
         },
         RPCResult{RPCResult::Type::NUM, "", "Hashes per second estimated"},
@@ -243,8 +243,7 @@ static RPCHelpMan generatetodescriptor() {
              "How many blocks are generated immediately."},
             {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The descriptor to send the newly generated bitcoin to."},
-            {"maxtries", RPCArg::Type::NUM,
-             /* default */ ToString(DEFAULT_MAX_TRIES),
+            {"maxtries", RPCArg::Type::NUM, RPCArg::Default{DEFAULT_MAX_TRIES},
              "How many iterations to try."},
         },
         RPCResult{RPCResult::Type::ARR,
@@ -303,8 +302,7 @@ static RPCHelpMan generatetoaddress() {
              "How many blocks are generated immediately."},
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The address to send the newly generated bitcoin to."},
-            {"maxtries", RPCArg::Type::NUM,
-             /* default */ ToString(DEFAULT_MAX_TRIES),
+            {"maxtries", RPCArg::Type::NUM, RPCArg::Default{DEFAULT_MAX_TRIES},
              "How many iterations to try."},
         },
         RPCResult{RPCResult::Type::ARR,
@@ -639,7 +637,7 @@ static RPCHelpMan getblocktemplate() {
         {
             {"template_request",
              RPCArg::Type::OBJ,
-             "{}",
+             RPCArg::Default{UniValue::VOBJ},
              "Format of the template",
              {
                  {"mode", RPCArg::Type::STR, /* treat as named arg */
@@ -1091,7 +1089,7 @@ static RPCHelpMan submitblock() {
         {
             {"hexdata", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "the hex-encoded block data to submit"},
-            {"dummy", RPCArg::Type::STR, /* default */ "ignored",
+            {"dummy", RPCArg::Type::STR, RPCArg::Default{"ignored"},
              "dummy value, for compatibility with BIP22. This value is "
              "ignored."},
         },
