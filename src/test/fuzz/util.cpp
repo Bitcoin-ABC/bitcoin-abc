@@ -5,16 +5,14 @@
 #include <test/fuzz/util.h>
 
 FuzzedSock::FuzzedSock(FuzzedDataProvider &fuzzed_data_provider)
-    : m_fuzzed_data_provider{fuzzed_data_provider},
+    : Sock{fuzzed_data_provider.ConsumeIntegralInRange<SOCKET>(
+          INVALID_SOCKET - 1, INVALID_SOCKET)},
+      m_fuzzed_data_provider{fuzzed_data_provider},
       m_selectable{fuzzed_data_provider.ConsumeBool()} {}
 
 FuzzedSock &FuzzedSock::operator=(Sock &&other) {
     assert(false && "Not implemented yet.");
     return *this;
-}
-
-SOCKET FuzzedSock::Get() const {
-    assert(false && "Not implemented yet.");
 }
 
 ssize_t FuzzedSock::Send(const void *data, size_t len, int flags) const {

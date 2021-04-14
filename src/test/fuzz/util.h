@@ -54,8 +54,6 @@ public:
 
     FuzzedSock &operator=(Sock &&other) override;
 
-    SOCKET Get() const override;
-
     ssize_t Send(const void *data, size_t len, int flags) const override;
 
     ssize_t Recv(void *buf, size_t len, int flags) const override;

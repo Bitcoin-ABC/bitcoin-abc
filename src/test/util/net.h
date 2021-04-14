@@ -91,11 +91,7 @@ constexpr std::array<Network, 7> ALL_NETWORKS = {{
 class StaticContentsSock : public Sock {
 public:
     explicit StaticContentsSock(const std::string &contents)
-        : m_contents{contents}, m_consumed{0} {
-        // Just a dummy number that is not INVALID_SOCKET.
-        static_assert(INVALID_SOCKET != 1000);
-        m_socket = 1000;
-    }
+        : Sock{INVALID_SOCKET}, m_contents{contents} {}
 
     ~StaticContentsSock() override { m_socket = INVALID_SOCKET; }
 
@@ -176,9 +172,11 @@ public:
         return true;
     }
 
+    bool IsConnected(std::string &) const override { return true; }
+
 private:
     const std::string m_contents;
-    mutable size_t m_consumed;
+    mutable size_t m_consumed{0};
 };
 
 std::vector<NodeEvictionCandidate>

@@ -308,12 +308,6 @@ bool CSeederNode::Run() {
                 doneAfter > now) &&
                sock) {
         char pchBuf[0x10000];
-        fd_set fdsetRecv;
-        fd_set fdsetError;
-        FD_ZERO(&fdsetRecv);
-        FD_ZERO(&fdsetError);
-        FD_SET(sock->Get(), &fdsetRecv);
-        FD_SET(sock->Get(), &fdsetError);
         struct timeval wa;
         if (TicksSinceEpoch<std::chrono::seconds>(doneAfter) != 0) {
             wa.tv_sec = (doneAfter - now).count();
@@ -322,9 +316,7 @@ bool CSeederNode::Run() {
             wa.tv_sec = GetTimeout().count();
             wa.tv_usec = 0;
         }
-        int ret =
-            select(sock->Get() + 1, &fdsetRecv, nullptr, &fdsetError, &wa);
-        if (ret != 1) {
+        if (sock->WaitReadableOrException(&wa) != 1) {
             if (TicksSinceEpoch<std::chrono::seconds>(doneAfter) == 0) {
                 res = false;
             }

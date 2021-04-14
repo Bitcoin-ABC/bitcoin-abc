@@ -28,8 +28,6 @@ static inline bool IOErrorIsPermanent(int err) {
            err != WSAEINPROGRESS;
 }
 
-Sock::Sock() : m_socket(INVALID_SOCKET) {}
-
 Sock::Sock(SOCKET s) : m_socket(s) {}
 
 Sock::Sock(Sock &&other) {
@@ -46,10 +44,6 @@ Sock &Sock::operator=(Sock &&other) {
     m_socket = other.m_socket;
     other.m_socket = INVALID_SOCKET;
     return *this;
-}
-
-SOCKET Sock::Get() const {
-    return m_socket;
 }
 
 ssize_t Sock::Send(const void *data, size_t len, int flags) const {
@@ -246,6 +240,17 @@ bool Sock::WaitMany(std::chrono::milliseconds timeout,
 #endif /* USE_POLL */
 }
 
+// Used in the seeder only.
+int Sock::WaitReadableOrException(timeval *timeout) const {
+    fd_set fdsetRecv;
+    fd_set fdsetError;
+    FD_ZERO(&fdsetRecv);
+    FD_ZERO(&fdsetError);
+    FD_SET(m_socket, &fdsetRecv);
+    FD_SET(m_socket, &fdsetError);
+    return select(m_socket + 1, &fdsetRecv, nullptr, &fdsetError, timeout);
+}
+
 void Sock::SendComplete(const std::string &data,
                         std::chrono::milliseconds timeout,
                         CThreadInterrupt &interrupt) const {
@@ -425,6 +430,10 @@ void Sock::Close() {
     }
     m_socket = INVALID_SOCKET;
 }
+
+bool Sock::operator==(SOCKET s) const {
+    return m_socket == s;
+};
 
 std::string NetworkErrorString(int err) {
 #ifdef WIN32

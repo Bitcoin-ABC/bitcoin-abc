@@ -21,17 +21,12 @@
 static constexpr auto MAX_WAIT_FOR_IO = 1s;
 
 /**
- * RAII helper class that manages a socket. Mimics `std::unique_ptr`, but
- * instead of a pointer it contains a socket and closes it automatically when it
+ * RAII helper class that manages a socket and closes it automatically when it
  * goes out of scope.
  */
 class Sock {
 public:
-    /**
-     * Default constructor, creates an empty object that does nothing when
-     * destroyed.
-     */
-    Sock();
+    Sock() = delete;
 
     /**
      * Take ownership of an existent socket.
@@ -68,34 +63,28 @@ public:
     virtual Sock &operator=(Sock &&other);
 
     /**
-     * Get the value of the contained socket.
-     * @return socket or INVALID_SOCKET if empty
-     */
-    virtual SOCKET Get() const;
-
-    /**
-     * send(2) wrapper. Equivalent to `send(this->Get(), data, len, flags);`.
+     * send(2) wrapper. Equivalent to `send(m_socket, data, len, flags);`.
      * Code that uses this wrapper can be unit tested if this method is
      * overridden by a mock Sock implementation.
      */
     virtual ssize_t Send(const void *data, size_t len, int flags) const;
 
     /**
-     * recv(2) wrapper. Equivalent to `recv(this->Get(), buf, len, flags);`.
+     * recv(2) wrapper. Equivalent to `recv(m_socket, buf, len, flags);`.
      * Code that uses this wrapper can be unit tested if this method is
      * overridden by a mock Sock implementation.
      */
     virtual ssize_t Recv(void *buf, size_t len, int flags) const;
 
     /**
-     * connect(2) wrapper. Equivalent to `connect(this->Get(), addr, addrlen)`.
+     * connect(2) wrapper. Equivalent to `connect(m_socket, addr, addrlen)`.
      * Code that uses this wrapper can be unit tested if this method is
      * overridden by a mock Sock implementation.
      */
     virtual int Connect(const sockaddr *addr, socklen_t addr_len) const;
 
     /**
-     * bind(2) wrapper. Equivalent to `bind(this->Get(), addr, addr_len)`.
+     * bind(2) wrapper. Equivalent to `bind(m_socket, addr, addr_len)`.
      * Code that uses this wrapper can be unit tested if this method is
      * overridden by a mock Sock implementation.
      */
@@ -103,15 +92,15 @@ public:
                                    socklen_t addr_len) const;
 
     /**
-     * listen(2) wrapper. Equivalent to `listen(this->Get(), backlog)`. Code
-     * that uses this wrapper can be unit tested if this method is overridden by
-     * a mock Sock implementation.
+     * listen(2) wrapper. Equivalent to `listen(m_socket, backlog)`. Code that
+     * uses this wrapper can be unit tested if this method is overridden by a
+     * mock Sock implementation.
      */
     [[nodiscard]] virtual int Listen(int backlog) const;
 
     /**
      * accept(2) wrapper. Equivalent to
-     * `std::make_unique<Sock>(accept(this->Get(), addr, addr_len))`.
+     * `std::make_unique<Sock>(accept(m_socket, addr, addr_len))`.
      * Code that uses this wrapper can be unit tested if this method is
      * overridden by a mock Sock implementation.
      * The returned unique_ptr is empty if `accept()` failed in which case
@@ -122,7 +111,7 @@ public:
 
     /**
      * getsockopt(2) wrapper. Equivalent to
-     * `getsockopt(this->Get(), level, opt_name, opt_val, opt_len)`. Code that
+     * `getsockopt(m_socket, level, opt_name, opt_val, opt_len)`. Code that
      * uses this wrapper can be unit tested if this method is overridden by a
      * mock Sock implementation.
      */
@@ -131,7 +120,7 @@ public:
 
     /**
      * setsockopt(2) wrapper. Equivalent to
-     * `setsockopt(this->Get(), level, opt_name, opt_val, opt_len)`. Code that
+     * `setsockopt(m_socket, level, opt_name, opt_val, opt_len)`. Code that
      * uses this wrapper can be unit tested if this method is overridden by a
      * mock Sock implementation.
      */
@@ -141,7 +130,7 @@ public:
 
     /**
      * getsockname(2) wrapper. Equivalent to
-     * `getsockname(this->Get(), name, name_len)`. Code that uses this
+     * `getsockname(m_socket, name, name_len)`. Code that uses this
      * wrapper can be unit tested if this method is overridden by a mock Sock
      * implementation.
      */
@@ -251,6 +240,15 @@ public:
     [[nodiscard]] virtual bool WaitMany(std::chrono::milliseconds timeout,
                                         EventsPerSock &events_per_sock) const;
 
+    /**
+     * Wait until the socket is readable or has an exceptional condition,
+     * or the timeout expires,
+     * via select(m_socket, &fdsetRecv, nullptr, &fdsetError, timeout).
+     * Returns >0 if ready/error, 0 on timeout, <0 on select failure.
+     * This function is used in the seeder only.
+     */
+    [[nodiscard]] int WaitReadableOrException(timeval *timeout) const;
+
     /* Higher level, convenience, methods. These may throw. */
 
     /**
@@ -289,6 +287,11 @@ public:
      * @return true if connected
      */
     virtual bool IsConnected(std::string &errmsg) const;
+
+    /**
+     * Check if the internal socket is equal to `s`. Use only in tests.
+     */
+    bool operator==(SOCKET s) const;
 
 protected:
     /**
