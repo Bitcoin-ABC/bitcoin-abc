@@ -16,11 +16,6 @@ pip3 install teamcity-messages
 # context may be different than the project root.
 pip3 install -r "${TEAMCITY_DIR}"/../buildbot/requirements.txt
 
-# Make sure our specific llvm and clang versions have highest priority
-update-alternatives --install /usr/bin/clang clang "$(command -v clang-11)" 100
-update-alternatives --install /usr/bin/clang++ clang++ "$(command -v clang++-11)" 100
-update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer "$(command -v llvm-symbolizer-11)" 100
-
 # Set default git config so that any git operations requiring authoring,
 # rebasing, or cherry-picking of commits just work out of the box.
 git config --global user.name "abc-bot"
