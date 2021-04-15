@@ -310,6 +310,11 @@ public:
      */
     const Proof getProof() const;
 
+    /*
+     * Return whether the avalanche service flag should be set.
+     */
+    bool isAvalancheServiceAvailable() { return !!peerData; }
+
     std::vector<avalanche::Peer> getPeers() const;
     std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 

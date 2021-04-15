@@ -2445,7 +2445,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         return false;
     }
 
-    if (args.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+    if (args.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED) &&
+        g_avalanche->isAvalancheServiceAvailable()) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
     }
 
