@@ -3,6 +3,8 @@ import {
     formatBalance,
     batchArray,
     flattenBatchedHydratedUtxos,
+    loadStoredWallet,
+    isValidStoredWallet,
 } from '@utils/cashMethods';
 import {
     unbatchedArray,
@@ -10,11 +12,17 @@ import {
 } from '../__mocks__/mockBatchedArrays';
 
 import {
-    originalFinal,
-    batchedFinal,
     unflattenedHydrateUtxosResponse,
     flattenedHydrateUtxosResponse,
 } from '../__mocks__/flattenBatchedHydratedUtxosMocks';
+import {
+    cachedUtxos,
+    utxosLoadedFromCache,
+} from '../__mocks__/mockCachedUtxos';
+import {
+    validStoredWallet,
+    invalidStoredWallet,
+} from '../__mocks__/mockStoredWallets';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -65,5 +73,16 @@ describe('Correctly executes cash utility functions', () => {
         expect(
             flattenBatchedHydratedUtxos(unflattenedHydrateUtxosResponse),
         ).toStrictEqual(flattenedHydrateUtxosResponse);
+    });
+    it(`Accepts a cachedWalletState that has not preserved BigNumber object types, and returns the same wallet state with BigNumber type re-instituted`, () => {
+        expect(loadStoredWallet(cachedUtxos)).toStrictEqual(
+            utxosLoadedFromCache,
+        );
+    });
+    it(`Recognizes a stored wallet as valid if it has all required fields`, () => {
+        expect(isValidStoredWallet(validStoredWallet)).toBe(true);
+    });
+    it(`Recognizes a stored wallet as invalid if it is missing required fields`, () => {
+        expect(isValidStoredWallet(invalidStoredWallet)).toBe(false);
     });
 });

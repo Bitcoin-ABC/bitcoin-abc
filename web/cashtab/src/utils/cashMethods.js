@@ -102,3 +102,31 @@ export const flattenBatchedHydratedUtxos = batchedHydratedUtxoDetails => {
     }
     return flattenedBatchedHydratedUtxos;
 };
+
+export const loadStoredWallet = walletStateFromStorage => {
+    // Accept cached tokens array that does not save BigNumber type of BigNumbers
+    // Return array with BigNumbers converted
+    // See BigNumber.js api for how to create a BigNumber object from an object
+    // https://mikemcl.github.io/bignumber.js/
+    const liveWalletState = walletStateFromStorage;
+    const { tokens } = liveWalletState;
+    for (let i = 0; i < tokens.length; i += 1) {
+        const thisTokenBalance = tokens[i].balance;
+        thisTokenBalance._isBigNumber = true;
+        tokens[i].balance = new BigNumber(thisTokenBalance);
+    }
+    return liveWalletState;
+};
+
+export const isValidStoredWallet = walletStateFromStorage => {
+    return (
+        typeof walletStateFromStorage === 'object' &&
+        'state' in walletStateFromStorage &&
+        typeof walletStateFromStorage.state === 'object' &&
+        'balances' in walletStateFromStorage.state &&
+        'utxos' in walletStateFromStorage.state &&
+        'hydratedUtxoDetails' in walletStateFromStorage.state &&
+        'slpBalancesAndUtxos' in walletStateFromStorage.state &&
+        'tokens' in walletStateFromStorage.state
+    );
+};
