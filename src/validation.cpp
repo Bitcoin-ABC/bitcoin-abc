@@ -4236,13 +4236,13 @@ bool CChainState::AcceptBlock(const Config &config,
 }
 
 bool ChainstateManager::ProcessNewBlock(
-    const Config &config, const std::shared_ptr<const CBlock> pblock,
-    bool fForceProcessing, bool *fNewBlock) {
+    const Config &config, const std::shared_ptr<const CBlock> &block,
+    bool force_processing, bool *new_block) {
     AssertLockNotHeld(cs_main);
 
     {
-        if (fNewBlock) {
-            *fNewBlock = false;
+        if (new_block) {
+            *new_block = false;
         }
 
         BlockValidationState state;
@@ -4256,16 +4256,16 @@ bool ChainstateManager::ProcessNewBlock(
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
         // belt-and-suspenders.
         bool ret =
-            CheckBlock(*pblock, state, config.GetChainParams().GetConsensus(),
+            CheckBlock(*block, state, config.GetChainParams().GetConsensus(),
                        BlockValidationOptions(config));
         if (ret) {
             // Store to disk
             ret = ActiveChainstate().AcceptBlock(
-                config, pblock, state, fForceProcessing, nullptr, fNewBlock);
+                config, block, state, force_processing, nullptr, new_block);
         }
 
         if (!ret) {
-            GetMainSignals().BlockChecked(*pblock, state);
+            GetMainSignals().BlockChecked(*block, state);
             return error("%s: AcceptBlock FAILED (%s)", __func__,
                          state.ToString());
         }
@@ -4275,7 +4275,7 @@ bool ChainstateManager::ProcessNewBlock(
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
-    if (!ActiveChainstate().ActivateBestChain(config, state, pblock)) {
+    if (!ActiveChainstate().ActivateBestChain(config, state, block)) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
                      state.ToString());
     }

@@ -1324,27 +1324,27 @@ public:
      * block is made active. Note that it does not, however, guarantee that the
      * specific block passed to it has been checked for validity!
      *
-     * If you want to *possibly* get feedback on whether pblock is valid, you
+     * If you want to *possibly* get feedback on whether block is valid, you
      * must install a CValidationInterface (see validationinterface.h) - this
      * will have its BlockChecked method called whenever *any* block completes
      * validation.
      *
-     * Note that we guarantee that either the proof-of-work is valid on pblock,
+     * Note that we guarantee that either the proof-of-work is valid on block,
      * or (and possibly also) BlockChecked will have been called.
      *
      * May not be called in a validationinterface callback.
      *
      * @param[in]   config  The global config.
-     * @param[in]   pblock  The block we want to process.
-     * @param[in]   fForceProcessing Process this block even if unrequested;
+     * @param[in]   block  The block we want to process.
+     * @param[in]   force_processing Process this block even if unrequested;
      *              used for non-network block sources.
-     * @param[out]  fNewBlock A boolean which is set to indicate if the block
+     * @param[out]  new_block A boolean which is set to indicate if the block
      * was first received via this call.
      * @returns     If the block was processed, independently of block validity
      */
     bool ProcessNewBlock(const Config &config,
-                         const std::shared_ptr<const CBlock> pblock,
-                         bool fForceProcessing, bool *fNewBlock)
+                         const std::shared_ptr<const CBlock> &block,
+                         bool force_processing, bool *new_block)
         LOCKS_EXCLUDED(cs_main);
 
     /**
