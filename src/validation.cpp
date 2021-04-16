@@ -1410,24 +1410,6 @@ void StopScriptCheckWorkerThreads() {
     scriptcheckqueue.StopWorkerThreads();
 }
 
-int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
-                            const Consensus::Params &params) {
-    int32_t nVersion = VERSIONBITS_TOP_BITS;
-
-    for (int i = 0; i < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; i++) {
-        ThresholdState state = g_versionbitscache.State(
-            pindexPrev, params, static_cast<Consensus::DeploymentPos>(i));
-        if (state == ThresholdState::LOCKED_IN ||
-            state == ThresholdState::STARTED) {
-            nVersion |= g_versionbitscache.Mask(
-                params, static_cast<Consensus::DeploymentPos>(i));
-        }
-    }
-
-    // Clear the last 4 bits (miner fund activation).
-    return nVersion & ~uint32_t(0x0f);
-}
-
 // Returns the script flags which should be checked for the block after
 // the given block.
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,

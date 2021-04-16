@@ -141,6 +141,12 @@ public:
                          const Consensus::Params &params,
                          Consensus::DeploymentPos pos);
 
+    /**
+     * Determine what nVersion a new block should use
+     */
+    int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
+                                const Consensus::Params &params);
+
     void Clear();
 };
 

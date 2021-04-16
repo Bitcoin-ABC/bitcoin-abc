@@ -1405,12 +1405,6 @@ public:
  */
 extern std::unique_ptr<CBlockTreeDB> pblocktree;
 
-/**
- * Determine what nVersion a new block should use.
- */
-int32_t ComputeBlockVersion(const CBlockIndex *pindexPrev,
-                            const Consensus::Params &params);
-
 /** Dump the mempool to disk. */
 bool DumpMempool(const CTxMemPool &pool);
 

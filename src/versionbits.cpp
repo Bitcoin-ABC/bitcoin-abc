@@ -244,6 +244,25 @@ uint32_t VersionBitsCache::Mask(const Consensus::Params &params,
     return VersionBitsConditionChecker(pos).Mask(params);
 }
 
+int32_t VersionBitsCache::ComputeBlockVersion(const CBlockIndex *pindexPrev,
+                                              const Consensus::Params &params) {
+    LOCK(m_mutex);
+    int32_t nVersion = VERSIONBITS_TOP_BITS;
+
+    for (int i = 0; i < int{Consensus::MAX_VERSION_BITS_DEPLOYMENTS}; i++) {
+        Consensus::DeploymentPos pos = static_cast<Consensus::DeploymentPos>(i);
+        ThresholdState state = VersionBitsConditionChecker(pos).GetStateFor(
+            pindexPrev, params, m_caches[pos]);
+        if (state == ThresholdState::LOCKED_IN ||
+            state == ThresholdState::STARTED) {
+            nVersion |= Mask(params, pos);
+        }
+    }
+
+    // Clear the last 4 bits (miner fund activation).
+    return nVersion & ~uint32_t(0x0f);
+}
+
 void VersionBitsCache::Clear() {
     LOCK(m_mutex);
     for (unsigned int d = 0; d < Consensus::MAX_VERSION_BITS_DEPLOYMENTS; d++) {

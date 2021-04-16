@@ -14,6 +14,7 @@
 #include <consensus/merkle.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
+#include <deploymentstatus.h>
 #include <minerfund.h>
 #include <net.h>
 #include <policy/policy.h>
@@ -142,7 +143,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     const Consensus::Params &consensusParams = chainParams.GetConsensus();
 
-    pblock->nVersion = ComputeBlockVersion(pindexPrev, consensusParams);
+    pblock->nVersion =
+        g_versionbitscache.ComputeBlockVersion(pindexPrev, consensusParams);
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (chainParams.MineBlocksOnDemand()) {
