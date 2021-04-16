@@ -5,6 +5,7 @@
 #ifndef BITCOIN_AVALANCHE_PROOFID_H
 #define BITCOIN_AVALANCHE_PROOFID_H
 
+#include <salteduint256hasher.h>
 #include <uint256.h>
 
 #include <string>
@@ -21,6 +22,13 @@ struct ProofId : public uint256 {
         return r;
     }
 };
+
+class SaltedProofIdHasher : private SaltedUint256Hasher {
+public:
+    SaltedProofIdHasher() : SaltedUint256Hasher() {}
+    size_t operator()(const ProofId &proofid) const { return hash(proofid); }
+};
+
 } // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_PROOFID_H

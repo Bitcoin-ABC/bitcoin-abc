@@ -77,13 +77,6 @@ struct proof_index {
     result_type operator()(const Peer &p) const { return p.proof.getId(); }
 };
 
-class SaltedProofIdHasher : private SaltedUint256Hasher {
-public:
-    SaltedProofIdHasher() : SaltedUint256Hasher() {}
-
-    size_t operator()(const ProofId &proofid) const { return hash(proofid); }
-};
-
 struct next_request_time {};
 
 class PeerManager {
