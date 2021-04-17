@@ -494,7 +494,8 @@ public:
     /** Implement PeerManager */
     void StartScheduledTasks(CScheduler &scheduler) override;
     void CheckForStaleTipAndEvictPeers() override;
-    bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) override;
+    bool GetNodeStateStats(NodeId nodeid,
+                           CNodeStateStats &stats) const override;
     bool IgnoresIncomingTxs() override { return m_ignore_incoming_txs; }
     void SendPings() override;
     void RelayTransaction(const TxId &txid) override;
@@ -1867,7 +1868,8 @@ PeerRef PeerManagerImpl::RemovePeer(NodeId id) {
     return ret;
 }
 
-bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
+bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
+                                        CNodeStateStats &stats) const {
     {
         LOCK(cs_main);
         CNodeState *state = State(nodeid);

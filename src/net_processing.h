@@ -60,7 +60,8 @@ public:
     virtual void StartScheduledTasks(CScheduler &scheduler) = 0;
 
     /** Get statistics from node state */
-    virtual bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) = 0;
+    virtual bool GetNodeStateStats(NodeId nodeid,
+                                   CNodeStateStats &stats) const = 0;
 
     /** Whether this node ignores txs received over p2p. */
     virtual bool IgnoresIncomingTxs() = 0;
