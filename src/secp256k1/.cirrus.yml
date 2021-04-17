@@ -208,3 +208,73 @@ task:
   test_script:
     - ./ci/build_autotools.sh
   << : *CAT_LOGS
+
+task:
+  name: "ARM32: Linux (Debian stable, QEMU)"
+  container:
+    dockerfile: ci/linux-debian.Dockerfile
+    cpu: 1
+    memory: 1G
+  env:
+    WRAPPER_CMD: qemu-arm
+    TEST_ITERS: 16
+    HOST: arm-linux-gnueabihf
+    WITH_VALGRIND: no
+    ECDH: yes
+    RECOVERY: yes
+    EXPERIMENTAL: yes
+    SCHNORRSIG: yes
+    CTIMETEST: no
+  matrix:
+    - env: {}
+    - env: {ASM: arm}
+  test_script:
+    - ./ci/build_autotools.sh
+  << : *CAT_LOGS
+
+task:
+  name: "ARM64: Linux (Debian stable, QEMU)"
+  container:
+    dockerfile: ci/linux-debian.Dockerfile
+    cpu: 1
+    memory: 1Gq
+  env:
+    WRAPPER_CMD: qemu-aarch64
+    TEST_ITERS: 16
+    HOST: aarch64-linux-gnu
+    WITH_VALGRIND: no
+    ECDH: yes
+    RECOVERY: yes
+    EXPERIMENTAL: yes
+    SCHNORRSIG: yes
+    CTIMETEST: no
+  test_script:
+    - ./ci/build_autotools.sh
+    - ./ci/build_cmake.sh
+  << : *CAT_LOGS
+
+task:
+  container:
+    dockerfile: ci/linux-debian.Dockerfile
+    cpu: 1
+    memory: 1G
+  env:
+    WRAPPER_CMD: wine
+    WITH_VALGRIND: no
+    ECDH: yes
+    RECOVERY: yes
+    EXPERIMENTAL: yes
+    SCHNORRSIG: yes
+    CTIMETEST: no
+  matrix:
+    - name: "x86_64 (mingw32-w64): Windows (Debian stable, Wine)"
+      env:
+        HOST: x86_64-w64-mingw32
+    - name: "i686 (mingw32-w64): Windows (Debian stable, Wine)"
+      env:
+        HOST: i686-w64-mingw32
+        BENCH: no
+  test_script:
+    - ./ci/build_autotools.sh
+    - ./ci/build_cmake.sh
+  << : *CAT_LOGS

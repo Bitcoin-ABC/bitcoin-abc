@@ -14,7 +14,7 @@ elif [ "x$HOST" = "xs390x-linux-gnu" ]; then
   CC="s390x-linux-gnu-gcc"
 fi
 
-$CC --version
+$CC --version || true
 
 # Workaround for https://bugs.kde.org/show_bug.cgi?id=452758 (fixed in valgrind 3.20.0).
 case "${CC:-undefined}" in
@@ -70,7 +70,7 @@ export SECP256K1_BENCH_ITERS="$BENCH_ITERS"
 make $AUTOTOOLS_TARGET
 
 # Print information about binaries so that we can see that the architecture is correct
-file *tests || true
+file *tests* || true
 file bench* || true
 file .libs/* || true
 
