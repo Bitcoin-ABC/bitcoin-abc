@@ -181,4 +181,52 @@ void SetLoggingCategories(const ArgsManager &args) {
         }
     }
 }
+
+bool StartLogging(const ArgsManager &args) {
+    BCLog::Logger &logger = LogInstance();
+    if (logger.m_print_to_file) {
+        if (args.GetBoolArg("-shrinkdebugfile",
+                            logger.DefaultShrinkDebugFile())) {
+            // Do this first since it both loads a bunch of debug.log into
+            // memory, and because this needs to happen before any other
+            // debug.log printing.
+            logger.ShrinkDebugFile();
+        }
+    }
+
+    if (!logger.StartLogging()) {
+        return InitError(
+            strprintf(Untranslated("Could not open debug log file %s"),
+                      fs::PathToString(logger.m_file_path)));
+    }
+
+    if (!logger.m_log_timestamps) {
+        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+    }
+    LogPrintf("Default data directory %s\n",
+              fs::PathToString(GetDefaultDataDir()));
+    LogPrintf("Using data directory %s\n",
+              fs::PathToString(gArgs.GetDataDirNet()));
+
+    // Only log conf file usage message if conf file actually exists.
+    fs::path config_file_path =
+        GetConfigFile(args.GetArg("-conf", BITCOIN_CONF_FILENAME));
+    if (fs::exists(config_file_path)) {
+        LogPrintf("Config file: %s\n", fs::PathToString(config_file_path));
+    } else if (args.IsArgSet("-conf")) {
+        // Warn if no conf file exists at path provided by user
+        InitWarning(
+            strprintf(_("The specified config file %s does not exist\n"),
+                      fs::PathToString(config_file_path)));
+    } else {
+        // Not categorizing as "Warning" because it's the default behavior
+        LogPrintf("Config file: %s (not found, skipping)\n",
+                  fs::PathToString(config_file_path));
+    }
+
+    // Log the config arguments to debug.log
+    args.LogArgs();
+
+    return true;
+}
 } // namespace init
