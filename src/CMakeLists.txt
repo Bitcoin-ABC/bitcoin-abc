@@ -584,6 +584,7 @@ add_library(server
 	index/coinstatsindex.cpp
 	index/txindex.cpp
 	init.cpp
+	init/common.cpp
 	interfaces/chain.cpp
 	interfaces/node.cpp
 	invrequest.cpp
