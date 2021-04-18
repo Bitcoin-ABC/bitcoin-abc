@@ -846,7 +846,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		kernel/mempool_persist.cpp
 		arith_uint256.cpp
 		blockfileinfo.cpp
-		blockfilter.cpp
 		blockindex.cpp
 		common/bloom.cpp
 		chain.cpp
@@ -872,7 +871,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		fs.cpp
 		hash.cpp
 		index/base.cpp
-		index/blockfilterindex.cpp
 		index/coinstatsindex.cpp
 		init/common.cpp
 		key.cpp

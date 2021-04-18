@@ -26,7 +26,6 @@
 #include <consensus/validation.h>
 #include <fs.h>
 #include <hash.h>
-#include <index/blockfilterindex.h>
 #include <logging.h>
 #include <logging/timer.h>
 #include <minerfund.h>
@@ -2186,11 +2185,6 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                 // prune lock that actually was the limiting factor, only used
                 // for logging
                 std::optional<std::string> limiting_lock;
-                ForEachBlockFilterIndex([&](BlockFilterIndex &index) {
-                    last_prune = std::max(
-                        1, std::min(last_prune,
-                                    index.GetSummary().best_block_height));
-                });
 
                 for (const auto &prune_lock : m_blockman.m_prune_locks) {
                     if (prune_lock.second.height_first ==

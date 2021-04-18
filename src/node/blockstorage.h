@@ -238,6 +238,11 @@ public:
     //! not.
     bool IsBlockPruned(const CBlockIndex *pblockindex)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    //! Create or update a prune lock identified by its name
+    void UpdatePruneLock(const std::string &name,
+                         const PruneLockInfo &lock_info)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 };
 
 //! Find the first block that is not pruned

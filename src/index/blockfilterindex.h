@@ -44,6 +44,8 @@ private:
     std::unordered_map<BlockHash, uint256, FilterHeaderHasher>
         m_headers_cache GUARDED_BY(m_cs_headers_cache);
 
+    bool AllowPrune() const override { return true; }
+
 protected:
     bool Init() override;
 
