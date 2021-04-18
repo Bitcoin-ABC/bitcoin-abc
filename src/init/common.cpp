@@ -6,6 +6,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <clientversion.h>
 #include <compat/sanity.h>
 #include <crypto/sha256.h>
 #include <key.h>
@@ -228,5 +229,15 @@ bool StartLogging(const ArgsManager &args) {
     args.LogArgs();
 
     return true;
+}
+
+void LogPackageVersion() {
+    std::string version_string = FormatFullVersion();
+#ifdef DEBUG
+    version_string += " (debug build)";
+#else
+    version_string += " (release build)";
+#endif
+    LogPrintf("%s version %s\n", CLIENT_NAME, version_string);
 }
 } // namespace init

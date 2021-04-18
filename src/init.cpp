@@ -1584,14 +1584,7 @@ void InitParameterInteraction(ArgsManager &args) {
  */
 void InitLogging(const ArgsManager &args) {
     init::SetLoggingOptions(args);
-
-    std::string version_string = FormatFullVersion();
-#ifdef DEBUG
-    version_string += " (debug build)";
-#else
-    version_string += " (release build)";
-#endif
-    LogPrintf("%s version %s\n", CLIENT_NAME, version_string);
+    init::LogPackageVersion();
 }
 
 namespace { // Variables internal to initialization process only
