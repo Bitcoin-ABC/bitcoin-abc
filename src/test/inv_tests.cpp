@@ -24,6 +24,8 @@ BOOST_AUTO_TEST_CASE(validate_kind) {
               false, true);
     CheckType(GetDataMsg::MSG_CMPCT_BLOCK, GetDataMsg::MSG_CMPCT_BLOCK, false,
               true);
+    CheckType(GetDataMsg::MSG_AVA_PROOF, GetDataMsg::MSG_AVA_PROOF, false,
+              false);
 }
 
 static void CheckCommand(int type, std::string expected) {
@@ -37,6 +39,7 @@ BOOST_AUTO_TEST_CASE(validate_cmd) {
     CheckCommand(GetDataMsg::MSG_BLOCK, "block");
     CheckCommand(GetDataMsg::MSG_FILTERED_BLOCK, "merkleblock");
     CheckCommand(GetDataMsg::MSG_CMPCT_BLOCK, "cmpctblock");
+    CheckCommand(GetDataMsg::MSG_AVA_PROOF, "avaproof");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
