@@ -109,6 +109,7 @@ struct BasicTestingSetup {
     ~BasicTestingSetup();
 
     const fs::path m_path_root;
+    ArgsManager m_args;
 };
 
 /**
