@@ -395,6 +395,8 @@ void SetupServerArgs(NodeContext &node) {
                    "Print help message with debugging options and exit", false,
                    OptionsCategory::DEBUG_TEST);
 
+    init::AddLoggingArgs(argsman);
+
     const auto defaultBaseParams =
         CreateBaseChainParams(CBaseChainParams::MAIN);
     const auto testnetBaseParams =
@@ -506,13 +508,6 @@ void SetupServerArgs(NodeContext &node) {
         "-dbcache=<n>",
         strprintf("Set database cache size in MiB (%d to %d, default: %d)",
                   MIN_DB_CACHE_MB, MAX_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
-        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    argsman.AddArg(
-        "-debuglogfile=<file>",
-        strprintf("Specify location of debug log file. Relative paths "
-                  "will be prefixed by a net-specific datadir "
-                  "location. (0 to disable; default: %s)",
-                  DEFAULT_DEBUGLOGFILE),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-finalizationdelay=<n>",
@@ -1042,55 +1037,6 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-capturemessages", "Capture all P2P messages to disk",
                    ArgsManager::ALLOW_BOOL | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
-    argsman.AddArg("-debug=<category>",
-                   strprintf("Output debugging information (default: %u, "
-                             "supplying <category> is optional)",
-                             0) +
-                       ". " +
-                       "If <category> is not supplied or if <category> = 1, "
-                       "output all debugging information. <category> can be: " +
-                       LogInstance().LogCategoriesString() + ".",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-debugexclude=<category>",
-        strprintf("Exclude debugging information for a category. Can be used "
-                  "in conjunction with -debug=1 to output debug logs for all "
-                  "categories except one or more specified categories."),
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-logips",
-        strprintf("Include IP addresses in debug output (default: %d)",
-                  DEFAULT_LOGIPS),
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-logtimestamps",
-        strprintf("Prepend debug output with timestamp (default: %d)",
-                  DEFAULT_LOGTIMESTAMPS),
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-#ifdef HAVE_THREAD_LOCAL
-    argsman.AddArg(
-        "-logthreadnames",
-        strprintf(
-            "Prepend debug output with name of the originating thread (only "
-            "available on platforms supporting thread_local) (default: %u)",
-            DEFAULT_LOGTHREADNAMES),
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-#else
-    hidden_args.emplace_back("-logthreadnames");
-#endif
-    argsman.AddArg(
-        "-logsourcelocations",
-        strprintf(
-            "Prepend debug output with name of the originating source location "
-            "(source file, line number and function name) (default: %u)",
-            DEFAULT_LOGSOURCELOCATIONS),
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-logtimemicros",
-        strprintf("Add microsecond precision to debug timestamps (default: %d)",
-                  DEFAULT_LOGTIMEMICROS),
-        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-        OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-mocktime=<n>",
                    "Replace actual time with " + UNIX_EPOCH_TIME +
                        " (default: 0)",
@@ -1114,22 +1060,6 @@ void SetupServerArgs(NodeContext &node) {
                              DEFAULT_MAX_TIP_AGE),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
-
-    argsman.AddArg(
-        "-printtoconsole",
-        "Send trace/debug info to console instead of debug.log file (default: "
-        "1 when no -daemon. To disable logging to file, set debuglogfile=0)",
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
-    argsman.AddArg("-printpriority",
-                   strprintf("Log transaction priority and fee per kB when "
-                             "mining blocks (default: %d)",
-                             DEFAULT_PRINTPRIORITY),
-                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                   OptionsCategory::DEBUG_TEST);
-    argsman.AddArg(
-        "-shrinkdebugfile",
-        "Shrink debug.log file on client startup (default: 1 when no -debug)",
-        ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
 
     argsman.AddArg("-uacomment=<cmt>",
                    "Append comment to the user agent string",
