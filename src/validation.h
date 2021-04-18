@@ -29,6 +29,7 @@
 #include <txdb.h>
 #include <txmempool.h> // For CTxMemPool::cs
 #include <util/check.h>
+#include <util/translation.h>
 #include <versionbits.h>
 
 #include <atomic>
@@ -244,6 +245,9 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                const Consensus::Params &consensusParams,
                                BlockHash &hashBlock);
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
+
+bool AbortNode(BlockValidationState &state, const std::string &strMessage,
+               const bilingual_str &userMessage = bilingual_str{});
 
 /**
  * Guess verification progress (as a fraction between 0.0=genesis and

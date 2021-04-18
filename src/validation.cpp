@@ -109,23 +109,16 @@ CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB);
 namespace {
 CBlockIndex *pindexBestInvalid = nullptr;
 CBlockIndex *pindexBestParked = nullptr;
-
-RecursiveMutex cs_LastBlockFile;
-std::vector<CBlockFileInfo> vinfoBlockFile;
-int nLastBlockFile = 0;
-/**
- * Global flag to indicate we should check to see if there are block/undo files
- * that should be deleted. Set on startup or if we allocate more file space when
- * we're in prune mode.
- */
-bool fCheckForPruning = false;
-
-/** Dirty block index entries. */
-std::set<const CBlockIndex *> setDirtyBlockIndex;
-
-/** Dirty block file entries. */
-std::set<int> setDirtyFileInfo;
 } // namespace
+
+// Internal stuff from blockstorage ...
+extern RecursiveMutex cs_LastBlockFile;
+extern std::vector<CBlockFileInfo> vinfoBlockFile;
+extern int nLastBlockFile;
+extern bool fCheckForPruning;
+extern std::set<const CBlockIndex *> setDirtyBlockIndex;
+extern std::set<int> setDirtyFileInfo;
+// ... TODO move fully to blockstorage
 
 BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
@@ -1258,9 +1251,8 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
     return true;
 }
 
-static bool AbortNode(BlockValidationState &state,
-                      const std::string &strMessage,
-                      const bilingual_str &userMessage = bilingual_str()) {
+bool AbortNode(BlockValidationState &state, const std::string &strMessage,
+               const bilingual_str &userMessage) {
     AbortNode(strMessage, userMessage);
     return state.Error(strMessage);
 }
