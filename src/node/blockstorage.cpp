@@ -399,6 +399,16 @@ bool BlockManager::IsBlockPruned(const CBlockIndex *pblockindex) {
             pblockindex->nTx > 0);
 }
 
+const CBlockIndex *GetFirstStoredBlock(const CBlockIndex *start_block) {
+    AssertLockHeld(::cs_main);
+    assert(start_block);
+    const CBlockIndex *last_block = start_block;
+    while (last_block->pprev && (last_block->pprev->nStatus.hasData())) {
+        last_block = last_block->pprev;
+    }
+    return last_block;
+}
+
 // If we're using -prune with -reindex, then delete block files that will be
 // ignored by the reindex.  Since reindexing works by starting at block file 0
 // and looping until a blockfile is missing, do the same here to delete any

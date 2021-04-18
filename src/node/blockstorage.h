@@ -202,6 +202,10 @@ public:
     ~BlockManager() { Unload(); }
 };
 
+//! Find the first block that is not pruned
+const CBlockIndex *GetFirstStoredBlock(const CBlockIndex *start_block)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
 void CleanupBlockRevFiles();
 
 /** Open a block file (blk?????.dat) */
