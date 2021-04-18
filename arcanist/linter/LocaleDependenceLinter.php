@@ -49,7 +49,7 @@ final class LocaleDependenceLinter extends ArcanistLinter {
         "vsnprintf"
     ],
     "src/httprpc.cpp" => ["trim"],
-    "src/init.cpp" => ["atoi"],
+    "src/node/blockstorage.cpp" => ["atoi"],
     "src/netbase.cpp" => ["to_lower"],
     "src/qt/rpcconsole.cpp" => [
       "atoi",
