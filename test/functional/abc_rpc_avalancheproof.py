@@ -187,6 +187,28 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         self.stop_node(0)
 
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avasessionkey=0",
+            ],
+            expected_msg="Error: the avalanche session key is invalid",
+        )
+
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avaproof={}".format(proof),
+            ],
+            expected_msg="Error: the avalanche master key is missing for the avalanche proof",
+        )
+
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avaproof={}".format(proof),
+                "-avamasterkey=0",
+            ],
+            expected_msg="Error: the avalanche master key is invalid",
+        )
+
         def check_proof_init_error(proof, message):
             node.assert_start_raises_init_error(
                 self.extra_args[0] + [

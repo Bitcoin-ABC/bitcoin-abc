@@ -11,6 +11,7 @@
 #include <config.h>
 #include <net_processing.h> // For ::PeerManager
 #include <util/time.h>
+#include <util/translation.h> // For bilingual_str
 // D6970 moved LookupBlockIndex from chain.h to validation.h TODO: remove this
 // when LookupBlockIndex is refactored out of validation
 #include <validation.h>
@@ -86,8 +87,11 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // Get the processor ready.
-        m_processor = std::make_unique<Processor>(
-            *m_node.chain, m_node.connman.get(), m_node.peerman.get());
+        bilingual_str error;
+        m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
+                                               m_node.connman.get(),
+                                               m_node.peerman.get(), error);
+        BOOST_CHECK(m_processor);
 
         // The master private key we delegate to.
         masterpriv.MakeNewKey(true);

@@ -14,6 +14,7 @@
 #include <reverse_iterator.h>
 #include <scheduler.h>
 #include <util/bitmanip.h>
+#include <util/translation.h>
 #include <validation.h>
 
 #include <chrono>
@@ -162,39 +163,15 @@ public:
 };
 
 Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
-                     NodePeerManager *nodePeerManagerIn)
+                     NodePeerManager *nodePeerManagerIn,
+                     std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn)
     : connman(connmanIn), nodePeerManager(nodePeerManagerIn),
       queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT), round(0),
-      peerManager(std::make_unique<PeerManager>()) {
-    if (gArgs.IsArgSet("-avasessionkey")) {
-        sessionKey = DecodeSecret(gArgs.GetArg("-avasessionkey", ""));
-    } else {
-        // Pick a random key for the session.
-        sessionKey.MakeNewKey(true);
-    }
-
-    if (gArgs.IsArgSet("-avaproof")) {
-        peerData = std::make_unique<PeerData>();
-
-        {
-            // The proof.
-            CDataStream stream(ParseHex(gArgs.GetArg("-avaproof", "")),
-                               SER_NETWORK, 0);
-            stream >> peerData->proof;
-
-            // Schedule proof registration at the first new block after IBD.
-            mustRegisterProof = true;
-        }
-
-        // Generate the delegation to the session key.
-        DelegationBuilder dgb(peerData->proof);
-        if (sessionKey.GetPubKey() != peerData->proof.getMaster()) {
-            dgb.addLevel(DecodeSecret(gArgs.GetArg("-avamasterkey", "")),
-                         sessionKey.GetPubKey());
-        }
-        peerData->delegation = dgb.build();
-    }
-
+      peerManager(std::make_unique<PeerManager>()),
+      peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
+      // Schedule proof registration at the first new block after IBD.
+      // FIXME: get rid of this flag
+      mustRegisterProof(!!peerData) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
@@ -203,6 +180,87 @@ Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
 Processor::~Processor() {
     chainNotificationsHandler.reset();
     stopEventLoop();
+}
+
+std::unique_ptr<Processor>
+Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
+                         CConnman *connman, NodePeerManager *nodePeerManager,
+                         bilingual_str &error) {
+    std::unique_ptr<PeerData> peerData;
+    CKey masterKey;
+    CKey sessionKey;
+
+    if (argsman.IsArgSet("-avasessionkey")) {
+        sessionKey = DecodeSecret(argsman.GetArg("-avasessionkey", ""));
+        if (!sessionKey.IsValid()) {
+            error = _("the avalanche session key is invalid");
+            return nullptr;
+        }
+    } else {
+        // Pick a random key for the session.
+        sessionKey.MakeNewKey(true);
+    }
+
+    if (argsman.IsArgSet("-avaproof")) {
+        if (!argsman.IsArgSet("-avamasterkey")) {
+            error = _(
+                "the avalanche master key is missing for the avalanche proof");
+            return nullptr;
+        }
+
+        masterKey = DecodeSecret(argsman.GetArg("-avamasterkey", ""));
+        if (!masterKey.IsValid()) {
+            error = _("the avalanche master key is invalid");
+            return nullptr;
+        }
+
+        peerData = std::make_unique<PeerData>();
+        {
+            // The proof.
+            CDataStream stream(ParseHex(argsman.GetArg("-avaproof", "")),
+                               SER_NETWORK, 0);
+            stream >> peerData->proof;
+        }
+
+        ProofValidationState proof_state;
+        if (!peerData->proof.verify(proof_state)) {
+            switch (proof_state.GetResult()) {
+                case ProofValidationResult::NO_STAKE:
+                    error = _("the avalanche proof has no stake");
+                    return nullptr;
+                case ProofValidationResult::DUST_THRESOLD:
+                    error = _("the avalanche proof stake is too low");
+                    return nullptr;
+                case ProofValidationResult::DUPLICATE_STAKE:
+                    error = _("the avalanche proof has duplicated stake");
+                    return nullptr;
+                case ProofValidationResult::INVALID_SIGNATURE:
+                    error =
+                        _("the avalanche proof has invalid stake signatures");
+                    return nullptr;
+                case ProofValidationResult::TOO_MANY_UTXOS:
+                    error = strprintf(
+                        _("the avalanche proof has too many utxos (max: %u)"),
+                        AVALANCHE_MAX_PROOF_STAKES);
+                    return nullptr;
+                default:
+                    error = _("the avalanche proof is invalid");
+                    return nullptr;
+            }
+        }
+
+        // Generate the delegation to the session key.
+        DelegationBuilder dgb(peerData->proof);
+        if (sessionKey.GetPubKey() != peerData->proof.getMaster()) {
+            dgb.addLevel(masterKey, sessionKey.GetPubKey());
+        }
+        peerData->delegation = dgb.build();
+    }
+
+    // We can't use std::make_unique with a private constructor
+    return std::unique_ptr<Processor>(
+        new Processor(chain, connman, nodePeerManager, std::move(peerData),
+                      std::move(sessionKey)));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {

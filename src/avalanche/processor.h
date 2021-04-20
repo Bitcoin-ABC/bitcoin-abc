@@ -27,10 +27,12 @@
 #include <memory>
 #include <vector>
 
+class ArgsManager;
 class Config;
 class CBlockIndex;
 class CScheduler;
 class PeerManager;
+struct bilingual_str;
 
 using NodePeerManager = PeerManager;
 
@@ -262,10 +264,17 @@ class Processor {
      */
     bool mustRegisterProof = false;
 
-public:
     Processor(interfaces::Chain &chain, CConnman *connmanIn,
-              NodePeerManager *nodePeerManagerIn);
+              NodePeerManager *nodePeerManagerIn,
+              std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn);
+
+public:
     ~Processor();
+
+    static std::unique_ptr<Processor>
+    MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
+                  CConnman *connman, NodePeerManager *nodePeerManager,
+                  bilingual_str &error);
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
         queryTimeoutDuration = d;
