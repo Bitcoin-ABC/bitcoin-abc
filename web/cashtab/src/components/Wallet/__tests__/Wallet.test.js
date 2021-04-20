@@ -7,6 +7,8 @@ import {
     walletWithBalancesAndTokens,
     walletWithBalancesMock,
     walletWithoutBalancesMock,
+    walletWithBalancesAndTokensWithCorrectState,
+    walletWithBalancesAndTokensWithEmptyState,
 } from '../__mocks__/walletAndBalancesMock';
 import { BrowserRouter as Router } from 'react-router-dom';
 
@@ -50,6 +52,32 @@ test('Wallet with BCH balances', () => {
 
 test('Wallet with BCH balances and tokens', () => {
     useContextMock.mockReturnValue(walletWithBalancesAndTokens);
+    const component = renderer.create(
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Wallet />
+            </Router>
+        </ThemeProvider>,
+    );
+    let tree = component.toJSON();
+    expect(tree).toMatchSnapshot();
+});
+
+test('Wallet with BCH balances and tokens and state field', () => {
+    useContextMock.mockReturnValue(walletWithBalancesAndTokensWithCorrectState);
+    const component = renderer.create(
+        <ThemeProvider theme={theme}>
+            <Router>
+                <Wallet />
+            </Router>
+        </ThemeProvider>,
+    );
+    let tree = component.toJSON();
+    expect(tree).toMatchSnapshot();
+});
+
+test('Wallet with BCH balances and tokens and state field, but no params in state', () => {
+    useContextMock.mockReturnValue(walletWithBalancesAndTokensWithEmptyState);
     const component = renderer.create(
         <ThemeProvider theme={theme}>
             <Router>

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Wallet with BCH balances 1`] = `
 Array [
@@ -101,6 +101,206 @@ Array [
 `;
 
 exports[`Wallet with BCH balances and tokens 1`] = `
+Array [
+  <div
+    className="sc-jAaTju dsaCuU"
+  >
+    0.06047469
+     
+    BCHA
+  </div>,
+  <div
+    className="sc-jDwBTQ hhosDq"
+  >
+    $
+    NaN
+     
+    USD
+  </div>,
+  <div
+    onClick={[Function]}
+    style={
+      Object {
+        "display": "inline-block",
+        "position": "relative",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="sc-cSHVUG gIRqBE"
+      style={
+        Object {
+          "display": "none",
+        }
+      }
+    >
+      Copied
+    </div>
+    <svg
+      bch={1}
+      className="sc-jzJRlG jklgUU"
+      height={210}
+      id="borderedQRCode"
+      shapeRendering="crispEdges"
+      viewBox="0 0 41 41"
+      width={210}
+    >
+      <path
+        d="M0,0 h41v41H0z"
+        fill="#FFFFFF"
+      />
+      <path
+        d="M4 4h7v1H4zM12 4h1v1H12zM17 4h2v1H17zM20 4h2v1H20zM27 4h1v1H27zM30,4 h7v1H30zM4 5h1v1H4zM10 5h1v1H10zM12 5h1v1H12zM15 5h5v1H15zM22 5h4v1H22zM28 5h1v1H28zM30 5h1v1H30zM36,5 h1v1H36zM4 6h1v1H4zM6 6h3v1H6zM10 6h1v1H10zM12 6h2v1H12zM16 6h1v1H16zM18 6h1v1H18zM21 6h5v1H21zM28 6h1v1H28zM30 6h1v1H30zM32 6h3v1H32zM36,6 h1v1H36zM4 7h1v1H4zM6 7h3v1H6zM10 7h1v1H10zM12 7h3v1H12zM16 7h1v1H16zM24 7h1v1H24zM27 7h2v1H27zM30 7h1v1H30zM32 7h3v1H32zM36,7 h1v1H36zM4 8h1v1H4zM6 8h3v1H6zM10 8h1v1H10zM13 8h2v1H13zM16 8h1v1H16zM24 8h2v1H24zM27 8h1v1H27zM30 8h1v1H30zM32 8h3v1H32zM36,8 h1v1H36zM4 9h1v1H4zM10 9h1v1H10zM12 9h3v1H12zM20 9h2v1H20zM23 9h1v1H23zM25 9h2v1H25zM30 9h1v1H30zM36,9 h1v1H36zM4 10h7v1H4zM12 10h1v1H12zM14 10h1v1H14zM16 10h1v1H16zM18 10h1v1H18zM20 10h1v1H20zM22 10h1v1H22zM24 10h1v1H24zM26 10h1v1H26zM28 10h1v1H28zM30,10 h7v1H30zM14 11h2v1H14zM17 11h1v1H17zM19 11h5v1H19zM25 11h2v1H25zM4 12h2v1H4zM8 12h3v1H8zM14 12h1v1H14zM16 12h2v1H16zM21 12h1v1H21zM23 12h3v1H23zM27 12h2v1H27zM31 12h1v1H31zM33,12 h4v1H33zM4 13h1v1H4zM6 13h2v1H6zM11 13h2v1H11zM17 13h2v1H17zM20 13h1v1H20zM22 13h1v1H22zM26 13h2v1H26zM29 13h1v1H29zM31 13h1v1H31zM33 13h1v1H33zM35 13h1v1H35zM4 14h1v1H4zM6 14h1v1H6zM8 14h3v1H8zM13 14h2v1H13zM20 14h1v1H20zM24 14h1v1H24zM26 14h2v1H26zM29 14h1v1H29zM32 14h1v1H32zM34 14h2v1H34zM6 15h2v1H6zM11 15h1v1H11zM13 15h1v1H13zM16 15h1v1H16zM18 15h1v1H18zM21 15h3v1H21zM25 15h1v1H25zM27 15h1v1H27zM29 15h4v1H29zM35,15 h2v1H35zM10 16h3v1H10zM15 16h1v1H15zM17 16h5v1H17zM24 16h4v1H24zM30 16h1v1H30zM32 16h1v1H32zM35,16 h2v1H35zM4 17h2v1H4zM8 17h2v1H8zM11 17h1v1H11zM13 17h2v1H13zM16 17h1v1H16zM27 17h1v1H27zM31 17h1v1H31zM35 17h1v1H35zM4 18h1v1H4zM7 18h2v1H7zM10 18h1v1H10zM12 18h1v1H12zM15 18h2v1H15zM25 18h4v1H25zM30 18h2v1H30zM35 18h1v1H35zM5 19h2v1H5zM11 19h1v1H11zM14 19h2v1H14zM25 19h1v1H25zM27 19h1v1H27zM29 19h1v1H29zM31 19h1v1H31zM6 20h2v1H6zM10 20h1v1H10zM12 20h1v1H12zM14 20h1v1H14zM16 20h1v1H16zM24 20h3v1H24zM29 20h4v1H29zM36,20 h1v1H36zM4 21h5v1H4zM11 21h1v1H11zM13 21h1v1H13zM27 21h1v1H27zM31 21h1v1H31zM33 21h1v1H33zM5 22h1v1H5zM7 22h2v1H7zM10 22h1v1H10zM24 22h1v1H24zM26 22h2v1H26zM29 22h1v1H29zM32 22h4v1H32zM7 23h2v1H7zM11 23h3v1H11zM16 23h1v1H16zM25 23h1v1H25zM28 23h1v1H28zM31 23h2v1H31zM35 23h1v1H35zM5 24h4v1H5zM10 24h1v1H10zM12 24h2v1H12zM15 24h1v1H15zM17 24h3v1H17zM21 24h1v1H21zM24 24h3v1H24zM29 24h4v1H29zM35 24h1v1H35zM4 25h6v1H4zM11 25h1v1H11zM13 25h1v1H13zM16 25h1v1H16zM21 25h1v1H21zM25 25h1v1H25zM27 25h2v1H27zM31 25h1v1H31zM34 25h2v1H34zM8 26h1v1H8zM10 26h1v1H10zM12 26h1v1H12zM15 26h6v1H15zM26 26h2v1H26zM29 26h1v1H29zM31 26h1v1H31zM34 26h2v1H34zM8 27h1v1H8zM11 27h1v1H11zM14 27h2v1H14zM17 27h1v1H17zM21 27h1v1H21zM23 27h1v1H23zM25 27h3v1H25zM29 27h3v1H29zM36,27 h1v1H36zM4 28h5v1H4zM10 28h5v1H10zM16 28h2v1H16zM20 28h2v1H20zM23 28h1v1H23zM25 28h8v1H25zM35,28 h2v1H35zM12 29h3v1H12zM17 29h3v1H17zM22 29h1v1H22zM25 29h1v1H25zM28 29h1v1H28zM32 29h1v1H32zM34 29h2v1H34zM4 30h7v1H4zM13 30h1v1H13zM19 30h1v1H19zM22 30h1v1H22zM24 30h1v1H24zM28 30h1v1H28zM30 30h1v1H30zM32 30h1v1H32zM35 30h1v1H35zM4 31h1v1H4zM10 31h1v1H10zM12 31h2v1H12zM16 31h1v1H16zM18 31h6v1H18zM25 31h2v1H25zM28 31h1v1H28zM32 31h1v1H32zM36,31 h1v1H36zM4 32h1v1H4zM6 32h3v1H6zM10 32h1v1H10zM12 32h1v1H12zM15 32h1v1H15zM17 32h5v1H17zM23 32h1v1H23zM25 32h2v1H25zM28 32h6v1H28zM36,32 h1v1H36zM4 33h1v1H4zM6 33h3v1H6zM10 33h1v1H10zM14 33h1v1H14zM16 33h1v1H16zM19 33h2v1H19zM22 33h1v1H22zM24 33h3v1H24zM30 33h3v1H30zM34 33h1v1H34zM4 34h1v1H4zM6 34h3v1H6zM10 34h1v1H10zM13 34h1v1H13zM15 34h5v1H15zM24 34h1v1H24zM26 34h1v1H26zM30 34h3v1H30zM34 34h1v1H34zM4 35h1v1H4zM10 35h1v1H10zM12 35h1v1H12zM14 35h2v1H14zM17 35h1v1H17zM19 35h8v1H19zM28 35h5v1H28zM4 36h7v1H4zM12 36h2v1H12zM16 36h2v1H16zM20 36h2v1H20zM23 36h1v1H23zM25 36h1v1H25zM27 36h2v1H27zM30 36h1v1H30zM32 36h1v1H32zM36,36 h1v1H36z"
+        fill="#000000"
+      />
+      <image
+        height={6.247619047619048}
+        preserveAspectRatio="none"
+        width={6.247619047619048}
+        x={17.376190476190477}
+        xlinkHref="12-bitcoin-cash-square-crop.svg"
+        y={17.376190476190477}
+      />
+    </svg>
+    <div
+      className="sc-kAzzGY iklfzZ"
+    >
+      <input
+        readOnly={true}
+        spellCheck="false"
+        type="text"
+        value="bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
+      />
+      <span>
+        qzagy4
+      </span>
+      7mvh6qxkvcn3acjnz73rkhkc6y7cpt
+      <span>
+        zgcqy6
+      </span>
+    </div>
+  </div>,
+  <div
+    className="sc-Rmtcm ldTlYI"
+  >
+    <div
+      className="sc-bRBYWo cvfjTr"
+      onClick={[Function]}
+    >
+      BCHA
+    </div>
+    <div
+      className="sc-bRBYWo cvfjTr nonactiveBtn"
+      onClick={[Function]}
+    >
+      SLPA
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens and state field 1`] = `
+Array [
+  <div
+    className="sc-jAaTju dsaCuU"
+  >
+    0.06047469
+     
+    BCHA
+  </div>,
+  <div
+    className="sc-jDwBTQ hhosDq"
+  >
+    $
+    NaN
+     
+    USD
+  </div>,
+  <div
+    onClick={[Function]}
+    style={
+      Object {
+        "display": "inline-block",
+        "position": "relative",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="sc-cSHVUG gIRqBE"
+      style={
+        Object {
+          "display": "none",
+        }
+      }
+    >
+      Copied
+    </div>
+    <svg
+      bch={1}
+      className="sc-jzJRlG jklgUU"
+      height={210}
+      id="borderedQRCode"
+      shapeRendering="crispEdges"
+      viewBox="0 0 41 41"
+      width={210}
+    >
+      <path
+        d="M0,0 h41v41H0z"
+        fill="#FFFFFF"
+      />
+      <path
+        d="M4 4h7v1H4zM12 4h1v1H12zM17 4h2v1H17zM20 4h2v1H20zM27 4h1v1H27zM30,4 h7v1H30zM4 5h1v1H4zM10 5h1v1H10zM12 5h1v1H12zM15 5h5v1H15zM22 5h4v1H22zM28 5h1v1H28zM30 5h1v1H30zM36,5 h1v1H36zM4 6h1v1H4zM6 6h3v1H6zM10 6h1v1H10zM12 6h2v1H12zM16 6h1v1H16zM18 6h1v1H18zM21 6h5v1H21zM28 6h1v1H28zM30 6h1v1H30zM32 6h3v1H32zM36,6 h1v1H36zM4 7h1v1H4zM6 7h3v1H6zM10 7h1v1H10zM12 7h3v1H12zM16 7h1v1H16zM24 7h1v1H24zM27 7h2v1H27zM30 7h1v1H30zM32 7h3v1H32zM36,7 h1v1H36zM4 8h1v1H4zM6 8h3v1H6zM10 8h1v1H10zM13 8h2v1H13zM16 8h1v1H16zM24 8h2v1H24zM27 8h1v1H27zM30 8h1v1H30zM32 8h3v1H32zM36,8 h1v1H36zM4 9h1v1H4zM10 9h1v1H10zM12 9h3v1H12zM20 9h2v1H20zM23 9h1v1H23zM25 9h2v1H25zM30 9h1v1H30zM36,9 h1v1H36zM4 10h7v1H4zM12 10h1v1H12zM14 10h1v1H14zM16 10h1v1H16zM18 10h1v1H18zM20 10h1v1H20zM22 10h1v1H22zM24 10h1v1H24zM26 10h1v1H26zM28 10h1v1H28zM30,10 h7v1H30zM14 11h2v1H14zM17 11h1v1H17zM19 11h5v1H19zM25 11h2v1H25zM4 12h2v1H4zM8 12h3v1H8zM14 12h1v1H14zM16 12h2v1H16zM21 12h1v1H21zM23 12h3v1H23zM27 12h2v1H27zM31 12h1v1H31zM33,12 h4v1H33zM4 13h1v1H4zM6 13h2v1H6zM11 13h2v1H11zM17 13h2v1H17zM20 13h1v1H20zM22 13h1v1H22zM26 13h2v1H26zM29 13h1v1H29zM31 13h1v1H31zM33 13h1v1H33zM35 13h1v1H35zM4 14h1v1H4zM6 14h1v1H6zM8 14h3v1H8zM13 14h2v1H13zM20 14h1v1H20zM24 14h1v1H24zM26 14h2v1H26zM29 14h1v1H29zM32 14h1v1H32zM34 14h2v1H34zM6 15h2v1H6zM11 15h1v1H11zM13 15h1v1H13zM16 15h1v1H16zM18 15h1v1H18zM21 15h3v1H21zM25 15h1v1H25zM27 15h1v1H27zM29 15h4v1H29zM35,15 h2v1H35zM10 16h3v1H10zM15 16h1v1H15zM17 16h5v1H17zM24 16h4v1H24zM30 16h1v1H30zM32 16h1v1H32zM35,16 h2v1H35zM4 17h2v1H4zM8 17h2v1H8zM11 17h1v1H11zM13 17h2v1H13zM16 17h1v1H16zM27 17h1v1H27zM31 17h1v1H31zM35 17h1v1H35zM4 18h1v1H4zM7 18h2v1H7zM10 18h1v1H10zM12 18h1v1H12zM15 18h2v1H15zM25 18h4v1H25zM30 18h2v1H30zM35 18h1v1H35zM5 19h2v1H5zM11 19h1v1H11zM14 19h2v1H14zM25 19h1v1H25zM27 19h1v1H27zM29 19h1v1H29zM31 19h1v1H31zM6 20h2v1H6zM10 20h1v1H10zM12 20h1v1H12zM14 20h1v1H14zM16 20h1v1H16zM24 20h3v1H24zM29 20h4v1H29zM36,20 h1v1H36zM4 21h5v1H4zM11 21h1v1H11zM13 21h1v1H13zM27 21h1v1H27zM31 21h1v1H31zM33 21h1v1H33zM5 22h1v1H5zM7 22h2v1H7zM10 22h1v1H10zM24 22h1v1H24zM26 22h2v1H26zM29 22h1v1H29zM32 22h4v1H32zM7 23h2v1H7zM11 23h3v1H11zM16 23h1v1H16zM25 23h1v1H25zM28 23h1v1H28zM31 23h2v1H31zM35 23h1v1H35zM5 24h4v1H5zM10 24h1v1H10zM12 24h2v1H12zM15 24h1v1H15zM17 24h3v1H17zM21 24h1v1H21zM24 24h3v1H24zM29 24h4v1H29zM35 24h1v1H35zM4 25h6v1H4zM11 25h1v1H11zM13 25h1v1H13zM16 25h1v1H16zM21 25h1v1H21zM25 25h1v1H25zM27 25h2v1H27zM31 25h1v1H31zM34 25h2v1H34zM8 26h1v1H8zM10 26h1v1H10zM12 26h1v1H12zM15 26h6v1H15zM26 26h2v1H26zM29 26h1v1H29zM31 26h1v1H31zM34 26h2v1H34zM8 27h1v1H8zM11 27h1v1H11zM14 27h2v1H14zM17 27h1v1H17zM21 27h1v1H21zM23 27h1v1H23zM25 27h3v1H25zM29 27h3v1H29zM36,27 h1v1H36zM4 28h5v1H4zM10 28h5v1H10zM16 28h2v1H16zM20 28h2v1H20zM23 28h1v1H23zM25 28h8v1H25zM35,28 h2v1H35zM12 29h3v1H12zM17 29h3v1H17zM22 29h1v1H22zM25 29h1v1H25zM28 29h1v1H28zM32 29h1v1H32zM34 29h2v1H34zM4 30h7v1H4zM13 30h1v1H13zM19 30h1v1H19zM22 30h1v1H22zM24 30h1v1H24zM28 30h1v1H28zM30 30h1v1H30zM32 30h1v1H32zM35 30h1v1H35zM4 31h1v1H4zM10 31h1v1H10zM12 31h2v1H12zM16 31h1v1H16zM18 31h6v1H18zM25 31h2v1H25zM28 31h1v1H28zM32 31h1v1H32zM36,31 h1v1H36zM4 32h1v1H4zM6 32h3v1H6zM10 32h1v1H10zM12 32h1v1H12zM15 32h1v1H15zM17 32h5v1H17zM23 32h1v1H23zM25 32h2v1H25zM28 32h6v1H28zM36,32 h1v1H36zM4 33h1v1H4zM6 33h3v1H6zM10 33h1v1H10zM14 33h1v1H14zM16 33h1v1H16zM19 33h2v1H19zM22 33h1v1H22zM24 33h3v1H24zM30 33h3v1H30zM34 33h1v1H34zM4 34h1v1H4zM6 34h3v1H6zM10 34h1v1H10zM13 34h1v1H13zM15 34h5v1H15zM24 34h1v1H24zM26 34h1v1H26zM30 34h3v1H30zM34 34h1v1H34zM4 35h1v1H4zM10 35h1v1H10zM12 35h1v1H12zM14 35h2v1H14zM17 35h1v1H17zM19 35h8v1H19zM28 35h5v1H28zM4 36h7v1H4zM12 36h2v1H12zM16 36h2v1H16zM20 36h2v1H20zM23 36h1v1H23zM25 36h1v1H25zM27 36h2v1H27zM30 36h1v1H30zM32 36h1v1H32zM36,36 h1v1H36z"
+        fill="#000000"
+      />
+      <image
+        height={6.247619047619048}
+        preserveAspectRatio="none"
+        width={6.247619047619048}
+        x={17.376190476190477}
+        xlinkHref="12-bitcoin-cash-square-crop.svg"
+        y={17.376190476190477}
+      />
+    </svg>
+    <div
+      className="sc-kAzzGY iklfzZ"
+    >
+      <input
+        readOnly={true}
+        spellCheck="false"
+        type="text"
+        value="bitcoincash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cptzgcqy6"
+      />
+      <span>
+        qzagy4
+      </span>
+      7mvh6qxkvcn3acjnz73rkhkc6y7cpt
+      <span>
+        zgcqy6
+      </span>
+    </div>
+  </div>,
+  <div
+    className="sc-Rmtcm ldTlYI"
+  >
+    <div
+      className="sc-bRBYWo cvfjTr"
+      onClick={[Function]}
+    >
+      BCHA
+    </div>
+    <div
+      className="sc-bRBYWo cvfjTr nonactiveBtn"
+      onClick={[Function]}
+    >
+      SLPA
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 Array [
   <div
     className="sc-jAaTju dsaCuU"

@@ -253,7 +253,6 @@ const Configure = () => {
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Activate', '');
         await activateWallet(walletToActivate);
-        await updateSavedWallets(wallet);
     };
 
     async function submit() {

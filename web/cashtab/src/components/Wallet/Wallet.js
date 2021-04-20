@@ -203,14 +203,33 @@ export const ExternalLink = styled.a`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        fiatPrice,
-        balances,
-        tokens,
-        parsedTxHistory,
-        apiError,
-    } = ContextValue;
+    const { wallet, fiatPrice, apiError } = ContextValue;
+    let balances;
+    let parsedTxHistory;
+    let tokens;
+    // use parameters from wallet.state object and not legacy separate parameters, if they are in state
+    // handle edge case of user with old wallet who has not opened latest Cashtab version yet
+
+    // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
+    // Else set it as blank
+    const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
+    // If wallet.state includes balances and parsedTxHistory params, use these
+    // These are saved in indexedDb in the latest version of the app, hence accessible more quickly
+    if (
+        paramsInWalletState.includes('balances') &&
+        paramsInWalletState.includes('parsedTxHistory') &&
+        paramsInWalletState.includes('tokens')
+    ) {
+        balances = wallet.state.balances;
+        parsedTxHistory = wallet.state.parsedTxHistory;
+        tokens = wallet.state.tokens;
+    } else {
+        // If balances and parsedTxHistory are not in the wallet.state object, load them from Context
+        // This is how the app used to work
+        balances = ContextValue.balances;
+        parsedTxHistory = ContextValue.parsedTxHistory;
+        tokens = ContextValue.tokens;
+    }
     const [address, setAddress] = React.useState('cashAddress');
     const [activeTab, setActiveTab] = React.useState('txHistory');
 

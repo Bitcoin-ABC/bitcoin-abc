@@ -124,6 +124,22 @@ const useWallet = () => {
         };
     };
 
+    const loadWalletFromStorageOnStartup = async setWallet => {
+        // get wallet object from localforage
+        const wallet = await getWallet();
+        // If wallet object in storage is valid, use it to set state on startup
+        if (isValidStoredWallet(wallet)) {
+            // Convert all the token balance figures to big numbers
+            const liveWalletState = loadStoredWallet(wallet.state);
+            wallet.state = liveWalletState;
+
+            setWallet(wallet);
+            return setLoading(false);
+        }
+        // Loading will remain true until API calls populate this legacy wallet
+        setWallet(wallet);
+    };
+
     const haveUtxosChanged = (wallet, utxos, previousUtxos) => {
         // Relevant points for this array comparing exercise
         // https://stackoverflow.com/questions/13757109/triple-equal-signs-return-false-for-arrays-in-javascript-why
@@ -149,9 +165,9 @@ const useWallet = () => {
 
                 return setWalletState(liveWalletState);
             }
-            const cachedUtxos = wallet.state.utxos;
-            // Compare
-            return !_.isEqual(utxos, cachedUtxos);
+            // If wallet in storage is a legacy wallet or otherwise does not have all state fields,
+            // then assume utxos have changed
+            return true;
         }
         // return true for empty array, since this means you definitely do not want to skip the next API call
         if (utxos && utxos.length === 0) {
@@ -254,6 +270,12 @@ const useWallet = () => {
             newState.hydratedUtxoDetails = hydratedUtxoDetails;
 
             setWalletState(newState);
+
+            // Set wallet with new state field
+            // Note: now that wallet carries state, maintaining a separate walletState object is redundant
+            // TODO clear up in future diff
+            wallet.state = wallet.newState;
+            setWallet(wallet);
 
             // Write this state to indexedDb using localForage
             writeWalletState(wallet, newState);
@@ -569,6 +591,12 @@ const useWallet = () => {
                 return false;
             }
         }
+        // Make sure stored wallet is in correct format to be used as live wallet
+        if (isValidStoredWallet(walletToActivate)) {
+            // Convert all the token balance figures to big numbers
+            const liveWalletState = loadStoredWallet(walletToActivate.state);
+            walletToActivate.state = liveWalletState;
+        }
 
         return walletToActivate;
     };
@@ -764,8 +792,7 @@ const useWallet = () => {
     };
 
     const handleUpdateWallet = async setWallet => {
-        const wallet = await getWallet();
-        setWallet(wallet);
+        await loadWalletFromStorageOnStartup(setWallet);
     };
 
     // Parse for incoming BCH transactions
@@ -1277,10 +1304,17 @@ const useWallet = () => {
             setLoading(true);
             const newWallet = await activateWallet(walletToActivate);
             setWallet(newWallet);
-            update({
-                wallet: newWallet,
-                setWalletState,
-            }).finally(() => setLoading(false));
+            if (isValidStoredWallet(walletToActivate)) {
+                // If you have all state parameters needed in storage, immediately load the wallet
+                setLoading(false);
+            } else {
+                // If the wallet is missing state parameters in storage, wait for API info
+                // This handles case of unmigrated legacy wallet
+                update({
+                    wallet: newWallet,
+                    setWalletState,
+                }).finally(() => setLoading(false));
+            }
         },
         addNewSavedWallet,
         renameWallet,
