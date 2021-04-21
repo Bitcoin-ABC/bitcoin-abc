@@ -152,13 +152,8 @@
                 "(^src/compat/assumptions.h$)"
             ]
         },
-        "lint-source-filename": {
-            "type": "lint-source-filename",
-            "include": "(^(src|chronik)/.*\\.(h|c|cpp)$)",
-            "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
-                "(^src/bench/nanobench.h$)"
-            ]
+        "check-files": {
+            "type": "check-files"
         },
         "lint-boost-dependencies": {
             "type": "lint-boost-dependencies",
@@ -170,20 +165,6 @@
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)"
-            ]
-        },
-        "lint-python-shebang": {
-            "type": "lint-python-shebang",
-            "include": "(\\.py$)",
-            "exclude": [
-                "(^contrib/gitian-builder/)"
-            ]
-        },
-        "lint-bash-shebang": {
-            "type": "lint-bash-shebang",
-            "include": "(\\.(sh|bash)$)",
-            "exclude": [
-                "(^contrib/gitian-builder/)"
             ]
         },
         "shellcheck": {
