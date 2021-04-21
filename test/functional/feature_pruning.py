@@ -301,8 +301,7 @@ class PruneTest(BitcoinTestFramework):
                                 node.pruneblockchain, 500)
 
         # now re-start in manual pruning mode
-        self.stop_node(node_number)
-        self.start_node(node_number, extra_args=["-prune=1"])
+        self.restart_node(node_number, extra_args=["-prune=1"])
         node = self.nodes[node_number]
         assert_equal(node.getblockcount(), 995)
 
@@ -380,16 +379,14 @@ class PruneTest(BitcoinTestFramework):
 
         # stop node, start back up with auto-prune at 550 MiB, make sure still
         # runs
-        self.stop_node(node_number)
-        self.start_node(node_number, extra_args=["-prune=550"])
+        self.restart_node(node_number, extra_args=["-prune=550"])
 
         self.log.info("Success")
 
     def wallet_test(self):
         # check that the pruning node's wallet is still in good shape
         self.log.info("Stop and start pruning node to trigger wallet rescan")
-        self.stop_node(2)
-        self.start_node(
+        self.restart_node(
             2, extra_args=["-prune=550", "-noparkdeepreorg", "-maxreorgdepth=-1"])
         self.log.info("Success")
 
@@ -399,9 +396,7 @@ class PruneTest(BitcoinTestFramework):
         connect_nodes(self.nodes[0], self.nodes[5])
         nds = [self.nodes[0], self.nodes[5]]
         self.sync_blocks(nds, wait=5, timeout=300)
-        # Stop and start to trigger rescan
-        self.stop_node(5)
-        self.start_node(
+        self.restart_node(
             5, extra_args=["-prune=550", "-noparkdeepreorg", "-maxreorgdepth=-1"])
         self.log.info("Success")
 

@@ -200,8 +200,7 @@ class WalletDumpTest(BitcoinTestFramework):
                                 lambda: self.nodes[0].dumpwallet(wallet_enc_dump))
 
         # Restart node with new wallet, and test importwallet
-        self.stop_node(0)
-        self.start_node(0, ['-wallet=w2'])
+        self.restart_node(0, ['-wallet=w2'])
 
         # Make sure the address is not IsMine before import
         result = self.nodes[0].getaddressinfo(multisig_addr)

@@ -69,8 +69,7 @@ class LoggingTest(BitcoinTestFramework):
         assert not os.path.isfile(default_log_path)
 
         # just sanity check no crash here
-        self.stop_node(0)
-        self.start_node(0, ["-debuglogfile={}".format(os.devnull)])
+        self.restart_node(0, ["-debuglogfile={}".format(os.devnull)])
 
 
 if __name__ == '__main__':
