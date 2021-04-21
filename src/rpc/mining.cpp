@@ -23,8 +23,8 @@
 #include <pow/pow.h>
 #include <rpc/blockchain.h>
 #include <rpc/mining.h>
-#include <rpc/net.h>
 #include <rpc/server.h>
+#include <rpc/server_util.h>
 #include <rpc/util.h>
 #include <script/descriptor.h>
 #include <script/script.h>

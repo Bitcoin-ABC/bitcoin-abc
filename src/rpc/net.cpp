@@ -10,7 +10,6 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
-#include <net.h>
 #include <net_permissions.h>
 #include <net_processing.h>
 #include <net_types.h> // For banmap_t
@@ -19,12 +18,12 @@
 #include <policy/settings.h>
 #include <rpc/blockchain.h>
 #include <rpc/protocol.h>
+#include <rpc/server_util.h>
 #include <rpc/util.h>
 #include <sync.h>
 #include <timedata.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <version.h>
@@ -33,24 +32,6 @@
 #include <optional>
 
 #include <univalue.h>
-
-CConnman &EnsureConnman(const NodeContext &node) {
-    if (!node.connman) {
-        throw JSONRPCError(
-            RPC_CLIENT_P2P_DISABLED,
-            "Error: Peer-to-peer functionality missing or disabled");
-    }
-    return *node.connman;
-}
-
-PeerManager &EnsurePeerman(const NodeContext &node) {
-    if (!node.peerman) {
-        throw JSONRPCError(
-            RPC_CLIENT_P2P_DISABLED,
-            "Error: Peer-to-peer functionality missing or disabled");
-    }
-    return *node.peerman;
-}
 
 static RPCHelpMan getconnectioncount() {
     return RPCHelpMan{
