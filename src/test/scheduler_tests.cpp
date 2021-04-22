@@ -135,11 +135,11 @@ BOOST_AUTO_TEST_CASE(schedule_every) {
     CScheduler scheduler;
 
     std::condition_variable cvar;
-    std::atomic<int> counter{15};
+    std::atomic<int> counter{15}, savedCounter{-1};
     std::atomic<bool> keepRunning{true};
 
     scheduler.scheduleEvery(
-        [&keepRunning, &cvar, &counter, &scheduler]() {
+        [&keepRunning, &cvar, &counter, &savedCounter, &scheduler]() {
             assert(counter > 0);
             cvar.notify_all();
             if (--counter > 0) {
@@ -157,8 +157,11 @@ BOOST_AUTO_TEST_CASE(schedule_every) {
 
             // We set the counter to some magic value to check the scheduler
             // empty its queue properly after 120ms.
-            scheduler.scheduleFromNow([&counter]() { counter = 42; },
-                                      std::chrono::milliseconds{120});
+            scheduler.scheduleFromNow(
+                [&counter, &savedCounter]() {
+                    savedCounter = counter.exchange(42);
+                },
+                std::chrono::milliseconds{120});
             return false;
         },
         std::chrono::milliseconds{5});
@@ -174,10 +177,10 @@ BOOST_AUTO_TEST_CASE(schedule_every) {
         BOOST_CHECK(counter >= 0);
     }
 
-    BOOST_CHECK_EQUAL(counter, 0);
     scheduler.StopWhenDrained();
     schedulerThread.join();
     BOOST_CHECK_EQUAL(counter, 42);
+    BOOST_CHECK_EQUAL(savedCounter, 0);
 }
 
 BOOST_AUTO_TEST_CASE(wait_until_past) {
