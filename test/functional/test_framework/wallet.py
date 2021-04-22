@@ -58,7 +58,8 @@ class MiniWallet:
     def generate(self, num_blocks):
         """Generate blocks with coinbase outputs to the internal address,
         and append the outputs to the internal list"""
-        blocks = self._test_node.generatetoaddress(num_blocks, self._address)
+        blocks = self._test_node.generatetodescriptor(
+            num_blocks, f'raw({self._scriptPubKey.hex()})')
         for b in blocks:
             cb_tx = self._test_node.getblock(blockhash=b, verbosity=2)['tx'][0]
             self._utxos.append(
@@ -116,7 +117,7 @@ class MiniWallet:
         if mempool_valid:
             assert_equal(tx_info['size'], size)
             assert_equal(tx_info['fees']['base'], fee)
-        return {'txid': tx_info['txid'], 'hex': tx_hex}
+        return {'txid': tx_info['txid'], 'hex': tx_hex, 'tx': tx}
 
     def sendrawtransaction(self, *, from_node, tx_hex):
         from_node.sendrawtransaction(tx_hex)
