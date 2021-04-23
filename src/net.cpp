@@ -1285,11 +1285,10 @@ bool CConnman::AttemptToEvictConnection() {
 void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
-    SOCKET hSocket =
-        accept(hListenSocket.socket, (struct sockaddr *)&sockaddr, &len);
+    auto sock = hListenSocket.sock->Accept((struct sockaddr *)&sockaddr, &len);
     CAddress addr;
 
-    if (hSocket == INVALID_SOCKET) {
+    if (!sock) {
         const int nErr = WSAGetLastError();
         if (nErr != WSAEWOULDBLOCK) {
             LogPrintf("socket error accept failed: %s\n",
@@ -1302,15 +1301,16 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
         LogPrintf("Warning: Unknown socket family\n");
     }
 
-    const CAddress addr_bind = GetBindAddress(hSocket);
+    const CAddress addr_bind = GetBindAddress(sock->Get());
 
     NetPermissionFlags permission_flags = NetPermissionFlags::None;
     hListenSocket.AddSocketPermissionFlags(permission_flags);
 
-    CreateNodeFromAcceptedSocket(hSocket, permission_flags, addr_bind, addr);
+    CreateNodeFromAcceptedSocket(std::move(sock), permission_flags, addr_bind,
+                                 addr);
 }
 
-void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
+void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
                                             NetPermissionFlags permission_flags,
                                             const CAddress &addr_bind,
                                             const CAddress &addr) {
@@ -1333,20 +1333,18 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         LogPrint(BCLog::NET,
                  "connection from %s dropped: not accepting new connections\n",
                  addr.ToString());
-        CloseSocket(hSocket);
         return;
     }
 
-    if (!IsSelectableSocket(hSocket)) {
+    if (!IsSelectableSocket(sock->Get())) {
         LogPrintf("connection from %s dropped: non-selectable socket\n",
                   addr.ToString());
-        CloseSocket(hSocket);
         return;
     }
 
     // According to the internet TCP_NODELAY is not carried into accepted
     // sockets on all platforms.  Set it again here just to be sure.
-    SetSocketNoDelay(hSocket);
+    SetSocketNoDelay(sock->Get());
 
     // Don't accept connections from banned peers.
     bool banned = m_banman && m_banman->IsBanned(addr);
@@ -1354,7 +1352,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         banned) {
         LogPrint(BCLog::NET, "connection from %s dropped (banned)\n",
                  addr.ToString());
-        CloseSocket(hSocket);
         return;
     }
 
@@ -1365,7 +1362,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         nInbound + 1 >= nMaxInbound && discouraged) {
         LogPrint(BCLog::NET, "connection from %s dropped (discouraged)\n",
                  addr.ToString());
-        CloseSocket(hSocket);
         return;
     }
 
@@ -1374,7 +1370,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
             // No connection to evict, disconnect the new connection
             LogPrint(BCLog::NET, "failed to find an eviction candidate - "
                                  "connection dropped (full)\n");
-            CloseSocket(hSocket);
             return;
         }
     }
@@ -1391,13 +1386,13 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     const bool inbound_onion =
         std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
         m_onion_binds.end();
-    CNode *pnode = new CNode(id, hSocket, addr, CalculateKeyedNetGroup(addr),
-                             nonce, extra_entropy, addr_bind, "",
-                             ConnectionType::INBOUND, inbound_onion,
-                             CNodeOptions{
-                                 .permission_flags = permission_flags,
-                                 .prefer_evict = discouraged,
-                             });
+    CNode *pnode = new CNode(
+        id, sock->Release(), addr, CalculateKeyedNetGroup(addr), nonce,
+        extra_entropy, addr_bind, "", ConnectionType::INBOUND, inbound_onion,
+        CNodeOptions{
+            .permission_flags = permission_flags,
+            .prefer_evict = discouraged,
+        });
     pnode->AddRef();
     for (auto interface : m_msgproc) {
         interface->InitializeNode(*config, *pnode, nLocalServices);
@@ -1578,7 +1573,7 @@ bool CConnman::GenerateSelectSet(const std::vector<CNode *> &nodes,
                                  std::set<SOCKET> &send_set,
                                  std::set<SOCKET> &error_set) {
     for (const ListenSocket &hListenSocket : vhListenSocket) {
-        recv_set.insert(hListenSocket.socket);
+        recv_set.insert(hListenSocket.sock->Get());
     }
 
     for (CNode *pnode : nodes) {
@@ -1888,8 +1883,7 @@ void CConnman::SocketHandlerListening(const std::set<SOCKET> &recv_set) {
         if (interruptNet) {
             return;
         }
-        if (listen_socket.socket != INVALID_SOCKET &&
-            recv_set.count(listen_socket.socket) > 0) {
+        if (recv_set.count(listen_socket.sock->Get()) > 0) {
             AcceptConnection(listen_socket);
         }
     }
@@ -2697,7 +2691,7 @@ void CConnman::ThreadI2PAcceptIncoming() {
         }
 
         CreateNodeFromAcceptedSocket(
-            conn.sock->Release(), NetPermissionFlags::None,
+            std::move(conn.sock), NetPermissionFlags::None,
             CAddress{conn.me, NODE_NONE}, CAddress{conn.peer, NODE_NONE});
     }
 }
@@ -2773,7 +2767,7 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
         return false;
     }
 
-    vhListenSocket.push_back(ListenSocket(sock->Release(), permissions));
+    vhListenSocket.emplace_back(std::move(sock), permissions);
     return true;
 }
 
@@ -3112,16 +3106,6 @@ void CConnman::StopNodes() {
     for (CNode *pnode : nodes) {
         pnode->CloseSocketDisconnect();
         DeleteNode(pnode);
-    }
-
-    // Close listening sockets.
-    for (ListenSocket &hListenSocket : vhListenSocket) {
-        if (hListenSocket.socket != INVALID_SOCKET) {
-            if (!CloseSocket(hListenSocket.socket)) {
-                LogPrintf("CloseSocket(hListenSocket) failed with error %s\n",
-                          NetworkErrorString(WSAGetLastError()));
-            }
-        }
     }
 
     for (CNode *pnode : m_nodes_disconnected) {

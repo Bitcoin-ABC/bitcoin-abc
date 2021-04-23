@@ -27,6 +27,7 @@
 #include <array>
 #include <cstdint>
 #include <cstdio>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -661,6 +662,20 @@ public:
             std::this_thread::sleep_for(std::chrono::milliseconds{2});
         }
         return random_bytes.size();
+    }
+
+    std::unique_ptr<Sock> Accept(sockaddr *addr,
+                                 socklen_t *addr_len) const override {
+        constexpr std::array<int, 3> accept_errnos{{
+            ECONNABORTED,
+            EINTR,
+            ENOMEM,
+        }};
+        if (m_fuzzed_data_provider.ConsumeBool()) {
+            SetFuzzedErrNo(m_fuzzed_data_provider, accept_errnos);
+            return std::unique_ptr<FuzzedSock>();
+        }
+        return std::make_unique<FuzzedSock>(m_fuzzed_data_provider);
     }
 
     bool Wait(std::chrono::milliseconds timeout, Event requested,
