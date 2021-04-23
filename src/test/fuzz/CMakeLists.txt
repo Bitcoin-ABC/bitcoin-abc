@@ -98,6 +98,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	tx_in.cpp
 	tx_out.cpp
 	txrequest.cpp
+	util.cpp
 	validation_load_mempool.cpp
 )
 

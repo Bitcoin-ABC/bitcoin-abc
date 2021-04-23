@@ -38,6 +38,33 @@ constexpr int64_t MAX_MONEY_AS_INT = int64_t(21000000) * int64_t(100000000);
 
 using namespace fuzzer;
 
+class FuzzedSock : public Sock {
+    FuzzedDataProvider &m_fuzzed_data_provider;
+
+public:
+    explicit FuzzedSock(FuzzedDataProvider &fuzzed_data_provider);
+
+    ~FuzzedSock() override {}
+
+    FuzzedSock &operator=(Sock &&other) override;
+
+    SOCKET Get() const override;
+
+    SOCKET Release() override;
+
+    void Reset() override;
+
+    ssize_t Send(const void *data, size_t len, int flags) const override;
+
+    ssize_t Recv(void *buf, size_t len, int flags) const override;
+
+    std::unique_ptr<Sock> Accept(sockaddr *addr,
+                                 socklen_t *addr_len) const override;
+
+    bool Wait(std::chrono::milliseconds timeout, Event requested,
+              Event *occurred = nullptr) const override;
+};
+
 template <typename... Callables>
 void CallOneOf(FuzzedDataProvider &fuzzed_data_provider,
                Callables... callables) {
@@ -324,7 +351,7 @@ auto ConsumeNode(
     const std::optional<NodeId> &node_id_in = std::nullopt) noexcept {
     const NodeId node_id =
         node_id_in.value_or(fuzzed_data_provider.ConsumeIntegral<NodeId>());
-    const SOCKET socket = INVALID_SOCKET;
+    const auto sock = std::make_shared<FuzzedSock>(fuzzed_data_provider);
     const CAddress address = ConsumeAddress(fuzzed_data_provider);
     const uint64_t keyed_net_group =
         fuzzed_data_provider.ConsumeIntegral<uint64_t>();
@@ -339,15 +366,16 @@ auto ConsumeNode(
         fuzzed_data_provider.PickValueInArray(ALL_CONNECTION_TYPES);
     const bool inbound_onion = fuzzed_data_provider.ConsumeBool();
     if constexpr (ReturnUniquePtr) {
-        return std::make_unique<CNode>(node_id, socket, address,
-                                       keyed_net_group, local_host_nonce,
-                                       local_extra_entropy, addr_bind,
-                                       addr_name, conn_type, inbound_onion);
+        return std::make_unique<CNode>(node_id, sock, address, keyed_net_group,
+                                       local_host_nonce, local_extra_entropy,
+                                       addr_bind, addr_name, conn_type,
+                                       inbound_onion);
     } else {
-        return CNode{node_id,         socket,           address,
-                     keyed_net_group, local_host_nonce, local_extra_entropy,
-                     addr_bind,       addr_name,        conn_type,
-                     inbound_onion};
+        return CNode{node_id,          sock,
+                     address,          keyed_net_group,
+                     local_host_nonce, local_extra_entropy,
+                     addr_bind,        addr_name,
+                     conn_type,        inbound_onion};
     }
 }
 inline std::unique_ptr<CNode>
@@ -565,124 +593,6 @@ void ReadFromStream(FuzzedDataProvider &fuzzed_data_provider,
         }
     }
 }
-
-class FuzzedSock : public Sock {
-    FuzzedDataProvider &m_fuzzed_data_provider;
-
-public:
-    explicit FuzzedSock(FuzzedDataProvider &fuzzed_data_provider)
-        : m_fuzzed_data_provider{fuzzed_data_provider} {}
-
-    ~FuzzedSock() override {}
-
-    FuzzedSock &operator=(Sock &&other) override {
-        assert(false && "Not implemented yet.");
-        return *this;
-    }
-
-    SOCKET Get() const override { assert(false && "Not implemented yet."); }
-
-    SOCKET Release() override { assert(false && "Not implemented yet."); }
-
-    void Reset() override { assert(false && "Not implemented yet."); }
-
-    ssize_t Send(const void *data, size_t len, int flags) const override {
-        constexpr std::array<int, 18> send_errnos{{
-            EACCES,
-            EAGAIN,
-            EALREADY,
-            EBADF,
-            ECONNRESET,
-            EDESTADDRREQ,
-            EFAULT,
-            EINTR,
-            EINVAL,
-            EISCONN,
-            EMSGSIZE,
-            ENOBUFS,
-            ENOMEM,
-            ENOTCONN,
-            ENOTSOCK,
-            EOPNOTSUPP,
-            EPIPE,
-            EWOULDBLOCK,
-        }};
-        if (m_fuzzed_data_provider.ConsumeBool()) {
-            return len;
-        }
-        const ssize_t r =
-            m_fuzzed_data_provider.ConsumeIntegralInRange<ssize_t>(-1, len);
-        if (r == -1) {
-            SetFuzzedErrNo(m_fuzzed_data_provider, send_errnos);
-        }
-        return r;
-    }
-
-    ssize_t Recv(void *buf, size_t len, int flags) const override {
-        constexpr std::array<int, 10> recv_errnos{{
-            EAGAIN,
-            EBADF,
-            ECONNREFUSED,
-            EFAULT,
-            EINTR,
-            EINVAL,
-            ENOMEM,
-            ENOTCONN,
-            ENOTSOCK,
-            EWOULDBLOCK,
-        }};
-        assert(buf != nullptr || len == 0);
-        if (len == 0 || m_fuzzed_data_provider.ConsumeBool()) {
-            const ssize_t r = m_fuzzed_data_provider.ConsumeBool() ? 0 : -1;
-            if (r == -1) {
-                SetFuzzedErrNo(m_fuzzed_data_provider, recv_errnos);
-            }
-            return r;
-        }
-        const std::vector<uint8_t> random_bytes =
-            m_fuzzed_data_provider.ConsumeBytes<uint8_t>(
-                m_fuzzed_data_provider.ConsumeIntegralInRange<size_t>(0, len));
-        if (random_bytes.empty()) {
-            const ssize_t r = m_fuzzed_data_provider.ConsumeBool() ? 0 : -1;
-            if (r == -1) {
-                SetFuzzedErrNo(m_fuzzed_data_provider, recv_errnos);
-            }
-            return r;
-        }
-        std::memcpy(buf, random_bytes.data(), random_bytes.size());
-        if (m_fuzzed_data_provider.ConsumeBool()) {
-            if (len > random_bytes.size()) {
-                std::memset((char *)buf + random_bytes.size(), 0,
-                            len - random_bytes.size());
-            }
-            return len;
-        }
-        if (m_fuzzed_data_provider.ConsumeBool() &&
-            std::getenv("FUZZED_SOCKET_FAKE_LATENCY") != nullptr) {
-            std::this_thread::sleep_for(std::chrono::milliseconds{2});
-        }
-        return random_bytes.size();
-    }
-
-    std::unique_ptr<Sock> Accept(sockaddr *addr,
-                                 socklen_t *addr_len) const override {
-        constexpr std::array<int, 3> accept_errnos{{
-            ECONNABORTED,
-            EINTR,
-            ENOMEM,
-        }};
-        if (m_fuzzed_data_provider.ConsumeBool()) {
-            SetFuzzedErrNo(m_fuzzed_data_provider, accept_errnos);
-            return std::unique_ptr<FuzzedSock>();
-        }
-        return std::make_unique<FuzzedSock>(m_fuzzed_data_provider);
-    }
-
-    bool Wait(std::chrono::milliseconds timeout, Event requested,
-              Event *occurred = nullptr) const override {
-        return m_fuzzed_data_provider.ConsumeBool();
-    }
-};
 
 [[nodiscard]] inline FuzzedSock
 ConsumeSock(FuzzedDataProvider &fuzzed_data_provider) {

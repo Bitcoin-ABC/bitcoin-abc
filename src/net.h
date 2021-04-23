@@ -466,8 +466,18 @@ public:
     std::unique_ptr<TransportSerializer> m_serializer;
 
     const NetPermissionFlags m_permission_flags{NetPermissionFlags::None};
-    // socket
-    SOCKET hSocket GUARDED_BY(cs_hSocket);
+
+    /**
+     * Socket used for communication with the node.
+     * May not own a Sock object (after `CloseSocketDisconnect()` or during
+     * tests).
+     * `shared_ptr` (instead of `unique_ptr`) is used to avoid premature close
+     * of the underlying file descriptor by one thread while another thread is
+     * poll(2)-ing it for activity.
+     * @see https://github.com/bitcoin/bitcoin/issues/21744 for details.
+     */
+    std::shared_ptr<Sock> m_sock GUARDED_BY(m_sock_mutex);
+
     /** Total size of all vSendMsg entries. */
     size_t nSendSize GUARDED_BY(cs_vSend){0};
     /** Offset inside the first vSendMsg already sent */
@@ -475,7 +485,7 @@ public:
     uint64_t nSendBytes GUARDED_BY(cs_vSend){0};
     std::deque<std::vector<uint8_t>> vSendMsg GUARDED_BY(cs_vSend);
     Mutex cs_vSend;
-    Mutex cs_hSocket;
+    Mutex m_sock_mutex;
     Mutex cs_vRecv;
 
     RecursiveMutex cs_vProcessMsg;
@@ -694,12 +704,11 @@ public:
     std::atomic<std::chrono::microseconds> m_min_ping_time{
         std::chrono::microseconds::max()};
 
-    CNode(NodeId id, SOCKET hSocketIn, const CAddress &addrIn,
+    CNode(NodeId id, std::shared_ptr<Sock> sock, const CAddress &addrIn,
           uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
           uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
           const std::string &addrNameIn, ConnectionType conn_type_in,
           bool inbound_onion, CNodeOptions &&node_opts = {});
-    ~CNode();
     CNode(const CNode &) = delete;
     CNode &operator=(const CNode &) = delete;
 
@@ -752,7 +761,7 @@ public:
 
     void Release() { nRefCount--; }
 
-    void CloseSocketDisconnect() EXCLUSIVE_LOCKS_REQUIRED(!cs_hSocket);
+    void CloseSocketDisconnect() EXCLUSIVE_LOCKS_REQUIRED(!m_sock_mutex);
 
     void copyStats(CNodeStats &stats)
         EXCLUSIVE_LOCKS_REQUIRED(!m_subver_mutex, !m_addr_local_mutex,

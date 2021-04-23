@@ -551,7 +551,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         addr_bind = GetBindAddress(sock->Get());
     }
     CNode *pnode = new CNode(
-        id, sock->Release(), addrConnect, CalculateKeyedNetGroup(addrConnect),
+        id, std::move(sock), addrConnect, CalculateKeyedNetGroup(addrConnect),
         nonce, extra_entropy, addr_bind, pszDest ? pszDest : "", conn_type,
         /* inbound_onion */ false,
         CNodeOptions{.permission_flags = permission_flags});
@@ -566,10 +566,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
 
 void CNode::CloseSocketDisconnect() {
     fDisconnect = true;
-    LOCK(cs_hSocket);
-    if (hSocket != INVALID_SOCKET) {
+    LOCK(m_sock_mutex);
+    if (m_sock) {
         LogPrint(BCLog::NET, "disconnecting peer=%d\n", id);
-        CloseSocket(hSocket);
+        m_sock.reset();
     }
 }
 
@@ -850,13 +850,12 @@ size_t CConnman::SocketSendData(CNode &node) const {
         int nBytes = 0;
 
         {
-            LOCK(node.cs_hSocket);
-            if (node.hSocket == INVALID_SOCKET) {
+            LOCK(node.m_sock_mutex);
+            if (!node.m_sock) {
                 break;
             }
 
-            nBytes = send(
-                node.hSocket,
+            nBytes = node.m_sock->Send(
                 reinterpret_cast<const char *>(data.data()) + node.nSendOffset,
                 data.size() - node.nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
         }
@@ -1387,7 +1386,7 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
         std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
         m_onion_binds.end();
     CNode *pnode = new CNode(
-        id, sock->Release(), addr, CalculateKeyedNetGroup(addr), nonce,
+        id, std::move(sock), addr, CalculateKeyedNetGroup(addr), nonce,
         extra_entropy, addr_bind, "", ConnectionType::INBOUND, inbound_onion,
         CNodeOptions{
             .permission_flags = permission_flags,
@@ -1596,18 +1595,18 @@ bool CConnman::GenerateSelectSet(const std::vector<CNode *> &nodes,
             select_send = !pnode->vSendMsg.empty();
         }
 
-        LOCK(pnode->cs_hSocket);
-        if (pnode->hSocket == INVALID_SOCKET) {
+        LOCK(pnode->m_sock_mutex);
+        if (!pnode->m_sock) {
             continue;
         }
 
-        error_set.insert(pnode->hSocket);
+        error_set.insert(pnode->m_sock->Get());
         if (select_send) {
-            send_set.insert(pnode->hSocket);
+            send_set.insert(pnode->m_sock->Get());
             continue;
         }
         if (select_recv) {
-            recv_set.insert(pnode->hSocket);
+            recv_set.insert(pnode->m_sock->Get());
         }
     }
 
@@ -1794,25 +1793,25 @@ void CConnman::SocketHandlerConnected(const std::vector<CNode *> &nodes,
         bool sendSet = false;
         bool errorSet = false;
         {
-            LOCK(pnode->cs_hSocket);
-            if (pnode->hSocket == INVALID_SOCKET) {
+            LOCK(pnode->m_sock_mutex);
+            if (!pnode->m_sock) {
                 continue;
             }
-            recvSet = recv_set.count(pnode->hSocket) > 0;
-            sendSet = send_set.count(pnode->hSocket) > 0;
-            errorSet = error_set.count(pnode->hSocket) > 0;
+            recvSet = recv_set.count(pnode->m_sock->Get()) > 0;
+            sendSet = send_set.count(pnode->m_sock->Get()) > 0;
+            errorSet = error_set.count(pnode->m_sock->Get()) > 0;
         }
         if (recvSet || errorSet) {
             // typical socket buffer is 8K-64K
             uint8_t pchBuf[0x10000];
             int32_t nBytes = 0;
             {
-                LOCK(pnode->cs_hSocket);
-                if (pnode->hSocket == INVALID_SOCKET) {
+                LOCK(pnode->m_sock_mutex);
+                if (!pnode->m_sock) {
                     continue;
                 }
-                nBytes = recv(pnode->hSocket, (char *)pchBuf, sizeof(pchBuf),
-                              MSG_DONTWAIT);
+                nBytes =
+                    pnode->m_sock->Recv(pchBuf, sizeof(pchBuf), MSG_DONTWAIT);
             }
             if (nBytes > 0) {
                 bool notify = false;
@@ -3419,12 +3418,12 @@ double CNode::getAvailabilityScore() const {
     return availabilityScore;
 }
 
-CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
+CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
              uint64_t nKeyedNetGroupIn, uint64_t nLocalHostNonceIn,
              uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
              bool inbound_onion, CNodeOptions &&node_opts)
-    : m_permission_flags{node_opts.permission_flags},
+    : m_permission_flags{node_opts.permission_flags}, m_sock{sock},
       m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn),
       m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
@@ -3438,7 +3437,6 @@ CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
     }
-    hSocket = hSocketIn;
 
     for (const std::string &msg : getAllNetMessageTypes()) {
         mapRecvBytesPerMsgCmd[msg] = 0;
@@ -3457,10 +3455,6 @@ CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
                                 SER_NETWORK, INIT_PROTO_VERSION));
     m_serializer =
         std::make_unique<V1TransportSerializer>(V1TransportSerializer());
-}
-
-CNode::~CNode() {
-    CloseSocket(hSocket);
 }
 
 bool CConnman::NodeFullyConnected(const CNode *pnode) {

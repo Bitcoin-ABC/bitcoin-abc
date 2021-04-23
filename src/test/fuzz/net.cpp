@@ -43,9 +43,10 @@ FUZZ_TARGET_INIT(net, initialize_net) {
         return;
     }
 
+    const auto sock = std::make_shared<FuzzedSock>(fuzzed_data_provider);
     CNode node{
         fuzzed_data_provider.ConsumeIntegral<NodeId>(),
-        INVALID_SOCKET,
+        sock,
         *address,
         fuzzed_data_provider.ConsumeIntegral<uint64_t>(),
         fuzzed_data_provider.ConsumeIntegral<uint64_t>(),
