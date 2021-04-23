@@ -1,6 +1,5 @@
 'use strict';
 
-const darkTheme = require('@ant-design/dark-theme');
 const fs = require('fs');
 const isWsl = require('is-wsl');
 const path = require('path');
@@ -17,7 +16,6 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const safePostCssParser = require('postcss-safe-parser');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
-const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getCSSModuleLocalIdent = require('react-dev-utils/getCSSModuleLocalIdent');
@@ -27,11 +25,9 @@ const getClientEnvironment = require('./env');
 const ModuleNotFoundPlugin = require('react-dev-utils/ModuleNotFoundPlugin');
 const ForkTsCheckerWebpackPlugin = require('react-dev-utils/ForkTsCheckerWebpackPlugin');
 const typescriptFormatter = require('react-dev-utils/typescriptFormatter');
-const eslint = require('eslint');
 const workboxPlugin = require('workbox-webpack-plugin');
 
 const postcssNormalize = require('postcss-normalize');
-const hooks = require('html-webpack-plugin/lib/hooks');
 
 const appPackageJson = require(paths.appPackageJson);
 
@@ -59,6 +55,10 @@ const sassModuleRegex = /\.module\.(scss|sass)$/;
 module.exports = function (webpackEnv) {
     const isEnvDevelopment = webpackEnv === 'development';
     const isEnvProduction = webpackEnv === 'production';
+    const ESLintPlugin = require('eslint-webpack-plugin');
+    module.exports = {
+        plugins: [new ESLintPlugin()],
+    };
 
     // Webpack uses `publicPath` to determine where the app is being served from.
     // It requires a trailing slash, or the file assets will get an incorrect path.
@@ -442,27 +442,6 @@ module.exports = function (webpackEnv) {
             rules: [
                 // Disable require.ensure as it's not a standard language feature.
                 { parser: { requireEnsure: false } },
-
-                // First, run the linter.
-                // It's important to do this before Babel processes the JS.
-                {
-                    test: /\.(js|mjs|jsx|ts|tsx)$/,
-                    enforce: 'pre',
-                    use: [
-                        {
-                            options: {
-                                cache: true,
-                                formatter: require.resolve(
-                                    'react-dev-utils/eslintFormatter',
-                                ),
-                                eslintPath: require.resolve('eslint'),
-                                resolvePluginsRelativeTo: __dirname,
-                            },
-                            loader: require.resolve('eslint-loader'),
-                        },
-                    ],
-                    include: paths.appSrc,
-                },
                 {
                     // "oneOf" will traverse all following loaders until one will
                     // match the requirements. When no loader matches it will fall
