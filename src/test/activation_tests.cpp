@@ -23,38 +23,30 @@ static void SetMTP(std::array<CBlockIndex, 12> &blocks, int64_t mtp) {
     BOOST_CHECK_EQUAL(blocks.back().GetMedianTimePast(), mtp);
 }
 
-BOOST_AUTO_TEST_CASE(isgravitonenabled) {
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
-    const auto &consensus = params->GetConsensus();
-
-    BOOST_CHECK(!IsGravitonEnabled(consensus, nullptr));
+static void testPastActivation(
+    std::function<bool(const Consensus::Params &, const CBlockIndex *)> func,
+    const Consensus::Params &params, int activationHeight) {
+    BOOST_CHECK(!func(params, nullptr));
 
     std::array<CBlockIndex, 4> blocks;
-    blocks[0].nHeight = consensus.gravitonHeight - 2;
+    blocks[0].nHeight = activationHeight - 2;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
         blocks[i].nHeight = blocks[i - 1].nHeight + 1;
     }
-    BOOST_CHECK(!IsGravitonEnabled(consensus, &blocks[0]));
-    BOOST_CHECK(!IsGravitonEnabled(consensus, &blocks[1]));
-    BOOST_CHECK(IsGravitonEnabled(consensus, &blocks[2]));
-    BOOST_CHECK(IsGravitonEnabled(consensus, &blocks[3]));
+
+    BOOST_CHECK(!func(params, &blocks[0]));
+    BOOST_CHECK(!func(params, &blocks[1]));
+    BOOST_CHECK(func(params, &blocks[2]));
+    BOOST_CHECK(func(params, &blocks[3]));
 }
 
-BOOST_AUTO_TEST_CASE(isphononenabled) {
-    const Consensus::Params &consensus = Params().GetConsensus();
-    BOOST_CHECK(!IsPhononEnabled(consensus, nullptr));
+BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
+    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto consensus = params->GetConsensus();
 
-    std::array<CBlockIndex, 4> blocks;
-    blocks[0].nHeight = consensus.phononHeight - 2;
-    for (size_t i = 1; i < blocks.size(); ++i) {
-        blocks[i].pprev = &blocks[i - 1];
-        blocks[i].nHeight = blocks[i - 1].nHeight + 1;
-    }
-    BOOST_CHECK(!IsPhononEnabled(consensus, &blocks[0]));
-    BOOST_CHECK(!IsPhononEnabled(consensus, &blocks[1]));
-    BOOST_CHECK(IsPhononEnabled(consensus, &blocks[2]));
-    BOOST_CHECK(IsPhononEnabled(consensus, &blocks[3]));
+    testPastActivation(IsGravitonEnabled, consensus, consensus.gravitonHeight);
+    testPastActivation(IsPhononEnabled, consensus, consensus.phononHeight);
 }
 
 BOOST_AUTO_TEST_CASE(isaxionenabled) {
