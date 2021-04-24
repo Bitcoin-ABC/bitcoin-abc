@@ -1295,9 +1295,8 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
         vtx.push_back(e.GetSharedTx());
         // save entry time, feeDelta, and height for use in
         // updateMempoolForReorg()
-        txInfo.try_emplace(e.GetTx().GetId(),
-                           TxInfo{e.GetTime(), e.GetModifiedFee() - e.GetFee(),
-                                  e.GetHeight()});
+        txInfo.try_emplace(e.GetTx().GetId(), e.GetTime(),
+                           e.GetModifiedFee() - e.GetFee(), e.GetHeight());
         // Notify all observers of this (possibly temporary) removal. This is
         // necessary for tracking the transactions that are removed from the
         // mempool during a reorg and can't be added back due to missing parent.

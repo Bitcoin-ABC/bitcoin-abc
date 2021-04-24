@@ -889,6 +889,9 @@ private:
         const std::chrono::seconds time;
         const Amount feeDelta;
         const unsigned height;
+        TxInfo(const std::chrono::seconds &time_, Amount feeDelta_,
+               unsigned height_) noexcept
+            : time(time_), feeDelta(feeDelta_), height(height_) {}
     };
 
     using TxInfoMap = std::unordered_map<TxId, TxInfo, SaltedTxIdHasher>;
