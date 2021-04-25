@@ -6702,17 +6702,22 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     };
 
     {
-        LOCK2(cs_main, peer->m_block_inv_mutex);
+        LOCK(cs_main);
 
-        vInv.reserve(std::max<size_t>(peer->m_blocks_for_inv_relay.size(),
-                                      INVENTORY_BROADCAST_MAX_PER_MB *
-                                          config.GetMaxBlockSize() / 1000000));
+        {
+            LOCK(peer->m_block_inv_mutex);
 
-        // Add blocks
-        for (const BlockHash &hash : peer->m_blocks_for_inv_relay) {
-            addInvAndMaybeFlush(MSG_BLOCK, hash);
+            vInv.reserve(std::max<size_t>(peer->m_blocks_for_inv_relay.size(),
+                                          INVENTORY_BROADCAST_MAX_PER_MB *
+                                              config.GetMaxBlockSize() /
+                                              1000000));
+
+            // Add blocks
+            for (const BlockHash &hash : peer->m_blocks_for_inv_relay) {
+                addInvAndMaybeFlush(MSG_BLOCK, hash);
+            }
+            peer->m_blocks_for_inv_relay.clear();
         }
-        peer->m_blocks_for_inv_relay.clear();
 
         auto computeNextInvSendTime =
             [&](std::chrono::microseconds &next) -> bool {
@@ -6889,7 +6894,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 }
             }
         }
-    } // release cs_main, pto->cs_inventory
+    } // release cs_main
 
     if (!vInv.empty()) {
         m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::INV, vInv));
