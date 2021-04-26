@@ -1354,6 +1354,39 @@ private:
      */
     bool whitelist_relay;
 
+    /**
+     * RAII helper to atomically create a copy of `m_nodes` and add a reference
+     * to each of the nodes. The nodes are released when this object is
+     * destroyed.
+     */
+    class NodesSnapshot {
+    public:
+        explicit NodesSnapshot(const CConnman &connman, bool shuffle) {
+            {
+                LOCK(connman.m_nodes_mutex);
+                m_nodes_copy = connman.m_nodes;
+                for (auto &node : m_nodes_copy) {
+                    node->AddRef();
+                }
+            }
+            if (shuffle) {
+                Shuffle(m_nodes_copy.begin(), m_nodes_copy.end(),
+                        FastRandomContext{});
+            }
+        }
+
+        ~NodesSnapshot() {
+            for (auto &node : m_nodes_copy) {
+                node->Release();
+            }
+        }
+
+        const std::vector<CNode *> &Nodes() const { return m_nodes_copy; }
+
+    private:
+        std::vector<CNode *> m_nodes_copy;
+    };
+
     friend struct ::CConnmanTest;
     friend struct ConnmanTestMsg;
 };

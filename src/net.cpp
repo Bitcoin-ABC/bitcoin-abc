@@ -1779,18 +1779,12 @@ void CConnman::SocketHandler() {
         }
     }
 
+    const NodesSnapshot snap{*this, /*shuffle=*/false};
+
     //
     // Service each socket
     //
-    std::vector<CNode *> nodes_copy;
-    {
-        LOCK(m_nodes_mutex);
-        nodes_copy = m_nodes;
-        for (CNode *pnode : nodes_copy) {
-            pnode->AddRef();
-        }
-    }
-    for (CNode *pnode : nodes_copy) {
+    for (CNode *pnode : snap.Nodes()) {
         if (interruptNet) {
             return;
         }
@@ -1882,12 +1876,6 @@ void CConnman::SocketHandler() {
 
         if (InactivityCheck(*pnode)) {
             pnode->fDisconnect = true;
-        }
-    }
-    {
-        LOCK(m_nodes_mutex);
-        for (CNode *pnode : nodes_copy) {
-            pnode->Release();
         }
     }
 }
@@ -2613,54 +2601,39 @@ Mutex NetEventsInterface::g_msgproc_mutex;
 void CConnman::ThreadMessageHandler() {
     LOCK(NetEventsInterface::g_msgproc_mutex);
 
-    FastRandomContext rng;
     while (!flagInterruptMsgProc) {
-        std::vector<CNode *> nodes_copy;
-        {
-            LOCK(m_nodes_mutex);
-            nodes_copy = m_nodes;
-            for (CNode *pnode : nodes_copy) {
-                pnode->AddRef();
-            }
-        }
-
         bool fMoreWork = false;
 
-        // Randomize the order in which we process messages from/to our peers.
-        // This prevents attacks in which an attacker exploits having multiple
-        // consecutive connections in the m_nodes list.
-        Shuffle(nodes_copy.begin(), nodes_copy.end(), rng);
-
-        for (CNode *pnode : nodes_copy) {
-            if (pnode->fDisconnect) {
-                continue;
-            }
-
-            bool fMoreNodeWork = false;
-            // Receive messages
-            for (auto interface : m_msgproc) {
-                fMoreNodeWork |= interface->ProcessMessages(
-                    *config, pnode, flagInterruptMsgProc);
-            }
-            fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
-            if (flagInterruptMsgProc) {
-                return;
-            }
-
-            // Send messages
-            for (auto interface : m_msgproc) {
-                interface->SendMessages(*config, pnode);
-            }
-
-            if (flagInterruptMsgProc) {
-                return;
-            }
-        }
-
         {
-            LOCK(m_nodes_mutex);
-            for (CNode *pnode : nodes_copy) {
-                pnode->Release();
+            // Randomize the order in which we process messages from/to our
+            // peers. This prevents attacks in which an attacker exploits having
+            // multiple consecutive connections in the vNodes list.
+            const NodesSnapshot snap{*this, /*shuffle=*/true};
+
+            for (CNode *pnode : snap.Nodes()) {
+                if (pnode->fDisconnect) {
+                    continue;
+                }
+
+                bool fMoreNodeWork = false;
+                // Receive messages
+                for (auto interface : m_msgproc) {
+                    fMoreNodeWork |= interface->ProcessMessages(
+                        *config, pnode, flagInterruptMsgProc);
+                }
+                fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
+                if (flagInterruptMsgProc) {
+                    return;
+                }
+
+                // Send messages
+                for (auto interface : m_msgproc) {
+                    interface->SendMessages(*config, pnode);
+                }
+
+                if (flagInterruptMsgProc) {
+                    return;
+                }
             }
         }
 
