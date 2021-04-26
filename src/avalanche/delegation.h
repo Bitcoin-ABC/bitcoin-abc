@@ -52,6 +52,7 @@ public:
     const DelegationId &getId() const { return dgid; }
     const LimitedProofId &getLimitedProofId() const { return limitedProofid; }
     const CPubKey &getProofMaster() const { return proofMaster; }
+    const CPubKey &getDelegatedPubkey() const;
 
     ProofId getProofId() const;
 

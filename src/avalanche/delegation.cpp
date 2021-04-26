@@ -57,6 +57,13 @@ ProofId Delegation::getProofId() const {
     return limitedProofid.computeProofId(proofMaster);
 }
 
+const CPubKey &Delegation::getDelegatedPubkey() const {
+    if (!levels.empty()) {
+        return levels.back().pubkey;
+    }
+    return proofMaster;
+}
+
 DelegationId Delegation::computeDelegationId() const {
     uint256 hash = getProofId();
     reduceLevels(hash, levels);

@@ -284,19 +284,45 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
             return nullptr;
         }
 
-        const CPubKey masterPubKey = peerData->proof->getMaster();
-        if (masterKey.GetPubKey() != masterPubKey) {
-            error = _("The master key does not match the proof public key.");
-            return nullptr;
+        std::unique_ptr<DelegationBuilder> dgb;
+        const CPubKey &masterPubKey = masterKey.GetPubKey();
+
+        if (argsman.IsArgSet("-avadelegation")) {
+            Delegation dg;
+            if (!Delegation::FromHex(dg, argsman.GetArg("-avadelegation", ""),
+                                     error)) {
+                // error is set by FromHex()
+                return nullptr;
+            }
+
+            if (dg.getProofId() != peerData->proof->getId()) {
+                error = _("The delegation does not match the proof.");
+                return nullptr;
+            }
+
+            if (masterPubKey != dg.getDelegatedPubkey()) {
+                error = _(
+                    "The master key does not match the delegation public key.");
+                return nullptr;
+            }
+
+            dgb = std::make_unique<DelegationBuilder>(dg);
+        } else {
+            if (masterPubKey != peerData->proof->getMaster()) {
+                error =
+                    _("The master key does not match the proof public key.");
+                return nullptr;
+            }
+
+            dgb = std::make_unique<DelegationBuilder>(*peerData->proof);
         }
 
         // Generate the delegation to the session key.
-        DelegationBuilder dgb(*peerData->proof);
         const CPubKey sessionPubKey = sessionKey.GetPubKey();
         if (sessionPubKey != masterPubKey) {
-            dgb.addLevel(masterKey, sessionPubKey);
+            dgb->addLevel(masterKey, sessionPubKey);
         }
-        peerData->delegation = dgb.build();
+        peerData->delegation = dgb->build();
 
         if (!VerifyDelegation(peerData->delegation, sessionPubKey, error)) {
             // error is set by VerifyDelegation

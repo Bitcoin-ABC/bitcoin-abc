@@ -1229,6 +1229,12 @@ void SetupServerArgs(NodeContext &node) {
         strprintf("Mandatory cooldown between two avapoll (default: %u)",
                   AVALANCHE_DEFAULT_COOLDOWN),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avadelegation",
+        "Avalanche proof delegation to the master key used by this node "
+        "(default: none). Should be used in conjunction with -avaproof and "
+        "-avamasterkey",
+        ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avaproof",
                    "Avalanche proof to be used by this node (default: none)",
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);

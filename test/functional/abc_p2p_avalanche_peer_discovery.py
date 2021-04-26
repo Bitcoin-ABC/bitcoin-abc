@@ -82,14 +82,41 @@ class AvalancheTest(BitcoinTestFramework):
             int(node.getnetworkinfo()['localservices'], 16) & NODE_AVALANCHE,
             NODE_AVALANCHE)
 
-        self.log.info("Test the avahello signature (node -> P2PInterface)")
-        good_interface = get_ava_p2p_interface(node)
-        avahello = good_interface.wait_for_avahello().hello
+        def check_avahello(args):
+            # Restart the node with the given args
+            self.restart_node(0, self.extra_args[0] + args)
 
-        avakey = ECPubKey()
-        avakey.set(bytes.fromhex(node.getavalanchekey()))
-        assert avakey.verify_schnorr(
-            avahello.sig, avahello.get_sighash(good_interface))
+            peer = get_ava_p2p_interface(node)
+
+            avahello = peer.wait_for_avahello().hello
+
+            avakey = ECPubKey()
+            avakey.set(bytes.fromhex(node.getavalanchekey()))
+            assert avakey.verify_schnorr(
+                avahello.sig, avahello.get_sighash(peer))
+
+        self.log.info(
+            "Test the avahello signature with a generated delegation")
+        check_avahello([
+            "-avaproof={}".format(proof),
+            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN"
+        ])
+
+        master_key = ECKey()
+        master_key.generate()
+        limited_id = FromHex(AvalancheProof(), proof).limited_proofid
+        delegation = node.delegateavalancheproof(
+            f"{limited_id:0{64}x}",
+            bytes_to_wif(privkey.get_bytes()),
+            master_key.get_pubkey().get_bytes().hex(),
+        )
+
+        self.log.info("Test the avahello signature with a supplied delegation")
+        check_avahello([
+            "-avaproof={}".format(proof),
+            "-avadelegation={}".format(delegation),
+            "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
+        ])
 
         stakes = create_coinbase_stakes(node, [blockhashes[1]], addrkey0.key)
         interface_proof_hex = node.buildavalancheproof(
@@ -120,6 +147,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info(
             'Check that receiving a valid avahello triggers a proof getdata request')
+        good_interface = get_ava_p2p_interface(node)
         proofid = good_interface.send_avahello(
             interface_delegation_hex, delegated_key)
 

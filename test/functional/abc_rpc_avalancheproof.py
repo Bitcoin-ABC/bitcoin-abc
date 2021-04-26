@@ -395,6 +395,39 @@ class AvalancheProofTest(BitcoinTestFramework):
             expected_msg="Error: The master key does not match the proof public key.",
         )
 
+        self.log.info("Bad delegation should be rejected at startup")
+
+        def check_delegation_init_error(delegation, message):
+            node.assert_start_raises_init_error(
+                self.extra_args[0] + [
+                    "-avadelegation={}".format(delegation),
+                    "-avaproof={}".format(proof),
+                    "-avamasterkey={}".format(
+                        bytes_to_wif(delegated_privkey.get_bytes())),
+                ],
+                expected_msg="Error: " + message,
+            )
+
+        check_delegation_init_error(
+            AvalancheDelegation().serialize().hex(),
+            "The delegation does not match the proof.")
+
+        bad_level_sig = FromHex(AvalancheDelegation(), delegation)
+        # Tweak some key to cause the signature to mismatch
+        bad_level_sig.levels[-2].pubkey = bytes.fromhex(proof_master)
+        check_delegation_init_error(bad_level_sig.serialize().hex(),
+                                    "The avalanche delegation has invalid signatures.")
+
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avadelegation={}".format(delegation),
+                "-avaproof={}".format(proof),
+                "-avamasterkey={}".format(
+                    bytes_to_wif(random_privkey.get_bytes())),
+            ],
+            expected_msg="Error: The master key does not match the delegation public key.",
+        )
+
 
 if __name__ == '__main__':
     AvalancheProofTest().main()
