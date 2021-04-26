@@ -48,8 +48,8 @@ public:
                       const CPubKey &pubkey) {
         CSHA256 hasher = m_salted_hasher;
         hasher.Write(hash.begin(), 32)
-            .Write(&pubkey[0], pubkey.size())
-            .Write(&vchSig[0], vchSig.size())
+            .Write(pubkey.data(), pubkey.size())
+            .Write(vchSig.data(), vchSig.size())
             .Finalize(entry.begin());
     }
 

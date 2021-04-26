@@ -140,8 +140,7 @@ bool DecryptSecret(const CKeyingMaterial &vMasterKey,
     if (!cKeyCrypter.SetKey(vMasterKey, chIV)) {
         return false;
     }
-    return cKeyCrypter.Decrypt(vchCiphertext,
-                               *((CKeyingMaterial *)&vchPlaintext));
+    return cKeyCrypter.Decrypt(vchCiphertext, vchPlaintext);
 }
 
 bool DecryptKey(const CKeyingMaterial &vMasterKey,

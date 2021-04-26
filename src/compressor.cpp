@@ -122,7 +122,7 @@ bool DecompressScript(CScript &script, unsigned int nSize,
             uint8_t vch[33] = {};
             vch[0] = nSize - 2;
             memcpy(&vch[1], in.data(), 32);
-            CPubKey pubkey(&vch[0], &vch[33]);
+            CPubKey pubkey{vch};
             if (!pubkey.Decompress()) {
                 return false;
             }

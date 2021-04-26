@@ -230,9 +230,9 @@ const unsigned int CDBWrapper::OBFUSCATE_KEY_NUM_BYTES = 8;
  * obfuscating XOR key.
  */
 std::vector<uint8_t> CDBWrapper::CreateObfuscateKey() const {
-    uint8_t buff[OBFUSCATE_KEY_NUM_BYTES];
-    GetRandBytes(buff, OBFUSCATE_KEY_NUM_BYTES);
-    return std::vector<uint8_t>(&buff[0], &buff[OBFUSCATE_KEY_NUM_BYTES]);
+    std::vector<uint8_t> ret(OBFUSCATE_KEY_NUM_BYTES);
+    GetRandBytes(ret.data(), OBFUSCATE_KEY_NUM_BYTES);
+    return ret;
 }
 
 bool CDBWrapper::IsEmpty() {

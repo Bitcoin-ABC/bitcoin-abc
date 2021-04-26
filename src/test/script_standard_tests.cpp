@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(script_standard_Solver_success) {
     // TxoutType::WITNESS_V0_SCRIPTHASH
     uint256 scriptHash;
     CSHA256()
-        .Write(&redeemScript[0], redeemScript.size())
+        .Write(redeemScript.data(), redeemScript.size())
         .Finalize(scriptHash.begin());
 
     s.clear();

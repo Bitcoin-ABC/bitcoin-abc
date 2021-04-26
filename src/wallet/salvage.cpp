@@ -171,8 +171,8 @@ bool RecoverDatabaseFile(const fs::path &file_path, bilingual_str &error,
                 strType, strErr));
             continue;
         }
-        Dbt datKey(&row.first[0], row.first.size());
-        Dbt datValue(&row.second[0], row.second.size());
+        Dbt datKey(row.first.data(), row.first.size());
+        Dbt datValue(row.second.data(), row.second.size());
         int ret2 = pdbCopy->put(ptxn, &datKey, &datValue, DB_NOOVERWRITE);
         if (ret2 > 0) {
             fSuccess = false;
