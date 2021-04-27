@@ -834,6 +834,8 @@ private:
     //! mempool that is kept in sync with the chain
     CTxMemPool &m_mempool;
 
+    const CChainParams &m_params;
+
     //! Manages the UTXO set, which is a reflection of the contents of
     //! `m_chain`.
     std::unique_ptr<CoinsViews> m_coins_views;

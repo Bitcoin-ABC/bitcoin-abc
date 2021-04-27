@@ -928,7 +928,7 @@ void CoinsViews::InitCache() {
 
 CChainState::CChainState(CTxMemPool &mempool, BlockManager &blockman,
                          std::optional<BlockHash> from_snapshot_blockhash)
-    : m_mempool(mempool), m_blockman(blockman),
+    : m_mempool(mempool), m_params(::Params()), m_blockman(blockman),
       m_from_snapshot_blockhash(from_snapshot_blockhash) {}
 
 void CChainState::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
@@ -2181,8 +2181,7 @@ bool CChainState::FlushStateToDisk(const CChainParams &chainparams,
 
 void CChainState::ForceFlushStateToDisk() {
     BlockValidationState state;
-    const CChainParams &chainparams = Params();
-    if (!this->FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS)) {
+    if (!this->FlushStateToDisk(m_params, state, FlushStateMode::ALWAYS)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   state.ToString());
     }
@@ -2191,8 +2190,7 @@ void CChainState::ForceFlushStateToDisk() {
 void CChainState::PruneAndFlush() {
     BlockValidationState state;
     fCheckForPruning = true;
-    const CChainParams &chainparams = Params();
-    if (!this->FlushStateToDisk(chainparams, state, FlushStateMode::NONE)) {
+    if (!this->FlushStateToDisk(m_params, state, FlushStateMode::NONE)) {
         LogPrintf("%s: failed to flush state (%s)\n", __func__,
                   state.ToString());
     }
@@ -5564,17 +5562,15 @@ bool CChainState::ResizeCoinsCaches(size_t coinstip_size, size_t coinsdb_size) {
               coinstip_size * (1.0 / 1024 / 1024));
 
     BlockValidationState state;
-    const CChainParams &chainparams = Params();
-
     bool ret;
 
     if (coinstip_size > old_coinstip_size) {
         // Likely no need to flush if cache sizes have grown.
-        ret = FlushStateToDisk(chainparams, state, FlushStateMode::IF_NEEDED);
+        ret = FlushStateToDisk(m_params, state, FlushStateMode::IF_NEEDED);
     } else {
         // Otherwise, flush state to disk and deallocate the in-memory coins
         // map.
-        ret = FlushStateToDisk(chainparams, state, FlushStateMode::ALWAYS);
+        ret = FlushStateToDisk(m_params, state, FlushStateMode::ALWAYS);
         CoinsTip().ReallocateCache();
     }
     return ret;
