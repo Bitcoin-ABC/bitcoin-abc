@@ -296,7 +296,7 @@ uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
  * We use this to avoid requesting transactions that have already been
  * confirmed.
  */
-RecursiveMutex g_cs_recent_confirmed_transactions;
+Mutex g_cs_recent_confirmed_transactions;
 std::unique_ptr<CRollingBloomFilter> g_recent_confirmed_transactions
     GUARDED_BY(g_cs_recent_confirmed_transactions);
 
