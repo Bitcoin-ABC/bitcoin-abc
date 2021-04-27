@@ -826,9 +826,9 @@ public:
     size_t nSendOffset{0};
     uint64_t nSendBytes GUARDED_BY(cs_vSend){0};
     std::deque<std::vector<uint8_t>> vSendMsg GUARDED_BY(cs_vSend);
-    RecursiveMutex cs_vSend;
-    RecursiveMutex cs_hSocket;
-    RecursiveMutex cs_vRecv;
+    Mutex cs_vSend;
+    Mutex cs_hSocket;
+    Mutex cs_vRecv;
 
     RecursiveMutex cs_vProcessMsg;
     std::list<CNetMessage> vProcessMsg GUARDED_BY(cs_vProcessMsg);
