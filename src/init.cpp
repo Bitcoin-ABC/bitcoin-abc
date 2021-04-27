@@ -2669,7 +2669,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // Note that it also sets fReindex based on the disk flag!
                 // From here on out fReindex and fReset mean something
                 // different!
-                if (!chainman.LoadBlockIndex(params)) {
+                if (!chainman.LoadBlockIndex()) {
                     if (ShutdownRequested()) {
                         break;
                     }
@@ -2704,8 +2704,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // disk).
                 // This is called again in ThreadImport after the reindex
                 // completes.
-                if (!fReindex && !chainman.ActiveChainstate().LoadGenesisBlock(
-                                     chainparams)) {
+                if (!fReindex &&
+                    !chainman.ActiveChainstate().LoadGenesisBlock()) {
                     strLoadError = _("Error initializing block database");
                     break;
                 }
@@ -2738,7 +2738,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                     // ReplayBlocks is a no-op if we cleared the coinsviewdb
                     // with -reindex or -reindex-chainstate
-                    if (!chainstate->ReplayBlocks(params)) {
+                    if (!chainstate->ReplayBlocks()) {
                         strLoadError = _(
                             "Unable to replay blocks. You will need to rebuild "
                             "the database using -reindex-chainstate.");
@@ -2754,7 +2754,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     if (!is_coinsview_empty(chainstate)) {
                         // LoadChainTip initializes the chain based on
                         // CoinsTip()'s best block
-                        if (!chainstate->LoadChainTip(chainparams)) {
+                        if (!chainstate->LoadChainTip()) {
                             strLoadError =
                                 _("Error initializing block database");
                             failed_chainstate_init = true;

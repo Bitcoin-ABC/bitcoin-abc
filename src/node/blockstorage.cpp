@@ -511,7 +511,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
-            chainman.ActiveChainstate().LoadGenesisBlock(chainParams);
+            chainman.ActiveChainstate().LoadGenesisBlock();
         }
 
         // -loadblock=

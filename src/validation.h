@@ -950,8 +950,7 @@ public:
      *
      * @returns true unless a system error occurred
      */
-    bool FlushStateToDisk(const CChainParams &chainparams,
-                          BlockValidationState &state, FlushStateMode mode,
+    bool FlushStateToDisk(BlockValidationState &state, FlushStateMode mode,
                           int nManualPruneHeight = 0);
 
     //! Unconditionally flush all changes to disk.
@@ -992,12 +991,11 @@ public:
                                      CCoinsViewCache &view);
     bool ConnectBlock(const CBlock &block, BlockValidationState &state,
                       CBlockIndex *pindex, CCoinsViewCache &view,
-                      const CChainParams &params,
                       BlockValidationOptions options, bool fJustCheck = false)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     // Block disconnection on our pcoinsTip:
-    bool DisconnectTip(const CChainParams &params, BlockValidationState &state,
+    bool DisconnectTip(BlockValidationState &state,
                        DisconnectedBlockTransactions *disconnectpool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool.cs);
 
@@ -1063,13 +1061,13 @@ public:
     void UnparkBlock(CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** Replay blocks that aren't fully applied to the database. */
-    bool ReplayBlocks(const Consensus::Params &params);
+    bool ReplayBlocks();
 
     /**
      * Ensures we have a genesis block in the block tree, possibly writing one
      * to disk.
      */
-    bool LoadGenesisBlock(const CChainParams &chainparams);
+    bool LoadGenesisBlock();
 
     void PruneBlockIndexCandidates();
 
@@ -1087,15 +1085,14 @@ public:
      * By default this only executes fully when using the Regtest chain; see:
      * fCheckBlockIndex.
      */
-    void CheckBlockIndex(const Consensus::Params &consensusParams);
+    void CheckBlockIndex();
 
     /** Load the persisted mempool from disk */
     void LoadMempool(const Config &config, const ArgsManager &args);
 
     /** Update the chain tip based on database information, i.e. CoinsTip()'s
      * best block. */
-    bool LoadChainTip(const CChainParams &chainparams)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool LoadChainTip() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     //! Dictates whether we need to flush the cache to disk or not.
     //!
@@ -1133,8 +1130,7 @@ private:
                                    const FlatFilePos &pos)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
-                          const Consensus::Params &params)
+    bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
@@ -1150,8 +1146,7 @@ private:
     void InvalidChainFound(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    bool LoadBlockIndexDB(const Consensus::Params &params)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool LoadBlockIndexDB() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1371,8 +1366,7 @@ public:
 
     //! Load the block tree and coins database from disk, initializing state if
     //! we're running with -reindex
-    bool LoadBlockIndex(const Consensus::Params &params)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool LoadBlockIndex() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     //! Unload block index and chain data before shutdown.
     void Unload() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
