@@ -5,7 +5,7 @@
 """Test the resolution of forks via avalanche."""
 import random
 
-from test_framework.avatools import get_stakes
+from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import (
     ECKey,
     ECPubKey,
@@ -147,7 +147,7 @@ class AvalancheTest(BitcoinTestFramework):
         addrkey0 = node.get_deterministic_priv_key()
         blockhashes = node.generatetoaddress(100, addrkey0.address)
         # Use the first coinbase to create a stake
-        stakes = get_stakes(node, [blockhashes[0]], addrkey0.key)
+        stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
 
         fork_node = self.nodes[1]
         # Make sure the fork node has synced the blocks
