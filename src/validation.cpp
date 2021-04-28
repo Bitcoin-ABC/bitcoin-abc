@@ -6098,18 +6098,16 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
     LOCK(::cs_main);
 
     // Fake various pieces of CBlockIndex state:
-    //
-    //   - nChainTx: so that we accurately report IBD-to-tip progress
-    //   - nTx: so that LoadBlockIndex() loads assumed-valid CBlockIndex entries
-    //       (among other things)
-    //
     CBlockIndex *index = nullptr;
     for (int i = 0; i <= snapshot_chainstate.m_chain.Height(); ++i) {
         index = snapshot_chainstate.m_chain[i];
 
+        // Fake nTx so that LoadBlockIndex() loads assumed-valid CBlockIndex
+        // entries (among other things)
         if (!index->nTx) {
             index->nTx = 1;
         }
+        // Fake nChainTx so that GuessVerificationProgress reports accurately
         index->nChainTx =
             index->pprev ? index->pprev->nChainTx + index->nTx : 1;
 
