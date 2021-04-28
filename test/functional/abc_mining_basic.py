@@ -39,6 +39,10 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         ]]
 
     def run_for_node(self, node, expectedMinerFundAddress):
+        # Rewind any previously mined blocks so axion can be activated again
+        if node.getblockcount() > 200:
+            node.invalidateblock(node.getblockhash(201))
+
         address = node.get_deterministic_priv_key().address
 
         # Assert the results of getblocktemplate have expected values. Keys not
