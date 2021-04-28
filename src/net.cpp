@@ -1573,48 +1573,46 @@ bool CConnman::InactivityCheck(const CNode &node) const {
     return false;
 }
 
-bool CConnman::GenerateSelectSet(std::set<SOCKET> &recv_set,
+bool CConnman::GenerateSelectSet(const std::vector<CNode *> &nodes,
+                                 std::set<SOCKET> &recv_set,
                                  std::set<SOCKET> &send_set,
                                  std::set<SOCKET> &error_set) {
     for (const ListenSocket &hListenSocket : vhListenSocket) {
         recv_set.insert(hListenSocket.socket);
     }
 
-    {
-        LOCK(m_nodes_mutex);
-        for (CNode *pnode : m_nodes) {
-            // Implement the following logic:
-            // * If there is data to send, select() for sending data. As this
-            //   only happens when optimistic write failed, we choose to first
-            //   drain the write buffer in this case before receiving more. This
-            //   avoids needlessly queueing received data, if the remote peer is
-            //   not themselves receiving data. This means properly utilizing
-            //   TCP flow control signalling.
-            // * Otherwise, if there is space left in the receive buffer,
-            //   select() for receiving data.
-            // * Hand off all complete messages to the processor, to be handled
-            //   without blocking here.
+    for (CNode *pnode : nodes) {
+        // Implement the following logic:
+        // * If there is data to send, select() for sending data. As this
+        //   only happens when optimistic write failed, we choose to first
+        //   drain the write buffer in this case before receiving more. This
+        //   avoids needlessly queueing received data, if the remote peer is
+        //   not themselves receiving data. This means properly utilizing
+        //   TCP flow control signalling.
+        // * Otherwise, if there is space left in the receive buffer,
+        //   select() for receiving data.
+        // * Hand off all complete messages to the processor, to be handled
+        //   without blocking here.
 
-            bool select_recv = !pnode->fPauseRecv;
-            bool select_send;
-            {
-                LOCK(pnode->cs_vSend);
-                select_send = !pnode->vSendMsg.empty();
-            }
+        bool select_recv = !pnode->fPauseRecv;
+        bool select_send;
+        {
+            LOCK(pnode->cs_vSend);
+            select_send = !pnode->vSendMsg.empty();
+        }
 
-            LOCK(pnode->cs_hSocket);
-            if (pnode->hSocket == INVALID_SOCKET) {
-                continue;
-            }
+        LOCK(pnode->cs_hSocket);
+        if (pnode->hSocket == INVALID_SOCKET) {
+            continue;
+        }
 
-            error_set.insert(pnode->hSocket);
-            if (select_send) {
-                send_set.insert(pnode->hSocket);
-                continue;
-            }
-            if (select_recv) {
-                recv_set.insert(pnode->hSocket);
-            }
+        error_set.insert(pnode->hSocket);
+        if (select_send) {
+            send_set.insert(pnode->hSocket);
+            continue;
+        }
+        if (select_recv) {
+            recv_set.insert(pnode->hSocket);
         }
     }
 
@@ -1622,11 +1620,12 @@ bool CConnman::GenerateSelectSet(std::set<SOCKET> &recv_set,
 }
 
 #ifdef USE_POLL
-void CConnman::SocketEvents(std::set<SOCKET> &recv_set,
+void CConnman::SocketEvents(const std::vector<CNode *> &nodes,
+                            std::set<SOCKET> &recv_set,
                             std::set<SOCKET> &send_set,
                             std::set<SOCKET> &error_set) {
     std::set<SOCKET> recv_select_set, send_select_set, error_select_set;
-    if (!GenerateSelectSet(recv_select_set, send_select_set,
+    if (!GenerateSelectSet(nodes, recv_select_set, send_select_set,
                            error_select_set)) {
         interruptNet.sleep_for(
             std::chrono::milliseconds(SELECT_TIMEOUT_MILLISECONDS));
@@ -1678,11 +1677,12 @@ void CConnman::SocketEvents(std::set<SOCKET> &recv_set,
     }
 }
 #else
-void CConnman::SocketEvents(std::set<SOCKET> &recv_set,
+void CConnman::SocketEvents(const std::vector<CNode *> &nodes,
+                            std::set<SOCKET> &recv_set,
                             std::set<SOCKET> &send_set,
                             std::set<SOCKET> &error_set) {
     std::set<SOCKET> recv_select_set, send_select_set, error_select_set;
-    if (!GenerateSelectSet(recv_select_set, send_select_set,
+    if (!GenerateSelectSet(nodes, recv_select_set, send_select_set,
                            error_select_set)) {
         interruptNet.sleep_for(
             std::chrono::milliseconds(SELECT_TIMEOUT_MILLISECONDS));
@@ -1762,8 +1762,10 @@ void CConnman::SocketEvents(std::set<SOCKET> &recv_set,
 #endif
 
 void CConnman::SocketHandler() {
+    const NodesSnapshot snap{*this, /*shuffle=*/false};
+
     std::set<SOCKET> recv_set, send_set, error_set;
-    SocketEvents(recv_set, send_set, error_set);
+    SocketEvents(snap.Nodes(), recv_set, send_set, error_set);
 
     if (interruptNet) {
         return;
@@ -1778,8 +1780,6 @@ void CConnman::SocketHandler() {
             AcceptConnection(hListenSocket);
         }
     }
-
-    const NodesSnapshot snap{*this, /*shuffle=*/false};
 
     //
     // Service each socket
