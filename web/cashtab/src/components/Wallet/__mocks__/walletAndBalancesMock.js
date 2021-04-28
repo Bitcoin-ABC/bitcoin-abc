@@ -38,6 +38,7 @@ export const walletWithBalancesMock = {
         totalBalanceInSatoshis: 6047469,
         totalBalance: 0.06047469,
     },
+    loading: false,
 };
 
 export const walletWithoutBalancesMock = {
@@ -78,6 +79,7 @@ export const walletWithoutBalancesMock = {
     balances: {
         totalBalance: 0,
     },
+    loading: false,
 };
 
 export const walletWithBalancesAndTokens = {
@@ -151,6 +153,7 @@ export const walletWithBalancesAndTokens = {
             hasBaton: false,
         },
     ],
+    loading: false,
 };
 
 export const walletWithBalancesAndTokensWithCorrectState = {
@@ -264,6 +267,7 @@ export const walletWithBalancesAndTokensWithCorrectState = {
             hasBaton: false,
         },
     ],
+    loading: false,
 };
 
 export const walletWithBalancesAndTokensWithEmptyState = {
@@ -338,4 +342,5 @@ export const walletWithBalancesAndTokensWithEmptyState = {
             hasBaton: false,
         },
     ],
+    loading: false,
 };

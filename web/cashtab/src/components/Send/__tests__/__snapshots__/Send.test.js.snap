@@ -1,0 +1,2141 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+
+exports[`Wallet with BCH balances 1`] = `
+Array [
+  <div
+    className="sc-jTzLTM ftdfiF"
+  >
+    <p>
+      Available balance
+    </p>
+    <h3>
+      0.06047469
+       
+      BCHA
+    </h3>
+  </div>,
+  <div
+    className="sc-fjdhpX hMeYog"
+  >
+    $
+    NaN
+     
+    USD
+  </div>,
+  <div
+    className="ant-row"
+    style={Object {}}
+    type="flex"
+  >
+    <div
+      className="ant-col ant-col-24"
+      style={Object {}}
+    >
+      <div
+        className="ant-spin-nested-loading"
+      >
+        <div
+          className="ant-spin-container"
+        >
+          <form
+            className="ant-form ant-form-horizontal"
+            onReset={[Function]}
+            onSubmit={[Function]}
+            style={
+              Object {
+                "width": "auto",
+              }
+            }
+          >
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                disabled={false}
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group-wrapper"
+                      >
+                        <span
+                          className="ant-input-wrapper ant-input-group"
+                        >
+                          <span
+                            className="ant-input-affix-wrapper"
+                            onMouseUp={[Function]}
+                            style={null}
+                          >
+                            <span
+                              className="ant-input-prefix"
+                            >
+                              <span
+                                aria-label="wallet"
+                                className="anticon anticon-wallet sc-htpNat bGTymY"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="wallet"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                            <input
+                              autoComplete="off"
+                              className="ant-input"
+                              disabled={false}
+                              name="address"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="BCHA Address"
+                              required={true}
+                              style={null}
+                              type="text"
+                              value=""
+                            />
+                          </span>
+                          <span
+                            className="ant-input-group-addon"
+                          >
+                            <span
+                              className="sc-htoDjs clindv"
+                              onClick={[Function]}
+                            >
+                              <span
+                                aria-label="qrcode"
+                                className="anticon anticon-qrcode sc-bxivhb gaDgkj"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="qrcode"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group ant-input-group-compact"
+                      >
+                        <span
+                          className="ant-input-affix-wrapper"
+                          onMouseUp={[Function]}
+                          style={
+                            Object {
+                              "textAlign": "left",
+                              "width": "60%",
+                            }
+                          }
+                        >
+                          <span
+                            className="ant-input-prefix"
+                          >
+                            <img
+                              alt=""
+                              height={16}
+                              src="12-bitcoin-cash-square-crop.svg"
+                              width={16}
+                            />
+                          </span>
+                          <input
+                            className="ant-input"
+                            dollar={0}
+                            name="value"
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            placeholder="Amount"
+                            required={true}
+                            step={1e-8}
+                            style={null}
+                            type="number"
+                            value=""
+                          />
+                        </span>
+                        <div
+                          className="ant-select select-after ant-select-single ant-select-show-arrow"
+                          onBlur={[Function]}
+                          onFocus={[Function]}
+                          onKeyDown={[Function]}
+                          onKeyUp={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "width": "30%",
+                            }
+                          }
+                        >
+                          <div
+                            className="ant-select-selector"
+                            onClick={[Function]}
+                            onMouseDown={[Function]}
+                          >
+                            <span
+                              className="ant-select-selection-search"
+                            >
+                              <input
+                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                aria-autocomplete="list"
+                                aria-controls="rc_select_TEST_OR_SSR_list"
+                                aria-haspopup="listbox"
+                                aria-owns="rc_select_TEST_OR_SSR_list"
+                                autoComplete="off"
+                                className="ant-select-selection-search-input"
+                                disabled={false}
+                                id="rc_select_TEST_OR_SSR"
+                                onChange={[Function]}
+                                onCompositionEnd={[Function]}
+                                onCompositionStart={[Function]}
+                                onKeyDown={[Function]}
+                                onMouseDown={[Function]}
+                                onPaste={[Function]}
+                                readOnly={true}
+                                role="combobox"
+                                style={
+                                  Object {
+                                    "opacity": 0,
+                                  }
+                                }
+                                type="search"
+                                unselectable="on"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-select-selection-item"
+                              title="BCHA"
+                            >
+                              BCHA
+                            </span>
+                          </div>
+                          <span
+                            aria-hidden={true}
+                            className="ant-select-arrow"
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "WebkitUserSelect": "none",
+                                "userSelect": "none",
+                              }
+                            }
+                            unselectable="on"
+                          >
+                            <span
+                              aria-label="down"
+                              className="anticon anticon-down ant-select-suffix"
+                              role="img"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                data-icon="down"
+                                fill="currentColor"
+                                focusable="false"
+                                height="1em"
+                                viewBox="64 64 896 896"
+                                width="1em"
+                              >
+                                <path
+                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                />
+                              </svg>
+                            </span>
+                          </span>
+                        </div>
+                        <span
+                          className="sc-VigVT hzxqG"
+                          disabled={false}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "height": "60px",
+                              "lineHeight": "60px",
+                              "width": "10%",
+                            }
+                          }
+                        >
+                          max
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-cSHVUG lierlF"
+            >
+              = 
+              $ NaN USD
+            </div>
+            <div
+              style={
+                Object {
+                  "paddingTop": "12px",
+                }
+              }
+            >
+              <button
+                className="sc-EHOje fhTYJL"
+                onClick={[Function]}
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens 1`] = `
+Array [
+  <div
+    className="sc-jTzLTM ftdfiF"
+  >
+    <p>
+      Available balance
+    </p>
+    <h3>
+      0.06047469
+       
+      BCHA
+    </h3>
+  </div>,
+  <div
+    className="sc-fjdhpX hMeYog"
+  >
+    $
+    NaN
+     
+    USD
+  </div>,
+  <div
+    className="ant-row"
+    style={Object {}}
+    type="flex"
+  >
+    <div
+      className="ant-col ant-col-24"
+      style={Object {}}
+    >
+      <div
+        className="ant-spin-nested-loading"
+      >
+        <div
+          className="ant-spin-container"
+        >
+          <form
+            className="ant-form ant-form-horizontal"
+            onReset={[Function]}
+            onSubmit={[Function]}
+            style={
+              Object {
+                "width": "auto",
+              }
+            }
+          >
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                disabled={false}
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group-wrapper"
+                      >
+                        <span
+                          className="ant-input-wrapper ant-input-group"
+                        >
+                          <span
+                            className="ant-input-affix-wrapper"
+                            onMouseUp={[Function]}
+                            style={null}
+                          >
+                            <span
+                              className="ant-input-prefix"
+                            >
+                              <span
+                                aria-label="wallet"
+                                className="anticon anticon-wallet sc-htpNat bGTymY"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="wallet"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                            <input
+                              autoComplete="off"
+                              className="ant-input"
+                              disabled={false}
+                              name="address"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="BCHA Address"
+                              required={true}
+                              style={null}
+                              type="text"
+                              value=""
+                            />
+                          </span>
+                          <span
+                            className="ant-input-group-addon"
+                          >
+                            <span
+                              className="sc-htoDjs clindv"
+                              onClick={[Function]}
+                            >
+                              <span
+                                aria-label="qrcode"
+                                className="anticon anticon-qrcode sc-bxivhb gaDgkj"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="qrcode"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group ant-input-group-compact"
+                      >
+                        <span
+                          className="ant-input-affix-wrapper"
+                          onMouseUp={[Function]}
+                          style={
+                            Object {
+                              "textAlign": "left",
+                              "width": "60%",
+                            }
+                          }
+                        >
+                          <span
+                            className="ant-input-prefix"
+                          >
+                            <img
+                              alt=""
+                              height={16}
+                              src="12-bitcoin-cash-square-crop.svg"
+                              width={16}
+                            />
+                          </span>
+                          <input
+                            className="ant-input"
+                            dollar={0}
+                            name="value"
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            placeholder="Amount"
+                            required={true}
+                            step={1e-8}
+                            style={null}
+                            type="number"
+                            value=""
+                          />
+                        </span>
+                        <div
+                          className="ant-select select-after ant-select-single ant-select-show-arrow"
+                          onBlur={[Function]}
+                          onFocus={[Function]}
+                          onKeyDown={[Function]}
+                          onKeyUp={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "width": "30%",
+                            }
+                          }
+                        >
+                          <div
+                            className="ant-select-selector"
+                            onClick={[Function]}
+                            onMouseDown={[Function]}
+                          >
+                            <span
+                              className="ant-select-selection-search"
+                            >
+                              <input
+                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                aria-autocomplete="list"
+                                aria-controls="rc_select_TEST_OR_SSR_list"
+                                aria-haspopup="listbox"
+                                aria-owns="rc_select_TEST_OR_SSR_list"
+                                autoComplete="off"
+                                className="ant-select-selection-search-input"
+                                disabled={false}
+                                id="rc_select_TEST_OR_SSR"
+                                onChange={[Function]}
+                                onCompositionEnd={[Function]}
+                                onCompositionStart={[Function]}
+                                onKeyDown={[Function]}
+                                onMouseDown={[Function]}
+                                onPaste={[Function]}
+                                readOnly={true}
+                                role="combobox"
+                                style={
+                                  Object {
+                                    "opacity": 0,
+                                  }
+                                }
+                                type="search"
+                                unselectable="on"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-select-selection-item"
+                              title="BCHA"
+                            >
+                              BCHA
+                            </span>
+                          </div>
+                          <span
+                            aria-hidden={true}
+                            className="ant-select-arrow"
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "WebkitUserSelect": "none",
+                                "userSelect": "none",
+                              }
+                            }
+                            unselectable="on"
+                          >
+                            <span
+                              aria-label="down"
+                              className="anticon anticon-down ant-select-suffix"
+                              role="img"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                data-icon="down"
+                                fill="currentColor"
+                                focusable="false"
+                                height="1em"
+                                viewBox="64 64 896 896"
+                                width="1em"
+                              >
+                                <path
+                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                />
+                              </svg>
+                            </span>
+                          </span>
+                        </div>
+                        <span
+                          className="sc-VigVT hzxqG"
+                          disabled={false}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "height": "60px",
+                              "lineHeight": "60px",
+                              "width": "10%",
+                            }
+                          }
+                        >
+                          max
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-cSHVUG lierlF"
+            >
+              = 
+              $ NaN USD
+            </div>
+            <div
+              style={
+                Object {
+                  "paddingTop": "12px",
+                }
+              }
+            >
+              <button
+                className="sc-EHOje fhTYJL"
+                onClick={[Function]}
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens and state field 1`] = `
+Array [
+  <div
+    className="sc-jTzLTM ftdfiF"
+  >
+    <p>
+      Available balance
+    </p>
+    <h3>
+      0.06047469
+       
+      BCHA
+    </h3>
+  </div>,
+  <div
+    className="sc-fjdhpX hMeYog"
+  >
+    $
+    NaN
+     
+    USD
+  </div>,
+  <div
+    className="ant-row"
+    style={Object {}}
+    type="flex"
+  >
+    <div
+      className="ant-col ant-col-24"
+      style={Object {}}
+    >
+      <div
+        className="ant-spin-nested-loading"
+      >
+        <div
+          className="ant-spin-container"
+        >
+          <form
+            className="ant-form ant-form-horizontal"
+            onReset={[Function]}
+            onSubmit={[Function]}
+            style={
+              Object {
+                "width": "auto",
+              }
+            }
+          >
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                disabled={false}
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group-wrapper"
+                      >
+                        <span
+                          className="ant-input-wrapper ant-input-group"
+                        >
+                          <span
+                            className="ant-input-affix-wrapper"
+                            onMouseUp={[Function]}
+                            style={null}
+                          >
+                            <span
+                              className="ant-input-prefix"
+                            >
+                              <span
+                                aria-label="wallet"
+                                className="anticon anticon-wallet sc-htpNat bGTymY"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="wallet"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                            <input
+                              autoComplete="off"
+                              className="ant-input"
+                              disabled={false}
+                              name="address"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="BCHA Address"
+                              required={true}
+                              style={null}
+                              type="text"
+                              value=""
+                            />
+                          </span>
+                          <span
+                            className="ant-input-group-addon"
+                          >
+                            <span
+                              className="sc-htoDjs clindv"
+                              onClick={[Function]}
+                            >
+                              <span
+                                aria-label="qrcode"
+                                className="anticon anticon-qrcode sc-bxivhb gaDgkj"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="qrcode"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group ant-input-group-compact"
+                      >
+                        <span
+                          className="ant-input-affix-wrapper"
+                          onMouseUp={[Function]}
+                          style={
+                            Object {
+                              "textAlign": "left",
+                              "width": "60%",
+                            }
+                          }
+                        >
+                          <span
+                            className="ant-input-prefix"
+                          >
+                            <img
+                              alt=""
+                              height={16}
+                              src="12-bitcoin-cash-square-crop.svg"
+                              width={16}
+                            />
+                          </span>
+                          <input
+                            className="ant-input"
+                            dollar={0}
+                            name="value"
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            placeholder="Amount"
+                            required={true}
+                            step={1e-8}
+                            style={null}
+                            type="number"
+                            value=""
+                          />
+                        </span>
+                        <div
+                          className="ant-select select-after ant-select-single ant-select-show-arrow"
+                          onBlur={[Function]}
+                          onFocus={[Function]}
+                          onKeyDown={[Function]}
+                          onKeyUp={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "width": "30%",
+                            }
+                          }
+                        >
+                          <div
+                            className="ant-select-selector"
+                            onClick={[Function]}
+                            onMouseDown={[Function]}
+                          >
+                            <span
+                              className="ant-select-selection-search"
+                            >
+                              <input
+                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                aria-autocomplete="list"
+                                aria-controls="rc_select_TEST_OR_SSR_list"
+                                aria-haspopup="listbox"
+                                aria-owns="rc_select_TEST_OR_SSR_list"
+                                autoComplete="off"
+                                className="ant-select-selection-search-input"
+                                disabled={false}
+                                id="rc_select_TEST_OR_SSR"
+                                onChange={[Function]}
+                                onCompositionEnd={[Function]}
+                                onCompositionStart={[Function]}
+                                onKeyDown={[Function]}
+                                onMouseDown={[Function]}
+                                onPaste={[Function]}
+                                readOnly={true}
+                                role="combobox"
+                                style={
+                                  Object {
+                                    "opacity": 0,
+                                  }
+                                }
+                                type="search"
+                                unselectable="on"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-select-selection-item"
+                              title="BCHA"
+                            >
+                              BCHA
+                            </span>
+                          </div>
+                          <span
+                            aria-hidden={true}
+                            className="ant-select-arrow"
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "WebkitUserSelect": "none",
+                                "userSelect": "none",
+                              }
+                            }
+                            unselectable="on"
+                          >
+                            <span
+                              aria-label="down"
+                              className="anticon anticon-down ant-select-suffix"
+                              role="img"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                data-icon="down"
+                                fill="currentColor"
+                                focusable="false"
+                                height="1em"
+                                viewBox="64 64 896 896"
+                                width="1em"
+                              >
+                                <path
+                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                />
+                              </svg>
+                            </span>
+                          </span>
+                        </div>
+                        <span
+                          className="sc-VigVT hzxqG"
+                          disabled={false}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "height": "60px",
+                              "lineHeight": "60px",
+                              "width": "10%",
+                            }
+                          }
+                        >
+                          max
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-cSHVUG lierlF"
+            >
+              = 
+              $ NaN USD
+            </div>
+            <div
+              style={
+                Object {
+                  "paddingTop": "12px",
+                }
+              }
+            >
+              <button
+                className="sc-EHOje fhTYJL"
+                onClick={[Function]}
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
+Array [
+  <div
+    className="sc-jTzLTM ftdfiF"
+  >
+    <p>
+      Available balance
+    </p>
+    <h3>
+      0.06047469
+       
+      BCHA
+    </h3>
+  </div>,
+  <div
+    className="sc-fjdhpX hMeYog"
+  >
+    $
+    NaN
+     
+    USD
+  </div>,
+  <div
+    className="ant-row"
+    style={Object {}}
+    type="flex"
+  >
+    <div
+      className="ant-col ant-col-24"
+      style={Object {}}
+    >
+      <div
+        className="ant-spin-nested-loading"
+      >
+        <div
+          className="ant-spin-container"
+        >
+          <form
+            className="ant-form ant-form-horizontal"
+            onReset={[Function]}
+            onSubmit={[Function]}
+            style={
+              Object {
+                "width": "auto",
+              }
+            }
+          >
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                disabled={false}
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group-wrapper"
+                      >
+                        <span
+                          className="ant-input-wrapper ant-input-group"
+                        >
+                          <span
+                            className="ant-input-affix-wrapper"
+                            onMouseUp={[Function]}
+                            style={null}
+                          >
+                            <span
+                              className="ant-input-prefix"
+                            >
+                              <span
+                                aria-label="wallet"
+                                className="anticon anticon-wallet sc-htpNat bGTymY"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="wallet"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                            <input
+                              autoComplete="off"
+                              className="ant-input"
+                              disabled={false}
+                              name="address"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="BCHA Address"
+                              required={true}
+                              style={null}
+                              type="text"
+                              value=""
+                            />
+                          </span>
+                          <span
+                            className="ant-input-group-addon"
+                          >
+                            <span
+                              className="sc-htoDjs clindv"
+                              onClick={[Function]}
+                            >
+                              <span
+                                aria-label="qrcode"
+                                className="anticon anticon-qrcode sc-bxivhb gaDgkj"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="qrcode"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group ant-input-group-compact"
+                      >
+                        <span
+                          className="ant-input-affix-wrapper"
+                          onMouseUp={[Function]}
+                          style={
+                            Object {
+                              "textAlign": "left",
+                              "width": "60%",
+                            }
+                          }
+                        >
+                          <span
+                            className="ant-input-prefix"
+                          >
+                            <img
+                              alt=""
+                              height={16}
+                              src="12-bitcoin-cash-square-crop.svg"
+                              width={16}
+                            />
+                          </span>
+                          <input
+                            className="ant-input"
+                            dollar={0}
+                            name="value"
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            placeholder="Amount"
+                            required={true}
+                            step={1e-8}
+                            style={null}
+                            type="number"
+                            value=""
+                          />
+                        </span>
+                        <div
+                          className="ant-select select-after ant-select-single ant-select-show-arrow"
+                          onBlur={[Function]}
+                          onFocus={[Function]}
+                          onKeyDown={[Function]}
+                          onKeyUp={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "width": "30%",
+                            }
+                          }
+                        >
+                          <div
+                            className="ant-select-selector"
+                            onClick={[Function]}
+                            onMouseDown={[Function]}
+                          >
+                            <span
+                              className="ant-select-selection-search"
+                            >
+                              <input
+                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                aria-autocomplete="list"
+                                aria-controls="rc_select_TEST_OR_SSR_list"
+                                aria-haspopup="listbox"
+                                aria-owns="rc_select_TEST_OR_SSR_list"
+                                autoComplete="off"
+                                className="ant-select-selection-search-input"
+                                disabled={false}
+                                id="rc_select_TEST_OR_SSR"
+                                onChange={[Function]}
+                                onCompositionEnd={[Function]}
+                                onCompositionStart={[Function]}
+                                onKeyDown={[Function]}
+                                onMouseDown={[Function]}
+                                onPaste={[Function]}
+                                readOnly={true}
+                                role="combobox"
+                                style={
+                                  Object {
+                                    "opacity": 0,
+                                  }
+                                }
+                                type="search"
+                                unselectable="on"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-select-selection-item"
+                              title="BCHA"
+                            >
+                              BCHA
+                            </span>
+                          </div>
+                          <span
+                            aria-hidden={true}
+                            className="ant-select-arrow"
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "WebkitUserSelect": "none",
+                                "userSelect": "none",
+                              }
+                            }
+                            unselectable="on"
+                          >
+                            <span
+                              aria-label="down"
+                              className="anticon anticon-down ant-select-suffix"
+                              role="img"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                data-icon="down"
+                                fill="currentColor"
+                                focusable="false"
+                                height="1em"
+                                viewBox="64 64 896 896"
+                                width="1em"
+                              >
+                                <path
+                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                />
+                              </svg>
+                            </span>
+                          </span>
+                        </div>
+                        <span
+                          className="sc-VigVT hzxqG"
+                          disabled={false}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "height": "60px",
+                              "lineHeight": "60px",
+                              "width": "10%",
+                            }
+                          }
+                        >
+                          max
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-cSHVUG lierlF"
+            >
+              = 
+              $ NaN USD
+            </div>
+            <div
+              style={
+                Object {
+                  "paddingTop": "12px",
+                }
+              }
+            >
+              <button
+                className="sc-EHOje fhTYJL"
+                onClick={[Function]}
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet without BCH balance 1`] = `
+Array [
+  <div
+    className="sc-jzJRlG kNGwIp"
+  >
+    You currently have 0 
+    BCHA
+    <br />
+    Deposit some funds to use this feature
+  </div>,
+  <div
+    className="ant-row"
+    style={Object {}}
+    type="flex"
+  >
+    <div
+      className="ant-col ant-col-24"
+      style={Object {}}
+    >
+      <div
+        className="ant-spin-nested-loading"
+      >
+        <div
+          className="ant-spin-container"
+        >
+          <form
+            className="ant-form ant-form-horizontal"
+            onReset={[Function]}
+            onSubmit={[Function]}
+            style={
+              Object {
+                "width": "auto",
+              }
+            }
+          >
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                disabled={false}
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group-wrapper"
+                      >
+                        <span
+                          className="ant-input-wrapper ant-input-group"
+                        >
+                          <span
+                            className="ant-input-affix-wrapper"
+                            onMouseUp={[Function]}
+                            style={null}
+                          >
+                            <span
+                              className="ant-input-prefix"
+                            >
+                              <span
+                                aria-label="wallet"
+                                className="anticon anticon-wallet sc-htpNat bGTymY"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="wallet"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                            <input
+                              autoComplete="off"
+                              className="ant-input"
+                              disabled={false}
+                              name="address"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="BCHA Address"
+                              required={true}
+                              style={null}
+                              type="text"
+                              value=""
+                            />
+                          </span>
+                          <span
+                            className="ant-input-group-addon"
+                          >
+                            <span
+                              className="sc-htoDjs clindv"
+                              onClick={[Function]}
+                            >
+                              <span
+                                aria-label="qrcode"
+                                className="anticon anticon-qrcode sc-bxivhb gaDgkj"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="qrcode"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group ant-input-group-compact"
+                      >
+                        <span
+                          className="ant-input-affix-wrapper"
+                          onMouseUp={[Function]}
+                          style={
+                            Object {
+                              "textAlign": "left",
+                              "width": "60%",
+                            }
+                          }
+                        >
+                          <span
+                            className="ant-input-prefix"
+                          >
+                            <img
+                              alt=""
+                              height={16}
+                              src="12-bitcoin-cash-square-crop.svg"
+                              width={16}
+                            />
+                          </span>
+                          <input
+                            className="ant-input"
+                            dollar={0}
+                            name="value"
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            placeholder="Amount"
+                            required={true}
+                            step={1e-8}
+                            style={null}
+                            type="number"
+                            value=""
+                          />
+                        </span>
+                        <div
+                          className="ant-select select-after ant-select-single ant-select-show-arrow"
+                          onBlur={[Function]}
+                          onFocus={[Function]}
+                          onKeyDown={[Function]}
+                          onKeyUp={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "width": "30%",
+                            }
+                          }
+                        >
+                          <div
+                            className="ant-select-selector"
+                            onClick={[Function]}
+                            onMouseDown={[Function]}
+                          >
+                            <span
+                              className="ant-select-selection-search"
+                            >
+                              <input
+                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                aria-autocomplete="list"
+                                aria-controls="rc_select_TEST_OR_SSR_list"
+                                aria-haspopup="listbox"
+                                aria-owns="rc_select_TEST_OR_SSR_list"
+                                autoComplete="off"
+                                className="ant-select-selection-search-input"
+                                disabled={false}
+                                id="rc_select_TEST_OR_SSR"
+                                onChange={[Function]}
+                                onCompositionEnd={[Function]}
+                                onCompositionStart={[Function]}
+                                onKeyDown={[Function]}
+                                onMouseDown={[Function]}
+                                onPaste={[Function]}
+                                readOnly={true}
+                                role="combobox"
+                                style={
+                                  Object {
+                                    "opacity": 0,
+                                  }
+                                }
+                                type="search"
+                                unselectable="on"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-select-selection-item"
+                              title="BCHA"
+                            >
+                              BCHA
+                            </span>
+                          </div>
+                          <span
+                            aria-hidden={true}
+                            className="ant-select-arrow"
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "WebkitUserSelect": "none",
+                                "userSelect": "none",
+                              }
+                            }
+                            unselectable="on"
+                          >
+                            <span
+                              aria-label="down"
+                              className="anticon anticon-down ant-select-suffix"
+                              role="img"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                data-icon="down"
+                                fill="currentColor"
+                                focusable="false"
+                                height="1em"
+                                viewBox="64 64 896 896"
+                                width="1em"
+                              >
+                                <path
+                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                />
+                              </svg>
+                            </span>
+                          </span>
+                        </div>
+                        <span
+                          className="sc-VigVT hzxqG"
+                          disabled={false}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "height": "60px",
+                              "lineHeight": "60px",
+                              "width": "10%",
+                            }
+                          }
+                        >
+                          max
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-cSHVUG lierlF"
+            >
+              = 
+              $ NaN USD
+            </div>
+            <div
+              style={
+                Object {
+                  "paddingTop": "12px",
+                }
+              }
+            >
+              <button
+                className="sc-bZQynM hlOQYo"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Without wallet defined 1`] = `
+Array [
+  <div
+    className="sc-jzJRlG kNGwIp"
+  >
+    You currently have 0 
+    BCHA
+    <br />
+    Deposit some funds to use this feature
+  </div>,
+  <div
+    className="ant-row"
+    style={Object {}}
+    type="flex"
+  >
+    <div
+      className="ant-col ant-col-24"
+      style={Object {}}
+    >
+      <div
+        className="ant-spin-nested-loading"
+      >
+        <div
+          className="ant-spin-container"
+        >
+          <form
+            className="ant-form ant-form-horizontal"
+            onReset={[Function]}
+            onSubmit={[Function]}
+            style={
+              Object {
+                "width": "auto",
+              }
+            }
+          >
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                disabled={false}
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group-wrapper"
+                      >
+                        <span
+                          className="ant-input-wrapper ant-input-group"
+                        >
+                          <span
+                            className="ant-input-affix-wrapper"
+                            onMouseUp={[Function]}
+                            style={null}
+                          >
+                            <span
+                              className="ant-input-prefix"
+                            >
+                              <span
+                                aria-label="wallet"
+                                className="anticon anticon-wallet sc-htpNat bGTymY"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="wallet"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 464H528V448h312v128zm0 264H184V184h656v200H496c-17.7 0-32 14.3-32 32v192c0 17.7 14.3 32 32 32h344v200zM580 512a40 40 0 1080 0 40 40 0 10-80 0z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                            <input
+                              autoComplete="off"
+                              className="ant-input"
+                              disabled={false}
+                              name="address"
+                              onBlur={[Function]}
+                              onChange={[Function]}
+                              onFocus={[Function]}
+                              onKeyDown={[Function]}
+                              placeholder="BCHA Address"
+                              required={true}
+                              style={null}
+                              type="text"
+                              value=""
+                            />
+                          </span>
+                          <span
+                            className="ant-input-group-addon"
+                          >
+                            <span
+                              className="sc-htoDjs clindv"
+                              onClick={[Function]}
+                            >
+                              <span
+                                aria-label="qrcode"
+                                className="anticon anticon-qrcode sc-bxivhb gaDgkj"
+                                role="img"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  data-icon="qrcode"
+                                  fill="currentColor"
+                                  focusable="false"
+                                  height="1em"
+                                  viewBox="64 64 896 896"
+                                  width="1em"
+                                >
+                                  <path
+                                    d="M468 128H160c-17.7 0-32 14.3-32 32v308c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V136c0-4.4-3.6-8-8-8zm-56 284H192V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210H136c-4.4 0-8 3.6-8 8v308c0 17.7 14.3 32 32 32h308c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zm-56 284H192V612h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm590-630H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h332c4.4 0 8-3.6 8-8V160c0-17.7-14.3-32-32-32zm-32 284H612V192h220v220zm-138-74h56c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm194 210h-48c-4.4 0-8 3.6-8 8v134h-78V556c0-4.4-3.6-8-8-8H556c-4.4 0-8 3.6-8 8v332c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V644h78v102c0 4.4 3.6 8 8 8h190c4.4 0 8-3.6 8-8V556c0-4.4-3.6-8-8-8zM746 832h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm142 0h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8z"
+                                  />
+                                </svg>
+                              </span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-gZMcBi jfarIG"
+            >
+              <div
+                className="ant-row ant-form-item"
+                style={Object {}}
+              >
+                <div
+                  className="ant-col ant-form-item-control"
+                  style={Object {}}
+                >
+                  <div
+                    className="ant-form-item-control-input"
+                  >
+                    <div
+                      className="ant-form-item-control-input-content"
+                    >
+                      <span
+                        className="ant-input-group ant-input-group-compact"
+                      >
+                        <span
+                          className="ant-input-affix-wrapper"
+                          onMouseUp={[Function]}
+                          style={
+                            Object {
+                              "textAlign": "left",
+                              "width": "60%",
+                            }
+                          }
+                        >
+                          <span
+                            className="ant-input-prefix"
+                          >
+                            <img
+                              alt=""
+                              height={16}
+                              src="12-bitcoin-cash-square-crop.svg"
+                              width={16}
+                            />
+                          </span>
+                          <input
+                            className="ant-input"
+                            dollar={0}
+                            name="value"
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            onKeyDown={[Function]}
+                            placeholder="Amount"
+                            required={true}
+                            step={1e-8}
+                            style={null}
+                            type="number"
+                            value=""
+                          />
+                        </span>
+                        <div
+                          className="ant-select select-after ant-select-single ant-select-show-arrow"
+                          onBlur={[Function]}
+                          onFocus={[Function]}
+                          onKeyDown={[Function]}
+                          onKeyUp={[Function]}
+                          onMouseDown={[Function]}
+                          style={
+                            Object {
+                              "width": "30%",
+                            }
+                          }
+                        >
+                          <div
+                            className="ant-select-selector"
+                            onClick={[Function]}
+                            onMouseDown={[Function]}
+                          >
+                            <span
+                              className="ant-select-selection-search"
+                            >
+                              <input
+                                aria-activedescendant="rc_select_TEST_OR_SSR_list_0"
+                                aria-autocomplete="list"
+                                aria-controls="rc_select_TEST_OR_SSR_list"
+                                aria-haspopup="listbox"
+                                aria-owns="rc_select_TEST_OR_SSR_list"
+                                autoComplete="off"
+                                className="ant-select-selection-search-input"
+                                disabled={false}
+                                id="rc_select_TEST_OR_SSR"
+                                onChange={[Function]}
+                                onCompositionEnd={[Function]}
+                                onCompositionStart={[Function]}
+                                onKeyDown={[Function]}
+                                onMouseDown={[Function]}
+                                onPaste={[Function]}
+                                readOnly={true}
+                                role="combobox"
+                                style={
+                                  Object {
+                                    "opacity": 0,
+                                  }
+                                }
+                                type="search"
+                                unselectable="on"
+                                value=""
+                              />
+                            </span>
+                            <span
+                              className="ant-select-selection-item"
+                              title="BCHA"
+                            >
+                              BCHA
+                            </span>
+                          </div>
+                          <span
+                            aria-hidden={true}
+                            className="ant-select-arrow"
+                            onMouseDown={[Function]}
+                            style={
+                              Object {
+                                "WebkitUserSelect": "none",
+                                "userSelect": "none",
+                              }
+                            }
+                            unselectable="on"
+                          >
+                            <span
+                              aria-label="down"
+                              className="anticon anticon-down ant-select-suffix"
+                              role="img"
+                            >
+                              <svg
+                                aria-hidden="true"
+                                data-icon="down"
+                                fill="currentColor"
+                                focusable="false"
+                                height="1em"
+                                viewBox="64 64 896 896"
+                                width="1em"
+                              >
+                                <path
+                                  d="M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z"
+                                />
+                              </svg>
+                            </span>
+                          </span>
+                        </div>
+                        <span
+                          className="sc-VigVT hzxqG"
+                          disabled={false}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "height": "60px",
+                              "lineHeight": "60px",
+                              "width": "10%",
+                            }
+                          }
+                        >
+                          max
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="ant-form-item-explain"
+                  >
+                    <div
+                      role="alert"
+                    >
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="sc-cSHVUG lierlF"
+            >
+              = 
+              $ NaN USD
+            </div>
+            <div
+              style={
+                Object {
+                  "paddingTop": "12px",
+                }
+              }
+            >
+              <button
+                className="sc-bZQynM hlOQYo"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>,
+]
+`;

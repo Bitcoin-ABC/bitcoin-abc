@@ -71,14 +71,26 @@ const ConvertAmount = styled.div`
     }
 `;
 
-const SendBCH = ({ filledAddress, callbackTxId }) => {
-    const {
-        wallet,
-        fiatPrice,
-        balances,
-        slpBalancesAndUtxos,
-        apiError,
-    } = React.useContext(WalletContext);
+// Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
+const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
+    // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
+    // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
+
+    // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
+    // Else set it as blank
+    const ContextValue = React.useContext(WalletContext);
+    const { wallet, fiatPrice, slpBalancesAndUtxos, apiError } = ContextValue;
+    let balances;
+    const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
+    // If wallet.state includes balances and parsedTxHistory params, use these
+    // These are saved in indexedDb in the latest version of the app, hence accessible more quickly
+    if (paramsInWalletState.includes('balances')) {
+        balances = wallet.state.balances;
+    } else {
+        // If balances and parsedTxHistory are not in the wallet.state object, load them from Context
+        // This is how the app used to work
+        balances = ContextValue.balances;
+    }
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -117,7 +129,9 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
     };
 
     const { getBCH, getRestUrl, sendBch, calcFee } = useBCH();
-    const BCH = getBCH();
+
+    // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
+    const BCH = jestBCH ? jestBCH : getBCH();
 
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
@@ -154,7 +168,10 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
 
     function populateFormsFromUrl(txInfo) {
         if (txInfo && txInfo.address && txInfo.value) {
-            setFormData({ address: txInfo.address, value: txInfo.value });
+            setFormData({
+                address: txInfo.address,
+                value: txInfo.value,
+            });
         }
     }
 
@@ -311,7 +328,12 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
             setSelectedCurrency(currency.ticker);
 
             // Use this object to mimic user input and get validation for the value
-            let amountObj = { target: { name: 'value', value: amount } };
+            let amountObj = {
+                target: {
+                    name: 'value',
+                    value: amount,
+                },
+            };
             handleBchAmountChange(amountObj);
             setFormData({
                 ...formData,
@@ -329,7 +351,10 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
     const handleSelectedCurrencyChange = e => {
         setSelectedCurrency(e);
         // Clear input field to prevent accidentally sending 1 BCH instead of 1 USD
-        setFormData(p => ({ ...p, value: '' }));
+        setFormData(p => ({
+            ...p,
+            value: '',
+        }));
     };
 
     const handleBchAmountChange = e => {
@@ -343,7 +368,10 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
         );
         setSendBchAmountError(error);
 
-        setFormData(p => ({ ...p, [name]: value }));
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
     };
 
     const onMax = async () => {
@@ -428,7 +456,11 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
             <Row type="flex">
                 <Col span={24}>
                     <Spin spinning={loading} indicator={CashLoadingIcon}>
-                        <Form style={{ width: 'auto' }}>
+                        <Form
+                            style={{
+                                width: 'auto',
+                            }}
+                        >
                             <FormItemWithQRCodeAddon
                                 loadWithCameraOpen={scannerSupported}
                                 disabled={Boolean(filledAddress)}
@@ -481,7 +513,11 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                                 }}
                             ></SendBchInput>
                             <ConvertAmount>= {fiatPriceString}</ConvertAmount>
-                            <div style={{ paddingTop: '12px' }}>
+                            <div
+                                style={{
+                                    paddingTop: '12px',
+                                }}
+                            >
                                 {!balances.totalBalance ||
                                 apiError ||
                                 sendBchAmountError ||
@@ -514,7 +550,11 @@ const SendBCH = ({ filledAddress, callbackTxId }) => {
                             {apiError && (
                                 <>
                                     <CashLoader />
-                                    <p style={{ color: 'red' }}>
+                                    <p
+                                        style={{
+                                            color: 'red',
+                                        }}
+                                    >
                                         <b>
                                             An error occured on our end.
                                             Reconnecting...
