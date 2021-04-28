@@ -103,12 +103,11 @@ bool BaseIndex::Init() {
             }
         }
         if (prune_violation) {
-            // throw error and graceful shutdown if we can't build the index
-            FatalError("%s: %s best block of the index goes beyond pruned "
-                       "data. Please disable the index or reindex (which will "
-                       "download the whole blockchain again)",
-                       __func__, GetName());
-            return false;
+            return InitError(strprintf(
+                Untranslated("%s best block of the index goes beyond pruned "
+                             "data. Please disable the index or reindex (which "
+                             "will download the whole blockchain again)"),
+                GetName()));
         }
     }
     return true;
@@ -364,18 +363,18 @@ void BaseIndex::Interrupt() {
     m_interrupt();
 }
 
-void BaseIndex::Start(Chainstate &active_chainstate) {
+bool BaseIndex::Start(Chainstate &active_chainstate) {
     m_chainstate = &active_chainstate;
     // Need to register this ValidationInterface before running Init(), so that
     // callbacks are not missed if Init sets m_synced to true.
     RegisterValidationInterface(this);
     if (!Init()) {
-        FatalError("%s: %s failed to initialize", __func__, GetName());
-        return;
+        return false;
     }
 
     m_thread_sync =
         std::thread(&util::TraceThread, GetName(), [this] { ThreadSync(); });
+    return true;
 }
 
 void BaseIndex::Stop() {

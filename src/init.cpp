@@ -2645,19 +2645,26 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         g_txindex =
             std::make_unique<TxIndex>(cache_sizes.tx_index, false, fReindex);
-        g_txindex->Start(chainman.ActiveChainstate());
+        if (!g_txindex->Start(chainman.ActiveChainstate())) {
+            return false;
+        }
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
         InitBlockFilterIndex(filter_type, cache_sizes.filter_index, false,
                              fReindex);
-        GetBlockFilterIndex(filter_type)->Start(chainman.ActiveChainstate());
+        if (!GetBlockFilterIndex(filter_type)
+                 ->Start(chainman.ActiveChainstate())) {
+            return false;
+        }
     }
 
     if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
         g_coin_stats_index = std::make_unique<CoinStatsIndex>(
             /* cache size */ 0, false, fReindex);
-        g_coin_stats_index->Start(chainman.ActiveChainstate());
+        if (!g_coin_stats_index->Start(chainman.ActiveChainstate())) {
+            return false;
+        }
     }
 
 #if ENABLE_CHRONIK

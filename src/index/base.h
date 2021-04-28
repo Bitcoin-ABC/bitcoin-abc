@@ -87,7 +87,7 @@ protected:
     const CBlockIndex *CurrentIndex() { return m_best_block_index.load(); };
 
     /// Initialize internal state from the database and block index.
-    virtual bool Init();
+    [[nodiscard]] virtual bool Init();
 
     /// Write update index entries for a newly connected block.
     virtual bool WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
@@ -123,7 +123,7 @@ public:
 
     /// Start initializes the sync state and registers the instance as a
     /// ValidationInterface so that it stays in sync with blockchain updates.
-    void Start(Chainstate &active_chainstate);
+    [[nodiscard]] bool Start(Chainstate &active_chainstate);
 
     /// Stops the instance from staying in sync with blockchain updates.
     void Stop();
