@@ -174,8 +174,16 @@ const useWallet = () => {
             return true;
         }
 
+        // If utxo set is in wallet object, use that to compare instead of previousUtxos
+        let previousUtxosToCompare;
+        if (wallet.state && wallet.state.utxos) {
+            previousUtxosToCompare = wallet.state.utxos;
+        } else {
+            previousUtxosToCompare = previousUtxos;
+        }
+
         // Compare utxo sets
-        const utxoArraysUnchanged = _.isEqual(utxos, previousUtxos);
+        const utxoArraysUnchanged = _.isEqual(utxos, previousUtxosToCompare);
 
         // If utxos are not the same as previousUtxos
         if (utxoArraysUnchanged) {
