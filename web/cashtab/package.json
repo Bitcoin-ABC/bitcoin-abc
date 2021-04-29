@@ -16,7 +16,6 @@
         "fbt": "^0.16.4",
         "localforage": "^1.9.0",
         "lodash": "^4.17.20",
-        "minimal-slp-wallet": "^2.1.11",
         "qrcode.react": "^1.0.0",
         "react": "^17.0.1",
         "react-app-polyfill": "^2.0.0",
