@@ -16,14 +16,6 @@ SOCKET FuzzedSock::Get() const {
     assert(false && "Not implemented yet.");
 }
 
-SOCKET FuzzedSock::Release() {
-    assert(false && "Not implemented yet.");
-}
-
-void FuzzedSock::Reset() {
-    assert(false && "Not implemented yet.");
-}
-
 ssize_t FuzzedSock::Send(const void *data, size_t len, int flags) const {
     constexpr std::array<int, 18> send_errnos{{
         EACCES,

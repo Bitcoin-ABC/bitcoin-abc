@@ -49,10 +49,6 @@ public:
 
     SOCKET Get() const override;
 
-    SOCKET Release() override;
-
-    void Reset() override;
-
     ssize_t Send(const void *data, size_t len, int flags) const override;
 
     ssize_t Recv(void *buf, size_t len, int flags) const override;
