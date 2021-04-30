@@ -7,6 +7,7 @@
 #include <consensus/validation.h>
 #include <script/standard.h>
 #include <test/util/mining.h>
+#include <test/util/script.h>
 #include <test/util/setup_common.h>
 #include <test/util/wallet.h>
 #include <txmempool.h>
@@ -18,13 +19,7 @@ static void AssembleBlock(benchmark::Bench &bench) {
     const auto test_setup = MakeNoLogFileContext<const TestingSetup>();
     const Config &config = test_setup->m_node.chainman->GetConfig();
 
-    const CScript redeemScript = CScript() << OP_DROP << OP_TRUE;
-    const CScript SCRIPT_PUB =
-        CScript() << OP_HASH160 << ToByteVector(CScriptID(redeemScript))
-                  << OP_EQUAL;
-
-    const CScript scriptSig = CScript() << std::vector<uint8_t>(100, 0xff)
-                                        << ToByteVector(redeemScript);
+    const CScript scriptSig = CScript() << ToByteVector(CScript() << OP_TRUE);
 
     // Collect some loose transactions that spend the coinbases of our mined
     // blocks
@@ -32,9 +27,13 @@ static void AssembleBlock(benchmark::Bench &bench) {
     std::array<CTransactionRef, NUM_BLOCKS - COINBASE_MATURITY + 1> txs;
     for (size_t b = 0; b < NUM_BLOCKS; ++b) {
         CMutableTransaction tx;
-        tx.vin.push_back(MineBlock(config, test_setup->m_node, SCRIPT_PUB));
+        tx.vin.push_back(MineBlock(config, test_setup->m_node, P2SH_OP_TRUE));
         tx.vin.back().scriptSig = scriptSig;
-        tx.vout.emplace_back(1337 * SATOSHI, SCRIPT_PUB);
+        tx.vout.emplace_back(1337 * SATOSHI, P2SH_OP_TRUE);
+        // Pad the tx so it's not undersized
+        tx.vout.emplace_back(Amount::zero(), CScript()
+                                                 << OP_RETURN
+                                                 << std::vector<uint8_t>(100));
         if (NUM_BLOCKS - b >= COINBASE_MATURITY) {
             txs.at(b) = MakeTransactionRef(tx);
         }
@@ -50,7 +49,7 @@ static void AssembleBlock(benchmark::Bench &bench) {
         }
     }
 
-    bench.run([&] { PrepareBlock(config, test_setup->m_node, SCRIPT_PUB); });
+    bench.run([&] { PrepareBlock(config, test_setup->m_node, P2SH_OP_TRUE); });
 }
 
 BENCHMARK(AssembleBlock);
