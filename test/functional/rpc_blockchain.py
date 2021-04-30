@@ -283,7 +283,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert 'muhash' in res6
         assert(res['hash_serialized'] != res6['muhash'])
 
-        # muhash should not be included in gettxoutset unless requested.
+        # muhash should not be returned unless requested.
         for r in [res, res2, res3, res4, res5]:
             assert 'muhash' not in r
 
