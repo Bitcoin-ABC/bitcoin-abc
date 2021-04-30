@@ -910,7 +910,10 @@ class AvalancheProof:
         """
         ss = struct.pack("<Qq", self.sequence, self.expiration)
         ss += ser_string(self.master)
-        ss += ser_vector(self.stakes)
+        ss += ser_compact_size(len(self.stakes))
+        # Use unsigned stakes
+        for s in self.stakes:
+            ss += s.stake.serialize()
         h = hash256(ss)
         # make it an int, for comparing with Delegation.proofid
         return uint256_from_str(h)
@@ -2007,7 +2010,7 @@ class TestFrameworkMessages(unittest.TestCase):
         """Verify that messages and serialized objects are unchanged after
         a round-trip of deserialization-serialization.
         """
-        avaproof = AvalancheProof()
+
         proof_hex = (
             "2a00000000000000fff053650000000021030b4c866585dd868a9d62348a9cd00"
             "8d6a312937048fff31670e7e920cfc7a74401b7fc19792583e9cb39843fc5e22a"
@@ -2018,9 +2021,39 @@ class TestFrameworkMessages(unittest.TestCase):
             "274b0f2edc73679fd398f60e6315258c9ec348df7fcc09340ae1af37d009719b0"
             "665"
         )
-        avaproof.deserialize(BytesIO(bytes.fromhex(proof_hex)))
-        self.assertEqual(avaproof.serialize().hex(), proof_hex)
+
+        avaproof = FromHex(AvalancheProof(), proof_hex)
+        self.assertEqual(ToHex(avaproof), proof_hex)
+
+        self.assertEqual(f"{avaproof.proofid:x}",
+                         "8ab9e9db85055cea7f541d464a84bd4fabaf284cc2815394868741bbe09b4735"
+                         )
+        self.assertEqual(avaproof.sequence, 42)
+        self.assertEqual(avaproof.expiration, 1699999999)
+        # The master key is extracted from the key_tests.cpp.
+        # Associated privkey:
+        #   hex: 12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747
+        #   WIF: cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN
+        self.assertEqual(avaproof.master, bytes.fromhex(
+            "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744"
+        ))
+        self.assertEqual(len(avaproof.stakes), 1)
+        self.assertEqual(avaproof.stakes[0].sig, bytes.fromhex(
+            "c3052d58da74de7404e84ebe2940ed2b0fe85578d8230788d8387aeaa618274b"
+            "0f2edc73679fd398f60e6315258c9ec348df7fcc09340ae1af37d009719b0665"
+        ))
+        self.assertEqual(f"{avaproof.stakes[0].stake.utxo.hash:x}",
+                         "24ae50f5d4e81e340b29708ab11cab48364e2ae2c53f8439cbe983257919fcb7"
+                         )
+        self.assertEqual(avaproof.stakes[0].stake.utxo.n, 0)
+        self.assertEqual(avaproof.stakes[0].stake.amount, 10000)
+        self.assertEqual(avaproof.stakes[0].stake.height, 672828)
+        self.assertEqual(avaproof.stakes[0].stake.is_coinbase, False)
+        self.assertEqual(avaproof.stakes[0].stake.pubkey, bytes.fromhex(
+            "04d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645"
+            "cd85228a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a"
+        ))
 
         msg_proof = msg_avaproof()
         msg_proof.proof = avaproof
-        self.assertEqual(msg_proof.serialize().hex(), proof_hex)
+        self.assertEqual(ToHex(msg_proof), proof_hex)
