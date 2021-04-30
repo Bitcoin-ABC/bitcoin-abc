@@ -24,13 +24,21 @@ import {
     isValidTokenPrefix,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
-import { formatBalance } from '@utils/cashMethods';
+import { formatBalance, isValidStoredWallet } from '@utils/cashMethods';
 
-const SendToken = ({ tokenId }) => {
+const SendToken = ({ tokenId, jestBCH }) => {
     const { wallet, tokens, slpBalancesAndUtxos, apiError } = React.useContext(
         WalletContext,
     );
-    const token = tokens.find(token => token.tokenId === tokenId);
+    // If this wallet has migrated to latest storage structure, get token info from there
+    // If not, use the tokens object (unless it's undefined, in which case use an empty array)
+    const liveTokenState =
+        isValidStoredWallet(wallet) && wallet.state.tokens
+            ? wallet.state.tokens
+            : tokens
+            ? tokens
+            : [];
+    const token = liveTokenState.find(token => token.tokenId === tokenId);
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
@@ -48,7 +56,8 @@ const SendToken = ({ tokenId }) => {
     const [loading, setLoading] = useState(false);
 
     const { getBCH, getRestUrl, sendToken } = useBCH();
-    const BCH = getBCH();
+    // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
+    const BCH = jestBCH ? jestBCH : getBCH();
 
     // Keep this function around for re-enabling later
     // eslint-disable-next-line no-unused-vars
@@ -147,7 +156,10 @@ const SendToken = ({ tokenId }) => {
             }
         }
         setSendTokenAmountError(error);
-        setFormData(p => ({ ...p, [name]: value }));
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
     };
 
     const handleTokenAddressChange = e => {
@@ -236,11 +248,17 @@ const SendToken = ({ tokenId }) => {
                     <Row type="flex">
                         <Col span={24}>
                             <Spin
-                                style={{ color: 'red' }}
+                                style={{
+                                    color: 'red',
+                                }}
                                 spinning={loading}
                                 indicator={CashLoadingIcon}
                             >
-                                <Form style={{ width: 'auto' }}>
+                                <Form
+                                    style={{
+                                        width: 'auto',
+                                    }}
+                                >
                                     <FormItemWithQRCodeAddon
                                         loadWithCameraOpen={scannerSupported}
                                         validateStatus={
@@ -326,7 +344,11 @@ const SendToken = ({ tokenId }) => {
                                             value: formData.value,
                                         }}
                                     />
-                                    <div style={{ paddingTop: '12px' }}>
+                                    <div
+                                        style={{
+                                            paddingTop: '12px',
+                                        }}
+                                    >
                                         {apiError ||
                                         sendTokenAmountError ||
                                         sendTokenAddressError ? (
@@ -352,7 +374,11 @@ const SendToken = ({ tokenId }) => {
                                         />
                                     )}
                                     {apiError && (
-                                        <p style={{ color: 'red' }}>
+                                        <p
+                                            style={{
+                                                color: 'red',
+                                            }}
+                                        >
                                             <b>
                                                 An error occured on our end.
                                                 Reconnecting...
