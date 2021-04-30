@@ -239,6 +239,7 @@ class ConfArgsTest(BitcoinTestFramework):
             expected_msgs=[
                 "Loaded 0 addresses from peers.dat",
                 "0 addresses found from DNS seeds",
+                "opencon thread start",
             ],
             timeout=10,
         ):
@@ -296,6 +297,7 @@ class ConfArgsTest(BitcoinTestFramework):
             expected_msgs=[
                 "Loaded 0 addresses from peers.dat",
                 "DNS seeding disabled",
+                "opencon thread start",
             ],
             timeout=10,
         ):
