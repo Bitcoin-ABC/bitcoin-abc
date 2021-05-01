@@ -140,7 +140,7 @@ endif()
 # For convenience, we wrap this into a function.
 function(link_secp256k1_internal NAME)
 	target_link_libraries(${NAME} secp256k1)
-	target_compile_definitions(${NAME} PRIVATE HAVE_CONFIG_H SECP256K1_BUILD)
+	target_compile_definitions(${NAME} PRIVATE HAVE_CONFIG_H)
 endfunction(link_secp256k1_internal)
 
 include(InstallationHelper)
@@ -274,7 +274,7 @@ endif()
 
 # Generate the config
 configure_file(src/libsecp256k1-config.h.cmake.in src/libsecp256k1-config.h ESCAPE_QUOTES)
-target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H SECP256K1_BUILD)
+target_compile_definitions(secp256k1 PRIVATE HAVE_CONFIG_H)
 
 # Tests
 option(SECP256K1_BUILD_TEST "Build secp256k1's unit tests" ON)

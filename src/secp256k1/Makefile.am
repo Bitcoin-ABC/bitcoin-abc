@@ -68,7 +68,7 @@ endif
 endif
 
 libsecp256k1_la_SOURCES = src/secp256k1.c
-libsecp256k1_la_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/include -I$(top_srcdir)/src $(SECP_INCLUDES)
+libsecp256k1_la_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src $(SECP_INCLUDES)
 libsecp256k1_la_LIBADD = $(SECP_LIBS) $(COMMON_LIB)
 
 if VALGRIND_ENABLED
@@ -80,22 +80,21 @@ if USE_BENCHMARK
 noinst_PROGRAMS += bench_verify bench_sign bench_internal bench_ecmult
 bench_verify_SOURCES = src/bench_verify.c
 bench_verify_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
-bench_verify_CPPFLAGS = -DSECP256K1_BUILD
 bench_sign_SOURCES = src/bench_sign.c
 bench_sign_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
 bench_internal_SOURCES = src/bench_internal.c
 bench_internal_LDADD = $(SECP_LIBS) $(COMMON_LIB)
-bench_internal_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/src $(SECP_INCLUDES)
+bench_internal_CPPFLAGS = -I$(top_srcdir)/src $(SECP_INCLUDES)
 bench_ecmult_SOURCES = src/bench_ecmult.c
 bench_ecmult_LDADD = $(SECP_LIBS) $(COMMON_LIB)
-bench_ecmult_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/src $(SECP_INCLUDES)
+bench_ecmult_CPPFLAGS = -I$(top_srcdir)/src $(SECP_INCLUDES)
 endif
 
 TESTS =
 if USE_TESTS
 noinst_PROGRAMS += tests
 tests_SOURCES = src/tests.c
-tests_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/src -I$(top_srcdir)/include $(SECP_INCLUDES) $(SECP_TEST_INCLUDES)
+tests_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/include $(SECP_INCLUDES) $(SECP_TEST_INCLUDES)
 if VALGRIND_ENABLED
 tests_CPPFLAGS += -DVALGRIND
 noinst_PROGRAMS += valgrind_ctime_test
@@ -113,7 +112,7 @@ endif
 if USE_EXHAUSTIVE_TESTS
 noinst_PROGRAMS += exhaustive_tests
 exhaustive_tests_SOURCES = src/tests_exhaustive.c
-exhaustive_tests_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/src $(SECP_INCLUDES)
+exhaustive_tests_CPPFLAGS = -I$(top_srcdir)/src $(SECP_INCLUDES)
 if !ENABLE_COVERAGE
 exhaustive_tests_CPPFLAGS += -DVERIFY
 endif
