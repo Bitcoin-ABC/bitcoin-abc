@@ -31,9 +31,9 @@ using node::UndoReadFromDisk;
  * height are fast. Keys for the hash index have the type [DB_BLOCK_HASH,
  * uint256].
  */
-constexpr char DB_BLOCK_HASH = 's';
-constexpr char DB_BLOCK_HEIGHT = 't';
-constexpr char DB_FILTER_POS = 'P';
+constexpr uint8_t DB_BLOCK_HASH{'s'};
+constexpr uint8_t DB_BLOCK_HEIGHT{'t'};
+constexpr uint8_t DB_FILTER_POS{'P'};
 
 // 16 MiB
 constexpr unsigned int MAX_FLTR_FILE_SIZE = 0x1000000;
@@ -72,7 +72,7 @@ struct DBHeightKey {
     }
 
     template <typename Stream> void Unserialize(Stream &s) {
-        char prefix = ser_readdata8(s);
+        const uint8_t prefix{ser_readdata8(s)};
         if (prefix != DB_BLOCK_HEIGHT) {
             throw std::ios_base::failure(
                 "Invalid format for block filter index DB height key");
@@ -87,7 +87,7 @@ struct DBHashKey {
     explicit DBHashKey(const BlockHash &hash_in) : hash(hash_in) {}
 
     SERIALIZE_METHODS(DBHashKey, obj) {
-        char prefix = DB_BLOCK_HASH;
+        uint8_t prefix{DB_BLOCK_HASH};
         READWRITE(prefix);
         if (prefix != DB_BLOCK_HASH) {
             throw std::ios_base::failure(

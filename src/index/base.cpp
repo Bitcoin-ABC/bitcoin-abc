@@ -19,7 +19,7 @@
 
 using node::ReadBlockFromDisk;
 
-constexpr char DB_BEST_BLOCK = 'B';
+constexpr uint8_t DB_BEST_BLOCK{'B'};
 
 constexpr int64_t SYNC_LOG_INTERVAL = 30;           // secon
 constexpr int64_t SYNC_LOCATOR_WRITE_INTERVAL = 30; // seconds

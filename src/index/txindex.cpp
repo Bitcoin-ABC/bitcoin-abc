@@ -12,7 +12,7 @@
 
 using node::OpenBlockFile;
 
-constexpr char DB_TXINDEX = 't';
+constexpr uint8_t DB_TXINDEX{'t'};
 
 std::unique_ptr<TxIndex> g_txindex;
 
