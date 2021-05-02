@@ -18,6 +18,7 @@
 #include <crypto/sha256.h>
 #include <dnsseeds.h>
 #include <i2p.h>
+#include <netaddress.h>
 #include <netbase.h>
 #include <node/ui_interface.h>
 #include <protocol.h>
@@ -3284,8 +3285,10 @@ bool CConnman::AddNewAddresses(const std::vector<CAddress> &vAddr,
 }
 
 std::vector<CAddress> CConnman::GetAddresses(size_t max_addresses,
-                                             size_t max_pct) {
-    std::vector<CAddress> addresses = addrman.GetAddr(max_addresses, max_pct);
+                                             size_t max_pct,
+                                             std::optional<Network> network) {
+    std::vector<CAddress> addresses =
+        addrman.GetAddr(max_addresses, max_pct, network);
     if (m_banman) {
         addresses.erase(std::remove_if(addresses.begin(), addresses.end(),
                                        [this](const CAddress &addr) {
@@ -3312,7 +3315,7 @@ CConnman::GetAddresses(CNode &requestor, size_t max_addresses, size_t max_pct) {
     // New CachedAddrResponse have expiration 0.
     if (cache_entry.m_cache_entry_expiration < current_time) {
         cache_entry.m_addrs_response_cache =
-            GetAddresses(max_addresses, max_pct);
+            GetAddresses(max_addresses, max_pct, /* network */ std::nullopt);
         // Choosing a proper cache lifetime is a trade-off between the privacy
         // leak minimization and the usefulness of ADDR responses to honest
         // users.

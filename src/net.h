@@ -1054,7 +1054,18 @@ public:
     void MarkAddressGood(const CAddress &addr);
     bool AddNewAddresses(const std::vector<CAddress> &vAddr,
                          const CAddress &addrFrom, int64_t nTimePenalty = 0);
-    std::vector<CAddress> GetAddresses(size_t max_addresses, size_t max_pct);
+    /**
+     * Return all or many randomly selected addresses, optionally by network.
+     *
+     * @param[in] max_addresses  Maximum number of addresses to return
+     *                           (0 = all).
+     * @param[in] max_pct        Maximum percentage of addresses to return
+     *                           (0 = all).
+     * @param[in] network        Select only addresses of this network
+     *                           (nullopt = all).
+     */
+    std::vector<CAddress> GetAddresses(size_t max_addresses, size_t max_pct,
+                                       std::optional<Network> network);
     /**
      * Cache is used to minimize topology leaks, so it should
      * be used for all non-trusted calls, for example, p2p.

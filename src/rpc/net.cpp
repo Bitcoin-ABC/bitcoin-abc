@@ -31,6 +31,8 @@
 #include <version.h>
 #include <warnings.h>
 
+#include <optional>
+
 #include <univalue.h>
 
 static RPCHelpMan getconnectioncount() {
@@ -1117,8 +1119,8 @@ static RPCHelpMan getnodeaddresses() {
             }
 
             // returns a shuffled list of CAddress
-            const std::vector<CAddress> vAddr{
-                node.connman->GetAddresses(count, /* max_pct */ 0)};
+            const std::vector<CAddress> vAddr{node.connman->GetAddresses(
+                count, /* max_pct */ 0, /* network */ std::nullopt)};
             UniValue ret(UniValue::VARR);
 
             for (const CAddress &addr : vAddr) {
