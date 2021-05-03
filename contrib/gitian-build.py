@@ -558,7 +558,7 @@ def main():
 
     # Disable for MacOS if no SDK found
     if args.macos and not os.path.isfile(
-        "gitian-builder/inputs/Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz"
+        "gitian-builder/inputs/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz"
     ):
         print("Cannot build for MacOS, SDK does not exist. Will build for other OSes")
         args.macos = False

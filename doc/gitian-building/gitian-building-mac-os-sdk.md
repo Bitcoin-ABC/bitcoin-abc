@@ -13,15 +13,15 @@ Copy SDK to Gitian VM:
 Copy it to the Gitian VM and clean up, e.g.:
 
 ```bash
-scp Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz gitian:
-rm Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz
+scp Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz gitian:
+rm Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz
 ```
 
 Login to the VM and:
 
 ```bash
 mkdir -p gitian-builder/inputs
-mv Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz gitian-builder/inputs
+mv Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz gitian-builder/inputs
 ```
 
 Troubleshooting
