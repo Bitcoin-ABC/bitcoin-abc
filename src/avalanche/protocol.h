@@ -73,7 +73,7 @@ public:
     Hello(Delegation delegationIn, SchnorrSig sigIn)
         : delegation(std::move(delegationIn)), sig(sigIn) {}
 
-    std::array<uint8_t, 64> GetSig() { return sig; }
+    SchnorrSig GetSig() { return sig; }
 
     // serialization support
     SERIALIZE_METHODS(Hello, obj) { READWRITE(obj.delegation, obj.sig); }
