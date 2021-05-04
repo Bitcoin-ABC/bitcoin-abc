@@ -143,8 +143,9 @@ namespace sam {
                 Sock::Event occurred;
                 conn.sock->Wait(MAX_WAIT_FOR_IO, Sock::RECV, &occurred);
 
-                if ((occurred & Sock::RECV) == 0) {
-                    // Timeout, no incoming connections within MAX_WAIT_FOR_IO.
+                if (occurred == 0) {
+                    // Timeout, no incoming connections or errors within
+                    // MAX_WAIT_FOR_IO.
                     continue;
                 }
 

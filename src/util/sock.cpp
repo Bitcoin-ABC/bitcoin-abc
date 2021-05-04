@@ -76,15 +76,15 @@ int Sock::Connect(const sockaddr *addr, socklen_t addr_len) const {
 
 std::unique_ptr<Sock> Sock::Accept(sockaddr *addr, socklen_t *addr_len) const {
 #ifdef WIN32
-    static constexpr auto ERR = INVALID_SOCKET;
+    static constexpr auto err = INVALID_SOCKET;
 #else
-    static constexpr auto ERR = SOCKET_ERROR;
+    static constexpr auto err = SOCKET_ERROR;
 #endif
 
     std::unique_ptr<Sock> sock;
 
     const auto socket = accept(m_socket, addr, addr_len);
-    if (socket != ERR) {
+    if (socket != err) {
         try {
             sock = std::make_unique<Sock>(socket);
         } catch (const std::exception &) {
@@ -130,6 +130,9 @@ bool Sock::Wait(std::chrono::milliseconds timeout, Event requested,
         if (fd.revents & POLLOUT) {
             *occurred |= SEND;
         }
+        if (fd.revents & (POLLERR | POLLHUP)) {
+            *occurred |= ERR;
+        }
     }
 
     return true;
@@ -140,8 +143,10 @@ bool Sock::Wait(std::chrono::milliseconds timeout, Event requested,
 
     fd_set fdset_recv;
     fd_set fdset_send;
+    fd_set fdset_err;
     FD_ZERO(&fdset_recv);
     FD_ZERO(&fdset_send);
+    FD_ZERO(&fdset_err);
 
     if (requested & RECV) {
         FD_SET(m_socket, &fdset_recv);
@@ -151,9 +156,11 @@ bool Sock::Wait(std::chrono::milliseconds timeout, Event requested,
         FD_SET(m_socket, &fdset_send);
     }
 
+    FD_SET(m_socket, &fdset_err);
+
     timeval timeout_struct = MillisToTimeval(timeout);
 
-    if (select(m_socket + 1, &fdset_recv, &fdset_send, nullptr,
+    if (select(m_socket + 1, &fdset_recv, &fdset_send, &fdset_err,
                &timeout_struct) == SOCKET_ERROR) {
         return false;
     }
@@ -165,6 +172,9 @@ bool Sock::Wait(std::chrono::milliseconds timeout, Event requested,
         }
         if (FD_ISSET(m_socket, &fdset_send)) {
             *occurred |= SEND;
+        }
+        if (FD_ISSET(m_socket, &fdset_err)) {
+            *occurred |= ERR;
         }
     }
 
