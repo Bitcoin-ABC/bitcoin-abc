@@ -81,7 +81,6 @@ void ReleaseDirectoryLocks();
 
 bool TryCreateDirectories(const fs::path &p);
 fs::path GetDefaultDataDir();
-const fs::path &GetDataDir(bool fNetSpecific = true);
 // Return true if -datadir option points to a valid directory or is not
 // specified.
 bool CheckDataDirOption();
