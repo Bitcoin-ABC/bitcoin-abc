@@ -8,11 +8,11 @@
 #define SECP256K1_MODULE_MULTISET_MAIN_H
 
 
-#include "include/secp256k1_multiset.h"
+#include "../../../include/secp256k1_multiset.h"
 
-#include "hash.h"
-#include "field.h"
-#include "group.h"
+#include "../../hash.h"
+#include "../../field.h"
+#include "../../group.h"
 
 /** Converts a group element (Jacobian) to a multiset.
  *  Requires the field elements to be normalized

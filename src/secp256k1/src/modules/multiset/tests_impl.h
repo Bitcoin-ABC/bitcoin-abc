@@ -8,10 +8,10 @@
 #define SECP256K1_MODULE_MULTISET_TESTS_H
 
 
-#include "include/secp256k1.h"
-#include "include/secp256k1_multiset.h"
-#include "util.h"
-#include "testrand.h"
+#include "../../../include/secp256k1.h"
+#include "../../../include/secp256k1_multiset.h"
+#include "../../util.h"
+#include "../../testrand.h"
 
 #define DATALEN   64*3
 #define DATACOUNT 100

@@ -7,7 +7,7 @@
 #ifndef SECP256K1_MODULE_SCHNORR_MAIN_H
 #define SECP256K1_MODULE_SCHNORR_MAIN_H
 
-#include "include/secp256k1_schnorr.h"
+#include "../../../include/secp256k1_schnorr.h"
 #include "modules/schnorr/schnorr_impl.h"
 
 int secp256k1_schnorr_verify(
