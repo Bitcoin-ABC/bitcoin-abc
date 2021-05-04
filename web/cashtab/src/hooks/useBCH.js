@@ -5,6 +5,7 @@ import {
     toSmallestDenomination,
     batchArray,
     flattenBatchedHydratedUtxos,
+    isValidStoredWallet,
 } from '@utils/cashMethods';
 
 export default function useBCH() {
@@ -202,6 +203,7 @@ export default function useBCH() {
             txDataPromiseResponse = await Promise.all(txDataPromises);
 
             const parsed = parseTxData(txDataPromiseResponse);
+
             return parsed;
         } catch (err) {
             console.log(`Error in Promise.all(txDataPromises):`);
@@ -212,7 +214,7 @@ export default function useBCH() {
 
     const parseTokenInfoForTxHistory = (parsedTx, tokenInfo) => {
         // Scan over inputs to find out originating addresses
-        const { sendInputsFull, sendOutputsFull } = tokenInfo;
+        const { transactionType, sendInputsFull, sendOutputsFull } = tokenInfo;
         const sendingTokenAddresses = [];
         for (let i = 0; i < sendInputsFull.length; i += 1) {
             const sendingAddress = sendInputsFull[i].address;
@@ -223,7 +225,13 @@ export default function useBCH() {
         let qtyReceived = new BigNumber(0);
         for (let i = 0; i < sendOutputsFull.length; i += 1) {
             if (sendingTokenAddresses.includes(sendOutputsFull[i].address)) {
-                // token change
+                // token change and should be ignored, unless it's a genesis transaction
+                // then this is the amount created
+                if (transactionType === 'GENESIS') {
+                    qtyReceived = qtyReceived.plus(
+                        new BigNumber(sendOutputsFull[i].amount),
+                    );
+                }
                 continue;
             }
             if (parsedTx.outgoingTx) {
@@ -242,6 +250,7 @@ export default function useBCH() {
         cashtabTokenInfo.tokenId = tokenInfo.tokenIdHex;
         cashtabTokenInfo.tokenName = tokenInfo.tokenName;
         cashtabTokenInfo.tokenTicker = tokenInfo.tokenTicker;
+        cashtabTokenInfo.transactionType = transactionType;
 
         return cashtabTokenInfo;
     };
@@ -487,6 +496,130 @@ export default function useBCH() {
         );
         const txFee = Math.ceil(satoshisPerByte * byteCount);
         return txFee;
+    };
+
+    const createToken = async (BCH, wallet, feeInSatsPerByte, configObj) => {
+        try {
+            // Throw error if wallet does not have utxo set in state
+            if (!isValidStoredWallet(wallet)) {
+                const walletError = new Error(`Invalid wallet`);
+                throw walletError;
+            }
+            const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
+
+            const CREATION_ADDR = wallet.Path1899.cashAddress;
+            const inputUtxos = [];
+            let transactionBuilder;
+
+            // instance of transaction builder
+            if (process.env.REACT_APP_NETWORK === `mainnet`)
+                transactionBuilder = new BCH.TransactionBuilder();
+            else transactionBuilder = new BCH.TransactionBuilder('testnet');
+
+            let originalAmount = new BigNumber(0);
+            const tokenOutputDust = new BigNumber(currency.dust);
+            let txFee = 0;
+            for (let i = 0; i < utxos.length; i++) {
+                const utxo = utxos[i];
+                originalAmount = originalAmount.plus(utxo.value);
+                const vout = utxo.vout;
+                const txid = utxo.txid;
+                // add input with txid and index of vout
+                transactionBuilder.addInput(txid, vout);
+
+                inputUtxos.push(utxo);
+                txFee = calcFee(BCH, inputUtxos, 3, feeInSatsPerByte);
+
+                if (originalAmount.minus(tokenOutputDust).minus(txFee).gte(0)) {
+                    break;
+                }
+            }
+
+            // amount to send back to the remainder address.
+            const remainder = originalAmount
+                .minus(tokenOutputDust)
+                .minus(txFee);
+
+            if (remainder.lt(0)) {
+                const error = new Error(`Insufficient funds`);
+                error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
+                throw error;
+            }
+
+            // Generate the OP_RETURN entry for an SLP GENESIS transaction.
+            const script = BCH.SLP.TokenType1.generateGenesisOpReturn(
+                configObj,
+            );
+            // OP_RETURN needs to be the first output in the transaction.
+            transactionBuilder.addOutput(script, 0);
+
+            // add output w/ address and amount to send
+            transactionBuilder.addOutput(
+                CREATION_ADDR,
+                parseInt(toSmallestDenomination(tokenOutputDust)),
+            );
+
+            // Send change to own address
+            if (
+                remainder.gte(
+                    toSmallestDenomination(new BigNumber(currency.dust)),
+                )
+            ) {
+                transactionBuilder.addOutput(
+                    CREATION_ADDR,
+                    parseInt(remainder),
+                );
+            }
+
+            // Sign the transactions with the HD node.
+            for (let i = 0; i < inputUtxos.length; i++) {
+                const utxo = inputUtxos[i];
+                transactionBuilder.sign(
+                    i,
+                    BCH.ECPair.fromWIF(utxo.wif),
+                    undefined,
+                    transactionBuilder.hashTypes.SIGHASH_ALL,
+                    utxo.value,
+                );
+            }
+
+            // build tx
+            const tx = transactionBuilder.build();
+            // output rawhex
+            const hex = tx.toHex();
+
+            // Broadcast transaction to the network
+            const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
+
+            if (txidStr && txidStr[0]) {
+                console.log(`${currency.ticker} txid`, txidStr[0]);
+            }
+            let link;
+
+            if (process.env.REACT_APP_NETWORK === `mainnet`) {
+                link = `${currency.tokenExplorerUrl}/tx/${txidStr}`;
+            } else {
+                link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
+            }
+            //console.log(`link`, link);
+
+            return link;
+        } catch (err) {
+            if (err.error === 'insufficient priority (code 66)') {
+                err.code = SEND_BCH_ERRORS.INSUFFICIENT_PRIORITY;
+            } else if (err.error === 'txn-mempool-conflict (code 18)') {
+                err.code = SEND_BCH_ERRORS.DOUBLE_SPENDING;
+            } else if (err.error === 'Network Error') {
+                err.code = SEND_BCH_ERRORS.NETWORK_ERROR;
+            } else if (
+                err.error ===
+                'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)'
+            ) {
+                err.code = SEND_BCH_ERRORS.MAX_UNCONFIRMED_TXS;
+            }
+            console.log(`error: `, err);
+            throw err;
+        }
     };
 
     const sendToken = async (
@@ -849,5 +982,6 @@ export default function useBCH() {
         getRestUrl,
         sendBch,
         sendToken,
+        createToken,
     };
 }

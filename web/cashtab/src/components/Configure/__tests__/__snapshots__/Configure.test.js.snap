@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Configure with a wallet 1`] = `
 <div
@@ -33,12 +33,12 @@ exports[`Configure with a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-kgoBCf dkabgy"
+      className="sc-kGXeez bnGuui"
     >
       <h2>
         <span
           aria-label="copy"
-          className="anticon anticon-copy sc-bwzfXH eCSKEi"
+          className="anticon anticon-copy sc-htpNat bGTymY"
           role="img"
         >
           <svg
@@ -103,7 +103,7 @@ exports[`Configure with a wallet 1`] = `
         </div>
       </div>
       <div
-        className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa bWyEBD"
+        className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa AfOYf"
         role={null}
       >
         <div
@@ -141,12 +141,12 @@ exports[`Configure with a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-kGXeez kTnHvP"
+        className="sc-kpOJdX eglhol"
       />
       <h2>
         <span
           aria-label="wallet"
-          className="anticon anticon-wallet sc-bxivhb gaDgkj"
+          className="anticon anticon-wallet sc-ifAKCX bzXUUf"
           role="img"
         >
           <svg
@@ -166,7 +166,7 @@ exports[`Configure with a wallet 1`] = `
          Manage Wallets
       </h2>
       <button
-        className="sc-gqjmRU XGywS"
+        className="sc-VigVT hEOBKE"
         onClick={[Function]}
       >
         <span
@@ -194,7 +194,7 @@ exports[`Configure with a wallet 1`] = `
          New Wallet
       </button>
       <button
-        className="sc-VigVT fqMxLW"
+        className="sc-jTzLTM bLkbAy"
         onClick={[Function]}
       >
         <span
@@ -219,11 +219,11 @@ exports[`Configure with a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-kGXeez kTnHvP"
+        className="sc-kpOJdX eglhol"
       />
       [
       <a
-        className="sc-fjdhpX eJaZHQ"
+        className="sc-jzJRlG erIHmd"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"
@@ -270,12 +270,12 @@ exports[`Configure without a wallet 1`] = `
     className="ant-spin-container ant-spin-blur"
   >
     <div
-      className="sc-kgoBCf dkabgy"
+      className="sc-kGXeez bnGuui"
     >
       <h2>
         <span
           aria-label="copy"
-          className="anticon anticon-copy sc-bwzfXH eCSKEi"
+          className="anticon anticon-copy sc-htpNat bGTymY"
           role="img"
         >
           <svg
@@ -340,12 +340,12 @@ exports[`Configure without a wallet 1`] = `
         </div>
       </div>
       <div
-        className="sc-kGXeez kTnHvP"
+        className="sc-kpOJdX eglhol"
       />
       <h2>
         <span
           aria-label="wallet"
-          className="anticon anticon-wallet sc-bxivhb gaDgkj"
+          className="anticon anticon-wallet sc-ifAKCX bzXUUf"
           role="img"
         >
           <svg
@@ -365,7 +365,7 @@ exports[`Configure without a wallet 1`] = `
          Manage Wallets
       </h2>
       <button
-        className="sc-gqjmRU XGywS"
+        className="sc-VigVT hEOBKE"
         onClick={[Function]}
       >
         <span
@@ -393,7 +393,7 @@ exports[`Configure without a wallet 1`] = `
          New Wallet
       </button>
       <button
-        className="sc-VigVT fqMxLW"
+        className="sc-jTzLTM bLkbAy"
         onClick={[Function]}
       >
         <span
@@ -418,11 +418,11 @@ exports[`Configure without a wallet 1`] = `
          Import Wallet
       </button>
       <div
-        className="sc-kGXeez kTnHvP"
+        className="sc-kpOJdX eglhol"
       />
       [
       <a
-        className="sc-fjdhpX eJaZHQ"
+        className="sc-jzJRlG erIHmd"
         href="https://docs.cashtabapp.com/docs/"
         rel="noreferrer"
         target="_blank"

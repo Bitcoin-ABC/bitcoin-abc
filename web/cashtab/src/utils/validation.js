@@ -43,3 +43,43 @@ export const fiatToCrypto = (fiatAmount, fiatPrice) => {
         .toFixed(currency.cashDecimals);
     return cryptoAmount;
 };
+
+export const isValidTokenName = tokenName => {
+    return (
+        typeof tokenName === 'string' &&
+        tokenName.length > 0 &&
+        tokenName.length < 68
+    );
+};
+
+export const isValidTokenTicker = tokenTicker => {
+    return (
+        typeof tokenTicker === 'string' &&
+        tokenTicker.length > 0 &&
+        tokenTicker.length < 13
+    );
+};
+
+export const isValidTokenDecimals = tokenDecimals => {
+    return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(
+        tokenDecimals,
+    );
+};
+
+export const isValidTokenInitialQty = (tokenInitialQty, tokenDecimals) => {
+    const minimumQty = new BigNumber(1 / 10 ** tokenDecimals);
+    const tokenIntialQtyBig = new BigNumber(tokenInitialQty);
+    return (
+        tokenIntialQtyBig.gte(minimumQty) &&
+        tokenIntialQtyBig.lt(100000000000) &&
+        tokenIntialQtyBig.dp() <= tokenDecimals
+    );
+};
+
+export const isValidTokenDocumentUrl = tokenDocumentUrl => {
+    return (
+        typeof tokenDocumentUrl === 'string' &&
+        tokenDocumentUrl.length >= 0 &&
+        tokenDocumentUrl.length < 68
+    );
+};

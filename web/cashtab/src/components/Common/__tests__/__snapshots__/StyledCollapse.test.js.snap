@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Render StyledCollapse component 1`] = `
 <div
-  className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa bWyEBD"
+  className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa AfOYf"
   role={null}
 />
 `;

@@ -1,6 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import {
+    ArrowUpOutlined,
+    ArrowDownOutlined,
+    ExperimentOutlined,
+} from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
@@ -9,6 +13,9 @@ const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.secondary} !important;
 `;
 const ReceivedTx = styled(ArrowDownOutlined)`
+    color: ${props => props.theme.primary} !important;
+`;
+const GenesisTx = styled(ExperimentOutlined)`
     color: ${props => props.theme.primary} !important;
 `;
 const DateType = styled.div`
@@ -141,10 +148,30 @@ const Tx = ({ data, fiatPrice }) => {
 
     return (
         <TxWrapper>
-            <TxIcon>{data.outgoingTx ? <SentTx /> : <ReceivedTx />}</TxIcon>
+            <TxIcon>
+                {data.outgoingTx ? (
+                    <>
+                        {data.tokenTx &&
+                        data.tokenInfo.transactionType === 'GENESIS' ? (
+                            <GenesisTx />
+                        ) : (
+                            <SentTx />
+                        )}
+                    </>
+                ) : (
+                    <ReceivedTx />
+                )}
+            </TxIcon>
             <DateType>
                 {data.outgoingTx ? (
-                    <SentLabel>Sent</SentLabel>
+                    <>
+                        {data.tokenTx &&
+                        data.tokenInfo.transactionType === 'GENESIS' ? (
+                            <ReceivedLabel>Genesis</ReceivedLabel>
+                        ) : (
+                            <SentLabel>Sent</SentLabel>
+                        )}
+                    </>
                 ) : (
                     <ReceivedLabel>Received</ReceivedLabel>
                 )}
@@ -187,13 +214,32 @@ const Tx = ({ data, fiatPrice }) => {
                             </TxTokenIcon>
                             {data.outgoingTx ? (
                                 <>
-                                    <TokenTxAmt>
-                                        - {data.tokenInfo.qtySent.toString()}
-                                        &nbsp;{data.tokenInfo.tokenTicker}
-                                    </TokenTxAmt>
-                                    <TokenName>
-                                        {data.tokenInfo.tokenName}
-                                    </TokenName>
+                                    {data.tokenInfo.transactionType ===
+                                    'GENESIS' ? (
+                                        <>
+                                            <TokenTxAmt>
+                                                +{' '}
+                                                {data.tokenInfo.qtyReceived.toString()}
+                                                &nbsp;
+                                                {data.tokenInfo.tokenTicker}
+                                            </TokenTxAmt>
+                                            <TokenName>
+                                                {data.tokenInfo.tokenName}
+                                            </TokenName>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TokenTxAmt>
+                                                -{' '}
+                                                {data.tokenInfo.qtySent.toString()}
+                                                &nbsp;
+                                                {data.tokenInfo.tokenTicker}
+                                            </TokenTxAmt>
+                                            <TokenName>
+                                                {data.tokenInfo.tokenName}
+                                            </TokenName>
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 <>

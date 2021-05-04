@@ -14,7 +14,40 @@ export const StyledCollapse = styled(Collapse)`
         border-bottom: none !important;
     }
 
-    * {
+    *:not(button) {
         color: ${props => props.theme.collapses.color} !important;
     }
+`;
+
+export const TokenCollapse = styled(Collapse)`
+    ${({ disabled = false, ...props }) =>
+        disabled === true
+            ? `
+                background: ${props.theme.buttons.secondary.background} !important;
+           .ant-collapse-header {
+               font-size: 18px;
+               font-weight: bold;
+               color: ${props.theme.buttons.secondary.color} !important;
+               svg {
+                   color: ${props.theme.buttons.secondary.color} !important;
+               }
+           }
+           .ant-collapse-arrow {
+               font-size: 18px;
+           }
+            `
+            : `
+                background: ${props.theme.primary} !important;
+           .ant-collapse-header {
+               font-size: 18px;
+               font-weight: bold;
+               color: ${props.theme.contrast} !important;
+               svg {
+                   color: ${props.theme.contrast} !important;
+               }
+           }
+           .ant-collapse-arrow {
+               font-size: 18px;
+           }
+            `}
 `;

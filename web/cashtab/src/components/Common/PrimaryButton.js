@@ -78,10 +78,11 @@ const SmartButton = styled.button`
                     -webkit-box-shadow: ${props.theme.buttons.primary.hoverShadow};
                     -moz-box-shadow: ${props.theme.buttons.primary.hoverShadow};
                     box-shadow: ${props.theme.buttons.primary.hoverShadow};
+                }
                 svg {
                     fill: ${props.theme.buttons.primary.color};
                 }
-            }`}
+            `}
 
     border: none;
     transition: all 0.5s ease;

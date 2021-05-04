@@ -1,3 +1,5 @@
+// @generated
+
 export const tokenSendWdt = {
     txid: 'b923fba5b011df438c96f7f8f715fcf2b9ac2f96ea73139885e00aee4361f98f',
     parsedTx: {
@@ -69,6 +71,7 @@ export const tokenSendWdt = {
         tokenName:
             'Test Token With Exceptionally Long Name For CSS And Style Revisions',
         tokenTicker: 'WDT',
+        transactionType: 'SEND',
     },
 };
 
@@ -135,5 +138,63 @@ export const tokenReceiveTBS = {
             'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
         tokenName: 'Cash Tab Points',
         tokenTicker: 'CTP',
+        transactionType: 'SEND',
+    },
+};
+
+export const tokenGenesisCashtabMintAlpha = {
+    txid: '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+    parsedTx: {
+        txid:
+            '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+        confirmations: 11,
+        height: 685170,
+        blocktime: 1620250206,
+        amountSent: 0,
+        amountReceived: 0,
+        tokenTx: true,
+        outgoingTx: true,
+        destinationAddress:
+            'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+        tokenInfo: {
+            qtySent: '0',
+            qtyReceived: '55.55555',
+            tokenId:
+                '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+            tokenName: 'CashtabMintAlpha',
+            tokenTicker: 'CMA',
+            transactionType: 'GENESIS',
+        },
+    },
+    tokenInfo: {
+        versionType: 1,
+        tokenName: 'CashtabMintAlpha',
+        tokenTicker: 'CMA',
+        transactionType: 'GENESIS',
+        tokenIdHex:
+            '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+        sendOutputs: ['0', '5555555000'],
+        sendInputsFull: [
+            {
+                address:
+                    'simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa',
+            },
+        ],
+        sendOutputsFull: [
+            {
+                address:
+                    'simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa',
+                amount: '55.55555',
+            },
+        ],
+    },
+    cashtabTokenInfo: {
+        qtyReceived: '55.55555',
+        qtySent: '0',
+        tokenId:
+            '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+        tokenName: 'CashtabMintAlpha',
+        tokenTicker: 'CMA',
+        transactionType: 'GENESIS',
     },
 };
