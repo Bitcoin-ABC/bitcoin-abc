@@ -220,7 +220,7 @@ const Configure = () => {
         }
     };
 
-    const [isValidMnemonic, setIsValidMnemonic] = useState(false);
+    const [isValidMnemonic, setIsValidMnemonic] = useState(null);
 
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
@@ -317,7 +317,7 @@ const Configure = () => {
     };
 
     const deleteSelectedWallet = async () => {
-        if (!walletDeleteValid) {
+        if (!walletDeleteValid && walletDeleteValid !== null) {
             return;
         }
         if (
@@ -385,13 +385,13 @@ const Configure = () => {
                             <Form style={{ width: 'auto' }}>
                                 <Form.Item
                                     validateStatus={
-                                        newWalletNameIsValid !== null &&
+                                        newWalletNameIsValid === null ||
                                         newWalletNameIsValid
                                             ? ''
                                             : 'error'
                                     }
                                     help={
-                                        newWalletNameIsValid !== null &&
+                                        newWalletNameIsValid === null ||
                                         newWalletNameIsValid
                                             ? ''
                                             : 'Wallet name must be a string between 1 and 24 characters long'
@@ -420,13 +420,13 @@ const Configure = () => {
                             <Form style={{ width: 'auto' }}>
                                 <Form.Item
                                     validateStatus={
-                                        walletDeleteValid !== null &&
+                                        walletDeleteValid === null ||
                                         walletDeleteValid
                                             ? ''
                                             : 'error'
                                     }
                                     help={
-                                        walletDeleteValid !== null &&
+                                        walletDeleteValid === null ||
                                         walletDeleteValid
                                             ? ''
                                             : 'Your confirmation phrase must match exactly'
@@ -499,16 +499,16 @@ const Configure = () => {
                                     <Form style={{ width: 'auto' }}>
                                         <Form.Item
                                             validateStatus={
-                                                !formData.dirty &&
-                                                !formData.mnemonic
-                                                    ? 'error'
-                                                    : ''
+                                                isValidMnemonic === null ||
+                                                isValidMnemonic
+                                                    ? ''
+                                                    : 'error'
                                             }
                                             help={
-                                                !formData.dirty &&
-                                                !formData.mnemonic
-                                                    ? 'Mnemonic seed phrase required'
-                                                    : ''
+                                                isValidMnemonic === null ||
+                                                isValidMnemonic
+                                                    ? ''
+                                                    : 'Valid mnemonic seed phrase required'
                                             }
                                         >
                                             <Input
