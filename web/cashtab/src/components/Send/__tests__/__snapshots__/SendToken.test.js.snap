@@ -3,16 +3,11 @@
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      6.001
-       
-      TBS
-    </h3>
+    6.001
+     
+    TBS
   </div>,
   <div
     className="ant-row"
@@ -265,16 +260,11 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      6.001
-       
-      TBS
-    </h3>
+    6.001
+     
+    TBS
   </div>,
   <div
     className="ant-row"
@@ -527,16 +517,11 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      6.001
-       
-      TBS
-    </h3>
+    6.001
+     
+    TBS
   </div>,
   <div
     className="ant-row"

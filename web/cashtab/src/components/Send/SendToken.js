@@ -11,7 +11,7 @@ import {
     FormItemWithQRCodeAddon,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
-import { BalanceHeader } from './Send';
+import { BalanceHeader } from '@components/Common/Atoms';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -238,11 +238,7 @@ const SendToken = ({ tokenId, jestBCH }) => {
             {token && (
                 <>
                     <BalanceHeader>
-                        <p>Available balance</p>
-                        <h3>
-                            {formatBalance(token.balance)}{' '}
-                            {token.info.tokenTicker}
-                        </h3>
+                        {formatBalance(token.balance)} {token.info.tokenTicker}
                     </BalanceHeader>
 
                     <Row type="flex">

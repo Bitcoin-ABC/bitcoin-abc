@@ -50,3 +50,14 @@ export const TokenParamLabel = styled.span`
 export const AlertMsg = styled.p`
     color: ${props => props.theme.forms.error};
 `;
+
+export const ConvertAmount = styled.div`
+    color: ${props => props.theme.wallet.text.secondary};
+    width: 100%;
+    font-size: 14px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    @media (max-width: 768px) {
+        font-size: 12px;
+    }
+`;

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { WalletContext } from '@utils/context';
 import { Form, notification, message, Spin, Modal, Alert } from 'antd';
 import { CashLoader, CashLoadingIcon } from '@components/Common/CustomIcons';
@@ -24,52 +23,12 @@ import {
 import { Event } from '@utils/GoogleAnalytics';
 import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
 import { formatBalance } from '@utils/cashMethods';
-
-export const BalanceHeader = styled.div`
-    p {
-        color: ${props => props.theme.wallet.text.secondary}
-        width: 100%;
-        font-size: 14px;
-        margin-bottom: 0px;
-    }
-
-    h3 {
-        color: ${props => props.theme.wallet.text.primary};
-        width: 100%;
-        font-size: 26px;
-        font-weight: bold;
-        margin-bottom: 0px;
-    }
-`;
-
-export const BalanceHeaderFiat = styled.div`
-    color: ${props => props.theme.wallet.text.secondary};
-    width: 100%;
-    font-size: 18px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    @media (max-width: 768px) {
-        font-size: 16px;
-    }
-`;
-
-export const ZeroBalanceHeader = styled.div`
-    color: ${props => props.theme.wallet.text.secondary};
-    width: 100%;
-    font-size: 14px;
-    margin-bottom: 20px;
-`;
-
-const ConvertAmount = styled.div`
-    color: ${props => props.theme.wallet.text.secondary};
-    width: 100%;
-    font-size: 14px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    @media (max-width: 768px) {
-        font-size: 12px;
-    }
-`;
+import {
+    BalanceHeader,
+    BalanceHeaderFiat,
+    ZeroBalanceHeader,
+    ConvertAmount,
+} from '@components/Common/Atoms';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
@@ -438,11 +397,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
             ) : (
                 <>
                     <BalanceHeader>
-                        <p>Available balance</p>
-                        <h3>
-                            {formatBalance(balances.totalBalance)}{' '}
-                            {currency.ticker}
-                        </h3>
+                        {formatBalance(balances.totalBalance)} {currency.ticker}
                     </BalanceHeader>
                     {fiatPrice !== null && (
                         <BalanceHeaderFiat>

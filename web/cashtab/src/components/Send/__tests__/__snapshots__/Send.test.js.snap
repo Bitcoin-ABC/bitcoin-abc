@@ -3,19 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      0.06047469
-       
-      BCHA
-    </h3>
+    0.06047469
+     
+    BCHA
   </div>,
   <div
-    className="sc-fjdhpX hMeYog"
+    className="sc-jzJRlG fhWiOX"
   >
     $
     NaN
@@ -334,7 +329,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-cSHVUG lierlF"
+              className="sc-kgoBCf FIGxW"
             >
               = 
               $ NaN USD
@@ -364,19 +359,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      0.06047469
-       
-      BCHA
-    </h3>
+    0.06047469
+     
+    BCHA
   </div>,
   <div
-    className="sc-fjdhpX hMeYog"
+    className="sc-jzJRlG fhWiOX"
   >
     $
     NaN
@@ -695,7 +685,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-cSHVUG lierlF"
+              className="sc-kgoBCf FIGxW"
             >
               = 
               $ NaN USD
@@ -725,19 +715,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      0.06047469
-       
-      BCHA
-    </h3>
+    0.06047469
+     
+    BCHA
   </div>,
   <div
-    className="sc-fjdhpX hMeYog"
+    className="sc-jzJRlG fhWiOX"
   >
     $
     NaN
@@ -1056,7 +1041,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-cSHVUG lierlF"
+              className="sc-kgoBCf FIGxW"
             >
               = 
               $ NaN USD
@@ -1086,19 +1071,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 Array [
   <div
-    className="sc-jTzLTM ftdfiF"
+    className="sc-fjdhpX gMmFTr"
   >
-    <p>
-      Available balance
-    </p>
-    <h3>
-      0.06047469
-       
-      BCHA
-    </h3>
+    0.06047469
+     
+    BCHA
   </div>,
   <div
-    className="sc-fjdhpX hMeYog"
+    className="sc-jzJRlG fhWiOX"
   >
     $
     NaN
@@ -1417,7 +1397,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-cSHVUG lierlF"
+              className="sc-kgoBCf FIGxW"
             >
               = 
               $ NaN USD
@@ -1447,7 +1427,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-jzJRlG kNGwIp"
+    className="sc-cSHVUG hfhRzx"
   >
     You currently have 0 
     BCHA
@@ -1766,7 +1746,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-cSHVUG lierlF"
+              className="sc-kgoBCf FIGxW"
             >
               = 
               $ NaN USD
@@ -1795,7 +1775,7 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-jzJRlG kNGwIp"
+    className="sc-cSHVUG hfhRzx"
   >
     You currently have 0 
     BCHA
@@ -2114,7 +2094,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-cSHVUG lierlF"
+              className="sc-kgoBCf FIGxW"
             >
               = 
               $ NaN USD
