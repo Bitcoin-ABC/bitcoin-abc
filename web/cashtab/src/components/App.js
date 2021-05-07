@@ -66,6 +66,7 @@ const CustomApp = styled.div`
     background-color: ${props => props.theme.app.background};
 `;
 const Footer = styled.div`
+    z-index: 2;
     background-color: ${props => props.theme.footer.background};
     border-radius: 20px;
     position: fixed;
