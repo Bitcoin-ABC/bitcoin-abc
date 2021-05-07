@@ -2735,7 +2735,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             return;
         }
 
-        // Discourage avalanche messages if the service flag is not set.
         if (!gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
             Misbehaving(pfrom, 20, "unsolicited-" + msg_type);
             return;
