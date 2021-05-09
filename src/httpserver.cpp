@@ -72,12 +72,11 @@ private:
  */
 template <typename WorkItem> class WorkQueue {
 private:
-    /** Mutex protects entire object */
     Mutex cs;
-    std::condition_variable cond;
-    std::deque<std::unique_ptr<WorkItem>> queue;
-    bool running{true};
-    size_t maxDepth;
+    std::condition_variable cond GUARDED_BY(cs);
+    std::deque<std::unique_ptr<WorkItem>> queue GUARDED_BY(cs);
+    bool running GUARDED_BY(cs){true};
+    const size_t maxDepth;
 
 public:
     explicit WorkQueue(size_t _maxDepth) : maxDepth(_maxDepth) {}
