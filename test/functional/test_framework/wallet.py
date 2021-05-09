@@ -115,7 +115,9 @@ class MiniWallet:
     def get_scriptPubKey(self):
         return self._scriptPubKey
 
-    def get_utxo(self, *, txid: str = "", vout: Optional[int] = None):
+    def get_utxo(
+        self, *, txid: str = "", vout: Optional[int] = None, mark_as_spent=True
+    ):
         """
         Returns a utxo and marks it as spent (pops it from the internal list)
 
@@ -133,7 +135,10 @@ class MiniWallet:
             utxo_filter = filter(lambda utxo: vout == utxo["vout"], utxo_filter)
         index = self._utxos.index(next(utxo_filter))
 
-        return self._utxos.pop(index)
+        if mark_as_spent:
+            return self._utxos.pop(index)
+        else:
+            return self._utxos[index]
 
     def send_self_transfer(self, *, from_node, **kwargs):
         """Create and send a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
