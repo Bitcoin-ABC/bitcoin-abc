@@ -430,7 +430,7 @@ static RPCHelpMan listaddressgroupings() {
                        "",
                        "",
                        {
-                           {RPCResult::Type::ARR,
+                           {RPCResult::Type::ARR_FIXED,
                             "",
                             "",
                             {

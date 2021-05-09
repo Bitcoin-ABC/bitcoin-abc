@@ -334,7 +334,7 @@ static RPCHelpMan createrawtransaction() {
                 {
                     {
                         "",
-                        RPCArg::Type::OBJ,
+                        RPCArg::Type::OBJ_USER_KEYS,
                         RPCArg::Optional::OMITTED,
                         "",
                         {

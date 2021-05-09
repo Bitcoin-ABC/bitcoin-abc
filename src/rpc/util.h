@@ -205,7 +205,8 @@ struct RPCArg {
                                                description)},
           m_oneline_description{std::move(oneline_description)},
           m_type_str{std::move(type_str)} {
-        CHECK_NONFATAL(type != Type::ARR && type != Type::OBJ);
+        CHECK_NONFATAL(type != Type::ARR && type != Type::OBJ &&
+                       type != Type::OBJ_USER_KEYS);
     }
 
     RPCArg(const std::string name, const Type type, const Fallback fallback,
@@ -217,7 +218,8 @@ struct RPCArg {
           m_description{std::move(description)},
           m_oneline_description{std::move(oneline_description)},
           m_type_str{std::move(type_str)} {
-        CHECK_NONFATAL(type == Type::ARR || type == Type::OBJ);
+        CHECK_NONFATAL(type == Type::ARR || type == Type::OBJ ||
+                       type == Type::OBJ_USER_KEYS);
     }
 
     bool IsOptional() const;
