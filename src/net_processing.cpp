@@ -5188,6 +5188,15 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         //
         std::vector<CInv> vInv;
         {
+            auto addInvAndMaybeFlush = [&](uint32_t type, const uint256 &hash) {
+                vInv.emplace_back(type, hash);
+                if (vInv.size() == MAX_INV_SZ) {
+                    m_connman.PushMessage(
+                        pto, msgMaker.Make(NetMsgType::INV, std::move(vInv)));
+                    vInv.clear();
+                }
+            };
+
             LOCK(pto->cs_inventory);
             vInv.reserve(std::max<size_t>(pto->vInventoryBlockToSend.size(),
                                           INVENTORY_BROADCAST_MAX_PER_MB *
@@ -5196,12 +5205,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
             // Add blocks
             for (const BlockHash &hash : pto->vInventoryBlockToSend) {
-                vInv.push_back(CInv(MSG_BLOCK, hash));
-                if (vInv.size() == MAX_INV_SZ) {
-                    m_connman.PushMessage(pto,
-                                          msgMaker.Make(NetMsgType::INV, vInv));
-                    vInv.clear();
-                }
+                addInvAndMaybeFlush(MSG_BLOCK, hash);
             }
             pto->vInventoryBlockToSend.clear();
 
@@ -5246,7 +5250,6 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
                     for (const auto &txinfo : vtxinfo) {
                         const TxId &txid = txinfo.tx->GetId();
-                        CInv inv(MSG_TX, txid);
                         pto->m_tx_relay->setInventoryTxToSend.erase(txid);
                         // Don't send transactions that peers will not put into
                         // their mempool
@@ -5261,12 +5264,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                         pto->m_tx_relay->filterInventoryKnown.insert(txid);
                         // Responses to MEMPOOL requests bypass the
                         // m_recently_announced_invs filter.
-                        vInv.push_back(inv);
-                        if (vInv.size() == MAX_INV_SZ) {
-                            m_connman.PushMessage(
-                                pto, msgMaker.Make(NetMsgType::INV, vInv));
-                            vInv.clear();
-                        }
+                        addInvAndMaybeFlush(MSG_TX, txid);
                     }
                     pto->m_tx_relay->m_last_mempool_req =
                         GetTime<std::chrono::seconds>();
@@ -5335,7 +5333,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                         // Send
                         State(pto->GetId())
                             ->m_recently_announced_invs.insert(txid);
-                        vInv.push_back(CInv(MSG_TX, txid));
+                        addInvAndMaybeFlush(MSG_TX, txid);
                         nRelayedTransactions++;
                         {
                             // Expire old relay messages
@@ -5355,11 +5353,6 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                                             .count(),
                                     ret.first));
                             }
-                        }
-                        if (vInv.size() == MAX_INV_SZ) {
-                            m_connman.PushMessage(
-                                pto, msgMaker.Make(NetMsgType::INV, vInv));
-                            vInv.clear();
                         }
                         pto->m_tx_relay->filterInventoryKnown.insert(txid);
                     }
