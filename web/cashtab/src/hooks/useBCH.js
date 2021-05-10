@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
+import { isValidTokenStats } from '@utils/validation';
 
 import {
     toSmallestDenomination,
@@ -621,6 +622,22 @@ export default function useBCH() {
         }
     };
 
+    // No unit tests for this function as it is only an API wrapper
+    // Return false if do not get a valid response
+    const getTokenStats = async (BCH, tokenId) => {
+        let tokenStats;
+        try {
+            tokenStats = await BCH.SLP.Utils.tokenStats(tokenId);
+            if (isValidTokenStats(tokenStats)) {
+                return tokenStats;
+            }
+        } catch (err) {
+            console.log(`Error fetching token stats for tokenId ${tokenId}`);
+            console.log(err);
+            return false;
+        }
+    };
+
     const sendToken = async (
         BCH,
         wallet,
@@ -984,5 +1001,6 @@ export default function useBCH() {
         sendBch,
         sendToken,
         createToken,
+        getTokenStats,
     };
 }

@@ -88,3 +88,16 @@ export const isValidTokenDocumentUrl = tokenDocumentUrl => {
         tokenDocumentUrl.length < 68
     );
 };
+
+export const isValidTokenStats = tokenStats => {
+    return (
+        typeof tokenStats === 'object' &&
+        'timestampUnix' in tokenStats &&
+        'documentUri' in tokenStats &&
+        'containsBaton' in tokenStats &&
+        'initialTokenQty' in tokenStats &&
+        'totalMinted' in tokenStats &&
+        'totalBurned' in tokenStats &&
+        'circulatingSupply' in tokenStats
+    );
+};

@@ -6,9 +6,16 @@ import {
     isValidTokenDecimals,
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
+    isValidTokenStats,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
+import {
+    stStatsValid,
+    noCovidStatsValid,
+    noCovidStatsInvalid,
+    cGenStatsValid,
+} from '../__mocks__/mockTokenStats';
 
 describe('Validation utils', () => {
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
@@ -188,5 +195,17 @@ describe('Validation utils', () => {
                 'http://www.ThisTokenDocumentUrlIsActuallyMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchTooLong.com/',
             ),
         ).toBe(false);
+    });
+    it(`Correctly validates token stats for token created before the ${currency.ticker} fork`, () => {
+        expect(isValidTokenStats(stStatsValid)).toBe(true);
+    });
+    it(`Correctly validates token stats for token created after the ${currency.ticker} fork`, () => {
+        expect(isValidTokenStats(noCovidStatsValid)).toBe(true);
+    });
+    it(`Correctly validates token stats for token with no minting baton`, () => {
+        expect(isValidTokenStats(cGenStatsValid)).toBe(true);
+    });
+    it(`Recognizes a token stats object with missing required keys as invalid`, () => {
+        expect(isValidTokenStats(noCovidStatsInvalid)).toBe(false);
     });
 });
