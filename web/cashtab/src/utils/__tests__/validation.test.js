@@ -8,6 +8,7 @@ import {
     isValidTokenDocumentUrl,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 
 describe('Validation utils', () => {
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
@@ -49,19 +50,34 @@ describe('Validation utils', () => {
             expectedValidationError,
         );
     });
-    it(`Returns error if ${currency.ticker} send amount is less than ${currency.dust} minimum`, () => {
-        const expectedValidationError = `Send amount must be at least ${currency.dust} ${currency.ticker}`;
+    it(`Returns error if ${
+        currency.ticker
+    } send amount is less than ${fromSmallestDenomination(
+        currency.dustSats,
+    ).toString()} minimum`, () => {
+        const expectedValidationError = `Send amount must be at least ${fromSmallestDenomination(
+            currency.dustSats,
+        ).toString()} ${currency.ticker}`;
         expect(
             shouldRejectAmountInput(
-                (currency.dust - 0.00000001).toString(),
+                (
+                    fromSmallestDenomination(currency.dustSats).toString() -
+                    0.00000001
+                ).toString(),
                 currency.ticker,
                 20.0,
                 3,
             ),
         ).toBe(expectedValidationError);
     });
-    it(`Returns error if ${currency.ticker} send amount is less than ${currency.dust} minimum in fiat currency`, () => {
-        const expectedValidationError = `Send amount must be at least ${currency.dust} ${currency.ticker}`;
+    it(`Returns error if ${
+        currency.ticker
+    } send amount is less than ${fromSmallestDenomination(
+        currency.dustSats,
+    ).toString()} minimum in fiat currency`, () => {
+        const expectedValidationError = `Send amount must be at least ${fromSmallestDenomination(
+            currency.dustSats,
+        ).toString()} ${currency.ticker}`;
         expect(
             shouldRejectAmountInput('0.0000005', 'USD', 14.63, 0.52574662),
         ).toBe(expectedValidationError);

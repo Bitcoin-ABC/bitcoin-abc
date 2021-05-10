@@ -3,6 +3,7 @@ import { currency } from '@components/Common/Ticker';
 
 import {
     toSmallestDenomination,
+    fromSmallestDenomination,
     batchArray,
     flattenBatchedHydratedUtxos,
     isValidStoredWallet,
@@ -517,7 +518,9 @@ export default function useBCH() {
             else transactionBuilder = new BCH.TransactionBuilder('testnet');
 
             let originalAmount = new BigNumber(0);
-            const tokenOutputDust = new BigNumber(currency.dust);
+            const tokenOutputDust = new BigNumber(
+                fromSmallestDenomination(currency.dustSats).toString(),
+            );
             let txFee = 0;
             for (let i = 0; i < utxos.length; i++) {
                 const utxo = utxos[i];
@@ -560,11 +563,7 @@ export default function useBCH() {
             );
 
             // Send change to own address
-            if (
-                remainder.gte(
-                    toSmallestDenomination(new BigNumber(currency.dust)),
-                )
-            ) {
+            if (remainder.gte(new BigNumber(currency.dustSats))) {
                 transactionBuilder.addOutput(
                     CREATION_ADDR,
                     parseInt(remainder),
@@ -832,7 +831,13 @@ export default function useBCH() {
             const value = new BigNumber(sendAmount);
 
             // If user is attempting to send less than minimum accepted by the backend
-            if (value.lt(new BigNumber(currency.dust))) {
+            if (
+                value.lt(
+                    new BigNumber(
+                        fromSmallestDenomination(currency.dustSats).toString(),
+                    ),
+                )
+            ) {
                 // Throw the same error given by the backend attempting to broadcast such a tx
                 throw new Error('dust');
             }
@@ -893,11 +898,7 @@ export default function useBCH() {
                 parseInt(toSmallestDenomination(value)),
             );
 
-            if (
-                remainder.gte(
-                    toSmallestDenomination(new BigNumber(currency.dust)),
-                )
-            ) {
+            if (remainder.gte(new BigNumber(currency.dustSats))) {
                 transactionBuilder.addOutput(
                     REMAINDER_ADDR,
                     parseInt(remainder),

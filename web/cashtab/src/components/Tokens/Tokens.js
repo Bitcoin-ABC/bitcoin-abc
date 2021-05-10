@@ -2,7 +2,11 @@ import React from 'react';
 import { LoadingOutlined } from '@ant-design/icons';
 import { CashLoader } from '@components/Common/CustomIcons';
 import { WalletContext } from '@utils/context';
-import { formatBalance, isValidStoredWallet } from '@utils/cashMethods';
+import {
+    formatBalance,
+    isValidStoredWallet,
+    fromSmallestDenomination,
+} from '@utils/cashMethods';
 import CreateTokenForm from '@components/Tokens/CreateTokenForm';
 import { currency } from '@components/Common/Ticker.js';
 import TokenList from '@components/Wallet/TokenList';
@@ -100,14 +104,23 @@ const Tokens = ({ jestBCH }) => {
                         BCH={BCH}
                         getRestUrl={getRestUrl}
                         createToken={createToken}
-                        disabled={balances.totalBalanceInSatoshis < 546}
+                        disabled={
+                            balances.totalBalanceInSatoshis < currency.dustSats
+                        }
                     />
-                    {balances.totalBalanceInSatoshis < 546 && (
+                    {balances.totalBalanceInSatoshis < currency.dustSats && (
                         <AlertMsg>
-                            You need at least {currency.dust} {currency.ticker}{' '}
-                            ($
-                            {(currency.dust * fiatPrice).toFixed(4)} USD) to
-                            create a token
+                            You need at least{' '}
+                            {fromSmallestDenomination(
+                                currency.dustSats,
+                            ).toString()}{' '}
+                            {currency.ticker} ($
+                            {(
+                                fromSmallestDenomination(
+                                    currency.dustSats,
+                                ).toString() * fiatPrice
+                            ).toFixed(4)}{' '}
+                            USD) to create a token
                         </AlertMsg>
                     )}
 

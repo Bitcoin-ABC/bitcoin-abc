@@ -1,17 +1,20 @@
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import BCHJS from '@psf/bch-js';
-import useBCH from '../useBCH';
 import {
     fromSmallestDenomination,
     toSmallestDenomination,
 } from '@utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
-    it('Replacement currency.dust parameter parsing matches legacy DUST parameter', () => {
-        expect(parseFloat(new BigNumber(currency.dust).toFixed(8))).toBe(
-            0.00000546,
-        );
+    it('Replacement currency.dustSats parameter parsing matches legacy DUST parameter', () => {
+        expect(
+            parseFloat(
+                new BigNumber(
+                    fromSmallestDenomination(currency.dustSats).toString(),
+                ).toFixed(8),
+            ),
+        ).toBe(0.00000546);
     });
     it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with toSmallestDenomination', () => {
         const BCH = new BCHJS();
@@ -29,12 +32,11 @@ describe('Testing functions for upgrading Cashtab', () => {
     });
     it('Replicate 8-decimal return value from instance of toSatoshi in remainder comparison with toSmallestDenomination', () => {
         const BCH = new BCHJS();
-        // note: do not specify 8 decimals as this test SHOULD fail when currency.dust changes or cashDecimals changes if not updated
         expect(
-            parseFloat(toSmallestDenomination(new BigNumber(currency.dust))),
+            parseFloat(toSmallestDenomination(new BigNumber('0.00000546'), 8)),
         ).toBe(
             BCH.BitcoinCash.toSatoshi(
-                parseFloat(new BigNumber(currency.dust).toFixed(8)),
+                parseFloat(new BigNumber('0.00000546').toFixed(8)),
             ),
         );
     });
@@ -124,6 +126,12 @@ describe('Testing functions for upgrading Cashtab', () => {
         const testSendAmount = '1';
         expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
+        );
+    });
+
+    it(`Converts dust limit in satoshis to dust limit in current app setting`, () => {
+        expect(fromSmallestDenomination(currency.dustSats).toString()).toBe(
+            '0.00000546',
         );
     });
 });

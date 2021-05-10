@@ -27,6 +27,7 @@ import {
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 
 describe('useBCH hook', () => {
     it('gets Rest Api Url on testnet', () => {
@@ -212,7 +213,9 @@ describe('useBCH hook', () => {
             wallet,
             utxos,
             destinationAddress,
-            new BigNumber(currency.dust)
+            new BigNumber(
+                fromSmallestDenomination(currency.dustSats).toString(),
+            )
                 .minus(new BigNumber('0.00000001'))
                 .toString(),
             1.01,

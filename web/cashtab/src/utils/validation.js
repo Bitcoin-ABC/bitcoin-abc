@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker.js';
+import { fromSmallestDenomination } from '@utils/cashMethods';
 
 // Validate cash amount
 export const shouldRejectAmountInput = (
@@ -22,8 +23,12 @@ export const shouldRejectAmountInput = (
         error = 'Amount must be a number';
     } else if (testedAmount.lte(0)) {
         error = 'Amount must be greater than 0';
-    } else if (testedAmount.lt(currency.dust)) {
-        error = `Send amount must be at least ${currency.dust} ${currency.ticker}`;
+    } else if (
+        testedAmount.lt(fromSmallestDenomination(currency.dustSats).toString())
+    ) {
+        error = `Send amount must be at least ${fromSmallestDenomination(
+            currency.dustSats,
+        ).toString()} ${currency.ticker}`;
     } else if (testedAmount.gt(totalCashBalance)) {
         error = `Amount cannot exceed your ${currency.ticker} balance`;
     } else if (!isNaN(testedAmount) && testedAmount.toString().includes('.')) {
