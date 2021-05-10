@@ -358,7 +358,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            nodePeerManager->Misbehaving(nodeid, 2, "unexpcted-ava-response");
+            nodePeerManager->Misbehaving(nodeid, 2, "unexpected-ava-response");
             return false;
         }
 

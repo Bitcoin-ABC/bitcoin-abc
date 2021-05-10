@@ -336,6 +336,14 @@ class AvalancheTest(BitcoinTestFramework):
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info(
+            "Check the node is discouraging unexpected avaresponses.")
+        with self.nodes[0].assert_debug_log(
+                ['Misbehaving', 'peer=1 (0 -> 2): unexpected-ava-response']):
+            # unknown voting round
+            poll_node.send_avaresponse(
+                round=2**32 - 1, votes=[], privkey=privkey)
+
+        self.log.info(
             "Check the node is signalling the avalanche service bit only if there is a proof.")
         assert_equal(
             int(node.getnetworkinfo()['localservices'], 16) & NODE_AVALANCHE,

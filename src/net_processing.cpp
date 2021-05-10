@@ -2739,14 +2739,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             Misbehaving(pfrom, 20, "unsolicited-" + msg_type);
             return;
         }
-        // Ignore avalanche requests while importing
-        if ((msg_type == NetMsgType::AVAPOLL ||
-             msg_type == NetMsgType::AVARESPONSE) &&
-            (fImporting || fReindex)) {
-            LogPrint(BCLog::NET, "Ignoring %s message while importing\n",
-                     msg_type);
-            return;
-        }
     }
 
     if (msg_type == NetMsgType::VERSION) {
