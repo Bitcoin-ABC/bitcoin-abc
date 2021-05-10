@@ -978,7 +978,7 @@ public:
         // Set of transaction ids we still have to announce.
         // They are sorted by the mempool before relay, so the order is not
         // important.
-        std::set<TxId> setInventoryTxToSend;
+        std::set<TxId> setInventoryTxToSend GUARDED_BY(cs_tx_inventory);
         // Used for BIP35 mempool sending
         bool fSendMempool GUARDED_BY(cs_tx_inventory){false};
         // Last time a "MEMPOOL" request was serviced.
