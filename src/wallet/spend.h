@@ -96,7 +96,6 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
  * populate vCoins with vector of available COutputs.
  */
 void AvailableCoins(const CWallet &wallet, std::vector<COutput> &vCoins,
-                    bool fOnlySafe = true,
                     const CCoinControl *coinControl = nullptr,
                     const Amount nMinimumAmount = SATOSHI,
                     const Amount nMaximumAmount = MAX_MONEY,

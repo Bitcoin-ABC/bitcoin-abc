@@ -3196,10 +3196,11 @@ static RPCHelpMan listunspent() {
                 cctl.m_avoid_address_reuse = false;
                 cctl.m_min_depth = nMinDepth;
                 cctl.m_max_depth = nMaxDepth;
+                cctl.m_include_unsafe_inputs = include_unsafe;
                 LOCK(pwallet->cs_wallet);
-                AvailableCoins(*pwallet, vecOutputs, !include_unsafe, &cctl,
-                               nMinimumAmount, nMaximumAmount,
-                               nMinimumSumAmount, nMaximumCount);
+                AvailableCoins(*pwallet, vecOutputs, &cctl, nMinimumAmount,
+                               nMaximumAmount, nMinimumSumAmount,
+                               nMaximumCount);
             }
 
             LOCK(pwallet->cs_wallet);

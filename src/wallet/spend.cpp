@@ -68,7 +68,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
 }
 
 void AvailableCoins(const CWallet &wallet, std::vector<COutput> &vCoins,
-                    bool fOnlySafe, const CCoinControl *coinControl,
+                    const CCoinControl *coinControl,
                     const Amount nMinimumAmount, const Amount nMaximumAmount,
                     const Amount nMinimumSumAmount,
                     const uint64_t nMaximumCount) {
@@ -87,6 +87,8 @@ void AvailableCoins(const CWallet &wallet, std::vector<COutput> &vCoins,
                                        : DEFAULT_MIN_DEPTH};
     const int max_depth = {coinControl ? coinControl->m_max_depth
                                        : DEFAULT_MAX_DEPTH};
+    const bool only_safe = {coinControl ? !coinControl->m_include_unsafe_inputs
+                                        : true};
 
     std::set<TxId> trusted_parents;
     for (const auto &entry : wallet.mapWallet) {
@@ -131,7 +133,7 @@ void AvailableCoins(const CWallet &wallet, std::vector<COutput> &vCoins,
             safeTx = false;
         }
 
-        if (fOnlySafe && !safeTx) {
+        if (only_safe && !safeTx) {
             continue;
         }
 
@@ -215,7 +217,7 @@ Amount GetAvailableBalance(const CWallet &wallet,
 
     Amount balance = Amount::zero();
     std::vector<COutput> vCoins;
-    AvailableCoins(wallet, vCoins, true, coinControl);
+    AvailableCoins(wallet, vCoins, coinControl);
     for (const COutput &out : vCoins) {
         if (out.fSpendable) {
             balance += out.tx->tx->vout[out.i].nValue;
@@ -650,8 +652,7 @@ static bool CreateTransactionInternal(
         // of the current block height.
         txNew.nLockTime = 0;
         std::vector<COutput> vAvailableCoins;
-        AvailableCoins(wallet, vAvailableCoins,
-                       !coin_control.m_include_unsafe_inputs, &coin_control);
+        AvailableCoins(wallet, vAvailableCoins, &coin_control);
         // Parameters for coin selection, init with dummy
         CoinSelectionParams coin_selection_params;
         coin_selection_params.m_avoid_partial_spends =
