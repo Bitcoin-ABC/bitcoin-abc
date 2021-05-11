@@ -195,7 +195,7 @@ static RPCHelpMan getpeerinfo() {
                        "the bytes sent are 0.\n"
                        "Only known message types can appear as keys in the "
                        "object."}}},
-                    {RPCResult::Type::OBJ,
+                    {RPCResult::Type::OBJ_DYN,
                      "bytesrecv_per_msg",
                      "",
                      {{RPCResult::Type::NUM, "msg",

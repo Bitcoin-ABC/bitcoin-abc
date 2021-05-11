@@ -737,7 +737,7 @@ static RPCHelpMan sendmany() {
                            .oneline_description = "\"\""}},
             {
                 "amounts",
-                RPCArg::Type::OBJ,
+                RPCArg::Type::OBJ_USER_KEYS,
                 RPCArg::Optional::NO,
                 "The addresses and amounts",
                 {
@@ -2670,7 +2670,7 @@ static RPCHelpMan loadwallet() {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet directory or .dat file."},
             {"load_on_startup", RPCArg::Type::BOOL,
-             RPCArg::Default{UniValue::VNULL},
+             RPCArg::Optional::OMITTED_NAMED_ARG,
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},
@@ -2801,7 +2801,8 @@ static RPCHelpMan createwallet() {
             {"blank", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Create a blank wallet. A blank wallet has no keys or HD seed. "
              "One can be set using sethdseed."},
-            {"passphrase", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+            {"passphrase", RPCArg::Type::STR,
+             RPCArg::Optional::OMITTED_NAMED_ARG,
              "Encrypt the wallet with this passphrase."},
             {"avoid_reuse", RPCArg::Type::BOOL, RPCArg::Default{false},
              "Keep track of coin reuse, and treat dirty and clean coins "
@@ -2810,7 +2811,7 @@ static RPCHelpMan createwallet() {
              "Create a native descriptor wallet. The wallet will use "
              "descriptors internally to handle address creation"},
             {"load_on_startup", RPCArg::Type::BOOL,
-             RPCArg::Default{UniValue::VNULL},
+             RPCArg::Optional::OMITTED_NAMED_ARG,
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},
@@ -2911,7 +2912,7 @@ static RPCHelpMan unloadwallet() {
              RPCArg::DefaultHint{"the wallet name from the RPC request"},
              "The name of the wallet to unload."},
             {"load_on_startup", RPCArg::Type::BOOL,
-             RPCArg::Default{UniValue::VNULL},
+             RPCArg::Optional::OMITTED_NAMED_ARG,
              "Save wallet name to persistent settings and load on startup. "
              "True to add wallet to startup list, false to remove, null to "
              "leave unchanged."},
@@ -4223,7 +4224,7 @@ static RPCHelpMan send() {
              {
                  {
                      "",
-                     RPCArg::Type::OBJ,
+                     RPCArg::Type::OBJ_USER_KEYS,
                      RPCArg::Optional::OMITTED,
                      "",
                      {
@@ -4681,7 +4682,7 @@ static RPCHelpMan walletcreatefundedpsbt() {
              {
                  {
                      "",
-                     RPCArg::Type::OBJ,
+                     RPCArg::Type::OBJ_USER_KEYS,
                      RPCArg::Optional::OMITTED,
                      "",
                      {
