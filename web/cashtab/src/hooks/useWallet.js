@@ -175,26 +175,8 @@ const useWallet = () => {
             return true;
         }
 
-        // If utxo set is in wallet object, use that to compare instead of previousUtxos
-        let previousUtxosToCompare;
-        if (wallet.state && wallet.state.utxos) {
-            previousUtxosToCompare = wallet.state.utxos;
-        } else {
-            previousUtxosToCompare = previousUtxos;
-        }
-
         // Compare utxo sets
-        const utxoArraysUnchanged = isEqual(utxos, previousUtxosToCompare);
-
-        // If utxos are not the same as previousUtxos
-        if (utxoArraysUnchanged) {
-            // then utxos have not changed
-            return false;
-            // otherwise,
-        } else {
-            // utxos have changed
-            return true;
-        }
+        return !isEqual(utxos, previousUtxos);
     };
 
     const update = async ({ wallet, setWalletState }) => {
