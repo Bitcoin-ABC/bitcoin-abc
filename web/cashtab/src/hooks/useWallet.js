@@ -175,8 +175,21 @@ const useWallet = () => {
             return true;
         }
 
+        // If wallet is valid, compare what exists in written wallet state instead of former api call
+        let utxosToCompare = previousUtxos;
+        if (isValidStoredWallet(wallet)) {
+            try {
+                utxosToCompare = wallet.state.utxos;
+            } catch (err) {
+                console.log(`Error setting utxos to wallet.state.utxos`, err);
+                console.log(`Wallet at err`, wallet);
+                // If this happens, assume utxo set has changed
+                return true;
+            }
+        }
+
         // Compare utxo sets
-        return !isEqual(utxos, previousUtxos);
+        return !isEqual(utxos, utxosToCompare);
     };
 
     const update = async ({ wallet, setWalletState }) => {
