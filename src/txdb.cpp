@@ -16,8 +16,6 @@
 #include <util/vector.h>
 #include <version.h>
 
-#include <boost/thread.hpp> // boost::this_thread::interruption_point() (mingw)
-
 #include <cstdint>
 #include <memory>
 
@@ -289,7 +287,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
 
     // Load m_block_index
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
         if (ShutdownRequested()) {
             return false;
         }
@@ -404,7 +401,6 @@ bool CCoinsViewDB::Upgrade() {
     std::pair<uint8_t, uint256> key;
     std::pair<uint8_t, uint256> prev_key = {DB_COINS, uint256()};
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
         if (ShutdownRequested()) {
             break;
         }

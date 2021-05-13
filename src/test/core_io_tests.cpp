@@ -8,6 +8,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <iomanip>
 #include <string>
 
 BOOST_FIXTURE_TEST_SUITE(core_io_tests, BasicTestingSetup)

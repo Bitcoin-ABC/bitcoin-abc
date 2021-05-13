@@ -18,7 +18,7 @@
 #include <util/string.h>
 #include <util/system.h>
 
-#include <boost/thread.hpp> // For boost::thread_group
+#include <boost/thread/thread.hpp>
 
 #include <type_traits>
 

@@ -31,7 +31,6 @@ EXPECTED_BOOST_INCLUDES=(
     boost/signals2/last_value.hpp
     boost/signals2/signal.hpp
     boost/test/unit_test.hpp
-    boost/thread.hpp
     boost/thread/condition_variable.hpp
     boost/thread/locks.hpp
     boost/thread/mutex.hpp

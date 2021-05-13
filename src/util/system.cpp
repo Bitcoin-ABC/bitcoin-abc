@@ -13,8 +13,6 @@
 
 #include <univalue.h>
 
-#include <boost/thread.hpp>
-
 #include <memory>
 #include <thread>
 #include <typeinfo>
