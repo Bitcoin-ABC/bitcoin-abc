@@ -5,3 +5,6 @@ Bitcoin ABC version 0.26.8 is now available from:
   <https://download.bitcoinabc.org/0.26.8/>
 
 This release includes the following features and fixes:
+ - Add a new RPC `getblockfrompeer` which permits requesting a specific block from
+   a specific peer manually. The intended use is acquisition of stale chaintips
+   for fork monitoring and research purposes.

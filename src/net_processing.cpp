@@ -494,6 +494,8 @@ public:
     /** Implement PeerManager */
     void StartScheduledTasks(CScheduler &scheduler) override;
     void CheckForStaleTipAndEvictPeers() override;
+    bool FetchBlock(const Config &config, NodeId id,
+                    const CBlockIndex &block_index) override;
     bool GetNodeStateStats(NodeId nodeid,
                            CNodeStateStats &stats) const override;
     bool IgnoresIncomingTxs() override { return m_ignore_incoming_txs; }
@@ -2057,6 +2059,47 @@ bool PeerManagerImpl::BlockRequestAllowed(
            (GetBlockProofEquivalentTime(*pindexBestHeader, *pindex,
                                         *pindexBestHeader, consensusParams) <
             STALE_RELAY_AGE_LIMIT);
+}
+
+bool PeerManagerImpl::FetchBlock(const Config &config, NodeId id,
+                                 const CBlockIndex &block_index) {
+    if (fImporting || fReindex) {
+        return false;
+    }
+
+    LOCK(cs_main);
+    // Ensure this peer exists and hasn't been disconnected
+    CNodeState *state = State(id);
+    if (state == nullptr) {
+        return false;
+    }
+    // Mark block as in-flight unless it already is (for this peer).
+    // If a block was already in-flight for a different peer, its BLOCKTXN
+    // response will be dropped.
+    if (!BlockRequested(config, id, block_index)) {
+        return false;
+    }
+
+    // Construct message to request the block
+    const BlockHash &hash{block_index.GetBlockHash()};
+    const std::vector<CInv> invs{CInv(MSG_BLOCK, hash)};
+
+    // Send block request message to the peer
+    if (!m_connman.ForNode(id, [this, &invs](CNode *node) {
+            const CNetMsgMaker msgMaker(node->GetCommonVersion());
+            this->m_connman.PushMessage(
+                node, msgMaker.Make(NetMsgType::GETDATA, invs));
+            return true;
+        })) {
+        RemoveBlockRequest(hash);
+        LogPrint(BCLog::NET, "Failed to request block %s from peer=%d\n",
+                 hash.ToString(), id);
+        return false;
+    }
+
+    LogPrint(BCLog::NET, "Requesting block %s from peer=%d\n", hash.ToString(),
+             id);
+    return true;
 }
 
 std::unique_ptr<PeerManager>

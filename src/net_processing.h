@@ -56,6 +56,18 @@ public:
          bool ignore_incoming_txs);
     virtual ~PeerManager() {}
 
+    /**
+     * Attempt to manually fetch block from a given peer. We must already have
+     * the header.
+     *
+     * @param[in]  config       The global config
+     * @param[in]  id           The peer id
+     * @param[in]  block_index  The block index
+     * @returns                 Whether a request was successfully made
+     */
+    virtual bool FetchBlock(const Config &config, NodeId id,
+                            const CBlockIndex &block_index) = 0;
+
     /** Begin running background tasks, should only be called once */
     virtual void StartScheduledTasks(CScheduler &scheduler) = 0;
 

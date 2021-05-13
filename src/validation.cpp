@@ -4340,6 +4340,7 @@ bool CChainState::AcceptBlock(const Config &config,
     // This requires some new chain data structure to efficiently look up if a
     // block is in a chain leading to a candidate for best tip, despite not
     // being such a candidate itself.
+    // Note that this would break the getblockfrompeer RPC
 
     // If we didn't ask for it:
     if (!fRequested) {
