@@ -29,7 +29,10 @@ from test_framework.script import (
     OP_EQUAL,
     OP_EQUALVERIFY,
     OP_HASH160,
+    SIGHASH_ALL,
+    SIGHASH_FORKID,
     CScript,
+    SignatureHashForkId,
     hash160,
 )
 from test_framework.txtools import pad_tx
@@ -43,13 +46,22 @@ DEFAULT_FEE = Decimal("100.00")
 
 
 class MiniWallet:
-    def __init__(self, test_node):
+    def __init__(self, test_node, use_p2pk=False):
         self._test_node = test_node
         self._utxos = []
-        self._address = ADDRESS_ECREG_P2SH_OP_TRUE
-        self._scriptPubKey = bytes.fromhex(
-            self._test_node.validateaddress(self._address)["scriptPubKey"]
-        )
+        self._priv_key = None
+        self._address = None
+        if use_p2pk:
+            # use simple deterministic private key (k=1)
+            self._priv_key = ECKey()
+            self._priv_key.set((1).to_bytes(32, "big"), True)
+            pub_key = self._priv_key.get_pubkey()
+            self._scriptPubKey = bytes(CScript([pub_key.get_bytes(), OP_CHECKSIG]))
+        else:
+            self._address = ADDRESS_ECREG_P2SH_OP_TRUE
+            self._scriptPubKey = bytes.fromhex(
+                self._test_node.validateaddress(self._address)["scriptPubKey"]
+            )
 
         # When the pre-mined test framework chain is used, it contains coinbase
         # outputs to the MiniWallet's default address in blocks 76-100
@@ -96,6 +108,19 @@ class MiniWallet:
                         txid=tx["txid"], vout=out["n"], value=out["value"], height=0
                     )
                 )
+
+    def sign_tx(self, tx, amount):
+        """Sign tx that has been created by MiniWallet in P2PK mode"""
+        assert self._priv_key is not None
+        sighash = SignatureHashForkId(
+            CScript(self._scriptPubKey), tx, 0, SIGHASH_ALL | SIGHASH_FORKID, amount
+        )
+        tx.vin[0].scriptSig = CScript(
+            [
+                self._priv_key.sign_ecdsa(sighash)
+                + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
+            ]
+        )
 
     def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address, and call rescan_utxos"""
@@ -184,11 +209,19 @@ class MiniWallet:
         ]
         tx.vout = [CTxOut(int(send_value * XEC), self._scriptPubKey)]
         tx.nLockTime = locktime
-        tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
+        if self._priv_key is not None:
+            # P2PK, need to sign
+            self.sign_tx(tx, int(utxo_to_spend["value"] * XEC))
+        else:
+            # anyone-can-spend
+            tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx, size)
         tx_hex = tx.serialize().hex()
 
-        assert_equal(len(tx.serialize()), size)
+        # TODO: for P2PK, size is not constant due to varying scriptSig length,
+        # so only check this for anyone-can-spend outputs right now
+        if self._priv_key is None:
+            assert_equal(len(tx.serialize()), size)
         new_utxo = self._create_utxo(
             txid=tx.rehash(), vout=0, value=send_value, height=0
         )
