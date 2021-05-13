@@ -6,6 +6,7 @@
 #define BITCOIN_NODE_BLOCKSTORAGE_H
 
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 #include <chain.h>
@@ -56,6 +57,11 @@ extern std::atomic_bool fReindex;
 // container that has stable addressing (true of all std associative
 // containers), or make the key a `std::unique_ptr<CBlockIndex>`
 using BlockMap = std::unordered_map<BlockHash, CBlockIndex, BlockHasher>;
+
+struct PruneLockInfo {
+    //! Height of earliest block that should be kept and not pruned
+    int height_first{std::numeric_limits<int>::max()};
+};
 
 /**
  * Maintains a tree of blocks (stored in `m_block_index`) which is consulted
@@ -136,6 +142,16 @@ private:
 
     /** Dirty block file entries. */
     std::set<int> m_dirty_fileinfo;
+
+    /**
+     * Map from external index name to oldest block that must not be pruned.
+     *
+     * @note Internally, only blocks at height
+     *     (height_first - PRUNE_LOCK_BUFFER - 1) and below will be pruned,
+     *     but callers should avoid assuming any particular buffer size.
+     */
+    std::unordered_map<std::string, PruneLockInfo>
+        m_prune_locks GUARDED_BY(::cs_main);
 
     const kernel::BlockManagerOpts m_opts;
 

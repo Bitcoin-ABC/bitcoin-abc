@@ -22,6 +22,7 @@
 #include <validation.h>
 
 #include <map>
+#include <unordered_map>
 
 namespace node {
 std::atomic_bool fReindex(false);
