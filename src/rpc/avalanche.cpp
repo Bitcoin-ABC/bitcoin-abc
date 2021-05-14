@@ -80,10 +80,11 @@ static UniValue addavalanchenode(const Config &config,
     const NodeId nodeid = request.params[0].get_int64();
     const CPubKey key = ParsePubKey(request.params[1]);
 
-    CDataStream ss(ParseHexV(request.params[2], "proof"), SER_NETWORK,
-                   PROTOCOL_VERSION);
     avalanche::Proof proof;
-    ss >> proof;
+    bilingual_str error;
+    if (!avalanche::Proof::FromHex(proof, request.params[2].get_str(), error)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, error.original);
+    }
 
     if (key != proof.getMaster()) {
         // TODO: we want to provide a proper delegation.
@@ -242,11 +243,11 @@ static UniValue delegateavalancheproof(const Config &config,
     }
 
     avalanche::Proof proof;
-    {
-        CDataStream ss(ParseHexV(request.params[0], "proof"), SER_NETWORK,
-                       PROTOCOL_VERSION);
-        ss >> proof;
+    bilingual_str error;
+    if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(), error)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, error.original);
     }
+
     avalanche::ProofValidationState proofState;
     if (!proof.verify(proofState)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "The proof is invalid");

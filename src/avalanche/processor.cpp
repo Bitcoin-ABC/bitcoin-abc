@@ -215,11 +215,10 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         }
 
         peerData = std::make_unique<PeerData>();
-        {
-            // The proof.
-            CDataStream stream(ParseHex(argsman.GetArg("-avaproof", "")),
-                               SER_NETWORK, 0);
-            stream >> peerData->proof;
+        if (!Proof::FromHex(peerData->proof, argsman.GetArg("-avaproof", ""),
+                            error)) {
+            // error is set by FromHex
+            return nullptr;
         }
 
         ProofValidationState proof_state;
