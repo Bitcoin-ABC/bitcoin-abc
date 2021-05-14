@@ -148,10 +148,6 @@ static UniValue buildavalancheproof(const Config &config,
     RPCTypeCheck(request.params, {UniValue::VNUM, UniValue::VNUM,
                                   UniValue::VSTR, UniValue::VARR});
 
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
-
     const uint64_t sequence = request.params[0].get_int64();
     const int64_t expiration = request.params[1].get_int64();
     avalanche::ProofBuilder pb(sequence, expiration,
@@ -208,6 +204,90 @@ static UniValue buildavalancheproof(const Config &config,
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << proof;
     return HexStr(ss);
+}
+
+static UniValue decodeavalancheproof(const Config &config,
+                                     const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "decodeavalancheproof",
+        "Convert a serialized, hex-encoded proof, into JSON object. "
+        "The validity of the proof is not verified.\n",
+        {
+            {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The proof hex string"},
+        },
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::NUM, "sequence",
+                 "The proof's sequential number"},
+                {RPCResult::Type::NUM, "expiration",
+                 "A timestamp indicating when the proof expires"},
+                {RPCResult::Type::STR_HEX, "master", "The master public key"},
+                {RPCResult::Type::STR_HEX, "proofid",
+                 "The proof's unique identifier"},
+                {RPCResult::Type::ARR,
+                 "stakes",
+                 "",
+                 {
+                     {RPCResult::Type::OBJ,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::STR_HEX, "txid",
+                           "The transaction id"},
+                          {RPCResult::Type::NUM, "vout", "The output number"},
+                          {RPCResult::Type::STR_AMOUNT, "amount",
+                           "The amount in this UTXO"},
+                          {RPCResult::Type::NUM, "height",
+                           "The height at which this UTXO was mined"},
+                          {RPCResult::Type::BOOL, "iscoinbase",
+                           "Indicate whether the UTXO is a coinbase"},
+                          {RPCResult::Type::STR_HEX, "pubkey",
+                           "This UTXO's public key"},
+                          {RPCResult::Type::STR, "signature",
+                           "Signature of the proofid with this UTXO's private "
+                           "key (base64 encoded)"},
+                      }},
+                 }},
+            }},
+        RPCExamples{HelpExampleCli("decodeavalancheproof", "\"<hex proof>\"") +
+                    HelpExampleRpc("decodeavalancheproof", "\"<hex proof>\"")},
+    }
+        .Check(request);
+
+    RPCTypeCheck(request.params, {UniValue::VSTR});
+
+    avalanche::Proof proof;
+    bilingual_str error;
+    if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(), error)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+    }
+
+    UniValue result(UniValue::VOBJ);
+    result.pushKV("sequence", proof.getSequence());
+    result.pushKV("expiration", proof.getExpirationTime());
+    result.pushKV("master", HexStr(proof.getMaster()));
+    result.pushKV("proofid", proof.getId().ToString());
+
+    UniValue stakes(UniValue::VARR);
+    for (const avalanche::SignedStake &s : proof.getStakes()) {
+        const COutPoint &utxo = s.getStake().getUTXO();
+        UniValue stake(UniValue::VOBJ);
+        stake.pushKV("txid", utxo.GetTxId().ToString());
+        stake.pushKV("vout", uint64_t(utxo.GetN()));
+        stake.pushKV("amount", ValueFromAmount(s.getStake().getAmount()));
+        stake.pushKV("height", uint64_t(s.getStake().getHeight()));
+        stake.pushKV("iscoinbase", s.getStake().isCoinbase());
+        stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));
+        stake.pushKV("signature", EncodeBase64(s.getSignature()));
+        stakes.push_back(stake);
+    }
+    result.pushKV("stakes", stakes);
+
+    return result;
 }
 
 static UniValue delegateavalancheproof(const Config &config,
@@ -449,6 +529,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
         { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
         { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
+        { "avalanche",          "decodeavalancheproof",   decodeavalancheproof,   {"proof"}},
         { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
         { "avalanche",          "verifyavalancheproof",   verifyavalancheproof,   {"proof"}},

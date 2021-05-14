@@ -3,6 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test building avalanche proofs and using them to add avalanche peers."""
+import base64
 from decimal import Decimal
 
 from test_framework.avatools import (
@@ -10,12 +11,17 @@ from test_framework.avatools import (
     create_stakes,
 )
 from test_framework.key import ECKey, bytes_to_wif
-from test_framework.messages import AvalancheDelegation
+from test_framework.messages import (
+    AvalancheDelegation,
+    AvalancheProof,
+    FromHex,
+)
 from test_framework.mininode import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import (
     append_config,
+    assert_equal,
     wait_until,
     assert_raises_rpc_error,
 )
@@ -62,9 +68,33 @@ class AvalancheProofTest(BitcoinTestFramework):
         proof_master = get_hex_pubkey(privkey)
         proof_sequence = 11
         proof_expiration = 12
+        stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master,
-            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key))
+            proof_sequence, proof_expiration, proof_master, stakes)
+
+        self.log.info("Test decodeavalancheproof RPC")
+        proofobj = FromHex(AvalancheProof(), proof)
+        decodedproof = node.decodeavalancheproof(proof)
+        assert_equal(decodedproof["sequence"], proof_sequence)
+        assert_equal(decodedproof["expiration"], proof_expiration)
+        assert_equal(decodedproof["master"], proof_master)
+        assert_equal(decodedproof["proofid"], f"{proofobj.proofid:0{64}x}")
+        assert_equal(decodedproof["stakes"][0]["txid"], stakes[0]["txid"])
+        assert_equal(decodedproof["stakes"][0]["vout"], stakes[0]["vout"])
+        assert_equal(decodedproof["stakes"][0]["height"], stakes[0]["height"])
+        assert_equal(
+            decodedproof["stakes"][0]["iscoinbase"],
+            stakes[0]["iscoinbase"])
+        assert_equal(
+            decodedproof["stakes"][0]["signature"],
+            base64.b64encode(proofobj.stakes[0].sig).decode("ascii"))
+
+        # Invalid hex (odd number of hex digits)
+        assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
+                                node.decodeavalancheproof, proof[:-1])
+        # Valid hex but invalid proof
+        assert_raises_rpc_error(-22, "Proof has invalid format",
+                                node.decodeavalancheproof, proof[:-2])
 
         # Restart the node, making sure it is initially in IBD mode
         minchainwork = int(node.getblockchaininfo()["chainwork"], 16) + 1
