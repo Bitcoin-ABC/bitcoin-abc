@@ -487,7 +487,6 @@ bool CBlockTreeDB::Upgrade(const Consensus::Params &params) {
     int reportDone = -1;
     std::pair<uint8_t, uint256> key = {DB_BLOCK_INDEX, uint256()};
     while (pcursor->Valid()) {
-        boost::this_thread::interruption_point();
         if (ShutdownRequested()) {
             break;
         }
