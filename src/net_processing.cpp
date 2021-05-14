@@ -3079,8 +3079,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             Misbehaving(pfrom, 20,
-                        strprintf("oversized-inv: message inv size() = %u",
-                                  vInv.size()));
+                        strprintf("inv message size = %u", vInv.size()));
             return;
         }
 
@@ -3166,8 +3165,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
             Misbehaving(pfrom, 20,
-                        strprintf("too-many-inv: message getdata size() = %u",
-                                  vInv.size()));
+                        strprintf("getdata message size = %u", vInv.size()));
             return;
         }
 
