@@ -398,32 +398,6 @@ static UniValue getavalanchepeerinfo(const Config &config,
                     {RPCResult::Type::NUM, "peerid", "The peer id"},
                     {RPCResult::Type::STR_HEX, "proof",
                      "The avalanche proof used by this peer"},
-                    {RPCResult::Type::NUM, "sequence", "The proof's sequence"},
-                    {RPCResult::Type::NUM_TIME, "expiration",
-                     "The proof's expiration timestamp"},
-                    {RPCResult::Type::STR_HEX, "master",
-                     "The proof's master public key"},
-                    {
-                        RPCResult::Type::ARR,
-                        "stakes",
-                        "",
-                        {{
-                            RPCResult::Type::OBJ,
-                            "",
-                            "",
-                            {{
-                                {RPCResult::Type::STR_HEX, "txid", ""},
-                                {RPCResult::Type::NUM, "vout", ""},
-                                {RPCResult::Type::STR_AMOUNT, "amount",
-                                 "The amount in this UTXO"},
-                                {RPCResult::Type::NUM, "height",
-                                 "The height at which this UTXO was mined"},
-                                {RPCResult::Type::BOOL, "iscoinbase",
-                                 "Indicate wether the UTXO is a coinbase"},
-                                {RPCResult::Type::STR_HEX, "pubkey", ""},
-                            }},
-                        }},
-                    },
                     {RPCResult::Type::ARR,
                      "nodes",
                      "",
@@ -453,22 +427,6 @@ static UniValue getavalanchepeerinfo(const Config &config,
 
         obj.pushKV("peerid", uint64_t(peer.peerid));
         obj.pushKV("proof", HexStr(serproof));
-        obj.pushKV("sequence", peer.proof.getSequence());
-        obj.pushKV("expiration", peer.proof.getExpirationTime());
-        obj.pushKV("master", HexStr(peer.proof.getMaster()));
-
-        UniValue stakes(UniValue::VARR);
-        for (const auto &s : peer.proof.getStakes()) {
-            UniValue stake(UniValue::VOBJ);
-            stake.pushKV("txid", s.getStake().getUTXO().GetTxId().GetHex());
-            stake.pushKV("vout", uint64_t(s.getStake().getUTXO().GetN()));
-            stake.pushKV("amount", ValueFromAmount(s.getStake().getAmount()));
-            stake.pushKV("height", uint64_t(s.getStake().getHeight()));
-            stake.pushKV("iscoinbase", s.getStake().isCoinbase());
-            stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));
-            stakes.push_back(stake);
-        }
-        obj.pushKV("stakes", stakes);
 
         UniValue nodes(UniValue::VARR);
         for (const auto &id : g_avalanche->getNodeIdsForPeer(peer.peerid)) {

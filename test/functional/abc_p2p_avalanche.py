@@ -251,12 +251,7 @@ class AvalancheTest(BitcoinTestFramework):
         # The first avalanche node index is 1, because 0 is self.nodes[1].
         assert_equal(sorted(avapeerinfo[0]["nodes"]),
                      list(range(1, QUORUM_NODE_COUNT + 1)))
-        assert_equal(avapeerinfo[0]["sequence"], proof_sequence)
-        assert_equal(avapeerinfo[0]["expiration"], proof_expiration)
-        assert_equal(avapeerinfo[0]["master"], pubkey.get_bytes().hex())
         assert_equal(avapeerinfo[0]["proof"], proof)
-        assert_equal(len(avapeerinfo[0]["stakes"]), 1)
-        assert_equal(avapeerinfo[0]["stakes"][0]["txid"], stakes[0]['txid'])
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
             found_hash = False
