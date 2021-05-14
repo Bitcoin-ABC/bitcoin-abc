@@ -31,7 +31,6 @@ class TxnMallTest(BitcoinTestFramework):
         # Start with split network:
         super().setup_network()
         disconnect_nodes(self.nodes[1], self.nodes[2])
-        disconnect_nodes(self.nodes[2], self.nodes[1])
 
     def run_test(self):
         output_type = "legacy"

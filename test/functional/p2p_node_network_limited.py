@@ -57,9 +57,6 @@ class NodeNetworkLimitedTest(BitcoinTestFramework):
 
     def disconnect_all(self):
         disconnect_nodes(self.nodes[0], self.nodes[1])
-        disconnect_nodes(self.nodes[1], self.nodes[0])
-        disconnect_nodes(self.nodes[2], self.nodes[1])
-        disconnect_nodes(self.nodes[2], self.nodes[0])
         disconnect_nodes(self.nodes[0], self.nodes[2])
         disconnect_nodes(self.nodes[1], self.nodes[2])
 

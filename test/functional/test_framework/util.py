@@ -420,8 +420,19 @@ def set_node_times(nodes, t):
 
 
 def disconnect_nodes(from_node, to_node):
-    for peer_id in [peer['id'] for peer in from_node.getpeerinfo(
-    ) if to_node.name in peer['subver']]:
+    def get_peer_ids():
+        result = []
+        for peer in from_node.getpeerinfo():
+            if to_node.name in peer['subver']:
+                result.append(peer['id'])
+        return result
+
+    peer_ids = get_peer_ids()
+    if not peer_ids:
+        logger.warning(
+            f"disconnect_nodes: {from_node.index} and {to_node.index} were not connected")
+        return
+    for peer_id in peer_ids:
         try:
             from_node.disconnectnode(nodeid=peer_id)
         except JSONRPCException as e:
@@ -432,8 +443,7 @@ def disconnect_nodes(from_node, to_node):
                 raise
 
     # wait to disconnect
-    wait_until(lambda: [peer['id'] for peer in from_node.getpeerinfo(
-    ) if to_node.name in peer['subver']] == [], timeout=5)
+    wait_until(lambda: not get_peer_ids(), timeout=5)
 
 
 def connect_nodes(from_node, to_node):
