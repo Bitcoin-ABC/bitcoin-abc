@@ -505,9 +505,8 @@ static RPCHelpMan mockscheduler() {
                 throw std::runtime_error("mockscheduler is for regression "
                                          "testing (-regtest mode) only");
             }
-
             int64_t delta_seconds = request.params[0].getInt<int64_t>();
-            if ((delta_seconds <= 0) || (delta_seconds > 3600)) {
+            if (delta_seconds <= 0 || delta_seconds > 3600) {
                 throw std::runtime_error(
                     "delta_time must be between 1 and 3600 seconds (1 hr)");
             }
