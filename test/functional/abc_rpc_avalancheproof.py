@@ -179,7 +179,6 @@ class AvalancheProofTest(BitcoinTestFramework):
                                 )
 
         # Test invalid proofs
-        self.log.info("Bad proof should be rejected at startup")
         dust = node.buildavalancheproof(
             proof_sequence, proof_expiration, proof_master,
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key, amount="0"))
@@ -201,6 +200,30 @@ class AvalancheProofTest(BitcoinTestFramework):
                    "8770a462b2d0e9fb2fc839ef5d3faf07f001dd38e9b4a43d07d5d449cc0"
                    "f7d2888d96b82962b3ce516d1083c0e031773487fc3c4f2e38acd1db974"
                    "1321b91a79b82d1c2cfd47793261e4ba003cf5")
+
+        self.log.info("Check the verifyavalancheproof RPC")
+
+        assert_raises_rpc_error(-8, "Proof must be an hexadecimal string",
+                                    node.verifyavalancheproof, "f00")
+        assert_raises_rpc_error(-8, "Proof has invalid format",
+                                    node.verifyavalancheproof, "f00d")
+
+        def check_verifyavalancheproof_failure(proof, message):
+            assert_raises_rpc_error(-8, "The proof is invalid: " + message,
+                                    node.verifyavalancheproof, proof)
+
+        check_verifyavalancheproof_failure(no_stake, "no-stake")
+        check_verifyavalancheproof_failure(dust, "amount-below-dust-threshold")
+        check_verifyavalancheproof_failure(duplicate_stake, "duplicated-stake")
+        check_verifyavalancheproof_failure(bad_sig, "invalid-signature")
+        if self.is_wallet_compiled():
+            check_verifyavalancheproof_failure(
+                too_many_utxos, "too-many-utxos")
+
+        # Good proof
+        assert node.verifyavalancheproof(proof)
+
+        self.log.info("Bad proof should be rejected at startup")
 
         self.stop_node(0)
 

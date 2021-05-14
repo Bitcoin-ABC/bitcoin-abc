@@ -11,6 +11,7 @@
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <serialize.h>
+#include <util/translation.h>
 
 #include <array>
 #include <cstdint>
@@ -95,6 +96,9 @@ public:
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
         SER_READ(obj, obj.proofid = obj.computeProofId());
     }
+
+    static bool FromHex(Proof &proof, const std::string &hexProof,
+                        bilingual_str &errorOut);
 
     uint64_t getSequence() const { return sequence; }
     int64_t getExpirationTime() const { return expirationTime; }

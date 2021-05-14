@@ -12,6 +12,8 @@
 #include <config.h>
 #include <core_io.h>
 #include <key_io.h>
+#include <node/context.h>
+#include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
 #include <util/strencodings.h>
@@ -400,6 +402,44 @@ static UniValue getavalanchepeerinfo(const Config &config,
     return ret;
 }
 
+static UniValue verifyavalancheproof(const Config &config,
+                                     const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "verifyavalancheproof",
+        "Verify an avalanche proof is valid and return the error otherwise.\n",
+        {
+            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "Proof to verify."},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the proof is valid or not."},
+        RPCExamples{HelpExampleRpc("verifyavalancheproof", "\"<proof>\"")},
+    }
+        .Check(request);
+
+    RPCTypeCheck(request.params, {UniValue::VSTR});
+
+    avalanche::Proof proof;
+    bilingual_str error;
+    if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(), error)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, error.original);
+    }
+
+    NodeContext &node = EnsureNodeContext(request.context);
+
+    avalanche::ProofValidationState state;
+    {
+        LOCK(cs_main);
+        if (!proof.verify(state,
+                          node.chainman->ActiveChainstate().CoinsTip())) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "The proof is invalid: " + state.ToString());
+        }
+    }
+
+    return true;
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -410,6 +450,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
         { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
+        { "avalanche",          "verifyavalancheproof",   verifyavalancheproof,   {"proof"}},
     };
     // clang-format on
 
