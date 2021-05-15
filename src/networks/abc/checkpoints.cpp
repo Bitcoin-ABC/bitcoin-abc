@@ -61,6 +61,9 @@ static CCheckpointData mainNetCheckpointData = {
                                     "34b2fb89b6d2a122468260")},
         {680140, BlockHash::fromHex("0000000000000000232c48568b63451d4ac445210"
                                     "9aa46f8b38c65c3f62f7c0b")},
+        // Tachyon activation
+        {686621, BlockHash::fromHex("00000000000000003c8fe6f7570a9f6d5480dcfc9"
+                                    "5f8228ae9d60b98bee5b745")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -90,6 +93,9 @@ static CCheckpointData testNetCheckpointData = {
         // Axion activation.
         {1421481, BlockHash::fromHex("00000000062c7f32591d883c99fc89ebe74a83287"
                                      "c0f2b7ffeef72e62217d40b")},
+        // Tachyon activation.
+        {1450540, BlockHash::fromHex("00000000001085419e7328a2bacaf6216dd913c40"
+                                     "0f0b7da4bde43a8ebf6ed4e")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
