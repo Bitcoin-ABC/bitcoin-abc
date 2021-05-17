@@ -47,7 +47,7 @@ if(Event_INCLUDE_DIR)
 		HINTS "${_Event_BREW_HINT}"
 		INCLUDE_DIRS ${Event_INCLUDE_DIRS}
 		PATHS ${PC_Event_LIBRARY_DIRS}
-		INTERFACE_LINK_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;shell32;advapi32>"
+		INTERFACE_LINK_LIBRARIES "$<$<PLATFORM_ID:Windows>:ws2_32;shell32;advapi32;iphlpapi>"
 	)
 
 	pkg_check_modules(PC_Event_pthreads QUIET event_pthreads libevent_pthreads)
