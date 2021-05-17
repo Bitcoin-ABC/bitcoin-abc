@@ -5,6 +5,7 @@
 
 from decimal import Decimal
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -13,10 +14,10 @@ from test_framework.util import (
     get_auth_cookie,
 )
 
-# The block reward of coinbaseoutput.nValue (50) BTC/block matures after
+# The block reward of coinbaseoutput.nValue (50) MegXEC/block matures after
 # COINBASE_MATURITY (100) blocks. Therefore, after mining 101 blocks we expect
-# node 0 to have a balance of (BLOCKS - COINBASE_MATURITY) * 50 BTC/block.
-BLOCKS = 101
+# node 0 to have a balance of (BLOCKS - COINBASE_MATURITY) * 50 MegXEC/block.
+BLOCKS = COINBASE_MATURITY + 1
 BALANCE = (BLOCKS - 100) * 50000000
 
 JSON_PARSING_ERROR = "error: Error parsing JSON: foo"

@@ -8,6 +8,7 @@ import json
 import os
 
 from test_framework.authproxy import JSONRPCException
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.descriptors import descsum_create, drop_origins
 from test_framework.key import ECKey, ECPubKey
 from test_framework.test_framework import BitcoinTestFramework
@@ -118,7 +119,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
 
     def checkbalances(self):
         node0, node1, node2 = self.nodes
-        self.generate(node0, 100)
+        self.generate(node0, COINBASE_MATURITY)
 
         bal0 = node0.getbalance()
         bal1 = node1.getbalance()

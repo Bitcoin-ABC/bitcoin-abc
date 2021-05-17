@@ -15,6 +15,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.chronik.alp import alp_genesis, alp_opreturn, alp_send
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.util import assert_equal
@@ -44,7 +45,7 @@ class ChronikClient_Broadcast_Setup(SetupFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         coinvalue = 2500000000
 

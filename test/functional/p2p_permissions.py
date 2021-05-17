@@ -7,6 +7,7 @@ Test that permissions are correctly calculated and applied
 """
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, SCRIPTSIG_OP_TRUE
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import CTransaction, FromHex
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
@@ -125,7 +126,9 @@ class P2PPermissionsTests(BitcoinTestFramework):
 
     def check_tx_relay(self):
         block_op_true = self.nodes[0].getblock(
-            self.generatetoaddress(self.nodes[0], 100, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
+            self.generatetoaddress(
+                self.nodes[0], COINBASE_MATURITY, ADDRESS_ECREG_P2SH_OP_TRUE
+            )[0]
         )
 
         self.log.debug(

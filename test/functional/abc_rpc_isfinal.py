@@ -7,7 +7,7 @@ import random
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.authproxy import JSONRPCException
 from test_framework.avatools import AvaP2PInterface, can_find_inv_in_poll
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import CBlockHeader, msg_headers
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
@@ -88,7 +88,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             self.log.info("Check mempool transactions are not finalized")
             # Mature some utxos
-            tip = self.generate(node, 100, sync_fun=self.no_op)[-1]
+            tip = self.generate(node, COINBASE_MATURITY, sync_fun=self.no_op)[-1]
             wallet_txid = node.sendtoaddress(ADDRESS_ECREG_UNSPENDABLE, 1_000_000)
             assert wallet_txid in node.getrawmempool()
             assert_raises_rpc_error(

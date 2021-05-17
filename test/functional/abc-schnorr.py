@@ -10,6 +10,7 @@ Derived from a variety of functional tests.
 """
 
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     create_block,
     create_coinbase,
     create_tx_with_script,
@@ -144,7 +145,7 @@ class SchnorrTest(BitcoinTestFramework):
         spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
-        self.generate(node, 100, sync_fun=self.no_op)
+        self.generate(node, COINBASE_MATURITY, sync_fun=self.no_op)
 
         tip = self.getbestblock(node)
 

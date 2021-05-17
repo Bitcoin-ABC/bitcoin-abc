@@ -7,6 +7,7 @@ import random
 from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, SCRIPTSIG_OP_TRUE
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import CTransaction, FromHex, ToHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -44,7 +45,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         self.address = node.get_deterministic_priv_key().address
         self.coins = []
         # The last 100 coinbase transactions are premature
-        for b in self.generatetoaddress(node, 300, self.address)[:100]:
+        for b in self.generatetoaddress(node, 300, self.address)[:COINBASE_MATURITY]:
             coinbase = node.getblock(blockhash=b, verbosity=2)["tx"][0]
             self.coins.append(
                 {

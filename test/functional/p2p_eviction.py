@@ -19,7 +19,7 @@ from test_framework.avatools import (
     avalanche_proof_from_hex,
     create_coinbase_stakes,
 )
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.key import ECKey
 from test_framework.messages import (
     CTransaction,
@@ -78,7 +78,7 @@ class P2PEvict(BitcoinTestFramework):
         current_peer = -1
         node = self.nodes[0]
         blocks = self.generatetoaddress(
-            node, 101, node.get_deterministic_priv_key().address
+            node, COINBASE_MATURITY + 1, node.get_deterministic_priv_key().address
         )
 
         self.log.info(

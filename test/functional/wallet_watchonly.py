@@ -4,6 +4,7 @@
 """Test createwallet arguments.
 """
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
@@ -32,7 +33,7 @@ class CreateWalletWatchonlyTest(BitcoinTestFramework):
         wo_wallet.importpubkey(pubkey=def_wallet.getaddressinfo(wo_change)["pubkey"])
 
         # generate some btc for testing
-        self.generatetoaddress(node, 101, a1)
+        self.generatetoaddress(node, COINBASE_MATURITY + 1, a1)
 
         # send 1 btc to our watch-only address
         txid = def_wallet.sendtoaddress(wo_addr, 1000000)

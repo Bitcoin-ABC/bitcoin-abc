@@ -6,7 +6,11 @@ Test Chronik's /block endpoint.
 """
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
-from test_framework.blocktools import GENESIS_BLOCK_HASH, TIME_GENESIS_BLOCK
+from test_framework.blocktools import (
+    COINBASE_MATURITY,
+    GENESIS_BLOCK_HASH,
+    TIME_GENESIS_BLOCK,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -51,7 +55,7 @@ class ChronikBlockTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.block("00" * 31).err(400).msg,
-            f'400: Not a hash or height: {"00"*31}',
+            f'400: Not a hash or height: {"00" * 31}',
         )
         assert_equal(chronik.block("01").err(400).msg, "400: Not a hash or height: 01")
         assert_equal(
@@ -68,16 +72,16 @@ class ChronikBlockTest(BitcoinTestFramework):
         assert_equal(chronik.block(1).err(404).msg, "404: Block not found: 1")
         # Block "0000...0000" not found
         assert_equal(
-            chronik.block("00" * 32).err(404).msg, f'404: Block not found: {"00"*32}'
+            chronik.block("00" * 32).err(404).msg, f'404: Block not found: {"00" * 32}'
         )
 
         # Generate 100 blocks, verify they form a chain
         block_hashes = [GENESIS_BLOCK_HASH] + self.generatetoaddress(
-            node, 100, ADDRESS_ECREG_P2SH_OP_TRUE
+            node, COINBASE_MATURITY, ADDRESS_ECREG_P2SH_OP_TRUE
         )
 
         expected_proto_blocks = []
-        for i in range(1, 101):
+        for i in range(1, COINBASE_MATURITY + 1):
             proto_block = chronik.block(i).ok()
             expected_proto = pb.Block(
                 block_info=pb.BlockInfo(

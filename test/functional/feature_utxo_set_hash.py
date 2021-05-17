@@ -5,7 +5,7 @@
 
 import struct
 
-from test_framework.blocktools import create_transaction
+from test_framework.blocktools import COINBASE_MATURITY, create_transaction
 from test_framework.messages import CBlock, COutPoint, FromHex
 from test_framework.muhash import MuHash3072
 from test_framework.test_framework import BitcoinTestFramework
@@ -41,7 +41,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
 
         # Generate 100 blocks and remove the first since we plan to spend its
         # coinbase
-        block_hashes = self.generate(node, 100)
+        block_hashes = self.generate(node, COINBASE_MATURITY)
         blocks = [
             FromHex(CBlock(), node.getblock(block, False)) for block in block_hashes
         ]

@@ -12,6 +12,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     GENESIS_BLOCK_HASH,
     create_block,
     create_coinbase,
@@ -47,7 +48,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         )
         assert_equal(
             chronik.block_txs("00" * 31).err(400).msg,
-            f'400: Not a hash or height: {"00"*31}',
+            f'400: Not a hash or height: {"00" * 31}',
         )
         assert_equal(
             chronik.block_txs("01").err(400).msg, "400: Not a hash or height: 01"
@@ -98,7 +99,9 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
-        tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
+        tip = self.generatetoaddress(
+            node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+        )[-1]
 
         coinvalue = 5000000000
         tx1 = CTransaction()

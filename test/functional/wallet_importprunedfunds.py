@@ -6,6 +6,7 @@
 from decimal import Decimal
 
 from test_framework.address import key_to_p2pkh
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
@@ -22,7 +23,7 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
 
     def run_test(self):
         self.log.info("Mining blocks...")
-        self.generate(self.nodes[0], 101)
+        self.generate(self.nodes[0], COINBASE_MATURITY + 1)
 
         # address
         address1 = self.nodes[0].getnewaddress()
@@ -42,7 +43,7 @@ class ImportPrunedFundsTest(BitcoinTestFramework):
         self.sync_all()
 
         # Node 1 sync test
-        assert_equal(self.nodes[1].getblockcount(), 101)
+        assert_equal(self.nodes[1].getblockcount(), COINBASE_MATURITY + 1)
 
         # Address Test - before import
         address_info = self.nodes[1].getaddressinfo(address1)

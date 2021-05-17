@@ -12,6 +12,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.avatools import AvaP2PInterface, can_find_inv_in_poll
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_CHECKSIG, CScript
@@ -54,7 +55,7 @@ class ChronikWsOrdering(BitcoinTestFramework):
         coinblock = node.getblock(coinblockhash)
         cointxid = coinblock["tx"][0]
 
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         coinvalue = 5000000000
         balance = coinvalue

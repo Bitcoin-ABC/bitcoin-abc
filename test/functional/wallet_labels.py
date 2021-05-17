@@ -10,6 +10,7 @@ RPCs tested are:
 """
 from collections import defaultdict
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet_util import test_address
@@ -34,7 +35,9 @@ class WalletLabelsTest(BitcoinTestFramework):
             node, nblocks=1, address=node.getnewaddress(label="coinbase")
         )
         self.generatetoaddress(
-            node, nblocks=101, address=node.getnewaddress(label="coinbase")
+            node,
+            nblocks=COINBASE_MATURITY + 1,
+            address=node.getnewaddress(label="coinbase"),
         )
         assert_equal(node.getbalance(), 100000000)
 
@@ -108,7 +111,7 @@ class WalletLabelsTest(BitcoinTestFramework):
             label.verify(node)
             assert_equal(node.getreceivedbylabel(label.name), 2000000)
             label.verify(node)
-        self.generate(node, 101)
+        self.generate(node, COINBASE_MATURITY + 1)
 
         # Check that setlabel can assign a label to a new unused address.
         for label in labels:
@@ -132,7 +135,7 @@ class WalletLabelsTest(BitcoinTestFramework):
                 label.add_address(multisig_address)
                 label.purpose[multisig_address] = "send"
                 label.verify(node)
-            self.generate(node, 101)
+            self.generate(node, COINBASE_MATURITY + 1)
 
         # Check that setlabel can change the label of an address from a
         # different label.

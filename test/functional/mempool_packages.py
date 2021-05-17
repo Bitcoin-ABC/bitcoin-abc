@@ -5,6 +5,7 @@
 
 from decimal import Decimal
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, satoshi_round
@@ -40,7 +41,7 @@ class MempoolPackagesTest(BitcoinTestFramework):
         # Mine some blocks and have them mature.
         # keep track of invs
         peer_inv_store = self.nodes[0].add_p2p_connection(P2PTxInvStore())
-        self.generate(self.nodes[0], 101)
+        self.generate(self.nodes[0], COINBASE_MATURITY + 1)
         utxo = self.nodes[0].listunspent(10)
         txid = utxo[0]["txid"]
         value = utxo[0]["amount"]

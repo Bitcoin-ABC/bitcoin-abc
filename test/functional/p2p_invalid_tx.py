@@ -7,7 +7,7 @@ In this test we connect to one node over p2p, and test tx requests.
 """
 
 from data import invalid_txs
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_TRUE, CScript
@@ -62,7 +62,9 @@ class InvalidTxRequestTest(BitcoinTestFramework):
 
         self.log.info("Mature the block.")
         self.generatetoaddress(
-            self.nodes[0], 100, self.nodes[0].get_deterministic_priv_key().address
+            self.nodes[0],
+            COINBASE_MATURITY,
+            self.nodes[0].get_deterministic_priv_key().address,
         )
 
         # Iterate through a list of known invalid transaction types, ensuring each is

@@ -79,10 +79,6 @@ DEFAULT_MAX_BLOCK_SIZE = eval(match.group(1))
 # / BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO (network rule).
 BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO = 141
 
-# Coinbase transaction outputs can only be spent after this number of new
-# blocks (network rule)
-COINBASE_MATURITY = 100
-
 # Minimum size a transaction can have.
 MIN_TX_SIZE = 100
 
@@ -92,4 +88,3 @@ MAX_TXOUT_PUBKEY_SCRIPT = 10000
 if __name__ == "__main__":
     # Output values if run standalone to verify
     print(f"DEFAULT_MAX_BLOCK_SIZE = {DEFAULT_MAX_BLOCK_SIZE} (bytes)")
-    print(f"COINBASE_MATURITY = {COINBASE_MATURITY} (blocks)")

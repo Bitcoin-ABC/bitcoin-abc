@@ -34,6 +34,7 @@ import shutil
 from decimal import Decimal
 from random import randint
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
@@ -165,7 +166,7 @@ class WalletBackupTest(BitcoinTestFramework):
         self.generate(self.nodes[0], 1)
         self.generate(self.nodes[1], 1)
         self.generate(self.nodes[2], 1)
-        self.generate(self.nodes[3], 100)
+        self.generate(self.nodes[3], COINBASE_MATURITY)
 
         assert_equal(self.nodes[0].getbalance(), 50000000)
         assert_equal(self.nodes[1].getbalance(), 50000000)
@@ -190,7 +191,7 @@ class WalletBackupTest(BitcoinTestFramework):
             self.do_one_round()
 
         # Generate 101 more blocks, so any fees paid mature
-        self.generate(self.nodes[3], 101)
+        self.generate(self.nodes[3], COINBASE_MATURITY + 1)
 
         balance0 = self.nodes[0].getbalance()
         balance1 = self.nodes[1].getbalance()

@@ -4,6 +4,7 @@
 """Test the listsinceblock RPC."""
 
 from test_framework import cashaddr
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.key import ECKey
 from test_framework.script import hash160
 from test_framework.test_framework import BitcoinTestFramework
@@ -31,7 +32,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         # All nodes are in IBD from genesis, so they'll need the miner (node2) to be an outbound connection, or have
         # only one connection. (See fPreferredDownload in net_processing)
         self.connect_nodes(1, 2)
-        self.generate(self.nodes[2], 101)
+        self.generate(self.nodes[2], COINBASE_MATURITY + 1)
 
         self.test_no_blockhash()
         self.test_invalid_blockhash()

@@ -12,6 +12,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     GENESIS_CB_PK,
     GENESIS_CB_TXID,
     create_block,
@@ -127,7 +128,7 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
             ),
         )
 
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         # Make tx creating 4 UTXOs, spending the coinbase UTXO
         send_values = [coinvalue - 10000, 1000, 2000, 3000]

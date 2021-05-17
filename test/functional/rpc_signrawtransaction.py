@@ -3,6 +3,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test transaction signing using the signrawtransaction* RPCs."""
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
@@ -181,7 +182,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
     def test_fully_signed_tx(self):
         self.log.info("Test signing a fully signed transaction does nothing")
         self.nodes[0].walletpassphrase("password", 9999)
-        self.generate(self.nodes[0], 101)
+        self.generate(self.nodes[0], COINBASE_MATURITY + 1)
         rawtx = self.nodes[0].createrawtransaction(
             [], [{self.nodes[0].getnewaddress(): 10}]
         )
@@ -315,7 +316,9 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         # The multiwallet node can sign the transaction using w1
         w1 = multiwallet_node.get_wallet_rpc("w1")
         self.generatetoaddress(
-            multiwallet_node, nblocks=101, address=w1.getnewaddress(label="coinbase")
+            multiwallet_node,
+            nblocks=COINBASE_MATURITY + 1,
+            address=w1.getnewaddress(label="coinbase"),
         )
 
         utxo = w1.listunspent()[0]

@@ -6,6 +6,7 @@
 import os
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, keyhash_to_p2pkh
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -129,7 +130,9 @@ class NotificationsTest(BitcoinTestFramework):
                 )
             )
             self.nodes[0].rescanblockchain()
-            self.generatetoaddress(self.nodes[0], 100, ADDRESS_ECREG_UNSPENDABLE)
+            self.generatetoaddress(
+                self.nodes[0], COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+            )
 
             # Generate transaction on node 0, sync mempools, and check for
             # notification on node 1.

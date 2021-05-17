@@ -14,7 +14,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.txtools import pad_tx
@@ -49,7 +49,9 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
         cointx = coinblock["tx"][0]
         send_ipc_message({"cointx": cointx})
 
-        block_hashes = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        block_hashes = self.generatetoaddress(
+            node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+        )
 
         coinvalue = 5000000000
 

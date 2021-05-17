@@ -21,6 +21,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -47,7 +48,7 @@ class ChronikTxRemovalOrder(BitcoinTestFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
-        self.generate(node, 100)
+        self.generate(node, COINBASE_MATURITY)
 
         coinvalue = 5000000000
 

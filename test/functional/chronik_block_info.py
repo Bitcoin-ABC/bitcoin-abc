@@ -12,6 +12,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     create_block,
     create_coinbase,
     make_conform_to_ctor,
@@ -44,7 +45,9 @@ class ChronikBlockInfoTest(BitcoinTestFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
-        prev_hash = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
+        prev_hash = self.generatetoaddress(
+            node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+        )[-1]
 
         coinvalue = 5000000000
         tx = CTransaction()

@@ -8,6 +8,7 @@ Setup script to test the ecash-lib js library
 import pathmagic  # noqa
 from setup_framework import SetupFramework
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
+from test_framework.blocktools import COINBASE_MATURITY
 
 
 class EcashLibSetup(SetupFramework):
@@ -25,7 +26,7 @@ class EcashLibSetup(SetupFramework):
         node.setmocktime(mocktime)
 
         self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         yield True
 

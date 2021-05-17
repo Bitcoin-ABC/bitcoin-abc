@@ -9,7 +9,7 @@ Only testing Version 1 compact blocks (txids)
 
 import random
 
-from test_framework.blocktools import create_block
+from test_framework.blocktools import COINBASE_MATURITY, create_block
 from test_framework.messages import (
     MSG_BLOCK,
     MSG_CMPCT_BLOCK,
@@ -147,7 +147,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         block = self.build_block_on_tip(self.nodes[0])
         self.test_node.send_and_ping(msg_block(block))
         assert int(self.nodes[0].getbestblockhash(), 16) == block.sha256
-        self.generate(self.nodes[0], 100)
+        self.generate(self.nodes[0], COINBASE_MATURITY)
 
         total_value = block.vtx[0].vout[0].nValue
         out_value = total_value // 10
@@ -272,7 +272,7 @@ class CompactBlocksTest(BitcoinTestFramework):
     # This test actually causes bitcoind to (reasonably!) disconnect us, so do
     # this last.
     def test_invalid_cmpctblock_message(self):
-        self.generate(self.nodes[0], 101)
+        self.generate(self.nodes[0], COINBASE_MATURITY + 1)
         block = self.build_block_on_tip(self.nodes[0])
 
         cmpct_block = P2PHeaderAndShortIDs()
@@ -289,7 +289,7 @@ class CompactBlocksTest(BitcoinTestFramework):
     def test_compactblock_construction(self, test_node):
         node = self.nodes[0]
         # Generate a bunch of transactions.
-        self.generate(node, 101)
+        self.generate(node, COINBASE_MATURITY + 1)
         num_transactions = 25
         address = node.getnewaddress()
 

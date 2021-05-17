@@ -4,6 +4,7 @@
 """Test the wallet."""
 from decimal import Decimal
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import CTransaction, FromHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -62,7 +63,9 @@ class WalletTest(BitcoinTestFramework):
 
         self.sync_all(self.nodes[0:3])
         self.generate(
-            self.nodes[1], 101, sync_fun=lambda: self.sync_all(self.nodes[0:3])
+            self.nodes[1],
+            COINBASE_MATURITY + 1,
+            sync_fun=lambda: self.sync_all(self.nodes[0:3]),
         )
 
         assert_equal(self.nodes[0].getbalance(), 50000000)
@@ -208,7 +211,9 @@ class WalletTest(BitcoinTestFramework):
 
         # Have node1 generate 100 blocks (so node0 can recover the fee)
         self.generate(
-            self.nodes[1], 100, sync_fun=lambda: self.sync_all(self.nodes[0:3])
+            self.nodes[1],
+            COINBASE_MATURITY,
+            sync_fun=lambda: self.sync_all(self.nodes[0:3]),
         )
 
         # node0 should end up with 100 btc in block rewards plus fees, but

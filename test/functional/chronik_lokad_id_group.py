@@ -11,7 +11,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import (
@@ -52,7 +52,7 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         cointx = coinblock["tx"][0]
         coinvalue = 5000000000
 
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         def p2lokad(lokad_id: bytes):
             return CScript([lokad_id, OP_EQUAL])

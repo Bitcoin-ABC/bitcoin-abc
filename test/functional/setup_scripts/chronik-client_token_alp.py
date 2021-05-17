@@ -17,6 +17,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     create_block,
     create_coinbase,
     make_conform_to_ctor,
@@ -56,7 +57,9 @@ class ChronikClientTokenAlp(SetupFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
-        block_hashes = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        block_hashes = self.generatetoaddress(
+            node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+        )
 
         coinvalue = 5000000000
 

@@ -6,6 +6,7 @@
 import hashlib
 from pathlib import Path
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
@@ -20,7 +21,7 @@ class DumptxoutsetTest(BitcoinTestFramework):
         node = self.nodes[0]
         mocktime = node.getblockheader(node.getblockhash(0))["time"] + 1
         node.setmocktime(mocktime)
-        self.generate(node, 100)
+        self.generate(node, COINBASE_MATURITY)
 
         FILENAME = "txoutset.dat"
         out = node.dumptxoutset(FILENAME)

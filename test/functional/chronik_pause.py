@@ -11,6 +11,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     create_block,
     create_coinbase,
     make_conform_to_ctor,
@@ -50,7 +51,9 @@ class ChronikPauseTest(BitcoinTestFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
         coinvalue = 5000000000
-        tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
+        tip = self.generatetoaddress(
+            node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+        )[-1]
 
         tx = CTransaction()
         tx.vin = [CTxIn(COutPoint(int(cointx, 16), 0), SCRIPTSIG_OP_TRUE)]

@@ -6,6 +6,7 @@ import random
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     create_block,
     create_coinbase,
     make_conform_to_ctor,
@@ -73,7 +74,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.generate(wallet, num_txs, sync_fun=self.no_op)
 
         # Mature the coinbases
-        self.generate(node, 100, sync_fun=self.no_op)
+        self.generate(node, COINBASE_MATURITY, sync_fun=self.no_op)
 
         assert_equal(node.getmempoolinfo()["size"], 0)
         tx_ids = [

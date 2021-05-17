@@ -10,7 +10,7 @@ the index.
 
 from decimal import Decimal
 
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import XEC, CTxOut, ToHex
 from test_framework.script import OP_FALSE, OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
@@ -55,7 +55,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         index_hash_options = ["none", "muhash"]
 
         # Generate a normal transaction and mine it
-        self.generate(self.wallet, 101)
+        self.generate(self.wallet, COINBASE_MATURITY + 1)
         self.wallet.send_self_transfer(from_node=node)
         self.generate(node, 1)
 

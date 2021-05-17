@@ -6,6 +6,7 @@
 Tests listtransactions, listsinceblock, and gettransaction.
 """
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_array_result
 
@@ -45,7 +46,7 @@ class CoinbaseCategoryTest(BitcoinTestFramework):
         self.assert_category("immature", address, txid, 0)
 
         # Mine another 99 blocks on top
-        self.generate(self.nodes[0], 99)
+        self.generate(self.nodes[0], COINBASE_MATURITY - 1)
         # Coinbase transaction is still immature after 100 confirmations
         self.assert_category("immature", address, txid, 99)
 

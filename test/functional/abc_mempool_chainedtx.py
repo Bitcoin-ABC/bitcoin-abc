@@ -3,6 +3,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the chained txs limit."""
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.wallet import create_raw_chain
@@ -25,7 +26,7 @@ class ChainedTxTest(BitcoinTestFramework):
         self.address = node.get_deterministic_priv_key().address
         self.coins = []
         # The last 100 coinbase transactions are premature
-        for b in self.generatetoaddress(node, 102, self.address)[:2]:
+        for b in self.generatetoaddress(node, COINBASE_MATURITY + 2, self.address)[:2]:
             coinbase = node.getblock(blockhash=b, verbosity=2)["tx"][0]
             self.coins.append(
                 {

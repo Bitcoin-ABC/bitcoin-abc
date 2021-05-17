@@ -10,6 +10,7 @@ from test_framework.address import (
 )
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import (
+    COINBASE_MATURITY,
     create_block,
     create_coinbase,
     make_conform_to_ctor,
@@ -71,7 +72,9 @@ class ChronikWsScriptTest(BitcoinTestFramework):
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
 
-        tip = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)[-1]
+        tip = self.generatetoaddress(
+            node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE
+        )[-1]
 
         # Tx sending to 4 different scripts
         coinvalue = 5000000000

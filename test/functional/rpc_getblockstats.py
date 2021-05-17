@@ -9,6 +9,7 @@ import decimal
 import json
 import os
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
@@ -58,7 +59,7 @@ class GetblockstatsTest(BitcoinTestFramework):
     def generate_test_data(self, filename):
         mocktime = 1525107225
         self.nodes[0].setmocktime(mocktime)
-        self.generate(self.nodes[0], 101)
+        self.generate(self.nodes[0], COINBASE_MATURITY + 1)
 
         address = self.nodes[0].get_deterministic_priv_key().address
         self.nodes[0].sendtoaddress(

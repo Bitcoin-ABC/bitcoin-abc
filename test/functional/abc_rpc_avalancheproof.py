@@ -13,6 +13,7 @@ from test_framework.avatools import (
     get_proof_ids,
     wait_for_proof,
 )
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.cashaddr import PUBKEY_TYPE, encode_full
 from test_framework.key import ECKey
 from test_framework.messages import (
@@ -85,7 +86,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         node_ecash_addr = legacy_to_ecash_p2pkh(addrkey0.address)
 
         blockhashes = self.generatetoaddress(
-            node, 100, node_ecash_addr, sync_fun=self.no_op
+            node, COINBASE_MATURITY, node_ecash_addr, sync_fun=self.no_op
         )
 
         self.log.info("Make build a valid proof and restart the node to use it")

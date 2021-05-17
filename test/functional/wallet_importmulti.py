@@ -14,6 +14,7 @@ variants.
 - `test_address()` is called to call getaddressinfo for an address on node1
   and test the values returned."""
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.descriptors import descsum_create
 from test_framework.script import OP_NOP, CScript
 from test_framework.test_framework import BitcoinTestFramework
@@ -338,7 +339,7 @@ class ImportMultiTest(BitcoinTestFramework):
 
         # P2SH address
         multisig = get_multisig(self.nodes[0])
-        self.generate(self.nodes[1], 100, sync_fun=self.no_op)
+        self.generate(self.nodes[1], COINBASE_MATURITY, sync_fun=self.no_op)
         self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         timestamp = self.nodes[1].getblock(self.nodes[1].getbestblockhash())[
@@ -364,7 +365,7 @@ class ImportMultiTest(BitcoinTestFramework):
 
         # P2SH + Redeem script
         multisig = get_multisig(self.nodes[0])
-        self.generate(self.nodes[1], 100, sync_fun=self.no_op)
+        self.generate(self.nodes[1], COINBASE_MATURITY, sync_fun=self.no_op)
         self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         timestamp = self.nodes[1].getblock(self.nodes[1].getbestblockhash())[
@@ -400,7 +401,7 @@ class ImportMultiTest(BitcoinTestFramework):
 
         # P2SH + Redeem script + Private Keys + !Watchonly
         multisig = get_multisig(self.nodes[0])
-        self.generate(self.nodes[1], 100, sync_fun=self.no_op)
+        self.generate(self.nodes[1], COINBASE_MATURITY, sync_fun=self.no_op)
         self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         timestamp = self.nodes[1].getblock(self.nodes[1].getbestblockhash())[
@@ -439,7 +440,7 @@ class ImportMultiTest(BitcoinTestFramework):
 
         # P2SH + Redeem script + Private Keys + Watchonly
         multisig = get_multisig(self.nodes[0])
-        self.generate(self.nodes[1], 100, sync_fun=self.no_op)
+        self.generate(self.nodes[1], COINBASE_MATURITY, sync_fun=self.no_op)
         self.nodes[1].sendtoaddress(multisig.p2sh_addr, 10.00)
         self.generate(self.nodes[1], 1, sync_fun=self.no_op)
         timestamp = self.nodes[1].getblock(self.nodes[1].getbestblockhash())[

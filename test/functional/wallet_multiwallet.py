@@ -14,6 +14,7 @@ from decimal import Decimal
 from threading import Thread
 
 from test_framework.authproxy import JSONRPCException
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import assert_equal, assert_raises_rpc_error, get_rpc_proxy
@@ -331,7 +332,10 @@ class MultiWalletTest(BitcoinTestFramework):
 
         w1, w2, w3, w4, *_ = wallets
         self.generatetoaddress(
-            node, nblocks=101, address=w1.getnewaddress(), sync_fun=self.no_op
+            node,
+            nblocks=COINBASE_MATURITY + 1,
+            address=w1.getnewaddress(),
+            sync_fun=self.no_op,
         )
         assert_equal(w1.getbalance(), 100000000)
         assert_equal(w2.getbalance(), 0)

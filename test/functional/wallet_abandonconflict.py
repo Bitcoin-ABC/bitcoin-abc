@@ -11,6 +11,7 @@
 """
 from decimal import Decimal
 
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, satoshi_round
 
@@ -34,7 +35,7 @@ class AbandonConflictTest(BitcoinTestFramework):
                 total -= self.nodes[0].gettransaction(txid)["fee"]
             return satoshi_round(total)
 
-        self.generate(self.nodes[1], 100)
+        self.generate(self.nodes[1], COINBASE_MATURITY)
         balance = self.nodes[0].getbalance()
         txA = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), Decimal("10000000")

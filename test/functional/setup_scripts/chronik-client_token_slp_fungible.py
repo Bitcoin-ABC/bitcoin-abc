@@ -15,6 +15,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.chronik.slp import slp_genesis, slp_mint, slp_send
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.util import assert_equal
@@ -43,7 +44,7 @@ class ChronikClientTokenSlpFungible(SetupFramework):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         coinvalue = 5000000000
 
