@@ -17,6 +17,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_greater_than_or_equal,
+    connect_nodes,
 )
 
 from decimal import Decimal
@@ -28,8 +29,8 @@ MINER_FUND_LEGACY_ADDR = '2MviGxxFciGeWTgkUgYgjqehWt18c4ZsShd'
 
 class AbcMiningRPCTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 2
-        self.extra_args = [[
+        self.num_nodes = 3
+        self.extra_args = [[], [
             '-enableminerfund',
             '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
         ], [
@@ -38,11 +39,17 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
         ]]
 
-    def run_for_node(self, node, expectedMinerFundAddress):
-        # Rewind any previously mined blocks so axion can be activated again
-        if node.getblockcount() > 200:
-            node.invalidateblock(node.getblockhash(201))
+    def setup_network(self):
+        self.setup_nodes()
 
+        # Connect node0 to all other nodes so getblocktemplate will return results
+        # (getblocktemplate has a sanity check that ensures it's connected to a network)
+        # Since the other nodes are mining blocks "in the future" compared to node0,
+        # node0 will not broadcast blocks between the other nodes.
+        for n in range(1, len(self.nodes)):
+            connect_nodes(self.nodes[0], self.nodes[n])
+
+    def run_for_node(self, node, expectedMinerFundAddress):
         address = node.get_deterministic_priv_key().address
 
         # Assert the results of getblocktemplate have expected values. Keys not
@@ -142,8 +149,10 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         })
 
     def run_test(self):
-        self.run_for_node(self.nodes[0], MINER_FUND_ADDR)
-        self.run_for_node(self.nodes[1], MINER_FUND_LEGACY_ADDR)
+        # node0 is for connectivity only and is not mined on (see
+        # setup_network)
+        self.run_for_node(self.nodes[1], MINER_FUND_ADDR)
+        self.run_for_node(self.nodes[2], MINER_FUND_LEGACY_ADDR)
 
 
 if __name__ == '__main__':
