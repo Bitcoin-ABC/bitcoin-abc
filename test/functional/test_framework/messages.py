@@ -914,12 +914,13 @@ class AvalancheProof:
         :return: bytes of length 32
         """
         ss = struct.pack("<Qq", self.sequence, self.expiration)
-        ss += ser_string(self.master)
         ss += ser_compact_size(len(self.stakes))
         # Use unsigned stakes
         for s in self.stakes:
             ss += s.stake.serialize()
         h = hash256(ss)
+        h += ser_string(self.master)
+        h = hash256(h)
         # make it an int, for comparing with Delegation.proofid
         return uint256_from_str(h)
 
@@ -2030,9 +2031,10 @@ class TestFrameworkMessages(unittest.TestCase):
         avaproof = FromHex(AvalancheProof(), proof_hex)
         self.assertEqual(ToHex(avaproof), proof_hex)
 
-        self.assertEqual(f"{avaproof.proofid:x}",
-                         "8ab9e9db85055cea7f541d464a84bd4fabaf284cc2815394868741bbe09b4735"
-                         )
+        self.assertEqual(
+            f"{avaproof.proofid:0{64}x}",
+            "cb33d7fac9092089f0d473c13befa012e6ee4d19abf9a42248f731d5e59e74a2"
+        )
         self.assertEqual(avaproof.sequence, 42)
         self.assertEqual(avaproof.expiration, 1699999999)
         # The master key is extracted from the key_tests.cpp.

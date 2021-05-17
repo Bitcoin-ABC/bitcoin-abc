@@ -61,21 +61,38 @@ BOOST_AUTO_TEST_CASE(verify_random) {
     CheckDelegation(dgb.build(), p, l2key.GetPubKey());
 }
 
+// Proof master priv:
+//     L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW
+// Proof master pub:
+//     023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3
+// Stake priv:
+//     KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM
+// Stake pub:
+//     02449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680
+// Level 1 priv:
+//     KzzLLtiYiyFcTXPWUzywt2yEKk5FxkGbMfKhWgBd4oZdt8t8kk77
+// Level 1 pub:
+//     03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef
+// Level 2 priv:
+//     KwM6hV6hxZt3Kt4NHMtWQGH5T2SwhpyswodUQC2zmSjg6KWFWkQU
+// Level 2 pub:
+//     03aac52f4cfca700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a
+
 static Proof getProof() {
     Proof p;
     CDataStream stream(
         ParseHex(
-            "0000000000000000ffffffff000000002103717ba63ac0a84495aca04d0cbffea2"
-            "684d2306ec53f3b90c064989f9d0e8761701bee72758084395310b5a7ccc98a836"
+            "0000000000000000ffffffff0000000021023beefdde700a6bc02036335b4df141"
+            "c8bc67bb05a971f5ac2745fd683797dde301bee72758084395310b5a7ccc98a836"
             "11dff786f0a469d1d66626ba286b0423870000000000108dbe1c000000a4090000"
-            "21021a766cd1dc8bd54252a61592c9c3b1c06495f2f6965ad950dbe9f8b1890670"
-            "bdb68872cb4bea3a981986a6a6b5d84636d4adc8f8c0e956392dd114b2241ec8df"
-            "a79ff1580d8b4fd6bfdecea98a164ee2fd23157a97f31624cc740063a7b69b4f"),
+            "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
+            "8069c539018ac799848811fb44a4b987faa71a634970d35976c5e766fb98502432"
+            "aaec53034bd7df23767e7e695203599cf4a6a71569bdf03e90f0f91c8760faae"),
         SER_NETWORK, 0);
     stream >> p;
     BOOST_CHECK_EQUAL(p.getId(),
-                      ProofId::fromHex("004caaf05fb28c2e12fbf930b7f941baf06d2e3"
-                                       "db210d8e55b22a4cd11d41d71"));
+                      ProofId::fromHex("afc74900c1f28b69e466461fb1e0663352da615"
+                                       "3be0fcd59280e27f2446391d5"));
     return p;
 }
 
@@ -92,70 +109,70 @@ BOOST_AUTO_TEST_CASE(deserialization) {
 
     std::vector<TestVector> testcases{
         {"Empty delegation",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0000",
-         "004caaf05fb28c2e12fbf930b7f941baf06d2e3db210d8e55b22a4cd11d41d71",
-         "03717ba63ac0a84495aca04d0cbffea2684d2306ec53f3b90c064989f9d0e87617",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af00",
+         "afc74900c1f28b69e466461fb1e0663352da6153be0fcd59280e27f2446391d5",
+         "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3",
          DelegationResult::NONE},
         {"One delegation",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0001210"
-         "3e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab0347"
-         "5811c001c4c7cccccc38bb3308917c116187cd2becd4a0158072a5b8f3b64fcd8667c"
-         "cb06beed29b48dd4cd113570779136e1dba6892343c104832675c78",
-         "70aa515da27335d39db7a7a721d14a3dce07bc5d919982e2082d2fa6c5cc4652",
-         "03e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af01210"
+         "3e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef7d51"
+         "2ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521f7e2e767c93"
+         "de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc",
+         "ffcd49dc98ebdbc90e731a7b0c89939bfe082f15f3aa82aca657176b83669185",
+         "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef",
          DelegationResult::NONE},
         {"Two delegation",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0002210"
-         "3e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab0347"
-         "5811c001c4c7cccccc38bb3308917c116187cd2becd4a0158072a5b8f3b64fcd8667c"
-         "cb06beed29b48dd4cd113570779136e1dba6892343c104832675c782103068e41c1a9"
-         "4a095cc0fcda08cf2add169e00d39f126d9dfa0c6f4bdfb397819f3a8ebb3ef304147"
-         "087f7fa3b2ae60921a241a503bcbd844bf63cf88f75380aebeae9ef0592fab2c66730"
-         "bc64d09387d97ac7019171b83a3cac43c3350c85d61a",
-         "232cb4c5c9261ba92b885ba1af63212c0b9b9d1e0e0bc68c80e22b05a7a48887",
-         "03068e41c1a94a095cc0fcda08cf2add169e00d39f126d9dfa0c6f4bdfb397819f",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af02210"
+         "3e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef7d51"
+         "2ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521f7e2e767c93"
+         "de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc2103aac52f4cfc"
+         "a700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a5cddd0ffe84e12e"
+         "4bf49e4c0af7c8548e618a24e12495d659f5ba75e114e1526a618aa305b1e69bf6ae2"
+         "0b2557999f2e3fec25d5f2271f8b9de0d06ba7344550",
+         "a3f98e6b5ec330219493d109e5c11ed8e302315df4604b5462e9fb80cb0fde89",
+         "03aac52f4cfca700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a",
          DelegationResult::NONE},
         {"Incorrect proof",
          "721dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0000",
          "004caaf05fb28c2e12fbf930b7f941baf06d2e3db210d8e55b22a4cd11d41d72", "",
          DelegationResult::INCORRECT_PROOF},
         {"Invalid pubkey",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0001210"
-         "3e1f0e1af3f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab0347"
-         "5811c001c4c7cccccc38bb3308917c116187cd2becd4a0158072a5b8f3b64fcd8667c"
-         "cb06beed29b48dd4cd113570779136e1dba6892343c104832675c78",
-         "101319ff1c4153492a0b14d4e2539396b2da92452756bbf8069f28690cbdba4e",
-         "03717ba63ac0a84495aca04d0cbffea2684d2306ec53f3b90c064989f9d0e87617",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af01210"
+         "3e49f9df53de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef7d51"
+         "2ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521f7e2e767c93"
+         "de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc",
+         "af7e82716489c3cf3f361d449ed815112ff619f7fc34a4803bd958c68d1e2684",
+         "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3",
          DelegationResult::INVALID_SIGNATURE},
         {"Invalid signature",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0001210"
-         "3e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab0347"
-         "5811c001c4c7ccccccc8bb3308917c116187cd2becd4a0158072a5b8f3b64fcd8667c"
-         "cb06beed29b48dd4cd113570779136e1dba6892343c104832675c78",
-         "70aa515da27335d39db7a7a721d14a3dce07bc5d919982e2082d2fa6c5cc4652",
-         "03717ba63ac0a84495aca04d0cbffea2684d2306ec53f3b90c064989f9d0e87617",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af01210"
+         "3e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef7d51"
+         "2ddbea7c88dcf38412c58374856a466e165797a69321c0928a89c64521f7e2e767c93"
+         "de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc",
+         "ffcd49dc98ebdbc90e731a7b0c89939bfe082f15f3aa82aca657176b83669185",
+         "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3",
          DelegationResult::INVALID_SIGNATURE},
         {"Second invalid key",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0002210"
-         "3e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab0347"
-         "5811c001c4c7cccccc38bb3308917c116187cd2becd4a0158072a5b8f3b64fcd8667c"
-         "cb06beed29b48dd4cd113570779136e1dba6892343c104832675c782103068e41c2a9"
-         "4a095cc0fcda08cf2add169e00d39f126d9dfa0c6f4bdfb397819f3a8ebb3ef304147"
-         "087f7fa3b2ae60921a241a503bcbd844bf63cf88f75380aebeae9ef0592fab2c66730"
-         "bc64d09387d97ac7019171b83a3cac43c3350c85d61a",
-         "78c9222e1031fd85f0efe619de1f58c78ad4497a23693bc38c3fd20466215b1a",
-         "03e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af02210"
+         "3e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef7d51"
+         "2ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521f7e2e767c93"
+         "de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc2103aac52f4dfc"
+         "a700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a5cddd0ffe84e12e"
+         "4bf49e4c0af7c8548e618a24e12495d659f5ba75e114e1526a618aa305b1e69bf6ae2"
+         "0b2557999f2e3fec25d5f2271f8b9de0d06ba7344550",
+         "b474512f71a3f5a6e94cc3b958fd658ece0d0632ace58c8c8f9f65c2b9ad5fad",
+         "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef",
          DelegationResult::INVALID_SIGNATURE},
         {"Second invalid signature",
-         "711dd411cda4225be5d810b23d2e6df0ba41f9b730f9fb122e8cb25ff0aa4c0002210"
-         "3e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab0347"
-         "5811c001c4c7cccccc38bb3308917c116187cd2becd4a0158072a5b8f3b64fcd8667c"
-         "cb06beed29b48dd4cd113570779136e1dba6892343c104832675c782103068e41c1a9"
-         "4a095cc0fcda08cf2add169e00d39f126d9dfa0c6f4bdfb397819f3a8ebb3ef304147"
-         "087f7fa3b2ae60921a241a504bcbd844bf63cf88f75380aebeae9ef0592fab2c66730"
-         "bc64d09387d97ac7019171b83a3cac43c3350c85d61a",
-         "232cb4c5c9261ba92b885ba1af63212c0b9b9d1e0e0bc68c80e22b05a7a48887",
-         "03e1f0e1af2f5cd09bb0b37be8c4e100788dda36b2aa8c9b45fac54728177aaaab",
+         "d5916344f2270e2859cd0fbe5361da523366e0b11f4666e4698bf2c10049c7af02210"
+         "3e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef7d51"
+         "2ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521f7e2e767c93"
+         "de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc2103aac52f4cfc"
+         "a700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a5cddd0ffe84e12e"
+         "4bf49e4c0af7c8548e618a24e12495d659f5ba75e114e1526a618aa305b1e69bf6ae2"
+         "0b2557999f2e3fec25d5f2271f8b9de0d06ba7344551",
+         "a3f98e6b5ec330219493d109e5c11ed8e302315df4604b5462e9fb80cb0fde89",
+         "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef",
          DelegationResult::INVALID_SIGNATURE},
     };
 

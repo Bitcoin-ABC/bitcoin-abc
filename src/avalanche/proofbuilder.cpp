@@ -50,14 +50,17 @@ ProofId ProofBuilder::getProofId() const {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
-    ss << master;
 
     WriteCompactSize(ss, stakes.size());
     for (const auto &s : stakes) {
         ss << s.stake;
     }
 
-    return ProofId(ss.GetHash());
+    CHashWriter ss2(SER_GETHASH, 0);
+    ss2 << ss.GetHash();
+    ss2 << master;
+
+    return ProofId(ss2.GetHash());
 }
 
 Proof ProofBuilder::buildRandom(uint32_t score) {
