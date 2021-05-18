@@ -635,6 +635,10 @@ private:
     void MaybeSendAddr(CNode &node, Peer &peer,
                        std::chrono::microseconds current_time);
 
+    /** Send `feefilter` message. */
+    void MaybeSendFeefilter(CNode &node,
+                            std::chrono::microseconds current_time);
+
     /**
      * Relay (gossip) an address to a few randomly chosen nodes.
      *
@@ -6320,6 +6324,69 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
     }
 }
 
+void PeerManagerImpl::MaybeSendFeefilter(
+    CNode &pto, std::chrono::microseconds current_time) {
+    if (m_ignore_incoming_txs) {
+        return;
+    }
+    if (!pto.m_tx_relay) {
+        return;
+    }
+    if (pto.GetCommonVersion() < FEEFILTER_VERSION) {
+        return;
+    }
+    // peers with the forcerelay permission should not filter txs to us
+    if (pto.HasPermission(PF_FORCERELAY)) {
+        return;
+    }
+
+    Amount currentFilter =
+        m_mempool
+            .GetMinFee(
+                gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
+                1000000)
+            .GetFeePerK();
+    static FeeFilterRounder g_filter_rounder{
+        CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB}};
+
+    if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+        // Received tx-inv messages are discarded when the active
+        // chainstate is in IBD, so tell the peer to not send them.
+        currentFilter = MAX_MONEY;
+    } else {
+        static const Amount MAX_FILTER{g_filter_rounder.round(MAX_MONEY)};
+        if (pto.m_tx_relay->lastSentFeeFilter == MAX_FILTER) {
+            // Send the current filter if we sent MAX_FILTER previously
+            // and made it out of IBD.
+            pto.m_tx_relay->m_next_send_feefilter = 0us;
+        }
+    }
+    if (current_time > pto.m_tx_relay->m_next_send_feefilter) {
+        Amount filterToSend = g_filter_rounder.round(currentFilter);
+        // We always have a fee filter of at least minRelayTxFee
+        filterToSend = std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
+        if (filterToSend != pto.m_tx_relay->lastSentFeeFilter) {
+            m_connman.PushMessage(
+                &pto, CNetMsgMaker(pto.GetCommonVersion())
+                          .Make(NetMsgType::FEEFILTER, filterToSend));
+            pto.m_tx_relay->lastSentFeeFilter = filterToSend;
+        }
+        pto.m_tx_relay->m_next_send_feefilter =
+            PoissonNextSend(current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
+    }
+    // If the fee filter has changed substantially and it's still more than
+    // MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then move the
+    // broadcast to within MAX_FEEFILTER_CHANGE_DELAY.
+    else if (current_time + MAX_FEEFILTER_CHANGE_DELAY <
+                 pto.m_tx_relay->m_next_send_feefilter &&
+             (currentFilter < 3 * pto.m_tx_relay->lastSentFeeFilter / 4 ||
+              currentFilter > 4 * pto.m_tx_relay->lastSentFeeFilter / 3)) {
+        pto.m_tx_relay->m_next_send_feefilter =
+            current_time + GetRandomDuration<std::chrono::microseconds>(
+                               MAX_FEEFILTER_CHANGE_DELAY);
+    }
+}
+
 namespace {
 class CompareInvMempoolOrder {
     CTxMemPool *mp;
@@ -7032,64 +7099,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                                   msgMaker.Make(NetMsgType::GETDATA, vGetData));
         }
 
-        //
-        // Message: feefilter
-        //
-        // peers with the forcerelay permission should not filter txs to us
-        if (pto->m_tx_relay != nullptr && !m_ignore_incoming_txs &&
-            pto->GetCommonVersion() >= FEEFILTER_VERSION &&
-            gArgs.GetBoolArg("-feefilter", DEFAULT_FEEFILTER) &&
-            !pto->HasPermission(PF_FORCERELAY)) {
-            Amount currentFilter =
-                m_mempool
-                    .GetMinFee(gArgs.GetIntArg("-maxmempool",
-                                               DEFAULT_MAX_MEMPOOL_SIZE) *
-                               1000000)
-                    .GetFeePerK();
-            static FeeFilterRounder g_filter_rounder{
-                CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB}};
-            if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
-                // Received tx-inv messages are discarded when the active
-                // chainstate is in IBD, so tell the peer to not send them.
-                currentFilter = MAX_MONEY;
-            } else {
-                static const Amount MAX_FILTER{
-                    g_filter_rounder.round(MAX_MONEY)};
-                if (pto->m_tx_relay->lastSentFeeFilter == MAX_FILTER) {
-                    // Send the current filter if we sent MAX_FILTER previously
-                    // and made it out of IBD.
-                    pto->m_tx_relay->m_next_send_feefilter = 0us;
-                }
-            }
-            if (current_time > pto->m_tx_relay->m_next_send_feefilter) {
-                Amount filterToSend = g_filter_rounder.round(currentFilter);
-                filterToSend =
-                    std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
-
-                if (filterToSend != pto->m_tx_relay->lastSentFeeFilter) {
-                    m_connman.PushMessage(
-                        pto,
-                        msgMaker.Make(NetMsgType::FEEFILTER, filterToSend));
-                    pto->m_tx_relay->lastSentFeeFilter = filterToSend;
-                }
-                pto->m_tx_relay->m_next_send_feefilter = PoissonNextSend(
-                    current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
-            }
-            // If the fee filter has changed substantially and it's still more
-            // than MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then
-            // move the broadcast to within MAX_FEEFILTER_CHANGE_DELAY.
-            else if (current_time + MAX_FEEFILTER_CHANGE_DELAY <
-                         pto->m_tx_relay->m_next_send_feefilter &&
-                     (currentFilter <
-                          3 * pto->m_tx_relay->lastSentFeeFilter / 4 ||
-                      currentFilter >
-                          4 * pto->m_tx_relay->lastSentFeeFilter / 3)) {
-                pto->m_tx_relay->m_next_send_feefilter =
-                    current_time + GetRandomDuration<std::chrono::microseconds>(
-                                       MAX_FEEFILTER_CHANGE_DELAY);
-            }
-        }
     } // release cs_main
+    MaybeSendFeefilter(*pto, current_time);
     return true;
 }
 

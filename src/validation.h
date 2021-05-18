@@ -96,8 +96,6 @@ static const char *const DEFAULT_BLOCKFILTERINDEX = "0";
 
 /** Default for -persistmempool */
 static const bool DEFAULT_PERSIST_MEMPOOL = true;
-/** Default for using fee filter */
-static const bool DEFAULT_FEEFILTER = true;
 
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 

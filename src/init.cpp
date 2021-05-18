@@ -516,12 +516,6 @@ void SetupServerArgs(NodeContext &node) {
                   "location. (0 to disable; default: %s)",
                   DEFAULT_DEBUGLOGFILE),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-    argsman.AddArg("-feefilter",
-                   strprintf("Tell other nodes to filter invs to us by our "
-                             "mempool min fee (default: %d)",
-                             DEFAULT_FEEFILTER),
-                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                   OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-finalizationdelay=<n>",
         strprintf("Set the minimum amount of time to wait between a "
