@@ -896,7 +896,13 @@ class AvalancheSignedStake:
 
 
 class AvalancheProof:
-    __slots__ = ("sequence", "expiration", "master", "stakes", "proofid")
+    __slots__ = (
+        "sequence",
+        "expiration",
+        "master",
+        "stakes",
+        "limited_proofid",
+        "proofid")
 
     def __init__(self, sequence=0, expiration=0,
                  master=b"", signed_stakes=None):
@@ -906,12 +912,14 @@ class AvalancheProof:
 
         self.stakes: List[AvalancheSignedStake] = signed_stakes or [
             AvalancheSignedStake()]
-        self.proofid: int = self.compute_proof_id()
 
-    def compute_proof_id(self) -> int:
-        """Return Bitcoin's 256-bit hash (double SHA-256) of the
+        self.limited_proofid: int = None
+        self.proofid: int = None
+        self.compute_proof_id()
+
+    def compute_proof_id(self):
+        """Compute Bitcoin's 256-bit hash (double SHA-256) of the
         serialized proof data.
-        :return: bytes of length 32
         """
         ss = struct.pack("<Qq", self.sequence, self.expiration)
         ss += ser_compact_size(len(self.stakes))
@@ -919,17 +927,18 @@ class AvalancheProof:
         for s in self.stakes:
             ss += s.stake.serialize()
         h = hash256(ss)
+        self.limited_proofid = uint256_from_str(h)
         h += ser_string(self.master)
         h = hash256(h)
         # make it an int, for comparing with Delegation.proofid
-        return uint256_from_str(h)
+        self.proofid = uint256_from_str(h)
 
     def deserialize(self, f):
         self.sequence = struct.unpack("<Q", f.read(8))[0]
         self.expiration = struct.unpack("<q", f.read(8))[0]
         self.master = deser_string(f)
         self.stakes = deser_vector(f, AvalancheSignedStake)
-        self.proofid = self.compute_proof_id()
+        self.compute_proof_id()
 
     def serialize(self):
         r = b""

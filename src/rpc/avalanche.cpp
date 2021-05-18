@@ -226,8 +226,10 @@ static UniValue decodeavalancheproof(const Config &config,
                 {RPCResult::Type::NUM, "expiration",
                  "A timestamp indicating when the proof expires"},
                 {RPCResult::Type::STR_HEX, "master", "The master public key"},
+                {RPCResult::Type::STR_HEX, "limitedid",
+                 "A hash of the proof data excluding the master key."},
                 {RPCResult::Type::STR_HEX, "proofid",
-                 "The proof's unique identifier"},
+                 "A hash of the limitedid and master key."},
                 {RPCResult::Type::ARR,
                  "stakes",
                  "",
@@ -270,6 +272,7 @@ static UniValue decodeavalancheproof(const Config &config,
     result.pushKV("sequence", proof.getSequence());
     result.pushKV("expiration", proof.getExpirationTime());
     result.pushKV("master", HexStr(proof.getMaster()));
+    result.pushKV("limitedid", proof.getLimitedId().ToString());
     result.pushKV("proofid", proof.getId().ToString());
 
     UniValue stakes(UniValue::VARR);

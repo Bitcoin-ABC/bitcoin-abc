@@ -12,6 +12,17 @@
 
 namespace avalanche {
 
+struct LimitedProofId : public uint256 {
+    explicit LimitedProofId() : uint256() {}
+    explicit LimitedProofId(const uint256 &b) : uint256(b) {}
+
+    static LimitedProofId fromHex(const std::string &str) {
+        LimitedProofId r;
+        r.SetHex(str);
+        return r;
+    }
+};
+
 struct ProofId : public uint256 {
     explicit ProofId() : uint256() {}
     explicit ProofId(const uint256 &b) : uint256(b) {}

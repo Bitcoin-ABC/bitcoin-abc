@@ -47,7 +47,7 @@ bool Proof::FromHex(Proof &proof, const std::string &hexProof,
     return true;
 }
 
-ProofId Proof::computeProofId() const {
+void Proof::computeProofId() {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
@@ -57,11 +57,13 @@ ProofId Proof::computeProofId() const {
         ss << s.getStake();
     }
 
+    limitedProofId = LimitedProofId(ss.GetHash());
+
     CHashWriter ss2(SER_GETHASH, 0);
-    ss2 << ss.GetHash();
+    ss2 << limitedProofId;
     ss2 << master;
 
-    return ProofId(ss2.GetHash());
+    proofid = ProofId(ss2.GetHash());
 }
 
 uint32_t Proof::getScore() const {

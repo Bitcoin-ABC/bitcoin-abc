@@ -79,6 +79,9 @@ class AvalancheProofTest(BitcoinTestFramework):
         assert_equal(decodedproof["expiration"], proof_expiration)
         assert_equal(decodedproof["master"], proof_master)
         assert_equal(decodedproof["proofid"], f"{proofobj.proofid:0{64}x}")
+        assert_equal(
+            decodedproof["limitedid"],
+            f"{proofobj.limited_proofid:0{64}x}")
         assert_equal(decodedproof["stakes"][0]["txid"], stakes[0]["txid"])
         assert_equal(decodedproof["stakes"][0]["vout"], stakes[0]["vout"])
         assert_equal(decodedproof["stakes"][0]["height"], stakes[0]["height"])
