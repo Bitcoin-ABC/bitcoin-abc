@@ -10,7 +10,7 @@ export const currency = {
     legacyPrefix: 'bitcoincash',
     prefixes: ['bitcoincash', 'ecash'],
     coingeckoId: 'bitcoin-cash-abc-2',
-    defaultFee: 5.01,
+    defaultFee: 2.01,
     dustSats: 546,
     cashDecimals: 8,
     blockExplorerUrl: 'https://explorer.bitcoinabc.org',

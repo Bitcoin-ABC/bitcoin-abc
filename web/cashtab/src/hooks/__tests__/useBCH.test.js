@@ -322,9 +322,9 @@ describe('useBCH hook', () => {
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()
             .mockResolvedValue(expectedTxId);
-        expect(
-            await createToken(BCH, wallet, currency.defaultFee, configObj),
-        ).toBe(`${currency.tokenExplorerUrl}/tx/${expectedTxId}`);
+        expect(await createToken(BCH, wallet, 5.01, configObj)).toBe(
+            `${currency.tokenExplorerUrl}/tx/${expectedTxId}`,
+        );
         expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
             expectedHex,
         );
