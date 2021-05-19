@@ -26,8 +26,8 @@ const std::vector<std::string> NET_PERMISSIONS_DOC{
 
 namespace {
 
-// The parse the following format "perm1,perm2@xxxxxx"
-bool TryParsePermissionFlags(const std::string str, NetPermissionFlags &output,
+// Parse the following format: "perm1,perm2@xxxxxx"
+bool TryParsePermissionFlags(const std::string &str, NetPermissionFlags &output,
                              size_t &readen, bilingual_str &error) {
     NetPermissionFlags flags = NetPermissionFlags::None;
     const auto atSeparator = str.find('@');
@@ -125,7 +125,7 @@ std::vector<std::string> NetPermissions::ToStrings(NetPermissionFlags flags) {
     return strings;
 }
 
-bool NetWhitebindPermissions::TryParse(const std::string str,
+bool NetWhitebindPermissions::TryParse(const std::string &str,
                                        NetWhitebindPermissions &output,
                                        bilingual_str &error) {
     NetPermissionFlags flags;
@@ -152,7 +152,7 @@ bool NetWhitebindPermissions::TryParse(const std::string str,
     return true;
 }
 
-bool NetWhitelistPermissions::TryParse(const std::string str,
+bool NetWhitelistPermissions::TryParse(const std::string &str,
                                        NetWhitelistPermissions &output,
                                        bilingual_str &error) {
     NetPermissionFlags flags;
