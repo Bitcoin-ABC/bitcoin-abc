@@ -5,8 +5,8 @@
 #include <crypto/common.h>
 #include <crypto/sha256.h>
 #include <crypto/siphash.h>
+#include <invrequest.h>
 #include <primitives/transaction.h>
-#include <txrequest.h>
 
 #include <test/fuzz/fuzz.h>
 

@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_TXREQUEST_H
-#define BITCOIN_TXREQUEST_H
+#ifndef BITCOIN_INVREQUEST_H
+#define BITCOIN_INVREQUEST_H
 
 #include <net.h> // For NodeId
 
@@ -335,4 +335,4 @@ public:
     }
 };
 
-#endif // BITCOIN_TXREQUEST_H
+#endif // BITCOIN_INVREQUEST_H

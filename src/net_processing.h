@@ -7,9 +7,9 @@
 #define BITCOIN_NET_PROCESSING_H
 
 #include <consensus/params.h>
+#include <invrequest.h>
 #include <net.h>
 #include <sync.h>
-#include <txrequest.h>
 #include <validationinterface.h>
 
 extern RecursiveMutex cs_main;

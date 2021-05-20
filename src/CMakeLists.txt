@@ -564,6 +564,7 @@ add_library(server
 	init.cpp
 	interfaces/chain.cpp
 	interfaces/node.cpp
+	invrequest.cpp
 	miner.cpp
 	minerfund.cpp
 	net.cpp
@@ -599,7 +600,6 @@ add_library(server
 	torcontrol.cpp
 	txdb.cpp
 	txmempool.cpp
-	txrequest.cpp
 	validation.cpp
 	validationinterface.cpp
 	versionbits.cpp

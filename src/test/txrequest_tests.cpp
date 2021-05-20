@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <txrequest.h>
+#include <invrequest.h>
 
 #include <test/util/setup_common.h>
 
