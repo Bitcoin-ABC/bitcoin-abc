@@ -31,8 +31,8 @@ using Action = std::pair<std::chrono::microseconds, std::function<void()>>;
  * The Scenario below is used to fill this.
  */
 struct Runner {
-    /** The TxRequestTracker being tested. */
-    TxRequestTracker<TxId> txrequest;
+    /** The InvRequestTracker being tested. */
+    InvRequestTracker<TxId> txrequest;
 
     /** List of actions to be executed (in order of increasing timestamp). */
     std::vector<Action> actions;
@@ -61,12 +61,12 @@ std::chrono::microseconds RandomTime1y() {
 
 /**
  * A proxy for a Runner that helps build a sequence of consecutive test actions
- * on a TxRequestTracker.
+ * on a InvRequestTracker.
  *
  * Each Scenario is a proxy through which actions for the (sequential) execution
  * of various tests are added to a Runner. The actions from multiple scenarios
  * are then run concurrently, resulting in these tests being performed against a
- * TxRequestTracker in parallel. Every test has its own unique txids and
+ * InvRequestTracker in parallel. Every test has its own unique txids and
  * NodeIds which are not reused in other tests, and thus they should be
  * independent from each other. Running them in parallel however means that we
  * verify the behavior (w.r.t. one test's txids and NodeIds) even when the
@@ -98,7 +98,7 @@ public:
     void ForgetTxId(const TxId &txid) {
         auto &runner = m_runner;
         runner.actions.emplace_back(m_now, [=, &runner]() {
-            runner.txrequest.ForgetTxId(txid);
+            runner.txrequest.ForgetInvId(txid);
             runner.txrequest.SanityCheck();
         });
     }
@@ -127,7 +127,7 @@ public:
                      std::chrono::microseconds exptime) {
         auto &runner = m_runner;
         runner.actions.emplace_back(m_now, [=, &runner]() {
-            runner.txrequest.RequestedTx(peer, txid, exptime);
+            runner.txrequest.RequestedData(peer, txid, exptime);
             runner.txrequest.SanityCheck();
         });
     }
@@ -142,7 +142,7 @@ public:
     }
 
     /**
-     * Schedule calls to verify the TxRequestTracker's state at the Scheduler's
+     * Schedule calls to verify the InvRequestTracker's state at the Scheduler's
      * current time.
      *
      * @param peer       The peer whose state will be inspected.
@@ -223,7 +223,7 @@ public:
      * such that both:
      *  - priority(p1,T) > priority(p2,T) > priority(p3,T)
      *  - priority(p2,T) > priority(p4,T) > priority(p5,T)
-     * where priority is the predicted internal TxRequestTracker's priority,
+     * where priority is the predicted internal InvRequestTracker's priority,
      * assuming all announcements are within the same preferredness class.
      */
     TxId NewTxId(const std::vector<std::vector<NodeId>> &orders = {}) {

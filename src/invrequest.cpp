@@ -191,7 +191,7 @@ struct ByPeerViewExtractor {
 // Note: priority == 0 whenever state != CANDIDATE_READY.
 //
 // Uses:
-// * Deleting all announcements with a given invid in ForgetTxId.
+// * Deleting all announcements with a given invid in ForgetInvId.
 // * Finding the best CANDIDATE_READY to convert to CANDIDATE_BEST, when no
 //   other CANDIDATE_READY or REQUESTED announcement exists for that invid.
 // * Determining when no more non-COMPLETED announcements for a given invid
@@ -352,7 +352,7 @@ ComputeInvIdInfo(const Index &index, const PriorityComputer &computer) {
 
 } // namespace
 
-/** Actual implementation for TxRequestTracker's data structure. */
+/** Actual implementation for InvRequestTracker's data structure. */
 class InvRequestTrackerImpl : public InvRequestTrackerImplInterface {
     //! The current sequence number. Increases for every announcement. This is
     //! used to sort invid returned by GetRequestable in announcement order.
@@ -608,7 +608,7 @@ private:
             // CANDIDATE_READY announcements back to CANDIDATE_DELAYED. This is
             // an unusual edge case, and unlikely to matter in production.
             // However, it makes it much easier to specify and test
-            // TxRequestTracker::Impl's behaviour.
+            // InvRequestTracker::Impl's behaviour.
             auto it = std::prev(m_index.get<ByTime>().end());
             if (it->IsSelectable() && it->m_time > now) {
                 ChangeAndReselect(m_index.project<ByInvId>(it),
@@ -680,7 +680,7 @@ public:
         }
     }
 
-    void ForgetTxId(const uint256 &invid) {
+    void ForgetInvId(const uint256 &invid) {
         auto it = m_index.get<ByInvId>().lower_bound(
             ByInvIdView{invid, State::CANDIDATE_DELAYED, 0});
         while (it != m_index.get<ByInvId>().end() && it->m_invid == invid) {
@@ -748,14 +748,14 @@ public:
         return ret;
     }
 
-    void RequestedTx(NodeId peer, const uint256 &invid,
-                     std::chrono::microseconds expiry) {
+    void RequestedData(NodeId peer, const uint256 &invid,
+                       std::chrono::microseconds expiry) {
         auto it = m_index.get<ByPeer>().find(ByPeerView{peer, true, invid});
         if (it == m_index.get<ByPeer>().end()) {
             // There is no CANDIDATE_BEST announcement, look for a _READY or
-            // _DELAYED instead. If the caller only ever invokes RequestedTx
+            // _DELAYED instead. If the caller only ever invokes RequestedData
             // with the values returned by GetRequestable, and no other
-            // non-const functions other than ForgetTxId and GetRequestable in
+            // non-const functions other than ForgetInvId and GetRequestable in
             // between, this branch will never execute (as invids returned by
             // GetRequestable always correspond to CANDIDATE_BEST
             // announcements).
@@ -768,7 +768,7 @@ public:
                 // we have nothing to do. Either this invid wasn't tracked at
                 // all (and the caller should have called ReceivedInv), or it
                 // was already requested and/or completed for other reasons and
-                // this is just a superfluous RequestedTx call.
+                // this is just a superfluous RequestedData call.
                 return;
             }
 

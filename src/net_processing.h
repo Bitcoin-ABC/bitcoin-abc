@@ -207,7 +207,7 @@ private:
     BanMan *const m_banman;
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
-    TxRequestTracker<TxId> m_txrequest GUARDED_BY(::cs_main);
+    InvRequestTracker<TxId> m_txrequest GUARDED_BY(::cs_main);
 
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;

@@ -935,7 +935,7 @@ void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
     }
     const CNodeState *state = State(nodeid);
 
-    // Decide the TxRequestTracker parameters for this announcement:
+    // Decide the InvRequestTracker parameters for this announcement:
     // - "preferred": if fPreferredDownload is set (= outbound, or PF_NOBAN
     //   permission)
     // - "reqtime": current time plus delays for:
@@ -1478,7 +1478,7 @@ void PeerManager::BlockConnected(const std::shared_ptr<const CBlock> &pblock,
     {
         LOCK(cs_main);
         for (const auto &ptx : pblock->vtx) {
-            m_txrequest.ForgetTxId(ptx->GetId());
+            m_txrequest.ForgetInvId(ptx->GetId());
         }
     }
 }
@@ -3350,7 +3350,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             m_mempool.check(&::ChainstateActive().CoinsTip());
             // As this version of the transaction was acceptable, we can forget
             // about any requests for it.
-            m_txrequest.ForgetTxId(tx.GetId());
+            m_txrequest.ForgetInvId(tx.GetId());
             RelayTransaction(tx.GetId(), m_connman);
             for (size_t i = 0; i < tx.vout.size(); i++) {
                 auto it_by_prev =
@@ -3398,7 +3398,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
                 // Once added to the orphan pool, a tx is considered
                 // AlreadyHave, and we shouldn't request it anymore.
-                m_txrequest.ForgetTxId(tx.GetId());
+                m_txrequest.ForgetInvId(tx.GetId());
 
                 // DoS prevention: do not allow mapOrphanTransactions to grow
                 // unbounded (see CVE-2012-3789)
@@ -3417,12 +3417,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 // We will continue to reject this tx since it has rejected
                 // parents so avoid re-requesting it from other peers.
                 recentRejects->insert(tx.GetId());
-                m_txrequest.ForgetTxId(tx.GetId());
+                m_txrequest.ForgetInvId(tx.GetId());
             }
         } else {
             assert(recentRejects);
             recentRejects->insert(tx.GetId());
-            m_txrequest.ForgetTxId(tx.GetId());
+            m_txrequest.ForgetInvId(tx.GetId());
 
             if (RecursiveDynamicUsage(*ptx) < 100000) {
                 AddToCompactExtraTransactions(ptx);
@@ -4366,7 +4366,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 if (inv.IsMsgTx()) {
                     // If we receive a NOTFOUND message for a tx we requested,
                     // mark the announcement for it as completed in
-                    // TxRequestTracker.
+                    // InvRequestTracker.
                     m_txrequest.ReceivedResponse(pfrom.GetId(), TxId(inv.hash));
                 }
             }
@@ -5422,13 +5422,13 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         for (const TxId &txid : requestable) {
             if (!AlreadyHaveTx(txid, m_mempool)) {
                 addGetDataAndMaybeFlush(MSG_TX, txid);
-                m_txrequest.RequestedTx(pto->GetId(), txid,
-                                        current_time + GETDATA_TX_INTERVAL);
+                m_txrequest.RequestedData(pto->GetId(), txid,
+                                          current_time + GETDATA_TX_INTERVAL);
             } else {
                 // We have already seen this transaction, no need to download.
                 // This is just a belt-and-suspenders, as this should already be
                 // called whenever a transaction becomes AlreadyHaveTx().
-                m_txrequest.ForgetTxId(txid);
+                m_txrequest.ForgetInvId(txid);
             }
         }
 

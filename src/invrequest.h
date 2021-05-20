@@ -51,7 +51,7 @@
  *   are forgotten only:
  *   - If a peer goes offline, all its announcements are forgotten.
  *   - If an inventory has been successfully received, or is otherwise no
- *     longer needed, the caller can call ForgetTxId, which removes all
+ *     longer needed, the caller can call ForgetInvId, which removes all
  *     announcements across all peers with the specified invid.
  *   - If for a given invid only already-failed announcements remain, they are
  *     all forgotten.
@@ -119,7 +119,7 @@
 
 // Avoid littering this header file with implementation details.
 class InvRequestTrackerImplInterface {
-    template <class InvId> friend class TxRequestTracker;
+    template <class InvId> friend class InvRequestTracker;
 
     // The base class is responsible for building the child implementation.
     // This is a hack that allows for hiding the concrete implementation details
@@ -137,13 +137,13 @@ public:
     virtual void ReceivedInv(NodeId peer, const uint256 &invid, bool preferred,
                              std::chrono::microseconds reqtime) = 0;
     virtual void DisconnectedPeer(NodeId peer) = 0;
-    virtual void ForgetTxId(const uint256 &invid) = 0;
+    virtual void ForgetInvId(const uint256 &invid) = 0;
     virtual std::vector<uint256>
     GetRequestable(NodeId peer, std::chrono::microseconds now,
                    ClearExpiredFun clearExpired,
                    EmplaceExpiredFun emplaceExpired) = 0;
-    virtual void RequestedTx(NodeId peer, const uint256 &invid,
-                             std::chrono::microseconds expiry) = 0;
+    virtual void RequestedData(NodeId peer, const uint256 &invid,
+                               std::chrono::microseconds expiry) = 0;
     virtual void ReceivedResponse(NodeId peer, const uint256 &invid) = 0;
     virtual size_t CountInFlight(NodeId peer) const = 0;
     virtual size_t CountCandidates(NodeId peer) const = 0;
@@ -156,7 +156,7 @@ public:
     PostGetRequestableSanityCheck(std::chrono::microseconds now) const = 0;
 };
 
-template <class InvId> class TxRequestTracker {
+template <class InvId> class InvRequestTracker {
     /*
      * Only uint256-based InvId types are supported for now.
      * FIXME: use a template constraint when C++20 is available.
@@ -167,11 +167,10 @@ template <class InvId> class TxRequestTracker {
     const std::unique_ptr<InvRequestTrackerImplInterface> m_impl;
 
 public:
-    //! Construct a TxRequestTracker.
-
-    explicit TxRequestTracker(bool deterministic = false)
+    //! Construct a InvRequestTracker.
+    explicit InvRequestTracker(bool deterministic = false)
         : m_impl{InvRequestTrackerImplInterface::BuildImpl(deterministic)} {}
-    ~TxRequestTracker() = default;
+    ~InvRequestTracker() = default;
 
     // Conceptually, the data structure consists of a collection of
     // "announcements", one for each peer/invid combination:
@@ -218,7 +217,7 @@ public:
      * should ensure that new announcements for the same invid will not trigger
      * new ReceivedInv calls, at least in the short term after this call.
      */
-    void ForgetTxId(const InvId &invid) { m_impl->ForgetTxId(invid); }
+    void ForgetInvId(const InvId &invid) { m_impl->ForgetInvId(invid); }
 
     /**
      * Find the invids to request now from peer.
@@ -273,9 +272,9 @@ public:
      *    never advise doing so). In this case it is converted to COMPLETED, as
      *    we're no longer waiting for a response to it.
      */
-    void RequestedTx(NodeId peer, const InvId &invid,
-                     std::chrono::microseconds expiry) {
-        m_impl->RequestedTx(peer, invid, expiry);
+    void RequestedData(NodeId peer, const InvId &invid,
+                       std::chrono::microseconds expiry) {
+        m_impl->RequestedData(peer, invid, expiry);
     }
 
     /**
@@ -284,7 +283,7 @@ public:
      * happens.
      *
      * It should be called whenever an inventory or NOTFOUND was received from
-     * a peer. When the inventory is not needed entirely anymore, ForgetTxId
+     * a peer. When the inventory is not needed entirely anymore, ForgetInvId
      * should be called instead of, or in addition to, this call.
      */
     void ReceivedResponse(NodeId peer, const InvId &invid) {

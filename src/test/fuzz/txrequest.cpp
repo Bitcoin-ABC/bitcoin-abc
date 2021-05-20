@@ -54,23 +54,23 @@ struct Initializer {
 } g_initializer;
 
 /**
- * Tester class for TxRequestTracker
+ * Tester class for InvRequestTracker
  *
  * It includes a naive reimplementation of its behavior, for a limited set
  * of MAX_TXIDS distinct txids, and MAX_PEERS peer identifiers.
  *
  * All of the public member functions perform the same operation on
- * an actual TxRequestTracker and on the state of the reimplementation.
+ * an actual InvRequestTracker and on the state of the reimplementation.
  * The output of GetRequestable is compared with the expected value
  * as well.
  *
- * Check() calls the TxRequestTracker's sanity check, plus compares the
+ * Check() calls the InvRequestTracker's sanity check, plus compares the
  * output of the constant accessors (Size(), CountLoad(), CountTracked())
  * with expected values.
  */
 class Tester {
-    //! TxRequestTracker object being tested.
-    TxRequestTracker<TxId> m_tracker;
+    //! InvRequestTracker object being tested.
+    InvRequestTracker<TxId> m_tracker;
 
     //! States for txid/peer combinations in the naive data structure.
     enum class State {
@@ -183,7 +183,7 @@ public:
             }
         }
 
-        // Call TxRequestTracker's implementation.
+        // Call InvRequestTracker's implementation.
         m_tracker.DisconnectedPeer(peer);
     }
 
@@ -194,8 +194,8 @@ public:
         }
         Cleanup(txid);
 
-        // Call TxRequestTracker's implementation.
-        m_tracker.ForgetTxId(TXIDS[txid]);
+        // Call InvRequestTracker's implementation.
+        m_tracker.ForgetInvId(TXIDS[txid]);
     }
 
     void ReceivedInv(int peer, int txid, bool is_wtxid, bool preferred,
@@ -218,7 +218,7 @@ public:
             }
         }
 
-        // Call TxRequestTracker's implementation.
+        // Call InvRequestTracker's implementation.
         m_tracker.ReceivedInv(peer, TXIDS[txid], preferred, reqtime);
     }
 
@@ -242,8 +242,8 @@ public:
             m_events.push(exptime);
         }
 
-        // Call TxRequestTracker's implementation.
-        m_tracker.RequestedTx(peer, TXIDS[txid], exptime);
+        // Call InvRequestTracker's implementation.
+        m_tracker.RequestedData(peer, TXIDS[txid], exptime);
     }
 
     void ReceivedResponse(int peer, int txid) {
@@ -253,7 +253,7 @@ public:
             Cleanup(txid);
         }
 
-        // Call TxRequestTracker's implementation.
+        // Call InvRequestTracker's implementation.
         m_tracker.ReceivedResponse(peer, TXIDS[txid]);
     }
 
@@ -286,7 +286,7 @@ public:
         std::sort(result.begin(), result.end());
         std::sort(expected_expired.begin(), expected_expired.end());
 
-        // Compare with TxRequestTracker's implementation.
+        // Compare with InvRequestTracker's implementation.
         std::vector<std::pair<NodeId, TxId>> expired;
         const auto actual = m_tracker.GetRequestable(peer, m_now, &expired);
         std::sort(expired.begin(), expired.end());
@@ -322,14 +322,14 @@ public:
         // Compare Size.
         assert(m_tracker.Size() == total);
 
-        // Invoke internal consistency check of TxRequestTracker object.
+        // Invoke internal consistency check of InvRequestTracker object.
         m_tracker.SanityCheck();
     }
 };
 } // namespace
 
 void test_one_input(const std::vector<uint8_t> &buffer) {
-    // Tester object (which encapsulates a TxRequestTracker).
+    // Tester object (which encapsulates a InvRequestTracker).
     Tester tester;
 
     // Decode the input as a sequence of instructions with parameters
