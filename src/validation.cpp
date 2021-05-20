@@ -691,7 +691,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
                           m_active_chainstate.m_chain.Tip()));
 
     if (!PreChecks(args, ws)) {
-        return MempoolAcceptResult(ws.m_state);
+        return MempoolAcceptResult::Failure(ws.m_state);
     }
 
     // Only compute the precomputed transaction data if we need to verify
@@ -701,22 +701,22 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     PrecomputedTransactionData txdata(*ptx);
 
     if (!ConsensusScriptChecks(args, ws, txdata)) {
-        return MempoolAcceptResult(ws.m_state);
+        return MempoolAcceptResult::Failure(ws.m_state);
     }
 
     // Tx was accepted, but not added
     if (args.m_test_accept) {
-        return MempoolAcceptResult(ws.m_base_fees);
+        return MempoolAcceptResult::Success(ws.m_base_fees);
     }
 
     if (!Finalize(args, ws)) {
-        return MempoolAcceptResult(ws.m_state);
+        return MempoolAcceptResult::Failure(ws.m_state);
     }
 
     GetMainSignals().TransactionAddedToMempool(
         ptx, m_pool.GetAndIncrementSequence());
 
-    return MempoolAcceptResult(ws.m_base_fees);
+    return MempoolAcceptResult::Success(ws.m_base_fees);
 }
 
 } // namespace
