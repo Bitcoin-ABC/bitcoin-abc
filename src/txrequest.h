@@ -13,53 +13,53 @@
 #include <vector>
 
 /**
- * Data structure to keep track of, and schedule, transaction downloads from
+ * Data structure to keep track of, and schedule, inventory downloads from
  * peers.
  *
  * === Specification ===
  *
- * We keep track of which peers have announced which transactions, and use that
+ * We keep track of which peers have announced which inventories, and use that
  * to determine which requests should go to which peer, when, and in what order.
  *
- * The following information is tracked per peer/tx combination
+ * The following information is tracked per peer/inv combination
  * ("announcement"):
  * - Which peer announced it (through their NodeId)
- * - The txid of the transaction
- * - What the earliest permitted time is that that transaction can be requested
+ * - The invid of the inventory
+ * - What the earliest permitted time is that that inventory can be requested
  *   from that peer (called "reqtime").
  * - Whether it's from a "preferred" peer or not. Which announcements get this
  *   flag is determined by the caller, but this is designed for outbound peers,
  *   or other peers that we have a higher level of trust in. Even when the
  *   peers' preferredness changes, the preferred flag of existing announcements
  *   from that peer won't change.
- * - Whether or not the transaction was requested already, and if so, when it
+ * - Whether or not the inventory was requested already, and if so, when it
  *   times out (called "expiry").
- * - Whether or not the transaction request failed already (timed out, or
- *   invalid transaction or NOTFOUND was received).
+ * - Whether or not the inventory request failed already (timed out, or
+ *   invalid inventory or NOTFOUND was received).
  *
  * Transaction requests are then assigned to peers, following these rules:
  *
- * - No transaction is requested as long as another request for the same txid
+ * - No inventory is requested as long as another request for the same invid
  *   is outstanding (it needs to fail first by passing expiry, or a NOTFOUND or
- *   invalid transaction has to be received for it).
+ *   invalid inventory has to be received for it).
  *
  *   Rationale: to avoid wasting bandwidth on multiple copies of the same
- *              transaction.
+ *              inventory.
  *
- * - The same transaction is never requested twice from the same peer, unless
+ * - The same inventory is never requested twice from the same peer, unless
  *   the announcement was forgotten in between, and re-announced. Announcements
  *   are forgotten only:
  *   - If a peer goes offline, all its announcements are forgotten.
- *   - If a transaction has been successfully received, or is otherwise no
+ *   - If an inventory has been successfully received, or is otherwise no
  *     longer needed, the caller can call ForgetTxId, which removes all
- *     announcements across all peers with the specified txid.
- *   - If for a given txid only already-failed announcements remain, they are
+ *     announcements across all peers with the specified invid.
+ *   - If for a given invid only already-failed announcements remain, they are
  *     all forgotten.
  *
- *   Rationale: giving a peer multiple chances to announce a transaction would
+ *   Rationale: giving a peer multiple chances to announce an inventory would
  *              allow them to bias requests in their favor, worsening
- *              transaction censoring attacks. The flip side is that as long as
- *              an attacker manages to prevent us from receiving a transaction,
+ *              inventory censoring attacks. The flip side is that as long as
+ *              an attacker manages to prevent us from receiving an inventory,
  *              failed announcements (including those from honest peers) will
  *              linger longer, increasing memory usage somewhat. The impact of
  *              this is limited by imposing a cap on the number of tracked
@@ -67,7 +67,7 @@
  *              announcements from honest peers should be rare, this almost
  *              solely hinders attackers.
  *              Transaction censoring attacks can be done by announcing
- *              transactions quickly while not answering requests for them. See
+ *              inventories quickly while not answering requests for them. See
  *              https://allquantor.at/blockchainbib/pdf/miller2015topology.pdf
  *              for more information.
  *
@@ -96,7 +96,7 @@
  * - Will be unsuccessful if all preferred connections are honest (and there is
  *   at least one preferred connection).
  * - If there are P preferred connections of which Ph>=1 are honest, the
- *   attacker can delay us from learning about a transaction by k expiration
+ *   attacker can delay us from learning about an inventory by k expiration
  *   periods, where k ~ 1 + NHG(N=P-1,K=P-Ph-1,r=1), which has mean P/(Ph+1)
  *   (where NHG stands for Negative Hypergeometric distribution). The "1 +" is
  *   due to the fact that the attacker can be the first to announce through a
@@ -134,22 +134,22 @@ public:
 
     virtual ~InvRequestTrackerImplInterface() = default;
 
-    virtual void ReceivedInv(NodeId peer, const uint256 &txid, bool preferred,
+    virtual void ReceivedInv(NodeId peer, const uint256 &invid, bool preferred,
                              std::chrono::microseconds reqtime) = 0;
     virtual void DisconnectedPeer(NodeId peer) = 0;
-    virtual void ForgetTxId(const uint256 &txid) = 0;
+    virtual void ForgetTxId(const uint256 &invid) = 0;
     virtual std::vector<uint256>
     GetRequestable(NodeId peer, std::chrono::microseconds now,
                    ClearExpiredFun clearExpired,
                    EmplaceExpiredFun emplaceExpired) = 0;
-    virtual void RequestedTx(NodeId peer, const uint256 &txid,
+    virtual void RequestedTx(NodeId peer, const uint256 &invid,
                              std::chrono::microseconds expiry) = 0;
-    virtual void ReceivedResponse(NodeId peer, const uint256 &txid) = 0;
+    virtual void ReceivedResponse(NodeId peer, const uint256 &invid) = 0;
     virtual size_t CountInFlight(NodeId peer) const = 0;
     virtual size_t CountCandidates(NodeId peer) const = 0;
     virtual size_t Count(NodeId peer) const = 0;
     virtual size_t Size() const = 0;
-    virtual uint64_t ComputePriority(const uint256 &txid, NodeId peer,
+    virtual uint64_t ComputePriority(const uint256 &invid, NodeId peer,
                                      bool preferred) const = 0;
     virtual void SanityCheck() const = 0;
     virtual void
@@ -174,34 +174,34 @@ public:
     ~TxRequestTracker() = default;
 
     // Conceptually, the data structure consists of a collection of
-    // "announcements", one for each peer/txid combination:
+    // "announcements", one for each peer/invid combination:
     //
-    // - CANDIDATE announcements represent transactions that were announced by a
+    // - CANDIDATE announcements represent inventories that were announced by a
     //   peer, and that become available for download after their reqtime has
     //   passed.
     //
-    // - REQUESTED announcements represent transactions that have been
+    // - REQUESTED announcements represent inventories that have been
     //   requested, and which we're awaiting a response for from that peer.
     //   Their expiry value determines when the request times out.
     //
-    // - COMPLETED announcements represent transactions that have been requested
-    //   from a peer, and a NOTFOUND or a transaction was received in response
+    // - COMPLETED announcements represent inventories that have been requested
+    //   from a peer, and a NOTFOUND or an inventory was received in response
     //   (valid or not), or they timed out. They're only kept around to prevent
-    //   requesting them again. If only COMPLETED announcements for a given txid
-    //   remain (so no CANDIDATE or REQUESTED ones), all of them are deleted
-    //   (this is an invariant, and maintained by all operations below).
+    //   requesting them again. If only COMPLETED announcements for a given
+    //   invid remain (so no CANDIDATE or REQUESTED ones), all of them are
+    //   deleted (this is an invariant, and maintained by all operations below).
     //
     // The operations below manipulate the data structure.
 
     /**
      * Adds a new CANDIDATE announcement.
      *
-     * Does nothing if one already exists for that (txid, peer) combination
+     * Does nothing if one already exists for that (invid, peer) combination
      * (whether it's CANDIDATE, REQUESTED, or COMPLETED).
      */
-    void ReceivedInv(NodeId peer, const InvId &txid, bool preferred,
+    void ReceivedInv(NodeId peer, const InvId &invid, bool preferred,
                      std::chrono::microseconds reqtime) {
-        m_impl->ReceivedInv(peer, txid, preferred, reqtime);
+        m_impl->ReceivedInv(peer, invid, preferred, reqtime);
     }
 
     /**
@@ -212,33 +212,33 @@ public:
     void DisconnectedPeer(NodeId peer) { m_impl->DisconnectedPeer(peer); }
 
     /**
-     * Deletes all announcements for a given txid.
+     * Deletes all announcements for a given invid.
      *
-     * This should be called when a transaction is no longer needed. The caller
-     * should ensure that new announcements for the same txid will not trigger
+     * This should be called when an inventory is no longer needed. The caller
+     * should ensure that new announcements for the same invid will not trigger
      * new ReceivedInv calls, at least in the short term after this call.
      */
-    void ForgetTxId(const InvId &txid) { m_impl->ForgetTxId(txid); }
+    void ForgetTxId(const InvId &invid) { m_impl->ForgetTxId(invid); }
 
     /**
-     * Find the txids to request now from peer.
+     * Find the invids to request now from peer.
      *
      * It does the following:
-     *  - Convert all REQUESTED announcements (for all txids/peers) with
+     *  - Convert all REQUESTED announcements (for all invids/peers) with
      *    (expiry <= now) to COMPLETED ones. These are returned in expired, if
      *    non-nullptr.
      *  - Requestable announcements are selected: CANDIDATE announcements from
      *    the specified peer with (reqtime <= now) for which no existing
-     *    REQUESTED announcement with the same txid from a different peer
+     *    REQUESTED announcement with the same invid from a different peer
      *    exists, and for which the specified peer is the best choice among all
-     *    (reqtime <= now) CANDIDATE announcements with the same txid (subject
+     *    (reqtime <= now) CANDIDATE announcements with the same invid (subject
      *    to preferredness rules, and tiebreaking using a deterministic salted
-     *    hash of peer and txid).
+     *    hash of peer and invid).
      *  - The selected announcements are returned in announcement order (even
      *    if multiple were added at the same time, or when the clock went
      *    backwards while they were being added). This is done to minimize
-     *    disruption from dependent transactions being requested out of order:
-     *    if multiple dependent transactions are announced simultaneously by one
+     *    disruption from dependent inventories being requested out of order:
+     *    if multiple dependent inventories are announced simultaneously by one
      *    peer, and end up being requested from them, the requests will happen
      *    in announcement order.
      */
@@ -252,9 +252,9 @@ public:
                 }
             };
         InvRequestTrackerImplInterface::EmplaceExpiredFun emplaceExpired =
-            [expired](const NodeId &nodeid, const uint256 &txid) {
+            [expired](const NodeId &nodeid, const uint256 &invid) {
                 if (expired) {
-                    expired->emplace_back(nodeid, InvId(txid));
+                    expired->emplace_back(nodeid, InvId(invid));
                 }
             };
         std::vector<uint256> hashes =
@@ -263,31 +263,32 @@ public:
     }
 
     /**
-     * Marks a transaction as requested, with a specified expiry.
+     * Marks an inventory as requested, with a specified expiry.
      *
-     * If no CANDIDATE announcement for the provided peer and txid exists, this
+     * If no CANDIDATE announcement for the provided peer and invid exists, this
      * call has no effect. Otherwise:
      *  - That announcement is converted to REQUESTED.
-     *  - If any other REQUESTED announcement for the same txid already
+     *  - If any other REQUESTED announcement for the same invid already
      *    existed, it means an unexpected request was made (GetRequestable will
      *    never advise doing so). In this case it is converted to COMPLETED, as
      *    we're no longer waiting for a response to it.
      */
-    void RequestedTx(NodeId peer, const InvId &txid,
+    void RequestedTx(NodeId peer, const InvId &invid,
                      std::chrono::microseconds expiry) {
-        m_impl->RequestedTx(peer, txid, expiry);
+        m_impl->RequestedTx(peer, invid, expiry);
     }
 
     /**
      * Converts a CANDIDATE or REQUESTED announcement to a COMPLETED one. If no
-     * such announcement exists for the provided peer and txid, nothing happens.
+     * such announcement exists for the provided peer and invid, nothing
+     * happens.
      *
-     * It should be called whenever a transaction or NOTFOUND was received from
-     * a peer. When the transaction is not needed entirely anymore, ForgetTxId
+     * It should be called whenever an inventory or NOTFOUND was received from
+     * a peer. When the inventory is not needed entirely anymore, ForgetTxId
      * should be called instead of, or in addition to, this call.
      */
-    void ReceivedResponse(NodeId peer, const InvId &txid) {
-        m_impl->ReceivedResponse(peer, txid);
+    void ReceivedResponse(NodeId peer, const InvId &invid) {
+        m_impl->ReceivedResponse(peer, invid);
     }
 
     // The operations below inspect the data structure.
@@ -310,14 +311,14 @@ public:
 
     /**
      * Count how many announcements are being tracked in total across all peers
-     * and transaction hashes.
+     * and inventory ids.
      */
     size_t Size() const { return m_impl->Size(); }
 
     /** Access to the internal priority computation (testing only) */
-    uint64_t ComputePriority(const InvId &txid, NodeId peer,
+    uint64_t ComputePriority(const InvId &invid, NodeId peer,
                              bool preferred) const {
-        return m_impl->ComputePriority(txid, peer, preferred);
+        return m_impl->ComputePriority(invid, peer, preferred);
     }
 
     /** Run internal consistency check (testing only). */

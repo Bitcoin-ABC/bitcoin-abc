@@ -20,11 +20,11 @@
 namespace {
 
 /**
- * The various states a (txid, peer) pair can be in.
+ * The various states a (invid, peer) pair can be in.
  *
  * Note that CANDIDATE is split up into 3 substates (DELAYED, BEST, READY),
  * allowing more efficient implementation. Also note that the sorting order of
- * ByTxIdView relies on the specific order of values in this enum.
+ * ByInvIdView relies on the specific order of values in this enum.
  *
  * Expected behaviour is:
  *   - When first announced by a peer, the state is CANDIDATE_DELAYED until
@@ -37,7 +37,7 @@ namespace {
  *   - When requested, an announcement will be in state REQUESTED until expiry
  *     is reached.
  *   - If expiry is reached, or the peer replies to the request (either with
- *     NOTFOUND or the tx), the state becomes COMPLETED.
+ *     NOTFOUND or the inv), the state becomes COMPLETED.
  */
 enum class State : uint8_t {
     /** A CANDIDATE announcement whose reqtime is in the future. */
@@ -47,10 +47,10 @@ enum class State : uint8_t {
      */
     CANDIDATE_READY,
     /**
-     * The best CANDIDATE for a given txid; only if there is no REQUESTED
-     * announcement already for that txid. The CANDIDATE_BEST is the
+     * The best CANDIDATE for a given invid; only if there is no REQUESTED
+     * announcement already for that invid. The CANDIDATE_BEST is the
      * highest-priority announcement among all CANDIDATE_READY (and _BEST) ones
-     * for that txid.
+     * for that invid.
      */
     CANDIDATE_BEST,
     /** A REQUESTED announcement. */
@@ -63,12 +63,12 @@ enum class State : uint8_t {
 using SequenceNumber = uint64_t;
 
 /**
- * An announcement. This is the data we track for each txid that is announced
+ * An announcement. This is the data we track for each invid that is announced
  * to us by each peer.
  */
 struct Announcement {
-    /** TxId that was announced. */
-    const uint256 m_txid;
+    /** InvId that was announced. */
+    const uint256 m_invid;
     /**
      * For CANDIDATE_{DELAYED,BEST,READY} the reqtime; for REQUESTED the
      * expiry.
@@ -97,7 +97,7 @@ struct Announcement {
 
     /**
      * Whether this announcement is selected. There can be at most 1 selected
-     * peer per txid.
+     * peer per invid.
      */
     bool IsSelected() const {
         return GetState() == State::CANDIDATE_BEST ||
@@ -123,9 +123,9 @@ struct Announcement {
      * Construct a new announcement from scratch, initially in
      * CANDIDATE_DELAYED state.
      */
-    Announcement(const uint256 &txid, NodeId peer, bool preferred,
+    Announcement(const uint256 &invid, NodeId peer, bool preferred,
                  std::chrono::microseconds reqtime, SequenceNumber sequence)
-        : m_txid(txid), m_time(reqtime), m_peer(peer), m_sequence(sequence),
+        : m_invid(invid), m_time(reqtime), m_peer(peer), m_sequence(sequence),
           m_preferred(preferred),
           m_state(static_cast<uint8_t>(State::CANDIDATE_DELAYED)) {}
 };
@@ -146,10 +146,10 @@ public:
         : m_k0{deterministic ? 0 : GetRand(0xFFFFFFFFFFFFFFFF)},
           m_k1{deterministic ? 0 : GetRand(0xFFFFFFFFFFFFFFFF)} {}
 
-    Priority operator()(const uint256 &txid, NodeId peer,
+    Priority operator()(const uint256 &invid, NodeId peer,
                         bool preferred) const {
         uint64_t low_bits = CSipHasher(m_k0, m_k1)
-                                .Write(txid.begin(), txid.size())
+                                .Write(invid.begin(), invid.size())
                                 .Write(peer)
                                 .Finalize() >>
                             1;
@@ -157,7 +157,7 @@ public:
     }
 
     Priority operator()(const Announcement &ann) const {
-        return operator()(ann.m_txid, ann.m_peer, ann.m_preferred);
+        return operator()(ann.m_invid, ann.m_peer, ann.m_preferred);
     }
 };
 
@@ -169,11 +169,11 @@ public:
 // https://www.boost.org/doc/libs/1_58_0/libs/multi_index/doc/reference/key_extraction.html#key_extractors
 // for more information about the key extraction concept.
 
-// The ByPeer index is sorted by (peer, state == CANDIDATE_BEST, txid)
+// The ByPeer index is sorted by (peer, state == CANDIDATE_BEST, invid)
 //
 // Uses:
-// * Looking up existing announcements by peer/txid, by checking both (peer,
-//   false, txid) and (peer, true, txid).
+// * Looking up existing announcements by peer/invid, by checking both (peer,
+//   false, invid) and (peer, true, invid).
 // * Finding all CANDIDATE_BEST announcements for a given peer in
 //   GetRequestable.
 struct ByPeer {};
@@ -182,33 +182,33 @@ struct ByPeerViewExtractor {
     using result_type = ByPeerView;
     result_type operator()(const Announcement &ann) const {
         return ByPeerView{ann.m_peer, ann.GetState() == State::CANDIDATE_BEST,
-                          ann.m_txid};
+                          ann.m_invid};
     }
 };
 
-// The ByTxId index is sorted by (txid, state, priority).
+// The ByInvId index is sorted by (invid, state, priority).
 //
 // Note: priority == 0 whenever state != CANDIDATE_READY.
 //
 // Uses:
-// * Deleting all announcements with a given txid in ForgetTxId.
+// * Deleting all announcements with a given invid in ForgetTxId.
 // * Finding the best CANDIDATE_READY to convert to CANDIDATE_BEST, when no
-//   other CANDIDATE_READY or REQUESTED announcement exists for that txid.
-// * Determining when no more non-COMPLETED announcements for a given txid
+//   other CANDIDATE_READY or REQUESTED announcement exists for that invid.
+// * Determining when no more non-COMPLETED announcements for a given invid
 //   exist, so the COMPLETED ones can be deleted.
-struct ByTxId {};
-using ByTxIdView = std::tuple<const uint256 &, State, Priority>;
-class ByTxIdViewExtractor {
+struct ByInvId {};
+using ByInvIdView = std::tuple<const uint256 &, State, Priority>;
+class ByInvIdViewExtractor {
     const PriorityComputer &m_computer;
 
 public:
-    ByTxIdViewExtractor(const PriorityComputer &computer)
+    ByInvIdViewExtractor(const PriorityComputer &computer)
         : m_computer(computer) {}
-    using result_type = ByTxIdView;
+    using result_type = ByInvIdView;
     result_type operator()(const Announcement &ann) const {
         const Priority prio =
             (ann.GetState() == State::CANDIDATE_READY) ? m_computer(ann) : 0;
-        return ByTxIdView{ann.m_txid, ann.GetState(), prio};
+        return ByInvIdView{ann.m_invid, ann.GetState(), prio};
     }
 };
 
@@ -255,15 +255,15 @@ struct ByTimeViewExtractor {
 
 /**
  * Data type for the main data structure (Announcement objects with
- * ByPeer/ByTxId/ByTime indexes).
+ * ByPeer/ByInvId/ByTime indexes).
  */
 using Index = boost::multi_index_container<
     Announcement,
     boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::tag<ByPeer>,
                                            ByPeerViewExtractor>,
-        boost::multi_index::ordered_non_unique<boost::multi_index::tag<ByTxId>,
-                                               ByTxIdViewExtractor>,
+        boost::multi_index::ordered_non_unique<boost::multi_index::tag<ByInvId>,
+                                               ByInvIdViewExtractor>,
         boost::multi_index::ordered_non_unique<boost::multi_index::tag<ByTime>,
                                                ByTimeViewExtractor>>>;
 
@@ -280,15 +280,15 @@ struct PeerInfo {
     size_t m_requested = 0;
 };
 
-/** Per-txid statistics object. Only used for sanity checking. */
-struct TxIdInfo {
-    //! Number of CANDIDATE_DELAYED announcements for this txid.
+/** Per-invid statistics object. Only used for sanity checking. */
+struct InvIdInfo {
+    //! Number of CANDIDATE_DELAYED announcements for this invid.
     size_t m_candidate_delayed = 0;
-    //! Number of CANDIDATE_READY announcements for this txid.
+    //! Number of CANDIDATE_READY announcements for this invid.
     size_t m_candidate_ready = 0;
-    //! Number of CANDIDATE_BEST announcements for this txid (at most one).
+    //! Number of CANDIDATE_BEST announcements for this invid (at most one).
     size_t m_candidate_best = 0;
-    //! Number of REQUESTED announcements for this txid (at most one; mutually
+    //! Number of REQUESTED announcements for this invid (at most one; mutually
     //! exclusive with CANDIDATE_BEST).
     size_t m_requested = 0;
     //! The priority of the CANDIDATE_BEST announcement if one exists, or max()
@@ -298,7 +298,7 @@ struct TxIdInfo {
     //! none exist).
     Priority m_priority_best_candidate_ready =
         std::numeric_limits<Priority>::min();
-    //! All peers we have an announcement for this txid for.
+    //! All peers we have an announcement for this invid for.
     std::vector<NodeId> m_peers;
 };
 
@@ -322,13 +322,13 @@ std::unordered_map<NodeId, PeerInfo> RecomputePeerInfo(const Index &index) {
     return ret;
 }
 
-/** Compute the TxIdInfo map. Only used for sanity checking. */
-std::map<uint256, TxIdInfo> ComputeTxIdInfo(const Index &index,
-                                            const PriorityComputer &computer) {
-    std::map<uint256, TxIdInfo> ret;
+/** Compute the InvIdInfo map. Only used for sanity checking. */
+std::map<uint256, InvIdInfo>
+ComputeInvIdInfo(const Index &index, const PriorityComputer &computer) {
+    std::map<uint256, InvIdInfo> ret;
     for (const Announcement &ann : index) {
-        TxIdInfo &info = ret[ann.m_txid];
-        // Classify how many announcements of each state we have for this txid.
+        InvIdInfo &info = ret[ann.m_invid];
+        // Classify how many announcements of each state we have for this invid.
         info.m_candidate_delayed +=
             (ann.GetState() == State::CANDIDATE_DELAYED);
         info.m_candidate_ready += (ann.GetState() == State::CANDIDATE_READY);
@@ -343,7 +343,7 @@ std::map<uint256, TxIdInfo> ComputeTxIdInfo(const Index &index,
             info.m_priority_best_candidate_ready =
                 std::max(info.m_priority_best_candidate_ready, computer(ann));
         }
-        // Also keep track of which peers this txid has an announcement for
+        // Also keep track of which peers this invid has an announcement for
         // (so we can detect duplicates).
         info.m_peers.push_back(ann.m_peer);
     }
@@ -355,7 +355,7 @@ std::map<uint256, TxIdInfo> ComputeTxIdInfo(const Index &index,
 /** Actual implementation for TxRequestTracker's data structure. */
 class InvRequestTrackerImpl : public InvRequestTrackerImplInterface {
     //! The current sequence number. Increases for every announcement. This is
-    //! used to sort txid returned by GetRequestable in announcement order.
+    //! used to sort invid returned by GetRequestable in announcement order.
     SequenceNumber m_current_sequence{0};
 
     //! This tracker's priority computer.
@@ -375,12 +375,12 @@ public:
         // invariant that no PeerInfo announcements with m_total==0 exist.
         assert(m_peerinfo == RecomputePeerInfo(m_index));
 
-        // Calculate per-txid statistics from m_index, and validate
+        // Calculate per-invid statistics from m_index, and validate
         // invariants.
-        for (auto &item : ComputeTxIdInfo(m_index, m_computer)) {
-            TxIdInfo &info = item.second;
+        for (auto &item : ComputeInvIdInfo(m_index, m_computer)) {
+            InvIdInfo &info = item.second;
 
-            // Cannot have only COMPLETED peer (txid should have been forgotten
+            // Cannot have only COMPLETED peer (invid should have been forgotten
             // already)
             assert(info.m_candidate_delayed + info.m_candidate_ready +
                        info.m_candidate_best + info.m_requested >
@@ -403,7 +403,7 @@ public:
                        info.m_priority_best_candidate_ready);
             }
 
-            // No txid can have been announced by the same peer twice.
+            // No invid can have been announced by the same peer twice.
             std::sort(info.m_peers.begin(), info.m_peers.end());
             assert(
                 std::adjacent_find(info.m_peers.begin(), info.m_peers.end()) ==
@@ -455,26 +455,26 @@ private:
     //! makes it the new best CANDIDATE_READY (and no REQUESTED exists) and
     //! better than the CANDIDATE_BEST (if any), it becomes the new
     //! CANDIDATE_BEST.
-    void PromoteCandidateReady(Iter<ByTxId> it) {
-        assert(it != m_index.get<ByTxId>().end());
+    void PromoteCandidateReady(Iter<ByInvId> it) {
+        assert(it != m_index.get<ByInvId>().end());
         assert(it->GetState() == State::CANDIDATE_DELAYED);
         // Convert CANDIDATE_DELAYED to CANDIDATE_READY first.
-        Modify<ByTxId>(it, [](Announcement &ann) {
+        Modify<ByInvId>(it, [](Announcement &ann) {
             ann.SetState(State::CANDIDATE_READY);
         });
-        // The following code relies on the fact that the ByTxId is sorted by
-        // txid, and then by state (first _DELAYED, then _READY, then
+        // The following code relies on the fact that the ByInvId is sorted by
+        // invid, and then by state (first _DELAYED, then _READY, then
         // _BEST/REQUESTED). Within the _READY announcements, the best one
         // (highest priority) comes last. Thus, if an existing _BEST exists for
-        // the same txid that this announcement may be preferred over, it must
+        // the same invid that this announcement may be preferred over, it must
         // immediately follow the newly created _READY.
         auto it_next = std::next(it);
-        if (it_next == m_index.get<ByTxId>().end() ||
-            it_next->m_txid != it->m_txid ||
+        if (it_next == m_index.get<ByInvId>().end() ||
+            it_next->m_invid != it->m_invid ||
             it_next->GetState() == State::COMPLETED) {
             // This is the new best CANDIDATE_READY, and there is no
-            // IsSelected() announcement for this txid already.
-            Modify<ByTxId>(it, [](Announcement &ann) {
+            // IsSelected() announcement for this invid already.
+            Modify<ByInvId>(it, [](Announcement &ann) {
                 ann.SetState(State::CANDIDATE_BEST);
             });
         } else if (it_next->GetState() == State::CANDIDATE_BEST) {
@@ -483,10 +483,10 @@ private:
             if (priority_new > priority_old) {
                 // There is a CANDIDATE_BEST announcement already, but this one
                 // is better.
-                Modify<ByTxId>(it_next, [](Announcement &ann) {
+                Modify<ByInvId>(it_next, [](Announcement &ann) {
                     ann.SetState(State::CANDIDATE_READY);
                 });
-                Modify<ByTxId>(it, [](Announcement &ann) {
+                Modify<ByInvId>(it, [](Announcement &ann) {
                     ann.SetState(State::CANDIDATE_BEST);
                 });
             }
@@ -496,46 +496,46 @@ private:
     //! Change the state of an announcement to something non-IsSelected(). If it
     //! was IsSelected(), the next best announcement will be marked
     //! CANDIDATE_BEST.
-    void ChangeAndReselect(Iter<ByTxId> it, State new_state) {
+    void ChangeAndReselect(Iter<ByInvId> it, State new_state) {
         assert(new_state == State::COMPLETED ||
                new_state == State::CANDIDATE_DELAYED);
-        assert(it != m_index.get<ByTxId>().end());
-        if (it->IsSelected() && it != m_index.get<ByTxId>().begin()) {
+        assert(it != m_index.get<ByInvId>().end());
+        if (it->IsSelected() && it != m_index.get<ByInvId>().begin()) {
             auto it_prev = std::prev(it);
             // The next best CANDIDATE_READY, if any, immediately precedes the
-            // REQUESTED or CANDIDATE_BEST announcement in the ByTxId index.
-            if (it_prev->m_txid == it->m_txid &&
+            // REQUESTED or CANDIDATE_BEST announcement in the ByInvId index.
+            if (it_prev->m_invid == it->m_invid &&
                 it_prev->GetState() == State::CANDIDATE_READY) {
-                // If one such CANDIDATE_READY exists (for this txid), convert
+                // If one such CANDIDATE_READY exists (for this invid), convert
                 // it to CANDIDATE_BEST.
-                Modify<ByTxId>(it_prev, [](Announcement &ann) {
+                Modify<ByInvId>(it_prev, [](Announcement &ann) {
                     ann.SetState(State::CANDIDATE_BEST);
                 });
             }
         }
-        Modify<ByTxId>(
+        Modify<ByInvId>(
             it, [new_state](Announcement &ann) { ann.SetState(new_state); });
     }
 
-    //! Check if 'it' is the only announcement for a given txid that isn't
+    //! Check if 'it' is the only announcement for a given invid that isn't
     //! COMPLETED.
-    bool IsOnlyNonCompleted(Iter<ByTxId> it) {
-        assert(it != m_index.get<ByTxId>().end());
+    bool IsOnlyNonCompleted(Iter<ByInvId> it) {
+        assert(it != m_index.get<ByInvId>().end());
         // Not allowed to call this on COMPLETED announcements.
         assert(it->GetState() != State::COMPLETED);
 
-        // This announcement has a predecessor that belongs to the same txid.
+        // This announcement has a predecessor that belongs to the same invid.
         // Due to ordering, and the fact that 'it' is not COMPLETED, its
         // predecessor cannot be COMPLETED here.
-        if (it != m_index.get<ByTxId>().begin() &&
-            std::prev(it)->m_txid == it->m_txid) {
+        if (it != m_index.get<ByInvId>().begin() &&
+            std::prev(it)->m_invid == it->m_invid) {
             return false;
         }
 
-        // This announcement has a successor that belongs to the same txid,
+        // This announcement has a successor that belongs to the same invid,
         // and is not COMPLETED.
-        if (std::next(it) != m_index.get<ByTxId>().end() &&
-            std::next(it)->m_txid == it->m_txid &&
+        if (std::next(it) != m_index.get<ByInvId>().end() &&
+            std::next(it)->m_invid == it->m_invid &&
             std::next(it)->GetState() != State::COMPLETED) {
             return false;
         }
@@ -545,13 +545,13 @@ private:
 
     /**
      * Convert any announcement to a COMPLETED one. If there are no
-     * non-COMPLETED announcements left for this txid, they are deleted. If
+     * non-COMPLETED announcements left for this invid, they are deleted. If
      * this was a REQUESTED announcement, and there are other CANDIDATEs left,
      * the best one is made CANDIDATE_BEST. Returns whether the announcement
      * still exists.
      */
-    bool MakeCompleted(Iter<ByTxId> it) {
-        assert(it != m_index.get<ByTxId>().end());
+    bool MakeCompleted(Iter<ByInvId> it) {
+        assert(it != m_index.get<ByInvId>().end());
 
         // Nothing to be done if it's already COMPLETED.
         if (it->GetState() == State::COMPLETED) {
@@ -559,12 +559,13 @@ private:
         }
 
         if (IsOnlyNonCompleted(it)) {
-            // This is the last non-COMPLETED announcement for this txid.
+            // This is the last non-COMPLETED announcement for this invid.
             // Delete all.
-            uint256 txid = it->m_txid;
+            uint256 invid = it->m_invid;
             do {
-                it = Erase<ByTxId>(it);
-            } while (it != m_index.get<ByTxId>().end() && it->m_txid == txid);
+                it = Erase<ByInvId>(it);
+            } while (it != m_index.get<ByInvId>().end() &&
+                     it->m_invid == invid);
             return false;
         }
 
@@ -592,11 +593,11 @@ private:
             auto it = m_index.get<ByTime>().begin();
             if (it->GetState() == State::CANDIDATE_DELAYED &&
                 it->m_time <= now) {
-                PromoteCandidateReady(m_index.project<ByTxId>(it));
+                PromoteCandidateReady(m_index.project<ByInvId>(it));
             } else if (it->GetState() == State::REQUESTED &&
                        it->m_time <= now) {
-                emplaceExpired(it->m_peer, it->m_txid);
-                MakeCompleted(m_index.project<ByTxId>(it));
+                emplaceExpired(it->m_peer, it->m_invid);
+                MakeCompleted(m_index.project<ByInvId>(it));
             } else {
                 break;
             }
@@ -610,7 +611,7 @@ private:
             // TxRequestTracker::Impl's behaviour.
             auto it = std::prev(m_index.get<ByTime>().end());
             if (it->IsSelectable() && it->m_time > now) {
-                ChangeAndReselect(m_index.project<ByTxId>(it),
+                ChangeAndReselect(m_index.project<ByInvId>(it),
                                   State::CANDIDATE_DELAYED);
             } else {
                 break;
@@ -622,16 +623,16 @@ public:
     InvRequestTrackerImpl(bool deterministic)
         : m_computer(deterministic),
           // Explicitly initialize m_index as we need to pass a reference to
-          // m_computer to ByTxHashViewExtractor.
+          // m_computer to ByInvIdViewExtractor.
           m_index(boost::make_tuple(
               boost::make_tuple(ByPeerViewExtractor(), std::less<ByPeerView>()),
-              boost::make_tuple(ByTxIdViewExtractor(m_computer),
-                                std::less<ByTxIdView>()),
+              boost::make_tuple(ByInvIdViewExtractor(m_computer),
+                                std::less<ByInvIdView>()),
               boost::make_tuple(ByTimeViewExtractor(),
                                 std::less<ByTimeView>()))) {}
 
     // Disable copying and assigning (a default copy won't work due the stateful
-    // ByTxIdViewExtractor).
+    // ByInvIdViewExtractor).
     InvRequestTrackerImpl(const InvRequestTrackerImpl &) = delete;
     InvRequestTrackerImpl &operator=(const InvRequestTrackerImpl &) = delete;
 
@@ -648,29 +649,29 @@ public:
             // - std::next(it) is end() or belongs to a different peer. In that
             //   case, this is the last iteration of the loop (denote this by
             //   setting it_next to end()).
-            // - 'it' is not the only non-COMPLETED announcement for its txid.
+            // - 'it' is not the only non-COMPLETED announcement for its invid.
             //   This means it will be deleted, but no other Announcement
             //   objects will be modified. Continue with std::next(it) if it
             //   belongs to the same peer, but decide this ahead of time (as
             //   'it' may change position in what follows).
-            // - 'it' is the only non-COMPLETED announcement for its txid. This
+            // - 'it' is the only non-COMPLETED announcement for its invid. This
             //   means it will be deleted along with all other announcements for
-            //   the same txid - which may include std::next(it). However, other
-            //   than 'it', no announcements for the same peer can be affected
-            //   (due to (peer, txid) uniqueness). In other words, the situation
-            //   where std::next(it) is deleted can only occur if std::next(it)
-            //   belongs to a different peer but the same txid as 'it'. This is
-            //   covered by the first bulletpoint already, and we'll have set
-            //   it_next to end().
+            //   the same invid - which may include std::next(it). However,
+            //   other than 'it', no announcements for the same peer can be
+            //   affected (due to (peer, invid) uniqueness). In other words, the
+            //   situation where std::next(it) is deleted can only occur if
+            //   std::next(it) belongs to a different peer but the same invid as
+            //   'it'. This is covered by the first bulletpoint already, and
+            //   we'll have set it_next to end().
             auto it_next =
                 (std::next(it) == index.end() || std::next(it)->m_peer != peer)
                     ? index.end()
                     : std::next(it);
             // If the announcement isn't already COMPLETED, first make it
             // COMPLETED (which will mark other CANDIDATEs as CANDIDATE_BEST, or
-            // delete all of a txid's announcements if no non-COMPLETED ones are
-            // left).
-            if (MakeCompleted(m_index.project<ByTxId>(it))) {
+            // delete all of a invid's announcements if no non-COMPLETED ones
+            // are left).
+            if (MakeCompleted(m_index.project<ByInvId>(it))) {
                 // Then actually delete the announcement (unless it was already
                 // deleted by MakeCompleted).
                 Erase<ByPeer>(it);
@@ -679,31 +680,31 @@ public:
         }
     }
 
-    void ForgetTxId(const uint256 &txid) {
-        auto it = m_index.get<ByTxId>().lower_bound(
-            ByTxIdView{txid, State::CANDIDATE_DELAYED, 0});
-        while (it != m_index.get<ByTxId>().end() && it->m_txid == txid) {
-            it = Erase<ByTxId>(it);
+    void ForgetTxId(const uint256 &invid) {
+        auto it = m_index.get<ByInvId>().lower_bound(
+            ByInvIdView{invid, State::CANDIDATE_DELAYED, 0});
+        while (it != m_index.get<ByInvId>().end() && it->m_invid == invid) {
+            it = Erase<ByInvId>(it);
         }
     }
 
-    void ReceivedInv(NodeId peer, const uint256 &txid, bool preferred,
+    void ReceivedInv(NodeId peer, const uint256 &invid, bool preferred,
                      std::chrono::microseconds reqtime) {
         // Bail out if we already have a CANDIDATE_BEST announcement for this
-        // (txid, peer) combination. The case where there is a
+        // (invid, peer) combination. The case where there is a
         // non-CANDIDATE_BEST announcement already will be caught by the
         // uniqueness property of the ByPeer index when we try to emplace the
         // new object below.
-        if (m_index.get<ByPeer>().count(ByPeerView{peer, true, txid})) {
+        if (m_index.get<ByPeer>().count(ByPeerView{peer, true, invid})) {
             return;
         }
 
         // Try creating the announcement with CANDIDATE_DELAYED state (which
         // will fail due to the uniqueness of the ByPeer index if a
-        // non-CANDIDATE_BEST announcement already exists with the same txid
+        // non-CANDIDATE_BEST announcement already exists with the same invid
         // and peer). Bail out in that case.
-        auto ret = m_index.get<ByPeer>().emplace(txid, peer, preferred, reqtime,
-                                                 m_current_sequence);
+        auto ret = m_index.get<ByPeer>().emplace(invid, peer, preferred,
+                                                 reqtime, m_current_sequence);
         if (!ret.second) {
             return;
         }
@@ -713,7 +714,7 @@ public:
         ++m_current_sequence;
     }
 
-    //! Find the TxIds to request now from peer.
+    //! Find the InvIds to request now from peer.
     std::vector<uint256> GetRequestable(NodeId peer,
                                         std::chrono::microseconds now,
                                         ClearExpiredFun clearExpired,
@@ -738,33 +739,33 @@ public:
                       return a->m_sequence < b->m_sequence;
                   });
 
-        // Convert to TxId and return.
+        // Convert to InvId and return.
         std::vector<uint256> ret;
         ret.reserve(selected.size());
         std::transform(selected.begin(), selected.end(),
                        std::back_inserter(ret),
-                       [](const Announcement *ann) { return ann->m_txid; });
+                       [](const Announcement *ann) { return ann->m_invid; });
         return ret;
     }
 
-    void RequestedTx(NodeId peer, const uint256 &txid,
+    void RequestedTx(NodeId peer, const uint256 &invid,
                      std::chrono::microseconds expiry) {
-        auto it = m_index.get<ByPeer>().find(ByPeerView{peer, true, txid});
+        auto it = m_index.get<ByPeer>().find(ByPeerView{peer, true, invid});
         if (it == m_index.get<ByPeer>().end()) {
             // There is no CANDIDATE_BEST announcement, look for a _READY or
             // _DELAYED instead. If the caller only ever invokes RequestedTx
             // with the values returned by GetRequestable, and no other
-            // non-const functions other than ForgetTxHash and GetRequestable in
-            // between, this branch will never execute (as txids returned by
+            // non-const functions other than ForgetTxId and GetRequestable in
+            // between, this branch will never execute (as invids returned by
             // GetRequestable always correspond to CANDIDATE_BEST
             // announcements).
 
-            it = m_index.get<ByPeer>().find(ByPeerView{peer, false, txid});
+            it = m_index.get<ByPeer>().find(ByPeerView{peer, false, invid});
             if (it == m_index.get<ByPeer>().end() ||
                 (it->GetState() != State::CANDIDATE_DELAYED &&
                  it->GetState() != State::CANDIDATE_READY)) {
                 // There is no CANDIDATE announcement tracked for this peer, so
-                // we have nothing to do. Either this txid wasn't tracked at
+                // we have nothing to do. Either this invid wasn't tracked at
                 // all (and the caller should have called ReceivedInv), or it
                 // was already requested and/or completed for other reasons and
                 // this is just a superfluous RequestedTx call.
@@ -772,17 +773,17 @@ public:
             }
 
             // Look for an existing CANDIDATE_BEST or REQUESTED with the same
-            // txid. We only need to do this if the found announcement had a
+            // invid. We only need to do this if the found announcement had a
             // different state than CANDIDATE_BEST. If it did, invariants
             // guarantee that no other CANDIDATE_BEST or REQUESTED can exist.
-            auto it_old = m_index.get<ByTxId>().lower_bound(
-                ByTxIdView{txid, State::CANDIDATE_BEST, 0});
-            if (it_old != m_index.get<ByTxId>().end() &&
-                it_old->m_txid == txid) {
+            auto it_old = m_index.get<ByInvId>().lower_bound(
+                ByInvIdView{invid, State::CANDIDATE_BEST, 0});
+            if (it_old != m_index.get<ByInvId>().end() &&
+                it_old->m_invid == invid) {
                 if (it_old->GetState() == State::CANDIDATE_BEST) {
                     // The data structure's invariants require that there can be
                     // at most one CANDIDATE_BEST or one REQUESTED announcement
-                    // per txid (but not both simultaneously), so we have to
+                    // per invid (but not both simultaneously), so we have to
                     // convert any existing CANDIDATE_BEST to another
                     // CANDIDATE_* when constructing another REQUESTED. It
                     // doesn't matter whether we pick CANDIDATE_READY or
@@ -790,14 +791,14 @@ public:
                     // GetRequestable() time. If time only goes forward, it will
                     // always be _READY, so pick that to avoid extra work in
                     // SetTimePoint().
-                    Modify<ByTxId>(it_old, [](Announcement &ann) {
+                    Modify<ByInvId>(it_old, [](Announcement &ann) {
                         ann.SetState(State::CANDIDATE_READY);
                     });
                 } else if (it_old->GetState() == State::REQUESTED) {
                     // As we're no longer waiting for a response to the previous
                     // REQUESTED announcement, convert it to COMPLETED. This
                     // also helps guaranteeing progress.
-                    Modify<ByTxId>(it_old, [](Announcement &ann) {
+                    Modify<ByInvId>(it_old, [](Announcement &ann) {
                         ann.SetState(State::COMPLETED);
                     });
                 }
@@ -810,15 +811,15 @@ public:
         });
     }
 
-    void ReceivedResponse(NodeId peer, const uint256 &txid) {
-        // We need to search the ByPeer index for both (peer, false, txid) and
-        // (peer, true, txid).
-        auto it = m_index.get<ByPeer>().find(ByPeerView{peer, false, txid});
+    void ReceivedResponse(NodeId peer, const uint256 &invid) {
+        // We need to search the ByPeer index for both (peer, false, invid) and
+        // (peer, true, invid).
+        auto it = m_index.get<ByPeer>().find(ByPeerView{peer, false, invid});
         if (it == m_index.get<ByPeer>().end()) {
-            it = m_index.get<ByPeer>().find(ByPeerView{peer, true, txid});
+            it = m_index.get<ByPeer>().find(ByPeerView{peer, true, invid});
         }
         if (it != m_index.get<ByPeer>().end()) {
-            MakeCompleted(m_index.project<ByTxId>(it));
+            MakeCompleted(m_index.project<ByInvId>(it));
         }
     }
 
@@ -851,10 +852,10 @@ public:
     //! and transactions.
     size_t Size() const { return m_index.size(); }
 
-    uint64_t ComputePriority(const uint256 &txid, NodeId peer,
+    uint64_t ComputePriority(const uint256 &invid, NodeId peer,
                              bool preferred) const {
         // Return Priority as a uint64_t as Priority is internal.
-        return uint64_t{m_computer(txid, peer, preferred)};
+        return uint64_t{m_computer(invid, peer, preferred)};
     }
 };
 
