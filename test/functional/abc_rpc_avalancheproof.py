@@ -13,6 +13,7 @@ from test_framework.avatools import (
 from test_framework.key import ECKey, bytes_to_wif
 from test_framework.messages import (
     AvalancheDelegation,
+    AvalancheDelegationLevel,
     AvalancheProof,
     FromHex,
 )
@@ -186,6 +187,18 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         # Invalid delegation
         bad_dg = AvalancheDelegation()
+        assert_raises_rpc_error(-8, "The supplied delegation does not match the proof",
+                                node.delegateavalancheproof,
+                                proof,
+                                bytes_to_wif(privkey.get_bytes()),
+                                random_pubkey,
+                                bad_dg.serialize().hex(),
+                                )
+
+        # Still invalid, but with a matching proofid
+        bad_dg.limited_proofid = proofobj.limited_proofid
+        bad_dg.proof_master = proofobj.master
+        bad_dg.levels = [AvalancheDelegationLevel()]
         assert_raises_rpc_error(-8, "The supplied delegation is not valid",
                                 node.delegateavalancheproof,
                                 proof,

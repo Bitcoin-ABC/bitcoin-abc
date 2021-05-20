@@ -31,20 +31,19 @@ static bool reduceLevels(uint256 &hash, const std::vector<L> &levels) {
     return reduceLevels(hash, levels, [](const L &) { return true; });
 }
 
+ProofId Delegation::getProofId() const {
+    return limitedProofid.computeProofId(proofMaster);
+}
+
 DelegationId Delegation::computeDelegationId() const {
-    uint256 hash = proofid;
+    uint256 hash = getProofId();
     reduceLevels(hash, levels);
     return DelegationId(hash);
 }
 
-bool Delegation::verify(DelegationState &state, const Proof &proof,
-                        CPubKey &auth) const {
-    if (proof.getId() != proofid) {
-        return state.Invalid(DelegationResult::INCORRECT_PROOF);
-    }
-
-    uint256 hash = proofid;
-    const CPubKey *pauth = &proof.getMaster();
+bool Delegation::verify(DelegationState &state, CPubKey &auth) const {
+    uint256 hash = getProofId();
+    const CPubKey *pauth = &proofMaster;
 
     bool ret = reduceLevels(hash, levels, [&](const Level &l) {
         if (!pauth->VerifySchnorr(hash, l.sig)) {

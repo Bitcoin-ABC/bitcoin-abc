@@ -18,6 +18,7 @@ namespace avalanche {
 class Proof;
 
 class DelegationBuilder {
+    LimitedProofId limitedProofid;
     ProofId proofid;
     DelegationId dgid;
 

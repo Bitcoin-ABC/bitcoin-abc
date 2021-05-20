@@ -1052,7 +1052,7 @@ class TCPAvalancheResponse():
 class AvalancheDelegationLevel:
     __slots__ = ("pubkey", "sig")
 
-    def __init__(self, pubkey="", sig=b"\0" * 64):
+    def __init__(self, pubkey=b"", sig=b"\0" * 64):
         self.pubkey = pubkey
         self.sig = sig
 
@@ -1072,25 +1072,37 @@ class AvalancheDelegationLevel:
 
 
 class AvalancheDelegation:
-    __slots__ = ("proofid", "levels")
+    __slots__ = ("limited_proofid", "proof_master", "proofid", "levels")
 
-    def __init__(self, proofid=0, levels=None):
-        self.proofid: int = proofid
+    def __init__(self, limited_proofid=0,
+                 proof_master=b"", levels=None):
+        self.limited_proofid: int = limited_proofid
+        self.proof_master: bytes = proof_master
         self.levels: List[AvalancheDelegationLevel] = levels or []
+        self.proofid: int = self.compute_proofid()
+
+    def compute_proofid(self) -> int:
+        return uint256_from_str(hash256(
+            ser_uint256(self.limited_proofid) + ser_string(self.proof_master)))
 
     def deserialize(self, f):
-        self.proofid = deser_uint256(f)
+        self.limited_proofid = deser_uint256(f)
+        self.proof_master = deser_string(f)
         self.levels = deser_vector(f, AvalancheDelegationLevel)
+
+        self.proofid = self.compute_proofid()
 
     def serialize(self):
         r = b""
-        r += ser_uint256(self.proofid)
+        r += ser_uint256(self.limited_proofid)
+        r += ser_string(self.proof_master)
         r += ser_vector(self.levels)
         return r
 
     def __repr__(self):
-        return "AvalancheDelegation(proofid={:064x}, levels={})".format(
-            self.proofid, repr(self.levels))
+        return f"AvalancheDelegation(limitedProofId={self.limited_proofid:064x}, " \
+               f"proofMaster={self.proof_master.hex()}, proofid={self.proofid:064x}, " \
+               f"levels={self.levels})"
 
     def getid(self):
         h = ser_uint256(self.proofid)

@@ -352,8 +352,14 @@ static UniValue delegateavalancheproof(const Config &config,
                        PROTOCOL_VERSION);
         ss >> dg;
 
+        if (dg.getProofId() != proof.getId()) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                "The supplied delegation does not match the proof");
+        }
+
         avalanche::DelegationState dgState;
-        if (!dg.verify(dgState, proof, auth)) {
+        if (!dg.verify(dgState, auth)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "The supplied delegation is not valid");
         }

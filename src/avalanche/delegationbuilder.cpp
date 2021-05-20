@@ -9,7 +9,7 @@
 namespace avalanche {
 
 DelegationBuilder::DelegationBuilder(const Proof &p)
-    : proofid(p.getId()), dgid(proofid) {
+    : limitedProofid(p.getLimitedId()), proofid(p.getId()), dgid(proofid) {
     levels.push_back({p.getMaster(), {}});
 }
 
@@ -63,7 +63,8 @@ Delegation DelegationBuilder::build() const {
         dglvls.push_back({levels[i].pubkey, levels[i - 1].sig});
     }
 
-    return Delegation(proofid, dgid, std::move(dglvls));
+    return Delegation(limitedProofid, levels[0].pubkey, dgid,
+                      std::move(dglvls));
 }
 
 } // namespace avalanche

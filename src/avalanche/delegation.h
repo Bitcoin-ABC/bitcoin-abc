@@ -19,7 +19,8 @@ class DelegationState;
 class Proof;
 
 class Delegation {
-    ProofId proofid;
+    LimitedProofId limitedProofid;
+    CPubKey proofMaster;
 
     DelegationId dgid;
     DelegationId computeDelegationId() const;
@@ -34,23 +35,24 @@ class Delegation {
     std::vector<Level> levels;
 
     friend class DelegationBuilder;
-    Delegation(const ProofId &proofid_, const DelegationId &dgid_,
+    Delegation(const LimitedProofId &limitedProofid_,
+               const CPubKey &proofMaster_, const DelegationId &dgid_,
                std::vector<Level> levels_)
-        : proofid(proofid_), dgid(dgid_), levels(std::move(levels_)) {}
+        : limitedProofid(limitedProofid_), proofMaster(proofMaster_),
+          dgid(dgid_), levels(std::move(levels_)) {}
 
 public:
     explicit Delegation() {}
 
     const DelegationId &getId() const { return dgid; }
-    const ProofId &getProofId() const { return proofid; }
+    ProofId getProofId() const;
 
     SERIALIZE_METHODS(Delegation, obj) {
-        READWRITE(obj.proofid, obj.levels);
+        READWRITE(obj.limitedProofid, obj.proofMaster, obj.levels);
         SER_READ(obj, obj.dgid = obj.computeDelegationId());
     }
 
-    bool verify(DelegationState &state, const Proof &proof,
-                CPubKey &auth) const;
+    bool verify(DelegationState &state, CPubKey &auth) const;
 };
 
 } // namespace avalanche

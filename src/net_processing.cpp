@@ -3927,10 +3927,9 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         avalanche::Delegation &delegation = pfrom.m_avalanche_state->delegation;
         verifier >> delegation;
 
-        avalanche::Proof proof;
         avalanche::DelegationState state;
         CPubKey pubkey;
-        if (!delegation.verify(state, proof, pubkey)) {
+        if (!delegation.verify(state, pubkey)) {
             Misbehaving(pfrom, 100, "invalid-delegation");
             return;
         }

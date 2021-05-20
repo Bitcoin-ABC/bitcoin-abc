@@ -24,7 +24,7 @@ bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
 
     DelegationState state;
     CPubKey pubkey;
-    if (!delegation.verify(state, proof, pubkey)) {
+    if (!delegation.verify(state, pubkey)) {
         return false;
     }
 

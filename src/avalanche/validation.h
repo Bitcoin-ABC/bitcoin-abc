@@ -31,7 +31,6 @@ class ProofValidationState : public ValidationState<ProofValidationResult> {};
 
 enum class DelegationResult {
     NONE = 0,
-    INCORRECT_PROOF,
     INVALID_SIGNATURE,
 };
 
