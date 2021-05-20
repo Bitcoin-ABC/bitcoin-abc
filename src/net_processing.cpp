@@ -152,6 +152,15 @@ static constexpr DataRequestParameters TX_REQUEST_PARAMS{
     PF_RELAY,                 // bypass_request_limits_permissions
 };
 
+static constexpr DataRequestParameters PROOF_REQUEST_PARAMS{
+    100,                            // max_peer_request_in_flight
+    5000,                           // max_peer_announcements
+    std::chrono::seconds(2),        // nonpref_peer_delay
+    std::chrono::seconds(2),        // overloaded_peer_delay
+    std::chrono::seconds(60),       // getdata_interval
+    PF_BYPASS_PROOF_REQUEST_LIMITS, // bypass_request_limits_permissions
+};
+
 /**
  * Limit to avoid sending big packets. Not used in processing incoming GETDATA
  * for compatibility.
@@ -1001,6 +1010,23 @@ void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
     m_txrequest.ReceivedInv(nodeid, txid, preferred, reqtime);
 }
 
+void PeerManager::AddProofAnnouncement(const CNode &node,
+                                       const avalanche::ProofId &proofid,
+                                       std::chrono::microseconds current_time,
+                                       bool preferred) {
+    // For m_proofrequest
+    AssertLockHeld(cs_proofrequest);
+
+    if (TooManyAnnouncements(node, m_proofrequest, PROOF_REQUEST_PARAMS)) {
+        return;
+    }
+
+    auto reqtime = ComputeRequestTime(
+        node, m_proofrequest, PROOF_REQUEST_PARAMS, current_time, preferred);
+
+    m_proofrequest.ReceivedInv(node.GetId(), proofid, preferred, reqtime);
+}
+
 // This function is used for testing the stale tip eviction logic, see
 // denialofservice_tests.cpp
 void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
@@ -1716,6 +1742,11 @@ static bool AlreadyHaveTx(const TxId &txid, const CTxMemPool &mempool)
 static bool AlreadyHaveBlock(const BlockHash &block_hash)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     return LookupBlockIndex(block_hash) != nullptr;
+}
+
+static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
+    // TODO check if the proof is in the orphan pool as well
+    return g_avalanche && g_avalanche->getProof(proofid);
 }
 
 void RelayTransaction(const TxId &txid, const CConnman &connman) {
@@ -3072,6 +3103,28 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     best_block = std::move(hash);
                 }
 
+                continue;
+            }
+
+            if (inv.IsMsgProof()) {
+                const avalanche::ProofId proofid(inv.hash);
+                const bool fAlreadyHave = AlreadyHaveProof(proofid);
+                logInv(inv, fAlreadyHave);
+
+                if (!fAlreadyHave && g_avalanche &&
+                    gArgs.GetBoolArg("-enableavalanche",
+                                     AVALANCHE_DEFAULT_ENABLED)) {
+                    bool preferred;
+                    {
+                        LOCK(cs_main);
+                        const CNodeState *state = State(pfrom.GetId());
+                        preferred = state && state->fPreferredDownload;
+                    }
+
+                    LOCK(cs_proofrequest);
+                    AddProofAnnouncement(pfrom, proofid, current_time,
+                                         preferred);
+                }
                 continue;
             }
 
@@ -5453,6 +5506,34 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             vGetData.clear();
         }
     };
+
+    //
+    // Message: getdata (proof)
+    //
+    {
+        LOCK(cs_proofrequest);
+        std::vector<std::pair<NodeId, avalanche::ProofId>> expired;
+        auto requestable =
+            m_proofrequest.GetRequestable(pto->GetId(), current_time, &expired);
+        for (const auto &entry : expired) {
+            LogPrint(BCLog::NET, "timeout of inflight proof %s from peer=%d\n",
+                     entry.second.ToString(), entry.first);
+        }
+        for (const auto &proofid : requestable) {
+            if (!AlreadyHaveProof(proofid)) {
+                addGetDataAndMaybeFlush(MSG_AVA_PROOF, proofid);
+                m_proofrequest.RequestedData(
+                    pto->GetId(), proofid,
+                    current_time + PROOF_REQUEST_PARAMS.getdata_interval);
+            } else {
+                // We have already seen this proof, no need to download.
+                // This is just a belt-and-suspenders, as this should
+                // already be called whenever a transaction becomes
+                // AlreadyHaveProof().
+                m_proofrequest.ForgetInvId(proofid);
+            }
+        }
+    } // release cs_proofrequest
 
     //
     // Message: getdata (transactions)

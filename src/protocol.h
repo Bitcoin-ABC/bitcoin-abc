@@ -532,6 +532,10 @@ public:
         auto k = GetKind();
         return k == MSG_TX;
     }
+    bool IsMsgProof() const {
+        auto k = GetKind();
+        return k == MSG_AVA_PROOF;
+    }
     bool IsMsgBlk() const {
         auto k = GetKind();
         return k == MSG_BLOCK;

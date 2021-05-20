@@ -198,6 +198,16 @@ private:
                            std::chrono::microseconds current_time)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
+    /**
+     * Register with InvRequestTracker that a PROOF INV has been received from a
+     * peer. The announcement parameters are decided in PeerManager and then
+     * passed to InvRequestTracker.
+     */
+    void
+    AddProofAnnouncement(const CNode &node, const avalanche::ProofId &proofid,
+                         std::chrono::microseconds current_time, bool preferred)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_proofrequest);
+
     const CChainParams &m_chainparams;
     CConnman &m_connman;
     /**
@@ -208,6 +218,10 @@ private:
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
     InvRequestTracker<TxId> m_txrequest GUARDED_BY(::cs_main);
+
+    Mutex cs_proofrequest;
+    InvRequestTracker<avalanche::ProofId>
+        m_proofrequest GUARDED_BY(cs_proofrequest);
 
     //! Next time to check for stale tip
     int64_t m_stale_tip_check_time;
