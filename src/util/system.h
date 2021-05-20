@@ -175,7 +175,7 @@ protected:
     std::map<OptionsCategory, std::map<std::string, Arg>>
         m_available_args GUARDED_BY(cs_args);
     std::list<SectionInfo> m_config_sections GUARDED_BY(cs_args);
-    fs::path m_cached_blocks_path GUARDED_BY(cs_args);
+    mutable fs::path m_cached_blocks_path GUARDED_BY(cs_args);
     mutable fs::path m_cached_datadir_path GUARDED_BY(cs_args);
     mutable fs::path m_cached_network_datadir_path GUARDED_BY(cs_args);
 
@@ -238,7 +238,7 @@ public:
      *
      * @return Blocks path which is network specific
      */
-    const fs::path &GetBlocksDirPath();
+    const fs::path &GetBlocksDirPath() const;
 
     /**
      * Get data directory path
