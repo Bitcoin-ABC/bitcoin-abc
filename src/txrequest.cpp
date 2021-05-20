@@ -6,7 +6,6 @@
 
 #include <crypto/siphash.h>
 #include <net.h>
-#include <primitives/transaction.h>
 #include <random.h>
 
 #include <boost/multi_index/ordered_index.hpp>
@@ -862,75 +861,4 @@ public:
 std::unique_ptr<InvRequestTrackerImplInterface>
 InvRequestTrackerImplInterface::BuildImpl(bool deterministic) {
     return std::make_unique<InvRequestTrackerImpl>(deterministic);
-}
-
-TxRequestTracker::TxRequestTracker(bool deterministic)
-    : m_impl{InvRequestTrackerImplInterface::BuildImpl(deterministic)} {}
-
-TxRequestTracker::~TxRequestTracker() = default;
-
-void TxRequestTracker::ForgetTxId(const TxId &txid) {
-    m_impl->ForgetTxId(txid);
-}
-void TxRequestTracker::DisconnectedPeer(NodeId peer) {
-    m_impl->DisconnectedPeer(peer);
-}
-size_t TxRequestTracker::CountInFlight(NodeId peer) const {
-    return m_impl->CountInFlight(peer);
-}
-size_t TxRequestTracker::CountCandidates(NodeId peer) const {
-    return m_impl->CountCandidates(peer);
-}
-size_t TxRequestTracker::Count(NodeId peer) const {
-    return m_impl->Count(peer);
-}
-size_t TxRequestTracker::Size() const {
-    return m_impl->Size();
-}
-void TxRequestTracker::SanityCheck() const {
-    m_impl->SanityCheck();
-}
-
-void TxRequestTracker::PostGetRequestableSanityCheck(
-    std::chrono::microseconds now) const {
-    m_impl->PostGetRequestableSanityCheck(now);
-}
-
-void TxRequestTracker::ReceivedInv(NodeId peer, const TxId &txid,
-                                   bool preferred,
-                                   std::chrono::microseconds reqtime) {
-    m_impl->ReceivedInv(peer, txid, preferred, reqtime);
-}
-
-void TxRequestTracker::RequestedTx(NodeId peer, const TxId &txid,
-                                   std::chrono::microseconds expiry) {
-    m_impl->RequestedTx(peer, txid, expiry);
-}
-
-void TxRequestTracker::ReceivedResponse(NodeId peer, const TxId &txid) {
-    m_impl->ReceivedResponse(peer, txid);
-}
-
-std::vector<TxId> TxRequestTracker::GetRequestable(
-    NodeId peer, std::chrono::microseconds now,
-    std::vector<std::pair<NodeId, TxId>> *expired) {
-    InvRequestTrackerImplInterface::ClearExpiredFun clearExpired = [expired]() {
-        if (expired) {
-            expired->clear();
-        }
-    };
-    InvRequestTrackerImplInterface::EmplaceExpiredFun emplaceExpired =
-        [expired](const NodeId &nodeid, const uint256 &txid) {
-            if (expired) {
-                expired->emplace_back(nodeid, TxId(txid));
-            }
-        };
-    std::vector<uint256> hashes =
-        m_impl->GetRequestable(peer, now, clearExpired, emplaceExpired);
-    return std::vector<TxId>(hashes.begin(), hashes.end());
-}
-
-uint64_t TxRequestTracker::ComputePriority(const TxId &txid, NodeId peer,
-                                           bool preferred) const {
-    return m_impl->ComputePriority(txid, peer, preferred);
 }

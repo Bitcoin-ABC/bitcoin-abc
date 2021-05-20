@@ -32,7 +32,7 @@ using Action = std::pair<std::chrono::microseconds, std::function<void()>>;
  */
 struct Runner {
     /** The TxRequestTracker being tested. */
-    TxRequestTracker txrequest;
+    TxRequestTracker<TxId> txrequest;
 
     /** List of actions to be executed (in order of increasing timestamp). */
     std::vector<Action> actions;

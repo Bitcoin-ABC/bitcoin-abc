@@ -70,7 +70,7 @@ struct Initializer {
  */
 class Tester {
     //! TxRequestTracker object being tested.
-    TxRequestTracker m_tracker;
+    TxRequestTracker<TxId> m_tracker;
 
     //! States for txid/peer combinations in the naive data structure.
     enum class State {

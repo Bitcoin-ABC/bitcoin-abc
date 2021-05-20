@@ -6,12 +6,11 @@
 #define BITCOIN_TXREQUEST_H
 
 #include <net.h> // For NodeId
-#include <primitives/transaction.h>
 
 #include <chrono>
-#include <vector>
-
 #include <cstdint>
+#include <functional>
+#include <vector>
 
 /**
  * Data structure to keep track of, and schedule, transaction downloads from
@@ -120,7 +119,7 @@
 
 // Avoid littering this header file with implementation details.
 class InvRequestTrackerImplInterface {
-    friend class TxRequestTracker;
+    template <class InvId> friend class TxRequestTracker;
 
     // The base class is responsible for building the child implementation.
     // This is a hack that allows for hiding the concrete implementation details
@@ -157,13 +156,22 @@ public:
     PostGetRequestableSanityCheck(std::chrono::microseconds now) const = 0;
 };
 
-class TxRequestTracker {
+template <class InvId> class TxRequestTracker {
+    /*
+     * Only uint256-based InvId types are supported for now.
+     * FIXME: use a template constraint when C++20 is available.
+     */
+    static_assert(std::is_base_of<uint256, InvId>::value,
+                  "InvRequestTracker inv id type should be uint256 or derived");
+
     const std::unique_ptr<InvRequestTrackerImplInterface> m_impl;
 
 public:
     //! Construct a TxRequestTracker.
-    explicit TxRequestTracker(bool deterministic = false);
-    ~TxRequestTracker();
+
+    explicit TxRequestTracker(bool deterministic = false)
+        : m_impl{InvRequestTrackerImplInterface::BuildImpl(deterministic)} {}
+    ~TxRequestTracker() = default;
 
     // Conceptually, the data structure consists of a collection of
     // "announcements", one for each peer/txid combination:
@@ -191,15 +199,17 @@ public:
      * Does nothing if one already exists for that (txid, peer) combination
      * (whether it's CANDIDATE, REQUESTED, or COMPLETED).
      */
-    void ReceivedInv(NodeId peer, const TxId &txid, bool preferred,
-                     std::chrono::microseconds reqtime);
+    void ReceivedInv(NodeId peer, const InvId &txid, bool preferred,
+                     std::chrono::microseconds reqtime) {
+        m_impl->ReceivedInv(peer, txid, preferred, reqtime);
+    }
 
     /**
      * Deletes all announcements for a given peer.
      *
      * It should be called when a peer goes offline.
      */
-    void DisconnectedPeer(NodeId peer);
+    void DisconnectedPeer(NodeId peer) { m_impl->DisconnectedPeer(peer); }
 
     /**
      * Deletes all announcements for a given txid.
@@ -208,7 +218,7 @@ public:
      * should ensure that new announcements for the same txid will not trigger
      * new ReceivedInv calls, at least in the short term after this call.
      */
-    void ForgetTxId(const TxId &txid);
+    void ForgetTxId(const InvId &txid) { m_impl->ForgetTxId(txid); }
 
     /**
      * Find the txids to request now from peer.
@@ -232,9 +242,25 @@ public:
      *    peer, and end up being requested from them, the requests will happen
      *    in announcement order.
      */
-    std::vector<TxId>
+    std::vector<InvId>
     GetRequestable(NodeId peer, std::chrono::microseconds now,
-                   std::vector<std::pair<NodeId, TxId>> *expired = nullptr);
+                   std::vector<std::pair<NodeId, InvId>> *expired) {
+        InvRequestTrackerImplInterface::ClearExpiredFun clearExpired =
+            [expired]() {
+                if (expired) {
+                    expired->clear();
+                }
+            };
+        InvRequestTrackerImplInterface::EmplaceExpiredFun emplaceExpired =
+            [expired](const NodeId &nodeid, const uint256 &txid) {
+                if (expired) {
+                    expired->emplace_back(nodeid, InvId(txid));
+                }
+            };
+        std::vector<uint256> hashes =
+            m_impl->GetRequestable(peer, now, clearExpired, emplaceExpired);
+        return std::vector<InvId>(hashes.begin(), hashes.end());
+    }
 
     /**
      * Marks a transaction as requested, with a specified expiry.
@@ -247,8 +273,10 @@ public:
      *    never advise doing so). In this case it is converted to COMPLETED, as
      *    we're no longer waiting for a response to it.
      */
-    void RequestedTx(NodeId peer, const TxId &txid,
-                     std::chrono::microseconds expiry);
+    void RequestedTx(NodeId peer, const InvId &txid,
+                     std::chrono::microseconds expiry) {
+        m_impl->RequestedTx(peer, txid, expiry);
+    }
 
     /**
      * Converts a CANDIDATE or REQUESTED announcement to a COMPLETED one. If no
@@ -258,34 +286,42 @@ public:
      * a peer. When the transaction is not needed entirely anymore, ForgetTxId
      * should be called instead of, or in addition to, this call.
      */
-    void ReceivedResponse(NodeId peer, const TxId &txid);
+    void ReceivedResponse(NodeId peer, const InvId &txid) {
+        m_impl->ReceivedResponse(peer, txid);
+    }
 
     // The operations below inspect the data structure.
 
     /** Count how many REQUESTED announcements a peer has. */
-    size_t CountInFlight(NodeId peer) const;
+    size_t CountInFlight(NodeId peer) const {
+        return m_impl->CountInFlight(peer);
+    }
 
     /** Count how many CANDIDATE announcements a peer has. */
-    size_t CountCandidates(NodeId peer) const;
+    size_t CountCandidates(NodeId peer) const {
+        return m_impl->CountCandidates(peer);
+    }
 
     /**
      * Count how many announcements a peer has (REQUESTED, CANDIDATE, and
      * COMPLETED combined).
      */
-    size_t Count(NodeId peer) const;
+    size_t Count(NodeId peer) const { return m_impl->Count(peer); }
 
     /**
      * Count how many announcements are being tracked in total across all peers
      * and transaction hashes.
      */
-    size_t Size() const;
+    size_t Size() const { return m_impl->Size(); }
 
     /** Access to the internal priority computation (testing only) */
-    uint64_t ComputePriority(const TxId &txid, NodeId peer,
-                             bool preferred) const;
+    uint64_t ComputePriority(const InvId &txid, NodeId peer,
+                             bool preferred) const {
+        return m_impl->ComputePriority(txid, peer, preferred);
+    }
 
     /** Run internal consistency check (testing only). */
-    void SanityCheck() const;
+    void SanityCheck() const { m_impl->SanityCheck(); }
 
     /**
      * Run a time-dependent internal consistency check (testing only).
@@ -293,7 +329,9 @@ public:
      * This can only be called immediately after GetRequestable, with the same
      * 'now' parameter.
      */
-    void PostGetRequestableSanityCheck(std::chrono::microseconds now) const;
+    void PostGetRequestableSanityCheck(std::chrono::microseconds now) const {
+        m_impl->PostGetRequestableSanityCheck(now);
+    }
 };
 
 #endif // BITCOIN_TXREQUEST_H
