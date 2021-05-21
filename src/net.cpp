@@ -1976,7 +1976,7 @@ void CConnman::ThreadDNSAddressSeed() {
                         LOCK(cs_vNodes);
                         for (const CNode *pnode : vNodes) {
                             if (pnode->fSuccessfullyConnected &&
-                                pnode->IsOutboundOrBlockRelayConn()) {
+                                pnode->IsFullOutboundConn()) {
                                 ++nRelevant;
                             }
                         }
