@@ -117,10 +117,48 @@
  *   announcements, plus the number of announcements affected by an operation
  *   (amortized O(1) per announcement).
  */
+
+// Avoid littering this header file with implementation details.
+class InvRequestTrackerImplInterface {
+    friend class TxRequestTracker;
+
+    // The base class is responsible for building the child implementation.
+    // This is a hack that allows for hiding the concrete implementation details
+    // from the callsite.
+    static std::unique_ptr<InvRequestTrackerImplInterface>
+    BuildImpl(bool deterministic);
+
+public:
+    using ClearExpiredFun = const std::function<void()> &;
+    using EmplaceExpiredFun =
+        const std::function<void(const NodeId &, const uint256 &)> &;
+
+    virtual ~InvRequestTrackerImplInterface() = default;
+
+    virtual void ReceivedInv(NodeId peer, const uint256 &txid, bool preferred,
+                             std::chrono::microseconds reqtime) = 0;
+    virtual void DisconnectedPeer(NodeId peer) = 0;
+    virtual void ForgetTxId(const uint256 &txid) = 0;
+    virtual std::vector<uint256>
+    GetRequestable(NodeId peer, std::chrono::microseconds now,
+                   ClearExpiredFun clearExpired,
+                   EmplaceExpiredFun emplaceExpired) = 0;
+    virtual void RequestedTx(NodeId peer, const uint256 &txid,
+                             std::chrono::microseconds expiry) = 0;
+    virtual void ReceivedResponse(NodeId peer, const uint256 &txid) = 0;
+    virtual size_t CountInFlight(NodeId peer) const = 0;
+    virtual size_t CountCandidates(NodeId peer) const = 0;
+    virtual size_t Count(NodeId peer) const = 0;
+    virtual size_t Size() const = 0;
+    virtual uint64_t ComputePriority(const uint256 &txid, NodeId peer,
+                                     bool preferred) const = 0;
+    virtual void SanityCheck() const = 0;
+    virtual void
+    PostGetRequestableSanityCheck(std::chrono::microseconds now) const = 0;
+};
+
 class TxRequestTracker {
-    // Avoid littering this header file with implementation details.
-    class Impl;
-    const std::unique_ptr<Impl> m_impl;
+    const std::unique_ptr<InvRequestTrackerImplInterface> m_impl;
 
 public:
     //! Construct a TxRequestTracker.

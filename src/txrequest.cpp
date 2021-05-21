@@ -351,14 +351,10 @@ std::map<uint256, TxIdInfo> ComputeTxIdInfo(const Index &index,
     return ret;
 }
 
-using clearExpiredFun = const std::function<void()> &;
-using emplaceExpiredFun =
-    const std::function<void(const NodeId &, const uint256 &)> &;
-
 } // namespace
 
 /** Actual implementation for TxRequestTracker's data structure. */
-class TxRequestTracker::Impl {
+class InvRequestTrackerImpl : public InvRequestTrackerImplInterface {
     //! The current sequence number. Increases for every announcement. This is
     //! used to sort txid returned by GetRequestable in announcement order.
     SequenceNumber m_current_sequence{0};
@@ -587,8 +583,8 @@ private:
     //! - CANDIDATE_{READY,BEST} announcements with reqtime > now are turned
     //!   into CANDIDATE_DELAYED.
     void SetTimePoint(std::chrono::microseconds now,
-                      clearExpiredFun clearExpired,
-                      emplaceExpiredFun emplaceExpired) {
+                      ClearExpiredFun clearExpired,
+                      EmplaceExpiredFun emplaceExpired) {
         clearExpired();
         // Iterate over all CANDIDATE_DELAYED and REQUESTED from old to new, as
         // long as they're in the past, and convert them to CANDIDATE_READY and
@@ -624,7 +620,7 @@ private:
     }
 
 public:
-    Impl(bool deterministic)
+    InvRequestTrackerImpl(bool deterministic)
         : m_computer(deterministic),
           // Explicitly initialize m_index as we need to pass a reference to
           // m_computer to ByTxHashViewExtractor.
@@ -637,8 +633,10 @@ public:
 
     // Disable copying and assigning (a default copy won't work due the stateful
     // ByTxIdViewExtractor).
-    Impl(const Impl &) = delete;
-    Impl &operator=(const Impl &) = delete;
+    InvRequestTrackerImpl(const InvRequestTrackerImpl &) = delete;
+    InvRequestTrackerImpl &operator=(const InvRequestTrackerImpl &) = delete;
+
+    ~InvRequestTrackerImpl() = default;
 
     void DisconnectedPeer(NodeId peer) {
         auto &index = m_index.get<ByPeer>();
@@ -719,8 +717,8 @@ public:
     //! Find the TxIds to request now from peer.
     std::vector<uint256> GetRequestable(NodeId peer,
                                         std::chrono::microseconds now,
-                                        clearExpiredFun clearExpired,
-                                        emplaceExpiredFun emplaceExpired) {
+                                        ClearExpiredFun clearExpired,
+                                        EmplaceExpiredFun emplaceExpired) {
         // Move time.
         SetTimePoint(now, clearExpired, emplaceExpired);
 
@@ -861,8 +859,13 @@ public:
     }
 };
 
+std::unique_ptr<InvRequestTrackerImplInterface>
+InvRequestTrackerImplInterface::BuildImpl(bool deterministic) {
+    return std::make_unique<InvRequestTrackerImpl>(deterministic);
+}
+
 TxRequestTracker::TxRequestTracker(bool deterministic)
-    : m_impl{std::make_unique<TxRequestTracker::Impl>(deterministic)} {}
+    : m_impl{InvRequestTrackerImplInterface::BuildImpl(deterministic)} {}
 
 TxRequestTracker::~TxRequestTracker() = default;
 
@@ -911,17 +914,17 @@ void TxRequestTracker::ReceivedResponse(NodeId peer, const TxId &txid) {
 std::vector<TxId> TxRequestTracker::GetRequestable(
     NodeId peer, std::chrono::microseconds now,
     std::vector<std::pair<NodeId, TxId>> *expired) {
-    clearExpiredFun clearExpired = [expired]() {
+    InvRequestTrackerImplInterface::ClearExpiredFun clearExpired = [expired]() {
         if (expired) {
             expired->clear();
         }
     };
-    emplaceExpiredFun emplaceExpired = [expired](const NodeId &nodeid,
-                                                 const uint256 &txid) {
-        if (expired) {
-            expired->emplace_back(nodeid, TxId(txid));
-        }
-    };
+    InvRequestTrackerImplInterface::EmplaceExpiredFun emplaceExpired =
+        [expired](const NodeId &nodeid, const uint256 &txid) {
+            if (expired) {
+                expired->emplace_back(nodeid, TxId(txid));
+            }
+        };
     std::vector<uint256> hashes =
         m_impl->GetRequestable(peer, now, clearExpired, emplaceExpired);
     return std::vector<TxId>(hashes.begin(), hashes.end());
