@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <functional>
 #include <unordered_map>
 #include <utility>
 
@@ -68,7 +69,7 @@ using SequenceNumber = uint64_t;
  */
 struct Announcement {
     /** TxId that was announced. */
-    const TxId m_txid;
+    const uint256 m_txid;
     /**
      * For CANDIDATE_{DELAYED,BEST,READY} the reqtime; for REQUESTED the
      * expiry.
@@ -123,7 +124,7 @@ struct Announcement {
      * Construct a new announcement from scratch, initially in
      * CANDIDATE_DELAYED state.
      */
-    Announcement(const TxId &txid, NodeId peer, bool preferred,
+    Announcement(const uint256 &txid, NodeId peer, bool preferred,
                  std::chrono::microseconds reqtime, SequenceNumber sequence)
         : m_txid(txid), m_time(reqtime), m_peer(peer), m_sequence(sequence),
           m_preferred(preferred),
@@ -146,7 +147,8 @@ public:
         : m_k0{deterministic ? 0 : GetRand(0xFFFFFFFFFFFFFFFF)},
           m_k1{deterministic ? 0 : GetRand(0xFFFFFFFFFFFFFFFF)} {}
 
-    Priority operator()(const TxId &txid, NodeId peer, bool preferred) const {
+    Priority operator()(const uint256 &txid, NodeId peer,
+                        bool preferred) const {
         uint64_t low_bits = CSipHasher(m_k0, m_k1)
                                 .Write(txid.begin(), txid.size())
                                 .Write(peer)
@@ -176,7 +178,7 @@ public:
 // * Finding all CANDIDATE_BEST announcements for a given peer in
 //   GetRequestable.
 struct ByPeer {};
-using ByPeerView = std::tuple<NodeId, bool, const TxId &>;
+using ByPeerView = std::tuple<NodeId, bool, const uint256 &>;
 struct ByPeerViewExtractor {
     using result_type = ByPeerView;
     result_type operator()(const Announcement &ann) const {
@@ -196,7 +198,7 @@ struct ByPeerViewExtractor {
 // * Determining when no more non-COMPLETED announcements for a given txid
 //   exist, so the COMPLETED ones can be deleted.
 struct ByTxId {};
-using ByTxIdView = std::tuple<const TxId &, State, Priority>;
+using ByTxIdView = std::tuple<const uint256 &, State, Priority>;
 class ByTxIdViewExtractor {
     const PriorityComputer &m_computer;
 
@@ -322,9 +324,9 @@ std::unordered_map<NodeId, PeerInfo> RecomputePeerInfo(const Index &index) {
 }
 
 /** Compute the TxIdInfo map. Only used for sanity checking. */
-std::map<TxId, TxIdInfo> ComputeTxIdInfo(const Index &index,
-                                         const PriorityComputer &computer) {
-    std::map<TxId, TxIdInfo> ret;
+std::map<uint256, TxIdInfo> ComputeTxIdInfo(const Index &index,
+                                            const PriorityComputer &computer) {
+    std::map<uint256, TxIdInfo> ret;
     for (const Announcement &ann : index) {
         TxIdInfo &info = ret[ann.m_txid];
         // Classify how many announcements of each state we have for this txid.
@@ -348,6 +350,10 @@ std::map<TxId, TxIdInfo> ComputeTxIdInfo(const Index &index,
     }
     return ret;
 }
+
+using clearExpiredFun = const std::function<void()> &;
+using emplaceExpiredFun =
+    const std::function<void(const NodeId &, const uint256 &)> &;
 
 } // namespace
 
@@ -560,7 +566,7 @@ private:
         if (IsOnlyNonCompleted(it)) {
             // This is the last non-COMPLETED announcement for this txid.
             // Delete all.
-            TxId txid = it->m_txid;
+            uint256 txid = it->m_txid;
             do {
                 it = Erase<ByTxId>(it);
             } while (it != m_index.get<ByTxId>().end() && it->m_txid == txid);
@@ -581,10 +587,9 @@ private:
     //! - CANDIDATE_{READY,BEST} announcements with reqtime > now are turned
     //!   into CANDIDATE_DELAYED.
     void SetTimePoint(std::chrono::microseconds now,
-                      std::vector<std::pair<NodeId, TxId>> *expired) {
-        if (expired) {
-            expired->clear();
-        }
+                      clearExpiredFun clearExpired,
+                      emplaceExpiredFun emplaceExpired) {
+        clearExpired();
         // Iterate over all CANDIDATE_DELAYED and REQUESTED from old to new, as
         // long as they're in the past, and convert them to CANDIDATE_READY and
         // COMPLETED respectively.
@@ -595,9 +600,7 @@ private:
                 PromoteCandidateReady(m_index.project<ByTxId>(it));
             } else if (it->GetState() == State::REQUESTED &&
                        it->m_time <= now) {
-                if (expired) {
-                    expired->emplace_back(it->m_peer, it->m_txid);
-                }
+                emplaceExpired(it->m_peer, it->m_txid);
                 MakeCompleted(m_index.project<ByTxId>(it));
             } else {
                 break;
@@ -640,7 +643,7 @@ public:
     void DisconnectedPeer(NodeId peer) {
         auto &index = m_index.get<ByPeer>();
         auto it =
-            index.lower_bound(ByPeerView{peer, false, TxId(uint256::ZERO)});
+            index.lower_bound(ByPeerView{peer, false, uint256(uint256::ZERO)});
         while (it != index.end() && it->m_peer == peer) {
             // Check what to continue with after this iteration. 'it' will be
             // deleted in what follows, so we need to decide what to continue
@@ -679,7 +682,7 @@ public:
         }
     }
 
-    void ForgetTxId(const TxId &txid) {
+    void ForgetTxId(const uint256 &txid) {
         auto it = m_index.get<ByTxId>().lower_bound(
             ByTxIdView{txid, State::CANDIDATE_DELAYED, 0});
         while (it != m_index.get<ByTxId>().end() && it->m_txid == txid) {
@@ -687,7 +690,7 @@ public:
         }
     }
 
-    void ReceivedInv(NodeId peer, const TxId &txid, bool preferred,
+    void ReceivedInv(NodeId peer, const uint256 &txid, bool preferred,
                      std::chrono::microseconds reqtime) {
         // Bail out if we already have a CANDIDATE_BEST announcement for this
         // (txid, peer) combination. The case where there is a
@@ -714,16 +717,17 @@ public:
     }
 
     //! Find the TxIds to request now from peer.
-    std::vector<TxId>
-    GetRequestable(NodeId peer, std::chrono::microseconds now,
-                   std::vector<std::pair<NodeId, TxId>> *expired) {
+    std::vector<uint256> GetRequestable(NodeId peer,
+                                        std::chrono::microseconds now,
+                                        clearExpiredFun clearExpired,
+                                        emplaceExpiredFun emplaceExpired) {
         // Move time.
-        SetTimePoint(now, expired);
+        SetTimePoint(now, clearExpired, emplaceExpired);
 
         // Find all CANDIDATE_BEST announcements for this peer.
         std::vector<const Announcement *> selected;
         auto it_peer = m_index.get<ByPeer>().lower_bound(
-            ByPeerView{peer, true, TxId(uint256::ZERO)});
+            ByPeerView{peer, true, uint256(uint256::ZERO)});
         while (it_peer != m_index.get<ByPeer>().end() &&
                it_peer->m_peer == peer &&
                it_peer->GetState() == State::CANDIDATE_BEST) {
@@ -738,7 +742,7 @@ public:
                   });
 
         // Convert to TxId and return.
-        std::vector<TxId> ret;
+        std::vector<uint256> ret;
         ret.reserve(selected.size());
         std::transform(selected.begin(), selected.end(),
                        std::back_inserter(ret),
@@ -746,7 +750,7 @@ public:
         return ret;
     }
 
-    void RequestedTx(NodeId peer, const TxId &txid,
+    void RequestedTx(NodeId peer, const uint256 &txid,
                      std::chrono::microseconds expiry) {
         auto it = m_index.get<ByPeer>().find(ByPeerView{peer, true, txid});
         if (it == m_index.get<ByPeer>().end()) {
@@ -809,7 +813,7 @@ public:
         });
     }
 
-    void ReceivedResponse(NodeId peer, const TxId &txid) {
+    void ReceivedResponse(NodeId peer, const uint256 &txid) {
         // We need to search the ByPeer index for both (peer, false, txid) and
         // (peer, true, txid).
         auto it = m_index.get<ByPeer>().find(ByPeerView{peer, false, txid});
@@ -850,7 +854,7 @@ public:
     //! and transactions.
     size_t Size() const { return m_index.size(); }
 
-    uint64_t ComputePriority(const TxId &txid, NodeId peer,
+    uint64_t ComputePriority(const uint256 &txid, NodeId peer,
                              bool preferred) const {
         // Return Priority as a uint64_t as Priority is internal.
         return uint64_t{m_computer(txid, peer, preferred)};
@@ -907,7 +911,20 @@ void TxRequestTracker::ReceivedResponse(NodeId peer, const TxId &txid) {
 std::vector<TxId> TxRequestTracker::GetRequestable(
     NodeId peer, std::chrono::microseconds now,
     std::vector<std::pair<NodeId, TxId>> *expired) {
-    return m_impl->GetRequestable(peer, now, expired);
+    clearExpiredFun clearExpired = [expired]() {
+        if (expired) {
+            expired->clear();
+        }
+    };
+    emplaceExpiredFun emplaceExpired = [expired](const NodeId &nodeid,
+                                                 const uint256 &txid) {
+        if (expired) {
+            expired->emplace_back(nodeid, TxId(txid));
+        }
+    };
+    std::vector<uint256> hashes =
+        m_impl->GetRequestable(peer, now, clearExpired, emplaceExpired);
+    return std::vector<TxId>(hashes.begin(), hashes.end());
 }
 
 uint64_t TxRequestTracker::ComputePriority(const TxId &txid, NodeId peer,
