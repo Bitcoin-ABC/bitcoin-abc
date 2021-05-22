@@ -419,7 +419,7 @@ const fs::path &ArgsManager::GetBlocksDirPath() const {
             return path;
         }
     } else {
-        path = GetDataDirPath(false);
+        path = GetDataDirBase();
     }
 
     path /= fs::PathFromString(BaseParams().DataDir());
@@ -511,7 +511,7 @@ bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp) const {
         std::string settings = GetArg("-settings", BITCOIN_SETTINGS_FILENAME);
         *filepath = fs::absolute(
             fs::PathFromString(temp ? settings + ".tmp" : settings),
-            GetDataDirPath(/* net_specific= */ true));
+            GetDataDirNet());
     }
     return true;
 }
@@ -833,7 +833,7 @@ fs::path GetDefaultDataDir() {
 }
 
 const fs::path &GetDataDir(bool fNetSpecific) {
-    return gArgs.GetDataDirPath(fNetSpecific);
+    return fNetSpecific ? gArgs.GetDataDirNet() : gArgs.GetDataDirBase();
 }
 
 bool CheckDataDirOption() {
@@ -1386,7 +1386,8 @@ fs::path AbsPathForConfigVal(const fs::path &path, bool net_specific) {
     if (path.is_absolute()) {
         return path;
     }
-    return fs::absolute(path, GetDataDir(net_specific));
+    return fs::absolute(path, net_specific ? gArgs.GetDataDirNet()
+                                           : gArgs.GetDataDirBase());
 }
 
 void ScheduleBatchPriority() {
