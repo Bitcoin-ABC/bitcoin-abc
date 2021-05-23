@@ -15,7 +15,7 @@ from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import XEC, CTxOut, ToHex
 from test_framework.script import OP_FALSE, OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, try_rpc
+from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet import MiniWallet, getnewdestination
 
 
@@ -64,19 +64,11 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             "Test that gettxoutsetinfo() output is consistent with or without"
             " coinstatsindex option"
         )
-        self.wait_until(
-            lambda: not try_rpc(-32603, "Unable to read UTXO set", node.gettxoutsetinfo)
-        )
         res0 = node.gettxoutsetinfo("none")
 
         # The fields 'disk_size' and 'transactions' do not exist on the index
         del res0["disk_size"], res0["transactions"]
 
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         for hash_option in index_hash_options:
             res1 = index_node.gettxoutsetinfo(hash_option)
             # The fields 'block_info' and 'total_unspendable_amount' only exist
@@ -95,11 +87,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         # Generate a new tip
         self.generate(node, 5)
 
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         for hash_option in index_hash_options:
             # Fetch old stats by height
             res2 = index_node.gettxoutsetinfo(hash_option, 102)
@@ -189,11 +176,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         # Include both txs in a block
         self.generate(self.nodes[0], 1)
 
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         for hash_option in index_hash_options:
             # Check all amounts were registered correctly
             res6 = index_node.gettxoutsetinfo(hash_option, 108)
@@ -229,11 +211,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         self.nodes[0].submitblock(ToHex(block))
         self.sync_all()
 
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         for hash_option in index_hash_options:
             res7 = index_node.gettxoutsetinfo(hash_option, 109)
             assert_equal(res7["total_unspendable_amount"], Decimal("80990000.00"))
@@ -262,11 +239,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         assert_equal(res8, res9)
 
         self.generate(index_node, 1, sync_fun=self.no_op)
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         res10 = index_node.gettxoutsetinfo("muhash")
         assert res8["txouts"] < res10["txouts"]
 
@@ -290,22 +262,12 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         index_node = self.nodes[1]
         reorg_blocks = self.generatetoaddress(index_node, 2, getnewdestination()[2])
         reorg_block = reorg_blocks[1]
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         res_invalid = index_node.gettxoutsetinfo("muhash")
         index_node.invalidateblock(reorg_blocks[0])
         assert_equal(index_node.gettxoutsetinfo("muhash")["height"], 110)
 
         # Add two new blocks
         block = self.generate(index_node, 2, sync_fun=self.no_op)[1]
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         res = index_node.gettxoutsetinfo(
             hash_type="muhash", hash_or_height=None, use_index=False
         )
@@ -332,17 +294,7 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         # Ensure that removing and re-adding blocks yields consistent results
         block = index_node.getblockhash(99)
         index_node.invalidateblock(block)
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         index_node.reconsiderblock(block)
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", index_node.gettxoutsetinfo, "muhash"
-            )
-        )
         res3 = index_node.gettxoutsetinfo(hash_type="muhash", hash_or_height=112)
         assert_equal(res2, res3)
 
@@ -352,14 +304,9 @@ class CoinStatsIndexTest(BitcoinTestFramework):
         node.getblock(reorg_block)
 
         self.restart_node(0, ["-coinstatsindex"])
-        self.wait_until(
-            lambda: not try_rpc(
-                -32603, "Unable to read UTXO set", node.gettxoutsetinfo, "muhash"
-            )
-        )
         assert_raises_rpc_error(
             -32603,
-            "Unable to read UTXO set",
+            "Unable to get data because coinstatsindex is still syncing.",
             node.gettxoutsetinfo,
             "muhash",
             reorg_block,

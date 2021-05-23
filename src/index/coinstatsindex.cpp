@@ -130,11 +130,14 @@ bool CoinStatsIndex::WriteBlock(const CBlock &block,
 
         BlockHash expected_block_hash{pindex->pprev->GetBlockHash()};
         if (read_out.first != expected_block_hash) {
+            LogPrintf("WARNING: previous block header belongs to unexpected "
+                      "block %s; expected %s\n",
+                      read_out.first.ToString(),
+                      expected_block_hash.ToString());
+
             if (!m_db->Read(DBHashKey(expected_block_hash), read_out)) {
-                return error("%s: previous block header belongs to unexpected "
-                             "block %s; expected %s",
-                             __func__, read_out.first.ToString(),
-                             expected_block_hash.ToString());
+                return error("%s: previous block header not found; expected %s",
+                             __func__, expected_block_hash.ToString());
             }
         }
 
@@ -376,37 +379,37 @@ bool CoinStatsIndex::Init() {
         }
     }
 
-    if (BaseIndex::Init()) {
-        const CBlockIndex *pindex{CurrentIndex()};
-
-        if (pindex) {
-            DBVal entry;
-            if (!LookUpOne(*m_db, pindex, entry)) {
-                return error(
-                    "%s: Cannot read current %s state; index may be corrupted",
-                    __func__, GetName());
-            }
-            m_transaction_output_count = entry.transaction_output_count;
-            m_bogo_size = entry.bogo_size;
-            m_total_amount = entry.total_amount;
-            m_total_subsidy = entry.total_subsidy;
-            m_total_unspendable_amount = entry.total_unspendable_amount;
-            m_total_prevout_spent_amount = entry.total_prevout_spent_amount;
-            m_total_new_outputs_ex_coinbase_amount =
-                entry.total_new_outputs_ex_coinbase_amount;
-            m_total_coinbase_amount = entry.total_coinbase_amount;
-            m_total_unspendables_genesis_block =
-                entry.total_unspendables_genesis_block;
-            m_total_unspendables_bip30 = entry.total_unspendables_bip30;
-            m_total_unspendables_scripts = entry.total_unspendables_scripts;
-            m_total_unspendables_unclaimed_rewards =
-                entry.total_unspendables_unclaimed_rewards;
-        }
-
-        return true;
+    if (!BaseIndex::Init()) {
+        return false;
     }
 
-    return false;
+    const CBlockIndex *pindex{CurrentIndex()};
+
+    if (pindex) {
+        DBVal entry;
+        if (!LookUpOne(*m_db, pindex, entry)) {
+            return error(
+                "%s: Cannot read current %s state; index may be corrupted",
+                __func__, GetName());
+        }
+        m_transaction_output_count = entry.transaction_output_count;
+        m_bogo_size = entry.bogo_size;
+        m_total_amount = entry.total_amount;
+        m_total_subsidy = entry.total_subsidy;
+        m_total_unspendable_amount = entry.total_unspendable_amount;
+        m_total_prevout_spent_amount = entry.total_prevout_spent_amount;
+        m_total_new_outputs_ex_coinbase_amount =
+            entry.total_new_outputs_ex_coinbase_amount;
+        m_total_coinbase_amount = entry.total_coinbase_amount;
+        m_total_unspendables_genesis_block =
+            entry.total_unspendables_genesis_block;
+        m_total_unspendables_bip30 = entry.total_unspendables_bip30;
+        m_total_unspendables_scripts = entry.total_unspendables_scripts;
+        m_total_unspendables_unclaimed_rewards =
+            entry.total_unspendables_unclaimed_rewards;
+    }
+
+    return true;
 }
 
 // Reverse a single block as part of a reorg
@@ -431,11 +434,14 @@ bool CoinStatsIndex::ReverseBlock(const CBlock &block,
 
         BlockHash expected_block_hash{pindex->pprev->GetBlockHash()};
         if (read_out.first != expected_block_hash) {
+            LogPrintf("WARNING: previous block header belongs to unexpected "
+                      "block %s; expected %s\n",
+                      read_out.first.ToString(),
+                      expected_block_hash.ToString());
+
             if (!m_db->Read(DBHashKey(expected_block_hash), read_out)) {
-                return error("%s: previous block header belongs to unexpected "
-                             "block %s; expected %s",
-                             __func__, read_out.first.ToString(),
-                             expected_block_hash.ToString());
+                return error("%s: previous block header not found; expected %s",
+                             __func__, expected_block_hash.ToString());
             }
         }
     }
