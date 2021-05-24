@@ -5,7 +5,7 @@
 """Test version message behavior"""
 
 from test_framework.messages import NODE_NETWORK, msg_version
-from test_framework.mininode import P2PInterface
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 
 

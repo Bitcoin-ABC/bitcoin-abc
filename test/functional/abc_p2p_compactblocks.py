@@ -32,7 +32,7 @@ from test_framework.messages import (
     msg_sendcmpct,
     ser_compact_size,
 )
-from test_framework.mininode import (
+from test_framework.p2p import (
     p2p_lock,
     P2PDataStore,
     P2PInterface,

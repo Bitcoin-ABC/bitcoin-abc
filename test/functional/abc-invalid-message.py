@@ -11,7 +11,7 @@ each case.
 import struct
 
 from test_framework.messages import NODE_NETWORK, msg_version
-from test_framework.mininode import (
+from test_framework.p2p import (
     p2p_lock,
     msg_ping,
     P2PInterface,

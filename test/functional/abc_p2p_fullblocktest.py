@@ -32,7 +32,7 @@ from test_framework.messages import (
     ser_compact_size,
     ToHex,
 )
-from test_framework.mininode import P2PDataStore
+from test_framework.p2p import P2PDataStore
 from test_framework.script import (
     CScript,
     OP_RETURN,

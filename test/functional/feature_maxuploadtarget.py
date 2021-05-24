@@ -17,7 +17,7 @@ import time
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.blocktools import mine_big_block
 from test_framework.messages import CInv, MSG_BLOCK, msg_getdata
-from test_framework.mininode import P2PInterface
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 

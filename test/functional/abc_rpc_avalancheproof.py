@@ -16,7 +16,7 @@ from test_framework.messages import (
     AvalancheProof,
     FromHex,
 )
-from test_framework.mininode import P2PInterface
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import (

@@ -12,7 +12,7 @@ from test_framework.messages import (
     MSG_BLOCK,
     MSG_CMPCT_BLOCK,
 )
-from test_framework.mininode import p2p_lock, P2PInterface
+from test_framework.p2p import p2p_lock, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 

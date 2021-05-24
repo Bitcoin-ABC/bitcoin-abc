@@ -41,7 +41,7 @@ from test_framework.blocktools import (
 from test_framework.messages import (
     msg_block,
 )
-from test_framework.mininode import (
+from test_framework.p2p import (
     P2PInterface,
 )
 

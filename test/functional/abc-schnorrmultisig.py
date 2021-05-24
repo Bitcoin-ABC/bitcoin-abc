@@ -29,7 +29,7 @@ from test_framework.messages import (
     FromHex,
     ToHex,
 )
-from test_framework.mininode import (
+from test_framework.p2p import (
     P2PDataStore,
 )
 from test_framework.script import (

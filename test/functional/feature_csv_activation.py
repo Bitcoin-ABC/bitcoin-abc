@@ -50,7 +50,7 @@ from test_framework.blocktools import (
     make_conform_to_ctor,
 )
 from test_framework.messages import COIN, CTransaction, FromHex, ToHex
-from test_framework.mininode import P2PDataStore
+from test_framework.p2p import P2PDataStore
 from test_framework.script import (
     CScript,
     OP_CHECKSEQUENCEVERIFY,

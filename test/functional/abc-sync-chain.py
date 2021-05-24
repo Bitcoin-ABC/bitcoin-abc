@@ -13,7 +13,7 @@ import random
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CBlockHeader, msg_block, msg_headers
-from test_framework.mininode import P2PInterface
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import wait_until
 
