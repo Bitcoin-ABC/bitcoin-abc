@@ -9,7 +9,7 @@ import time
 
 from test_framework.messages import MSG_TX, msg_feefilter
 from test_framework.mininode import (
-    mininode_lock,
+    p2p_lock,
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -24,7 +24,7 @@ def hashToHex(hash):
 
 def allInvsMatch(invsExpected, testnode):
     for x in range(60):
-        with mininode_lock:
+        with p2p_lock:
             if (sorted(invsExpected) == sorted(testnode.txinvs)):
                 return True
         time.sleep(1)
@@ -38,7 +38,7 @@ class FeefilterConn(P2PInterface):
         self.feefilter_received = True
 
     def assert_feefilter_received(self, recv: bool):
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(self.feefilter_received, recv)
 
 
@@ -53,7 +53,7 @@ class TestP2PConn(P2PInterface):
                 self.txinvs.append(hashToHex(i.hash))
 
     def clear_invs(self):
-        with mininode_lock:
+        with p2p_lock:
             self.txinvs = []
 
 

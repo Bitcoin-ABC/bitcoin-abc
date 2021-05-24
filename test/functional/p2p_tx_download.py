@@ -18,7 +18,7 @@ from test_framework.messages import (
 )
 from test_framework.mininode import (
     P2PInterface,
-    mininode_lock,
+    p2p_lock,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -72,7 +72,7 @@ class TxDownloadTest(BitcoinTestFramework):
 
         def getdata_found(peer_index):
             p = self.nodes[0].p2ps[peer_index]
-            with mininode_lock:
+            with p2p_lock:
                 return p.last_message.get(
                     "getdata") and p.last_message["getdata"].inv[-1].hash == txid
 
@@ -136,7 +136,7 @@ class TxDownloadTest(BitcoinTestFramework):
 
         p = self.nodes[0].p2ps[0]
 
-        with mininode_lock:
+        with p2p_lock:
             p.tx_getdata_count = 0
 
         mock_time = int(time.time() + 1)
@@ -162,7 +162,7 @@ class TxDownloadTest(BitcoinTestFramework):
             OVERLOADED_PEER_DELAY -
             1)
         p.sync_with_ping()
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(p.tx_getdata_count, MAX_GETDATA_IN_FLIGHT)
         self.log.info(
             "If we wait {} seconds after announcement, we should eventually get more requests".format(
@@ -187,7 +187,7 @@ class TxDownloadTest(BitcoinTestFramework):
             lambda: sum(
                 p.tx_getdata_count for p in [
                     peer1, peer2]) == 1)
-        with mininode_lock:
+        with p2p_lock:
             peer_expiry, peer_fallback = (
                 peer1, peer2) if peer1.tx_getdata_count == 1 else (
                 peer2, peer1)
@@ -196,7 +196,7 @@ class TxDownloadTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(int(time.time()) + GETDATA_TX_INTERVAL + 1)
         peer_fallback.wait_until(
             lambda: peer_fallback.tx_getdata_count >= 1, timeout=1)
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(peer_fallback.tx_getdata_count, 1)
         # reset mocktime
         self.restart_node(0)
@@ -214,7 +214,7 @@ class TxDownloadTest(BitcoinTestFramework):
             lambda: sum(
                 p.tx_getdata_count for p in [
                     peer1, peer2]) == 1)
-        with mininode_lock:
+        with p2p_lock:
             peer_disconnect, peer_fallback = (
                 peer1, peer2) if peer1.tx_getdata_count == 1 else (
                 peer2, peer1)
@@ -223,7 +223,7 @@ class TxDownloadTest(BitcoinTestFramework):
         peer_disconnect.wait_for_disconnect()
         peer_fallback.wait_until(
             lambda: peer_fallback.tx_getdata_count >= 1, timeout=1)
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(peer_fallback.tx_getdata_count, 1)
 
     def test_notfound_fallback(self):
@@ -239,7 +239,7 @@ class TxDownloadTest(BitcoinTestFramework):
             lambda: sum(
                 p.tx_getdata_count for p in [
                     peer1, peer2]) == 1)
-        with mininode_lock:
+        with p2p_lock:
             peer_notfound, peer_fallback = (
                 peer1, peer2) if peer1.tx_getdata_count == 1 else (
                 peer2, peer1)
@@ -248,7 +248,7 @@ class TxDownloadTest(BitcoinTestFramework):
         peer_notfound.send_and_ping(msg_notfound(vec=[CInv(MSG_TX, TXID)]))
         peer_fallback.wait_until(
             lambda: peer_fallback.tx_getdata_count >= 1, timeout=1)
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(peer_fallback.tx_getdata_count, 1)
 
     def test_preferred_inv(self):
@@ -258,7 +258,7 @@ class TxDownloadTest(BitcoinTestFramework):
         peer = self.nodes[0].add_p2p_connection(TestP2PConn())
         peer.send_message(msg_inv([CInv(t=MSG_TX, h=0xff00ff00)]))
         peer.wait_until(lambda: peer.tx_getdata_count >= 1, timeout=1)
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(peer.tx_getdata_count, 1)
 
     def test_large_inv_batch(self):
@@ -267,7 +267,7 @@ class TxDownloadTest(BitcoinTestFramework):
         self.restart_node(0, extra_args=['-whitelist=relay@127.0.0.1'])
         peer = self.nodes[0].add_p2p_connection(TestP2PConn())
         peer.send_message(msg_inv([CInv(t=MSG_TX, h=txid)
-                          for txid in range(MAX_PEER_TX_ANNOUNCEMENTS + 1)]))
+                                   for txid in range(MAX_PEER_TX_ANNOUNCEMENTS + 1)]))
         peer.wait_until(lambda: peer.tx_getdata_count ==
                         MAX_PEER_TX_ANNOUNCEMENTS + 1)
 
@@ -276,11 +276,11 @@ class TxDownloadTest(BitcoinTestFramework):
         self.restart_node(0)
         peer = self.nodes[0].add_p2p_connection(TestP2PConn())
         peer.send_message(msg_inv([CInv(t=MSG_TX, h=txid)
-                          for txid in range(MAX_PEER_TX_ANNOUNCEMENTS + 1)]))
+                                   for txid in range(MAX_PEER_TX_ANNOUNCEMENTS + 1)]))
         peer.wait_until(lambda: peer.tx_getdata_count ==
                         MAX_PEER_TX_ANNOUNCEMENTS)
         peer.sync_with_ping()
-        with mininode_lock:
+        with p2p_lock:
             assert_equal(peer.tx_getdata_count, MAX_PEER_TX_ANNOUNCEMENTS)
 
     def test_spurious_notfound(self):

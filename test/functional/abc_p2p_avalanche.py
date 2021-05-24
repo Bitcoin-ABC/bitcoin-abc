@@ -10,7 +10,7 @@ from test_framework.key import (
     ECKey,
     ECPubKey,
 )
-from test_framework.mininode import P2PInterface, mininode_lock
+from test_framework.mininode import P2PInterface, p2p_lock
 from test_framework.messages import (
     AvalancheResponse,
     AvalancheVote,
@@ -84,9 +84,9 @@ class TestNode(P2PInterface):
         wait_until(
             lambda: len(self.avaresponses) > 0,
             timeout=timeout,
-            lock=mininode_lock)
+            lock=p2p_lock)
 
-        with mininode_lock:
+        with p2p_lock:
             return self.avaresponses.pop(0)
 
     def send_poll(self, hashes):
@@ -98,16 +98,16 @@ class TestNode(P2PInterface):
         self.send_message(msg)
 
     def get_avapoll_if_available(self):
-        with mininode_lock:
+        with p2p_lock:
             return self.avapolls.pop(0) if len(self.avapolls) > 0 else None
 
     def wait_for_avahello(self, timeout=5):
         wait_until(
             lambda: self.avahello is not None,
             timeout=timeout,
-            lock=mininode_lock)
+            lock=p2p_lock)
 
-        with mininode_lock:
+        with p2p_lock:
             return self.avahello
 
 

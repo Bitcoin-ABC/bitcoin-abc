@@ -12,7 +12,7 @@ from test_framework.messages import (
     MSG_BLOCK,
     MSG_CMPCT_BLOCK,
 )
-from test_framework.mininode import mininode_lock, P2PInterface
+from test_framework.mininode import p2p_lock, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -34,7 +34,7 @@ class GetInvalidBlockTest(BitcoinTestFramework):
         assert_equal(chaintip, node.getbestblockhash())
 
         # Clear any old messages
-        with mininode_lock:
+        with p2p_lock:
             node.p2p.last_message.pop("block", None)
             node.p2p.last_message.pop("cmpctblock", None)
             node.p2p.last_message.pop("headers", None)

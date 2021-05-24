@@ -23,7 +23,7 @@ from test_framework.messages import (
 )
 from test_framework.mininode import (
     P2PInterface,
-    mininode_lock,
+    p2p_lock,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -218,14 +218,14 @@ class ExampleTest(BitcoinTestFramework):
         # wait_until() will loop until a predicate condition is met. Use it to test properties of the
         # P2PInterface objects.
         wait_until(lambda: sorted(blocks) == sorted(
-            list(self.nodes[2].p2p.block_receive_map.keys())), timeout=5, lock=mininode_lock)
+            list(self.nodes[2].p2p.block_receive_map.keys())), timeout=5, lock=p2p_lock)
 
         self.log.info("Check that each block was received only once")
         # The network thread uses a global lock on data access to the P2PConnection objects when sending and receiving
         # messages. The test thread should acquire the global lock before accessing any P2PConnection data to avoid locking
         # and synchronization issues. Note wait_until() acquires this global
         # lock when testing the predicate.
-        with mininode_lock:
+        with p2p_lock:
             for block in self.nodes[2].p2p.block_receive_map.values():
                 assert_equal(block, 1)
 

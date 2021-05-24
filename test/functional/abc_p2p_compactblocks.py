@@ -33,7 +33,7 @@ from test_framework.messages import (
     ser_compact_size,
 )
 from test_framework.mininode import (
-    mininode_lock,
+    p2p_lock,
     P2PDataStore,
     P2PInterface,
 )
@@ -80,7 +80,7 @@ class TestP2PConn(P2PInterface):
             x.calc_sha256()
 
     def clear_block_data(self):
-        with mininode_lock:
+        with p2p_lock:
             self.last_sendcmpct = None
             self.last_cmpctblock = None
 

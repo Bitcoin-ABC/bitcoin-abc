@@ -12,7 +12,7 @@ import struct
 
 from test_framework.messages import NODE_NETWORK, msg_version
 from test_framework.mininode import (
-    mininode_lock,
+    p2p_lock,
     msg_ping,
     P2PInterface,
 )
@@ -82,7 +82,7 @@ class InvalidMessageTest(BitcoinTestFramework):
                 if not interface.last_message.get("pong"):
                     return False
                 return interface.last_message["pong"].nonce == interface.ping_counter
-            wait_until(check_ping, lock=mininode_lock)
+            wait_until(check_ping, lock=p2p_lock)
             interface.ping_counter += 1
 
         # The valid message is accepted

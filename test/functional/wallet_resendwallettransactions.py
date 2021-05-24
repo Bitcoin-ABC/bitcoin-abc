@@ -7,7 +7,7 @@ import time
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import ToHex
-from test_framework.mininode import P2PTxInvStore, mininode_lock
+from test_framework.mininode import P2PTxInvStore, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until
 
@@ -36,7 +36,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         # Can take a few seconds due to transaction trickling
         wait_until(
             lambda: node.p2p.tx_invs_received[txid] >= 1,
-            lock=mininode_lock)
+            lock=p2p_lock)
 
         # Add a second peer since txs aren't rebroadcast to the same peer (see
         # filterInventoryKnown)
@@ -77,7 +77,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         node.setmocktime(now + 36 * 60 * 60 + 600)
         wait_until(
             lambda: node.p2ps[1].tx_invs_received[txid] >= 1,
-            lock=mininode_lock)
+            lock=p2p_lock)
 
 
 if __name__ == '__main__':

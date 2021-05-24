@@ -20,7 +20,7 @@ from test_framework.messages import (
     msg_version,
 )
 from test_framework.mininode import (
-    mininode_lock,
+    p2p_lock,
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
@@ -154,11 +154,11 @@ class P2PLeakTest(BitcoinTestFramework):
         wait_until(
             lambda: no_version_disconnect_node.ever_connected,
             timeout=10,
-            lock=mininode_lock)
+            lock=p2p_lock)
         wait_until(lambda: no_version_idlenode.ever_connected,
-                   timeout=10, lock=mininode_lock)
+                   timeout=10, lock=p2p_lock)
         wait_until(lambda: no_verack_idlenode.version_received,
-                   timeout=10, lock=mininode_lock)
+                   timeout=10, lock=p2p_lock)
 
         # Mine a block and make sure that it's not sent to the connected nodes
         self.nodes[0].generatetoaddress(
