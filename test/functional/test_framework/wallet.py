@@ -5,6 +5,7 @@
 
 from copy import deepcopy
 from decimal import Decimal
+from enum import Enum
 from typing import Any, Optional
 
 from test_framework.address import (
@@ -45,23 +46,47 @@ from test_framework.util import (
 DEFAULT_FEE = Decimal("100.00")
 
 
+class MiniWalletMode(Enum):
+    """Determines the transaction type the MiniWallet is creating and spending.
+
+    For most purposes, the default mode ADDRESS_OP_TRUE should be sufficient;
+    it simply uses a fixed bech32 P2WSH address whose coins are spent with a
+    witness stack of OP_TRUE, i.e. following an anyone-can-spend policy.
+    However, if the transactions need to be modified by the user (e.g. prepending
+    scriptSig for testing opcodes that are activated by a soft-fork), or the txs
+    should contain an actual signature, the raw modes RAW_OP_TRUE and RAW_P2PK
+    can be useful. Summary of modes:
+
+                    |      output       |           |  tx is   | can modify |  needs
+         mode       |    description    |  address  | standard | scriptSig  | signing
+    ----------------+-------------------+-----------+----------+------------+----------
+    ADDRESS_OP_TRUE | anyone-can-spend  |  bech32   |   yes    |    no      |   no
+    RAW_P2PK        | pay-to-public-key |  - (raw)  |   yes    |    yes     |   yes
+    """
+
+    ADDRESS_OP_TRUE = 1
+    RAW_P2PK = 3
+
+
 class MiniWallet:
-    def __init__(self, test_node, use_p2pk=False):
+    def __init__(self, test_node, *, mode=MiniWalletMode.ADDRESS_OP_TRUE):
         self._test_node = test_node
         self._utxos = []
         self._priv_key = None
         self._address = None
-        if use_p2pk:
+        if mode == MiniWalletMode.RAW_P2PK:
             # use simple deterministic private key (k=1)
             self._priv_key = ECKey()
             self._priv_key.set((1).to_bytes(32, "big"), True)
             pub_key = self._priv_key.get_pubkey()
             self._scriptPubKey = bytes(CScript([pub_key.get_bytes(), OP_CHECKSIG]))
-        else:
+        elif mode == MiniWalletMode.ADDRESS_OP_TRUE:
             self._address = ADDRESS_ECREG_P2SH_OP_TRUE
             self._scriptPubKey = bytes.fromhex(
                 self._test_node.validateaddress(self._address)["scriptPubKey"]
             )
+        else:
+            raise AssertionError(f"Unsupported MiniWalletMode {mode}")
 
         # When the pre-mined test framework chain is used, it contains coinbase
         # outputs to the MiniWallet's default address in blocks 76-100
