@@ -40,6 +40,8 @@
 
 #include <event2/http.h>
 
+#include <optional>
+
 using interfaces::FoundBlock;
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";

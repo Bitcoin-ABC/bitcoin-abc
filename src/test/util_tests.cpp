@@ -28,6 +28,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <utility>
 #ifndef WIN32
 #include <csignal>

@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 
 class CBlockIndex;
 class CChainParams;

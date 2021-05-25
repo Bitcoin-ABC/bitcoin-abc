@@ -6,11 +6,14 @@
 #include <config.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
+#include <validationinterface.h>
+#include <wallet/wallet.h>
+
 #include <test/util/mining.h>
 #include <test/util/setup_common.h>
 #include <test/util/wallet.h>
-#include <validationinterface.h>
-#include <wallet/wallet.h>
+
+#include <optional>
 
 static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
                           const bool add_watchonly, const bool add_mine) {

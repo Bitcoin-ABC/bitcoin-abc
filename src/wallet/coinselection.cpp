@@ -7,6 +7,8 @@
 #include <util/moneystr.h>
 #include <util/system.h>
 
+#include <optional>
+
 // Descending order comparator
 struct {
     bool operator()(const OutputGroup &a, const OutputGroup &b) const {

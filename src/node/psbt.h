@@ -7,6 +7,8 @@
 
 #include <psbt.h>
 
+#include <optional>
+
 /**
  * Holds an analysis of one input from a PSBT
  */
