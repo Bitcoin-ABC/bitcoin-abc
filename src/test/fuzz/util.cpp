@@ -5,7 +5,8 @@
 #include <test/fuzz/util.h>
 
 FuzzedSock::FuzzedSock(FuzzedDataProvider &fuzzed_data_provider)
-    : m_fuzzed_data_provider{fuzzed_data_provider} {}
+    : m_fuzzed_data_provider{fuzzed_data_provider},
+      m_selectable{fuzzed_data_provider.ConsumeBool()} {}
 
 FuzzedSock &FuzzedSock::operator=(Sock &&other) {
     assert(false && "Not implemented yet.");
@@ -131,6 +132,22 @@ int FuzzedSock::GetSockName(sockaddr *name, socklen_t *name_len) const {
     }
     *name_len = m_fuzzed_data_provider.ConsumeData(name, *name_len);
     return 0;
+}
+
+bool FuzzedSock::SetNonBlocking() const {
+    constexpr std::array<int, 2> setnonblocking_errnos{{
+        EBADF,
+        EPERM,
+    }};
+    if (m_fuzzed_data_provider.ConsumeBool()) {
+        SetFuzzedErrNo(m_fuzzed_data_provider, setnonblocking_errnos);
+        return false;
+    }
+    return true;
+}
+
+bool FuzzedSock::IsSelectable() const {
+    return m_selectable;
 }
 
 bool FuzzedSock::Wait(std::chrono::milliseconds timeout, Event requested,

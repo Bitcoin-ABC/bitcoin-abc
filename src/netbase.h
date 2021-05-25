@@ -248,8 +248,6 @@ bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
                          uint16_t port, const Sock &sock, int nTimeout,
                          bool &outProxyConnectionFailed);
 
-/** Disable or enable blocking-mode for a socket */
-bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking);
 void InterruptSocks5(bool interrupt);
 
 bool Socks5(const std::string &strDest, uint16_t port,

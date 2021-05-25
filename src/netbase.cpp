@@ -318,8 +318,7 @@ enum class IntrRecvError {
  *          read.
  *
  * @see This function can be interrupted by calling InterruptSocks5(bool).
- *      Sockets can be made non-blocking with SetSocketNonBlocking(const
- *      SOCKET&, bool).
+ *      Sockets can be made non-blocking with Sock::SetNonBlocking().
  */
 static IntrRecvError InterruptibleRecv(uint8_t *data, size_t len,
                                        std::chrono::milliseconds timeout,
@@ -586,7 +585,7 @@ std::unique_ptr<Sock> CreateSockTCP(const CService &address_family) {
 
     // Ensure that waiting for I/O on this socket won't result in undefined
     // behavior.
-    if (!IsSelectableSocket(sock->Get())) {
+    if (!sock->IsSelectable()) {
         LogPrintf("Cannot create connection: non-selectable socket created (fd "
                   ">= FD_SETSIZE ?)\n");
         return nullptr;
@@ -613,7 +612,7 @@ std::unique_ptr<Sock> CreateSockTCP(const CService &address_family) {
     }
 
     // Set the non-blocking option on the socket.
-    if (!SetSocketNonBlocking(sock->Get(), true)) {
+    if (!sock->SetNonBlocking()) {
         LogPrintf("CreateSocket: Setting socket to non-blocking "
                   "failed, error %s\n",
                   NetworkErrorString(WSAGetLastError()));
@@ -824,32 +823,6 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &ret,
         }
     }
     return false;
-}
-
-bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking) {
-    if (fNonBlocking) {
-#ifdef WIN32
-        u_long nOne = 1;
-        if (ioctlsocket(hSocket, FIONBIO, &nOne) == SOCKET_ERROR) {
-#else
-        int fFlags = fcntl(hSocket, F_GETFL, 0);
-        if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == SOCKET_ERROR) {
-#endif
-            return false;
-        }
-    } else {
-#ifdef WIN32
-        u_long nZero = 0;
-        if (ioctlsocket(hSocket, FIONBIO, &nZero) == SOCKET_ERROR) {
-#else
-        int fFlags = fcntl(hSocket, F_GETFL, 0);
-        if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR) {
-#endif
-            return false;
-        }
-    }
-
-    return true;
 }
 
 void InterruptSocks5(bool interrupt) {

@@ -40,6 +40,13 @@ using namespace fuzzer;
 class FuzzedSock : public Sock {
     FuzzedDataProvider &m_fuzzed_data_provider;
 
+    /**
+     * Whether to pretend that the socket is select(2)-able. This is randomly
+     * set in the constructor. It should remain constant so that repeated calls
+     * to `IsSelectable()` return the same value.
+     */
+    const bool m_selectable;
+
 public:
     explicit FuzzedSock(FuzzedDataProvider &fuzzed_data_provider);
 
@@ -60,6 +67,10 @@ public:
                    socklen_t opt_len) const override;
 
     int GetSockName(sockaddr *name, socklen_t *name_len) const override;
+
+    bool SetNonBlocking() const override;
+
+    bool IsSelectable() const override;
 
     bool Wait(std::chrono::milliseconds timeout, Event requested,
               Event *occurred = nullptr) const override;

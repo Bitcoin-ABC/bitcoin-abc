@@ -108,14 +108,6 @@ typedef char *sockopt_arg_type;
 #define USE_POLL
 #endif
 
-static bool inline IsSelectableSocket(const SOCKET &s) {
-#if defined(USE_POLL) || defined(WIN32)
-    return true;
-#else
-    return (s < FD_SETSIZE);
-#endif
-}
-
 // MSG_NOSIGNAL is not available on some platforms, if it doesn't exist define
 // it as 0
 #if !defined(MSG_NOSIGNAL)
