@@ -3,7 +3,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-Test transaction download behavior
+Test inventory download behavior
 """
 
 from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
@@ -83,19 +83,19 @@ TX_TEST_CONTEXT = TestContext(
 NUM_INBOUND = 10
 
 
-class TxDownloadTest(BitcoinTestFramework):
+class InventoryDownloadTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = False
         self.num_nodes = 2
 
-    def test_tx_requests(self, context):
+    def test_data_requests(self, context):
         self.log.info(
-            "Test that we request transactions from all our peers, eventually")
+            "Test that we request data from all our peers, eventually")
 
-        txid = 0xdeadbeef
+        invid = 0xdeadbeef
 
-        self.log.info("Announce the txid from each incoming peer to node 0")
-        msg = msg_inv([CInv(t=context.inv_type, h=txid)])
+        self.log.info("Announce the invid from each incoming peer to node 0")
+        msg = msg_inv([CInv(t=context.inv_type, h=invid)])
         for p in self.nodes[0].p2ps:
             p.send_and_ping(msg)
 
@@ -105,7 +105,7 @@ class TxDownloadTest(BitcoinTestFramework):
             p = self.nodes[0].p2ps[peer_index]
             with p2p_lock:
                 return p.last_message.get(
-                    "getdata") and p.last_message["getdata"].inv[-1].hash == txid
+                    "getdata") and p.last_message["getdata"].inv[-1].hash == invid
 
         node_0_mocktime = int(time.time())
         while outstanding_peer_index:
@@ -166,9 +166,9 @@ class TxDownloadTest(BitcoinTestFramework):
         max_inbound_delay = context.constants.inbound_peer_delay + \
             context.constants.overloaded_peer_delay
 
-        self.log.info("Test that we don't load peers with more than {} transaction requests immediately".format(
+        self.log.info("Test that we don't load peers with more than {} getdata requests immediately".format(
             max_getdata_in_flight))
-        txids = [i for i in range(max_getdata_in_flight + 2)]
+        invids = [i for i in range(max_getdata_in_flight + 2)]
 
         p = self.nodes[0].p2ps[0]
 
@@ -178,13 +178,13 @@ class TxDownloadTest(BitcoinTestFramework):
         mock_time = int(time.time() + 1)
         self.nodes[0].setmocktime(mock_time)
         for i in range(max_getdata_in_flight):
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=txids[i])]))
+            p.send_message(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
         p.sync_with_ping()
         mock_time += context.constants.inbound_peer_delay
         self.nodes[0].setmocktime(mock_time)
         p.wait_until(lambda: p.getdata_count >= max_getdata_in_flight)
-        for i in range(max_getdata_in_flight, len(txids)):
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=txids[i])]))
+        for i in range(max_getdata_in_flight, len(invids)):
+            p.send_message(msg_inv([CInv(t=context.inv_type, h=invids[i])]))
         p.sync_with_ping()
         self.log.info(
             "No more than {} requests should be seen within {} seconds after announcement".format(
@@ -202,17 +202,16 @@ class TxDownloadTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(
             mock_time +
             max_inbound_delay)
-        p.wait_until(lambda: p.getdata_count == len(txids))
+        p.wait_until(lambda: p.getdata_count == len(invids))
 
     def test_expiry_fallback(self, context):
         self.log.info(
             'Check that expiry will select another peer for download')
-        TXID = 0xffaa
         peer1 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer2 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         for p in [peer1, peer2]:
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=TXID)]))
-        # One of the peers is asked for the tx
+            p.send_message(msg_inv([CInv(t=context.inv_type, h=0xffaa)]))
+        # One of the peers is asked for the data
         peer2.wait_until(
             lambda: sum(
                 p.getdata_count for p in [
@@ -235,12 +234,11 @@ class TxDownloadTest(BitcoinTestFramework):
     def test_disconnect_fallback(self, context):
         self.log.info(
             'Check that disconnect will select another peer for download')
-        TXID = 0xffbb
         peer1 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer2 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         for p in [peer1, peer2]:
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=TXID)]))
-        # One of the peers is asked for the tx
+            p.send_message(msg_inv([CInv(t=context.inv_type, h=0xffbb)]))
+        # One of the peers is asked for the data
         peer2.wait_until(
             lambda: sum(
                 p.getdata_count for p in [
@@ -260,12 +258,11 @@ class TxDownloadTest(BitcoinTestFramework):
     def test_notfound_fallback(self, context):
         self.log.info(
             'Check that notfounds will select another peer for download immediately')
-        TXID = 0xffdd
         peer1 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer2 = self.nodes[0].add_p2p_connection(context.p2p_conn())
         for p in [peer1, peer2]:
-            p.send_message(msg_inv([CInv(t=context.inv_type, h=TXID)]))
-        # One of the peers is asked for the tx
+            p.send_message(msg_inv([CInv(t=context.inv_type, h=0xffdd)]))
+        # One of the peers is asked for the data
         peer2.wait_until(
             lambda: sum(
                 p.getdata_count for p in [
@@ -277,7 +274,7 @@ class TxDownloadTest(BitcoinTestFramework):
             assert_equal(peer_fallback.getdata_count, 0)
         # Send notfound, so that fallback peer is selected
         peer_notfound.send_and_ping(msg_notfound(
-            vec=[CInv(context.inv_type, TXID)]))
+            vec=[CInv(context.inv_type, 0xffdd)]))
         peer_fallback.wait_until(
             lambda: peer_fallback.getdata_count >= 1, timeout=1)
         with p2p_lock:
@@ -299,8 +296,8 @@ class TxDownloadTest(BitcoinTestFramework):
             'Test how large inv batches are handled with relay permission')
         self.restart_node(0, extra_args=['-whitelist=relay@127.0.0.1'])
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
-        peer.send_message(msg_inv([CInv(t=context.inv_type, h=txid)
-                                   for txid in range(max_peer_announcements + 1)]))
+        peer.send_message(msg_inv([CInv(t=context.inv_type, h=invid)
+                                   for invid in range(max_peer_announcements + 1)]))
         peer.wait_until(lambda: peer.getdata_count ==
                         max_peer_announcements + 1)
 
@@ -308,8 +305,8 @@ class TxDownloadTest(BitcoinTestFramework):
             'Test how large inv batches are handled without relay permission')
         self.restart_node(0)
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
-        peer.send_message(msg_inv([CInv(t=context.inv_type, h=txid)
-                                   for txid in range(max_peer_announcements + 1)]))
+        peer.send_message(msg_inv([CInv(t=context.inv_type, h=invid)
+                                   for invid in range(max_peer_announcements + 1)]))
         peer.wait_until(lambda: peer.getdata_count ==
                         max_peer_announcements)
         peer.sync_with_ping()
@@ -336,7 +333,7 @@ class TxDownloadTest(BitcoinTestFramework):
         # Run each test against new bitcoind instances, as setting mocktimes has long-term effects on when
         # the next trickle relay event happens.
         for test in [self.test_in_flight_max,
-                     self.test_inv_block, self.test_tx_requests]:
+                     self.test_inv_block, self.test_data_requests]:
             self.stop_nodes()
             self.start_nodes()
             self.connect_nodes(1, 0)
@@ -353,4 +350,4 @@ class TxDownloadTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    TxDownloadTest().main()
+    InventoryDownloadTest().main()
