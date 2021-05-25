@@ -6,12 +6,13 @@
 Test that the DERSIG soft-fork activates at (regtest) height 1251.
 """
 
-from test_framework.blocktools import create_block, create_coinbase, create_transaction
+from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import msg_block
 from test_framework.p2p import P2PInterface
 from test_framework.script import CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet import MiniWallet, MiniWalletMode
 
 DERSIG_HEIGHT = 1251
 
@@ -41,18 +42,19 @@ class BIP66Test(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.rpc_timeout = 240
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
+    def create_tx(self, input_txid):
+        utxo_to_spend = self.miniwallet.get_utxo(txid=input_txid, mark_as_spent=False)
+        return self.miniwallet.create_self_transfer(utxo_to_spend=utxo_to_spend)["tx"]
 
     def run_test(self):
         peer = self.nodes[0].add_p2p_connection(P2PInterface())
+        self.miniwallet = MiniWallet(self.nodes[0], mode=MiniWalletMode.RAW_P2PK)
 
         self.log.info(f"Mining {DERSIG_HEIGHT - 1} blocks")
         self.coinbase_txids = [
             self.nodes[0].getblock(b)["tx"][0]
-            for b in self.generate(self.nodes[0], DERSIG_HEIGHT - 1)
+            for b in self.generate(self.miniwallet, DERSIG_HEIGHT - 1)
         ]
-        self.nodeaddress = self.nodes[0].getnewaddress()
 
         self.log.info("Test that blocks must now be at least version 3")
         tip = self.nodes[0].getbestblockhash()
@@ -74,9 +76,7 @@ class BIP66Test(BitcoinTestFramework):
         )
         block.nVersion = 3
 
-        spendtx = create_transaction(
-            self.nodes[0], self.coinbase_txids[1], self.nodeaddress, amount=1000000
-        )
+        spendtx = self.create_tx(self.coinbase_txids[1])
         unDERify(spendtx)
         spendtx.rehash()
 
@@ -115,9 +115,7 @@ class BIP66Test(BitcoinTestFramework):
             "Test that a version 3 block with a DERSIG-compliant transaction is"
             " accepted"
         )
-        block.vtx[1] = create_transaction(
-            self.nodes[0], self.coinbase_txids[1], self.nodeaddress, amount=1.0
-        )
+        block.vtx[1] = self.create_tx(self.coinbase_txids[1])
         block.hashMerkleRoot = block.calc_merkle_root()
         block.rehash()
         block.solve()
