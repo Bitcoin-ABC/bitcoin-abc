@@ -328,6 +328,10 @@
   "time": 1
  },
  {
+  "name": "p2p_inv_download.py",
+  "time": 80
+ },
+ {
   "name": "p2p_invalid_block.py",
   "time": 1
  },
@@ -374,10 +378,6 @@
  {
   "name": "p2p_timeouts.py",
   "time": 6
- },
- {
-  "name": "p2p_tx_download.py",
-  "time": 80
  },
  {
   "name": "p2p_unrequested_blocks.py",
