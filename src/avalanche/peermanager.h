@@ -140,7 +140,7 @@ public:
     NodeId selectNode();
 
     /**
-     * Update the peer set when a nw block is connected.
+     * Update the peer set when a new block is connected.
      */
     void updatedBlockTip();
 
@@ -149,7 +149,7 @@ public:
      ****************************************************/
     /**
      * Provide the PeerId associated with the given proof. If the peer does not
-     * exists, then it is created.
+     * exist, then it is created.
      */
     PeerId getPeerId(const Proof &proof);
 
@@ -164,7 +164,7 @@ public:
     PeerId selectPeer() const;
 
     /**
-     * Trigger maintenance of internal datastructures.
+     * Trigger maintenance of internal data structures.
      * Returns how much slot space was saved after compaction.
      */
     uint64_t compact();
@@ -174,7 +174,7 @@ public:
      */
     bool verify() const;
 
-    // Accssors.
+    // Accessors.
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
 
