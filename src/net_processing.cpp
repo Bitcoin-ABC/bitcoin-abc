@@ -3000,8 +3000,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             fBlocksOnly = false;
         }
 
-        LOCK(cs_main);
-
         const auto current_time = GetTime<std::chrono::microseconds>();
         std::optional<BlockHash> best_block;
 
@@ -3016,6 +3014,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             }
 
             if (inv.IsMsgBlk()) {
+                LOCK(cs_main);
                 const bool fAlreadyHave = AlreadyHaveBlock(BlockHash(inv.hash));
                 logInv(inv, fAlreadyHave);
 
@@ -3030,7 +3029,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                     // then fetch the blocks we need to catch up.
                     best_block = std::move(hash);
                 }
-            } else if (inv.IsMsgTx()) {
+
+                continue;
+            }
+
+            if (inv.IsMsgTx()) {
+                LOCK(cs_main);
                 const TxId txid(inv.hash);
                 const bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
                 logInv(inv, fAlreadyHave);
@@ -3047,11 +3051,13 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                                  .IsInitialBlockDownload()) {
                     AddTxAnnouncement(pfrom, txid, current_time);
                 }
-            } else {
-                LogPrint(BCLog::NET,
-                         "Unknown inv type \"%s\" received from peer=%d\n",
-                         inv.ToString(), pfrom.GetId());
+
+                continue;
             }
+
+            LogPrint(BCLog::NET,
+                     "Unknown inv type \"%s\" received from peer=%d\n",
+                     inv.ToString(), pfrom.GetId());
         }
 
         if (best_block) {
