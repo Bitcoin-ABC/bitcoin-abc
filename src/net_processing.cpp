@@ -3005,6 +3005,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         const auto current_time = GetTime<std::chrono::microseconds>();
         std::optional<BlockHash> best_block;
 
+        auto logInv = [&](const CInv &inv, bool fAlreadyHave) {
+            LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n", inv.ToString(),
+                     fAlreadyHave ? "have" : "new", pfrom.GetId());
+        };
+
         for (CInv &inv : vInv) {
             if (interruptMsgProc) {
                 return;
@@ -3012,9 +3017,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
             if (inv.IsMsgBlk()) {
                 const bool fAlreadyHave = AlreadyHaveBlock(BlockHash(inv.hash));
-                LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
-                         inv.ToString(), fAlreadyHave ? "have" : "new",
-                         pfrom.GetId());
+                logInv(inv, fAlreadyHave);
 
                 const BlockHash hash{inv.hash};
                 UpdateBlockAvailability(pfrom.GetId(), hash);
@@ -3030,9 +3033,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             } else if (inv.IsMsgTx()) {
                 const TxId txid(inv.hash);
                 const bool fAlreadyHave = AlreadyHaveTx(txid, m_mempool);
-                LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n",
-                         inv.ToString(), fAlreadyHave ? "have" : "new",
-                         pfrom.GetId());
+                logInv(inv, fAlreadyHave);
 
                 pfrom.AddKnownTx(txid);
                 if (fBlocksOnly) {
