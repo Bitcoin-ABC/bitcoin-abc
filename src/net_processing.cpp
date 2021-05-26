@@ -5387,6 +5387,18 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
             }
         }
 
+        auto addGetDataAndMaybeFlush = [&](uint32_t type, const uint256 &hash) {
+            CInv inv(type, hash);
+            LogPrint(BCLog::NET, "Requesting %s from peer=%d\n", inv.ToString(),
+                     pto->GetId());
+            vGetData.push_back(std::move(inv));
+            if (vGetData.size() >= MAX_GETDATA_SZ) {
+                m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::GETDATA,
+                                                         std::move(vGetData)));
+                vGetData.clear();
+            }
+        };
+
         //
         // Message: getdata (transactions)
         //
@@ -5400,14 +5412,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         }
         for (const TxId &txid : requestable) {
             if (!AlreadyHaveTx(txid, m_mempool)) {
-                LogPrint(BCLog::NET, "Requesting tx %s peer=%d\n",
-                         txid.ToString(), pto->GetId());
-                vGetData.emplace_back(MSG_TX, txid);
-                if (vGetData.size() >= MAX_GETDATA_SZ) {
-                    m_connman.PushMessage(
-                        pto, msgMaker.Make(NetMsgType::GETDATA, vGetData));
-                    vGetData.clear();
-                }
+                addGetDataAndMaybeFlush(MSG_TX, txid);
                 m_txrequest.RequestedTx(pto->GetId(), txid,
                                         current_time + GETDATA_TX_INTERVAL);
             } else {
