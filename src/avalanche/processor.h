@@ -302,14 +302,6 @@ public:
      */
     uint256 buildRemoteSighash(CNode *pfrom) const;
 
-    /**
-     * Get the local proof used by this node.
-     *
-     * @returns Proof for this node.
-     * @throws a std::runtime_error if there is no proof set for this node
-     */
-    const Proof getProof() const;
-
     /*
      * Return whether the avalanche service flag should be set.
      */

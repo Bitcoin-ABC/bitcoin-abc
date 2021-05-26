@@ -501,13 +501,6 @@ bool Processor::sendHello(CNode *pfrom) const {
     return true;
 }
 
-const Proof Processor::getProof() const {
-    if (!peerData) {
-        throw std::runtime_error("proof not set");
-    }
-    return peerData->proof;
-}
-
 bool Processor::startEventLoop(CScheduler &scheduler) {
     return eventLoop.startEventLoop(
         scheduler, [this]() { this->runEventLoop(); }, AVALANCHE_TIME_STEP);
