@@ -272,7 +272,7 @@ static UniValue getpeerinfo(const Config &config,
             permissions.push_back(permission);
         }
         obj.pushKV("permissions", permissions);
-        obj.pushKV("minfeefilter", ValueFromAmount(stats.minFeeFilter));
+        obj.pushKV("minfeefilter", stats.minFeeFilter);
 
         UniValue sendPerMsgCmd(UniValue::VOBJ);
         for (const auto &i : stats.mapSendBytesPerMsgCmd) {
@@ -691,9 +691,8 @@ static UniValue getnetworkinfo(const Config &config,
                    int(node.connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
     }
     obj.pushKV("networks", GetNetworksInfo());
-    obj.pushKV("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
-    obj.pushKV("excessutxocharge",
-               ValueFromAmount(config.GetExcessUTXOCharge()));
+    obj.pushKV("relayfee", ::minRelayTxFee.GetFeePerK());
+    obj.pushKV("excessutxocharge", config.GetExcessUTXOCharge());
     UniValue localAddresses(UniValue::VARR);
     {
         LOCK(cs_mapLocalHost);

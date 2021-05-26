@@ -1142,7 +1142,7 @@ static UniValue estimatefee(const Config &config,
         .Check(request);
 
     const CTxMemPool &mempool = EnsureMemPool(request.context);
-    return ValueFromAmount(mempool.estimateFee().GetFeePerK());
+    return mempool.estimateFee().GetFeePerK();
 }
 
 void RegisterMiningRPCCommands(CRPCTable &t) {

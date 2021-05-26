@@ -42,7 +42,6 @@ std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
 SigHashType ParseSighashString(const UniValue &sighash);
 
 // core_write.cpp
-UniValue ValueFromAmount(const Amount &amount);
 std::string FormatScript(const CScript &script);
 std::string EncodeHexTx(const CTransaction &tx, const int serializeFlags = 0);
 std::string SighashToStr(uint8_t sighash_type);

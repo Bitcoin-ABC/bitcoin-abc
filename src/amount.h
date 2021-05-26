@@ -14,6 +14,8 @@
 #include <string>
 #include <type_traits>
 
+class UniValue;
+
 struct Amount {
 private:
     int64_t amount;
@@ -23,6 +25,11 @@ private:
 public:
     constexpr Amount() : amount(0) {}
     constexpr Amount(const Amount &other) : amount(other.amount) {}
+
+    /**
+     * Convenient implicit UniValue conversion operator
+     */
+    operator UniValue() const;
 
     /**
      * Assignement operator.

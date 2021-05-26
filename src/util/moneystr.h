@@ -16,7 +16,7 @@
 
 /**
  * Do not use these functions to represent or parse monetary amounts to or from
- * JSON but use AmountFromValue and ValueFromAmount for that.
+ * JSON but use AmountFromValue and the Amount::operator UniValue() for that.
  */
 std::string FormatMoney(const Amount n);
 /**

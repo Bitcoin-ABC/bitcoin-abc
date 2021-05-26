@@ -95,7 +95,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)AreInputsStandard(tx, coins_view_cache, STANDARD_SCRIPT_VERIFY_FLAGS);
 
     UniValue u(UniValue::VOBJ);
-    // ValueFromAmount(i) not defined when i ==
+    // Amount::operator UniValue() not defined when Amount.amount ==
     // std::numeric_limits<int64_t>::min()
     bool skip_tx_to_univ = false;
     for (const CTxOut &txout : tx.vout) {

@@ -237,44 +237,40 @@ BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
 }
 
 BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
-    BOOST_CHECK(ValueFromAmount(Amount::zero()).write() == "0.00000000");
-    BOOST_CHECK(ValueFromAmount(SATOSHI).write() == "0.00000001");
-    BOOST_CHECK(ValueFromAmount(17622195 * SATOSHI).write() == "0.17622195");
-    BOOST_CHECK(ValueFromAmount(50000000 * SATOSHI).write() == "0.50000000");
-    BOOST_CHECK(ValueFromAmount(89898989 * SATOSHI).write() == "0.89898989");
-    BOOST_CHECK(ValueFromAmount(100000000 * SATOSHI).write() == "1.00000000");
-    BOOST_CHECK(ValueFromAmount(int64_t(2099999999999990) * SATOSHI).write() ==
+    BOOST_CHECK(UniValue(Amount::zero()).write() == "0.00000000");
+    BOOST_CHECK(UniValue(SATOSHI).write() == "0.00000001");
+    BOOST_CHECK(UniValue(17622195 * SATOSHI).write() == "0.17622195");
+    BOOST_CHECK(UniValue(50000000 * SATOSHI).write() == "0.50000000");
+    BOOST_CHECK(UniValue(89898989 * SATOSHI).write() == "0.89898989");
+    BOOST_CHECK(UniValue(100000000 * SATOSHI).write() == "1.00000000");
+    BOOST_CHECK(UniValue(int64_t(2099999999999990) * SATOSHI).write() ==
                 "20999999.99999990");
-    BOOST_CHECK(ValueFromAmount(int64_t(2099999999999999) * SATOSHI).write() ==
+    BOOST_CHECK(UniValue(int64_t(2099999999999999) * SATOSHI).write() ==
                 "20999999.99999999");
 
-    BOOST_CHECK_EQUAL(ValueFromAmount(Amount::zero()).write(), "0.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(123456789 * (COIN / 10000)).write(),
+    BOOST_CHECK_EQUAL(UniValue(Amount::zero()).write(), "0.00000000");
+    BOOST_CHECK_EQUAL(UniValue(123456789 * (COIN / 10000)).write(),
                       "12345.67890000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(-1 * COIN).write(), "-1.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(-1 * COIN / 10).write(), "-0.10000000");
+    BOOST_CHECK_EQUAL(UniValue(-1 * COIN).write(), "-1.00000000");
+    BOOST_CHECK_EQUAL(UniValue(-1 * COIN / 10).write(), "-0.10000000");
 
-    BOOST_CHECK_EQUAL(ValueFromAmount(100000000 * COIN).write(),
-                      "100000000.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(10000000 * COIN).write(),
-                      "10000000.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(1000000 * COIN).write(),
-                      "1000000.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(100000 * COIN).write(),
-                      "100000.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(10000 * COIN).write(), "10000.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(1000 * COIN).write(), "1000.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(100 * COIN).write(), "100.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(10 * COIN).write(), "10.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN).write(), "1.00000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 10).write(), "0.10000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 100).write(), "0.01000000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 1000).write(), "0.00100000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 10000).write(), "0.00010000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 100000).write(), "0.00001000");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 1000000).write(), "0.00000100");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 10000000).write(), "0.00000010");
-    BOOST_CHECK_EQUAL(ValueFromAmount(COIN / 100000000).write(), "0.00000001");
+    BOOST_CHECK_EQUAL(UniValue(100000000 * COIN).write(), "100000000.00000000");
+    BOOST_CHECK_EQUAL(UniValue(10000000 * COIN).write(), "10000000.00000000");
+    BOOST_CHECK_EQUAL(UniValue(1000000 * COIN).write(), "1000000.00000000");
+    BOOST_CHECK_EQUAL(UniValue(100000 * COIN).write(), "100000.00000000");
+    BOOST_CHECK_EQUAL(UniValue(10000 * COIN).write(), "10000.00000000");
+    BOOST_CHECK_EQUAL(UniValue(1000 * COIN).write(), "1000.00000000");
+    BOOST_CHECK_EQUAL(UniValue(100 * COIN).write(), "100.00000000");
+    BOOST_CHECK_EQUAL(UniValue(10 * COIN).write(), "10.00000000");
+    BOOST_CHECK_EQUAL(UniValue(COIN).write(), "1.00000000");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 10).write(), "0.10000000");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 100).write(), "0.01000000");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 1000).write(), "0.00100000");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 10000).write(), "0.00010000");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 100000).write(), "0.00001000");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 1000000).write(), "0.00000100");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 10000000).write(), "0.00000010");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 100000000).write(), "0.00000001");
 }
 
 static UniValue ValueFromString(const std::string &str) {

@@ -281,7 +281,7 @@ static UniValue decodeavalancheproof(const Config &config,
         UniValue stake(UniValue::VOBJ);
         stake.pushKV("txid", utxo.GetTxId().ToString());
         stake.pushKV("vout", uint64_t(utxo.GetN()));
-        stake.pushKV("amount", ValueFromAmount(s.getStake().getAmount()));
+        stake.pushKV("amount", s.getStake().getAmount());
         stake.pushKV("height", uint64_t(s.getStake().getHeight()));
         stake.pushKV("iscoinbase", s.getStake().isCoinbase());
         stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));

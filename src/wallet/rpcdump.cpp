@@ -1076,7 +1076,7 @@ static UniValue dumpcoins(const Config &config, const JSONRPCRequest &request) {
             utxo.pushKV("txid", o.tx->GetId().ToString());
             utxo.pushKV("vout", o.i);
             utxo.pushKV("depth", o.nDepth);
-            utxo.pushKV("value", ValueFromAmount(o.tx->tx->vout[o.i].nValue));
+            utxo.pushKV("value", o.tx->tx->vout[o.i].nValue);
 
             coins.push_back(std::move(utxo));
         }

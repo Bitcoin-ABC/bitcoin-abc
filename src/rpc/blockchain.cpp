@@ -535,15 +535,15 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
     AssertLockHeld(pool.cs);
 
     UniValue fees(UniValue::VOBJ);
-    fees.pushKV("base", ValueFromAmount(e.GetFee()));
-    fees.pushKV("modified", ValueFromAmount(e.GetModifiedFee()));
-    fees.pushKV("ancestor", ValueFromAmount(e.GetModFeesWithAncestors()));
-    fees.pushKV("descendant", ValueFromAmount(e.GetModFeesWithDescendants()));
+    fees.pushKV("base", e.GetFee());
+    fees.pushKV("modified", e.GetModifiedFee());
+    fees.pushKV("ancestor", e.GetModFeesWithAncestors());
+    fees.pushKV("descendant", e.GetModFeesWithDescendants());
     info.pushKV("fees", fees);
 
     info.pushKV("size", (int)e.GetTxSize());
-    info.pushKV("fee", ValueFromAmount(e.GetFee()));
-    info.pushKV("modifiedfee", ValueFromAmount(e.GetModifiedFee()));
+    info.pushKV("fee", e.GetFee());
+    info.pushKV("modifiedfee", e.GetModifiedFee());
     info.pushKV("time", count_seconds(e.GetTime()));
     info.pushKV("height", (int)e.GetHeight());
     info.pushKV("descendantcount", e.GetCountWithDescendants());
@@ -1222,7 +1222,7 @@ static UniValue gettxoutsetinfo(const Config &config,
         ret.pushKV("bogosize", int64_t(stats.nBogoSize));
         ret.pushKV("hash_serialized", stats.hashSerialized.GetHex());
         ret.pushKV("disk_size", stats.nDiskSize);
-        ret.pushKV("total_amount", ValueFromAmount(stats.nTotalAmount));
+        ret.pushKV("total_amount", stats.nTotalAmount);
     } else {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
     }
@@ -1313,7 +1313,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
         ret.pushKV("confirmations",
                    int64_t(pindex->nHeight - coin.GetHeight() + 1));
     }
-    ret.pushKV("value", ValueFromAmount(coin.GetTxOut().nValue));
+    ret.pushKV("value", coin.GetTxOut().nValue);
     UniValue o(UniValue::VOBJ);
     ScriptPubKeyToUniv(coin.GetTxOut().scriptPubKey, o, true);
     ret.pushKV("scriptPubKey", o);
@@ -1728,9 +1728,8 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     ret.pushKV("maxmempool", (int64_t)maxmempool);
     ret.pushKV(
         "mempoolminfee",
-        ValueFromAmount(std::max(pool.GetMinFee(maxmempool), ::minRelayTxFee)
-                            .GetFeePerK()));
-    ret.pushKV("minrelaytxfee", ValueFromAmount(::minRelayTxFee.GetFeePerK()));
+        std::max(pool.GetMinFee(maxmempool), ::minRelayTxFee).GetFeePerK());
+    ret.pushKV("minrelaytxfee", ::minRelayTxFee.GetFeePerK());
     ret.pushKV("unbroadcastcount", uint64_t{pool.GetUnbroadcastTxs().size()});
     return ret;
 }
@@ -2375,42 +2374,35 @@ static UniValue getblockstats(const Config &config,
     }
 
     UniValue ret_all(UniValue::VOBJ);
-    ret_all.pushKV("avgfee",
-                   ValueFromAmount((block.vtx.size() > 1)
-                                       ? totalfee / int((block.vtx.size() - 1))
-                                       : Amount::zero()));
+    ret_all.pushKV("avgfee", block.vtx.size() > 1
+                                 ? (totalfee / int((block.vtx.size() - 1)))
+                                 : Amount::zero());
     ret_all.pushKV("avgfeerate",
-                   ValueFromAmount((total_size > 0) ? totalfee / total_size
-                                                    : Amount::zero()));
+                   total_size > 0 ? (totalfee / total_size) : Amount::zero());
     ret_all.pushKV("avgtxsize", (block.vtx.size() > 1)
                                     ? total_size / (block.vtx.size() - 1)
                                     : 0);
     ret_all.pushKV("blockhash", pindex->GetBlockHash().GetHex());
     ret_all.pushKV("height", (int64_t)pindex->nHeight);
     ret_all.pushKV("ins", inputs);
-    ret_all.pushKV("maxfee", ValueFromAmount(maxfee));
-    ret_all.pushKV("maxfeerate", ValueFromAmount(maxfeerate));
+    ret_all.pushKV("maxfee", maxfee);
+    ret_all.pushKV("maxfeerate", maxfeerate);
     ret_all.pushKV("maxtxsize", maxtxsize);
-    ret_all.pushKV("medianfee",
-                   ValueFromAmount(CalculateTruncatedMedian(fee_array)));
-    ret_all.pushKV("medianfeerate",
-                   ValueFromAmount(CalculateTruncatedMedian(feerate_array)));
+    ret_all.pushKV("medianfee", CalculateTruncatedMedian(fee_array));
+    ret_all.pushKV("medianfeerate", CalculateTruncatedMedian(feerate_array));
     ret_all.pushKV("mediantime", pindex->GetMedianTimePast());
     ret_all.pushKV("mediantxsize", CalculateTruncatedMedian(txsize_array));
-    ret_all.pushKV(
-        "minfee",
-        ValueFromAmount((minfee == MAX_MONEY) ? Amount::zero() : minfee));
+    ret_all.pushKV("minfee", minfee == MAX_MONEY ? Amount::zero() : minfee);
     ret_all.pushKV("minfeerate",
-                   ValueFromAmount((minfeerate == MAX_MONEY) ? Amount::zero()
-                                                             : minfeerate));
+                   minfeerate == MAX_MONEY ? Amount::zero() : minfeerate);
     ret_all.pushKV("mintxsize", mintxsize == blockMaxSize ? 0 : mintxsize);
     ret_all.pushKV("outs", outputs);
-    ret_all.pushKV("subsidy", ValueFromAmount(GetBlockSubsidy(
-                                  pindex->nHeight, Params().GetConsensus())));
+    ret_all.pushKV("subsidy",
+                   GetBlockSubsidy(pindex->nHeight, Params().GetConsensus()));
     ret_all.pushKV("time", pindex->GetBlockTime());
-    ret_all.pushKV("total_out", ValueFromAmount(total_out));
+    ret_all.pushKV("total_out", total_out);
     ret_all.pushKV("total_size", total_size);
-    ret_all.pushKV("totalfee", ValueFromAmount(totalfee));
+    ret_all.pushKV("totalfee", totalfee);
     ret_all.pushKV("txs", (int64_t)block.vtx.size());
     ret_all.pushKV("utxo_increase", outputs - inputs);
     ret_all.pushKV("utxo_size_inc", utxo_size_inc);
@@ -2720,13 +2712,13 @@ static UniValue scantxoutset(const Config &config,
             unspent.pushKV("vout", int32_t(outpoint.GetN()));
             unspent.pushKV("scriptPubKey", HexStr(txo.scriptPubKey));
             unspent.pushKV("desc", descriptors[txo.scriptPubKey]);
-            unspent.pushKV("amount", ValueFromAmount(txo.nValue));
+            unspent.pushKV("amount", txo.nValue);
             unspent.pushKV("height", int32_t(coin.GetHeight()));
 
             unspents.push_back(unspent);
         }
         result.pushKV("unspents", unspents);
-        result.pushKV("total_amount", ValueFromAmount(total_in));
+        result.pushKV("total_amount", total_in);
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid command");
     }
