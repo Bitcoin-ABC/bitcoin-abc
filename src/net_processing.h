@@ -190,9 +190,9 @@ private:
                                const BlockTransactionsRequest &req);
 
     /**
-     * Register with TxRequestTracker that an INV has been received from a
+     * Register with InvRequestTracker that a TX INV has been received from a
      * peer. The announcement parameters are decided in PeerManager and then
-     * passed to TxRequestTracker.
+     * passed to InvRequestTracker.
      */
     void AddTxAnnouncement(const CNode &node, const TxId &txid,
                            std::chrono::microseconds current_time)
