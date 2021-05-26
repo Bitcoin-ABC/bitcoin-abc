@@ -5354,11 +5354,18 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         // Check that outbound peers have reasonable chains GetTime() is used by
         // this anti-DoS logic so we can test this using mocktime.
         ConsiderEviction(*pto, GetTime());
+    } // release cs_main
 
-        //
-        // Message: getdata (blocks)
-        //
-        std::vector<CInv> vGetData;
+    std::vector<CInv> vGetData;
+
+    //
+    // Message: getdata (blocks)
+    //
+    {
+        LOCK(cs_main);
+
+        CNodeState &state = *State(pto->GetId());
+
         if (!pto->fClient &&
             ((fFetch && !pto->m_limited_node) ||
              !::ChainstateActive().IsInitialBlockDownload()) &&
@@ -5386,23 +5393,25 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                 }
             }
         }
+    } // release cs_main
 
-        auto addGetDataAndMaybeFlush = [&](uint32_t type, const uint256 &hash) {
-            CInv inv(type, hash);
-            LogPrint(BCLog::NET, "Requesting %s from peer=%d\n", inv.ToString(),
-                     pto->GetId());
-            vGetData.push_back(std::move(inv));
-            if (vGetData.size() >= MAX_GETDATA_SZ) {
-                m_connman.PushMessage(pto, msgMaker.Make(NetMsgType::GETDATA,
-                                                         std::move(vGetData)));
-                vGetData.clear();
-            }
-        };
+    auto addGetDataAndMaybeFlush = [&](uint32_t type, const uint256 &hash) {
+        CInv inv(type, hash);
+        LogPrint(BCLog::NET, "Requesting %s from peer=%d\n", inv.ToString(),
+                 pto->GetId());
+        vGetData.push_back(std::move(inv));
+        if (vGetData.size() >= MAX_GETDATA_SZ) {
+            m_connman.PushMessage(
+                pto, msgMaker.Make(NetMsgType::GETDATA, std::move(vGetData)));
+            vGetData.clear();
+        }
+    };
 
-        //
-        // Message: getdata (transactions)
-        //
-
+    //
+    // Message: getdata (transactions)
+    //
+    {
+        LOCK(cs_main);
         std::vector<std::pair<NodeId, TxId>> expired;
         auto requestable =
             m_txrequest.GetRequestable(pto->GetId(), current_time, &expired);
