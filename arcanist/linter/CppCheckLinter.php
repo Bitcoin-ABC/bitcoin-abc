@@ -25,6 +25,11 @@ final class CppCheckLinter extends ArcanistExternalLinter {
       "Class 'base_uint < 256 >' has a constructor with 1 argument that is not explicit.",
       "Class 'base_uint' has a constructor with 1 argument that is not explicit.",
     ),
+    "src/avalanche/test/processor_tests.cpp" => array(
+        // This is a false positive, there is an assertion that the array has
+        // the expected size using a BOOST_CHECK expression.
+        "Out of bounds access in expression 'updates[0]' because 'updates' is empty.",
+    ),
     "src/bench/mempool_stress.cpp" => array(
       // Remove this once this false positive is fixed in cppcheck
       // https://trac.cppcheck.net/ticket/9537
