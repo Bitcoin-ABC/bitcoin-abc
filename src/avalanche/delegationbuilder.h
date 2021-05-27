@@ -28,7 +28,7 @@ public:
 
     bool importDelegation(const Delegation &d);
 
-    bool addLevel(const CKey &key, const CPubKey &newMaster);
+    bool addLevel(const CKey &delegatorKey, const CPubKey &delegatedPubKey);
 
     Delegation build() const;
 };

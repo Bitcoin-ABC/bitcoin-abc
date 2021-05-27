@@ -36,23 +36,24 @@ bool DelegationBuilder::importDelegation(const Delegation &d) {
     return true;
 }
 
-bool DelegationBuilder::addLevel(const CKey &key, const CPubKey &master) {
+bool DelegationBuilder::addLevel(const CKey &delegatorKey,
+                                 const CPubKey &delegatedPubKey) {
     // Ensures that the private key provided is the one we need.
-    if (levels.back().pubkey != key.GetPubKey()) {
+    if (levels.back().pubkey != delegatorKey.GetPubKey()) {
         return false;
     }
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << dgid;
-    ss << master;
+    ss << delegatedPubKey;
     auto hash = ss.GetHash();
 
-    if (!key.SignSchnorr(hash, levels.back().sig)) {
+    if (!delegatorKey.SignSchnorr(hash, levels.back().sig)) {
         return false;
     }
 
     dgid = DelegationId(hash);
-    levels.push_back({master, {}});
+    levels.push_back({delegatedPubKey, {}});
     return true;
 }
 
