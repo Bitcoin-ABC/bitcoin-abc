@@ -102,34 +102,56 @@ static const unsigned int MAX_INV_SZ = 50000;
 static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
               "Max protocol message length must be greater than largest "
               "possible INV message");
-/**
- * Maximum number of in-flight transaction requests from a peer. It is not a
- * hard limit, but the threshold at which point the OVERLOADED_PEER_TX_DELAY
- * kicks in.
- */
-static constexpr int32_t MAX_PEER_TX_REQUEST_IN_FLIGHT = 100;
-/**
- * Maximum number of transactions to consider for requesting, per peer. It
- * provides a reasonable DoS limit to per-peer memory usage spent on
- * announcements, while covering peers continuously sending INVs at the maximum
- * rate (by our own policy, see INVENTORY_BROADCAST_PER_SECOND) for several
- * minutes, while not receiving the actual transaction (from any peer) in
- * response to requests for them.
- */
-static constexpr int32_t MAX_PEER_TX_ANNOUNCEMENTS = 5000;
-/** How long to delay requesting transactions from non-preferred peers */
-static constexpr auto NONPREF_PEER_TX_DELAY = std::chrono::seconds{2};
-/**
- * How long to delay requesting transactions from overloaded peers (see
- * MAX_PEER_TX_REQUEST_IN_FLIGHT).
- */
-static constexpr auto OVERLOADED_PEER_TX_DELAY = std::chrono::seconds{2};
-/**
- * How long to wait (in microseconds) before downloading a transaction from an
- * additional peer.
- */
-static constexpr std::chrono::microseconds GETDATA_TX_INTERVAL{
-    std::chrono::seconds{60}};
+
+struct DataRequestParameters {
+    /**
+     * Maximum number of in-flight data requests from a peer. It is not a hard
+     * limit, but the threshold at which point the overloaded_peer_delay kicks
+     * in.
+     */
+    const size_t max_peer_request_in_flight;
+
+    /**
+     * Maximum number of inventories to consider for requesting, per peer. It
+     * provides a reasonable DoS limit to per-peer memory usage spent on
+     * announcements, while covering peers continuously sending INVs at the
+     * maximum rate (by our own policy, see INVENTORY_BROADCAST_PER_SECOND) for
+     * several minutes, while not receiving the actual data (from any peer) in
+     * response to requests for them.
+     */
+    const size_t max_peer_announcements;
+
+    /** How long to delay requesting data from non-preferred peers */
+    const std::chrono::seconds nonpref_peer_delay;
+
+    /**
+     * How long to delay requesting data from overloaded peers (see
+     * max_peer_request_in_flight).
+     */
+    const std::chrono::seconds overloaded_peer_delay;
+
+    /**
+     * How long to wait (in microseconds) before a data request from an
+     * additional peer.
+     */
+    const std::chrono::microseconds getdata_interval;
+
+    /**
+     * Permission flags a peer requires to bypass the request limits tracking
+     * limits and delay penalty.
+     */
+    const NetPermissionFlags bypass_request_limits_permissions;
+};
+
+static constexpr DataRequestParameters TX_REQUEST_PARAMS{
+    100,                      // max_peer_request_in_flight
+    5000,                     // max_peer_announcements
+    std::chrono::seconds(2),  // nonpref_peer_delay
+    std::chrono::seconds(2),  // overloaded_peer_delay
+    std::chrono::seconds(60), // getdata_interval
+    PF_RELAY,                 // bypass_request_limits_permissions
+};
+
 /**
  * Limit to avoid sending big packets. Not used in processing incoming GETDATA
  * for compatibility.
@@ -923,40 +945,60 @@ static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
 
 } // namespace
 
+template <class InvId>
+static bool TooManyAnnouncements(const CNode &node,
+                                 const InvRequestTracker<InvId> &requestTracker,
+                                 const DataRequestParameters &requestParams) {
+    return !node.HasPermission(
+               requestParams.bypass_request_limits_permissions) &&
+           requestTracker.Count(node.GetId()) >=
+               requestParams.max_peer_announcements;
+}
+
+/**
+ * Compute the request time for this announcement, current time plus delays for:
+ *   - nonpref_peer_delay for announcements from non-preferred connections
+ *   - overloaded_peer_delay for announcements from peers which have at least
+ *     max_peer_request_in_flight requests in flight (and don't have PF_RELAY).
+ */
+template <class InvId>
+static std::chrono::microseconds
+ComputeRequestTime(const CNode &node,
+                   const InvRequestTracker<InvId> &requestTracker,
+                   const DataRequestParameters &requestParams,
+                   std::chrono::microseconds current_time, bool preferred) {
+    auto delay = std::chrono::microseconds{0};
+
+    if (!preferred) {
+        delay += requestParams.nonpref_peer_delay;
+    }
+
+    if (!node.HasPermission(requestParams.bypass_request_limits_permissions) &&
+        requestTracker.CountInFlight(node.GetId()) >=
+            requestParams.max_peer_request_in_flight) {
+        delay += requestParams.overloaded_peer_delay;
+    }
+
+    return current_time + delay;
+}
+
 void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
                                     std::chrono::microseconds current_time) {
-    // For m_txrequest
+    // For m_txrequest and state
     AssertLockHeld(::cs_main);
-    NodeId nodeid = node.GetId();
-    if (!node.HasPermission(PF_RELAY) &&
-        m_txrequest.Count(nodeid) >= MAX_PEER_TX_ANNOUNCEMENTS) {
-        // Too many queued announcements from this peer
+
+    if (TooManyAnnouncements(node, m_txrequest, TX_REQUEST_PARAMS)) {
         return;
     }
+
+    const NodeId &nodeid = node.GetId();
     const CNodeState *state = State(nodeid);
-
-    // Decide the InvRequestTracker parameters for this announcement:
-    // - "preferred": if fPreferredDownload is set (= outbound, or PF_NOBAN
-    //   permission)
-    // - "reqtime": current time plus delays for:
-    //   - NONPREF_PEER_TX_DELAY for announcements from non-preferred
-    //     connections
-    //   - OVERLOADED_PEER_TX_DELAY for announcements from peers which have at
-    //     least MAX_PEER_TX_REQUEST_IN_FLIGHT requests in flight (and don't
-    //     have PF_RELAY).
-    auto delay = std::chrono::microseconds{0};
     const bool preferred = state->fPreferredDownload;
-    if (!preferred) {
-        delay += NONPREF_PEER_TX_DELAY;
-    }
 
-    const bool overloaded =
-        !node.HasPermission(PF_RELAY) &&
-        m_txrequest.CountInFlight(nodeid) >= MAX_PEER_TX_REQUEST_IN_FLIGHT;
-    if (overloaded) {
-        delay += OVERLOADED_PEER_TX_DELAY;
-    }
-    m_txrequest.ReceivedInv(nodeid, txid, preferred, current_time + delay);
+    auto reqtime = ComputeRequestTime(node, m_txrequest, TX_REQUEST_PARAMS,
+                                      current_time, preferred);
+
+    m_txrequest.ReceivedInv(nodeid, txid, preferred, reqtime);
 }
 
 // This function is used for testing the stale tip eviction logic, see
@@ -4364,8 +4406,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     if (msg_type == NetMsgType::NOTFOUND) {
         std::vector<CInv> vInv;
         vRecv >> vInv;
-        if (vInv.size() <=
-            MAX_PEER_TX_ANNOUNCEMENTS + MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+        if (vInv.size() <= TX_REQUEST_PARAMS.max_peer_announcements +
+                               MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             LOCK(::cs_main);
             for (CInv &inv : vInv) {
                 if (inv.IsMsgTx()) {
@@ -5427,8 +5469,9 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         for (const TxId &txid : requestable) {
             if (!AlreadyHaveTx(txid, m_mempool)) {
                 addGetDataAndMaybeFlush(MSG_TX, txid);
-                m_txrequest.RequestedData(pto->GetId(), txid,
-                                          current_time + GETDATA_TX_INTERVAL);
+                m_txrequest.RequestedData(
+                    pto->GetId(), txid,
+                    current_time + TX_REQUEST_PARAMS.getdata_interval);
             } else {
                 // We have already seen this transaction, no need to download.
                 // This is just a belt-and-suspenders, as this should already be
