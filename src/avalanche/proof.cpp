@@ -58,12 +58,7 @@ void Proof::computeProofId() {
     }
 
     limitedProofId = LimitedProofId(ss.GetHash());
-
-    CHashWriter ss2(SER_GETHASH, 0);
-    ss2 << limitedProofId;
-    ss2 << master;
-
-    proofid = ProofId(ss2.GetHash());
+    proofid = limitedProofId.computeProofId(master);
 }
 
 uint32_t Proof::getScore() const {

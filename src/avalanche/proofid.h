@@ -10,18 +10,9 @@
 
 #include <string>
 
+class CPubKey;
+
 namespace avalanche {
-
-struct LimitedProofId : public uint256 {
-    explicit LimitedProofId() : uint256() {}
-    explicit LimitedProofId(const uint256 &b) : uint256(b) {}
-
-    static LimitedProofId fromHex(const std::string &str) {
-        LimitedProofId r;
-        r.SetHex(str);
-        return r;
-    }
-};
 
 struct ProofId : public uint256 {
     explicit ProofId() : uint256() {}
@@ -32,6 +23,19 @@ struct ProofId : public uint256 {
         r.SetHex(str);
         return r;
     }
+};
+
+struct LimitedProofId : public uint256 {
+    explicit LimitedProofId() : uint256() {}
+    explicit LimitedProofId(const uint256 &b) : uint256(b) {}
+
+    static LimitedProofId fromHex(const std::string &str) {
+        LimitedProofId r;
+        r.SetHex(str);
+        return r;
+    }
+
+    ProofId computeProofId(const CPubKey &proofMaster) const;
 };
 
 class SaltedProofIdHasher : private SaltedUint256Hasher {

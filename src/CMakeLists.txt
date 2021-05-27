@@ -543,6 +543,7 @@ add_library(server
 	avalanche/peermanager.cpp
 	avalanche/processor.cpp
 	avalanche/proof.cpp
+	avalanche/proofid.cpp
 	avalanche/proofbuilder.cpp
 	banman.cpp
 	blockencodings.cpp
