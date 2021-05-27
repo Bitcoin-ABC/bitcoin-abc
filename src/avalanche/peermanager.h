@@ -182,6 +182,8 @@ public:
     std::vector<Peer> getPeers() const;
     std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
+    std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
+
 private:
     PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);
     bool addNodeToPeer(const PeerSet::iterator &it);

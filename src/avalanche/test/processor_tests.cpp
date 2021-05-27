@@ -971,4 +971,40 @@ BOOST_AUTO_TEST_CASE(destructor) {
     schedulerThread.join();
 }
 
+BOOST_AUTO_TEST_CASE(proof_accessors) {
+    constexpr int numProofs = 10;
+
+    std::vector<std::shared_ptr<Proof>> proofs;
+    proofs.reserve(numProofs);
+    for (int i = 0; i < numProofs; i++) {
+        proofs.push_back(GetProof());
+    }
+
+    for (int i = 0; i < numProofs; i++) {
+        BOOST_CHECK(m_processor->addProof(proofs[i]));
+        // Fail to add an existing proof
+        BOOST_CHECK(!m_processor->addProof(proofs[i]));
+
+        for (int added = 0; added <= i; added++) {
+            auto proof = m_processor->getProof(proofs[added]->getId());
+            BOOST_CHECK(proof != nullptr);
+            BOOST_CHECK_EQUAL(proof->getId(), proofs[added]->getId());
+        }
+
+        for (int missing = i + 1; missing < numProofs; missing++) {
+            BOOST_CHECK(!m_processor->getProof(proofs[missing]->getId()));
+        }
+    }
+
+    // No stake, copied from proof_tests.cpp
+    const std::string badProofHex(
+        "96527eae083f1f24625f049d9e54bb9a2102a93d98bf42ab90cfc0bf9e7c634ed76a7"
+        "3e95b02cacfd357b64e4fb6c92e92dd00");
+    bilingual_str error;
+    Proof badProof;
+    BOOST_CHECK(Proof::FromHex(badProof, badProofHex, error));
+    BOOST_CHECK(
+        !m_processor->addProof(std::make_shared<Proof>(std::move(badProof))));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

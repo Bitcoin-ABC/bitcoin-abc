@@ -185,6 +185,12 @@ PeerId PeerManager::getPeerId(const std::shared_ptr<Proof> &proof) {
     return it == peers.end() ? NO_PEER : it->peerid;
 }
 
+std::shared_ptr<Proof> PeerManager::getProof(const ProofId &proofid) const {
+    auto &pview = peers.get<proof_index>();
+    auto it = pview.find(proofid);
+    return it == pview.end() ? nullptr : it->proof;
+}
+
 PeerManager::PeerSet::iterator
 PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
     {

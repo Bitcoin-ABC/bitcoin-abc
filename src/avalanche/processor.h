@@ -302,6 +302,9 @@ public:
      */
     uint256 buildRemoteSighash(CNode *pfrom) const;
 
+    bool addProof(const std::shared_ptr<Proof> &proof);
+    std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
+
     /*
      * Return whether the avalanche service flag should be set.
      */
