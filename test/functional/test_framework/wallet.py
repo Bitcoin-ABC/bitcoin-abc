@@ -134,17 +134,24 @@ class MiniWallet:
                     )
                 )
 
-    def sign_tx(self, tx, amount):
+    def sign_tx(self, tx, amount, fixed_length=True):
         """Sign tx that has been created by MiniWallet in P2PK mode"""
         assert self._priv_key is not None
         sighash = SignatureHashForkId(
             CScript(self._scriptPubKey), tx, 0, SIGHASH_ALL | SIGHASH_FORKID, amount
         )
+        # for exact fee calculation, create only signatures with fixed size by
+        # default (>49.89% probability):
+        #   65 bytes: high-R val (33 bytes) + low-S val (32 bytes)
+        # with the DER header/skeleton data of 6 bytes added, this leads to a
+        # target size of 71 bytes
+        der_sig = b""
+        while not len(der_sig) == 71:
+            der_sig = self._priv_key.sign_ecdsa(sighash)
+            if not fixed_length:
+                break
         tx.vin[0].scriptSig = CScript(
-            [
-                self._priv_key.sign_ecdsa(sighash)
-                + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))
-            ]
+            [der_sig + bytes(bytearray([SIGHASH_ALL | SIGHASH_FORKID]))]
         )
 
     def generate(self, num_blocks, **kwargs):
@@ -221,8 +228,13 @@ class MiniWallet:
         """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
         utxo_to_spend = utxo_to_spend or self.get_utxo()
 
-        # The size will be enforced by pad_tx()
-        size = 100
+        if self._priv_key is None:
+            # anyone-can-spend, the size will be enforced by pad_tx()
+            size = 100
+        else:
+            # P2PK (73 bytes scriptSig + 35 bytes scriptPubKey + 60 bytes other)
+            size = 168
+
         send_value = satoshi_round(
             utxo_to_spend["value"] - fee_rate * (Decimal(size) / 1000)
         )
@@ -243,10 +255,7 @@ class MiniWallet:
         pad_tx(tx, size)
         tx_hex = tx.serialize().hex()
 
-        # TODO: for P2PK, size is not constant due to varying scriptSig length,
-        # so only check this for anyone-can-spend outputs right now
-        if self._priv_key is None:
-            assert_equal(len(tx.serialize()), size)
+        assert_equal(len(tx.serialize()), size)
         new_utxo = self._create_utxo(
             txid=tx.rehash(), vout=0, value=send_value, height=0
         )
