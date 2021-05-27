@@ -11,3 +11,6 @@ Bitcoin ABC version 0.32.12 is now available from:
   `-onlynet=` listing all relevant networks except `onion`.
 - With I2P connections, a new, transient address is used for each outbound
   connection if `-i2pacceptincoming=0`.
+- Ports specified in `-port` and `-rpcport` options are now validated at
+  startup. Values that previously worked and were considered valid can now
+  result in errors.

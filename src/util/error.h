@@ -39,6 +39,9 @@ bilingual_str TransactionErrorString(TransactionError error);
 bilingual_str ResolveErrMsg(const std::string &optname,
                             const std::string &strBind);
 
+bilingual_str InvalidPortErrMsg(const std::string &optname,
+                                const std::string &strPort);
+
 bilingual_str AmountHighWarn(const std::string &optname);
 
 bilingual_str AmountErrMsg(const std::string &optname,
