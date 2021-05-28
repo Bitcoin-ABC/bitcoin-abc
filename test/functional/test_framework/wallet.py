@@ -5,6 +5,7 @@
 """A limited-functionality wallet, which may replace a real wallet in tests"""
 
 from decimal import Decimal
+from typing import Optional
 
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
@@ -34,12 +35,12 @@ class MiniWallet:
                 {'txid': cb_tx['txid'], 'vout': 0, 'value': cb_tx['vout'][0]['value']})
         return blocks
 
-    def get_utxo(self, *, txid=''):
+    def get_utxo(self, *, txid: Optional[str] = ''):
         """
         Returns a utxo and marks it as spent (pops it from the internal list)
 
         Args:
-        txid (string), optional: get the first utxo we find from a specific transaction
+        txid: get the first utxo we find from a specific transaction
 
         Note: Can be used to get the change output immediately after a send_self_transfer
         """
