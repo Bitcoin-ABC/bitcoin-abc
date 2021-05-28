@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
-
+import SlpWallet from 'minimal-slp-wallet';
 import {
     toSmallestDenomination,
     fromSmallestDenomination,
@@ -976,13 +976,13 @@ export default function useBCH() {
         }
     };
 
-    const getBCH = (apiIndex = 0, fromWindowObject = true) => {
-        if (fromWindowObject && window.SlpWallet) {
-            const SlpWallet = new window.SlpWallet('', {
-                restURL: getRestUrl(apiIndex),
-            });
-            return SlpWallet.bchjs;
-        }
+    const getBCH = (apiIndex = 0) => {
+        let ConstructedSlpWallet;
+
+        ConstructedSlpWallet = new SlpWallet('', {
+            restURL: getRestUrl(apiIndex),
+        });
+        return ConstructedSlpWallet.bchjs;
     };
 
     return {
