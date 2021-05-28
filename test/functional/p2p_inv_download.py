@@ -268,7 +268,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # reset mocktime
         self.restart_node(0)
 
-    @skip(PROOF_TEST_CONTEXT)
     def test_disconnect_fallback(self, context):
         self.log.info(
             'Check that disconnect will select another peer for download')

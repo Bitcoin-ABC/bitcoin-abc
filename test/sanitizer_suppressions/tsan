@@ -31,6 +31,10 @@ deadlock:CChainState::ConnectTip
 deadlock:UpdateTip
 deadlock:wallet_tests::CreateWalletFromFile
 
+# Lock order inversion due to the large cs_main lock from Shutdown, which comes
+# before the cs_proofrequest lock
+deadlock:CConnman::StopNodes
+
 # WalletBatch (unidentified deadlock)
 deadlock:WalletBatch
 

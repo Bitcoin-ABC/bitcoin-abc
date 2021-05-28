@@ -1084,49 +1084,55 @@ void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
 void PeerManager::FinalizeNode(const Config &config, NodeId nodeid,
                                bool &fUpdateConnectionTime) {
     fUpdateConnectionTime = false;
-    LOCK(cs_main);
-    int misbehavior{0};
     {
-        PeerRef peer = GetPeerRef(nodeid);
-        assert(peer != nullptr);
-        misbehavior = WITH_LOCK(peer->m_misbehavior_mutex,
-                                return peer->m_misbehavior_score);
-        LOCK(g_peer_mutex);
-        g_peer_map.erase(nodeid);
-    }
-    CNodeState *state = State(nodeid);
-    assert(state != nullptr);
+        LOCK(cs_main);
+        int misbehavior{0};
+        {
+            PeerRef peer = GetPeerRef(nodeid);
+            assert(peer != nullptr);
+            misbehavior = WITH_LOCK(peer->m_misbehavior_mutex,
+                                    return peer->m_misbehavior_score);
+            LOCK(g_peer_mutex);
+            g_peer_map.erase(nodeid);
+        }
+        CNodeState *state = State(nodeid);
+        assert(state != nullptr);
 
-    if (state->fSyncStarted) {
-        nSyncStarted--;
+        if (state->fSyncStarted) {
+            nSyncStarted--;
+        }
+
+        if (misbehavior == 0 && state->fCurrentlyConnected) {
+            fUpdateConnectionTime = true;
+        }
+
+        for (const QueuedBlock &entry : state->vBlocksInFlight) {
+            mapBlocksInFlight.erase(entry.hash);
+        }
+        EraseOrphansFor(nodeid);
+        m_txrequest.DisconnectedPeer(nodeid);
+        nPreferredDownload -= state->fPreferredDownload;
+        nPeersWithValidatedDownloads -=
+            (state->nBlocksInFlightValidHeaders != 0);
+        assert(nPeersWithValidatedDownloads >= 0);
+        g_outbound_peers_with_protect_from_disconnect -=
+            state->m_chain_sync.m_protect;
+        assert(g_outbound_peers_with_protect_from_disconnect >= 0);
+
+        mapNodeState.erase(nodeid);
+
+        if (mapNodeState.empty()) {
+            // Do a consistency check after the last peer is removed.
+            assert(mapBlocksInFlight.empty());
+            assert(nPreferredDownload == 0);
+            assert(nPeersWithValidatedDownloads == 0);
+            assert(g_outbound_peers_with_protect_from_disconnect == 0);
+            assert(m_txrequest.Size() == 0);
+        }
     }
 
-    if (misbehavior == 0 && state->fCurrentlyConnected) {
-        fUpdateConnectionTime = true;
-    }
+    WITH_LOCK(cs_proofrequest, m_proofrequest.DisconnectedPeer(nodeid));
 
-    for (const QueuedBlock &entry : state->vBlocksInFlight) {
-        mapBlocksInFlight.erase(entry.hash);
-    }
-    EraseOrphansFor(nodeid);
-    m_txrequest.DisconnectedPeer(nodeid);
-    nPreferredDownload -= state->fPreferredDownload;
-    nPeersWithValidatedDownloads -= (state->nBlocksInFlightValidHeaders != 0);
-    assert(nPeersWithValidatedDownloads >= 0);
-    g_outbound_peers_with_protect_from_disconnect -=
-        state->m_chain_sync.m_protect;
-    assert(g_outbound_peers_with_protect_from_disconnect >= 0);
-
-    mapNodeState.erase(nodeid);
-
-    if (mapNodeState.empty()) {
-        // Do a consistency check after the last peer is removed.
-        assert(mapBlocksInFlight.empty());
-        assert(nPreferredDownload == 0);
-        assert(nPeersWithValidatedDownloads == 0);
-        assert(g_outbound_peers_with_protect_from_disconnect == 0);
-        assert(m_txrequest.Size() == 0);
-    }
     LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
 
