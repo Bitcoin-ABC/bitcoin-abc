@@ -293,7 +293,6 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with p2p_lock:
             assert_equal(peer_fallback.getdata_count, 1)
 
-    @skip(PROOF_TEST_CONTEXT)
     def test_notfound_fallback(self, context):
         self.log.info(
             'Check that notfounds will select another peer for download immediately')

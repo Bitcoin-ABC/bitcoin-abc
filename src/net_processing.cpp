@@ -4459,15 +4459,23 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     if (msg_type == NetMsgType::NOTFOUND) {
         std::vector<CInv> vInv;
         vRecv >> vInv;
-        if (vInv.size() <= TX_REQUEST_PARAMS.max_peer_announcements +
+        // A peer might send up to 1 notfound per getdata request, but no more
+        if (vInv.size() <= PROOF_REQUEST_PARAMS.max_peer_announcements +
+                               TX_REQUEST_PARAMS.max_peer_announcements +
                                MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
-            LOCK(::cs_main);
             for (CInv &inv : vInv) {
                 if (inv.IsMsgTx()) {
                     // If we receive a NOTFOUND message for a tx we requested,
                     // mark the announcement for it as completed in
                     // InvRequestTracker.
+                    LOCK(::cs_main);
                     m_txrequest.ReceivedResponse(pfrom.GetId(), TxId(inv.hash));
+                    continue;
+                }
+                if (inv.IsMsgProof()) {
+                    LOCK(cs_proofrequest);
+                    m_proofrequest.ReceivedResponse(
+                        pfrom.GetId(), avalanche::ProofId(inv.hash));
                 }
             }
         }
