@@ -1306,14 +1306,22 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
 
 bool CConnman::AddConnection(const std::string &address,
                              ConnectionType conn_type) {
-    if (conn_type != ConnectionType::OUTBOUND_FULL_RELAY &&
-        conn_type != ConnectionType::BLOCK_RELAY) {
-        return false;
-    };
-
-    const int max_connections = conn_type == ConnectionType::OUTBOUND_FULL_RELAY
-                                    ? m_max_outbound_full_relay
-                                    : m_max_outbound_block_relay;
+    std::optional<int> max_connections;
+    switch (conn_type) {
+        case ConnectionType::INBOUND:
+        case ConnectionType::MANUAL:
+        case ConnectionType::FEELER:
+            return false;
+        case ConnectionType::OUTBOUND_FULL_RELAY:
+            max_connections = m_max_outbound_full_relay;
+            break;
+        case ConnectionType::BLOCK_RELAY:
+            max_connections = m_max_outbound_block_relay;
+            break;
+        // no limit for ADDR_FETCH because -seednode has no limit either
+        case ConnectionType::ADDR_FETCH:
+            break;
+    } // no default case, so the compiler can warn about missing cases
 
     // Count existing connections
     int existing_connections = WITH_LOCK(
@@ -1323,7 +1331,8 @@ bool CConnman::AddConnection(const std::string &address,
                        }););
 
     // Max connections of specified type already exist
-    if (existing_connections >= max_connections) {
+    if (max_connections != std::nullopt &&
+        existing_connections >= max_connections) {
         return false;
     }
 

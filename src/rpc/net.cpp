@@ -394,8 +394,8 @@ static RPCHelpMan addconnection() {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The IP address and port to attempt connecting to."},
             {"connection_type", RPCArg::Type::STR, RPCArg::Optional::NO,
-             "Type of connection to open, either \"outbound-full-relay\" or "
-             "\"block-relay-only\"."},
+             "Type of connection to open (\"outbound-full-relay\", "
+             "\"block-relay-only\" or \"addr-fetch\")."},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -428,6 +428,8 @@ static RPCHelpMan addconnection() {
                 conn_type = ConnectionType::OUTBOUND_FULL_RELAY;
             } else if (conn_type_in == "block-relay-only") {
                 conn_type = ConnectionType::BLOCK_RELAY;
+            } else if (conn_type_in == "addr-fetch") {
+                conn_type = ConnectionType::ADDR_FETCH;
             } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, self.ToString());
             }
