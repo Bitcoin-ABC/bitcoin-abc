@@ -7,8 +7,10 @@ import {
     FolderOpenFilled,
     CaretRightOutlined,
     SettingFilled,
+    AppstoreAddOutlined,
 } from '@ant-design/icons';
 import Wallet from '@components/Wallet/Wallet';
+import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
@@ -63,6 +65,7 @@ const CustomApp = styled.div`
 `;
 
 const Footer = styled.div`
+    z-index: 2;
     background-color: ${props => props.theme.footer.background};
     border-radius: 20px;
     position: fixed;
@@ -89,8 +92,14 @@ export const NavButton = styled.button`
     cursor: pointer;
     padding: 24px 12px 12px 12px;
     margin: 0 28px;
-    @media (max-width: 360px) {
+    @media (max-width: 475px) {
+        margin: 0 20px;
+    }
+    @media (max-width: 420px) {
         margin: 0 12px;
+    }
+    @media (max-width: 350px) {
+        margin: 0 8px;
     }
     background-color: ${props => props.theme.footer.background};
     border: none;
@@ -208,6 +217,9 @@ const App = () => {
                             <Route path="/wallet">
                                 <Wallet />
                             </Route>
+                            <Route path="/tokens">
+                                <Tokens />
+                            </Route>
                             <Route path="/send">
                                 <Send />
                             </Route>
@@ -234,6 +246,14 @@ const App = () => {
                             >
                                 <FolderOpenFilled />
                                 <fbt desc="Wallet menu button">Wallet</fbt>
+                            </NavButton>
+
+                            <NavButton
+                                active={selectedKey === 'tokens'}
+                                onClick={() => history.push('/tokens')}
+                            >
+                                <AppstoreAddOutlined />
+                                Tokens
                             </NavButton>
 
                             <NavButton
