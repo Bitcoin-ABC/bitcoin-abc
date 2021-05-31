@@ -81,18 +81,16 @@ class MiniWallet:
             index = self._utxos.index(utxo)
         return self._utxos.pop(index)
 
-    def send_self_transfer(
-            self, *, fee_rate=Decimal("3000.00"), from_node, utxo_to_spend=None):
+    def send_self_transfer(self, **kwargs):
         """Create and send a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
-        tx = self.create_self_transfer(
-            fee_rate=fee_rate,
-            from_node=from_node,
-            utxo_to_spend=utxo_to_spend)
-        self.sendrawtransaction(from_node=from_node, tx_hex=tx['hex'])
+        tx = self.create_self_transfer(**kwargs)
+        self.sendrawtransaction(
+            from_node=kwargs['from_node'],
+            tx_hex=tx['hex'])
         return tx
 
     def create_self_transfer(self, *, fee_rate=Decimal("3000.00"),
-                             from_node, utxo_to_spend=None, mempool_valid=True):
+                             from_node, utxo_to_spend=None, mempool_valid=True, locktime=0):
         """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
         self._utxos = sorted(self._utxos, key=lambda k: k['value'])
         # Pick the largest utxo (if none provided) and hope it covers the fee
@@ -109,10 +107,10 @@ class MiniWallet:
         tx.vin = [CTxIn(COutPoint(int(utxo_to_spend['txid'], 16),
                                   utxo_to_spend['vout']))]
         tx.vout = [CTxOut(int(send_value * XEC), self._scriptPubKey)]
+        tx.nLockTime = locktime
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx, size)
         tx_hex = tx.serialize().hex()
-
         tx_info = from_node.testmempoolaccept([tx_hex])[0]
         assert_equal(mempool_valid, tx_info['allowed'])
         if mempool_valid:
