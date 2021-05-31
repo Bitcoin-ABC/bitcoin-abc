@@ -229,7 +229,8 @@ bool RecentRequestEntryLessThan::operator()(
 
     switch (column) {
         case RecentRequestsTableModel::Date:
-            return pLeft->date.toTime_t() < pRight->date.toTime_t();
+            return pLeft->date.toSecsSinceEpoch() <
+                   pRight->date.toSecsSinceEpoch();
         case RecentRequestsTableModel::Label:
             return pLeft->recipient.label < pRight->recipient.label;
         case RecentRequestsTableModel::Message:

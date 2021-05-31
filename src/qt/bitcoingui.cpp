@@ -671,9 +671,10 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel,
 
         modalOverlay->setKnownBestHeight(
             tip_info->header_height,
-            QDateTime::fromTime_t(tip_info->header_time), /*presync=*/false);
+            QDateTime::fromSecsSinceEpoch(tip_info->header_time),
+            /*presync=*/false);
         setNumBlocks(tip_info->block_height,
-                     QDateTime::fromTime_t(tip_info->block_time),
+                     QDateTime::fromSecsSinceEpoch(tip_info->block_time),
                      tip_info->verification_progress, SyncType::BLOCK_SYNC,
                      SynchronizationState::INIT_DOWNLOAD);
         connect(_clientModel, &ClientModel::numBlocksChanged, this,

@@ -7,7 +7,9 @@
 #include <qt/transactionrecord.h>
 #include <qt/transactiontablemodel.h>
 
+#include <algorithm>
 #include <cstdlib>
+#include <optional>
 
 TransactionFilterProxy::TransactionFilterProxy(QObject *parent)
     : QSortFilterProxyModel(parent), m_search_string(), typeFilter(ALL_TYPES),
