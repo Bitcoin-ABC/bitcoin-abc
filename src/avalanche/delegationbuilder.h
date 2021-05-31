@@ -6,28 +6,32 @@
 #define BITCOIN_AVALANCHE_DELEGATIONBUILDER_H
 
 #include <avalanche/delegation.h>
-#include <avalanche/proof.h>
-#include <pubkey.h>
 
 #include <vector>
 
 class CKey;
+class CPubKey;
 
 namespace avalanche {
 
+struct LimitedProofId;
 class Proof;
 
 class DelegationBuilder {
     LimitedProofId limitedProofid;
-    ProofId proofid;
     DelegationId dgid;
 
     std::vector<Delegation::Level> levels;
 
-public:
-    explicit DelegationBuilder(const Proof &p);
+    DelegationBuilder(const LimitedProofId &ltdProofId,
+                      const CPubKey &proofMaster,
+                      const DelegationId &delegationId);
 
-    bool importDelegation(const Delegation &d);
+public:
+    DelegationBuilder(const LimitedProofId &ltdProofId,
+                      const CPubKey &proofMaster);
+    explicit DelegationBuilder(const Proof &p);
+    explicit DelegationBuilder(const Delegation &dg);
 
     bool addLevel(const CKey &delegatorKey, const CPubKey &delegatedPubKey);
 

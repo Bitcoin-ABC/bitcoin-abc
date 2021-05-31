@@ -15,6 +15,7 @@ from test_framework.key import (
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.messages import (
     AvalancheDelegation,
+    AvalancheProof,
     AvalancheResponse,
     AvalancheVote,
     CInv,
@@ -385,11 +386,15 @@ class AvalancheTest(BitcoinTestFramework):
         interface_proof_hex = node.buildavalancheproof(
             proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
             stakes)
+        limited_id = FromHex(
+            AvalancheProof(),
+            interface_proof_hex).limited_proofid
+
         # delegate
         delegated_key = ECKey()
         delegated_key.generate()
         interface_delegation_hex = node.delegateavalancheproof(
-            interface_proof_hex,
+            f"{limited_id:0{64}x}",
             bytes_to_wif(privkey.get_bytes()),
             delegated_key.get_pubkey().get_bytes().hex(),
             None)

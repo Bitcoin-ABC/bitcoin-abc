@@ -4,36 +4,37 @@
 
 #include <avalanche/delegationbuilder.h>
 
+#include <avalanche/proof.h>
+#include <avalanche/proofid.h>
+#include <pubkey.h>
+
 #include <key.h>
 
 namespace avalanche {
 
-DelegationBuilder::DelegationBuilder(const Proof &p)
-    : limitedProofid(p.getLimitedId()), proofid(p.getId()), dgid(proofid) {
-    levels.push_back({p.getMaster(), {}});
+DelegationBuilder::DelegationBuilder(const LimitedProofId &ltdProofId,
+                                     const CPubKey &proofMaster,
+                                     const DelegationId &delegationId)
+    : limitedProofid(ltdProofId), dgid(delegationId) {
+    levels.push_back({proofMaster, {}});
 }
 
-bool DelegationBuilder::importDelegation(const Delegation &d) {
-    if (d.getProofId() != proofid) {
-        return false;
-    }
+DelegationBuilder::DelegationBuilder(const LimitedProofId &ltdProofId,
+                                     const CPubKey &proofMaster)
+    : DelegationBuilder(ltdProofId, proofMaster,
+                        DelegationId(ltdProofId.computeProofId(proofMaster))) {}
 
-    if (levels.size() > 1) {
-        // We already imported a delegation
-        return false;
-    }
+DelegationBuilder::DelegationBuilder(const Proof &p)
+    : DelegationBuilder(p.getLimitedId(), p.getMaster(),
+                        DelegationId(p.getId())) {}
 
-    if (!d.levels.size()) {
-        return true;
-    }
-
-    dgid = d.getId();
-    for (auto &l : d.levels) {
+DelegationBuilder::DelegationBuilder(const Delegation &dg)
+    : DelegationBuilder(dg.getLimitedProofId(), dg.getProofMaster(),
+                        dg.getId()) {
+    for (auto &l : dg.levels) {
         levels.back().sig = l.sig;
         levels.push_back({l.pubkey, {}});
     }
-
-    return true;
 }
 
 bool DelegationBuilder::addLevel(const CKey &delegatorKey,

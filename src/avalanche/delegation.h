@@ -45,6 +45,9 @@ public:
     explicit Delegation() {}
 
     const DelegationId &getId() const { return dgid; }
+    const LimitedProofId &getLimitedProofId() const { return limitedProofid; }
+    const CPubKey &getProofMaster() const { return proofMaster; }
+
     ProofId getProofId() const;
 
     SERIALIZE_METHODS(Delegation, obj) {

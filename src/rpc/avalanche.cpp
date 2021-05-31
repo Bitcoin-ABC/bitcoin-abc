@@ -300,8 +300,8 @@ static UniValue delegateavalancheproof(const Config &config,
         "delegateavalancheproof",
         "Delegate the avalanche proof to another public key.\n",
         {
-            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-             "The proof to be delegated."},
+            {"limitedproofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The limited id of the proof to be delegated."},
             {"privatekey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The private key in base58-encoding. Must match the proof master "
              "public key or the upper level parent delegation public key if "
@@ -314,8 +314,9 @@ static UniValue delegateavalancheproof(const Config &config,
         },
         RPCResult{RPCResult::Type::STR_HEX, "delegation",
                   "A string that is a serialized, hex-encoded delegation."},
-        RPCExamples{HelpExampleRpc("delegateavalancheproof",
-                                   "\"<proof>\" \"<privkey>\" \"<pubkey>\"")},
+        RPCExamples{
+            HelpExampleRpc("delegateavalancheproof",
+                           "\"<limitedproofid>\" \"<privkey>\" \"<pubkey>\"")},
     }
         .Check(request);
 
@@ -326,16 +327,8 @@ static UniValue delegateavalancheproof(const Config &config,
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
     }
 
-    avalanche::Proof proof;
-    bilingual_str error;
-    if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(), error)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, error.original);
-    }
-
-    avalanche::ProofValidationState proofState;
-    if (!proof.verify(proofState)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "The proof is invalid");
-    }
+    avalanche::LimitedProofId limitedProofId{
+        ParseHashV(request.params[0], "limitedproofid")};
 
     const CKey privkey = DecodeSecret(request.params[1].get_str());
     if (!privkey.IsValid()) {
@@ -345,47 +338,45 @@ static UniValue delegateavalancheproof(const Config &config,
 
     const CPubKey pubkey = ParsePubKey(request.params[2]);
 
-    avalanche::DelegationBuilder dgb(proof);
-    CPubKey auth;
+    std::unique_ptr<avalanche::DelegationBuilder> dgb;
     if (request.params.size() >= 4 && !request.params[3].isNull()) {
         avalanche::Delegation dg;
         CDataStream ss(ParseHexV(request.params[3], "delegation"), SER_NETWORK,
                        PROTOCOL_VERSION);
         ss >> dg;
 
-        if (dg.getProofId() != proof.getId()) {
+        if (dg.getProofId() !=
+            limitedProofId.computeProofId(dg.getProofMaster())) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
                 "The supplied delegation does not match the proof");
         }
 
+        CPubKey auth;
         avalanche::DelegationState dgState;
         if (!dg.verify(dgState, auth)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "The supplied delegation is not valid");
         }
 
-        if (!dgb.importDelegation(dg)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Failed to import the delegation");
+        if (privkey.GetPubKey() != auth) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                "The supplied private key does not match the delegation");
         }
 
+        dgb = std::make_unique<avalanche::DelegationBuilder>(dg);
     } else {
-        auth = proof.getMaster();
+        dgb = std::make_unique<avalanche::DelegationBuilder>(
+            limitedProofId, privkey.GetPubKey());
     }
 
-    if (privkey.GetPubKey() != auth) {
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            "The private key does not match the proof or the delegation");
-    }
-
-    if (!dgb.addLevel(privkey, pubkey)) {
+    if (!dgb->addLevel(privkey, pubkey)) {
         throw JSONRPCError(RPC_MISC_ERROR, "Unable to build the delegation");
     }
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << dgb.build();
+    ss << dgb->build();
     return HexStr(ss);
 }
 

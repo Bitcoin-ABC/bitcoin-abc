@@ -76,13 +76,12 @@ class AvalancheProofTest(BitcoinTestFramework):
         self.log.info("Test decodeavalancheproof RPC")
         proofobj = FromHex(AvalancheProof(), proof)
         decodedproof = node.decodeavalancheproof(proof)
+        limited_id_hex = f"{proofobj.limited_proofid:0{64}x}"
         assert_equal(decodedproof["sequence"], proof_sequence)
         assert_equal(decodedproof["expiration"], proof_expiration)
         assert_equal(decodedproof["master"], proof_master)
         assert_equal(decodedproof["proofid"], f"{proofobj.proofid:0{64}x}")
-        assert_equal(
-            decodedproof["limitedid"],
-            f"{proofobj.limited_proofid:0{64}x}")
+        assert_equal(decodedproof["limitedid"], limited_id_hex)
         assert_equal(decodedproof["stakes"][0]["txid"], stakes[0]["txid"])
         assert_equal(decodedproof["stakes"][0]["vout"], stakes[0]["vout"])
         assert_equal(decodedproof["stakes"][0]["height"], stakes[0]["height"])
@@ -157,7 +156,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         for _ in range(10):
             delegated_privkey = gen_privkey()
             delegation = node.delegateavalancheproof(
-                proof,
+                limited_id_hex,
                 bytes_to_wif(delegator_privkey.get_bytes()),
                 get_hex_pubkey(delegated_privkey),
                 delegation,
@@ -168,19 +167,13 @@ class AvalancheProofTest(BitcoinTestFramework):
         random_pubkey = get_hex_pubkey(random_privkey)
 
         # Invalid proof
-        no_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master, [])
-        assert_raises_rpc_error(-8, "The proof is invalid",
-                                node.delegateavalancheproof,
-                                no_stake,
-                                bytes_to_wif(privkey.get_bytes()),
-                                random_pubkey,
-                                )
+        no_stake = node.buildavalancheproof(proof_sequence, proof_expiration,
+                                            proof_master, [])
 
         # Invalid privkey
         assert_raises_rpc_error(-5, "The private key is invalid",
                                 node.delegateavalancheproof,
-                                proof,
+                                limited_id_hex,
                                 bytes_to_wif(bytes(32)),
                                 random_pubkey,
                                 )
@@ -189,7 +182,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         bad_dg = AvalancheDelegation()
         assert_raises_rpc_error(-8, "The supplied delegation does not match the proof",
                                 node.delegateavalancheproof,
-                                proof,
+                                limited_id_hex,
                                 bytes_to_wif(privkey.get_bytes()),
                                 random_pubkey,
                                 bad_dg.serialize().hex(),
@@ -201,24 +194,16 @@ class AvalancheProofTest(BitcoinTestFramework):
         bad_dg.levels = [AvalancheDelegationLevel()]
         assert_raises_rpc_error(-8, "The supplied delegation is not valid",
                                 node.delegateavalancheproof,
-                                proof,
+                                limited_id_hex,
                                 bytes_to_wif(privkey.get_bytes()),
                                 random_pubkey,
                                 bad_dg.serialize().hex(),
                                 )
 
-        # Wrong privkey, does not match the proof
-        assert_raises_rpc_error(-8, "The private key does not match the proof or the delegation",
-                                node.delegateavalancheproof,
-                                proof,
-                                bytes_to_wif(random_privkey.get_bytes()),
-                                random_pubkey,
-                                )
-
         # Wrong privkey, match the proof but does not match the delegation
-        assert_raises_rpc_error(-8, "The private key does not match the proof or the delegation",
+        assert_raises_rpc_error(-8, "The supplied private key does not match the delegation",
                                 node.delegateavalancheproof,
-                                proof,
+                                limited_id_hex,
                                 bytes_to_wif(privkey.get_bytes()),
                                 random_pubkey,
                                 delegation,
