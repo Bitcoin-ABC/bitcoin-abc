@@ -20,6 +20,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace avalanche {
@@ -63,18 +64,18 @@ struct Peer {
     uint32_t index = -1;
     uint32_t node_count = 0;
 
-    Proof proof;
+    std::shared_ptr<Proof> proof;
 
     Peer(PeerId peerid_, Proof proof_)
-        : peerid(peerid_), proof(std::move(proof_)) {}
+        : peerid(peerid_), proof(std::make_shared<Proof>(std::move(proof_))) {}
 
-    const ProofId &getProofId() const { return proof.getId(); }
-    uint32_t getScore() const { return proof.getScore(); }
+    const ProofId &getProofId() const { return proof->getId(); }
+    uint32_t getScore() const { return proof->getScore(); }
 };
 
 struct proof_index {
     using result_type = ProofId;
-    result_type operator()(const Peer &p) const { return p.proof.getId(); }
+    result_type operator()(const Peer &p) const { return p.proof->getId(); }
 };
 
 struct next_request_time {};

@@ -169,7 +169,7 @@ void PeerManager::updatedBlockTip() {
         const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
         for (const auto &p : peers) {
             ProofValidationState state;
-            if (!p.proof.verify(state, coins)) {
+            if (!p.proof->verify(state, coins)) {
                 invalidPeers.push_back(p.peerid);
             }
         }
@@ -260,7 +260,7 @@ bool PeerManager::removePeer(const PeerId peerid) {
                     peerid, std::chrono::steady_clock::now())));
 
     // Release UTXOs attached to this proof.
-    for (const auto &s : it->proof.getStakes()) {
+    for (const auto &s : it->proof->getStakes()) {
         bool deleted = utxos.erase(s.getStake().getUTXO()) > 0;
         assert(deleted);
     }
