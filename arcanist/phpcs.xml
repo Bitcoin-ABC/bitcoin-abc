@@ -26,6 +26,8 @@
         <exclude name="Generic.Formatting.SpaceAfterNot" />
         <exclude name="Generic.Functions.OpeningFunctionBraceBsdAllman" />
         <exclude name="Generic.Metrics.CyclomaticComplexity.TooHigh" />
+        <exclude name="Generic.NamingConventions.AbstractClassNamePrefix" />
+        <exclude name="Generic.NamingConventions.InterfaceNameSuffix" />
         <exclude name="Generic.PHP.ClosingPHPTag" />
         <exclude name="Generic.PHP.NoSilencedErrors.Discouraged" />
         <exclude name="Generic.PHP.RequireStrictTypes.MissingDeclaration" />
