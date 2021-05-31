@@ -789,7 +789,8 @@ void SetupServerArgs(NodeContext &node) {
                    strprintf("Listen for connections on <port>. Nodes not "
                              "using the default ports (default: %u, "
                              "testnet: %u, regtest: %u) are unlikely to get "
-                             "incoming connections.",
+                             "incoming connections.  Not relevant for I2P (see "
+                             "doc/i2p.md).",
                              defaultChainParams->GetDefaultPort(),
                              testnetChainParams->GetDefaultPort(),
                              regtestChainParams->GetDefaultPort()),

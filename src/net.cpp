@@ -410,7 +410,9 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
                  : (double)(GetAdjustedTime() - addrConnect.nTime) / 3600.0);
 
     // Resolve
-    const uint16_t default_port{Params().GetDefaultPort()};
+    const uint16_t default_port{pszDest != nullptr
+                                    ? Params().GetDefaultPort(pszDest)
+                                    : Params().GetDefaultPort()};
     if (pszDest) {
         std::vector<CService> resolved;
         if (Lookup(pszDest, resolved, default_port,
@@ -2514,7 +2516,8 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
             // from advertising themselves as a service on another host and
             // port, causing a DoS attack as nodes around the network attempt
             // to connect to it fruitlessly.
-            if (addr.GetPort() != config->GetChainParams().GetDefaultPort() &&
+            if (addr.GetPort() != config->GetChainParams().GetDefaultPort(
+                                      addr.GetNetwork()) &&
                 nTries < 50) {
                 continue;
             }
@@ -2602,7 +2605,8 @@ std::vector<AddedNodeInfo> CConnman::GetAddedNodeInfo() {
     }
 
     for (const std::string &strAddNode : lAddresses) {
-        CService service(LookupNumeric(strAddNode, Params().GetDefaultPort()));
+        CService service(
+            LookupNumeric(strAddNode, Params().GetDefaultPort(strAddNode)));
         AddedNodeInfo addedNode{strAddNode, CService(), false, false};
         if (service.IsValid()) {
             // strAddNode is an IP:port
