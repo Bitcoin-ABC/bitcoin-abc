@@ -200,9 +200,9 @@ public:
         }
 
         //! Used to be vMerkleBranch
-        std::vector<char> dummy_vector1;
+        std::vector<uint8_t> dummy_vector1;
         //! Used to be vtxPrev
-        std::vector<char> dummy_vector2;
+        std::vector<uint8_t> dummy_vector2;
         //! Used to be fSpent
         bool dummy_bool = false;
         uint256 serializedHash =

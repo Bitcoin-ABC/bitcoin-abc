@@ -166,7 +166,7 @@ bool WalletBatch::WriteWatchOnly(const CScript &dest,
     if (!WriteIC(std::make_pair(DBKeys::WATCHMETA, dest), keyMeta)) {
         return false;
     }
-    return WriteIC(std::make_pair(DBKeys::WATCHS, dest), '1');
+    return WriteIC(std::make_pair(DBKeys::WATCHS, dest), uint8_t{'1'});
 }
 
 bool WalletBatch::EraseWatchOnly(const CScript &dest) {
@@ -346,8 +346,8 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
                 if (31404 <= wtx.fTimeReceivedIsTxTime &&
                     wtx.fTimeReceivedIsTxTime <= 31703) {
                     if (!ssValue.empty()) {
-                        char fTmp;
-                        char fUnused;
+                        uint8_t fTmp;
+                        uint8_t fUnused;
                         std::string unused_string;
                         ssValue >> fTmp >> fUnused >> unused_string;
                         strErr = strprintf(
@@ -376,7 +376,7 @@ static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,
             wss.nWatchKeys++;
             CScript script;
             ssKey >> script;
-            char fYes;
+            uint8_t fYes;
             ssValue >> fYes;
             if (fYes == '1') {
                 pwallet->GetOrCreateLegacyScriptPubKeyMan()->LoadWatchOnly(

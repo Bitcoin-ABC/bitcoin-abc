@@ -33,7 +33,7 @@ public:
     CSerializeMethodsTestSingle() = default;
     CSerializeMethodsTestSingle(int intvalin, bool boolvalin,
                                 std::string stringvalin,
-                                const char *charstrvalin,
+                                const uint8_t *charstrvalin,
                                 const CTransactionRef &txvalin,
                                 const avalanche::ProofRef &proofvalin)
         : intval(intvalin), boolval(boolvalin),
@@ -82,8 +82,8 @@ BOOST_AUTO_TEST_CASE(sizes) {
     BOOST_CHECK_EQUAL(sizeof(uint64_t), GetSerializeSize(uint64_t(0)));
     BOOST_CHECK_EQUAL(sizeof(float), GetSerializeSize(float(0)));
     BOOST_CHECK_EQUAL(sizeof(double), GetSerializeSize(double(0)));
-    // Bool is serialized as char
-    BOOST_CHECK_EQUAL(sizeof(char), GetSerializeSize(bool(0)));
+    // Bool is serialized as uint8_t
+    BOOST_CHECK_EQUAL(sizeof(uint8_t), GetSerializeSize(bool(0)));
 
     // Sanity-check GetSerializeSize and c++ type matching
     BOOST_CHECK_EQUAL(GetSerializeSize(char(0)), 1U);
@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     int intval(100);
     bool boolval(true);
     std::string stringval("testing");
-    const char charstrval[16] = "testing charstr";
+    const uint8_t charstrval[16]{"testing charstr"};
     CMutableTransaction txval;
     CTransactionRef tx_ref{MakeTransactionRef(txval)};
     avalanche::ProofBuilder pb(0, 0, CKey::MakeCompressedKey(),

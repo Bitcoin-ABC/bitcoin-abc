@@ -304,7 +304,7 @@ std::vector<bool> DecodeAsmap(fs::path path) {
     LogPrintf("Opened asmap file %s (%d bytes) from disk\n",
               fs::quoted(fs::PathToString(path)), length);
     fseek(filestr, 0, SEEK_SET);
-    char cur_byte;
+    uint8_t cur_byte;
     for (int i = 0; i < length; ++i) {
         file >> cur_byte;
         for (int bit = 0; bit < 8; ++bit) {

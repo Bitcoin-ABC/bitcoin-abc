@@ -18,16 +18,16 @@
 #include <cstdint>
 #include <memory>
 
-static const char DB_COIN = 'C';
-static const char DB_COINS = 'c';
-static const char DB_BLOCK_FILES = 'f';
-static const char DB_BLOCK_INDEX = 'b';
+static constexpr uint8_t DB_COIN{'C'};
+static constexpr uint8_t DB_COINS{'c'};
+static constexpr uint8_t DB_BLOCK_FILES{'f'};
+static constexpr uint8_t DB_BLOCK_INDEX{'b'};
 
-static const char DB_BEST_BLOCK = 'B';
-static const char DB_HEAD_BLOCKS = 'H';
-static const char DB_FLAG = 'F';
-static const char DB_REINDEX_FLAG = 'R';
-static const char DB_LAST_BLOCK = 'l';
+static constexpr uint8_t DB_BEST_BLOCK{'B'};
+static constexpr uint8_t DB_HEAD_BLOCKS{'H'};
+static constexpr uint8_t DB_FLAG{'F'};
+static constexpr uint8_t DB_REINDEX_FLAG{'R'};
+static constexpr uint8_t DB_LAST_BLOCK{'l'};
 
 // Keys used in previous version that might still be found in the DB:
 static constexpr uint8_t DB_TXINDEX_BLOCK{'T'};
@@ -61,7 +61,7 @@ namespace {
 
 struct CoinEntry {
     COutPoint *outpoint;
-    char key;
+    uint8_t key;
     explicit CoinEntry(const COutPoint *ptr)
         : outpoint(const_cast<COutPoint *>(ptr)), key(DB_COIN) {}
 
@@ -186,7 +186,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) {
 }
 
 size_t CCoinsViewDB::EstimateSize() const {
-    return m_db->EstimateSize(DB_COIN, char(DB_COIN + 1));
+    return m_db->EstimateSize(DB_COIN, uint8_t(DB_COIN + 1));
 }
 
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe)
@@ -199,7 +199,7 @@ bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
 
 bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
     if (fReindexing) {
-        return Write(DB_REINDEX_FLAG, '1');
+        return Write(DB_REINDEX_FLAG, uint8_t{'1'});
     } else {
         return Erase(DB_REINDEX_FLAG);
     }
@@ -287,15 +287,16 @@ bool CBlockTreeDB::WriteBatchSync(
 }
 
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
-    return Write(std::make_pair(DB_FLAG, name), fValue ? '1' : '0');
+    return Write(std::make_pair(DB_FLAG, name),
+                 fValue ? uint8_t{'1'} : uint8_t{'0'});
 }
 
 bool CBlockTreeDB::ReadFlag(const std::string &name, bool &fValue) {
-    char ch;
+    uint8_t ch;
     if (!Read(std::make_pair(DB_FLAG, name), ch)) {
         return false;
     }
-    fValue = ch == '1';
+    fValue = ch == uint8_t{'1'};
     return true;
 }
 
@@ -323,7 +324,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
         if (ShutdownRequested()) {
             return false;
         }
-        std::pair<char, uint256> key;
+        std::pair<uint8_t, uint256> key;
         if (!pcursor->GetKey(key) || key.first != DB_BLOCK_INDEX) {
             break;
         }
