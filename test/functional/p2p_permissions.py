@@ -93,7 +93,14 @@ class P2PPermissionsTests(BitcoinTestFramework):
         self.checkpermission(
             # all permission added
             ["-whitelist=all@127.0.0.1"],
-            ["forcerelay", "noban", "mempool", "bloomfilter", "relay", "download"],
+            ["forcerelay", "noban", "mempool", "bloomfilter",
+                "relay", "download", "bypass_proof_request_limits"],
+            False)
+
+        self.checkpermission(
+            # bypass_proof_request_limits permission
+            ["-whitelist=bypass_proof_request_limits@127.0.0.1"],
+            ["bypass_proof_request_limits"],
             False)
 
         self.stop_node(1)

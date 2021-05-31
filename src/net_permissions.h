@@ -32,11 +32,14 @@ enum NetPermissionFlags {
     PF_NOBAN = (1U << 4) | PF_DOWNLOAD,
     // Can query the mempool
     PF_MEMPOOL = (1U << 5),
+    // Bypass the limit on how many proof INVs are tracked from this peer as
+    // well as the delay penalty when reaching the the in-flight requests limit
+    PF_BYPASS_PROOF_REQUEST_LIMITS = (1U << 30),
 
     // True if the user did not specifically set fine grained permissions
     PF_ISIMPLICIT = (1U << 31),
     PF_ALL = PF_BLOOMFILTER | PF_FORCERELAY | PF_RELAY | PF_NOBAN | PF_MEMPOOL |
-             PF_DOWNLOAD,
+             PF_DOWNLOAD | PF_BYPASS_PROOF_REQUEST_LIMITS,
 };
 
 class NetPermissions {

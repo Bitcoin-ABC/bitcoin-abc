@@ -476,10 +476,11 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
                                                   whitelistPermissions, error));
     BOOST_CHECK_EQUAL(whitelistPermissions.m_flags, PF_NOBAN);
     BOOST_CHECK(NetWhitelistPermissions::TryParse(
-        "bloom,forcerelay,noban,relay@1.2.3.4/32", whitelistPermissions,
-        error));
+        "bloom,forcerelay,noban,relay,bypass_proof_request_limits@1.2.3.4/32",
+        whitelistPermissions, error));
     BOOST_CHECK_EQUAL(whitelistPermissions.m_flags,
-                      PF_BLOOMFILTER | PF_FORCERELAY | PF_NOBAN | PF_RELAY);
+                      PF_BLOOMFILTER | PF_FORCERELAY | PF_NOBAN | PF_RELAY |
+                          PF_BYPASS_PROOF_REQUEST_LIMITS);
     BOOST_CHECK(error.empty());
     BOOST_CHECK_EQUAL(whitelistPermissions.m_subnet.ToString(), "1.2.3.4/32");
     BOOST_CHECK(NetWhitelistPermissions::TryParse(
@@ -487,7 +488,7 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
         error));
 
     const auto strings = NetPermissions::ToStrings(PF_ALL);
-    BOOST_CHECK_EQUAL(strings.size(), 6U);
+    BOOST_CHECK_EQUAL(strings.size(), 7U);
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "bloomfilter") !=
                 strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "forcerelay") !=
@@ -500,6 +501,8 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
                 strings.end());
     BOOST_CHECK(std::find(strings.begin(), strings.end(), "download") !=
                 strings.end());
+    BOOST_CHECK(std::find(strings.begin(), strings.end(),
+                          "bypass_proof_request_limits") != strings.end());
 }
 
 BOOST_AUTO_TEST_CASE(
