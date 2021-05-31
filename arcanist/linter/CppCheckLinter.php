@@ -113,6 +113,11 @@ final class CppCheckLinter extends ArcanistExternalLinter {
     "src/support/allocators/zeroafterfree.h" => array(
       "Struct 'zero_after_free_allocator < char >' has a constructor with 1 argument that is not explicit.",
     ),
+    "src/test/blockindex_tests.cpp" => array(
+        // This is a false positive, the array is list initialized
+        "Out of bounds access in 'times[i]', if 'times' size is 1 and 'i' is 11",
+        "Out of bounds access in 'times2[i]', if 'times2' size is 1 and 'i' is 11",
+    ),
     "src/test/checkqueue_tests.cpp" => array(
       "Struct 'FailingCheck' has a constructor with 1 argument that is not explicit.",
       "Struct 'MemoryCheck' has a constructor with 1 argument that is not explicit.",
