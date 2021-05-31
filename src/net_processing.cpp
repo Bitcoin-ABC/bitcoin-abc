@@ -3936,6 +3936,12 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         SchnorrSig sig;
         verifier >> sig;
+        if (!pubkey.VerifySchnorr(g_avalanche->buildRemoteSighash(&pfrom),
+                                  sig)) {
+            Misbehaving(pfrom, 100, "invalid-avahello-signature");
+            return;
+        }
+        return;
     }
 
     if (msg_type == NetMsgType::AVAPOLL) {

@@ -4,17 +4,23 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the resolution of forks via avalanche."""
 import random
+import struct
 
 from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import (
+    bytes_to_wif,
     ECKey,
     ECPubKey,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.messages import (
+    AvalancheDelegation,
     AvalancheResponse,
     AvalancheVote,
     CInv,
+    FromHex,
+    hash256,
+    msg_avahello,
     msg_avapoll,
     msg_tcpavaresponse,
     NODE_AVALANCHE,
@@ -109,6 +115,18 @@ class TestNode(P2PInterface):
 
         with p2p_lock:
             return self.avahello
+
+    def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
+        delegation = FromHex(AvalancheDelegation(), delegation_hex)
+        local_sighash = hash256(
+            delegation.getid() +
+            struct.pack("<QQQQ", self.local_nonce, self.remote_nonce,
+                        self.local_extra_entropy, self.remote_extra_entropy))
+
+        msg = msg_avahello()
+        msg.hello.delegation = delegation
+        msg.hello.sig = delegated_privkey.sign_schnorr(local_sighash)
+        self.send_message(msg)
 
 
 class AvalancheTest(BitcoinTestFramework):
@@ -354,15 +372,42 @@ class AvalancheTest(BitcoinTestFramework):
             int(node.getnetworkinfo()['localservices'], 16) & NODE_AVALANCHE,
             NODE_AVALANCHE)
 
-        self.log.info("Test the avahello signature")
-        quorum = get_quorum()
-        poll_node = quorum[0]
-
-        avahello = poll_node.wait_for_avahello().hello
+        self.log.info("Test the avahello signature (node -> P2PInterface)")
+        good_interface = get_node()
+        avahello = good_interface.wait_for_avahello().hello
 
         avakey.set(bytes.fromhex(node.getavalanchekey()))
         assert avakey.verify_schnorr(
-            avahello.sig, avahello.get_sighash(poll_node))
+            avahello.sig, avahello.get_sighash(good_interface))
+
+        self.log.info("Test the avahello signature (P2PInterface -> node)")
+        stakes = create_coinbase_stakes(node, [blockhashes[1]], addrkey0.key)
+        interface_proof_hex = node.buildavalancheproof(
+            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
+            stakes)
+        # delegate
+        delegated_key = ECKey()
+        delegated_key.generate()
+        interface_delegation_hex = node.delegateavalancheproof(
+            interface_proof_hex,
+            bytes_to_wif(privkey.get_bytes()),
+            delegated_key.get_pubkey().get_bytes().hex(),
+            None)
+        good_interface.send_avahello(interface_delegation_hex, delegated_key)
+        # Quick check that the good interface is still connected
+        # FIXME: when proof relaying is implemented, replace this with a check
+        #        that the interface is added as a peer.
+        good_interface.sync_with_ping()
+
+        self.log.info("Test that wrong avahello signature causes a ban")
+        bad_interface = get_node()
+        wrong_key = ECKey()
+        wrong_key.generate()
+        with self.nodes[0].assert_debug_log(
+                ["Misbehaving",
+                 "peer=1 (0 -> 100) BAN THRESHOLD EXCEEDED: invalid-avahello-signature"]):
+            bad_interface.send_avahello(interface_delegation_hex, wrong_key)
+            bad_interface.wait_for_disconnect()
 
 
 if __name__ == '__main__':
