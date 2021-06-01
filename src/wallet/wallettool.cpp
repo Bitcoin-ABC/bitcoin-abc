@@ -32,7 +32,7 @@ static std::shared_ptr<CWallet> CreateWallet(const std::string &name,
     // dummy chain interface
     std::shared_ptr<CWallet> wallet_instance(
         new CWallet(nullptr /* chain */, WalletLocation(name),
-                    WalletDatabase::Create(path)),
+                    CreateWalletDatabase(path)),
         WalletToolReleaseWallet);
     LOCK(wallet_instance->cs_wallet);
     bool first_run = true;
@@ -64,7 +64,7 @@ static std::shared_ptr<CWallet> LoadWallet(const std::string &name,
     // dummy chain interface
     std::shared_ptr<CWallet> wallet_instance(
         new CWallet(nullptr /* chain */, WalletLocation(name),
-                    WalletDatabase::Create(path)),
+                    CreateWalletDatabase(path)),
         WalletToolReleaseWallet);
     DBErrors load_wallet_ret;
     try {
@@ -127,7 +127,7 @@ static void WalletShowInfo(CWallet *wallet_instance) {
 static bool SalvageWallet(const fs::path &path) {
     // Create a Database handle to allow for the db to be initialized before
     // recovery
-    std::unique_ptr<WalletDatabase> database = WalletDatabase::Create(path);
+    std::unique_ptr<WalletDatabase> database = CreateWalletDatabase(path);
 
     // Initialize the environment before recovery
     bilingual_str error_string;

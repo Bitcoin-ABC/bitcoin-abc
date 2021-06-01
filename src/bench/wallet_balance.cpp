@@ -33,7 +33,7 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
     NodeContext node;
     std::unique_ptr<interfaces::Chain> chain =
         interfaces::MakeChain(node, config.GetChainParams());
-    CWallet wallet{chain.get(), WalletLocation(), WalletDatabase::CreateMock()};
+    CWallet wallet{chain.get(), WalletLocation(), CreateMockWalletDatabase()};
     {
         wallet.SetupLegacyScriptPubKeyMan();
         bool first_run;

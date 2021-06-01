@@ -4139,7 +4139,7 @@ bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
     // Keep same database environment instance across Verify/Recover calls
     // below.
     std::unique_ptr<WalletDatabase> database =
-        WalletDatabase::Create(wallet_path);
+        CreateWalletDatabase(wallet_path);
 
     try {
         return database->Verify(error_string);
@@ -4166,7 +4166,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
             _("Zapping all transactions from wallet...").translated);
 
         std::unique_ptr<CWallet> tempWallet = std::make_unique<CWallet>(
-            &chain, location, WalletDatabase::Create(location.GetPath()));
+            &chain, location, CreateWalletDatabase(location.GetPath()));
         DBErrors nZapWalletRet = tempWallet->ZapWalletTx(vWtx);
         if (nZapWalletRet != DBErrors::LOAD_OK) {
             error =
@@ -4182,8 +4182,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
     // TODO: Can't use std::make_shared because we need a custom deleter but
     // should be possible to use std::allocate_shared.
     std::shared_ptr<CWallet> walletInstance(
-        new CWallet(&chain, location,
-                    WalletDatabase::Create(location.GetPath())),
+        new CWallet(&chain, location, CreateWalletDatabase(location.GetPath())),
         ReleaseWallet);
     DBErrors nLoadWalletRet = walletInstance->LoadWallet(fFirstRun);
     if (nLoadWalletRet != DBErrors::LOAD_OK) {

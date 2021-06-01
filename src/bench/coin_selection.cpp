@@ -36,8 +36,7 @@ static void CoinSelection(benchmark::Bench &bench) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    CWallet wallet(chain.get(), WalletLocation(),
-                   WalletDatabase::CreateDummy());
+    CWallet wallet(chain.get(), WalletLocation(), CreateDummyWalletDatabase());
     wallet.SetupLegacyScriptPubKeyMan();
     std::vector<std::unique_ptr<CWalletTx>> wtxs;
     LOCK(wallet.cs_wallet);
@@ -110,8 +109,7 @@ static void BnBExhaustion(benchmark::Bench &bench) {
 
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
-    CWallet wallet(chain.get(), WalletLocation(),
-                   WalletDatabase::CreateDummy());
+    CWallet wallet(chain.get(), WalletLocation(), CreateDummyWalletDatabase());
 
     LOCK(wallet.cs_wallet);
 

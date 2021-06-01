@@ -117,7 +117,7 @@ void TestGUI(interfaces::Node &node) {
     node.setContext(&test.m_node);
     std::shared_ptr<CWallet> wallet =
         std::make_shared<CWallet>(node.context()->chain.get(), WalletLocation(),
-                                  WalletDatabase::CreateMock());
+                                  CreateMockWalletDatabase());
 
     bool firstRun;
     wallet->LoadWallet(firstRun);
