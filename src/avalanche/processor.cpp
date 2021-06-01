@@ -138,7 +138,7 @@ static bool IsWorthPolling(const CBlockIndex *pindex) {
 }
 
 struct Processor::PeerData {
-    Proof proof;
+    std::shared_ptr<Proof> proof;
     Delegation delegation;
 };
 
@@ -154,8 +154,7 @@ public:
 
         if (m_processor->mustRegisterProof &&
             !::ChainstateActive().IsInitialBlockDownload()) {
-            m_processor->peerManager->getPeerId(
-                std::make_shared<Proof>(m_processor->peerData->proof));
+            m_processor->peerManager->getPeerId(m_processor->peerData->proof);
             m_processor->mustRegisterProof = false;
         }
 
@@ -216,14 +215,15 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         }
 
         peerData = std::make_unique<PeerData>();
-        if (!Proof::FromHex(peerData->proof, argsman.GetArg("-avaproof", ""),
+        peerData->proof = std::make_shared<Proof>();
+        if (!Proof::FromHex(*peerData->proof, argsman.GetArg("-avaproof", ""),
                             error)) {
             // error is set by FromHex
             return nullptr;
         }
 
         ProofValidationState proof_state;
-        if (!peerData->proof.verify(proof_state)) {
+        if (!peerData->proof->verify(proof_state)) {
             switch (proof_state.GetResult()) {
                 case ProofValidationResult::NO_STAKE:
                     error = _("the avalanche proof has no stake");
@@ -250,8 +250,8 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         }
 
         // Generate the delegation to the session key.
-        DelegationBuilder dgb(peerData->proof);
-        if (sessionKey.GetPubKey() != peerData->proof.getMaster()) {
+        DelegationBuilder dgb(*peerData->proof);
+        if (sessionKey.GetPubKey() != peerData->proof->getMaster()) {
             dgb.addLevel(masterKey, sessionKey.GetPubKey());
         }
         peerData->delegation = dgb.build();
@@ -442,11 +442,10 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     return true;
 }
 
-bool Processor::addNode(NodeId nodeid, const Proof &proof,
+bool Processor::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
                         const Delegation &delegation) {
     LOCK(cs_peerManager);
-    return peerManager->addNode(nodeid, std::make_shared<Proof>(proof),
-                                delegation);
+    return peerManager->addNode(nodeid, proof, delegation);
 }
 
 bool Processor::forNode(NodeId nodeid,

@@ -80,19 +80,20 @@ static UniValue addavalanchenode(const Config &config,
     const NodeId nodeid = request.params[0].get_int64();
     const CPubKey key = ParsePubKey(request.params[1]);
 
-    avalanche::Proof proof;
+    auto proof = std::make_shared<avalanche::Proof>();
     bilingual_str error;
-    if (!avalanche::Proof::FromHex(proof, request.params[2].get_str(), error)) {
+    if (!avalanche::Proof::FromHex(*proof, request.params[2].get_str(),
+                                   error)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, error.original);
     }
 
-    if (key != proof.getMaster()) {
+    if (key != proof->getMaster()) {
         // TODO: we want to provide a proper delegation.
         return false;
     }
 
     return g_avalanche->addNode(nodeid, proof,
-                                avalanche::DelegationBuilder(proof).build());
+                                avalanche::DelegationBuilder(*proof).build());
 }
 
 static UniValue buildavalancheproof(const Config &config,

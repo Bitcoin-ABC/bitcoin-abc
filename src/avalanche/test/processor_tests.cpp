@@ -129,7 +129,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
     bool addNode(NodeId nodeid) {
         auto proof = GetProof();
-        return m_processor->addNode(nodeid, *proof,
+        return m_processor->addNode(nodeid, proof,
                                     DelegationBuilder(*proof).build());
     }
 
