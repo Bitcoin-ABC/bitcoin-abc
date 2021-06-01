@@ -13,6 +13,11 @@
 
 namespace avalanche {
 
+static bool isOrphanState(const ProofValidationState &state) {
+    return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
+           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
+}
+
 bool PeerManager::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
                           const Delegation &delegation) {
     auto it = fetchOrCreatePeer(proof);
@@ -162,6 +167,7 @@ NodeId PeerManager::selectNode() {
 
 void PeerManager::updatedBlockTip() {
     std::vector<PeerId> invalidPeers;
+    std::vector<std::shared_ptr<Proof>> newOrphans;
 
     {
         LOCK(cs_main);
@@ -170,9 +176,18 @@ void PeerManager::updatedBlockTip() {
         for (const auto &p : peers) {
             ProofValidationState state;
             if (!p.proof->verify(state, coins)) {
+                if (isOrphanState(state)) {
+                    newOrphans.push_back(p.proof);
+                }
                 invalidPeers.push_back(p.peerid);
             }
         }
+    }
+
+    orphanProofs.rescan(*this);
+
+    for (auto &p : newOrphans) {
+        orphanProofs.addProof(p);
     }
 
     for (const auto &pid : invalidPeers) {
@@ -202,16 +217,24 @@ PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
         }
     }
 
-    {
-        // Reject invalid proof.
+    // Check the proof's validity.
+    ProofValidationState state;
+    bool valid = [&](ProofValidationState &state) {
         LOCK(cs_main);
         const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        return proof->verify(state, coins);
+    }(state);
 
-        ProofValidationState state;
-        if (!proof->verify(state, coins)) {
-            return peers.end();
+    if (!valid) {
+        if (isOrphanState(state)) {
+            orphanProofs.addProof(proof);
         }
+
+        // Reject invalid proof.
+        return peers.end();
     }
+
+    orphanProofs.removeProof(proof->getId());
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
@@ -460,6 +483,10 @@ std::vector<NodeId> PeerManager::getNodeIdsForPeer(PeerId peerId) const {
         nodeids.emplace_back(it->nodeid);
     }
     return nodeids;
+}
+
+bool PeerManager::isOrphan(const ProofId &id) {
+    return orphanProofs.getProof(id) != nullptr;
 }
 
 } // namespace avalanche

@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
 #include <avalanche/node.h>
+#include <avalanche/orphanproofpool.h>
 #include <avalanche/proof.h>
 #include <coins.h>
 #include <net.h>
@@ -24,6 +25,13 @@
 #include <vector>
 
 namespace avalanche {
+
+/**
+ * Maximum number of stakes in the orphanProofs.
+ * Benchmarking on a consumer grade computer shows that 10000 stakes can be
+ * verified in less than 1 second.
+ */
+static constexpr size_t AVALANCHE_ORPHANPROOFPOOL_SIZE = 10000;
 
 class Delegation;
 
@@ -84,6 +92,8 @@ class PeerManager {
     std::vector<Slot> slots;
     uint64_t slotCount = 0;
     uint64_t fragmentation = 0;
+
+    OrphanProofPool orphanProofs{AVALANCHE_ORPHANPROOFPOOL_SIZE};
 
     /**
      * Several nodes can make an avalanche peer. In this case, all nodes are
@@ -183,6 +193,8 @@ public:
     std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
+
+    bool isOrphan(const ProofId &id);
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);

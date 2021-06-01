@@ -14,6 +14,8 @@
 
 namespace avalanche {
 
+class PeerManager;
+
 // Extracts a ProofId from a Proof
 struct proofid_extractor {
     using result_type = ProofId;
@@ -71,6 +73,12 @@ public:
      * pool.
      */
     std::shared_ptr<Proof> getProof(const ProofId &proofId) const;
+
+    /**
+     * Rescan the pool to remove previously orphaned proofs that have become
+     * good or permanently bad.
+     */
+    void rescan(PeerManager &peerManager);
 
     // For testing
     size_t getNProofs() const;

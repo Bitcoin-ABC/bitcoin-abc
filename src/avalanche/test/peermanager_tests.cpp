@@ -442,4 +442,118 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
                       NO_PEER);
 }
 
+BOOST_AUTO_TEST_CASE(orphan_proofs) {
+    avalanche::PeerManager pm;
+
+    CKey key;
+    key.MakeNewKey(true);
+    const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    COutPoint outpoint1 = COutPoint(TxId(GetRandHash()), 0);
+    COutPoint outpoint2 = COutPoint(TxId(GetRandHash()), 0);
+    COutPoint outpoint3 = COutPoint(TxId(GetRandHash()), 0);
+
+    const Amount v = 5 * COIN;
+    const int height = 1234;
+    const int wrongHeight = 12345;
+
+    const auto makeProof = [&](const COutPoint &outpoint, const int h) {
+        ProofBuilder pb(0, 0, CPubKey());
+        pb.addUTXO(outpoint, v, h, false, key);
+        return std::make_shared<Proof>(pb.build());
+    };
+
+    auto proof1 = makeProof(outpoint1, height);
+    auto proof2 = makeProof(outpoint2, height);
+    auto proof3 = makeProof(outpoint3, wrongHeight);
+
+    const Coin coin = Coin(CTxOut(v, script), height, false);
+
+    // Add outpoints 1 and 3, not 2
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint1, coin, false);
+        coins.AddCoin(outpoint3, coin, false);
+    }
+
+    // Add the proofs
+    BOOST_CHECK(pm.getPeerId(proof1) != NO_PEER);
+    BOOST_CHECK(pm.getPeerId(proof2) == NO_PEER);
+    BOOST_CHECK(pm.getPeerId(proof3) == NO_PEER);
+
+    // Good
+    BOOST_CHECK(!pm.isOrphan(proof1->getId()));
+    // MISSING_UTXO
+    BOOST_CHECK(pm.isOrphan(proof2->getId()));
+    // HEIGHT_MISMATCH
+    BOOST_CHECK(pm.isOrphan(proof3->getId()));
+
+    const auto isGoodPeer = [&pm](const std::shared_ptr<Proof> &p) {
+        for (const auto &peer : pm.getPeers()) {
+            if (p->getId() == peer.proof->getId()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    BOOST_CHECK(isGoodPeer(proof1));
+    BOOST_CHECK(!isGoodPeer(proof2));
+    BOOST_CHECK(!isGoodPeer(proof3));
+
+    // Add outpoint2, proof2 is no longer considered orphan
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint2, coin, false);
+    }
+
+    pm.updatedBlockTip();
+    BOOST_CHECK(!pm.isOrphan(proof2->getId()));
+    BOOST_CHECK(isGoodPeer(proof2));
+
+    // The status of proof1 and proof3 are unchanged
+    BOOST_CHECK(!pm.isOrphan(proof1->getId()));
+    BOOST_CHECK(isGoodPeer(proof1));
+    BOOST_CHECK(pm.isOrphan(proof3->getId()));
+    BOOST_CHECK(!isGoodPeer(proof3));
+
+    // Spend outpoint1, proof1 becomes orphan
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.SpendCoin(outpoint1);
+    }
+
+    pm.updatedBlockTip();
+    BOOST_CHECK(pm.isOrphan(proof1->getId()));
+    BOOST_CHECK(!isGoodPeer(proof1));
+
+    // The status of proof2 and proof3 are unchanged
+    BOOST_CHECK(!pm.isOrphan(proof2->getId()));
+    BOOST_CHECK(isGoodPeer(proof2));
+    BOOST_CHECK(pm.isOrphan(proof3->getId()));
+    BOOST_CHECK(!isGoodPeer(proof3));
+
+    // A reorg could make a previous HEIGHT_MISMATCH become valid
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.SpendCoin(outpoint3);
+        coins.AddCoin(outpoint3, Coin(CTxOut(v, script), wrongHeight, false),
+                      false);
+    }
+
+    pm.updatedBlockTip();
+    BOOST_CHECK(!pm.isOrphan(proof3->getId()));
+    BOOST_CHECK(isGoodPeer(proof3));
+
+    // The status of proof 1 and proof2 are unchanged
+    BOOST_CHECK(pm.isOrphan(proof1->getId()));
+    BOOST_CHECK(!isGoodPeer(proof1));
+    BOOST_CHECK(!pm.isOrphan(proof2->getId()));
+    BOOST_CHECK(isGoodPeer(proof2));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -33,6 +33,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "checkpoints -> validation -> checkpoints"
     "pow/aserti32d -> validation -> pow/aserti32d"
     "pow/aserti32d -> validation -> pow/pow -> pow/aserti32d"
+    "avalanche/orphanproofpool -> avalanche/peermanager -> avalanche/orphanproofpool"
 )
 
 EXIT_CODE=0

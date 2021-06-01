@@ -4,6 +4,10 @@
 
 #include <avalanche/orphanproofpool.h>
 
+#include <avalanche/peermanager.h>
+
+#include <utility>
+
 namespace avalanche {
 
 void OrphanProofPool::trimToMaximumSize() {
@@ -40,6 +44,15 @@ std::shared_ptr<Proof> OrphanProofPool::getProof(const ProofId &proofId) const {
     auto &proofs_by_proofid = proofs.get<by_proofid>();
     auto it = proofs_by_proofid.find(proofId);
     return it == proofs_by_proofid.end() ? nullptr : *it;
+}
+
+void OrphanProofPool::rescan(PeerManager &peerManager) {
+    ProofContainer last_gen_proofs = std::move(proofs);
+    proofs.clear();
+
+    for (auto &proof : last_gen_proofs.get<by_sequence>()) {
+        peerManager.getPeerId(proof);
+    }
 }
 
 size_t OrphanProofPool::getNProofs() const {
