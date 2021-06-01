@@ -117,26 +117,26 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     }
 
     size_t next_coinbase = 0;
-    Proof GetProof() {
+    std::shared_ptr<Proof> GetProof() {
         size_t current_coinbase = next_coinbase++;
         const CTransaction &coinbase = *m_coinbase_txns[current_coinbase];
         ProofBuilder pb(0, 0, masterpriv.GetPubKey());
         BOOST_CHECK(pb.addUTXO(COutPoint(coinbase.GetId(), 0),
                                coinbase.vout[0].nValue, current_coinbase + 1,
                                true, coinbaseKey));
-        return pb.build();
+        return std::make_shared<Proof>(pb.build());
     }
 
     bool addNode(NodeId nodeid) {
-        Proof proof = GetProof();
-        return m_processor->addNode(nodeid, proof,
-                                    DelegationBuilder(proof).build());
+        auto proof = GetProof();
+        return m_processor->addNode(nodeid, *proof,
+                                    DelegationBuilder(*proof).build());
     }
 
     std::array<CNode *, 8> ConnectNodes() {
         avalanche::PeerManager &pm = getPeerManager();
-        Proof proof = GetProof();
-        Delegation dg = DelegationBuilder(proof).build();
+        auto proof = GetProof();
+        Delegation dg = DelegationBuilder(*proof).build();
 
         std::array<CNode *, 8> nodes;
         for (CNode *&n : nodes) {
@@ -744,8 +744,8 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Create enough nodes so that we run into the inflight request limit.
     avalanche::PeerManager &pm = getPeerManager();
-    Proof proof = GetProof();
-    Delegation dg = DelegationBuilder(proof).build();
+    auto proof = GetProof();
+    Delegation dg = DelegationBuilder(*proof).build();
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {

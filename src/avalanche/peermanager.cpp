@@ -13,7 +13,7 @@
 
 namespace avalanche {
 
-bool PeerManager::addNode(NodeId nodeid, const Proof &proof,
+bool PeerManager::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
                           const Delegation &delegation) {
     auto it = fetchOrCreatePeer(proof);
     if (it == peers.end()) {
@@ -180,17 +180,17 @@ void PeerManager::updatedBlockTip() {
     }
 }
 
-PeerId PeerManager::getPeerId(const Proof &proof) {
+PeerId PeerManager::getPeerId(const std::shared_ptr<Proof> &proof) {
     auto it = fetchOrCreatePeer(proof);
     return it == peers.end() ? NO_PEER : it->peerid;
 }
 
 PeerManager::PeerSet::iterator
-PeerManager::fetchOrCreatePeer(const Proof &proof) {
+PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
     {
         // Check if we already know of that peer.
         auto &pview = peers.get<proof_index>();
-        auto it = pview.find(proof.getId());
+        auto it = pview.find(proof->getId());
         if (it != pview.end()) {
             return peers.project<0>(it);
         }
@@ -202,7 +202,7 @@ PeerManager::fetchOrCreatePeer(const Proof &proof) {
         const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
 
         ProofValidationState state;
-        if (!proof.verify(state, coins)) {
+        if (!proof->verify(state, coins)) {
             return peers.end();
         }
     }
@@ -212,7 +212,7 @@ PeerManager::fetchOrCreatePeer(const Proof &proof) {
 
     // Attach UTXOs to this proof.
     std::unordered_set<PeerId> conflicting_peerids;
-    for (const auto &s : proof.getStakes()) {
+    for (const auto &s : proof->getStakes()) {
         auto p = utxos.emplace(s.getStake().getUTXO(), peerid);
         if (!p.second) {
             // We have a collision with an existing proof.
@@ -222,7 +222,7 @@ PeerManager::fetchOrCreatePeer(const Proof &proof) {
 
     // For now, if there is a conflict, just ceanup the mess.
     if (conflicting_peerids.size() > 0) {
-        for (const auto &s : proof.getStakes()) {
+        for (const auto &s : proof->getStakes()) {
             auto it = utxos.find(s.getStake().getUTXO());
             assert(it != utxos.end());
 

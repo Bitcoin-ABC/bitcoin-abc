@@ -66,8 +66,8 @@ struct Peer {
 
     std::shared_ptr<Proof> proof;
 
-    Peer(PeerId peerid_, Proof proof_)
-        : peerid(peerid_), proof(std::make_shared<Proof>(std::move(proof_))) {}
+    Peer(PeerId peerid_, std::shared_ptr<Proof> proof_)
+        : peerid(peerid_), proof(std::move(proof_)) {}
 
     const ProofId &getProofId() const { return proof->getId(); }
     uint32_t getScore() const { return proof->getScore(); }
@@ -128,7 +128,7 @@ public:
     /**
      * Node API.
      */
-    bool addNode(NodeId nodeid, const Proof &proof,
+    bool addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
                  const Delegation &delegation);
     bool removeNode(NodeId nodeid);
 
@@ -152,7 +152,7 @@ public:
      * Provide the PeerId associated with the given proof. If the peer does not
      * exist, then it is created.
      */
-    PeerId getPeerId(const Proof &proof);
+    PeerId getPeerId(const std::shared_ptr<Proof> &proof);
 
     /**
      * Remove an existing peer.
@@ -183,7 +183,7 @@ public:
     std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
 private:
-    PeerSet::iterator fetchOrCreatePeer(const Proof &proof);
+    PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
 };

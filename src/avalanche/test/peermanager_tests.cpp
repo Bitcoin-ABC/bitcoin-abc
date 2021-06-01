@@ -154,6 +154,10 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
     }
 }
 
+static std::shared_ptr<Proof> getRandomProofPtr(uint32_t score) {
+    return std::make_shared<Proof>(buildRandomProof(score));
+}
+
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
     // No peers.
     avalanche::PeerManager pm;
@@ -162,14 +166,14 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     const NodeId node0 = 42, node1 = 69, node2 = 37;
 
     // One peer, we always return it.
-    Proof proof0 = buildRandomProof(MIN_VALID_PROOF_SCORE);
-    Delegation dg0 = DelegationBuilder(proof0).build();
+    auto proof0 = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    Delegation dg0 = DelegationBuilder(*proof0).build();
     pm.addNode(node0, proof0, dg0);
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    Proof proof1 = buildRandomProof(2 * MIN_VALID_PROOF_SCORE);
-    Delegation dg1 = DelegationBuilder(proof1).build();
+    auto proof1 = getRandomProofPtr(2 * MIN_VALID_PROOF_SCORE);
+    Delegation dg1 = DelegationBuilder(*proof1).build();
     pm.addNode(node1, proof1, dg1);
 
     std::unordered_map<PeerId, int> results = {};
@@ -182,8 +186,8 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    Proof proof2 = buildRandomProof(MIN_VALID_PROOF_SCORE);
-    Delegation dg2 = DelegationBuilder(proof2).build();
+    auto proof2 = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    Delegation dg2 = DelegationBuilder(*proof2).build();
     pm.addNode(node2, proof2, dg2);
 
     results.clear();
@@ -204,10 +208,10 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        Proof p = buildRandomProof(100);
+        auto p = getRandomProofPtr(100);
         peerids[i] = pm.getPeerId(p);
         BOOST_CHECK(
-            pm.addNode(InsecureRand32(), p, DelegationBuilder(p).build()));
+            pm.addNode(InsecureRand32(), p, DelegationBuilder(*p).build()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -237,10 +241,10 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        Proof p = buildRandomProof(100);
+        auto p = getRandomProofPtr(100);
         peerids[i + 4] = pm.getPeerId(p);
         BOOST_CHECK(
-            pm.addNode(InsecureRand32(), p, DelegationBuilder(p).build()));
+            pm.addNode(InsecureRand32(), p, DelegationBuilder(*p).build()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
@@ -280,10 +284,10 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        Proof p = buildRandomProof(100);
+        auto p = getRandomProofPtr(100);
         peerids[i] = pm.getPeerId(p);
         BOOST_CHECK(
-            pm.addNode(InsecureRand32(), p, DelegationBuilder(p).build()));
+            pm.addNode(InsecureRand32(), p, DelegationBuilder(*p).build()));
     }
 
     // Remove all peers.
@@ -308,8 +312,8 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     avalanche::PeerManager pm;
 
     // Create one peer.
-    Proof proof = buildRandomProof(10000000 * MIN_VALID_PROOF_SCORE);
-    Delegation dg = DelegationBuilder(proof).build();
+    auto proof = getRandomProofPtr(10000000 * MIN_VALID_PROOF_SCORE);
+    Delegation dg = DelegationBuilder(*proof).build();
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
@@ -347,8 +351,8 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Move a node from a peer to another. This peer has a very low score such
     // as chances of being picked are 1 in 10 million.
-    Proof altproof = buildRandomProof(MIN_VALID_PROOF_SCORE);
-    Delegation altdg = DelegationBuilder(altproof).build();
+    auto altproof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    Delegation altdg = DelegationBuilder(*altproof).build();
     BOOST_CHECK(pm.addNode(3, altproof, altdg));
 
     int node3selected = 0;
@@ -396,7 +400,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
             pb.addUTXO(o, v, height, false, key);
         }
 
-        return pm.getPeerId(pb.build());
+        return pm.getPeerId(std::make_shared<Proof>(pb.build()));
     };
 
     // Add one peer.

@@ -154,7 +154,8 @@ public:
 
         if (m_processor->mustRegisterProof &&
             !::ChainstateActive().IsInitialBlockDownload()) {
-            m_processor->peerManager->getPeerId(m_processor->peerData->proof);
+            m_processor->peerManager->getPeerId(
+                std::make_shared<Proof>(m_processor->peerData->proof));
             m_processor->mustRegisterProof = false;
         }
 
@@ -444,7 +445,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 bool Processor::addNode(NodeId nodeid, const Proof &proof,
                         const Delegation &delegation) {
     LOCK(cs_peerManager);
-    return peerManager->addNode(nodeid, proof, delegation);
+    return peerManager->addNode(nodeid, std::make_shared<Proof>(proof),
+                                delegation);
 }
 
 bool Processor::forNode(NodeId nodeid,
