@@ -599,6 +599,7 @@ add_library(server
 	node/ui_interface.cpp
 	noui.cpp
 	policy/fees.cpp
+	policy/packages.cpp
 	policy/settings.cpp
 	pow/aserti32d.cpp
 	pow/daa.cpp
