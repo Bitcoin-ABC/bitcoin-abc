@@ -2024,6 +2024,38 @@ CTransactionRef static FindTxForGetData(const CNode &peer, const TxId &txid,
     return {};
 }
 
+//! Determine whether or not a peer can request a proof, and return it (or
+//! nullptr if not found or not allowed).
+static std::shared_ptr<avalanche::Proof>
+FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
+                    const std::chrono::seconds now) {
+    auto proof = g_avalanche->getProof(proofid);
+
+    // We don't have this proof
+    if (!proof) {
+        return nullptr;
+    }
+
+    auto proofTime = std::chrono::duration_cast<std::chrono::seconds>(
+        g_avalanche->getProofTime(proofid).time_since_epoch());
+
+    // If we know that proof for long enough, allow for requesting it
+    if (proofTime <= now - UNCONDITIONAL_RELAY_DELAY) {
+        return proof;
+    }
+
+    {
+        LOCK(cs_main);
+        // Otherwise, the proofs must have been announced recently.
+        if (State(peer.GetId())
+                ->m_recently_announced_proofs.contains(proofid)) {
+            return proof;
+        }
+    }
+
+    return nullptr;
+}
+
 static void ProcessGetData(const Config &config, CNode &pfrom,
                            CConnman &connman, CTxMemPool &mempool,
                            const std::atomic<bool> &interruptMsgProc)
@@ -2041,10 +2073,10 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
             ? pfrom.m_tx_relay->m_last_mempool_req.load()
             : std::chrono::seconds::min();
 
-    // Process as many TX items from the front of the getdata queue as
-    // possible, since they're common and it's efficient to batch process
-    // them.
-    while (it != pfrom.vRecvGetData.end() && it->IsMsgTx()) {
+    // Process as many TX or AVA_PROOF items from the front of the getdata
+    // queue as possible, since they're common and it's efficient to batch
+    // process them.
+    while (it != pfrom.vRecvGetData.end()) {
         if (interruptMsgProc) {
             return;
         }
@@ -2054,43 +2086,67 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
             break;
         }
 
-        const CInv &inv = *it++;
+        const CInv &inv = *it;
 
-        if (pfrom.m_tx_relay == nullptr) {
-            // Ignore GETDATA requests for transactions from blocks-only
-            // peers.
+        if (it->IsMsgProof()) {
+            auto proof =
+                FindProofForGetData(pfrom, avalanche::ProofId{inv.hash}, now);
+            if (proof) {
+                connman.PushMessage(
+                    &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
+                // TODO Remove from the set of unbroadcasted proof ids
+            } else {
+                vNotFound.push_back(inv);
+            }
+
+            ++it;
             continue;
         }
 
-        CTransactionRef tx =
-            FindTxForGetData(pfrom, TxId{inv.hash}, mempool_req, now);
-        if (tx) {
-            int nSendFlags = 0;
-            connman.PushMessage(&pfrom,
-                                msgMaker.Make(nSendFlags, NetMsgType::TX, *tx));
-            mempool.RemoveUnbroadcastTx(TxId(inv.hash));
-            // As we're going to send tx, make sure its unconfirmed parents are
-            // made requestable.
-            for (const auto &txin : tx->vin) {
-                auto txinfo = mempool.info(txin.prevout.GetTxId());
-                if (txinfo.tx &&
-                    txinfo.m_time > now - UNCONDITIONAL_RELAY_DELAY) {
-                    // Relaying a transaction with a recent but unconfirmed
-                    // parent.
-                    if (WITH_LOCK(
-                            pfrom.m_tx_relay->cs_tx_inventory,
-                            return !pfrom.m_tx_relay->filterInventoryKnown
-                                        .contains(txin.prevout.GetTxId()))) {
-                        LOCK(cs_main);
-                        State(pfrom.GetId())
-                            ->m_recently_announced_invs.insert(
-                                txin.prevout.GetTxId());
+        if (it->IsMsgTx()) {
+            if (pfrom.m_tx_relay == nullptr) {
+                // Ignore GETDATA requests for transactions from blocks-only
+                // peers.
+                continue;
+            }
+
+            CTransactionRef tx =
+                FindTxForGetData(pfrom, TxId{inv.hash}, mempool_req, now);
+            if (tx) {
+                int nSendFlags = 0;
+                connman.PushMessage(
+                    &pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *tx));
+                mempool.RemoveUnbroadcastTx(TxId(inv.hash));
+                // As we're going to send tx, make sure its unconfirmed parents
+                // are made requestable.
+                for (const auto &txin : tx->vin) {
+                    auto txinfo = mempool.info(txin.prevout.GetTxId());
+                    if (txinfo.tx &&
+                        txinfo.m_time > now - UNCONDITIONAL_RELAY_DELAY) {
+                        // Relaying a transaction with a recent but unconfirmed
+                        // parent.
+                        if (WITH_LOCK(
+                                pfrom.m_tx_relay->cs_tx_inventory,
+                                return !pfrom.m_tx_relay->filterInventoryKnown
+                                            .contains(
+                                                txin.prevout.GetTxId()))) {
+                            LOCK(cs_main);
+                            State(pfrom.GetId())
+                                ->m_recently_announced_invs.insert(
+                                    txin.prevout.GetTxId());
+                        }
                     }
                 }
+            } else {
+                vNotFound.push_back(inv);
             }
-        } else {
-            vNotFound.push_back(inv);
+
+            ++it;
+            continue;
         }
+
+        // It's neither a proof nor a transaction
+        break;
     }
 
     // Only process one BLOCK item per call, since they're uncommon and can be

@@ -5,6 +5,7 @@
 """Test the resolution of forks via avalanche."""
 import random
 import struct
+import time
 
 from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import (
@@ -23,6 +24,8 @@ from test_framework.messages import (
     hash256,
     msg_avahello,
     msg_avapoll,
+    MSG_AVA_PROOF,
+    msg_getdata,
     msg_tcpavaresponse,
     NODE_AVALANCHE,
     NODE_NETWORK,
@@ -43,6 +46,8 @@ BLOCK_MISSING = -2
 BLOCK_PENDING = -3
 
 QUORUM_NODE_COUNT = 16
+
+UNCONDITIONAL_RELAY_DELAY = 2 * 60
 
 
 class TestNode(P2PInterface):
@@ -146,10 +151,10 @@ class AvalancheTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         # Build a fake quorum of nodes.
-        def get_node():
+        def get_node(services=NODE_NETWORK | NODE_AVALANCHE):
             n = TestNode()
             node.add_p2p_connection(
-                n, services=NODE_NETWORK | NODE_AVALANCHE)
+                n, services=services)
             n.wait_for_verack()
 
             # Get our own node id so we can use it later.
@@ -420,6 +425,48 @@ class AvalancheTest(BitcoinTestFramework):
                 return good_interface.last_message.get(
                     "getdata") and good_interface.last_message["getdata"].inv[-1].hash == proofid
         wait_until(getdata_found)
+
+        self.log.info('Check that we can download the proof from our peer')
+
+        # Connect some blocks to trigger the proof verification
+        node.generate(2)
+
+        node_proofid = FromHex(AvalancheProof(), proof).proofid
+        getdata = msg_getdata([CInv(MSG_AVA_PROOF, node_proofid)])
+
+        self.log.info(
+            "Proof has been inv'ed recently, check it can be requested")
+        good_interface.send_message(getdata)
+
+        def proof_received(peer):
+            with p2p_lock:
+                return peer.last_message.get(
+                    "avaproof") and peer.last_message["avaproof"].proof.proofid == node_proofid
+        wait_until(lambda: proof_received(good_interface))
+
+        # Restart the node
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(proof),
+            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+        ])
+        node.generate(2)
+
+        self.log.info(
+            "The proof has not been announced, it cannot be requested")
+        peer = get_node(services=NODE_NETWORK)
+        peer.send_message(getdata)
+
+        # Give enough time for the node to answer. Since we cannot check for a
+        # non-event this is the best we can do
+        time.sleep(2)
+        assert not proof_received(peer)
+
+        self.log.info("The proof is known for long enough to be requested")
+        current_time = int(time.time())
+        node.setmocktime(current_time + UNCONDITIONAL_RELAY_DELAY)
+
+        peer.send_message(getdata)
+        wait_until(lambda: proof_received(peer))
 
 
 if __name__ == '__main__':
