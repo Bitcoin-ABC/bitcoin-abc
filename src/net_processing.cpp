@@ -312,8 +312,6 @@ namespace {
  * Blocks that are in flight, and that are in the queue to be downloaded.
  */
 struct QueuedBlock {
-    /** Block hash */
-    BlockHash hash;
     /**
      * BlockIndex. We must have this since we only request blocks when we've
      * already validated the header.
@@ -1238,10 +1236,9 @@ bool PeerManagerImpl::MarkBlockAsInFlight(
 
     std::list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(
         state->vBlocksInFlight.end(),
-        {hash, pindex,
-         std::unique_ptr<PartiallyDownloadedBlock>(
-             pit ? new PartiallyDownloadedBlock(config, &m_mempool)
-                 : nullptr)});
+        {pindex, std::unique_ptr<PartiallyDownloadedBlock>(
+                     pit ? new PartiallyDownloadedBlock(config, &m_mempool)
+                         : nullptr)});
     state->nBlocksInFlight++;
     if (state->nBlocksInFlight == 1) {
         // We're starting a block download (batch) from this peer.
@@ -1809,7 +1806,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
         }
 
         for (const QueuedBlock &entry : state->vBlocksInFlight) {
-            mapBlocksInFlight.erase(entry.hash);
+            mapBlocksInFlight.erase(entry.pindex->GetBlockHash());
         }
         WITH_LOCK(g_cs_orphans, m_orphanage.EraseForPeer(nodeid));
         m_txrequest.DisconnectedPeer(nodeid);
@@ -6939,7 +6936,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                              nOtherPeersWithValidatedDownloads)) {
                 LogPrintf("Timeout downloading block %s from peer=%d, "
                           "disconnecting\n",
-                          queuedBlock.hash.ToString(), pto->GetId());
+                          queuedBlock.pindex->GetBlockHash().ToString(),
+                          pto->GetId());
                 pto->fDisconnect = true;
                 return true;
             }
