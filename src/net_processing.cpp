@@ -746,12 +746,16 @@ private:
     std::unique_ptr<CRollingBloomFilter> m_recent_confirmed_transactions
         GUARDED_BY(m_recent_confirmed_transactions_mutex);
 
+    /** Have we requested this block from a peer */
+    bool IsBlockRequested(const BlockHash &hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     /**
-     * Returns a bool indicating whether we requested this block.
-     * Also used if a block was /not/ received and timed out or started with
-     * another peer
+     * Remove this block from our tracked requested blocks. Called if:
+     *  - the block has been received from a peer
+     *  - the request for the block has timed out
      */
-    bool MarkBlockAsReceived(const BlockHash &hash)
+    void MarkBlockAsReceived(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -1182,7 +1186,11 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
     nPreferredDownload += state->fPreferredDownload;
 }
 
-bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
+bool PeerManagerImpl::IsBlockRequested(const BlockHash &hash) {
+    return mapBlocksInFlight.find(hash) != mapBlocksInFlight.end();
+}
+
+void PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
     std::map<BlockHash,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
@@ -1204,10 +1212,7 @@ bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
         }
         state->m_stalling_since = 0us;
         mapBlocksInFlight.erase(itInFlight);
-        return true;
     }
-
-    return false;
 }
 
 bool PeerManagerImpl::MarkBlockAsInFlight(
@@ -1456,7 +1461,7 @@ void PeerManagerImpl::FindNextBlocksToDownload(
                 if (pindex->HaveTxsDownloaded()) {
                     state->pindexLastCommonBlock = pindex;
                 }
-            } else if (mapBlocksInFlight.count(pindex->GetBlockHash()) == 0) {
+            } else if (!IsBlockRequested(pindex->GetBlockHash())) {
                 // The block is not already downloaded, and not yet in flight.
                 if (pindex->nHeight > nWindowEnd) {
                     // We reached the end of the window.
@@ -2975,7 +2980,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                    !m_chainman.ActiveChain().Contains(pindexWalk) &&
                    vToFetch.size() <= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
                 if (!pindexWalk->nStatus.hasData() &&
-                    !mapBlocksInFlight.count(pindexWalk->GetBlockHash())) {
+                    !IsBlockRequested(pindexWalk->GetBlockHash())) {
                     // We don't have this block, and it's not yet in flight.
                     vToFetch.push_back(pindexWalk);
                 }
@@ -3980,7 +3985,7 @@ void PeerManagerImpl::ProcessMessage(
                 const BlockHash hash{inv.hash};
                 UpdateBlockAvailability(pfrom.GetId(), hash);
                 if (!fAlreadyHave && !fImporting && !fReindex &&
-                    !mapBlocksInFlight.count(hash)) {
+                    !IsBlockRequested(hash)) {
                     // Headers-first is the primary method of announcement on
                     // the network. If a node fell back to sending blocks by
                     // inv, it's probably for a re-org. The final block hash
@@ -4889,9 +4894,10 @@ void PeerManagerImpl::ProcessMessage(
         const BlockHash hash = pblock->GetHash();
         {
             LOCK(cs_main);
-            // Also always process if we requested the block explicitly, as we
-            // may need it even though it is not a candidate for a new best tip.
-            forceProcessing |= MarkBlockAsReceived(hash);
+            // Always process the block if we requested it, since we may
+            // need it even when it's not a candidate for a new best tip.
+            forceProcessing = IsBlockRequested(hash);
+            MarkBlockAsReceived(hash);
             // mapBlockSource is only used for punishing peers and setting
             // which peers send us compact blocks, so the race between here and
             // cs_main in ProcessNewBlock is fine.
