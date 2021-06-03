@@ -12,7 +12,7 @@
 #endif // ENABLE_WALLET
 
 const std::string ADDRESS_BCHREG_UNSPENDABLE =
-    "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt";
+    "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt";
 
 #ifdef ENABLE_WALLET
 std::string getnewaddress(const Config &config, CWallet &w) {
