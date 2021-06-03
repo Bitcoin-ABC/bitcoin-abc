@@ -129,6 +129,8 @@ class TestNode(P2PInterface):
         msg.hello.sig = delegated_privkey.sign_schnorr(local_sighash)
         self.send_message(msg)
 
+        return delegation.proofid
+
 
 class AvalancheTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -381,7 +383,6 @@ class AvalancheTest(BitcoinTestFramework):
         assert avakey.verify_schnorr(
             avahello.sig, avahello.get_sighash(good_interface))
 
-        self.log.info("Test the avahello signature (P2PInterface -> node)")
         stakes = create_coinbase_stakes(node, [blockhashes[1]], addrkey0.key)
         interface_proof_hex = node.buildavalancheproof(
             proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
@@ -398,11 +399,6 @@ class AvalancheTest(BitcoinTestFramework):
             bytes_to_wif(privkey.get_bytes()),
             delegated_key.get_pubkey().get_bytes().hex(),
             None)
-        good_interface.send_avahello(interface_delegation_hex, delegated_key)
-        # Quick check that the good interface is still connected
-        # FIXME: when proof relaying is implemented, replace this with a check
-        #        that the interface is added as a peer.
-        good_interface.sync_with_ping()
 
         self.log.info("Test that wrong avahello signature causes a ban")
         bad_interface = get_node()
@@ -413,6 +409,17 @@ class AvalancheTest(BitcoinTestFramework):
                  "peer=1 (0 -> 100) BAN THRESHOLD EXCEEDED: invalid-avahello-signature"]):
             bad_interface.send_avahello(interface_delegation_hex, wrong_key)
             bad_interface.wait_for_disconnect()
+
+        self.log.info(
+            'Check that receiving a valid avahello triggers a proof getdata request')
+        proofid = good_interface.send_avahello(
+            interface_delegation_hex, delegated_key)
+
+        def getdata_found():
+            with p2p_lock:
+                return good_interface.last_message.get(
+                    "getdata") and good_interface.last_message["getdata"].inv[-1].hash == proofid
+        wait_until(getdata_found)
 
 
 if __name__ == '__main__':

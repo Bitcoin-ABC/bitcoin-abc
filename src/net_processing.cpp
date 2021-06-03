@@ -4040,6 +4040,18 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             Misbehaving(pfrom, 100, "invalid-avahello-signature");
             return;
         }
+
+        // If we don't know this proof already, add it to the tracker so it can
+        // be requested.
+        const avalanche::ProofId proofid(delegation.getProofId());
+        if (!AlreadyHaveProof(proofid)) {
+            const bool preferred = isPreferredDownloadPeer(pfrom);
+            LOCK(cs_proofrequest);
+            AddProofAnnouncement(pfrom, proofid,
+                                 GetTime<std::chrono::microseconds>(),
+                                 preferred);
+        }
+
         return;
     }
 
