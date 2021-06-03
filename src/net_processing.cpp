@@ -312,12 +312,14 @@ namespace {
  * Blocks that are in flight, and that are in the queue to be downloaded.
  */
 struct QueuedBlock {
+    /** Block hash */
     BlockHash hash;
-    //! Optional.
+    /**
+     * BlockIndex. We must have this since we only request blocks when we've
+     * already validated the header.
+     */
     const CBlockIndex *pindex;
-    //! Whether this block has validated headers at the time of request.
-    bool fValidatedHeaders;
-    //! Optional, used for CMPCTBLOCK downloads
+    /** Optional, used for CMPCTBLOCK downloads */
     std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
 };
 
@@ -1191,10 +1193,8 @@ bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
     if (itInFlight != mapBlocksInFlight.end()) {
         CNodeState *state = State(itInFlight->second.first);
         assert(state != nullptr);
-        state->nBlocksInFlightValidHeaders -=
-            itInFlight->second.second->fValidatedHeaders;
-        if (state->nBlocksInFlightValidHeaders == 0 &&
-            itInFlight->second.second->fValidatedHeaders) {
+        state->nBlocksInFlightValidHeaders -= 1;
+        if (state->nBlocksInFlightValidHeaders == 0) {
             // Last validated block on the queue was received.
             nPeersWithValidatedDownloads--;
         }
@@ -1241,12 +1241,12 @@ bool PeerManagerImpl::MarkBlockAsInFlight(
 
     std::list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(
         state->vBlocksInFlight.end(),
-        {hash, pindex, pindex != nullptr,
+        {hash, pindex,
          std::unique_ptr<PartiallyDownloadedBlock>(
              pit ? new PartiallyDownloadedBlock(config, &m_mempool)
                  : nullptr)});
     state->nBlocksInFlight++;
-    state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
+    state->nBlocksInFlightValidHeaders += 1;
     if (state->nBlocksInFlight == 1) {
         // We're starting a block download (batch) from this peer.
         state->m_downloading_since = GetTime<std::chrono::microseconds>();
