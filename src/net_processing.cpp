@@ -761,8 +761,7 @@ private:
      * being held
      */
     bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
-                             const BlockHash &hash,
-                             const CBlockIndex *pindex = nullptr,
+                             const CBlockIndex *pindex,
                              std::list<QueuedBlock>::iterator **pit = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -1217,8 +1216,11 @@ bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
 }
 
 bool PeerManagerImpl::MarkBlockAsInFlight(
-    const Config &config, NodeId nodeid, const BlockHash &hash,
-    const CBlockIndex *pindex, std::list<QueuedBlock>::iterator **pit) {
+    const Config &config, NodeId nodeid, const CBlockIndex *pindex,
+    std::list<QueuedBlock>::iterator **pit) {
+    assert(pindex);
+    const BlockHash &hash{pindex->GetBlockHash()};
+
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -1250,7 +1252,7 @@ bool PeerManagerImpl::MarkBlockAsInFlight(
         state->m_downloading_since = GetTime<std::chrono::microseconds>();
     }
 
-    if (state->nBlocksInFlightValidHeaders == 1 && pindex != nullptr) {
+    if (state->nBlocksInFlightValidHeaders == 1) {
         nPeersWithValidatedDownloads++;
     }
 
@@ -3008,8 +3010,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                         break;
                     }
                     vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    MarkBlockAsInFlight(config, pfrom.GetId(),
-                                        pindex->GetBlockHash(), pindex);
+                    MarkBlockAsInFlight(config, pfrom.GetId(), pindex);
                     LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
                              pindex->GetBlockHash().ToString(), pfrom.GetId());
                 }
@@ -4613,8 +4614,7 @@ void PeerManagerImpl::ProcessMessage(
                     (fAlreadyInFlight &&
                      blockInFlightIt->second.first == pfrom.GetId())) {
                     std::list<QueuedBlock>::iterator *queuedBlockIt = nullptr;
-                    if (!MarkBlockAsInFlight(config, pfrom.GetId(),
-                                             pindex->GetBlockHash(), pindex,
+                    if (!MarkBlockAsInFlight(config, pfrom.GetId(), pindex,
                                              &queuedBlockIt)) {
                         if (!(*queuedBlockIt)->partialBlock) {
                             (*queuedBlockIt)
@@ -7022,8 +7022,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                                      vToDownload, staller);
             for (const CBlockIndex *pindex : vToDownload) {
                 vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                MarkBlockAsInFlight(config, pto->GetId(),
-                                    pindex->GetBlockHash(), pindex);
+                MarkBlockAsInFlight(config, pto->GetId(), pindex);
                 LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n",
                          pindex->GetBlockHash().ToString(), pindex->nHeight,
                          pto->GetId());
