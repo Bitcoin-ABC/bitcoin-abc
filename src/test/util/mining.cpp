@@ -15,9 +15,6 @@
 #include <util/check.h>
 #include <validation.h>
 
-const std::string ADDRESS_BCHREG_UNSPENDABLE =
-    "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt";
-
 CTxIn generatetoaddress(const Config &config, const NodeContext &node,
                         const std::string &address) {
     const auto dest = DecodeDestination(address, config.GetChainParams());
