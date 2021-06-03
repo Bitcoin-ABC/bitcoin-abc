@@ -579,6 +579,12 @@ static PeerRef GetPeerRef(NodeId id) {
     return it != g_peer_map.end() ? it->second : nullptr;
 }
 
+static bool isPreferredDownloadPeer(const CNode &pfrom) {
+    LOCK(cs_main);
+    const CNodeState *state = State(pfrom.GetId());
+    return state && state->fPreferredDownload;
+}
+
 static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     nPreferredDownload -= state->fPreferredDownload;
@@ -1000,14 +1006,11 @@ void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
         return;
     }
 
-    const NodeId &nodeid = node.GetId();
-    const CNodeState *state = State(nodeid);
-    const bool preferred = state->fPreferredDownload;
-
+    const bool preferred = isPreferredDownloadPeer(node);
     auto reqtime = ComputeRequestTime(node, m_txrequest, TX_REQUEST_PARAMS,
                                       current_time, preferred);
 
-    m_txrequest.ReceivedInv(nodeid, txid, preferred, reqtime);
+    m_txrequest.ReceivedInv(node.GetId(), txid, preferred, reqtime);
 }
 
 void PeerManager::AddProofAnnouncement(const CNode &node,
@@ -3120,12 +3123,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 if (!fAlreadyHave && g_avalanche &&
                     gArgs.GetBoolArg("-enableavalanche",
                                      AVALANCHE_DEFAULT_ENABLED)) {
-                    bool preferred;
-                    {
-                        LOCK(cs_main);
-                        const CNodeState *state = State(pfrom.GetId());
-                        preferred = state && state->fPreferredDownload;
-                    }
+                    const bool preferred = isPreferredDownloadPeer(pfrom);
 
                     LOCK(cs_proofrequest);
                     AddProofAnnouncement(pfrom, proofid, current_time,
