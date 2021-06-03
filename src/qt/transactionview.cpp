@@ -18,6 +18,9 @@
 #include <qt/transactiontablemodel.h>
 #include <qt/walletmodel.h>
 
+#include <optional>
+
+#include <QApplication>
 #include <QComboBox>
 #include <QDateTimeEdit>
 #include <QDesktopServices>
@@ -315,25 +318,20 @@ void TransactionView::chooseDate(int idx) {
     dateRangeWidget->setVisible(false);
     switch (dateWidget->itemData(idx).toInt()) {
         case All:
-            transactionProxyModel->setDateRange(
-                TransactionFilterProxy::MIN_DATE,
-                TransactionFilterProxy::MAX_DATE);
+            transactionProxyModel->setDateRange(std::nullopt, std::nullopt);
             break;
         case Today:
-            transactionProxyModel->setDateRange(
-                startofDay, TransactionFilterProxy::MAX_DATE);
+            transactionProxyModel->setDateRange(startofDay, std::nullopt);
             break;
         case ThisWeek: {
             // Find last Monday
 
-            transactionProxyModel->setDateRange(
-                startOfWeek, TransactionFilterProxy::MAX_DATE);
+            transactionProxyModel->setDateRange(startOfWeek, std::nullopt);
 
         } break;
         case ThisMonth:
 
-            transactionProxyModel->setDateRange(
-                startOfMonth, TransactionFilterProxy::MAX_DATE);
+            transactionProxyModel->setDateRange(startOfMonth, std::nullopt);
             break;
         case LastMonth:
             transactionProxyModel->setDateRange(startOfMonth.addMonths(-1),
@@ -341,8 +339,7 @@ void TransactionView::chooseDate(int idx) {
             break;
         case ThisYear:
 
-            transactionProxyModel->setDateRange(
-                startOfYear, TransactionFilterProxy::MAX_DATE);
+            transactionProxyModel->setDateRange(startOfYear, std::nullopt);
             break;
         case Range:
             dateRangeWidget->setVisible(true);
