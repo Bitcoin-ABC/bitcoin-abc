@@ -19,7 +19,7 @@ using namespace avalanche;
 BOOST_FIXTURE_TEST_SUITE(orphanproofpool_tests, TestingSetup)
 
 /** Make a proof with stakes using random txids */
-static Proof makeProof(const size_t nStakes) {
+static std::shared_ptr<Proof> makeProof(const size_t nStakes) {
     const Amount v = 5 * COIN;
     const int height = 1234;
     CKey key;
@@ -29,7 +29,7 @@ static Proof makeProof(const size_t nStakes) {
         TxId txid(GetRandHash());
         pb.addUTXO(COutPoint(txid, 0), v, height, false, key);
     }
-    return pb.build();
+    return std::make_shared<Proof>(pb.build());
 }
 
 BOOST_AUTO_TEST_CASE(pool_starts_empty) {
@@ -40,36 +40,36 @@ BOOST_AUTO_TEST_CASE(pool_starts_empty) {
 
 BOOST_AUTO_TEST_CASE(fail_to_add_same_proof_twice) {
     OrphanProofPool pool{10};
-    Proof p = makeProof(1);
-    BOOST_CHECK(!pool.getProof(p.getId()));
+    auto p = makeProof(1);
+    BOOST_CHECK(!pool.getProof(p->getId()));
 
     BOOST_CHECK(pool.addProof(p));
     BOOST_CHECK_EQUAL(pool.getNStakes(), 1);
     BOOST_CHECK_EQUAL(pool.getNProofs(), 1);
-    BOOST_CHECK(pool.getProof(p.getId()));
+    BOOST_CHECK(pool.getProof(p->getId()));
 
     BOOST_CHECK(!pool.addProof(p));
     BOOST_CHECK_EQUAL(pool.getNStakes(), 1);
     BOOST_CHECK_EQUAL(pool.getNProofs(), 1);
-    BOOST_CHECK(pool.getProof(p.getId()));
+    BOOST_CHECK(pool.getProof(p->getId()));
 }
 
 BOOST_AUTO_TEST_CASE(check_eviction_behavior) {
     {
         // Fill the pool
         OrphanProofPool pool{7};
-        Proof first = makeProof(4);
+        auto first = makeProof(4);
         pool.addProof(first);
         pool.addProof(makeProof(2));
         pool.addProof(makeProof(1));
         BOOST_CHECK_EQUAL(pool.getNStakes(), 7);
         BOOST_CHECK_EQUAL(pool.getNProofs(), 3);
-        BOOST_CHECK(pool.getProof(first.getId()));
+        BOOST_CHECK(pool.getProof(first->getId()));
     }
 
     {
         OrphanProofPool pool{6};
-        Proof first = makeProof(4);
+        auto first = makeProof(4);
         pool.addProof(first);
         pool.addProof(makeProof(2));
         BOOST_CHECK_EQUAL(pool.getNStakes(), 6);
@@ -79,14 +79,14 @@ BOOST_AUTO_TEST_CASE(check_eviction_behavior) {
         pool.addProof(makeProof(1));
         BOOST_CHECK_EQUAL(pool.getNStakes(), 3);
         BOOST_CHECK_EQUAL(pool.getNProofs(), 2);
-        BOOST_CHECK(!pool.getProof(first.getId()));
+        BOOST_CHECK(!pool.getProof(first->getId()));
     }
 
     {
         OrphanProofPool pool{15};
-        Proof first = makeProof(1);
+        auto first = makeProof(1);
         pool.addProof(first);
-        Proof second = makeProof(2);
+        auto second = makeProof(2);
         pool.addProof(second);
         pool.addProof(makeProof(4));
         pool.addProof(makeProof(8));
@@ -97,8 +97,8 @@ BOOST_AUTO_TEST_CASE(check_eviction_behavior) {
         pool.addProof(makeProof(2));
         BOOST_CHECK_EQUAL(pool.getNStakes(), 14);
         BOOST_CHECK_EQUAL(pool.getNProofs(), 3);
-        BOOST_CHECK(!pool.getProof(first.getId()));
-        BOOST_CHECK(!pool.getProof(second.getId()));
+        BOOST_CHECK(!pool.getProof(first->getId()));
+        BOOST_CHECK(!pool.getProof(second->getId()));
     }
 }
 
@@ -108,8 +108,8 @@ BOOST_AUTO_TEST_CASE(remove_proofs) {
 
     // Add 10 proofs
     for (size_t i = 0; i < 10; i++) {
-        Proof p = makeProof(i + 1);
-        aProofIds[i] = p.getId();
+        auto p = makeProof(i + 1);
+        aProofIds[i] = p->getId();
         BOOST_CHECK(pool.addProof(p));
     }
     BOOST_CHECK_EQUAL(pool.getNProofs(), 10);
@@ -136,9 +136,9 @@ BOOST_AUTO_TEST_CASE(remove_proofs) {
     BOOST_CHECK_EQUAL(pool.getNStakes(), 38);
 
     // Fail to remove a proof that was never in the pool
-    Proof p = makeProof(11);
-    BOOST_CHECK(!pool.getProof(p.getId()));
-    BOOST_CHECK(!pool.removeProof(p.getId()));
+    auto p = makeProof(11);
+    BOOST_CHECK(!pool.getProof(p->getId()));
+    BOOST_CHECK(!pool.removeProof(p->getId()));
     BOOST_CHECK_EQUAL(pool.getNProofs(), 7);
     BOOST_CHECK_EQUAL(pool.getNStakes(), 38);
 }
