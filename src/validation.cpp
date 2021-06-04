@@ -5972,6 +5972,15 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
                       coins_count - coins_left);
             return false;
         }
+        if (coin.GetHeight() > uint32_t(base_height) ||
+            // Avoid integer wrap-around in coinstats.cpp:ApplyHash
+            outpoint.GetN() >=
+                std::numeric_limits<decltype(outpoint.GetN())>::max()) {
+            LogPrintf(
+                "[snapshot] bad snapshot data after deserializing %d coins\n",
+                coins_count - coins_left);
+            return false;
+        }
         coins_cache.EmplaceCoinInternalDANGER(std::move(outpoint),
                                               std::move(coin));
 
