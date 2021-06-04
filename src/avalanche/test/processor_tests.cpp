@@ -35,11 +35,6 @@ namespace {
             return p.getSuitableNodeToQuery();
         }
 
-        static avalanche::PeerManager &getPeerManager(Processor &p) {
-            LOCK(p.cs_peerManager);
-            return *p.peerManager;
-        }
-
         static uint64_t getRound(const Processor &p) { return p.round; }
     };
 } // namespace
@@ -134,14 +129,13 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     }
 
     std::array<CNode *, 8> ConnectNodes() {
-        avalanche::PeerManager &pm = getPeerManager();
         auto proof = GetProof();
         Delegation dg = DelegationBuilder(*proof).build();
 
         std::array<CNode *, 8> nodes;
         for (CNode *&n : nodes) {
             n = ConnectNode(NODE_AVALANCHE);
-            BOOST_CHECK(pm.addNode(n->GetId(), proof, dg));
+            BOOST_CHECK(m_processor->addNode(n->GetId(), proof, dg));
         }
 
         return nodes;
@@ -155,10 +149,6 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
     std::vector<CInv> getInvsForNextPoll() {
         return AvalancheTest::getInvsForNextPoll(*m_processor);
-    }
-
-    avalanche::PeerManager &getPeerManager() {
-        return AvalancheTest::getPeerManager(*m_processor);
     }
 
     uint64_t getRound() const { return AvalancheTest::getRound(*m_processor); }
@@ -743,14 +733,13 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 
 BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Create enough nodes so that we run into the inflight request limit.
-    avalanche::PeerManager &pm = getPeerManager();
     auto proof = GetProof();
     Delegation dg = DelegationBuilder(*proof).build();
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
         n = ConnectNode(NODE_AVALANCHE);
-        BOOST_CHECK(pm.addNode(n->GetId(), proof, dg));
+        BOOST_CHECK(m_processor->addNode(n->GetId(), proof, dg));
     }
 
     // Add a block to poll
