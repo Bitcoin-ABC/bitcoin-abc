@@ -36,8 +36,7 @@ public:
     explicit BitcoinUnits(QObject *parent);
 
     /**
-     * Bitcoin units (Bitcoin Cash unit work the same as Bitoin).
-     * @note Source: https://en.bitcoin.it/wiki/Units.
+     * Currency units
      * Please add only sensible ones.
      */
     enum Unit { base, sub };

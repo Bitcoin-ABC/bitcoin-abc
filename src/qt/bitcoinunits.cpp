@@ -4,9 +4,42 @@
 
 #include <qt/bitcoinunits.h>
 
+#include <currencyunit.h>
 #include <network.h>
+#include <util/system.h>
 
 #include <QStringList>
+
+// clang-format off
+using unitNameMap =
+    std::map<
+        BitcoinUnits::Unit,
+        std::tuple<
+            QString /* longname */,
+            QString /* description */
+        >
+    >;
+static const unitNameMap xecUnits = {
+    {BitcoinUnits::Unit::base,
+        {"XEC",
+        "eCash"}},
+    {BitcoinUnits::Unit::sub,
+        {"Satoshi (sat)",
+        "Satoshi (sat) (1 / 100)"}},
+};
+static const unitNameMap bchUnits = {
+    {BitcoinUnits::Unit::base,
+        {"BCHA",
+        "Bitcoins"}},
+    {BitcoinUnits::Unit::sub,
+        {"Satoshi (sat)",
+        "Satoshi (sat) (1 / 100" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)"}},
+};
+// clang-format on
+
+static const unitNameMap &getUnitsAtRuntime() {
+    return gArgs.GetBoolArg("-xec", DEFAULT_XEC) ? xecUnits : bchUnits;
+}
 
 BitcoinUnits::BitcoinUnits(QObject *parent)
     : QAbstractListModel(parent), unitlist(availableUnits()) {}
@@ -29,36 +62,22 @@ bool BitcoinUnits::valid(int unit) {
 }
 
 QString BitcoinUnits::longName(int unit) {
-    const auto &ticker = Currency::get().ticker;
-    switch (unit) {
-        case base:
-            return QString(ticker.c_str());
-        case sub:
-            return QString("Satoshi (sat)");
-        default:
-            return QString("???");
-    }
+    const auto &units = getUnitsAtRuntime();
+    auto it = units.find(BitcoinUnits::Unit(unit));
+    return it != units.end() ? std::get<0>(it->second) : "???";
 }
 
 QString BitcoinUnits::shortName(int unit) {
-    switch (unit) {
-        case sub:
-            return QString("sat");
-        default:
-            return longName(unit);
+    if (unit == sub) {
+        return QString("sat");
     }
+    return longName(unit);
 }
 
 QString BitcoinUnits::description(int unit) {
-    switch (unit) {
-        case base:
-            return QString("Bitcoins");
-        case sub:
-            return QString("Satoshi (sat) (1 / 100" THIN_SP_UTF8
-                           "000" THIN_SP_UTF8 "000)");
-        default:
-            return QString("???");
-    }
+    const auto &units = getUnitsAtRuntime();
+    auto it = units.find(BitcoinUnits::Unit(unit));
+    return it != units.end() ? std::get<1>(it->second) : "???";
 }
 
 Amount BitcoinUnits::factor(int unit) {
@@ -69,7 +88,7 @@ Amount BitcoinUnits::factor(int unit) {
         case sub:
             return currency.subunit;
         default:
-            return currency.baseunit;
+            assert(false && "non-existent BitcoinUnits::Unit");
     }
 }
 
@@ -80,7 +99,7 @@ int BitcoinUnits::decimals(int unit) {
         case sub:
             return 0;
         default:
-            return 0;
+            assert(false && "non-existent BitcoinUnits::Unit");
     }
 }
 
