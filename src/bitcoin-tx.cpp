@@ -13,6 +13,7 @@
 #include <core_io.h>
 #include <key_io.h>
 #include <primitives/transaction.h>
+#include <rpc/util.h>
 #include <script/script.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
@@ -559,24 +560,6 @@ static bool findSigHashFlags(SigHashType &sigHashType,
     return false;
 }
 
-static Amount AmountFromValue(const UniValue &value) {
-    if (!value.isNum() && !value.isStr()) {
-        throw std::runtime_error("Amount is not a number or string");
-    }
-
-    int64_t n;
-    if (!ParseFixedPoint(value.getValStr(), 8, &n)) {
-        throw std::runtime_error("Invalid amount");
-    }
-    Amount amount = n * SATOSHI;
-
-    if (!MoneyRange(amount)) {
-        throw std::runtime_error("Amount out of range");
-    }
-
-    return amount;
-}
-
 static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
     SigHashType sigHashType = SigHashType().withForkId();
 
@@ -864,6 +847,10 @@ static int CommandLineRawTx(int argc, char *argv[],
         OutputTx(CTransaction(tx));
     } catch (const std::exception &e) {
         strPrint = std::string("error: ") + e.what();
+        nRet = EXIT_FAILURE;
+    } catch (const UniValue &e) {
+        strPrint = std::string("error code: ") + e["code"].getValStr() +
+                   " message: " + e["message"].getValStr();
         nRet = EXIT_FAILURE;
     } catch (...) {
         PrintExceptionContinue(nullptr, "CommandLineRawTx()");
