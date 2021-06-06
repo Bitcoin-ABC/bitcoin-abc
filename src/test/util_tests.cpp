@@ -1852,6 +1852,25 @@ BOOST_AUTO_TEST_CASE(test_FormatSubVersion) {
         std::string("/Test:0.9.99(comment1; Comment2; .,_?@-; )/"));
 }
 
+BOOST_AUTO_TEST_CASE(test_FormatSubVersionUserAgent) {
+    std::vector<std::string> comments;
+    comments.push_back(std::string("comment1"));
+    std::vector<std::string> comments2;
+    comments2.push_back(std::string("comment1"));
+    // Semicolon is discouraged but not forbidden by BIP-0014
+    comments2.push_back(SanitizeString(
+        std::string("Comment2; .,_?@-; !\"#$%&'()*+/<=>[]\\^`{|}~"),
+        SAFE_CHARS_UA_COMMENT));
+    BOOST_CHECK_EQUAL(
+        FormatSubVersionUserAgent("Test:0.9.99", std::vector<std::string>()),
+        std::string("/Test:0.9.99/"));
+    BOOST_CHECK_EQUAL(FormatSubVersionUserAgent("Test:0.9.99", comments),
+                      std::string("/Test:0.9.99(comment1)/"));
+    BOOST_CHECK_EQUAL(
+        FormatSubVersionUserAgent("Test:0.9.99", comments2),
+        std::string("/Test:0.9.99(comment1; Comment2; .,_?@-; )/"));
+}
+
 BOOST_AUTO_TEST_CASE(test_ParseFixedPoint) {
     int64_t amount = 0;
     BOOST_CHECK(ParseFixedPoint("0", 8, &amount));
