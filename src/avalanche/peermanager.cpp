@@ -6,6 +6,7 @@
 
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
+#include <net_processing.h> // For RelayProof
 #include <random.h>
 #include <validation.h> // For ChainstateActive()
 
@@ -300,6 +301,8 @@ bool PeerManager::removePeer(const PeerId peerid) {
         assert(deleted);
     }
 
+    m_unbroadcast_proofids.erase(it->proof->getId());
+
     peers.erase(it);
     return true;
 }
@@ -497,6 +500,31 @@ bool PeerManager::isOrphan(const ProofId &id) const {
 
 std::shared_ptr<Proof> PeerManager::getOrphan(const ProofId &id) const {
     return orphanProofs.getProof(id);
+}
+
+void PeerManager::addUnbroadcastProof(const ProofId &proofid) {
+    // The proof should be known
+    if (getProof(proofid)) {
+        m_unbroadcast_proofids.insert(proofid);
+    }
+}
+
+void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
+    m_unbroadcast_proofids.erase(proofid);
+}
+
+void PeerManager::broadcastProofs(const CConnman &connman) {
+    // For some reason SaltedProofIdHasher prevents the set from being swappable
+    std::unordered_set<ProofId, SaltedProofIdHasher>
+        previous_unbroadcasted_proofids = std::move(m_unbroadcast_proofids);
+    m_unbroadcast_proofids.clear();
+
+    for (auto &proofid : previous_unbroadcasted_proofids) {
+        if (getProof(proofid)) {
+            m_unbroadcast_proofids.insert(proofid);
+            RelayProof(proofid, connman);
+        }
+    }
 }
 
 } // namespace avalanche

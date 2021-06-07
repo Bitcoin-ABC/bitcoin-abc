@@ -1095,6 +1095,10 @@ void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
         }
     }
 
+    if (g_avalanche && isAvalancheEnabled(gArgs)) {
+        g_avalanche->broadcastProofs();
+    }
+
     // Schedule next run for 10-15 minutes in the future.
     // We add randomness on every cycle to avoid the possibility of P2P
     // fingerprinting.
@@ -2117,12 +2121,12 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
         const CInv &inv = *it;
 
         if (it->IsMsgProof()) {
-            auto proof =
-                FindProofForGetData(pfrom, avalanche::ProofId{inv.hash}, now);
+            const avalanche::ProofId proofid = avalanche::ProofId{inv.hash};
+            auto proof = FindProofForGetData(pfrom, proofid, now);
             if (proof) {
                 connman.PushMessage(
                     &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
-                // TODO Remove from the set of unbroadcasted proof ids
+                g_avalanche->removeUnbroadcastProof(proofid);
             } else {
                 vNotFound.push_back(inv);
             }

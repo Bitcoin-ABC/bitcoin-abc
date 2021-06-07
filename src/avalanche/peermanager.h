@@ -22,6 +22,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 namespace avalanche {
@@ -98,6 +99,11 @@ class PeerManager {
     uint64_t fragmentation = 0;
 
     OrphanProofPool orphanProofs{AVALANCHE_ORPHANPROOFPOOL_SIZE};
+
+    /**
+     * Track proof ids to broadcast
+     */
+    std::unordered_set<ProofId, SaltedProofIdHasher> m_unbroadcast_proofids;
 
     /**
      * Several nodes can make an avalanche peer. In this case, all nodes are
@@ -201,6 +207,10 @@ public:
 
     bool isOrphan(const ProofId &id) const;
     std::shared_ptr<Proof> getOrphan(const ProofId &id) const;
+
+    void addUnbroadcastProof(const ProofId &proofid);
+    void removeUnbroadcastProof(const ProofId &proofid);
+    void broadcastProofs(const CConnman &connman);
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);

@@ -94,8 +94,13 @@ static UniValue addavalanchenode(const Config &config,
         return false;
     }
 
-    return g_avalanche->addNode(nodeid, proof,
-                                avalanche::DelegationBuilder(*proof).build());
+    if (!g_avalanche->addNode(nodeid, proof,
+                              avalanche::DelegationBuilder(*proof).build())) {
+        return false;
+    }
+
+    g_avalanche->addUnbroadcastProof(proof->getId());
+    return true;
 }
 
 static UniValue buildavalancheproof(const Config &config,
@@ -553,6 +558,7 @@ static UniValue sendavalancheproof(const Config &config,
             "The proof has conflicting utxo with an existing proof");
     }
 
+    g_avalanche->addUnbroadcastProof(proofid);
     RelayProof(proofid, *node.connman);
 
     return true;

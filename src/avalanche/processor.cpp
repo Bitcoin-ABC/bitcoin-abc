@@ -780,4 +780,19 @@ std::vector<NodeId> Processor::getNodeIdsForPeer(PeerId peerId) const {
     return peerManager->getNodeIdsForPeer(peerId);
 }
 
+void Processor::addUnbroadcastProof(const ProofId &proofid) {
+    LOCK(cs_peerManager);
+    peerManager->addUnbroadcastProof(proofid);
+}
+
+void Processor::removeUnbroadcastProof(const ProofId &proofid) {
+    LOCK(cs_peerManager);
+    peerManager->removeUnbroadcastProof(proofid);
+}
+
+void Processor::broadcastProofs() {
+    LOCK(cs_peerManager);
+    peerManager->broadcastProofs(*connman);
+}
+
 } // namespace avalanche
