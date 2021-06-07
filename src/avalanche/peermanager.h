@@ -74,8 +74,12 @@ struct Peer {
 
     std::shared_ptr<Proof> proof;
 
+    using Timestamp = std::chrono::time_point<std::chrono::system_clock>;
+    Timestamp time;
+
     Peer(PeerId peerid_, std::shared_ptr<Proof> proof_)
-        : peerid(peerid_), proof(std::move(proof_)) {}
+        : peerid(peerid_), proof(std::move(proof_)),
+          time(std::chrono::seconds(GetTime())) {}
 
     const ProofId &getProofId() const { return proof->getId(); }
     uint32_t getScore() const { return proof->getScore(); }
@@ -193,6 +197,7 @@ public:
     std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
+    Peer::Timestamp getProofTime(const ProofId &proofid) const;
 
     bool isOrphan(const ProofId &id);
 

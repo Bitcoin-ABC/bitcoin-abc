@@ -517,6 +517,11 @@ std::shared_ptr<Proof> Processor::getLocalProof() const {
     return peerData ? peerData->proof : nullptr;
 }
 
+Peer::Timestamp Processor::getProofTime(const ProofId &proofid) const {
+    LOCK(cs_peerManager);
+    return peerManager->getProofTime(proofid);
+}
+
 bool Processor::startEventLoop(CScheduler &scheduler) {
     return eventLoop.startEventLoop(
         scheduler, [this]() { this->runEventLoop(); }, AVALANCHE_TIME_STEP);

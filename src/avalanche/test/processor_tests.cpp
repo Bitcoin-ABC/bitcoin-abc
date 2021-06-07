@@ -969,6 +969,9 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
         proofs.push_back(GetProof());
     }
 
+    const Peer::Timestamp checkpoint =
+        Peer::Timestamp(std::chrono::seconds(GetTime()));
+
     for (int i = 0; i < numProofs; i++) {
         BOOST_CHECK(m_processor->addProof(proofs[i]));
         // Fail to add an existing proof
@@ -977,11 +980,21 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
         for (int added = 0; added <= i; added++) {
             auto proof = m_processor->getProof(proofs[added]->getId());
             BOOST_CHECK(proof != nullptr);
-            BOOST_CHECK_EQUAL(proof->getId(), proofs[added]->getId());
+
+            const ProofId &proofid = proof->getId();
+            BOOST_CHECK_EQUAL(proofid, proofs[added]->getId());
+
+            const Peer::Timestamp proofTime =
+                m_processor->getProofTime(proofid);
+            BOOST_CHECK(proofTime != Peer::Timestamp::max());
+            BOOST_CHECK(proofTime >= checkpoint);
         }
 
         for (int missing = i + 1; missing < numProofs; missing++) {
-            BOOST_CHECK(!m_processor->getProof(proofs[missing]->getId()));
+            const ProofId &proofid = proofs[missing]->getId();
+            BOOST_CHECK(!m_processor->getProof(proofid));
+            BOOST_CHECK(m_processor->getProofTime(proofid) ==
+                        Peer::Timestamp::max());
         }
     }
 
