@@ -513,6 +513,10 @@ std::shared_ptr<Proof> Processor::getProof(const ProofId &proofid) const {
     return peerManager->getProof(proofid);
 }
 
+std::shared_ptr<Proof> Processor::getLocalProof() const {
+    return peerData ? peerData->proof : nullptr;
+}
+
 bool Processor::startEventLoop(CScheduler &scheduler) {
     return eventLoop.startEventLoop(
         scheduler, [this]() { this->runEventLoop(); }, AVALANCHE_TIME_STEP);

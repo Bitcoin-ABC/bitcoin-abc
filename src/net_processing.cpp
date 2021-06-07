@@ -494,6 +494,10 @@ struct CNodeState {
     CRollingBloomFilter m_recently_announced_invs =
         CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
 
+    //! A rolling bloom filter of all announced Proofs CInvs to this peer.
+    CRollingBloomFilter m_recently_announced_proofs =
+        CRollingBloomFilter{INVENTORY_MAX_RECENT_RELAY, 0.000001};
+
     CNodeState(CAddress addrIn, bool is_inbound, bool is_manual)
         : address(addrIn), m_is_inbound(is_inbound),
           m_is_manual_connection(is_manual) {
@@ -517,6 +521,7 @@ struct CNodeState {
         m_chain_sync = {0, nullptr, false, false};
         m_last_block_announcement = 0;
         m_recently_announced_invs.reset();
+        m_recently_announced_proofs.reset();
     }
 };
 
@@ -2945,6 +2950,17 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             if (g_avalanche->sendHello(&pfrom)) {
                 LogPrint(BCLog::NET, "Send avahello to peer %d\n",
                          pfrom.GetId());
+
+                auto localProof = g_avalanche->getLocalProof();
+                // If we sent a hello message, we should have a proof
+                assert(localProof);
+
+                // Add our proof id to the list or the recently announced proof
+                // INVs to this peer. This is used for filtering which INV can
+                // be requested for download.
+                LOCK(cs_main);
+                State(pfrom.GetId())
+                    ->m_recently_announced_proofs.insert(localProof->getId());
             }
         }
 

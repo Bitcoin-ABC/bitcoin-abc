@@ -304,6 +304,7 @@ public:
 
     bool addProof(const std::shared_ptr<Proof> &proof);
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
+    std::shared_ptr<Proof> getLocalProof() const;
 
     /*
      * Return whether the avalanche service flag should be set.
