@@ -927,8 +927,8 @@ void BitcoinGUI::aboutClicked() {
         return;
     }
 
-    HelpMessageDialog dlg(this, true);
-    dlg.exec();
+    auto dlg = new HelpMessageDialog(this, /* about */ true);
+    GUIUtil::ShowModalDialogAsynchronously(dlg);
 }
 
 void BitcoinGUI::showDebugWindow() {
@@ -1090,10 +1090,10 @@ void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
         return;
     }
 
-    OptionsDialog dlg(this, enableWallet);
-    dlg.setCurrentTab(tab);
-    dlg.setModel(clientModel->getOptionsModel());
-    dlg.exec();
+    auto dlg = new OptionsDialog(this, enableWallet);
+    dlg->setCurrentTab(tab);
+    dlg->setModel(clientModel->getOptionsModel());
+    GUIUtil::ShowModalDialogAsynchronously(dlg);
 }
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,

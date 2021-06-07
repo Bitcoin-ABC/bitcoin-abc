@@ -34,6 +34,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractItemView;
 class QAction;
 class QDateTime;
+class QDialog;
 class QFont;
 class QLineEdit;
 class QMenu;
@@ -353,6 +354,11 @@ void PopupMenu(QMenu *menu, const QPoint &point, QAction *at_action = nullptr);
 
 // Fix known bugs in QProgressDialog class.
 void PolishProgressDialog(QProgressDialog *dialog);
+
+/**
+ * Shows a QDialog instance asynchronously, and deletes it on close.
+ */
+void ShowModalDialogAsynchronously(QDialog *dialog);
 } // namespace GUIUtil
 
 #endif // BITCOIN_QT_GUIUTIL_H

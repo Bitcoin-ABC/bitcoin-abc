@@ -214,14 +214,14 @@ void AddressBookPage::onEditAction() {
         return;
     }
 
-    EditAddressDialog dlg(tab == SendingTab
-                              ? EditAddressDialog::EditSendingAddress
-                              : EditAddressDialog::EditReceivingAddress,
-                          this);
-    dlg.setModel(model);
+    auto dlg = new EditAddressDialog(
+        tab == SendingTab ? EditAddressDialog::EditSendingAddress
+                          : EditAddressDialog::EditReceivingAddress,
+        this);
+    dlg->setModel(model);
     QModelIndex origIndex = proxyModel->mapToSource(indexes.at(0));
-    dlg.loadRow(origIndex.row());
-    dlg.exec();
+    dlg->loadRow(origIndex.row());
+    GUIUtil::ShowModalDialogAsynchronously(dlg);
 }
 
 void AddressBookPage::on_newAddress_clicked() {

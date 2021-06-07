@@ -209,6 +209,7 @@ void WalletFrame::gotoLoadPSBT() {
     if (walletView) {
         walletView->gotoLoadPSBT();
     }
+    // TODO: apply core-gui#336 when adding PSBTOperationsDialog
 }
 
 void WalletFrame::encryptWallet() {

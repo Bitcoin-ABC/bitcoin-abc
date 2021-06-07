@@ -545,19 +545,21 @@ void TransactionView::editLabel() {
             QString type =
                 modelIdx.data(AddressTableModel::TypeRole).toString();
 
-            EditAddressDialog dlg(type == AddressTableModel::Receive
-                                      ? EditAddressDialog::EditReceivingAddress
-                                      : EditAddressDialog::EditSendingAddress,
-                                  this);
-            dlg.setModel(addressBook);
-            dlg.loadRow(idx);
-            dlg.exec();
+            auto dlg = new EditAddressDialog(
+                type == AddressTableModel::Receive
+                    ? EditAddressDialog::EditReceivingAddress
+                    : EditAddressDialog::EditSendingAddress,
+                this);
+            dlg->setModel(addressBook);
+            dlg->loadRow(idx);
+            GUIUtil::ShowModalDialogAsynchronously(dlg);
         } else {
             // Add sending address
-            EditAddressDialog dlg(EditAddressDialog::NewSendingAddress, this);
-            dlg.setModel(addressBook);
-            dlg.setAddress(address);
-            dlg.exec();
+            auto dlg = new EditAddressDialog(
+                EditAddressDialog::NewSendingAddress, this);
+            dlg->setModel(addressBook);
+            dlg->setAddress(address);
+            GUIUtil::ShowModalDialogAsynchronously(dlg);
         }
     }
 }

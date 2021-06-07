@@ -40,6 +40,7 @@
 #include <QClipboard>
 #include <QDateTime>
 #include <QDesktopServices>
+#include <QDialog>
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFont>
@@ -995,6 +996,12 @@ void PopupMenu(QMenu *menu, const QPoint &point, QAction *at_action) {
         return;
     }
     menu->popup(point, at_action);
+}
+
+void ShowModalDialogAsynchronously(QDialog *dialog) {
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setWindowModality(Qt::ApplicationModal);
+    dialog->show();
 }
 
 } // namespace GUIUtil
