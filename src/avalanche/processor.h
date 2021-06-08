@@ -37,11 +37,6 @@ struct bilingual_str;
 using NodePeerManager = PeerManager;
 
 /**
- * Is avalanche enabled by default.
- */
-static constexpr bool AVALANCHE_DEFAULT_ENABLED = false;
-
-/**
  * Finalization score.
  */
 static constexpr int AVALANCHE_FINALIZATION_SCORE = 128;
@@ -50,10 +45,7 @@ static constexpr int AVALANCHE_FINALIZATION_SCORE = 128;
  * Maximum item that can be polled at once.
  */
 static constexpr size_t AVALANCHE_MAX_ELEMENT_POLL = 16;
-/**
- * Avalanche default cooldown in milliseconds.
- */
-static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
+
 /**
  * How long before we consider that a query timed out.
  */
@@ -334,10 +326,5 @@ private:
 };
 
 } // namespace avalanche
-
-/**
- * Global avalanche instance.
- */
-extern std::unique_ptr<avalanche::Processor> g_avalanche;
 
 #endif // BITCOIN_AVALANCHE_PROCESSOR_H

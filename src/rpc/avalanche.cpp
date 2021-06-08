@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/avalanche.h>
 #include <avalanche/delegation.h>
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>

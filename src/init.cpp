@@ -11,6 +11,7 @@
 
 #include <addrman.h>
 #include <amount.h>
+#include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <avalanche/validation.h>
 #include <banman.h>

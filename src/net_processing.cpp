@@ -6,6 +6,7 @@
 #include <net_processing.h>
 
 #include <addrman.h>
+#include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
 #include <avalanche/validation.h>
