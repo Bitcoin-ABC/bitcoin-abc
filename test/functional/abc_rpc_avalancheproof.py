@@ -234,10 +234,10 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         self.log.info("Check the verifyavalancheproof RPC")
 
-        assert_raises_rpc_error(-8, "Proof must be an hexadecimal string",
-                                    node.verifyavalancheproof, "f00")
-        assert_raises_rpc_error(-8, "Proof has invalid format",
-                                    node.verifyavalancheproof, "f00d")
+        assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
+                                node.verifyavalancheproof, "f00")
+        assert_raises_rpc_error(-22, "Proof has invalid format",
+                                node.verifyavalancheproof, "f00d")
 
         def check_verifyavalancheproof_failure(proof, message):
             assert_raises_rpc_error(-8, "The proof is invalid: " + message,
