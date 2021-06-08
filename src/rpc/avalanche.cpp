@@ -13,6 +13,7 @@
 #include <config.h>
 #include <core_io.h>
 #include <key_io.h>
+#include <net_processing.h>
 #include <node/context.h>
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
@@ -498,8 +499,7 @@ static UniValue sendavalancheproof(const Config &config,
             "The proof has conflicting utxo with an existing proof");
     }
 
-    // TODO actually announce the proof via an inv message
-    // RelayProof(proofid, *node.connman);
+    RelayProof(proofid, *node.connman);
 
     return true;
 }

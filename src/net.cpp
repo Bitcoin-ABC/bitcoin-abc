@@ -9,6 +9,7 @@
 
 #include <net.h>
 
+#include <avalanche/avalanche.h>
 #include <banman.h>
 #include <clientversion.h>
 #include <config.h>
@@ -3005,6 +3006,11 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
     if (conn_type_in != ConnectionType::BLOCK_RELAY) {
         m_tx_relay = std::make_unique<TxRelay>();
         m_addr_known = std::make_unique<CRollingBloomFilter>(5000, 0.001);
+    }
+
+    // Don't relay proofs if avalanche is disabled
+    if (isAvalancheEnabled(gArgs)) {
+        m_proof_relay = std::make_unique<ProofRelay>();
     }
 
     for (const std::string &msg : getAllNetMessageTypes()) {

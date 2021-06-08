@@ -1769,6 +1769,11 @@ void RelayTransaction(const TxId &txid, const CConnman &connman) {
         [&txid](CNode *pnode) { pnode->PushTxInventory(txid); });
 }
 
+void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman) {
+    connman.ForEachNode(
+        [&proofid](CNode *pnode) { pnode->PushProofInventory(proofid); });
+}
+
 static void RelayAddress(const CAddress &addr, bool fReachable,
                          const CConnman &connman) {
     // Limited relaying of addresses outside our network(s)
@@ -3192,6 +3197,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 const avalanche::ProofId proofid(inv.hash);
                 const bool fAlreadyHave = AlreadyHaveProof(proofid);
                 logInv(inv, fAlreadyHave);
+                pfrom.AddKnownProof(proofid);
 
                 if (!fAlreadyHave && g_avalanche && isAvalancheEnabled(gArgs)) {
                     const bool preferred = isPreferredDownloadPeer(pfrom);
@@ -5327,6 +5333,29 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
             return fSendTrickle;
         };
+
+        // Add proofs to inventory
+        if (pto->m_proof_relay != nullptr) {
+            LOCK(pto->m_proof_relay->cs_proof_inventory);
+
+            if (computeNextInvSendTime(pto->m_proof_relay->nextInvSend)) {
+                auto it = pto->m_proof_relay->setInventoryProofToSend.begin();
+                while (it !=
+                       pto->m_proof_relay->setInventoryProofToSend.end()) {
+                    const avalanche::ProofId proofid = *it;
+
+                    it = pto->m_proof_relay->setInventoryProofToSend.erase(it);
+
+                    if (pto->m_proof_relay->filterProofKnown.contains(
+                            proofid)) {
+                        continue;
+                    }
+
+                    pto->m_proof_relay->filterProofKnown.insert(proofid);
+                    addInvAndMaybeFlush(MSG_AVA_PROOF, proofid);
+                }
+            }
+        }
 
         if (pto->m_tx_relay != nullptr) {
             LOCK(pto->m_tx_relay->cs_tx_inventory);

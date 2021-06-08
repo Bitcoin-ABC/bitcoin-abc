@@ -995,6 +995,19 @@ public:
     // m_tx_relay == nullptr if we're not relaying transactions with this peer
     std::unique_ptr<TxRelay> m_tx_relay;
 
+    struct ProofRelay {
+        mutable RecursiveMutex cs_proof_inventory;
+        std::set<avalanche::ProofId>
+            setInventoryProofToSend GUARDED_BY(cs_proof_inventory);
+        // Prevent sending proof invs if the peer already knows about them
+        CRollingBloomFilter filterProofKnown GUARDED_BY(cs_proof_inventory){
+            10000, 0.000001};
+        std::chrono::microseconds nextInvSend{0};
+    };
+
+    // m_proof_relay == nullptr if we're not relaying proofs with this peer
+    std::unique_ptr<ProofRelay> m_proof_relay;
+
     struct AvalancheState {
         AvalancheState() {}
 
@@ -1157,6 +1170,24 @@ public:
         LOCK(m_tx_relay->cs_tx_inventory);
         if (!m_tx_relay->filterInventoryKnown.contains(txid)) {
             m_tx_relay->setInventoryTxToSend.insert(txid);
+        }
+    }
+
+    void AddKnownProof(const avalanche::ProofId &proofid) {
+        if (m_proof_relay != nullptr) {
+            LOCK(m_proof_relay->cs_proof_inventory);
+            m_proof_relay->filterProofKnown.insert(proofid);
+        }
+    }
+
+    void PushProofInventory(const avalanche::ProofId &proofid) {
+        if (m_proof_relay == nullptr) {
+            return;
+        }
+
+        LOCK(m_proof_relay->cs_proof_inventory);
+        if (!m_proof_relay->filterProofKnown.contains(proofid)) {
+            m_proof_relay->setInventoryProofToSend.insert(proofid);
         }
     }
 

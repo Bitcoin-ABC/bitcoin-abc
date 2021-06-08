@@ -18,7 +18,7 @@ from test_framework.messages import (
     AvalancheProof,
     FromHex,
 )
-from test_framework.p2p import P2PInterface
+from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.util import (
@@ -260,18 +260,17 @@ class AvalancheProofTest(BitcoinTestFramework):
         # Good proof
         assert node.verifyavalancheproof(proof)
 
+        peer = node.add_p2p_connection(P2PInterface())
+
         proofid = FromHex(AvalancheProof(), proof).proofid
         node.sendavalancheproof(proof)
         assert proofid in get_proof_ids(node)
 
-        # TODO Once implemented we expect the sendavalancheproof to trigger the
-        # sending of an inv message with our proof:
-        #
-        # def inv_found():
-        #     with p2p_lock:
-        #         return peer.last_message.get(
-        #             "inv") and peer.last_message["inv"].inv[-1].hash == proofid
-        # wait_until(inv_found)
+        def inv_found():
+            with p2p_lock:
+                return peer.last_message.get(
+                    "inv") and peer.last_message["inv"].inv[-1].hash == proofid
+        wait_until(inv_found)
 
         self.log.info("Bad proof should be rejected at startup")
 

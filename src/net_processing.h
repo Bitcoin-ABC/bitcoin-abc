@@ -15,6 +15,10 @@
 extern RecursiveMutex cs_main;
 extern RecursiveMutex g_cs_orphans;
 
+namespace avalanche {
+struct ProofId;
+}
+
 class BlockTransactionsRequest;
 class BlockValidationState;
 class CBlockHeader;
@@ -239,5 +243,8 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 
 /** Relay transaction to every node */
 void RelayTransaction(const TxId &txid, const CConnman &connman);
+
+/** Relay proof to every node */
+void RelayProof(const avalanche::ProofId &proofid, const CConnman &connman);
 
 #endif // BITCOIN_NET_PROCESSING_H

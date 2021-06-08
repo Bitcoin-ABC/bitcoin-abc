@@ -499,6 +499,8 @@ bool Processor::sendHello(CNode *pfrom) const {
                                     .Make(NetMsgType::AVAHELLO,
                                           Hello(peerData->delegation, sig)));
 
+    pfrom->AddKnownProof(peerData->delegation.getProofId());
+
     return true;
 }
 
