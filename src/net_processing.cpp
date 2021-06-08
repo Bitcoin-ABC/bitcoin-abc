@@ -2749,7 +2749,8 @@ static void ProcessGetCFCheckPt(CNode &peer, CDataStream &vRecv,
 bool IsAvalancheMessageType(const std::string &msg_type) {
     return msg_type == NetMsgType::AVAHELLO ||
            msg_type == NetMsgType::AVAPOLL ||
-           msg_type == NetMsgType::AVARESPONSE;
+           msg_type == NetMsgType::AVARESPONSE ||
+           msg_type == NetMsgType::AVAPROOF;
 }
 
 void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
@@ -4291,6 +4292,45 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             if (!ActivateBestChain(config, state)) {
                 LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
                          state.ToString());
+            }
+        }
+
+        return;
+    }
+
+    if (msg_type == NetMsgType::AVAPROOF) {
+        auto proof = std::make_shared<avalanche::Proof>();
+        vRecv >> *proof;
+        const avalanche::ProofId &proofid = proof->getId();
+
+        pfrom.AddKnownProof(proofid);
+
+        const NodeId nodeid = pfrom.GetId();
+
+        {
+            LOCK(cs_proofrequest);
+            m_proofrequest.ReceivedResponse(nodeid, proofid);
+
+            if (AlreadyHaveProof(proofid)) {
+                m_proofrequest.ForgetInvId(proofid);
+                return;
+            }
+        }
+
+        // addProof should not be called while cs_proofrequest because it holds
+        // cs_main and that creates a potential deadlock during shutdown
+        if (g_avalanche->addProof(proof)) {
+            WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
+            RelayProof(proofid, m_connman);
+
+            LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
+                     nodeid, proofid.ToString());
+        } else {
+            // If the proof couldn't be added, it can be either orphan or
+            // invalid. In the latter case we should increase the ban score.
+            // TODO improve the ban reason by printing the validation state
+            if (!g_avalanche->getOrphan(proofid)) {
+                Misbehaving(nodeid, 100, "invalid-avaproof");
             }
         }
 

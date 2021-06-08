@@ -18,6 +18,7 @@ import time
 from typing import Optional
 
 from .authproxy import JSONRPCException
+from .avatools import get_proof_ids
 from . import coverage
 from .p2p import NetworkThread
 from .test_node import TestNode
@@ -576,6 +577,25 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         raise AssertionError("Mempool sync timed out after {}s:{}".format(
             timeout,
             "".join("\n  {!r}".format(m) for m in pool),
+        ))
+
+    def sync_proofs(self, nodes=None, wait=1, timeout=60):
+        """
+        Wait until everybody has the same proofs in their proof pools
+        """
+        rpc_connections = nodes or self.nodes
+        timeout = int(timeout * self.options.timeout_factor)
+        stop_time = time.time() + timeout
+        while time.time() <= stop_time:
+            nodes_proofs = [set(get_proof_ids(r)) for r in rpc_connections]
+            if nodes_proofs.count(nodes_proofs[0]) == len(rpc_connections):
+                return
+            # Check that each peer has at least one connection
+            assert (all([len(x.getpeerinfo()) for x in rpc_connections]))
+            time.sleep(wait)
+        raise AssertionError("Proofs sync timed out after {}s:{}".format(
+            timeout,
+            "".join("\n  {!r}".format(m) for m in nodes_proofs),
         ))
 
     def sync_all(self, nodes=None):
