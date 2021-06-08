@@ -443,6 +443,24 @@ static UniValue getavalanchepeerinfo(const Config &config,
     return ret;
 }
 
+static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
+                               const std::string &proofHex) {
+    bilingual_str error;
+    if (!avalanche::Proof::FromHex(proof, proofHex, error)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+    }
+
+    avalanche::ProofValidationState state;
+    {
+        LOCK(cs_main);
+        if (!proof.verify(state,
+                          node.chainman->ActiveChainstate().CoinsTip())) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "The proof is invalid: " + state.ToString());
+        }
+    }
+}
+
 static UniValue verifyavalancheproof(const Config &config,
                                      const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -461,22 +479,8 @@ static UniValue verifyavalancheproof(const Config &config,
     RPCTypeCheck(request.params, {UniValue::VSTR});
 
     avalanche::Proof proof;
-    bilingual_str error;
-    if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(), error)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
-    }
-
-    NodeContext &node = EnsureNodeContext(request.context);
-
-    avalanche::ProofValidationState state;
-    {
-        LOCK(cs_main);
-        if (!proof.verify(state,
-                          node.chainman->ActiveChainstate().CoinsTip())) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "The proof is invalid: " + state.ToString());
-        }
-    }
+    verifyProofOrThrow(EnsureNodeContext(request.context), proof,
+                       request.params[0].get_str());
 
     return true;
 }
