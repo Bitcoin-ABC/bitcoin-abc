@@ -111,5 +111,6 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Jemalloc
 	REQUIRED_VARS Jemalloc_INCLUDE_DIR
 	VERSION_VAR Jemalloc_VERSION
+	REASON_FAILURE_MESSAGE "this is an optional dependency that can be disabled by passing -DUSE_JEMALLOC=OFF to the cmake command line"
 	HANDLE_COMPONENTS
 )

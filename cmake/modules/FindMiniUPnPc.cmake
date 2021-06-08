@@ -71,5 +71,6 @@ find_package_handle_standard_args(MiniUPnPc
 	REQUIRED_VARS
 		MiniUPnPc_INCLUDE_DIR
 	VERSION_VAR MiniUPnPc_VERSION
+	REASON_FAILURE_MESSAGE "if the UPnP feature is not required, it can be skipped by passing -DENABLE_UPNP=OFF to the cmake command line"
 	HANDLE_COMPONENTS
 )

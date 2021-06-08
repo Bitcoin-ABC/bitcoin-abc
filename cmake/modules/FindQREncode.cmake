@@ -53,5 +53,6 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QREncode
 	REQUIRED_VARS
 		QREncode_INCLUDE_DIR
+		REASON_FAILURE_MESSAGE "if displaying QR codes is not required, it can be skipped by passing -DENABLE_QRCODE=OFF to the cmake command line"
 	HANDLE_COMPONENTS
 )

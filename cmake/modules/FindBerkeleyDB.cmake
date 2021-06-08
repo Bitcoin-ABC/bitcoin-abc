@@ -163,5 +163,6 @@ find_package_handle_standard_args(BerkeleyDB
 	REQUIRED_VARS
 		BerkeleyDB_INCLUDE_DIR
 	VERSION_VAR BerkeleyDB_VERSION
+	REASON_FAILURE_MESSAGE "if you don't want to build the wallet feature, this can be skipped by passing -DBUILD_BITCOIN_WALLET=OFF to the cmake command line"
 	HANDLE_COMPONENTS
 )
