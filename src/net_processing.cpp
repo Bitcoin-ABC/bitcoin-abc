@@ -2768,7 +2768,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             return;
         }
 
-        if (!gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        if (!isAvalancheEnabled(gArgs)) {
             Misbehaving(pfrom, 20, "unsolicited-" + msg_type);
             return;
         }
@@ -3003,7 +3003,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         }
 
         if ((pfrom.nServices & NODE_AVALANCHE) && g_avalanche &&
-            gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED)) {
+            isAvalancheEnabled(gArgs)) {
             if (g_avalanche->sendHello(&pfrom)) {
                 LogPrint(BCLog::NET, "Send avahello to peer %d\n",
                          pfrom.GetId());
@@ -3193,9 +3193,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 const bool fAlreadyHave = AlreadyHaveProof(proofid);
                 logInv(inv, fAlreadyHave);
 
-                if (!fAlreadyHave && g_avalanche &&
-                    gArgs.GetBoolArg("-enableavalanche",
-                                     AVALANCHE_DEFAULT_ENABLED)) {
+                if (!fAlreadyHave && g_avalanche && isAvalancheEnabled(gArgs)) {
                     const bool preferred = isPreferredDownloadPeer(pfrom);
 
                     LOCK(cs_proofrequest);

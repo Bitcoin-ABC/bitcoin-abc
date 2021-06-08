@@ -537,6 +537,7 @@ endif()
 add_library(server
 	addrdb.cpp
 	addrman.cpp
+	avalanche/avalanche.cpp
 	avalanche/delegation.cpp
 	avalanche/delegationbuilder.cpp
 	avalanche/orphanproofpool.cpp

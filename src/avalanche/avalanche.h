@@ -12,6 +12,8 @@ namespace avalanche {
 class Processor;
 }
 
+class ArgsManager;
+
 /**
  * Is avalanche enabled by default.
  */
@@ -26,5 +28,7 @@ static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
  * Global avalanche instance.
  */
 extern std::unique_ptr<avalanche::Processor> g_avalanche;
+
+bool isAvalancheEnabled(const ArgsManager &argsman);
 
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H

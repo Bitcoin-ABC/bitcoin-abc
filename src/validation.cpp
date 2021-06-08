@@ -2684,8 +2684,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             InvalidChainFound(pindexNew);
         }
 
-        const bool fAvalancheEnabled =
-            gArgs.GetBoolArg("-enableavalanche", AVALANCHE_DEFAULT_ENABLED);
+        const bool fAvalancheEnabled = isAvalancheEnabled(gArgs);
         const bool fAutoUnpark =
             gArgs.GetBoolArg("-automaticunparking", !fAvalancheEnabled);
 
