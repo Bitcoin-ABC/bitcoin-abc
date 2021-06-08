@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <amount.h>
 #include <chainparams.h>
 #include <config.h>
 #include <httpserver.h>
@@ -741,6 +742,39 @@ static UniValue echo(const Config &config, const JSONRPCRequest &request) {
     return request.params;
 }
 
+static UniValue getcurrencyinfo(const Config &config,
+                                const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "getcurrencyinfo",
+        "Returns an object containing information about the currency.\n",
+        {},
+        {
+            RPCResult{
+                RPCResult::Type::OBJ,
+                "",
+                "",
+                {
+                    {RPCResult::Type::STR, "ticker", "Ticker symbol"},
+                    {RPCResult::Type::NUM, "satoshisperunit",
+                     "Number of satoshis per base unit"},
+                    {RPCResult::Type::NUM, "decimals",
+                     "Number of digits to the right of the decimal point."},
+                }},
+        },
+        RPCExamples{HelpExampleCli("getcurrencyinfo", "") +
+                    HelpExampleRpc("getcurrencyinfo", "")},
+    }
+        .Check(request);
+
+    const Currency &currency = Currency::get();
+
+    UniValue res(UniValue::VOBJ);
+    res.pushKV("ticker", currency.ticker);
+    res.pushKV("satoshisperunit", currency.baseunit / SATOSHI);
+    res.pushKV("decimals", currency.decimals);
+    return res;
+}
+
 void RegisterMiscRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -754,6 +788,7 @@ void RegisterMiscRPCCommands(CRPCTable &t) {
         { "util",               "getdescriptorinfo",      getdescriptorinfo,      {"descriptor"} },
         { "util",               "verifymessage",          verifymessage,          {"address","signature","message"} },
         { "util",               "signmessagewithprivkey", signmessagewithprivkey, {"privkey","message"} },
+        { "util",               "getcurrencyinfo",        getcurrencyinfo,        {} },
 
         /* Not shown in help */
         { "hidden",             "setmocktime",            setmocktime,            {"timestamp"}},
