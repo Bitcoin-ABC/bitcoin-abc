@@ -359,6 +359,7 @@ add_library(util
 	clientversion.cpp
 	compat/glibcxx_sanity.cpp
 	compat/strnlen.cpp
+	currencyunit.cpp
 	fs.cpp
 	interfaces/handler.cpp
 	logging.cpp

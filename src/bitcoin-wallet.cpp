@@ -8,6 +8,7 @@
 
 #include <chainparams.h>
 #include <chainparamsbase.h>
+#include <currencyunit.h>
 #include <logging.h>
 #include <util/system.h>
 #include <util/translation.h>
@@ -20,6 +21,7 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 static void SetupWalletToolArgs(ArgsManager &argsman) {
     SetupHelpOptions(argsman);
     SetupChainParamsBaseOptions(argsman);
+    SetupCurrencyUnitOptions(argsman);
 
     argsman.AddArg("-datadir=<dir>", "Specify data directory",
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);

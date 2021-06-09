@@ -9,6 +9,7 @@
 
 #include <chainparamsbase.h>
 #include <clientversion.h>
+#include <currencyunit.h>
 #include <rpc/client.h>
 #include <rpc/protocol.h>
 #include <rpc/request.h>
@@ -48,6 +49,7 @@ static void SetupCliArgs(ArgsManager &argsman) {
     const auto regtestBaseParams =
         CreateBaseChainParams(CBaseChainParams::REGTEST);
 
+    SetupCurrencyUnitOptions(argsman);
     argsman.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
                    OptionsCategory::OPTIONS);
     argsman.AddArg(

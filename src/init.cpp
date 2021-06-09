@@ -23,6 +23,7 @@
 #include <compat/sanity.h>
 #include <config.h>
 #include <consensus/validation.h>
+#include <currencyunit.h>
 #include <flatfile.h>
 #include <fs.h>
 #include <hash.h>
@@ -381,13 +382,11 @@ void SetupServerArgs(NodeContext &node) {
     ArgsManager &argsman = *node.args;
 
     SetupHelpOptions(argsman);
+    SetupCurrencyUnitOptions(argsman);
     // server-only for now
     argsman.AddArg("-help-debug",
                    "Print help message with debugging options and exit", false,
                    OptionsCategory::DEBUG_TEST);
-    // whether to use eCash default unit and address prefix
-    argsman.AddArg("-ecash", "Use ecash as default unit (Default: false)",
-                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
 
     const auto defaultBaseParams =
         CreateBaseChainParams(CBaseChainParams::MAIN);

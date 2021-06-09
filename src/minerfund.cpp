@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <consensus/activation.h>
+#include <currencyunit.h>
 #include <key_io.h> // For DecodeDestination
 #include <util/system.h>
 #include <validation.h> // For VersionBitsBlockState
@@ -30,8 +31,8 @@ static const CTxDestination &GetMinerFundDestination() {
     static const std::string bitcoinCashMinerFund =
         "bitcoincash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgnlxww9j9";
     static CTxDestination dest = BuildDestination(
-        gArgs.GetBoolArg("-ecash", false) ? ecashMinerFund
-                                          : bitcoinCashMinerFund);
+        gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFund
+                                                  : bitcoinCashMinerFund);
     return dest;
 }
 

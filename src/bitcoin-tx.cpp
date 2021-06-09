@@ -11,6 +11,7 @@
 #include <coins.h>
 #include <consensus/consensus.h>
 #include <core_io.h>
+#include <currencyunit.h>
 #include <key_io.h>
 #include <primitives/transaction.h>
 #include <rpc/util.h>
@@ -40,6 +41,7 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 static void SetupBitcoinTxArgs(ArgsManager &argsman) {
     SetupHelpOptions(argsman);
 
+    SetupCurrencyUnitOptions(argsman);
     argsman.AddArg("-create", "Create new, empty TX.", ArgsManager::ALLOW_ANY,
                    OptionsCategory::OPTIONS);
     argsman.AddArg("-json", "Select JSON output", ArgsManager::ALLOW_ANY,
