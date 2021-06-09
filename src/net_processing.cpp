@@ -5307,23 +5307,32 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         }
         pto->vInventoryBlockToSend.clear();
 
-        if (pto->m_tx_relay != nullptr) {
-            LOCK(pto->m_tx_relay->cs_tx_inventory);
-            // Check whether periodic sends should happen
+        auto computeNextInvSendTime =
+            [&](std::chrono::microseconds &next) -> bool {
             bool fSendTrickle = pto->HasPermission(PF_NOBAN);
-            if (pto->m_tx_relay->nNextInvSend < current_time) {
+
+            if (next < current_time) {
                 fSendTrickle = true;
                 if (pto->IsInboundConn()) {
-                    pto->m_tx_relay->nNextInvSend = std::chrono::microseconds{
+                    next = std::chrono::microseconds{
                         m_connman.PoissonNextSendInbound(
                             count_microseconds(current_time),
                             INVENTORY_BROADCAST_INTERVAL)};
                 } else {
-                    // Skip delay for outbound peers, as there is less
-                    // privacy concern for them.
-                    pto->m_tx_relay->nNextInvSend = current_time;
+                    // Skip delay for outbound peers, as there is less privacy
+                    // concern for them.
+                    next = current_time;
                 }
             }
+
+            return fSendTrickle;
+        };
+
+        if (pto->m_tx_relay != nullptr) {
+            LOCK(pto->m_tx_relay->cs_tx_inventory);
+            // Check whether periodic sends should happen
+            const bool fSendTrickle =
+                computeNextInvSendTime(pto->m_tx_relay->nNextInvSend);
 
             // Time to send but the peer has requested we not relay
             // transactions.
