@@ -33,14 +33,14 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         inputs = [
             # Valid pay-to-pubkey scripts
             {'txid': '9b907ef1e3c26fc71fe4a4b3580bc75264112f95050014157059c736f0202e71',
-             'vout': 0, 'amount': 3.14159,
+             'vout': 0, 'amount': 3141590,
              'scriptPubKey': '76a91460baa0f494b38ce3c940dea67f3804dc52d1fb9488ac'},
             {'txid': '83a4f6a6b73660e13ee6cb3c6063fa3759c50c9b7521d0536022961898f4fb02',
-             'vout': 0, 'amount': '123.456',
+             'vout': 0, 'amount': '123456000',
              'scriptPubKey': '76a914669b857c03a5ed269d5d85a1ffac9ed5d663072788ac'},
         ]
 
-        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 0.1}
+        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 100000}
 
         rawTx = self.nodes[0].createrawtransaction(inputs, outputs)
         rawTxSigned = self.nodes[0].signrawtransactionwithkey(
@@ -151,11 +151,11 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         inputs = [
             # Valid pay-to-pubkey script
             {'txid': '9b907ef1e3c26fc71fe4a4b3580bc75264112f95050014157059c736f0202e71',
-             'vout': 0, 'amount': 3.14159,
+             'vout': 0, 'amount': 3141590,
              'scriptPubKey': '76a91460baa0f494b38ce3c940dea67f3804dc52d1fb9488ac'}
         ]
 
-        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 0.1}
+        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 100000}
 
         rawTx = self.nodes[0].createrawtransaction(inputs, outputs)
 
@@ -212,11 +212,11 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         inputs = [
             # Valid pay-to-pubkey scripts
             {'txid': '9b907ef1e3c26fc71fe4a4b3580bc75264112f95050014157059c736f0202e71',
-             'vout': 0, 'amount': 3.14159,
+             'vout': 0, 'amount': 3141590,
              'scriptPubKey': '76a91460baa0f494b38ce3c940dea67f3804dc52d1fb9488ac'},
         ]
 
-        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 0.1}
+        outputs = {'mpLQjfK79b7CCV4VMJWEWAj5Mpx8Up5zxB': 100000}
 
         multiwallet_node = self.nodes[0]
 

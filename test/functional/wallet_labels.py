@@ -38,7 +38,7 @@ class WalletLabelsTest(BitcoinTestFramework):
             nblocks=101,
             address=node.getnewaddress(
                 label='coinbase'))
-        assert_equal(node.getbalance(), 100)
+        assert_equal(node.getbalance(), 100000000)
 
         # there should be 2 address groups
         # each with 1 address with a balance of 50 Bitcoins
@@ -50,14 +50,14 @@ class WalletLabelsTest(BitcoinTestFramework):
         for address_group in address_groups:
             assert_equal(len(address_group), 1)
             assert_equal(len(address_group[0]), 3)
-            assert_equal(address_group[0][1], 50)
+            assert_equal(address_group[0][1], 50000000)
             assert_equal(address_group[0][2], 'coinbase')
             linked_addresses.add(address_group[0][0])
 
         # send 50 from each address to a third address not in this wallet
         common_address = "msf4WtN1YQKXvNtvdFYt9JBnUD2FB41kjr"
         node.sendmany(
-            amounts={common_address: 100},
+            amounts={common_address: 100000000},
             subtractfeefrom=[common_address],
             minconf=1,
         )
@@ -74,7 +74,7 @@ class WalletLabelsTest(BitcoinTestFramework):
         # we want to reset so that the "" label has what's expected.
         # otherwise we're off by exactly the fee amount as that's mined
         # and matures in the next 100 blocks
-        amount_to_send = 1.0
+        amount_to_send = 1000000
 
         # Create labels and make sure subsequent label API calls
         # recognize the label/address associations.
@@ -109,7 +109,7 @@ class WalletLabelsTest(BitcoinTestFramework):
             address = node.getnewaddress(label.name)
             label.add_receive_address(address)
             label.verify(node)
-            assert_equal(node.getreceivedbylabel(label.name), 2)
+            assert_equal(node.getreceivedbylabel(label.name), 2000000)
             label.verify(node)
         node.generate(101)
 

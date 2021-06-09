@@ -30,7 +30,7 @@ from test_framework.util import (
     assert_equal,
 )
 
-SATOSHI = Decimal('0.00000001')
+SATOSHI = Decimal('0.01')
 
 
 class WalletStandardnessTest(BitcoinTestFramework):

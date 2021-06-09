@@ -48,9 +48,9 @@ class KeypoolRestoreTest(BitcoinTestFramework):
             addr_extpool = self.nodes[1].getnewaddress()
 
         self.log.info("Send funds to wallet")
-        self.nodes[0].sendtoaddress(addr_oldpool, 10)
+        self.nodes[0].sendtoaddress(addr_oldpool, 10000000)
         self.nodes[0].generate(1)
-        self.nodes[0].sendtoaddress(addr_extpool, 5)
+        self.nodes[0].sendtoaddress(addr_extpool, 5000000)
         self.nodes[0].generate(1)
         self.sync_blocks()
 
@@ -62,7 +62,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
         self.sync_all()
 
         self.log.info("Verify keypool is restored and balance is correct")
-        assert_equal(self.nodes[1].getbalance(), 15)
+        assert_equal(self.nodes[1].getbalance(), 15000000)
         assert_equal(self.nodes[1].listtransactions()
                      [0]['category'], "receive")
         # Check that we have marked all keys up to the used keypool key as used

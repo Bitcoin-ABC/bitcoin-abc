@@ -21,6 +21,7 @@ from .script import (
 from .messages import (
     CBlock,
     COIN,
+    XEC,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -216,7 +217,7 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
         txid = int(utxo['txid'], 16)
         ctx.vin.append(CTxIn(COutPoint(txid, int(utxo["vout"])), b""))
         ctx.vout.append(
-            CTxOut(int(satoshi_round(utxo['amount'] * COIN)),
+            CTxOut(int(satoshi_round(utxo['amount'] * XEC)),
                    CScript([OP_DUP, OP_HASH160, addrHash, OP_EQUALVERIFY, OP_CHECKSIG])))
         for i in range(0, 127):
             ctx.vout.append(CTxOut(0, CScript(

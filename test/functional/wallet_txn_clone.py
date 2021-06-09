@@ -11,7 +11,7 @@ from test_framework.util import (
     connect_nodes,
     disconnect_nodes,
 )
-from test_framework.messages import CTransaction, COIN
+from test_framework.messages import CTransaction, XEC
 
 
 class TxnMallTest(BitcoinTestFramework):
@@ -36,20 +36,20 @@ class TxnMallTest(BitcoinTestFramework):
         output_type = "legacy"
 
         # All nodes should start with 1,250 BCH:
-        starting_balance = 1250
+        starting_balance = 1250000000
         for i in range(4):
             assert_equal(self.nodes[i].getbalance(), starting_balance)
             # bug workaround, coins generated assigned to first getnewaddress!
             self.nodes[i].getnewaddress()
 
-        self.nodes[0].settxfee(.001)
+        self.nodes[0].settxfee(1000)
 
         node0_address1 = self.nodes[0].getnewaddress(address_type=output_type)
-        node0_txid1 = self.nodes[0].sendtoaddress(node0_address1, 1219)
+        node0_txid1 = self.nodes[0].sendtoaddress(node0_address1, 1219000000)
         node0_tx1 = self.nodes[0].gettransaction(node0_txid1)
 
         node0_address2 = self.nodes[0].getnewaddress(address_type=output_type)
-        node0_txid2 = self.nodes[0].sendtoaddress(node0_address2, 29)
+        node0_txid2 = self.nodes[0].sendtoaddress(node0_address2, 29000000)
         node0_tx2 = self.nodes[0].gettransaction(node0_txid2)
 
         assert_equal(self.nodes[0].getbalance(),
@@ -59,8 +59,8 @@ class TxnMallTest(BitcoinTestFramework):
         node1_address = self.nodes[1].getnewaddress()
 
         # Send tx1, and another transaction tx2 that won't be cloned
-        txid1 = self.nodes[0].sendtoaddress(node1_address, 40)
-        txid2 = self.nodes[0].sendtoaddress(node1_address, 20)
+        txid1 = self.nodes[0].sendtoaddress(node1_address, 40000000)
+        txid2 = self.nodes[0].sendtoaddress(node1_address, 20000000)
 
         # Construct a clone of tx1, to be malleated
         rawtx1 = self.nodes[0].getrawtransaction(txid1, 1)
@@ -77,10 +77,10 @@ class TxnMallTest(BitcoinTestFramework):
         # them if necessary.
         clone_tx = CTransaction()
         clone_tx.deserialize(io.BytesIO(bytes.fromhex(clone_raw)))
-        if (rawtx1["vout"][0]["value"] == 40 and
-                clone_tx.vout[0].nValue != 40 * COIN or
-                rawtx1["vout"][0]["value"] != 40 and
-                clone_tx.vout[0].nValue == 40 * COIN):
+        if (rawtx1["vout"][0]["value"] == 40000000 and
+                clone_tx.vout[0].nValue != 40000000 * XEC or
+                rawtx1["vout"][0]["value"] != 40000000 and
+                clone_tx.vout[0].nValue == 40000000 * XEC):
             (clone_tx.vout[0], clone_tx.vout[1]) = (clone_tx.vout[1],
                                                     clone_tx.vout[0])
 
@@ -102,7 +102,7 @@ class TxnMallTest(BitcoinTestFramework):
         # matured block, minus tx1 and tx2 amounts, and minus transaction fees:
         expected = starting_balance + node0_tx1["fee"] + node0_tx2["fee"]
         if self.options.mine_block:
-            expected += 50
+            expected += 50000000
         expected += tx1["amount"] + tx1["fee"]
         expected += tx2["amount"] + tx2["fee"]
         assert_equal(self.nodes[0].getbalance(), expected)
@@ -140,9 +140,9 @@ class TxnMallTest(BitcoinTestFramework):
 
         # Check node0's total balance; should be same as before the clone, + 100 BCH for 2 matured,
         # less possible orphaned matured subsidy
-        expected += 100
+        expected += 100000000
         if (self.options.mine_block):
-            expected -= 50
+            expected -= 50000000
         assert_equal(self.nodes[0].getbalance(), expected)
 
 

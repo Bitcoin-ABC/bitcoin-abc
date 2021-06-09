@@ -49,6 +49,8 @@ MAX_BLOOM_HASH_FUNCS = 50
 
 # 1 BCH in satoshis
 COIN = 100000000
+# 1 XEC in satoshis
+XEC = 100
 MAX_MONEY = 21000000 * COIN
 
 # Maximum length of incoming protocol messages
@@ -426,8 +428,8 @@ class CTxOut:
         return r
 
     def __repr__(self):
-        return "CTxOut(nValue={}.{:08d} scriptPubKey={})".format(
-            self.nValue // COIN, self.nValue % COIN, self.scriptPubKey.hex())
+        return "CTxOut(nValue={}.{:02d} scriptPubKey={})".format(
+            self.nValue // XEC, self.nValue % XEC, self.scriptPubKey.hex())
 
 
 class CTransaction:

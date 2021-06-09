@@ -29,8 +29,8 @@ class P2PBlocksOnly(BitcoinTestFramework):
                 'vout': 0
             }],
             outputs=[{
-                self.nodes[0].get_deterministic_priv_key().address: 50 -
-                0.00125
+                self.nodes[0].get_deterministic_priv_key().address: 50000000 -
+                1250.00
             }],
         )
         self.log.info(prevtx)

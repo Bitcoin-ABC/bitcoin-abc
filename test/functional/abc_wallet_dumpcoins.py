@@ -47,7 +47,7 @@ class DumpCoinsTest(BitcoinTestFramework):
                 "txid": coinbases[0],
                 "vout": 0,
                 "depth": 101,
-                "value": Decimal('50.00000000'),
+                "value": Decimal('50000000.00'),
             }],
         })
 
@@ -57,13 +57,13 @@ class DumpCoinsTest(BitcoinTestFramework):
                 "txid": coinbases[0],
                 "vout": 0,
                 "depth": 102,
-                "value": Decimal('50.00000000'),
+                "value": Decimal('50000000.00'),
             }],
             address1: [{
                 "txid": coinbases[1],
                 "vout": 0,
                 "depth": 101,
-                "value": Decimal('50.00000000'),
+                "value": Decimal('50000000.00'),
             }],
         })
 

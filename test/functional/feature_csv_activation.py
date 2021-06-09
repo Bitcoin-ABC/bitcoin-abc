@@ -49,7 +49,7 @@ from test_framework.blocktools import (
     create_coinbase,
     make_conform_to_ctor,
 )
-from test_framework.messages import COIN, CTransaction, FromHex, ToHex
+from test_framework.messages import XEC, CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PDataStore
 from test_framework.script import (
     CScript,
@@ -109,7 +109,7 @@ def sign_transaction(node, unsignedtx):
 
 def spend_tx(node, prev_tx, address):
     spendtx = create_transaction(
-        node, prev_tx.hash, address, amount=(prev_tx.vout[0].nValue - 1000) / COIN)
+        node, prev_tx.hash, address, amount=(prev_tx.vout[0].nValue - 1000) / XEC)
     spendtx.nVersion = prev_tx.nVersion
     pad_tx(spendtx)
     spendtx.rehash()
@@ -118,7 +118,7 @@ def spend_tx(node, prev_tx, address):
 
 def create_bip112special(node, input, txversion, address):
     tx = create_transaction(
-        node, input, address, amount=Decimal("49.98"))
+        node, input, address, amount=Decimal("49980000"))
     tx.nVersion = txversion
     tx.vout[0].scriptPubKey = CScript(
         [-1, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_TRUE])
@@ -131,7 +131,7 @@ def create_bip112special(node, input, txversion, address):
 
 def send_generic_input_tx(node, coinbases, address):
     return node.sendrawtransaction(ToHex(sign_transaction(node, create_transaction(
-        node, node.getblock(coinbases.pop())['tx'][0], address, amount=Decimal("49.99")))))
+        node, node.getblock(coinbases.pop())['tx'][0], address, amount=Decimal("49990000")))))
 
 
 def create_bip68txs(node, bip68inputs, txversion, address, locktime_delta=0):
@@ -141,7 +141,7 @@ def create_bip68txs(node, bip68inputs, txversion, address, locktime_delta=0):
     for i, (sdf, srhb, stf, srlb) in enumerate(product(*[[True, False]] * 4)):
         locktime = relative_locktime(sdf, srhb, stf, srlb)
         tx = create_transaction(
-            node, bip68inputs[i], address, amount=Decimal("49.98"))
+            node, bip68inputs[i], address, amount=Decimal("49980000"))
         tx.nVersion = txversion
         tx.vin[0].nSequence = locktime + locktime_delta
         tx = sign_transaction(node, tx)
@@ -159,7 +159,7 @@ def create_bip112txs(node, bip112inputs, varyOP_CSV,
     for i, (sdf, srhb, stf, srlb) in enumerate(product(*[[True, False]] * 4)):
         locktime = relative_locktime(sdf, srhb, stf, srlb)
         tx = create_transaction(
-            node, bip112inputs[i], address, amount=Decimal("49.98"))
+            node, bip112inputs[i], address, amount=Decimal("49980000"))
         if (varyOP_CSV):  # if varying OP_CSV, nSequence is fixed
             tx.vin[0].nSequence = BASE_RELATIVE_LOCKTIME + locktime_delta
         else:  # vary nSequence instead, OP_CSV is fixed
@@ -322,11 +322,11 @@ class BIP68_112_113Test(BitcoinTestFramework):
         # BIP113 test transaction will be modified before each use to
         # put in appropriate block time
         bip113tx_v1 = create_transaction(
-            self.nodes[0], bip113input, self.nodeaddress, amount=Decimal("49.98"))
+            self.nodes[0], bip113input, self.nodeaddress, amount=Decimal("49980000"))
         bip113tx_v1.vin[0].nSequence = 0xFFFFFFFE
         bip113tx_v1.nVersion = 1
         bip113tx_v2 = create_transaction(
-            self.nodes[0], bip113input, self.nodeaddress, amount=Decimal("49.98"))
+            self.nodes[0], bip113input, self.nodeaddress, amount=Decimal("49980000"))
         bip113tx_v2.vin[0].nSequence = 0xFFFFFFFE
         bip113tx_v2.nVersion = 2
 

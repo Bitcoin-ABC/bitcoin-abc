@@ -85,7 +85,7 @@ class P2PEvict(BitcoinTestFramework):
             rawtx = node.createrawtransaction(
                 inputs=[{'txid': prevtx['txid'], 'vout': 0}],
                 outputs=[
-                    {node.get_deterministic_priv_key().address: 50 - 0.00125}],
+                    {node.get_deterministic_priv_key().address: 50000000 - 1250.00}],
             )
             sigtx = node.signrawtransactionwithkey(
                 hexstring=rawtx,

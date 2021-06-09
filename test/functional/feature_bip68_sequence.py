@@ -11,7 +11,7 @@ from test_framework.blocktools import (
     create_coinbase,
 )
 from test_framework.messages import (
-    COIN,
+    XEC,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -96,7 +96,7 @@ class BIP68Test(BitcoinTestFramework):
         # Create some unconfirmed inputs
         new_addr = self.nodes[0].getnewaddress()
         # send 2 BCH
-        self.nodes[0].sendtoaddress(new_addr, 2)
+        self.nodes[0].sendtoaddress(new_addr, 2000000)
 
         utxos = self.nodes[0].listunspent(0, 0)
         assert len(utxos) > 0
@@ -104,7 +104,7 @@ class BIP68Test(BitcoinTestFramework):
         utxo = utxos[0]
 
         tx1 = CTransaction()
-        value = int(satoshi_round(utxo["amount"] - self.relayfee) * COIN)
+        value = int(satoshi_round(utxo["amount"] - self.relayfee) * XEC)
 
         # Check that the disable flag disables relative locktime.
         # If sequence locks were used, this would require 1 block for the
@@ -126,7 +126,7 @@ class BIP68Test(BitcoinTestFramework):
         tx2.nVersion = 2
         sequence_value = sequence_value & 0x7fffffff
         tx2.vin = [CTxIn(COutPoint(tx1_id, 0), nSequence=sequence_value)]
-        tx2.vout = [CTxOut(int(value - self.relayfee * COIN), CScript([b'a']))]
+        tx2.vout = [CTxOut(int(value - self.relayfee * XEC), CScript([b'a']))]
         pad_tx(tx2)
         tx2.rehash()
 
@@ -161,7 +161,7 @@ class BIP68Test(BitcoinTestFramework):
             num_outputs = random.randint(1, max_outputs)
             outputs = {}
             for i in range(num_outputs):
-                outputs[addresses[i]] = random.randint(1, 20) * 0.01
+                outputs[addresses[i]] = random.randint(1, 20) * 10000
             self.nodes[0].sendmany("", outputs)
             self.nodes[0].generate(1)
 
@@ -233,12 +233,12 @@ class BIP68Test(BitcoinTestFramework):
                         sequence_value |= SEQUENCE_LOCKTIME_TYPE_FLAG
                 tx.vin.append(
                     CTxIn(COutPoint(int(utxos[j]["txid"], 16), utxos[j]["vout"]), nSequence=sequence_value))
-                value += utxos[j]["amount"] * COIN
+                value += utxos[j]["amount"] * XEC
             # Overestimate the size of the tx - signatures should be less than
             # 120 bytes, and leave 50 for the output
             tx_size = len(ToHex(tx)) // 2 + 120 * num_inputs + 50
             tx.vout.append(
-                CTxOut(int(value - self.relayfee * tx_size * COIN / 1000), CScript([b'a'])))
+                CTxOut(int(value - self.relayfee * tx_size * XEC / 1000), CScript([b'a'])))
             rawtx = self.nodes[0].signrawtransactionwithwallet(ToHex(tx))[
                 "hex"]
 
@@ -260,7 +260,8 @@ class BIP68Test(BitcoinTestFramework):
         cur_height = self.nodes[0].getblockcount()
 
         # Create a mempool tx.
-        txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 2)
+        txid = self.nodes[0].sendtoaddress(
+            self.nodes[0].getnewaddress(), 2000000)
         tx1 = FromHex(CTransaction(), self.nodes[0].getrawtransaction(txid))
         tx1.rehash()
 
@@ -366,7 +367,7 @@ class BIP68Test(BitcoinTestFramework):
         utxos = self.nodes[0].listunspent()
         tx5.vin.append(
             CTxIn(COutPoint(int(utxos[0]["txid"], 16), utxos[0]["vout"]), nSequence=1))
-        tx5.vout[0].nValue += int(utxos[0]["amount"] * COIN)
+        tx5.vout[0].nValue += int(utxos[0]["amount"] * XEC)
         raw_tx5 = self.nodes[0].signrawtransactionwithwallet(ToHex(tx5))["hex"]
 
         assert_raises_rpc_error(-26, NOT_FINAL_ERROR,
@@ -425,7 +426,8 @@ class BIP68Test(BitcoinTestFramework):
     # this test should be moved to run earlier, or deleted.
     def test_bip68_not_consensus(self):
         assert_equal(self.get_csv_status(), False)
-        txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 2)
+        txid = self.nodes[0].sendtoaddress(
+            self.nodes[0].getnewaddress(), 2000000)
 
         tx1 = FromHex(CTransaction(), self.nodes[0].getrawtransaction(txid))
         tx1.rehash()
@@ -435,7 +437,7 @@ class BIP68Test(BitcoinTestFramework):
         tx2.nVersion = 1
         tx2.vin = [CTxIn(COutPoint(tx1.sha256, 0), nSequence=0)]
         tx2.vout = [
-            CTxOut(int(tx1.vout[0].nValue - self.relayfee * COIN), CScript([b'a']))]
+            CTxOut(int(tx1.vout[0].nValue - self.relayfee * XEC), CScript([b'a']))]
 
         # sign tx2
         tx2_raw = self.nodes[0].signrawtransactionwithwallet(ToHex(tx2))["hex"]
@@ -453,7 +455,7 @@ class BIP68Test(BitcoinTestFramework):
         tx3.nVersion = 2
         tx3.vin = [CTxIn(COutPoint(tx2.sha256, 0), nSequence=sequence_value)]
         tx3.vout = [
-            CTxOut(int(tx2.vout[0].nValue - self.relayfee * COIN), CScript([b'a']))]
+            CTxOut(int(tx2.vout[0].nValue - self.relayfee * XEC), CScript([b'a']))]
         pad_tx(tx3)
         tx3.rehash()
 
@@ -493,7 +495,7 @@ class BIP68Test(BitcoinTestFramework):
     # Use self.nodes[1] to test that version 2 transactions are standard.
     def test_version2_relay(self):
         inputs = []
-        outputs = {self.nodes[1].getnewaddress(): 1.0}
+        outputs = {self.nodes[1].getnewaddress(): 1000000.0}
         rawtx = self.nodes[1].createrawtransaction(inputs, outputs)
         rawtxfund = self.nodes[1].fundrawtransaction(rawtx)['hex']
         tx = FromHex(CTransaction(), rawtxfund)

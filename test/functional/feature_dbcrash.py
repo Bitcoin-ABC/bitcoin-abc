@@ -33,7 +33,7 @@ import time
 from test_framework.blocktools import create_confirmed_utxos
 from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE
 from test_framework.messages import (
-    COIN,
+    XEC,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -213,7 +213,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                 utxo = utxo_list.pop()
                 tx.vin.append(
                     CTxIn(COutPoint(int(utxo['txid'], 16), utxo['vout'])))
-                input_amount += int(utxo['amount'] * COIN)
+                input_amount += int(utxo['amount'] * XEC)
             output_amount = (input_amount - FEE) // 3
 
             if output_amount <= 0:

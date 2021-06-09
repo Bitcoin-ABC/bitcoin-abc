@@ -79,7 +79,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert_equal(fees['base'], fees['modified'])
         self.nodes[0].prioritisetransaction(txid=last_txid, fee_delta=1000)
         fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
-        assert_equal(fees['base'] + Decimal('0.00001000'), fees['modified'])
+        assert_equal(fees['base'] + Decimal('10.0'), fees['modified'])
 
         tx_creation_time = self.nodes[0].getmempoolentry(txid=last_txid)[
             'time']
@@ -91,7 +91,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert(len(self.nodes[0].getpeerinfo()) == 0)
         assert(len(self.nodes[0].p2ps) == 0)
         self.nodes[0].sendtoaddress(
-            self.nodes[2].getnewaddress(), Decimal("12"))
+            self.nodes[2].getnewaddress(), Decimal("12000000"))
         connect_nodes(self.nodes[0], self.nodes[2])
 
         self.log.debug("Stop-start the nodes. Verify that node0 has the "
@@ -116,7 +116,7 @@ class MempoolPersistTest(BitcoinTestFramework):
 
         self.log.debug('Verify prioritization is loaded correctly')
         fees = self.nodes[0].getmempoolentry(txid=last_txid)['fees']
-        assert_equal(fees['base'] + Decimal('0.00001000'), fees['modified'])
+        assert_equal(fees['base'] + Decimal('10.00'), fees['modified'])
 
         self.log.debug('Verify time is loaded correctly')
         assert_equal(

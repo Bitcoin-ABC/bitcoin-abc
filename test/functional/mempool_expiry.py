@@ -37,7 +37,7 @@ class MempoolExpiryTest(BitcoinTestFramework):
 
         # Send a parent transaction that will expire.
         parent_address = node.getnewaddress()
-        parent_txid = node.sendtoaddress(parent_address, 1.0)
+        parent_txid = node.sendtoaddress(parent_address, 1000000)
 
         # Set the mocktime to the arrival time of the parent transaction.
         entry_time = node.getmempoolentry(parent_txid)['time']
@@ -46,7 +46,7 @@ class MempoolExpiryTest(BitcoinTestFramework):
         # Create child transaction spending the parent transaction
         vout = find_vout_for_address(node, parent_txid, parent_address)
         inputs = [{'txid': parent_txid, 'vout': vout}]
-        outputs = {node.getnewaddress(): 0.99}
+        outputs = {node.getnewaddress(): 990000}
         child_raw = node.createrawtransaction(inputs, outputs)
         child_signed = node.signrawtransactionwithwallet(child_raw)['hex']
 
@@ -63,7 +63,7 @@ class MempoolExpiryTest(BitcoinTestFramework):
         node.setmocktime(nearly_expiry_time)
         # Expiry of mempool transactions is only checked when a new transaction
         # is added to the to the mempool.
-        node.sendtoaddress(node.getnewaddress(), 1.0)
+        node.sendtoaddress(node.getnewaddress(), 1000000)
         self.log.info('Test parent tx not expired after {} hours.'.format(
             timedelta(seconds=(nearly_expiry_time - entry_time))))
         assert_equal(entry_time, node.getmempoolentry(parent_txid)['time'])
@@ -74,7 +74,7 @@ class MempoolExpiryTest(BitcoinTestFramework):
         node.setmocktime(expiry_time)
         # Expiry of mempool transactions is only checked when a new transaction
         # is added to the to the mempool.
-        node.sendtoaddress(node.getnewaddress(), 1.0)
+        node.sendtoaddress(node.getnewaddress(), 1000000)
         self.log.info('Test parent tx expiry after {} hours.'.format(
             timedelta(seconds=(expiry_time - entry_time))))
         assert_raises_rpc_error(-5, 'Transaction not in mempool',

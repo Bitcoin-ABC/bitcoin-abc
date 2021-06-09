@@ -49,8 +49,8 @@ class NetTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [["-minrelaytxfee=0.00001000"],
-                           ["-minrelaytxfee=0.00000500"]]
+        self.extra_args = [["-minrelaytxfee=10"],
+                           ["-minrelaytxfee=5"]]
         self.supports_cli = False
 
     def run_test(self):
@@ -159,7 +159,7 @@ class NetTest(BitcoinTestFramework):
         self.log.info("Test getpeerinfo")
         # Create a few getpeerinfo last_block/last_transaction values.
         if self.is_wallet_compiled():
-            self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 1)
+            self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 1000000)
         self.nodes[1].generate(1)
         self.sync_all()
         time_now = int(time.time())
@@ -175,8 +175,8 @@ class NetTest(BitcoinTestFramework):
         # other node
         assert_equal(peer_info[0][0]['addrbind'], peer_info[1][0]['addr'])
         assert_equal(peer_info[1][0]['addrbind'], peer_info[0][0]['addr'])
-        assert_equal(peer_info[0][0]['minfeefilter'], Decimal("0.00000500"))
-        assert_equal(peer_info[1][0]['minfeefilter'], Decimal("0.00001000"))
+        assert_equal(peer_info[0][0]['minfeefilter'], Decimal("5.00"))
+        assert_equal(peer_info[1][0]['minfeefilter'], Decimal("10.00"))
         # check the `servicesnames` field
         for info in peer_info:
             assert_net_servicesnames(int(info[0]["services"], 0x10),

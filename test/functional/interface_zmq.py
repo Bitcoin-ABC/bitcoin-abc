@@ -119,7 +119,7 @@ class ZMQTest (BitcoinTestFramework):
         if self.is_wallet_compiled():
             self.log.info("Wait for tx from second node")
             payment_txid = self.nodes[1].sendtoaddress(
-                self.nodes[0].getnewaddress(), 1.0)
+                self.nodes[0].getnewaddress(), 1000000)
             self.sync_all()
 
             # Should receive the broadcasted txid.
@@ -179,7 +179,7 @@ class ZMQTest (BitcoinTestFramework):
         # Generate 1 block in nodes[0] with 1 mempool tx and receive all
         # notifications
         payment_txid = self.nodes[0].sendtoaddress(
-            self.nodes[0].getnewaddress(), 1.0)
+            self.nodes[0].getnewaddress(), 1000000)
         disconnect_block = self.nodes[0].generatetoaddress(
             1, ADDRESS_BCHREG_UNSPENDABLE)[0]
         disconnect_cb = self.nodes[0].getblock(disconnect_block)["tx"][0]

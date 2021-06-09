@@ -11,7 +11,7 @@ from test_framework.cdefs import (
     DEFAULT_MAX_BLOCK_SIZE,
 )
 from test_framework.messages import (
-    COIN,
+    XEC,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -100,14 +100,14 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 # next block will start enforcing them.
                 'minerfund': {
                     'addresses': [expectedMinerFundAddress],
-                    'minimumvalue': block_reward * 8 // 100 * COIN,
+                    'minimumvalue': block_reward * 8 // 100 * XEC,
                 },
             },
             # Although the coinbase value need not necessarily be the same as
             # the last block due to halvings and fees, we know this to be true
             # since we are not crossing a halving boundary and there are no
             # transactions in the mempool.
-            'coinbasevalue': block_reward * COIN,
+            'coinbasevalue': block_reward * XEC,
             'mintime': AXION_ACTIVATION_TIME + 1,
         })
 
@@ -126,11 +126,11 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             'coinbasetxn': {
                 'minerfund': {
                     'addresses': [expectedMinerFundAddress],
-                    'minimumvalue': block_reward * 8 // 100 * COIN,
+                    'minimumvalue': block_reward * 8 // 100 * XEC,
                 },
             },
             # Again, we assume the coinbase value is the same as prior blocks.
-            'coinbasevalue': block_reward * COIN,
+            'coinbasevalue': block_reward * XEC,
             'mintime': AXION_ACTIVATION_TIME + 1,
         })
 
@@ -141,10 +141,10 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             'coinbasetxn': {
                 'minerfund': {
                     'addresses': [expectedMinerFundAddress],
-                    'minimumvalue': block_reward * 8 // 100 * COIN,
+                    'minimumvalue': block_reward * 8 // 100 * XEC,
                 },
             },
-            'coinbasevalue': block_reward * COIN,
+            'coinbasevalue': block_reward * XEC,
             'mintime': AXION_ACTIVATION_TIME + 2,
         })
 

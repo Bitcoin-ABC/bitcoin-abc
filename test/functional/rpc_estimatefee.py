@@ -15,8 +15,8 @@ class EstimateFeeTest(BitcoinTestFramework):
         self.num_nodes = 3
         self.extra_args = [
             [],
-            ["-minrelaytxfee=0.001"],
-            ["-mintxfee=0.00002", "-maxtxfee=0.000025"],
+            ["-minrelaytxfee=1000"],
+            ["-mintxfee=20", "-maxtxfee=25"],
         ]
 
     def skip_test_if_missing_module(self):
@@ -30,19 +30,19 @@ class EstimateFeeTest(BitcoinTestFramework):
             self.nodes[0].generate(1)
 
             # estimatefee is 0.00001 by default, regardless of block contents
-            assert_equal(default_node.estimatefee(), Decimal('0.00001'))
+            assert_equal(default_node.estimatefee(), Decimal('10.00'))
 
             # estimatefee may be different for nodes that set it in their
             # config
-            assert_equal(diff_relay_fee_node.estimatefee(), Decimal('0.001'))
+            assert_equal(diff_relay_fee_node.estimatefee(), Decimal('1000.00'))
 
             # Check the reasonableness of settxfee
             assert_raises_rpc_error(-8, "txfee cannot be less than min relay tx fee",
-                                    diff_tx_fee_node.settxfee, Decimal('0.000005'))
+                                    diff_tx_fee_node.settxfee, Decimal('5.00'))
             assert_raises_rpc_error(-8, "txfee cannot be less than wallet min fee",
-                                    diff_tx_fee_node.settxfee, Decimal('0.000015'))
+                                    diff_tx_fee_node.settxfee, Decimal('15.00'))
             assert_raises_rpc_error(-8, "txfee cannot be more than wallet max tx fee",
-                                    diff_tx_fee_node.settxfee, Decimal('0.00003'))
+                                    diff_tx_fee_node.settxfee, Decimal('30.00'))
 
 
 if __name__ == '__main__':

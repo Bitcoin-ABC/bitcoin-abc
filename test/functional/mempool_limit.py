@@ -37,9 +37,9 @@ class MempoolLimitTest(BitcoinTestFramework):
 
         self.log.info('Check that mempoolminfee is minrelytxfee')
         assert_equal(self.nodes[0].getmempoolinfo()[
-                     'minrelaytxfee'], Decimal('0.00001000'))
+                     'minrelaytxfee'], Decimal('10.00'))
         assert_equal(self.nodes[0].getmempoolinfo()[
-                     'mempoolminfee'], Decimal('0.00001000'))
+                     'mempoolminfee'], Decimal('10.00'))
 
         txids = []
         utxo_groups = 4
@@ -48,7 +48,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         self.log.info('Create a mempool tx that will be evicted')
         us0 = utxos.pop()
         inputs = [{"txid": us0["txid"], "vout": us0["vout"]}]
-        outputs = {self.nodes[0].getnewaddress(): 0.0001}
+        outputs = {self.nodes[0].getnewaddress(): 100}
         tx = self.nodes[0].createrawtransaction(inputs, outputs)
         # specifically fund this tx with low fee
         self.nodes[0].settxfee(relayfee)
@@ -71,14 +71,14 @@ class MempoolLimitTest(BitcoinTestFramework):
 
         self.log.info('Check that mempoolminfee is larger than minrelytxfee')
         assert_equal(self.nodes[0].getmempoolinfo()[
-                     'minrelaytxfee'], Decimal('0.00001000'))
+                     'minrelaytxfee'], Decimal('10.00'))
         assert_greater_than(self.nodes[0].getmempoolinfo()[
-                            'mempoolminfee'], Decimal('0.00001000'))
+                            'mempoolminfee'], Decimal('10.00'))
 
         self.log.info('Create a mempool tx that will not pass mempoolminfee')
         us0 = utxos.pop()
         inputs = [{"txid": us0["txid"], "vout": us0["vout"]}]
-        outputs = {self.nodes[0].getnewaddress(): 0.0001}
+        outputs = {self.nodes[0].getnewaddress(): 100}
         tx = self.nodes[0].createrawtransaction(inputs, outputs)
         # specifically fund this tx with a fee < mempoolminfee, >= than
         # minrelaytxfee

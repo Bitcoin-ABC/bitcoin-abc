@@ -120,7 +120,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
 
         height = node0.getblockchaininfo()["blocks"]
         assert 150 < height < 350
-        total = 149 * 50 + (height - 149 - 100) * 25
+        total = 149 * 50000000 + (height - 149 - 100) * 25000000
         assert bal1 == 0
         assert bal2 == self.moved
         assert bal0 + bal1 + bal2 == total
@@ -147,7 +147,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
         assert maddw == madd
         assert mredeemw == mredeem
 
-        txid = node0.sendtoaddress(madd, 40)
+        txid = node0.sendtoaddress(madd, 40000000)
 
         tx = node0.getrawtransaction(txid, True)
         vout = [v["n"] for v in tx["vout"]
@@ -161,7 +161,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
 
         node0.generate(1)
 
-        outval = value - decimal.Decimal("0.00001000")
+        outval = value - decimal.Decimal("10.00")
         rawtx = node2.createrawtransaction(
             [{"txid": txid, "vout": vout}], [{self.final: outval}])
 

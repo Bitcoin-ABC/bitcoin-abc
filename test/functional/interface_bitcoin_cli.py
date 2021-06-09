@@ -15,7 +15,7 @@ from test_framework.util import (
 # COINBASE_MATURITY (100) blocks. Therefore, after mining 101 blocks we expect
 # node 0 to have a balance of (BLOCKS - COINBASE_MATURITY) * 50 BTC/block.
 BLOCKS = 101
-BALANCE = (BLOCKS - 100) * 50
+BALANCE = (BLOCKS - 100) * 50000000
 
 
 class TestBitcoinCli(BitcoinTestFramework):
@@ -98,9 +98,9 @@ class TestBitcoinCli(BitcoinTestFramework):
             # Setup to test -getinfo and -rpcwallet= with multiple wallets.
             wallets = ['', 'Encrypted', 'secret']
             amounts = [
-                BALANCE + Decimal('9.99999550'),
-                Decimal(9),
-                Decimal(31)]
+                BALANCE + Decimal('9999995.50'),
+                Decimal(9000000),
+                Decimal(31000000)]
             self.nodes[0].createwallet(wallet_name=wallets[1])
             self.nodes[0].createwallet(wallet_name=wallets[2])
             w1 = self.nodes[0].get_wallet_rpc(wallets[0])

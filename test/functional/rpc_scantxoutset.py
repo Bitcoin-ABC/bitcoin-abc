@@ -29,45 +29,45 @@ class ScantxoutsetTest(BitcoinTestFramework):
 
         addr = self.nodes[0].getnewaddress("")
         pubkey = self.nodes[0].getaddressinfo(addr)['pubkey']
-        self.nodes[0].sendtoaddress(addr, 0.002)
+        self.nodes[0].sendtoaddress(addr, 2000)
 
         # send to child keys of tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK
         # (m/0'/0'/0')
         self.nodes[0].sendtoaddress(
-            "mkHV1C6JLheLoUSSZYk7x3FH5tnx9bu7yc", 0.008)
+            "mkHV1C6JLheLoUSSZYk7x3FH5tnx9bu7yc", 8000)
         # (m/0'/0'/1')
         self.nodes[0].sendtoaddress(
-            "mipUSRmJAj2KrjSvsPQtnP8ynUon7FhpCR", 0.016)
+            "mipUSRmJAj2KrjSvsPQtnP8ynUon7FhpCR", 16000)
         # (m/0'/0'/1500')
         self.nodes[0].sendtoaddress(
-            "n37dAGe6Mq1HGM9t4b6rFEEsDGq7Fcgfqg", 0.032)
+            "n37dAGe6Mq1HGM9t4b6rFEEsDGq7Fcgfqg", 32000)
         # (m/0'/0'/0)
         self.nodes[0].sendtoaddress(
-            "mqS9Rpg8nNLAzxFExsgFLCnzHBsoQ3PRM6", 0.064)
+            "mqS9Rpg8nNLAzxFExsgFLCnzHBsoQ3PRM6", 64000)
         # (m/0'/0'/1)
         self.nodes[0].sendtoaddress(
-            "mnTg5gVWr3rbhHaKjJv7EEEc76ZqHgSj4S", 0.128)
+            "mnTg5gVWr3rbhHaKjJv7EEEc76ZqHgSj4S", 128000)
         # (m/0'/0'/1500)
         self.nodes[0].sendtoaddress(
-            "mketCd6B9U9Uee1iCsppDJJBHfvi6U6ukC", 0.256)
+            "mketCd6B9U9Uee1iCsppDJJBHfvi6U6ukC", 256000)
         # (m/1/1/0')
         self.nodes[0].sendtoaddress(
-            "mj8zFzrbBcdaWXowCQ1oPZ4qioBVzLzAp7", 0.512)
+            "mj8zFzrbBcdaWXowCQ1oPZ4qioBVzLzAp7", 512000)
         # (m/1/1/1')
         self.nodes[0].sendtoaddress(
-            "mfnKpKQEftniaoE1iXuMMePQU3PUpcNisA", 1.024)
+            "mfnKpKQEftniaoE1iXuMMePQU3PUpcNisA", 1024000)
         # (m/1/1/1500')
         self.nodes[0].sendtoaddress(
-            "mou6cB1kaP1nNJM1sryW6YRwnd4shTbXYQ", 2.048)
+            "mou6cB1kaP1nNJM1sryW6YRwnd4shTbXYQ", 2048000)
         # (m/1/1/0)
         self.nodes[0].sendtoaddress(
-            "mtfUoUax9L4tzXARpw1oTGxWyoogp52KhJ", 4.096)
+            "mtfUoUax9L4tzXARpw1oTGxWyoogp52KhJ", 4096000)
         # (m/1/1/1)
         self.nodes[0].sendtoaddress(
-            "mxp7w7j8S1Aq6L8StS2PqVvtt4HGxXEvdy", 8.192)
+            "mxp7w7j8S1Aq6L8StS2PqVvtt4HGxXEvdy", 8192000)
         # (m/1/1/1500)
         self.nodes[0].sendtoaddress(
-            "mpQ8rokAhp1TAtJQR6F6TaUmjAWkAWYYBq", 16.384)
+            "mpQ8rokAhp1TAtJQR6F6TaUmjAWkAWYYBq", 16384000)
 
         self.nodes[0].generate(1)
 
@@ -88,13 +88,13 @@ class ScantxoutsetTest(BitcoinTestFramework):
         self.restart_node(0, ['-nowallet'])
         self.log.info("Test if we have found the non HD unspent outputs.")
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["pkh(" + pubkey + ")"])['total_amount'], Decimal("0.002"))
+            "start", ["pkh(" + pubkey + ")"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["combo(" + pubkey + ")"])['total_amount'], Decimal("0.002"))
+            "start", ["combo(" + pubkey + ")"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["addr(" + addr + ")"])['total_amount'], Decimal("0.002"))
+            "start", ["addr(" + addr + ")"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["addr(" + addr + ")"])['total_amount'], Decimal("0.002"))
+            "start", ["addr(" + addr + ")"])['total_amount'], Decimal("2000"))
 
         self.log.info("Test range validation.")
         assert_raises_rpc_error(-8,
@@ -137,55 +137,55 @@ class ScantxoutsetTest(BitcoinTestFramework):
         # Note that all amounts in the UTXO set are powers of 2 multiplied by
         # 0.001 BTC, so each amounts uniquely identifies a subset.
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/0h)"])['total_amount'], Decimal("0.008"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/0h)"])['total_amount'], Decimal("8000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0'/1h)"])['total_amount'], Decimal("0.016"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0'/1h)"])['total_amount'], Decimal("16000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0'/1500')"])['total_amount'], Decimal("0.032"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0'/1500')"])['total_amount'], Decimal("32000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0h/0)"])['total_amount'], Decimal("0.064"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0h/0)"])['total_amount'], Decimal("64000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/1)"])['total_amount'], Decimal("0.128"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/1)"])['total_amount'], Decimal("128000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0'/1500)"])['total_amount'], Decimal("0.256"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0'/1500)"])['total_amount'], Decimal("256000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/*h)", "range": 1499}])['total_amount'], Decimal("0.024"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/*h)", "range": 1499}])['total_amount'], Decimal("24000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0'/*h)", "range": 1500}])['total_amount'], Decimal("0.056"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0'/*h)", "range": 1500}])['total_amount'], Decimal("56000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0'/*)", "range": 1499}])['total_amount'], Decimal("0.192"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0h/0'/*)", "range": 1499}])['total_amount'], Decimal("192000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/*)", "range": 1500}])['total_amount'], Decimal("0.448"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/0'/0h/*)", "range": 1500}])['total_amount'], Decimal("448000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0')"])['total_amount'], Decimal("0.512"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0')"])['total_amount'], Decimal("0512000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1')"])['total_amount'], Decimal("1.024"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1')"])['total_amount'], Decimal("1024000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1500h)"])['total_amount'], Decimal("2.048"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1500h)"])['total_amount'], Decimal("2048000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0)"])['total_amount'], Decimal("4.096"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/0)"])['total_amount'], Decimal("4096000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1)"])['total_amount'], Decimal("8.192"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1)"])['total_amount'], Decimal("8192000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1500)"])['total_amount'], Decimal("16.384"))
+                     "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/1500)"])['total_amount'], Decimal("16384000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/0)"])['total_amount'], Decimal("4.096"))
+                     "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/0)"])['total_amount'], Decimal("4096000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo([abcdef88/1/2'/3/4h]tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/1)"])['total_amount'], Decimal("8.192"))
+                     "combo([abcdef88/1/2'/3/4h]tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/1)"])['total_amount'], Decimal("8192000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/1500)"])['total_amount'], Decimal("16.384"))
+                     "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/1500)"])['total_amount'], Decimal("16384000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*')", "range": 1499}])['total_amount'], Decimal("1.536"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*')", "range": 1499}])['total_amount'], Decimal("1536000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*')", "range": 1500}])['total_amount'], Decimal("3.584"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*')", "range": 1500}])['total_amount'], Decimal("3584000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)", "range": 1499}])['total_amount'], Decimal("12.288"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)", "range": 1499}])['total_amount'], Decimal("12288000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)", "range": 1500}])['total_amount'], Decimal("28.672"))
+                     {"desc": "combo(tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK/1/1/*)", "range": 1500}])['total_amount'], Decimal("28672000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)", "range": 1499}])['total_amount'], Decimal("12.288"))
+                     {"desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)", "range": 1499}])['total_amount'], Decimal("12288000"))
         assert_equal(self.nodes[0].scantxoutset("start", [
-                     {"desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)", "range": 1500}])['total_amount'], Decimal("28.672"))
+                     {"desc": "combo(tpubD6NzVbkrYhZ4WaWSyoBvQwbpLkojyoTZPRsgXELWz3Popb3qkjcJyJUGLnL4qHHoQvao8ESaAstxYSnhyswJ76uZPStJRJCTKvosUCJZL5B/1/1/*)", "range": 1500}])['total_amount'], Decimal("28672000"))
         assert_equal(
             self.nodes[0].scantxoutset(
                 "start",
@@ -195,7 +195,7 @@ class ScantxoutsetTest(BitcoinTestFramework):
                         "range": [
                             1500,
                             1500]}])['total_amount'],
-            Decimal("16.384"))
+            Decimal("16384000"))
 
         # Test the reported descriptors for a few matches
         assert_equal(descriptors(self.nodes[0].scantxoutset("start",

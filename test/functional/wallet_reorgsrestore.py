@@ -36,7 +36,7 @@ class ReorgsRestoreTest(BitcoinTestFramework):
     def run_test(self):
         # Send a tx from which to conflict outputs later
         txid_conflict_from = self.nodes[0].sendtoaddress(
-            self.nodes[0].getnewaddress(), Decimal("10"))
+            self.nodes[0].getnewaddress(), Decimal("10000000"))
         self.nodes[0].generate(1)
         self.sync_blocks()
 
@@ -47,7 +47,7 @@ class ReorgsRestoreTest(BitcoinTestFramework):
 
         # Send a tx to be unconfirmed later
         txid = self.nodes[0].sendtoaddress(
-            self.nodes[0].getnewaddress(), Decimal("10"))
+            self.nodes[0].getnewaddress(), Decimal("10000000"))
         tx = self.nodes[0].gettransaction(txid)
         self.nodes[0].generate(4)
         tx_before_reorg = self.nodes[0].gettransaction(txid)
@@ -57,7 +57,7 @@ class ReorgsRestoreTest(BitcoinTestFramework):
         # respective chains
         disconnect_nodes(self.nodes[0], self.nodes[2])
         nA = next(tx_out["vout"] for tx_out in self.nodes[0].gettransaction(
-            txid_conflict_from)["details"] if tx_out["amount"] == Decimal("10"))
+            txid_conflict_from)["details"] if tx_out["amount"] == Decimal("10000000"))
         inputs = []
         inputs.append({"txid": txid_conflict_from, "vout": nA})
         outputs_1 = {}
@@ -65,8 +65,8 @@ class ReorgsRestoreTest(BitcoinTestFramework):
 
         # Create a conflicted tx broadcast on node0 chain and conflicting tx
         # broadcast on node1 chain. Both spend from txid_conflict_from
-        outputs_1[self.nodes[0].getnewaddress()] = Decimal("9.99998")
-        outputs_2[self.nodes[0].getnewaddress()] = Decimal("9.99998")
+        outputs_1[self.nodes[0].getnewaddress()] = Decimal("9999980")
+        outputs_2[self.nodes[0].getnewaddress()] = Decimal("9999980")
         conflicted = self.nodes[0].signrawtransactionwithwallet(
             self.nodes[0].createrawtransaction(inputs, outputs_1))
         conflicting = self.nodes[0].signrawtransactionwithwallet(

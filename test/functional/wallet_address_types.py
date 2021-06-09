@@ -101,7 +101,7 @@ class AddressTypeTest(BitcoinTestFramework):
         # the PSBT logic. However, this does test consistency between the PSBT reported
         # fingerprints/paths and the descriptor logic.
         psbt = self.nodes[node].createpsbt(
-            [{'txid': utxo['txid'], 'vout':utxo['vout']}], [{address: 0.00010000}])
+            [{'txid': utxo['txid'], 'vout':utxo['vout']}], [{address: 100.00}])
         psbt = self.nodes[node].walletprocesspsbt(
             psbt, False, "ALL|FORKID", True)
         decode = self.nodes[node].decodepsbt(psbt['psbt'])
@@ -146,7 +146,7 @@ class AddressTypeTest(BitcoinTestFramework):
             self, node_sender, destinations, expected_type):
         txid = self.nodes[node_sender].sendmany(
             dummy="", amounts=dict.fromkeys(
-                destinations, 0.001))
+                destinations, 1000.00))
         raw_tx = self.nodes[node_sender].getrawtransaction(txid)
         tx = self.nodes[node_sender].decoderawtransaction(raw_tx)
 
@@ -204,7 +204,7 @@ class AddressTypeTest(BitcoinTestFramework):
             to_send = (
                 old_balances[from_node] /
                 101).quantize(
-                Decimal("0.00000001"))
+                Decimal("0.01"))
             sends = {}
             addresses = {}
 

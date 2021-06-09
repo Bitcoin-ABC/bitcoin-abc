@@ -65,8 +65,8 @@ class FeeFilterTest(BitcoinTestFramework):
         # mempool and wallet feerate calculation based on GetFee
         # rounding down 3 places, leading to stranded transactions.
         # See issue #16499
-        self.extra_args = [["-minrelaytxfee=0.00000100",
-                            "-mintxfee=0.00000100"]] * self.num_nodes
+        self.extra_args = [["-minrelaytxfee=1",
+                            "-mintxfee=1"]] * self.num_nodes
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
@@ -99,8 +99,8 @@ class FeeFilterTest(BitcoinTestFramework):
 
         # Test that invs are received by test connection for all txs at
         # feerate of .2 sat/byte
-        node1.settxfee(Decimal("0.00000200"))
-        txids = [node1.sendtoaddress(node1.getnewaddress(), 1)
+        node1.settxfee(Decimal("2"))
+        txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
                  for x in range(3)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()
@@ -110,16 +110,16 @@ class FeeFilterTest(BitcoinTestFramework):
 
         # Test that txs are still being received by test connection
         # (paying .15 sat/byte)
-        node1.settxfee(Decimal("0.00000150"))
-        txids = [node1.sendtoaddress(node1.getnewaddress(), 1)
+        node1.settxfee(Decimal("1.5"))
+        txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
                  for x in range(3)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()
 
         # Change tx fee rate to .1 sat/byte and test they are no longer received
         # by the test connection
-        node1.settxfee(Decimal("0.00000100"))
-        [node1.sendtoaddress(node1.getnewaddress(), 1) for x in range(3)]
+        node1.settxfee(Decimal("1"))
+        [node1.sendtoaddress(node1.getnewaddress(), 1000000) for x in range(3)]
         self.sync_mempools()  # must be sure node 0 has received all txs
 
         # Send one transaction from node0 that should be received, so that we
@@ -129,14 +129,14 @@ class FeeFilterTest(BitcoinTestFramework):
         # to 35 entries in an inv, which means that when this next transaction
         # is eligible for relay, the prior transactions from node1 are eligible
         # as well.
-        node0.settxfee(Decimal("0.00020000"))
-        txids = [node0.sendtoaddress(node0.getnewaddress(), 1)]
+        node0.settxfee(Decimal("200.00"))
+        txids = [node0.sendtoaddress(node0.getnewaddress(), 1000000)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()
 
         # Remove fee filter and check that txs are received again
         conn.send_and_ping(msg_feefilter(0))
-        txids = [node1.sendtoaddress(node1.getnewaddress(), 1)
+        txids = [node1.sendtoaddress(node1.getnewaddress(), 1000000)
                  for x in range(3)]
         assert allInvsMatch(txids, conn)
         conn.clear_invs()

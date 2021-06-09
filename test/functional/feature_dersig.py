@@ -72,7 +72,7 @@ class BIP66Test(BitcoinTestFramework):
         block.nVersion = 3
 
         spendtx = create_transaction(self.nodes[0], self.coinbase_txids[1],
-                                     self.nodeaddress, amount=1.0)
+                                     self.nodeaddress, amount=1000000)
         unDERify(spendtx)
         spendtx.rehash()
 

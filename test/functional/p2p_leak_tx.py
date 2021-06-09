@@ -36,7 +36,7 @@ class P2PLeakTxTest(BitcoinTestFramework):
         self.log.info("Running test up to {} times.".format(MAX_REPEATS))
         for i in range(MAX_REPEATS):
             self.log.info('Run repeat {}'.format(i + 1))
-            txid = gen_node.sendtoaddress(gen_node.getnewaddress(), 0.01)
+            txid = gen_node.sendtoaddress(gen_node.getnewaddress(), 10000)
 
             want_tx = msg_getdata()
             want_tx.inv.append(CInv(t=MSG_TX, h=int(txid, 16)))

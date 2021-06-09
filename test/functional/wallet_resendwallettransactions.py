@@ -25,7 +25,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         node.add_p2p_connection(P2PTxInvStore())
 
         self.log.info("Create a new transaction and wait until it's broadcast")
-        txid = int(node.sendtoaddress(node.getnewaddress(), 1), 16)
+        txid = int(node.sendtoaddress(node.getnewaddress(), 1000000), 16)
 
         # Wallet rebroadcast is first scheduled 1 sec after startup (see
         # nNextResend in ResendWalletTransactions()). Sleep for just over a

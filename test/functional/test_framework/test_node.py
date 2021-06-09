@@ -23,7 +23,7 @@ import shlex
 
 from .authproxy import JSONRPCException
 from .descriptors import descsum_create
-from .messages import COIN, CTransaction, FromHex, MY_SUBVERSION
+from .messages import XEC, CTransaction, FromHex, MY_SUBVERSION
 from .util import (
     MAX_NODES,
     append_config,
@@ -108,7 +108,8 @@ class TestNode():
             "-debugexclude=leveldb",
             "-uacomment=" + self.name,
             "-noprinttoconsole",
-            "-ecash"
+            "-ecash",
+            "-xec"
         ]
 
         if use_valgrind:
@@ -657,7 +658,7 @@ class TestNode():
         billable_size_estimate += len(tx.vin) * 107
 
         # relay_fee gives a value in BCH per kB.
-        return int(self.relay_fee() / 1000 * billable_size_estimate * COIN)
+        return int(self.relay_fee() / 1000 * billable_size_estimate * XEC)
 
     def calculate_fee_from_txid(self, txid):
         ctx = FromHex(CTransaction(), self.getrawtransaction(txid))

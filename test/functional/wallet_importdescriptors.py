@@ -276,11 +276,11 @@ class ImportDescriptorsTest(BitcoinTestFramework):
                      address,
                      solvable=True,
                      ismine=True)
-        txid = w0.sendtoaddress(address, 49.99999600)
+        txid = w0.sendtoaddress(address, 49999996.00)
         w0.generatetoaddress(6, w0.getnewaddress())
         self.sync_blocks()
         tx = wpriv.createrawtransaction([{"txid": txid, "vout": 0}], {
-                                        w0.getnewaddress(): 49.999})
+                                        w0.getnewaddress(): 49999000})
         signed_tx = wpriv.signrawtransactionwithwallet(tx)
         w1.sendrawtransaction(signed_tx['hex'])
 
@@ -324,7 +324,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             'ecregtest:prnkfg7pxe3kpyv3l4v00ft6q3sfseag7vnva0k49n')
 
         assert_equal(wmulti_priv.getwalletinfo()['keypoolsize'], 1000)
-        txid = w0.sendtoaddress(addr, 10)
+        txid = w0.sendtoaddress(addr, 10000000)
         self.nodes[0].generate(6)
         self.sync_all()
 
@@ -366,7 +366,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             'ecregtest:prnkfg7pxe3kpyv3l4v00ft6q3sfseag7vnva0k49n')
 
         assert_equal(wmulti_pub.getwalletinfo()['keypoolsize'], 999)
-        txid = w0.sendtoaddress(addr, 10)
+        txid = w0.sendtoaddress(addr, 10000000)
         vout = find_vout_for_address(self.nodes[0], txid, addr)
         self.nodes[0].generate(6)
         self.sync_all()
@@ -433,7 +433,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
             'Not all private keys provided. Some wallet functionality may return unexpected errors')
 
         rawtx = self.nodes[1].createrawtransaction(
-            [{'txid': txid, 'vout': vout}], {w0.getnewaddress(): 9.999})
+            [{'txid': txid, 'vout': vout}], {w0.getnewaddress(): 9999000})
         tx_signed_1 = wmulti_priv1.signrawtransactionwithwallet(rawtx)
         assert_equal(tx_signed_1['complete'], False)
         tx_signed_2 = wmulti_priv2.signrawtransactionwithwallet(

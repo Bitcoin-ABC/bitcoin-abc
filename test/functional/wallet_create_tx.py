@@ -34,7 +34,8 @@ class CreateTxWalletTest(BitcoinTestFramework):
         self.log.info(
             'Check that we have some (old) blocks and that anti-fee-sniping is disabled')
         assert_equal(self.nodes[0].getblockchaininfo()['blocks'], 200)
-        txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 1)
+        txid = self.nodes[0].sendtoaddress(
+            self.nodes[0].getnewaddress(), 1000000)
         tx = self.nodes[0].decoderawtransaction(
             self.nodes[0].gettransaction(txid)['hex'])
         assert_equal(tx['locktime'], 0)
@@ -42,7 +43,8 @@ class CreateTxWalletTest(BitcoinTestFramework):
         self.log.info(
             'Check that anti-fee-sniping is enabled when we mine a recent block')
         self.nodes[0].generate(1)
-        txid = self.nodes[0].sendtoaddress(self.nodes[0].getnewaddress(), 1)
+        txid = self.nodes[0].sendtoaddress(
+            self.nodes[0].getnewaddress(), 1000000)
         tx = self.nodes[0].decoderawtransaction(
             self.nodes[0].gettransaction(txid)['hex'])
         assert 0 < tx['locktime'] <= 201
@@ -50,11 +52,11 @@ class CreateTxWalletTest(BitcoinTestFramework):
     def test_tx_size_too_large(self):
         # More than 10kB of outputs, so that we hit -maxtxfee with a high
         # feerate
-        outputs = {self.nodes[0].getnewaddress(): 0.000025 for i in range(400)}
+        outputs = {self.nodes[0].getnewaddress(): 25 for i in range(400)}
         raw_tx = self.nodes[0].createrawtransaction(inputs=[], outputs=outputs)
 
-        for fee_setting in ['-minrelaytxfee=0.01',
-                            '-mintxfee=0.01', '-paytxfee=0.01']:
+        for fee_setting in ['-minrelaytxfee=10000',
+                            '-mintxfee=10000', '-paytxfee=10000']:
             self.log.info(
                 'Check maxtxfee in combination with {}'.format(fee_setting))
             self.restart_node(0, extra_args=[fee_setting])
@@ -71,7 +73,7 @@ class CreateTxWalletTest(BitcoinTestFramework):
 
         self.log.info('Check maxtxfee in combination with settxfee')
         self.restart_node(0)
-        self.nodes[0].settxfee(0.01)
+        self.nodes[0].settxfee(10000)
         assert_raises_rpc_error(
             -6,
             "Fee exceeds maximum configured by -maxtxfee",

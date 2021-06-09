@@ -317,7 +317,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         address = node.getnewaddress()
 
         for i in range(num_transactions):
-            txid = node.sendtoaddress(address, 0.1)
+            txid = node.sendtoaddress(address, 100000)
             hex_tx = node.gettransaction(txid)["hex"]
             tx = FromHex(CTransaction(), hex_tx)
 

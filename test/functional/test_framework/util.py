@@ -26,7 +26,7 @@ logger = logging.getLogger("TestFramework.utils")
 ##################
 
 
-def assert_approx(v, vexp, vspan=0.00001):
+def assert_approx(v, vexp, vspan=10):
     """Assert that `v` is within `vspan` of `vexp`"""
     if v < vexp - vspan:
         raise AssertionError("{} < [{}..{}]".format(
@@ -244,7 +244,7 @@ def str_to_b64str(string):
 
 
 def satoshi_round(amount):
-    return Decimal(amount).quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+    return Decimal(amount).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
 
 
 def wait_until(predicate, *, attempts=float('inf'),
@@ -359,7 +359,7 @@ def initialize_datadir(dirname, n, chain):
         f.write("[{}]\n".format(chain_name_conf_section))
         f.write("port=" + str(p2p_port(n)) + "\n")
         f.write("rpcport=" + str(rpc_port(n)) + "\n")
-        f.write("fallbackfee=0.0002\n")
+        f.write("fallbackfee=200\n")
         f.write("server=1\n")
         f.write("keypool=1\n")
         f.write("discover=0\n")
