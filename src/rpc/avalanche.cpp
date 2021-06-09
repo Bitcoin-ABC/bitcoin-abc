@@ -461,6 +461,49 @@ static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
     }
 }
 
+static UniValue sendavalancheproof(const Config &config,
+                                   const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "sendavalancheproof",
+        "Broadcast an avalanche proof.\n",
+        {
+            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The avalanche proof to broadcast."},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the proof was sent successfully or not."},
+        RPCExamples{HelpExampleRpc("sendavalancheproof", "<proof>")},
+    }
+        .Check(request);
+
+    if (!g_avalanche) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
+    }
+
+    auto proof = std::make_shared<avalanche::Proof>();
+    NodeContext &node = EnsureNodeContext(request.context);
+
+    // Verify the proof. Note that this is redundant with the verification done
+    // when adding the proof to the pool, but we get a chance to give a better
+    // error message.
+    verifyProofOrThrow(node, *proof, request.params[0].get_str());
+
+    // Add the proof to the pool if we don't have it already. Since the proof
+    // verification has already been done, a failure likely indicates that there
+    // already is a proof with conflicting utxos.
+    const avalanche::ProofId &proofid = proof->getId();
+    if (!g_avalanche->getProof(proofid) && !g_avalanche->addProof(proof)) {
+        throw JSONRPCError(
+            RPC_INVALID_PARAMETER,
+            "The proof has conflicting utxo with an existing proof");
+    }
+
+    // TODO actually announce the proof via an inv message
+    // RelayProof(proofid, *node.connman);
+
+    return true;
+}
+
 static UniValue verifyavalancheproof(const Config &config,
                                      const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -496,6 +539,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",          "decodeavalancheproof",   decodeavalancheproof,   {"proof"}},
         { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
+        { "avalanche",          "sendavalancheproof",     sendavalancheproof,     {"proof"}},
         { "avalanche",          "verifyavalancheproof",   verifyavalancheproof,   {"proof"}},
     };
     // clang-format on

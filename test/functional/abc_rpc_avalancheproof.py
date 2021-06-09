@@ -9,6 +9,7 @@ from decimal import Decimal
 from test_framework.avatools import (
     create_coinbase_stakes,
     create_stakes,
+    get_proof_ids,
 )
 from test_framework.key import ECKey, bytes_to_wif
 from test_framework.messages import (
@@ -232,27 +233,45 @@ class AvalancheProofTest(BitcoinTestFramework):
                    "f7d2888d96b82962b3ce516d1083c0e031773487fc3c4f2e38acd1db974"
                    "1321b91a79b82d1c2cfd47793261e4ba003cf5")
 
-        self.log.info("Check the verifyavalancheproof RPC")
+        self.log.info(
+            "Check the verifyavalancheproof and sendavalancheproof RPCs")
+        for rpc in [node.verifyavalancheproof, node.sendavalancheproof]:
+            assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
+                                    rpc, "f00")
+            assert_raises_rpc_error(-22, "Proof has invalid format",
+                                    rpc, "f00d")
 
-        assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
-                                node.verifyavalancheproof, "f00")
-        assert_raises_rpc_error(-22, "Proof has invalid format",
-                                node.verifyavalancheproof, "f00d")
+            def check_rpc_failure(proof, message):
+                assert_raises_rpc_error(-8, "The proof is invalid: " + message,
+                                        rpc, proof)
 
-        def check_verifyavalancheproof_failure(proof, message):
-            assert_raises_rpc_error(-8, "The proof is invalid: " + message,
-                                    node.verifyavalancheproof, proof)
+            check_rpc_failure(no_stake, "no-stake")
+            check_rpc_failure(dust, "amount-below-dust-threshold")
+            check_rpc_failure(duplicate_stake, "duplicated-stake")
+            check_rpc_failure(bad_sig, "invalid-signature")
+            if self.is_wallet_compiled():
+                check_rpc_failure(too_many_utxos, "too-many-utxos")
 
-        check_verifyavalancheproof_failure(no_stake, "no-stake")
-        check_verifyavalancheproof_failure(dust, "amount-below-dust-threshold")
-        check_verifyavalancheproof_failure(duplicate_stake, "duplicated-stake")
-        check_verifyavalancheproof_failure(bad_sig, "invalid-signature")
-        if self.is_wallet_compiled():
-            check_verifyavalancheproof_failure(
-                too_many_utxos, "too-many-utxos")
+        conflicting_utxo = node.buildavalancheproof(
+            proof_sequence + 1, proof_expiration, proof_master, stakes)
+        assert_raises_rpc_error(-8, "The proof has conflicting utxo with an existing proof",
+                                    node.sendavalancheproof, conflicting_utxo)
 
         # Good proof
         assert node.verifyavalancheproof(proof)
+
+        proofid = FromHex(AvalancheProof(), proof).proofid
+        node.sendavalancheproof(proof)
+        assert proofid in get_proof_ids(node)
+
+        # TODO Once implemented we expect the sendavalancheproof to trigger the
+        # sending of an inv message with our proof:
+        #
+        # def inv_found():
+        #     with p2p_lock:
+        #         return peer.last_message.get(
+        #             "inv") and peer.last_message["inv"].inv[-1].hash == proofid
+        # wait_until(inv_found)
 
         self.log.info("Bad proof should be rejected at startup")
 

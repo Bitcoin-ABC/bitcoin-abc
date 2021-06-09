@@ -7,6 +7,7 @@
 from typing import Any, Optional, List, Dict
 
 from .messages import (
+    AvalancheProof,
     CTransaction,
     FromHex,
     ToHex
@@ -114,3 +115,8 @@ def create_stakes(
         })
 
     return stakes
+
+
+def get_proof_ids(node):
+    return [FromHex(AvalancheProof(), peer['proof']
+                    ).proofid for peer in node.getavalanchepeerinfo()]
