@@ -7,7 +7,7 @@ import random
 import struct
 import time
 
-from test_framework.avatools import create_coinbase_stakes
+from test_framework.avatools import create_coinbase_stakes, get_proof_ids
 from test_framework.key import (
     bytes_to_wif,
     ECKey,
@@ -428,10 +428,15 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info('Check that we can download the proof from our peer')
 
-        # Connect some blocks to trigger the proof verification
-        node.generate(2)
-
         node_proofid = FromHex(AvalancheProof(), proof).proofid
+
+        def wait_for_proof_validation():
+            # Connect some blocks to trigger the proof verification
+            node.generate(2)
+            wait_until(lambda: node_proofid in get_proof_ids(node))
+
+        wait_for_proof_validation()
+
         getdata = msg_getdata([CInv(MSG_AVA_PROOF, node_proofid)])
 
         self.log.info(
@@ -449,7 +454,7 @@ class AvalancheTest(BitcoinTestFramework):
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
-        node.generate(2)
+        wait_for_proof_validation()
 
         self.log.info(
             "The proof has not been announced, it cannot be requested")
