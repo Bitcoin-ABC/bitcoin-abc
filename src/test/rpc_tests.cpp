@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(rpc_rawsign) {
                           "8f50977c8493f3\","
                           "\"vout\":1,\"scriptPubKey\":"
                           "\"a914b10c9df5f7edf436c697f02f1efdba4cf399615187\","
-                          "\"amount\":3.14159,"
+                          "\"amount\":3141590.00,"
                           "\"redeemScript\":"
                           "\"512103debedc17b3df2badbcdd86d5feb4562b86fe182e5998"
                           "abd8bcd4f122c6155b1b21027e940bb73ab8732bfdf7f9216ece"
@@ -237,40 +237,40 @@ BOOST_AUTO_TEST_CASE(rpc_createraw_op_return) {
 }
 
 BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
-    BOOST_CHECK(UniValue(Amount::zero()).write() == "0.00000000");
-    BOOST_CHECK(UniValue(SATOSHI).write() == "0.00000001");
-    BOOST_CHECK(UniValue(17622195 * SATOSHI).write() == "0.17622195");
-    BOOST_CHECK(UniValue(50000000 * SATOSHI).write() == "0.50000000");
-    BOOST_CHECK(UniValue(89898989 * SATOSHI).write() == "0.89898989");
-    BOOST_CHECK(UniValue(100000000 * SATOSHI).write() == "1.00000000");
+    BOOST_CHECK(UniValue(Amount::zero()).write() == "0.00");
+    BOOST_CHECK(UniValue(SATOSHI).write() == "0.01");
+    BOOST_CHECK(UniValue(17622195 * SATOSHI).write() == "176221.95");
+    BOOST_CHECK(UniValue(50000000 * SATOSHI).write() == "500000.00");
+    BOOST_CHECK(UniValue(89898989 * SATOSHI).write() == "898989.89");
+    BOOST_CHECK(UniValue(100000000 * SATOSHI).write() == "1000000.00");
     BOOST_CHECK(UniValue(int64_t(2099999999999990) * SATOSHI).write() ==
-                "20999999.99999990");
+                "20999999999999.90");
     BOOST_CHECK(UniValue(int64_t(2099999999999999) * SATOSHI).write() ==
-                "20999999.99999999");
+                "20999999999999.99");
 
-    BOOST_CHECK_EQUAL(UniValue(Amount::zero()).write(), "0.00000000");
+    BOOST_CHECK_EQUAL(UniValue(Amount::zero()).write(), "0.00");
     BOOST_CHECK_EQUAL(UniValue(123456789 * (COIN / 10000)).write(),
-                      "12345.67890000");
-    BOOST_CHECK_EQUAL(UniValue(-1 * COIN).write(), "-1.00000000");
-    BOOST_CHECK_EQUAL(UniValue(-1 * COIN / 10).write(), "-0.10000000");
+                      "12345678900.00");
+    BOOST_CHECK_EQUAL(UniValue(-1 * COIN).write(), "-1000000.00");
+    BOOST_CHECK_EQUAL(UniValue(-1 * COIN / 10).write(), "-100000.00");
 
-    BOOST_CHECK_EQUAL(UniValue(100000000 * COIN).write(), "100000000.00000000");
-    BOOST_CHECK_EQUAL(UniValue(10000000 * COIN).write(), "10000000.00000000");
-    BOOST_CHECK_EQUAL(UniValue(1000000 * COIN).write(), "1000000.00000000");
-    BOOST_CHECK_EQUAL(UniValue(100000 * COIN).write(), "100000.00000000");
-    BOOST_CHECK_EQUAL(UniValue(10000 * COIN).write(), "10000.00000000");
-    BOOST_CHECK_EQUAL(UniValue(1000 * COIN).write(), "1000.00000000");
-    BOOST_CHECK_EQUAL(UniValue(100 * COIN).write(), "100.00000000");
-    BOOST_CHECK_EQUAL(UniValue(10 * COIN).write(), "10.00000000");
-    BOOST_CHECK_EQUAL(UniValue(COIN).write(), "1.00000000");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 10).write(), "0.10000000");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 100).write(), "0.01000000");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 1000).write(), "0.00100000");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 10000).write(), "0.00010000");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 100000).write(), "0.00001000");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 1000000).write(), "0.00000100");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 10000000).write(), "0.00000010");
-    BOOST_CHECK_EQUAL(UniValue(COIN / 100000000).write(), "0.00000001");
+    BOOST_CHECK_EQUAL(UniValue(100000000 * COIN).write(), "100000000000000.00");
+    BOOST_CHECK_EQUAL(UniValue(10000000 * COIN).write(), "10000000000000.00");
+    BOOST_CHECK_EQUAL(UniValue(1000000 * COIN).write(), "1000000000000.00");
+    BOOST_CHECK_EQUAL(UniValue(100000 * COIN).write(), "100000000000.00");
+    BOOST_CHECK_EQUAL(UniValue(10000 * COIN).write(), "10000000000.00");
+    BOOST_CHECK_EQUAL(UniValue(1000 * COIN).write(), "1000000000.00");
+    BOOST_CHECK_EQUAL(UniValue(100 * COIN).write(), "100000000.00");
+    BOOST_CHECK_EQUAL(UniValue(10 * COIN).write(), "10000000.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN).write(), "1000000.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 10).write(), "100000.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 100).write(), "10000.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 1000).write(), "1000.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 10000).write(), "100.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 100000).write(), "10.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 1000000).write(), "1.00");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 10000000).write(), "0.10");
+    BOOST_CHECK_EQUAL(UniValue(COIN / 100000000).write(), "0.01");
 }
 
 static UniValue ValueFromString(const std::string &str) {
@@ -280,47 +280,45 @@ static UniValue ValueFromString(const std::string &str) {
 }
 
 BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("-0.00000001")),
-                      UniValue);
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("-0.01")), UniValue);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0")), Amount::zero());
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000000")),
-                      Amount::zero());
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000001")), SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.17622195")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00")), Amount::zero());
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.01")), SATOSHI);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("176221.95")),
                       17622195 * SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.5")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("500000")),
                       50000000 * SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.50000000")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("500000.00")),
                       50000000 * SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.89898989")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("898989.89")),
                       89898989 * SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1.00000000")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1000000.00")),
                       100000000 * SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.9999999")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999999999.9")),
                       int64_t(2099999999999990) * SATOSHI);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999.99999999")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("20999999999999.99")),
                       int64_t(2099999999999999) * SATOSHI);
 
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1e-8")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("1e-2")),
                       COIN / 100000000);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.1e-7")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.1e-1")),
                       COIN / 100000000);
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.01e-6")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.01e-0")),
                       COIN / 100000000);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString(
                           "0."
                           "0000000000000000000000000000000000000000000000000000"
-                          "000000000000000000000001e+68")),
+                          "000000000000000000000001e+74")),
                       COIN / 100000000);
     BOOST_CHECK_EQUAL(
         AmountFromValue(ValueFromString("10000000000000000000000000000000000000"
-                                        "000000000000000000000000000e-64")),
+                                        "000000000000000000000000000e-58")),
         COIN);
     BOOST_CHECK_EQUAL(
         AmountFromValue(ValueFromString(
             "0."
             "000000000000000000000000000000000000000000000000000000000000000100"
-            "000000000000000000000000000000000000000000000000000e64")),
+            "000000000000000000000000000000000000000000000000000e70")),
         COIN);
 
     // should fail
@@ -329,23 +327,22 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("0.000000019")),
                       UniValue);
     // should pass, cut trailing 0
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.00000001000000")),
-                      SATOSHI);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.01000000")), SATOSHI);
     // should fail
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("19e-9")), UniValue);
     // should pass, leading 0 is present
-    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.19e-6")),
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.19e-0")),
                       19 * SATOSHI);
 
     // overflow error
     BOOST_CHECK_THROW(AmountFromValue(ValueFromString("92233720368.54775808")),
                       UniValue);
     // overflow error
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e+11")), UniValue);
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e+17")), UniValue);
     // overflow error signless
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e11")), UniValue);
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("1e17")), UniValue);
     // overflow error
-    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("93e+9")), UniValue);
+    BOOST_CHECK_THROW(AmountFromValue(ValueFromString("93e+15")), UniValue);
 }
 
 BOOST_AUTO_TEST_CASE(json_parse_errors) {
@@ -359,7 +356,7 @@ BOOST_AUTO_TEST_CASE(json_parse_errors) {
     BOOST_CHECK_THROW(AmountFromValue(ParseNonRFCJSONValue(".19e-6")),
                       std::runtime_error);
     BOOST_CHECK_EQUAL(AmountFromValue(ParseNonRFCJSONValue(
-                          "0.00000000000000000000000000000000000001e+30 ")),
+                          "0.00000000000000000000000000000001e+30 ")),
                       SATOSHI);
     // Invalid, initial garbage
     BOOST_CHECK_THROW(ParseNonRFCJSONValue("[1.0"), std::runtime_error);

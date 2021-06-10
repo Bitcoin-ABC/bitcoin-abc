@@ -99,7 +99,8 @@ BasicTestingSetup::BasicTestingSetup(
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
-            "-ecash"
+            "-ecash",
+            "-xec"
         },
         extra_args);
     // clang-format on

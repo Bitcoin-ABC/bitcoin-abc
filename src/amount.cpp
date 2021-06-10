@@ -6,15 +6,18 @@
 
 #include <amount.h>
 
+#include <currencyunit.h>
 #include <network.h>
 #include <univalue.h>
+#include <util/system.h>
 
 #include <tinyformat.h>
 
 static constexpr Currency BCHA{COIN, SATOSHI, 8};
+static constexpr Currency XEC{100 * SATOSHI, SATOSHI, 2};
 
 const Currency &Currency::get() {
-    return BCHA;
+    return gArgs.GetBoolArg("-xec", DEFAULT_XEC) ? XEC : BCHA;
 }
 
 std::string Amount::ToString() const {
