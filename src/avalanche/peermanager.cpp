@@ -491,8 +491,12 @@ std::vector<NodeId> PeerManager::getNodeIdsForPeer(PeerId peerId) const {
     return nodeids;
 }
 
-bool PeerManager::isOrphan(const ProofId &id) {
+bool PeerManager::isOrphan(const ProofId &id) const {
     return orphanProofs.getProof(id) != nullptr;
+}
+
+std::shared_ptr<Proof> PeerManager::getOrphan(const ProofId &id) const {
+    return orphanProofs.getProof(id);
 }
 
 } // namespace avalanche

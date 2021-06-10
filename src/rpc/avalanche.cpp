@@ -444,6 +444,58 @@ static UniValue getavalanchepeerinfo(const Config &config,
     return ret;
 }
 
+static UniValue getrawavalancheproof(const Config &config,
+                                     const JSONRPCRequest &request) {
+    RPCHelpMan{
+        "getrawavalancheproof",
+        "Lookup for a known avalanche proof by id.\n",
+        {
+            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The hex encoded avalanche proof identifier."},
+        },
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {{
+                {RPCResult::Type::STR_HEX, "proof",
+                 "The hex encoded proof matching the identifier."},
+                {RPCResult::Type::BOOL, "orphan",
+                 "Whether the proof is an orphan."},
+            }},
+        },
+        RPCExamples{HelpExampleRpc("getrawavalancheproof", "<proofid>")},
+    }
+        .Check(request);
+
+    if (!g_avalanche) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
+    }
+
+    const avalanche::ProofId proofid =
+        avalanche::ProofId::fromHex(request.params[0].get_str());
+
+    bool isOrphan = false;
+    auto proof = g_avalanche->getProof(proofid);
+    if (!proof) {
+        proof = g_avalanche->getOrphan(proofid);
+        isOrphan = true;
+    }
+
+    if (!proof) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Proof not found");
+    }
+
+    UniValue ret(UniValue::VOBJ);
+
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << *proof;
+    ret.pushKV("proof", HexStr(ss));
+    ret.pushKV("orphan", isOrphan);
+
+    return ret;
+}
+
 static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
                                const std::string &proofHex) {
     bilingual_str error;
@@ -539,6 +591,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",          "decodeavalancheproof",   decodeavalancheproof,   {"proof"}},
         { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
+        { "avalanche",          "getrawavalancheproof",   getrawavalancheproof,   {"proofid"}},
         { "avalanche",          "sendavalancheproof",     sendavalancheproof,     {"proof"}},
         { "avalanche",          "verifyavalancheproof",   verifyavalancheproof,   {"proof"}},
     };

@@ -6,6 +6,7 @@
 import base64
 from decimal import Decimal
 
+from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
 from test_framework.avatools import (
     create_coinbase_stakes,
     create_stakes,
@@ -283,6 +284,30 @@ class AvalancheProofTest(BitcoinTestFramework):
                 return peer.last_message.get(
                     "inv") and peer.last_message["inv"].inv[-1].hash == proofid
         wait_until(inv_found)
+
+        self.log.info("Check the getrawproof RPC")
+
+        raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
+        assert_equal(raw_proof['proof'], proof)
+        assert_equal(raw_proof['orphan'], False)
+
+        assert_raises_rpc_error(-8, "Proof not found",
+                                node.getrawavalancheproof, '0' * 64)
+
+        # Orphan the proof by sending the stake
+        raw_tx = node.createrawtransaction(
+            [{"txid": stakes[-1]["txid"], "vout": 0}],
+            {ADDRESS_BCHREG_UNSPENDABLE: stakes[-1]
+                ["amount"] - Decimal('0.01')}
+        )
+        signed_tx = node.signrawtransactionwithkey(raw_tx, [addrkey0.key])
+        node.sendrawtransaction(signed_tx["hex"])
+        node.generate(1)
+        wait_until(lambda: proofid not in get_proof_ids(node))
+
+        raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
+        assert_equal(raw_proof['proof'], proof)
+        assert_equal(raw_proof['orphan'], True)
 
         self.log.info("Bad proof should be rejected at startup")
 

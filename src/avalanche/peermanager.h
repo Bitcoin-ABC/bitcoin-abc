@@ -199,7 +199,8 @@ public:
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
     Peer::Timestamp getProofTime(const ProofId &proofid) const;
 
-    bool isOrphan(const ProofId &id);
+    bool isOrphan(const ProofId &id) const;
+    std::shared_ptr<Proof> getOrphan(const ProofId &id) const;
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);
