@@ -320,7 +320,10 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         // Generate the delegation to the session key.
         const CPubKey sessionPubKey = sessionKey.GetPubKey();
         if (sessionPubKey != masterPubKey) {
-            dgb->addLevel(masterKey, sessionPubKey);
+            if (!dgb->addLevel(masterKey, sessionPubKey)) {
+                error = _("Failed to generate a delegation for this session.");
+                return nullptr;
+            }
         }
         peerData->delegation = dgb->build();
 
