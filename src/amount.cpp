@@ -11,16 +11,26 @@
 
 #include <tinyformat.h>
 
+static constexpr Currency BCHA{COIN, SATOSHI, 8};
+
+const Currency &Currency::get() {
+    return BCHA;
+}
+
 std::string Amount::ToString() const {
-    return strprintf("%d.%08d %s", *this / COIN, (*this % COIN) / SATOSHI,
+    const auto currency = Currency::get();
+    return strprintf("%d.%0*d %s", *this / currency.baseunit, currency.decimals,
+                     (*this % currency.baseunit) / currency.subunit,
                      CURRENCY_UNIT);
 }
 
 Amount::operator UniValue() const {
     bool sign = *this < Amount::zero();
     Amount n_abs(sign ? -amount : amount);
-    int64_t quotient = n_abs / COIN;
-    int64_t remainder = (n_abs % COIN) / SATOSHI;
-    return UniValue(UniValue::VNUM, strprintf("%s%d.%08d", sign ? "-" : "",
-                                              quotient, remainder));
+    const auto currency = Currency::get();
+    int64_t quotient = n_abs / currency.baseunit;
+    int64_t remainder = (n_abs % currency.baseunit) / currency.subunit;
+    return UniValue(UniValue::VNUM,
+                    strprintf("%s%d.%0*d", sign ? "-" : "", quotient,
+                              currency.decimals, remainder));
 }

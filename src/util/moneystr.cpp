@@ -13,8 +13,10 @@ std::string FormatMoney(const Amount amt) {
     // Note: not using straight sprintf here because we do NOT want localized
     // number formatting.
     Amount amt_abs = amt > Amount::zero() ? amt : -amt;
+    const auto currency = Currency::get();
     std::string str =
-        strprintf("%d.%08d", amt_abs / COIN, (amt_abs % COIN) / SATOSHI);
+        strprintf("%d.%0*d", amt_abs / currency.baseunit, currency.decimals,
+                  (amt_abs % currency.baseunit) / currency.subunit);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
@@ -40,13 +42,14 @@ bool ParseMoney(const std::string &money_string, Amount &nRet) {
         return false;
     }
 
+    const auto currency = Currency::get();
     std::string strWhole;
     Amount nUnits = Amount::zero();
     const char *p = str.c_str();
     for (; *p; p++) {
         if (*p == '.') {
             p++;
-            Amount nMult = COIN / 10;
+            Amount nMult = currency.baseunit / 10;
             while (IsDigit(*p) && (nMult > Amount::zero())) {
                 nUnits += (*p++ - '0') * nMult;
                 nMult /= 10;
@@ -68,11 +71,11 @@ bool ParseMoney(const std::string &money_string, Amount &nRet) {
     if (strWhole.size() > 10) {
         return false;
     }
-    if (nUnits < Amount::zero() || nUnits > COIN) {
+    if (nUnits < Amount::zero() || nUnits > currency.baseunit) {
         return false;
     }
 
-    Amount nWhole = atoi64(strWhole) * COIN;
+    Amount nWhole = atoi64(strWhole) * currency.baseunit;
 
     nRet = nWhole + Amount(nUnits);
     return true;

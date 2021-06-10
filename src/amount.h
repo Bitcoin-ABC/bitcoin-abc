@@ -154,6 +154,14 @@ static constexpr Amount SATOSHI = Amount::satoshi();
 static constexpr Amount CASH = 100 * SATOSHI;
 static constexpr Amount COIN = 100000000 * SATOSHI;
 
+struct Currency {
+    Amount baseunit;
+    Amount subunit;
+    uint8_t decimals;
+
+    static const Currency &get();
+};
+
 /**
  * No amount larger than this (in satoshi) is valid.
  *
