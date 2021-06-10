@@ -6,6 +6,7 @@
 
 from typing import Any, Optional, List, Dict
 
+from .authproxy import JSONRPCException
 from .messages import (
     AvalancheProof,
     CTransaction,
@@ -13,7 +14,10 @@ from .messages import (
     ToHex
 )
 from .test_node import TestNode
-from .util import satoshi_round
+from .util import (
+    satoshi_round,
+    wait_until,
+)
 
 
 def create_coinbase_stakes(
@@ -120,3 +124,13 @@ def create_stakes(
 def get_proof_ids(node):
     return [FromHex(AvalancheProof(), peer['proof']
                     ).proofid for peer in node.getavalanchepeerinfo()]
+
+
+def wait_for_proof(node, proofid_hex, timeout=60):
+    def proof_found():
+        try:
+            node.getrawavalancheproof(proofid_hex)
+            return True
+        except JSONRPCException:
+            return False
+    wait_until(proof_found, timeout=timeout)

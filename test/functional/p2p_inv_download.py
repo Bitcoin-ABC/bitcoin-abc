@@ -7,7 +7,10 @@ Test inventory download behavior
 """
 
 from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.avatools import wait_for_proof
+from test_framework.key import ECKey, bytes_to_wif
 from test_framework.messages import (
+    AvalancheProof,
     CInv,
     CTransaction,
     FromHex,
@@ -362,6 +365,45 @@ class InventoryDownloadTest(BitcoinTestFramework):
         self.nodes[0].p2ps[0].send_message(
             msg_notfound(vec=[CInv(context.inv_type, 1)]))
 
+    @skip(TX_TEST_CONTEXT)
+    def test_orphan_download(self, context):
+        node = self.nodes[0]
+        privkey = ECKey()
+        privkey.generate()
+        privkey_wif = bytes_to_wif(privkey.get_bytes())
+
+        # Build a proof with missing utxos so it will be orphaned
+        orphan = node.buildavalancheproof(
+            42, 2000000000, privkey.get_pubkey().get_bytes().hex(), [{
+                'txid': '0' * 64,
+                'vout': 0,
+                'amount': 10,
+                'height': 42,
+                'iscoinbase': False,
+                'privatekey': privkey_wif,
+            }]
+        )
+        proofid = FromHex(AvalancheProof(), orphan).proofid
+        proofid_hex = "{:064x}".format(proofid)
+
+        self.restart_node(0, extra_args=self.extra_args[0] + [
+            "-avaproof={}".format(orphan),
+            "-avamasterkey={}".format(privkey_wif),
+        ])
+        node.generate(2)
+        wait_for_proof(node, proofid_hex)
+        assert_equal(node.getrawavalancheproof(proofid_hex)["orphan"], True)
+
+        peer = node.add_p2p_connection(context.p2p_conn())
+        peer.send_message(msg_inv([CInv(t=context.inv_type, h=proofid)]))
+
+        # Give enough time for the node to eventually request the proof.
+        node.setmocktime(int(time.time()) +
+                         context.constants.getdata_interval + 1)
+        peer.sync_with_ping()
+
+        assert_equal(peer.getdata_count, 0)
+
     def run_test(self):
         for context in [TX_TEST_CONTEXT, PROOF_TEST_CONTEXT]:
             self.log.info(
@@ -381,7 +423,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             # Run each test against new bitcoind instances, as setting mocktimes has long-term effects on when
             # the next trickle relay event happens.
             for test in [self.test_in_flight_max,
-                         self.test_inv_block, self.test_data_requests]:
+                         self.test_inv_block, self.test_data_requests, self.test_orphan_download]:
                 self.stop_nodes()
                 self.start_nodes()
                 self.connect_nodes(1, 0)

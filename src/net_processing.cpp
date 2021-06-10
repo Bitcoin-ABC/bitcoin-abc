@@ -1760,8 +1760,8 @@ static bool AlreadyHaveBlock(const BlockHash &block_hash)
 }
 
 static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
-    // TODO check if the proof is in the orphan pool as well
-    return g_avalanche && g_avalanche->getProof(proofid);
+    return g_avalanche &&
+           (g_avalanche->getProof(proofid) || g_avalanche->getOrphan(proofid));
 }
 
 void RelayTransaction(const TxId &txid, const CConnman &connman) {
