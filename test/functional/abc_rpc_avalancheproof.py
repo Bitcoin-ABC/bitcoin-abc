@@ -225,6 +225,17 @@ class AvalancheProofTest(BitcoinTestFramework):
             proof_sequence, proof_expiration, proof_master,
             create_coinbase_stakes(node, [blockhashes[0]] * 2, addrkey0.key))
 
+        missing_stake = node.buildavalancheproof(
+            proof_sequence, proof_expiration, proof_master, [{
+                'txid': '0' * 64,
+                'vout': 0,
+                'amount': 10,
+                'height': 42,
+                'iscoinbase': False,
+                'privatekey': addrkey0.key,
+            }]
+        )
+
         bad_sig = ("0b000000000000000c0000000000000021030b4c866585dd868a9d62348"
                    "a9cd008d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085"
                    "583e75ee79340eb4eff208c89988e7ed0efb30b87298fa30000000000f20"
@@ -248,6 +259,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             check_rpc_failure(no_stake, "no-stake")
             check_rpc_failure(dust, "amount-below-dust-threshold")
             check_rpc_failure(duplicate_stake, "duplicated-stake")
+            check_rpc_failure(missing_stake, "utxo-missing-or-spent")
             check_rpc_failure(bad_sig, "invalid-signature")
             if self.is_wallet_compiled():
                 check_rpc_failure(too_many_utxos, "too-many-utxos")
