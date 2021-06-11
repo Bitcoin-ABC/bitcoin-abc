@@ -82,7 +82,7 @@ class BIP65Test(BitcoinTestFramework):
         peer = self.nodes[0].add_p2p_connection(P2PInterface())
         wallet = MiniWallet(self.nodes[0])
 
-        self.log.info("Mining {} blocks".format(CLTV_HEIGHT - 2))
+        self.log.info(f"Mining {CLTV_HEIGHT - 2} blocks")
         self.generate(wallet, 10)
         self.generate(self.nodes[0], CLTV_HEIGHT - 2 - 10)
 
@@ -115,7 +115,7 @@ class BIP65Test(BitcoinTestFramework):
         block.nVersion = 3
         block.solve()
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['{}, bad-version(0x00000003)'.format(block.hash)]):
+        with self.nodes[0].assert_debug_log(expected_msgs=[f'{block.hash}, bad-version(0x00000003)']):
             peer.send_and_ping(msg_block(block))
             assert_equal(int(self.nodes[0].getbestblockhash(), 16), tip)
             peer.sync_with_ping()
@@ -159,7 +159,8 @@ class BIP65Test(BitcoinTestFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['ConnectBlock {} failed, blk-bad-inputs'.format(block.hash)]):
+        with self.nodes[0].assert_debug_log(
+                expected_msgs=[f'ConnectBlock {block.hash} failed, blk-bad-inputs']):
             peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
             peer.sync_with_ping()

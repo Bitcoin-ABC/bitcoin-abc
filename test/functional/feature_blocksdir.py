@@ -29,10 +29,11 @@ class BlocksdirTest(BitcoinTestFramework):
         self.log.info("Starting with nonexistent blocksdir ...")
         blocksdir_path = os.path.join(self.options.tmpdir, 'blocksdir')
         self.nodes[0].assert_start_raises_init_error(
-            ["-blocksdir=" + blocksdir_path], 'Error: Specified blocks directory "{}" does not exist.'.format(blocksdir_path))
+            [f"-blocksdir={blocksdir_path}"],
+            f'Error: Specified blocks directory "{blocksdir_path}" does not exist.')
         os.mkdir(blocksdir_path)
         self.log.info("Starting with existing blocksdir ...")
-        self.start_node(0, ["-blocksdir=" + blocksdir_path])
+        self.start_node(0, [f"-blocksdir={blocksdir_path}"])
         self.log.info("mining blocks..")
         self.generatetoaddress(self.nodes[0],
                                10, self.nodes[0].get_deterministic_priv_key().address)
