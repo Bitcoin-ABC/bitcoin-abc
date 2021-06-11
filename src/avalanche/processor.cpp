@@ -193,7 +193,7 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     if (argsman.IsArgSet("-avasessionkey")) {
         sessionKey = DecodeSecret(argsman.GetArg("-avasessionkey", ""));
         if (!sessionKey.IsValid()) {
-            error = _("the avalanche session key is invalid");
+            error = _("The avalanche session key is invalid.");
             return nullptr;
         }
     } else {
@@ -204,13 +204,13 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     if (argsman.IsArgSet("-avaproof")) {
         if (!argsman.IsArgSet("-avamasterkey")) {
             error = _(
-                "the avalanche master key is missing for the avalanche proof");
+                "The avalanche master key is missing for the avalanche proof.");
             return nullptr;
         }
 
         masterKey = DecodeSecret(argsman.GetArg("-avamasterkey", ""));
         if (!masterKey.IsValid()) {
-            error = _("the avalanche master key is invalid");
+            error = _("The avalanche master key is invalid.");
             return nullptr;
         }
 
@@ -226,25 +226,25 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         if (!peerData->proof->verify(proof_state)) {
             switch (proof_state.GetResult()) {
                 case ProofValidationResult::NO_STAKE:
-                    error = _("the avalanche proof has no stake");
+                    error = _("The avalanche proof has no stake.");
                     return nullptr;
                 case ProofValidationResult::DUST_THRESOLD:
-                    error = _("the avalanche proof stake is too low");
+                    error = _("The avalanche proof stake is too low.");
                     return nullptr;
                 case ProofValidationResult::DUPLICATE_STAKE:
-                    error = _("the avalanche proof has duplicated stake");
+                    error = _("The avalanche proof has duplicated stake.");
                     return nullptr;
                 case ProofValidationResult::INVALID_SIGNATURE:
                     error =
-                        _("the avalanche proof has invalid stake signatures");
+                        _("The avalanche proof has invalid stake signatures.");
                     return nullptr;
                 case ProofValidationResult::TOO_MANY_UTXOS:
                     error = strprintf(
-                        _("the avalanche proof has too many utxos (max: %u)"),
+                        _("The avalanche proof has too many utxos (max: %u)."),
                         AVALANCHE_MAX_PROOF_STAKES);
                     return nullptr;
                 default:
-                    error = _("the avalanche proof is invalid");
+                    error = _("The avalanche proof is invalid.");
                     return nullptr;
             }
         }

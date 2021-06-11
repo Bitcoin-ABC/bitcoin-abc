@@ -334,14 +334,14 @@ class AvalancheProofTest(BitcoinTestFramework):
             self.extra_args[0] + [
                 "-avasessionkey=0",
             ],
-            expected_msg="Error: the avalanche session key is invalid",
+            expected_msg="Error: The avalanche session key is invalid.",
         )
 
         node.assert_start_raises_init_error(
             self.extra_args[0] + [
                 "-avaproof={}".format(proof),
             ],
-            expected_msg="Error: the avalanche master key is missing for the avalanche proof",
+            expected_msg="Error: The avalanche master key is missing for the avalanche proof.",
         )
 
         node.assert_start_raises_init_error(
@@ -349,7 +349,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                 "-avaproof={}".format(proof),
                 "-avamasterkey=0",
             ],
-            expected_msg="Error: the avalanche master key is invalid",
+            expected_msg="Error: The avalanche master key is invalid.",
         )
 
         def check_proof_init_error(proof, message):
@@ -362,15 +362,15 @@ class AvalancheProofTest(BitcoinTestFramework):
             )
 
         check_proof_init_error(no_stake,
-                               "the avalanche proof has no stake")
+                               "The avalanche proof has no stake.")
         check_proof_init_error(dust,
-                               "the avalanche proof stake is too low")
+                               "The avalanche proof stake is too low.")
         check_proof_init_error(dust2,
-                               "the avalanche proof stake is too low")
+                               "The avalanche proof stake is too low.")
         check_proof_init_error(duplicate_stake,
-                               "the avalanche proof has duplicated stake")
+                               "The avalanche proof has duplicated stake.")
         check_proof_init_error(bad_sig,
-                               "the avalanche proof has invalid stake signatures")
+                               "The avalanche proof has invalid stake signatures.")
         if self.is_wallet_compiled():
             # The too many utxos case creates a proof which is that large that it
             # cannot fit on the command line
@@ -379,7 +379,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                 self.extra_args[0] + [
                     "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
                 ],
-                expected_msg="Error: the avalanche proof has too many utxos",
+                expected_msg="Error: The avalanche proof has too many utxos.",
                 match=ErrorMatch.PARTIAL_REGEX,
             )
 
