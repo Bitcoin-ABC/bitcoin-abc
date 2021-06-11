@@ -383,6 +383,18 @@ class AvalancheProofTest(BitcoinTestFramework):
                 match=ErrorMatch.PARTIAL_REGEX,
             )
 
+        # Master private key mismatch
+        random_privkey = ECKey()
+        random_privkey.generate()
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avaproof={}".format(proof),
+                "-avamasterkey={}".format(
+                    bytes_to_wif(random_privkey.get_bytes())),
+            ],
+            expected_msg="Error: The master key does not match the proof public key.",
+        )
+
 
 if __name__ == '__main__':
     AvalancheProofTest().main()

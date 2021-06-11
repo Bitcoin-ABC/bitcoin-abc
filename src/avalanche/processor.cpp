@@ -249,9 +249,15 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
             }
         }
 
+        const CPubKey masterPubKey = peerData->proof->getMaster();
+        if (masterKey.GetPubKey() != masterPubKey) {
+            error = _("The master key does not match the proof public key.");
+            return nullptr;
+        }
+
         // Generate the delegation to the session key.
         DelegationBuilder dgb(*peerData->proof);
-        if (sessionKey.GetPubKey() != peerData->proof->getMaster()) {
+        if (sessionKey.GetPubKey() != masterPubKey) {
             dgb.addLevel(masterKey, sessionKey.GetPubKey());
         }
         peerData->delegation = dgb.build();
