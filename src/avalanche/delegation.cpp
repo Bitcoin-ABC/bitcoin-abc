@@ -7,8 +7,30 @@
 #include <avalanche/proof.h>
 #include <avalanche/validation.h>
 #include <hash.h>
+#include <streams.h>
+#include <util/strencodings.h>
+#include <util/translation.h>
 
 namespace avalanche {
+
+bool Delegation::FromHex(Delegation &dg, const std::string &dgHex,
+                         bilingual_str &errorOut) {
+    if (!IsHex(dgHex)) {
+        errorOut = _("Delegation must be an hexadecimal string.");
+        return false;
+    }
+
+    CDataStream ss(ParseHex(dgHex), SER_NETWORK, PROTOCOL_VERSION);
+
+    try {
+        ss >> dg;
+    } catch (std::exception &e) {
+        errorOut = strprintf(_("Delegation has invalid format: %s"), e.what());
+        return false;
+    }
+
+    return true;
+}
 
 template <typename L, typename F>
 static bool reduceLevels(uint256 &hash, const std::vector<L> &levels, F f) {

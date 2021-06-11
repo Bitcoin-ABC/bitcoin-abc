@@ -211,6 +211,23 @@ class AvalancheProofTest(BitcoinTestFramework):
                                 delegation,
                                 )
 
+        # Delegation not hex
+        assert_raises_rpc_error(-22, "Delegation must be an hexadecimal string.",
+                                node.delegateavalancheproof,
+                                limited_id_hex,
+                                bytes_to_wif(privkey.get_bytes()),
+                                random_pubkey,
+                                "f00",
+                                )
+        # Delegation is hex but ill-formed
+        assert_raises_rpc_error(-22, "Delegation has invalid format",
+                                node.delegateavalancheproof,
+                                limited_id_hex,
+                                bytes_to_wif(privkey.get_bytes()),
+                                random_pubkey,
+                                "dead",
+                                )
+
         # Test invalid proofs
         dust = node.buildavalancheproof(
             proof_sequence, proof_expiration, proof_master,

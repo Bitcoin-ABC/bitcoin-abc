@@ -343,9 +343,11 @@ static UniValue delegateavalancheproof(const Config &config,
     std::unique_ptr<avalanche::DelegationBuilder> dgb;
     if (request.params.size() >= 4 && !request.params[3].isNull()) {
         avalanche::Delegation dg;
-        CDataStream ss(ParseHexV(request.params[3], "delegation"), SER_NETWORK,
-                       PROTOCOL_VERSION);
-        ss >> dg;
+        bilingual_str error;
+        if (!avalanche::Delegation::FromHex(dg, request.params[3].get_str(),
+                                            error)) {
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+        }
 
         if (dg.getProofId() !=
             limitedProofId.computeProofId(dg.getProofMaster())) {

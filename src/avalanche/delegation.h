@@ -13,6 +13,8 @@
 
 #include <vector>
 
+struct bilingual_str;
+
 namespace avalanche {
 
 class DelegationState;
@@ -43,6 +45,9 @@ class Delegation {
 
 public:
     explicit Delegation() {}
+
+    static bool FromHex(Delegation &dg, const std::string &dgHex,
+                        bilingual_str &errorOut);
 
     const DelegationId &getId() const { return dgid; }
     const LimitedProofId &getLimitedProofId() const { return limitedProofid; }
