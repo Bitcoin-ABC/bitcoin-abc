@@ -408,7 +408,7 @@ static UniValue sendtoaddress(const Config &config,
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address to send to."},
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
-             "The amount in " + CURRENCY_UNIT + " to send. eg 0.1"},
+             "The amount in " + Currency::get().ticker + " to send. eg 0.1"},
             {"comment", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
              "A comment used to store what the transaction is for.\n"
              "                             This is not part of the "
@@ -522,7 +522,7 @@ static UniValue listaddressgroupings(const Config &config,
                                 {RPCResult::Type::STR, "address",
                                  "The bitcoin address"},
                                 {RPCResult::Type::STR_AMOUNT, "amount",
-                                 "The amount in " + CURRENCY_UNIT},
+                                 "The amount in " + Currency::get().ticker},
                                 {RPCResult::Type::STR, "label",
                                  /* optional */ true, "The label"},
                             }},
@@ -702,7 +702,7 @@ static UniValue getreceivedbyaddress(const Config &config,
              "Only include transactions confirmed at least this many times."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
-                  "The total amount in " + CURRENCY_UNIT +
+                  "The total amount in " + Currency::get().ticker +
                       " received at this address."},
         RPCExamples{
             "\nThe amount from transactions with at least 1 confirmation\n" +
@@ -750,7 +750,7 @@ static UniValue getreceivedbylabel(const Config &config,
              "Only include transactions confirmed at least this many times."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
-                  "The total amount in " + CURRENCY_UNIT +
+                  "The total amount in " + Currency::get().ticker +
                       " received for this label."},
         RPCExamples{"\nAmount received by the default label with at least 1 "
                     "confirmation\n" +
@@ -807,7 +807,7 @@ static UniValue getbalance(const Config &config,
              "if they have previously been used in a transaction."},
         },
         RPCResult{RPCResult::Type::STR_AMOUNT, "amount",
-                  "The total amount in " + CURRENCY_UNIT +
+                  "The total amount in " + Currency::get().ticker +
                       " received for this wallet."},
         RPCExamples{
             "\nThe total amount in the wallet with 0 or more confirmations\n" +
@@ -896,7 +896,7 @@ static UniValue sendmany(const Config &config, const JSONRPCRequest &request) {
                     {"address", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
                      "The bitcoin address is the key, the numeric amount (can "
                      "be string) in " +
-                         CURRENCY_UNIT + " is the value"},
+                         Currency::get().ticker + " is the value"},
                 },
             },
             {"minconf", RPCArg::Type::NUM, /* default */ "1",
@@ -1352,7 +1352,7 @@ static UniValue listreceivedbyaddress(const Config &config,
                       "in transaction"},
                      {RPCResult::Type::STR, "address", "The receiving address"},
                      {RPCResult::Type::STR_AMOUNT, "amount",
-                      "The total amount in " + CURRENCY_UNIT +
+                      "The total amount in " + Currency::get().ticker +
                           " received by the address"},
                      {RPCResult::Type::NUM, "confirmations",
                       "The number of confirmations of the most recent "
@@ -1588,6 +1588,7 @@ static const std::vector<RPCResult> TransactionDescriptionString() {
 }
 
 UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "listtransactions",
         "If a label name is provided, this will return only incoming "
@@ -1634,7 +1635,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
                               "\"orphan\"                Orphaned coinbase "
                               "transactions received."},
                              {RPCResult::Type::STR_AMOUNT, "amount",
-                              "The amount in " + CURRENCY_UNIT +
+                              "The amount in " + ticker +
                                   ". This is negative for the 'send' category, "
                                   "and is positive\n"
                                   "for all other categories"},
@@ -1642,7 +1643,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
                               "A comment for the address/transaction, if any"},
                              {RPCResult::Type::NUM, "vout", "the vout value"},
                              {RPCResult::Type::STR_AMOUNT, "fee",
-                              "The amount of the fee in " + CURRENCY_UNIT +
+                              "The amount of the fee in " + ticker +
                                   ". This is negative and only available for "
                                   "the\n"
                                   "'send' category of transactions."},
@@ -1741,6 +1742,7 @@ UniValue listtransactions(const Config &config, const JSONRPCRequest &request) {
 
 static UniValue listsinceblock(const Config &config,
                                const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "listsinceblock",
         "Get all transactions in blocks since block [blockhash], or all "
@@ -1800,14 +1802,14 @@ static UniValue listsinceblock(const Config &config,
                                    "\"orphan\"                Orphaned "
                                    "coinbase transactions received."},
                                   {RPCResult::Type::STR_AMOUNT, "amount",
-                                   "The amount in " + CURRENCY_UNIT +
+                                   "The amount in " + ticker +
                                        ". This is negative for the 'send' "
                                        "category, and is positive\n"
                                        "for all other categories"},
                                   {RPCResult::Type::NUM, "vout",
                                    "the vout value"},
                                   {RPCResult::Type::STR_AMOUNT, "fee",
-                                   "The amount of the fee in " + CURRENCY_UNIT +
+                                   "The amount of the fee in " + ticker +
                                        ". This is negative and only available "
                                        "for the\n"
                                        "'send' category of transactions."},
@@ -1963,6 +1965,7 @@ static UniValue listsinceblock(const Config &config,
 
 static UniValue gettransaction(const Config &config,
                                const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "gettransaction",
         "Get detailed information about in-wallet transaction <txid>\n",
@@ -1982,9 +1985,9 @@ static UniValue gettransaction(const Config &config,
             Cat(Cat<std::vector<RPCResult>>(
                     {
                         {RPCResult::Type::STR_AMOUNT, "amount",
-                         "The amount in " + CURRENCY_UNIT},
+                         "The amount in " + ticker},
                         {RPCResult::Type::STR_AMOUNT, "fee",
-                         "The amount of the fee in " + CURRENCY_UNIT +
+                         "The amount of the fee in " + ticker +
                              ". This is negative and only available for the\n"
                              "'send' category of transactions."},
                     },
@@ -2018,12 +2021,12 @@ static UniValue gettransaction(const Config &config,
                                "\"orphan\"                Orphaned coinbase "
                                "transactions received."},
                               {RPCResult::Type::STR_AMOUNT, "amount",
-                               "The amount in " + CURRENCY_UNIT},
+                               "The amount in " + ticker},
                               {RPCResult::Type::STR, "label",
                                "A comment for the address/transaction, if any"},
                               {RPCResult::Type::NUM, "vout", "the vout value"},
                               {RPCResult::Type::STR_AMOUNT, "fee",
-                               "The amount of the fee in " + CURRENCY_UNIT +
+                               "The amount of the fee in " + ticker +
                                    ". This is negative and only available for "
                                    "the \n"
                                    "'send' category of transactions."},
@@ -2793,7 +2796,7 @@ static UniValue settxfee(const Config &config, const JSONRPCRequest &request) {
         "fee selection will be used by default.\n",
         {
             {"amount", RPCArg::Type::AMOUNT, RPCArg::Optional::NO,
-             "The transaction fee in " + CURRENCY_UNIT + "/kB"},
+             "The transaction fee in " + Currency::get().ticker + "/kB"},
         },
         RPCResult{RPCResult::Type::BOOL, "", "Returns true if successful"},
         RPCExamples{HelpExampleCli("settxfee", "0.00001") +
@@ -2839,7 +2842,8 @@ static UniValue getbalances(const Config &config,
                             const JSONRPCRequest &request) {
     RPCHelpMan{
         "getbalances",
-        "Returns an object with all balances in " + CURRENCY_UNIT + ".\n",
+        "Returns an object with all balances in " + Currency::get().ticker +
+            ".\n",
         {},
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -2964,8 +2968,8 @@ static UniValue getwalletinfo(const Config &config,
                      " until which the wallet is unlocked for transfers, or 0 "
                      "if the wallet is locked"},
                 {RPCResult::Type::STR_AMOUNT, "paytxfee",
-                 "the transaction fee configuration, set in " + CURRENCY_UNIT +
-                     "/kB"},
+                 "the transaction fee configuration, set in " +
+                     Currency::get().ticker + "/kB"},
                 {RPCResult::Type::STR_HEX, "hdseedid", /* optional */ true,
                  "the Hash160 of the HD seed (only present when HD is "
                  "enabled)"},
@@ -3404,6 +3408,7 @@ static UniValue unloadwallet(const Config &config,
 
 static UniValue listunspent(const Config &config,
                             const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "listunspent",
         "Returns array of unspent transaction outputs\n"
@@ -3434,15 +3439,15 @@ static UniValue listunspent(const Config &config,
              "JSON with query options",
              {
                  {"minimumAmount", RPCArg::Type::AMOUNT, /* default */ "0",
-                  "Minimum value of each UTXO in " + CURRENCY_UNIT + ""},
+                  "Minimum value of each UTXO in " + ticker + ""},
                  {"maximumAmount", RPCArg::Type::AMOUNT,
                   /* default */ "unlimited",
-                  "Maximum value of each UTXO in " + CURRENCY_UNIT + ""},
+                  "Maximum value of each UTXO in " + ticker + ""},
                  {"maximumCount", RPCArg::Type::NUM, /* default */ "unlimited",
                   "Maximum number of UTXOs"},
                  {"minimumSumAmount", RPCArg::Type::AMOUNT,
                   /* default */ "unlimited",
-                  "Minimum sum value of all UTXOs in " + CURRENCY_UNIT + ""},
+                  "Minimum sum value of all UTXOs in " + ticker + ""},
              },
              "query_options"},
         },
@@ -3462,7 +3467,7 @@ static UniValue listunspent(const Config &config,
                       "The associated label, or \"\" for the default label"},
                      {RPCResult::Type::STR, "scriptPubKey", "the script key"},
                      {RPCResult::Type::STR_AMOUNT, "amount",
-                      "the transaction output amount in " + CURRENCY_UNIT},
+                      "the transaction output amount in " + ticker},
                      {RPCResult::Type::NUM, "confirmations",
                       "The number of confirmations"},
                      {RPCResult::Type::STR_HEX, "redeemScript",
@@ -3782,6 +3787,7 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
 
 static UniValue fundrawtransaction(const Config &config,
                                    const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "fundrawtransaction",
         "If the transaction has no inputs, they will be automatically selected "
@@ -3832,7 +3838,7 @@ static UniValue fundrawtransaction(const Config &config,
                   "Lock selected unspent outputs"},
                  {"feeRate", RPCArg::Type::AMOUNT, /* default */
                   "not set: makes wallet determine the fee",
-                  "Set a specific fee rate in " + CURRENCY_UNIT + "/kB"},
+                  "Set a specific fee rate in " + ticker + "/kB"},
                  {
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
@@ -3855,18 +3861,17 @@ static UniValue fundrawtransaction(const Config &config,
              },
              "options"},
         },
-        RPCResult{
-            RPCResult::Type::OBJ,
-            "",
-            "",
-            {
-                {RPCResult::Type::STR_HEX, "hex",
-                 "The resulting raw transaction (hex-encoded string)"},
-                {RPCResult::Type::STR_AMOUNT, "fee",
-                 "Fee in " + CURRENCY_UNIT + " the resulting transaction pays"},
-                {RPCResult::Type::NUM, "changepos",
-                 "The position of the added change output, or -1"},
-            }},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR_HEX, "hex",
+                       "The resulting raw transaction (hex-encoded string)"},
+                      {RPCResult::Type::STR_AMOUNT, "fee",
+                       "Fee in " + ticker + " the resulting transaction pays"},
+                      {RPCResult::Type::NUM, "changepos",
+                       "The position of the added change output, or -1"},
+                  }},
         RPCExamples{
             "\nCreate a transaction with no inputs\n" +
             HelpExampleCli("createrawtransaction",
@@ -4714,6 +4719,7 @@ static UniValue walletprocesspsbt(const Config &config,
 
 static UniValue walletcreatefundedpsbt(const Config &config,
                                        const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "walletcreatefundedpsbt",
         "Creates and funds a transaction in the Partially Signed Transaction "
@@ -4766,7 +4772,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                              "A key-value pair. The key (string) is the "
                              "bitcoin address, the value (float or string) is "
                              "the amount in " +
-                                 CURRENCY_UNIT + ""},
+                                 ticker + ""},
                         },
                     },
                     {
@@ -4808,7 +4814,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
                   "Lock selected unspent outputs"},
                  {"feeRate", RPCArg::Type::AMOUNT, /* default */
                   "not set: makes wallet determine the fee",
-                  "Set a specific fee rate in " + CURRENCY_UNIT + "/kB"},
+                  "Set a specific fee rate in " + ticker + "/kB"},
                  {
                      "subtractFeeFromOutputs",
                      RPCArg::Type::ARR,
@@ -4834,18 +4840,17 @@ static UniValue walletcreatefundedpsbt(const Config &config,
              "Includes the BIP 32 derivation paths for public keys if we know "
              "them"},
         },
-        RPCResult{
-            RPCResult::Type::OBJ,
-            "",
-            "",
-            {
-                {RPCResult::Type::STR, "psbt",
-                 "The resulting raw transaction (base64-encoded string)"},
-                {RPCResult::Type::STR_AMOUNT, "fee",
-                 "Fee in " + CURRENCY_UNIT + " the resulting transaction pays"},
-                {RPCResult::Type::NUM, "changepos",
-                 "The position of the added change output, or -1"},
-            }},
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {
+                      {RPCResult::Type::STR, "psbt",
+                       "The resulting raw transaction (base64-encoded string)"},
+                      {RPCResult::Type::STR_AMOUNT, "fee",
+                       "Fee in " + ticker + " the resulting transaction pays"},
+                      {RPCResult::Type::NUM, "changepos",
+                       "The position of the added change output, or -1"},
+                  }},
         RPCExamples{
             "\nCreate a transaction with no inputs\n" +
             HelpExampleCli("walletcreatefundedpsbt",

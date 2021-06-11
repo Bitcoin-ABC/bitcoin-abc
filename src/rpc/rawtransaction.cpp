@@ -152,7 +152,7 @@ static UniValue getrawtransaction(const Config &config,
                           "",
                           {
                               {RPCResult::Type::NUM, "value",
-                               "The value in " + CURRENCY_UNIT},
+                               "The value in " + Currency::get().ticker},
                               {RPCResult::Type::NUM, "n", "index"},
                               {RPCResult::Type::OBJ,
                                "scriptPubKey",
@@ -502,7 +502,7 @@ static UniValue createrawtransaction(const Config &config,
                              "A key-value pair. The key (string) is the "
                              "bitcoin address, the value (float or string) is "
                              "the amount in " +
-                                 CURRENCY_UNIT},
+                                 Currency::get().ticker},
                         },
                     },
                     {
@@ -604,7 +604,7 @@ static UniValue decoderawtransaction(const Config &config,
                       "",
                       {
                           {RPCResult::Type::NUM, "value",
-                           "The value in " + CURRENCY_UNIT},
+                           "The value in " + Currency::get().ticker},
                           {RPCResult::Type::NUM, "n", "index"},
                           {RPCResult::Type::OBJ,
                            "scriptPubKey",
@@ -967,7 +967,8 @@ static UniValue sendrawtransaction(const Config &config,
              FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK()),
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
-                 CURRENCY_UNIT + "/kB\nSet to 0 to accept any fee rate.\n"},
+                 Currency::get().ticker +
+                 "/kB\nSet to 0 to accept any fee rate.\n"},
         },
         RPCResult{RPCResult::Type::STR_HEX, "", "The transaction hash in hex"},
         RPCExamples{
@@ -1048,7 +1049,7 @@ static UniValue testmempoolaccept(const Config &config,
              FormatMoney(DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK()),
              "Reject transactions whose fee rate is higher than the specified "
              "value, expressed in " +
-                 CURRENCY_UNIT + "/kB\n"},
+                 Currency::get().ticker + "/kB\n"},
         },
         RPCResult{RPCResult::Type::ARR,
                   "",
@@ -1205,7 +1206,7 @@ static UniValue decodepsbt(const Config &config,
                            "Transaction output for UTXOs",
                            {
                                {RPCResult::Type::NUM, "amount",
-                                "The value in " + CURRENCY_UNIT},
+                                "The value in " + Currency::get().ticker},
                                {RPCResult::Type::OBJ,
                                 "scriptPubKey",
                                 "",
@@ -1676,7 +1677,7 @@ static UniValue createpsbt(const Config &config,
                              "A key-value pair. The key (string) is the "
                              "bitcoin address, the value (float or string) is "
                              "the amount in " +
-                                 CURRENCY_UNIT},
+                                 Currency::get().ticker},
                         },
                     },
                     {
@@ -2067,7 +2068,7 @@ UniValue analyzepsbt(const Config &config, const JSONRPCRequest &request) {
                 {RPCResult::Type::STR_AMOUNT, "estimated_feerate",
                  /* optional */ true,
                  "Estimated feerate of the final signed transaction in " +
-                     CURRENCY_UNIT +
+                     Currency::get().ticker +
                      "/kB. Shown only if all UTXO slots in the PSBT have been "
                      "filled"},
                 {RPCResult::Type::STR_AMOUNT, "fee", /* optional */ true,

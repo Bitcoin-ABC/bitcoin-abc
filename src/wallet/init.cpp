@@ -53,11 +53,12 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
     argsman.AddArg("-disablewallet",
                    "Do not load the wallet and disable wallet RPC calls",
                    ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
+    const auto &ticker = Currency::get().ticker;
     argsman.AddArg("-fallbackfee=<amt>",
                    strprintf("A fee rate (in %s/kB) that will be used when fee "
                              "estimation has insufficient data. 0 to entirely "
                              "disable the fallbackfee feature. (default: %s)",
-                             CURRENCY_UNIT, FormatMoney(DEFAULT_FALLBACK_FEE)),
+                             ticker, FormatMoney(DEFAULT_FALLBACK_FEE)),
                    ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     argsman.AddArg(
         "-keypool=<n>",
@@ -72,27 +73,26 @@ void WalletInit::AddWalletOptions(ArgsManager &argsman) const {
         strprintf(
             "Spend up to this amount in additional (absolute) fees (in %s) if "
             "it allows the use of partial spend avoidance (default: %s)",
-            CURRENCY_UNIT, FormatMoney(DEFAULT_MAX_AVOIDPARTIALSPEND_FEE)),
+            ticker, FormatMoney(DEFAULT_MAX_AVOIDPARTIALSPEND_FEE)),
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     argsman.AddArg(
         "-maxtxfee=<amt>",
         strprintf("Maximum total fees (in %s) to use in a single wallet "
                   "transaction or raw transaction; setting this too low may "
                   "abort large transactions (default: %s)",
-                  CURRENCY_UNIT, FormatMoney(DEFAULT_TRANSACTION_MAXFEE)),
+                  ticker, FormatMoney(DEFAULT_TRANSACTION_MAXFEE)),
         ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-mintxfee=<amt>",
                    strprintf("Fees (in %s/kB) smaller than this are considered "
                              "zero fee for transaction creation (default: %s)",
-                             CURRENCY_UNIT,
+                             ticker,
                              FormatMoney(DEFAULT_TRANSACTION_MINFEE_PER_KB)),
                    ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     argsman.AddArg(
         "-paytxfee=<amt>",
         strprintf(
             "Fee (in %s/kB) to add to transactions you send (default: %s)",
-            CURRENCY_UNIT,
-            FormatMoney(CFeeRate{DEFAULT_PAY_TX_FEE}.GetFeePerK())),
+            ticker, FormatMoney(CFeeRate{DEFAULT_PAY_TX_FEE}.GetFeePerK())),
         ArgsManager::ALLOW_ANY, OptionsCategory::WALLET);
     argsman.AddArg(
         "-rescan",

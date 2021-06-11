@@ -596,6 +596,7 @@ static UniValue GetNetworksInfo() {
 
 static UniValue getnetworkinfo(const Config &config,
                                const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "getnetworkinfo",
         "Returns an object containing various state info regarding P2P "
@@ -648,10 +649,9 @@ static UniValue getnetworkinfo(const Config &config,
                       }},
                  }},
                 {RPCResult::Type::NUM, "relayfee",
-                 "minimum relay fee for transactions in " + CURRENCY_UNIT +
-                     "/kB"},
+                 "minimum relay fee for transactions in " + ticker + "/kB"},
                 {RPCResult::Type::NUM, "excessutxocharge",
-                 "minimum charge for excess utxos in " + CURRENCY_UNIT},
+                 "minimum charge for excess utxos in " + ticker},
                 {RPCResult::Type::ARR,
                  "localaddresses",
                  "list of local addresses",

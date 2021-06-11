@@ -157,6 +157,7 @@ struct Currency {
     Amount baseunit;
     Amount subunit;
     uint8_t decimals;
+    std::string ticker;
 
     static const Currency &get();
 };

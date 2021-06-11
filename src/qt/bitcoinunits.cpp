@@ -33,13 +33,14 @@ bool BitcoinUnits::valid(int unit) {
 }
 
 QString BitcoinUnits::longName(int unit) {
+    const auto &ticker = Currency::get().ticker;
     switch (unit) {
         case BCH:
-            return QString(CURRENCY_UNIT.c_str());
+            return QString(ticker.c_str());
         case mBCH:
-            return QString("m") + QString(CURRENCY_UNIT.c_str());
+            return QString("m") + QString(ticker.c_str());
         case uBCH:
-            return QString::fromUtf8("μ") + QString(CURRENCY_UNIT.c_str());
+            return QString::fromUtf8("μ") + QString(ticker.c_str());
         case SAT:
             return QString("Satoshi (sat)");
         default:

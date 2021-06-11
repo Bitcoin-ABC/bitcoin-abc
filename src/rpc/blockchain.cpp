@@ -463,10 +463,11 @@ static UniValue getdifficulty(const Config &config,
 }
 
 static std::vector<RPCResult> MempoolEntryDescription() {
+    const auto &ticker = Currency::get().ticker;
     return {
         RPCResult{RPCResult::Type::NUM, "size", "transaction size."},
         RPCResult{RPCResult::Type::STR_AMOUNT, "fee",
-                  "transaction fee in " + CURRENCY_UNIT + " (DEPRECATED)"},
+                  "transaction fee in " + ticker + " (DEPRECATED)"},
         RPCResult{RPCResult::Type::STR_AMOUNT, "modifiedfee",
                   "transaction fee with fee deltas used for mining priority "
                   "(DEPRECATED)"},
@@ -498,19 +499,19 @@ static std::vector<RPCResult> MempoolEntryDescription() {
                   "",
                   {
                       RPCResult{RPCResult::Type::STR_AMOUNT, "base",
-                                "transaction fee in " + CURRENCY_UNIT},
+                                "transaction fee in " + ticker},
                       RPCResult{RPCResult::Type::STR_AMOUNT, "modified",
                                 "transaction fee with fee deltas used for "
                                 "mining priority in " +
-                                    CURRENCY_UNIT},
+                                    ticker},
                       RPCResult{RPCResult::Type::STR_AMOUNT, "ancestor",
                                 "modified fees (see above) of in-mempool "
                                 "ancestors (including this one) in " +
-                                    CURRENCY_UNIT},
+                                    ticker},
                       RPCResult{RPCResult::Type::STR_AMOUNT, "descendant",
                                 "modified fees (see above) of in-mempool "
                                 "descendants (including this one) in " +
-                                    CURRENCY_UNIT},
+                                    ticker},
                   }},
         RPCResult{
             RPCResult::Type::ARR,
@@ -1252,7 +1253,7 @@ UniValue gettxout(const Config &config, const JSONRPCRequest &request) {
                 {RPCResult::Type::NUM, "confirmations",
                  "The number of confirmations"},
                 {RPCResult::Type::STR_AMOUNT, "value",
-                 "The transaction value in " + CURRENCY_UNIT},
+                 "The transaction value in " + Currency::get().ticker},
                 {RPCResult::Type::OBJ,
                  "scriptPubKey",
                  "",
@@ -1755,7 +1756,7 @@ static UniValue getmempoolinfo(const Config &config,
                 {RPCResult::Type::NUM, "maxmempool",
                  "Maximum memory usage for the mempool"},
                 {RPCResult::Type::STR_AMOUNT, "mempoolminfee",
-                 "Minimum fee rate in " + CURRENCY_UNIT +
+                 "Minimum fee rate in " + Currency::get().ticker +
                      "/kB for tx to be accepted. Is the maximum of "
                      "minrelaytxfee and minimum mempool fee"},
                 {RPCResult::Type::STR_AMOUNT, "minrelaytxfee",
@@ -2147,11 +2148,12 @@ static constexpr size_t PER_UTXO_OVERHEAD =
 
 static UniValue getblockstats(const Config &config,
                               const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "getblockstats",
         "Compute per block statistics for a given window. All amounts are "
         "in " +
-            CURRENCY_UNIT +
+            ticker +
             ".\n"
             "It won't work for some heights with pruning.\n",
         {
@@ -2194,8 +2196,7 @@ static UniValue getblockstats(const Config &config,
                 {RPCResult::Type::NUM, "medianfee",
                  "Truncated median fee in the block"},
                 {RPCResult::Type::NUM, "medianfeerate",
-                 "Truncated median feerate (in " + CURRENCY_UNIT +
-                     " per byte)"},
+                 "Truncated median feerate (in " + ticker + " per byte)"},
                 {RPCResult::Type::NUM, "mediantime",
                  "The block median time past"},
                 {RPCResult::Type::NUM, "mediantxsize",
@@ -2519,6 +2520,7 @@ public:
 
 static UniValue scantxoutset(const Config &config,
                              const JSONRPCRequest &request) {
+    const auto &ticker = Currency::get().ticker;
     RPCHelpMan{
         "scantxoutset",
         "EXPERIMENTAL warning: this call may be removed or changed in future "
@@ -2609,15 +2611,14 @@ static UniValue scantxoutset(const Config &config,
                            "A specialized descriptor for the matched "
                            "scriptPubKey"},
                           {RPCResult::Type::STR_AMOUNT, "amount",
-                           "The total amount in " + CURRENCY_UNIT +
+                           "The total amount in " + ticker +
                                " of the unspent output"},
                           {RPCResult::Type::NUM, "height",
                            "Height of the unspent transaction output"},
                       }},
                  }},
                 {RPCResult::Type::STR_AMOUNT, "total_amount",
-                 "The total amount of all found unspent outputs in " +
-                     CURRENCY_UNIT},
+                 "The total amount of all found unspent outputs in " + ticker},
             }},
         RPCExamples{""},
     }

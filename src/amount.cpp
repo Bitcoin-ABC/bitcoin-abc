@@ -13,8 +13,8 @@
 
 #include <tinyformat.h>
 
-static constexpr Currency BCHA{COIN, SATOSHI, 8};
-static constexpr Currency XEC{100 * SATOSHI, SATOSHI, 2};
+static const Currency BCHA{COIN, SATOSHI, 8, "BCHA"};
+static const Currency XEC{100 * SATOSHI, SATOSHI, 2, "XEC"};
 
 const Currency &Currency::get() {
     return gArgs.GetBoolArg("-xec", DEFAULT_XEC) ? XEC : BCHA;
@@ -24,7 +24,7 @@ std::string Amount::ToString() const {
     const auto currency = Currency::get();
     return strprintf("%d.%0*d %s", *this / currency.baseunit, currency.decimals,
                      (*this % currency.baseunit) / currency.subunit,
-                     CURRENCY_UNIT);
+                     currency.ticker);
 }
 
 Amount::operator UniValue() const {
