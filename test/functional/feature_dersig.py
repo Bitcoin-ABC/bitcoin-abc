@@ -66,7 +66,7 @@ class BIP66Test(BitcoinTestFramework):
         block.rehash()
         block.solve()
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['{}, bad-version(0x00000002)'.format(block.hash)]):
+        with self.nodes[0].assert_debug_log(expected_msgs=[f'{block.hash}, bad-version(0x00000002)']):
             peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
             peer.sync_with_ping()
@@ -95,7 +95,7 @@ class BIP66Test(BitcoinTestFramework):
         block.rehash()
         block.solve()
 
-        with self.nodes[0].assert_debug_log(expected_msgs=['ConnectBlock {} failed, blk-bad-inputs'.format(block.hash)]):
+        with self.nodes[0].assert_debug_log(expected_msgs=[f'ConnectBlock {block.hash} failed, blk-bad-inputs']):
             peer.send_and_ping(msg_block(block))
             assert_equal(self.nodes[0].getbestblockhash(), tip)
             peer.sync_with_ping()

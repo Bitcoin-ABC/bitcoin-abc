@@ -66,7 +66,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         # Node3 is a normal node with default args, except will mine full blocks
         # and non-standard txs (e.g. txs with "dust" outputs)
         self.node3_args = [
-            "-blockmaxsize={}".format(DEFAULT_MAX_BLOCK_SIZE),
+            f"-blockmaxsize={DEFAULT_MAX_BLOCK_SIZE}",
             "-acceptnonstdtxn"]
         self.extra_args = [self.node0_args, self.node1_args,
                            self.node2_args, self.node3_args]
@@ -109,7 +109,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         # TODO: If this happens a lot, we should try to restart without -dbcrashratio
         # and make sure that recovery happens.
         raise AssertionError(
-            "Unable to successfully restart node {} in allotted time".format(node_index))
+            f"Unable to successfully restart node {node_index} in allotted time")
 
     def submit_block_catch_error(self, node_index, block):
         """Try submitting a block to the given node.
@@ -122,11 +122,11 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
             return True
         except (http.client.CannotSendRequest, http.client.RemoteDisconnected) as e:
             self.log.debug(
-                "node {} submitblock raised exception: {}".format(node_index, e))
+                f"node {node_index} submitblock raised exception: {e}")
             return False
         except OSError as e:
             self.log.debug(
-                "node {} submitblock raised OSError exception: errno={}".format(node_index, e.errno))
+                f"node {node_index} submitblock raised OSError exception: errno={e.errno}")
             if e.errno in [errno.EPIPE, errno.ECONNREFUSED, errno.ECONNRESET]:
                 # The node has likely crashed
                 return False
@@ -152,16 +152,16 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         # Deliver each block to each other node
         for i in range(3):
             nodei_utxo_hash = None
-            self.log.debug("Syncing blocks to node {}".format(i))
+            self.log.debug(f"Syncing blocks to node {i}")
             for (block_hash, block) in blocks:
                 # Get the block from node3, and submit to node_i
-                self.log.debug("submitting block {}".format(block_hash))
+                self.log.debug(f"submitting block {block_hash}")
                 if not self.submit_block_catch_error(i, block):
                     # TODO: more carefully check that the crash is due to -dbcrashratio
                     # (change the exit code perhaps, and check that here?)
                     self.wait_for_node_exit(i, timeout=30)
                     self.log.debug(
-                        "Restarting node {} after block hash {}".format(i, block_hash))
+                        f"Restarting node {i} after block hash {block_hash}")
                     nodei_utxo_hash = self.restart_node(i, block_hash)
                     assert nodei_utxo_hash is not None
                     self.restart_counts[i] += 1
@@ -179,7 +179,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
             # the cache is a no-op at that point
             if nodei_utxo_hash is not None:
                 self.log.debug(
-                    "Checking txoutsetinfo matches for node {}".format(i))
+                    f"Checking txoutsetinfo matches for node {i}")
                 assert_equal(nodei_utxo_hash, node3_utxo_hash)
 
     def verify_utxo_hash(self):
@@ -235,7 +235,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         initial_height = self.nodes[3].getblockcount()
         utxo_list = create_confirmed_utxos(
             self, self.nodes[3], 5000, sync_fun=self.no_op)
-        self.log.info("Prepped {} utxo entries".format(len(utxo_list)))
+        self.log.info(f"Prepped {len(utxo_list)} utxo entries")
 
         # Sync these blocks with the other nodes
         block_hashes_to_sync = []
@@ -243,8 +243,8 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                             self.nodes[3].getblockcount() + 1):
             block_hashes_to_sync.append(self.nodes[3].getblockhash(height))
 
-        self.log.debug("Syncing {} blocks with other nodes".format(
-            len(block_hashes_to_sync)))
+        self.log.debug(
+            f"Syncing {len(block_hashes_to_sync)} blocks with other nodes")
         # Syncing the blocks could cause nodes to crash, so the test begins
         # here.
         self.sync_node3blocks(block_hashes_to_sync)
@@ -269,21 +269,20 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
             self.nodes[3].setmocktime(block_time)
 
             self.log.info(
-                "Iteration {}, generating 2500 transactions {}".format(
-                    i, self.restart_counts))
+                f"Iteration {i}, generating 2500 transactions {self.restart_counts}")
             # Generate a bunch of small-ish transactions
             self.generate_small_transactions(self.nodes[3], 2500, utxo_list)
             # Pick a random block between current tip, and starting tip
             current_height = self.nodes[3].getblockcount()
             random_height = random.randint(starting_tip_height, current_height)
-            self.log.debug("At height {}, considering height {}".format(
-                           current_height, random_height))
+            self.log.debug(
+                f"At height {current_height}, considering height {random_height}")
             if random_height > starting_tip_height:
                 # Randomly reorg from this point with some probability (1/4 for
                 # tip, 1/5 for tip-1, ...)
                 if random.random() < 1.0 / (current_height + 4 - random_height):
                     self.log.debug(
-                        "Invalidating block at height {}".format(random_height))
+                        f"Invalidating block at height {random_height}")
                     self.nodes[3].invalidateblock(
                         self.nodes[3].getblockhash(random_height))
 
@@ -301,10 +300,10 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                         address=self.nodes[3].getnewaddress(),
                         sync_fun=self.no_op,
                     ))
-            self.log.debug("Syncing %d new blocks...", len(block_hashes))
+            self.log.debug(f"Syncing {len(block_hashes)} new blocks...")
             self.sync_node3blocks(block_hashes)
             utxo_list = self.nodes[3].listunspent()
-            self.log.debug("Node3 utxo count: {}".format(len(utxo_list)))
+            self.log.debug(f"Node3 utxo count: {len(utxo_list)}")
 
         # Check that the utxo hashes agree with node3
         # Useful side effect: each utxo cache gets flushed here, so that we
@@ -312,8 +311,9 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         self.verify_utxo_hash()
 
         # Check the test coverage
-        self.log.info("Restarted nodes: {}; crashes on restart: {}".format(
-                      self.restart_counts, self.crashed_on_restart))
+        self.log.info(
+            f"Restarted nodes: {self.restart_counts}; "
+            f"crashes on restart: {self.crashed_on_restart}")
 
         # If no nodes were restarted, we didn't test anything.
         assert self.restart_counts != [0, 0, 0]
@@ -325,7 +325,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         for i in range(3):
             if self.restart_counts[i] == 0:
                 self.log.warning(
-                    "Node {} never crashed during utxo flush!".format(i))
+                    f"Node {i} never crashed during utxo flush!")
 
 
 if __name__ == "__main__":

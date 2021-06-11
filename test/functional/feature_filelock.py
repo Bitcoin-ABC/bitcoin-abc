@@ -21,14 +21,17 @@ class FilelockTest(BitcoinTestFramework):
 
     def run_test(self):
         datadir = os.path.join(self.nodes[0].datadir, self.chain)
-        self.log.info("Using datadir {}".format(datadir))
+        self.log.info(f"Using datadir {datadir}")
 
         self.log.info(
             "Check that we can't start a second bitcoind instance using the same datadir")
-        expected_msg = "Error: Cannot obtain a lock on data directory {0}. {1} is probably already running.".format(
-            datadir, self.config['environment']['PACKAGE_NAME'])
-        self.nodes[1].assert_start_raises_init_error(extra_args=[
-                                                     '-datadir={}'.format(self.nodes[0].datadir), '-noserver'], expected_msg=expected_msg)
+        expected_msg = (
+            f"Error: Cannot obtain a lock on data directory {datadir}. "
+            f"{self.config['environment']['PACKAGE_NAME']} is probably already running."
+        )
+        self.nodes[1].assert_start_raises_init_error(
+            extra_args=[f'-datadir={self.nodes[0].datadir}', '-noserver'],
+            expected_msg=expected_msg)
 
         if self.is_wallet_compiled():
             self.nodes[0].createwallet(self.default_wallet_name)
@@ -38,8 +41,8 @@ class FilelockTest(BitcoinTestFramework):
             expected_msg = "Error: Error initializing wallet database environment"
             self.nodes[1].assert_start_raises_init_error(
                 extra_args=[
-                    '-walletdir={}'.format(wallet_dir),
-                    '-wallet=' + self.default_wallet_name,
+                    f'-walletdir={wallet_dir}',
+                    f'-wallet={self.default_wallet_name}',
                     '-noserver'],
                 expected_msg=expected_msg,
                 match=ErrorMatch.PARTIAL_REGEX)
