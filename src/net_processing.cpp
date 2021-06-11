@@ -765,7 +765,7 @@ private:
      * being held
      */
     bool BlockRequested(const Config &config, NodeId nodeid,
-                        const CBlockIndex *pindex,
+                        const CBlockIndex &block,
                         std::list<QueuedBlock>::iterator **pit = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -1220,10 +1220,9 @@ void PeerManagerImpl::RemoveBlockRequest(const BlockHash &hash) {
 }
 
 bool PeerManagerImpl::BlockRequested(const Config &config, NodeId nodeid,
-                                     const CBlockIndex *pindex,
+                                     const CBlockIndex &block,
                                      std::list<QueuedBlock>::iterator **pit) {
-    assert(pindex);
-    const BlockHash &hash{pindex->GetBlockHash()};
+    const BlockHash &hash{block.GetBlockHash()};
 
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
@@ -1245,7 +1244,7 @@ bool PeerManagerImpl::BlockRequested(const Config &config, NodeId nodeid,
 
     std::list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(
         state->vBlocksInFlight.end(),
-        {pindex, std::unique_ptr<PartiallyDownloadedBlock>(
+        {&block, std::unique_ptr<PartiallyDownloadedBlock>(
                      pit ? new PartiallyDownloadedBlock(config, &m_mempool)
                          : nullptr)});
     state->nBlocksInFlight++;
@@ -3008,7 +3007,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                         break;
                     }
                     vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    BlockRequested(config, pfrom.GetId(), pindex);
+                    BlockRequested(config, pfrom.GetId(), *pindex);
                     LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
                              pindex->GetBlockHash().ToString(), pfrom.GetId());
                 }
@@ -4612,7 +4611,7 @@ void PeerManagerImpl::ProcessMessage(
                     (fAlreadyInFlight &&
                      blockInFlightIt->second.first == pfrom.GetId())) {
                     std::list<QueuedBlock>::iterator *queuedBlockIt = nullptr;
-                    if (!BlockRequested(config, pfrom.GetId(), pindex,
+                    if (!BlockRequested(config, pfrom.GetId(), *pindex,
                                         &queuedBlockIt)) {
                         if (!(*queuedBlockIt)->partialBlock) {
                             (*queuedBlockIt)
@@ -7021,7 +7020,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                                      vToDownload, staller);
             for (const CBlockIndex *pindex : vToDownload) {
                 vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                BlockRequested(config, pto->GetId(), pindex);
+                BlockRequested(config, pto->GetId(), *pindex);
                 LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n",
                          pindex->GetBlockHash().ToString(), pindex->nHeight,
                          pto->GetId());
