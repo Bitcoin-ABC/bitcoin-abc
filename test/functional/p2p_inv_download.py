@@ -377,7 +377,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             42, 2000000000, privkey.get_pubkey().get_bytes().hex(), [{
                 'txid': '0' * 64,
                 'vout': 0,
-                'amount': 10,
+                'amount': 10e6,
                 'height': 42,
                 'iscoinbase': False,
                 'privatekey': privkey_wif,
