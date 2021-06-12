@@ -109,7 +109,6 @@ class TestNode():
             "-uacomment=" + self.name,
             "-noprinttoconsole",
             "-ecash",
-            "-xec"
         ]
 
         if use_valgrind:

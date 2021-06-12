@@ -9,12 +9,7 @@
 void SetupCurrencyUnitOptions(ArgsManager &argsman) {
     // whether to use eCash default unit and address prefix
     argsman.AddArg("-ecash",
-                   strprintf("Use the ecash CashAddr prefixes (default: %s)",
+                   strprintf("Use the eCash prefixes and units (default: %s)",
                              DEFAULT_ECASH ? "true" : "false"),
-                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
-    // whether to use eCash default unit (XEC)
-    argsman.AddArg("-xec",
-                   strprintf("Use XEC as default unit (default: %s)",
-                             DEFAULT_XEC ? "true" : "false"),
                    ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
 }

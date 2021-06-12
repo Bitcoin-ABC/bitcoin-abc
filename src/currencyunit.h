@@ -8,7 +8,6 @@
 class ArgsManager;
 
 constexpr bool DEFAULT_ECASH = false;
-constexpr bool DEFAULT_XEC = false;
 
 void SetupCurrencyUnitOptions(ArgsManager &argsman);
 

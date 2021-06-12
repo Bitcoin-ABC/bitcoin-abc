@@ -38,7 +38,7 @@ static const unitNameMap bchUnits = {
 // clang-format on
 
 static const unitNameMap &getUnitsAtRuntime() {
-    return gArgs.GetBoolArg("-xec", DEFAULT_XEC) ? xecUnits : bchUnits;
+    return gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? xecUnits : bchUnits;
 }
 
 BitcoinUnits::BitcoinUnits(QObject *parent)
