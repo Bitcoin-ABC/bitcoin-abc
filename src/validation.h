@@ -865,8 +865,14 @@ public:
     /** Chain parameters for this chainstate */
     const CChainParams &m_params;
 
+    //! The chainstate manager that owns this chainstate. The reference is
+    //! necessary so that this instance can check whether it is the active
+    //! chainstate within deeply nested method calls.
+    const ChainstateManager &m_chainman;
+
     explicit CChainState(
         CTxMemPool *mempool, BlockManager &blockman,
+        const ChainstateManager &chainman,
         std::optional<BlockHash> from_snapshot_blockhash = std::nullopt);
 
     /**

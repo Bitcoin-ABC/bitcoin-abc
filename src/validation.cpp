@@ -880,9 +880,11 @@ void CoinsViews::InitCache() {
 }
 
 CChainState::CChainState(CTxMemPool *mempool, BlockManager &blockman,
+                         const ChainstateManager &chainman,
                          std::optional<BlockHash> from_snapshot_blockhash)
     : m_mempool(mempool), m_blockman(blockman), m_params(::Params()),
-      m_from_snapshot_blockhash(from_snapshot_blockhash) {}
+      m_chainman(chainman), m_from_snapshot_blockhash(from_snapshot_blockhash) {
+}
 
 void CChainState::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
                               bool should_wipe, std::string leveldb_name) {
@@ -5767,7 +5769,8 @@ CChainState &ChainstateManager::InitializeChainstate(
     if (to_modify) {
         throw std::logic_error("should not be overwriting a chainstate");
     }
-    to_modify.reset(new CChainState(mempool, m_blockman, snapshot_blockhash));
+    to_modify.reset(
+        new CChainState(mempool, m_blockman, *this, snapshot_blockhash));
 
     // Snapshot chainstates and initial IBD chaintates always become active.
     if (is_snapshot || (!is_snapshot && !m_active_chainstate)) {
@@ -5838,9 +5841,10 @@ bool ChainstateManager::ActivateSnapshot(CAutoFile &coins_file,
             static_cast<size_t>(current_coinsdb_cache_size * IBD_CACHE_PERC));
     }
 
-    auto snapshot_chainstate = WITH_LOCK(
-        ::cs_main, return std::make_unique<CChainState>(
-                       /* mempool */ nullptr, m_blockman, base_blockhash));
+    auto snapshot_chainstate =
+        WITH_LOCK(::cs_main, return std::make_unique<CChainState>(
+                                 /* mempool */ nullptr, m_blockman, *this,
+                                 base_blockhash));
 
     {
         LOCK(::cs_main);
