@@ -228,7 +228,7 @@ void TestGUI(interfaces::Node &node) {
                     -1);
             QVERIFY(paymentTextList.at(2).indexOf(QString("Address:")) != -1);
             QCOMPARE(paymentTextList.at(3),
-                     QString("Amount: 0.00000001 ") +
+                     QString("Amount: 0.01 ") +
                          QString::fromStdString(Currency::get().ticker));
             QCOMPARE(paymentTextList.at(4), QString("Label: TEST_LABEL_1"));
             QCOMPARE(paymentTextList.at(5), QString("Message: TEST_MESSAGE_1"));

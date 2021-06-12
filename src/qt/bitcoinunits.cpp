@@ -13,19 +13,15 @@ BitcoinUnits::BitcoinUnits(QObject *parent)
 
 QList<BitcoinUnits::Unit> BitcoinUnits::availableUnits() {
     QList<BitcoinUnits::Unit> unitlist;
-    unitlist.append(BCH);
-    unitlist.append(mBCH);
-    unitlist.append(uBCH);
-    unitlist.append(SAT);
+    unitlist.append(base);
+    unitlist.append(sub);
     return unitlist;
 }
 
 bool BitcoinUnits::valid(int unit) {
     switch (unit) {
-        case BCH:
-        case mBCH:
-        case uBCH:
-        case SAT:
+        case base:
+        case sub:
             return true;
         default:
             return false;
@@ -35,13 +31,9 @@ bool BitcoinUnits::valid(int unit) {
 QString BitcoinUnits::longName(int unit) {
     const auto &ticker = Currency::get().ticker;
     switch (unit) {
-        case BCH:
+        case base:
             return QString(ticker.c_str());
-        case mBCH:
-            return QString("m") + QString(ticker.c_str());
-        case uBCH:
-            return QString::fromUtf8("μ") + QString(ticker.c_str());
-        case SAT:
+        case sub:
             return QString("Satoshi (sat)");
         default:
             return QString("???");
@@ -50,7 +42,7 @@ QString BitcoinUnits::longName(int unit) {
 
 QString BitcoinUnits::shortName(int unit) {
     switch (unit) {
-        case SAT:
+        case sub:
             return QString("sat");
         default:
             return longName(unit);
@@ -59,14 +51,9 @@ QString BitcoinUnits::shortName(int unit) {
 
 QString BitcoinUnits::description(int unit) {
     switch (unit) {
-        case BCH:
+        case base:
             return QString("Bitcoins");
-        case mBCH:
-            return QString("Milli-Bitcoins (1 / 1" THIN_SP_UTF8 "000)");
-        case uBCH:
-            return QString("Micro-Bitcoins (1 / 1" THIN_SP_UTF8
-                           "000" THIN_SP_UTF8 "000)");
-        case SAT:
+        case sub:
             return QString("Satoshi (sat) (1 / 100" THIN_SP_UTF8
                            "000" THIN_SP_UTF8 "000)");
         default:
@@ -74,30 +61,23 @@ QString BitcoinUnits::description(int unit) {
     }
 }
 
-qint64 BitcoinUnits::factor(int unit) {
+Amount BitcoinUnits::factor(int unit) {
+    const auto &currency = Currency::get();
     switch (unit) {
-        case BCH:
-            return 100000000;
-        case mBCH:
-            return 100000;
-        case uBCH:
-            return 100;
-        case SAT:
-            return 1;
+        case base:
+            return currency.baseunit;
+        case sub:
+            return currency.subunit;
         default:
-            return 100000000;
+            return currency.baseunit;
     }
 }
 
 int BitcoinUnits::decimals(int unit) {
     switch (unit) {
-        case BCH:
-            return 8;
-        case mBCH:
-            return 5;
-        case uBCH:
-            return 2;
-        case SAT:
+        case base:
+            return Currency::get().decimals;
+        case sub:
             return 0;
         default:
             return 0;
@@ -113,7 +93,7 @@ QString BitcoinUnits::format(int unit, const Amount nIn, bool fPlus,
         return QString();
     }
     qint64 n = qint64(nIn / SATOSHI);
-    qint64 coin = factor(unit);
+    qint64 coin = factor(unit) / SATOSHI;
     int num_decimals = decimals(unit);
     qint64 n_abs = (n > 0 ? n : -n);
     qint64 quotient = n_abs / coin;

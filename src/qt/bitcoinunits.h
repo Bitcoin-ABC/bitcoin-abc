@@ -40,7 +40,7 @@ public:
      * @note Source: https://en.bitcoin.it/wiki/Units.
      * Please add only sensible ones.
      */
-    enum Unit { BCH, mBCH, uBCH, SAT };
+    enum Unit { base, sub };
 
     enum SeparatorStyle { separatorNever, separatorStandard, separatorAlways };
 
@@ -59,7 +59,7 @@ public:
     //! Longer description
     static QString description(int unit);
     //! Number of Satoshis (1e-8) per unit
-    static qint64 factor(int unit);
+    static Amount factor(int unit);
     //! Number of decimals left
     static int decimals(int unit);
     //! Format as string
@@ -103,7 +103,5 @@ public:
 private:
     QList<BitcoinUnits::Unit> unitlist;
 };
-
-typedef BitcoinUnits::Unit BitcoinUnit;
 
 #endif // BITCOIN_QT_BITCOINUNITS_H

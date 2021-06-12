@@ -107,7 +107,7 @@ public:
             const QFontMetrics fm(fontMetrics());
             int h = lineEdit()->minimumSizeHint().height();
             int w = GUIUtil::TextWidth(
-                fm, BitcoinUnits::format(BitcoinUnits::BCH,
+                fm, BitcoinUnits::format(BitcoinUnits::base,
                                          BitcoinUnits::maxMoney(), false,
                                          BitcoinUnits::separatorAlways));
             // Cursor blinking space.
@@ -144,7 +144,7 @@ public:
     }
 
 private:
-    int currentUnit{BitcoinUnits::BCH};
+    int currentUnit{BitcoinUnits::base};
     Amount singleStep{100000 * SATOSHI};
     mutable QSize cachedMinimumSizeHint;
     bool m_allow_empty{true};
