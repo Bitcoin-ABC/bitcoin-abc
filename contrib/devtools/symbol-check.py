@@ -29,7 +29,17 @@ from utils import determine_wellknown_cmd
 # - libc version 2.28 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
 #
 # See https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html for more info.
-MAX_VERSIONS = {"GCC": (8, 3, 0), "GLIBC": (2, 28), "LIBATOMIC": (1, 0)}
+MAX_VERSIONS = {
+    "GCC": (8, 3, 0),
+    "GLIBC": {
+        pixie.EM_386: (2, 28),
+        pixie.EM_X86_64: (2, 28),
+        pixie.EM_ARM: (2, 28),
+        pixie.EM_AARCH64: (2, 28),
+    },
+    "LIBATOMIC": (1, 0),
+    "V": (0, 5, 0),  # xkb (bitcoin-qt only)
+}
 # See here for a description of _IO_stdin_used:
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=634261#109
 
@@ -122,13 +132,6 @@ ELF_ALLOWED_LIBRARIES = {
     "libxcb-xkb.so.1",
 }
 
-ARCH_MIN_GLIBC_VER = {
-    pixie.EM_386: (2, 1),
-    pixie.EM_X86_64: (2, 2, 5),
-    pixie.EM_ARM: (2, 4),
-    pixie.EM_AARCH64: (2, 17),
-}
-
 MACHO_ALLOWED_LIBRARIES = {
     # bitcoind and bitcoin-qt
     "libc++.1.dylib",  # C++ Standard Library
@@ -216,9 +219,10 @@ def check_version(max_versions, version, arch) -> bool:
     ver = tuple([int(x) for x in ver.split(".")])
     if lib not in max_versions:
         return False
-    return (
-        ver <= max_versions[lib] or lib == "GLIBC" and ver <= ARCH_MIN_GLIBC_VER[arch]
-    )
+    if isinstance(max_versions[lib], tuple):
+        return ver <= max_versions[lib]
+    else:
+        return ver <= max_versions[lib][arch]
 
 
 def check_imported_symbols(filename) -> bool:
