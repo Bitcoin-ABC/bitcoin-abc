@@ -17,6 +17,7 @@ from test_framework.messages import (
     MSG_AVA_PROOF,
     MSG_TX,
     MSG_TYPE_MASK,
+    msg_avaproof,
     msg_inv,
     msg_notfound,
 )
@@ -27,6 +28,7 @@ from test_framework.p2p import (
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
+    assert_raises_rpc_error,
     wait_until,
 )
 
@@ -404,6 +406,42 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
         assert_equal(peer.getdata_count, 0)
 
+    @skip(TX_TEST_CONTEXT)
+    def test_request_invalid_once(self, context):
+        node = self.nodes[0]
+        privkey = ECKey()
+        privkey.generate()
+
+        # Build an invalid proof (no stake)
+        no_stake_hex = node.buildavalancheproof(
+            42, 2000000000, privkey.get_pubkey().get_bytes().hex(), []
+        )
+        no_stake = FromHex(AvalancheProof(), no_stake_hex)
+        assert_raises_rpc_error(-8,
+                                "The proof is invalid: no-stake",
+                                node.verifyavalancheproof,
+                                no_stake_hex)
+
+        # Send the proof
+        msg = msg_avaproof()
+        msg.proof = no_stake
+        node.p2ps[0].send_message(msg)
+
+        # Check we get banned
+        node.p2ps[0].wait_for_disconnect()
+
+        # Now that the node knows the proof is invalid, it should not be
+        # requested anymore
+        node.p2ps[1].send_message(
+            msg_inv([CInv(t=context.inv_type, h=no_stake.proofid)]))
+
+        # Give enough time for the node to eventually request the proof
+        node.setmocktime(int(time.time()) +
+                         context.constants.getdata_interval + 1)
+        node.p2ps[1].sync_with_ping()
+
+        assert all(p.getdata_count == 0 for p in node.p2ps[1:])
+
     def run_test(self):
         for context in [TX_TEST_CONTEXT, PROOF_TEST_CONTEXT]:
             self.log.info(
@@ -422,8 +460,8 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
             # Run each test against new bitcoind instances, as setting mocktimes has long-term effects on when
             # the next trickle relay event happens.
-            for test in [self.test_in_flight_max,
-                         self.test_inv_block, self.test_data_requests, self.test_orphan_download]:
+            for test in [self.test_in_flight_max, self.test_inv_block,
+                         self.test_data_requests, self.test_orphan_download, self.test_request_invalid_once]:
                 self.stop_nodes()
                 self.start_nodes()
                 self.connect_nodes(1, 0)

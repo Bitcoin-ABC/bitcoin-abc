@@ -324,6 +324,20 @@ std::unique_ptr<CRollingBloomFilter> recentRejects GUARDED_BY(cs_main);
 uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
 
 /**
+ * Filter for proofs that were recently rejected but not orphaned.
+ * These are not rerequested until they are rolled out of the filter.
+ *
+ * Without this filter we'd be re-requesting proofs from each of our peers,
+ * increasing bandwidth consumption considerably.
+ *
+ * Decreasing the false positive rate is fairly cheap, so we pick one in a
+ * million to make it highly unlikely for users to have issues with this filter.
+ */
+Mutex cs_rejectedProofs;
+std::unique_ptr<CRollingBloomFilter>
+    rejectedProofs GUARDED_BY(cs_rejectedProofs);
+
+/**
  * Filter for transactions that have been recently confirmed.
  * We use this to avoid requesting transactions that have already been
  * confirmed.
@@ -1475,6 +1489,12 @@ PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
     // Initialize global variables that cannot be constructed at startup.
     recentRejects.reset(new CRollingBloomFilter(120000, 0.000001));
 
+    {
+        LOCK(cs_rejectedProofs);
+        rejectedProofs =
+            std::make_unique<CRollingBloomFilter>(100000, 0.000001);
+    }
+
     // Blocks don't typically have more than 4000 transactions, so this should
     // be at least six blocks (~1 hr) worth of transactions that we can store.
     // If the number of transactions appearing in a block goes up, or if we are
@@ -1760,8 +1780,10 @@ static bool AlreadyHaveBlock(const BlockHash &block_hash)
 }
 
 static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
-    return g_avalanche &&
-           (g_avalanche->getProof(proofid) || g_avalanche->getOrphan(proofid));
+    assert(g_avalanche);
+    LOCK(cs_rejectedProofs);
+    return rejectedProofs->contains(proofid) ||
+           g_avalanche->getProof(proofid) || g_avalanche->getOrphan(proofid);
 }
 
 void RelayTransaction(const TxId &txid, const CConnman &connman) {
@@ -4330,6 +4352,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             // invalid. In the latter case we should increase the ban score.
             // TODO improve the ban reason by printing the validation state
             if (!g_avalanche->getOrphan(proofid)) {
+                WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
                 Misbehaving(nodeid, 100, "invalid-avaproof");
             }
         }
