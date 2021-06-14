@@ -4,15 +4,28 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Utilities for avalanche tests."""
 
+import struct
 from typing import Any, Optional, List, Dict
 
 from .authproxy import JSONRPCException
+from .key import ECKey
 from .messages import (
+    AvalancheDelegation,
     AvalancheProof,
+    AvalancheResponse,
+    CInv,
     CTransaction,
     FromHex,
-    ToHex
+    hash256,
+    msg_avahello,
+    msg_avapoll,
+    msg_tcpavaresponse,
+    NODE_AVALANCHE,
+    NODE_NETWORK,
+    TCPAvalancheResponse,
+    ToHex,
 )
+from .p2p import P2PInterface, p2p_lock
 from .test_node import TestNode
 from .util import (
     satoshi_round,
@@ -134,3 +147,107 @@ def wait_for_proof(node, proofid_hex, timeout=60):
         except JSONRPCException:
             return False
     wait_until(proof_found, timeout=timeout)
+
+
+class AvaP2PInterface(P2PInterface):
+    """P2PInterface with avalanche capabilities"""
+
+    def __init__(self):
+        self.round = 0
+        self.avahello = None
+        self.avaresponses = []
+        self.avapolls = []
+        self.nodeid: Optional[int] = None
+        super().__init__()
+
+    def peer_connect(self, *args, **kwargs):
+        create_conn = super().peer_connect(*args, **kwargs)
+
+        # Save the nonce and extra entropy so they can be reused later.
+        self.local_nonce = self.on_connection_send_msg.nNonce
+        self.local_extra_entropy = self.on_connection_send_msg.nExtraEntropy
+
+        return create_conn
+
+    def on_version(self, message):
+        super().on_version(message)
+
+        # Save the nonce and extra entropy so they can be reused later.
+        self.remote_nonce = message.nNonce
+        self.remote_extra_entropy = message.nExtraEntropy
+
+    def on_avaresponse(self, message):
+        self.avaresponses.append(message.response)
+
+    def on_avapoll(self, message):
+        self.avapolls.append(message.poll)
+
+    def on_avahello(self, message):
+        assert(self.avahello is None)
+        self.avahello = message
+
+    def send_avaresponse(self, round, votes, privkey):
+        response = AvalancheResponse(round, 0, votes)
+        sig = privkey.sign_schnorr(response.get_hash())
+        msg = msg_tcpavaresponse()
+        msg.response = TCPAvalancheResponse(response, sig)
+        self.send_message(msg)
+
+    def wait_for_avaresponse(self, timeout=5):
+        wait_until(
+            lambda: len(self.avaresponses) > 0,
+            timeout=timeout,
+            lock=p2p_lock)
+
+        with p2p_lock:
+            return self.avaresponses.pop(0)
+
+    def send_poll(self, hashes):
+        msg = msg_avapoll()
+        msg.poll.round = self.round
+        self.round += 1
+        for h in hashes:
+            msg.poll.invs.append(CInv(2, h))
+        self.send_message(msg)
+
+    def get_avapoll_if_available(self):
+        with p2p_lock:
+            return self.avapolls.pop(0) if len(self.avapolls) > 0 else None
+
+    def wait_for_avahello(self, timeout=5):
+        wait_until(
+            lambda: self.avahello is not None,
+            timeout=timeout,
+            lock=p2p_lock)
+
+        with p2p_lock:
+            return self.avahello
+
+    def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
+        delegation = FromHex(AvalancheDelegation(), delegation_hex)
+        local_sighash = hash256(
+            delegation.getid() +
+            struct.pack("<QQQQ", self.local_nonce, self.remote_nonce,
+                        self.local_extra_entropy, self.remote_extra_entropy))
+
+        msg = msg_avahello()
+        msg.hello.delegation = delegation
+        msg.hello.sig = delegated_privkey.sign_schnorr(local_sighash)
+        self.send_message(msg)
+
+        return delegation.proofid
+
+
+def get_ava_p2p_interface(
+        node: TestNode,
+        services=NODE_NETWORK | NODE_AVALANCHE) -> AvaP2PInterface:
+    """Build and return an AvaP2PInterface connected to the specified
+    TestNode.
+    """
+    n = AvaP2PInterface()
+    node.add_p2p_connection(
+        n, services=services)
+    n.wait_for_verack()
+    n.nodeid = node.getpeerinfo()[-1]['id']
+
+    return n

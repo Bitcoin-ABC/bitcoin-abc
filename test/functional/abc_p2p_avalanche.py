@@ -4,32 +4,28 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the resolution of forks via avalanche."""
 import random
-import struct
 import time
 
-from test_framework.avatools import create_coinbase_stakes, get_proof_ids
+from test_framework.avatools import (
+    get_ava_p2p_interface,
+    create_coinbase_stakes,
+    get_proof_ids,
+)
 from test_framework.key import (
     bytes_to_wif,
     ECKey,
     ECPubKey,
 )
-from test_framework.p2p import P2PInterface, p2p_lock
+from test_framework.p2p import p2p_lock
 from test_framework.messages import (
-    AvalancheDelegation,
     AvalancheProof,
-    AvalancheResponse,
     AvalancheVote,
     CInv,
     FromHex,
-    hash256,
-    msg_avahello,
-    msg_avapoll,
     MSG_AVA_PROOF,
     msg_getdata,
-    msg_tcpavaresponse,
     NODE_AVALANCHE,
     NODE_NETWORK,
-    TCPAvalancheResponse,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -50,93 +46,6 @@ QUORUM_NODE_COUNT = 16
 UNCONDITIONAL_RELAY_DELAY = 2 * 60
 
 
-class TestNode(P2PInterface):
-
-    def __init__(self):
-        self.round = 0
-        self.avahello = None
-        self.avaresponses = []
-        self.avapolls = []
-        super().__init__()
-
-    def peer_connect(self, *args, **kwargs):
-        create_conn = super().peer_connect(*args, **kwargs)
-
-        # Save the nonce and extra entropy so they can be reused later.
-        self.local_nonce = self.on_connection_send_msg.nNonce
-        self.local_extra_entropy = self.on_connection_send_msg.nExtraEntropy
-
-        return create_conn
-
-    def on_version(self, message):
-        super().on_version(message)
-
-        # Save the nonce and extra entropy so they can be reused later.
-        self.remote_nonce = message.nNonce
-        self.remote_extra_entropy = message.nExtraEntropy
-
-    def on_avaresponse(self, message):
-        self.avaresponses.append(message.response)
-
-    def on_avapoll(self, message):
-        self.avapolls.append(message.poll)
-
-    def on_avahello(self, message):
-        assert(self.avahello is None)
-        self.avahello = message
-
-    def send_avaresponse(self, round, votes, privkey):
-        response = AvalancheResponse(round, 0, votes)
-        sig = privkey.sign_schnorr(response.get_hash())
-        msg = msg_tcpavaresponse()
-        msg.response = TCPAvalancheResponse(response, sig)
-        self.send_message(msg)
-
-    def wait_for_avaresponse(self, timeout=5):
-        wait_until(
-            lambda: len(self.avaresponses) > 0,
-            timeout=timeout,
-            lock=p2p_lock)
-
-        with p2p_lock:
-            return self.avaresponses.pop(0)
-
-    def send_poll(self, hashes):
-        msg = msg_avapoll()
-        msg.poll.round = self.round
-        self.round += 1
-        for h in hashes:
-            msg.poll.invs.append(CInv(2, h))
-        self.send_message(msg)
-
-    def get_avapoll_if_available(self):
-        with p2p_lock:
-            return self.avapolls.pop(0) if len(self.avapolls) > 0 else None
-
-    def wait_for_avahello(self, timeout=5):
-        wait_until(
-            lambda: self.avahello is not None,
-            timeout=timeout,
-            lock=p2p_lock)
-
-        with p2p_lock:
-            return self.avahello
-
-    def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
-        delegation = FromHex(AvalancheDelegation(), delegation_hex)
-        local_sighash = hash256(
-            delegation.getid() +
-            struct.pack("<QQQQ", self.local_nonce, self.remote_nonce,
-                        self.local_extra_entropy, self.remote_extra_entropy))
-
-        msg = msg_avahello()
-        msg.hello.delegation = delegation
-        msg.hello.sig = delegated_privkey.sign_schnorr(local_sighash)
-        self.send_message(msg)
-
-        return delegation.proofid
-
-
 class AvalancheTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
@@ -151,19 +60,9 @@ class AvalancheTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         # Build a fake quorum of nodes.
-        def get_node(services=NODE_NETWORK | NODE_AVALANCHE):
-            n = TestNode()
-            node.add_p2p_connection(
-                n, services=services)
-            n.wait_for_verack()
-
-            # Get our own node id so we can use it later.
-            n.nodeid = node.getpeerinfo()[-1]['id']
-
-            return n
-
         def get_quorum():
-            return [get_node() for _ in range(0, QUORUM_NODE_COUNT)]
+            return [get_ava_p2p_interface(node)
+                    for _ in range(0, QUORUM_NODE_COUNT)]
 
         # Pick on node from the quorum for polling.
         quorum = get_quorum()
@@ -381,7 +280,7 @@ class AvalancheTest(BitcoinTestFramework):
             NODE_AVALANCHE)
 
         self.log.info("Test the avahello signature (node -> P2PInterface)")
-        good_interface = get_node()
+        good_interface = get_ava_p2p_interface(node)
         avahello = good_interface.wait_for_avahello().hello
 
         avakey.set(bytes.fromhex(node.getavalanchekey()))
@@ -406,7 +305,7 @@ class AvalancheTest(BitcoinTestFramework):
             None)
 
         self.log.info("Test that wrong avahello signature causes a ban")
-        bad_interface = get_node()
+        bad_interface = get_ava_p2p_interface(node)
         wrong_key = ECKey()
         wrong_key.generate()
         with self.nodes[0].assert_debug_log(
@@ -458,7 +357,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info(
             "The proof has not been announced, it cannot be requested")
-        peer = get_node(services=NODE_NETWORK)
+        peer = get_ava_p2p_interface(node, services=NODE_NETWORK)
         peer.send_message(getdata)
 
         # Give enough time for the node to answer. Since we cannot check for a
