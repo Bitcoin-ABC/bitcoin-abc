@@ -265,12 +265,18 @@ if(ENABLE_DBUS_NOTIFICATIONS)
 endif()
 
 if(ENABLE_TRACING)
-	check_include_files("sys/sdt.h" HAVE_SDT_H)
+	check_cxx_source_compiles("
+	#include <sys/sdt.h>
+	int main() {
+		DTRACE_PROBE(\"context\", \"event\");
+		return 0;
+	}
+	" HAVE_SDT_TRACEPOINT)
 
-	if(NOT HAVE_SDT_H)
+	if(NOT HAVE_SDT_TRACEPOINT)
 		message(
 			FATAL_ERROR
-			"sys/sdt.h not found, you can disable eBPF tracing with -DENABLE_TRACING=OFF"
+			"sys/sdt.h tracepoint not supported on your system, you must install it (see doc/tracing.md) or disable eBPF tracing with -DENABLE_TRACING=OFF"
 		)
 	endif()
 endif()
