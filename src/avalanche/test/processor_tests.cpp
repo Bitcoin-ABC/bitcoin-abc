@@ -92,7 +92,10 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         masterpriv.MakeNewKey(true);
     }
 
-    ~AvalancheTestingSetup() { m_connman->ClearNodes(); }
+    ~AvalancheTestingSetup() {
+        m_connman->ClearNodes();
+        SyncWithValidationInterfaceQueue();
+    }
 
     CNode *ConnectNode(ServiceFlags nServices) {
         static NodeId id = 0;
