@@ -888,7 +888,7 @@ TestChaCha20Poly1305AEAD(bool must_succeed, unsigned int expected_aad_length,
                               aead_K_2.size());
 
     // create a chacha20 instance to compare against
-    ChaCha20 cmp_ctx(aead_K_2.data(), 32);
+    ChaCha20 cmp_ctx(aead_K_1.data(), 32);
 
     // encipher
     bool res = aead.Crypt(seqnr_payload, seqnr_aad, aad_pos,
@@ -984,9 +984,9 @@ BOOST_AUTO_TEST_CASE(chacha20_poly1305_aead_testvector) {
         true, 0,
         /* m  */
         "0000000000000000000000000000000000000000000000000000000000000000",
-        /* k1 (payload) */
+        /* k1 (AAD) */
         "0000000000000000000000000000000000000000000000000000000000000000",
-        /* k2 (AAD) */
+        /* k2 (payload) */
         "0000000000000000000000000000000000000000000000000000000000000000",
         /* AAD keystream */
         "76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da4159"
@@ -1018,8 +1018,8 @@ BOOST_AUTO_TEST_CASE(chacha20_poly1305_aead_testvector) {
         "59660996546cc9c4a6eafdc777c040d70eaf46f76dad3979e5c5360c3317166a1c894c"
         "94a371876a94df7628fe4eaaf2ccb27d5aaae0ad7ad0f9d4b6ad3b54098746d4524d38"
         "407a6deb3ab78fab78c9",
-        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "ff0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "c640c1711e3ee904ac35c57ab9791c8a1c408603a90b77a83b54f6c844cb4b06d94e7f"
         "c6c800e165acd66147e80ec45a567f6ce66d05ec0cae679dceeb890017",
         "3940c1e92da4582ff6f92a776aeb14d014d384eeb30f660dacf70a14a23fd31e912127"

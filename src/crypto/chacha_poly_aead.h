@@ -116,10 +116,11 @@ static constexpr int AAD_PACKAGES_PER_ROUND = 21; /* 64 / 3 round down*/
 
 class ChaCha20Poly1305AEAD {
 private:
-    // payload and poly1305 key-derivation cipher instance
-    ChaCha20 m_chacha_main;
-    // AAD cipher instance (encrypted length)
+    // AAD cipher instance (encrypted length) and poly1305 key-derivation
+    // cipher instance
     ChaCha20 m_chacha_header;
+    // payload
+    ChaCha20 m_chacha_main;
     // aad keystream cache
     uint8_t m_aad_keystream_buffer[CHACHA20_ROUND_OUTPUT];
     // aad keystream cache hint
