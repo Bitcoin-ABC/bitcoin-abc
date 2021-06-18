@@ -257,6 +257,11 @@ class ProofInventoryTest(BitcoinTestFramework):
         assert node.sendavalancheproof(proof.serialize().hex())
         wait_until(lambda: proof_inv_received(peers))
 
+        # Sanity check our node knows the proof, and it is valid
+        wait_for_proof(node, proofid_hex)
+        raw_proof = node.getrawavalancheproof(proofid_hex)
+        assert_equal(raw_proof["orphan"], False)
+
         # Mature the utxo then spend it
         node.generate(100)
         utxo = proof.stakes[0].stake.utxo
@@ -276,9 +281,10 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         # Mine the tx in a block
         node.generate(1)
-        wait_for_proof(node, proofid_hex)
-        raw_proof = node.getrawavalancheproof(proofid_hex)
-        assert_equal(raw_proof["orphan"], True)
+
+        # Wait for the proof to be orphaned
+        wait_until(lambda: node.getrawavalancheproof(
+            proofid_hex)["orphan"] is True)
 
         # It should no longer be broadcasted
         peers = add_peers(3)
