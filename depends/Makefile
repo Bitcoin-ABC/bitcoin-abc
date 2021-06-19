@@ -98,10 +98,6 @@ host_prefix=$($(host_arch)_$(host_os)_prefix)
 build_prefix=$(host_prefix)/native
 build_host=$(build)
 
-AT_$(V):=
-AT_:=@
-AT:=$(AT_$(V))
-
 all: install
 
 include hosts/$(host_os).mk
@@ -181,12 +177,12 @@ include funcs.mk
 final_build_id_long+=$(shell $(build_SHA256SUM) config.sub)
 final_build_id+=$(shell echo -n "$(final_build_id_long)" | $(build_SHA256SUM) | cut -c-$(HASH_LENGTH))
 $(host_prefix)/.stamp_$(final_build_id): $(native_packages) $(packages)
-	$(AT)rm -rf $(@D)
-	$(AT)mkdir -p $(@D)
-	$(AT)echo copying packages: $^
-	$(AT)echo to: $(@D)
-	$(AT)cd $(@D); $(foreach package,$^, tar xf $($(package)_cached); )
-	$(AT)touch $@
+	rm -rf $(@D)
+	mkdir -p $(@D)
+	echo copying packages: $^
+	echo to: $(@D)
+	cd $(@D); $(foreach package,$^, tar xf $($(package)_cached); )
+	touch $@
 
 define check_or_remove_cached
   mkdir -p $(BASE_CACHE)/$(host)/$(package) && cd $(BASE_CACHE)/$(host)/$(package); \
@@ -245,3 +241,4 @@ build-all: build-linux64 build-linux32 build-linux-arm build-linux-aarch64 build
 $(foreach package,$(all_packages),$(eval $(call ext_add_stages,$(package))))
 
 .PHONY: install cached clean clean-all download-one download-osx download-linux download-win download check-packages check-sources
+$(V).SILENT:
