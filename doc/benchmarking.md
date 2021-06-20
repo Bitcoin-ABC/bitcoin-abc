@@ -14,11 +14,19 @@ The benchmarks can be run with:
 
 The output will look similar to:
 ```
-|             ns/byte |              byte/s | error % | benchmark
-|--------------------:|--------------------:|--------:|:----------------------------------------------
-|               64.13 |       15,592,356.01 |    0.1% | `Base58CheckEncode`
-|               24.56 |       40,722,672.68 |    0.2% | `Base58Decode`
+|               ns/op |                op/s |    err% |     total | benchmark
+|--------------------:|--------------------:|--------:|----------:|:----------
+|       57,927,463.00 |               17.26 |    3.6% |      0.66 | `AddrManAdd`
+|          677,816.00 |            1,475.33 |    4.9% |      0.01 | `AddrManGetAddr`
 
+...
+
+|             ns/byte |              byte/s |    err% |     total | benchmark
+|--------------------:|--------------------:|--------:|----------:|:----------
+|              127.32 |        7,854,302.69 |    0.3% |      0.00 | `Base58CheckEncode`
+|               31.95 |       31,303,226.99 |    0.2% |      0.00 | `Base58Decode`
+
+...
 ```
 
 Help
@@ -26,6 +34,9 @@ Help
 `-?` will print a list of options and exit:
 
     src/bench/bitcoin-bench -?
+
+To print the various options, like listing the benchmarks without running them
+or using a regex filter to only run certain benchmarks.
 
 Notes
 ---------------------

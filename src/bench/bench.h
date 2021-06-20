@@ -19,16 +19,19 @@
 /*
  * Usage:
 
-static void CODE_TO_TIME(benchmark::Bench& bench)
+static void NameOfYourBenchmarkFunction(benchmark::Bench& bench)
 {
-    ... do any setup needed...
-    nanobench::Config().run([&] {
-       ... do stuff you want to time...
+    ...do any setup needed...
+
+    bench.run([&] {
+         ...do stuff you want to time; refer to src/bench/nanobench.h
+            for more information and the options that can be passed here...
     });
-    ... do any cleanup needed...
+
+    ...do any cleanup needed...
 }
 
-BENCHMARK(CODE_TO_TIME);
+BENCHMARK(NameOfYourBenchmarkFunction);
 
  */
 
@@ -56,6 +59,7 @@ public:
     static void RunAll(const Args &args);
 };
 } // namespace benchmark
+
 // BENCHMARK(foo) expands to:  benchmark::BenchRunner bench_11foo("foo");
 #define BENCHMARK(n)                                                           \
     benchmark::BenchRunner BOOST_PP_CAT(bench_, BOOST_PP_CAT(__LINE__, n))(    \
