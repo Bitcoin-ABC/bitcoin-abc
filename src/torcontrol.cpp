@@ -144,12 +144,20 @@ bool TorControlConnection::Connect(const std::string &tor_control_center,
     if (b_conn) {
         Disconnect();
     }
-    // Parse tor_control_center address:port
-    struct sockaddr_storage connect_to_addr;
-    int connect_to_addrlen = sizeof(connect_to_addr);
-    if (evutil_parse_sockaddr_port(tor_control_center.c_str(),
-                                   (struct sockaddr *)&connect_to_addr,
-                                   &connect_to_addrlen) < 0) {
+
+    const std::optional<CService> control_service{
+        Lookup(tor_control_center, 9051, fNameLookup)};
+    if (!control_service.has_value()) {
+        LogPrintf("tor: Failed to look up control center %s\n",
+                  tor_control_center);
+        return false;
+    }
+
+    struct sockaddr_storage control_address;
+    socklen_t control_address_len = sizeof(control_address);
+    if (!control_service.value().GetSockAddr(
+            reinterpret_cast<struct sockaddr *>(&control_address),
+            &control_address_len)) {
         LogPrintf("tor: Error parsing socket address %s\n", tor_control_center);
         return false;
     }
@@ -166,8 +174,9 @@ bool TorControlConnection::Connect(const std::string &tor_control_center,
     this->disconnected = _disconnected;
 
     // Finally, connect to tor_control_center
-    if (bufferevent_socket_connect(b_conn, (struct sockaddr *)&connect_to_addr,
-                                   connect_to_addrlen) < 0) {
+    if (bufferevent_socket_connect(
+            b_conn, reinterpret_cast<struct sockaddr *>(&control_address),
+            control_address_len) < 0) {
         LogPrintf("tor: Error connecting to address %s\n", tor_control_center);
         return false;
     }
