@@ -28,6 +28,7 @@ from .messages import (
 from .p2p import P2PInterface, p2p_lock
 from .test_node import TestNode
 from .util import (
+    assert_equal,
     satoshi_round,
     wait_until,
 )
@@ -139,14 +140,22 @@ def get_proof_ids(node):
                     ).proofid for peer in node.getavalanchepeerinfo()]
 
 
-def wait_for_proof(node, proofid_hex, timeout=60):
+def wait_for_proof(node, proofid_hex, timeout=60, expect_orphan=None):
+    """
+    Wait for the proof to be known by the node. If expect_orphan is set, the
+    proof should match the orphan state, otherwise it's a don't care parameter.
+    """
     def proof_found():
         try:
-            node.getrawavalancheproof(proofid_hex)
+            wait_for_proof.is_orphan = node.getrawavalancheproof(proofid_hex)[
+                "orphan"]
             return True
         except JSONRPCException:
             return False
     wait_until(proof_found, timeout=timeout)
+
+    if expect_orphan is not None:
+        assert_equal(expect_orphan, wait_for_proof.is_orphan)
 
 
 class AvaP2PInterface(P2PInterface):

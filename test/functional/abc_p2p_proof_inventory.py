@@ -147,10 +147,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         msg.proof = orphan
         peer.send_message(msg)
 
-        wait_for_proof(node, orphan_proofid)
-        raw_proof = node.getrawavalancheproof(orphan_proofid)
-        assert_equal(raw_proof["proof"], orphan_hex)
-        assert_equal(raw_proof["orphan"], True)
+        wait_for_proof(node, orphan_proofid, expect_orphan=True)
 
     def test_ban_invalid_proof(self):
         node = self.nodes[0]
@@ -258,9 +255,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         wait_until(lambda: proof_inv_received(peers))
 
         # Sanity check our node knows the proof, and it is valid
-        wait_for_proof(node, proofid_hex)
-        raw_proof = node.getrawavalancheproof(proofid_hex)
-        assert_equal(raw_proof["orphan"], False)
+        wait_for_proof(node, proofid_hex, expect_orphan=False)
 
         # Mature the utxo then spend it
         node.generate(100)
