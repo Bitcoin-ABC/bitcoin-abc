@@ -62,6 +62,7 @@ class CompactFiltersTest(BitcoinTestFramework):
         self.disconnect_nodes(0, 1)
 
         stale_block_hash = self.nodes[0].generate(1)[0]
+        self.nodes[0].syncwithvalidationinterfacequeue()
         assert_equal(self.nodes[0].getblockcount(), 1000)
 
         self.nodes[1].generate(1001)
@@ -93,6 +94,7 @@ class CompactFiltersTest(BitcoinTestFramework):
         self.log.info("Reorg node 0 to a new chain.")
         self.connect_nodes(0, 1)
         self.sync_blocks(timeout=600)
+        self.nodes[0].syncwithvalidationinterfacequeue()
 
         main_block_hash = self.nodes[0].getblockhash(1000)
         assert main_block_hash != stale_block_hash, "node 0 chain did not reorganize"
