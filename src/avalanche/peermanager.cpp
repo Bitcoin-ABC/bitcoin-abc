@@ -70,7 +70,7 @@ bool PeerManager::addNodeToPeer(const PeerSet::iterator &it) {
             return;
         }
 
-        // We ned to allocate this peer.
+        // We need to allocate this peer.
         p.index = uint32_t(slots.size());
         const uint32_t score = p.getScore();
         const uint64_t start = slotCount;
@@ -256,7 +256,7 @@ PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
         }
     }
 
-    // For now, if there is a conflict, just ceanup the mess.
+    // For now, if there is a conflict, just cleanup the mess.
     if (conflicting_peerids.size() > 0) {
         for (const auto &s : proof->getStakes()) {
             auto it = utxos.find(s.getStake().getUTXO());
