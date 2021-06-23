@@ -163,7 +163,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         def wait_for_proof_validation():
             # Connect some blocks to trigger the proof verification
-            node.generate(2)
+            node.generate(1)
             wait_until(lambda: node_proofid in get_proof_ids(node))
 
         wait_for_proof_validation()

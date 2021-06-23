@@ -114,8 +114,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         assert node.getblockchaininfo()["initialblockdownload"] is True
         # Our proof cannot be verified during IBD, so we should have no peer
         assert not node.getavalanchepeerinfo()
-        # Mining a few more blocks should cause us to leave IBD
-        node.generate(2)
+        # Mining one more block should cause us to leave IBD
+        node.generate(1)
         # Our proof is now verified and our node is added as a peer
         assert node.getblockchaininfo()["initialblockdownload"] is False
         wait_until(lambda: len(node.getavalanchepeerinfo()) == 1, timeout=5)
