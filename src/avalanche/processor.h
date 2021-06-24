@@ -281,8 +281,7 @@ public:
     bool registerVotes(NodeId nodeid, const Response &response,
                        std::vector<BlockUpdate> &updates);
 
-    bool addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
-                 const Delegation &delegation);
+    bool addNode(NodeId nodeid, const Delegation &delegation);
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     CPubKey getSessionPubKey() const;

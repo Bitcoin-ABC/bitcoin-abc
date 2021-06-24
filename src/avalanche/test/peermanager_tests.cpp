@@ -158,6 +158,14 @@ static std::shared_ptr<Proof> getRandomProofPtr(uint32_t score) {
     return std::make_shared<Proof>(buildRandomProof(score));
 }
 
+static void addNodeWithScore(avalanche::PeerManager &pm, NodeId node,
+                             uint32_t score) {
+    auto proof = getRandomProofPtr(score);
+    BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
+    Delegation dg = DelegationBuilder(*proof).build();
+    BOOST_CHECK(pm.addNode(node, dg));
+};
+
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
     // No peers.
     avalanche::PeerManager pm;
@@ -166,15 +174,11 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     const NodeId node0 = 42, node1 = 69, node2 = 37;
 
     // One peer, we always return it.
-    auto proof0 = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
-    Delegation dg0 = DelegationBuilder(*proof0).build();
-    pm.addNode(node0, proof0, dg0);
+    addNodeWithScore(pm, node0, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    auto proof1 = getRandomProofPtr(2 * MIN_VALID_PROOF_SCORE);
-    Delegation dg1 = DelegationBuilder(*proof1).build();
-    pm.addNode(node1, proof1, dg1);
+    addNodeWithScore(pm, node1, 2 * MIN_VALID_PROOF_SCORE);
 
     std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
@@ -186,9 +190,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    auto proof2 = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
-    Delegation dg2 = DelegationBuilder(*proof2).build();
-    pm.addNode(node2, proof2, dg2);
+    addNodeWithScore(pm, node2, MIN_VALID_PROOF_SCORE);
 
     results.clear();
     for (int i = 0; i < 10000; i++) {
@@ -211,7 +213,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
         auto p = getRandomProofPtr(100);
         peerids[i] = pm.getPeerId(p);
         BOOST_CHECK(
-            pm.addNode(InsecureRand32(), p, DelegationBuilder(*p).build()));
+            pm.addNode(InsecureRand32(), DelegationBuilder(*p).build()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -244,7 +246,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
         auto p = getRandomProofPtr(100);
         peerids[i + 4] = pm.getPeerId(p);
         BOOST_CHECK(
-            pm.addNode(InsecureRand32(), p, DelegationBuilder(*p).build()));
+            pm.addNode(InsecureRand32(), DelegationBuilder(*p).build()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
@@ -287,7 +289,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
         auto p = getRandomProofPtr(100);
         peerids[i] = pm.getPeerId(p);
         BOOST_CHECK(
-            pm.addNode(InsecureRand32(), p, DelegationBuilder(*p).build()));
+            pm.addNode(InsecureRand32(), DelegationBuilder(*p).build()));
     }
 
     // Remove all peers.
@@ -313,12 +315,13 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Create one peer.
     auto proof = getRandomProofPtr(10000000 * MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
     Delegation dg = DelegationBuilder(*proof).build();
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
     for (int i = 0; i < 4; i++) {
-        BOOST_CHECK(pm.addNode(i, proof, dg));
+        BOOST_CHECK(pm.addNode(i, dg));
     }
 
     for (int i = 0; i < 100; i++) {
@@ -351,9 +354,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Move a node from a peer to another. This peer has a very low score such
     // as chances of being picked are 1 in 10 million.
-    auto altproof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
-    Delegation altdg = DelegationBuilder(*altproof).build();
-    BOOST_CHECK(pm.addNode(3, altproof, altdg));
+    addNodeWithScore(pm, 3, MIN_VALID_PROOF_SCORE);
 
     int node3selected = 0;
     for (int i = 0; i < 100; i++) {

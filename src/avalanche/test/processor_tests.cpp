@@ -127,18 +127,19 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
     bool addNode(NodeId nodeid) {
         auto proof = GetProof();
-        return m_processor->addNode(nodeid, proof,
-                                    DelegationBuilder(*proof).build());
+        BOOST_CHECK(m_processor->addProof(proof));
+        return m_processor->addNode(nodeid, DelegationBuilder(*proof).build());
     }
 
     std::array<CNode *, 8> ConnectNodes() {
         auto proof = GetProof();
+        BOOST_CHECK(m_processor->addProof(proof));
         Delegation dg = DelegationBuilder(*proof).build();
 
         std::array<CNode *, 8> nodes;
         for (CNode *&n : nodes) {
             n = ConnectNode(NODE_AVALANCHE);
-            BOOST_CHECK(m_processor->addNode(n->GetId(), proof, dg));
+            BOOST_CHECK(m_processor->addNode(n->GetId(), dg));
         }
 
         return nodes;
@@ -737,12 +738,13 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Create enough nodes so that we run into the inflight request limit.
     auto proof = GetProof();
+    BOOST_CHECK(m_processor->addProof(proof));
     Delegation dg = DelegationBuilder(*proof).build();
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
         n = ConnectNode(NODE_AVALANCHE);
-        BOOST_CHECK(m_processor->addNode(n->GetId(), proof, dg));
+        BOOST_CHECK(m_processor->addNode(n->GetId(), dg));
     }
 
     // Add a block to poll

@@ -19,10 +19,10 @@ static bool isOrphanState(const ProofValidationState &state) {
            state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
 }
 
-bool PeerManager::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
-                          const Delegation &delegation) {
-    auto it = fetchOrCreatePeer(proof);
-    if (it == peers.end()) {
+bool PeerManager::addNode(NodeId nodeid, const Delegation &delegation) {
+    auto &pview = peers.get<proof_index>();
+    auto it = pview.find(delegation.getProofId());
+    if (it == pview.end()) {
         return false;
     }
 
@@ -32,7 +32,7 @@ bool PeerManager::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
         return false;
     }
 
-    return addOrUpdateNode(it, nodeid, std::move(pubkey));
+    return addOrUpdateNode(peers.project<0>(it), nodeid, std::move(pubkey));
 }
 
 bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid,

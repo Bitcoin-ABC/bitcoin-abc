@@ -94,12 +94,17 @@ static UniValue addavalanchenode(const Config &config,
         return false;
     }
 
-    if (!g_avalanche->addNode(nodeid, proof,
+    const avalanche::ProofId &proofid = proof->getId();
+    if (!g_avalanche->getProof(proofid) && !g_avalanche->addProof(proof)) {
+        return false;
+    }
+
+    if (!g_avalanche->addNode(nodeid,
                               avalanche::DelegationBuilder(*proof).build())) {
         return false;
     }
 
-    g_avalanche->addUnbroadcastProof(proof->getId());
+    g_avalanche->addUnbroadcastProof(proofid);
     return true;
 }
 

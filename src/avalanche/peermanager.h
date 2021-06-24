@@ -148,8 +148,7 @@ public:
     /**
      * Node API.
      */
-    bool addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
-                 const Delegation &delegation);
+    bool addNode(NodeId nodeid, const Delegation &delegation);
     bool removeNode(NodeId nodeid);
 
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
