@@ -268,7 +268,7 @@ class ProofInventoryTest(BitcoinTestFramework):
             }],
             outputs={ADDRESS_BCHREG_UNSPENDABLE: 25_000_000 - 250.00},
         )
-        signed_tx = self.nodes[0].signrawtransactionwithkey(
+        signed_tx = node.signrawtransactionwithkey(
             hexstring=raw_tx,
             privkeys=[node.get_deterministic_priv_key().key],
         )

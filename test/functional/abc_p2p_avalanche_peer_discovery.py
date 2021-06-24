@@ -139,7 +139,7 @@ class AvalancheTest(BitcoinTestFramework):
         bad_interface = get_ava_p2p_interface(node)
         wrong_key = ECKey()
         wrong_key.generate()
-        with self.nodes[0].assert_debug_log(
+        with node.assert_debug_log(
                 ["Misbehaving",
                  "peer=1 (0 -> 100) BAN THRESHOLD EXCEEDED: invalid-avahello-signature"]):
             bad_interface.send_avahello(interface_delegation_hex, wrong_key)

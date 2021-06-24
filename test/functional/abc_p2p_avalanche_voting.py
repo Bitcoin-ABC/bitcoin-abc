@@ -242,7 +242,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info(
             "Check the node is discouraging unexpected avaresponses.")
-        with self.nodes[0].assert_debug_log(
+        with node.assert_debug_log(
                 ['Misbehaving', 'peer=1 (0 -> 2): unexpected-ava-response']):
             # unknown voting round
             poll_node.send_avaresponse(
