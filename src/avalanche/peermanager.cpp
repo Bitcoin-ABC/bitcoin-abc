@@ -26,13 +26,20 @@ bool PeerManager::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
         return false;
     }
 
-    const PeerId peerid = it->peerid;
-
     DelegationState state;
     CPubKey pubkey;
     if (!delegation.verify(state, pubkey)) {
         return false;
     }
+
+    return addOrUpdateNode(it, nodeid, std::move(pubkey));
+}
+
+bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid,
+                                  CPubKey pubkey) {
+    assert(it != peers.end());
+
+    const PeerId peerid = it->peerid;
 
     auto nit = nodes.find(nodeid);
     if (nit == nodes.end()) {
