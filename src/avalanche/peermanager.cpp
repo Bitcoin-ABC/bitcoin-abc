@@ -51,9 +51,6 @@ bool PeerManager::addNode(NodeId nodeid, const std::shared_ptr<Proof> &proof,
         // We actually have this node already, we need to update it.
         bool success = removeNodeFromPeer(peers.find(oldpeerid));
         assert(success);
-
-        // Make sure it is not invalidated.
-        it = peers.find(peerid);
     }
 
     bool success = addNodeToPeer(it);
