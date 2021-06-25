@@ -1384,6 +1384,14 @@ bool PeerManagerImpl::BlockRequested(const Config &config, NodeId nodeid,
 
 void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
     AssertLockHeld(cs_main);
+
+    // Never request high-bandwidth mode from peers if we're blocks-only. Our
+    // mempool will not contain the transactions necessary to reconstruct the
+    // compact block.
+    if (m_ignore_incoming_txs) {
+        return;
+    }
+
     CNodeState *nodestate = State(nodeid);
     if (!nodestate) {
         LogPrint(BCLog::NET, "node state unavailable: peer=%d\n", nodeid);
@@ -3226,7 +3234,8 @@ void PeerManagerImpl::ProcessHeadersMessage(
                              pindexLast->nHeight);
                 }
                 if (vGetData.size() > 0) {
-                    if (nodestate->fSupportsDesiredCmpctVersion &&
+                    if (!m_ignore_incoming_txs &&
+                        nodestate->fSupportsDesiredCmpctVersion &&
                         vGetData.size() == 1 && mapBlocksInFlight.size() == 1 &&
                         pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
                         // In any case, we want to download using a compact
