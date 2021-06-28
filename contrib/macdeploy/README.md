@@ -17,9 +17,9 @@ When complete, it will have produced `Bitcoin-ABC.dmg`.
 ### Step 1: Obtaining `Xcode.app`
 
 Our current macOS SDK
-(`Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz`) can be
+(`Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz`) can be
 extracted from
-[Xcode_11.3.1.xip](https://download.developer.apple.com/Developer_Tools/Xcode_11.3.1/Xcode_11.3.1.xip).
+[Xcode_12.1.xip](https://download.developer.apple.com/Developer_Tools/Xcode_12.1/Xcode_12.1.xip).
 An Apple ID is needed to download this.
 
 After Xcode version 7.x, Apple started shipping the `Xcode.app` in a `.xip`
@@ -30,25 +30,25 @@ approach (tested on Debian Buster) is outlined below:
 # Install/clone tools needed for extracting Xcode.app
 apt install cpio
 
-# Unpack Xcode_11.3.1.xip and place the resulting Xcode.app in your current
+# Unpack Xcode_12.1.xip and place the resulting Xcode.app in your current
 # working directory
-python3 contrib/apple-sdk-tools/extract_xcode.py -f Xcode_11.3.1.xip | cpio -d -i
+python3 contrib/apple-sdk-tools/extract_xcode.py -f Xcode_12.1.xip | cpio -d -i
 ```
 
 On macOS the process is more straightforward:
 
 ```bash
-xip -x Xcode_11.3.1.xip
+xip -x Xcode_12.1.xip
 ```
 
-### Step 2: Generating `Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz` from `Xcode.app`
+### Step 2: Generating `Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz` from `Xcode.app`
 
-To generate `Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz`, run
+To generate `Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz`, run
 the script [`gen-sdk`](./gen-sdk) with the path to `Xcode.app` (extracted in the
 previous stage) as the first argument.
 
 ```bash
-# Generate a Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz from
+# Generate a Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz from
 # the supplied Xcode.app
 ./contrib/macdeploy/gen-sdk '/path/to/Xcode.app'
 ```

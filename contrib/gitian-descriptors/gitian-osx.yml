@@ -36,16 +36,16 @@ remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
 files:
-- "Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz"
+- "Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz"
 script: |
   WRAP_DIR=$HOME/wrapped
   HOSTS=(
-    x86_64-apple-darwin18
+    x86_64-apple-darwin19
   )
 
   # CMake toolchain file name differ from host name
   declare -A CMAKE_TOOLCHAIN_FILE
-  CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin18]=OSX.cmake
+  CMAKE_TOOLCHAIN_FILE[x86_64-apple-darwin19]=OSX.cmake
 
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="ar ranlib date dmg xorrisofs"
@@ -100,7 +100,7 @@ script: |
   BASEPREFIX=`pwd`/depends
 
   mkdir -p ${BASEPREFIX}/SDKs
-  tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
+  tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/Xcode-12.1-12A7403-extracted-SDK-with-libcxx-headers.tar.gz
 
   # Build dependencies for each host
   for i in ${HOSTS[@]}; do

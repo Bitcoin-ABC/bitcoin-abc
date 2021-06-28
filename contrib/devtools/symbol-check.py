@@ -218,7 +218,7 @@ def check_MACHO_libraries(filename) -> bool:
 
 def check_MACHO_min_os(filename) -> bool:
     binary = lief.parse(filename)
-    return binary.build_version.minos == [10, 14, 0]
+    return binary.build_version.minos == [10, 15, 0]
 
 
 def check_MACHO_sdk(filename) -> bool:
