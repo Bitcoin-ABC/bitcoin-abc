@@ -287,12 +287,6 @@ public:
     CPubKey getSessionPubKey() const;
     bool sendHello(CNode *pfrom) const;
 
-    /**
-     * Build and return the challenge whose signature we expect a peer to
-     * include in his AVAHELLO message.
-     */
-    uint256 buildRemoteSighash(CNode *pfrom) const;
-
     bool addProof(const std::shared_ptr<Proof> &proof);
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
     std::shared_ptr<Proof> getLocalProof() const;

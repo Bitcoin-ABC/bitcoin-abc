@@ -543,16 +543,6 @@ uint256 Processor::buildLocalSighash(CNode *pfrom) const {
     return hasher.GetHash();
 }
 
-uint256 Processor::buildRemoteSighash(CNode *pfrom) const {
-    CHashWriter hasher(SER_GETHASH, 0);
-    hasher << pfrom->m_avalanche_state->delegation.getId();
-    hasher << pfrom->nRemoteHostNonce;
-    hasher << pfrom->GetLocalNonce();
-    hasher << pfrom->nRemoteExtraEntropy;
-    hasher << pfrom->GetLocalExtraEntropy();
-    return hasher.GetHash();
-}
-
 bool Processor::sendHello(CNode *pfrom) const {
     if (!peerData) {
         // We do not have a delegation to advertise.

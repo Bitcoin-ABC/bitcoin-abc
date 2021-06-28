@@ -4137,10 +4137,16 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             return;
         }
 
+        CHashWriter sighasher(SER_GETHASH, 0);
+        sighasher << pfrom.m_avalanche_state->delegation.getId();
+        sighasher << pfrom.nRemoteHostNonce;
+        sighasher << pfrom.GetLocalNonce();
+        sighasher << pfrom.nRemoteExtraEntropy;
+        sighasher << pfrom.GetLocalExtraEntropy();
+
         SchnorrSig sig;
         verifier >> sig;
-        if (!pubkey.VerifySchnorr(g_avalanche->buildRemoteSighash(&pfrom),
-                                  sig)) {
+        if (!pubkey.VerifySchnorr(sighasher.GetHash(), sig)) {
             Misbehaving(pfrom, 100, "invalid-avahello-signature");
             return;
         }
