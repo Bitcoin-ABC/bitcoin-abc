@@ -44,7 +44,7 @@ const std::string CLIENT_NAME("Bitcoin ABC");
 
 const std::string CLIENT_BUILD(BUILD_DESC BUILD_SUFFIX);
 
-static std::string FormatVersion(int nVersion) {
+std::string FormatVersion(int nVersion) {
     if (nVersion % 100 == 0) {
         return strprintf("%d.%d.%d", nVersion / 1000000,
                          (nVersion / 10000) % 100, (nVersion / 100) % 100);
@@ -60,15 +60,14 @@ std::string FormatFullVersion() {
 }
 
 /**
- * Format the subversion field according to BIP 14 spec using given userAgent.
+ * Format the subversion field according to BIP 14 spec.
  * (https://github.com/bitcoin/bips/blob/master/bip-0014.mediawiki)
  */
-std::string
-FormatSubVersionUserAgent(const std::string &userAgent,
-                          const std::vector<std::string> &comments) {
+std::string FormatUserAgent(const std::string &name, const std::string &version,
+                            const std::vector<std::string> &comments) {
     std::ostringstream ss;
     ss << "/";
-    ss << userAgent;
+    ss << name << ":" << version;
     if (!comments.empty()) {
         std::vector<std::string>::const_iterator it(comments.begin());
         ss << "(" << *it;
@@ -79,15 +78,4 @@ FormatSubVersionUserAgent(const std::string &userAgent,
     }
     ss << "/";
     return ss.str();
-}
-
-/**
- * Format the subversion field according to BIP 14 spec
- * (https://github.com/bitcoin/bips/blob/master/bip-0014.mediawiki)
- */
-std::string FormatSubVersion(const std::string &name, int nClientVersion,
-                             const std::vector<std::string> &comments) {
-    std::ostringstream ss;
-    ss << name << ":" << FormatVersion(nClientVersion);
-    return FormatSubVersionUserAgent(ss.str(), comments);
 }

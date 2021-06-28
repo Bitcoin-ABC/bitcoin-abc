@@ -3212,9 +3212,10 @@ std::string userAgent(const Config &config) {
         uacomments.push_back(cmt);
     }
 
-    // Size compliance is checked at startup, it is safe to not check it again
-    std::string subversion =
-        FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
+    const std::string client_name = gArgs.GetArg("-uaclientname", CLIENT_NAME);
+    const std::string client_version =
+        gArgs.GetArg("-uaclientversion", FormatVersion(CLIENT_VERSION));
 
-    return subversion;
+    // Size compliance is checked at startup, it is safe to not check it again
+    return FormatUserAgent(client_name, client_version, uacomments);
 }

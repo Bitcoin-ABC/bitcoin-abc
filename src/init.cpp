@@ -1030,6 +1030,11 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-uacomment=<cmt>",
                    "Append comment to the user agent string",
                    ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-uaclientname=<clientname>", "Set user agent client name",
+                   ArgsManager::ALLOW_ANY, OptionsCategory::DEBUG_TEST);
+    argsman.AddArg("-uaclientversion=<clientversion>",
+                   "Set user agent client version", ArgsManager::ALLOW_ANY,
+                   OptionsCategory::DEBUG_TEST);
 
     SetupChainParamsBaseOptions(argsman);
 
@@ -2299,8 +2304,21 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
         uacomments.push_back(cmt);
     }
+    const std::string client_name = args.GetArg("-uaclientname", CLIENT_NAME);
+    const std::string client_version =
+        args.GetArg("-uaclientversion", FormatVersion(CLIENT_VERSION));
+    if (client_name != SanitizeString(client_name, SAFE_CHARS_UA_COMMENT)) {
+        return InitError(strprintf(
+            _("-uaclientname (%s) contains invalid characters."), client_name));
+    }
+    if (client_version !=
+        SanitizeString(client_version, SAFE_CHARS_UA_COMMENT)) {
+        return InitError(
+            strprintf(_("-uaclientversion (%s) contains invalid characters."),
+                      client_version));
+    }
     const std::string strSubVersion =
-        FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
+        FormatUserAgent(client_name, client_version, uacomments);
     if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) {
         return InitError(strprintf(
             _("Total length of network version string (%i) exceeds maximum "
