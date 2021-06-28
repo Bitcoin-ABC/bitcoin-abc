@@ -771,6 +771,9 @@ public:
                        const std::vector<uint8_t> &crypted_key);
 
     bool HasWalletDescriptor(const WalletDescriptor &desc) const;
+    void UpdateWalletDescriptor(WalletDescriptor &descriptor);
+    bool CanUpdateToWalletDescriptor(const WalletDescriptor &descriptor,
+                                     std::string &error);
     void AddDescriptorKey(const CKey &key, const CPubKey &pubkey);
     void WriteDescriptor();
 

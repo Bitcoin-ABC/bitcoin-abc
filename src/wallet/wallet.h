@@ -1059,6 +1059,16 @@ public:
     //!                     addresses
     void LoadActiveScriptPubKeyMan(uint256 id, OutputType type, bool internal);
 
+    //! Remove specified ScriptPubKeyMan from set of active SPK managers.
+    //! Writes the change to the wallet file.
+    //! @param[in] id The unique id for the ScriptPubKeyMan
+    //! @param[in] type The OutputType this ScriptPubKeyMan provides addresses
+    //!                 for
+    //! @param[in] internal Whether this ScriptPubKeyMan provides change
+    //!                     addresses
+    void DeactivateScriptPubKeyMan(const uint256 &id, OutputType type,
+                                   bool internal);
+
     //! Create new DescriptorScriptPubKeyMans and add them to the wallet
     void SetupDescriptorScriptPubKeyMans() EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 

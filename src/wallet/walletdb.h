@@ -261,6 +261,7 @@ public:
 
     bool WriteActiveScriptPubKeyMan(uint8_t type, const uint256 &id,
                                     bool internal);
+    bool EraseActiveScriptPubKeyMan(uint8_t type, bool internal);
 
     DBErrors LoadWallet(CWallet *pwallet);
     DBErrors FindWalletTx(std::vector<TxId> &txIds, std::list<CWalletTx> &vWtx);
