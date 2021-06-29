@@ -5,6 +5,7 @@
 #include <amount.h>
 #include <arith_uint256.h>
 #include <chainparams.h>
+#include <clientversion.h>
 #include <compressor.h>
 #include <config.h>
 #include <consensus/merkle.h>
@@ -96,6 +97,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     (void)DecompressAmount(u64);
     (void)FormatISO8601Date(i64);
     (void)FormatISO8601DateTime(i64);
+    (void)FormatVersion(i32);
     // FormatMoney(i) not defined when i == std::numeric_limits<int64_t>::min()
     if (i64 != std::numeric_limits<int64_t>::min()) {
         Amount parsed_money;

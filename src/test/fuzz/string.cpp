@@ -52,9 +52,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         random_string_1,
         fuzzed_data_provider.ConsumeIntegralInRange<size_t>(0, 1000),
         fuzzed_data_provider.ConsumeIntegralInRange<size_t>(0, 1000));
-    (void)FormatSubVersion(random_string_1,
-                           fuzzed_data_provider.ConsumeIntegral<int>(),
-                           random_string_vector);
+    (void)FormatUserAgent(random_string_1, random_string_2,
+                          random_string_vector);
     (void)GetDescriptorChecksum(random_string_1);
     (void)HelpExampleCli(random_string_1, random_string_2);
     (void)HelpExampleRpc(random_string_1, random_string_2);
