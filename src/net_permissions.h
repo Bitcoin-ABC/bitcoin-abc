@@ -32,7 +32,8 @@ enum NetPermissionFlags {
     PF_NOBAN = (1U << 4) | PF_DOWNLOAD,
     // Can query the mempool
     PF_MEMPOOL = (1U << 5),
-    // Can request addrs without hitting a privacy-preserving cache
+    // Can request addrs without hitting a privacy-preserving cache, and send us
+    // unlimited amounts of addrs.
     PF_ADDR = (1U << 7),
     // Bypass the limit on how many proof INVs are tracked from this peer as
     // well as the delay penalty when reaching the the in-flight requests limit
