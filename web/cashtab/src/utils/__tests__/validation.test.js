@@ -86,7 +86,7 @@ describe('Validation utils', () => {
             currency.dustSats,
         ).toString()} ${currency.ticker}`;
         expect(
-            shouldRejectAmountInput('0.0000005', 'USD', 14.63, 0.52574662),
+            shouldRejectAmountInput('0.0000005', 'USD', 0.00005, 1000000),
         ).toBe(expectedValidationError);
     });
     it(`Returns balance error if ${currency.ticker} send amount is greater than user balance with fiat currency selected`, () => {
@@ -103,12 +103,17 @@ describe('Validation utils', () => {
         ).toBe(expectedValidationError);
     });
     it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
-        expect(fiatToCrypto('10.97231694823432', 20.3231342349234234)).toBe(
+        expect(fiatToCrypto('10.97231694823432', 20.3231342349234234, 8)).toBe(
             '0.53989295',
         );
     });
+    it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
+        expect(fiatToCrypto('10.97231694823432', 20.3231342349234234, 2)).toBe(
+            '0.54',
+        );
+    });
     it(`Returns expected crypto amount with ${currency.cashDecimals} decimals of precision even if inputs have lower precision`, () => {
-        expect(fiatToCrypto('10.94', 10)).toBe('1.09400000');
+        expect(fiatToCrypto('10.94', 10, 8)).toBe('1.09400000');
     });
     it(`Accepts a valid ${currency.tokenTicker} token name`, () => {
         expect(isValidTokenName('Valid token name')).toBe(true);

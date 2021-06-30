@@ -1,3 +1,6 @@
+import { fromSmallestDenomination } from '@utils/cashMethods';
+import { currency } from '@components/Common/Ticker';
+
 export default {
     utxos: [
         {
@@ -27,7 +30,7 @@ export default {
     },
     destinationAddress:
         'bitcoincash:qr2npxqwznhp7gphatcqzexeclx0hhwdxg386ez36n',
-    sendAmount: '0.00000546',
+    sendAmount: fromSmallestDenomination(currency.dustSats).toString(),
     expectedTxId:
         '7a39961bbd7e27d804fb3169ef38a83234710fbc53897a4eb0c98454854a26d1',
     expectedHex: [

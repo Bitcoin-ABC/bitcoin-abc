@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Switch } from 'antd';
 import { LinkOutlined, LoadingOutlined } from '@ant-design/icons';
 import { WalletContext } from '@utils/context';
 import { OnBoarding } from '@components/OnBoarding/OnBoarding';
@@ -164,6 +165,18 @@ export const ExternalLink = styled.a`
     }
 `;
 
+export const AddrSwitchContainer = styled.div`
+    text-align: center;
+    padding: 6px 0 12px 0;
+`;
+
+export const AddrPrefixSwitch = styled(Switch)``;
+
+export const AddrPrefixLabel = styled.span`
+    color: ${props => props.theme.wallet.text.primary}
+    margin-right: 4px;
+`;
+
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, fiatPrice, apiError } = ContextValue;
@@ -194,12 +207,17 @@ const WalletInfo = () => {
         tokens = ContextValue.tokens;
     }
     const [address, setAddress] = React.useState('cashAddress');
+    const [addressPrefix, setAddressPrefix] = React.useState('eCash');
     const [activeTab, setActiveTab] = React.useState('txHistory');
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     const handleChangeAddress = () => {
         setAddress(address === 'cashAddress' ? 'slpAddress' : 'cashAddress');
+    };
+
+    const onAddressPrefixChange = () => {
+        setAddressPrefix(addressPrefix === 'eCash' ? 'bitcoincash' : 'eCash');
     };
 
     return (
@@ -243,10 +261,10 @@ const WalletInfo = () => {
                 </>
             )}
 
-            {wallet &&
-                ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
-                    <>
-                        {wallet.Path1899 ? (
+            {wallet && ((wallet.Path245 && wallet.Path145) || wallet.Path1899) && (
+                <>
+                    {wallet.Path1899 ? (
+                        <>
                             <QRCode
                                 id="borderedQRCode"
                                 address={
@@ -254,8 +272,37 @@ const WalletInfo = () => {
                                         ? wallet.Path1899.slpAddress
                                         : wallet.Path1899.cashAddress
                                 }
+                                legacy={addressPrefix === 'bitcoincash'}
                             />
-                        ) : (
+                            <AddrSwitchContainer>
+                                <AddrPrefixLabel>
+                                    Address Format:
+                                </AddrPrefixLabel>
+                                <AddrPrefixSwitch
+                                    id="addrSwitch"
+                                    defaultChecked
+                                    checkedChildren={
+                                        address === 'slpAddress'
+                                            ? 'eToken'
+                                            : 'eCash'
+                                    }
+                                    unCheckedChildren={
+                                        address === 'slpAddress'
+                                            ? 'simpleledger'
+                                            : 'bitcoincash'
+                                    }
+                                    onChange={onAddressPrefixChange}
+                                />
+                            </AddrSwitchContainer>
+                        </>
+                    ) : (
+                        <>
+                            <AddrPrefixSwitch
+                                defaultChecked
+                                checkedChildren="eCash"
+                                unCheckedChildren="Legacy"
+                                onChange={onAddressPrefixChange}
+                            />
                             <QRCode
                                 id="borderedQRCode"
                                 address={
@@ -264,9 +311,10 @@ const WalletInfo = () => {
                                         : wallet.Path145.cashAddress
                                 }
                             />
-                        )}
-                    </>
-                )}
+                        </>
+                    )}
+                </>
+            )}
 
             <SwitchBtnCtn>
                 <SwitchBtn
@@ -309,14 +357,6 @@ const WalletInfo = () => {
                             txs={parsedTxHistory}
                             fiatPrice={fiatPrice}
                         />
-                        <ExternalLink
-                            style={{ marginTop: '24px' }}
-                            href={`${currency.blockExplorerUrl}/address/${wallet.Path1899.cashAddress}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <LinkOutlined /> More transactions
-                        </ExternalLink>
                     </TabPane>
                     <TabPane active={activeTab === 'tokens'}>
                         {tokens && tokens.length > 0 ? (

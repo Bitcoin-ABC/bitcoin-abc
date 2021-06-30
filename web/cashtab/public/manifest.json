@@ -8,28 +8,28 @@
             "type": "image/x-icon"
         },
         {
-            "src": "bch48.png",
+            "src": "ecash48.png",
             "type": "image/png",
             "sizes": "48x48"
         },
         {
-            "src": "bch128.png",
+            "src": "ecash128.png",
             "type": "image/png",
             "sizes": "128x128"
         },
         {
-            "src": "bch192.png",
+            "src": "ecash192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "bch512.png",
+            "src": "ecash512.png",
             "type": "image/png",
             "sizes": "512x512"
         }
     ],
     "start_url": ".",
     "display": "standalone",
-    "theme_color": "#000000",
+    "theme_color": "#273498",
     "background_color": "#ffffff"
 }

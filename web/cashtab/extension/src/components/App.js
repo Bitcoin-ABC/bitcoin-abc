@@ -15,7 +15,7 @@ import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
-import CashTab from '@assets/cashtab.png';
+import CashTab from '@assets/cashtab_xec.png';
 import PopOut from '@assets/popout.svg';
 import './App.css';
 import { WalletContext } from '@utils/context';
@@ -55,6 +55,15 @@ const GlobalStyle = createGlobalStyle`
     .selectedCurrencyOption:hover {
         color: ${props => props.theme.contrast} !important;
         background-color: ${props => props.theme.primary} !important;
+    }
+    #addrSwitch {
+        .ant-switch-checked {
+            background-color: white !important;
+        }
+    }
+    #addrSwitch.ant-switch-checked {
+        background-image: ${props =>
+            props.theme.buttons.primary.backgroundImage} !important;
     }
 `;
 

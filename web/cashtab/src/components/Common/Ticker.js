@@ -1,23 +1,23 @@
-import mainLogo from '@assets/12-bitcoin-cash-square-crop.svg';
-import tokenLogo from '@assets/simple-ledger-protocol-logo.png';
+import mainLogo from '@assets/logo_primary.png';
+import tokenLogo from '@assets/logo_secondary.png';
 import cashaddr from 'cashaddrjs';
 import BigNumber from 'bignumber.js';
 
 export const currency = {
-    name: 'Bitcoin ABC',
-    ticker: 'BCHA',
+    name: 'eCash',
+    ticker: 'XEC',
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
     prefixes: ['bitcoincash', 'ecash'],
     coingeckoId: 'bitcoin-cash-abc-2',
     defaultFee: 2.01,
     dustSats: 546,
-    cashDecimals: 8,
+    cashDecimals: 2,
     blockExplorerUrl: 'https://explorer.bitcoinabc.org',
     tokenExplorerUrl: 'https://explorer.be.cash',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
-    tokenName: 'Bitcoin ABC SLP',
-    tokenTicker: 'SLPA',
+    tokenName: 'eToken',
+    tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
     tokenPrefixes: ['simpleledger', 'etoken'],
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP

@@ -1,9 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-fjdhpX gMmFTr"
+    className="sc-fjdhpX llHaIR"
   >
     6.001
      
@@ -35,7 +35,7 @@ Array [
             }
           >
             <div
-              className="sc-gZMcBi jfarIG"
+              className="sc-gZMcBi bZwSTm"
             >
               <div
                 className="ant-row ant-form-item"
@@ -67,7 +67,7 @@ Array [
                             >
                               <span
                                 aria-label="wallet"
-                                className="anticon anticon-wallet sc-EHOje kdGSQJ"
+                                className="anticon anticon-wallet sc-EHOje gmISaY"
                                 role="img"
                               >
                                 <svg
@@ -93,7 +93,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
-                              placeholder="SLPA Address"
+                              placeholder="eToken Address"
                               required={true}
                               style={null}
                               type="text"
@@ -109,7 +109,7 @@ Array [
                             >
                               <span
                                 aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bZQynM czddql"
+                                className="anticon anticon-qrcode sc-bZQynM pGJNJ"
                                 role="img"
                               >
                                 <svg
@@ -145,7 +145,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-gZMcBi jfarIG"
+              className="sc-gZMcBi bZwSTm"
             >
               <div
                 className="ant-row ant-form-item"
@@ -242,7 +242,7 @@ Array [
               }
             >
               <button
-                className="sc-bdVaJa hWqtkx"
+                className="sc-bdVaJa hhkWIL"
                 onClick={[Function]}
               >
                 Send 
@@ -260,7 +260,7 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-fjdhpX gMmFTr"
+    className="sc-fjdhpX llHaIR"
   >
     6.001
      
@@ -292,7 +292,7 @@ Array [
             }
           >
             <div
-              className="sc-gZMcBi jfarIG"
+              className="sc-gZMcBi bZwSTm"
             >
               <div
                 className="ant-row ant-form-item"
@@ -324,7 +324,7 @@ Array [
                             >
                               <span
                                 aria-label="wallet"
-                                className="anticon anticon-wallet sc-EHOje kdGSQJ"
+                                className="anticon anticon-wallet sc-EHOje gmISaY"
                                 role="img"
                               >
                                 <svg
@@ -350,7 +350,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
-                              placeholder="SLPA Address"
+                              placeholder="eToken Address"
                               required={true}
                               style={null}
                               type="text"
@@ -366,7 +366,7 @@ Array [
                             >
                               <span
                                 aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bZQynM czddql"
+                                className="anticon anticon-qrcode sc-bZQynM pGJNJ"
                                 role="img"
                               >
                                 <svg
@@ -402,7 +402,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-gZMcBi jfarIG"
+              className="sc-gZMcBi bZwSTm"
             >
               <div
                 className="ant-row ant-form-item"
@@ -499,7 +499,7 @@ Array [
               }
             >
               <button
-                className="sc-bdVaJa hWqtkx"
+                className="sc-bdVaJa hhkWIL"
                 onClick={[Function]}
               >
                 Send 
@@ -517,7 +517,7 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 Array [
   <div
-    className="sc-fjdhpX gMmFTr"
+    className="sc-fjdhpX llHaIR"
   >
     6.001
      
@@ -549,7 +549,7 @@ Array [
             }
           >
             <div
-              className="sc-gZMcBi jfarIG"
+              className="sc-gZMcBi bZwSTm"
             >
               <div
                 className="ant-row ant-form-item"
@@ -581,7 +581,7 @@ Array [
                             >
                               <span
                                 aria-label="wallet"
-                                className="anticon anticon-wallet sc-EHOje kdGSQJ"
+                                className="anticon anticon-wallet sc-EHOje gmISaY"
                                 role="img"
                               >
                                 <svg
@@ -607,7 +607,7 @@ Array [
                               onChange={[Function]}
                               onFocus={[Function]}
                               onKeyDown={[Function]}
-                              placeholder="SLPA Address"
+                              placeholder="eToken Address"
                               required={true}
                               style={null}
                               type="text"
@@ -623,7 +623,7 @@ Array [
                             >
                               <span
                                 aria-label="qrcode"
-                                className="anticon anticon-qrcode sc-bZQynM czddql"
+                                className="anticon anticon-qrcode sc-bZQynM pGJNJ"
                                 role="img"
                               >
                                 <svg
@@ -659,7 +659,7 @@ Array [
               </div>
             </div>
             <div
-              className="sc-gZMcBi jfarIG"
+              className="sc-gZMcBi bZwSTm"
             >
               <div
                 className="ant-row ant-form-item"
@@ -756,7 +756,7 @@ Array [
               }
             >
               <button
-                className="sc-bdVaJa hWqtkx"
+                className="sc-bdVaJa hhkWIL"
                 onClick={[Function]}
               >
                 Send 

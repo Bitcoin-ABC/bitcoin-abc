@@ -1,5 +1,20 @@
 import { currency } from '@components/Common/Ticker';
 import BigNumber from 'bignumber.js';
+import cashaddr from 'ecashaddrjs';
+
+export const fromLegacyDecimals = (
+    amount,
+    cashDecimals = currency.cashDecimals,
+) => {
+    // Input 0.00000546 BCH
+    // Output 5.46 XEC or 0.00000546 BCH, depending on currency.cashDecimals
+    const amountBig = new BigNumber(amount);
+    const conversionFactor = new BigNumber(10 ** (8 - cashDecimals));
+    const amountSmallestDenomination = amountBig
+        .times(conversionFactor)
+        .toNumber();
+    return amountSmallestDenomination;
+};
 
 export const fromSmallestDenomination = (
     amount,
@@ -109,13 +124,29 @@ export const loadStoredWallet = walletStateFromStorage => {
     // See BigNumber.js api for how to create a BigNumber object from an object
     // https://mikemcl.github.io/bignumber.js/
     const liveWalletState = walletStateFromStorage;
-    const { tokens } = liveWalletState;
+    const { slpBalancesAndUtxos, tokens } = liveWalletState;
     for (let i = 0; i < tokens.length; i += 1) {
         const thisTokenBalance = tokens[i].balance;
         thisTokenBalance._isBigNumber = true;
         tokens[i].balance = new BigNumber(thisTokenBalance);
     }
+
+    // Also confirm balance is correct
+    // Necessary step in case currency.decimals changed since last startup
+    const balancesRebased = normalizeBalance(slpBalancesAndUtxos);
+    liveWalletState.balances = balancesRebased;
     return liveWalletState;
+};
+
+export const normalizeBalance = slpBalancesAndUtxos => {
+    const totalBalanceInSatoshis = slpBalancesAndUtxos.nonSlpUtxos.reduce(
+        (previousBalance, utxo) => previousBalance + utxo.value,
+        0,
+    );
+    return {
+        totalBalanceInSatoshis,
+        totalBalance: fromSmallestDenomination(totalBalanceInSatoshis),
+    };
 };
 
 export const isValidStoredWallet = walletStateFromStorage => {
@@ -130,3 +161,56 @@ export const isValidStoredWallet = walletStateFromStorage => {
         'tokens' in walletStateFromStorage.state
     );
 };
+
+export function convertToEcashPrefix(bitcoincashPrefixedAddress) {
+    // Prefix-less addresses may be valid, but the cashaddr.decode function used below
+    // will throw an error without a prefix. Hence, must ensure prefix to use that function.
+    const hasPrefix = bitcoincashPrefixedAddress.includes(':');
+    if (hasPrefix) {
+        // Is it bitcoincash: or simpleledger:
+        const { type, hash, prefix } = cashaddr.decode(
+            bitcoincashPrefixedAddress,
+        );
+
+        let newPrefix;
+        if (prefix === 'bitcoincash') {
+            newPrefix = 'ecash';
+        } else if (prefix === 'simpleledger') {
+            newPrefix = 'etoken';
+        } else {
+            return bitcoincashPrefixedAddress;
+        }
+
+        const convertedAddress = cashaddr.encode(newPrefix, type, hash);
+
+        return convertedAddress;
+    } else {
+        return bitcoincashPrefixedAddress;
+    }
+}
+
+export function convertEtokenToSimpleledger(etokenPrefixedAddress) {
+    // Prefix-less addresses may be valid, but the cashaddr.decode function used below
+    // will throw an error without a prefix. Hence, must ensure prefix to use that function.
+    const hasPrefix = etokenPrefixedAddress.includes(':');
+    if (hasPrefix) {
+        // Is it bitcoincash: or simpleledger:
+        const { type, hash, prefix } = cashaddr.decode(etokenPrefixedAddress);
+
+        let newPrefix;
+        if (prefix === 'etoken') {
+            newPrefix = 'simpleledger';
+        } else {
+            // return address with no change
+
+            return etokenPrefixedAddress;
+        }
+
+        const convertedAddress = cashaddr.encode(newPrefix, type, hash);
+
+        return convertedAddress;
+    } else {
+        // return address with no change
+        return etokenPrefixedAddress;
+    }
+}

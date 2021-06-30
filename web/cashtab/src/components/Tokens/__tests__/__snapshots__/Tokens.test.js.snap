@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 <div
-  className="sc-jzJRlG iglgzj"
+  className="sc-jzJRlG jTcQMW"
 >
   <span
     aria-label="loading"
@@ -28,7 +28,7 @@ exports[`Wallet with BCH balances 1`] = `
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-jzJRlG iglgzj"
+  className="sc-jzJRlG jTcQMW"
 >
   <span
     aria-label="loading"
@@ -54,7 +54,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-jzJRlG iglgzj"
+  className="sc-jzJRlG jTcQMW"
 >
   <span
     aria-label="loading"
@@ -80,7 +80,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
 
 exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 <div
-  className="sc-jzJRlG iglgzj"
+  className="sc-jzJRlG jTcQMW"
 >
   <span
     aria-label="loading"
@@ -106,7 +106,7 @@ exports[`Wallet with BCH balances and tokens and state field, but no params in s
 
 exports[`Wallet without BCH balance 1`] = `
 <div
-  className="sc-jzJRlG iglgzj"
+  className="sc-jzJRlG jTcQMW"
 >
   <span
     aria-label="loading"
@@ -132,7 +132,7 @@ exports[`Wallet without BCH balance 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-jzJRlG iglgzj"
+  className="sc-jzJRlG jTcQMW"
 >
   <span
     aria-label="loading"

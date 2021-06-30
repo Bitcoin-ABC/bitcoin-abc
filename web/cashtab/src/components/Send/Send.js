@@ -28,6 +28,7 @@ import {
     BalanceHeaderFiat,
     ZeroBalanceHeader,
     ConvertAmount,
+    AlertMsg,
 } from '@components/Common/Atoms';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
@@ -273,7 +274,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
 
         // Is this valid address?
         if (!isValid) {
-            error = 'Address is not a valid cash address';
+            error = `Invalid ${currency.ticker} address`;
             // If valid address but token format
             if (isValidTokenPrefix(address)) {
                 error = `Token addresses are not supported for ${currency.ticker} sends`;
@@ -375,6 +376,8 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         }
     }
 
+    const priceApiError = fiatPrice === null && selectedCurrency === 'USD';
+
     return (
         <>
             <Modal
@@ -467,7 +470,16 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                                         handleSelectedCurrencyChange(e),
                                 }}
                             ></SendBchInput>
-                            <ConvertAmount>= {fiatPriceString}</ConvertAmount>
+                            {priceApiError && (
+                                <AlertMsg>
+                                    Error fetching fiat price. Setting send by
+                                    USD disabled
+                                </AlertMsg>
+                            )}
+                            <ConvertAmount>
+                                {fiatPriceString !== '' && '='}{' '}
+                                {fiatPriceString}
+                            </ConvertAmount>
                             <div
                                 style={{
                                     paddingTop: '12px',

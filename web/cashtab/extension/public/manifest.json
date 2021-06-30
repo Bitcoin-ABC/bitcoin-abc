@@ -2,8 +2,8 @@
     "manifest_version": 2,
 
     "name": "Cashtab",
-    "description": "A browser-integrated BCHA wallet from Bitcoin ABC",
-    "version": "0.0.9",
+    "description": "A browser-integrated eCash wallet from Bitcoin ABC",
+    "version": "1.0.0",
     "content_scripts": [
         {
             "matches": ["file://*/*", "http://*/*", "https://*/*"],
@@ -21,10 +21,10 @@
         "default_title": "Cashtab"
     },
     "icons": {
-        "16": "bch16.png",
-        "48": "bch48.png",
-        "128": "bch128.png",
-        "192": "bch192.png",
-        "512": "bch512.png"
+        "16": "ecash16.png",
+        "48": "ecash48.png",
+        "128": "ecash128.png",
+        "192": "ecash192.png",
+        "512": "ecash512.png"
     }
 }

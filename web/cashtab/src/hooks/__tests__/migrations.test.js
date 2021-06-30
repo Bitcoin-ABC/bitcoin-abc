@@ -11,7 +11,7 @@ describe('Testing functions for upgrading Cashtab', () => {
         expect(
             parseFloat(
                 new BigNumber(
-                    fromSmallestDenomination(currency.dustSats).toString(),
+                    fromSmallestDenomination(currency.dustSats, 8).toString(),
                 ).toFixed(8),
             ),
         ).toBe(0.00000546);
@@ -75,7 +75,7 @@ describe('Testing functions for upgrading Cashtab', () => {
             testAmount.toFixed(8),
         );
 
-        const testAmountInCashDecimals = toSmallestDenomination(testAmount);
+        const testAmountInCashDecimals = toSmallestDenomination(testAmount, 8);
 
         expect(testAmountInSatoshis).toStrictEqual(12345678);
         expect(testAmountInCashDecimals).toStrictEqual(
@@ -86,6 +86,7 @@ describe('Testing functions for upgrading Cashtab', () => {
         // Test case for sending 0.12345678 BCHA
         let satoshisToSendTest = toSmallestDenomination(
             new BigNumber('0.12345678'),
+            8,
         );
         // Assume total BCHA available in utxos is 500 sats higher than 0.123456578 BCHA
         let originalAmountTest = satoshisToSendTest.plus(500);
@@ -130,7 +131,7 @@ describe('Testing functions for upgrading Cashtab', () => {
     });
 
     it(`Converts dust limit in satoshis to dust limit in current app setting`, () => {
-        expect(fromSmallestDenomination(currency.dustSats).toString()).toBe(
+        expect(fromSmallestDenomination(currency.dustSats, 8).toString()).toBe(
             '0.00000546',
         );
     });

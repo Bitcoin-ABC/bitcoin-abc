@@ -15,9 +15,9 @@ import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
-import CashTab from '@assets/cashtab.png';
+import CashTab from '@assets/cashtab_xec.png';
 import TabCash from '@assets/tabcash.png';
-import ABC from '@assets/bitcoinabclogo.png';
+import ABC from '@assets/logo_topright.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { checkForTokenById } from '@utils/tokenMethods.js';
@@ -57,6 +57,15 @@ const GlobalStyle = createGlobalStyle`
     .selectedCurrencyOption:hover {
         color: ${props => props.theme.contrast} !important;
         background-color: ${props => props.theme.primary} !important;
+    }
+    #addrSwitch {
+        .ant-switch-checked {
+            background-color: white !important;
+        }
+    }
+    #addrSwitch.ant-switch-checked {
+        background-image: ${props =>
+            props.theme.buttons.primary.backgroundImage} !important;
     }
 `;
 
@@ -121,7 +130,8 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background: ${props => props.theme.app.sidebars};
+    background-image: ${props => props.theme.app.sidebars};
+    background-attachment: fixed;
 `;
 
 export const WalletCtn = styled.div`
@@ -216,7 +226,7 @@ const App = () => {
                                 <EasterEgg src={TabCash} alt="tabcash" />
                             )}
                             <a
-                                href="https://www.bitcoinabc.org/"
+                                href="https://e.cash/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >

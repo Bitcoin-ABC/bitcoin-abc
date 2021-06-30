@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
-import { currency } from '@components/Common/Ticker.js';
+import {
+    currency,
+    isValidCashPrefix,
+    isValidTokenPrefix,
+} from '@components/Common/Ticker.js';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Event } from '@utils/GoogleAnalytics';
+import { convertToEcashPrefix } from '@utils/cashMethods';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
@@ -34,6 +39,11 @@ const Copied = styled.div`
 
     background-color: ${({ bch = 0, ...props }) =>
         bch === 1 ? props.theme.primary : props.theme.qr.token};
+    border: 1px solid;
+    border-color: ${({ bch = 0, ...props }) =>
+        bch === 1
+            ? props.theme.qr.copyBorderCash
+            : props.theme.qr.copyBorderToken};
     color: ${props => props.theme.contrast};
     position: absolute;
     top: 65px;
@@ -49,8 +59,8 @@ const CustomInput = styled.div`
     color: ${props => props.theme.wallet.text.secondary};
     text-align: center;
     cursor: pointer;
-    margin-bottom: 15px;
-    padding: 10px 0;
+    margin-bottom: 0px;
+    padding: 6px 0;
     font-family: 'Roboto Mono', monospace;
     border-radius: 5px;
 
@@ -105,12 +115,24 @@ const CustomInput = styled.div`
 
 export const QRCode = ({
     address,
+    legacy,
     size = 210,
     onClick = () => null,
     ...otherProps
 }) => {
     const [visible, setVisible] = useState(false);
-    const trimAmount = 6;
+    const trimAmount = 8;
+    // Set address format to legacy or not
+
+    if (!legacy) {
+        address = address ? convertToEcashPrefix(address) : '';
+    }
+    // get the prefix
+    const addressSplit = address ? address.split(':') : [''];
+    const addressPrefix = addressSplit[0];
+    const prefixLength = addressPrefix.length + 1;
+
+    const isCash = isValidCashPrefix(address);
 
     const address_trim = address ? address.length - trimAmount : '';
 
@@ -129,7 +151,7 @@ export const QRCode = ({
         // BCH or slp?
         let eventLabel = currency.ticker;
         if (address) {
-            const isToken = address.includes(currency.tokenPrefix);
+            const isToken = isValidTokenPrefix(address);
             if (isToken) {
                 eventLabel = currency.tokenTicker;
             }
@@ -155,28 +177,29 @@ export const QRCode = ({
         >
             <div style={{ position: 'relative' }} onClick={handleOnClick}>
                 <Copied
-                    bch={address && address.includes('bitcoin') ? 1 : 0}
+                    bch={address && isCash ? 1 : 0}
                     style={{ display: visible ? null : 'none' }}
                 >
-                    Copied
+                    Copied <br />
+                    <span style={{ fontSize: '12px' }}>{address}</span>
                 </Copied>
 
                 <StyledRawQRCode
                     id="borderedQRCode"
                     value={address || ''}
                     size={size}
-                    bch={address && address.includes('bitcoin') ? 1 : 0}
+                    bch={address && isCash ? 1 : 0}
                     renderAs={'svg'}
                     includeMargin
                     imageSettings={{
                         src:
-                            address && address.includes('bitcoin')
+                            address && isCash
                                 ? currency.logo
                                 : currency.tokenLogo,
                         x: null,
                         y: null,
-                        height: 32,
-                        width: 32,
+                        height: 24,
+                        width: 24,
                         excavate: true,
                     }}
                 />
@@ -192,20 +215,11 @@ export const QRCode = ({
                         />
                         <span>
                             {address.slice(
-                                address.includes('bitcoin') ? 12 : 13,
-                                address.includes('bitcoin')
-                                    ? 12 + trimAmount
-                                    : 13 + trimAmount,
+                                prefixLength,
+                                prefixLength + trimAmount,
                             )}
                         </span>
-                        {address.slice(
-                            address.includes('bitcoin')
-                                ? 12 + trimAmount
-                                : 13 + trimAmount,
-                            address.includes('bitcoin')
-                                ? address_trim
-                                : address_trim,
-                        )}
+                        {address.slice(prefixLength + trimAmount, address_trim)}
                         <span>{address.slice(-trimAmount)}</span>
                     </CustomInput>
                 )}

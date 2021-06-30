@@ -42,10 +42,14 @@ export const shouldRejectAmountInput = (
     return error;
 };
 
-export const fiatToCrypto = (fiatAmount, fiatPrice) => {
+export const fiatToCrypto = (
+    fiatAmount,
+    fiatPrice,
+    cashDecimals = currency.cashDecimals,
+) => {
     let cryptoAmount = new BigNumber(fiatAmount)
         .div(new BigNumber(fiatPrice))
-        .toFixed(currency.cashDecimals);
+        .toFixed(cashDecimals);
     return cryptoAmount;
 };
 

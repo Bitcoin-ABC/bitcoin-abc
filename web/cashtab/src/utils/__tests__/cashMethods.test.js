@@ -5,6 +5,9 @@ import {
     flattenBatchedHydratedUtxos,
     loadStoredWallet,
     isValidStoredWallet,
+    fromLegacyDecimals,
+    convertToEcashPrefix,
+    convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
 import {
     unbatchedArray,
@@ -84,5 +87,39 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`Recognizes a stored wallet as invalid if it is missing required fields`, () => {
         expect(isValidStoredWallet(invalidStoredWallet)).toBe(false);
+    });
+    it(`Converts a legacy BCH amount to an XEC amount`, () => {
+        expect(fromLegacyDecimals(0.00000546, 2)).toStrictEqual(5.46);
+    });
+    it(`Leaves a legacy BCH amount unchanged if currency.cashDecimals is 8`, () => {
+        expect(fromLegacyDecimals(0.00000546, 8)).toStrictEqual(0.00000546);
+    });
+    it(`convertToEcashPrefix converts a bitcoincash: prefixed address to an ecash: prefixed address`, () => {
+        expect(
+            convertToEcashPrefix(
+                'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+            ),
+        ).toBe('ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035');
+    });
+    it(`convertToEcashPrefix returns an ecash: prefix address unchanged`, () => {
+        expect(
+            convertToEcashPrefix(
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            ),
+        ).toBe('ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035');
+    });
+    it(`convertEtokenToSimpleledger returns an etoken: prefix address as simpleledger:`, () => {
+        expect(
+            convertEtokenToSimpleledger(
+                'etoken:qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r',
+            ),
+        ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
+    });
+    it(`convertEtokenToSimpleledger returns a simpleledger: prefix address unchanged`, () => {
+        expect(
+            convertEtokenToSimpleledger(
+                'simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa',
+            ),
+        ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
     });
 });

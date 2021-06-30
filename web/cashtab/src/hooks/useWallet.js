@@ -1242,9 +1242,23 @@ const useWallet = () => {
         try {
             bchPriceJson = await bchPrice.json();
             //console.log(`bchPriceJson`, bchPriceJson);
-            const bchPriceInFiat = bchPriceJson[cryptoId][fiatCode];
-            //console.log(`bchPriceInFiat`, bchPriceInFiat);
-            setFiatPrice(bchPriceInFiat);
+            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode] / 1e6;
+
+            // Error handling here
+            // Temp condition until price API has supported rebrand
+            // If eCash price is > 1, throw error
+            // If eCash price is < 0.0000001, throw error
+            // At BCHA price of $33, 1 XEC = 0.000033
+            // 0.000033
+            // 0.0000001 <== so if price is less than this, it's dividing an already correct price by 1,000,000
+            const validEcashPrice =
+                bchPriceInFiat < 1 && bchPriceInFiat > 0.0000001;
+            if (validEcashPrice) {
+                setFiatPrice(bchPriceInFiat);
+            } else {
+                // If API price looks fishy, do not allow app to send using fiat settings
+                setFiatPrice(null);
+            }
         } catch (err) {
             console.log(`Error parsing price API response to JSON`);
             console.log(err);

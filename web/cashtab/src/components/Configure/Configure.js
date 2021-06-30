@@ -34,6 +34,9 @@ const SettingsLink = styled.a`
         text-decoration: underline;
         color: ${props => props.theme.primary};
     }
+    :hover {
+        color: ${props => props.theme.brandSecondary};
+    }
 `;
 
 const SWRow = styled.div`
@@ -143,7 +146,7 @@ const AWRow = styled.div`
 
 const StyledConfigure = styled.div`
     h2 {
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.wallet.text.primary};
         font-size: 25px;
     }
     p {

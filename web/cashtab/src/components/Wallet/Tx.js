@@ -8,6 +8,7 @@ import {
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
+import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
 
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.secondary} !important;
@@ -263,7 +264,10 @@ const Tx = ({ data, fiatPrice }) => {
                     <TxInfo outgoing={data.outgoingTx}>
                         {data.outgoingTx ? (
                             <>
-                                - {data.amountSent.toFixed(8)}
+                                -{' '}
+                                {formatBalance(
+                                    fromLegacyDecimals(data.amountSent),
+                                )}
                                 {currency.ticker}
                                 <br />
                                 {fiatPrice !== null &&
@@ -271,7 +275,9 @@ const Tx = ({ data, fiatPrice }) => {
                                         <TxFiatPrice>
                                             - $
                                             {(
-                                                data.amountSent * fiatPrice
+                                                fromLegacyDecimals(
+                                                    data.amountSent,
+                                                ) * fiatPrice
                                             ).toFixed(2)}{' '}
                                             USD
                                         </TxFiatPrice>
@@ -279,7 +285,10 @@ const Tx = ({ data, fiatPrice }) => {
                             </>
                         ) : (
                             <>
-                                + {data.amountReceived.toFixed(8)}
+                                +{' '}
+                                {formatBalance(
+                                    fromLegacyDecimals(data.amountReceived),
+                                )}
                                 {currency.ticker}
                                 <br />
                                 {fiatPrice !== null &&
@@ -287,7 +296,9 @@ const Tx = ({ data, fiatPrice }) => {
                                         <TxFiatPrice>
                                             + $
                                             {(
-                                                data.amountReceived * fiatPrice
+                                                fromLegacyDecimals(
+                                                    data.amountReceived,
+                                                ) * fiatPrice
                                             ).toFixed(2)}{' '}
                                             USD
                                         </TxFiatPrice>

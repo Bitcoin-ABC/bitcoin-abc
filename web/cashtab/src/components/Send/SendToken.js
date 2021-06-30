@@ -33,7 +33,11 @@ import {
     isValidTokenPrefix,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
-import { formatBalance, isValidStoredWallet } from '@utils/cashMethods';
+import {
+    formatBalance,
+    isValidStoredWallet,
+    convertEtokenToSimpleledger,
+} from '@utils/cashMethods';
 
 const SendToken = ({ tokenId, jestBCH }) => {
     const { wallet, tokens, slpBalancesAndUtxos, apiError } = React.useContext(
@@ -108,6 +112,9 @@ const SendToken = ({ tokenId, jestBCH }) => {
 
         // Clear params from address
         let cleanAddress = address.split('?')[0];
+
+        // Convert to simpleledger prefix if etoken
+        cleanAddress = convertEtokenToSimpleledger(cleanAddress);
 
         try {
             const link = await sendToken(BCH, wallet, slpBalancesAndUtxos, {

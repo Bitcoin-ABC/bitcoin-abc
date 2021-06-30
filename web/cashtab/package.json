@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "0.1.8",
+    "version": "1.0.0",
     "private": true,
     "homepage": "https://cashtabapp.com/",
     "dependencies": {
@@ -12,6 +12,7 @@
         "cashaddrjs": "^0.3.12",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0",
+        "ecashaddrjs": "^1.0.1",
         "ethereum-blockies-base64": "^1.0.2",
         "fbt": "^0.16.4",
         "localforage": "^1.9.0",

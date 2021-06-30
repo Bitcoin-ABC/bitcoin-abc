@@ -15,6 +15,7 @@ describe('<QRCode />', () => {
                     pixelRatio={25}
                     onClick={OnClick}
                     address="bitcoincash:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
+                    legacy={true}
                 />
             </ThemeProvider>,
         );
@@ -37,6 +38,7 @@ describe('<QRCode />', () => {
                     pixelRatio={25}
                     onClick={OnClick}
                     address="simpleledger:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
+                    legacy={true}
                 />
             </ThemeProvider>,
         );

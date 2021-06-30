@@ -3,6 +3,7 @@
 import BigNumber from 'bignumber.js';
 
 export const cachedUtxos = {
+    slpBalancesAndUtxos: { nonSlpUtxos: [], },
     tokens: [
         {
             info: {
@@ -283,7 +284,14 @@ export const cachedUtxos = {
         },
     ],
 };
-export const utxosLoadedFromCache = {
+export const utxosLoadedFromCache = {     
+       balances:  {
+         totalBalance: 0,
+         totalBalanceInSatoshis: 0,
+       },
+       slpBalancesAndUtxos:  {
+         nonSlpUtxos:  [],
+       },
     tokens: [
         {
             info: {
