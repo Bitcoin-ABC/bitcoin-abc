@@ -1,4 +1,4 @@
-[![Bitcoin ABC Logo](https://www.bitcoinabc.org/img/bitcoinabclogo.png "Bitcoin ABC")](https://www.bitcoinabc.org)
+[![Bitcoin ABC Logo](share/pixmaps/bitcoinabclogo.png "Bitcoin ABC")](https://www.bitcoinabc.org)
 
 The goal of Bitcoin ABC is to create sound money that is usable by everyone in
 the world. We believe this is a civilization-changing technology which will
