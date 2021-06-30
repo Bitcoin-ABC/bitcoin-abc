@@ -4127,18 +4127,18 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         }
 
         CHashVerifier<CDataStream> verifier(&vRecv);
-        avalanche::Delegation &delegation = pfrom.m_avalanche_state->delegation;
+        avalanche::Delegation delegation;
         verifier >> delegation;
 
         avalanche::DelegationState state;
-        CPubKey pubkey;
+        CPubKey &pubkey = pfrom.m_avalanche_state->pubkey;
         if (!delegation.verify(state, pubkey)) {
             Misbehaving(pfrom, 100, "invalid-delegation");
             return;
         }
 
         CHashWriter sighasher(SER_GETHASH, 0);
-        sighasher << pfrom.m_avalanche_state->delegation.getId();
+        sighasher << delegation.getId();
         sighasher << pfrom.nRemoteHostNonce;
         sighasher << pfrom.GetLocalNonce();
         sighasher << pfrom.nRemoteExtraEntropy;
@@ -4280,11 +4280,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         avalanche::Response response;
         verifier >> response;
 
-        if (!g_avalanche->forNode(pfrom.GetId(), [&](const avalanche::Node &n) {
-                SchnorrSig sig;
-                vRecv >> sig;
-                return n.pubkey.VerifySchnorr(verifier.GetHash(), sig);
-            })) {
+        SchnorrSig sig;
+        vRecv >> sig;
+        if (!pfrom.m_avalanche_state ||
+            !pfrom.m_avalanche_state->pubkey.VerifySchnorr(verifier.GetHash(),
+                                                           sig)) {
             Misbehaving(pfrom, 100, "invalid-ava-response-signature");
             return;
         }

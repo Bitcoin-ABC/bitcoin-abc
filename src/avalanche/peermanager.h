@@ -213,8 +213,7 @@ public:
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);
-    bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid,
-                         CPubKey pubkey);
+    bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
 };

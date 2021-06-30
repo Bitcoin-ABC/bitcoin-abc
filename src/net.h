@@ -1014,7 +1014,7 @@ public:
     struct AvalancheState {
         AvalancheState() {}
 
-        avalanche::Delegation delegation;
+        CPubKey pubkey;
     };
 
     // m_avalanche_state == nullptr if we're not using avalanche with this peer

@@ -80,7 +80,7 @@ static UniValue addavalanchenode(const Config &config,
     }
 
     const NodeId nodeid = request.params[0].get_int64();
-    const CPubKey key = ParsePubKey(request.params[1]);
+    CPubKey key = ParsePubKey(request.params[1]);
 
     auto proof = std::make_shared<avalanche::Proof>();
     bilingual_str error;
@@ -96,6 +96,21 @@ static UniValue addavalanchenode(const Config &config,
 
     const avalanche::ProofId &proofid = proof->getId();
     if (!g_avalanche->getProof(proofid) && !g_avalanche->addProof(proof)) {
+        return false;
+    }
+
+    NodeContext &node = EnsureNodeContext(request.context);
+    if (!node.connman->ForNode(nodeid, [&](CNode *pnode) {
+            // FIXME This is not thread safe, and might cause issues if the
+            // unlikely event the peer sends an avahello message at the same
+            // time.
+            if (!pnode->m_avalanche_state) {
+                pnode->m_avalanche_state =
+                    std::make_unique<CNode::AvalancheState>();
+            }
+            pnode->m_avalanche_state->pubkey = std::move(key);
+            return true;
+        })) {
         return false;
     }
 

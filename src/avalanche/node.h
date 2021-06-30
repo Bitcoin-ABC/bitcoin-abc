@@ -22,12 +22,10 @@ struct Node {
     NodeId nodeid;
     PeerId peerid;
     TimePoint nextRequestTime;
-    CPubKey pubkey;
 
-    Node(NodeId nodeid_, PeerId peerid_, CPubKey pubkey_)
+    Node(NodeId nodeid_, PeerId peerid_)
         : nodeid(nodeid_), peerid(peerid_),
-          nextRequestTime(std::chrono::steady_clock::now()),
-          pubkey(std::move(pubkey_)) {}
+          nextRequestTime(std::chrono::steady_clock::now()) {}
 };
 
 } // namespace avalanche

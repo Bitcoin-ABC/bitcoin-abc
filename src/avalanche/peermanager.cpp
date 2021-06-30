@@ -32,26 +32,22 @@ bool PeerManager::addNode(NodeId nodeid, const Delegation &delegation) {
         return false;
     }
 
-    return addOrUpdateNode(peers.project<0>(it), nodeid, std::move(pubkey));
+    return addOrUpdateNode(peers.project<0>(it), nodeid);
 }
 
-bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid,
-                                  CPubKey pubkey) {
+bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid) {
     assert(it != peers.end());
 
     const PeerId peerid = it->peerid;
 
     auto nit = nodes.find(nodeid);
     if (nit == nodes.end()) {
-        if (!nodes.emplace(nodeid, peerid, std::move(pubkey)).second) {
+        if (!nodes.emplace(nodeid, peerid).second) {
             return false;
         }
     } else {
         const PeerId oldpeerid = nit->peerid;
-        if (!nodes.modify(nit, [&](Node &n) {
-                n.peerid = peerid;
-                n.pubkey = std::move(pubkey);
-            })) {
+        if (!nodes.modify(nit, [&](Node &n) { n.peerid = peerid; })) {
             return false;
         }
 
