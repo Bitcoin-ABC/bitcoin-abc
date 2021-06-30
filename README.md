@@ -7,20 +7,20 @@ aims to achieve this goal by implementing a series of optimizations and
 protocol upgrades that will enable peer-to-peer digital cash to scale many
 orders of magnitude beyond current limits.
 
-What is BCHA?
+What is eCash?
 ---------------------
 
-[BCHA](https://www.bitcoinabc.org/bcha/) is a digital
+[eCash](https://e.cash/) is a digital
 currency that enables instant payments to anyone, anywhere in the world. It
 uses peer-to-peer technology to operate with no central authority: managing
 transactions and issuing money are carried out collectively by the network.
-BCHA is a descendant of Bitcoin.
+eCash is a descendant of Bitcoin.
 
 What is Bitcoin ABC?
 --------------------
 
 Bitcoin ABC is the name of open-source software which enables the use of
-BCHA. It is a fork of the [Bitcoin Core](https://bitcoincore.org)
+eCash. It is a fork of the [Bitcoin Core](https://bitcoincore.org)
 software project.
 
 License
