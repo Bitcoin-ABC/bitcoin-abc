@@ -148,7 +148,7 @@ public:
     /**
      * Node API.
      */
-    bool addNode(NodeId nodeid, const Delegation &delegation);
+    bool addNode(NodeId nodeid, const ProofId &proofid);
     bool removeNode(NodeId nodeid);
 
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;

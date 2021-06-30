@@ -162,8 +162,7 @@ static void addNodeWithScore(avalanche::PeerManager &pm, NodeId node,
                              uint32_t score) {
     auto proof = getRandomProofPtr(score);
     BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
-    Delegation dg = DelegationBuilder(*proof).build();
-    BOOST_CHECK(pm.addNode(node, dg));
+    BOOST_CHECK(pm.addNode(node, proof->getId()));
 };
 
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
@@ -212,8 +211,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     for (int i = 0; i < 4; i++) {
         auto p = getRandomProofPtr(100);
         peerids[i] = pm.getPeerId(p);
-        BOOST_CHECK(
-            pm.addNode(InsecureRand32(), DelegationBuilder(*p).build()));
+        BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
@@ -245,8 +243,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     for (int i = 0; i < 4; i++) {
         auto p = getRandomProofPtr(100);
         peerids[i + 4] = pm.getPeerId(p);
-        BOOST_CHECK(
-            pm.addNode(InsecureRand32(), DelegationBuilder(*p).build()));
+        BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
@@ -288,8 +285,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     for (int i = 0; i < 4; i++) {
         auto p = getRandomProofPtr(100);
         peerids[i] = pm.getPeerId(p);
-        BOOST_CHECK(
-            pm.addNode(InsecureRand32(), DelegationBuilder(*p).build()));
+        BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
     // Remove all peers.
@@ -316,12 +312,12 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     // Create one peer.
     auto proof = getRandomProofPtr(10000000 * MIN_VALID_PROOF_SCORE);
     BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
-    Delegation dg = DelegationBuilder(*proof).build();
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
+    const ProofId &proofid = proof->getId();
     for (int i = 0; i < 4; i++) {
-        BOOST_CHECK(pm.addNode(i, dg));
+        BOOST_CHECK(pm.addNode(i, proofid));
     }
 
     for (int i = 0; i < 100; i++) {

@@ -518,9 +518,9 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     return true;
 }
 
-bool Processor::addNode(NodeId nodeid, const Delegation &delegation) {
+bool Processor::addNode(NodeId nodeid, const ProofId &proofid) {
     LOCK(cs_peerManager);
-    return peerManager->addNode(nodeid, delegation);
+    return peerManager->addNode(nodeid, proofid);
 }
 
 bool Processor::forNode(NodeId nodeid,

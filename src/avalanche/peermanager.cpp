@@ -19,16 +19,10 @@ static bool isOrphanState(const ProofValidationState &state) {
            state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
 }
 
-bool PeerManager::addNode(NodeId nodeid, const Delegation &delegation) {
+bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
     auto &pview = peers.get<proof_index>();
-    auto it = pview.find(delegation.getProofId());
+    auto it = pview.find(proofid);
     if (it == pview.end()) {
-        return false;
-    }
-
-    DelegationState state;
-    CPubKey pubkey;
-    if (!delegation.verify(state, pubkey)) {
         return false;
     }
 

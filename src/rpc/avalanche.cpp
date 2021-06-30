@@ -114,8 +114,7 @@ static UniValue addavalanchenode(const Config &config,
         return false;
     }
 
-    if (!g_avalanche->addNode(nodeid,
-                              avalanche::DelegationBuilder(*proof).build())) {
+    if (!g_avalanche->addNode(nodeid, proofid)) {
         return false;
     }
 
