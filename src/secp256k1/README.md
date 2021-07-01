@@ -5,9 +5,9 @@ libsecp256k1
 
 Optimized C library for cryptographic operations on curve secp256k1.
 
-This library is used for consensus critical cryptographic operations on the Bitcoin Cash network. It is maintained within the Bitcoin ABC repository, and is mirrored as a separate repository for ease of reuse in other Bitcoin Cash projects. Developers who want to contribute may do so at [reviews.bitcoinabc.org](https://reviews.bitcoinabc.org/). Use at your own risk.
+This library is used for consensus critical cryptographic operations on the eCash network. It is maintained within the Bitcoin ABC repository, and is mirrored as a separate repository for ease of reuse in other eCash projects. Developers who want to contribute may do so at [reviews.bitcoinabc.org](https://reviews.bitcoinabc.org/). Use at your own risk.
 
-This library is intended to be the highest quality publicly available library for cryptography on the secp256k1 curve. However, the primary focus of its development has been for usage in the Bitcoin Cash system and usage unlike Bitcoin's may be less well tested, verified, or suffer from a less well thought out interface. Correct usage requires some care and consideration that the library is fit for your application's purpose.
+This library is intended to be the highest quality publicly available library for cryptography on the secp256k1 curve. However, the primary focus of its development has been for usage in the eCash system and usage unlike Bitcoin's may be less well tested, verified, or suffer from a less well thought out interface. Correct usage requires some care and consideration that the library is fit for your application's purpose.
 
 Features:
 * secp256k1 ECDSA signing/verification and key generation.
