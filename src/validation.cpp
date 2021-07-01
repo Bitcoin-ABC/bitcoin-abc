@@ -4570,9 +4570,11 @@ void BlockManager::Unload() {
     m_block_index.clear();
 }
 
-bool CChainState::LoadBlockIndexDB() {
-    if (!m_blockman.LoadBlockIndex(m_params.GetConsensus(), *pblocktree,
-                                   setBlockIndexCandidates)) {
+bool BlockManager::LoadBlockIndexDB(
+    std::set<CBlockIndex *, CBlockIndexWorkComparator>
+        &setBlockIndexCandidates) {
+    if (!LoadBlockIndex(::Params().GetConsensus(), *pblocktree,
+                        setBlockIndexCandidates)) {
         return false;
     }
 
@@ -4598,7 +4600,7 @@ bool CChainState::LoadBlockIndexDB() {
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
     for (const std::pair<const BlockHash, CBlockIndex *> &item :
-         m_blockman.m_block_index) {
+         m_block_index) {
         CBlockIndex *pindex = item.second;
         if (pindex->nStatus.hasData()) {
             setBlkDataFiles.insert(pindex->nFile);
@@ -5010,11 +5012,11 @@ bool ChainstateManager::LoadBlockIndex() {
     // Load block index from databases
     bool needs_init = fReindex;
     if (!fReindex) {
-        bool ret = ActiveChainstate().LoadBlockIndexDB();
+        bool ret = m_blockman.LoadBlockIndexDB(
+            ActiveChainstate().setBlockIndexCandidates);
         if (!ret) {
             return false;
         }
-
         needs_init = m_blockman.m_block_index.empty();
     }
 

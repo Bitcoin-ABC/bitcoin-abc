@@ -700,6 +700,10 @@ public:
      */
     std::multimap<CBlockIndex *, CBlockIndex *> m_blocks_unlinked;
 
+    bool LoadBlockIndexDB(std::set<CBlockIndex *, CBlockIndexWorkComparator>
+                              &setBlockIndexCandidates)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
     /**
      * Load the blocktree off disk and into memory. Populate certain metadata
      * per index entry (nStatus, nChainWork, nTimeMax, etc.) as well as
@@ -1166,8 +1170,6 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void InvalidChainFound(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-    bool LoadBlockIndexDB() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
