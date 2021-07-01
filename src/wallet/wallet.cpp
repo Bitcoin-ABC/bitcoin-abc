@@ -3389,8 +3389,9 @@ void CWallet::LoadActiveScriptPubKeyMan(uint256 id, OutputType type,
     spk_man->SetInternal(internal);
     spk_mans[type] = spk_man;
 
-    if (spk_mans_other[type] == spk_man) {
-        spk_mans_other[type] = nullptr;
+    const auto it = spk_mans_other.find(type);
+    if (it != spk_mans_other.end() && it->second == spk_man) {
+        spk_mans_other.erase(type);
     }
 
     NotifyCanGetAddressesChanged();
@@ -3413,7 +3414,7 @@ void CWallet::DeactivateScriptPubKeyMan(const uint256 &id, OutputType type,
 
         auto &spk_mans =
             internal ? m_internal_spk_managers : m_external_spk_managers;
-        spk_mans[type] = nullptr;
+        spk_mans.erase(type);
     }
 
     NotifyCanGetAddressesChanged();
