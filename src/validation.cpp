@@ -875,6 +875,22 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                BlockHash &hashBlock) {
     LOCK(cs_main);
 
+    if (mempool && !block_index) {
+        CTransactionRef ptx = mempool->get(txid);
+        if (ptx) {
+            return ptx;
+        }
+    }
+    if (g_txindex) {
+        CTransactionRef tx;
+        BlockHash block_hash;
+        if (g_txindex->FindTx(txid, block_hash, tx)) {
+            if (!block_index || block_index->GetBlockHash() == block_hash) {
+                hashBlock = block_hash;
+                return tx;
+            }
+        }
+    }
     if (block_index) {
         CBlock block;
         if (ReadBlockFromDisk(block, block_index, consensusParams)) {
@@ -884,19 +900,6 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                     return tx;
                 }
             }
-        }
-        return nullptr;
-    }
-    if (mempool) {
-        CTransactionRef ptx = mempool->get(txid);
-        if (ptx) {
-            return ptx;
-        }
-    }
-    if (g_txindex) {
-        CTransactionRef tx;
-        if (g_txindex->FindTx(txid, hashBlock, tx)) {
-            return tx;
         }
     }
     return nullptr;
