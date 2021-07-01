@@ -506,7 +506,9 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
                 }
                 nFile++;
             }
-            pblocktree->WriteReindexing(false);
+            WITH_LOCK(
+                ::cs_main,
+                chainman.m_blockman.m_block_tree_db->WriteReindexing(false));
             fReindex = false;
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try

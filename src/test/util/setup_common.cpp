@@ -164,11 +164,11 @@ ChainTestingSetup::ChainTestingSetup(
                     [&] { m_node.scheduler->serviceQueue(); });
     GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
 
-    pblocktree.reset(new CBlockTreeDB(1 << 20, true));
-
     m_node.mempool = std::make_unique<CTxMemPool>(1);
 
     m_node.chainman = std::make_unique<ChainstateManager>();
+    m_node.chainman->m_blockman.m_block_tree_db =
+        std::make_unique<CBlockTreeDB>(1 << 20, true);
 
     constexpr int script_check_threads = 2;
     StartScriptCheckWorkerThreads(script_check_threads);
@@ -190,7 +190,6 @@ ChainTestingSetup::~ChainTestingSetup() {
     m_node.scheduler.reset();
     m_node.chainman->Reset();
     m_node.chainman.reset();
-    pblocktree.reset();
 }
 
 TestingSetup::TestingSetup(const std::string &chainName,

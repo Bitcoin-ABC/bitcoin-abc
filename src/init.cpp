@@ -305,7 +305,6 @@ void Shutdown(NodeContext &node) {
                 chainstate->ResetCoinsViews();
             }
         }
-        pblocktree.reset();
     }
     for (const auto &client : node.chain_clients) {
         client->stop();
@@ -2637,6 +2636,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                 UnloadBlockIndex(node.mempool.get(), chainman);
 
+                auto &pblocktree{chainman.m_blockman.m_block_tree_db};
                 // new CBlockTreeDB tries to delete the existing file, which
                 // fails if it's still open from the previous loop. Close it
                 // first:

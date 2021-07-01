@@ -152,8 +152,6 @@ CBlockIndex *BlockManager::FindForkInGlobalIndex(const CChain &chain,
     return chain.Genesis();
 }
 
-std::unique_ptr<CBlockTreeDB> pblocktree;
-
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex);
 
@@ -1973,7 +1971,8 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
                 if (!setFilesToPrune.empty()) {
                     fFlushForPrune = true;
                     if (!fHavePruned) {
-                        pblocktree->WriteFlag("prunedblockfiles", true);
+                        m_blockman.m_block_tree_db->WriteFlag(
+                            "prunedblockfiles", true);
                         fHavePruned = true;
                     }
                 }
@@ -2042,8 +2041,8 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
 
                     setDirtyBlockIndex.clear();
 
-                    if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile,
-                                                    vBlocks)) {
+                    if (!m_blockman.m_block_tree_db->WriteBatchSync(
+                            vFiles, nLastBlockFile, vBlocks)) {
                         return AbortNode(
                             state, "Failed to write to block index database");
                     }
@@ -4449,11 +4448,11 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
 }
 
 bool BlockManager::LoadBlockIndex(
-    const Consensus::Params &params, CBlockTreeDB &blocktree,
+    const Consensus::Params &params,
     std::set<CBlockIndex *, CBlockIndexWorkComparator>
         &block_index_candidates) {
     AssertLockHeld(cs_main);
-    if (!blocktree.LoadBlockIndexGuts(
+    if (!m_block_tree_db->LoadBlockIndexGuts(
             params, [this](const BlockHash &hash) EXCLUSIVE_LOCKS_REQUIRED(
                         cs_main) { return this->InsertBlockIndex(hash); })) {
         return false;
@@ -4537,23 +4536,22 @@ void BlockManager::Unload() {
 bool BlockManager::LoadBlockIndexDB(
     std::set<CBlockIndex *, CBlockIndexWorkComparator>
         &setBlockIndexCandidates) {
-    if (!LoadBlockIndex(::Params().GetConsensus(), *pblocktree,
-                        setBlockIndexCandidates)) {
+    if (!LoadBlockIndex(::Params().GetConsensus(), setBlockIndexCandidates)) {
         return false;
     }
 
     // Load block file info
-    pblocktree->ReadLastBlockFile(nLastBlockFile);
+    m_block_tree_db->ReadLastBlockFile(nLastBlockFile);
     vinfoBlockFile.resize(nLastBlockFile + 1);
     LogPrintf("%s: last block file = %i\n", __func__, nLastBlockFile);
     for (int nFile = 0; nFile <= nLastBlockFile; nFile++) {
-        pblocktree->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
+        m_block_tree_db->ReadBlockFileInfo(nFile, vinfoBlockFile[nFile]);
     }
     LogPrintf("%s: last block file info: %s\n", __func__,
               vinfoBlockFile[nLastBlockFile].ToString());
     for (int nFile = nLastBlockFile + 1; true; nFile++) {
         CBlockFileInfo info;
-        if (pblocktree->ReadBlockFileInfo(nFile, info)) {
+        if (m_block_tree_db->ReadBlockFileInfo(nFile, info)) {
             vinfoBlockFile.push_back(info);
         } else {
             break;
@@ -4580,14 +4578,14 @@ bool BlockManager::LoadBlockIndexDB(
     }
 
     // Check whether we have ever pruned block & undo files
-    pblocktree->ReadFlag("prunedblockfiles", fHavePruned);
+    m_block_tree_db->ReadFlag("prunedblockfiles", fHavePruned);
     if (fHavePruned) {
         LogPrintf(
             "LoadBlockIndexDB(): Block files have previously been pruned\n");
     }
 
     // Check whether we need to continue reindexing
-    if (pblocktree->IsReindexing()) {
+    if (m_block_tree_db->IsReindexing()) {
         fReindex = true;
     }
 
