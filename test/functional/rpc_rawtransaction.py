@@ -690,6 +690,17 @@ class RawTransactionsTest(BitcoinTestFramework):
             hexstring=rawTxSigned['hex'],
             maxfeerate='200000.00')
 
+        self.log.info(
+            'sendrawtransaction/testmempoolaccept with tx that is already in the chain')
+        self.generate(self.nodes[2], 1)
+        for node in self.nodes:
+            testres = node.testmempoolaccept([rawTxSigned['hex']])[0]
+            assert_equal(testres['allowed'], False)
+            assert_equal(testres['reject-reason'], 'txn-already-known')
+            assert_raises_rpc_error(
+                -27, 'Transaction already in block chain',
+                node.sendrawtransaction, rawTxSigned['hex'])
+
         ##########################################
         # Decoding weird scripts in transactions #
         ##########################################
