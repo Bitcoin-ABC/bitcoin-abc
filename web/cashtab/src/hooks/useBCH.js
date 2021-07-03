@@ -725,22 +725,13 @@ export default function useBCH() {
 
         // Return any token change back to the sender.
         if (slpSendObj.outputs > 1) {
-            // Try to send this to Path1899 to move all utxos off legacy addresses
-            if (wallet.Path1899.legacyAddress) {
-                transactionBuilder.addOutput(
-                    wallet.Path1899.legacyAddress,
-                    546,
-                );
-            } else {
-                // If you can't, send it back from whence it came
-
-                transactionBuilder.addOutput(
-                    BCH.SLP.Address.toLegacyAddress(
-                        tokenUtxosBeingSpent[0].address,
-                    ),
-                    546,
-                );
-            }
+            // Change goes back to where slp utxo came from
+            transactionBuilder.addOutput(
+                BCH.SLP.Address.toLegacyAddress(
+                    tokenUtxosBeingSpent[0].address,
+                ),
+                546,
+            );
         }
 
         // get byte count to calculate fee. paying 1 sat
@@ -759,19 +750,12 @@ export default function useBCH() {
         }
 
         // Last output: send the BCH change back to the wallet.
-        // If Path1899, send it to Path1899 address
-        if (wallet.Path1899.legacyAddress) {
-            transactionBuilder.addOutput(
-                wallet.Path1899.legacyAddress,
-                remainder,
-            );
-        } else {
-            // Otherwise send it back from whence it came
-            transactionBuilder.addOutput(
-                BCH.Address.toLegacyAddress(largestBchUtxo.address),
-                remainder,
-            );
-        }
+
+        // Send it back from whence it came
+        transactionBuilder.addOutput(
+            BCH.Address.toLegacyAddress(largestBchUtxo.address),
+            remainder,
+        );
 
         // Sign the transaction with the private key for the BCH UTXO paying the fees.
         let redeemScript;
@@ -858,7 +842,7 @@ export default function useBCH() {
                 // Throw the same error given by the backend attempting to broadcast such a tx
                 throw new Error('dust');
             }
-            const REMAINDER_ADDR = wallet.Path1899.cashAddress;
+
             const inputUtxos = [];
             let transactionBuilder;
 
@@ -894,6 +878,24 @@ export default function useBCH() {
                 if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
                     break;
                 }
+            }
+
+            // Get change address from sending utxos
+            // fall back to what is stored in wallet
+            let REMAINDER_ADDR;
+
+            // Validate address
+            let isValidChangeAddress;
+            try {
+                REMAINDER_ADDR = inputUtxos[0].address;
+                isValidChangeAddress = BCH.Address.isCashAddress(
+                    REMAINDER_ADDR,
+                );
+            } catch (err) {
+                isValidChangeAddress = false;
+            }
+            if (!isValidChangeAddress) {
+                REMAINDER_ADDR = wallet.Path1899.cashAddress;
             }
 
             // amount to send back to the remainder address.
