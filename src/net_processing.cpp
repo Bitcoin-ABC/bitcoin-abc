@@ -4206,6 +4206,15 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                  preferred);
         }
 
+        if (gArgs.GetBoolArg("-enableavalanchepeerdiscovery",
+                             AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED)) {
+            // Don't check the return value. If it fails we probably don't know
+            // about the proof yet.
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                return pm.addNode(pfrom.GetId(), proofid);
+            });
+        }
+
         return;
     }
 

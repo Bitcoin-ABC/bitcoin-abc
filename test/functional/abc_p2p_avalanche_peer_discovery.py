@@ -10,6 +10,7 @@ proof exchange.
 
 import time
 
+from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
 from test_framework.avatools import (
     get_ava_p2p_interface,
     create_coinbase_stakes,
@@ -43,7 +44,8 @@ class AvalancheTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-enableavalanche=1']]
+        self.extra_args = [['-enableavalanche=1',
+                            '-enableavalanchepeerdiscovery=1']]
         self.supports_cli = False
 
     def run_test(self):
@@ -151,11 +153,11 @@ class AvalancheTest(BitcoinTestFramework):
         proofid = good_interface.send_avahello(
             interface_delegation_hex, delegated_key)
 
-        def getdata_found():
+        def getdata_found(peer, proofid):
             with p2p_lock:
                 return good_interface.last_message.get(
                     "getdata") and good_interface.last_message["getdata"].inv[-1].hash == proofid
-        wait_until(getdata_found)
+        wait_until(lambda: getdata_found(good_interface, proofid))
 
         self.log.info('Check that we can download the proof from our peer')
 
@@ -203,6 +205,62 @@ class AvalancheTest(BitcoinTestFramework):
 
         peer.send_message(getdata)
         wait_until(lambda: proof_received(peer))
+
+        # Restart the node
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(proof),
+            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+        ])
+        wait_for_proof_validation()
+        # The only peer is the node itself
+        assert_equal(len(node.getavalanchepeerinfo()), 1)
+        assert_equal(node.getavalanchepeerinfo()[0]["proof"], proof)
+
+        peer = get_ava_p2p_interface(node)
+        peer_proofid = peer.send_avahello(
+            interface_delegation_hex, delegated_key)
+
+        wait_until(lambda: getdata_found(peer, peer_proofid))
+        assert peer_proofid not in get_proof_ids(node)
+
+        self.log.info(
+            "Check that the peer gets added as an avalanche node as soon as the node knows about the proof")
+        node.sendavalancheproof(interface_proof_hex)
+
+        def has_node_count(count):
+            peerinfo = node.getavalanchepeerinfo()
+            return (len(peerinfo) == 2 and
+                    peerinfo[-1]["proof"] == interface_proof_hex and
+                    peerinfo[-1]["nodecount"] == count)
+
+        wait_until(lambda: has_node_count(1))
+
+        self.log.info(
+            "Check that the peer gets added immediately if the proof is already known")
+
+        # Connect another peer using the same proof
+        peer_proof_known = get_ava_p2p_interface(node)
+        peer_proof_known.send_avahello(interface_delegation_hex, delegated_key)
+
+        wait_until(lambda: has_node_count(2))
+
+        self.log.info("Invalidate the proof and check the nodes are removed")
+        tip = node.getbestblockhash()
+        # Invalidate the block with the proof utxo
+        node.invalidateblock(blockhashes[1])
+        # Change the address to make sure we don't generate a block identical
+        # to the one we just invalidated. Can be generate(1) after D9694 or
+        # D9697 is landed.
+        forked_tip = node.generatetoaddress(1, ADDRESS_BCHREG_UNSPENDABLE)[0]
+        wait_until(lambda: node.getbestblockhash() == forked_tip)
+
+        wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)
+        assert peer_proofid not in get_proof_ids(node)
+
+        self.log.info("Reorg back and check the nodes are added back")
+        node.invalidateblock(forked_tip)
+        node.reconsiderblock(tip)
+        wait_until(lambda: has_node_count(2), timeout=2)
 
 
 if __name__ == '__main__':

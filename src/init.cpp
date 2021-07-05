@@ -1236,6 +1236,10 @@ void SetupServerArgs(NodeContext &node) {
         "-enableavalanche",
         strprintf("Enable avalanche (default: %u)", AVALANCHE_DEFAULT_ENABLED),
         ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-enableavalanchepeerdiscovery",
+                   strprintf("Enable avalanche peer discovery (default: %u)",
+                             AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-avacooldown",
         strprintf("Mandatory cooldown between two avapoll (default: %u)",

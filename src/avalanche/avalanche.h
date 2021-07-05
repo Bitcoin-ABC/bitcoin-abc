@@ -20,6 +20,11 @@ class ArgsManager;
 static constexpr bool AVALANCHE_DEFAULT_ENABLED = false;
 
 /**
+ * Is avalanche peer discovery enabled by default.
+ */
+static constexpr bool AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED = false;
+
+/**
  * Avalanche default cooldown in milliseconds.
  */
 static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
