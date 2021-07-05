@@ -1759,8 +1759,10 @@ RPCHelpMan getblockchaininfo() {
                 {RPCResult::Type::STR, "bestblockhash",
                  "the hash of the currently best block"},
                 {RPCResult::Type::NUM, "difficulty", "the current difficulty"},
-                {RPCResult::Type::NUM, "mediantime",
-                 "median time for the current best block"},
+                {RPCResult::Type::NUM_TIME, "time",
+                 "The block time expressed in " + UNIX_EPOCH_TIME},
+                {RPCResult::Type::NUM_TIME, "mediantime",
+                 "The median block time expressed in " + UNIX_EPOCH_TIME},
                 {RPCResult::Type::NUM, "verificationprogress",
                  "estimate of verification progress [0..1]"},
                 {RPCResult::Type::BOOL, "initialblockdownload",
@@ -1869,7 +1871,8 @@ RPCHelpMan getblockchaininfo() {
                        pindexBestHeader ? pindexBestHeader->nHeight : -1);
             obj.pushKV("bestblockhash", tip->GetBlockHash().GetHex());
             obj.pushKV("difficulty", double(GetDifficulty(tip)));
-            obj.pushKV("mediantime", int64_t(tip->GetMedianTimePast()));
+            obj.pushKV("time", tip->GetBlockTime());
+            obj.pushKV("mediantime", tip->GetMedianTimePast());
             obj.pushKV("verificationprogress",
                        GuessVerificationProgress(Params().TxData(), tip));
             obj.pushKV("initialblockdownload",

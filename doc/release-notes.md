@@ -4,4 +4,6 @@ Bitcoin ABC version 0.26.7 is now available from:
 
   <https://download.bitcoinabc.org/0.26.7/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+ - `getblockchaininfo` now returns a new `time` field, that provides the chain
+   tip time.
