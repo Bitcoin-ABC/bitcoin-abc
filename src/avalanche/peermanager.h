@@ -93,6 +93,8 @@ struct proof_index {
 
 struct next_request_time {};
 
+namespace bmi = boost::multi_index;
+
 class PeerManager {
     std::vector<Slot> slots;
     uint64_t slotCount = 0;
@@ -110,14 +112,12 @@ class PeerManager {
      * considered interchangeable parts of the same peer.
      */
     using PeerSet = boost::multi_index_container<
-        Peer, boost::multi_index::indexed_by<
+        Peer, bmi::indexed_by<
                   // index by peerid
-                  boost::multi_index::hashed_unique<
-                      boost::multi_index::member<Peer, PeerId, &Peer::peerid>>,
+                  bmi::hashed_unique<bmi::member<Peer, PeerId, &Peer::peerid>>,
                   // index by proof
-                  boost::multi_index::hashed_unique<
-                      boost::multi_index::tag<proof_index>, proof_index,
-                      SaltedProofIdHasher>>>;
+                  bmi::hashed_unique<bmi::tag<proof_index>, proof_index,
+                                     SaltedProofIdHasher>>>;
 
     PeerId nextPeerId = 0;
     PeerSet peers;
@@ -126,18 +126,15 @@ class PeerManager {
 
     using NodeSet = boost::multi_index_container<
         Node,
-        boost::multi_index::indexed_by<
+        bmi::indexed_by<
             // index by nodeid
-            boost::multi_index::hashed_unique<
-                boost::multi_index::member<Node, NodeId, &Node::nodeid>>,
+            bmi::hashed_unique<bmi::member<Node, NodeId, &Node::nodeid>>,
             // sorted by peerid/nextRequestTime
-            boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<next_request_time>,
-                boost::multi_index::composite_key<
-                    Node,
-                    boost::multi_index::member<Node, PeerId, &Node::peerid>,
-                    boost::multi_index::member<Node, TimePoint,
-                                               &Node::nextRequestTime>>>>>;
+            bmi::ordered_non_unique<
+                bmi::tag<next_request_time>,
+                bmi::composite_key<
+                    Node, bmi::member<Node, PeerId, &Node::peerid>,
+                    bmi::member<Node, TimePoint, &Node::nextRequestTime>>>>>;
 
     NodeSet nodes;
 
