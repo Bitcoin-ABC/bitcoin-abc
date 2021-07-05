@@ -9,6 +9,7 @@
 #include <random.h>
 #include <validation.h> // For ChainstateActive()
 
+#include <algorithm>
 #include <cassert>
 
 namespace avalanche {
@@ -17,6 +18,11 @@ bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
     auto &pview = peers.get<proof_index>();
     auto it = pview.find(proofid);
     if (it == pview.end()) {
+        // If the node exists, it is actually updating its proof to an unknown
+        // one. In this case we need to remove it so it is not both active and
+        // pending at the same time.
+        removeNode(nodeid);
+        pendingNodes.emplace(proofid, nodeid);
         return false;
     }
 
@@ -47,6 +53,9 @@ bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid) {
     bool success = addNodeToPeer(it);
     assert(success);
 
+    // If the added node was in the pending set, remove it
+    pendingNodes.get<by_nodeid>().erase(nodeid);
+
     return true;
 }
 
@@ -75,6 +84,8 @@ bool PeerManager::removeNode(NodeId nodeid) {
 
     const PeerId peerid = it->peerid;
     nodes.erase(it);
+
+    pendingNodes.get<by_nodeid>().erase(nodeid);
 
     // Keep the track of the reference count.
     bool success = removeNodeFromPeer(peers.find(peerid));
@@ -273,6 +284,22 @@ PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
     auto inserted = peers.emplace(peerid, proof);
     assert(inserted.second);
 
+    // If there are nodes waiting for this proof, add them
+    auto &pendingNodesView = pendingNodes.get<by_proofid>();
+    auto range = pendingNodesView.equal_range(proofid);
+
+    // We want to update the nodes then remove them from the pending set. That
+    // will invalidate the range iterators, so we need to save the node ids
+    // first before we can loop over them.
+    std::vector<NodeId> nodeids;
+    nodeids.reserve(std::distance(range.first, range.second));
+    std::transform(range.first, range.second, std::back_inserter(nodeids),
+                   [](const PendingNode &n) { return n.nodeid; });
+
+    for (const NodeId &nodeid : nodeids) {
+        addOrUpdateNode(inserted.first, nodeid);
+    }
+
     return inserted.first;
 }
 
@@ -285,10 +312,17 @@ bool PeerManager::removePeer(const PeerId peerid) {
     // Remove all nodes from this peer.
     removeNodeFromPeer(it, it->node_count);
 
+    auto &nview = nodes.get<next_request_time>();
+
+    // Add the nodes to the pending set
+    auto range = nview.equal_range(peerid);
+    for (auto &nit = range.first; nit != range.second; ++nit) {
+        pendingNodes.emplace(it->getProofId(), nit->nodeid);
+    };
+
     // Remove nodes associated with this peer, unless their timeout is still
     // active. This ensure that we don't overquery them in case they are
     // subsequently added to another peer.
-    auto &nview = nodes.get<next_request_time>();
     nview.erase(nview.lower_bound(boost::make_tuple(peerid, TimePoint())),
                 nview.upper_bound(boost::make_tuple(
                     peerid, std::chrono::steady_clock::now())));

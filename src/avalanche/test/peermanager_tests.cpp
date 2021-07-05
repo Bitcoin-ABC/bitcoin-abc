@@ -15,6 +15,24 @@
 
 using namespace avalanche;
 
+namespace avalanche {
+namespace {
+    struct TestPeerManager {
+        static bool nodeBelongToPeer(const PeerManager &pm, NodeId nodeid,
+                                     PeerId peerid) {
+            return pm.forNode(nodeid, [&](const Node &node) {
+                return node.peerid == peerid;
+            });
+        }
+
+        static bool isNodePending(const PeerManager &pm, NodeId nodeid) {
+            auto &pendingNodesView = pm.pendingNodes.get<by_nodeid>();
+            return pendingNodesView.find(nodeid) != pendingNodesView.end();
+        }
+    };
+} // namespace
+} // namespace avalanche
+
 BOOST_FIXTURE_TEST_SUITE(peermanager_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(select_peer_linear) {
@@ -364,6 +382,144 @@ BOOST_AUTO_TEST_CASE(node_crud) {
         BOOST_CHECK(
             pm.updateNextRequestTime(n, std::chrono::steady_clock::now()));
     }
+}
+
+BOOST_AUTO_TEST_CASE(node_binding) {
+    avalanche::PeerManager pm;
+
+    auto proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    const ProofId &proofid = proof->getId();
+
+    // Add a bunch of nodes with no associated peer
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(!pm.addNode(i, proofid));
+        BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+    }
+
+    // Now create the peer and check all the nodes are bound
+    const PeerId peerid = pm.getPeerId(proof);
+    BOOST_CHECK_NE(peerid, NO_PEER);
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+    BOOST_CHECK(pm.verify());
+
+    // Disconnect some nodes
+    for (int i = 0; i < 5; i++) {
+        BOOST_CHECK(pm.removeNode(i));
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+
+    // Add nodes when the peer already exists
+    for (int i = 0; i < 5; i++) {
+        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+
+    auto alt_proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    const ProofId &alt_proofid = alt_proof->getId();
+
+    // Update some nodes from a known proof to an unknown proof
+    for (int i = 0; i < 5; i++) {
+        BOOST_CHECK(!pm.addNode(i, alt_proofid));
+        BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+
+    auto alt2_proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    const ProofId &alt2_proofid = alt2_proof->getId();
+
+    // Update some nodes from an unknown proof to another unknown proof
+    for (int i = 0; i < 5; i++) {
+        BOOST_CHECK(!pm.addNode(i, alt2_proofid));
+        BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+    }
+
+    // Update some nodes from an unknown proof to a known proof
+    for (int i = 0; i < 5; i++) {
+        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+
+    // Remove the peer, the nodes should be pending again
+    BOOST_CHECK(pm.removePeer(peerid));
+    BOOST_CHECK(!pm.getProof(proof->getId()));
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+    BOOST_CHECK(pm.verify());
+}
+
+BOOST_AUTO_TEST_CASE(node_binding_reorg) {
+    avalanche::PeerManager pm;
+
+    ProofBuilder pb(0, 0, CPubKey());
+    CKey key;
+    key.MakeNewKey(true);
+    const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+    COutPoint utxo(TxId(GetRandHash()), 0);
+    Amount amount = 1 * COIN;
+    const int height = 1234;
+    pb.addUTXO(utxo, amount, height, false, key);
+    auto proof = std::make_shared<Proof>(pb.build());
+    const ProofId &proofid = proof->getId();
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(utxo, Coin(CTxOut(amount, script), height, false), false);
+    }
+
+    PeerId peerid = pm.getPeerId(proof);
+    BOOST_CHECK_NE(peerid, NO_PEER);
+    BOOST_CHECK(pm.verify());
+
+    // Add nodes to our peer
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.addNode(i, proofid));
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+
+    // Orphan the proof
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.SpendCoin(utxo);
+    }
+
+    pm.updatedBlockTip();
+    BOOST_CHECK(pm.isOrphan(proofid));
+    BOOST_CHECK(!pm.getProof(proofid));
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+    BOOST_CHECK(pm.verify());
+
+    // Make the proof great again
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(utxo, Coin(CTxOut(amount, script), height, false), false);
+    }
+
+    pm.updatedBlockTip();
+    BOOST_CHECK(!pm.isOrphan(proofid));
+    BOOST_CHECK(pm.getProof(proofid));
+    // The peerid has certainly been updated
+    peerid = pm.getPeerId(proof);
+    BOOST_CHECK_NE(peerid, NO_PEER);
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+    }
+    BOOST_CHECK(pm.verify());
 }
 
 BOOST_AUTO_TEST_CASE(proof_conflict) {

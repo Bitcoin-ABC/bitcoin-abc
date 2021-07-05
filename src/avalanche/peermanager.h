@@ -36,6 +36,10 @@ static constexpr size_t AVALANCHE_ORPHANPROOFPOOL_SIZE = 10000;
 
 class Delegation;
 
+namespace {
+    struct TestPeerManager;
+}
+
 struct Slot {
 private:
     uint64_t start;
@@ -93,6 +97,17 @@ struct proof_index {
 
 struct next_request_time {};
 
+struct PendingNode {
+    ProofId proofid;
+    NodeId nodeid;
+
+    PendingNode(ProofId proofid_, NodeId nodeid_)
+        : proofid(proofid_), nodeid(nodeid_){};
+};
+
+struct by_proofid;
+struct by_nodeid;
+
 namespace bmi = boost::multi_index;
 
 class PeerManager {
@@ -130,6 +145,20 @@ class PeerManager {
                     bmi::member<Node, TimePoint, &Node::nextRequestTime>>>>>;
 
     NodeSet nodes;
+
+    using PendingNodeSet = boost::multi_index_container<
+        PendingNode,
+        bmi::indexed_by<
+            // index by proofid
+            bmi::hashed_non_unique<
+                bmi::tag<by_proofid>,
+                bmi::member<PendingNode, ProofId, &PendingNode::proofid>,
+                SaltedProofIdHasher>,
+            // index by nodeid
+            bmi::hashed_unique<
+                bmi::tag<by_nodeid>,
+                bmi::member<PendingNode, NodeId, &PendingNode::nodeid>>>>;
+    PendingNodeSet pendingNodes;
 
     static constexpr int SELECT_PEER_MAX_RETRY = 3;
     static constexpr int SELECT_NODE_MAX_RETRY = 3;
@@ -249,6 +278,8 @@ private:
     bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
+
+    friend struct ::avalanche::TestPeerManager;
 };
 
 /**
