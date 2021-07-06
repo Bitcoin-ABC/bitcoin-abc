@@ -107,9 +107,9 @@ apt-get update
 
 LLVM_PACKAGES=(
   clang-10
-  clang-format-8
-  clang-tidy-8
-  clang-tools-8
+  clang-format-10
+  clang-tidy-10
+  clang-tools-10
 )
 DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${LLVM_PACKAGES[@]}")
 

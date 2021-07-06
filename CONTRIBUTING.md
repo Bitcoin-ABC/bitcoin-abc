@@ -131,27 +131,26 @@ enforce Bitcoin ABC code formatting standards, and often suggests changes.
 If code formatting tools do not install automatically on your system, you
 will have to install the following:
 
-On Ubuntu (>= 18.04+updates):
+On Ubuntu 20.04:
 ```
-sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python3-autopep8 flake8 php-codesniffer yamllint
-```
-
-On Debian (>= 10), the clang-8 family of tools is available from the `buster-backports` repository:
-```
-echo "deb http://deb.debian.org/debian buster-backports main" | sudo tee -a /etc/apt/sources.list
-sudo apt-get update
-sudo apt-get install cppcheck python3-autopep8 flake8 php-codesniffer mypy
-sudo apt-get -t buster-backports install clang-format-8 clang-tidy-8 clang-tools-8
+sudo apt-get install clang-format clang-tidy clang-tools cppcheck python3-autopep8 flake8 php-codesniffer yamllint
 ```
 
-If not available in the distribution, `clang-format-8` and `clang-tidy` can be
+If not available in the distribution, `clang-format-10` and `clang-tidy` can be
 installed from <https://releases.llvm.org/download.html> or <https://apt.llvm.org>.
+
+On Debian (>= 10), the clang-10 family of tools is available from the https://apt.llvm.org/ repository:
+```
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 10
+```
 
 For example, for macOS:
 ```
-curl http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
-ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
-ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
+curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
+ln -s $PWD/clang+llvm-10.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
+ln -s $PWD/clang+llvm-10.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
 ```
 
 If you are modifying a python script, you will need to install `mypy`. The minimum required version is 0.780, because

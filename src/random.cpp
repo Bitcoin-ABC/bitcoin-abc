@@ -761,8 +761,8 @@ FastRandomContext::FastRandomContext(bool fDeterministic) noexcept
     rng.SetKey(seed.begin(), 32);
 }
 
-FastRandomContext &FastRandomContext::
-operator=(FastRandomContext &&from) noexcept {
+FastRandomContext &
+FastRandomContext::operator=(FastRandomContext &&from) noexcept {
     requires_seed = from.requires_seed;
     rng = from.rng;
     std::copy(std::begin(from.bytebuf), std::end(from.bytebuf),

@@ -219,9 +219,8 @@ void RecentRequestsTableModel::updateDisplayUnit() {
     updateAmountColumnTitle();
 }
 
-bool RecentRequestEntryLessThan::
-operator()(const RecentRequestEntry &left,
-           const RecentRequestEntry &right) const {
+bool RecentRequestEntryLessThan::operator()(
+    const RecentRequestEntry &left, const RecentRequestEntry &right) const {
     const RecentRequestEntry *pLeft = &left;
     const RecentRequestEntry *pRight = &right;
     if (order == Qt::DescendingOrder) {
