@@ -3,12 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-A script to check that the executables produced by gitian only contain
-certain symbols and are only linked against allowed libraries.
+A script to check that release executables only contain certain symbols
+and are only linked against allowed libraries.
 
 Example usage:
 
-    find contrib/gitian-builder/build -type f -executable | xargs python3 contrib/devtools/symbol-check.py
+    find ../path/to/binaries -type f -executable | xargs python3 contrib/devtools/symbol-check.py
 """
 import sys
 
@@ -283,18 +283,18 @@ def check_ELF_interpreter(binary) -> bool:
 
 
 CHECKS = {
-    "ELF": [
+    lief.EXE_FORMATS.ELF: [
         ("IMPORTED_SYMBOLS", check_imported_symbols),
         ("EXPORTED_SYMBOLS", check_exported_symbols),
         ("LIBRARY_DEPENDENCIES", check_ELF_libraries),
         ("INTERPRETER_NAME", check_ELF_interpreter),
     ],
-    "MACHO": [
+    lief.EXE_FORMATS.MACHO: [
         ("DYNAMIC_LIBRARIES", check_MACHO_libraries),
         ("MIN_OS", check_MACHO_min_os),
         ("SDK", check_MACHO_sdk),
     ],
-    "PE": [
+    lief.EXE_FORMATS.PE: [
         ("DYNAMIC_LIBRARIES", check_PE_libraries),
         ("SUBSYSTEM_VERSION", check_PE_subsystem_version),
     ],
@@ -306,7 +306,7 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         try:
             binary = lief.parse(filename)
-            etype = binary.format.name
+            etype = binary.format
             if etype == lief.EXE_FORMATS.UNKNOWN:
                 print(f"{filename}: unknown executable format")
 

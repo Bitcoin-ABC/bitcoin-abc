@@ -163,27 +163,41 @@ def check_NX(binary) -> bool:
     return binary.has_nx
 
 
+BASE_ELF = [
+    ("PIE", check_PIE),
+    ("NX", check_NX),
+    ("RELRO", check_ELF_RELRO),
+    ("Canary", check_ELF_Canary),
+    ("separate_code", check_ELF_separate_code),
+]
+
+BASE_PE = [
+    ("PIE", check_PIE),
+    ("DYNAMIC_BASE", check_PE_DYNAMIC_BASE),
+    ("HIGH_ENTROPY_VA", check_PE_HIGH_ENTROPY_VA),
+    ("NX", check_NX),
+    ("RELOC_SECTION", check_PE_RELOC_SECTION),
+]
+
+BASE_MACHO = [
+    ("PIE", check_PIE),
+    ("NOUNDEFS", check_MACHO_NOUNDEFS),
+    ("NX", check_NX),
+    ("Canary", check_MACHO_Canary),
+]
+
 CHECKS = {
-    "ELF": [
-        ("PIE", check_PIE),
-        ("NX", check_NX),
-        ("RELRO", check_ELF_RELRO),
-        ("Canary", check_ELF_Canary),
-        ("separate_code", check_ELF_separate_code),
-    ],
-    "PE": [
-        ("PIE", check_PIE),
-        ("DYNAMIC_BASE", check_PE_DYNAMIC_BASE),
-        ("HIGH_ENTROPY_VA", check_PE_HIGH_ENTROPY_VA),
-        ("NX", check_NX),
-        ("RELOC_SECTION", check_PE_RELOC_SECTION),
-    ],
-    "MACHO": [
-        ("PIE", check_PIE),
-        ("NOUNDEFS", check_MACHO_NOUNDEFS),
-        ("NX", check_NX),
-        ("Canary", check_MACHO_Canary),
-    ],
+    lief.EXE_FORMATS.ELF: {
+        lief.ARCHITECTURES.X86: BASE_ELF,
+        lief.ARCHITECTURES.ARM: BASE_ELF,
+        lief.ARCHITECTURES.ARM64: BASE_ELF,
+    },
+    lief.EXE_FORMATS.PE: {
+        lief.ARCHITECTURES.X86: BASE_PE,
+    },
+    lief.EXE_FORMATS.MACHO: {
+        lief.ARCHITECTURES.X86: BASE_MACHO,
+    },
 }
 
 
@@ -192,14 +206,22 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         try:
             binary = lief.parse(filename)
-            etype = binary.format.name
+            etype = binary.format
+            arch = binary.abstract.header.architecture
+            binary.concrete
+
             if etype == lief.EXE_FORMATS.UNKNOWN:
                 print(f"{filename}: unknown executable format")
                 retval = 1
                 continue
 
+            if arch == lief.ARCHITECTURES.NONE:
+                print(f"{filename}: unknown architecture")
+                retval = 1
+                continue
+
             failed: List[str] = []
-            for name, func in CHECKS[etype]:
+            for name, func in CHECKS[etype][arch]:
                 if not func(binary):
                     failed.append(name)
             if failed:
