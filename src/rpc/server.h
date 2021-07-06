@@ -15,8 +15,6 @@
 
 #include <univalue.h>
 
-#include <boost/noncopyable.hpp>
-
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -38,12 +36,15 @@ typedef std::map<std::string, std::unique_ptr<RPCCommand>> RPCCommandMap;
 /**
  * Class for registering and managing all RPC calls.
  */
-class RPCServer : public boost::noncopyable {
+class RPCServer {
 private:
     RWCollection<RPCCommandMap> commands;
 
 public:
     RPCServer() {}
+
+    RPCServer(const RPCServer &) = delete;
+    RPCServer &operator=(const RPCServer &) = delete;
 
     /**
      * Attempts to execute an RPC command from the given request.

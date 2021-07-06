@@ -7,7 +7,6 @@
 
 #include <threadsafety.h>
 
-#include <boost/noncopyable.hpp>
 #include <boost/range/iterator.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -16,7 +15,7 @@
 #include <type_traits>
 #include <utility>
 
-template <typename T, typename L> class RWCollectionView : boost::noncopyable {
+template <typename T, typename L> class RWCollectionView {
 private:
     L lock;
     T *collection;
@@ -29,6 +28,9 @@ public:
     RWCollectionView(L l, T &c) : lock(std::move(l)), collection(&c) {}
     RWCollectionView(RWCollectionView &&other)
         : lock(std::move(other.lock)), collection(other.collection) {}
+
+    RWCollectionView(const RWCollectionView &) = delete;
+    const RWCollectionView &operator=(const RWCollectionView) = delete;
 
     T *operator->() { return collection; }
     const T *operator->() const { return collection; }

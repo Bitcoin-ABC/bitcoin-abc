@@ -7,8 +7,6 @@
 
 #include <univalue.h>
 
-#include <boost/noncopyable.hpp>
-
 #include <string>
 
 class JSONRPCRequest;
@@ -19,7 +17,7 @@ class JSONRPCRequest;
  * necessary.  For more typical cases where only request arguments are
  * required, see the RPCCommandWithArgsContext class.
  */
-class RPCCommand : public boost::noncopyable {
+class RPCCommand {
 private:
     const std::string name;
 
@@ -35,6 +33,9 @@ private:
 public:
     RPCCommand(const std::string &nameIn) : name(nameIn) {}
     virtual ~RPCCommand() {}
+
+    RPCCommand(const RPCCommand &) = delete;
+    RPCCommand &operator=(const RPCCommand &) = delete;
 
     /**
      * It is recommended to override Execute(JSONRPCRequest) only if the entire

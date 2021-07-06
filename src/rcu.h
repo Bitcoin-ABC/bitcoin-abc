@@ -5,8 +5,6 @@
 #ifndef BITCOIN_RCU_H
 #define BITCOIN_RCU_H
 
-#include <boost/noncopyable.hpp>
-
 #include <atomic>
 #include <cassert>
 #include <cstdint>
@@ -57,7 +55,7 @@ class RCUInfos {
     static thread_local RCUInfos infos;
 };
 
-class RCULock : public boost::noncopyable {
+class RCULock {
     RCUInfos *infos;
 
     explicit RCULock(RCUInfos *infosIn) : infos(infosIn) { infos->readLock(); }
@@ -66,6 +64,9 @@ class RCULock : public boost::noncopyable {
 public:
     RCULock() : RCULock(&RCUInfos::infos) {}
     ~RCULock() { infos->readFree(); }
+
+    RCULock(const RCULock &) = delete;
+    RCULock &operator=(const RCULock &) = delete;
 
     static bool isLocked() { return RCUInfos::infos.isLocked(); }
     static void registerCleanup(const std::function<void()> &f) {
