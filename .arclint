@@ -273,6 +273,7 @@
         },
         "lint-python-mypy": {
             "type": "lint-python-mypy",
+            "version": ">=0.780",
             "include": "(\\.py$)",
             "exclude": "(^contrib/)",
             "flags": [

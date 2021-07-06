@@ -133,7 +133,7 @@ will have to install the following:
 
 On Ubuntu (>= 18.04+updates):
 ```
-sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck mypy python3-autopep8 flake8 php-codesniffer yamllint
+sudo apt-get install clang-format-8 clang-tidy-8 clang-tools-8 cppcheck python3-autopep8 flake8 php-codesniffer yamllint
 ```
 
 On Debian (>= 10), the clang-8 family of tools is available from the `buster-backports` repository:
@@ -152,6 +152,16 @@ For example, for macOS:
 curl http://releases.llvm.org/8.0.0/clang+llvm-8.0.0-x86_64-apple-darwin.tar.xz | tar -xJv
 ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin/clang-format
 ln -s $PWD/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
+```
+
+If you are modifying a python script, you will need to install `mypy`. The minimum required version is 0.780, because
+the previous ones are known to have issues with some python type annotations.
+On Debian based systems, this can be installed via:
+```
+sudo apt-get install python3-pip
+pip3 install mypy==0.780
+echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 If you are modifying a shell script, you will need to install the `shellcheck` linter.

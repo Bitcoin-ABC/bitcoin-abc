@@ -58,7 +58,6 @@ PACKAGES=(
   libzmq3-dev
   lld
   make
-  mypy
   ninja-build
   nsis
   php-codesniffer
@@ -122,6 +121,12 @@ update-alternatives --set x86_64-w64-mingw32-gcc $(command -v x86_64-w64-mingw32
 pip3 install deepmerge
 # For running Python test suites
 pip3 install pytest
+
+# An up-to-date mypy is required as a python linter
+pip3 install mypy==0.780
+echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
+# shellcheck source=/dev/null
+source ~/.bashrc
 
 # Install pandoc. The version from buster is outdated, so get a more recent one
 # from github.
