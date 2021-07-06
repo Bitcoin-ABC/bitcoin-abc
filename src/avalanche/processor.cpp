@@ -209,10 +209,9 @@ public:
     void updatedBlockTip() override {
         LOCK(m_processor->cs_peerManager);
 
-        if (m_processor->mustRegisterProof &&
-            !::ChainstateActive().IsInitialBlockDownload()) {
-            m_processor->peerManager->getPeerId(m_processor->peerData->proof);
-            m_processor->mustRegisterProof = false;
+        if (m_processor->peerData && m_processor->peerData->proof) {
+            m_processor->peerManager->registerProof(
+                m_processor->peerData->proof);
         }
 
         m_processor->peerManager->updatedBlockTip();
@@ -225,10 +224,7 @@ Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
     : connman(connmanIn), nodePeerManager(nodePeerManagerIn),
       queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT), round(0),
       peerManager(std::make_unique<PeerManager>()),
-      peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
-      // Schedule proof registration at the first new block after IBD.
-      // FIXME: get rid of this flag
-      mustRegisterProof(!!peerData) {
+      peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));

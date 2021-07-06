@@ -249,12 +249,6 @@ class Processor {
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
-    /**
-     * Flag indicating that the proof must be registered at first new block
-     * after IBD
-     */
-    bool mustRegisterProof = false;
-
     Processor(interfaces::Chain &chain, CConnman *connmanIn,
               NodePeerManager *nodePeerManagerIn,
               std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn);
