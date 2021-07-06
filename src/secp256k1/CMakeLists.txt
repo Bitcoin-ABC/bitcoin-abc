@@ -63,7 +63,7 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 include_directories(
 	.
 	src
-	# For the config
+	# For the config and generated context headers
 	${CMAKE_CURRENT_BINARY_DIR}/src
 )
 
@@ -227,6 +227,25 @@ set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomp
 if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 24)
 	message(FATAL_ERROR "SECP256K1_ECMULT_WINDOW_SIZE must be an integer in range [2..24]")
 endif()
+if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
+	# A window size larger than 15 will require deletion of the prebuilt ecmult_static_pre_g.h
+	# file so that it can be rebuilt.
+	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
+endif()
+
+# Conditionally regenerate ecmult_static_pre_g.h if it does not exist
+add_executable(gen_ecmult_static_pre_g ${CMAKE_CURRENT_SOURCE_DIR}/src/gen_ecmult_static_pre_g.c)
+add_custom_command(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/src/ecmult_static_pre_g.h
+	COMMAND gen_ecmult_static_pre_g
+	DEPENDS gen_ecmult_static_pre_g
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMENT "Generating src/ecmult_static_pre_g.h"
+)
+add_custom_target(generate_ecmult_h ALL
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/src/ecmult_static_pre_g.h
+)
+add_dependencies(secp256k1 generate_ecmult_h)
 
 set(SECP256K1_ECMULT_GEN_PRECISION 4 CACHE STRING "Precision bits to tune the precomputed table size for signing.")
 set(VALID_PRECISIONS 2 4 8)

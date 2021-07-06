@@ -11,7 +11,6 @@
 #include "group.h"
 
 static int secp256k1_schnorr_sig_verify(
-    const secp256k1_ecmult_context* ctx,
     const unsigned char *sig64,
     secp256k1_ge *pubkey,
     const unsigned char *msg32

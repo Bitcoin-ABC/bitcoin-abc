@@ -49,7 +49,6 @@
  *       Signature is valid if R + e * P - s * G == 0.
  */
 static int secp256k1_schnorr_sig_verify(
-    const secp256k1_ecmult_context* ctx,
     const unsigned char *sig64,
     secp256k1_ge *pubkey,
     const unsigned char *msg32
@@ -79,7 +78,7 @@ static int secp256k1_schnorr_sig_verify(
     /* Verify the signature */
     secp256k1_scalar_negate(&e, &e);
     secp256k1_gej_set_ge(&Pj, pubkey);
-    secp256k1_ecmult(ctx, &Rj, &Pj, &e, &s);
+    secp256k1_ecmult(&Rj, &Pj, &e, &s);
     if (secp256k1_gej_is_infinity(&Rj)) {
         return 0;
     }

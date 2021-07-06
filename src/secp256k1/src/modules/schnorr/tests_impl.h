@@ -62,7 +62,7 @@ void test_schnorr_sign_verify(void) {
             }
         } while(1);
 
-        CHECK(secp256k1_schnorr_sig_verify(&ctx->ecmult_ctx, sig64[i], &pubkey[i], msg32));
+        CHECK(secp256k1_schnorr_sig_verify(sig64[i], &pubkey[i], msg32));
 
         /* Apply several random modifications to the sig and check that it
          * doesn't verify anymore. */
@@ -70,7 +70,7 @@ void test_schnorr_sign_verify(void) {
             int pos = secp256k1_testrand_bits(6);
             int mod = 1 + secp256k1_testrand_int(255);
             sig64[i][pos] ^= mod;
-            CHECK(secp256k1_schnorr_sig_verify(&ctx->ecmult_ctx, sig64[i], &pubkey[i], msg32) == 0);
+            CHECK(secp256k1_schnorr_sig_verify(sig64[i], &pubkey[i], msg32) == 0);
             sig64[i][pos] ^= mod;
         }
     }

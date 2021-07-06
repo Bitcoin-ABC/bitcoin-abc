@@ -18,7 +18,6 @@ int secp256k1_schnorr_verify(
 ) {
     secp256k1_ge q;
     VERIFY_CHECK(ctx != NULL);
-    ARG_CHECK(secp256k1_ecmult_context_is_built(&ctx->ecmult_ctx));
     ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(sig64 != NULL);
     ARG_CHECK(pubkey != NULL);
@@ -27,7 +26,7 @@ int secp256k1_schnorr_verify(
         return 0;
     }
 
-    return secp256k1_schnorr_sig_verify(&ctx->ecmult_ctx, sig64, &q, msghash32);
+    return secp256k1_schnorr_sig_verify(sig64, &q, msghash32);
 }
 
 int secp256k1_schnorr_sign(
