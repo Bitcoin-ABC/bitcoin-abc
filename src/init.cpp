@@ -1929,20 +1929,24 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     }
 
     // Configure excessive block size.
-    const uint64_t nProposedExcessiveBlockSize =
+    const int64_t nProposedExcessiveBlockSize =
         args.GetArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);
-    if (!config.SetMaxBlockSize(nProposedExcessiveBlockSize)) {
+    if (nProposedExcessiveBlockSize <= 0 ||
+        !config.SetMaxBlockSize(nProposedExcessiveBlockSize)) {
         return InitError(
             _("Excessive block size must be > 1,000,000 bytes (1MB)"));
     }
 
     // Check blockmaxsize does not exceed maximum accepted block size.
-    const uint64_t nProposedMaxGeneratedBlockSize =
+    const int64_t nProposedMaxGeneratedBlockSize =
         args.GetArg("-blockmaxsize", DEFAULT_MAX_GENERATED_BLOCK_SIZE);
-    if (nProposedMaxGeneratedBlockSize > config.GetMaxBlockSize()) {
-        auto msg = _("Max generated block size (blockmaxsize) cannot exceed "
-                     "the excessive block size (excessiveblocksize)");
-        return InitError(msg);
+    if (nProposedMaxGeneratedBlockSize <= 0) {
+        return InitError(_("Max generated block size must be greater than 0"));
+    }
+    if (uint64_t(nProposedMaxGeneratedBlockSize) > config.GetMaxBlockSize()) {
+        return InitError(_("Max generated block size (blockmaxsize) cannot "
+                           "exceed the excessive block size "
+                           "(excessiveblocksize)"));
     }
 
     // block pruning; get the amount of disk space (in MiB) to allot for block &

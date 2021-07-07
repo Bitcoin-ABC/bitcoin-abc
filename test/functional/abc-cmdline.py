@@ -56,9 +56,19 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         self.nodes[0].assert_start_raises_init_error(
             ["-excessiveblocksize={}".format(LEGACY_MAX_BLOCK_SIZE)],
             'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+        self.nodes[0].assert_start_raises_init_error(
+            ["-excessiveblocksize=0"],
+            'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
+        self.nodes[0].assert_start_raises_init_error(
+            ["-excessiveblocksize=-1"],
+            'Error: Excessive block size must be > 1,000,000 bytes (1MB)')
         self.log.info("  Attempt to set below blockmaxsize (mining limit)")
         self.nodes[0].assert_start_raises_init_error(
             ['-blockmaxsize=1500000', '-excessiveblocksize=1300000'], 'Error: ' + MAX_GENERATED_BLOCK_SIZE_ERROR)
+        self.nodes[0].assert_start_raises_init_error(
+            ['-blockmaxsize=0'], 'Error: Max generated block size must be greater than 0')
+        self.nodes[0].assert_start_raises_init_error(
+            ['-blockmaxsize=-1'], 'Error: Max generated block size must be greater than 0')
 
         # Make sure we leave the test with a node running as this is what thee
         # framework expects.
