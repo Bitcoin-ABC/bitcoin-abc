@@ -2068,11 +2068,10 @@ FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
         return nullptr;
     }
 
-    auto proofTime = std::chrono::duration_cast<std::chrono::seconds>(
-        g_avalanche->getProofTime(proofid).time_since_epoch());
+    auto proofRegistrationTime = g_avalanche->getProofRegistrationTime(proofid);
 
     // If we know that proof for long enough, allow for requesting it
-    if (proofTime <= now - UNCONDITIONAL_RELAY_DELAY) {
+    if (proofRegistrationTime <= now - UNCONDITIONAL_RELAY_DELAY) {
         return proof;
     }
 

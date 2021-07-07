@@ -584,9 +584,10 @@ std::shared_ptr<Proof> Processor::getLocalProof() const {
     return peerData ? peerData->proof : nullptr;
 }
 
-Peer::Timestamp Processor::getProofTime(const ProofId &proofid) const {
+std::chrono::seconds
+Processor::getProofRegistrationTime(const ProofId &proofid) const {
     LOCK(cs_peerManager);
-    return peerManager->getProofTime(proofid);
+    return peerManager->getProofRegistrationTime(proofid);
 }
 
 std::shared_ptr<Proof> Processor::getOrphan(const ProofId &proofid) const {

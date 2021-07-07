@@ -201,10 +201,12 @@ std::shared_ptr<Proof> PeerManager::getProof(const ProofId &proofid) const {
     return it == pview.end() ? nullptr : it->proof;
 }
 
-Peer::Timestamp PeerManager::getProofTime(const ProofId &proofid) const {
+std::chrono::seconds
+PeerManager::getProofRegistrationTime(const ProofId &proofid) const {
     auto &pview = peers.get<proof_index>();
     auto it = pview.find(proofid);
-    return it == pview.end() ? Peer::Timestamp::max() : it->time;
+    return it == pview.end() ? std::chrono::seconds::max()
+                             : it->registration_time;
 }
 
 PeerManager::PeerSet::iterator

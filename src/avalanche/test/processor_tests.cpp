@@ -973,8 +973,7 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
         proofs.push_back(GetProof());
     }
 
-    const Peer::Timestamp checkpoint =
-        Peer::Timestamp(std::chrono::seconds(GetTime()));
+    const auto checkpoint = GetTime<std::chrono::seconds>();
 
     for (int i = 0; i < numProofs; i++) {
         BOOST_CHECK(m_processor->addProof(proofs[i]));
@@ -988,17 +987,17 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
             const ProofId &proofid = proof->getId();
             BOOST_CHECK_EQUAL(proofid, proofs[added]->getId());
 
-            const Peer::Timestamp proofTime =
-                m_processor->getProofTime(proofid);
-            BOOST_CHECK(proofTime != Peer::Timestamp::max());
+            const auto proofTime =
+                m_processor->getProofRegistrationTime(proofid);
+            BOOST_CHECK(proofTime != std::chrono::seconds::max());
             BOOST_CHECK(proofTime >= checkpoint);
         }
 
         for (int missing = i + 1; missing < numProofs; missing++) {
             const ProofId &proofid = proofs[missing]->getId();
             BOOST_CHECK(!m_processor->getProof(proofid));
-            BOOST_CHECK(m_processor->getProofTime(proofid) ==
-                        Peer::Timestamp::max());
+            BOOST_CHECK(m_processor->getProofRegistrationTime(proofid) ==
+                        std::chrono::seconds::max());
         }
     }
 
