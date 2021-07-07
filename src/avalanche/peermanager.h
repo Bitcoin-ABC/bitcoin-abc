@@ -175,6 +175,10 @@ public:
     /**
      * Proof and Peer related API.
      */
+    bool exists(const ProofId &proofid) const {
+        return getProof(proofid) != nullptr;
+    }
+
     template <typename Callable> void forEachPeer(Callable &&func) const {
         for (const auto &p : peers) {
             func(p);
@@ -191,7 +195,7 @@ public:
      */
     void addUnbroadcastProof(const ProofId &proofid);
     void removeUnbroadcastProof(const ProofId &proofid);
-    void broadcastProofs(const CConnman &connman);
+    auto getUnbroadcastProofs() const { return m_unbroadcast_proofids; }
 
     /****************************************************
      * Functions which are public for testing purposes. *

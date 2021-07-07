@@ -307,7 +307,6 @@ public:
 
     void addUnbroadcastProof(const ProofId &proofid);
     void removeUnbroadcastProof(const ProofId &proofid);
-    void broadcastProofs();
 
 private:
     void runEventLoop();

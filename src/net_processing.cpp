@@ -7,6 +7,7 @@
 
 #include <addrman.h>
 #include <avalanche/avalanche.h>
+#include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
 #include <avalanche/validation.h>
@@ -1096,7 +1097,19 @@ void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
     }
 
     if (g_avalanche && isAvalancheEnabled(gArgs)) {
-        g_avalanche->broadcastProofs();
+        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            auto unbroadcasted_proofids = pm.getUnbroadcastProofs();
+
+            for (const auto &proofid : unbroadcasted_proofids) {
+                // Sanity check: all unbroadcast proofs should exist in the
+                // peermanager
+                if (pm.exists(proofid)) {
+                    RelayProof(proofid, m_connman);
+                } else {
+                    pm.removeUnbroadcastProof(proofid);
+                }
+            }
+        });
     }
 
     // Schedule next run for 10-15 minutes in the future.

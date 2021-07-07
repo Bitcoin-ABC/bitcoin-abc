@@ -6,7 +6,6 @@
 
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
-#include <net_processing.h> // For RelayProof
 #include <random.h>
 #include <validation.h> // For ChainstateActive()
 
@@ -483,19 +482,6 @@ void PeerManager::addUnbroadcastProof(const ProofId &proofid) {
 
 void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
     m_unbroadcast_proofids.erase(proofid);
-}
-
-void PeerManager::broadcastProofs(const CConnman &connman) {
-    // For some reason SaltedProofIdHasher prevents the set from being swappable
-    auto previous_unbroadcasted_proofids = std::move(m_unbroadcast_proofids);
-    m_unbroadcast_proofids.clear();
-
-    for (auto &proofid : previous_unbroadcasted_proofids) {
-        if (getProof(proofid)) {
-            m_unbroadcast_proofids.insert(proofid);
-            RelayProof(proofid, connman);
-        }
-    }
 }
 
 } // namespace avalanche

@@ -770,9 +770,4 @@ void Processor::removeUnbroadcastProof(const ProofId &proofid) {
     peerManager->removeUnbroadcastProof(proofid);
 }
 
-void Processor::broadcastProofs() {
-    LOCK(cs_peerManager);
-    peerManager->broadcastProofs(*connman);
-}
-
 } // namespace avalanche
