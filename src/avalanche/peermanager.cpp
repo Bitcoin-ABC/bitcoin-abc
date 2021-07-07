@@ -125,6 +125,10 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
 }
 
+bool PeerManager::registerProof(const std::shared_ptr<Proof> &proof) {
+    return !getProof(proof->getId()) && getPeerId(proof) != NO_PEER;
+}
+
 NodeId PeerManager::selectNode() {
     for (int retry = 0; retry < SELECT_NODE_MAX_RETRY; retry++) {
         const PeerId p = selectPeer();
@@ -189,17 +193,14 @@ PeerId PeerManager::getPeerId(const std::shared_ptr<Proof> &proof) {
 }
 
 std::shared_ptr<Proof> PeerManager::getProof(const ProofId &proofid) const {
-    auto &pview = peers.get<proof_index>();
-    auto it = pview.find(proofid);
-    return it == pview.end() ? nullptr : it->proof;
-}
+    std::shared_ptr<Proof> proof = nullptr;
 
-std::chrono::seconds
-PeerManager::getProofRegistrationTime(const ProofId &proofid) const {
-    auto &pview = peers.get<proof_index>();
-    auto it = pview.find(proofid);
-    return it == pview.end() ? std::chrono::seconds::max()
-                             : it->registration_time;
+    forPeer(proofid, [&](const Peer &p) {
+        proof = p.proof;
+        return true;
+    });
+
+    return proof;
 }
 
 PeerManager::PeerSet::iterator

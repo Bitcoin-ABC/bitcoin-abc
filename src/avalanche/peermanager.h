@@ -175,8 +175,16 @@ public:
     /**
      * Proof and Peer related API.
      */
+    bool registerProof(const std::shared_ptr<Proof> &proof);
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;
+    }
+
+    template <typename Callable>
+    bool forPeer(const ProofId &proofid, Callable &&func) const {
+        auto &pview = peers.get<proof_index>();
+        auto it = pview.find(proofid);
+        return it != pview.end() && func(*it);
     }
 
     template <typename Callable> void forEachPeer(Callable &&func) const {
@@ -232,7 +240,6 @@ public:
     uint64_t getFragmentation() const { return fragmentation; }
 
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
-    std::chrono::seconds getProofRegistrationTime(const ProofId &proofid) const;
 
     bool isOrphan(const ProofId &id) const;
     std::shared_ptr<Proof> getOrphan(const ProofId &id) const;

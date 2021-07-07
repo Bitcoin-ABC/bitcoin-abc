@@ -2074,27 +2074,33 @@ CTransactionRef static FindTxForGetData(const CNode &peer, const TxId &txid,
 static std::shared_ptr<avalanche::Proof>
 FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
                     const std::chrono::seconds now) {
-    auto proof = g_avalanche->getProof(proofid);
+    std::shared_ptr<avalanche::Proof> proof = nullptr;
+
+    bool send_unconditionally =
+        g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+            return pm.forPeer(proofid, [&](const avalanche::Peer &peer) {
+                proof = peer.proof;
+
+                // If we know that proof for long enough, allow for requesting
+                // it.
+                return peer.registration_time <=
+                       now - UNCONDITIONAL_RELAY_DELAY;
+            });
+        });
 
     // We don't have this proof
     if (!proof) {
         return nullptr;
     }
 
-    auto proofRegistrationTime = g_avalanche->getProofRegistrationTime(proofid);
-
-    // If we know that proof for long enough, allow for requesting it
-    if (proofRegistrationTime <= now - UNCONDITIONAL_RELAY_DELAY) {
+    if (send_unconditionally) {
         return proof;
     }
 
-    {
-        LOCK(cs_main);
-        // Otherwise, the proofs must have been announced recently.
-        if (State(peer.GetId())
-                ->m_recently_announced_proofs.contains(proofid)) {
-            return proof;
-        }
+    // Otherwise, the proofs must have been announced recently.
+    LOCK(cs_main);
+    if (State(peer.GetId())->m_recently_announced_proofs.contains(proofid)) {
+        return proof;
     }
 
     return nullptr;

@@ -571,8 +571,7 @@ bool Processor::sendHello(CNode *pfrom) const {
 
 bool Processor::addProof(const std::shared_ptr<Proof> &proof) {
     LOCK(cs_peerManager);
-    return !peerManager->getProof(proof->getId()) &&
-           peerManager->getPeerId(proof) != NO_PEER;
+    return peerManager->registerProof(proof);
 }
 
 std::shared_ptr<Proof> Processor::getProof(const ProofId &proofid) const {
@@ -582,12 +581,6 @@ std::shared_ptr<Proof> Processor::getProof(const ProofId &proofid) const {
 
 std::shared_ptr<Proof> Processor::getLocalProof() const {
     return peerData ? peerData->proof : nullptr;
-}
-
-std::chrono::seconds
-Processor::getProofRegistrationTime(const ProofId &proofid) const {
-    LOCK(cs_peerManager);
-    return peerManager->getProofRegistrationTime(proofid);
 }
 
 std::shared_ptr<Proof> Processor::getOrphan(const ProofId &proofid) const {
