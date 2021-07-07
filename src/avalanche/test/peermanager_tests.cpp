@@ -487,12 +487,13 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     BOOST_CHECK(pm.isOrphan(proof3->getId()));
 
     const auto isGoodPeer = [&pm](const std::shared_ptr<Proof> &p) {
-        for (const auto &peer : pm.getPeers()) {
+        bool ret = false;
+        pm.forEachPeer([&](const Peer &peer) {
             if (p->getId() == peer.proof->getId()) {
-                return true;
+                ret = true;
             }
-        }
-        return false;
+        });
+        return ret;
     };
 
     BOOST_CHECK(isGoodPeer(proof1));

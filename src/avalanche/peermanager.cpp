@@ -117,12 +117,6 @@ bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
     return true;
 }
 
-bool PeerManager::forNode(NodeId nodeid,
-                          std::function<bool(const Node &n)> func) const {
-    auto it = nodes.find(nodeid);
-    return it != nodes.end() && func(*it);
-}
-
 bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     auto it = nodes.find(nodeid);
     if (it == nodes.end()) {
@@ -470,24 +464,6 @@ PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
 
     // We failed to find a slot, retry.
     return NO_PEER;
-}
-
-std::vector<Peer> PeerManager::getPeers() const {
-    std::vector<Peer> vpeers;
-    for (auto &it : peers.get<0>()) {
-        vpeers.emplace_back(it);
-    }
-    return vpeers;
-}
-
-std::vector<NodeId> PeerManager::getNodeIdsForPeer(PeerId peerId) const {
-    std::vector<NodeId> nodeids;
-    auto &nview = nodes.get<next_request_time>();
-    auto nodeRange = nview.equal_range(peerId);
-    for (auto it = nodeRange.first; it != nodeRange.second; ++it) {
-        nodeids.emplace_back(it->nodeid);
-    }
-    return nodeids;
 }
 
 bool PeerManager::isOrphan(const ProofId &id) const {

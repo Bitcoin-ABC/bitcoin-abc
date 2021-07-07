@@ -6,7 +6,6 @@
 #define BITCOIN_AVALANCHE_PROCESSOR_H
 
 #include <avalanche/node.h>
-#include <avalanche/peermanager.h>
 #include <avalanche/protocol.h>
 #include <blockindexworkcomparator.h>
 #include <eventloop.h>
@@ -284,6 +283,11 @@ public:
     bool addNode(NodeId nodeid, const ProofId &proofid);
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
+    template <typename Callable> auto withPeerManager(Callable &&func) const {
+        LOCK(cs_peerManager);
+        return func(*peerManager);
+    }
+
     CPubKey getSessionPubKey() const;
     bool sendHello(CNode *pfrom) const;
 
@@ -297,9 +301,6 @@ public:
      * Return whether the avalanche service flag should be set.
      */
     bool isAvalancheServiceAvailable() { return !!peerData; }
-
-    std::vector<avalanche::Peer> getPeers() const;
-    std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();

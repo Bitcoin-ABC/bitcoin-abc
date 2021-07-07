@@ -448,24 +448,27 @@ static UniValue getavalanchepeerinfo(const Config &config,
 
     UniValue ret(UniValue::VARR);
 
-    for (const auto &peer : g_avalanche->getPeers()) {
-        UniValue obj(UniValue::VOBJ);
+    g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+        pm.forEachPeer([&](const avalanche::Peer &peer) {
+            UniValue obj(UniValue::VOBJ);
 
-        CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
-        serproof << *peer.proof;
+            CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
+            serproof << *peer.proof;
 
-        obj.pushKV("peerid", uint64_t(peer.peerid));
-        obj.pushKV("proof", HexStr(serproof));
+            obj.pushKV("peerid", uint64_t(peer.peerid));
+            obj.pushKV("proof", HexStr(serproof));
 
-        UniValue nodes(UniValue::VARR);
-        for (const auto &id : g_avalanche->getNodeIdsForPeer(peer.peerid)) {
-            nodes.push_back(id);
-        }
-        obj.pushKV("nodes", nodes);
-        obj.pushKV("nodecount", uint64_t(peer.node_count));
+            UniValue nodes(UniValue::VARR);
+            pm.forEachNode(peer, [&](const avalanche::Node &n) {
+                nodes.push_back(n.nodeid);
+            });
 
-        ret.push_back(obj);
-    }
+            obj.pushKV("nodes", nodes);
+            obj.pushKV("nodecount", uint64_t(peer.node_count));
+
+            ret.push_back(obj);
+        });
+    });
 
     return ret;
 }

@@ -151,11 +151,35 @@ public:
     bool addNode(NodeId nodeid, const ProofId &proofid);
     bool removeNode(NodeId nodeid);
 
-    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
+    // Update when a node is to be polled next.
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
 
     // Randomly select a node to poll.
     NodeId selectNode();
+
+    template <typename Callable>
+    bool forNode(NodeId nodeid, Callable &&func) const {
+        auto it = nodes.find(nodeid);
+        return it != nodes.end() && func(*it);
+    }
+
+    template <typename Callable>
+    void forEachNode(const Peer &peer, Callable &&func) const {
+        auto &nview = nodes.get<next_request_time>();
+        auto range = nview.equal_range(peer.peerid);
+        for (auto it = range.first; it != range.second; ++it) {
+            func(*it);
+        }
+    }
+
+    /**
+     * Proof and Peer related API.
+     */
+    template <typename Callable> void forEachPeer(Callable &&func) const {
+        for (const auto &p : peers) {
+            func(p);
+        }
+    }
 
     /**
      * Update the peer set when a new block is connected.
@@ -202,9 +226,6 @@ public:
     // Accessors.
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
-
-    std::vector<Peer> getPeers() const;
-    std::vector<NodeId> getNodeIdsForPeer(PeerId peerId) const;
 
     std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
     std::chrono::seconds getProofRegistrationTime(const ProofId &proofid) const;
