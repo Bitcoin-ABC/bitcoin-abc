@@ -3,17 +3,14 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test deprecation of RPC calls."""
-from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_raises_rpc_error
 
 
 class DeprecatedRpcTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
-        self.extra_args = [[], ["-deprecatedrpc=banscore",
-                                "-deprecatedrpc=setexcessiveblock"]]
+        self.extra_args = [[], ["-deprecatedrpc=banscore"]]
 
     def run_test(self):
         # This test should be used to verify correct behaviour of deprecated
@@ -30,13 +27,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         self.log.info("Test deprecated banscore")
         assert 'banscore' not in self.nodes[0].getpeerinfo()[0]
         assert 'banscore' in self.nodes[1].getpeerinfo()[0]
-
-        self.log.info("Test deprecated setexcessiveblock RPC")
-        assert_raises_rpc_error(-32,
-                                'The setexcessiveblock RPC is deprecated',
-                                self.nodes[0].setexcessiveblock,
-                                DEFAULT_MAX_BLOCK_SIZE)
-        self.nodes[1].setexcessiveblock(DEFAULT_MAX_BLOCK_SIZE)
 
 
 if __name__ == '__main__':

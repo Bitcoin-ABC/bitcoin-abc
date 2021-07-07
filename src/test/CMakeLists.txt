@@ -152,7 +152,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		descriptor_tests.cpp
 		dnsseeds_tests.cpp
 		dstencode_tests.cpp
-		excessiveblock_tests.cpp
 		feerate_tests.cpp
 		finalization_tests.cpp
 		flatfile_tests.cpp

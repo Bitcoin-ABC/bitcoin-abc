@@ -164,8 +164,6 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"buildavalancheproof", 0, "sequence"},
     {"buildavalancheproof", 1, "expiration"},
     {"buildavalancheproof", 3, "stakes"},
-    // ABC specific RPC
-    {"setexcessiveblock", 0, "blockSize"},
 };
 
 class CRPCConvertTable {
