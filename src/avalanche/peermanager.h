@@ -100,13 +100,6 @@ class PeerManager {
     uint64_t slotCount = 0;
     uint64_t fragmentation = 0;
 
-    OrphanProofPool orphanProofs{AVALANCHE_ORPHANPROOFPOOL_SIZE};
-
-    /**
-     * Track proof ids to broadcast
-     */
-    std::unordered_set<ProofId, SaltedProofIdHasher> m_unbroadcast_proofids;
-
     /**
      * Several nodes can make an avalanche peer. In this case, all nodes are
      * considered interchangeable parts of the same peer.
@@ -141,6 +134,16 @@ class PeerManager {
     static constexpr int SELECT_PEER_MAX_RETRY = 3;
     static constexpr int SELECT_NODE_MAX_RETRY = 3;
 
+    /**
+     * Tracks proof which for which the UTXO are unavailable.
+     */
+    OrphanProofPool orphanProofs{AVALANCHE_ORPHANPROOFPOOL_SIZE};
+
+    /**
+     * Track proof ids to broadcast
+     */
+    std::unordered_set<ProofId, SaltedProofIdHasher> m_unbroadcast_proofids;
+
 public:
     /**
      * Node API.
@@ -151,15 +154,20 @@ public:
     bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
 
-    /**
-     * Randomly select a node to poll.
-     */
+    // Randomly select a node to poll.
     NodeId selectNode();
 
     /**
      * Update the peer set when a new block is connected.
      */
     void updatedBlockTip();
+
+    /**
+     * Proof broadcast API.
+     */
+    void addUnbroadcastProof(const ProofId &proofid);
+    void removeUnbroadcastProof(const ProofId &proofid);
+    void broadcastProofs(const CConnman &connman);
 
     /****************************************************
      * Functions which are public for testing purposes. *
@@ -203,10 +211,6 @@ public:
 
     bool isOrphan(const ProofId &id) const;
     std::shared_ptr<Proof> getOrphan(const ProofId &id) const;
-
-    void addUnbroadcastProof(const ProofId &proofid);
-    void removeUnbroadcastProof(const ProofId &proofid);
-    void broadcastProofs(const CConnman &connman);
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);

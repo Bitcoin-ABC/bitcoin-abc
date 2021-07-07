@@ -14,11 +14,6 @@
 
 namespace avalanche {
 
-static bool isOrphanState(const ProofValidationState &state) {
-    return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
-           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
-}
-
 bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
     auto &pview = peers.get<proof_index>();
     auto it = pview.find(proofid);
@@ -158,6 +153,11 @@ NodeId PeerManager::selectNode() {
     }
 
     return NO_NODE;
+}
+
+static bool isOrphanState(const ProofValidationState &state) {
+    return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
+           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
 }
 
 void PeerManager::updatedBlockTip() {
@@ -511,8 +511,7 @@ void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
 
 void PeerManager::broadcastProofs(const CConnman &connman) {
     // For some reason SaltedProofIdHasher prevents the set from being swappable
-    std::unordered_set<ProofId, SaltedProofIdHasher>
-        previous_unbroadcasted_proofids = std::move(m_unbroadcast_proofids);
+    auto previous_unbroadcasted_proofids = std::move(m_unbroadcast_proofids);
     m_unbroadcast_proofids.clear();
 
     for (auto &proofid : previous_unbroadcasted_proofids) {
