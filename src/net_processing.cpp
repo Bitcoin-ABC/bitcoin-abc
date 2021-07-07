@@ -2139,7 +2139,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
         const CInv &inv = *it;
 
         if (it->IsMsgProof()) {
-            const avalanche::ProofId proofid = avalanche::ProofId{inv.hash};
+            const avalanche::ProofId proofid(inv.hash);
             auto proof = FindProofForGetData(pfrom, proofid, now);
             if (proof) {
                 connman.PushMessage(
@@ -2160,13 +2160,14 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
                 continue;
             }
 
+            const TxId txid(inv.hash);
             CTransactionRef tx =
-                FindTxForGetData(pfrom, TxId{inv.hash}, mempool_req, now);
+                FindTxForGetData(pfrom, txid, mempool_req, now);
             if (tx) {
                 int nSendFlags = 0;
                 connman.PushMessage(
                     &pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *tx));
-                mempool.RemoveUnbroadcastTx(TxId(inv.hash));
+                mempool.RemoveUnbroadcastTx(txid);
                 // As we're going to send tx, make sure its unconfirmed parents
                 // are made requestable.
                 for (const auto &txin : tx->vin) {
