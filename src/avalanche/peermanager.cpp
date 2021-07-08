@@ -205,10 +205,12 @@ std::shared_ptr<Proof> PeerManager::getProof(const ProofId &proofid) const {
 
 PeerManager::PeerSet::iterator
 PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
+    assert(proof);
+    const ProofId &proofid = proof->getId();
     {
         // Check if we already know of that peer.
         auto &pview = peers.get<proof_index>();
-        auto it = pview.find(proof->getId());
+        auto it = pview.find(proofid);
         if (it != pview.end()) {
             return peers.project<0>(it);
         }
@@ -231,7 +233,7 @@ PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
         return peers.end();
     }
 
-    orphanProofs.removeProof(proof->getId());
+    orphanProofs.removeProof(proofid);
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
