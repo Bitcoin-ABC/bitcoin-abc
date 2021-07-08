@@ -85,7 +85,13 @@ bool PeerManager::removeNode(NodeId nodeid) {
 
 bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
                                      uint32_t count) {
-    assert(it != peers.end());
+    // It is possible for nodes to be dangling. If there was an inflight query
+    // when the peer gets removed, the node was not erased. In this case there
+    // is nothing to do.
+    if (it == peers.end()) {
+        return true;
+    }
+
     assert(count <= it->node_count);
     if (count == 0) {
         // This is a NOOP.

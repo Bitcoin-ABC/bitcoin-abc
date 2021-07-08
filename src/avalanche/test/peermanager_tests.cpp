@@ -554,4 +554,49 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     BOOST_CHECK(isGoodPeer(proof2));
 }
 
+BOOST_AUTO_TEST_CASE(dangling_node) {
+    avalanche::PeerManager pm;
+
+    auto proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    PeerId peerid = pm.getPeerId(proof);
+    BOOST_CHECK_NE(peerid, NO_PEER);
+
+    const TimePoint theFuture(std::chrono::steady_clock::now() +
+                              std::chrono::hours(24));
+
+    // Add nodes to this peer and update their request time far in the future
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.addNode(i, proof->getId()));
+        BOOST_CHECK(pm.updateNextRequestTime(i, theFuture));
+    }
+
+    // Remove the peer
+    BOOST_CHECK(pm.removePeer(peerid));
+
+    // Check the nodes are still there
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.forNode(i, [](const Node &n) { return true; }));
+    }
+
+    // Build a new one
+    proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    peerid = pm.getPeerId(proof);
+    BOOST_CHECK_NE(peerid, NO_PEER);
+
+    // Update the nodes with the new proof
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.addNode(i, proof->getId()));
+        BOOST_CHECK(pm.forNode(
+            i, [&](const Node &n) { return n.nextRequestTime == theFuture; }));
+    }
+
+    // Remove the peer
+    BOOST_CHECK(pm.removePeer(peerid));
+
+    // Disconnect the nodes
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.removeNode(i));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
