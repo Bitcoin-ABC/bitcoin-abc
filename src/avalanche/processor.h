@@ -303,9 +303,6 @@ public:
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
 
-    void addUnbroadcastProof(const ProofId &proofid);
-    void removeUnbroadcastProof(const ProofId &proofid);
-
 private:
     void runEventLoop();
     void clearTimedoutRequests();

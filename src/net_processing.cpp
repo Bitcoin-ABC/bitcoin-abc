@@ -2144,7 +2144,9 @@ static void ProcessGetData(const Config &config, CNode &pfrom,
             if (proof) {
                 connman.PushMessage(
                     &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
-                g_avalanche->removeUnbroadcastProof(proofid);
+                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                    pm.removeUnbroadcastProof(proofid);
+                });
             } else {
                 vNotFound.push_back(inv);
             }

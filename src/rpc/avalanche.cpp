@@ -114,12 +114,14 @@ static UniValue addavalanchenode(const Config &config,
         return false;
     }
 
-    if (!g_avalanche->addNode(nodeid, proofid)) {
-        return false;
-    }
+    return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+        if (!pm.addNode(nodeid, proofid)) {
+            return false;
+        }
 
-    g_avalanche->addUnbroadcastProof(proofid);
-    return true;
+        pm.addUnbroadcastProof(proofid);
+        return true;
+    });
 }
 
 static UniValue buildavalancheproof(const Config &config,
@@ -580,7 +582,9 @@ static UniValue sendavalancheproof(const Config &config,
             "The proof has conflicting utxo with an existing proof");
     }
 
-    g_avalanche->addUnbroadcastProof(proofid);
+    g_avalanche->withPeerManager(
+        [&](avalanche::PeerManager &pm) { pm.addUnbroadcastProof(proofid); });
+
     RelayProof(proofid, *node.connman);
 
     return true;

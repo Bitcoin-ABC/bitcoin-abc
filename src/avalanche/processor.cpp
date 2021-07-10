@@ -747,14 +747,4 @@ void Processor::runEventLoop() {
     } while (nodeid != NO_NODE);
 }
 
-void Processor::addUnbroadcastProof(const ProofId &proofid) {
-    LOCK(cs_peerManager);
-    peerManager->addUnbroadcastProof(proofid);
-}
-
-void Processor::removeUnbroadcastProof(const ProofId &proofid) {
-    LOCK(cs_peerManager);
-    peerManager->removeUnbroadcastProof(proofid);
-}
-
 } // namespace avalanche
