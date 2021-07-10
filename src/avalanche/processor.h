@@ -281,7 +281,6 @@ public:
                        std::vector<BlockUpdate> &updates);
 
     bool addNode(NodeId nodeid, const ProofId &proofid);
-    bool forNode(NodeId nodeid, std::function<bool(const Node &n)> func) const;
 
     template <typename Callable> auto withPeerManager(Callable &&func) const {
         LOCK(cs_peerManager);

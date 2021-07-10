@@ -523,12 +523,6 @@ bool Processor::addNode(NodeId nodeid, const ProofId &proofid) {
     return peerManager->addNode(nodeid, proofid);
 }
 
-bool Processor::forNode(NodeId nodeid,
-                        std::function<bool(const Node &n)> func) const {
-    LOCK(cs_peerManager);
-    return peerManager->forNode(nodeid, std::move(func));
-}
-
 CPubKey Processor::getSessionPubKey() const {
     return sessionKey.GetPubKey();
 }
