@@ -558,18 +558,8 @@ bool Processor::sendHello(CNode *pfrom) const {
     return true;
 }
 
-std::shared_ptr<Proof> Processor::getProof(const ProofId &proofid) const {
-    LOCK(cs_peerManager);
-    return peerManager->getProof(proofid);
-}
-
 std::shared_ptr<Proof> Processor::getLocalProof() const {
     return peerData ? peerData->proof : nullptr;
-}
-
-std::shared_ptr<Proof> Processor::getOrphan(const ProofId &proofid) const {
-    LOCK(cs_peerManager);
-    return peerManager->getOrphan(proofid);
 }
 
 bool Processor::startEventLoop(CScheduler &scheduler) {

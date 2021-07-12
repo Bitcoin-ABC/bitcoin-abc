@@ -1798,9 +1798,14 @@ static bool AlreadyHaveBlock(const BlockHash &block_hash)
 
 static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
     assert(g_avalanche);
+
+    const bool hasProof =
+        g_avalanche->withPeerManager([&proofid](avalanche::PeerManager &pm) {
+            return pm.getProof(proofid) || pm.getOrphan(proofid);
+        });
+
     LOCK(cs_rejectedProofs);
-    return rejectedProofs->contains(proofid) ||
-           g_avalanche->getProof(proofid) || g_avalanche->getOrphan(proofid);
+    return hasProof || rejectedProofs->contains(proofid);
 }
 
 void RelayTransaction(const TxId &txid, const CConnman &connman) {

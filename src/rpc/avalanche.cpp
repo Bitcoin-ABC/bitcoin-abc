@@ -514,11 +514,14 @@ static UniValue getrawavalancheproof(const Config &config,
         avalanche::ProofId::fromHex(request.params[0].get_str());
 
     bool isOrphan = false;
-    auto proof = g_avalanche->getProof(proofid);
-    if (!proof) {
-        proof = g_avalanche->getOrphan(proofid);
-        isOrphan = true;
-    }
+    auto proof = g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+        auto proof = pm.getProof(proofid);
+        if (!proof) {
+            proof = pm.getOrphan(proofid);
+            isOrphan = true;
+        }
+        return proof;
+    });
 
     if (!proof) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Proof not found");
