@@ -125,10 +125,16 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         return std::make_shared<Proof>(pb.build());
     }
 
+    bool addNode(NodeId nodeid, const ProofId &proofid) {
+        return m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            return pm.addNode(nodeid, proofid);
+        });
+    }
+
     bool addNode(NodeId nodeid) {
         auto proof = GetProof();
         BOOST_CHECK(m_processor->addProof(proof));
-        return m_processor->addNode(nodeid, proof->getId());
+        return addNode(nodeid, proof->getId());
     }
 
     std::array<CNode *, 8> ConnectNodes() {
@@ -139,7 +145,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         std::array<CNode *, 8> nodes;
         for (CNode *&n : nodes) {
             n = ConnectNode(NODE_AVALANCHE);
-            BOOST_CHECK(m_processor->addNode(n->GetId(), proofid));
+            BOOST_CHECK(addNode(n->GetId(), proofid));
         }
 
         return nodes;
@@ -743,7 +749,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {
         n = ConnectNode(NODE_AVALANCHE);
-        BOOST_CHECK(m_processor->addNode(n->GetId(), proof->getId()));
+        BOOST_CHECK(addNode(n->GetId(), proof->getId()));
     }
 
     // Add a block to poll

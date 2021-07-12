@@ -280,8 +280,6 @@ public:
     bool registerVotes(NodeId nodeid, const Response &response,
                        std::vector<BlockUpdate> &updates);
 
-    bool addNode(NodeId nodeid, const ProofId &proofid);
-
     template <typename Callable> auto withPeerManager(Callable &&func) const {
         LOCK(cs_peerManager);
         return func(*peerManager);
