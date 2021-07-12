@@ -761,7 +761,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     for (int i = 0; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         BOOST_CHECK(node_round_map.find(nodeid) == node_round_map.end());
-        node_round_map[nodeid] = getRound();
+        node_round_map.insert(std::pair<NodeId, uint64_t>(nodeid, getRound()));
         auto invs = getInvsForNextPoll();
         BOOST_CHECK_EQUAL(invs.size(), 1);
         BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
