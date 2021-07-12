@@ -2820,7 +2820,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
     if (IsAvalancheMessageType(msg_type)) {
         if (!g_avalanche) {
-            LogPrint(BCLog::NET,
+            LogPrint(BCLog::AVALANCHE,
                      "Avalanche is not initialized, ignoring %s message\n",
                      msg_type);
             return;
@@ -3081,7 +3081,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         if ((pfrom.nServices & NODE_AVALANCHE) && g_avalanche &&
             isAvalancheEnabled(gArgs)) {
             if (g_avalanche->sendHello(&pfrom)) {
-                LogPrint(BCLog::NET, "Send avahello to peer %d\n",
+                LogPrint(BCLog::AVALANCHE, "Send avahello to peer %d\n",
                          pfrom.GetId());
 
                 auto localProof = g_avalanche->getLocalProof();
@@ -4240,7 +4240,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         std::vector<avalanche::Vote> votes;
         votes.reserve(nCount);
 
-        LogPrint(BCLog::NET, "received avalanche poll from peer=%d\n",
+        LogPrint(BCLog::AVALANCHE, "received avalanche poll from peer=%d\n",
                  pfrom.GetId());
 
         {
@@ -4366,8 +4366,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
             BlockValidationState state;
             if (!ActivateBestChain(config, state)) {
-                LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
-                         state.ToString());
+                LogPrintf("failed to activate chain (%s)\n", state.ToString());
             }
         }
 
@@ -5770,7 +5769,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
         auto requestable =
             m_proofrequest.GetRequestable(pto->GetId(), current_time, &expired);
         for (const auto &entry : expired) {
-            LogPrint(BCLog::NET, "timeout of inflight proof %s from peer=%d\n",
+            LogPrint(BCLog::AVALANCHE,
+                     "timeout of inflight proof %s from peer=%d\n",
                      entry.second.ToString(), entry.first);
         }
         for (const auto &proofid : requestable) {
