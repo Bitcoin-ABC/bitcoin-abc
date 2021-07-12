@@ -133,13 +133,18 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
     bool addNode(NodeId nodeid) {
         auto proof = GetProof();
-        BOOST_CHECK(m_processor->addProof(proof));
-        return addNode(nodeid, proof->getId());
+        return m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            return pm.registerProof(proof) &&
+                   pm.addNode(nodeid, proof->getId());
+        });
     }
 
     std::array<CNode *, 8> ConnectNodes() {
         auto proof = GetProof();
-        BOOST_CHECK(m_processor->addProof(proof));
+        BOOST_CHECK(
+            m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+                return pm.registerProof(proof);
+            }));
         const ProofId &proofid = proof->getId();
 
         std::array<CNode *, 8> nodes;
@@ -744,7 +749,8 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
 BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Create enough nodes so that we run into the inflight request limit.
     auto proof = GetProof();
-    BOOST_CHECK(m_processor->addProof(proof));
+    BOOST_CHECK(m_processor->withPeerManager(
+        [&](avalanche::PeerManager &pm) { return pm.registerProof(proof); }));
 
     std::array<CNode *, AVALANCHE_MAX_INFLIGHT_POLL + 1> nodes;
     for (auto &n : nodes) {

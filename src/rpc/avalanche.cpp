@@ -52,6 +52,13 @@ static CPubKey ParsePubKey(const UniValue &param) {
     return HexToPubKey(keyHex);
 }
 
+static bool registerProofIfNeeded(std::shared_ptr<avalanche::Proof> proof) {
+    return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+        return pm.getProof(proof->getId()) ||
+               pm.registerProof(std::move(proof));
+    });
+}
+
 static UniValue addavalanchenode(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -95,7 +102,7 @@ static UniValue addavalanchenode(const Config &config,
     }
 
     const avalanche::ProofId &proofid = proof->getId();
-    if (!g_avalanche->getProof(proofid) && !g_avalanche->addProof(proof)) {
+    if (!registerProofIfNeeded(proof)) {
         return false;
     }
 
@@ -576,7 +583,7 @@ static UniValue sendavalancheproof(const Config &config,
     // verification has already been done, a failure likely indicates that there
     // already is a proof with conflicting utxos.
     const avalanche::ProofId &proofid = proof->getId();
-    if (!g_avalanche->getProof(proofid) && !g_avalanche->addProof(proof)) {
+    if (!registerProofIfNeeded(proof)) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
             "The proof has conflicting utxo with an existing proof");

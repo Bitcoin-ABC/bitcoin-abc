@@ -558,11 +558,6 @@ bool Processor::sendHello(CNode *pfrom) const {
     return true;
 }
 
-bool Processor::addProof(const std::shared_ptr<Proof> &proof) {
-    LOCK(cs_peerManager);
-    return peerManager->registerProof(proof);
-}
-
 std::shared_ptr<Proof> Processor::getProof(const ProofId &proofid) const {
     LOCK(cs_peerManager);
     return peerManager->getProof(proofid);
