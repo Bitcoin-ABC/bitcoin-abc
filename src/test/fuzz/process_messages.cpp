@@ -47,7 +47,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         const ServiceFlags service_flags =
             ServiceFlags(fuzzed_data_provider.ConsumeIntegral<uint64_t>());
         const ConnectionType conn_type = fuzzed_data_provider.PickValueInArray(
-            {ConnectionType::INBOUND, ConnectionType::OUTBOUND,
+            {ConnectionType::INBOUND, ConnectionType::OUTBOUND_FULL_RELAY,
              ConnectionType::MANUAL, ConnectionType::FEELER,
              ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH});
         peers.push_back(
