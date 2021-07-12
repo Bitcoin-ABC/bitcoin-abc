@@ -196,7 +196,8 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         wrong_key.generate()
         with node.assert_debug_log(
                 ["Misbehaving",
-                 "peer=1 (0 -> 100) BAN THRESHOLD EXCEEDED: invalid-avahello-signature"]):
+                 "peer=1 (0 -> 100) DISCOURAGE THRESHOLD EXCEEDED: "
+                 "invalid-avahello-signature"]):
             bad_interface.send_avahello(interface_delegation_hex, wrong_key)
             bad_interface.wait_for_disconnect()
 
