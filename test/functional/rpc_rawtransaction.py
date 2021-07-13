@@ -57,6 +57,10 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 3
         self.extra_args = [["-txindex"], ["-txindex"], ["-txindex"]]
+        # whitelist all peers to speed up tx relay / mempool sync
+        for args in self.extra_args:
+            args.append("-whitelist=noban@127.0.0.1")
+
         self.supports_cli = False
 
     def skip_test_if_missing_module(self):
