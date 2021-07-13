@@ -1,6 +1,6 @@
 {
     "name": "cashtab-components",
-    "version": "0.0.4",
+    "version": "1.0.0",
     "description": "Integrate the Cashtab Wallet into your React app with ease.",
     "main": "dist/index",
     "typings": "dist/index",
@@ -44,9 +44,11 @@
     "keywords": [
         "cashtab",
         "bitcoin abc",
+        "ecash",
+        "XEC",
+        "etoken",
         "web payments",
         "react component",
-        "BCHA",
         "cashtab button",
         "crypto payments",
         "crypto"

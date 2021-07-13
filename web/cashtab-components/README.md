@@ -1,6 +1,6 @@
 # Cashtab React Components
 
-Interact with the Cashtab wallet to support BCHA payments in web apps. Download the Cashtab extension [here](https://chrome.google.com/webstore/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag)
+Interact with the Cashtab wallet to support eCash payments in web apps. Download the Cashtab extension [here](https://chrome.google.com/webstore/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag)
 
 This project is based on [badger-components-react](https://github.com/Bitcoin-com/badger-components-react)
 
@@ -14,13 +14,13 @@ Some features from `badger-components-react` are not yet fully supported. Upcomi
 -   [ ] Bip70-style invoices
 -   [ ] Websocket monitoring of payment status
 
-# Build on Bitcoin ABC (BCHA)
+# Build on eCash (XEC)
 
-A set of React components and helpers to integrate Bitcoin ABC (BCHA) and tokens into your app with ease. Integrates with the Cashtab wallet.
+A set of React components and helpers to integrate eCash (XEC) and tokens into your app with ease. Integrates with the Cashtab wallet.
 
 ## Get Started
 
--   [Homepage](https://bitcoinabc.org)
+-   [Homepage](https://e.cash/)
 -   [Component Showcase](https://laughing-villani-8cfcaf.netlify.app/)
 -   [Cashtab Extension](https://chrome.google.com/webstore/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag)
 -   [NPM page](https://www.npmjs.com/package/cashtab-components)

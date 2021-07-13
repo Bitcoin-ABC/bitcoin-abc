@@ -51,10 +51,15 @@ const formatAmount = (amount?: number, decimals?: number): string => {
         return `-.`.padEnd(decimals + 2, '-');
     }
     const baseAmount = new BigNumber(amount);
-    const adjustDecimals = baseAmount
-        .shiftedBy(-1 * decimals)
-        .toFixed(decimals);
-    const removeTrailing = +adjustDecimals + '';
+    const adjustDecimals = baseAmount.shiftedBy(-1 * decimals).toFixed(2);
+    const formatForLargeNum = parseFloat(adjustDecimals).toLocaleString(
+        undefined,
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        },
+    );
+    const removeTrailing = `${formatForLargeNum} `;
 
     return removeTrailing;
 };

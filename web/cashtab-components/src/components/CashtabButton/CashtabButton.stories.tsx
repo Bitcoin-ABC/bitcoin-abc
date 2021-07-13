@@ -20,14 +20,14 @@ export const Standard = Template.bind({});
 Standard.args = {
     price: 0.05,
     currency: 'USD',
-    to: 'bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev',
+    to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
 };
 
 export const MostProps = Template.bind({});
 MostProps.args = {
     price: 0.0025,
     currency: 'GBP',
-    to: 'bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev',
+    to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
     isRepeatable: true,
     repeatTimeout: 4000,
     text: 'My Cash Button',
@@ -39,7 +39,7 @@ MostProps.args = {
 export const Minimal = Template.bind({});
 Minimal.args = {
     amount: 0.01,
-    to: 'bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev',
+    to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
     showAmount: false,
     showQR: true,
 };
@@ -49,7 +49,7 @@ Fiat.args = {
     price: 3.5,
     currency: 'CAD',
     text: 'Pay with Cashtab',
-    to: 'bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev',
+    to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
 };
 
 Fiat.storyName = 'price in fiat';
@@ -58,7 +58,7 @@ export const BCHA = Template.bind({});
 BCHA.args = {
     coinType: Ticker.coinSymbol,
     amount: 0.33,
-    to: 'bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev',
+    to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
 };
 
 BCHA.storyName = `price in ${Ticker.coinSymbol}`;
@@ -68,7 +68,7 @@ SLPA.args = {
     coinType: Ticker.tokenTicker,
     tokenId: tokenIdOptions[0],
     amount: 100,
-    to: 'simpleledger:qqvcsnz9x9nu7vq35vmrkjc7hkfxhhs9nuqw7ew08n',
+    to: 'etoken:qrcl220pxeec78vnchwyh6fsdyf60uv9tcnqnc3hmv',
     showQR: true,
 };
 
@@ -77,7 +77,7 @@ SLPA.storyName = `price in ${Ticker.tokenTicker}`;
 export const StepControlled = Template.bind({});
 StepControlled.args = {
     amount: 0.012,
-    to: 'bitcoincash:qrcl220pxeec78vnchwyh6fsdyf60uv9tcynw3u2ev',
+    to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
     stepControlled: 'fresh',
 };
 
