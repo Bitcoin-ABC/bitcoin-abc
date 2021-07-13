@@ -384,22 +384,21 @@ static UniValue delegateavalancheproof(const Config &config,
 
         if (dg.getProofId() !=
             limitedProofId.computeProofId(dg.getProofMaster())) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                "The supplied delegation does not match the proof");
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "The delegation does not match the proof");
         }
 
         CPubKey auth;
         avalanche::DelegationState dgState;
         if (!dg.verify(dgState, auth)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "The supplied delegation is not valid");
+                               "The delegation is invalid: " +
+                                   dgState.ToString());
         }
 
         if (privkey.GetPubKey() != auth) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                "The supplied private key does not match the delegation");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                               "The private key does not match the delegation");
         }
 
         dgb = std::make_unique<avalanche::DelegationBuilder>(dg);

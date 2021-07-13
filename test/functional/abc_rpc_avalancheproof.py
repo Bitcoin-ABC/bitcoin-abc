@@ -201,7 +201,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         # Invalid delegation
         bad_dg = AvalancheDelegation()
-        assert_raises_rpc_error(-8, "The supplied delegation does not match the proof",
+        assert_raises_rpc_error(-8, "The delegation does not match the proof",
                                 node.delegateavalancheproof,
                                 limited_id_hex,
                                 bytes_to_wif(privkey.get_bytes()),
@@ -213,7 +213,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         bad_dg.limited_proofid = proofobj.limited_proofid
         bad_dg.proof_master = proofobj.master
         bad_dg.levels = [AvalancheDelegationLevel()]
-        assert_raises_rpc_error(-8, "The supplied delegation is not valid",
+        assert_raises_rpc_error(-8, "The delegation is invalid",
                                 node.delegateavalancheproof,
                                 limited_id_hex,
                                 bytes_to_wif(privkey.get_bytes()),
@@ -222,7 +222,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                                 )
 
         # Wrong privkey, match the proof but does not match the delegation
-        assert_raises_rpc_error(-8, "The supplied private key does not match the delegation",
+        assert_raises_rpc_error(-5, "The private key does not match the delegation",
                                 node.delegateavalancheproof,
                                 limited_id_hex,
                                 bytes_to_wif(privkey.get_bytes()),
