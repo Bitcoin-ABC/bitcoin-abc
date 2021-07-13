@@ -59,6 +59,20 @@ static bool registerProofIfNeeded(std::shared_ptr<avalanche::Proof> proof) {
     });
 }
 
+static void verifyDelegationOrThrow(avalanche::Delegation &dg,
+                                    const std::string &dgHex, CPubKey &auth) {
+    bilingual_str error;
+    if (!avalanche::Delegation::FromHex(dg, dgHex, error)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+    }
+
+    avalanche::DelegationState state;
+    if (!dg.verify(state, auth)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "The delegation is invalid: " + state.ToString());
+    }
+}
+
 static UniValue addavalanchenode(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -71,6 +85,8 @@ static UniValue addavalanchenode(const Config &config,
              "The public key of the node."},
             {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "Proof that the node is not a sybil."},
+            {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
+             "The proof delegation the the node public key"},
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the addition succeeded or not."},
@@ -96,12 +112,28 @@ static UniValue addavalanchenode(const Config &config,
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
     }
 
+    const avalanche::ProofId &proofid = proof->getId();
     if (key != proof->getMaster()) {
-        // TODO: we want to provide a proper delegation.
-        return false;
+        if (request.params.size() < 4 || request.params[3].isNull()) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                               "The public key does not match the proof");
+        }
+
+        avalanche::Delegation dg;
+        CPubKey auth;
+        verifyDelegationOrThrow(dg, request.params[3].get_str(), auth);
+
+        if (dg.getProofId() != proofid) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "The delegation does not match the proof");
+        }
+
+        if (key != auth) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                               "The public key does not match the delegation");
+        }
     }
 
-    const avalanche::ProofId &proofid = proof->getId();
     if (!registerProofIfNeeded(proof)) {
         return false;
     }
@@ -376,24 +408,13 @@ static UniValue delegateavalancheproof(const Config &config,
     std::unique_ptr<avalanche::DelegationBuilder> dgb;
     if (request.params.size() >= 4 && !request.params[3].isNull()) {
         avalanche::Delegation dg;
-        bilingual_str error;
-        if (!avalanche::Delegation::FromHex(dg, request.params[3].get_str(),
-                                            error)) {
-            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
-        }
+        CPubKey auth;
+        verifyDelegationOrThrow(dg, request.params[3].get_str(), auth);
 
         if (dg.getProofId() !=
             limitedProofId.computeProofId(dg.getProofMaster())) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "The delegation does not match the proof");
-        }
-
-        CPubKey auth;
-        avalanche::DelegationState dgState;
-        if (!dg.verify(dgState, auth)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "The delegation is invalid: " +
-                                   dgState.ToString());
         }
 
         if (privkey.GetPubKey() != auth) {

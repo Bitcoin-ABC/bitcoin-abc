@@ -6,6 +6,14 @@
 
 from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import ECKey
+from test_framework.messages import (
+    AvalancheDelegation,
+    AvalancheDelegationLevel,
+    AvalancheProof,
+    FromHex,
+    hash256,
+    ser_string,
+)
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -47,7 +55,7 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
         nodeid = add_interface_node(node)
 
         def check_addavalanchenode_error(
-                error_code, error_message, proof=proof, pubkey=proof_master):
+                error_code, error_message, proof=proof, pubkey=proof_master, delegation=None):
             assert_raises_rpc_error(
                 error_code,
                 error_message,
@@ -55,6 +63,7 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
                 nodeid,
                 pubkey,
                 proof,
+                delegation,
             )
 
         self.log.info("Invalid proof")
@@ -64,20 +73,78 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
         check_addavalanchenode_error(-22,
                                      "Proof has invalid format",
                                      proof="f000")
-
-        self.log.info("Key mismatch")
-        random_privkey = ECKey()
-        random_privkey.generate()
-        random_pubkey = random_privkey.get_pubkey().get_bytes().hex()
-        assert not node.addavalanchenode(nodeid, random_pubkey, proof)
+        no_stake = node.buildavalancheproof(
+            proof_sequence, proof_expiration, proof_master, [])
+        assert not node.addavalanchenode(nodeid, proof_master, no_stake)
 
         self.log.info("Node doesn't exist")
         assert not node.addavalanchenode(nodeid + 1, proof_master, proof)
 
-        self.log.info("Invalid proof")
-        no_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master, [])
-        assert not node.addavalanchenode(nodeid, proof_master, no_stake)
+        self.log.info("Invalid delegation")
+        dg_privkey = ECKey()
+        dg_privkey.generate()
+        dg_pubkey = dg_privkey.get_pubkey().get_bytes()
+        check_addavalanchenode_error(-22,
+                                     "Delegation must be an hexadecimal string",
+                                     pubkey=dg_pubkey.hex(),
+                                     delegation="not a delegation")
+        check_addavalanchenode_error(-22,
+                                     "Delegation has invalid format",
+                                     pubkey=dg_pubkey.hex(),
+                                     delegation="f000")
+
+        self.log.info("Delegation mismatch with the proof")
+        delegation_wrong_proofid = AvalancheDelegation()
+        check_addavalanchenode_error(-8,
+                                     "The delegation does not match the proof",
+                                     pubkey=dg_pubkey.hex(),
+                                     delegation=delegation_wrong_proofid.serialize().hex())
+
+        proofobj = FromHex(AvalancheProof(), proof)
+        delegation = AvalancheDelegation(
+            limited_proofid=proofobj.limited_proofid,
+            proof_master=proofobj.master,
+        )
+
+        self.log.info("Delegation with bad signature")
+        bad_level = AvalancheDelegationLevel(
+            pubkey=dg_pubkey,
+        )
+        delegation.levels.append(bad_level)
+        check_addavalanchenode_error(-8,
+                                     "The delegation is invalid",
+                                     pubkey=dg_pubkey.hex(),
+                                     delegation=delegation.serialize().hex())
+
+        delegation.levels = []
+        level = AvalancheDelegationLevel(
+            pubkey=dg_pubkey,
+            sig=privkey.sign_schnorr(
+                hash256(
+                    delegation.getid() +
+                    ser_string(dg_pubkey)
+                )
+            )
+        )
+        delegation.levels.append(level)
+
+        self.log.info("Key mismatch with the proof")
+        check_addavalanchenode_error(
+            -5,
+            "The public key does not match the proof",
+            pubkey=dg_pubkey.hex(),
+        )
+
+        self.log.info("Key mismatch with the delegation")
+        random_privkey = ECKey()
+        random_privkey.generate()
+        random_pubkey = random_privkey.get_pubkey()
+        check_addavalanchenode_error(
+            -5,
+            "The public key does not match the delegation",
+            pubkey=random_pubkey.get_bytes().hex(),
+            delegation=delegation.serialize().hex(),
+        )
 
         self.log.info("Happy path")
         assert node.addavalanchenode(nodeid, proof_master, proof)
@@ -99,6 +166,14 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
             "6a547606a7ac14c1b5697f4acc20853b3f99954f4f7b6e9bf8a085616d3adfc7"
         )
         assert node.addavalanchenode(nodeid, hardcoded_pubkey, hardcoded_proof)
+
+        self.log.info("Add a node with a valid delegation")
+        assert node.addavalanchenode(
+            nodeid,
+            dg_pubkey.hex(),
+            proof,
+            delegation.serialize().hex(),
+        )
 
         self.log.info("Several nodes can share a proof")
         nodeid2 = add_interface_node(node)
