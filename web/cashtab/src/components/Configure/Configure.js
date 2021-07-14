@@ -461,7 +461,7 @@ const Configure = () => {
                 {wallet && wallet.mnemonic && (
                     <StyledCollapse>
                         <Panel header="Click to reveal seed phrase" key="1">
-                            <p>
+                            <p className="notranslate">
                                 {wallet && wallet.mnemonic
                                     ? wallet.mnemonic
                                     : ''}
