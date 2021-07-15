@@ -73,6 +73,24 @@ static void verifyDelegationOrThrow(avalanche::Delegation &dg,
     }
 }
 
+static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
+                               const std::string &proofHex) {
+    bilingual_str error;
+    if (!avalanche::Proof::FromHex(proof, proofHex, error)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+    }
+
+    avalanche::ProofValidationState state;
+    {
+        LOCK(cs_main);
+        if (!proof.verify(state,
+                          node.chainman->ActiveChainstate().CoinsTip())) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               "The proof is invalid: " + state.ToString());
+        }
+    }
+}
+
 static UniValue addavalanchenode(const Config &config,
                                  const JSONRPCRequest &request) {
     RPCHelpMan{
@@ -106,11 +124,8 @@ static UniValue addavalanchenode(const Config &config,
     CPubKey key = ParsePubKey(request.params[1]);
 
     auto proof = std::make_shared<avalanche::Proof>();
-    bilingual_str error;
-    if (!avalanche::Proof::FromHex(*proof, request.params[2].get_str(),
-                                   error)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
-    }
+    NodeContext &node = EnsureNodeContext(request.context);
+    verifyProofOrThrow(node, *proof, request.params[2].get_str());
 
     const avalanche::ProofId &proofid = proof->getId();
     if (key != proof->getMaster()) {
@@ -135,10 +150,10 @@ static UniValue addavalanchenode(const Config &config,
     }
 
     if (!registerProofIfNeeded(proof)) {
-        return false;
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           "The proof has conflicting utxos");
     }
 
-    NodeContext &node = EnsureNodeContext(request.context);
     if (!node.connman->ForNode(nodeid, [&](CNode *pnode) {
             // FIXME This is not thread safe, and might cause issues if the
             // unlikely event the peer sends an avahello message at the same
@@ -150,7 +165,9 @@ static UniValue addavalanchenode(const Config &config,
             pnode->m_avalanche_state->pubkey = std::move(key);
             return true;
         })) {
-        return false;
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           strprintf("The node does not exist: %d", nodeid));
+        ;
     }
 
     return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
@@ -555,24 +572,6 @@ static UniValue getrawavalancheproof(const Config &config,
     ret.pushKV("orphan", isOrphan);
 
     return ret;
-}
-
-static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
-                               const std::string &proofHex) {
-    bilingual_str error;
-    if (!avalanche::Proof::FromHex(proof, proofHex, error)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
-    }
-
-    avalanche::ProofValidationState state;
-    {
-        LOCK(cs_main);
-        if (!proof.verify(state,
-                          node.chainman->ActiveChainstate().CoinsTip())) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "The proof is invalid: " + state.ToString());
-        }
-    }
 }
 
 static UniValue sendavalancheproof(const Config &config,

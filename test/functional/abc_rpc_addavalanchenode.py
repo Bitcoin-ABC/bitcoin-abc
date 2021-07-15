@@ -55,7 +55,7 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
         nodeid = add_interface_node(node)
 
         def check_addavalanchenode_error(
-                error_code, error_message, proof=proof, pubkey=proof_master, delegation=None):
+                error_code, error_message, nodeid=nodeid, proof=proof, pubkey=proof_master, delegation=None):
             assert_raises_rpc_error(
                 error_code,
                 error_message,
@@ -75,10 +75,14 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
                                      proof="f000")
         no_stake = node.buildavalancheproof(
             proof_sequence, proof_expiration, proof_master, [])
-        assert not node.addavalanchenode(nodeid, proof_master, no_stake)
+        check_addavalanchenode_error(-8,
+                                     "The proof is invalid: no-stake",
+                                     proof=no_stake)
 
         self.log.info("Node doesn't exist")
-        assert not node.addavalanchenode(nodeid + 1, proof_master, proof)
+        check_addavalanchenode_error(-8,
+                                     f"The node does not exist: {nodeid + 1}",
+                                     nodeid=nodeid + 1)
 
         self.log.info("Invalid delegation")
         dg_privkey = ECKey()
