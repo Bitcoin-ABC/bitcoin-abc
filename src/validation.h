@@ -140,6 +140,7 @@ extern RecursiveMutex cs_main;
 typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
 extern Mutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
+/** Used to notify getblocktemplate RPC of new tips. */
 extern uint256 g_best_block;
 extern bool fRequireStandard;
 extern bool fCheckBlockIndex;
@@ -1196,12 +1197,6 @@ private:
  * *Background IBD chainstate*: an IBD chainstate for which the
  *    IBD process is happening in the background while use of the
  *    active (snapshot) chainstate allows the rest of the system to function.
- *
- * *Validated chainstate*: the most-work chainstate which has been validated
- *   locally via initial block download. This will be the snapshot chainstate
- *   if a snapshot was loaded and all blocks up to the snapshot starting point
- *   have been downloaded and validated (via background validation), otherwise
- *   it will be the IBD chainstate.
  */
 class ChainstateManager {
 private:
@@ -1319,19 +1314,6 @@ public:
 
     //! Is there a snapshot in use and has it been fully validated?
     bool IsSnapshotValidated() const { return m_snapshot_validated; }
-
-    //! @returns true if this chainstate is being used to validate an active
-    //!          snapshot in the background.
-    bool IsBackgroundIBD(CChainState *chainstate) const;
-
-    //! Return the most-work chainstate that has been fully validated.
-    //!
-    //! During background validation of a snapshot, this is the IBD chain. After
-    //! background validation has completed, this is the snapshot chain.
-    CChainState &ValidatedChainstate() const;
-
-    CChain &ValidatedChain() const { return ValidatedChainstate().m_chain; }
-    CBlockIndex *ValidatedTip() const { return ValidatedChain().Tip(); }
 
     /**
      * Process an incoming block. This only returns after the best known valid

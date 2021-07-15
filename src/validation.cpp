@@ -6087,20 +6087,6 @@ bool ChainstateManager::IsSnapshotActive() const {
            m_active_chainstate == m_snapshot_chainstate.get();
 }
 
-CChainState &ChainstateManager::ValidatedChainstate() const {
-    LOCK(::cs_main);
-    if (m_snapshot_chainstate && IsSnapshotValidated()) {
-        return *m_snapshot_chainstate.get();
-    }
-    assert(m_ibd_chainstate);
-    return *m_ibd_chainstate.get();
-}
-
-bool ChainstateManager::IsBackgroundIBD(CChainState *chainstate) const {
-    LOCK(::cs_main);
-    return (m_snapshot_chainstate && chainstate == m_ibd_chainstate.get());
-}
-
 void ChainstateManager::Unload() {
     for (CChainState *chainstate : this->GetAll()) {
         chainstate->m_chain.SetTip(nullptr);
