@@ -177,11 +177,11 @@ void CTxMemPool::UpdateTransactionsFromBlock(
 }
 
 bool CTxMemPool::CalculateAncestorsAndCheckLimits(
-    const CTxMemPoolEntry &entry, setEntries &setAncestors,
+    size_t entry_size, size_t entry_count, setEntries &setAncestors,
     CTxMemPoolEntry::Parents &staged_ancestors, uint64_t limitAncestorCount,
     uint64_t limitAncestorSize, uint64_t limitDescendantCount,
     uint64_t limitDescendantSize, std::string &errString) const {
-    size_t totalSizeWithAncestors = entry.GetTxSize();
+    size_t totalSizeWithAncestors = entry_size;
 
     while (!staged_ancestors.empty()) {
         const CTxMemPoolEntry &stage = staged_ancestors.begin()->get();
@@ -191,7 +191,7 @@ bool CTxMemPool::CalculateAncestorsAndCheckLimits(
         staged_ancestors.erase(stage);
         totalSizeWithAncestors += stageit->GetTxSize();
 
-        if (stageit->GetSizeWithDescendants() + entry.GetTxSize() >
+        if (stageit->GetSizeWithDescendants() + entry_size >
             limitDescendantSize) {
             errString = strprintf(
                 "exceeds descendant size limit for tx %s [limit: %u]",
@@ -199,7 +199,8 @@ bool CTxMemPool::CalculateAncestorsAndCheckLimits(
             return false;
         }
 
-        if (stageit->GetCountWithDescendants() + 1 > limitDescendantCount) {
+        if (stageit->GetCountWithDescendants() + entry_count >
+            limitDescendantCount) {
             errString = strprintf("too many descendants for tx %s [limit: %u]",
                                   stageit->GetTx().GetId().ToString(),
                                   limitDescendantCount);
@@ -221,7 +222,7 @@ bool CTxMemPool::CalculateAncestorsAndCheckLimits(
             if (setAncestors.count(parent_it) == 0) {
                 staged_ancestors.insert(parent);
             }
-            if (staged_ancestors.size() + setAncestors.size() + 1 >
+            if (staged_ancestors.size() + setAncestors.size() + entry_count >
                 limitAncestorCount) {
                 errString =
                     strprintf("too many unconfirmed ancestors [limit: %u]",
@@ -232,6 +233,46 @@ bool CTxMemPool::CalculateAncestorsAndCheckLimits(
     }
 
     return true;
+}
+
+bool CTxMemPool::CheckPackageLimits(const Package &package,
+                                    uint64_t limitAncestorCount,
+                                    uint64_t limitAncestorSize,
+                                    uint64_t limitDescendantCount,
+                                    uint64_t limitDescendantSize,
+                                    std::string &errString) const {
+    CTxMemPoolEntry::Parents staged_ancestors;
+    size_t total_size = 0;
+    for (const auto &tx : package) {
+        total_size += GetVirtualTransactionSize(*tx);
+        for (const auto &input : tx->vin) {
+            std::optional<txiter> piter = GetIter(input.prevout.GetTxId());
+            if (piter) {
+                staged_ancestors.insert(**piter);
+                if (staged_ancestors.size() + package.size() >
+                    limitAncestorCount) {
+                    errString =
+                        strprintf("too many unconfirmed parents [limit: %u]",
+                                  limitAncestorCount);
+                    return false;
+                }
+            }
+        }
+    }
+    // When multiple transactions are passed in, the ancestors and descendants
+    // of all transactions considered together must be within limits even if
+    // they are not interdependent. This may be stricter than the limits for
+    // each individual transaction.
+    setEntries setAncestors;
+    const auto ret = CalculateAncestorsAndCheckLimits(
+        total_size, package.size(), setAncestors, staged_ancestors,
+        limitAncestorCount, limitAncestorSize, limitDescendantCount,
+        limitDescendantSize, errString);
+    // It's possible to overestimate the ancestor/descendant totals.
+    if (!ret) {
+        errString.insert(0, "possibly ");
+    }
+    return ret;
 }
 
 bool CTxMemPool::CalculateMemPoolAncestors(
@@ -267,9 +308,9 @@ bool CTxMemPool::CalculateMemPoolAncestors(
     }
 
     return CalculateAncestorsAndCheckLimits(
-        entry, setAncestors, staged_ancestors, limitAncestorCount,
-        limitAncestorSize, limitDescendantCount, limitDescendantSize,
-        errString);
+        entry.GetTxSize(), /* entry_count */ 1, setAncestors, staged_ancestors,
+        limitAncestorCount, limitAncestorSize, limitDescendantCount,
+        limitDescendantSize, errString);
 }
 
 void CTxMemPool::UpdateAncestorsOf(bool add, txiter it,

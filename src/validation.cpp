@@ -771,7 +771,6 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         // Make the coins created by this transaction available for subsequent
         // transactions in the package to spend.
         m_viewmempool.PackageAddTransaction(ws.m_ptx);
-
         if (args.m_test_accept) {
             // When test_accept=true, transactions that pass PreChecks
             // are valid because there are no further mempool checks (passing
@@ -779,6 +778,23 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Success(ws.m_base_fees));
         }
+    }
+
+    // Apply package mempool ancestor/descendant limits. Skip if there is only
+    // one transaction, because it's unnecessary. Also, CPFP carve out can
+    // increase the limit for individual transactions, but this exemption is
+    // not extended to packages in CheckPackageLimits().
+    std::string err_string;
+    if (txns.size() > 1 &&
+        !m_pool.CheckPackageLimits(txns, m_limit_ancestors,
+                                   m_limit_ancestor_size, m_limit_descendants,
+                                   m_limit_descendant_size, err_string)) {
+        // All transactions must have individually passed mempool ancestor and
+        // descendant limits inside of PreChecks(), so this is separate from an
+        // individual transaction error.
+        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
+                              "package-mempool-limits", err_string);
+        return PackageMempoolAcceptResult(package_state, std::move(results));
     }
 
     return PackageMempoolAcceptResult(package_state, std::move(results));

@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """A limited-functionality wallet, which may replace a real wallet in tests"""
 
+from copy import deepcopy
 from decimal import Decimal
 from typing import Optional
 
@@ -18,9 +19,16 @@ from test_framework.messages import (
     CTxIn,
     CTxOut,
     FromHex,
+    ToHex,
 )
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, satoshi_round
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than_or_equal,
+    satoshi_round,
+)
+
+DEFAULT_FEE = Decimal("100.00")
 
 
 class MiniWallet:
@@ -91,14 +99,14 @@ class MiniWallet:
 
 
 def make_chain(node, address, privkeys, parent_txid, parent_value, n=0,
-               parent_locking_script=None):
+               parent_locking_script=None, fee=DEFAULT_FEE):
     """Build a transaction that spends parent_txid.vout[n] and produces one
     output with amount = parent_value with a fee deducted.
     Return tuple (CTransaction object, raw hex, nValue, scriptPubKey of the
     output created).
     """
     inputs = [{"txid": parent_txid, "vout": n}]
-    my_value = parent_value - Decimal("100.00")
+    my_value = parent_value - fee
     outputs = {address: my_value}
     rawtx = node.createrawtransaction(inputs, outputs)
     prevtxs = [{
@@ -115,12 +123,12 @@ def make_chain(node, address, privkeys, parent_txid, parent_value, n=0,
 
 
 def create_child_with_parents(node, address, privkeys, parents_tx, values,
-                              locking_scripts):
+                              locking_scripts, fee=DEFAULT_FEE):
     """Creates a transaction that spends the first output of each parent in parents_tx."""
     num_parents = len(parents_tx)
     total_value = sum(values)
     inputs = [{"txid": tx.get_id(), "vout": 0} for tx in parents_tx]
-    outputs = {address: total_value - num_parents * Decimal("100.00")}
+    outputs = {address: total_value - fee}
     rawtx_child = node.createrawtransaction(inputs, outputs)
     prevtxs = []
     for i in range(num_parents):
@@ -152,3 +160,23 @@ def create_raw_chain(node, first_coin, address, privkeys, chain_length=50):
         chain_txns.append(tx)
 
     return (chain_hex, chain_txns)
+
+
+def bulk_transaction(
+        tx: CTransaction, node, target_size: int, privkeys=None, prevtxs=None
+) -> CTransaction:
+    """Return a padded and signed transaction. The original transaction is left
+    unaltered.
+    If privkeys is not specified, it is assumed that the transaction has an
+    anyone-can-spend output as unique output.
+    """
+    tx_heavy = deepcopy(tx)
+    pad_tx(tx_heavy, target_size)
+    assert_greater_than_or_equal(tx_heavy.billable_size(), target_size)
+    if privkeys is not None:
+        signed_tx = node.signrawtransactionwithkey(
+            ToHex(tx_heavy), privkeys, prevtxs)
+        return FromHex(CTransaction(), signed_tx["hex"])
+    # OP_TRUE
+    tx_heavy.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
+    return tx_heavy
