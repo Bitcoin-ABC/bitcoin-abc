@@ -93,7 +93,7 @@ static UniValue addavalanchenode(const Config &config,
     bilingual_str error;
     if (!avalanche::Proof::FromHex(*proof, request.params[2].get_str(),
                                    error)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, error.original);
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
     }
 
     if (key != proof->getMaster()) {

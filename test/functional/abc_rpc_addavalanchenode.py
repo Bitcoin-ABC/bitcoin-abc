@@ -58,10 +58,10 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
             )
 
         self.log.info("Invalid proof")
-        check_addavalanchenode_error(-8,
+        check_addavalanchenode_error(-22,
                                      "Proof must be an hexadecimal string",
                                      proof="not a proof")
-        check_addavalanchenode_error(-8,
+        check_addavalanchenode_error(-22,
                                      "Proof has invalid format",
                                      proof="f000")
 
