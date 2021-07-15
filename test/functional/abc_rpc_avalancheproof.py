@@ -139,31 +139,6 @@ class AvalancheProofTest(BitcoinTestFramework):
         wait_for_proof(self.nodes[1], f"{proofobj.proofid:0{64}x}",
                        expect_orphan=False)
 
-        if self.is_wallet_compiled():
-            self.log.info(
-                "A proof using the maximum number of stakes is accepted...")
-
-            new_blocks = node.generate(AVALANCHE_MAX_PROOF_STAKES // 10 + 1)
-            # confirm the coinbase UTXOs
-            node.generate(101)
-            too_many_stakes = create_stakes(
-                node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
-            maximum_stakes = too_many_stakes[:-1]
-            good_proof = node.buildavalancheproof(
-                proof_sequence, proof_expiration,
-                proof_master, maximum_stakes)
-            peerid1 = add_interface_node(node)
-            assert node.addavalanchenode(peerid1, proof_master, good_proof)
-
-            self.log.info(
-                "A proof using too many stakes should be rejected...")
-            too_many_utxos = node.buildavalancheproof(
-                proof_sequence, proof_expiration,
-                proof_master, too_many_stakes)
-            peerid2 = add_interface_node(node)
-            assert not node.addavalanchenode(
-                peerid2, proof_master, too_many_utxos)
-
         self.log.info("Generate delegations for the proof")
 
         # Stack up a few delegation levels
@@ -283,6 +258,27 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         self.log.info(
             "Check the verifyavalancheproof and sendavalancheproof RPCs")
+
+        if self.is_wallet_compiled():
+            self.log.info(
+                "Check a proof with the maximum number of UTXO is valid")
+            new_blocks = node.generate(AVALANCHE_MAX_PROOF_STAKES // 10 + 1)
+            # confirm the coinbase UTXOs
+            node.generate(101)
+            too_many_stakes = create_stakes(
+                node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
+            maximum_stakes = too_many_stakes[:-1]
+
+            good_proof = node.buildavalancheproof(
+                proof_sequence, proof_expiration,
+                proof_master, maximum_stakes)
+
+            too_many_utxos = node.buildavalancheproof(
+                proof_sequence, proof_expiration,
+                proof_master, too_many_stakes)
+
+            assert node.verifyavalancheproof(good_proof)
+
         for rpc in [node.verifyavalancheproof, node.sendavalancheproof]:
             assert_raises_rpc_error(-22, "Proof must be an hexadecimal string",
                                     rpc, "f00")
