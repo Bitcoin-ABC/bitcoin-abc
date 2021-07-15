@@ -4394,25 +4394,26 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         // addProof should not be called while cs_proofrequest because it holds
         // cs_main and that creates a potential deadlock during shutdown
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-            if (pm.registerProof(proof)) {
-                WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
-                RelayProof(proofid, m_connman);
 
-                LogPrint(BCLog::NET,
-                         "New avalanche proof: peer=%d, proofid %s\n", nodeid,
-                         proofid.ToString());
-            } else {
-                // If the proof couldn't be added, it can be either orphan or
-                // invalid. In the latter case we should increase the ban score.
-                // TODO improve the ban reason by printing the validation state
-                if (!pm.getOrphan(proofid)) {
-                    WITH_LOCK(cs_rejectedProofs,
-                              rejectedProofs->insert(proofid));
-                    Misbehaving(nodeid, 100, "invalid-avaproof");
-                }
+        if (g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                return pm.registerProof(proof);
+            })) {
+            WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
+            RelayProof(proofid, m_connman);
+
+            LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
+                     nodeid, proofid.ToString());
+        } else {
+            // If the proof couldn't be added, it can be either orphan or
+            // invalid. In the latter case we should increase the ban score.
+            // TODO improve the ban reason by printing the validation state
+            if (!g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                    return pm.getOrphan(proofid);
+                })) {
+                WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
+                Misbehaving(nodeid, 100, "invalid-avaproof");
             }
-        });
+        }
         return;
     }
 
