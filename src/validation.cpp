@@ -121,8 +121,6 @@ arith_uint256 nMinimumChainWork;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB);
 
-CTxMemPool g_mempool;
-
 // Internal stuff
 namespace {
 CBlockIndex *pindexBestInvalid = nullptr;

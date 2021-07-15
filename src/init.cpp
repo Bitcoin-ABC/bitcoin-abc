@@ -317,7 +317,7 @@ void Shutdown(NodeContext &node) {
     GetMainSignals().UnregisterBackgroundSignalScheduler();
     globalVerifyHandle.reset();
     ECC_Stop();
-    node.mempool = nullptr;
+    node.mempool.reset();
     node.chainman = nullptr;
     node.scheduler.reset();
 
@@ -2284,7 +2284,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // connection manager, wallet, or RPC threads, which are all started after
     // this, may use it from the node context.
     assert(!node.mempool);
-    node.mempool = &::g_mempool;
+    node.mempool = std::make_unique<CTxMemPool>();
     if (node.mempool) {
         int ratio = std::min<int>(
             std::max<int>(
@@ -2563,7 +2563,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 chainman.m_total_coinstip_cache = nCoinCacheUsage;
                 chainman.m_total_coinsdb_cache = nCoinDBCache;
 
-                UnloadBlockIndex(node.mempool);
+                UnloadBlockIndex(node.mempool.get());
 
                 // new CBlockTreeDB tries to delete the existing file, which
                 // fails if it's still open from the previous loop. Close it

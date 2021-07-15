@@ -104,7 +104,7 @@ static CTxMemPool *GetMemPool(const util::Ref &context, HTTPRequest *req) {
         RESTERR(req, HTTP_NOT_FOUND, "Mempool disabled or instance not found");
         return nullptr;
     }
-    return node->mempool;
+    return node->mempool.get();
 }
 
 static RetFormat ParseDataFormat(std::string &param,
@@ -446,7 +446,7 @@ static bool rest_tx(Config &config, const util::Ref &context, HTTPRequest *req,
     }
     BlockHash hashBlock;
     const CTransactionRef tx =
-        GetTransaction(/* block_index */ nullptr, node->mempool, txid,
+        GetTransaction(/* block_index */ nullptr, node->mempool.get(), txid,
                        Params().GetConsensus(), hashBlock);
     if (!tx) {
         return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");

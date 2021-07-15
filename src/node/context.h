@@ -34,8 +34,7 @@ class ChainClient;
 //! be used without pulling in unwanted dependencies or functionality.
 struct NodeContext {
     std::unique_ptr<CConnman> connman;
-    // Currently a raw pointer because the memory is not managed by this struct
-    CTxMemPool *mempool{nullptr};
+    std::unique_ptr<CTxMemPool> mempool;
     std::unique_ptr<PeerManager> peerman;
     // Currently a raw pointer because the memory is not managed by this struct
     ChainstateManager *chainman{nullptr};

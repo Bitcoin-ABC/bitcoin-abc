@@ -177,7 +177,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
 
     pblocktree.reset(new CBlockTreeDB(1 << 20, true));
 
-    m_node.mempool = &::g_mempool;
+    m_node.mempool = std::make_unique<CTxMemPool>();
     m_node.mempool->setSanityCheck(1.0);
 
     m_node.chainman = &::g_chainman;
@@ -229,8 +229,8 @@ TestingSetup::~TestingSetup() {
     m_node.connman.reset();
     m_node.banman.reset();
     m_node.args = nullptr;
-    UnloadBlockIndex(m_node.mempool);
-    m_node.mempool = nullptr;
+    UnloadBlockIndex(m_node.mempool.get());
+    m_node.mempool.reset();
     m_node.scheduler.reset();
     m_node.chainman->Reset();
     m_node.chainman = nullptr;

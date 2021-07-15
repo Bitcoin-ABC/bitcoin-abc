@@ -129,7 +129,6 @@ static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 enum class SynchronizationState { INIT_REINDEX, INIT_DOWNLOAD, POST_INIT };
 
 extern RecursiveMutex cs_main;
-extern CTxMemPool g_mempool;
 typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
 extern Mutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;

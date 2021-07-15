@@ -232,8 +232,9 @@ static UniValue getrawtransaction(const Config &config,
     }
 
     BlockHash hash_block;
-    const CTransactionRef tx = GetTransaction(
-        blockindex, node.mempool, txid, params.GetConsensus(), hash_block);
+    const CTransactionRef tx =
+        GetTransaction(blockindex, node.mempool.get(), txid,
+                       params.GetConsensus(), hash_block);
     if (!tx) {
         std::string errmsg;
         if (blockindex) {
