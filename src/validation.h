@@ -311,7 +311,8 @@ struct PackageMempoolAcceptResult {
      * Map from txid to finished MempoolAcceptResults. The client is
      * responsible for keeping track of the transaction objects themselves.
      * If a result is not present, it means validation was unfinished for that
-     * transaction.
+     * transaction. If there was a package-wide error (see result in m_state),
+     * m_tx_results will be empty.
      */
     std::map<const TxId, const MempoolAcceptResult> m_tx_results;
 
@@ -349,7 +350,7 @@ AcceptToMemoryPool(CChainState &active_chainstate, const Config &config,
  * @param[in]  txns   Group of transactions which may be independent or contain
  *     parent-child dependencies. The transactions must not conflict, with each
  *     other, i.e. must not spend the same inputs. If any dependencies exist,
- *     parents must appear before children.
+ *     parents must appear anywhere in the list before their children.
  * @returns a PackageMempoolAcceptResult which includes a MempoolAcceptResult
  *     for each transaction. If a transaction fails, validation will exit early
  *     and some results may be missing.

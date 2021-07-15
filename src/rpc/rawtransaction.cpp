@@ -1092,8 +1092,8 @@ static RPCHelpMan testmempoolaccept() {
             "transaction in the input array.\n"
             "Returns results for each transaction in the same order they were "
             "passed in.\n"
-            "It is possible for transactions to not be fully validated "
-            "('allowed' unset) if another transaction failed.\n",
+            "Transactions that cannot be fully validated due to failures in "
+            "other transactions will not contain an 'allowed' result.\n",
             {
                 {RPCResult::Type::OBJ,
                  "",
