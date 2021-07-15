@@ -599,6 +599,20 @@ private:
      */
     std::set<TxId> m_unbroadcast_txids GUARDED_BY(cs);
 
+    /**
+     * Helper function to populate setAncestors with all the ancestors of entry
+     * and apply ancestor and descendant limits.
+     * param@[out]  setAncestors        Will be populated with all mempool
+     *                                  ancestors of entry.
+     * param@[in]   staged_ancestors    Should contain mempool parents of entry.
+     */
+    bool CalculateAncestorsAndCheckLimits(
+        const CTxMemPoolEntry &entry, setEntries &setAncestors,
+        CTxMemPoolEntry::Parents &staged_ancestors, uint64_t limitAncestorCount,
+        uint64_t limitAncestorSize, uint64_t limitDescendantCount,
+        uint64_t limitDescendantSize, std::string &errString) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
+
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx GUARDED_BY(cs);
     std::map<TxId, Amount> mapDeltas GUARDED_BY(cs);

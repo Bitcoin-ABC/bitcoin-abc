@@ -185,38 +185,11 @@ void CTxMemPool::UpdateTransactionsFromBlock(
     }
 }
 
-bool CTxMemPool::CalculateMemPoolAncestors(
+bool CTxMemPool::CalculateAncestorsAndCheckLimits(
     const CTxMemPoolEntry &entry, setEntries &setAncestors,
-    uint64_t limitAncestorCount, uint64_t limitAncestorSize,
-    uint64_t limitDescendantCount, uint64_t limitDescendantSize,
-    std::string &errString, bool fSearchForParents /* = true */) const {
-    CTxMemPoolEntry::Parents staged_ancestors;
-    const CTransaction &tx = entry.GetTx();
-
-    if (fSearchForParents) {
-        // Get parents of this transaction that are in the mempool
-        // GetMemPoolParents() is only valid for entries in the mempool, so we
-        // iterate mapTx to find parents.
-        for (const CTxIn &in : tx.vin) {
-            std::optional<txiter> piter = GetIter(in.prevout.GetTxId());
-            if (!piter) {
-                continue;
-            }
-            staged_ancestors.insert(**piter);
-            if (staged_ancestors.size() + 1 > limitAncestorCount) {
-                errString =
-                    strprintf("too many unconfirmed parents [limit: %u]",
-                              limitAncestorCount);
-                return false;
-            }
-        }
-    } else {
-        // If we're not searching for parents, we require this to be an entry in
-        // the mempool already.
-        txiter it = mapTx.iterator_to(entry);
-        staged_ancestors = it->GetMemPoolParentsConst();
-    }
-
+    CTxMemPoolEntry::Parents &staged_ancestors, uint64_t limitAncestorCount,
+    uint64_t limitAncestorSize, uint64_t limitDescendantCount,
+    uint64_t limitDescendantSize, std::string &errString) const {
     size_t totalSizeWithAncestors = entry.GetTxSize();
 
     while (!staged_ancestors.empty()) {
@@ -268,6 +241,44 @@ bool CTxMemPool::CalculateMemPoolAncestors(
     }
 
     return true;
+}
+
+bool CTxMemPool::CalculateMemPoolAncestors(
+    const CTxMemPoolEntry &entry, setEntries &setAncestors,
+    uint64_t limitAncestorCount, uint64_t limitAncestorSize,
+    uint64_t limitDescendantCount, uint64_t limitDescendantSize,
+    std::string &errString, bool fSearchForParents /* = true */) const {
+    CTxMemPoolEntry::Parents staged_ancestors;
+    const CTransaction &tx = entry.GetTx();
+
+    if (fSearchForParents) {
+        // Get parents of this transaction that are in the mempool
+        // GetMemPoolParents() is only valid for entries in the mempool, so we
+        // iterate mapTx to find parents.
+        for (const CTxIn &in : tx.vin) {
+            std::optional<txiter> piter = GetIter(in.prevout.GetTxId());
+            if (!piter) {
+                continue;
+            }
+            staged_ancestors.insert(**piter);
+            if (staged_ancestors.size() + 1 > limitAncestorCount) {
+                errString =
+                    strprintf("too many unconfirmed parents [limit: %u]",
+                              limitAncestorCount);
+                return false;
+            }
+        }
+    } else {
+        // If we're not searching for parents, we require this to be an entry in
+        // the mempool already.
+        txiter it = mapTx.iterator_to(entry);
+        staged_ancestors = it->GetMemPoolParentsConst();
+    }
+
+    return CalculateAncestorsAndCheckLimits(
+        entry, setAncestors, staged_ancestors, limitAncestorCount,
+        limitAncestorSize, limitDescendantCount, limitDescendantSize,
+        errString);
 }
 
 void CTxMemPool::UpdateAncestorsOf(bool add, txiter it,
