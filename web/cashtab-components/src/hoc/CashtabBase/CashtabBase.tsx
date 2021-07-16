@@ -179,6 +179,11 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
             if (walletProviderStatus) {
                 this.setState({ step: 'fresh' });
 
+                // Do not pass a token quantity to send, this is not yet supported in Cashtab
+                if (coinType === Ticker.tokenName) {
+                    return;
+                }
+
                 return window.postMessage(
                     {
                         type: 'FROM_PAGE',
