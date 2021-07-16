@@ -36,7 +36,7 @@ PATTERN_ONION = re.compile(
 
 # Used to only select nodes with a user agent string compatible with the
 # BCH/UAHF specification.
-PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0.(22|23).(\d+)\(.+\)/)")
+PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0.(23|24).(\d+)\(.+\)/)")
 
 
 def parseline(line):
