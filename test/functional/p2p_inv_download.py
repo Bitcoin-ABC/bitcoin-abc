@@ -267,7 +267,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(
             int(time.time()) + context.constants.getdata_interval + 1)
         peer_fallback.wait_until(
-            lambda: peer_fallback.getdata_count >= 1, timeout=1)
+            lambda: peer_fallback.getdata_count >= 1)
         with p2p_lock:
             assert_equal(peer_fallback.getdata_count, 1)
         # reset mocktime
@@ -293,7 +293,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer_disconnect.peer_disconnect()
         peer_disconnect.wait_for_disconnect()
         peer_fallback.wait_until(
-            lambda: peer_fallback.getdata_count >= 1, timeout=1)
+            lambda: peer_fallback.getdata_count >= 1)
         with p2p_lock:
             assert_equal(peer_fallback.getdata_count, 1)
 
@@ -318,7 +318,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         peer_notfound.send_and_ping(msg_notfound(
             vec=[CInv(context.inv_type, 0xffdd)]))
         peer_fallback.wait_until(
-            lambda: peer_fallback.getdata_count >= 1, timeout=1)
+            lambda: peer_fallback.getdata_count >= 1)
         with p2p_lock:
             assert_equal(peer_fallback.getdata_count, 1)
 
@@ -331,7 +331,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             ['-whitelist=noban@127.0.0.1'])
         peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
         peer.send_message(msg_inv([CInv(t=context.inv_type, h=0xff00ff00)]))
-        peer.wait_until(lambda: peer.getdata_count >= 1, timeout=1)
+        peer.wait_until(lambda: peer.getdata_count >= 1)
         with p2p_lock:
             assert_equal(peer.getdata_count, 1)
 
