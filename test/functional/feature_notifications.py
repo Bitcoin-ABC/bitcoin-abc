@@ -6,7 +6,7 @@
 """Test the -alertnotify, -blocknotify and -walletnotify options."""
 import os
 
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -61,7 +61,7 @@ class NotificationsTest(BitcoinTestFramework):
         blocks = self.nodes[1].generatetoaddress(
             block_count,
             self.nodes[1].getnewaddress() if self.is_wallet_compiled()
-            else ADDRESS_BCHREG_UNSPENDABLE
+            else ADDRESS_ECREG_UNSPENDABLE
         )
 
         # wait at most 10 seconds for expected number of files before reading
@@ -118,9 +118,9 @@ class NotificationsTest(BitcoinTestFramework):
         # Create an invalid chain and ensure the node warns.
         self.log.info("test -alertnotify for forked chain")
         fork_block = self.nodes[0].getbestblockhash()
-        self.nodes[0].generatetoaddress(1, ADDRESS_BCHREG_UNSPENDABLE)
+        self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
         invalid_block = self.nodes[0].getbestblockhash()
-        self.nodes[0].generatetoaddress(7, ADDRESS_BCHREG_UNSPENDABLE)
+        self.nodes[0].generatetoaddress(7, ADDRESS_ECREG_UNSPENDABLE)
 
         # Invalidate a large branch, which should trigger an alert.
         self.nodes[0].invalidateblock(invalid_block)

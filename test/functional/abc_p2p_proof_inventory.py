@@ -11,7 +11,7 @@ from test_framework.avatools import (
     get_proof_ids,
     wait_for_proof,
 )
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.key import ECKey, bytes_to_wif
 from test_framework.messages import (
     AvalancheProof,
@@ -266,7 +266,7 @@ class ProofInventoryTest(BitcoinTestFramework):
                 "txid": "{:064x}".format(utxo.hash),
                 "vout": utxo.n
             }],
-            outputs={ADDRESS_BCHREG_UNSPENDABLE: 25_000_000 - 250.00},
+            outputs={ADDRESS_ECREG_UNSPENDABLE: 25_000_000 - 250.00},
         )
         signed_tx = node.signrawtransactionwithkey(
             hexstring=raw_tx,

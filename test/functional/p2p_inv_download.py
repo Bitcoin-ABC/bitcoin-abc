@@ -6,7 +6,7 @@
 Test inventory download behavior
 """
 
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import wait_for_proof
 from test_framework.key import ECKey, bytes_to_wif
 from test_framework.messages import (
@@ -170,7 +170,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
                 "txid": self.nodes[0].getblock(self.nodes[0].getblockhash(1))['tx'][0],
                 "vout": 0
             }],
-            outputs={ADDRESS_BCHREG_UNSPENDABLE: 50000000 - 250.00},
+            outputs={ADDRESS_ECREG_UNSPENDABLE: 50000000 - 250.00},
         )
         tx = self.nodes[0].signrawtransactionwithkey(
             hexstring=tx,

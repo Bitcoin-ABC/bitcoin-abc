@@ -10,7 +10,7 @@ proof exchange.
 
 import time
 
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
     get_ava_p2p_interface,
     create_coinbase_stakes,
@@ -251,7 +251,7 @@ class AvalancheTest(BitcoinTestFramework):
         # Change the address to make sure we don't generate a block identical
         # to the one we just invalidated. Can be generate(1) after D9694 or
         # D9697 is landed.
-        forked_tip = node.generatetoaddress(1, ADDRESS_BCHREG_UNSPENDABLE)[0]
+        forked_tip = node.generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)[0]
         wait_until(lambda: node.getbestblockhash() == forked_tip)
 
         wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)

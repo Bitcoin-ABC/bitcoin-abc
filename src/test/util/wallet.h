@@ -12,7 +12,7 @@ class CWallet;
 
 // Constants //
 
-extern const std::string ADDRESS_BCHREG_UNSPENDABLE;
+extern const std::string ADDRESS_ECREG_UNSPENDABLE;
 
 // RPC-like //
 

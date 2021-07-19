@@ -6,7 +6,7 @@
 import base64
 from decimal import Decimal
 
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
     create_coinbase_stakes,
     create_stakes,
@@ -329,7 +329,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         # Orphan the proof by sending the stake
         raw_tx = node.createrawtransaction(
             [{"txid": stakes[-1]["txid"], "vout": 0}],
-            {ADDRESS_BCHREG_UNSPENDABLE: stakes[-1]
+            {ADDRESS_ECREG_UNSPENDABLE: stakes[-1]
                 ["amount"] - Decimal('10000')}
         )
         signed_tx = node.signrawtransactionwithkey(raw_tx, [addrkey0.key])

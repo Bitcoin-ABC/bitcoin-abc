@@ -11,7 +11,7 @@
 #include <wallet/wallet.h>
 #endif // ENABLE_WALLET
 
-const std::string ADDRESS_BCHREG_UNSPENDABLE =
+const std::string ADDRESS_ECREG_UNSPENDABLE =
     "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt";
 
 #ifdef ENABLE_WALLET

@@ -9,8 +9,8 @@ import unittest
 from .script import CScript, hash160, hash256
 from .util import hex_str_to_bytes, assert_equal
 
-ADDRESS_BCHREG_UNSPENDABLE = 'ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt'
-ADDRESS_BCHREG_UNSPENDABLE_DESCRIPTOR = 'addr(ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt)#u6xx93xc'
+ADDRESS_ECREG_UNSPENDABLE = 'ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt'
+ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR = 'addr(ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt)#u6xx93xc'
 
 chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 

@@ -26,7 +26,7 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
         },
     };
 
-    const auto &ADDRESS_WATCHONLY = ADDRESS_BCHREG_UNSPENDABLE;
+    const auto &ADDRESS_WATCHONLY = ADDRESS_ECREG_UNSPENDABLE;
 
     const Config &config = GetConfig();
 

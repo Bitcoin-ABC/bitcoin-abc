@@ -6,7 +6,7 @@
 from decimal import Decimal
 import struct
 
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE as ADDRESS_WATCHONLY
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE as ADDRESS_WATCHONLY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,

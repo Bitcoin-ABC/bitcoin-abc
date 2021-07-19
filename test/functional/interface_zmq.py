@@ -6,7 +6,7 @@
 import struct
 from io import BytesIO
 
-from test_framework.address import ADDRESS_BCHREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.messages import CTransaction, hash256
 from test_framework.util import (
@@ -91,7 +91,7 @@ class ZMQTest (BitcoinTestFramework):
         self.log.info(
             "Generate {0} blocks (and {0} coinbase txes)".format(num_blocks))
         genhashes = self.nodes[0].generatetoaddress(
-            num_blocks, ADDRESS_BCHREG_UNSPENDABLE)
+            num_blocks, ADDRESS_ECREG_UNSPENDABLE)
 
         self.sync_all()
 
@@ -132,7 +132,7 @@ class ZMQTest (BitcoinTestFramework):
 
             # Mining the block with this tx should result in second notification
             # after coinbase tx notification
-            self.nodes[0].generatetoaddress(1, ADDRESS_BCHREG_UNSPENDABLE)
+            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
             hashtx.receive()
             txid = hashtx.receive()
             assert_equal(payment_txid, txid.hex())
@@ -181,7 +181,7 @@ class ZMQTest (BitcoinTestFramework):
         payment_txid = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), 1000000)
         disconnect_block = self.nodes[0].generatetoaddress(
-            1, ADDRESS_BCHREG_UNSPENDABLE)[0]
+            1, ADDRESS_ECREG_UNSPENDABLE)[0]
         disconnect_cb = self.nodes[0].getblock(disconnect_block)["tx"][0]
         assert_equal(
             self.nodes[0].getbestblockhash(),
@@ -191,7 +191,7 @@ class ZMQTest (BitcoinTestFramework):
 
         # Generate 2 blocks in nodes[1]
         connect_blocks = self.nodes[1].generatetoaddress(
-            2, ADDRESS_BCHREG_UNSPENDABLE)
+            2, ADDRESS_ECREG_UNSPENDABLE)
 
         # nodes[0] will reorg chain after connecting back nodes[1]
         connect_nodes(self.nodes[0], self.nodes[1])
