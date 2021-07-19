@@ -35,7 +35,7 @@ class TxnMallTest(BitcoinTestFramework):
     def run_test(self):
         output_type = "legacy"
 
-        # All nodes should start with 1,250 BCH:
+        # All nodes should start with 1,250,000,000 XEC:
         starting_balance = 1250000000
         for i in range(4):
             assert_equal(self.nodes[i].getbalance(), starting_balance)
@@ -138,8 +138,8 @@ class TxnMallTest(BitcoinTestFramework):
         assert_equal(tx1_clone["confirmations"], 2)
         assert_equal(tx2["confirmations"], 1)
 
-        # Check node0's total balance; should be same as before the clone, + 100 BCH for 2 matured,
-        # less possible orphaned matured subsidy
+        # Check node0's total balance; should be same as before the clone, +
+        # 100,000,000 XEC for 2 matured, less possible orphaned matured subsidy
         expected += 100000000
         if (self.options.mine_block):
             expected -= 50000000

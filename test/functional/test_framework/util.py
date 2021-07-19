@@ -48,10 +48,10 @@ def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
     target_fee = round(tx_size * fee_per_kB / 1000, 8)
     if fee < (tx_size - wiggleroom) * fee_per_kB / 1000:
         raise AssertionError(
-            "Fee of {} BCH too low! (Should be {} BCH)".format(str(fee), str(target_fee)))
+            "Fee of {} XEC too low! (Should be {} XEC)".format(str(fee), str(target_fee)))
     if fee > (tx_size + wiggleroom) * fee_per_kB / 1000:
         raise AssertionError(
-            "Fee of {} BCH too high! (Should be {} BCH)".format(str(fee), str(target_fee)))
+            "Fee of {} XEC too high! (Should be {} XEC)".format(str(fee), str(target_fee)))
 
 
 def assert_equal(thing1, thing2, *args):
@@ -218,7 +218,8 @@ def assert_array_result(object_array, to_match, expected,
 
 
 def check_json_precision():
-    """Make sure json library being used does not lose precision converting BCH values"""
+    """Make sure json library being used does not lose precision converting XEC
+    values"""
     n = Decimal("20000000.00000003")
     satoshis = int(json.loads(json.dumps(float(n))) * 1.0e8)
     if satoshis != 2000000000000003:

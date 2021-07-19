@@ -80,7 +80,7 @@ class CTORMiningTest(BitcoinTestFramework):
             for _ in range(len(inputs)):
                 addr = mining_node.getnewaddress()
                 output = {
-                    # 50 BCH per coinbase
+                    # 50,000,000 XEC per coinbase
                     addr: decimal.Decimal(50000000)
                 }
                 outputs.update(output)

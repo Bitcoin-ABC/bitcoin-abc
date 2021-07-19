@@ -214,7 +214,7 @@ class WalletTest(BitcoinTestFramework):
         test_balances(fee_node_1=Decimal('10000'))
 
         # In the original Core version of this test, Node 1 would've bumped
-        # the fee by 0.01 here to resend, but this is BCH, so it has 0.01 BCH
+        # the fee by 0.01 here to resend, but this is XEC, so it has 10000 XEC
         # left to spend on goods and services
         self.sync_all()
 

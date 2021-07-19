@@ -33,7 +33,7 @@ class TxnMallTest(BitcoinTestFramework):
         disconnect_nodes(self.nodes[1], self.nodes[2])
 
     def run_test(self):
-        # All nodes should start with 1,250 BCH:
+        # All nodes should start with 1,250,000,000 XEC:
         starting_balance = 1250000000
 
         # All nodes should be out of IBD.
@@ -65,8 +65,8 @@ class TxnMallTest(BitcoinTestFramework):
         # Coins are sent to node1_address
         node1_address = self.nodes[1].getnewaddress()
 
-        # First: use raw transaction API to send 1240 BCH to node1_address,
-        # but don't broadcast:
+        # First: use raw transaction API to send 1,240,000,000 XEC to
+        # node1_address, but don't broadcast:
         doublespend_fee = Decimal('-20000')
         rawtx_input_0 = {}
         rawtx_input_0["txid"] = fund_foo_txid
@@ -85,7 +85,7 @@ class TxnMallTest(BitcoinTestFramework):
         doublespend = self.nodes[0].signrawtransactionwithwallet(rawtx)
         assert_equal(doublespend["complete"], True)
 
-        # Create two spends using 1 50 BCH coin each
+        # Create two spends using 1 50,000,000 XEC coin each
         txid1 = self.nodes[0].sendtoaddress(node1_address, 40000000)
         txid2 = self.nodes[0].sendtoaddress(node1_address, 20000000)
 
@@ -97,8 +97,9 @@ class TxnMallTest(BitcoinTestFramework):
         tx1 = self.nodes[0].gettransaction(txid1)
         tx2 = self.nodes[0].gettransaction(txid2)
 
-        # Node0's balance should be starting balance, plus 50BTC for another
-        # matured block, minus 40, minus 20, and minus transaction fees:
+        # Node0's balance should be starting balance, plus 50,000,000 XEC for
+        # another matured block, minus 40,000,000, minus 20,000,000, and minus
+        # transaction fees:
         expected = starting_balance + fund_foo_tx["fee"] + fund_bar_tx["fee"]
         if self.options.mine_block:
             expected += 50000000

@@ -95,7 +95,7 @@ class BIP68Test(BitcoinTestFramework):
     def test_disable_flag(self):
         # Create some unconfirmed inputs
         new_addr = self.nodes[0].getnewaddress()
-        # send 2 BCH
+        # send 2,000,000 XEC
         self.nodes[0].sendtoaddress(new_addr, 2000000)
 
         utxos = self.nodes[0].listunspent(0, 0)

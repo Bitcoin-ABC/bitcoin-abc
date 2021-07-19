@@ -100,7 +100,8 @@ class PSBTTest(BitcoinTestFramework):
         self.nodes[1].sendrawtransaction(
             self.nodes[1].finalizepsbt(walletprocesspsbt_out['psbt'])['hex'])
 
-        # feeRate of 0.1 BCH / KB produces a total fee slightly below -maxtxfee
+        # feeRate of 100,000 XEC / KB produces a total fee slightly below
+        # -maxtxfee
         res = self.nodes[1].walletcreatefundedpsbt(
             [
                 {
@@ -110,7 +111,7 @@ class PSBTTest(BitcoinTestFramework):
                             "feeRate": 100000, "add_inputs": True})
         assert_approx(res["fee"], 65000, 5000)
 
-        # feeRate of 10 BCH / KB produces a total fee well above -maxtxfee
+        # feeRate of 10,000,000 XEC / KB produces a total fee well above -maxtxfee
         # previously this was silently capped at -maxtxfee
         assert_raises_rpc_error(-4,
                                 "Fee exceeds maximum configured by -maxtxfee",

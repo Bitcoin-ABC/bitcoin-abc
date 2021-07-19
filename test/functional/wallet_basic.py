@@ -86,7 +86,7 @@ class WalletTest(BitcoinTestFramework):
             txid=confirmed_txid, n=confirmed_index, include_mempool=True)
         assert_equal(txout['value'], 50000000)
 
-        # Send 21 BCH from 0 to 2 using sendtoaddress call.
+        # Send 21,000,000 XEC from 0 to 2 using sendtoaddress call.
         self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 11000000)
         mempool_txid = self.nodes[0].sendtoaddress(
             self.nodes[2].getnewaddress(), 10000000)
@@ -196,7 +196,7 @@ class WalletTest(BitcoinTestFramework):
         assert_raises_rpc_error(-8, "Invalid parameter, expected unspent output",
                                 self.nodes[0].lockunspent, False, [spent_0])
 
-        # Send 10 BCH normal
+        # Send 10,000,000 XEC normal
         old_balance = self.nodes[2].getbalance()
         address = self.nodes[0].getnewaddress("test")
         fee_per_byte = Decimal('1000') / 1000
@@ -211,7 +211,7 @@ class WalletTest(BitcoinTestFramework):
                                            fee_per_byte, ctx.billable_size())
         assert_equal(self.nodes[0].getbalance(), Decimal('10000000'))
 
-        # Send 10 BCH with subtract fee from amount
+        # Send 10,000,000 XEC with subtract fee from amount
         txid = self.nodes[2].sendtoaddress(address, 10000000, "", "", True)
         self.nodes[2].generate(1)
         self.sync_all(self.nodes[0:3])
@@ -220,7 +220,7 @@ class WalletTest(BitcoinTestFramework):
         node_0_bal = self.check_fee_amount(self.nodes[0].getbalance(), Decimal(
             '20000000'), fee_per_byte, count_bytes(self.nodes[2].gettransaction(txid)['hex']))
 
-        # Sendmany 10 BCH
+        # Sendmany 10,000,000 XEC
         txid = self.nodes[2].sendmany('', {address: 10000000}, 0, "", [])
         self.nodes[2].generate(1)
         self.sync_all(self.nodes[0:3])
@@ -231,7 +231,7 @@ class WalletTest(BitcoinTestFramework):
         ), node_2_bal - Decimal('10000000'), fee_per_byte, ctx.billable_size())
         assert_equal(self.nodes[0].getbalance(), node_0_bal)
 
-        # Sendmany 10 BCH with subtract fee from amount
+        # Sendmany 10,000,000 XEC with subtract fee from amount
         txid = self.nodes[2].sendmany(
             '', {address: 10000000}, 0, "", [address])
         self.nodes[2].generate(1)
