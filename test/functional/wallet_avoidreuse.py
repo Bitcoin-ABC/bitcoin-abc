@@ -191,9 +191,10 @@ class AvoidReuseTest(BitcoinTestFramework):
 
     def test_sending_from_reused_address_without_avoid_reuse(self):
         '''
-        Test the same as test_sending_from_reused_address_fails, except send the 10 BCH with
-        the avoid_reuse flag set to false. This means the 10 BTC send should succeed,
-        where it fails in test_sending_from_reused_address_fails.
+        Test the same as test_sending_from_reused_address_fails, except send
+        the 10MM XEC with the avoid_reuse flag set to false. This means the
+        10MM XEC send should succeed, where it fails in
+        test_sending_from_reused_address_fails.
         '''
         self.log.info(
             "Test sending from reused address with avoid_reuse=false")
@@ -205,14 +206,14 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         self.sync_all()
 
-        # listunspent should show 1 single, unused 10 BCH output
+        # listunspent should show 1 single, unused 10MM XEC output
         assert_unspent(
             self.nodes[1],
             total_count=1,
             total_sum=10000000,
             reused_supported=True,
             reused_count=0)
-        # getbalances should show no used, 10 BCH trusted
+        # getbalances should show no used, 10MM XEC trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 10000000})
         # node 0 should not show a used entry, as it does not enable
         # avoid_reuse
@@ -222,29 +223,29 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         self.sync_all()
 
-        # listunspent should show 1 single, unused 5 BCH output
+        # listunspent should show 1 single, unused 5MM XEC output
         assert_unspent(
             self.nodes[1],
             total_count=1,
             total_sum=5000000,
             reused_supported=True,
             reused_count=0)
-        # getbalances should show no used, 5 BCH trusted
+        # getbalances should show no used, 5MM XEC trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5000000})
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
         self.nodes[0].generate(1)
         self.sync_all()
 
-        # listunspent should show 2 total outputs (5, 10 BCH), one unused (5),
-        # one reused (10)
+        # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
+        # (5MM), one reused (10MM)
         assert_unspent(
             self.nodes[1],
             total_count=2,
             total_sum=15000000,
             reused_count=1,
             reused_sum=10000000)
-        # getbalances should show 10 used, 5 BCH trusted
+        # getbalances should show 10MM used, 5MM XEC trusted
         assert_balances(
             self.nodes[1],
             mine={
@@ -254,16 +255,16 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.nodes[1].sendtoaddress(
             address=retaddr, amount=10000000, avoid_reuse=False)
 
-        # listunspent should show 1 total outputs (5 BCH), unused
+        # listunspent should show 1 total outputs (5MM XEC), unused
         assert_unspent(
             self.nodes[1],
             total_count=1,
             total_sum=5000000,
             reused_count=0)
-        # getbalances should show no used, 5 BCH trusted
+        # getbalances should show no used, 5MM XEC trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5000000})
 
-        # node 1 should now have about 5 BCH left (for both cases)
+        # node 1 should now have about 5MM XEC left (for both cases)
         assert_approx(self.nodes[1].getbalance(), 5000000, 1000)
         assert_approx(
             self.nodes[1].getbalance(
@@ -274,11 +275,11 @@ class AvoidReuseTest(BitcoinTestFramework):
     def test_sending_from_reused_address_fails(self):
         '''
         Test the simple case where [1] generates a new address A, then
-        [0] sends 10 BCH to A.
-        [1] spends 5 BCH from A. (leaving roughly 5 BCH useable)
-        [0] sends 10 BCH to A again.
-        [1] tries to spend 10 BCH (fails; dirty).
-        [1] tries to spend 4 BCH (succeeds; change address sufficient)
+        [0] sends 10MM XEC to A.
+        [1] spends 5MM XEC from A. (leaving roughly 5MM XEC useable)
+        [0] sends 10MM XEC to A again.
+        [1] tries to spend 10MM XEC (fails; dirty).
+        [1] tries to spend 4MM XEC (succeeds; change address sufficient)
         '''
         self.log.info("Test sending from reused address fails")
 
@@ -289,28 +290,28 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         self.sync_all()
 
-        # listunspent should show 1 single, unused 10 BCH output
+        # listunspent should show 1 single, unused 10MM XEC output
         assert_unspent(
             self.nodes[1],
             total_count=1,
             total_sum=10000000,
             reused_supported=True,
             reused_count=0)
-        # getbalances should show no used, 10 BCH trusted
+        # getbalances should show no used, 10MM XEC trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 10000000})
 
         self.nodes[1].sendtoaddress(retaddr, 5000000)
         self.nodes[0].generate(1)
         self.sync_all()
 
-        # listunspent should show 1 single, unused 5 BCH output
+        # listunspent should show 1 single, unused 5MM XEC output
         assert_unspent(
             self.nodes[1],
             total_count=1,
             total_sum=5000000,
             reused_supported=True,
             reused_count=0)
-        # getbalances should show no used, 5 BCH trusted
+        # getbalances should show no used, 5MM XEC trusted
         assert_balances(self.nodes[1], mine={"used": 0, "trusted": 5000000})
 
         # For the second send, we transmute it to a related single-key address
@@ -323,22 +324,22 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.nodes[0].generate(1)
         self.sync_all()
 
-        # listunspent should show 2 total outputs (5, 10 BCH), one unused (5),
-        # one reused (10)
+        # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
+        # (5MM), one reused (10MM)
         assert_unspent(
             self.nodes[1],
             total_count=2,
             total_sum=15000000,
             reused_count=1,
             reused_sum=10000000)
-        # getbalances should show 10 used, 5 BCH trusted
+        # getbalances should show 10MM used, 5MM XEC trusted
         assert_balances(
             self.nodes[1],
             mine={
                 "used": 10000000,
                 "trusted": 5000000})
 
-        # node 1 should now have a balance of 5 (no dirty) or 15 (including
+        # node 1 should now have a balance of 5MM (no dirty) or 15MM (including
         # dirty)
         assert_approx(self.nodes[1].getbalance(), 5000000, 1000)
         assert_approx(
@@ -352,23 +353,23 @@ class AvoidReuseTest(BitcoinTestFramework):
 
         self.nodes[1].sendtoaddress(retaddr, 4000000)
 
-        # listunspent should show 2 total outputs (1, 10 BCH), one unused (1),
-        # one reused (10)
+        # listunspent should show 2 total outputs (1MM, 10MM XEC), one unused
+        # (1MM), one reused (10MM)
         assert_unspent(
             self.nodes[1],
             total_count=2,
             total_sum=11000000,
             reused_count=1,
             reused_sum=10000000)
-        # getbalances should show 10 used, 1 BCH trusted
+        # getbalances should show 10MM used, 1MM XEC trusted
         assert_balances(
             self.nodes[1],
             mine={
                 "used": 10000000,
                 "trusted": 1000000})
 
-        # node 1 should now have about 1 BCH left (no dirty) and 11 (including
-        # dirty)
+        # node 1 should now have about 1MM XEC left (no dirty) and 11MM
+        # (including dirty)
         assert_approx(self.nodes[1].getbalance(), 1000000, 1000)
         assert_approx(
             self.nodes[1].getbalance(
@@ -417,11 +418,11 @@ class AvoidReuseTest(BitcoinTestFramework):
 
     def test_full_destination_group_is_preferred(self):
         '''
-        Test the case where [1] only has 11 outputs of 1 BCH in the same reused
-        address and tries to send a small payment of 0.5 BCH. The wallet
-        should use 10 outputs from the reused address as inputs and not a
-        single 1 BCH input, in order to join several outputs from the reused
-        address.
+        Test the case where [1] only has 11 outputs of 1MM XEC in the same
+        reused address and tries to send a small payment of 500,000 XEC.
+        The wallet should use 10 outputs from the reused address as inputs and
+        not a single 1MM XEC input, in order to join several outputs from
+        the reused address.
         '''
         self.log.info(
             "Test that full destination groups are preferred in coin selection")
@@ -432,7 +433,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         new_addr = self.nodes[1].getnewaddress()
         ret_addr = self.nodes[0].getnewaddress()
 
-        # Send 11 outputs of 1 BCH to the same, reused address in the wallet
+        # Send 11 outputs of 1MM XEC to the same, reused address in the wallet
         for _ in range(11):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
@@ -449,9 +450,9 @@ class AvoidReuseTest(BitcoinTestFramework):
 
     def test_all_destination_groups_are_used(self):
         '''
-        Test the case where [1] only has 22 outputs of 1 BCH in the same reused
-        address and tries to send a payment of 20.5 BCH. The wallet
-        should use all 22 outputs from the reused address as inputs.
+        Test the case where [1] only has 22 outputs of 1MM XEC in the same
+        reused address and tries to send a payment of 20,5MM XEC.
+        The wallet should use all 22 outputs from the reused address as inputs.
         '''
         self.log.info("Test that all destination groups are used")
 
@@ -461,7 +462,7 @@ class AvoidReuseTest(BitcoinTestFramework):
         new_addr = self.nodes[1].getnewaddress()
         ret_addr = self.nodes[0].getnewaddress()
 
-        # Send 22 outputs of 1 BCH to the same, reused address in the wallet
+        # Send 22 outputs of 1MM XEC to the same, reused address in the wallet
         for _ in range(22):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
