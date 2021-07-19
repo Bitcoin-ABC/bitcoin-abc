@@ -308,7 +308,7 @@ void OverviewPage::setWalletModel(WalletModel *model) {
                 });
     }
 
-    // update the display unit, to not use the default ("BCH")
+    // update the display unit, to not use the default ("XEC")
     updateDisplayUnit();
 }
 
