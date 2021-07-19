@@ -4044,17 +4044,6 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     AssertLockHeld(cs_wallet);
     mapKeyBirth.clear();
 
-    LegacyScriptPubKeyMan *spk_man = GetLegacyScriptPubKeyMan();
-    assert(spk_man != nullptr);
-    LOCK(spk_man->cs_KeyStore);
-
-    // Get birth times for keys with metadata.
-    for (const auto &entry : spk_man->mapKeyMetadata) {
-        if (entry.second.nCreateTime) {
-            mapKeyBirth[entry.first] = entry.second.nCreateTime;
-        }
-    }
-
     // map in which we'll infer heights of other keys
     std::map<CKeyID, const CWalletTx::Confirmation *> mapKeyFirstBlock;
     CWalletTx::Confirmation max_confirm;
@@ -4064,33 +4053,48 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     CHECK_NONFATAL(chain().findAncestorByHeight(
         GetLastBlockHash(), max_confirm.block_height,
         FoundBlock().hash(max_confirm.hashBlock)));
-    for (const CKeyID &keyid : spk_man->GetKeys()) {
-        if (mapKeyBirth.count(keyid) == 0) {
-            mapKeyFirstBlock[keyid] = &max_confirm;
+
+    {
+        LegacyScriptPubKeyMan *spk_man = GetLegacyScriptPubKeyMan();
+        assert(spk_man != nullptr);
+        LOCK(spk_man->cs_KeyStore);
+
+        // Get birth times for keys with metadata.
+        for (const auto &entry : spk_man->mapKeyMetadata) {
+            if (entry.second.nCreateTime) {
+                mapKeyBirth[entry.first] = entry.second.nCreateTime;
+            }
         }
-    }
 
-    // If there are no such keys, we're done.
-    if (mapKeyFirstBlock.empty()) {
-        return;
-    }
+        // Prepare to infer birth heights for keys without metadata.
+        for (const CKeyID &keyid : spk_man->GetKeys()) {
+            if (mapKeyBirth.count(keyid) == 0) {
+                mapKeyFirstBlock[keyid] = &max_confirm;
+            }
+        }
 
-    // Find first block that affects those keys, if there are any left.
-    for (const auto &entry : mapWallet) {
-        // iterate over all wallet transactions...
-        const CWalletTx &wtx = entry.second;
-        if (wtx.m_confirm.status == CWalletTx::CONFIRMED) {
-            // ... which are already in a block
-            for (const CTxOut &txout : wtx.tx->vout) {
-                // Iterate over all their outputs...
-                for (const auto &keyid :
-                     GetAffectedKeys(txout.scriptPubKey, *spk_man)) {
-                    // ... and all their affected keys.
-                    auto rit = mapKeyFirstBlock.find(keyid);
-                    if (rit != mapKeyFirstBlock.end() &&
-                        wtx.m_confirm.block_height <
-                            rit->second->block_height) {
-                        rit->second = &wtx.m_confirm;
+        // If there are no such keys, we're done.
+        if (mapKeyFirstBlock.empty()) {
+            return;
+        }
+
+        // Find first block that affects those keys, if there are any left.
+        for (const auto &entry : mapWallet) {
+            // iterate over all wallet transactions...
+            const CWalletTx &wtx = entry.second;
+            if (wtx.m_confirm.status == CWalletTx::CONFIRMED) {
+                // ... which are already in a block
+                for (const CTxOut &txout : wtx.tx->vout) {
+                    // Iterate over all their outputs...
+                    for (const auto &keyid :
+                         GetAffectedKeys(txout.scriptPubKey, *spk_man)) {
+                        // ... and all their affected keys.
+                        auto rit = mapKeyFirstBlock.find(keyid);
+                        if (rit != mapKeyFirstBlock.end() &&
+                            wtx.m_confirm.block_height <
+                                rit->second->block_height) {
+                            rit->second = &wtx.m_confirm;
+                        }
                     }
                 }
             }
