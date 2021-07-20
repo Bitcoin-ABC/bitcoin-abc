@@ -401,6 +401,12 @@ private:
 
         const CTransactionRef &m_ptx;
         TxValidationState m_state;
+        /**
+         * A temporary cache containing serialized transaction data for
+         * signature verification.
+         * Reused across PreChecks and ConsensusScriptChecks.
+         */
+        PrecomputedTransactionData m_precomputed_txdata;
 
         // ABC specific flags that are used in both PreChecks and
         // ConsensusScriptChecks
@@ -420,8 +426,7 @@ private:
     // result in the scriptcache. This should be done after
     // PolicyScriptChecks(). This requires that all inputs either be in our
     // utxo set or in the mempool.
-    bool ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws,
-                               PrecomputedTransactionData &txdata)
+    bool ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
 
     // Try to add the transaction to the mempool, removing any conflicts first.
@@ -609,9 +614,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // Validate input scripts against standard script flags.
     const uint32_t scriptVerifyFlags =
         ws.m_next_block_script_verify_flags | STANDARD_SCRIPT_VERIFY_FLAGS;
-    PrecomputedTransactionData txdata(tx);
+    ws.m_precomputed_txdata = PrecomputedTransactionData{tx};
     if (!CheckInputScripts(tx, state, m_view, scriptVerifyFlags, true, false,
-                           txdata, ws.m_sig_checks_standard)) {
+                           ws.m_precomputed_txdata, ws.m_sig_checks_standard)) {
         // State filled in by CheckInputScripts
         return false;
     }
@@ -646,8 +651,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     return true;
 }
 
-bool MemPoolAccept::ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws,
-                                          PrecomputedTransactionData &txdata) {
+bool MemPoolAccept::ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws) {
     const CTransaction &tx = *ws.m_ptx;
     const TxId &txid = tx.GetId();
     TxValidationState &state = ws.m_state;
@@ -666,7 +670,8 @@ bool MemPoolAccept::ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws,
     int nSigChecksConsensus;
     if (!CheckInputsFromMempoolAndCache(
             tx, state, m_view, m_pool, ws.m_next_block_script_verify_flags,
-            txdata, nSigChecksConsensus, m_active_chainstate.CoinsTip())) {
+            ws.m_precomputed_txdata, nSigChecksConsensus,
+            m_active_chainstate.CoinsTip())) {
         // This can occur under some circumstances, if the node receives an
         // unrequested tx which is invalid due to new consensus rules not
         // being activated yet (during IBD).
@@ -729,13 +734,14 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
         return MempoolAcceptResult::Failure(ws.m_state);
     }
 
-    // Only compute the precomputed transaction data if we need to verify
-    // scripts (ie, other policy checks pass). We perform the inexpensive
-    // checks first and avoid hashing and signature verification unless those
-    // checks pass, to mitigate CPU exhaustion denial-of-service attacks.
-    PrecomputedTransactionData txdata(*ptx);
+    // Perform the inexpensive checks first and avoid hashing and signature
+    // verification unless those checks pass, to mitigate CPU exhaustion
+    // denial-of-service attacks.
+    if (!PreChecks(args, ws)) {
+        return MempoolAcceptResult::Failure(ws.m_state);
+    }
 
-    if (!ConsensusScriptChecks(args, ws, txdata)) {
+    if (!ConsensusScriptChecks(args, ws)) {
         return MempoolAcceptResult::Failure(ws.m_state);
     }
 
