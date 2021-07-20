@@ -4,6 +4,7 @@
 
 #include <rpc/server.h>
 
+#include <avalanche/avalanche.h>
 #include <banman.h>
 #include <clientversion.h>
 #include <config.h>
@@ -231,6 +232,9 @@ static UniValue getpeerinfo(const Config &config,
         obj.pushKV("lastsend", stats.nLastSend);
         obj.pushKV("lastrecv", stats.nLastRecv);
         obj.pushKV("last_transaction", stats.nLastTXTime);
+        if (g_avalanche) {
+            obj.pushKV("last_proof", stats.nLastProofTime);
+        }
         obj.pushKV("last_block", stats.nLastBlockTime);
         obj.pushKV("bytessent", stats.nSendBytes);
         obj.pushKV("bytesrecv", stats.nRecvBytes);

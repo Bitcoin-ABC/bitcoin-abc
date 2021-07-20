@@ -4410,6 +4410,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
             RelayProof(proofid, m_connman);
 
+            pfrom.nLastProofTime = GetTime();
+
             LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
                      nodeid, proofid.ToString());
         } else {

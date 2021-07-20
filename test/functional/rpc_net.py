@@ -11,6 +11,8 @@ from decimal import Decimal
 from itertools import product
 import time
 
+from test_framework.avatools import create_coinbase_stakes
+from test_framework.key import ECKey
 from test_framework.p2p import P2PInterface
 import test_framework.messages
 from test_framework.messages import (
@@ -49,8 +51,8 @@ class NetTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [["-minrelaytxfee=10"],
-                           ["-minrelaytxfee=5"]]
+        self.extra_args = [["-enableavalanche=1", "-minrelaytxfee=10"],
+                           ["-enableavalanche=1", "-minrelaytxfee=5"]]
         self.supports_cli = False
 
     def run_test(self):
@@ -159,16 +161,27 @@ class NetTest(BitcoinTestFramework):
 
     def test_getpeerinfo(self):
         self.log.info("Test getpeerinfo")
-        # Create a few getpeerinfo last_block/last_transaction values.
+        # Create a few getpeerinfo last_block/last_transaction/last_proof
+        # values.
         if self.is_wallet_compiled():
             self.nodes[0].sendtoaddress(self.nodes[1].getnewaddress(), 1000000)
-        self.nodes[1].generate(1)
+        tip = self.nodes[1].generate(1)[0]
         self.sync_all()
+
+        stake = create_coinbase_stakes(
+            self.nodes[1], [tip], self.nodes[1].get_deterministic_priv_key().key)
+        privkey = ECKey()
+        privkey.generate()
+        proof = self.nodes[1].buildavalancheproof(
+            42, 2000000000, privkey.get_pubkey().get_bytes().hex(), stake)
+        self.nodes[1].sendavalancheproof(proof)
+        self.sync_proofs()
+
         time_now = int(time.time())
         peer_info = [x.getpeerinfo() for x in self.nodes]
-        # Verify last_block and last_transaction keys/values.
+        # Verify last_block, last_transaction and last_proof keys/values.
         for node, peer, field in product(range(self.num_nodes), range(2), [
-                                         'last_block', 'last_transaction']):
+                                         'last_block', 'last_transaction', 'last_proof']):
             assert field in peer_info[node][peer].keys()
             if peer_info[node][peer][field] != 0:
                 assert_approx(peer_info[node][peer][field], time_now, vspan=60)

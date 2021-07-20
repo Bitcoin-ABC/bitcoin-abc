@@ -674,6 +674,7 @@ struct CNodeStats {
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nLastTXTime;
+    int64_t nLastProofTime;
     int64_t nLastBlockTime;
     int64_t nTimeConnected;
     int64_t nTimeOffset;
@@ -1063,6 +1064,14 @@ public:
      * in CConnman::AttemptToEvictConnection.
      */
     std::atomic<int64_t> nLastTXTime{0};
+
+    /**
+     * UNIX epoch time of the last proof received from this peer that we
+     * had not yet seen (e.g. not already received from another peer) and that
+     * was accepted into our proof pool. Used as an inbound peer eviction
+     * criterium in CConnman::AttemptToEvictConnection.
+     */
+    std::atomic<int64_t> nLastProofTime{0};
 
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.
