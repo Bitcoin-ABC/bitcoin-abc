@@ -4,11 +4,11 @@ Upstream-Contact: helpdesk@bitcoinabc.org
 Source: https://github.com/Bitcoin-ABC/bitcoin-abc
 
 Files: *
-Copyright: 2009-2017, The Bitcoin Core Developers, 2017-2019 The Bitcoin Developers
+Copyright: 2009-2017, The Bitcoin Core developers, 2017-2019 The Bitcoin developers
 License: Expat
-Comment: The Bitcoin Developers encompasses those contributing to Bitcoin
+Comment: The Bitcoin developers encompasses those contributing to Bitcoin
          client open source development (various clients).
-         The Bitcoin Core Developers encompasses the current developers
+         The Bitcoin Core developers encompasses the current developers
          listed on bitcoin.org, as well as the numerous contributors to
          the project.
 
