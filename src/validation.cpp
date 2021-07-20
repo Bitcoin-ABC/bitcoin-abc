@@ -341,6 +341,31 @@ public:
          */
         std::vector<COutPoint> &m_coins_to_uncache;
         const bool m_test_accept;
+
+        /** Parameters for single transaction mempool validation. */
+        static ATMPArgs SingleAccept(const Config &config, int64_t accept_time,
+                                     bool bypass_limits,
+                                     std::vector<COutPoint> &coins_to_uncache,
+                                     bool test_accept) {
+            return ATMPArgs{config, accept_time, bypass_limits,
+                            coins_to_uncache, test_accept};
+        }
+
+        /**
+         * Parameters for test package mempool validation through
+         * testmempoolaccept.
+         */
+        static ATMPArgs
+        PackageTestAccept(const Config &config, int64_t accept_time,
+                          std::vector<COutPoint> &coins_to_uncache) {
+            return ATMPArgs{config, accept_time, /* m_bypass_limits =*/false,
+                            coins_to_uncache, /* m_test_accept =*/true};
+        }
+
+        // No default ctor to avoid exposing details to clients and allowing the
+        // possibility of mixing up the order of the arguments. Use static
+        // functions above instead.
+        ATMPArgs() = delete;
     };
 
     // Single transaction acceptance
@@ -808,8 +833,8 @@ MempoolAcceptResult AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
                                        bool test_accept) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
-    MemPoolAccept::ATMPArgs args{config, accept_time, bypass_limits,
-                                 coins_to_uncache, test_accept};
+    auto args = MemPoolAccept::ATMPArgs::SingleAccept(
+        config, accept_time, bypass_limits, coins_to_uncache, test_accept);
     const MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
                                            .AcceptSingleTransaction(tx, args);
     if (result.m_result_type != MempoolAcceptResult::ResultType::VALID) {
@@ -842,8 +867,8 @@ ProcessNewPackage(const Config &config, CChainState &active_chainstate,
                        [](const auto &tx) { return tx != nullptr; }));
 
     std::vector<COutPoint> coins_to_uncache;
-    MemPoolAccept::ATMPArgs args{config, GetTime(), /* bypass_limits */ false,
-                                 coins_to_uncache, test_accept};
+    auto args = MemPoolAccept::ATMPArgs::PackageTestAccept(config, GetTime(),
+                                                           coins_to_uncache);
     const PackageMempoolAcceptResult result =
         MemPoolAccept(pool, active_chainstate)
             .AcceptMultipleTransactions(package, args);
