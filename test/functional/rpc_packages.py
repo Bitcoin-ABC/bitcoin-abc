@@ -9,10 +9,12 @@ from decimal import Decimal
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, SCRIPTSIG_OP_TRUE
 from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.messages import CTransaction, FromHex, ToHex
+from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, assert_fee_amount, assert_raises_rpc_error
 from test_framework.wallet import (
+    DEFAULT_FEE,
     create_child_with_parents,
     create_raw_chain,
     make_chain,
@@ -45,7 +47,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         self.address = node.get_deterministic_priv_key().address
         self.coins = []
         # The last 100 coinbase transactions are premature
-        for b in self.generatetoaddress(node, 300, self.address)[:COINBASE_MATURITY]:
+        for b in self.generatetoaddress(node, 320, self.address)[:-COINBASE_MATURITY]:
             coinbase = node.getblock(blockhash=b, verbosity=2)["tx"][0]
             self.coins.append(
                 {
@@ -87,6 +89,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         self.test_multiple_children()
         self.test_multiple_parents()
         self.test_conflicting()
+        self.test_submitpackage()
 
     def test_independent(self):
         self.log.info("Test multiple independent transactions in a package")
@@ -190,9 +193,8 @@ class RPCPackagesTest(BitcoinTestFramework):
 
     def test_chain(self):
         node = self.nodes[0]
-        first_coin = self.coins.pop()
         (chain_hex, chain_txns) = create_raw_chain(
-            node, first_coin, self.address, self.privkeys
+            node, self.coins.pop(), self.address, self.privkeys
         )
 
         self.log.info(
@@ -350,8 +352,8 @@ class RPCPackagesTest(BitcoinTestFramework):
         node = self.nodes[0]
         prevtx = self.coins.pop()
         inputs = [{"txid": prevtx["txid"], "vout": 0}]
-        output1 = {node.get_deterministic_priv_key().address: 50_000_000 - 1250}
-        output2 = {ADDRESS_ECREG_P2SH_OP_TRUE: 50_000_000 - 1250}
+        output1 = {node.get_deterministic_priv_key().address: 25_000_000 - 1250}
+        output2 = {ADDRESS_ECREG_P2SH_OP_TRUE: 25_000_000 - 1250}
 
         # tx1 and tx2 share the same inputs
         rawtx1 = node.createrawtransaction(inputs, output1)
@@ -389,6 +391,165 @@ class RPCPackagesTest(BitcoinTestFramework):
                 {"txid": tx1.get_id(), "package-error": "conflict-in-package"},
                 {"txid": tx2.get_id(), "package-error": "conflict-in-package"},
             ],
+        )
+
+    def assert_equal_package_results(
+        self, node, testmempoolaccept_result, submitpackage_result
+    ):
+        """Assert that a successful submitpackage result is consistent with testmempoolaccept
+        results and getmempoolentry info. Note that the result structs are different and, due to
+        policy differences between testmempoolaccept and submitpackage (i.e. package feerate),
+        some information may be different.
+        """
+        # FIXME This is using a mix of size/vsize because the RPC don't return
+        # the same value. This is working because the vsize is never increased
+        # by the sigchecks in the test, but this is brittle and this is needs to
+        # be fixed.
+        for testres_tx in testmempoolaccept_result:
+            # Grab this result from the submitpackage_result
+            txid = testres_tx["txid"]
+            submitres_tx = submitpackage_result["tx-results"][txid]
+            # No "allowed" if the tx was already in the mempool
+            if "allowed" in testres_tx and testres_tx["allowed"]:
+                assert_equal(submitres_tx["vsize"], testres_tx["size"])
+                assert_equal(submitres_tx["fees"]["base"], testres_tx["fees"]["base"])
+            entry_info = node.getmempoolentry(txid)
+            assert_equal(submitres_tx["vsize"], entry_info["size"])
+            assert_equal(submitres_tx["fees"]["base"], entry_info["fees"]["base"])
+
+    def test_submit_child_with_parents(self, num_parents, partial_submit):
+        node = self.nodes[0]
+        peer = node.add_p2p_connection(P2PTxInvStore())
+        # Test a package with num_parents parents and 1 child transaction.
+        package_hex = []
+        package_txns = []
+        values = []
+        scripts = []
+        for _ in range(num_parents):
+            parent_coin = self.coins.pop()
+            value = parent_coin["amount"]
+            (tx, txhex, value, spk) = make_chain(
+                node, self.address, self.privkeys, parent_coin["txid"], value
+            )
+            package_hex.append(txhex)
+            package_txns.append(tx)
+            values.append(value)
+            scripts.append(spk)
+            if partial_submit and random.choice([True, False]):
+                node.sendrawtransaction(txhex)
+        child_hex = create_child_with_parents(
+            node, self.address, self.privkeys, package_txns, values, scripts
+        )
+        package_hex.append(child_hex)
+        package_txns.append(FromHex(CTransaction(), child_hex))
+
+        testmempoolaccept_result = node.testmempoolaccept(rawtxs=package_hex)
+        submitpackage_result = node.submitpackage(package=package_hex)
+
+        # Check that each result is present, with the correct size and fees
+        for i in range(num_parents + 1):
+            tx = package_txns[i]
+            txid = tx.get_id()
+            assert txid in submitpackage_result["tx-results"]
+            tx_result = submitpackage_result["tx-results"][txid]
+            assert_equal(
+                tx_result,
+                {
+                    "vsize": tx.billable_size(),
+                    "fees": {
+                        "base": DEFAULT_FEE,
+                    },
+                },
+            )
+
+        # submitpackage result should be consistent with testmempoolaccept and getmempoolentry
+        self.assert_equal_package_results(
+            node, testmempoolaccept_result, submitpackage_result
+        )
+
+        # Package feerate is calculated for the remaining transactions after deduplication and
+        # individual submission. If only 0 or 1 transaction is left, e.g. because all transactions
+        # had high-feerates or were already in the mempool, no package feerate is provided.
+        # In this case, since all of the parents have high fees, each is accepted individually.
+        assert "package-feerate" not in submitpackage_result
+
+        # The node should announce each transaction. No guarantees for propagation.
+        peer.wait_for_broadcast([tx.get_id() for tx in package_txns])
+        self.generate(node, 1)
+
+    def test_submit_cpfp(self):
+        node = self.nodes[0]
+        peer = node.add_p2p_connection(P2PTxInvStore())
+
+        # 2 parent 1 child CPFP. First parent pays high fees, second parent pays 0 fees and is
+        # fee-bumped by the child.
+        coin_rich = self.coins.pop()
+        coin_poor = self.coins.pop()
+        tx_rich, hex_rich, value_rich, spk_rich = make_chain(
+            node, self.address, self.privkeys, coin_rich["txid"], coin_rich["amount"]
+        )
+        tx_poor, hex_poor, value_poor, spk_poor = make_chain(
+            node,
+            self.address,
+            self.privkeys,
+            coin_poor["txid"],
+            coin_poor["amount"],
+            fee=0,
+        )
+        package_txns = [tx_rich, tx_poor]
+        hex_child = create_child_with_parents(
+            node,
+            self.address,
+            self.privkeys,
+            package_txns,
+            [value_rich, value_poor],
+            [spk_rich, spk_poor],
+        )
+        tx_child = FromHex(CTransaction(), hex_child)
+        package_txns.append(tx_child)
+
+        submitpackage_result = node.submitpackage([hex_rich, hex_poor, hex_child])
+
+        rich_parent_result = submitpackage_result["tx-results"][tx_rich.get_id()]
+        poor_parent_result = submitpackage_result["tx-results"][tx_poor.get_id()]
+        child_result = submitpackage_result["tx-results"][tx_child.get_id()]
+        assert_equal(rich_parent_result["fees"]["base"], DEFAULT_FEE)
+        assert_equal(poor_parent_result["fees"]["base"], 0)
+        assert_equal(child_result["fees"]["base"], DEFAULT_FEE)
+        # Package feerate is calculated for the remaining transactions after deduplication and
+        # individual submission. Since this package had a 0-fee parent, package feerate must have
+        # been used and returned.
+        assert "package-feerate" in submitpackage_result
+        assert_fee_amount(
+            DEFAULT_FEE,
+            rich_parent_result["vsize"] + child_result["vsize"],
+            submitpackage_result["package-feerate"],
+        )
+
+        # The node will broadcast each transaction, still abiding by its peer's fee filter
+        peer.wait_for_broadcast([tx.get_id() for tx in package_txns])
+        self.generate(node, 1)
+
+    def test_submitpackage(self):
+        node = self.nodes[0]
+
+        self.log.info(
+            "Submitpackage valid packages with 1 child and some number of parents"
+        )
+        for num_parents in [1, 2, 24]:
+            self.test_submit_child_with_parents(num_parents, False)
+            self.test_submit_child_with_parents(num_parents, True)
+
+        self.log.info("Submitpackage valid packages with CPFP")
+        self.test_submit_cpfp()
+
+        self.log.info("Submitpackage only allows packages of 1 child with its parents")
+        # Chain of 3 transactions has too many generations
+        chain_hex, _ = create_raw_chain(
+            node, self.coins.pop(), self.address, self.privkeys, 3
+        )
+        assert_raises_rpc_error(
+            -25, "not-child-with-parents", node.submitpackage, chain_hex
         )
 
 
