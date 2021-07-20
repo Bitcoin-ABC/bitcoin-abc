@@ -195,10 +195,24 @@ class ProofInventoryTest(BitcoinTestFramework):
         for node in self.nodes:
             assert_equal(set(get_proof_ids(node)), proofids)
 
+    def test_manually_sent_proof(self):
+        node0 = self.nodes[0]
+
+        _, proof = self.gen_proof(node0)
+
+        self.log.info(
+            "Send a proof via RPC and check all the nodes download it")
+        node0.sendavalancheproof(proof.serialize().hex())
+        self.sync_proofs()
+
     def test_unbroadcast(self):
         self.log.info("Test broadcasting proofs")
 
         node = self.nodes[0]
+
+        # Disconnect the other nodes, or they will request the proof and
+        # invalidate the test
+        [node.stop_node() for node in self.nodes[1:]]
 
         def add_peers(count):
             peers = []
@@ -293,6 +307,9 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.test_receive_proof()
         self.test_ban_invalid_proof()
         self.test_proof_relay()
+        self.test_manually_sent_proof()
+
+        # Run this test last because it needs to disconnect the nodes
         self.test_unbroadcast()
 
 

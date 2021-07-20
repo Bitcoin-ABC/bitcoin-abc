@@ -5482,6 +5482,8 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
 
                     pto->m_proof_relay->filterProofKnown.insert(proofid);
                     addInvAndMaybeFlush(MSG_AVA_PROOF, proofid);
+                    State(pto->GetId())
+                        ->m_recently_announced_proofs.insert(proofid);
                 }
             }
         }
