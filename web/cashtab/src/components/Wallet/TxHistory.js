@@ -4,7 +4,7 @@ import Tx from './Tx';
 
 export const TxLink = styled.a``;
 
-const TxHistory = ({ txs, fiatPrice }) => {
+const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
     return (
         <div>
             {txs.map(tx => (
@@ -14,7 +14,11 @@ const TxHistory = ({ txs, fiatPrice }) => {
                     target="_blank"
                     rel="noreferrer"
                 >
-                    <Tx data={tx} fiatPrice={fiatPrice} />
+                    <Tx
+                        data={tx}
+                        fiatPrice={fiatPrice}
+                        fiatCurrency={fiatCurrency}
+                    />
                 </TxLink>
             ))}
         </div>

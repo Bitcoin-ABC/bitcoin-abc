@@ -7,6 +7,7 @@ import {
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
     isValidTokenStats,
+    isValidCashtabSettings,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -212,5 +213,16 @@ describe('Validation utils', () => {
     });
     it(`Recognizes a token stats object with missing required keys as invalid`, () => {
         expect(isValidTokenStats(noCovidStatsInvalid)).toBe(false);
+    });
+    it(`Recognizes a valid cashtab settings object`, () => {
+        expect(isValidCashtabSettings({ fiatCurrency: 'usd' })).toBe(true);
+    });
+    it(`Rejects a cashtab settings object for an unsupported currency`, () => {
+        expect(isValidCashtabSettings({ fiatCurrency: 'jpy' })).toBe(false);
+    });
+    it(`Rejects a corrupted cashtab settings object for an unsupported currency`, () => {
+        expect(isValidCashtabSettings({ fiatCurrencyWrongLabel: 'usd' })).toBe(
+            false,
+        );
     });
 });

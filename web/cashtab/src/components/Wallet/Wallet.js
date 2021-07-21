@@ -179,7 +179,7 @@ export const AddrPrefixLabel = styled.span`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, apiError } = ContextValue;
+    const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
     let balances;
     let parsedTxHistory;
     let tokens;
@@ -245,8 +245,19 @@ const WalletInfo = () => {
                     </BalanceHeader>
                     {fiatPrice !== null && !isNaN(balances.totalBalance) && (
                         <BalanceHeaderFiat>
-                            ${(balances.totalBalance * fiatPrice).toFixed(2)}{' '}
-                            USD
+                            {cashtabSettings
+                                ? `${
+                                      currency.fiatCurrencies[
+                                          cashtabSettings.fiatCurrency
+                                      ].symbol
+                                  } `
+                                : '$ '}
+                            {(balances.totalBalance * fiatPrice).toFixed(2)}{' '}
+                            {cashtabSettings
+                                ? `${currency.fiatCurrencies[
+                                      cashtabSettings.fiatCurrency
+                                  ].slug.toUpperCase()} `
+                                : 'USD'}
                         </BalanceHeaderFiat>
                     )}
                 </>
@@ -356,6 +367,11 @@ const WalletInfo = () => {
                         <TxHistory
                             txs={parsedTxHistory}
                             fiatPrice={fiatPrice}
+                            fiatCurrency={
+                                cashtabSettings && cashtabSettings.fiatCurrency
+                                    ? cashtabSettings.fiatCurrency
+                                    : 'usd'
+                            }
                         />
                     </TabPane>
                     <TabPane active={activeTab === 'tokens'}>

@@ -13,8 +13,8 @@ export const shouldRejectAmountInput = (
     let error = false;
     let testedAmount = new BigNumber(cashAmount);
 
-    if (selectedCurrency === 'USD') {
-        // Ensure no more than 8 decimal places
+    if (selectedCurrency !== currency.ticker) {
+        // Ensure no more than currency.cashDecimals decimal places
         testedAmount = new BigNumber(fiatToCrypto(cashAmount, fiatPrice));
     }
 
@@ -104,4 +104,18 @@ export const isValidTokenStats = tokenStats => {
         'totalBurned' in tokenStats &&
         'circulatingSupply' in tokenStats
     );
+};
+
+export const isValidCashtabSettings = settings => {
+    try {
+        const isValid =
+            typeof settings === 'object' &&
+            Object.prototype.hasOwnProperty.call(settings, 'fiatCurrency') &&
+            currency.settingsValidation.fiatCurrency.includes(
+                settings.fiatCurrency,
+            );
+        return isValid;
+    } catch (err) {
+        return false;
+    }
 };

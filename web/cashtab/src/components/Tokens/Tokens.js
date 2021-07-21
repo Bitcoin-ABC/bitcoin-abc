@@ -34,9 +34,13 @@ const Tokens = ({ jestBCH }) => {
     wallet state parameters not stored in the wallet object are deprecated
     */
 
-    const { loading, wallet, apiError, fiatPrice } = React.useContext(
-        WalletContext,
-    );
+    const {
+        loading,
+        wallet,
+        apiError,
+        fiatPrice,
+        cashtabSettings,
+    } = React.useContext(WalletContext);
 
     // If wallet is unmigrated, do not show page until it has migrated
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
@@ -78,11 +82,22 @@ const Tokens = ({ jestBCH }) => {
                             {fiatPrice !== null &&
                                 !isNaN(balances.totalBalance) && (
                                     <BalanceHeaderFiat>
-                                        $
+                                        {cashtabSettings
+                                            ? `${
+                                                  currency.fiatCurrencies[
+                                                      cashtabSettings
+                                                          .fiatCurrency
+                                                  ].symbol
+                                              } `
+                                            : '$ '}
                                         {(
                                             balances.totalBalance * fiatPrice
                                         ).toFixed(2)}{' '}
-                                        USD
+                                        {cashtabSettings
+                                            ? `${currency.fiatCurrencies[
+                                                  cashtabSettings.fiatCurrency
+                                              ].slug.toUpperCase()} `
+                                            : 'USD'}
                                     </BalanceHeaderFiat>
                                 )}
                         </>

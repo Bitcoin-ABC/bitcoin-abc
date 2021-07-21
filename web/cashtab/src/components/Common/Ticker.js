@@ -24,6 +24,14 @@ export const currency = {
     useBlockchainWs: false,
     txHistoryCount: 5,
     hydrateUtxoBatchSize: 20,
+    defaultSettings: { fiatCurrency: 'usd' },
+    settingsValidation: { fiatCurrency: ['usd', 'idr', 'krw', 'cny'] },
+    fiatCurrencies: {
+        usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },
+        idr: { name: 'Indonesian Rupiah', symbol: 'Rp', slug: 'idr' },
+        krw: { name: 'Korean Won', symbol: '₩', slug: 'krw' },
+        cny: { name: 'Chinese Yuan', symbol: '元', slug: 'cny' },
+    },
 };
 
 export function isValidCashPrefix(addressString) {

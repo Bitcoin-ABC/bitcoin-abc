@@ -115,6 +115,7 @@ export const SendBchInput = ({
     onMax,
     inputProps,
     selectProps,
+    activeFiatCode,
     ...otherProps
 }) => {
     const { Option } = Select;
@@ -123,7 +124,10 @@ export const SendBchInput = ({
             value: currency.ticker,
             label: currency.ticker,
         },
-        { value: 'USD', label: 'USD' },
+        {
+            value: activeFiatCode ? activeFiatCode : 'USD',
+            label: activeFiatCode ? activeFiatCode : 'USD',
+        },
     ];
     const currencyOptions = currencies.map(currency => {
         return (
@@ -243,6 +247,46 @@ export const FormItemWithQRCodeAddon = ({
                 />
             </Form.Item>
         </AntdFormWrapper>
+    );
+};
+
+export const CurrencySelectDropdown = selectProps => {
+    const { Option } = Select;
+
+    // Build select dropdown from currency.fiatCurrencies
+    const currencyMenuOptions = [];
+    const currencyKeys = Object.keys(currency.fiatCurrencies);
+    for (let i = 0; i < currencyKeys.length; i += 1) {
+        const currencyMenuOption = {};
+        currencyMenuOption.value =
+            currency.fiatCurrencies[currencyKeys[i]].slug;
+        currencyMenuOption.label = `${
+            currency.fiatCurrencies[currencyKeys[i]].name
+        } (${currency.fiatCurrencies[currencyKeys[i]].symbol})`;
+        currencyMenuOptions.push(currencyMenuOption);
+    }
+    const currencyOptions = currencyMenuOptions.map(currencyMenuOption => {
+        return (
+            <Option
+                key={currencyMenuOption.value}
+                value={currencyMenuOption.value}
+                className="selectedCurrencyOption"
+            >
+                {currencyMenuOption.label}
+            </Option>
+        );
+    });
+
+    return (
+        <Select
+            className="select-after"
+            style={{
+                width: '100%',
+            }}
+            {...selectProps}
+        >
+            {currencyOptions}
+        </Select>
     );
 };
 

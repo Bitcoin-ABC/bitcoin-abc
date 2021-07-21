@@ -12,6 +12,7 @@ import {
     loadStoredWallet,
     isValidStoredWallet,
 } from '@utils/cashMethods';
+import { isValidCashtabSettings } from '@utils/validation';
 import localforage from 'localforage';
 import { currency } from '@components/Common/Ticker';
 import isEmpty from 'lodash.isempty';
@@ -19,9 +20,11 @@ import isEqual from 'lodash.isequal';
 
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
+    const [cashtabSettings, setCashtabSettings] = useState(false);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [ws, setWs] = useState(null);
     const [apiError, setApiError] = useState(false);
+    const [checkFiatInterval, setCheckFiatInterval] = useState(null);
     const [walletState, setWalletState] = useState({
         balances: {},
         hydratedUtxoDetails: {},
@@ -799,6 +802,103 @@ const useWallet = () => {
         await loadWalletFromStorageOnStartup(setWallet);
     };
 
+    const loadCashtabSettings = async () => {
+        // get settings object from localforage
+        let localSettings;
+        try {
+            localSettings = await localforage.getItem('settings');
+            // If there is no keyvalue pair in localforage with key 'settings'
+            if (localSettings === null) {
+                // Create one with the default settings from Ticker.js
+                localforage.setItem('settings', currency.defaultSettings);
+                // Set state to default settings
+                setCashtabSettings(currency.defaultSettings);
+                return currency.defaultSettings;
+            }
+        } catch (err) {
+            console.log(`Error getting cashtabSettings`, err);
+            // TODO If they do not exist, write them
+            // TODO add function to change them
+            setCashtabSettings(currency.defaultSettings);
+            return currency.defaultSettings;
+        }
+        // If you found an object in localforage at the settings key, make sure it's valid
+        if (isValidCashtabSettings(localSettings)) {
+            setCashtabSettings(localSettings);
+            return localSettings;
+        }
+        // if not valid, also set cashtabSettings to default
+        setCashtabSettings(currency.defaultSettings);
+        return currency.defaultSettings;
+    };
+
+    // With different currency selections possible, need unique intervals for price checks
+    // Must be able to end them and set new ones with new currencies
+    const initializeFiatPriceApi = async selectedFiatCurrency => {
+        // Update fiat price and confirm it is set to make sure ap keeps loading state until this is updated
+        await fetchBchPrice(selectedFiatCurrency);
+        // Set interval for updating the price with given currency
+
+        const thisFiatInterval = setInterval(function () {
+            fetchBchPrice(selectedFiatCurrency);
+        }, 60000);
+
+        // set interval in state
+        setCheckFiatInterval(thisFiatInterval);
+    };
+
+    const clearFiatPriceApi = fiatPriceApi => {
+        // Clear fiat price check interval of previously selected currency
+        clearInterval(fiatPriceApi);
+    };
+
+    const changeCashtabSettings = async (key, newValue) => {
+        // Set loading to true as you do not want to display the fiat price of the last currency
+        // loading = true will lock the UI until the fiat price has updated
+        setLoading(true);
+        // Get settings from localforage
+        let currentSettings;
+        let newSettings;
+        try {
+            currentSettings = await localforage.getItem('settings');
+        } catch (err) {
+            console.log(`Error in changeCashtabSettings`, err);
+            // Set fiat price to null, which disables fiat sends throughout the app
+            setFiatPrice(null);
+            // Unlock the UI
+            setLoading(false);
+            return;
+        }
+        // Make sure function was called with valid params
+        if (
+            Object.keys(currentSettings).includes(key) &&
+            currency.settingsValidation[key].includes(newValue)
+        ) {
+            // Update settings
+            newSettings = currentSettings;
+            newSettings[key] = newValue;
+        }
+        // Set new settings in state so they are available in context throughout the app
+        setCashtabSettings(newSettings);
+        // If this settings change adjusted the fiat currency, update fiat price
+        if (key === 'fiatCurrency') {
+            clearFiatPriceApi(checkFiatInterval);
+            initializeFiatPriceApi(newValue);
+        }
+        // Write new settings in localforage
+        try {
+            await localforage.setItem('settings', newSettings);
+        } catch (err) {
+            console.log(
+                `Error writing newSettings object to localforage in changeCashtabSettings`,
+                err,
+            );
+            console.log(`newSettings`, newSettings);
+            // do nothing. If this happens, the user will see default currency next time they load the app.
+        }
+        setLoading(false);
+    };
+
     // Parse for incoming BCH transactions
     // Only notify if websocket is not connected
     if (
@@ -930,11 +1030,6 @@ const useWallet = () => {
             }
         }
     }
-
-    //  Update price every 1 min
-    useAsyncTimeout(async () => {
-        fetchBchPrice();
-    }, 60000);
 
     // Update wallet every 10s
     useAsyncTimeout(async () => {
@@ -1223,11 +1318,11 @@ const useWallet = () => {
         }
     };
 
-    const fetchBchPrice = async () => {
+    const fetchBchPrice = async (
+        fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
+    ) => {
         // Split this variable out in case coingecko changes
         const cryptoId = currency.coingeckoId;
-        // Keep currency as a variable as eventually it will be a user setting
-        const fiatCode = 'usd';
         // Keep this in the code, because different URLs will have different outputs require different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
         let bchPrice;
@@ -1265,9 +1360,10 @@ const useWallet = () => {
         }
     };
 
-    useEffect(() => {
+    useEffect(async () => {
         handleUpdateWallet(setWallet);
-        fetchBchPrice();
+        const initialSettings = await loadCashtabSettings();
+        initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
 
     useEffect(() => {
@@ -1297,6 +1393,8 @@ const useWallet = () => {
         parsedTxHistory,
         loading,
         apiError,
+        cashtabSettings,
+        changeCashtabSettings,
         getActiveWalletFromLocalForage,
         getWallet,
         validateMnemonic,

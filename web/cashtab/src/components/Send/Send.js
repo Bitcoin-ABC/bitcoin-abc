@@ -39,7 +39,13 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
     // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, slpBalancesAndUtxos, apiError } = ContextValue;
+    const {
+        wallet,
+        fiatPrice,
+        slpBalancesAndUtxos,
+        apiError,
+        cashtabSettings,
+    } = ContextValue;
     let balances;
     const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
     // If wallet.state includes balances and parsedTxHistory params, use these
@@ -187,7 +193,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         // Calculate the amount in BCH
         let bchValue = value;
 
-        if (selectedCurrency === 'USD') {
+        if (selectedCurrency !== 'XEC') {
             bchValue = fiatToCrypto(value, fiatPrice);
         }
 
@@ -366,9 +372,18 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
     let fiatPriceString = '';
     if (fiatPrice !== null && !isNaN(formData.value)) {
         if (selectedCurrency === currency.ticker) {
-            fiatPriceString = `$ ${(fiatPrice * Number(formData.value)).toFixed(
-                2,
-            )} USD`;
+            fiatPriceString = `${
+                cashtabSettings
+                    ? `${
+                          currency.fiatCurrencies[cashtabSettings.fiatCurrency]
+                              .symbol
+                      } `
+                    : '$ '
+            } ${(fiatPrice * Number(formData.value)).toFixed(2)} ${
+                cashtabSettings && cashtabSettings.fiatCurrency
+                    ? cashtabSettings.fiatCurrency.toUpperCase()
+                    : 'USD'
+            }`;
         } else {
             fiatPriceString = `${
                 formData.value ? fiatToCrypto(formData.value, fiatPrice) : '0'
@@ -376,7 +391,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
         }
     }
 
-    const priceApiError = fiatPrice === null && selectedCurrency === 'USD';
+    const priceApiError = fiatPrice === null && selectedCurrency !== 'XEC';
 
     return (
         <>
@@ -404,8 +419,19 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                     </BalanceHeader>
                     {fiatPrice !== null && (
                         <BalanceHeaderFiat>
-                            ${(balances.totalBalance * fiatPrice).toFixed(2)}{' '}
-                            USD
+                            {cashtabSettings
+                                ? `${
+                                      currency.fiatCurrencies[
+                                          cashtabSettings.fiatCurrency
+                                      ].symbol
+                                  } `
+                                : '$ '}
+                            {(balances.totalBalance * fiatPrice).toFixed(2)}{' '}
+                            {cashtabSettings
+                                ? `${currency.fiatCurrencies[
+                                      cashtabSettings.fiatCurrency
+                                  ].slug.toUpperCase()} `
+                                : 'USD'}
                         </BalanceHeaderFiat>
                     )}
                 </>
@@ -448,6 +474,12 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                                 }}
                             ></FormItemWithQRCodeAddon>
                             <SendBchInput
+                                activeFiatCode={
+                                    cashtabSettings &&
+                                    cashtabSettings.fiatCurrency
+                                        ? cashtabSettings.fiatCurrency.toUpperCase()
+                                        : 'USD'
+                                }
                                 validateStatus={
                                     sendBchAmountError ? 'error' : ''
                                 }

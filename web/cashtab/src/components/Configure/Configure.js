@@ -10,7 +10,10 @@ import {
 } from '@ant-design/icons';
 import { WalletContext } from '@utils/context';
 import { StyledCollapse } from '@components/Common/StyledCollapse';
-import { AntdFormWrapper } from '@components/Common/EnhancedInputs';
+import {
+    AntdFormWrapper,
+    CurrencySelectDropdown,
+} from '@components/Common/EnhancedInputs';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
@@ -20,6 +23,7 @@ import {
     CashLoadingIcon,
     ThemedCopyOutlined,
     ThemedWalletOutlined,
+    ThemedDollarOutlined,
 } from '@components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
@@ -172,6 +176,8 @@ const Configure = () => {
         deleteWallet,
         validateMnemonic,
         getSavedWallets,
+        cashtabSettings,
+        changeCashtabSettings,
     } = ContextValue;
     const [savedWallets, setSavedWallets] = useState([]);
     const [formData, setFormData] = useState({
@@ -582,6 +588,22 @@ const Configure = () => {
                         </StyledCollapse>
                     </>
                 )}
+                <StyledSpacer />
+                <h2>
+                    <ThemedDollarOutlined /> Fiat Currency
+                </h2>
+                <AntdFormWrapper>
+                    <CurrencySelectDropdown
+                        defaultValue={
+                            cashtabSettings && cashtabSettings.fiatCurrency
+                                ? cashtabSettings.fiatCurrency
+                                : 'usd'
+                        }
+                        onChange={fiatCode =>
+                            changeCashtabSettings('fiatCurrency', fiatCode)
+                        }
+                    />
+                </AntdFormWrapper>
                 <StyledSpacer />[
                 <SettingsLink
                     type="link"
