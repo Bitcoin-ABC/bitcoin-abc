@@ -61,6 +61,7 @@ class NetTest(BitcoinTestFramework):
         # Connect nodes both ways.
         connect_nodes(self.nodes[0], self.nodes[1])
         connect_nodes(self.nodes[1], self.nodes[0])
+        self.sync_all()
 
         self.test_connection_count()
         self.test_getpeerinfo()
