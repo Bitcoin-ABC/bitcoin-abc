@@ -186,7 +186,7 @@ void UpdatePSBTOutput(const SigningProvider &provider,
 bool SignPSBTInput(const SigningProvider &provider,
                    PartiallySignedTransaction &psbt, int index,
                    SigHashType sighash, SignatureData *out_sigdata,
-                   bool use_dummy) {
+                   bool use_dummy, bool finalize) {
     PSBTInput &input = psbt.inputs.at(index);
     const CMutableTransaction &tx = *psbt.tx;
 
@@ -217,6 +217,13 @@ bool SignPSBTInput(const SigningProvider &provider,
         sig_complete =
             ProduceSignature(provider, creator, utxo.scriptPubKey, sigdata);
     }
+
+    // If we are not finalizing, set sigdata.complete to false to not set the
+    // scriptSig
+    if (!finalize && sigdata.complete) {
+        sigdata.complete = false;
+    }
+
     input.FromSignatureData(sigdata);
 
     // Fill in the missing info
@@ -237,8 +244,9 @@ bool FinalizePSBT(PartiallySignedTransaction &psbtx) {
     //   this will combine them into a final script.
     bool complete = true;
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
-        complete &=
-            SignPSBTInput(DUMMY_SIGNING_PROVIDER, psbtx, i, SigHashType());
+        complete &= SignPSBTInput(DUMMY_SIGNING_PROVIDER, psbtx, i,
+                                  SigHashType(), /*out_sigdata=*/nullptr,
+                                  /*use_dummy=*/false, /*finalize=*/true);
     }
 
     return complete;

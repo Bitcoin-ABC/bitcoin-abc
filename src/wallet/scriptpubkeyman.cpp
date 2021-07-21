@@ -572,7 +572,7 @@ SigningResult LegacyScriptPubKeyMan::SignMessage(const std::string &message,
 std::optional<PSBTError>
 LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                                 SigHashType sighash_type, bool sign,
-                                bool bip32derivs) const {
+                                bool bip32derivs, bool finalize) const {
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
         PSBTInput &input = psbtx.inputs.at(i);
 
@@ -593,7 +593,8 @@ LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
         SignatureData sigdata;
         input.FillSignatureData(sigdata);
         SignPSBTInput(HidingSigningProvider(this, !sign, !bip32derivs), psbtx,
-                      i, sighash_type);
+                      i, sighash_type, /*out_sigdata=*/nullptr,
+                      /*use_dummy=*/false, finalize);
     }
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that
@@ -2189,7 +2190,7 @@ DescriptorScriptPubKeyMan::SignMessage(const std::string &message,
 std::optional<PSBTError>
 DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                                     SigHashType sighash_type, bool sign,
-                                    bool bip32derivs) const {
+                                    bool bip32derivs, bool finalize) const {
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
         PSBTInput &input = psbtx.inputs.at(i);
 
@@ -2234,7 +2235,8 @@ DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
         }
 
         SignPSBTInput(HidingSigningProvider(keys.get(), !sign, !bip32derivs),
-                      psbtx, i, sighash_type);
+                      psbtx, i, sighash_type, /*out_sigdata=*/nullptr,
+                      /*use_dummy=*/false, finalize);
     }
 
     // Fill in the bip32 keypaths and redeemscripts for the outputs so that

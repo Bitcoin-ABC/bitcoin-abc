@@ -523,8 +523,8 @@ bool PSBTInputSigned(const PSBTInput &input);
 bool SignPSBTInput(const SigningProvider &provider,
                    PartiallySignedTransaction &psbt, int index,
                    SigHashType sighash = SigHashType(),
-                   SignatureData *out_sigdata = nullptr,
-                   bool use_dummy = false);
+                   SignatureData *out_sigdata = nullptr, bool use_dummy = false,
+                   bool finalize = true);
 
 /**
  * Updates a PSBTOutput with information from provider.

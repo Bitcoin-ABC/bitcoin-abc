@@ -2137,7 +2137,8 @@ bool CWallet::SignTransaction(CMutableTransaction &tx,
 std::optional<PSBTError> CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
                                            bool &complete,
                                            SigHashType sighash_type, bool sign,
-                                           bool bip32derivs) const {
+                                           bool bip32derivs,
+                                           bool finalize) const {
     LOCK(cs_wallet);
     // Get all of the previous transactions
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
@@ -2165,8 +2166,8 @@ std::optional<PSBTError> CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
 
     // Fill in information from ScriptPubKeyMans
     for (ScriptPubKeyMan *spk_man : GetAllScriptPubKeyMans()) {
-        const auto error{
-            spk_man->FillPSBT(psbtx, sighash_type, sign, bip32derivs)};
+        const auto error{spk_man->FillPSBT(psbtx, sighash_type, sign,
+                                           bip32derivs, finalize)};
         if (error) {
             return error;
         }

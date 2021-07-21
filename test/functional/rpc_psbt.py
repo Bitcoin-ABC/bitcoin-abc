@@ -60,7 +60,11 @@ class PSBTTest(BitcoinTestFramework):
         assert_equal(psbtx1, psbtx)
 
         # Sign the transaction and send
-        signed_tx = self.nodes[0].walletprocesspsbt(psbtx)["psbt"]
+        signed_tx = self.nodes[0].walletprocesspsbt(psbt=psbtx, finalize=False)["psbt"]
+        finalized_tx = self.nodes[0].walletprocesspsbt(psbt=psbtx, finalize=True)[
+            "psbt"
+        ]
+        assert signed_tx != finalized_tx
         final_tx = self.nodes[0].finalizepsbt(signed_tx)["hex"]
         self.nodes[0].sendrawtransaction(final_tx)
 

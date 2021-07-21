@@ -287,7 +287,8 @@ public:
     virtual std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbt,
              SigHashType sighash_type = SigHashType().withForkId(),
-             bool sign = true, bool bip32derivs = false) const {
+             bool sign = true, bool bip32derivs = false,
+             bool finalize = true) const {
         return common::PSBTError::UNSUPPORTED;
     }
 
@@ -488,7 +489,8 @@ public:
     std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbt,
              SigHashType sighash_type = SigHashType().withForkId(),
-             bool sign = true, bool bip32derivs = false) const override;
+             bool sign = true, bool bip32derivs = false,
+             bool finalize = true) const override;
 
     uint256 GetID() const override;
 
@@ -760,7 +762,8 @@ public:
     std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbt,
              SigHashType sighash_type = SigHashType().withForkId(),
-             bool sign = true, bool bip32derivs = false) const override;
+             bool sign = true, bool bip32derivs = false,
+             bool finalize = true) const override;
 
     uint256 GetID() const override;
 

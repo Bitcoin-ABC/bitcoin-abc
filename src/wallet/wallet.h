@@ -687,15 +687,17 @@ public:
      * @param[in]  psbtx PartiallySignedTransaction to fill in
      * @param[out] complete indicates whether the PSBT is now complete
      * @param[in]  sighash_type the sighash type to use when signing (if PSBT
-     * does not specify)
+     *     does not specify)
      * @param[in]  sign whether to sign or not
      * @param[in]  bip32derivs whether to fill in bip32 derivation information
-     * if available return error
+     *     if available return error
+     * @param[in] finalize whether to create the final scriptSig if possible
      */
     std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
              SigHashType sighash_type = SigHashType().withForkId(),
-             bool sign = true, bool bip32derivs = true) const;
+             bool sign = true, bool bip32derivs = true,
+             bool finalize = true) const;
 
     /**
      * Add the transaction to the wallet and maybe attempt to broadcast it.
