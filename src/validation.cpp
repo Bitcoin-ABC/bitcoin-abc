@@ -6091,6 +6091,21 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
         }
         index->nChainTx =
             index->pprev ? index->pprev->nChainTx + index->nTx : 1;
+
+        // Mark unvalidated block index entries beneath the snapshot base block
+        // as assumed-valid.
+        if (!index->IsValid(BlockValidity::SCRIPTS)) {
+            // This flag will be removed once the block is fully validated by a
+            // background chainstate.
+            index->nStatus = index->nStatus.withAssumedValid();
+        }
+
+        setDirtyBlockIndex.insert(index);
+        // Changes to the block index will be flushed to disk after this call
+        // returns in `ActivateSnapshot()`, when `MaybeRebalanceCaches()` is
+        // called, since we've added a snapshot chainstate and therefore will
+        // have to downsize the IBD chainstate, which will result in a call to
+        // `FlushStateToDisk(ALWAYS)`.
     }
 
     assert(index);

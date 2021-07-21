@@ -59,6 +59,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         bool has_failed_parent = fuzzed_data_provider.ConsumeBool();
         bool is_parked = fuzzed_data_provider.ConsumeBool();
         bool has_parked_parent = fuzzed_data_provider.ConsumeBool();
+        bool is_assumed_valid = fuzzed_data_provider.ConsumeBool();
         const BlockStatus block_status =
             base.withValidity(block_validity)
                 .withData(has_data)
@@ -66,7 +67,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 .withFailed(has_failed)
                 .withFailedParent(has_failed_parent)
                 .withParked(is_parked)
-                .withParkedParent(has_parked_parent);
+                .withParkedParent(has_parked_parent)
+                .withAssumedValid(is_assumed_valid);
 
         assert(block_status.hasData() == has_data);
         assert(block_status.hasUndo() == has_undo);
@@ -74,6 +76,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         assert(block_status.hasFailedParent() == has_failed_parent);
         assert(block_status.isParked() == is_parked);
         assert(block_status.hasParkedParent() == has_parked_parent);
+        assert(block_status.isAssumedValid() == is_assumed_valid);
 
         assert(block_status.isInvalid() == has_failed || has_failed_parent);
         const BlockStatus valid_block = block_status.withClearedFailureFlags();
@@ -84,6 +87,10 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         const BlockStatus unparked_block =
             block_status.withClearedParkedFlags();
         assert(!unparked_block.isOnParkedChain());
+
+        const BlockStatus unassumed_valid_block =
+            block_status.withClearedAssumedValidFlags();
+        assert(!unassumed_valid_block.isAssumedValid());
 
         if (!block_status.isValid()) {
             continue;

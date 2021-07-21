@@ -40,6 +40,14 @@ private:
     // Mask used to check for parked blocks.
     static const uint32_t PARKED_MASK = PARKED_FLAG | PARKED_PARENT_FLAG;
 
+    /**
+     * If set, this indicates that the block index entry is assumed-valid.
+     * Certain diagnostics will be skipped in e.g. CheckBlockIndex().
+     * It almost certainly means that the block's full validation is pending
+     * on a background chainstate.
+     */
+    static const uint32_t ASSUMED_VALID_FLAG = 0x200;
+
 public:
     explicit constexpr BlockStatus() : status(0) {}
 
@@ -97,6 +105,15 @@ public:
         }
 
         return getValidity() >= nUpTo;
+    }
+
+    bool isAssumedValid() const { return status & ASSUMED_VALID_FLAG; }
+    BlockStatus withAssumedValid(bool assumed_valid = true) const {
+        return BlockStatus((status & ~ASSUMED_VALID_FLAG) |
+                           (assumed_valid ? ASSUMED_VALID_FLAG : 0));
+    }
+    BlockStatus withClearedAssumedValidFlags() const {
+        return BlockStatus(status & ~ASSUMED_VALID_FLAG);
     }
 
     bool isInvalid() const { return status & INVALID_MASK; }
