@@ -150,9 +150,9 @@ public:
     /** Return true if log accepts specified category */
     bool WillLogCategory(LogFlags category) const;
 
-    /** Returns a vector of the log categories */
+    /** Returns a vector of the log categories in alphabetical order. */
     std::vector<LogCategory> LogCategoriesList() const;
-    /** Returns a string with the log categories */
+    /** Returns a string with the log categories in alphabetical order. */
     std::string LogCategoriesString() const {
         return Join(LogCategoriesList(), ", ",
                     [&](const LogCategory &i) { return i.category; });
