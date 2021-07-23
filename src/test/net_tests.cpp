@@ -193,8 +193,8 @@ struct CConnmanTest : public CConnman {
 
             addressCount += addresses.quantity;
             do {
-                addrman.Add(getAddrGroup(addresses.group,
-                                         ServiceFlags(addresses.services)),
+                addrman.Add({getAddrGroup(addresses.group,
+                                          ServiceFlags(addresses.services))},
                             CNetAddr());
             } while (addrman.size() < addressCount);
         }
