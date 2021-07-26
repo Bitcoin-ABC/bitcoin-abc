@@ -140,6 +140,11 @@ public:
      */
     void ReattemptInitialBroadcast(CScheduler &scheduler) const;
 
+    /**
+     * Update the avalanche statistics for all the nodes
+     */
+    void UpdateAvalancheStatistics() const;
+
 private:
     // overloaded variant of above to operate on CNode*s
     void Misbehaving(const CNode &node, int howmuch,

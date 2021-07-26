@@ -99,6 +99,18 @@ static const bool DEFAULT_FORCEDNSSEED = false;
 static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER = 1 * 1000;
 
+/** Refresh period for the avalanche statistics computation */
+static constexpr std::chrono::minutes AVALANCHE_STATISTICS_REFRESH_PERIOD{10};
+/** Time constant for the avalanche statistics computation */
+static constexpr std::chrono::minutes AVALANCHE_STATISTICS_TIME_CONSTANT{10};
+/**
+ * Pre-computed decay factor for the avalanche statistics computation.
+ * There is currently no constexpr variant of std::exp, so use a const.
+ */
+static const double AVALANCHE_STATISTICS_DECAY_FACTOR =
+    1. - std::exp(-1. * AVALANCHE_STATISTICS_REFRESH_PERIOD.count() /
+                  AVALANCHE_STATISTICS_TIME_CONSTANT.count());
+
 typedef int64_t NodeId;
 
 /**
@@ -1036,10 +1048,53 @@ public:
     // m_proof_relay == nullptr if we're not relaying proofs with this peer
     std::unique_ptr<ProofRelay> m_proof_relay;
 
-    struct AvalancheState {
-        AvalancheState() {}
+    class AvalancheState {
+        /**
+         * The inventories polled and voted couters since last score
+         * computation, stored as a pair of uint32_t with the poll counter
+         * being the 32 lowest bits and the vote counter the 32 highest bits.
+         */
+        std::atomic<uint64_t> invCounters;
 
+        /** The last computed score */
+        std::atomic<double> availabilityScore;
+
+        /**
+         * Protect the sequence of operations required for updating the
+         * statistics.
+         */
+        Mutex cs_statistics;
+
+    public:
         CPubKey pubkey;
+
+        AvalancheState() : invCounters(0), availabilityScore(0.) {}
+
+        /** The node was polled for count invs */
+        void invsPolled(uint32_t count);
+
+        /** The node voted for count invs */
+        void invsVoted(uint32_t count);
+
+        /**
+         * The availability score is calculated using an exponentially weighted
+         * average.
+         * This has several interesting properties:
+         *  - The most recent polls/responses have more weight than the previous
+         * ones. A node that recently stopped answering will see its ratio
+         * decrease quickly.
+         *  - This is a low-pass filter, so it causes delay. This means that a
+         * node needs to have a track record for the ratio to be high. A node
+         * that has been little requested will have a lower ratio than a node
+         * that failed to answer a few polls but answered a lot of them.
+         *  - It is cheap to compute.
+         *
+         * This is expected to be called at a fixed interval of
+         * AVALANCHE_STATISTICS_REFRESH_PERIOD.
+         */
+        void updateAvailabilityScore();
+
+        double getAvailabilityScore() const;
     };
 
     // m_avalanche_state == nullptr if we're not using avalanche with this peer

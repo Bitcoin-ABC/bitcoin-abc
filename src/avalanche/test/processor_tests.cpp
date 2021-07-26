@@ -109,6 +109,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_node.peerman->InitializeNode(config, node);
         node->nVersion = 1;
         node->fSuccessfullyConnected = true;
+        node->m_avalanche_state = std::make_unique<CNode::AvalancheState>();
 
         m_connman->AddNode(*node);
         return node;

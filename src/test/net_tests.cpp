@@ -22,6 +22,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <ios>
 #include <memory>
 #include <string>
@@ -953,6 +954,65 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
             // youngest member. [...]"
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(avalanche_statistics) {
+    const uint32_t step = AVALANCHE_STATISTICS_REFRESH_PERIOD.count();
+    const uint32_t tau = AVALANCHE_STATISTICS_TIME_CONSTANT.count();
+
+    CNode::AvalancheState avastats;
+
+    double previousScore = avastats.getAvailabilityScore();
+    BOOST_CHECK_SMALL(previousScore, 1e-6);
+
+    // Check the statistics follow an exponential response for 1 to 10 tau
+    for (size_t i = 1; i <= 10; i++) {
+        for (uint32_t j = 0; j < tau; j += step) {
+            avastats.invsPolled(1);
+            // Always respond to everything correctly
+            avastats.invsVoted(1);
+
+            avastats.updateAvailabilityScore();
+
+            // Expect a monotonic rise
+            double currentScore = avastats.getAvailabilityScore();
+            BOOST_CHECK_GE(currentScore, previousScore);
+            previousScore = currentScore;
+        }
+
+        // We expect (1 - e^-i) after i * tau. The tolerance is expressed
+        // as a percentage, and we add a (large) 0.1% margin to account for
+        // floating point errors.
+        BOOST_CHECK_CLOSE(previousScore, -1 * std::expm1(-1. * i), 100.1 / tau);
+    }
+
+    // After 10 tau we should be very close to 100% (about 99.995%)
+    BOOST_CHECK_CLOSE(previousScore, 1., 0.01);
+
+    for (size_t i = 1; i <= 3; i++) {
+        for (uint32_t j = 0; j < tau; j += step) {
+            avastats.invsPolled(2);
+
+            // Stop responding to the polls.
+            avastats.invsVoted(1);
+
+            avastats.updateAvailabilityScore();
+
+            // Expect a monotonic fall
+            double currentScore = avastats.getAvailabilityScore();
+            BOOST_CHECK_LE(currentScore, previousScore);
+            previousScore = currentScore;
+        }
+
+        // There is a slight error in the expected value because we did not
+        // start the decay at exactly 100%, but the 0.1% margin is at least an
+        // order of magnitude larger than the expected error so it doesn't
+        // matter.
+        BOOST_CHECK_CLOSE(previousScore, 1. + std::expm1(-1. * i), 100.1 / tau);
+    }
+
+    // After 3 more tau we should be under 5%
+    BOOST_CHECK_LT(previousScore, .05);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

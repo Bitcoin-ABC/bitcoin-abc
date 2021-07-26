@@ -44,7 +44,9 @@ static_assert(MINIUPNPC_API_VERSION >= 10,
               "miniUPnPc API version >= 10 assumed");
 #endif
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <optional>
 #include <unordered_map>
 
@@ -3044,6 +3046,34 @@ int CConnman::GetBestHeight() const {
 
 unsigned int CConnman::GetReceiveFloodSize() const {
     return nReceiveFloodSize;
+}
+
+void CNode::AvalancheState::invsPolled(uint32_t count) {
+    invCounters += count;
+}
+
+void CNode::AvalancheState::invsVoted(uint32_t count) {
+    invCounters += uint64_t(count) << 32;
+}
+
+void CNode::AvalancheState::updateAvailabilityScore() {
+    LOCK(cs_statistics);
+
+    uint64_t windowInvCounters = invCounters.exchange(0);
+    double previousScore = availabilityScore;
+
+    uint32_t polls = windowInvCounters & std::numeric_limits<uint32_t>::max();
+    uint32_t votes = windowInvCounters >> 32;
+
+    availabilityScore =
+        AVALANCHE_STATISTICS_DECAY_FACTOR * (2 * votes - polls) +
+        (1. - AVALANCHE_STATISTICS_DECAY_FACTOR) * previousScore;
+}
+
+double CNode::AvalancheState::getAvailabilityScore() const {
+    // The score is set atomically so there is no need to lock the statistics
+    // when reading.
+    return availabilityScore;
 }
 
 CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn,
