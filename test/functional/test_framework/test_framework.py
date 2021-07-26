@@ -113,6 +113,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # skipped. If list is truncated, wallet creation is skipped and keys
         # are not imported.
         self.wallet_names = None
+        # Disable ThreadOpenConnections by default, so that adding entries to
+        # addrman will not result in automatic connections to them.
+        self.disable_autoconnect = True
         self.set_test_params()
         if self.options.timeout_factor == 0:
             self.options.timeout_factor = 99999
@@ -722,7 +725,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             initialize_datadir(
                 self.options.cachedir,
                 CACHE_NODE_ID,
-                self.chain)
+                self.chain,
+                self.disable_autoconnect)
             self.nodes.append(
                 TestNode(
                     CACHE_NODE_ID,
@@ -793,7 +797,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             to_dir = get_datadir_path(self.options.tmpdir, i)
             shutil.copytree(cache_node_dir, to_dir)
             # Overwrite port/rpcport in bitcoin.conf
-            initialize_datadir(self.options.tmpdir, i, self.chain)
+            initialize_datadir(
+                self.options.tmpdir,
+                i,
+                self.chain,
+                self.disable_autoconnect)
 
     def _initialize_chain_clean(self):
         """Initialize empty blockchain for use by the test.
@@ -801,7 +809,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         Create an empty blockchain and num_nodes wallets.
         Useful if a test case wants complete control over initialization."""
         for i in range(self.num_nodes):
-            initialize_datadir(self.options.tmpdir, i, self.chain)
+            initialize_datadir(
+                self.options.tmpdir,
+                i,
+                self.chain,
+                self.disable_autoconnect)
 
     def skip_if_no_py3_zmq(self):
         """Attempt to import the zmq package and skip the test if the import fails."""

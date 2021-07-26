@@ -355,7 +355,7 @@ def rpc_url(datadir, chain, host, port):
 ################
 
 
-def initialize_datadir(dirname, n, chain):
+def initialize_datadir(dirname, n, chain, disable_autoconnect=True):
     datadir = get_datadir_path(dirname, n)
     if not os.path.isdir(datadir):
         os.makedirs(datadir)
@@ -385,6 +385,8 @@ def initialize_datadir(dirname, n, chain):
         # tests.
         f.write("peertimeout=999999\n")
         f.write("shrinkdebugfile=0\n")
+        if disable_autoconnect:
+            f.write("connect=0\n")
         os.makedirs(os.path.join(datadir, 'stderr'), exist_ok=True)
         os.makedirs(os.path.join(datadir, 'stdout'), exist_ok=True)
     return datadir
