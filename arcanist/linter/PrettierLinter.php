@@ -49,6 +49,20 @@ final class PrettierLinter extends ArcanistExternalLinter {
     $root = $this->getProjectRoot();
     $path = Filesystem::resolvePath($path, $root);
 
+    if ($err != 0) {
+      $message = id(new ArcanistLintMessage())
+      ->setPath($path)
+      ->setLine(1)
+      ->setChar(1)
+      ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
+      ->setCode('PRETTIER')
+      ->setSeverity(ArcanistLintSeverity::SEVERITY_ERROR)
+      ->setName('Linter error')
+      ->setDescription($stderr);
+
+      return array($message);
+    }
+
     $orig = file_get_contents($path);
     if ($orig == $stdout) {
       return array();
