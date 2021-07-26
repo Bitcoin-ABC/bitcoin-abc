@@ -27,9 +27,11 @@
 #include <vector>
 
 class ArgsManager;
-class Config;
 class CBlockIndex;
+class CConnman;
+class CNode;
 class CScheduler;
+class Config;
 class PeerManager;
 struct bilingual_str;
 

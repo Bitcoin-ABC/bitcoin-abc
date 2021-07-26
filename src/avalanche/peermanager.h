@@ -9,9 +9,9 @@
 #include <avalanche/orphanproofpool.h>
 #include <avalanche/proof.h>
 #include <coins.h>
-#include <net.h>
 #include <pubkey.h>
 #include <salteduint256hasher.h>
+#include <util/time.h>
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>

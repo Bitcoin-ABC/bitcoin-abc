@@ -18,6 +18,7 @@
 #include <hash.h>
 #include <net_permissions.h>
 #include <netaddress.h>
+#include <nodeid.h>
 #include <protocol.h>
 #include <random.h>
 #include <streams.h>
@@ -110,13 +111,6 @@ static constexpr std::chrono::minutes AVALANCHE_STATISTICS_TIME_CONSTANT{10};
 static const double AVALANCHE_STATISTICS_DECAY_FACTOR =
     1. - std::exp(-1. * AVALANCHE_STATISTICS_REFRESH_PERIOD.count() /
                   AVALANCHE_STATISTICS_TIME_CONSTANT.count());
-
-typedef int64_t NodeId;
-
-/**
- * Special NodeId that represent no node.
- */
-static constexpr NodeId NO_NODE = -1;
 
 struct AddedNodeInfo {
     std::string strAddedNode;

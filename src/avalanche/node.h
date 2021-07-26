@@ -5,7 +5,7 @@
 #ifndef BITCOIN_AVALANCHE_NODE_H
 #define BITCOIN_AVALANCHE_NODE_H
 
-#include <net.h> // For NodeId
+#include <nodeid.h>
 #include <pubkey.h>
 
 #include <chrono>
