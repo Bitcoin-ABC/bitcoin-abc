@@ -15,8 +15,17 @@ Therefore, this test is limited to the remaining protection criteria.
 
 import time
 
+from test_framework.avatools import create_coinbase_stakes
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.messages import CTransaction, FromHex, msg_pong, msg_tx
+from test_framework.key import ECKey
+from test_framework.messages import (
+    AvalancheProof,
+    CTransaction,
+    FromHex,
+    msg_avaproof,
+    msg_pong,
+    msg_tx,
+)
 from test_framework.p2p import P2PDataStore, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, wait_until
@@ -38,17 +47,19 @@ class P2PEvict(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        # The choice of maxconnections=32 results in a maximum of 21 inbound connections
-        # (32 - 10 outbound - 1 feeler). 20 inbound peers are protected from eviction:
-        # 4 by netgroup, 4 that sent us blocks, 4 that sent us transactions and
-        # 8 via lowest ping time
-        self.extra_args = [['-maxconnections=32']]
+        # The choice of maxconnections=36 results in a maximum of 25 inbound connections
+        # (36 - 10 outbound - 1 feeler). 20 inbound peers are protected from eviction:
+        # 4 by netgroup, 4 that sent us blocks, 4 that sent us proofs, 4 that
+        # sent us transactions and 8 via lowest ping time
+        self.extra_args = [['-maxconnections=36', "-enableavalanche=1"]]
 
     def run_test(self):
-        protected_peers = set()  # peers that we expect to be protected from eviction
+        # peers that we expect to be protected from eviction
+        protected_peers = set()
         current_peer = -1
         node = self.nodes[0]
-        node.generatetoaddress(101, node.get_deterministic_priv_key().address)
+        blocks = node.generatetoaddress(
+            101, node.get_deterministic_priv_key().address)
 
         self.log.info(
             "Create 4 peers and protect them from eviction by sending us a block")
@@ -66,6 +77,28 @@ class P2PEvict(BitcoinTestFramework):
                 best_block_time + 1)
             block.solve()
             block_peer.send_blocks_and_test([block], node, success=True)
+            protected_peers.add(current_peer)
+
+        self.log.info(
+            "Create 4 peers and protect them from eviction by sending us a proof")
+        privkey = ECKey()
+        privkey.generate()
+        pubkey = privkey.get_pubkey()
+
+        stakes = create_coinbase_stakes(
+            node, blocks, node.get_deterministic_priv_key().key)
+
+        for i in range(4):
+            proof_peer = node.add_p2p_connection(SlowP2PDataStore())
+            current_peer += 1
+            proof_peer.sync_with_ping()
+
+            proof = node.buildavalancheproof(
+                42, 2000000000, pubkey.get_bytes().hex(), [stakes[i]])
+
+            avaproof_msg = msg_avaproof()
+            avaproof_msg.proof = FromHex(AvalancheProof(), proof)
+            proof_peer.send_message(avaproof_msg)
             protected_peers.add(current_peer)
 
         self.log.info(

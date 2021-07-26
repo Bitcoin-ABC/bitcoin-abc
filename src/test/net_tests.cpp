@@ -781,6 +781,8 @@ GetRandomNodeEvictionCandidates(const int n_candidates,
             static_cast<int64_t>(random_context.randrange(100)),
             /* nLastBlockTime */
             static_cast<int64_t>(random_context.randrange(100)),
+            /* nLastProofTime */
+            static_cast<int64_t>(random_context.randrange(100)),
             /* nLastTXTime */
             static_cast<int64_t>(random_context.randrange(100)),
             /* fRelevantServices */ random_context.randbool(),
@@ -862,6 +864,15 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                 },
                 {0, 1, 2, 3}, random_context));
 
+            // Four nodes that most recently sent us novel proofs accepted
+            // into our proof pool should be protected from eviction.
+            BOOST_CHECK(!IsEvicted(
+                number_of_nodes,
+                [number_of_nodes](NodeEvictionCandidate &candidate) {
+                    candidate.nLastProofTime = number_of_nodes - candidate.id;
+                },
+                {0, 1, 2, 3}, random_context));
+
             // Up to eight non-tx-relay peers that most recently sent us novel
             // blocks should be protected from eviction.
             BOOST_CHECK(!IsEvicted(
@@ -912,21 +923,21 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                  10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
                 random_context));
 
-            // An eviction is expected given >= 29 random eviction candidates.
+            // An eviction is expected given >= 33 random eviction candidates.
             // The eviction logic protects at most four peers by net group,
-            // eight by lowest ping time, four by last time of novel tx, up to
-            // eight non-tx-relay peers by last novel block time, and four more
-            // peers by last novel block time.
-            if (number_of_nodes >= 29) {
+            // eight by lowest ping time, four by last time of novel tx, four by
+            // last time of novel proof, up to eight non-tx-relay peers by last
+            // novel block time, and four more peers by last novel block time.
+            if (number_of_nodes >= 33) {
                 BOOST_CHECK(SelectNodeToEvict(GetRandomNodeEvictionCandidates(
                     number_of_nodes, random_context)));
             }
 
-            // No eviction is expected given <= 20 random eviction candidates.
+            // No eviction is expected given <= 24 random eviction candidates.
             // The eviction logic protects at least four peers by net group,
-            // eight by lowest ping time, four by last time of novel tx and four
-            // peers by last novel block time.
-            if (number_of_nodes <= 20) {
+            // eight by lowest ping time, four by last time of novel tx, four by
+            // last time of novel proof, four peers by last novel block time.
+            if (number_of_nodes <= 24) {
                 BOOST_CHECK(!SelectNodeToEvict(GetRandomNodeEvictionCandidates(
                     number_of_nodes, random_context)));
             }

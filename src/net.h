@@ -1261,6 +1261,7 @@ struct NodeEvictionCandidate {
     int64_t nTimeConnected;
     int64_t nMinPingUsecTime;
     int64_t nLastBlockTime;
+    int64_t nLastProofTime;
     int64_t nLastTXTime;
     bool fRelevantServices;
     bool fRelayTxes;

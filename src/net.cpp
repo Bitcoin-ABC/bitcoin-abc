@@ -895,6 +895,18 @@ static bool CompareNodeTXTime(const NodeEvictionCandidate &a,
     return a.nTimeConnected > b.nTimeConnected;
 }
 
+static bool CompareNodeProofTime(const NodeEvictionCandidate &a,
+                                 const NodeEvictionCandidate &b) {
+    // There is a fall-through here because it is common for a node to have more
+    // than a few peers that have not yet relayed proofs. This fallback is also
+    // used in the case avalanche is not enabled.
+    if (a.nLastProofTime != b.nLastProofTime) {
+        return a.nLastProofTime < b.nLastProofTime;
+    }
+
+    return a.nTimeConnected > b.nTimeConnected;
+}
+
 // Pick out the potential block-relay only peers, and sort them by last block
 // time.
 static bool CompareNodeBlockRelayOnlyTime(const NodeEvictionCandidate &a,
@@ -938,6 +950,12 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // into our mempool. An attacker cannot manipulate this metric without
     // performing useful work.
     EraseLastKElements(vEvictionCandidates, CompareNodeTXTime, 4);
+    // Protect 4 nodes that most recently sent us novel proofs accepted
+    // into our proof pool. An attacker cannot manipulate this metric without
+    // performing useful work.
+    // TODO this filter must happen before the last tx time once avalanche is
+    // enabled for pre-consensus.
+    EraseLastKElements(vEvictionCandidates, CompareNodeProofTime, 4);
     // Protect up to 8 non-tx-relay peers that have sent us novel blocks.
     std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
               CompareNodeBlockRelayOnlyTime);
@@ -1059,6 +1077,7 @@ bool CConnman::AttemptToEvictConnection() {
                 node->nTimeConnected,
                 node->nMinPingUsecTime,
                 node->nLastBlockTime,
+                node->nLastProofTime,
                 node->nLastTXTime,
                 HasAllDesirableServiceFlags(node->nServices),
                 peer_relay_txes,
