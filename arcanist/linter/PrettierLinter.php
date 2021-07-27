@@ -51,14 +51,12 @@ final class PrettierLinter extends ArcanistExternalLinter {
 
     if ($err != 0) {
       $message = id(new ArcanistLintMessage())
-      ->setPath($path)
-      ->setLine(1)
-      ->setChar(1)
-      ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
-      ->setCode('PRETTIER')
-      ->setSeverity(ArcanistLintSeverity::SEVERITY_ERROR)
-      ->setName('Linter error')
-      ->setDescription($stderr);
+        ->setPath($path)
+        ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
+        ->setCode('PRETTIER')
+        ->setSeverity(ArcanistLintSeverity::SEVERITY_ERROR)
+        ->setName('Linter error')
+        ->setDescription($stderr);
 
       return array($message);
     }
@@ -69,16 +67,16 @@ final class PrettierLinter extends ArcanistExternalLinter {
     }
 
     $message = id(new ArcanistLintMessage())
-    ->setPath($path)
-    ->setLine(1)
-    ->setChar(1)
-    ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
-    ->setCode('PRETTIER')
-    ->setSeverity(ArcanistLintSeverity::SEVERITY_AUTOFIX)
-    ->setName('Code style violation')
-    ->setDescription("'$path' has code style errors.")
-    ->setOriginalText($orig)
-    ->setReplacementText($stdout);
+      ->setPath($path)
+      ->setLine(1)
+      ->setChar(1)
+      ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
+      ->setCode('PRETTIER')
+      ->setSeverity(ArcanistLintSeverity::SEVERITY_AUTOFIX)
+      ->setName('Code style violation')
+      ->setDescription("'$path' has code style errors.")
+      ->setOriginalText($orig)
+      ->setReplacementText($stdout);
 
     return array($message);
   }
