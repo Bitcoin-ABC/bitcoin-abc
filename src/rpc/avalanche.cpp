@@ -473,6 +473,8 @@ static UniValue getavalanchepeerinfo(const Config &config,
                     {RPCResult::Type::NUM, "peerid", "The peer id"},
                     {RPCResult::Type::STR_HEX, "proof",
                      "The avalanche proof used by this peer"},
+                    {RPCResult::Type::NUM, "nodecount",
+                     "The number of nodes for this peer"},
                     {RPCResult::Type::ARR,
                      "nodes",
                      "",
@@ -509,8 +511,8 @@ static UniValue getavalanchepeerinfo(const Config &config,
                 nodes.push_back(n.nodeid);
             });
 
-            obj.pushKV("nodes", nodes);
             obj.pushKV("nodecount", uint64_t(peer.node_count));
+            obj.pushKV("nodes", nodes);
 
             ret.push_back(obj);
         });
