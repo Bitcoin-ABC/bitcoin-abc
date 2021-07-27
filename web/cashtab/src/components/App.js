@@ -30,8 +30,6 @@ import {
     useHistory,
 } from 'react-router-dom';
 
-import fbt from 'fbt';
-
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
         border-radius: 8px;
@@ -266,7 +264,7 @@ const App = () => {
                                 onClick={() => history.push('/wallet')}
                             >
                                 <FolderOpenFilled />
-                                <fbt desc="Wallet menu button">Wallet</fbt>
+                                Wallet
                             </NavButton>
 
                             <NavButton
@@ -282,14 +280,14 @@ const App = () => {
                                 onClick={() => history.push('/send')}
                             >
                                 <CaretRightOutlined />
-                                <fbt desc="Send menu button">Send</fbt>
+                                Send
                             </NavButton>
                             <NavButton
                                 active={selectedKey === 'configure'}
                                 onClick={() => history.push('/configure')}
                             >
                                 <SettingFilled />
-                                <fbt desc="Settings menu button">Settings</fbt>
+                                Settings
                             </NavButton>
                         </Footer>
                     ) : null}
