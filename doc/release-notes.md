@@ -8,3 +8,5 @@ This release includes the following features and fixes:
  - Add a new RPC `getblockfrompeer` which permits requesting a specific block from
    a specific peer manually. The intended use is acquisition of stale chaintips
    for fork monitoring and research purposes.
+ - Add a new wallet RPC `restorewallet` to restore a wallet from a backup file
+   created with the `backupwallet` RPC.
