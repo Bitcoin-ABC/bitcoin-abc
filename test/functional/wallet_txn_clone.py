@@ -122,7 +122,6 @@ class TxnMallTest(BitcoinTestFramework):
         self.nodes[2].sendrawtransaction(tx2["hex"])
         # Mine another block to make sure we sync
         self.generate(self.nodes[2], 1)
-        self.sync_blocks()
 
         # Re-fetch transaction info:
         tx1 = self.nodes[0].gettransaction(txid1)

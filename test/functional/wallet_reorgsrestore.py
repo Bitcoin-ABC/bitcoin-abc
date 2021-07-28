@@ -34,7 +34,6 @@ class ReorgsRestoreTest(BitcoinTestFramework):
         txid_conflict_from = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), Decimal("10000000"))
         self.generate(self.nodes[0], 1)
-        self.sync_blocks()
 
         # Disconnect node1 from others to reorg its chain later
         self.disconnect_nodes(0, 1)

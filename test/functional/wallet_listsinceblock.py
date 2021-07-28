@@ -33,7 +33,6 @@ class ListSinceBlockTest(BitcoinTestFramework):
         # only one connection. (See fPreferredDownload in net_processing)
         self.connect_nodes(1, 2)
         self.generate(self.nodes[2], 101)
-        self.sync_all()
 
         self.test_no_blockhash()
         self.test_invalid_blockhash()
@@ -199,7 +198,6 @@ class ListSinceBlockTest(BitcoinTestFramework):
                                        hash160(eckey.get_pubkey().get_bytes()))
         self.nodes[2].sendtoaddress(address, 10_000_000)
         self.generate(self.nodes[2], 6)
-        self.sync_all()
         self.nodes[2].importprivkey(privkey)
         utxos = self.nodes[2].listunspent()
         utxo = [u for u in utxos if u["address"] == address][0]

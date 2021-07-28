@@ -278,7 +278,6 @@ class WalletTest(BitcoinTestFramework):
 
         self.sync_all()
         self.generate(self.nodes[1], 1)  # mine a block
-        self.sync_all()
 
         # zero value tx must be in listunspents output
         unspent_txs = self.nodes[0].listunspent()

@@ -137,7 +137,6 @@ class P2PPermissionsTests(BitcoinTestFramework):
     def check_tx_relay(self):
         block_op_true = self.nodes[0].getblock(
             self.generatetoaddress(self.nodes[0], 100, ADDRESS_ECREG_P2SH_OP_TRUE)[0])
-        self.sync_all()
 
         self.log.debug(
             "Create a connection from a forcerelay peer that rebroadcasts raw txs")

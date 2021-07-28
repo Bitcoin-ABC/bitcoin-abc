@@ -40,7 +40,6 @@ class AbandonConflictTest(BitcoinTestFramework):
             return satoshi_round(total)
 
         self.generate(self.nodes[1], 100)
-        self.sync_blocks()
         balance = self.nodes[0].getbalance()
         txA = self.nodes[0].sendtoaddress(
             self.nodes[0].getnewaddress(), Decimal("10000000"))

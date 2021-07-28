@@ -58,7 +58,6 @@ class GetblockstatsTest(BitcoinTestFramework):
             amount=10000000,
             subtractfeefromamount=True)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         self.nodes[0].sendtoaddress(
             address=address,

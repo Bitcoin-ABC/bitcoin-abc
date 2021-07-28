@@ -90,7 +90,6 @@ class AvoidReuseTest(BitcoinTestFramework):
         self.test_immutable()
 
         self.generate(self.nodes[0], 110)
-        self.sync_all()
         self.test_change_remains_change(self.nodes[1])
         reset_balance(self.nodes[1], self.nodes[0].getnewaddress())
         self.test_sending_from_reused_address_without_avoid_reuse()
@@ -203,7 +202,6 @@ class AvoidReuseTest(BitcoinTestFramework):
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # listunspent should show 1 single, unused 10MM XEC output
         assert_unspent(
@@ -220,7 +218,6 @@ class AvoidReuseTest(BitcoinTestFramework):
 
         self.nodes[1].sendtoaddress(retaddr, 5000000)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # listunspent should show 1 single, unused 5MM XEC output
         assert_unspent(
@@ -234,7 +231,6 @@ class AvoidReuseTest(BitcoinTestFramework):
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
         # (5MM), one reused (10MM)
@@ -287,7 +283,6 @@ class AvoidReuseTest(BitcoinTestFramework):
 
         self.nodes[0].sendtoaddress(fundaddr, 10000000)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # listunspent should show 1 single, unused 10MM XEC output
         assert_unspent(
@@ -301,7 +296,6 @@ class AvoidReuseTest(BitcoinTestFramework):
 
         self.nodes[1].sendtoaddress(retaddr, 5000000)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # listunspent should show 1 single, unused 5MM XEC output
         assert_unspent(
@@ -322,7 +316,6 @@ class AvoidReuseTest(BitcoinTestFramework):
 
             self.nodes[0].sendtoaddress(new_fundaddr, 10000000)
             self.generate(self.nodes[0], 1)
-            self.sync_all()
 
             # listunspent should show 2 total outputs (5MM, 10MM XEC), one unused
             # (5MM), one reused (10MM)
@@ -396,7 +389,6 @@ class AvoidReuseTest(BitcoinTestFramework):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # send transaction that should not use all the available outputs
         # per the current coin selection algorithm
@@ -438,7 +430,6 @@ class AvoidReuseTest(BitcoinTestFramework):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # Sending a transaction that is smaller than each one of the
         # available outputs
@@ -467,7 +458,6 @@ class AvoidReuseTest(BitcoinTestFramework):
             self.nodes[0].sendtoaddress(new_addr, 1000000)
 
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # Sending a transaction that needs to use the full groups
         # of 10 inputs but also the incomplete group of 2 inputs.

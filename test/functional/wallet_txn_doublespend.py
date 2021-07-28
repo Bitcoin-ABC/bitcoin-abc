@@ -121,7 +121,6 @@ class TxnMallTest(BitcoinTestFramework):
         self.connect_nodes(1, 2)
         # Mine another block to make sure we sync
         self.generate(self.nodes[2], 1)
-        self.sync_blocks()
         assert_equal(self.nodes[0].gettransaction(
             doublespend_txid)["confirmations"], 2)
 

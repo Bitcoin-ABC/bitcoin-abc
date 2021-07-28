@@ -301,7 +301,6 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         # D9697 is landed.
         forked_tip = self.generatetoaddress(
             node, 1, ADDRESS_ECREG_UNSPENDABLE, sync_fun=self.no_op)[0]
-        self.wait_until(lambda: node.getbestblockhash() == forked_tip)
 
         self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)
         assert peer_proofid not in get_proof_ids(node)

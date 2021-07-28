@@ -67,8 +67,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
             subtractfeefromamount=True)
         self.generate(node, 1)
 
-        self.sync_blocks(timeout=120)
-
         self.log.info(
             "Test that gettxoutsetinfo() output is consistent with or without coinstatsindex option")
         self.wait_until(lambda: not try_rpc(-32603,
@@ -185,7 +183,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
 
         # Include both txs in a block
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         self.wait_until(lambda: not try_rpc(-32603, "Unable to read UTXO set",
                                             index_node.gettxoutsetinfo, 'muhash'))

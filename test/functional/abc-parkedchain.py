@@ -41,11 +41,8 @@ class ParkedChainTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.generate(node, 1, sync_fun=self.no_op)
         block_to_park = node.getbestblockhash()
-        self.generate(node, 10, sync_fun=self.no_op)
+        self.generate(node, 10)
         parked_tip = node.getbestblockhash()
-
-        # Get parking_node caught up.
-        wait_for_tip(parking_node, parked_tip)
 
         # Let's park the chain.
         assert parked_tip != tip
@@ -68,11 +65,8 @@ class ParkedChainTest(BitcoinTestFramework):
         bad_tip = node.getbestblockhash()
         # Generate an extra block to check that children are invalidated as
         # expected and do not produce dangling chaintips
-        self.generate(node, 1, sync_fun=self.no_op)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
-
-        # avoid race condition from parking_node requesting block when invalid
-        wait_for_tip(parking_node, good_tip)
 
         node.invalidateblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="invalid")
@@ -88,11 +82,8 @@ class ParkedChainTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
-        self.generate(node, 1, sync_fun=self.no_op)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
-
-        # avoid race condition from parking_node requesting block when invalid
-        wait_for_tip(parking_node, good_tip)
 
         node.parkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="parked")
@@ -111,11 +102,8 @@ class ParkedChainTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
-        self.generate(node, 1, sync_fun=self.no_op)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
-
-        # avoid race condition from parking_node requesting block when invalid
-        wait_for_tip(parking_node, good_tip)
 
         node.invalidateblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="invalid")
@@ -131,11 +119,8 @@ class ParkedChainTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.generate(node, 1, sync_fun=self.no_op)
         bad_tip = node.getbestblockhash()
-        self.generate(node, 1, sync_fun=self.no_op)
+        self.generate(node, 1)
         good_tip = node.getbestblockhash()
-
-        # avoid race condition from parking_node requesting block when invalid
-        wait_for_tip(parking_node, good_tip)
 
         node.parkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="parked")

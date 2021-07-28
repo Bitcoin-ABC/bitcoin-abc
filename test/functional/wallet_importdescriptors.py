@@ -306,7 +306,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
                      ismine=True)
         txid = w0.sendtoaddress(address, 49999996.00)
         self.generatetoaddress(self.nodes[0], 6, w0.getnewaddress())
-        self.sync_blocks()
         tx = wpriv.createrawtransaction([{"txid": txid, "vout": 0}], {
                                         w0.getnewaddress(): 49999000})
         signed_tx = wpriv.signrawtransactionwithwallet(tx)
@@ -354,7 +353,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         assert_equal(wmulti_priv.getwalletinfo()['keypoolsize'], 1000)
         txid = w0.sendtoaddress(addr, 10000000)
         self.generate(self.nodes[0], 6)
-        self.sync_all()
 
         self.nodes[1].createwallet(
             wallet_name="wmulti_pub",
@@ -397,7 +395,6 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         txid = w0.sendtoaddress(addr, 10000000)
         vout = find_vout_for_address(self.nodes[0], txid, addr)
         self.generate(self.nodes[0], 6)
-        self.sync_all()
         assert_equal(wmulti_pub.getbalance(), wmulti_priv.getbalance())
 
         # Make sure that descriptor wallets containing multiple xpubs in a

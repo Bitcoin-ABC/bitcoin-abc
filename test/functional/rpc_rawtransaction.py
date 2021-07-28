@@ -73,15 +73,12 @@ class RawTransactionsTest(BitcoinTestFramework):
         self.log.info(
             'prepare some coins for multiple *rawtransaction commands')
         self.generate(self.nodes[2], 1)
-        self.sync_all()
         self.generate(self.nodes[0], 101)
-        self.sync_all()
         self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1500000)
         self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1000000)
         self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 5000000)
         self.sync_all()
         self.generate(self.nodes[0], 5)
-        self.sync_all()
 
         self.log.info(
             'Test getrawtransaction on genesis block coinbase returns an error')

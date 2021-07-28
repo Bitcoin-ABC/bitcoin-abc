@@ -47,7 +47,6 @@ class WalletGroupTest(BitcoinTestFramework):
         [self.nodes[0].sendtoaddress(addr, 500000) for addr in addrs]
 
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         # For each node, send 0.2 coins back to 0;
         # - node[1] should pick one 0.5 UTXO and leave the rest
@@ -115,7 +114,6 @@ class WalletGroupTest(BitcoinTestFramework):
         self.nodes[0].sendtoaddress(addr_aps, 1000000)
         self.nodes[0].sendtoaddress(addr_aps, 1000000)
         self.generate(self.nodes[0], 1)
-        self.sync_all()
         with self.nodes[3].assert_debug_log([
                 'Fee non-grouped = 225, grouped = 372, using grouped']):
             txid4 = self.nodes[3].sendtoaddress(
@@ -129,7 +127,6 @@ class WalletGroupTest(BitcoinTestFramework):
         addr_aps2 = self.nodes[3].getnewaddress()
         [self.nodes[0].sendtoaddress(addr_aps2, 1_000_000) for _ in range(5)]
         self.generate(self.nodes[0], 1)
-        self.sync_all()
         with self.nodes[3].assert_debug_log([
                 'Fee non-grouped = 519, grouped = 813, using non-grouped']):
             txid5 = self.nodes[3].sendtoaddress(self.nodes[0].getnewaddress(),
@@ -144,7 +141,6 @@ class WalletGroupTest(BitcoinTestFramework):
         addr_aps3 = self.nodes[4].getnewaddress()
         [self.nodes[0].sendtoaddress(addr_aps3, 1_000_000) for _ in range(5)]
         self.generate(self.nodes[0], 1)
-        self.sync_all()
         with self.nodes[4].assert_debug_log([
                 'Fee non-grouped = 519, grouped = 813, using grouped']):
             txid6 = self.nodes[4].sendtoaddress(self.nodes[0].getnewaddress(),
@@ -173,8 +169,6 @@ class WalletGroupTest(BitcoinTestFramework):
                 funded_tx['hex'])
             self.nodes[0].sendrawtransaction(signed_tx['hex'])
             self.generate(self.nodes[0], 1)
-
-        self.sync_all()
 
         # Check that we can create a transaction that only requires ~100 of our
         # utxos, without pulling in all outputs and creating a transaction that

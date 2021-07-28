@@ -85,7 +85,6 @@ class WalletBackupTest(BitcoinTestFramework):
         # Must sync mempools before mining.
         self.sync_mempools()
         self.generate(self.nodes[3], 1)
-        self.sync_blocks()
 
     # As above, this mirrors the original bash test.
     def start_three(self):
@@ -116,13 +115,9 @@ class WalletBackupTest(BitcoinTestFramework):
     def run_test(self):
         self.log.info("Generating initial blockchain")
         self.generate(self.nodes[0], 1)
-        self.sync_blocks()
         self.generate(self.nodes[1], 1)
-        self.sync_blocks()
         self.generate(self.nodes[2], 1)
-        self.sync_blocks()
         self.generate(self.nodes[3], 100)
-        self.sync_blocks()
 
         assert_equal(self.nodes[0].getbalance(), 50000000)
         assert_equal(self.nodes[1].getbalance(), 50000000)
@@ -154,7 +149,6 @@ class WalletBackupTest(BitcoinTestFramework):
 
         # Generate 101 more blocks, so any fees paid mature
         self.generate(self.nodes[3], 101)
-        self.sync_all()
 
         balance0 = self.nodes[0].getbalance()
         balance1 = self.nodes[1].getbalance()

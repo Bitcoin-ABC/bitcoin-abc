@@ -201,7 +201,6 @@ class WalletSendTest(BitcoinTestFramework):
         # fund w3
         w0.sendtoaddress(a2_receive, 10_000_000)
         self.generate(self.nodes[0], 1)
-        self.sync_blocks()
 
         # w4 has private keys enabled, but only contains watch-only keys (from
         # w2)
@@ -222,7 +221,6 @@ class WalletSendTest(BitcoinTestFramework):
         # fund w4
         w0.sendtoaddress(a2_receive, 10_000_000)
         self.generate(self.nodes[0], 1)
-        self.sync_blocks()
 
         self.log.info("Send to address...")
         self.test_send(from_wallet=w0, to_wallet=w1, amount=1_000_000)

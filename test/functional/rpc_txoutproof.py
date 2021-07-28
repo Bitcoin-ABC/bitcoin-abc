@@ -25,7 +25,6 @@ class MerkleBlockTest(BitcoinTestFramework):
         # confirmed coins
         self.generate(miniwallet, 5)
         self.generate(self.nodes[0], 100)
-        self.sync_all()
 
         chain_height = self.nodes[1].getblockcount()
         assert_equal(chain_height, 105)
@@ -59,7 +58,6 @@ class MerkleBlockTest(BitcoinTestFramework):
                                             utxo_to_spend=txin_spent)
         txid3 = tx3['txid']
         self.generate(self.nodes[0], 1)
-        self.sync_all()
 
         txid_spent = txin_spent["txid"]
         txid_unspent = txid1  # Input was change from txid2, so txid1 should be unspent

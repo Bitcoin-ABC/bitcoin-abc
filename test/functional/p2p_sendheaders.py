@@ -218,7 +218,6 @@ class SendHeadersTest(BitcoinTestFramework):
         # make sure all invalidated blocks are node0's
         self.generatetoaddress(self.nodes[0],
                                length, self.nodes[0].get_deterministic_priv_key().address)
-        self.sync_blocks(self.nodes, wait=0.1)
         for x in self.nodes[0].p2ps:
             x.wait_for_block_announcement(
                 int(self.nodes[0].getbestblockhash(), 16))
@@ -231,7 +230,6 @@ class SendHeadersTest(BitcoinTestFramework):
         # Must be longer than the orig chain
         all_hashes = self.generatetoaddress(self.nodes[1],
                                             length + 1, self.nodes[1].get_deterministic_priv_key().address)
-        self.sync_blocks(self.nodes, wait=0.1)
         return [int(x, 16) for x in all_hashes]
 
     def run_test(self):

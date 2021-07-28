@@ -94,7 +94,6 @@ class PSBTTest(BitcoinTestFramework):
             'hex']
         txid = self.nodes[0].sendrawtransaction(signed_tx)
         self.generate(self.nodes[0], 6)
-        self.sync_all()
 
         # Find the output pos
         p2sh_pos = -1
@@ -194,7 +193,6 @@ class PSBTTest(BitcoinTestFramework):
         txid1 = self.nodes[0].sendtoaddress(node1_addr, 13000000)
         txid2 = self.nodes[0].sendtoaddress(node2_addr, 13000000)
         blockhash = self.generate(self.nodes[0], 6)[0]
-        self.sync_all()
         vout1 = find_output(
             self.nodes[1],
             txid1,
@@ -233,7 +231,6 @@ class PSBTTest(BitcoinTestFramework):
         finalized = self.nodes[0].finalizepsbt(combined)['hex']
         self.nodes[0].sendrawtransaction(finalized)
         self.generate(self.nodes[0], 6)
-        self.sync_all()
 
         block_height = self.nodes[0].getblockcount()
         unspent = self.nodes[0].listunspent()[0]
@@ -383,7 +380,6 @@ class PSBTTest(BitcoinTestFramework):
         txid4 = self.nodes[0].sendtoaddress(addr4, 5000000)
         vout4 = find_output(self.nodes[0], txid4, 5000000)
         self.generate(self.nodes[0], 6)
-        self.sync_all()
         psbt2 = self.nodes[1].createpsbt([{"txid": txid4, "vout": vout4}], {
                                          self.nodes[0].getnewaddress(): Decimal('4999000')})
         psbt2 = self.nodes[1].walletprocesspsbt(psbt2)['psbt']
@@ -414,7 +410,6 @@ class PSBTTest(BitcoinTestFramework):
         addr = self.nodes[1].getnewaddress("")
         txid = self.nodes[0].sendtoaddress(addr, 7000000)
         blockhash = self.generate(self.nodes[0], 6)[0]
-        self.sync_all()
         vout = find_output(self.nodes[0], txid, 7000000, blockhash=blockhash)
         psbt = self.nodes[1].createpsbt([{"txid": txid, "vout": vout}], {
                                         self.nodes[0].getnewaddress(""): Decimal('6999000')})
