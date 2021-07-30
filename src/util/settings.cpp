@@ -64,11 +64,17 @@ bool ReadSettings(const fs::path &path,
     values.clear();
     errors.clear();
 
+    // Ok for file to not exist
+    if (!fs::exists(path)) {
+        return true;
+    }
+
     fsbridge::ifstream file;
     file.open(path);
     if (!file.is_open()) {
-        // Ok for file not to exist.
-        return true;
+        errors.emplace_back(
+            strprintf("%s. Please check permissions.", path.string()));
+        return false;
     }
 
     SettingsValue in;
