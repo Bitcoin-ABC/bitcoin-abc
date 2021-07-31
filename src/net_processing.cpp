@@ -288,7 +288,7 @@ static constexpr double MAX_ADDR_RATE_PER_SECOND{0.1};
 /**
  * The soft limit of the address processing token bucket (the regular
  * MAX_ADDR_RATE_PER_SECOND based increments won't go above this, but the
- * MAX_ADDR_TO_SEND increment following GETADDR is exempt from this limit.
+ * MAX_ADDR_TO_SEND increment following GETADDR is exempt from this limit).
  */
 static constexpr size_t MAX_ADDR_PROCESSING_TOKEN_BUCKET{MAX_ADDR_TO_SEND};
 
@@ -425,7 +425,7 @@ struct Peer {
     /** Whether this peer has already sent us a getaddr message. */
     bool m_getaddr_recvd{false};
     /**
-     * Number of addr messages that can be processed from this peer. Start at 1
+     * Number of addresses that can be processed from this peer. Start at 1
      * to permit self-announcement.
      */
     double m_addr_token_bucket{1.0};
@@ -435,7 +435,7 @@ struct Peer {
     /** Total number of addresses that were dropped due to rate limiting. */
     std::atomic<uint64_t> m_addr_rate_limited{0};
     /**
-     * Total number of addresses that were processed (excludes rate limited
+     * Total number of addresses that were processed (excludes rate-limited
      * ones).
      */
     std::atomic<uint64_t> m_addr_processed{0};
@@ -3732,11 +3732,12 @@ void PeerManagerImpl::ProcessMessage(
             }
 
             // Apply rate limiting.
-            if (rate_limited) {
-                if (peer->m_addr_token_bucket < 1.0) {
+            if (peer->m_addr_token_bucket < 1.0) {
+                if (rate_limited) {
                     ++num_rate_limit;
                     continue;
                 }
+            } else {
                 peer->m_addr_token_bucket -= 1.0;
             }
 
@@ -3774,9 +3775,8 @@ void PeerManagerImpl::ProcessMessage(
         peer->m_addr_rate_limited += num_rate_limit;
         LogPrint(BCLog::NET,
                  "Received addr: %u addresses (%u processed, %u rate-limited) "
-                 "from peer=%d%s\n",
-                 vAddr.size(), num_proc, num_rate_limit, pfrom.GetId(),
-                 fLogIPs ? ", peeraddr=" + pfrom.addr.ToString() : "");
+                 "from peer=%d\n",
+                 vAddr.size(), num_proc, num_rate_limit, pfrom.GetId());
 
         m_connman.AddNewAddresses(vAddrOk, pfrom.addr, 2 * 60 * 60);
         if (vAddr.size() < 1000) {

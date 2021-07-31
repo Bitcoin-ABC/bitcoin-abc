@@ -108,6 +108,12 @@ static RPCHelpMan getpeerinfo() {
                      "(ip:port) Local address as reported by the peer"},
                     {RPCResult::Type::BOOL, "addr_relay_enabled",
                      "Whether we participate in address relay with this peer"},
+                    {RPCResult::Type::NUM, "addr_processed",
+                     "The total number of addresses processed, excluding those "
+                     "dropped due to rate limiting"},
+                    {RPCResult::Type::NUM, "addr_rate_limited",
+                     "The total number of addresses dropped due to rate "
+                     "limiting"},
                     {RPCResult::Type::STR, "network",
                      "Network (ipv4, ipv6, or onion) the peer connected "
                      "through"},
