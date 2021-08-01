@@ -873,8 +873,6 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                const TxId &txid,
                                const Consensus::Params &consensusParams,
                                BlockHash &hashBlock) {
-    LOCK(cs_main);
-
     if (mempool && !block_index) {
         CTransactionRef ptx = mempool->get(txid);
         if (ptx) {
