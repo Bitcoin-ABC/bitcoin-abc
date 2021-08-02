@@ -488,8 +488,8 @@ CAddrInfo CAddrMan::Select_(bool newOnly) const {
     }
 }
 
+int CAddrMan::Check_() const {
 #ifdef DEBUG_ADDRMAN
-int CAddrMan::Check_() {
     AssertLockHeld(cs);
 
     std::unordered_set<int> setTried;
@@ -520,7 +520,8 @@ int CAddrMan::Check_() {
             }
             mapNew[n] = info.nRefCount;
         }
-        if (mapAddr[info] != n) {
+        const auto it{mapAddr.find(info)};
+        if (it == mapAddr.end() || it->second != n) {
             return -5;
         }
         if (info.nRandomPos < 0 || size_t(info.nRandomPos) >= vRandom.size() ||
@@ -548,11 +549,12 @@ int CAddrMan::Check_() {
                 if (!setTried.count(vvTried[n][i])) {
                     return -11;
                 }
-                if (mapInfo[vvTried[n][i]].GetTriedBucket(nKey, m_asmap) != n) {
+                const auto it{mapInfo.find(vvTried[n][i])};
+                if (it == mapInfo.end() ||
+                    it->second.GetTriedBucket(nKey, m_asmap) != n) {
                     return -17;
                 }
-                if (mapInfo[vvTried[n][i]].GetBucketPosition(nKey, false, n) !=
-                    i) {
+                if (it->second.GetBucketPosition(nKey, false, n) != i) {
                     return -18;
                 }
                 setTried.erase(vvTried[n][i]);
@@ -566,8 +568,9 @@ int CAddrMan::Check_() {
                 if (!mapNew.count(vvNew[n][i])) {
                     return -12;
                 }
-                if (mapInfo[vvNew[n][i]].GetBucketPosition(nKey, true, n) !=
-                    i) {
+                const auto it{mapInfo.find(vvNew[n][i])};
+                if (it == mapInfo.end() ||
+                    it->second.GetBucketPosition(nKey, true, n) != i) {
                     return -19;
                 }
                 if (--mapNew[vvNew[n][i]] == 0) {
@@ -587,9 +590,9 @@ int CAddrMan::Check_() {
         return -16;
     }
 
+#endif // DEBUG_ADDRMAN
     return 0;
 }
-#endif
 
 void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr, size_t max_addresses,
                         size_t max_pct, std::optional<Network> network) const {
@@ -643,8 +646,8 @@ void CAddrMan::Connected_(const CService &addr, int64_t nTime) {
 
     CAddrInfo &info = *pinfo;
 
-    // check whether we are talking about the exact same CService (including
-    // same port)
+    // check whether we are talking about the exact same CService
+    // (including same port)
     if (info != addr) {
         return;
     }
@@ -668,8 +671,8 @@ void CAddrMan::SetServices_(const CService &addr, ServiceFlags nServices) {
 
     CAddrInfo &info = *pinfo;
 
-    // check whether we are talking about the exact same CService (including
-    // same port)
+    // check whether we are talking about the exact same CService
+    // (including same port)
     if (info != addr) {
         return;
     }
@@ -689,7 +692,8 @@ void CAddrMan::ResolveCollisions_() {
 
         bool erase_collision = false;
 
-        // If id_new not found in mapInfo remove it from m_tried_collisions.
+        // If id_new not found in mapInfo remove it from
+        // m_tried_collisions.
         auto id_new_it = mapInfo.find(id_new);
         if (id_new_it == mapInfo.end()) {
             erase_collision = true;
@@ -718,22 +722,24 @@ void CAddrMan::ResolveCollisions_() {
                            ADDRMAN_REPLACEMENT_SECONDS) {
                     // attempted to connect and failed in last X hours
 
-                    // Give address at least 60 seconds to successfully connect
+                    // Give address at least 60 seconds to successfully
+                    // connect
                     if (GetAdjustedTime() - info_old.nLastTry > 60) {
                         LogPrint(BCLog::ADDRMAN,
                                  "Replacing %s with %s in tried table\n",
                                  info_old.ToString(), info_new.ToString());
 
-                        // Replaces an existing address already in the tried
-                        // table with the new address
+                        // Replaces an existing address already in the
+                        // tried table with the new address
                         Good_(info_new, false, GetAdjustedTime());
                         erase_collision = true;
                     }
                 } else if (GetAdjustedTime() - info_new.nLastSuccess >
                            ADDRMAN_TEST_WINDOW) {
-                    // If the collision hasn't resolved in some reasonable
-                    // amount of time, just evict the old entry -- we must not
-                    // be able to connect to it for some reason.
+                    // If the collision hasn't resolved in some
+                    // reasonable amount of time, just evict the old
+                    // entry -- we must not be able to connect to it for
+                    // some reason.
                     LogPrint(BCLog::ADDRMAN,
                              "Unable to test; replacing %s with %s in tried "
                              "table anyway\n",
