@@ -194,7 +194,7 @@ class AddrTest(BitcoinTestFramework):
         # often sent before the GETADDR response.
         assert_equal(inbound_peer.num_ipv4_received, 0)
 
-        # Send an empty ADDR message to intialize address relay on this
+        # Send an empty ADDR message to initialize address relay on this
         # connection.
         inbound_peer.send_and_ping(msg_addr())
 

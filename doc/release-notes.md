@@ -11,3 +11,6 @@ This release includes the following features and fixes:
  - The node will now limit the rate at which the addresses received via p2p messages are processed.
    This can be bypassed if needed by granting the `addr` permission to a peer(see the `-whitelist`
    option for details).
+ - A bitcoind node will no longer gossip addresses to inbound peers by default.
+   They will become eligible for address gossip after sending an ADDR, ADDRV2,
+   or GETADDR message.
