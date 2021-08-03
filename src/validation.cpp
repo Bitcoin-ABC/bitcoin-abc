@@ -484,10 +484,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     // Alias what we need out of ws
     TxValidationState &state = ws.m_state;
-    CTxMemPool::setEntries &setAncestors = ws.m_ancestors;
     std::unique_ptr<CTxMemPoolEntry> &entry = ws.m_entry;
-    Amount &nModifiedFees = ws.m_modified_fees;
-
     // Coinbase is only valid in a block, not as a loose transaction.
     if (!CheckRegularTransaction(tx, state)) {
         // state filled in by CheckRegularTransaction.
@@ -604,9 +601,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
                              "bad-txns-nonstandard-inputs");
     }
 
-    // nModifiedFees includes any fee deltas from PrioritiseTransaction
-    nModifiedFees = ws.m_base_fees;
-    m_pool.ApplyDelta(txid, nModifiedFees);
+    // ws.m_modified_fess includes any fee deltas from PrioritiseTransaction
+    ws.m_modified_fees = ws.m_base_fees;
+    m_pool.ApplyDelta(txid, ws.m_modified_fees);
 
     // Keep track of transactions that spend a coinbase, which we re-scan
     // during reorgs to ensure COINBASE_MATURITY is still met.
@@ -625,10 +622,11 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // blocks.
     // Do not change this to use virtualsize without coordinating a network
     // policy upgrade.
-    if (!bypass_limits && nModifiedFees < minRelayTxFee.GetFee(nSize)) {
-        return state.Invalid(
-            TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
-            strprintf("%d < %d", nModifiedFees, ::minRelayTxFee.GetFee(nSize)));
+    if (!bypass_limits && ws.m_modified_fees < minRelayTxFee.GetFee(nSize)) {
+        return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
+                             "min relay fee not met",
+                             strprintf("%d < %d", ws.m_modified_fees,
+                                       ::minRelayTxFee.GetFee(nSize)));
     }
 
     // Validate input scripts against standard script flags.
@@ -654,16 +652,16 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
                 1000000)
             .GetFee(ws.m_vsize);
     if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
-        nModifiedFees < mempoolRejectFee) {
+        ws.m_modified_fees < mempoolRejectFee) {
         return state.Invalid(
             TxValidationResult::TX_MEMPOOL_POLICY, "mempool min fee not met",
-            strprintf("%d < %d", nModifiedFees, mempoolRejectFee));
+            strprintf("%d < %d", ws.m_modified_fees, mempoolRejectFee));
     }
 
     // Calculate in-mempool ancestors, up to a limit.
     std::string errString;
     if (!m_pool.CalculateMemPoolAncestors(
-            *entry, setAncestors, m_limit_ancestors, m_limit_ancestor_size,
+            *entry, ws.m_ancestors, m_limit_ancestors, m_limit_ancestor_size,
             m_limit_descendants, m_limit_descendant_size, errString)) {
         return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
                              "too-long-mempool-chain", errString);
@@ -717,11 +715,10 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     TxValidationState &state = ws.m_state;
     const bool bypass_limits = args.m_bypass_limits;
 
-    CTxMemPool::setEntries &setAncestors = ws.m_ancestors;
     std::unique_ptr<CTxMemPoolEntry> &entry = ws.m_entry;
 
     // Store transaction in memory.
-    m_pool.addUnchecked(*entry, setAncestors);
+    m_pool.addUnchecked(*entry, ws.m_ancestors);
 
     // Trim mempool and check if tx was trimmed.
     if (!bypass_limits) {
