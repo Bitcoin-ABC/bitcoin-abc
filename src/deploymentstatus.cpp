@@ -7,6 +7,8 @@
 #include <consensus/params.h>
 #include <versionbits.h>
 
+#include <type_traits>
+
 VersionBitsCache g_versionbitscache;
 
 /**
@@ -23,3 +25,21 @@ static_assert(
     !ValidDeployment(static_cast<Consensus::BuriedDeployment>(
         Consensus::DEPLOYMENT_TESTDUMMY)),
     "sanity check of BuriedDeployment failed (overlaps with DeploymentPos)");
+
+/**
+ * ValidDeployment only checks upper bounds for ensuring validity.
+ * This checks that the lowest possible value or the type is also a
+ * (specific) valid deployment so that lower bounds don't need to be checked.
+ */
+
+template <typename T, T x> static constexpr bool is_minimum() {
+    using U = typename std::underlying_type<T>::type;
+    return x == std::numeric_limits<U>::min();
+}
+
+static_assert(
+    is_minimum<Consensus::BuriedDeployment, Consensus::DEPLOYMENT_P2SH>(),
+    "p2sh is not minimum value for BuriedDeployment");
+static_assert(
+    is_minimum<Consensus::DeploymentPos, Consensus::DEPLOYMENT_TESTDUMMY>(),
+    "testdummy is not minimum value for DeploymentPos");

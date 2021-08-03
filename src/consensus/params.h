@@ -24,7 +24,7 @@ enum BuriedDeployment : int16_t {
 };
 
 constexpr bool ValidDeployment(BuriedDeployment dep) {
-    return DEPLOYMENT_P2SH <= dep && dep <= DEPLOYMENT_CSV;
+    return dep <= DEPLOYMENT_CSV;
 }
 
 enum DeploymentPos : uint16_t {
@@ -34,7 +34,7 @@ enum DeploymentPos : uint16_t {
     MAX_VERSION_BITS_DEPLOYMENTS,
 };
 constexpr bool ValidDeployment(DeploymentPos dep) {
-    return DEPLOYMENT_TESTDUMMY <= dep && dep < MAX_VERSION_BITS_DEPLOYMENTS;
+    return dep < MAX_VERSION_BITS_DEPLOYMENTS;
 }
 
 /**
