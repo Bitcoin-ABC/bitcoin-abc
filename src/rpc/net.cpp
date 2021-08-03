@@ -100,8 +100,6 @@ static RPCHelpMan getpeerinfo() {
                      "(ip:port) Bind address of the connection to the peer"},
                     {RPCResult::Type::STR, "addrlocal",
                      "(ip:port) Local address as reported by the peer"},
-                    {RPCResult::Type::BOOL, "addr_relay_enabled",
-                     "Whether we participate in address relay with this peer"},
                     {RPCResult::Type::NUM, "addr_processed",
                      "The total number of addresses processed, excluding those "
                      "dropped due to rate limiting"},
@@ -179,6 +177,8 @@ static RPCHelpMan getpeerinfo() {
                           "The heights of blocks we're currently asking from "
                           "this peer"},
                      }},
+                    {RPCResult::Type::BOOL, "addr_relay_enabled",
+                     "Whether we participate in address relay with this peer"},
                     {RPCResult::Type::NUM, "minfeefilter",
                      "The minimum fee rate for transactions this peer accepts"},
                     {RPCResult::Type::OBJ_DYN,
@@ -232,8 +232,6 @@ static RPCHelpMan getpeerinfo() {
                 if (!(stats.addrLocal.empty())) {
                     obj.pushKV("addrlocal", stats.addrLocal);
                 }
-                obj.pushKV("addr_relay_enabled",
-                           statestats.m_addr_relay_enabled);
                 obj.pushKV("network", GetNetworkName(stats.m_network));
                 if (stats.m_mapped_as != 0) {
                     obj.pushKV("mapped_as", uint64_t(stats.m_mapped_as));
@@ -284,6 +282,8 @@ static RPCHelpMan getpeerinfo() {
                         heights.push_back(height);
                     }
                     obj.pushKV("inflight", heights);
+                    obj.pushKV("addr_relay_enabled",
+                               statestats.m_addr_relay_enabled);
                     obj.pushKV("addr_processed", statestats.m_addr_processed);
                     obj.pushKV("addr_rate_limited",
                                statestats.m_addr_rate_limited);
