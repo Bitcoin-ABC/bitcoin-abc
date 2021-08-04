@@ -10,20 +10,21 @@
 #include <coins.h>
 #include <dbwrapper.h>
 #include <flatfile.h>
-#include <primitives/block.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 struct BlockHash;
+class CBlockFileInfo;
 class CBlockIndex;
-class CCoinsViewDBCursor;
 
 namespace Consensus {
 struct Params;
-}
+};
+struct bilingual_str;
 
 //! min. -dbcache (MiB)
 static constexpr int64_t MIN_DB_CACHE_MB = 4;
@@ -124,5 +125,7 @@ public:
     //! Returns whether an error occurred.
     bool Upgrade(const Consensus::Params &params);
 };
+
+std::optional<bilingual_str> CheckLegacyTxindex(CBlockTreeDB &block_tree_db);
 
 #endif // BITCOIN_TXDB_H

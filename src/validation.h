@@ -11,6 +11,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <arith_uint256.h>
 #include <attributes.h>
 #include <blockfileinfo.h>
 #include <blockindexworkcomparator.h>
@@ -27,9 +28,11 @@
 #include <protocol.h> // For CMessageHeader::MessageMagic
 #include <script/script_error.h>
 #include <script/script_metrics.h>
+#include <serialize.h>
 #include <sync.h>
 #include <txdb.h>
 #include <txmempool.h> // For CTxMemPool::cs
+#include <uint256.h>
 #include <util/check.h>
 #include <util/hasher.h>
 #include <util/translation.h>
@@ -46,7 +49,6 @@
 #include <vector>
 
 class BlockValidationState;
-class CBlockIndex;
 class CBlockTreeDB;
 class CBlockUndo;
 class CChainParams;

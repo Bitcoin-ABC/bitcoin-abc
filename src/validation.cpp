@@ -3737,7 +3737,7 @@ bool ContextualCheckTransactionForCurrentBlock(
 
     // ContextualCheckTransactionForCurrentBlock() uses
     // active_chain_tip.Height()+1 to evaluate nLockTime because when
-    // IsFinalTx() is called within CBlock::AcceptBlock(), the height of the
+    // IsFinalTx() is called within AcceptBlock(), the height of the
     // block *being* evaluated is what is used. Thus if we want to know if a
     // transaction can be part of the *next* block, we need to call
     // ContextualCheckTransaction() with one more than
