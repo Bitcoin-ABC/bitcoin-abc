@@ -129,13 +129,25 @@ const Tokens = ({ jestBCH }) => {
                             {fromSmallestDenomination(
                                 currency.dustSats,
                             ).toString()}{' '}
-                            {currency.ticker} ($
+                            {currency.ticker} (
+                            {cashtabSettings
+                                ? `${
+                                      currency.fiatCurrencies[
+                                          cashtabSettings.fiatCurrency
+                                      ].symbol
+                                  } `
+                                : '$ '}
                             {(
                                 fromSmallestDenomination(
                                     currency.dustSats,
                                 ).toString() * fiatPrice
                             ).toFixed(4)}{' '}
-                            USD) to create a token
+                            {cashtabSettings
+                                ? `${currency.fiatCurrencies[
+                                      cashtabSettings.fiatCurrency
+                                  ].slug.toUpperCase()} `
+                                : 'USD'}
+                            ) to create a token
                         </AlertMsg>
                     )}
 
