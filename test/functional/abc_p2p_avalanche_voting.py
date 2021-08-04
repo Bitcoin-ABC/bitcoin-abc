@@ -152,17 +152,6 @@ class AvalancheTest(BitcoinTestFramework):
                 n.nodeid, pubkey.get_bytes().hex(), proof)
             assert success is True
 
-        self.log.info("Testing getavalanchepeerinfo...")
-        avapeerinfo = node.getavalanchepeerinfo()
-        # There is a single peer because all nodes share the same proof.
-        assert_equal(len(avapeerinfo), 1)
-        assert_equal(avapeerinfo[0]["peerid"], 0)
-        assert_equal(avapeerinfo[0]["nodecount"], len(quorum))
-        # The first avalanche node index is 1, because 0 is self.nodes[1].
-        assert_equal(sorted(avapeerinfo[0]["nodes"]),
-                     list(range(1, QUORUM_NODE_COUNT + 1)))
-        assert_equal(avapeerinfo[0]["proof"], proof)
-
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
             found_hash = False
             for n in quorum:
