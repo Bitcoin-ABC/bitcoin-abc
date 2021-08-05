@@ -504,8 +504,11 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                             ></SendBchInput>
                             {priceApiError && (
                                 <AlertMsg>
-                                    Error fetching fiat price. Setting send by
-                                    USD disabled
+                                    Error fetching fiat price. Setting send by{' '}
+                                    {currency.fiatCurrencies[
+                                        cashtabSettings.fiatCurrency
+                                    ].slug.toUpperCase()}{' '}
+                                    disabled
                                 </AlertMsg>
                             )}
                             <ConvertAmount>

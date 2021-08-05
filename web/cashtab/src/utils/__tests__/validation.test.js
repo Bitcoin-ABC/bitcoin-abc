@@ -218,7 +218,7 @@ describe('Validation utils', () => {
         expect(isValidCashtabSettings({ fiatCurrency: 'usd' })).toBe(true);
     });
     it(`Rejects a cashtab settings object for an unsupported currency`, () => {
-        expect(isValidCashtabSettings({ fiatCurrency: 'jpy' })).toBe(false);
+        expect(isValidCashtabSettings({ fiatCurrency: 'xau' })).toBe(false);
     });
     it(`Rejects a corrupted cashtab settings object for an unsupported currency`, () => {
         expect(isValidCashtabSettings({ fiatCurrencyWrongLabel: 'usd' })).toBe(
