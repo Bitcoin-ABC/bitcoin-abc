@@ -2953,24 +2953,6 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         AddAddrFetch(strDest);
     }
 
-    if (clientInterface) {
-        clientInterface->InitMessage(_("Loading P2P addresses...").translated);
-    }
-    // Load addresses from peers.dat
-    int64_t nStart = GetTimeMillis();
-    {
-        CAddrDB adb(config->GetChainParams());
-        if (adb.Read(addrman)) {
-            LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
-                      addrman.size(), GetTimeMillis() - nStart);
-        } else {
-            // Addrman can be in an inconsistent state after failure, reset it
-            addrman.Clear();
-            LogPrintf("Recreating peers.dat\n");
-            DumpAddresses();
-        }
-    }
-
     if (m_use_addrman_outgoing) {
         // Load addresses from anchors.dat
         m_anchors =

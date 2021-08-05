@@ -2402,11 +2402,22 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         node.addrman = std::make_unique<CAddrMan>(
             asmap,
             /* consistency_check_ratio= */ check_addrman);
-    }
 
-    // TODO: note for PR22697, commit 181a1207ba6bd179d181f3e2534ef8676565ce72:
-    // It is required to initialize asmap in addrman, see
-    // https://github.com/bitcoin/bitcoin/pull/22791
+        // Load addresses from peers.dat
+        uiInterface.InitMessage(_("Loading P2P addresses...").translated);
+        int64_t nStart = GetTimeMillis();
+        CAddrDB adb(chainparams);
+        if (adb.Read(*node.addrman)) {
+            LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
+                      node.addrman->size(), GetTimeMillis() - nStart);
+        } else {
+            // Addrman can be in an inconsistent state after failure, reset it
+            node.addrman = std::make_unique<CAddrMan>(
+                asmap, /* consistency_check_ratio= */ check_addrman);
+            LogPrintf("Recreating peers.dat\n");
+            adb.Write(*node.addrman);
+        }
+    }
 
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
