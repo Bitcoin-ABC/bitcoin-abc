@@ -130,6 +130,7 @@ export const OnBoarding = ({ history }) => {
                         >
                             <Input
                                 prefix={<LockOutlined />}
+                                type="email"
                                 placeholder="mnemonic (seed phrase)"
                                 name="mnemonic"
                                 autoComplete="off"

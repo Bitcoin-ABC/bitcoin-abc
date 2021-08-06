@@ -522,6 +522,7 @@ const Configure = () => {
                                         >
                                             <Input
                                                 prefix={<LockOutlined />}
+                                                type="email"
                                                 placeholder="mnemonic (seed phrase)"
                                                 name="mnemonic"
                                                 autoComplete="off"
