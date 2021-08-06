@@ -6,8 +6,10 @@
 #ifndef BITCOIN_NETMESSAGEMAKER_H
 #define BITCOIN_NETMESSAGEMAKER_H
 
-#include <net.h>
 #include <serialize.h>
+
+struct CSerializedNetMsg;
+class CVectorWriter;
 
 class CNetMsgMaker {
 public:
