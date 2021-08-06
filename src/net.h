@@ -1318,6 +1318,7 @@ struct NodeEvictionCandidate {
     uint64_t nKeyedNetGroup;
     bool prefer_evict;
     bool m_is_local;
+    double availabilityScore;
 };
 
 [[nodiscard]] std::optional<NodeId>

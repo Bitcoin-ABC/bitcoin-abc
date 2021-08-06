@@ -928,6 +928,17 @@ static bool CompareNodeBlockRelayOnlyTime(const NodeEvictionCandidate &a,
     return a.nTimeConnected > b.nTimeConnected;
 }
 
+static bool CompareNodeAvailabilityScore(const NodeEvictionCandidate &a,
+                                         const NodeEvictionCandidate &b) {
+    // Equality can happen if the nodes have no score or it has not been
+    // computed yet.
+    if (a.availabilityScore != b.availabilityScore) {
+        return a.availabilityScore < b.availabilityScore;
+    }
+
+    return a.nTimeConnected > b.nTimeConnected;
+}
+
 //! Sort an array by the specified comparator, then erase the last K elements.
 template <typename T, typename Comparator>
 static void EraseLastKElements(std::vector<T> &elements, Comparator comparator,
@@ -980,6 +991,13 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // Protect 4 nodes that most recently sent us novel blocks.
     // An attacker cannot manipulate this metric without performing useful work.
     EraseLastKElements(vEvictionCandidates, CompareNodeBlockTime, 4);
+
+    // Protect up to 128 nodes that have the highest avalanche availability
+    // score.
+    EraseLastKElementsIf(vEvictionCandidates, CompareNodeAvailabilityScore, 128,
+                         [](NodeEvictionCandidate const &n) {
+                             return n.availabilityScore > 0.;
+                         });
 
     // Protect the half of the remaining nodes which have been connected the
     // longest. This replicates the non-eviction implicit behavior, and
@@ -1076,6 +1094,7 @@ bool CConnman::AttemptToEvictConnection() {
                 peer_relay_txes = node->m_tx_relay->fRelayTxes;
                 peer_filter_not_null = node->m_tx_relay->pfilter != nullptr;
             }
+
             NodeEvictionCandidate candidate = {
                 node->GetId(),
                 node->nTimeConnected,
@@ -1088,7 +1107,10 @@ bool CConnman::AttemptToEvictConnection() {
                 peer_filter_not_null,
                 node->nKeyedNetGroup,
                 node->m_prefer_evict,
-                node->addr.IsLocal()};
+                node->addr.IsLocal(),
+                node->m_avalanche_state
+                    ? node->m_avalanche_state->getAvailabilityScore()
+                    : -std::numeric_limits<double>::infinity()};
             vEvictionCandidates.push_back(candidate);
         }
     }

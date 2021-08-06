@@ -15,9 +15,9 @@ Therefore, this test is limited to the remaining protection criteria.
 
 import time
 
-from test_framework.avatools import create_coinbase_stakes
+from test_framework.avatools import AvaP2PInterface, create_coinbase_stakes
 from test_framework.blocktools import create_block, create_coinbase
-from test_framework.key import ECKey
+from test_framework.key import ECKey, bytes_to_wif
 from test_framework.messages import (
     AvalancheProof,
     CTransaction,
@@ -43,15 +43,23 @@ class SlowP2PInterface(P2PInterface):
         self.send_message(msg_pong(message.nonce))
 
 
+class SlowAvaP2PInterface(AvaP2PInterface):
+    def on_ping(self, message):
+        time.sleep(0.1)
+        self.send_message(msg_pong(message.nonce))
+
+
 class P2PEvict(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        # The choice of maxconnections=36 results in a maximum of 25 inbound connections
-        # (36 - 10 outbound - 1 feeler). 20 inbound peers are protected from eviction:
+        # The choice of maxconnections=164 results in a maximum of 153 inbound
+        # connections (164 - 10 outbound - 1 feeler). 152 inbound peers are
+        # protected from eviction:
         # 4 by netgroup, 4 that sent us blocks, 4 that sent us proofs, 4 that
-        # sent us transactions and 8 via lowest ping time
-        self.extra_args = [['-maxconnections=36', "-enableavalanche=1"]]
+        # sent us transactions, 8 via lowest ping time, 128 with the best
+        # avalanche availability score
+        self.extra_args = [['-maxconnections=164', "-enableavalanche=1"]]
 
     def run_test(self):
         # peers that we expect to be protected from eviction
@@ -139,6 +147,24 @@ class P2PEvict(BitcoinTestFramework):
             fastpeer = node.add_p2p_connection(P2PInterface())
             current_peer += 1
             wait_until(lambda: "ping" in fastpeer.last_message, timeout=10)
+
+        self.log.info(
+            "Create 128 peers and protect them from eviction by sending an avahello message")
+
+        proof = node.buildavalancheproof(
+            42, 2000000000, pubkey.get_bytes().hex(), [stakes[0]])
+        proof_obj = FromHex(AvalancheProof(), proof)
+        delegation = node.delegateavalancheproof(
+            f"{proof_obj.limited_proofid:064x}",
+            bytes_to_wif(privkey.get_bytes()),
+            pubkey.get_bytes().hex(),
+        )
+
+        for _ in range(128):
+            avapeer = node.add_p2p_connection(SlowAvaP2PInterface())
+            current_peer += 1
+            avapeer.sync_with_ping()
+            avapeer.send_avahello(delegation, privkey)
 
         # Make sure by asking the node what the actual min pings are
         peerinfo = node.getpeerinfo()

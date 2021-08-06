@@ -25,6 +25,7 @@
 #include <cmath>
 #include <ios>
 #include <memory>
+#include <numeric>
 #include <string>
 
 class CAddrManSerializationMock : public CAddrMan {
@@ -792,6 +793,7 @@ GetRandomNodeEvictionCandidates(const int n_candidates,
             /* nKeyedNetGroup */ random_context.randrange(100),
             /* prefer_evict */ random_context.randbool(),
             /* m_is_local */ random_context.randbool(),
+            /* availabilityScore */ double(random_context.randrange(-1)),
         });
     }
     return candidates;
@@ -926,12 +928,25 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                  12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23},
                 random_context));
 
-            // An eviction is expected given >= 33 random eviction candidates.
+            // 128 peers with the highest availability score should be protected
+            // from eviction.
+            std::vector<NodeId> protectedNodes(128);
+            std::iota(protectedNodes.begin(), protectedNodes.end(), 0);
+            BOOST_CHECK(!IsEvicted(
+                number_of_nodes,
+                [number_of_nodes](NodeEvictionCandidate &candidate) {
+                    candidate.availabilityScore =
+                        double(number_of_nodes - candidate.id);
+                },
+                protectedNodes, random_context));
+
+            // An eviction is expected given >= 161 random eviction candidates.
             // The eviction logic protects at most four peers by net group,
             // eight by lowest ping time, four by last time of novel tx, four by
             // last time of novel proof, up to eight non-tx-relay peers by last
-            // novel block time, and four more peers by last novel block time.
-            if (number_of_nodes >= 33) {
+            // novel block time, four by last novel block time, and 128 more by
+            // avalanche availability score.
+            if (number_of_nodes >= 161) {
                 BOOST_CHECK(SelectNodeToEvict(GetRandomNodeEvictionCandidates(
                     number_of_nodes, random_context)));
             }
