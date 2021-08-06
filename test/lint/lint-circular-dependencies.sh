@@ -23,7 +23,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "wallet/rpcwallet -> wallet/wallet -> wallet/rpcwallet"
     "wallet/wallet -> wallet/walletdb -> wallet/wallet"
     "avalanche/processor -> validation -> avalanche/processor"
-    "avalanche/processor -> net_processing -> avalanche/processor"
     "chainparams -> protocol -> chainparams"
     "chainparamsbase -> util/system -> chainparamsbase"
     "minerfund -> validation -> minerfund"

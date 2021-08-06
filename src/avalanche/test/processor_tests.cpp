@@ -84,8 +84,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         // Get the processor ready.
         bilingual_str error;
         m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
-                                               m_node.connman.get(),
-                                               m_node.peerman.get(), error);
+                                               m_node.connman.get(), error);
         BOOST_CHECK(m_processor);
 
         // The master private key we delegate to.
@@ -168,6 +167,14 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     }
 
     uint64_t getRound() const { return AvalancheTest::getRound(*m_processor); }
+
+    bool registerVotes(NodeId nodeid, const avalanche::Response &response,
+                       std::vector<avalanche::BlockUpdate> &updates) {
+        int banscore;
+        std::string error;
+        return m_processor->registerVotes(nodeid, response, updates, banscore,
+                                          error);
+    }
 };
 } // namespace
 
@@ -336,7 +343,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     auto registerNewVote = [&](const Response &resp) {
         runEventLoop();
         auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
-        BOOST_CHECK(m_processor->registerVotes(nodeid, resp, updates));
+        BOOST_CHECK(registerVotes(nodeid, resp, updates));
     };
 
     // Let's vote for this block a few times.
@@ -495,8 +502,8 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     uint64_t round = getRound();
     runEventLoop();
-    BOOST_CHECK(m_processor->registerVotes(
-        avanodes[0]->GetId(), {round, 0, {Vote(0, blockHashA)}}, updates));
+    BOOST_CHECK(registerVotes(avanodes[0]->GetId(),
+                              {round, 0, {Vote(0, blockHashA)}}, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Start voting on block B after one vote.
@@ -515,7 +522,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     for (int i = 0; i < 4; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         runEventLoop();
-        BOOST_CHECK(m_processor->registerVotes(nodeid, next(resp), updates));
+        BOOST_CHECK(registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -523,7 +530,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         runEventLoop();
-        BOOST_CHECK(m_processor->registerVotes(nodeid, next(resp), updates));
+        BOOST_CHECK(registerVotes(nodeid, next(resp), updates));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -537,7 +544,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(firstNodeid != secondNodeid);
 
     // Next vote will finalize block A.
-    BOOST_CHECK(m_processor->registerVotes(firstNodeid, next(resp), updates));
+    BOOST_CHECK(registerVotes(firstNodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexA);
     BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
@@ -550,7 +557,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(invs[0].hash == blockHashB);
 
     // Next vote will finalize block B.
-    BOOST_CHECK(m_processor->registerVotes(secondNodeid, resp, updates));
+    BOOST_CHECK(registerVotes(secondNodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexB);
     BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
@@ -600,16 +607,26 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     // Respond to the request.
     Response resp = {round, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(m_processor->registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Now that avanode fullfilled his request, it is added back to the list of
     // queriable nodes.
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
+    auto checkRegisterVotesError = [&](NodeId nodeid,
+                                       const avalanche::Response &response,
+                                       const std::string &expectedError) {
+        int banscore;
+        std::string error;
+        BOOST_CHECK(!m_processor->registerVotes(nodeid, response, updates,
+                                                banscore, error));
+        BOOST_CHECK_EQUAL(error, expectedError);
+        BOOST_CHECK_EQUAL(updates.size(), 0);
+    };
+
     // Sending a response when not polled fails.
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, next(resp), updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, next(resp), "unexpected-ava-response");
 
     // Trigger a poll on avanode.
     round = getRound();
@@ -620,22 +637,19 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     // 1. Too many results.
     resp = {round, 0, {Vote(0, blockHash), Vote(0, blockHash)}};
     runEventLoop();
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-size");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
     // 2. Not enough results.
     resp = {getRound(), 0, {}};
     runEventLoop();
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-size");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
     // 3. Do not match the poll.
     resp = {getRound(), 0, {Vote()}};
     runEventLoop();
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-content");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
     // 4. Invalid round count. Request is not discarded.
@@ -643,22 +657,19 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     runEventLoop();
 
     resp = {queryRound + 1, 0, {Vote()}};
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, resp, "unexpected-ava-response");
 
     resp = {queryRound - 1, 0, {Vote()}};
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, resp, "unexpected-ava-response");
 
     // 5. Making request for invalid nodes do not work. Request is not
     // discarded.
     resp = {queryRound, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid + 1234, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid + 1234, resp, "unexpected-ava-response");
 
     // Proper response gets processed and avanode is available again.
     resp = {queryRound, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(m_processor->registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
@@ -674,14 +685,13 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     resp = {getRound(), 0, {Vote(0, blockHash), Vote(0, blockHash2)}};
     runEventLoop();
-    BOOST_CHECK(!m_processor->registerVotes(avanodeid, resp, updates));
-    BOOST_CHECK_EQUAL(updates.size(), 0);
+    checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-content");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
     // But they are accepted in order.
     resp = {getRound(), 0, {Vote(0, blockHash2), Vote(0, blockHash)}};
     runEventLoop();
-    BOOST_CHECK(m_processor->registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
@@ -689,7 +699,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     pindex2->nStatus = pindex2->nStatus.withFailed();
     resp = {getRound(), 0, {Vote(0, blockHash)}};
     runEventLoop();
-    BOOST_CHECK(m_processor->registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 }
@@ -726,7 +736,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         runEventLoop();
 
-        bool ret = m_processor->registerVotes(avanodeid, next(resp), updates);
+        bool ret = registerVotes(avanodeid, next(resp), updates);
         if (std::chrono::steady_clock::now() > start + queryTimeDuration) {
             // We waited for too long, bail. Because we can't know for sure when
             // previous steps ran, ret is not deterministic and we do not check
@@ -742,8 +752,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
         runEventLoop();
         std::this_thread::sleep_for(queryTimeDuration);
         runEventLoop();
-        BOOST_CHECK(
-            !m_processor->registerVotes(avanodeid, next(resp), updates));
+        BOOST_CHECK(!registerVotes(avanodeid, next(resp), updates));
     }
 }
 
@@ -795,7 +804,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     // Send one response, now we can poll again.
     auto it = node_round_map.begin();
     Response resp = {it->second, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(m_processor->registerVotes(it->first, resp, updates));
+    BOOST_CHECK(registerVotes(it->first, resp, updates));
     node_round_map.erase(it);
 
     invs = getInvsForNextPoll();
@@ -831,8 +840,7 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
     // Check that all nodes can vote.
     for (size_t i = 0; i < avanodes.size(); i++) {
         runEventLoop();
-        BOOST_CHECK(m_processor->registerVotes(avanodes[i]->GetId(), next(resp),
-                                               updates));
+        BOOST_CHECK(registerVotes(avanodes[i]->GetId(), next(resp), updates));
     }
 
     // Generate a query for every single node.
@@ -861,13 +869,13 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
             continue;
         }
 
-        BOOST_CHECK(m_processor->registerVotes(
-            nodeid, {r, 0, {Vote(0, blockHash)}}, updates));
+        BOOST_CHECK(
+            registerVotes(nodeid, {r, 0, {Vote(0, blockHash)}}, updates));
         BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), confidence);
     }
 
-    BOOST_CHECK(m_processor->registerVotes(
-        firstNodeId, {round, 0, {Vote(0, blockHash)}}, updates));
+    BOOST_CHECK(
+        registerVotes(firstNodeId, {round, 0, {Vote(0, blockHash)}}, updates));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), confidence + 1);
 }
 
@@ -925,8 +933,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
         std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
 
     std::vector<BlockUpdate> updates;
-    m_processor->registerVotes(nodeid, {queryRound, 100, {Vote(0, blockHash)}},
-                               updates);
+    registerVotes(nodeid, {queryRound, 100, {Vote(0, blockHash)}}, updates);
     for (int i = 0; i < 10000; i++) {
         // We make sure that we do not get a request before queryTime.
         UninterruptibleSleep(std::chrono::milliseconds(1));

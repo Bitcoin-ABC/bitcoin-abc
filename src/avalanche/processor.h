@@ -33,8 +33,6 @@ class CScheduler;
 class PeerManager;
 struct bilingual_str;
 
-using NodePeerManager = PeerManager;
-
 /**
  * Finalization score.
  */
@@ -188,7 +186,6 @@ namespace {
 
 class Processor {
     CConnman *connman;
-    NodePeerManager *nodePeerManager;
     std::chrono::milliseconds queryTimeoutDuration;
 
     /**
@@ -250,16 +247,15 @@ class Processor {
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
     Processor(interfaces::Chain &chain, CConnman *connmanIn,
-              NodePeerManager *nodePeerManagerIn,
               std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn);
 
 public:
     ~Processor();
 
-    static std::unique_ptr<Processor>
-    MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
-                  CConnman *connman, NodePeerManager *nodePeerManager,
-                  bilingual_str &error);
+    static std::unique_ptr<Processor> MakeProcessor(const ArgsManager &argsman,
+                                                    interfaces::Chain &chain,
+                                                    CConnman *connman,
+                                                    bilingual_str &error);
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {
         queryTimeoutDuration = d;
@@ -272,7 +268,8 @@ public:
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
     bool registerVotes(NodeId nodeid, const Response &response,
-                       std::vector<BlockUpdate> &updates);
+                       std::vector<BlockUpdate> &updates, int &banscore,
+                       std::string &error);
 
     template <typename Callable> auto withPeerManager(Callable &&func) const {
         LOCK(cs_peerManager);

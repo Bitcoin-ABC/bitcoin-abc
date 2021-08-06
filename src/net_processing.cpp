@@ -4359,7 +4359,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         }
 
         std::vector<avalanche::BlockUpdate> updates;
-        if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates)) {
+        int banscore;
+        std::string error;
+        if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates,
+                                        banscore, error)) {
+            Misbehaving(pfrom, banscore, error);
             return;
         }
 

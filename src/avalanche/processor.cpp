@@ -8,8 +8,7 @@
 #include <avalanche/peermanager.h>
 #include <avalanche/validation.h>
 #include <chain.h>
-#include <key_io.h>         // For DecodeSecret
-#include <net_processing.h> // For ::PeerManager
+#include <key_io.h> // For DecodeSecret
 #include <netmessagemaker.h>
 #include <reverse_iterator.h>
 #include <scheduler.h>
@@ -219,11 +218,9 @@ public:
 };
 
 Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
-                     NodePeerManager *nodePeerManagerIn,
                      std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn)
-    : connman(connmanIn), nodePeerManager(nodePeerManagerIn),
-      queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT), round(0),
-      peerManager(std::make_unique<PeerManager>()),
+    : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
+      round(0), peerManager(std::make_unique<PeerManager>()),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
@@ -235,10 +232,10 @@ Processor::~Processor() {
     stopEventLoop();
 }
 
-std::unique_ptr<Processor>
-Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
-                         CConnman *connman, NodePeerManager *nodePeerManager,
-                         bilingual_str &error) {
+std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
+                                                    interfaces::Chain &chain,
+                                                    CConnman *connman,
+                                                    bilingual_str &error) {
     std::unique_ptr<PeerData> peerData;
     CKey masterKey;
     CKey sessionKey;
@@ -330,9 +327,8 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     }
 
     // We can't use std::make_unique with a private constructor
-    return std::unique_ptr<Processor>(
-        new Processor(chain, connman, nodePeerManager, std::move(peerData),
-                      std::move(sessionKey)));
+    return std::unique_ptr<Processor>(new Processor(
+        chain, connman, std::move(peerData), std::move(sessionKey)));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
@@ -410,7 +406,8 @@ void Processor::sendResponse(CNode *pfrom, Response response) const {
 }
 
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
-                              std::vector<BlockUpdate> &updates) {
+                              std::vector<BlockUpdate> &updates, int &banscore,
+                              std::string &error) {
     {
         // Save the time at which we can query again.
         LOCK(cs_peerManager);
@@ -430,7 +427,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         auto w = queries.getWriteView();
         auto it = w->find(std::make_tuple(nodeid, response.getRound()));
         if (it == w.end()) {
-            nodePeerManager->Misbehaving(nodeid, 2, "unexpected-ava-response");
+            banscore = 2;
+            error = "unexpected-ava-response";
             return false;
         }
 
@@ -442,14 +440,15 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     const std::vector<Vote> &votes = response.GetVotes();
     size_t size = invs.size();
     if (votes.size() != size) {
-        nodePeerManager->Misbehaving(nodeid, 100, "invalid-ava-response-size");
+        banscore = 100;
+        error = "invalid-ava-response-size";
         return false;
     }
 
     for (size_t i = 0; i < size; i++) {
         if (invs[i].hash != votes[i].GetHash()) {
-            nodePeerManager->Misbehaving(nodeid, 100,
-                                         "invalid-ava-response-content");
+            banscore = 100;
+            error = "invalid-ava-response-content";
             return false;
         }
     }
