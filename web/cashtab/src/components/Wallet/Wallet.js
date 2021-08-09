@@ -10,10 +10,9 @@ import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
 import TxHistory from './TxHistory';
 import { CashLoader } from '@components/Common/CustomIcons';
-import { formatBalance } from '@utils/cashMethods';
+import { BalanceHeader } from '@components/Common/BalanceHeader';
 import {
     LoadingCtn,
-    BalanceHeader,
     BalanceHeaderFiat,
     ZeroBalanceHeader,
 } from '@components/Common/Atoms';
@@ -236,13 +235,17 @@ const WalletInfo = () => {
                         {currency.ticker} payments, or load it up with{' '}
                         {currency.ticker} to send to others
                     </ZeroBalanceHeader>
-                    <BalanceHeader>0 {currency.ticker}</BalanceHeader>
+                    <BalanceHeader
+                        balance={0}
+                        ticker={currency.ticker}
+                    ></BalanceHeader>
                 </>
             ) : (
                 <>
-                    <BalanceHeader>
-                        {formatBalance(balances.totalBalance)} {currency.ticker}
-                    </BalanceHeader>
+                    <BalanceHeader
+                        balance={balances.totalBalance}
+                        ticker={currency.ticker}
+                    ></BalanceHeader>
                     {fiatPrice !== null && !isNaN(balances.totalBalance) && (
                         <BalanceHeaderFiat>
                             {cashtabSettings

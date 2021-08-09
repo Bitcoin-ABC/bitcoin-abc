@@ -15,7 +15,7 @@ export const LoadingCtn = styled.div`
     }
 `;
 
-export const BalanceHeader = styled.div`
+export const BalanceHeaderWrap = styled.div`
     color: ${props => props.theme.wallet.text.primary};
     width: 100%;
     font-size: 30px;

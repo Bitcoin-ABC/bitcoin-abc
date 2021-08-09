@@ -22,9 +22,8 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
-import { formatBalance } from '@utils/cashMethods';
+import { BalanceHeader } from '@components/Common/BalanceHeader';
 import {
-    BalanceHeader,
     BalanceHeaderFiat,
     ZeroBalanceHeader,
     ConvertAmount,
@@ -414,9 +413,10 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                 </ZeroBalanceHeader>
             ) : (
                 <>
-                    <BalanceHeader>
-                        {formatBalance(balances.totalBalance)} {currency.ticker}
-                    </BalanceHeader>
+                    <BalanceHeader
+                        balance={balances.totalBalance}
+                        ticker={currency.ticker}
+                    ></BalanceHeader>
                     {fiatPrice !== null && (
                         <BalanceHeaderFiat>
                             {cashtabSettings

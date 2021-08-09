@@ -20,7 +20,7 @@ import {
     FormItemWithQRCodeAddon,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
-import { BalanceHeader } from '@components/Common/Atoms';
+import { BalanceHeader } from '@components/Common/BalanceHeader';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -34,7 +34,6 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import {
-    formatBalance,
     isValidStoredWallet,
     convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
@@ -266,9 +265,10 @@ const SendToken = ({ tokenId, jestBCH }) => {
 
             {token && (
                 <>
-                    <BalanceHeader>
-                        {formatBalance(token.balance)} {token.info.tokenTicker}
-                    </BalanceHeader>
+                    <BalanceHeader
+                        balance={token.balance}
+                        ticker={token.info.tokenTicker}
+                    ></BalanceHeader>
 
                     <Row type="flex">
                         <Col span={24}>

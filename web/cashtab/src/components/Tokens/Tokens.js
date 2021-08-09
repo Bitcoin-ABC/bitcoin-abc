@@ -3,7 +3,6 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { CashLoader } from '@components/Common/CustomIcons';
 import { WalletContext } from '@utils/context';
 import {
-    formatBalance,
     isValidStoredWallet,
     fromSmallestDenomination,
 } from '@utils/cashMethods';
@@ -11,9 +10,9 @@ import CreateTokenForm from '@components/Tokens/CreateTokenForm';
 import { currency } from '@components/Common/Ticker.js';
 import TokenList from '@components/Wallet/TokenList';
 import useBCH from '@hooks/useBCH';
+import { BalanceHeader } from '@components/Common/BalanceHeader';
 import {
     LoadingCtn,
-    BalanceHeader,
     BalanceHeaderFiat,
     ZeroBalanceHeader,
     AlertMsg,
@@ -71,14 +70,17 @@ const Tokens = ({ jestBCH }) => {
                                 You need some {currency.ticker} in your wallet
                                 to create tokens.
                             </ZeroBalanceHeader>
-                            <BalanceHeader>0 {currency.ticker}</BalanceHeader>
+                            <BalanceHeader
+                                balance={0}
+                                ticker={currency.ticker}
+                            ></BalanceHeader>
                         </>
                     ) : (
                         <>
-                            <BalanceHeader>
-                                {formatBalance(balances.totalBalance)}{' '}
-                                {currency.ticker}
-                            </BalanceHeader>
+                            <BalanceHeader
+                                balance={balances.totalBalance}
+                                ticker={currency.ticker}
+                            ></BalanceHeader>
                             {fiatPrice !== null &&
                                 !isNaN(balances.totalBalance) && (
                                     <BalanceHeaderFiat>
