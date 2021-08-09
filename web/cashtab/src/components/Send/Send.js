@@ -23,8 +23,8 @@ import {
 import { Event } from '@utils/GoogleAnalytics';
 import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
 import { BalanceHeader } from '@components/Common/BalanceHeader';
+import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
 import {
-    BalanceHeaderFiat,
     ZeroBalanceHeader,
     ConvertAmount,
     AlertMsg,
@@ -418,21 +418,11 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                         ticker={currency.ticker}
                     ></BalanceHeader>
                     {fiatPrice !== null && (
-                        <BalanceHeaderFiat>
-                            {cashtabSettings
-                                ? `${
-                                      currency.fiatCurrencies[
-                                          cashtabSettings.fiatCurrency
-                                      ].symbol
-                                  } `
-                                : '$ '}
-                            {(balances.totalBalance * fiatPrice).toFixed(2)}{' '}
-                            {cashtabSettings
-                                ? `${currency.fiatCurrencies[
-                                      cashtabSettings.fiatCurrency
-                                  ].slug.toUpperCase()} `
-                                : 'USD'}
-                        </BalanceHeaderFiat>
+                        <BalanceHeaderFiat
+                            balance={balances.totalBalance}
+                            settings={cashtabSettings}
+                            fiatPrice={fiatPrice}
+                        />
                     )}
                 </>
             )}

@@ -11,9 +11,9 @@ import { currency } from '@components/Common/Ticker.js';
 import TokenList from '@components/Wallet/TokenList';
 import useBCH from '@hooks/useBCH';
 import { BalanceHeader } from '@components/Common/BalanceHeader';
+import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
 import {
     LoadingCtn,
-    BalanceHeaderFiat,
     ZeroBalanceHeader,
     AlertMsg,
 } from '@components/Common/Atoms';
@@ -83,24 +83,11 @@ const Tokens = ({ jestBCH }) => {
                             ></BalanceHeader>
                             {fiatPrice !== null &&
                                 !isNaN(balances.totalBalance) && (
-                                    <BalanceHeaderFiat>
-                                        {cashtabSettings
-                                            ? `${
-                                                  currency.fiatCurrencies[
-                                                      cashtabSettings
-                                                          .fiatCurrency
-                                                  ].symbol
-                                              } `
-                                            : '$ '}
-                                        {(
-                                            balances.totalBalance * fiatPrice
-                                        ).toFixed(2)}{' '}
-                                        {cashtabSettings
-                                            ? `${currency.fiatCurrencies[
-                                                  cashtabSettings.fiatCurrency
-                                              ].slug.toUpperCase()} `
-                                            : 'USD'}
-                                    </BalanceHeaderFiat>
+                                    <BalanceHeaderFiat
+                                        balance={balances.totalBalance}
+                                        settings={cashtabSettings}
+                                        fiatPrice={fiatPrice}
+                                    />
                                 )}
                         </>
                     )}

@@ -11,11 +11,8 @@ import TokenList from './TokenList';
 import TxHistory from './TxHistory';
 import { CashLoader } from '@components/Common/CustomIcons';
 import { BalanceHeader } from '@components/Common/BalanceHeader';
-import {
-    LoadingCtn,
-    BalanceHeaderFiat,
-    ZeroBalanceHeader,
-} from '@components/Common/Atoms';
+import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
+import { LoadingCtn, ZeroBalanceHeader } from '@components/Common/Atoms';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -247,21 +244,11 @@ const WalletInfo = () => {
                         ticker={currency.ticker}
                     ></BalanceHeader>
                     {fiatPrice !== null && !isNaN(balances.totalBalance) && (
-                        <BalanceHeaderFiat>
-                            {cashtabSettings
-                                ? `${
-                                      currency.fiatCurrencies[
-                                          cashtabSettings.fiatCurrency
-                                      ].symbol
-                                  } `
-                                : '$ '}
-                            {(balances.totalBalance * fiatPrice).toFixed(2)}{' '}
-                            {cashtabSettings
-                                ? `${currency.fiatCurrencies[
-                                      cashtabSettings.fiatCurrency
-                                  ].slug.toUpperCase()} `
-                                : 'USD'}
-                        </BalanceHeaderFiat>
+                        <BalanceHeaderFiat
+                            balance={balances.totalBalance}
+                            settings={cashtabSettings}
+                            fiatPrice={fiatPrice}
+                        />
                     )}
                 </>
             )}
