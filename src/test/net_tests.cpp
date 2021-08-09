@@ -917,11 +917,13 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                     candidate.nMinPingUsecTime = candidate.id; // 8 protected
                     candidate.nLastTXTime =
                         number_of_nodes - candidate.id; // 4 protected
+                    candidate.nLastProofTime =
+                        number_of_nodes - candidate.id; // 4 protected
                     candidate.nLastBlockTime =
                         number_of_nodes - candidate.id; // 4 protected
                 },
-                {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
-                 10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
+                {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23},
                 random_context));
 
             // An eviction is expected given >= 33 random eviction candidates.
