@@ -1,6 +1,10 @@
 # Allow to easily build native executable.
 # Useful for cross compilation.
 
+if (POLICY CMP0116)
+	cmake_policy(SET CMP0116 NEW)
+endif()
+
 if(NOT DEFINED __IS_NATIVE_BUILD)
 	# Check if we are in a native build or not.
 	set(__IS_NATIVE_BUILD 0 CACHE INTERNAL "Indicate if this is a native build")
