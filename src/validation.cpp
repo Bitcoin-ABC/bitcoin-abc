@@ -442,6 +442,12 @@ private:
     bool PreChecks(ATMPArgs &args, Workspace &ws)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
 
+    // Enforce package mempool ancestor/descendant limits (distinct from
+    // individual ancestor/descendant limits done in PreChecks).
+    bool PackageMempoolChecks(const std::vector<CTransactionRef> &txns,
+                              PackageValidationState &package_state)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
+
     // Re-run the script checks, using consensus flags, and try to cache the
     // result in the scriptcache. This should be done after
     // PolicyScriptChecks(). This requires that all inputs either be in our
@@ -669,6 +675,24 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     return true;
 }
 
+bool MemPoolAccept::PackageMempoolChecks(
+    const std::vector<CTransactionRef> &txns,
+    PackageValidationState &package_state) {
+    AssertLockHeld(cs_main);
+    AssertLockHeld(m_pool.cs);
+
+    std::string err_string;
+    if (!m_pool.CheckPackageLimits(txns, m_limit_ancestors,
+                                   m_limit_ancestor_size, m_limit_descendants,
+                                   m_limit_descendant_size, err_string)) {
+        // This is a package-wide error, separate from an individual transaction
+        // error.
+        return package_state.Invalid(PackageValidationResult::PCKG_POLICY,
+                                     "package-mempool-limits", err_string);
+    }
+    return true;
+}
+
 bool MemPoolAccept::ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws) {
     const CTransaction &tx = *ws.m_ptx;
     const TxId &txid = tx.GetId();
@@ -828,15 +852,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
     // increase the limit for individual transactions, but this exemption is
     // not extended to packages in CheckPackageLimits().
     std::string err_string;
-    if (txns.size() > 1 &&
-        !m_pool.CheckPackageLimits(txns, m_limit_ancestors,
-                                   m_limit_ancestor_size, m_limit_descendants,
-                                   m_limit_descendant_size, err_string)) {
-        // All transactions must have individually passed mempool ancestor and
-        // descendant limits inside of PreChecks(), so this is separate from an
-        // individual transaction error.
-        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
-                              "package-mempool-limits", err_string);
+    if (txns.size() > 1 && !PackageMempoolChecks(txns, package_state)) {
         return PackageMempoolAcceptResult(package_state, std::move(results));
     }
 
