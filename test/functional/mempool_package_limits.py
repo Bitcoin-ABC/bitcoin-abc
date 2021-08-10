@@ -43,6 +43,7 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         self.test_chain_limits()
         self.test_desc_count_limits()
+        self.test_desc_count_limits_2()
         self.test_anc_count_limits()
         self.test_anc_count_limits_2()
         self.test_anc_count_limits_bushy()
@@ -180,6 +181,84 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
         node.generate(1)
         assert all([res["allowed"] is True
                     for res in node.testmempoolaccept(rawtxs=package_hex)])
+
+    def test_desc_count_limits_2(self):
+        """Create a Package with 49 transactions in mempool and 2 transactions
+         in package:
+                      M1
+                     ^  ^
+                   M2    ^
+                   .      ^
+                  .        ^
+                 .          ^
+                M49          ^
+                              ^
+                              P1
+                              ^
+                              P2
+        P1 has M1 as a mempool ancestor, P2 has no in-mempool ancestors, but
+        when combined P2 has M1 as an ancestor and M1 exceeds descendant_limits
+        (48 in-mempool descendants + 2 in-package descendants, a total of 51
+        including itself).
+        """
+
+        node = self.nodes[0]
+        package_hex = []
+        # M1
+        first_coin_a = self.coins.pop()
+        # Deduct reasonable fee and make 2 outputs
+        parent_value = (first_coin_a["amount"] - Decimal('200.0')) / 2
+        inputs = [{"txid": first_coin_a["txid"], "vout": 0}]
+        outputs = [{self.address: parent_value},
+                   {ADDRESS_ECREG_P2SH_OP_TRUE: parent_value}]
+        rawtx = node.createrawtransaction(inputs, outputs)
+
+        parent_signed = node.signrawtransactionwithkey(
+            hexstring=rawtx, privkeys=self.privkeys)
+        assert parent_signed["complete"]
+        parent_tx = FromHex(CTransaction(), parent_signed["hex"])
+        pad_tx(parent_tx)
+        parent_txid = parent_tx.rehash()
+        node.sendrawtransaction(parent_signed["hex"])
+
+        # Chain M2...M49
+        spk = parent_tx.vout[0].scriptPubKey.hex()
+        value = parent_value
+        txid = parent_txid
+        for _ in range(48):
+            (tx, txhex, value, spk) = make_chain(
+                node, self.address, self.privkeys, txid, value, 0, spk)
+            pad_tx(tx)
+            txid = tx.hash
+            node.sendrawtransaction(txhex)
+
+        # P1
+        value_p1 = parent_value - Decimal('100')
+        rawtx_p1 = node.createrawtransaction(
+            [{"txid": parent_txid, "vout": 1}], [{self.address: value_p1}])
+        tx_child_p1 = FromHex(CTransaction(), rawtx_p1)
+        tx_child_p1.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
+        pad_tx(tx_child_p1)
+        tx_child_p1_hex = tx_child_p1.serialize().hex()
+        package_hex.append(tx_child_p1_hex)
+        tx_child_p1_spk = tx_child_p1.vout[0].scriptPubKey.hex()
+
+        # P2
+        (_, tx_child_p2_hex, _, _) = make_chain(node, self.address,
+                                                self.privkeys, tx_child_p1.hash, value_p1, 0, tx_child_p1_spk)
+        package_hex.append(tx_child_p2_hex)
+
+        assert_equal(49, node.getmempoolinfo()["size"])
+        assert_equal(2, len(package_hex))
+        testres = node.testmempoolaccept(rawtxs=package_hex)
+        assert_equal(len(testres), len(package_hex))
+        for txres in testres:
+            assert_equal(txres["package-error"], "package-mempool-limits")
+
+        # Clear mempool and check that the package passes now
+        node.generate(1)
+        assert all([res["allowed"]
+                   for res in node.testmempoolaccept(rawtxs=package_hex)])
 
     def test_anc_count_limits(self):
         """Create a 'V' shaped chain with 49 transactions in the mempool and 3 in the package:
@@ -422,7 +501,6 @@ class MempoolPackageLimitsTest(BitcoinTestFramework):
 
         assert_equal(2, node.getmempoolinfo()["size"])
         testres_too_heavy = node.testmempoolaccept(rawtxs=[pc_hex, pd_hex])
-        print(testres_too_heavy)
         for txres in testres_too_heavy:
             assert_equal(txres["package-error"], "package-mempool-limits")
 
