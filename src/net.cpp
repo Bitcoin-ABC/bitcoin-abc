@@ -937,6 +937,19 @@ static void EraseLastKElements(std::vector<T> &elements, Comparator comparator,
     elements.erase(elements.end() - eraseSize, elements.end());
 }
 
+//! Sort an array by the specified comparator, then erase up to K last elements
+//! which verify the condition.
+template <typename T, typename Comparator, typename Condition>
+static void EraseLastKElementsIf(std::vector<T> &elements,
+                                 Comparator comparator, size_t k,
+                                 Condition cond) {
+    std::sort(elements.begin(), elements.end(), comparator);
+    size_t eraseSize = std::min(k, elements.size());
+    elements.erase(
+        std::remove_if(elements.end() - eraseSize, elements.end(), cond),
+        elements.end());
+}
+
 [[nodiscard]] std::optional<NodeId>
 SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // Protect connections with certain characteristics
@@ -959,16 +972,10 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // enabled for pre-consensus.
     EraseLastKElements(vEvictionCandidates, CompareNodeProofTime, 4);
     // Protect up to 8 non-tx-relay peers that have sent us novel blocks.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              CompareNodeBlockRelayOnlyTime);
-    size_t erase_size = std::min(size_t(8), vEvictionCandidates.size());
-    vEvictionCandidates.erase(
-        std::remove_if(vEvictionCandidates.end() - erase_size,
-                       vEvictionCandidates.end(),
-                       [](NodeEvictionCandidate const &n) {
-                           return !n.fRelayTxes && n.fRelevantServices;
-                       }),
-        vEvictionCandidates.end());
+    EraseLastKElementsIf(vEvictionCandidates, CompareNodeBlockRelayOnlyTime, 8,
+                         [](NodeEvictionCandidate const &n) {
+                             return !n.fRelayTxes && n.fRelevantServices;
+                         });
 
     // Protect 4 nodes that most recently sent us novel blocks.
     // An attacker cannot manipulate this metric without performing useful work.
@@ -984,15 +991,10 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     size_t total_protect_size = initial_size / 2;
 
     // Pick out up to 1/4 peers that are localhost, sorted by longest uptime.
-    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(),
-              CompareLocalHostTimeConnected);
-    size_t local_erase_size = total_protect_size / 2;
-    vEvictionCandidates.erase(
-        std::remove_if(
-            vEvictionCandidates.end() - local_erase_size,
-            vEvictionCandidates.end(),
-            [](NodeEvictionCandidate const &n) { return n.m_is_local; }),
-        vEvictionCandidates.end());
+    EraseLastKElementsIf(
+        vEvictionCandidates, CompareLocalHostTimeConnected,
+        total_protect_size / 2,
+        [](NodeEvictionCandidate const &n) { return n.m_is_local; });
     // Calculate how many we removed, and update our total number of peers that
     // we want to protect based on uptime accordingly.
     total_protect_size -= initial_size - vEvictionCandidates.size();
