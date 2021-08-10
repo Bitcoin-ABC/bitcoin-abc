@@ -14,7 +14,7 @@ describe('Testing functions for upgrading Cashtab', () => {
                     fromSmallestDenomination(currency.dustSats, 8).toString(),
                 ).toFixed(8),
             ),
-        ).toBe(0.00000546);
+        ).toBe(0.0000055);
     });
     it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with toSmallestDenomination', () => {
         const BCH = new BCHJS();
@@ -132,7 +132,7 @@ describe('Testing functions for upgrading Cashtab', () => {
 
     it(`Converts dust limit in satoshis to dust limit in current app setting`, () => {
         expect(fromSmallestDenomination(currency.dustSats, 8).toString()).toBe(
-            '0.00000546',
+            '0.0000055',
         );
     });
 });
