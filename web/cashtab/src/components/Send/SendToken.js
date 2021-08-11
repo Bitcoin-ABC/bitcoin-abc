@@ -268,7 +268,7 @@ const SendToken = ({ tokenId, jestBCH }) => {
                     <BalanceHeader
                         balance={token.balance}
                         ticker={token.info.tokenTicker}
-                    ></BalanceHeader>
+                    />
 
                     <Row type="flex">
                         <Col span={24}>

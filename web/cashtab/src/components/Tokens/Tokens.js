@@ -73,14 +73,14 @@ const Tokens = ({ jestBCH }) => {
                             <BalanceHeader
                                 balance={0}
                                 ticker={currency.ticker}
-                            ></BalanceHeader>
+                            />
                         </>
                     ) : (
                         <>
                             <BalanceHeader
                                 balance={balances.totalBalance}
                                 ticker={currency.ticker}
-                            ></BalanceHeader>
+                            />
                             {fiatPrice !== null &&
                                 !isNaN(balances.totalBalance) && (
                                     <BalanceHeaderFiat

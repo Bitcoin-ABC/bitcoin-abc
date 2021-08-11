@@ -416,7 +416,7 @@ const SendBCH = ({ jestBCH, filledAddress, callbackTxId }) => {
                     <BalanceHeader
                         balance={balances.totalBalance}
                         ticker={currency.ticker}
-                    ></BalanceHeader>
+                    />
                     {fiatPrice !== null && (
                         <BalanceHeaderFiat
                             balance={balances.totalBalance}

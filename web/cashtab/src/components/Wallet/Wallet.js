@@ -232,17 +232,14 @@ const WalletInfo = () => {
                         {currency.ticker} payments, or load it up with{' '}
                         {currency.ticker} to send to others
                     </ZeroBalanceHeader>
-                    <BalanceHeader
-                        balance={0}
-                        ticker={currency.ticker}
-                    ></BalanceHeader>
+                    <BalanceHeader balance={0} ticker={currency.ticker} />
                 </>
             ) : (
                 <>
                     <BalanceHeader
                         balance={balances.totalBalance}
                         ticker={currency.ticker}
-                    ></BalanceHeader>
+                    />
                     {fiatPrice !== null && !isNaN(balances.totalBalance) && (
                         <BalanceHeaderFiat
                             balance={balances.totalBalance}
