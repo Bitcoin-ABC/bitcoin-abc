@@ -31,10 +31,6 @@
  * is reading the tree, which allows deletion to wait for other readers to be up
  * to speed before destroying anything. It is therefore crucial that the lock be
  * taken before reading anything in the tree.
- *
- * It is not possible to delete anything from the tree at this time. The tree
- * itself cannot be destroyed and will leak memory instead of cleaning up after
- * itself. This obviously needs to be fixed in subsequent revisions.
  */
 template <typename T> struct RadixTree {
 private:
@@ -42,8 +38,8 @@ private:
     static const int MASK = (1 << BITS) - 1;
     static const size_t CHILD_PER_LEVEL = 1 << BITS;
 
-    typedef typename std::remove_reference<decltype(
-        std::declval<T &>().getId())>::type K;
+    using K = typename std::remove_reference<decltype(
+        std::declval<T &>().getId())>::type;
     static const size_t KEY_BITS = 8 * sizeof(K);
     static const uint32_t TOP_LEVEL = (KEY_BITS - 1) / BITS;
 
