@@ -388,9 +388,7 @@ const Wallet = () => {
     return (
         <>
             {loading ? (
-                <LoadingCtn>
-                    <LoadingOutlined />
-                </LoadingCtn>
+                <LoadingCtn />
             ) : (
                 <>{wallet.Path1899 ? <WalletInfo /> : <OnBoarding />}</>
             )}
