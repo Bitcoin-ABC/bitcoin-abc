@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import 'antd/dist/antd.less';
 import { Spin } from 'antd';
 import { CashLoadingIcon } from '@components/Common/CustomIcons';
@@ -204,6 +204,7 @@ export const AbcLogo = styled.img`
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading, tokens } = ContextValue;
+    const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
 
     const hasTab = checkForTokenById(
         tokens,
@@ -217,7 +218,10 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
-            <Spin spinning={loading} indicator={CashLoadingIcon}>
+            <Spin
+                spinning={loading || loadingUtxosAfterSend}
+                indicator={CashLoadingIcon}
+            >
                 <CustomApp>
                     <WalletBody>
                         <WalletCtn>
@@ -243,13 +247,20 @@ const App = () => {
                                     <Tokens />
                                 </Route>
                                 <Route path="/send">
-                                    <Send />
+                                    <Send
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
                                 </Route>
                                 <Route
                                     path="/send-token/:tokenId"
                                     render={props => (
                                         <SendToken
                                             tokenId={props.match.params.tokenId}
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
                                         />
                                     )}
                                 />
