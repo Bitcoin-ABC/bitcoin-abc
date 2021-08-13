@@ -37,12 +37,7 @@ class ECashRPCTest(BitcoinTestFramework):
                      expected_sats / satoshis_per_unit)
 
     def run_test(self):
-        # Unset the test framework's default.
-        if "-ecash" in self.nodes[0].default_args:
-            self.nodes[0].default_args.remove("-ecash")
-
-        self.log.info("Test with -ecash enabled")
-        self.restart_node(0, ["-ecash"])
+        self.log.info("Test with -ecash enabled (default setting)")
         self.test_currency(ticker="XEC",
                            satoshis_per_unit=100,
                            decimals=2)

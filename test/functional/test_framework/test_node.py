@@ -108,7 +108,6 @@ class TestNode():
             "-debugexclude=leveldb",
             "-uacomment=" + self.name,
             "-noprinttoconsole",
-            "-ecash",
         ]
 
         if use_valgrind:

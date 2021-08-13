@@ -78,7 +78,7 @@ def bctest(testDir, testObj, buildenv):
     # Get the exec names and arguments
     execprog = os.path.join(
         buildenv["BUILDDIR"], "src", testObj["exec"] + buildenv["EXEEXT"])
-    execargs = ["-ecash=1"] + testObj['args']
+    execargs = testObj['args']
     execrun = [execprog] + execargs
     if buildenv["EMULATOR"]:
         execrun = [buildenv["EMULATOR"]] + execrun
