@@ -86,6 +86,8 @@ struct Params {
     int tachyonActivationTime;
     /** Unix time used for MTP activation of 15 Nov 2021 12:00:00 UTC upgrade */
     int selectronActivationTime;
+    /** Unix time used for MTP activation of 15 May 2022 12:00:00 UTC upgrade */
+    int gluonActivationTime;
 
     /**
      * Don't warn about unknown BIP 9 activations below this height.
