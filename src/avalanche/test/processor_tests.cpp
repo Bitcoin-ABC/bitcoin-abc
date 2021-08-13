@@ -7,6 +7,7 @@
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/voterecord.h>
 #include <chain.h>
 #include <config.h>
 #include <net_processing.h> // For ::PeerManager
