@@ -854,14 +854,13 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
         runEventLoop();
     }
 
-    // Now only tge first node can vote. All others would be duplicate in the
+    // Now only the first node can vote. All others would be duplicate in the
     // quorum.
     auto confidence = m_processor->getConfidence(pindex);
     BOOST_REQUIRE(confidence > 0);
 
-    for (auto &pair : node_round_map) {
-        NodeId nodeid = pair.first;
-        uint64_t r = pair.second;
+    for (auto &[nodeid, round] : node_round_map) {
+        uint64_t r = round;
 
         if (nodeid == firstNodeId) {
             // Node 0 is the only one which can vote at this stage.
