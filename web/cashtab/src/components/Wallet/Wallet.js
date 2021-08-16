@@ -166,13 +166,6 @@ export const AddrSwitchContainer = styled.div`
     padding: 6px 0 12px 0;
 `;
 
-export const AddrPrefixSwitch = styled(Switch)``;
-
-export const AddrPrefixLabel = styled.span`
-    color: ${props => props.theme.wallet.text.primary}
-    margin-right: 4px;
-`;
-
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
@@ -270,37 +263,10 @@ const WalletInfo = () => {
                                         ? wallet.Path1899.slpAddress
                                         : wallet.Path1899.cashAddress
                                 }
-                                legacy={addressPrefix === 'bitcoincash'}
                             />
-                            <AddrSwitchContainer>
-                                <AddrPrefixLabel>
-                                    Address Format:
-                                </AddrPrefixLabel>
-                                <AddrPrefixSwitch
-                                    id="addrSwitch"
-                                    defaultChecked
-                                    checkedChildren={
-                                        address === 'slpAddress'
-                                            ? 'eToken'
-                                            : 'eCash'
-                                    }
-                                    unCheckedChildren={
-                                        address === 'slpAddress'
-                                            ? 'simpleledger'
-                                            : 'bitcoincash'
-                                    }
-                                    onChange={onAddressPrefixChange}
-                                />
-                            </AddrSwitchContainer>
                         </>
                     ) : (
                         <>
-                            <AddrPrefixSwitch
-                                defaultChecked
-                                checkedChildren="eCash"
-                                unCheckedChildren="Legacy"
-                                onChange={onAddressPrefixChange}
-                            />
                             <QRCode
                                 id="borderedQRCode"
                                 address={

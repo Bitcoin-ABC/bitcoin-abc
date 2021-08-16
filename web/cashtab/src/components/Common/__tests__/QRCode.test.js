@@ -7,14 +7,14 @@ import { theme } from '@assets/styles/theme';
 describe('<QRCode />', () => {
     jest.useFakeTimers();
 
-    it('QRCode copying cash address', async () => {
+    it('QRCode copying ecash address', async () => {
         const OnClick = jest.fn();
         const { container } = render(
             <ThemeProvider theme={theme}>
                 <QRCode
                     pixelRatio={25}
                     onClick={OnClick}
-                    address="bitcoincash:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
+                    address="ecash:qqyumjtrftl5yfdwuglhq6l9af2ner39jqr0wexwyk"
                     legacy={true}
                 />
             </ThemeProvider>,
@@ -30,14 +30,14 @@ describe('<QRCode />', () => {
         expect(setTimeout).toHaveBeenCalled();
     });
 
-    it('QRCode copying SLP address', () => {
+    it('QRCode copying eToken address', () => {
         const OnClick = jest.fn();
         const { container } = render(
             <ThemeProvider theme={theme}>
                 <QRCode
                     pixelRatio={25}
                     onClick={OnClick}
-                    address="simpleledger:qqyumjtrftl5yfdwuglhq6l9af2ner39jq6z6ja5zp"
+                    address="etoken:qqyumjtrftl5yfdwuglhq6l9af2ner39jqd38msfqp"
                     legacy={true}
                 />
             </ThemeProvider>,

@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-jDwBTQ jbqwfh"
+    className="sc-iRbamj eSWubX"
   >
     0.06047469
      
     XEC
   </div>,
   <div
-    className="sc-gPEVay NMtXN"
+    className="sc-jlyJG gjxMSb"
   >
     $ 
     NaN
@@ -28,7 +28,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG cgNJEW"
+      className="sc-cSHVUG ckubWs"
       style={
         Object {
           "display": "none",
@@ -48,13 +48,13 @@ Array [
       </span>
     </div>
     <svg
-      bch={1}
       className="sc-jzJRlG esZxys"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
       viewBox="0 0 37 37"
       width={210}
+      xec={1}
     >
       <path
         d="M0,0 h37v37H0z"
@@ -74,7 +74,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kAzzGY duwgfj"
+      className="sc-kgoBCf fuxBvT"
     >
       <input
         readOnly={true}
@@ -82,53 +82,35 @@ Array [
         type="text"
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
-      <span>
+      <span
+        className="sc-kAzzGY etOvLb"
+      >
+        ecash:
+      </span>
+      <span
+        className="sc-chPdSV fATPby"
+      >
         qzagy47m
       </span>
-      vh6qxkvcn3acjnz73rkhkc6y7c
-      <span>
+      agy47mvh6qxkvcn3acjnz73rkhkc6y7c
+      <span
+        className="sc-chPdSV fATPby"
+      >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-fAjcbJ cenwws"
-  >
-    <span
-      className="sc-gisBJw iNnDLK"
-    >
-      Address Format:
-    </span>
-    <button
-      aria-checked={true}
-      className="ant-switch sc-caSCKo jjNSwx ant-switch-checked"
-      id="addrSwitch"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="switch"
-      type="button"
-    >
-      <div
-        className="ant-switch-handle"
-      />
-      <span
-        className="ant-switch-inner"
-      >
-        eCash
-      </span>
-    </button>
-  </div>,
-  <div
-    className="sc-fBuWsC bmJnTd"
+    className="sc-dVhcbM ihrmlk"
   >
     <div
-      className="sc-fMiknA cAYIgW"
+      className="sc-eqIVtm hLeThb"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-fMiknA cAYIgW nonactiveBtn"
+      className="sc-eqIVtm hLeThb nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -140,14 +122,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-jDwBTQ jbqwfh"
+    className="sc-iRbamj eSWubX"
   >
     0.06047469
      
     XEC
   </div>,
   <div
-    className="sc-gPEVay NMtXN"
+    className="sc-jlyJG gjxMSb"
   >
     $ 
     NaN
@@ -165,7 +147,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG cgNJEW"
+      className="sc-cSHVUG ckubWs"
       style={
         Object {
           "display": "none",
@@ -185,13 +167,13 @@ Array [
       </span>
     </div>
     <svg
-      bch={1}
       className="sc-jzJRlG esZxys"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
       viewBox="0 0 37 37"
       width={210}
+      xec={1}
     >
       <path
         d="M0,0 h37v37H0z"
@@ -211,7 +193,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kAzzGY duwgfj"
+      className="sc-kgoBCf fuxBvT"
     >
       <input
         readOnly={true}
@@ -219,53 +201,35 @@ Array [
         type="text"
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
-      <span>
+      <span
+        className="sc-kAzzGY etOvLb"
+      >
+        ecash:
+      </span>
+      <span
+        className="sc-chPdSV fATPby"
+      >
         qzagy47m
       </span>
-      vh6qxkvcn3acjnz73rkhkc6y7c
-      <span>
+      agy47mvh6qxkvcn3acjnz73rkhkc6y7c
+      <span
+        className="sc-chPdSV fATPby"
+      >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-fAjcbJ cenwws"
-  >
-    <span
-      className="sc-gisBJw iNnDLK"
-    >
-      Address Format:
-    </span>
-    <button
-      aria-checked={true}
-      className="ant-switch sc-caSCKo jjNSwx ant-switch-checked"
-      id="addrSwitch"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="switch"
-      type="button"
-    >
-      <div
-        className="ant-switch-handle"
-      />
-      <span
-        className="ant-switch-inner"
-      >
-        eCash
-      </span>
-    </button>
-  </div>,
-  <div
-    className="sc-fBuWsC bmJnTd"
+    className="sc-dVhcbM ihrmlk"
   >
     <div
-      className="sc-fMiknA cAYIgW"
+      className="sc-eqIVtm hLeThb"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-fMiknA cAYIgW nonactiveBtn"
+      className="sc-eqIVtm hLeThb nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -277,14 +241,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-jDwBTQ jbqwfh"
+    className="sc-iRbamj eSWubX"
   >
     0.06047469
      
     XEC
   </div>,
   <div
-    className="sc-gPEVay NMtXN"
+    className="sc-jlyJG gjxMSb"
   >
     $ 
     NaN
@@ -302,7 +266,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG cgNJEW"
+      className="sc-cSHVUG ckubWs"
       style={
         Object {
           "display": "none",
@@ -322,13 +286,13 @@ Array [
       </span>
     </div>
     <svg
-      bch={1}
       className="sc-jzJRlG esZxys"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
       viewBox="0 0 37 37"
       width={210}
+      xec={1}
     >
       <path
         d="M0,0 h37v37H0z"
@@ -348,7 +312,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kAzzGY duwgfj"
+      className="sc-kgoBCf fuxBvT"
     >
       <input
         readOnly={true}
@@ -356,53 +320,35 @@ Array [
         type="text"
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
-      <span>
+      <span
+        className="sc-kAzzGY etOvLb"
+      >
+        ecash:
+      </span>
+      <span
+        className="sc-chPdSV fATPby"
+      >
         qzagy47m
       </span>
-      vh6qxkvcn3acjnz73rkhkc6y7c
-      <span>
+      agy47mvh6qxkvcn3acjnz73rkhkc6y7c
+      <span
+        className="sc-chPdSV fATPby"
+      >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-fAjcbJ cenwws"
-  >
-    <span
-      className="sc-gisBJw iNnDLK"
-    >
-      Address Format:
-    </span>
-    <button
-      aria-checked={true}
-      className="ant-switch sc-caSCKo jjNSwx ant-switch-checked"
-      id="addrSwitch"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="switch"
-      type="button"
-    >
-      <div
-        className="ant-switch-handle"
-      />
-      <span
-        className="ant-switch-inner"
-      >
-        eCash
-      </span>
-    </button>
-  </div>,
-  <div
-    className="sc-fBuWsC bmJnTd"
+    className="sc-dVhcbM ihrmlk"
   >
     <div
-      className="sc-fMiknA cAYIgW"
+      className="sc-eqIVtm hLeThb"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-fMiknA cAYIgW nonactiveBtn"
+      className="sc-eqIVtm hLeThb nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -414,14 +360,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 Array [
   <div
-    className="sc-jDwBTQ jbqwfh"
+    className="sc-iRbamj eSWubX"
   >
     0.06047469
      
     XEC
   </div>,
   <div
-    className="sc-gPEVay NMtXN"
+    className="sc-jlyJG gjxMSb"
   >
     $ 
     NaN
@@ -439,7 +385,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG cgNJEW"
+      className="sc-cSHVUG ckubWs"
       style={
         Object {
           "display": "none",
@@ -459,13 +405,13 @@ Array [
       </span>
     </div>
     <svg
-      bch={1}
       className="sc-jzJRlG esZxys"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
       viewBox="0 0 37 37"
       width={210}
+      xec={1}
     >
       <path
         d="M0,0 h37v37H0z"
@@ -485,7 +431,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kAzzGY duwgfj"
+      className="sc-kgoBCf fuxBvT"
     >
       <input
         readOnly={true}
@@ -493,53 +439,35 @@ Array [
         type="text"
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
-      <span>
+      <span
+        className="sc-kAzzGY etOvLb"
+      >
+        ecash:
+      </span>
+      <span
+        className="sc-chPdSV fATPby"
+      >
         qzagy47m
       </span>
-      vh6qxkvcn3acjnz73rkhkc6y7c
-      <span>
+      agy47mvh6qxkvcn3acjnz73rkhkc6y7c
+      <span
+        className="sc-chPdSV fATPby"
+      >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-fAjcbJ cenwws"
-  >
-    <span
-      className="sc-gisBJw iNnDLK"
-    >
-      Address Format:
-    </span>
-    <button
-      aria-checked={true}
-      className="ant-switch sc-caSCKo jjNSwx ant-switch-checked"
-      id="addrSwitch"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="switch"
-      type="button"
-    >
-      <div
-        className="ant-switch-handle"
-      />
-      <span
-        className="ant-switch-inner"
-      >
-        eCash
-      </span>
-    </button>
-  </div>,
-  <div
-    className="sc-fBuWsC bmJnTd"
+    className="sc-dVhcbM ihrmlk"
   >
     <div
-      className="sc-fMiknA cAYIgW"
+      className="sc-eqIVtm hLeThb"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-fMiknA cAYIgW nonactiveBtn"
+      className="sc-eqIVtm hLeThb nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -551,7 +479,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-iRbamj hjLopm"
+    className="sc-gipzik fmZZPA"
   >
     <span
       aria-label="party emoji"
@@ -577,7 +505,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-jDwBTQ jbqwfh"
+    className="sc-iRbamj eSWubX"
   >
     0
      
@@ -594,7 +522,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG cgNJEW"
+      className="sc-cSHVUG ckubWs"
       style={
         Object {
           "display": "none",
@@ -614,13 +542,13 @@ Array [
       </span>
     </div>
     <svg
-      bch={1}
       className="sc-jzJRlG esZxys"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
       viewBox="0 0 37 37"
       width={210}
+      xec={1}
     >
       <path
         d="M0,0 h37v37H0z"
@@ -640,7 +568,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kAzzGY duwgfj"
+      className="sc-kgoBCf fuxBvT"
     >
       <input
         readOnly={true}
@@ -648,53 +576,35 @@ Array [
         type="text"
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
-      <span>
+      <span
+        className="sc-kAzzGY etOvLb"
+      >
+        ecash:
+      </span>
+      <span
+        className="sc-chPdSV fATPby"
+      >
         qzagy47m
       </span>
-      vh6qxkvcn3acjnz73rkhkc6y7c
-      <span>
+      agy47mvh6qxkvcn3acjnz73rkhkc6y7c
+      <span
+        className="sc-chPdSV fATPby"
+      >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-fAjcbJ cenwws"
-  >
-    <span
-      className="sc-gisBJw iNnDLK"
-    >
-      Address Format:
-    </span>
-    <button
-      aria-checked={true}
-      className="ant-switch sc-caSCKo jjNSwx ant-switch-checked"
-      id="addrSwitch"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-      role="switch"
-      type="button"
-    >
-      <div
-        className="ant-switch-handle"
-      />
-      <span
-        className="ant-switch-inner"
-      >
-        eCash
-      </span>
-    </button>
-  </div>,
-  <div
-    className="sc-fBuWsC bmJnTd"
+    className="sc-dVhcbM ihrmlk"
   >
     <div
-      className="sc-fMiknA cAYIgW"
+      className="sc-eqIVtm hLeThb"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-fMiknA cAYIgW nonactiveBtn"
+      className="sc-eqIVtm hLeThb nonactiveBtn"
       onClick={[Function]}
     >
       eToken
