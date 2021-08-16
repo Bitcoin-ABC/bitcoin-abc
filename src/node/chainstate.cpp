@@ -16,9 +16,10 @@
 
 std::optional<ChainstateLoadingError>
 LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
-               bool fPruneMode_, const Config &config, const ArgsManager &args,
-               bool fReindexChainState, int64_t nBlockTreeDBCache,
-               int64_t nCoinDBCache, int64_t nCoinCacheUsage) {
+               bool fPruneMode_, const Config &config, bool fReindexChainState,
+               int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
+               int64_t nCoinCacheUsage, unsigned int check_blocks,
+               unsigned int check_level) {
     const CChainParams &chainparams = config.GetChainParams();
 
     auto is_coinsview_empty =
@@ -147,9 +148,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
                 if (!is_coinsview_empty(chainstate)) {
                     uiInterface.InitMessage(
                         _("Verifying blocks...").translated);
-                    if (fHavePruned &&
-                        args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS) >
-                            MIN_BLOCKS_TO_KEEP) {
+                    if (fHavePruned && check_blocks > MIN_BLOCKS_TO_KEEP) {
                         LogPrintf(
                             "Prune: pruned datadir may not have more than %d "
                             "blocks; only checking available blocks\n",
@@ -162,11 +161,9 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
                         return ChainstateLoadingError::ERROR_BLOCK_FROM_FUTURE;
                     }
 
-                    if (!CVerifyDB().VerifyDB(
-                            *chainstate, config, chainstate->CoinsDB(),
-                            args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL),
-                            args.GetIntArg("-checkblocks",
-                                           DEFAULT_CHECKBLOCKS))) {
+                    if (!CVerifyDB().VerifyDB(*chainstate, config,
+                                              chainstate->CoinsDB(),
+                                              check_level, check_blocks)) {
                         return ChainstateLoadingError::ERROR_CORRUPTED_BLOCK_DB;
                     }
                 }

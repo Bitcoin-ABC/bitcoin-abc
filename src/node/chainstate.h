@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <optional>
 
-class ArgsManager;
 struct bilingual_str;
 class Config;
 class ChainstateManager;
@@ -58,8 +57,9 @@ enum class ChainstateLoadingError {
  */
 std::optional<ChainstateLoadingError>
 LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
-               bool fPruneMode, const Config &config, const ArgsManager &args,
-               bool fReindexChainState, int64_t nBlockTreeDBCache,
-               int64_t nCoinDBCache, int64_t nCoinCacheUsage);
+               bool fPruneMode, const Config &config, bool fReindexChainState,
+               int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
+               int64_t nCoinCacheUsage, unsigned int check_blocks,
+               unsigned int check_level);
 
 #endif // BITCOIN_NODE_CHAINSTATE_H

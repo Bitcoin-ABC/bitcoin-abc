@@ -2465,9 +2465,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         const int64_t load_block_index_start_time = GetTimeMillis();
 
-        auto rv = LoadChainstate(fReset, chainman, node, fPruneMode, config,
-                                 args, fReindexChainState, nBlockTreeDBCache,
-                                 nCoinDBCache, nCoinCacheUsage);
+        auto rv = LoadChainstate(
+            fReset, chainman, node, fPruneMode, config, fReindexChainState,
+            nBlockTreeDBCache, nCoinDBCache, nCoinCacheUsage,
+            args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
+            args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
 
         if (rv.has_value()) {
             switch (rv.value()) {
