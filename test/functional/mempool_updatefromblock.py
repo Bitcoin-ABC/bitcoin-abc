@@ -106,8 +106,7 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
             tx_id.append(
                 self.nodes[0].sendrawtransaction(
                     signed_raw_tx['hex']))
-            tx_size.append(self.nodes[0].getrawmempool(
-                True)[tx_id[-1]]['size'])
+            tx_size.append(self.nodes[0].getmempoolentry(tx_id[-1])['size'])
 
             if tx_count in n_tx_to_mine:
                 # The created transactions are mined into blocks by batches.
@@ -139,14 +138,11 @@ class MempoolUpdateFromBlockTest(BitcoinTestFramework):
             ' in-mempool transactions...')
         for k, tx in enumerate(tx_id):
             self.log.debug('Check transaction #{}.'.format(k))
-            assert_equal(self.nodes[0].getrawmempool(True)[
-                         tx]['descendantcount'], size - k)
-            assert_equal(self.nodes[0].getrawmempool(True)[
-                         tx]['descendantsize'], sum(tx_size[k:size]))
-            assert_equal(self.nodes[0].getrawmempool(
-                True)[tx]['ancestorcount'], k + 1)
-            assert_equal(self.nodes[0].getrawmempool(True)[
-                         tx]['ancestorsize'], sum(tx_size[0:(k + 1)]))
+            entry = self.nodes[0].getmempoolentry(tx)
+            assert_equal(entry['descendantcount'], size - k)
+            assert_equal(entry['descendantsize'], sum(tx_size[k:size]))
+            assert_equal(entry['ancestorcount'], k + 1)
+            assert_equal(entry['ancestorsize'], sum(tx_size[0:(k + 1)]))
 
     def run_test(self):
         # Use batch size limited by DEFAULT_ANCESTOR_LIMIT = 50 to not fire
