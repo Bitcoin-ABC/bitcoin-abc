@@ -38,10 +38,8 @@ BOOST_AUTO_TEST_CASE(proof_random) {
 }
 
 BOOST_AUTO_TEST_CASE(proofbuilder) {
-    CKey key;
-
     // Master key.
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
     const CPubKey master = key.GetPubKey();
 
     const uint64_t sequence = InsecureRandBits(64);
@@ -328,8 +326,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     CCoinsView coinsDummy;
     CCoinsViewCache coins(&coinsDummy);
 
-    CKey key;
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
     const CPubKey pubkey = key.GetPubKey();
 
     const Amount value = 12345 * COIN;
@@ -398,10 +395,8 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // Mismatching key
     {
-        CKey altkey;
-        altkey.MakeNewKey(true);
         runCheck(ProofValidationResult::DESTINATION_MISMATCH, pkh_outpoint,
-                 value, height, false, altkey);
+                 value, height, false, CKey::MakeCompressedKey());
     }
 
     // No stake

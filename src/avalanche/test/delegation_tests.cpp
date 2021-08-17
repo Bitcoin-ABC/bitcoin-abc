@@ -31,8 +31,7 @@ static void CheckDelegation(const Delegation &dg, const Proof &p,
 }
 
 BOOST_AUTO_TEST_CASE(verify_random) {
-    CKey key;
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
 
     const Proof p = buildRandomProof(123456, key.GetPubKey());
     DelegationBuilder dgb(p);
@@ -43,15 +42,13 @@ BOOST_AUTO_TEST_CASE(verify_random) {
         CheckDelegation(dg, p, p.getMaster());
     }
 
-    CKey l1key;
-    l1key.MakeNewKey(true);
+    auto l1key = CKey::MakeCompressedKey();
     BOOST_CHECK(!dgb.addLevel(l1key, key.GetPubKey()));
 
     dgb.addLevel(key, l1key.GetPubKey());
     CheckDelegation(dgb.build(), p, l1key.GetPubKey());
 
-    CKey l2key;
-    l2key.MakeNewKey(true);
+    auto l2key = CKey::MakeCompressedKey();
     BOOST_CHECK(!dgb.addLevel(key, l2key.GetPubKey()));
     BOOST_CHECK(!dgb.addLevel(l2key, l2key.GetPubKey()));
 

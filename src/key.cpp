@@ -456,3 +456,17 @@ void ECC_Stop() {
         secp256k1_context_destroy(ctx);
     }
 }
+
+static CKey validKey(bool compressed) {
+    CKey ret;
+    ret.MakeNewKey(compressed);
+    return ret;
+}
+
+CKey CKey::MakeCompressedKey() {
+    return validKey(true);
+}
+
+CKey CKey::MakeUncompressedKey() {
+    return validKey(false);
+}

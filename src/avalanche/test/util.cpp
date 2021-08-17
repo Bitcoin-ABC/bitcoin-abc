@@ -16,8 +16,7 @@
 namespace avalanche {
 
 Proof buildRandomProof(uint32_t score, const CPubKey &master) {
-    CKey key;
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
 
     const COutPoint o(TxId(GetRandHash()), 0);
     const Amount v = (int64_t(score) * COIN) / 100;

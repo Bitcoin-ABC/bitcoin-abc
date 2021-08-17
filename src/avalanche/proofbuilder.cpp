@@ -64,12 +64,9 @@ ProofId ProofBuilder::getProofId() const {
 }
 
 Proof ProofBuilder::buildRandom(uint32_t score) {
-    CKey key;
-    key.MakeNewKey(true);
-
     ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), CPubKey());
     pb.addUTXO(COutPoint(TxId(GetRandHash()), 0), (int64_t(score) * COIN) / 100,
-               0, false, std::move(key));
+               0, false, CKey::MakeCompressedKey());
     return pb.build();
 }
 

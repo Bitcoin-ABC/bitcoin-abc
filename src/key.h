@@ -61,6 +61,10 @@ public:
         // Important: vch must be 32 bytes in length to not break serialization
         keydata.resize(32);
     }
+    //! Produce a valid compressed key
+    static CKey MakeCompressedKey();
+    //! Produce a valid uncompressed key
+    static CKey MakeUncompressedKey();
 
     friend bool operator==(const CKey &a, const CKey &b) {
         return a.fCompressed == b.fCompressed && a.size() == b.size() &&

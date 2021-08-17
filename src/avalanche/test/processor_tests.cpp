@@ -69,10 +69,12 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
     std::unique_ptr<Processor> m_processor;
 
+    // The master private key we delegate to.
     CKey masterpriv;
 
     AvalancheTestingSetup()
-        : TestChain100Setup(), config(GetConfig()), masterpriv() {
+        : TestChain100Setup(), config(GetConfig()),
+          masterpriv(CKey::MakeCompressedKey()) {
         // Deterministic randomness for tests.
         auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
         m_connman = connman.get();
@@ -87,9 +89,6 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
                                                m_node.connman.get(), error);
         BOOST_CHECK(m_processor);
-
-        // The master private key we delegate to.
-        masterpriv.MakeNewKey(true);
     }
 
     ~AvalancheTestingSetup() {

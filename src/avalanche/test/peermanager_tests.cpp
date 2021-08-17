@@ -459,8 +459,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     avalanche::PeerManager pm;
 
     ProofBuilder pb(0, 0, CPubKey());
-    CKey key;
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
     const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
     COutPoint utxo(TxId(GetRandHash()), 0);
     Amount amount = 1 * COIN;
@@ -523,8 +522,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 }
 
 BOOST_AUTO_TEST_CASE(proof_conflict) {
-    CKey key;
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
     const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
     TxId txid1(GetRandHash());
@@ -598,8 +596,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
 BOOST_AUTO_TEST_CASE(orphan_proofs) {
     avalanche::PeerManager pm;
 
-    CKey key;
-    key.MakeNewKey(true);
+    auto key = CKey::MakeCompressedKey();
     const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
     COutPoint outpoint1 = COutPoint(TxId(GetRandHash()), 0);
