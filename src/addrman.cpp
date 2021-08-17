@@ -249,7 +249,7 @@ template <typename Stream> void CAddrMan::Unserialize(Stream &s_) {
 
     if (nNew > ADDRMAN_NEW_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE || nNew < 0) {
         throw std::ios_base::failure(strprintf(
-            "Corrupt CAddrMan serialization: nNew=%d, should be in [0, %u]",
+            "Corrupt CAddrMan serialization: nNew=%d, should be in [0, %d]",
             nNew, ADDRMAN_NEW_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE));
     }
 
@@ -257,7 +257,7 @@ template <typename Stream> void CAddrMan::Unserialize(Stream &s_) {
         nTried < 0) {
         throw std::ios_base::failure(strprintf(
             "Corrupt CAddrMan serialization: nTried=%d, should be in [0, "
-            "%u]",
+            "%d]",
             nTried, ADDRMAN_TRIED_BUCKET_COUNT * ADDRMAN_BUCKET_SIZE));
     }
 
