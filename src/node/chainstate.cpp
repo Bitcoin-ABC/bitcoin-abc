@@ -12,15 +12,13 @@
 #include <rpc/blockchain.h>
 #include <shutdown.h>
 #include <util/time.h>
-#include <util/translation.h>
 #include <validation.h>
 
-bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
-                    ChainstateManager &chainman, NodeContext &node,
-                    bool fPruneMode_, const Config &config,
-                    const ArgsManager &args, bool fReindexChainState,
-                    int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
-                    int64_t nCoinCacheUsage) {
+std::optional<ChainstateLoadingError>
+LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
+               bool fPruneMode_, const Config &config, const ArgsManager &args,
+               bool fReindexChainState, int64_t nBlockTreeDBCache,
+               int64_t nCoinDBCache, int64_t nCoinCacheUsage) {
     const CChainParams &chainparams = config.GetChainParams();
 
     auto is_coinsview_empty =
@@ -30,7 +28,6 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
         };
 
     do {
-        bool failed_verification = false;
         try {
             LOCK(cs_main);
             chainman.InitializeChainstate(Assert(node.mempool.get()));
@@ -61,12 +58,11 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
             // This is a no-op if we cleared the block tree db with -reindex
             // or -reindex-chainstate
             if (!pblocktree->Upgrade(params)) {
-                strLoadError = _("Error upgrading block index database");
-                break;
+                return ChainstateLoadingError::ERROR_UPGRADING_BLOCK_DB;
             }
 
             if (ShutdownRequested()) {
-                break;
+                return ChainstateLoadingError::SHUTDOWN_PROBED;
             }
 
             // LoadBlockIndex will load fHavePruned if we've ever removed a
@@ -75,10 +71,9 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
             // From here on out fReindex and fReset mean something different!
             if (!chainman.LoadBlockIndex()) {
                 if (ShutdownRequested()) {
-                    break;
+                    return ChainstateLoadingError::SHUTDOWN_PROBED;
                 }
-                strLoadError = _("Error loading block database");
-                break;
+                return ChainstateLoadingError::ERROR_LOADING_BLOCK_DB;
             }
 
             // If the loaded chain has a wrong genesis, bail out immediately
@@ -86,18 +81,14 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
             if (!chainman.BlockIndex().empty() &&
                 !chainman.m_blockman.LookupBlockIndex(
                     chainparams.GetConsensus().hashGenesisBlock)) {
-                return InitError(_("Incorrect or no genesis block found. Wrong "
-                                   "datadir for network?"));
+                return ChainstateLoadingError::ERROR_BAD_GENESIS_BLOCK;
             }
 
             // Check for changed -prune state.  What we are concerned about is a
             // user who has pruned blocks in the past, but is now trying to run
             // unpruned.
             if (fHavePruned && !fPruneMode_) {
-                strLoadError = _("You need to rebuild the database using "
-                                 "-reindex to go back to unpruned mode.  This "
-                                 "will redownload the entire blockchain");
-                break;
+                return ChainstateLoadingError::ERROR_PRUNED_NEEDS_REINDEX;
             }
 
             // At this point blocktree args are consistent with what's on disk.
@@ -105,14 +96,11 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
             // block on disk (otherwise we use the one already on disk). This is
             // called again in ThreadImport after the reindex completes.
             if (!fReindex && !chainman.ActiveChainstate().LoadGenesisBlock()) {
-                strLoadError = _("Error initializing block database");
-                break;
+                return ChainstateLoadingError::ERROR_LOAD_GENESIS_BLOCK_FAILED;
             }
 
             // At this point we're either in reindex or we've loaded a useful
             // block tree into BlockIndex()!
-
-            bool failed_chainstate_init = false;
 
             for (CChainState *chainstate : chainman.GetAll()) {
                 chainstate->InitCoinsDB(
@@ -130,19 +118,14 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
                 // This is a no-op if we cleared the coinsviewdb with -reindex
                 // or -reindex-chainstate
                 if (!chainstate->CoinsDB().Upgrade()) {
-                    strLoadError = _("Error upgrading chainstate database");
-                    failed_chainstate_init = true;
-                    break;
+                    return ChainstateLoadingError::
+                        ERROR_CHAINSTATE_UPGRADE_FAILED;
                 }
 
                 // ReplayBlocks is a no-op if we cleared the coinsviewdb with
                 // -reindex or -reindex-chainstate
                 if (!chainstate->ReplayBlocks()) {
-                    strLoadError =
-                        _("Unable to replay blocks. You will need to rebuild "
-                          "the database using -reindex-chainstate.");
-                    failed_chainstate_init = true;
-                    break;
+                    return ChainstateLoadingError::ERROR_REPLAYBLOCKS_FAILED;
                 }
 
                 // The on-disk coinsdb is now in a good state, create the cache
@@ -153,18 +136,11 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
                     // LoadChainTip initializes the chain based on CoinsTip()'s
                     // best block
                     if (!chainstate->LoadChainTip()) {
-                        strLoadError = _("Error initializing block database");
-                        failed_chainstate_init = true;
-                        // out of the per-chainstate loop
-                        break;
+                        return ChainstateLoadingError::
+                            ERROR_LOADCHAINTIP_FAILED;
                     }
                     assert(chainstate->m_chain.Tip() != nullptr);
                 }
-            }
-
-            if (failed_chainstate_init) {
-                // out of the chainstate activation do-while
-                break;
             }
 
             for (CChainState *chainstate : chainman.GetAll()) {
@@ -183,15 +159,7 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
                     const CBlockIndex *tip = chainstate->m_chain.Tip();
                     RPCNotifyBlockChange(tip);
                     if (tip && tip->nTime > GetTime() + MAX_FUTURE_BLOCK_TIME) {
-                        strLoadError =
-                            _("The block database contains a block which "
-                              "appears to be from the future. "
-                              "This may be due to your computer's date and "
-                              "time being set incorrectly. "
-                              "Only rebuild the block database if you are sure "
-                              "that your computer's date and time are correct");
-                        failed_verification = true;
-                        break;
+                        return ChainstateLoadingError::ERROR_BLOCK_FROM_FUTURE;
                     }
 
                     if (!CVerifyDB().VerifyDB(
@@ -199,23 +167,15 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
                             args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL),
                             args.GetIntArg("-checkblocks",
                                            DEFAULT_CHECKBLOCKS))) {
-                        strLoadError = _("Corrupted block database detected");
-                        failed_verification = true;
-                        break;
+                        return ChainstateLoadingError::ERROR_CORRUPTED_BLOCK_DB;
                     }
                 }
             }
         } catch (const std::exception &e) {
             LogPrintf("%s\n", e.what());
-            strLoadError = _("Error opening block database");
-            failed_verification = true;
-            break;
-        }
-
-        if (!failed_verification) {
-            fLoaded = true;
+            return ChainstateLoadingError::ERROR_GENERIC_BLOCKDB_OPEN_FAILED;
         }
     } while (false);
 
-    return true;
+    return std::nullopt;
 }
