@@ -31,12 +31,7 @@ import {
 } from '@components/Common/Atoms';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
-const SendBCH = ({
-    jestBCH,
-    passLoadingStatus,
-    filledAddress,
-    callbackTxId,
-}) => {
+const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
     // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
 
@@ -71,7 +66,7 @@ const SendBCH = ({
     const [formData, setFormData] = useState({
         dirty: true,
         value: '',
-        address: filledAddress || '',
+        address: '',
     });
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendBchAddressError, setSendBchAddressError] = useState(false);
@@ -205,10 +200,9 @@ const SendBCH = ({
                 BCH,
                 wallet,
                 slpBalancesAndUtxos.nonSlpUtxos,
-                filledAddress || cleanAddress,
+                cleanAddress,
                 bchValue,
                 currency.defaultFee,
-                callbackTxId,
             );
 
             notification.success({
@@ -440,7 +434,6 @@ const SendBCH = ({
                     >
                         <FormItemWithQRCodeAddon
                             loadWithCameraOpen={scannerSupported}
-                            disabled={Boolean(filledAddress)}
                             validateStatus={sendBchAddressError ? 'error' : ''}
                             help={
                                 sendBchAddressError ? sendBchAddressError : ''
@@ -454,12 +447,11 @@ const SendBCH = ({
                                 })
                             }
                             inputProps={{
-                                disabled: Boolean(filledAddress),
                                 placeholder: `${currency.ticker} Address`,
                                 name: 'address',
                                 onChange: e => handleAddressChange(e),
                                 required: true,
-                                value: filledAddress || formData.address,
+                                value: formData.address,
                             }}
                         ></FormItemWithQRCodeAddon>
                         <SendBchInput

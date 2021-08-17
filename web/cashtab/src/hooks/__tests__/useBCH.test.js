@@ -132,39 +132,6 @@ describe('useBCH hook', () => {
         );
     });
 
-    it('sends BCH correctly with callback', async () => {
-        const { sendBch } = useBCH();
-        const BCH = new BCHJS();
-        const callback = jest.fn();
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            destinationAddress,
-            sendAmount,
-        } = sendBCHMock;
-
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockResolvedValue(expectedTxId);
-        expect(
-            await sendBch(
-                BCH,
-                wallet,
-                utxos,
-                destinationAddress,
-                sendAmount,
-                1.01,
-                callback,
-            ),
-        ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
-        expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
-            expectedHex,
-        );
-        expect(callback).toHaveBeenCalledWith(expectedTxId);
-    });
-
     it(`Throws error if called trying to send one base unit ${currency.ticker} more than available in utxo set`, async () => {
         const { sendBch } = useBCH();
         const BCH = new BCHJS();
