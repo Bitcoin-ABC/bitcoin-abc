@@ -1,6 +1,6 @@
 import mainLogo from '@assets/logo_primary.png';
 import tokenLogo from '@assets/logo_secondary.png';
-import cashaddr from 'cashaddrjs';
+import cashaddr from 'ecashaddrjs';
 import BigNumber from 'bignumber.js';
 
 export const currency = {
@@ -8,7 +8,7 @@ export const currency = {
     ticker: 'XEC',
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
-    prefixes: ['bitcoincash', 'ecash'],
+    prefixes: ['ecash'],
     coingeckoId: 'bitcoin-cash-abc-2',
     defaultFee: 2.01,
     dustSats: 550,
@@ -20,7 +20,7 @@ export const currency = {
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
-    tokenPrefixes: ['simpleledger', 'etoken'],
+    tokenPrefixes: ['etoken'],
     tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
     useBlockchainWs: false,
     txHistoryCount: 5,
@@ -131,7 +131,7 @@ export function toLegacy(address) {
     return legacyAddress;
 }
 
-export function parseAddress(BCH, addressString) {
+export function parseAddress(BCH, addressString, isToken = false) {
     // Build return obj
     const addressInfo = {
         address: '',
@@ -149,6 +149,16 @@ export function parseAddress(BCH, addressString) {
     let isValidAddress;
     try {
         isValidAddress = BCH.Address.isCashAddress(cleanAddress);
+        // Only accept addresses with ecash: prefix
+        const { prefix } = cashaddr.decode(cleanAddress);
+        // If the address does not have a valid prefix or token prefix
+        if (
+            (!isToken && !currency.prefixes.includes(prefix)) ||
+            (isToken && !currency.tokenPrefixes.includes(prefix))
+        ) {
+            // then it is not a valid destination address for XEC sends
+            isValidAddress = false;
+        }
     } catch (err) {
         isValidAddress = false;
     }

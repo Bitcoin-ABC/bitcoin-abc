@@ -1,11 +1,11 @@
 import { ValidationError } from 'cashaddrjs';
 import { isValidCashPrefix, isValidTokenPrefix, toLegacy } from '../Ticker';
 
-test('Correctly validates cash address with bitcoincash: prefix', async () => {
+test('Rejects cash address with bitcoincash: prefix', async () => {
     const result = isValidCashPrefix(
         'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
     );
-    expect(result).toStrictEqual(true);
+    expect(result).toStrictEqual(false);
 });
 
 test('Correctly validates cash address with bitcoincash: checksum but no prefix', async () => {
@@ -29,11 +29,11 @@ test('Correctly validates cash address with ecash: prefix', async () => {
     expect(result).toStrictEqual(true);
 });
 
-test('Correctly validates token address with simpleledger: prefix', async () => {
+test('Rejects token address with simpleledger: prefix', async () => {
     const result = isValidTokenPrefix(
         'simpleledger:qpmytrdsakt0axrrlswvaj069nat3p9s7c8w5tu8gm',
     );
-    expect(result).toStrictEqual(true);
+    expect(result).toStrictEqual(false);
 });
 
 test('Does not accept a valid token address without a prefix', async () => {
@@ -80,15 +80,6 @@ test('toLegacy() converts a valid ecash: prefix address to a valid bitcoincash: 
 
 test('toLegacy() accepts a valid BCH address with no prefix and returns with prefix', async () => {
     const result = toLegacy('qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0');
-    expect(result).toStrictEqual(
-        'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-    );
-});
-
-test('toLegacy() returns a valid bitcoincash: prefix address unchanged', async () => {
-    const result = toLegacy(
-        'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-    );
     expect(result).toStrictEqual(
         'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
     );

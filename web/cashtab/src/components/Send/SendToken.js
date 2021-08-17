@@ -196,8 +196,8 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 
         let error = false;
         let addressString = value;
-        // parse address
-        const addressInfo = parseAddress(BCH, addressString);
+
+        const addressInfo = parseAddress(BCH, addressString, true);
         /*
         Model
 
@@ -218,7 +218,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 
         // Is this valid address?
         if (!isValid) {
-            error = 'Address is not valid';
+            error = 'Address is not a valid etoken: address';
             // If valid address but token format
         } else if (!isValidTokenPrefix(address)) {
             error = `Cashtab only supports sending to ${currency.tokenPrefixes[0]} prefixed addresses`;
