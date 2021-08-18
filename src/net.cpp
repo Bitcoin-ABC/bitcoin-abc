@@ -1501,8 +1501,8 @@ void CConnman::NotifyNumConnectionsChanged() {
     }
     if (vNodesSize != nPrevNodeCount) {
         nPrevNodeCount = vNodesSize;
-        if (clientInterface) {
-            clientInterface->NotifyNumConnectionsChanged(vNodesSize);
+        if (m_client_interface) {
+            m_client_interface->NotifyNumConnectionsChanged(vNodesSize);
         }
     }
 }
@@ -2830,7 +2830,10 @@ void CConnman::SetNetworkActive(bool active) {
     }
 
     fNetworkActive = active;
-    uiInterface.NotifyNetworkActiveChanged(fNetworkActive);
+
+    if (m_client_interface) {
+        m_client_interface->NotifyNetworkActiveChanged(fNetworkActive);
+    }
 }
 
 CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In,
@@ -2855,8 +2858,8 @@ bool CConnman::Bind(const CService &addr, unsigned int flags,
     }
     bilingual_str strError;
     if (!BindListenPort(addr, strError, permissions)) {
-        if ((flags & BF_REPORT_ERROR) && clientInterface) {
-            clientInterface->ThreadSafeMessageBox(
+        if ((flags & BF_REPORT_ERROR) && m_client_interface) {
+            m_client_interface->ThreadSafeMessageBox(
                 strError, "", CClientUIInterface::MSG_ERROR);
         }
         return false;
@@ -2901,8 +2904,8 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     Init(connOptions);
 
     if (fListen && !InitBinds(connOptions)) {
-        if (clientInterface) {
-            clientInterface->ThreadSafeMessageBox(
+        if (m_client_interface) {
+            m_client_interface->ThreadSafeMessageBox(
                 _("Failed to listen on any port. Use -listen=0 if you want "
                   "this."),
                 "", CClientUIInterface::MSG_ERROR);
@@ -2934,7 +2937,10 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
             m_anchors.size());
     }
 
-    uiInterface.InitMessage(_("Starting network threads...").translated);
+    if (m_client_interface) {
+        m_client_interface->InitMessage(
+            _("Starting network threads…").translated);
+    }
 
     fAddressesInitialized = true;
 
@@ -2978,8 +2984,8 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
 
     if (connOptions.m_use_addrman_outgoing &&
         !connOptions.m_specified_outgoing.empty()) {
-        if (clientInterface) {
-            clientInterface->ThreadSafeMessageBox(
+        if (m_client_interface) {
+            m_client_interface->ThreadSafeMessageBox(
                 _("Cannot provide specific connections and have addrman find "
                   "outgoing connections at the same."),
                 "", CClientUIInterface::MSG_ERROR);

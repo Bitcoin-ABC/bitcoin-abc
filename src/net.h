@@ -961,7 +961,7 @@ public:
                              m_max_outbound_block_relay + nMaxFeeler +
                              m_max_avalanche_outbound;
         }
-        clientInterface = connOptions.uiInterface;
+        m_client_interface = connOptions.uiInterface;
         m_banman = connOptions.m_banman;
         m_msgproc = connOptions.m_msgproc;
         nSendBufferMaxSize = connOptions.nSendBufferMaxSize;
@@ -1337,7 +1337,7 @@ private:
     int nMaxFeeler;
     int m_max_outbound;
     bool m_use_addrman_outgoing;
-    CClientUIInterface *clientInterface;
+    CClientUIInterface *m_client_interface;
     // FIXME m_msgproc is a terrible name
     std::vector<NetEventsInterface *> m_msgproc;
     /**
