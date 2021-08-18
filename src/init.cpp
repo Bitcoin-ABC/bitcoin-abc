@@ -2464,15 +2464,22 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         uiInterface.InitMessage(_("Loading block index...").translated);
 
         const int64_t load_block_index_start_time = GetTimeMillis();
+        std::optional<ChainstateLoadingError> rv;
 
-        auto rv = LoadChainstate(
-            fReset, chainman, Assert(node.mempool.get()), fPruneMode, config,
-            fReindexChainState, nBlockTreeDBCache, nCoinDBCache,
-            nCoinCacheUsage, []() {
-                uiInterface.ThreadSafeMessageBox(
-                    _("Error reading from database, shutting down."), "",
-                    CClientUIInterface::MSG_ERROR);
-            });
+        try {
+            rv = LoadChainstate(
+                fReset, chainman, Assert(node.mempool.get()), fPruneMode,
+                config, fReindexChainState, nBlockTreeDBCache, nCoinDBCache,
+                nCoinCacheUsage, []() {
+                    uiInterface.ThreadSafeMessageBox(
+                        _("Error reading from database, shutting down."), "",
+                        CClientUIInterface::MSG_ERROR);
+                });
+        } catch (const std::exception &e) {
+            LogPrintf("%s\n", e.what());
+            rv = ChainstateLoadingError::ERROR_GENERIC_BLOCKDB_OPEN_FAILED;
+        }
+
         if (rv.has_value()) {
             switch (rv.value()) {
                 case ChainstateLoadingError::ERROR_UPGRADING_BLOCK_DB:
@@ -2514,11 +2521,18 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     break;
             }
         } else {
-            uiInterface.InitMessage(_("Verifying blocks…").translated);
-            auto rv2 = VerifyLoadedChainstate(
-                chainman, fReset, fReindexChainState, config,
-                args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
-                args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
+            std::optional<ChainstateLoadVerifyError> rv2;
+            try {
+                uiInterface.InitMessage(_("Verifying blocks…").translated);
+                rv2 = VerifyLoadedChainstate(
+                    chainman, fReset, fReindexChainState, config,
+                    args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
+                    args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
+            } catch (const std::exception &e) {
+                LogPrintf("%s\n", e.what());
+                rv2 = ChainstateLoadVerifyError::ERROR_GENERIC_FAILURE;
+            }
+
             if (rv2.has_value()) {
                 switch (rv2.value()) {
                     case ChainstateLoadVerifyError::ERROR_BLOCK_FROM_FUTURE:
