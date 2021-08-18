@@ -18,6 +18,7 @@ def serialize_addrman(
     format=1,
     lowest_compatible=3,
     net_magic=b"\xfa\xbf\xb5\xda",
+    bucket_key=1,
     len_new=None,
     len_tried=None,
     mock_checksum=None,
@@ -28,7 +29,7 @@ def serialize_addrman(
     r = net_magic
     r += struct.pack("B", format)
     r += struct.pack("B", INCOMPATIBILITY_BASE + lowest_compatible)
-    r += ser_uint256(1)
+    r += ser_uint256(bucket_key)
     r += struct.pack("i", len_new or len(new))
     r += struct.pack("i", len_tried or len(tried))
     ADDRMAN_NEW_BUCKET_COUNT = 1 << 10
@@ -121,6 +122,16 @@ class AddrmanTest(BitcoinTestFramework):
         self.nodes[0].assert_start_raises_init_error(
             expected_msg=init_error(
                 "Corrupt CAddrMan serialization: nNew=-1, should be in \\[0, 65536\\]:.*"),
+            match=ErrorMatch.FULL_REGEX,
+        )
+
+        self.log.info(
+            "Check that corrupt addrman cannot be read (failed check)")
+        self.stop_node(0)
+        write_addrman(peers_dat, bucket_key=0)
+        self.nodes[0].assert_start_raises_init_error(
+            expected_msg=init_error(
+                "Corrupt data. Consistency check failed with code -16: .*"),
             match=ErrorMatch.FULL_REGEX,
         )
 

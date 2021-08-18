@@ -415,7 +415,11 @@ template <typename Stream> void CAddrMan::Unserialize(Stream &s_) {
                  nLostUnk, nLost);
     }
 
-    Check();
+    const int check_code{ForceCheckAddrman()};
+    if (check_code != 0) {
+        throw std::ios_base::failure(strprintf(
+            "Corrupt data. Consistency check failed with code %s", check_code));
+    }
 }
 
 // explicit instantiation
@@ -813,16 +817,26 @@ CAddrInfo CAddrMan::Select_(bool newOnly) const {
     }
 }
 
-int CAddrMan::Check_() const {
+void CAddrMan::Check() const {
     AssertLockHeld(cs);
 
     // Run consistency checks 1 in m_consistency_check_ratio times if enabled
     if (m_consistency_check_ratio == 0) {
-        return 0;
+        return;
     }
     if (insecure_rand.randrange(m_consistency_check_ratio) >= 1) {
-        return 0;
+        return;
     }
+
+    const int err{ForceCheckAddrman()};
+    if (err) {
+        LogPrintf("ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
+        assert(false);
+    }
+}
+
+int CAddrMan::ForceCheckAddrman() const {
+    AssertLockHeld(cs);
 
     LogPrint(BCLog::ADDRMAN,
              "Addrman checks started: new %i, tried %i, total %u\n", nNew,
