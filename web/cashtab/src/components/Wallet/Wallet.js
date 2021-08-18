@@ -13,6 +13,7 @@ import { CashLoader } from '@components/Common/CustomIcons';
 import { BalanceHeader } from '@components/Common/BalanceHeader';
 import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
 import { LoadingCtn, ZeroBalanceHeader } from '@components/Common/Atoms';
+import { getWalletState } from '@utils/cashMethods';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -169,32 +170,9 @@ export const AddrSwitchContainer = styled.div`
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
-    let balances;
-    let parsedTxHistory;
-    let tokens;
-    // use parameters from wallet.state object and not legacy separate parameters, if they are in state
-    // handle edge case of user with old wallet who has not opened latest Cashtab version yet
+    const walletState = getWalletState(wallet);
+    const { balances, parsedTxHistory, tokens } = walletState;
 
-    // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
-    // Else set it as blank
-    const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
-    // If wallet.state includes balances and parsedTxHistory params, use these
-    // These are saved in indexedDb in the latest version of the app, hence accessible more quickly
-    if (
-        paramsInWalletState.includes('balances') &&
-        paramsInWalletState.includes('parsedTxHistory') &&
-        paramsInWalletState.includes('tokens')
-    ) {
-        balances = wallet.state.balances;
-        parsedTxHistory = wallet.state.parsedTxHistory;
-        tokens = wallet.state.tokens;
-    } else {
-        // If balances and parsedTxHistory are not in the wallet.state object, load them from Context
-        // This is how the app used to work
-        balances = ContextValue.balances;
-        parsedTxHistory = ContextValue.parsedTxHistory;
-        tokens = ContextValue.tokens;
-    }
     const [address, setAddress] = React.useState('cashAddress');
     const [addressPrefix, setAddressPrefix] = React.useState('eCash');
     const [activeTab, setActiveTab] = React.useState('txHistory');
@@ -349,14 +327,21 @@ const WalletInfo = () => {
 
 const Wallet = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, loading } = ContextValue;
+    const { wallet, previousWallet, loading } = ContextValue;
 
     return (
         <>
             {loading ? (
                 <LoadingCtn />
             ) : (
-                <>{wallet.Path1899 ? <WalletInfo /> : <OnBoarding />}</>
+                <>
+                    {(wallet && wallet.Path1899) ||
+                    (previousWallet && previousWallet.path1899) ? (
+                        <WalletInfo />
+                    ) : (
+                        <OnBoarding />
+                    )}
+                </>
             )}
         </>
     );

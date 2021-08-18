@@ -281,7 +281,7 @@ const useWallet = () => {
             // Set wallet with new state field
             // Note: now that wallet carries state, maintaining a separate walletState object is redundant
             // TODO clear up in future diff
-            wallet.state = wallet.newState;
+            wallet.state = newState;
             setWallet(wallet);
 
             // Write this state to indexedDb using localForage

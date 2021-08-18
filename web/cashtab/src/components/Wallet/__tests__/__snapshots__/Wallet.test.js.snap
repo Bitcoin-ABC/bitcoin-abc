@@ -3,19 +3,37 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-iRbamj eSWubX"
+    className="sc-gipzik fmZZPA"
   >
-    0.06047469
+    <span
+      aria-label="party emoji"
+      role="img"
+    >
+      🎉
+    </span>
+    Congratulations on your new wallet!
+     
+    <span
+      aria-label="party emoji"
+      role="img"
+    >
+      🎉
+    </span>
+    <br />
+     Start using the wallet immediately to receive
      
     XEC
+     payments, or load it up with
+     
+    XEC
+     to send to others
   </div>,
   <div
-    className="sc-jlyJG gjxMSb"
+    className="sc-iRbamj eSWubX"
   >
-    $ 
-    NaN
+    0
      
-    USD
+    XEC
   </div>,
   <div
     onClick={[Function]}
@@ -122,19 +140,37 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-iRbamj eSWubX"
+    className="sc-gipzik fmZZPA"
   >
-    0.06047469
+    <span
+      aria-label="party emoji"
+      role="img"
+    >
+      🎉
+    </span>
+    Congratulations on your new wallet!
+     
+    <span
+      aria-label="party emoji"
+      role="img"
+    >
+      🎉
+    </span>
+    <br />
+     Start using the wallet immediately to receive
      
     XEC
+     payments, or load it up with
+     
+    XEC
+     to send to others
   </div>,
   <div
-    className="sc-jlyJG gjxMSb"
+    className="sc-iRbamj eSWubX"
   >
-    $ 
-    NaN
+    0
      
-    USD
+    XEC
   </div>,
   <div
     onClick={[Function]}
@@ -239,125 +275,6 @@ Array [
 `;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
-Array [
-  <div
-    className="sc-iRbamj eSWubX"
-  >
-    0.06047469
-     
-    XEC
-  </div>,
-  <div
-    className="sc-jlyJG gjxMSb"
-  >
-    $ 
-    NaN
-     
-    USD
-  </div>,
-  <div
-    onClick={[Function]}
-    style={
-      Object {
-        "display": "inline-block",
-        "position": "relative",
-        "width": "100%",
-      }
-    }
-  >
-    <div
-      className="sc-cSHVUG ckubWs"
-      style={
-        Object {
-          "display": "none",
-        }
-      }
-    >
-      Copied 
-      <br />
-      <span
-        style={
-          Object {
-            "fontSize": "12px",
-          }
-        }
-      >
-        ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd
-      </span>
-    </div>
-    <svg
-      className="sc-jzJRlG esZxys"
-      height={210}
-      id="borderedQRCode"
-      shapeRendering="crispEdges"
-      viewBox="0 0 37 37"
-      width={210}
-      xec={1}
-    >
-      <path
-        d="M0,0 h37v37H0z"
-        fill="#FFFFFF"
-      />
-      <path
-        d="M4 4h7v1H4zM12 4h1v1H12zM14 4h1v1H14zM16 4h1v1H16zM18 4h1v1H18zM21 4h4v1H21zM26,4 h7v1H26zM4 5h1v1H4zM10 5h1v1H10zM13 5h5v1H13zM20 5h1v1H20zM22 5h1v1H22zM26 5h1v1H26zM32,5 h1v1H32zM4 6h1v1H4zM6 6h3v1H6zM10 6h1v1H10zM12 6h3v1H12zM17 6h1v1H17zM19 6h2v1H19zM26 6h1v1H26zM28 6h3v1H28zM32,6 h1v1H32zM4 7h1v1H4zM6 7h3v1H6zM10 7h1v1H10zM12 7h3v1H12zM16 7h4v1H16zM21 7h2v1H21zM26 7h1v1H26zM28 7h3v1H28zM32,7 h1v1H32zM4 8h1v1H4zM6 8h3v1H6zM10 8h1v1H10zM12 8h1v1H12zM15 8h3v1H15zM19 8h5v1H19zM26 8h1v1H26zM28 8h3v1H28zM32,8 h1v1H32zM4 9h1v1H4zM10 9h1v1H10zM14 9h2v1H14zM17 9h1v1H17zM21 9h1v1H21zM23 9h1v1H23zM26 9h1v1H26zM32,9 h1v1H32zM4 10h7v1H4zM12 10h1v1H12zM14 10h1v1H14zM16 10h1v1H16zM18 10h1v1H18zM20 10h1v1H20zM22 10h1v1H22zM24 10h1v1H24zM26,10 h7v1H26zM14 11h1v1H14zM16 11h1v1H16zM19 11h1v1H19zM21 11h3v1H21zM4 12h4v1H4zM10 12h1v1H10zM12 12h1v1H12zM14 12h2v1H14zM19 12h7v1H19zM28 12h3v1H28zM32,12 h1v1H32zM5 13h1v1H5zM7 13h2v1H7zM12 13h1v1H12zM14 13h1v1H14zM16 13h1v1H16zM18 13h1v1H18zM20 13h1v1H20zM22 13h3v1H22zM26 13h1v1H26zM28 13h1v1H28zM32,13 h1v1H32zM4 14h2v1H4zM7 14h4v1H7zM12 14h4v1H12zM17 14h1v1H17zM21 14h1v1H21zM25 14h1v1H25zM27 14h1v1H27zM29 14h1v1H29zM31 14h1v1H31zM4 15h2v1H4zM8 15h2v1H8zM12 15h3v1H12zM16 15h3v1H16zM20 15h1v1H20zM22 15h1v1H22zM25 15h1v1H25zM27 15h1v1H27zM31,15 h2v1H31zM5 16h4v1H5zM10 16h2v1H10zM13 16h2v1H13zM21 16h1v1H21zM23 16h1v1H23zM27 16h1v1H27zM30 16h2v1H30zM5 17h1v1H5zM7 17h1v1H7zM9 17h1v1H9zM11 17h1v1H11zM13 17h1v1H13zM21 17h1v1H21zM23 17h1v1H23zM26 17h2v1H26zM32,17 h1v1H32zM5 18h1v1H5zM9 18h2v1H9zM12 18h1v1H12zM14 18h1v1H14zM21 18h1v1H21zM23 18h1v1H23zM25 18h1v1H25zM27 18h1v1H27zM29 18h1v1H29zM31,18 h2v1H31zM5 19h5v1H5zM12 19h1v1H12zM15 19h1v1H15zM32,19 h1v1H32zM8 20h4v1H8zM14 20h1v1H14zM22 20h2v1H22zM25 20h1v1H25zM28 20h2v1H28zM6 21h1v1H6zM12 21h1v1H12zM15 21h3v1H15zM19 21h1v1H19zM21 21h1v1H21zM24 21h2v1H24zM27 21h1v1H27zM29 21h2v1H29zM4 22h1v1H4zM7 22h1v1H7zM9 22h3v1H9zM13 22h2v1H13zM16 22h2v1H16zM19 22h1v1H19zM21 22h2v1H21zM24 22h1v1H24zM27 22h1v1H27zM30 22h1v1H30zM8 23h2v1H8zM13 23h2v1H13zM16 23h1v1H16zM19 23h1v1H19zM21 23h1v1H21zM24 23h1v1H24zM26 23h1v1H26zM29 23h3v1H29zM5 24h2v1H5zM8 24h1v1H8zM10 24h1v1H10zM16 24h1v1H16zM18 24h1v1H18zM21 24h8v1H21zM30,24 h3v1H30zM12 25h1v1H12zM15 25h4v1H15zM20 25h5v1H20zM28 25h1v1H28zM31,25 h2v1H31zM4 26h7v1H4zM13 26h1v1H13zM15 26h1v1H15zM18 26h1v1H18zM20 26h1v1H20zM22 26h3v1H22zM26 26h1v1H26zM28 26h4v1H28zM4 27h1v1H4zM10 27h1v1H10zM14 27h2v1H14zM17 27h1v1H17zM19 27h2v1H19zM24 27h1v1H24zM28 27h1v1H28zM32,27 h1v1H32zM4 28h1v1H4zM6 28h3v1H6zM10 28h1v1H10zM13 28h2v1H13zM17 28h5v1H17zM24 28h8v1H24zM4 29h1v1H4zM6 29h3v1H6zM10 29h1v1H10zM12 29h3v1H12zM16 29h4v1H16zM22 29h1v1H22zM25 29h1v1H25zM27 29h2v1H27zM31,29 h2v1H31zM4 30h1v1H4zM6 30h3v1H6zM10 30h1v1H10zM12 30h1v1H12zM14 30h1v1H14zM21 30h1v1H21zM27 30h1v1H27zM29 30h2v1H29zM32,30 h1v1H32zM4 31h1v1H4zM10 31h1v1H10zM12 31h2v1H12zM15 31h2v1H15zM18 31h1v1H18zM20 31h1v1H20zM22 31h8v1H22zM31 31h1v1H31zM4 32h7v1H4zM12 32h1v1H12zM14 32h4v1H14zM20 32h1v1H20zM24 32h1v1H24zM27 32h1v1H27zM31 32h1v1H31z"
-        fill="#000000"
-      />
-      <image
-        height={4.228571428571429}
-        preserveAspectRatio="none"
-        width={4.228571428571429}
-        x={16.385714285714286}
-        xlinkHref="logo_primary.png"
-        y={16.385714285714286}
-      />
-    </svg>
-    <div
-      className="sc-kgoBCf fuxBvT"
-    >
-      <input
-        readOnly={true}
-        spellCheck="false"
-        type="text"
-        value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
-      />
-      <span
-        className="sc-kAzzGY etOvLb"
-      >
-        ecash:
-      </span>
-      <span
-        className="sc-chPdSV fATPby"
-      >
-        qzagy47m
-      </span>
-      agy47mvh6qxkvcn3acjnz73rkhkc6y7c
-      <span
-        className="sc-chPdSV fATPby"
-      >
-        cxkrr6zd
-      </span>
-    </div>
-  </div>,
-  <div
-    className="sc-dVhcbM ihrmlk"
-  >
-    <div
-      className="sc-eqIVtm hLeThb"
-      onClick={[Function]}
-    >
-      XEC
-    </div>
-    <div
-      className="sc-eqIVtm hLeThb nonactiveBtn"
-      onClick={[Function]}
-    >
-      eToken
-    </div>
-  </div>,
-]
-`;
-
-exports[`Wallet with BCH balances and tokens and state field, but no params in state 1`] = `
 Array [
   <div
     className="sc-iRbamj eSWubX"

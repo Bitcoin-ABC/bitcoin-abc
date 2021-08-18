@@ -29,6 +29,7 @@ import {
     ConvertAmount,
     AlertMsg,
 } from '@components/Common/Atoms';
+import { getWalletState } from '@utils/cashMethods';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -38,24 +39,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        fiatPrice,
-        slpBalancesAndUtxos,
-        apiError,
-        cashtabSettings,
-    } = ContextValue;
-    let balances;
-    const paramsInWalletState = wallet.state ? Object.keys(wallet.state) : [];
-    // If wallet.state includes balances and parsedTxHistory params, use these
-    // These are saved in indexedDb in the latest version of the app, hence accessible more quickly
-    if (paramsInWalletState.includes('balances')) {
-        balances = wallet.state.balances;
-    } else {
-        // If balances and parsedTxHistory are not in the wallet.state object, load them from Context
-        // This is how the app used to work
-        balances = ContextValue.balances;
-    }
+    const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
+    const walletState = getWalletState(wallet);
+    const { balances, slpBalancesAndUtxos } = walletState;
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open

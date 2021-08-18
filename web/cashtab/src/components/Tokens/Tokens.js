@@ -1,22 +1,14 @@
 import React from 'react';
-import { LoadingOutlined } from '@ant-design/icons';
 import { CashLoader } from '@components/Common/CustomIcons';
 import { WalletContext } from '@utils/context';
-import {
-    isValidStoredWallet,
-    fromSmallestDenomination,
-} from '@utils/cashMethods';
+import { fromSmallestDenomination, getWalletState } from '@utils/cashMethods';
 import CreateTokenForm from '@components/Tokens/CreateTokenForm';
 import { currency } from '@components/Common/Ticker.js';
 import TokenList from '@components/Wallet/TokenList';
 import useBCH from '@hooks/useBCH';
 import { BalanceHeader } from '@components/Common/BalanceHeader';
 import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
-import {
-    LoadingCtn,
-    ZeroBalanceHeader,
-    AlertMsg,
-} from '@components/Common/Atoms';
+import { ZeroBalanceHeader, AlertMsg } from '@components/Common/Atoms';
 
 const Tokens = ({ jestBCH }) => {
     /*
@@ -33,24 +25,11 @@ const Tokens = ({ jestBCH }) => {
     wallet state parameters not stored in the wallet object are deprecated
     */
 
-    const {
-        loading,
-        wallet,
-        apiError,
-        fiatPrice,
-        cashtabSettings,
-    } = React.useContext(WalletContext);
-
-    // If wallet is unmigrated, do not show page until it has migrated
-    // An invalid wallet will be validated/populated after the next API call, ETA 10s
-    let validWallet = isValidStoredWallet(wallet);
-
-    // Get wallet state variables
-    let balances, tokens;
-    if (validWallet) {
-        balances = wallet.state.balances;
-        tokens = wallet.state.tokens;
-    }
+    const { wallet, apiError, fiatPrice, cashtabSettings } = React.useContext(
+        WalletContext,
+    );
+    const walletState = getWalletState(wallet);
+    const { balances, tokens } = walletState;
 
     const { getBCH, getRestUrl, createToken } = useBCH();
 
@@ -58,100 +37,79 @@ const Tokens = ({ jestBCH }) => {
     const BCH = jestBCH ? jestBCH : getBCH();
     return (
         <>
-            {loading || !validWallet ? (
-                <LoadingCtn>
-                    <LoadingOutlined />
-                </LoadingCtn>
+            {!balances.totalBalance ? (
+                <>
+                    <ZeroBalanceHeader>
+                        You need some {currency.ticker} in your wallet to create
+                        tokens.
+                    </ZeroBalanceHeader>
+                    <BalanceHeader balance={0} ticker={currency.ticker} />
+                </>
             ) : (
                 <>
-                    {!balances.totalBalance ? (
-                        <>
-                            <ZeroBalanceHeader>
-                                You need some {currency.ticker} in your wallet
-                                to create tokens.
-                            </ZeroBalanceHeader>
-                            <BalanceHeader
-                                balance={0}
-                                ticker={currency.ticker}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <BalanceHeader
-                                balance={balances.totalBalance}
-                                ticker={currency.ticker}
-                            />
-                            {fiatPrice !== null &&
-                                !isNaN(balances.totalBalance) && (
-                                    <BalanceHeaderFiat
-                                        balance={balances.totalBalance}
-                                        settings={cashtabSettings}
-                                        fiatPrice={fiatPrice}
-                                    />
-                                )}
-                        </>
-                    )}
-                    {apiError && (
-                        <>
-                            <p
-                                style={{
-                                    color: 'red',
-                                }}
-                            >
-                                <b>An error occurred on our end.</b>
-                                <br></br> Re-establishing connection...
-                            </p>
-                            <CashLoader />
-                        </>
-                    )}
-                    <CreateTokenForm
-                        BCH={BCH}
-                        getRestUrl={getRestUrl}
-                        createToken={createToken}
-                        disabled={
-                            balances.totalBalanceInSatoshis < currency.dustSats
-                        }
+                    <BalanceHeader
+                        balance={balances.totalBalance}
+                        ticker={currency.ticker}
                     />
-                    {balances.totalBalanceInSatoshis < currency.dustSats && (
-                        <AlertMsg>
-                            You need at least{' '}
-                            {fromSmallestDenomination(
-                                currency.dustSats,
-                            ).toString()}{' '}
-                            {currency.ticker} (
-                            {cashtabSettings
-                                ? `${
-                                      currency.fiatCurrencies[
-                                          cashtabSettings.fiatCurrency
-                                      ].symbol
-                                  } `
-                                : '$ '}
-                            {(
-                                fromSmallestDenomination(
-                                    currency.dustSats,
-                                ).toString() * fiatPrice
-                            ).toFixed(4)}{' '}
-                            {cashtabSettings
-                                ? `${currency.fiatCurrencies[
-                                      cashtabSettings.fiatCurrency
-                                  ].slug.toUpperCase()} `
-                                : 'USD'}
-                            ) to create a token
-                        </AlertMsg>
-                    )}
-
-                    {tokens && tokens.length > 0 ? (
-                        <>
-                            <TokenList
-                                wallet={wallet}
-                                tokens={tokens}
-                                jestBCH={false}
-                            />
-                        </>
-                    ) : (
-                        <>No {currency.tokenTicker} tokens in this wallet</>
+                    {fiatPrice !== null && !isNaN(balances.totalBalance) && (
+                        <BalanceHeaderFiat
+                            balance={balances.totalBalance}
+                            settings={cashtabSettings}
+                            fiatPrice={fiatPrice}
+                        />
                     )}
                 </>
+            )}
+            {apiError && (
+                <>
+                    <p
+                        style={{
+                            color: 'red',
+                        }}
+                    >
+                        <b>An error occurred on our end.</b>
+                        <br></br> Re-establishing connection...
+                    </p>
+                    <CashLoader />
+                </>
+            )}
+            <CreateTokenForm
+                BCH={BCH}
+                getRestUrl={getRestUrl}
+                createToken={createToken}
+                disabled={balances.totalBalanceInSatoshis < currency.dustSats}
+            />
+            {balances.totalBalanceInSatoshis < currency.dustSats && (
+                <AlertMsg>
+                    You need at least{' '}
+                    {fromSmallestDenomination(currency.dustSats).toString()}{' '}
+                    {currency.ticker} (
+                    {cashtabSettings
+                        ? `${
+                              currency.fiatCurrencies[
+                                  cashtabSettings.fiatCurrency
+                              ].symbol
+                          } `
+                        : '$ '}
+                    {(
+                        fromSmallestDenomination(currency.dustSats).toString() *
+                        fiatPrice
+                    ).toFixed(4)}{' '}
+                    {cashtabSettings
+                        ? `${currency.fiatCurrencies[
+                              cashtabSettings.fiatCurrency
+                          ].slug.toUpperCase()} `
+                        : 'USD'}
+                    ) to create a token
+                </AlertMsg>
+            )}
+
+            {tokens && tokens.length > 0 ? (
+                <>
+                    <TokenList tokens={tokens} />
+                </>
+            ) : (
+                <>No {currency.tokenTicker} tokens in this wallet</>
             )}
         </>
     );

@@ -162,6 +162,21 @@ export const isValidStoredWallet = walletStateFromStorage => {
     );
 };
 
+export const getWalletState = wallet => {
+    if (!wallet || !wallet.state) {
+        return {
+            balances: { totalBalance: 0, totalBalanceInSatoshis: 0 },
+            hydratedUtxoDetails: {},
+            tokens: [],
+            slpBalancesAndUtxos: {},
+            parsedTxHistory: [],
+            utxos: [],
+        };
+    }
+
+    return wallet.state;
+};
+
 export function convertToEcashPrefix(bitcoincashPrefixedAddress) {
     // Prefix-less addresses may be valid, but the cashaddr.decode function used below
     // will throw an error without a prefix. Hence, must ensure prefix to use that function.

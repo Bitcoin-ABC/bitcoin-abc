@@ -23,6 +23,7 @@ import ABC from '@assets/logo_topright.png';
 import './App.css';
 import { WalletContext } from '@utils/context';
 import { checkForTokenById } from '@utils/tokenMethods.js';
+import { isValidStoredWallet } from '@utils/cashMethods';
 import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
@@ -203,13 +204,17 @@ export const AbcLogo = styled.img`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, loading, tokens } = ContextValue;
+    const { wallet, loading } = ContextValue;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
-
-    const hasTab = checkForTokenById(
-        tokens,
-        '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-    );
+    // If wallet is unmigrated, do not show page until it has migrated
+    // An invalid wallet will be validated/populated after the next API call, ETA 10s
+    const validWallet = isValidStoredWallet(wallet);
+    const hasTab = validWallet
+        ? checkForTokenById(
+              wallet.state.tokens,
+              '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+          )
+        : false;
     const location = useLocation();
     const history = useHistory();
     const selectedKey =
@@ -219,7 +224,7 @@ const App = () => {
         <ThemeProvider theme={theme}>
             <GlobalStyle />
             <Spin
-                spinning={loading || loadingUtxosAfterSend}
+                spinning={loading || loadingUtxosAfterSend || !validWallet}
                 indicator={CashLoadingIcon}
             >
                 <CustomApp>

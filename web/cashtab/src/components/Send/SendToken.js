@@ -33,23 +33,15 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import {
-    isValidStoredWallet,
+    getWalletState,
     convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
-    const { wallet, tokens, slpBalancesAndUtxos, apiError } = React.useContext(
-        WalletContext,
-    );
-    // If this wallet has migrated to latest storage structure, get token info from there
-    // If not, use the tokens object (unless it's undefined, in which case use an empty array)
-    const liveTokenState =
-        isValidStoredWallet(wallet) && wallet.state.tokens
-            ? wallet.state.tokens
-            : tokens
-            ? tokens
-            : [];
-    const token = liveTokenState.find(token => token.tokenId === tokenId);
+    const { wallet, apiError } = React.useContext(WalletContext);
+    const walletState = getWalletState(wallet);
+    const { tokens, slpBalancesAndUtxos } = walletState;
+    const token = tokens.find(token => token.tokenId === tokenId);
 
     const [tokenStats, setTokenStats] = useState(null);
     const [queryStringText, setQueryStringText] = useState(null);
