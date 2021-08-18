@@ -7,7 +7,6 @@
 #include <chainparams.h>
 #include <config.h>
 #include <node/blockstorage.h>
-#include <rpc/blockchain.h>
 #include <shutdown.h>
 #include <util/time.h>
 #include <validation.h>
@@ -154,7 +153,6 @@ VerifyLoadedChainstate(ChainstateManager &chainman, bool fReset,
         for (CChainState *chainstate : chainman.GetAll()) {
             if (!is_coinsview_empty(chainstate)) {
                 const CBlockIndex *tip = chainstate->m_chain.Tip();
-                RPCNotifyBlockChange(tip);
                 if (tip && tip->nTime > GetTime() + MAX_FUTURE_BLOCK_TIME) {
                     return ChainstateLoadVerifyError::ERROR_BLOCK_FROM_FUTURE;
                 }
