@@ -6,6 +6,11 @@
 #ifndef BITCOIN_SYNC_H
 #define BITCOIN_SYNC_H
 
+#ifdef DEBUG_LOCKCONTENTION
+#include <logging.h>
+#include <logging/timer.h>
+#endif
+
 #include <threadsafety.h>
 #include <util/macros.h>
 
@@ -127,10 +132,6 @@ using RecursiveMutex = AnnotatedMixin<std::recursive_mutex>;
 /** Wrapped mutex: supports waiting but not recursive locking */
 typedef AnnotatedMixin<std::mutex> Mutex;
 
-#ifdef DEBUG_LOCKCONTENTION
-void PrintLockContention(const char *pszName, const char *pszFile, int nLine);
-#endif
-
 /** Wrapper around std::unique_lock style lock for Mutex. */
 template <typename Mutex, typename Base = typename Mutex::UniqueLock>
 class SCOPED_LOCKABLE UniqueLock : public Base {
@@ -138,13 +139,14 @@ private:
     void Enter(const char *pszName, const char *pszFile, int nLine) {
         EnterCritical(pszName, pszFile, nLine, (void *)(Base::mutex()));
 #ifdef DEBUG_LOCKCONTENTION
-        if (!Base::try_lock()) {
-            PrintLockContention(pszName, pszFile, nLine);
-#endif
-            Base::lock();
-#ifdef DEBUG_LOCKCONTENTION
+        if (Base::try_lock()) {
+            return;
         }
+        LOG_TIME_MICROS_WITH_CATEGORY(
+            strprintf("lock contention %s, %s:%d", pszName, pszFile, nLine),
+            BCLog::LOCK);
 #endif
+        Base::lock();
     }
 
     bool TryEnter(const char *pszName, const char *pszFile, int nLine) {

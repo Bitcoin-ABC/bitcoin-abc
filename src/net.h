@@ -18,6 +18,7 @@
 #include <crypto/siphash.h>
 #include <hash.h>
 #include <i2p.h>
+#include <logging.h>
 #include <net_permissions.h>
 #include <netaddress.h>
 #include <nodeid.h>
@@ -36,6 +37,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
+#include <list>
 #include <map>
 #include <memory>
 #include <thread>

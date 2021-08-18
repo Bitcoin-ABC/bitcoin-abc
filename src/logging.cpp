@@ -128,6 +128,9 @@ const CLogCategoryDesc LogCategories[] = {
     {BCLog::AVALANCHE, "avalanche"},
     {BCLog::I2P, "i2p"},
     {BCLog::CHRONIK, "chronik"},
+#ifdef DEBUG_LOCKCONTENTION
+    {BCLog::LOCK, "lock"},
+#endif
     {BCLog::BLOCKSTORE, "blockstorage"},
     {BCLog::ALL, "1"},
     {BCLog::ALL, "all"},
