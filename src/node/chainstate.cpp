@@ -7,7 +7,6 @@
 #include <chainparams.h>
 #include <config.h>
 #include <node/blockstorage.h>
-#include <node/ui_interface.h>
 #include <rpc/blockchain.h>
 #include <shutdown.h>
 #include <util/time.h>
@@ -17,7 +16,7 @@ std::optional<ChainstateLoadingError>
 LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                bool fPruneMode_, const Config &config, bool fReindexChainState,
                int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
-               int64_t nCoinCacheUsage) {
+               int64_t nCoinCacheUsage, std::function<void()> coins_error_cb) {
     const CChainParams &chainparams = config.GetChainParams();
 
     auto is_coinsview_empty =
@@ -103,11 +102,10 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                 /* in_memory */ false,
                 /* should_wipe */ fReset || fReindexChainState);
 
-            chainstate->CoinsErrorCatcher().AddReadErrCallback([]() {
-                uiInterface.ThreadSafeMessageBox(
-                    _("Error reading from database, shutting down."), "",
-                    CClientUIInterface::MSG_ERROR);
-            });
+            if (coins_error_cb) {
+                chainstate->CoinsErrorCatcher().AddReadErrCallback(
+                    coins_error_cb);
+            }
 
             // If necessary, upgrade from older database format.
             // This is a no-op if we cleared the coinsviewdb with -reindex
@@ -158,7 +156,6 @@ VerifyLoadedChainstate(ChainstateManager &chainman, bool fReset,
 
         for (CChainState *chainstate : chainman.GetAll()) {
             if (!is_coinsview_empty(chainstate)) {
-                uiInterface.InitMessage(_("Verifying blocks...").translated);
                 if (fHavePruned && check_blocks > MIN_BLOCKS_TO_KEEP) {
                     LogPrintf("Prune: pruned datadir may not have more than %d "
                               "blocks; only checking available blocks\n",

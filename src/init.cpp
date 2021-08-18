@@ -2465,11 +2465,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         const int64_t load_block_index_start_time = GetTimeMillis();
 
-        auto rv =
-            LoadChainstate(fReset, chainman, Assert(node.mempool.get()),
-                           fPruneMode, config, fReindexChainState,
-                           nBlockTreeDBCache, nCoinDBCache, nCoinCacheUsage);
-
+        auto rv = LoadChainstate(
+            fReset, chainman, Assert(node.mempool.get()), fPruneMode, config,
+            fReindexChainState, nBlockTreeDBCache, nCoinDBCache,
+            nCoinCacheUsage, []() {
+                uiInterface.ThreadSafeMessageBox(
+                    _("Error reading from database, shutting down."), "",
+                    CClientUIInterface::MSG_ERROR);
+            });
         if (rv.has_value()) {
             switch (rv.value()) {
                 case ChainstateLoadingError::ERROR_UPGRADING_BLOCK_DB:
@@ -2511,6 +2514,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     break;
             }
         } else {
+            uiInterface.InitMessage(_("Verifying blocks…").translated);
             auto rv2 = VerifyLoadedChainstate(
                 chainman, fReset, fReindexChainState, config,
                 args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
