@@ -9,7 +9,7 @@ export const currency = {
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
     prefixes: ['ecash'],
-    coingeckoId: 'bitcoin-cash-abc-2',
+    coingeckoId: 'ecash',
     defaultFee: 2.01,
     dustSats: 550,
     etokenSats: 546,

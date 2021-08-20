@@ -1337,7 +1337,7 @@ const useWallet = () => {
         try {
             bchPriceJson = await bchPrice.json();
             //console.log(`bchPriceJson`, bchPriceJson);
-            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode] / 1e6;
+            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode];
 
             const validEcashPrice = typeof bchPriceInFiat === 'number';
 
