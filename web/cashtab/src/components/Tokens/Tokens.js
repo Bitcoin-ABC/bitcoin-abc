@@ -10,7 +10,7 @@ import { BalanceHeader } from '@components/Common/BalanceHeader';
 import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
 import { ZeroBalanceHeader, AlertMsg } from '@components/Common/Atoms';
 
-const Tokens = ({ jestBCH }) => {
+const Tokens = ({ jestBCH, passLoadingStatus }) => {
     /*
     Dev note
 
@@ -78,6 +78,7 @@ const Tokens = ({ jestBCH }) => {
                 getRestUrl={getRestUrl}
                 createToken={createToken}
                 disabled={balances.totalBalanceInSatoshis < currency.dustSats}
+                passLoadingStatus={passLoadingStatus}
             />
             {balances.totalBalanceInSatoshis < currency.dustSats && (
                 <AlertMsg>
@@ -113,6 +114,19 @@ const Tokens = ({ jestBCH }) => {
             )}
         </>
     );
+};
+
+/*
+passLoadingStatus must receive a default prop that is a function
+in order to pass the rendering unit test in Tokens.test.js
+
+status => {console.log(status)} is an arbitrary stub function
+*/
+
+Tokens.defaultProps = {
+    passLoadingStatus: status => {
+        console.log(status);
+    },
 };
 
 export default Tokens;

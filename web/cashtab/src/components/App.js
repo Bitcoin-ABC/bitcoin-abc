@@ -249,7 +249,11 @@ const App = () => {
                                     <Wallet />
                                 </Route>
                                 <Route path="/tokens">
-                                    <Tokens />
+                                    <Tokens
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
                                 </Route>
                                 <Route path="/send">
                                     <Send
