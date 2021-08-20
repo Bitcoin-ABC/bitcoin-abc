@@ -406,10 +406,13 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                                 {tokenStats.documentUri}
                                             </Descriptions.Item>
                                             <Descriptions.Item label="Genesis Date">
-                                                {new Date(
-                                                    tokenStats.timestampUnix *
-                                                        1000,
-                                                ).toLocaleDateString()}
+                                                {tokenStats.timestampUnix !==
+                                                null
+                                                    ? new Date(
+                                                          tokenStats.timestampUnix *
+                                                              1000,
+                                                      ).toLocaleDateString()
+                                                    : 'Just now (Genesis tx confirming)'}
                                             </Descriptions.Item>
                                             <Descriptions.Item label="Fixed Supply?">
                                                 {tokenStats.containsBaton
