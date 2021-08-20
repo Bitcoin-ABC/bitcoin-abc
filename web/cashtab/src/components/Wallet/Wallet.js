@@ -1,7 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Switch } from 'antd';
-import { LinkOutlined, LoadingOutlined } from '@ant-design/icons';
 import { WalletContext } from '@utils/context';
 import { OnBoarding } from '@components/OnBoarding/OnBoarding';
 import { QRCode } from '@components/Common/QRCode';
@@ -174,17 +172,12 @@ const WalletInfo = () => {
     const { balances, parsedTxHistory, tokens } = walletState;
 
     const [address, setAddress] = React.useState('cashAddress');
-    const [addressPrefix, setAddressPrefix] = React.useState('eCash');
     const [activeTab, setActiveTab] = React.useState('txHistory');
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     const handleChangeAddress = () => {
         setAddress(address === 'cashAddress' ? 'slpAddress' : 'cashAddress');
-    };
-
-    const onAddressPrefixChange = () => {
-        setAddressPrefix(addressPrefix === 'eCash' ? 'bitcoincash' : 'eCash');
     };
 
     return (
