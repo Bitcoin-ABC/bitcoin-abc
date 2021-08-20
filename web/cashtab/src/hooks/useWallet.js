@@ -1394,12 +1394,6 @@ const useWallet = () => {
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,
-        update: async () =>
-            update({
-                wallet: await getWallet(),
-                setLoading,
-                setWalletState,
-            }),
         createWallet: async importMnemonic => {
             setLoading(true);
             const newWallet = await createWallet(importMnemonic);
