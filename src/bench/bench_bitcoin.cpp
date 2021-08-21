@@ -32,13 +32,14 @@ static void SetupBenchArgs(ArgsManager &argsman) {
                              DEFAULT_BENCH_FILTER),
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-list", "List benchmarks without executing them",
-                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-min_time=<milliseconds>",
         strprintf(
             "Minimum runtime per benchmark, in milliseconds (default: %d)",
             DEFAULT_MIN_TIME_MS),
-        ArgsManager::ALLOW_INT, OptionsCategory::OPTIONS);
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-output_csv=<output.csv>",
         "Generate CSV file with the most important benchmark results",

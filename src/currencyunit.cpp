@@ -11,5 +11,5 @@ void SetupCurrencyUnitOptions(ArgsManager &argsman) {
     argsman.AddArg("-ecash",
                    strprintf("Use the eCash prefixes and units (default: %s)",
                              DEFAULT_ECASH ? "true" : "false"),
-                   ArgsManager::ALLOW_BOOL, OptionsCategory::OPTIONS);
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 }

@@ -425,9 +425,9 @@ BOOST_AUTO_TEST_CASE(logargs) {
     ArgsManager local_args;
 
     const auto okaylog_bool =
-        std::make_pair("-okaylog-bool", ArgsManager::ALLOW_BOOL);
+        std::make_pair("-okaylog-bool", ArgsManager::ALLOW_ANY);
     const auto okaylog_negbool =
-        std::make_pair("-okaylog-negbool", ArgsManager::ALLOW_BOOL);
+        std::make_pair("-okaylog-negbool", ArgsManager::ALLOW_ANY);
     const auto okaylog = std::make_pair("-okaylog", ArgsManager::ALLOW_ANY);
     const auto dontlog = std::make_pair("-dontlog", ArgsManager::ALLOW_ANY |
                                                         ArgsManager::SENSITIVE);

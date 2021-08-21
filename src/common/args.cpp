@@ -109,7 +109,7 @@ std::optional<util::SettingsValue> InterpretValue(const KeyInfo &key,
                                                   std::string &error) {
     // Return negated settings as false values.
     if (key.negated) {
-        if (!(flags & ArgsManager::ALLOW_BOOL)) {
+        if (flags & ArgsManager::DISALLOW_NEGATION) {
             error = strprintf(
                 "Negating of -%s is meaningless and therefore forbidden",
                 key.name);
@@ -125,23 +125,6 @@ std::optional<util::SettingsValue> InterpretValue(const KeyInfo &key,
         return false;
     }
     return value;
-}
-
-/**
- * Check settings value validity according to flags.
- *
- * TODO: Add more meaningful error checks here in the future
- * See "here's how the flags are meant to behave" in
- * https://github.com/bitcoin/bitcoin/pull/16097#issuecomment-514627823
- */
-bool CheckValid(const std::string &key, const util::SettingsValue &val,
-                unsigned int flags, std::string &error) {
-    if (val.isBool() && !(flags & ArgsManager::ALLOW_BOOL)) {
-        error = strprintf(
-            "Negating of -%s is meaningless and therefore forbidden", key);
-        return false;
-    }
-    return true;
 }
 
 // Define default constructor and destructor that are not inline, so code

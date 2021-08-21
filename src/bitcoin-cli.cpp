@@ -95,7 +95,8 @@ static void SetupCliArgs(ArgsManager &argsman) {
                    "Get network peer connection information from the remote "
                    "server. An optional integer argument from 0 to 4 can be "
                    "passed for different peers listings (default: 0).",
-                   ArgsManager::ALLOW_INT, OptionsCategory::OPTIONS);
+                   ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+                   OptionsCategory::OPTIONS);
 
     SetupChainParamsBaseOptions(argsman);
     argsman.AddArg(

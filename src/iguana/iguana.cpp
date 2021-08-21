@@ -26,22 +26,27 @@ void SetupIguanaArgs(ArgsManager &args) {
     args.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
                 OptionsCategory::OPTIONS);
     args.AddArg("-tx", "Raw tx hex to run the debugger for (required)",
-                ArgsManager::ALLOW_STRING, OptionsCategory::OPTIONS);
+                ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+                OptionsCategory::OPTIONS);
     args.AddArg(
         "-inputindex",
         strprintf("Input index to run (default: %d)", DEFAULT_INPUT_INDEX),
-        ArgsManager::ALLOW_INT, OptionsCategory::OPTIONS);
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::OPTIONS);
     args.AddArg("-scriptpubkey",
                 "Hex of the scriptPubKey of the output being spent (required)",
-                ArgsManager::ALLOW_STRING, OptionsCategory::OPTIONS);
+                ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+                OptionsCategory::OPTIONS);
     args.AddArg("-value",
                 "Value (in sats) of the output being spent (required)",
-                ArgsManager::ALLOW_INT, OptionsCategory::OPTIONS);
+                ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+                OptionsCategory::OPTIONS);
     args.AddArg("-format",
                 strprintf("Output format for the debug trace (Options: human, "
                           "csv. Default: %d)",
                           DEFAULT_FORMAT),
-                ArgsManager::ALLOW_STRING, OptionsCategory::OPTIONS);
+                ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+                OptionsCategory::OPTIONS);
 }
 
 int main(int argc, char *argv[]) {
