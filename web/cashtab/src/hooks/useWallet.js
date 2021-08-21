@@ -25,14 +25,6 @@ const useWallet = () => {
     const [ws, setWs] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
-    const [walletState, setWalletState] = useState({
-        balances: {},
-        hydratedUtxoDetails: {},
-        tokens: [],
-        slpBalancesAndUtxos: {},
-        parsedTxHistory: [],
-        utxos: [],
-    });
     const {
         getBCH,
         getUtxos,
@@ -46,12 +38,12 @@ const useWallet = () => {
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
     const [utxos, setUtxos] = useState(null);
-    const {
-        balances,
-        tokens,
-        slpBalancesAndUtxos,
-        parsedTxHistory,
-    } = walletState;
+    const { balances, tokens } = isValidStoredWallet(wallet)
+        ? wallet.state
+        : {
+              balances: {},
+              tokens: [],
+          };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
     const previousWallet = usePrevious(wallet);
@@ -166,8 +158,9 @@ const useWallet = () => {
             if (isValidStoredWallet(wallet)) {
                 // Convert all the token balance figures to big numbers
                 const liveWalletState = loadStoredWallet(wallet.state);
+                wallet.state = liveWalletState;
 
-                return setWalletState(liveWalletState);
+                return setWallet(wallet);
             }
             // If wallet in storage is a legacy wallet or otherwise does not have all state fields,
             // then assume utxos have changed
@@ -195,7 +188,7 @@ const useWallet = () => {
         return !isEqual(utxos, utxosToCompare);
     };
 
-    const update = async ({ wallet, setWalletState }) => {
+    const update = async ({ wallet }) => {
         //console.log(`tick()`);
         //console.time("update");
         try {
@@ -230,7 +223,7 @@ const useWallet = () => {
                 // remove api error here; otherwise it will remain if recovering from a rate
                 // limit error with an unchanged utxo set
                 setApiError(false);
-                // then walletState has not changed and does not need to be updated
+                // then wallet.state has not changed and does not need to be updated
                 //console.timeEnd("update");
                 return;
             }
@@ -276,11 +269,7 @@ const useWallet = () => {
 
             newState.hydratedUtxoDetails = hydratedUtxoDetails;
 
-            setWalletState(newState);
-
             // Set wallet with new state field
-            // Note: now that wallet carries state, maintaining a separate walletState object is redundant
-            // TODO clear up in future diff
             wallet.state = newState;
             setWallet(wallet);
 
@@ -289,7 +278,7 @@ const useWallet = () => {
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
-            console.log(`Error in update({wallet, setWalletState})`);
+            console.log(`Error in update({wallet})`);
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
@@ -1036,7 +1025,6 @@ const useWallet = () => {
         const wallet = await getWallet();
         update({
             wallet,
-            setWalletState,
         }).finally(() => {
             setLoading(false);
         });
@@ -1380,10 +1368,6 @@ const useWallet = () => {
         BCH,
         wallet,
         fiatPrice,
-        slpBalancesAndUtxos,
-        balances,
-        tokens,
-        parsedTxHistory,
         loading,
         apiError,
         cashtabSettings,
@@ -1400,7 +1384,6 @@ const useWallet = () => {
             setWallet(newWallet);
             update({
                 wallet: newWallet,
-                setWalletState,
             }).finally(() => setLoading(false));
         },
         activateWallet: async walletToActivate => {
@@ -1415,7 +1398,6 @@ const useWallet = () => {
                 // This handles case of unmigrated legacy wallet
                 update({
                     wallet: newWallet,
-                    setWalletState,
                 }).finally(() => setLoading(false));
             }
         },
