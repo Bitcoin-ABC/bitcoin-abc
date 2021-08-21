@@ -10,6 +10,7 @@
 #include <net_types.h> // For banmap_t
 #include <serialize.h>
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -18,13 +19,12 @@ class CAddrMan;
 class CAddress;
 class CDataStream;
 class CChainParams;
+struct bilingual_str;
 
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
                        const CAddrMan &addr);
-bool ReadPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
-                       CAddrMan &addr);
 /** Only used by tests. */
-bool ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
+void ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
                     CDataStream &ssPeers);
 
 class CBanEntry {
@@ -65,6 +65,12 @@ public:
     bool Write(const banmap_t &banSet);
     bool Read(banmap_t &banSet);
 };
+
+/** Returns an error string on failure */
+std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
+                                         const std::vector<bool> &asmap,
+                                         const ArgsManager &args,
+                                         std::unique_ptr<CAddrMan> &addrman);
 
 /**
  * Dump the anchor IP address database (anchors.dat)

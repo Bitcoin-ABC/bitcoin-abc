@@ -1029,7 +1029,7 @@ BOOST_AUTO_TEST_CASE(load_addrman) {
     CAddrMan addrman2(/* asmap= */ std::vector<bool>(),
                       /* consistency_check_ratio= */ 100);
     BOOST_CHECK(addrman2.size() == 0);
-    BOOST_CHECK(ReadFromStream(Params(), addrman2, ssPeers2));
+    ReadFromStream(Params(), addrman2, ssPeers2);
     BOOST_CHECK(addrman2.size() == 3);
 }
 
@@ -1054,15 +1054,14 @@ BOOST_AUTO_TEST_CASE(load_addrman_corrupted) {
     BOOST_CHECK(addrman1.size() == 1);
     BOOST_CHECK(exceptionThrown);
 
-    // Test that ReadFromStream leaves addrman in a clean state if
-    // de-serialization fails.
+    // Test that ReadFromStream fails if peers.dat is corrupt
     CDataStream ssPeers2 = AddrmanToStream(addrmanCorrupted);
 
     CAddrMan addrman2(/* asmap= */ std::vector<bool>(),
                       /* consistency_check_ratio= */ 100);
     BOOST_CHECK(addrman2.size() == 0);
-    BOOST_CHECK(!ReadFromStream(Params(), addrman2, ssPeers2));
-    BOOST_CHECK(addrman2.size() == 0);
+    BOOST_CHECK_THROW(ReadFromStream(Params(), addrman2, ssPeers2),
+                      std::ios_base::failure);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

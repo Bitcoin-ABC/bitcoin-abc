@@ -14,10 +14,15 @@
 #include <streams.h>
 #include <tinyformat.h>
 #include <util/system.h>
+#include <util/translation.h>
 
 #include <cstdint>
 
 namespace {
+
+class DbNotFoundError : public std::exception {
+    using std::exception::exception;
+};
 
 template <typename Stream, typename Data>
 bool SerializeDB(const CChainParams &chainParams, Stream &stream,
@@ -78,49 +83,42 @@ bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
 }
 
 template <typename Stream, typename Data>
-bool DeserializeDB(const CChainParams &chainParams, Stream &stream, Data &data,
+void DeserializeDB(const CChainParams &chainParams, Stream &stream, Data &data,
                    bool fCheckSum = true) {
-    try {
-        CHashVerifier<Stream> verifier(&stream);
-        // de-serialize file header (network specific magic number) and ..
-        uint8_t pchMsgTmp[4];
-        verifier >> pchMsgTmp;
-        // ... verify the network matches ours
-        if (memcmp(pchMsgTmp, std::begin(chainParams.DiskMagic()),
-                   sizeof(pchMsgTmp))) {
-            return error("%s: Invalid network magic number", __func__);
-        }
-
-        // de-serialize data
-        verifier >> data;
-
-        // verify checksum
-        if (fCheckSum) {
-            uint256 hashTmp;
-            stream >> hashTmp;
-            if (hashTmp != verifier.GetHash()) {
-                return error("%s: Checksum mismatch, data corrupted", __func__);
-            }
-        }
-    } catch (const std::exception &e) {
-        return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+    CHashVerifier<Stream> verifier(&stream);
+    // de-serialize file header (network specific magic number) and ..
+    uint8_t pchMsgTmp[4];
+    verifier >> pchMsgTmp;
+    // ... verify the network matches ours
+    if (memcmp(pchMsgTmp, std::begin(chainParams.DiskMagic()),
+               sizeof(pchMsgTmp))) {
+        throw std::runtime_error{"Invalid network magic number"};
     }
 
-    return true;
+    // de-serialize data
+    verifier >> data;
+
+    // verify checksum
+    if (fCheckSum) {
+        uint256 hashTmp;
+        stream >> hashTmp;
+        if (hashTmp != verifier.GetHash()) {
+            throw std::runtime_error{"Checksum mismatch, data corrupted"};
+        }
+    }
 }
 
 template <typename Data>
-bool DeserializeFileDB(const CChainParams &chainParams, const fs::path &path,
+void DeserializeFileDB(const CChainParams &chainParams, const fs::path &path,
                        Data &data) {
     // open input file, and associate with CAutoFile
     FILE *file = fsbridge::fopen(path, "rb");
     CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull()) {
-        LogPrintf("Missing or invalid file %s\n", fs::PathToString(path));
-        return false;
+        throw DbNotFoundError{};
     }
 
-    return DeserializeDB(chainParams, filein, data);
+    DeserializeDB(chainParams, filein, data);
 }
 
 } // namespace
@@ -133,7 +131,19 @@ bool CBanDB::Write(const banmap_t &banSet) {
 }
 
 bool CBanDB::Read(banmap_t &banSet) {
-    return DeserializeFileDB(chainParams, m_ban_list_path, banSet);
+    // TODO: this needs to be reworked after banlist.dat is deprecated (in
+    // favor of banlist.json). See:
+    //  - https://github.com/bitcoin/bitcoin/pull/20966
+    //  - https://github.com/bitcoin/bitcoin/pull/22570
+    try {
+        DeserializeFileDB(chainParams, m_ban_list_path, banSet);
+    } catch (const std::exception &) {
+        LogPrintf("Missing or invalid file %s\n",
+                  fs::quoted(fs::PathToString(m_ban_list_path)));
+        return false;
+    }
+
+    return true;
 }
 
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
@@ -142,20 +152,46 @@ bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
     return SerializeFileDB(chainParams, "peers", pathAddr, addr);
 }
 
-bool ReadPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
-                       CAddrMan &addr) {
-    const auto pathAddr = args.GetDataDirNet() / "peers.dat";
-    return DeserializeFileDB(chainParams, pathAddr, addr);
+void ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
+                    CDataStream &ssPeers) {
+    DeserializeDB(chainParams, ssPeers, addr, false);
 }
 
-bool ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
-                    CDataStream &ssPeers) {
-    bool ret = DeserializeDB(chainParams, ssPeers, addr, false);
-    if (!ret) {
-        // Ensure addrman is left in a clean state
-        addr.Clear();
+std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
+                                         const std::vector<bool> &asmap,
+                                         const ArgsManager &args,
+                                         std::unique_ptr<CAddrMan> &addrman) {
+    auto check_addrman = std::clamp<int32_t>(
+        args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS), 0,
+        1000000);
+    addrman = std::make_unique<CAddrMan>(
+        asmap, /* consistency_check_ratio= */ check_addrman);
+
+    int64_t nStart = GetTimeMillis();
+    const auto path_addr{args.GetDataDirNet() / "peers.dat"};
+    try {
+        DeserializeFileDB(chainparams, path_addr, *addrman);
+        LogPrintf("Loaded %i addresses from peers.dat  %dms\n", addrman->size(),
+                  GetTimeMillis() - nStart);
+    } catch (const DbNotFoundError &) {
+        // Addrman can be in an inconsistent state after failure, reset it
+        addrman = std::make_unique<CAddrMan>(
+            asmap, /* consistency_check_ratio= */ check_addrman);
+        LogPrintf("Creating peers.dat because the file was not found (%s)\n",
+                  fs::quoted(fs::PathToString(path_addr)));
+        DumpPeerAddresses(chainparams, args, *addrman);
+    } catch (const std::exception &e) {
+        addrman = nullptr;
+        return strprintf(
+            _("Invalid or corrupt peers.dat (%s). If you believe this is a "
+              "bug, please report it to %s. As a workaround, you can move the "
+              "file (%s) out of the way (rename, move, or delete) to have a "
+              "new one created on the next start."),
+            e.what(), PACKAGE_BUGREPORT,
+            fs::quoted(fs::PathToString(path_addr)));
     }
-    return ret;
+
+    return std::nullopt;
 }
 
 void DumpAnchors(const CChainParams &chainParams,
@@ -170,10 +206,11 @@ void DumpAnchors(const CChainParams &chainParams,
 std::vector<CAddress> ReadAnchors(const CChainParams &chainParams,
                                   const fs::path &anchors_db_path) {
     std::vector<CAddress> anchors;
-    if (DeserializeFileDB(chainParams, anchors_db_path, anchors)) {
+    try {
+        DeserializeFileDB(chainParams, anchors_db_path, anchors);
         LogPrintf("Loaded %i addresses from %s\n", anchors.size(),
                   fs::quoted(fs::PathToString(anchors_db_path.filename())));
-    } else {
+    } catch (const std::exception &) {
         anchors.clear();
     }
 
