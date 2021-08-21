@@ -224,7 +224,9 @@ const App = () => {
         <ThemeProvider theme={theme}>
             <GlobalStyle />
             <Spin
-                spinning={loading || loadingUtxosAfterSend || !validWallet}
+                spinning={
+                    loading || loadingUtxosAfterSend || (wallet && !validWallet)
+                }
                 indicator={CashLoadingIcon}
             >
                 <CustomApp>
