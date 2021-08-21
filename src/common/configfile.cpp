@@ -106,16 +106,15 @@ bool ArgsManager::ReadConfigStream(std::istream &stream,
         return false;
     }
     for (const std::pair<std::string, std::string> &option : options) {
-        std::string section;
-        std::string key = option.first;
-        util::SettingsValue value =
-            InterpretOption(section, key, option.second);
-        std::optional<unsigned int> flags = GetArgFlags('-' + key);
+        KeyInfo key = InterpretKey(option.first);
+        std::optional<unsigned int> flags = GetArgFlags('-' + key.name);
         if (flags) {
-            if (!CheckValid(key, value, *flags, error)) {
+            std::optional<util::SettingsValue> value =
+                InterpretValue(key, option.second, *flags, error);
+            if (!value) {
                 return false;
             }
-            m_settings.ro_config[section][key].push_back(value);
+            m_settings.ro_config[key.section][key.name].push_back(*value);
         } else {
             if (ignore_invalid_keys) {
                 LogPrintf("Ignoring unknown configuration value %s\n",

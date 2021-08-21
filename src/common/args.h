@@ -75,16 +75,24 @@ enum class OptionsCategory {
     HIDDEN,
 };
 
+struct KeyInfo {
+    std::string name;
+    std::string section;
+    bool negated{false};
+};
+
+KeyInfo InterpretKey(std::string key);
+
+std::optional<util::SettingsValue> InterpretValue(const KeyInfo &key,
+                                                  const std::string &value,
+                                                  unsigned int flags,
+                                                  std::string &error);
+
 struct SectionInfo {
     std::string m_name;
     std::string m_file;
     int m_line;
 };
-
-bool CheckValid(const std::string &key, const util::SettingsValue &val,
-                unsigned int flags, std::string &error);
-util::SettingsValue InterpretOption(std::string &section, std::string &key,
-                                    const std::string &value);
 
 std::string SettingToString(const util::SettingsValue &, const std::string &);
 std::optional<std::string> SettingToString(const util::SettingsValue &);
