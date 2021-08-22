@@ -1,4 +1,4 @@
-import { ValidationError } from 'cashaddrjs';
+import { ValidationError } from 'ecashaddrjs';
 import { isValidCashPrefix, isValidTokenPrefix, toLegacy } from '../Ticker';
 
 test('Rejects cash address with bitcoincash: prefix', async () => {
