@@ -981,7 +981,7 @@ const useWallet = () => {
             // Notification if you received SLP
             if (receivedSlpQty > 0) {
                 notification.success({
-                    message: `${currency.tokenTicker} Transaction received: ${receivedSlpTicker}`,
+                    message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
                     description: (
                         <Paragraph>
                             You received {receivedSlpQty} {receivedSlpName}
@@ -1017,7 +1017,7 @@ const useWallet = () => {
                     const receivedSlpName = tokens[i].info.tokenName;
 
                     notification.success({
-                        message: `SLP Transaction received: ${receivedSlpTicker}`,
+                        message: `${currency.tokenTicker} Transaction received: ${receivedSlpTicker}`,
                         description: (
                             <Paragraph>
                                 You received {receivedSlpQty.toString()}{' '}
