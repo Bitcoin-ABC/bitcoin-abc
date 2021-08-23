@@ -36,12 +36,12 @@ const useWallet = () => {
     const [loading, setLoading] = useState(true);
     const [apiIndex, setApiIndex] = useState(0);
     const [BCH, setBCH] = useState(getBCH(apiIndex));
-    const [utxos, setUtxos] = useState(null);
-    const { balances, tokens } = isValidStoredWallet(wallet)
+    const { balances, tokens, utxos } = isValidStoredWallet(wallet)
         ? wallet.state
         : {
               balances: {},
               tokens: [],
+              utxos: null,
           };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
@@ -208,7 +208,6 @@ const useWallet = () => {
                 // as you are likely already at rate limits
                 throw new Error('Error fetching utxos');
             }
-            setUtxos(utxos);
 
             // Need to call with wallet as a parameter rather than trusting it is in state, otherwise can sometimes get wallet=false from haveUtxosChanged
             const utxosHaveChanged = haveUtxosChanged(
