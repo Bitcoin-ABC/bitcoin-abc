@@ -267,7 +267,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                 -{' '}
                                 {formatBalance(
                                     fromLegacyDecimals(data.amountSent),
-                                )}
+                                )}{' '}
                                 {currency.ticker}
                                 <br />
                                 {fiatPrice !== null && !isNaN(data.amountSent) && (
@@ -292,7 +292,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                 +{' '}
                                 {formatBalance(
                                     fromLegacyDecimals(data.amountReceived),
-                                )}
+                                )}{' '}
                                 {currency.ticker}
                                 <br />
                                 {fiatPrice !== null &&
