@@ -16,6 +16,7 @@ import { Collapse, Form, Input, Modal, notification } from 'antd';
 const { Panel } = Collapse;
 import Paragraph from 'antd/lib/typography/Paragraph';
 import { TokenParamLabel } from '@components/Common/Atoms';
+import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
 
 const CreateTokenForm = ({
     BCH,
@@ -144,11 +145,12 @@ const CreateTokenForm = ({
                 description: (
                     <a href={link} target="_blank" rel="noopener noreferrer">
                         <Paragraph>
-                            Token created! Click or tap here for more details
+                            Token created! Click to view in block explorer.
                         </Paragraph>
                     </a>
                 ),
-                duration: 5,
+                icon: <TokenReceivedNotificationIcon />,
+                style: { width: '100%' },
             });
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop

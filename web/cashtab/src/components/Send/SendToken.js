@@ -36,6 +36,7 @@ import {
     getWalletState,
     convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
+import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
@@ -117,12 +118,14 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                 description: (
                     <a href={link} target="_blank" rel="noopener noreferrer">
                         <Paragraph>
-                            Transaction successful. Click or tap here for more
-                            details
+                            Transaction successful. Click to view in block
+                            explorer.
                         </Paragraph>
                     </a>
                 ),
-                duration: 5,
+                duration: 3,
+                icon: <TokenReceivedNotificationIcon />,
+                style: { width: '100%' },
             });
         } catch (e) {
             passLoadingStatus(false);

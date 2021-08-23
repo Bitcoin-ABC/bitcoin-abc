@@ -7,7 +7,7 @@ exports[`Configure with a wallet 1`] = `
   <h2>
     <span
       aria-label="copy"
-      className="anticon anticon-copy sc-htpNat fLtATP"
+      className="anticon anticon-copy sc-bdVaJa loPqmo"
       role="img"
     >
       <svg
@@ -72,7 +72,7 @@ exports[`Configure with a wallet 1`] = `
     </div>
   </div>
   <div
-    className="ant-collapse ant-collapse-icon-position-left sc-bdVaJa AfOYf"
+    className="ant-collapse ant-collapse-icon-position-left sc-EHOje iPpwBT"
     role={null}
   >
     <div
@@ -115,7 +115,7 @@ exports[`Configure with a wallet 1`] = `
   <h2>
     <span
       aria-label="wallet"
-      className="anticon anticon-wallet sc-ifAKCX cYbSut"
+      className="anticon anticon-wallet sc-htpNat fLtATP"
       role="img"
     >
       <svg
@@ -193,7 +193,7 @@ exports[`Configure with a wallet 1`] = `
   <h2>
     <span
       aria-label="dollar"
-      className="anticon anticon-dollar sc-bxivhb ctLIog"
+      className="anticon anticon-dollar sc-bwzfXH iTQEyo"
       role="img"
     >
       <svg
@@ -328,7 +328,7 @@ exports[`Configure without a wallet 1`] = `
   <h2>
     <span
       aria-label="copy"
-      className="anticon anticon-copy sc-htpNat fLtATP"
+      className="anticon anticon-copy sc-bdVaJa loPqmo"
       role="img"
     >
       <svg
@@ -398,7 +398,7 @@ exports[`Configure without a wallet 1`] = `
   <h2>
     <span
       aria-label="wallet"
-      className="anticon anticon-wallet sc-ifAKCX cYbSut"
+      className="anticon anticon-wallet sc-htpNat fLtATP"
       role="img"
     >
       <svg
@@ -476,7 +476,7 @@ exports[`Configure without a wallet 1`] = `
   <h2>
     <span
       aria-label="dollar"
-      className="anticon anticon-dollar sc-bxivhb ctLIog"
+      className="anticon anticon-dollar sc-bwzfXH iTQEyo"
       role="img"
     >
       <svg

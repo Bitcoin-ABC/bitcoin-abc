@@ -63,7 +63,7 @@ Array [
                         >
                           <span
                             aria-label="wallet"
-                            className="anticon anticon-wallet sc-EHOje gmISaY"
+                            className="anticon anticon-wallet sc-htpNat fLtATP"
                             role="img"
                           >
                             <svg
@@ -105,7 +105,7 @@ Array [
                         >
                           <span
                             aria-label="qrcode"
-                            className="anticon anticon-qrcode sc-bZQynM pGJNJ"
+                            className="anticon anticon-qrcode sc-bxivhb ctLIog"
                             role="img"
                           >
                             <svg
@@ -238,7 +238,7 @@ Array [
           }
         >
           <button
-            className="sc-bdVaJa hhkWIL"
+            className="sc-EHOje bfWfmf"
             onClick={[Function]}
           >
             Send 

@@ -30,6 +30,7 @@ import {
     AlertMsg,
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
+import { CashReceivedNotificationIcon } from '@components/Common/CustomIcons';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -196,12 +197,14 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 description: (
                     <a href={link} target="_blank" rel="noopener noreferrer">
                         <Paragraph>
-                            Transaction successful. Click or tap here for more
-                            details
+                            Transaction successful. Click to view in block
+                            explorer.
                         </Paragraph>
                     </a>
                 ),
-                duration: 5,
+                duration: 3,
+                icon: <CashReceivedNotificationIcon />,
+                style: { width: '100%' },
             });
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop

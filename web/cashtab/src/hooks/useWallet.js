@@ -17,6 +17,10 @@ import localforage from 'localforage';
 import { currency } from '@components/Common/Ticker';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
+import {
+    CashReceivedNotificationIcon,
+    TokenReceivedNotificationIcon,
+} from '@components/Common/CustomIcons';
 
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
@@ -925,10 +929,12 @@ const useWallet = () => {
                 </Paragraph>
             ),
             duration: 3,
+            icon: <CashReceivedNotificationIcon />,
+            style: { width: '100%' },
         });
     }
 
-    // Parse for incoming SLP transactions
+    // Parse for incoming eToken transactions
     if (
         tokens &&
         tokens[0] &&
@@ -989,7 +995,9 @@ const useWallet = () => {
                             You received {receivedSlpQty} {receivedSlpName}
                         </Paragraph>
                     ),
-                    duration: 5,
+                    duration: 3,
+                    icon: <TokenReceivedNotificationIcon />,
+                    style: { width: '100%' },
                 });
             }
 
@@ -1019,14 +1027,16 @@ const useWallet = () => {
                     const receivedSlpName = tokens[i].info.tokenName;
 
                     notification.success({
-                        message: `${currency.tokenTicker} Transaction received: ${receivedSlpTicker}`,
+                        message: `${currency.tokenTicker} transaction received: ${receivedSlpTicker}`,
                         description: (
                             <Paragraph>
                                 You received {receivedSlpQty.toString()}{' '}
                                 {receivedSlpName}
                             </Paragraph>
                         ),
-                        duration: 5,
+                        duration: 3,
+                        icon: <TokenReceivedNotificationIcon />,
+                        style: { width: '100%' },
                     });
                 }
             }

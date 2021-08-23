@@ -7,8 +7,22 @@ import {
     WalletOutlined,
     QrcodeOutlined,
 } from '@ant-design/icons';
+import { Avatar, Image } from 'antd';
+import { currency } from '@components/Common/Ticker';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
+
+export const CashReceivedNotificationIcon = () => (
+    <Image height={'33px'} width={'30px'} src={currency.logo} preview={false} />
+);
+export const TokenReceivedNotificationIcon = () => (
+    <Image
+        src={currency.tokenLogo}
+        height={'33px'}
+        width={'30px'}
+        preview={false}
+    />
+);
 
 export const ThemedCopyOutlined = styled(CopyOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
