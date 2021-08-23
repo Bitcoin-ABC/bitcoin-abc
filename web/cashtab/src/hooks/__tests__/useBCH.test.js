@@ -15,6 +15,7 @@ import {
 } from '../__mocks__/mockHydrateUtxosBatched';
 import {
     tokenSendWdt,
+    tokenReceiveGarmonbozia,
     tokenReceiveTBS,
     tokenGenesisCashtabMintAlpha,
 } from '../__mocks__/mockParseTokenInfoForTxHistory';
@@ -350,8 +351,10 @@ describe('useBCH hook', () => {
 
     it(`Correctly parses a "send ${currency.tokenTicker}" transaction with token details`, () => {
         const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
         expect(
             parseTokenInfoForTxHistory(
+                BCH,
                 tokenSendWdt.parsedTx,
                 tokenSendWdt.tokenInfo,
             ),
@@ -360,18 +363,34 @@ describe('useBCH hook', () => {
 
     it(`Correctly parses a "receive ${currency.tokenTicker}" transaction with token details and 9 decimals of precision`, () => {
         const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
         expect(
             parseTokenInfoForTxHistory(
+                BCH,
                 tokenReceiveTBS.parsedTx,
                 tokenReceiveTBS.tokenInfo,
             ),
         ).toStrictEqual(tokenReceiveTBS.cashtabTokenInfo);
     });
 
-    it(`Correctly parses a "GENESIS ${currency.tokenTicker}" transaction with token details`, () => {
+    it(`Correctly parses a "receive ${currency.tokenTicker}" transaction from an HD wallet (change address different from sending address)`, () => {
         const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
         expect(
             parseTokenInfoForTxHistory(
+                BCH,
+                tokenReceiveGarmonbozia.parsedTx,
+                tokenReceiveGarmonbozia.tokenInfo,
+            ),
+        ).toStrictEqual(tokenReceiveGarmonbozia.cashtabTokenInfo);
+    });
+
+    it(`Correctly parses a "GENESIS ${currency.tokenTicker}" transaction with token details`, () => {
+        const { parseTokenInfoForTxHistory } = useBCH();
+        const BCH = new BCHJS();
+        expect(
+            parseTokenInfoForTxHistory(
+                BCH,
                 tokenGenesisCashtabMintAlpha.parsedTx,
                 tokenGenesisCashtabMintAlpha.tokenInfo,
             ),

@@ -75,6 +75,63 @@ export const tokenSendWdt = {
     },
 };
 
+export const tokenReceiveGarmonbozia = {
+    txid: '9f2413e5e290015ef573596187115205579d583f4a1b2f0eb5db5383875b9ede',
+    parsedTx: {
+        txid:
+            '9f2413e5e290015ef573596187115205579d583f4a1b2f0eb5db5383875b9ede',
+        confirmations: 22,
+        height: 701191,
+        blocktime: 1629743058,
+        amountSent: 0,
+        amountReceived: 0.00000546,
+        tokenTx: true,
+        outgoingTx: false,
+        destinationAddress:
+            'bitcoincash:qr204yfphngxthvnukyrz45u7500tf60vyea48xwmd',
+    },
+    tokenInfo: {
+        versionType: 1,
+        tokenName: 'Garmonbozia',
+        tokenTicker: 'XGB',
+        transactionType: 'SEND',
+        tokenIdHex:
+            'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
+        sendOutputs: ['0', '500000000', '4500000000'],
+        sendInputsFull: [
+            {
+                address:
+                    'simpleledger:qq6fht0gmsk9wemyx26juzn3hjyd35e2kyrk85vaj5',
+            },
+            {
+                address:
+                    'simpleledger:qq6fht0gmsk9wemyx26juzn3hjyd35e2kyrk85vaj5',
+            },
+        ],
+        sendOutputsFull: [
+            {
+                address:
+                    'simpleledger:qr204yfphngxthvnukyrz45u7500tf60vy4x7unw9n',
+                amount: '5',
+            },
+            {
+                address:
+                    'simpleledger:qrpweesyra08ks4k08af0ak7y8d2a4uvzcewgwgfqg',
+                amount: '45',
+            },
+        ],
+    },
+    cashtabTokenInfo: {
+        qtyReceived: '5',
+        qtySent: '0',
+        tokenId:
+            'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
+        tokenName: 'Garmonbozia',
+        tokenTicker: 'XGB',
+        transactionType: 'SEND',
+    },
+};
+
 export const tokenSendHonk = {
     txid: '82845d3c814d715b2c36aea0b076cc03815469a9c172c5bab7fc6a9f71b1906d',
     parsedTx: '',

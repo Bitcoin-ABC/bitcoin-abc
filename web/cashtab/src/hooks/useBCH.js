@@ -214,10 +214,19 @@ export default function useBCH() {
         }
     };
 
-    const parseTokenInfoForTxHistory = (parsedTx, tokenInfo) => {
-        // Scan over inputs to find out originating addresses
+    const parseTokenInfoForTxHistory = (BCH, parsedTx, tokenInfo) => {
+        // Address at which the eToken was received
+        const { destinationAddress } = parsedTx;
+        // Here in cashtab, destinationAddress is in bitcoincash: format
+        // In the API response of tokenInfo, this will be in simpleledger: format
+        // So, must convert to simpleledger
+        const receivingSlpAddress = BCH.SLP.Address.toSLPAddress(
+            destinationAddress,
+        );
+
         const { transactionType, sendInputsFull, sendOutputsFull } = tokenInfo;
         const sendingTokenAddresses = [];
+        // Scan over inputs to find out originating addresses
         for (let i = 0; i < sendInputsFull.length; i += 1) {
             const sendingAddress = sendInputsFull[i].address;
             sendingTokenAddresses.push(sendingAddress);
@@ -241,9 +250,12 @@ export default function useBCH() {
                     new BigNumber(sendOutputsFull[i].amount),
                 );
             } else {
-                qtyReceived = qtyReceived.plus(
-                    new BigNumber(sendOutputsFull[i].amount),
-                );
+                // Only if this matches the receiving address
+                if (sendOutputsFull[i].address === receivingSlpAddress) {
+                    qtyReceived = qtyReceived.plus(
+                        new BigNumber(sendOutputsFull[i].amount),
+                    );
+                }
             }
         }
         const cashtabTokenInfo = {};
@@ -267,7 +279,11 @@ export default function useBCH() {
         const tokenData = await BCH.SLP.Utils.txDetails(parsedTx.txid);
         const { tokenInfo } = tokenData;
 
-        parsedTx.tokenInfo = parseTokenInfoForTxHistory(parsedTx, tokenInfo);
+        parsedTx.tokenInfo = parseTokenInfoForTxHistory(
+            BCH,
+            parsedTx,
+            tokenInfo,
+        );
 
         return parsedTx;
     };
