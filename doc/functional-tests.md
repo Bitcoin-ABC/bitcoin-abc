@@ -66,7 +66,7 @@ By default, up to 4 tests will be run in parallel by test_runner. To specify
 how many jobs to run, append `--jobs=n`
 
 The individual tests and the test_runner harness have many command-line
-options. Run `test_runner.py -h` to see them all.
+options. Run `test/functional/test_runner.py -h` to see them all.
 
 #### Troubleshooting and debugging test failures
 
@@ -79,7 +79,7 @@ killed all its bitcoind nodes), then there may be a port conflict which will
 cause the test to fail. It is recommended that you run the tests on a system
 where no other bitcoind processes are running.
 
-On linux, the test_framework will warn if there is another
+On linux, the test framework will warn if there is another
 bitcoind process running when the tests are started.
 
 If there are zombie bitcoind processes after test failure, you can kill them
@@ -107,7 +107,7 @@ tests will fail. If this happens, remove the cache directory (and make
 sure bitcoind processes are stopped as above):
 
 ```bash
-rm -rf cache
+rm -rf test/cache
 killall bitcoind
 ```
 
@@ -124,6 +124,15 @@ default:
   fails, the `test_framework.log` and bitcoind `debug.log`s will all be dumped
   to the console to help troubleshooting.
 
+These log files can be located under the test data directory (which is always
+printed in the first line of test output):
+  - `<test data directory>/test_framework.log`
+  - `<test data directory>/node<node number>/regtest/debug.log`.
+
+The node number identifies the relevant test node, starting from `node0`, which
+corresponds to its position in the nodes list of the specific test,
+e.g. `self.nodes[0]`.
+
 To change the level of logs output to the console, use the `-l` command line
 argument.
 
@@ -132,7 +141,7 @@ aggregate log by running the `combine_logs.py` script. The output can be plain
 text, colorized text or html. For example:
 
 ```
-combine_logs.py -c <test data directory> | less -r
+test/functional/combine_logs.py -c <test data directory> | less -r
 ```
 
 will pipe the colorized logs from the test into less.
@@ -251,13 +260,13 @@ Use the `-v` option for verbose output.
 
 #### Example test
 
-The [example_test.py](/test/functional/example_test.py) is a heavily commented
+The file [test/functional/example_test.py](/test/functional/example_test.py) is a heavily commented
 example of a test case that uses both the RPC and P2P interfaces. If you are
 writing your first test, copy that file and modify to fit your needs.
 
 #### Coverage
 
-Running `test_runner.py` with the `--coverage` argument tracks which RPCs are
+Running `test/functional/test_runner.py` with the `--coverage` argument tracks which RPCs are
 called by the tests and prints a report of uncovered RPCs in the summary. This
 can be used (along with the `--extended` argument) to find out which RPCs we
 don't have test cases for.
@@ -325,9 +334,9 @@ P2P messages. These can be found in the following source files:
 
 #### Using the P2P interface
 
-- `messages.py` contains all the definitions for objects that pass
-over the network (`CBlock`, `CTransaction`, etc, along with the network-level
-wrappers for them, `msg_block`, `msg_tx`, etc).
+- [messages.py](/test/functional/test_framework/messages.py) contains all the
+definitions for objects that pass over the network (`CBlock`, `CTransaction`,
+etc, along with the network-level wrappers for them, `msg_block`, `msg_tx`, etc).
 
 - P2P tests have two threads. One thread handles all network communication
 with the bitcoind(s) being tested in a callback-based event loop; the other
@@ -339,7 +348,8 @@ the Bitcoin Core node application logic. For custom behaviour, subclass the
 P2PInterface object and override the callback methods.
 
 - Can be used to write tests where specific P2P protocol behavior is tested.
-Examples tests are `p2p-acceptblock.py`, `p2p-compactblocks.py`.
+Examples tests are [p2p_unrequested_blocks.py](/test/functional/p2p_unrequested_blocks.py),
+[p2p_compactblocks.py](/test/functional/p2p_compactblocks.py).
 
 #### Prototyping tests
 
@@ -351,25 +361,28 @@ utilities, such as
 The logs of such interactive sessions can later be adapted into permanent test
 cases.
 
-### test-framework modules
+### Test framework modules
 
-#### [test_framework/authproxy.py](/test/functional/test_framework/authproxy.py)
+The following are useful modules for test developers. They are located in
+[test/functional/test_framework/](/test/functional/test_framework).
+
+#### [authproxy.py](/test/functional/test_framework/authproxy.py)
 Taken from the [python-bitcoinrpc repository](https://github.com/jgarzik/python-bitcoinrpc).
 
-#### [test_framework/test_framework.py](/test/functional/test_framework/test_framework.py)
+#### [test_framework.py](/test/functional/test_framework/test_framework.py)
 Base class for functional tests.
 
-#### [test_framework/util.py](/test/functional/test_framework/util.py)
+#### [util.py](/test/functional/test_framework/util.py)
 Generally useful functions.
 
-#### [test_framework/p2p.py](/test/functional/test_framework/p2p.py)
+#### [p2p.py](/test/functional/test_framework/p2p.py)
 Test objects for interacting with a bitcoind node over the p2p interface.
 
-#### [test_framework/script.py](/test/functional/test_framework/script.py)
+#### [script.py](/test/functional/test_framework/script.py)
 Utilities for manipulating transaction scripts (originally from python-bitcoinlib)
 
-#### [test_framework/key.py](/test/functional/test_framework/key.py)
+#### [key.py](/test/functional/test_framework/key.py)
 Test-only secp256k1 elliptic curve implementation
 
-#### [test_framework/blocktools.py](/test/functional/test_framework/blocktools.py)
+#### [blocktools.py](/test/functional/test_framework/blocktools.py)
 Helper functions for creating blocks and transactions.
