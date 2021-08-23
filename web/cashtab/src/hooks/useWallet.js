@@ -904,11 +904,28 @@ const useWallet = () => {
             message: 'Transaction received',
             description: (
                 <Paragraph>
-                    You received{' '}
-                    {Number(
-                        balances.totalBalance - previousBalances.totalBalance,
-                    ).toFixed(currency.cashDecimals)}{' '}
-                    {currency.ticker}!
+                    +{' '}
+                    {parseFloat(
+                        Number(
+                            balances.totalBalance -
+                                previousBalances.totalBalance,
+                        ).toFixed(currency.cashDecimals),
+                    ).toLocaleString()}{' '}
+                    {currency.ticker}{' '}
+                    {cashtabSettings &&
+                        cashtabSettings.fiatCurrency &&
+                        `(${
+                            currency.fiatCurrencies[
+                                cashtabSettings.fiatCurrency
+                            ].symbol
+                        }${(
+                            Number(
+                                balances.totalBalance -
+                                    previousBalances.totalBalance,
+                            ) * fiatPrice
+                        ).toFixed(
+                            currency.cashDecimals,
+                        )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
                 </Paragraph>
             ),
             duration: 3,
