@@ -1370,7 +1370,8 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
             : CAddress(CService(), addr.nServices);
     CAddress addrMe = CAddress(CService(), nLocalNodeServices);
 
-    const bool tx_relay = !m_ignore_incoming_txs && pnode.m_tx_relay != nullptr;
+    const bool tx_relay = !m_ignore_incoming_txs &&
+                          pnode.m_tx_relay != nullptr && !pnode.IsFeelerConn();
     m_connman.PushMessage(
         &pnode, CNetMsgMaker(INIT_PROTO_VERSION)
                     .Make(NetMsgType::VERSION, PROTOCOL_VERSION,
