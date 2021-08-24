@@ -66,27 +66,22 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 break;
             }
             case 1: {
-                node.MaybeSetAddrName(
-                    fuzzed_data_provider.ConsumeRandomLengthString(32));
-                break;
-            }
-            case 2: {
                 CNodeStats stats;
                 node.copyStats(stats);
                 break;
             }
-            case 3: {
+            case 2: {
                 const CNode *add_ref_node = node.AddRef();
                 assert(add_ref_node == &node);
                 break;
             }
-            case 4: {
+            case 3: {
                 if (node.GetRefCount() > 0) {
                     node.Release();
                 }
                 break;
             }
-            case 5: {
+            case 4: {
                 const std::optional<CInv> inv_opt =
                     ConsumeDeserializable<CInv>(fuzzed_data_provider);
                 if (!inv_opt) {
@@ -96,12 +91,12 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.AddKnownTx(txid);
                 break;
             }
-            case 6: {
+            case 5: {
                 const TxId &txid = TxId(ConsumeUInt256(fuzzed_data_provider));
                 node.PushTxInventory(txid);
                 break;
             }
-            case 7: {
+            case 6: {
                 const std::optional<CService> service_opt =
                     ConsumeDeserializable<CService>(fuzzed_data_provider);
                 if (!service_opt) {
@@ -110,7 +105,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 node.SetAddrLocal(*service_opt);
                 break;
             }
-            case 8: {
+            case 7: {
                 const std::vector<uint8_t> b =
                     ConsumeRandomLengthByteVector(fuzzed_data_provider);
                 bool complete;
@@ -121,7 +116,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     }
 
     (void)node.GetAddrLocal();
-    (void)node.GetAddrName();
     (void)node.GetId();
     (void)node.GetLocalNonce();
     (void)node.GetLocalServices();

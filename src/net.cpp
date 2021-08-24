@@ -332,7 +332,7 @@ CNode *CConnman::FindNode(const CSubNet &subNet) {
 CNode *CConnman::FindNode(const std::string &addrName) {
     LOCK(cs_vNodes);
     for (CNode *pnode : vNodes) {
-        if (pnode->GetAddrName() == addrName) {
+        if (pnode->m_addr_name == addrName) {
             return pnode;
         }
     }
@@ -424,13 +424,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
             }
             // It is possible that we already have a connection to the IP/port
             // pszDest resolved to. In that case, drop the connection that was
-            // just created, and return the existing CNode instead. Also store
-            // the name we used to connect in that CNode, so that future
-            // FindNode() calls to that name catch this early.
+            // just created.
             LOCK(cs_vNodes);
             CNode *pnode = FindNode(static_cast<CService>(addrConnect));
             if (pnode) {
-                pnode->MaybeSetAddrName(std::string(pszDest));
                 LogPrintf("Failed to open new connection, already connected\n");
                 return nullptr;
             }
@@ -561,18 +558,6 @@ std::string CNode::ConnectionTypeAsString() const {
     assert(false);
 }
 
-std::string CNode::GetAddrName() const {
-    LOCK(cs_addrName);
-    return addrName;
-}
-
-void CNode::MaybeSetAddrName(const std::string &addrNameIn) {
-    LOCK(cs_addrName);
-    if (addrName.empty()) {
-        addrName = addrNameIn;
-    }
-}
-
 CService CNode::GetAddrLocal() const {
     LOCK(cs_addrLocal);
     return addrLocal;
@@ -612,7 +597,7 @@ void CNode::copyStats(CNodeStats &stats) {
     stats.m_last_block_time = m_last_block_time;
     stats.m_connected = m_connected;
     stats.nTimeOffset = nTimeOffset;
-    stats.addrName = GetAddrName();
+    stats.m_addr_name = m_addr_name;
     stats.nVersion = nVersion;
     {
         LOCK(cs_SubVer);
@@ -2506,7 +2491,7 @@ std::vector<AddedNodeInfo> CConnman::GetAddedNodeInfo() {
             if (pnode->addr.IsValid()) {
                 mapConnected[pnode->addr] = pnode->IsInboundConn();
             }
-            std::string addrName = pnode->GetAddrName();
+            std::string addrName{pnode->m_addr_name};
             if (!addrName.empty()) {
                 mapConnectedByName[std::move(addrName)] =
                     std::make_pair(pnode->IsInboundConn(),
@@ -3456,8 +3441,10 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
              ConnectionType conn_type_in, bool inbound_onion)
     : m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
-      addrBind(addrBindIn), m_inbound_onion(inbound_onion),
-      nKeyedNetGroup(nKeyedNetGroupIn),
+      addrBind(addrBindIn), m_addr_name{addrNameIn.empty()
+                                            ? addr.ToStringIPPort()
+                                            : addrNameIn},
+      m_inbound_onion(inbound_onion), nKeyedNetGroup(nKeyedNetGroupIn),
       m_tx_relay(conn_type_in != ConnectionType::BLOCK_RELAY
                      ? std::make_unique<TxRelay>()
                      : nullptr),
@@ -3473,7 +3460,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
         assert(conn_type_in == ConnectionType::INBOUND);
     }
     hSocket = hSocketIn;
-    addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
 
     for (const std::string &msg : getAllNetMessageTypes()) {
         mapRecvBytesPerMsgCmd[msg] = 0;
@@ -3481,7 +3467,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
     mapRecvBytesPerMsgCmd[NET_MESSAGE_COMMAND_OTHER] = 0;
 
     if (fLogIPs) {
-        LogPrint(BCLog::NET, "Added connection to %s peer=%d\n", addrName, id);
+        LogPrint(BCLog::NET, "Added connection to %s peer=%d\n", m_addr_name,
+                 id);
     } else {
         LogPrint(BCLog::NET, "Added connection peer=%d\n", id);
     }
@@ -3509,7 +3496,7 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
         CaptureMessage(pnode->addr, msg.m_type, msg.data, /*incoming=*/false);
     }
 
-    TRACE6(net, outbound_message, pnode->GetId(), pnode->GetAddrName().c_str(),
+    TRACE6(net, outbound_message, pnode->GetId(), pnode->m_addr_name.c_str(),
            pnode->ConnectionTypeAsString().c_str(), msg.m_type.c_str(),
            msg.data.size(), msg.data.data());
 

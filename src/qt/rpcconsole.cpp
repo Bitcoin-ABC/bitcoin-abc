@@ -1260,8 +1260,8 @@ void RPCConsole::updateDetailWidget() {
         clientModel->getPeerTableModel()->getNodeStats(
             selected_rows.first().row());
     // update the detail ui with latest node information
-    QString peerAddrDetails(QString::fromStdString(stats->nodeStats.addrName) +
-                            " ");
+    QString peerAddrDetails(
+        QString::fromStdString(stats->nodeStats.m_addr_name) + " ");
     peerAddrDetails +=
         tr("(peer id: %1)").arg(QString::number(stats->nodeStats.nodeid));
     if (!stats->nodeStats.addrLocal.empty()) {

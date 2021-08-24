@@ -1612,7 +1612,6 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
 
 void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
     CAddress addr = pnode->addr;
-    std::string addrName = pnode->GetAddrName();
     NodeId nodeid = pnode->GetId();
     {
         LOCK(cs_main);
@@ -5867,7 +5866,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     }
     CNetMessage &msg(msgs.front());
 
-    TRACE6(net, inbound_message, pfrom->GetId(), pfrom->GetAddrName().c_str(),
+    TRACE6(net, inbound_message, pfrom->GetId(), pfrom->m_addr_name.c_str(),
            pfrom->ConnectionTypeAsString().c_str(), msg.m_command.c_str(),
            msg.m_recv.size(), msg.m_recv.data());
 

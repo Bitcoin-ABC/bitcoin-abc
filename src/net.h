@@ -292,7 +292,7 @@ struct CNodeStats {
     std::chrono::seconds m_last_block_time;
     std::chrono::seconds m_connected;
     int64_t nTimeOffset;
-    std::string addrName;
+    std::string m_addr_name;
     int nVersion;
     std::string cleanSubVer;
     bool fInbound;
@@ -490,6 +490,7 @@ public:
     const CAddress addr;
     // Bind address of our side of the connection
     const CAddress addrBind;
+    const std::string m_addr_name;
     //! Whether this peer is an inbound onion, i.e. connected via our Tor onion
     //! service.
     const bool m_inbound_onion;
@@ -774,9 +775,6 @@ private:
     // Used only by SocketHandler thread
     std::list<CNetMessage> vRecvMsg;
 
-    mutable RecursiveMutex cs_addrName;
-    std::string addrName GUARDED_BY(cs_addrName);
-
     // Our address, as reported by the peer
     CService addrLocal GUARDED_BY(cs_addrLocal);
     mutable RecursiveMutex cs_addrLocal;
@@ -871,10 +869,6 @@ public:
     void copyStats(CNodeStats &stats);
 
     ServiceFlags GetLocalServices() const { return nLocalServices; }
-
-    std::string GetAddrName() const;
-    //! Sets the addrName only if it was not previously set
-    void MaybeSetAddrName(const std::string &addrNameIn);
 
     std::string ConnectionTypeAsString() const;
 };
