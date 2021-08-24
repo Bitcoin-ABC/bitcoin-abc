@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import 'antd/dist/antd.less';
+import { Spin } from 'antd';
+import { CashLoadingIcon } from '@components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from '@assets/styles/theme';
@@ -16,9 +18,9 @@ import SendToken from '@components/Send/SendToken';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
-import PopOut from '@assets/popout.svg';
 import './App.css';
 import { WalletContext } from '@utils/context';
+import { isValidStoredWallet } from '@utils/cashMethods';
 import WalletLabel from '@components/Common/WalletLabel.js';
 import {
     Route,
@@ -27,6 +29,8 @@ import {
     useLocation,
     useHistory,
 } from 'react-router-dom';
+// Extension-only import used for open in new tab link
+import PopOut from '@assets/popout.svg';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -84,13 +88,6 @@ const Footer = styled.div`
     border-top: 1px solid ${props => props.theme.wallet.borders.color};
 `;
 
-const OpenInTabBtn = styled.button`
-    background: none;
-    border: none;
-`;
-const ExtTabImg = styled.img`
-    max-width: 20px;
-`;
 export const NavButton = styled.button`
     :focus,
     :active {
@@ -134,8 +131,10 @@ export const WalletBody = styled.div`
     justify-content: center;
     width: 100%;
     min-height: 100vh;
-    background: ${props => props.theme.app.sidebars};
+    background-image: ${props => props.theme.app.sidebars};
+    background-attachment: fixed;
 `;
+
 export const WalletCtn = styled.div`
     position: relative;
     width: 500px;
@@ -186,20 +185,29 @@ export const CashTabLogo = styled.img`
         width: 110px;
     }
 `;
-export const AbcLogo = styled.img`
-    width: 150px;
-    @media (max-width: 768px) {
-        width: 120px;
-    }
+
+// Extension only styled components
+const OpenInTabBtn = styled.button`
+    background: none;
+    border: none;
+`;
+
+const ExtTabImg = styled.img`
+    max-width: 20px;
 `;
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet } = ContextValue;
+    const { wallet, loading } = ContextValue;
+    const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
+    // If wallet is unmigrated, do not show page until it has migrated
+    // An invalid wallet will be validated/populated after the next API call, ETA 10s
+    const validWallet = isValidStoredWallet(wallet);
     const location = useLocation();
     const history = useHistory();
     const selectedKey =
         location && location.pathname ? location.pathname.substr(1) : '';
+    // openInTab is an extension-only method
     const openInTab = () => {
         window.open(`index.html#/${selectedKey}`);
     };
@@ -207,80 +215,100 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
-            <CustomApp>
-                <WalletBody>
-                    <WalletCtn>
-                        <HeaderCtn>
-                            <CashTabLogo src={CashTab} alt="cashtab" />
-                            <OpenInTabBtn
-                                data-tip="Open in tab"
-                                onClick={() => openInTab()}
-                            >
-                                <ExtTabImg src={PopOut} alt="Open in tab" />
-                            </OpenInTabBtn>
-                        </HeaderCtn>
-                        <WalletLabel name={wallet.name}></WalletLabel>
-                        <Switch>
-                            <Route path="/wallet">
-                                <Wallet />
-                            </Route>
-                            <Route path="/tokens">
-                                <Tokens />
-                            </Route>
-                            <Route path="/send">
-                                <Send />
-                            </Route>
-                            <Route
-                                path="/send-token/:tokenId"
-                                render={props => (
-                                    <SendToken
-                                        tokenId={props.match.params.tokenId}
+            <Spin
+                spinning={
+                    loading || loadingUtxosAfterSend || (wallet && !validWallet)
+                }
+                indicator={CashLoadingIcon}
+            >
+                <CustomApp>
+                    <WalletBody>
+                        <WalletCtn>
+                            <HeaderCtn>
+                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                {/*Begin extension-only components*/}
+                                <OpenInTabBtn
+                                    data-tip="Open in tab"
+                                    onClick={() => openInTab()}
+                                >
+                                    <ExtTabImg src={PopOut} alt="Open in tab" />
+                                </OpenInTabBtn>
+                                {/*End extension-only components*/}
+                            </HeaderCtn>
+                            <WalletLabel name={wallet.name}></WalletLabel>
+                            <Switch>
+                                <Route path="/wallet">
+                                    <Wallet />
+                                </Route>
+                                <Route path="/tokens">
+                                    <Tokens
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
                                     />
-                                )}
-                            />
-                            <Route path="/configure">
-                                <Configure />
-                            </Route>
-                            <Redirect exact from="/" to="/wallet" />
-                            <Route component={NotFound} />
-                        </Switch>
-                    </WalletCtn>
-                    {wallet ? (
-                        <Footer>
-                            <NavButton
-                                active={selectedKey === 'wallet'}
-                                onClick={() => history.push('/wallet')}
-                            >
-                                <FolderOpenFilled />
-                                Wallet
-                            </NavButton>
+                                </Route>
+                                <Route path="/send">
+                                    <Send
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
+                                </Route>
+                                <Route
+                                    path="/send-token/:tokenId"
+                                    render={props => (
+                                        <SendToken
+                                            tokenId={props.match.params.tokenId}
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    )}
+                                />
+                                <Route path="/configure">
+                                    <Configure />
+                                </Route>
+                                <Redirect exact from="/" to="/wallet" />
+                                <Route component={NotFound} />
+                            </Switch>
+                        </WalletCtn>
+                        {wallet ? (
+                            <Footer>
+                                <NavButton
+                                    active={selectedKey === 'wallet'}
+                                    onClick={() => history.push('/wallet')}
+                                >
+                                    <FolderOpenFilled />
+                                    Wallet
+                                </NavButton>
 
-                            <NavButton
-                                active={selectedKey === 'tokens'}
-                                onClick={() => history.push('/tokens')}
-                            >
-                                <AppstoreAddOutlined />
-                                Tokens
-                            </NavButton>
+                                <NavButton
+                                    active={selectedKey === 'tokens'}
+                                    onClick={() => history.push('/tokens')}
+                                >
+                                    <AppstoreAddOutlined />
+                                    Tokens
+                                </NavButton>
 
-                            <NavButton
-                                active={selectedKey === 'send'}
-                                onClick={() => history.push('/send')}
-                            >
-                                <CaretRightOutlined />
-                                Send
-                            </NavButton>
-                            <NavButton
-                                active={selectedKey === 'configure'}
-                                onClick={() => history.push('/configure')}
-                            >
-                                <SettingFilled />
-                                Settings
-                            </NavButton>
-                        </Footer>
-                    ) : null}
-                </WalletBody>
-            </CustomApp>
+                                <NavButton
+                                    active={selectedKey === 'send'}
+                                    onClick={() => history.push('/send')}
+                                >
+                                    <CaretRightOutlined />
+                                    Send
+                                </NavButton>
+                                <NavButton
+                                    active={selectedKey === 'configure'}
+                                    onClick={() => history.push('/configure')}
+                                >
+                                    <SettingFilled />
+                                    Settings
+                                </NavButton>
+                            </Footer>
+                        ) : null}
+                    </WalletBody>
+                </CustomApp>
+            </Spin>
         </ThemeProvider>
     );
 };
