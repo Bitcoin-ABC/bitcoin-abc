@@ -2252,7 +2252,7 @@ void CConnman::ThreadOpenConnections(
                     case ConnectionType::ADDR_FETCH:
                     case ConnectionType::FEELER:
                         setConnected.insert(
-                            pnode->addr.GetGroup(addrman.m_asmap));
+                            pnode->addr.GetGroup(addrman.GetAsmap()));
                 } // no default case, so the compiler can warn about missing
                   // cases
             }
@@ -2336,7 +2336,7 @@ void CConnman::ThreadOpenConnections(
                 m_anchors.pop_back();
                 if (!addr.IsValid() || IsLocal(addr) || !IsReachable(addr) ||
                     !HasAllDesirableServiceFlags(addr.nServices) ||
-                    setConnected.count(addr.GetGroup(addrman.m_asmap))) {
+                    setConnected.count(addr.GetGroup(addrman.GetAsmap()))) {
                     continue;
                 }
                 addrConnect = addr;
@@ -2385,7 +2385,7 @@ void CConnman::ThreadOpenConnections(
             // Require outbound connections, other than feelers and avalanche,
             // to be to distinct network groups
             if (!fFeeler && conn_type != ConnectionType::AVALANCHE_OUTBOUND &&
-                setConnected.count(addr.GetGroup(addrman.m_asmap))) {
+                setConnected.count(addr.GetGroup(addrman.GetAsmap()))) {
                 break;
             }
 
@@ -2434,7 +2434,7 @@ void CConnman::ThreadOpenConnections(
                 // avalanche full outbound.
                 if (nTries < 50 ||
                     nOutboundFullRelay >= m_max_outbound_full_relay ||
-                    setConnected.count(addr.GetGroup(addrman.m_asmap))) {
+                    setConnected.count(addr.GetGroup(addrman.GetAsmap()))) {
                     // Fallback is not desirable or possible, try another one
                     continue;
                 }
@@ -3298,7 +3298,7 @@ void CConnman::GetNodeStats(std::vector<CNodeStats> &vstats) {
     for (CNode *pnode : vNodes) {
         vstats.emplace_back();
         pnode->copyStats(vstats.back());
-        vstats.back().m_mapped_as = pnode->addr.GetMappedAS(addrman.m_asmap);
+        vstats.back().m_mapped_as = pnode->addr.GetMappedAS(addrman.GetAsmap());
     }
 }
 
@@ -3599,7 +3599,7 @@ CSipHasher CConnman::GetDeterministicRandomizer(uint64_t id) const {
 }
 
 uint64_t CConnman::CalculateKeyedNetGroup(const CAddress &ad) const {
-    std::vector<uint8_t> vchNetGroup(ad.GetGroup(addrman.m_asmap));
+    std::vector<uint8_t> vchNetGroup(ad.GetGroup(addrman.GetAsmap()));
 
     return GetDeterministicRandomizer(RANDOMIZER_ID_NETGROUP)
         .Write(vchNetGroup.data(), vchNetGroup.size())

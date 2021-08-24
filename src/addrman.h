@@ -158,22 +158,6 @@ static constexpr int ADDRMAN_BUCKET_SIZE{1 << ADDRMAN_BUCKET_SIZE_LOG2};
  */
 class CAddrMan {
 public:
-    // Compressed IP->ASN mapping, loaded from a file when a node starts.
-    // Should be always empty if no file was provided.
-    // This mapping is then used for bucketing nodes in Addrman.
-    //
-    // If asmap is provided, nodes will be bucketed by
-    // AS they belong to, in order to make impossible for a node
-    // to connect to several nodes hosted in a single AS.
-    // This is done in response to Erebus attack, but also to generally
-    // diversify the connections every node creates,
-    // especially useful when a large fraction of nodes
-    // operate under a couple of cloud providers.
-    //
-    // If a new asmap was provided, the existing records
-    // would be re-bucketed accordingly.
-    const std::vector<bool> m_asmap;
-
     template <typename Stream>
     void Serialize(Stream &s_) const EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
@@ -211,8 +195,8 @@ public:
     }
 
     CAddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio)
-        : m_asmap{std::move(asmap)}, m_consistency_check_ratio{
-                                         consistency_check_ratio} {
+        : m_consistency_check_ratio{consistency_check_ratio}, m_asmap{std::move(
+                                                                  asmap)} {
         Clear();
     }
 
@@ -330,6 +314,8 @@ public:
         Check();
     }
 
+    const std::vector<bool> &GetAsmap() const { return m_asmap; }
+
     //! Ensure that bucket placement is always the same for testing purposes.
     void MakeDeterministic() EXCLUSIVE_LOCKS_REQUIRED(!cs) {
         deterministic = true;
@@ -412,6 +398,22 @@ private:
      * (if non-zero).
      */
     const int32_t m_consistency_check_ratio;
+
+    // Compressed IP->ASN mapping, loaded from a file when a node starts.
+    // Should be always empty if no file was provided.
+    // This mapping is then used for bucketing nodes in Addrman.
+    //
+    // If asmap is provided, nodes will be bucketed by
+    // AS they belong to, in order to make impossible for a node
+    // to connect to several nodes hosted in a single AS.
+    // This is done in response to Erebus attack, but also to generally
+    // diversify the connections every node creates,
+    // especially useful when a large fraction of nodes
+    // operate under a couple of cloud providers.
+    //
+    // If a new asmap was provided, the existing records
+    // would be re-bucketed accordingly.
+    const std::vector<bool> m_asmap;
 
     //! Use deterministic bucket selection and inner loops randomization.
     //! For testing purpose only.
