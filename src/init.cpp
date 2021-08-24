@@ -2364,12 +2364,50 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     fListen = args.GetBoolArg("-listen", DEFAULT_LISTEN);
     fDiscover = args.GetBoolArg("-discover", true);
 
-    assert(!node.addrman);
-    auto check_addrman = std::clamp<int32_t>(
-        args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS), 0,
-        1000000);
-    node.addrman = std::make_unique<CAddrMan>(
-        /* consistency_check_ratio= */ check_addrman);
+    {
+        // Initialize addrman
+        assert(!node.addrman);
+
+        // Read asmap file if configured
+        std::vector<bool> asmap;
+        if (args.IsArgSet("-asmap")) {
+            fs::path asmap_path = fs::PathFromString(args.GetArg("-asmap", ""));
+            if (asmap_path.empty()) {
+                asmap_path = fs::PathFromString(DEFAULT_ASMAP_FILENAME);
+            }
+            if (!asmap_path.is_absolute()) {
+                asmap_path = gArgs.GetDataDirNet() / asmap_path;
+            }
+            if (!fs::exists(asmap_path)) {
+                InitError(strprintf(_("Could not find asmap file %s"),
+                                    fs::quoted(fs::PathToString(asmap_path))));
+                return false;
+            }
+            asmap = DecodeAsmap(asmap_path);
+            if (asmap.size() == 0) {
+                InitError(strprintf(_("Could not parse asmap file %s"),
+                                    fs::quoted(fs::PathToString(asmap_path))));
+                return false;
+            }
+            const uint256 asmap_version = SerializeHash(asmap);
+            LogPrintf("Using asmap version %s for IP bucketing\n",
+                      asmap_version.ToString());
+        } else {
+            LogPrintf("Using /16 prefix for IP bucketing\n");
+        }
+
+        auto check_addrman = std::clamp<int32_t>(
+            args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS),
+            0, 1000000);
+        node.addrman = std::make_unique<CAddrMan>(
+            /* consistency_check_ratio= */ check_addrman);
+        node.addrman->m_asmap = asmap;
+    }
+
+    // TODO: note for PR22697, commit 181a1207ba6bd179d181f3e2534ef8676565ce72:
+    // It is required to initialize asmap in addrman, see
+    // https://github.com/bitcoin/bitcoin/pull/22791/commits/50fd77045e2f858a53486b5e02e1798c92ab946c
+
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
         gArgs.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
@@ -2514,34 +2552,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         } else {
             return InitError(ResolveErrMsg("externalip", strAddr));
         }
-    }
-
-    // Read asmap file if configured
-    if (args.IsArgSet("-asmap")) {
-        fs::path asmap_path = fs::PathFromString(args.GetArg("-asmap", ""));
-        if (asmap_path.empty()) {
-            asmap_path = fs::PathFromString(DEFAULT_ASMAP_FILENAME);
-        }
-        if (!asmap_path.is_absolute()) {
-            asmap_path = gArgs.GetDataDirNet() / asmap_path;
-        }
-        if (!fs::exists(asmap_path)) {
-            InitError(strprintf(_("Could not find asmap file %s"),
-                                fs::quoted(fs::PathToString(asmap_path))));
-            return false;
-        }
-        std::vector<bool> asmap = DecodeAsmap(asmap_path);
-        if (asmap.size() == 0) {
-            InitError(strprintf(_("Could not parse asmap file %s"),
-                                fs::quoted(fs::PathToString(asmap_path))));
-            return false;
-        }
-        const uint256 asmap_version = SerializeHash(asmap);
-        node.connman->SetAsmap(std::move(asmap));
-        LogPrintf("Using asmap version %s for IP bucketing\n",
-                  asmap_version.ToString());
-    } else {
-        LogPrintf("Using /16 prefix for IP bucketing\n");
     }
 
 #if ENABLE_ZMQ
