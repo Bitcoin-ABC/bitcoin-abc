@@ -73,7 +73,8 @@ static void FillAddrMan(CAddrMan &addrman) {
 static void AddrManAdd(benchmark::Bench &bench) {
     CreateAddresses();
 
-    CAddrMan addrman(/* consistency_check_ratio= */ 0);
+    CAddrMan addrman(/* asmap= */ std::vector<bool>(),
+                     /* consistency_check_ratio= */ 0);
 
     bench.run([&] {
         AddAddressesToAddrMan(addrman);
@@ -82,7 +83,8 @@ static void AddrManAdd(benchmark::Bench &bench) {
 }
 
 static void AddrManSelect(benchmark::Bench &bench) {
-    CAddrMan addrman(/* consistency_check_ratio= */ 0);
+    CAddrMan addrman(/* asmap= */ std::vector<bool>(),
+                     /* consistency_check_ratio= */ 0);
 
     FillAddrMan(addrman);
 
@@ -93,7 +95,8 @@ static void AddrManSelect(benchmark::Bench &bench) {
 }
 
 static void AddrManGetAddr(benchmark::Bench &bench) {
-    CAddrMan addrman(/* consistency_check_ratio= */ 0);
+    CAddrMan addrman(/* asmap= */ std::vector<bool>(),
+                     /* consistency_check_ratio= */ 0);
 
     FillAddrMan(addrman);
 
@@ -119,8 +122,8 @@ static void AddrManGood(benchmark::Bench &bench) {
 
     std::vector<std::unique_ptr<CAddrMan>> addrmans(addrman_count);
     for (size_t i{0}; i < addrmans.size(); ++i) {
-        addrmans[i] =
-            std::make_unique<CAddrMan>(/* consistency_check_ratio= */ 0);
+        addrmans[i] = std::make_unique<CAddrMan>(
+            /* asmap= */ std::vector<bool>(), /* consistency_check_ratio= */ 0);
         FillAddrMan(*addrmans[i]);
     }
 

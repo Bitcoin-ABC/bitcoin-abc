@@ -150,7 +150,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         bool mutated;
         BlockMerkleRoot(block, &mutated);
 #elif ADDRMAN_DESERIALIZE
-        CAddrMan am(/* consistency_check_ratio= */ 0);
+        CAddrMan am(/* asmap= */ std::vector<bool>(),
+                    /* consistency_check_ratio= */ 0);
         DeserializeFromFuzzingInput(buffer, am);
 #elif BLOCKHEADER_DESERIALIZE
         CBlockHeader bh;

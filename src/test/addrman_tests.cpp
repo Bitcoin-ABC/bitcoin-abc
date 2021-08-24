@@ -26,7 +26,8 @@ public:
     virtual void Serialize(CDataStream &s) const = 0;
 
     CAddrManSerializationMock()
-        : CAddrMan(/* consistency_check_ratio= */ 100) {}
+        : CAddrMan(/* asmap= */ std::vector<bool>(),
+                   /* consistency_check_ratio= */ 100) {}
 };
 
 class CAddrManUncorrupted : public CAddrManSerializationMock {
@@ -71,10 +72,9 @@ static CDataStream AddrmanToStream(const CAddrManSerializationMock &_addrman) {
 class CAddrManTest : public CAddrMan {
 public:
     explicit CAddrManTest(std::vector<bool> asmap = std::vector<bool>())
-        : CAddrMan(/* consistency_check_ratio= */ 100) {
+        : CAddrMan(asmap, /* consistency_check_ratio= */ 100) {
         // Set addrman addr placement to be deterministic.
         MakeDeterministic();
-        m_asmap = asmap;
     }
 
     CAddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr) {
@@ -1005,7 +1005,8 @@ BOOST_AUTO_TEST_CASE(caddrdb_read) {
     // Test that the de-serialization does not throw an exception.
     CDataStream ssPeers1 = AddrmanToStream(addrmanUncorrupted);
     bool exceptionThrown = false;
-    CAddrMan addrman1(/* consistency_check_ratio= */ 100);
+    CAddrMan addrman1(/* asmap= */ std::vector<bool>(),
+                      /* consistency_check_ratio= */ 100);
 
     BOOST_CHECK(addrman1.size() == 0);
     try {
@@ -1023,7 +1024,8 @@ BOOST_AUTO_TEST_CASE(caddrdb_read) {
     // addrs.
     CDataStream ssPeers2 = AddrmanToStream(addrmanUncorrupted);
 
-    CAddrMan addrman2(/* consistency_check_ratio= */ 100);
+    CAddrMan addrman2(/* asmap= */ std::vector<bool>(),
+                      /* consistency_check_ratio= */ 100);
     CAddrDB adb(Params());
     BOOST_CHECK(addrman2.size() == 0);
     BOOST_CHECK(adb.Read(addrman2, ssPeers2));
@@ -1037,7 +1039,8 @@ BOOST_AUTO_TEST_CASE(caddrdb_read_corrupted) {
     // Test that the de-serialization of corrupted addrman throws an exception.
     CDataStream ssPeers1 = AddrmanToStream(addrmanCorrupted);
     bool exceptionThrown = false;
-    CAddrMan addrman1(/* consistency_check_ratio= */ 100);
+    CAddrMan addrman1(/* asmap= */ std::vector<bool>(),
+                      /* consistency_check_ratio= */ 100);
     BOOST_CHECK(addrman1.size() == 0);
     try {
         uint8_t pchMsgTmp[4];
@@ -1055,7 +1058,8 @@ BOOST_AUTO_TEST_CASE(caddrdb_read_corrupted) {
     // de-serialization fails.
     CDataStream ssPeers2 = AddrmanToStream(addrmanCorrupted);
 
-    CAddrMan addrman2(/* consistency_check_ratio= */ 100);
+    CAddrMan addrman2(/* asmap= */ std::vector<bool>(),
+                      /* consistency_check_ratio= */ 100);
     CAddrDB adb(Params());
     BOOST_CHECK(addrman2.size() == 0);
     BOOST_CHECK(!adb.Read(addrman2, ssPeers2));

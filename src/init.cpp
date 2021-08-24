@@ -2400,13 +2400,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS),
             0, 1000000);
         node.addrman = std::make_unique<CAddrMan>(
+            asmap,
             /* consistency_check_ratio= */ check_addrman);
-        node.addrman->m_asmap = asmap;
     }
 
     // TODO: note for PR22697, commit 181a1207ba6bd179d181f3e2534ef8676565ce72:
     // It is required to initialize asmap in addrman, see
-    // https://github.com/bitcoin/bitcoin/pull/22791/commits/50fd77045e2f858a53486b5e02e1798c92ab946c
+    // https://github.com/bitcoin/bitcoin/pull/22791
 
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(

@@ -172,7 +172,7 @@ public:
     //
     // If a new asmap was provided, the existing records
     // would be re-bucketed accordingly.
-    std::vector<bool> m_asmap;
+    const std::vector<bool> m_asmap;
 
     template <typename Stream>
     void Serialize(Stream &s_) const EXCLUSIVE_LOCKS_REQUIRED(!cs);
@@ -210,8 +210,9 @@ public:
         mapAddr.clear();
     }
 
-    CAddrMan(int32_t consistency_check_ratio)
-        : m_consistency_check_ratio{consistency_check_ratio} {
+    CAddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio)
+        : m_asmap{std::move(asmap)}, m_consistency_check_ratio{
+                                         consistency_check_ratio} {
         Clear();
     }
 
