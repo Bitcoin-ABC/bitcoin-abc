@@ -79,36 +79,57 @@ bool IsInScriptBounds(const i128_t &num_int) {
     return num_int >= MIN_SCRIPT_63_BIT_INT && num_int <= MAX_SCRIPT_63_BIT_INT;
 }
 
+void CheckArithmeticResult(std::string operation_str, bool expect_overflow,
+                           bool had_overflow, int64_t result,
+                           i128_t expected_result) {
+    if (expect_overflow) {
+        BOOST_CHECK_MESSAGE(had_overflow,
+                            strprintf("%s didn't overflow", operation_str));
+    } else {
+        BOOST_CHECK_MESSAGE(!had_overflow,
+                            strprintf("%s overflowed", operation_str));
+        BOOST_CHECK_EQUAL(result, expected_result);
+    }
+}
+
 void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
     const i128_t a = a_64;
     const i128_t b = b_64;
     {
-        // Test AddInt63OverflowEmulated
-        int64_t result;
         bool expect_overflow = !IsInScriptBounds(a + b);
-        bool had_overflow = AddInt63OverflowEmulated(a_64, b_64, result);
-        if (expect_overflow) {
-            BOOST_CHECK_MESSAGE(
-                had_overflow, strprintf("%d + %d didn't overflow", a_64, b_64));
-        } else {
-            BOOST_CHECK_MESSAGE(!had_overflow,
-                                strprintf("%d + %d overflowed", a_64, b_64));
-            BOOST_CHECK_EQUAL(result, a + b);
+        // Test AddInt63OverflowEmulated
+        int64_t result_emulated;
+        bool had_overflow_emulated =
+            AddInt63OverflowEmulated(a_64, b_64, result_emulated);
+        CheckArithmeticResult(strprintf("%d + %d", a, b), expect_overflow,
+                              had_overflow_emulated, result_emulated, a + b);
+        // Test AddInt63Overflow
+        int64_t result;
+        bool had_overflow = AddInt63Overflow(a_64, b_64, result);
+        CheckArithmeticResult(strprintf("%d + %d", a, b), expect_overflow,
+                              had_overflow_emulated, result_emulated, a + b);
+        if (!expect_overflow) {
+            BOOST_CHECK_EQUAL(result, result_emulated);
         }
+        BOOST_CHECK_EQUAL(had_overflow, had_overflow_emulated);
     }
     {
-        // Test SubInt63OverflowEmulated
-        int64_t result;
         bool expect_overflow = !IsInScriptBounds(a - b);
-        bool had_overflow = SubInt63OverflowEmulated(a_64, b_64, result);
-        if (expect_overflow) {
-            BOOST_CHECK_MESSAGE(
-                had_overflow, strprintf("%d - %d didn't overflow", a_64, b_64));
-        } else {
-            BOOST_CHECK_MESSAGE(!had_overflow,
-                                strprintf("%d - %d overflowed", a_64, b_64));
-            BOOST_CHECK_EQUAL(result, a - b);
+        // Test AddInt63OverflowEmulated
+        int64_t result_emulated;
+        bool had_overflow_emulated =
+            SubInt63OverflowEmulated(a_64, b_64, result_emulated);
+        CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
+                              had_overflow_emulated, result_emulated, a - b);
+        // Test AddInt63Overflow
+        int64_t result;
+        bool had_overflow = SubInt63Overflow(a_64, b_64, result);
+        CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
+                              had_overflow_emulated, result_emulated, a - b);
+        if (!expect_overflow) {
+            BOOST_CHECK_EQUAL(result, result_emulated);
         }
+        BOOST_CHECK_EQUAL(had_overflow, had_overflow_emulated);
     }
 }
 

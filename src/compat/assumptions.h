@@ -99,4 +99,12 @@ static_assert((int64_t(-1) >> 1) == int64_t(-1),
  */
 static_assert((int64_t(-10) & 0xffff) == 0xfff6, "2-complement assumed");
 
+/**
+ * Assume int64_t and long long int are the same type.
+ */
+static_assert(std::numeric_limits<long long int>::max() ==
+              std::numeric_limits<int64_t>::max());
+static_assert(std::numeric_limits<long long int>::min() ==
+              std::numeric_limits<int64_t>::min());
+
 #endif // BITCOIN_COMPAT_ASSUMPTIONS_H

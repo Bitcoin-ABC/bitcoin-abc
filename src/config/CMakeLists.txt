@@ -55,15 +55,15 @@ check_symbol_exists(bswap_64 "byteswap.h" HAVE_DECL_BSWAP_64)
 check_include_files("sys/select.h" HAVE_SYS_SELECT_H)
 check_include_files("sys/prctl.h" HAVE_SYS_PRCTL_H)
 
-# Bitmanip intrinsics
-function(check_builtin_exist SYMBOL VARIABLE)
+# Built-in compiler intrinsics
+function(check_builtin_exist_with_code SYMBOL VARIABLE CODE)
 	set(
 		SOURCE_FILE
 		"${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/CheckBuiltinExists.c"
 	)
 	set(
 		CMAKE_CONFIGURABLE_FILE_CONTENT
-		"int main(int argc, char** argv) { (void)argv; return ${SYMBOL}(argc); }\n"
+		"int main(int argc, char** argv) { (void)argv; return ${CODE}; }\n"
 	)
 	configure_file(
 		"${CMAKE_ROOT}/Modules/CMakeConfigurableFile.in"
@@ -101,10 +101,26 @@ function(check_builtin_exist SYMBOL VARIABLE)
 	endif()
 endfunction()
 
+function(check_builtin_exist SYMBOL VARIABLE)
+	check_builtin_exist_with_code(
+		${SYMBOL}
+		${VARIABLE}
+		"${SYMBOL}(argc)"
+	)
+endfunction()
+
+# Bitmanip intrinsics
 check_builtin_exist(__builtin_clz HAVE_DECL___BUILTIN_CLZ)
 check_builtin_exist(__builtin_clzl HAVE_DECL___BUILTIN_CLZL)
 check_builtin_exist(__builtin_clzll HAVE_DECL___BUILTIN_CLZLL)
 check_builtin_exist(__builtin_popcount HAVE_DECL___BUILTIN_POPCOUNT)
+# Overflow math
+check_builtin_exist_with_code(
+	__builtin_saddll_overflow HAVE_DECL___BUILTIN_SADDLL_OVERFLOW
+	"__builtin_saddll_overflow(argc, argc, (long long int*)&argc)")
+check_builtin_exist_with_code(
+	__builtin_ssubll_overflow HAVE_DECL___BUILTIN_SSUBLL_OVERFLOW
+	"__builtin_ssubll_overflow(argc, argc, (long long int*)&argc)")
 
 # Memory management capabilities
 check_symbol_exists(M_ARENA_MAX "malloc.h" HAVE_MALLOPT_ARENA_MAX)
