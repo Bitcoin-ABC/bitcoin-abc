@@ -30,9 +30,11 @@ public:
 
     void ResolveCollisions() EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
-    CAddrInfo SelectTriedCollision() EXCLUSIVE_LOCKS_REQUIRED(!cs);
+    std::pair<CAddress, int64_t> SelectTriedCollision()
+        EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
-    CAddrInfo Select(bool newOnly) const EXCLUSIVE_LOCKS_REQUIRED(!cs);
+    std::pair<CAddress, int64_t> Select(bool newOnly) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
     std::vector<CAddress> GetAddr(size_t max_addresses, size_t max_pct,
                                   std::optional<Network> network) const
@@ -186,7 +188,8 @@ private:
 
     //! Select an address to connect to, if newOnly is set to true, only the new
     //! table is selected from.
-    CAddrInfo Select_(bool newOnly) const EXCLUSIVE_LOCKS_REQUIRED(cs);
+    std::pair<CAddress, int64_t> Select_(bool newOnly) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Return all or many randomly selected addresses, optionally by network.
@@ -229,7 +232,8 @@ private:
     void ResolveCollisions_() EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Return a random to-be-evicted tried table address.
-    CAddrInfo SelectTriedCollision_() EXCLUSIVE_LOCKS_REQUIRED(cs);
+    std::pair<CAddress, int64_t> SelectTriedCollision_()
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Consistency check, taking into account m_consistency_check_ratio. Will
     //! std::abort if an inconsistency is detected.
