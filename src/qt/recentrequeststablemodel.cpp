@@ -78,7 +78,7 @@ QVariant RecentRequestsTableModel::data(const QModelIndex &index,
                     return BitcoinUnits::format(
                         walletModel->getOptionsModel()->getDisplayUnit(),
                         rec->recipient.amount, false,
-                        BitcoinUnits::separatorNever);
+                        BitcoinUnits::SeparatorStyle::NEVER);
                 } else {
                     return BitcoinUnits::format(
                         walletModel->getOptionsModel()->getDisplayUnit(),

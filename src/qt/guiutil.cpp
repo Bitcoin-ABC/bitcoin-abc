@@ -206,10 +206,10 @@ QString formatBitcoinURI(const CChainParams &params,
     int paramCount = 0;
 
     if (info.amount != Amount::zero()) {
-        ret +=
-            QString("?amount=%1")
-                .arg(BitcoinUnits::format(BitcoinUnits::base, info.amount,
-                                          false, BitcoinUnits::separatorNever));
+        ret += QString("?amount=%1")
+                   .arg(BitcoinUnits::format(
+                       BitcoinUnits::base, info.amount, false,
+                       BitcoinUnits::SeparatorStyle::NEVER));
         paramCount++;
     }
 

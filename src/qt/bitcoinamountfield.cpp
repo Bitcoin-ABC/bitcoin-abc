@@ -56,7 +56,7 @@ public:
         if (valid) {
             val = qBound(m_min_amount, val, m_max_amount);
             input = BitcoinUnits::format(currentUnit, val, false,
-                                         BitcoinUnits::separatorAlways);
+                                         BitcoinUnits::SeparatorStyle::ALWAYS);
             lineEdit()->setText(input);
         }
     }
@@ -67,7 +67,7 @@ public:
 
     void setValue(const Amount value) {
         lineEdit()->setText(BitcoinUnits::format(
-            currentUnit, value, false, BitcoinUnits::separatorAlways));
+            currentUnit, value, false, BitcoinUnits::SeparatorStyle::ALWAYS));
         Q_EMIT valueChanged();
     }
 
@@ -89,8 +89,9 @@ public:
         bool valid = false;
         Amount val(value(&valid));
         currentUnit = unit;
-        lineEdit()->setPlaceholderText(BitcoinUnits::format(
-            currentUnit, m_min_amount, false, BitcoinUnits::separatorAlways));
+        lineEdit()->setPlaceholderText(
+            BitcoinUnits::format(currentUnit, m_min_amount, false,
+                                 BitcoinUnits::SeparatorStyle::ALWAYS));
         if (valid) {
             setValue(val);
         } else {
@@ -109,7 +110,7 @@ public:
             int w = GUIUtil::TextWidth(
                 fm, BitcoinUnits::format(BitcoinUnits::base,
                                          BitcoinUnits::maxMoney(), false,
-                                         BitcoinUnits::separatorAlways));
+                                         BitcoinUnits::SeparatorStyle::ALWAYS));
             // Cursor blinking space.
             w += 2;
 

@@ -168,7 +168,7 @@ void TestGUI(interfaces::Node &node) {
         int unit = walletModel.getOptionsModel()->getDisplayUnit();
         Amount balance = walletModel.wallet().getBalance();
         QString balanceComparison = BitcoinUnits::formatWithUnit(
-            unit, balance, false, BitcoinUnits::separatorAlways);
+            unit, balance, false, BitcoinUnits::SeparatorStyle::ALWAYS);
         QCOMPARE(balanceText, balanceComparison);
     }
 
@@ -192,7 +192,7 @@ void TestGUI(interfaces::Node &node) {
     int unit = walletModel.getOptionsModel()->getDisplayUnit();
     Amount balance = walletModel.wallet().getBalance();
     QString balanceComparison = BitcoinUnits::formatWithUnit(
-        unit, balance, false, BitcoinUnits::separatorAlways);
+        unit, balance, false, BitcoinUnits::SeparatorStyle::ALWAYS);
     QCOMPARE(balanceText, balanceComparison);
 
     // Check Request Payment button

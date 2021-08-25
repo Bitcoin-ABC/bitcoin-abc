@@ -112,7 +112,7 @@ private:
     QString formatTxAmount(const TransactionRecord *wtx,
                            bool showUnconfirmed = true,
                            BitcoinUnits::SeparatorStyle separators =
-                               BitcoinUnits::separatorStandard) const;
+                               BitcoinUnits::SeparatorStyle::STANDARD) const;
     QString formatTooltip(const TransactionRecord *rec) const;
     QVariant txStatusDecoration(const TransactionRecord *wtx) const;
     QVariant txWatchonlyDecoration(const TransactionRecord *wtx) const;
