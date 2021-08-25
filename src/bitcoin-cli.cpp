@@ -859,7 +859,7 @@ ConnectAndCallRPC(BaseRequestHandler *rh, const std::string &strMethod,
  * @param result  Reference to UniValue object the wallet names and balances are
  *                pushed to.
  */
-[[maybe_unused]] static void GetWalletBalances(UniValue &result) {
+static void GetWalletBalances(UniValue &result) {
     std::unique_ptr<BaseRequestHandler> rh{
         std::make_unique<DefaultRequestHandler>()};
     const UniValue listwallets =
