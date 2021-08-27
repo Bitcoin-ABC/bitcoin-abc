@@ -665,26 +665,35 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.nodes[i].process.wait(timeout)
 
     def connect_nodes(self, a, b):
-        from_node = self.nodes[a]
-        to_node = self.nodes[b]
+        from_connection = self.nodes[a]
+        to_connection = self.nodes[b]
 
-        host = to_node.host
+        host = to_connection.host
         if host is None:
             host = "127.0.0.1"
-        ip_port = f"{host}:{str(to_node.p2p_port)}"
-        from_node.addnode(ip_port, "onetry")
+        ip_port = f"{host}:{str(to_connection.p2p_port)}"
+        from_connection.addnode(ip_port, "onetry")
         # poll until version handshake complete to avoid race conditions
         # with transaction relaying
         # See comments in net_processing:
         # * Must have a version message before anything else
         # * Must have a verack message before anything else
         wait_until_helper(
-            lambda: all(peer["version"] != 0 for peer in from_node.getpeerinfo())
+            lambda: all(peer["version"] != 0 for peer in from_connection.getpeerinfo())
+        )
+        wait_until_helper(
+            lambda: all(peer["version"] != 0 for peer in to_connection.getpeerinfo())
         )
         wait_until_helper(
             lambda: all(
                 peer["bytesrecv_per_msg"].pop("verack", 0) == 24
-                for peer in from_node.getpeerinfo()
+                for peer in from_connection.getpeerinfo()
+            )
+        )
+        wait_until_helper(
+            lambda: all(
+                peer["bytesrecv_per_msg"].pop("verack", 0) == 24
+                for peer in to_connection.getpeerinfo()
             )
         )
 
