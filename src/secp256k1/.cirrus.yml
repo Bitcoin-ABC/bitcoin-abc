@@ -8,7 +8,6 @@ env:
   AUTOTOOLS_TARGET: check
   CMAKE_TARGET: check-secp256k1
   ### secp256k1 config
-  STATICPRECOMPUTATION: yes
   ECMULTGENPRECISION: auto
   ASM: no
   WIDEMUL: auto
@@ -54,7 +53,6 @@ task:
     - env: {WIDEMUL: int128,                 ECDH: yes, EXPERIMENTAL: yes, MULTISET: yes, SCHNORRSIG: yes}
     - env: {WIDEMUL: int128,  ASM: x86_64}
     - env: {                  RECOVERY: yes,            EXPERIMENTAL: yes, MULTISET: yes, SCHNORRSIG: yes}
-    - env: {                  STATICPRECOMPUTATION: no}
     - env: {AUTOTOOLS_TARGET: distcheck, CMAKE_TARGET: install, WITH_VALGRIND: no, CTIMETEST: no, BENCH: no}
     - env: {AUTOTOOLS_EXTRA_FLAGS: CPPFLAGS=-DDETERMINISTIC, CMAKE_EXTRA_FLAGS: -DCMAKE_C_FLAGS=-DDETERMINISTIC}
     - env: {AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-O0, CMAKE_EXTRA_FLAGS: -DCMAKE_BUILD_TYPE=Debug, CTIMETEST: no}
@@ -171,7 +169,6 @@ task:
     - name: "UBSan, ASan, LSan"
       env:
         CFLAGS: "-fsanitize=undefined,address"
-        CFLAGS_FOR_BUILD: "-fsanitize=undefined,address"
         UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
         ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:detect_leaks=1"
         LSAN_OPTIONS: "use_unaligned=1"
@@ -179,9 +176,6 @@ task:
   # Try to cover many configurations with just a tiny matrix.
   matrix:
     - env:
-        STATICPRECOMPUTATION: yes
-    - env:
-        STATICPRECOMPUTATION: no
         ECMULTGENPRECISION: 2
   matrix:
     - env:

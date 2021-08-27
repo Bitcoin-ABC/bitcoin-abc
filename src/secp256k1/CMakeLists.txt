@@ -229,20 +229,21 @@ if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
 endif()
 
-# Conditionally regenerate ecmult_static_pre_g.h if it does not exist
+# Conditionally regenerate precomputed header if they do not exist
 include(NativeExecutable)
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
-	add_native_executable(gen_ecmult_static_pre_g src/gen_ecmult_static_pre_g.c)
+
+function(gen_precomputed_header EXECUTABLE_NAME HEADER_NAME)
+	add_native_executable(${EXECUTABLE_NAME} "src/${EXECUTABLE_NAME}.c")
 	add_custom_command(
-		OUTPUT src/ecmult_static_pre_g.h
-		COMMAND  "$<TARGET_FILE:gen_ecmult_static_pre_g>"
-		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-		COMMENT "Generating src/ecmult_static_pre_g.h"
+		OUTPUT src/${HEADER_NAME}.h
+		COMMAND  "$<TARGET_FILE:${EXECUTABLE_NAME}>"
+		COMMENT "Generating src/${HEADER_NAME}.h"
 	)
-	add_custom_target(generate_ecmult_h ALL
-		DEPENDS src/ecmult_static_pre_g.h
-	)
-	add_dependencies(secp256k1 generate_ecmult_h)
+	target_sources(secp256k1 PRIVATE src/${HEADER_NAME}.h)
+endfunction(gen_precomputed_header)
+
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
+	gen_precomputed_header(gen_ecmult_static_pre_g ecmult_static_pre_g)
 endif()
 
 set(SECP256K1_ECMULT_GEN_PRECISION 4 CACHE STRING "Precision bits to tune the precomputed table size for signing.")
@@ -252,24 +253,14 @@ if(NOT ${SECP256K1_ECMULT_GEN_PRECISION} IN_LIST VALID_PRECISIONS)
 endif()
 
 # Static precomputation for elliptic curve multiplication
-option(SECP256K1_ECMULT_STATIC_PRECOMPUTATION "Precompute libsecp256k1's elliptic curve multiplication tables" ON)
-if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
-	set(USE_ECMULT_STATIC_PRECOMPUTATION 1)
-
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_gen_static_prec_table.h")
 	native_add_cmake_flags(
 		"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
 		"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
 		"-DSECP256K1_USE_ASM=OFF"
 		"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
 	)
-	add_native_executable(gen_ecmult_gen_static_prec_table src/gen_ecmult_gen_static_prec_table.c)
-
-	add_custom_command(
-		OUTPUT src/ecmult_gen_static_prec_table.h
-		COMMAND gen_ecmult_gen_static_prec_table
-	)
-
-	target_sources(secp256k1 PRIVATE src/ecmult_gen_static_prec_table.h)
+	gen_precomputed_header(gen_ecmult_gen_static_prec_table ecmult_gen_static_prec_table)
 endif()
 
 # If this project is not the top level project, then don't install by default
