@@ -1243,9 +1243,8 @@ private:
     const Config *config;
 
     // Network usage totals
-    mutable RecursiveMutex cs_totalBytesRecv;
     mutable RecursiveMutex cs_totalBytesSent;
-    uint64_t nTotalBytesRecv GUARDED_BY(cs_totalBytesRecv){0};
+    std::atomic<uint64_t> nTotalBytesRecv{0};
     uint64_t nTotalBytesSent GUARDED_BY(cs_totalBytesSent){0};
 
     // outbound limit & stats
@@ -1269,9 +1268,9 @@ private:
     bool fAddressesInitialized{false};
     AddrMan &addrman;
     std::deque<std::string> m_addr_fetches GUARDED_BY(m_addr_fetches_mutex);
-    RecursiveMutex m_addr_fetches_mutex;
+    Mutex m_addr_fetches_mutex;
     std::vector<std::string> m_added_nodes GUARDED_BY(m_added_nodes_mutex);
-    mutable RecursiveMutex m_added_nodes_mutex;
+    mutable Mutex m_added_nodes_mutex;
     std::vector<CNode *> m_nodes GUARDED_BY(m_nodes_mutex);
     std::list<CNode *> m_nodes_disconnected;
     mutable RecursiveMutex m_nodes_mutex;
