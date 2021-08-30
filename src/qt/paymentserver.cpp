@@ -744,11 +744,7 @@ void PaymentServer::fetchPaymentACK(interfaces::Wallet &wallet,
 
     // Create a new refund address, or re-use:
     CTxDestination dest;
-    const OutputType change_type =
-        wallet.getDefaultChangeType() != OutputType::CHANGE_AUTO
-            ? wallet.getDefaultChangeType()
-            : wallet.getDefaultAddressType();
-    if (wallet.getNewDestination(change_type, "", dest)) {
+    if (wallet.getNewDestination(OutputType::LEGACY, "", dest)) {
         // BIP70 requests encode the scriptPubKey directly, so we are not
         // restricted to address types supported by the receiver. As a result,
         // we choose the address format we also use for change. Despite an
