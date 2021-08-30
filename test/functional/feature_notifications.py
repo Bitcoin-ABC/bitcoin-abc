@@ -6,12 +6,14 @@
 """Test the -alertnotify, -blocknotify and -walletnotify options."""
 import os
 
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, keyhash_to_p2pkh
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     connect_nodes,
-    wait_until
+    disconnect_nodes,
+    wait_until,
+    hex_str_to_bytes,
 )
 
 FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}"
@@ -114,6 +116,63 @@ class NotificationsTest(BitcoinTestFramework):
                 sorted(txids_rpc), sorted(
                     os.listdir(
                         self.walletnotify_dir)))
+            for tx_file in os.listdir(self.walletnotify_dir):
+                os.remove(os.path.join(self.walletnotify_dir, tx_file))
+
+            # Conflicting transactions tests. Give node 0 same wallet seed as
+            # node 1, generate spends from node 0, and check notifications
+            # triggered by node 1
+            self.log.info("test -walletnotify with conflicting transactions")
+            self.nodes[0].sethdseed(
+                seed=self.nodes[1].dumpprivkey(
+                    keyhash_to_p2pkh(
+                        hex_str_to_bytes(
+                            self.nodes[1].getwalletinfo()['hdseedid'])[::-1])))
+            self.nodes[0].rescanblockchain()
+            self.nodes[0].generatetoaddress(100, ADDRESS_ECREG_UNSPENDABLE)
+
+            # Generate transaction on node 0, sync mempools, and check for
+            # notification on node 1.
+            tx1 = self.nodes[0].sendtoaddress(
+                address=ADDRESS_ECREG_UNSPENDABLE, amount=100)
+            assert_equal(tx1 in self.nodes[0].getrawmempool(), True)
+            self.sync_mempools()
+            self.expect_wallet_notify([tx1])
+
+            # Add tx1 transaction to new block, checking for a notification
+            # and the correct number of confirmations.
+            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+            self.sync_blocks()
+            self.expect_wallet_notify([tx1])
+            assert_equal(self.nodes[1].gettransaction(tx1)["confirmations"], 1)
+
+            # Generate conflicting transactions with the nodes disconnected.
+            # Sending almost the entire available balance on each node, but
+            # with a slightly different amount, ensures that there will be
+            # a conflict.
+            balance = self.nodes[0].getbalance()
+            disconnect_nodes(self.nodes[0], self.nodes[1])
+            tx2_node0 = self.nodes[0].sendtoaddress(
+                address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 20)
+            tx2_node1 = self.nodes[1].sendtoaddress(
+                address=ADDRESS_ECREG_UNSPENDABLE, amount=balance - 21)
+            assert tx2_node0 != tx2_node1
+            self.expect_wallet_notify([tx2_node1])
+            # So far tx2_node1 has no conflicting tx
+            assert not self.nodes[1].gettransaction(
+                tx2_node1)['walletconflicts']
+
+            # Mine a block on node0, reconnect the nodes, check that tx2_node1
+            # has a conflicting tx after syncing with node0.
+            self.nodes[0].generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)
+            connect_nodes(self.nodes[0], self.nodes[1])
+            self.sync_blocks()
+            assert tx2_node0 in self.nodes[1].gettransaction(tx2_node1)[
+                'walletconflicts']
+
+            # node1's wallet will notify of the new confirmed transaction tx2_0
+            # and about the conflicted transaction tx2_1.
+            self.expect_wallet_notify([tx2_node0, tx2_node1])
 
         # Create an invalid chain and ensure the node warns.
         self.log.info("test -alertnotify for forked chain")
@@ -136,6 +195,16 @@ class NotificationsTest(BitcoinTestFramework):
 
         for notify_file in os.listdir(self.alertnotify_dir):
             os.remove(os.path.join(self.alertnotify_dir, notify_file))
+
+    def expect_wallet_notify(self, tx_ids):
+        wait_until(
+            lambda: len(os.listdir(self.walletnotify_dir)) >= len(tx_ids),
+            timeout=10)
+        assert_equal(
+            sorted(notify_outputname(self.wallet, tx_id) for tx_id in tx_ids),
+            sorted(os.listdir(self.walletnotify_dir)))
+        for tx_file in os.listdir(self.walletnotify_dir):
+            os.remove(os.path.join(self.walletnotify_dir, tx_file))
 
 
 if __name__ == '__main__':
