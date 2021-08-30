@@ -943,10 +943,7 @@ void SetupServerArgs(NodeContext &node) {
             Join(GetNetworkNames(), ", ") +
             "). Incoming connections are not affected by this option. This "
             "option can be specified multiple times to allow multiple "
-            "networks. Warning: if it is used with non-onion networks "
-            "and the -onion or -proxy option is set, then outbound onion "
-            "connections will still be made; use -noonion or -onion=0 to "
-            "disable outbound onion connections in this case",
+            "networks.",
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg("-peerbloomfilters",
                    strprintf("Support filtering of blocks and transaction with "
@@ -2400,13 +2397,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // parameters
     fNameLookup = args.GetBoolArg("-dns", DEFAULT_NAME_LOOKUP);
 
+    proxyType onion_proxy;
+
     bool proxyRandomize =
         args.GetBoolArg("-proxyrandomize", DEFAULT_PROXYRANDOMIZE);
     // -proxy sets a proxy for all outgoing network traffic
     // -noproxy (or -proxy=0) as well as the empty string can be used to not set
     // a proxy, this is the default
     std::string proxyArg = args.GetArg("-proxy", "");
-    SetReachable(NET_ONION, false);
     if (proxyArg != "" && proxyArg != "0") {
         const std::optional<CService> proxyAddr{
             Lookup(proxyArg, 9050, fNameLookup)};
@@ -2423,10 +2421,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         SetProxy(NET_IPV4, addrProxy);
         SetProxy(NET_IPV6, addrProxy);
-        SetProxy(NET_ONION, addrProxy);
         SetNameProxy(addrProxy);
-        // by default, -proxy sets onion as reachable, unless -noonion later
-        SetReachable(NET_ONION, true);
+        onion_proxy = addrProxy;
     }
 
     // -onion can be used to set only a proxy for .onion, or override normal
@@ -2438,22 +2434,29 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (onionArg != "") {
         if (onionArg == "0") {
             // Handle -noonion/-onion=0
-            SetReachable(NET_ONION, false);
+            onion_proxy = proxyType{};
         } else {
-            const std::optional<CService> onionProxy{
+            const std::optional<CService> addr{
                 Lookup(onionArg, 9050, fNameLookup)};
-            if (!onionProxy.has_value()) {
+            if (!addr.has_value() || !addr->IsValid()) {
                 return InitError(strprintf(
                     _("Invalid -onion address or hostname: '%s'"), onionArg));
             }
-            proxyType addrOnion = proxyType(onionProxy.value(), proxyRandomize);
-            if (!addrOnion.IsValid()) {
-                return InitError(strprintf(
-                    _("Invalid -onion address or hostname: '%s'"), onionArg));
-            }
-            SetProxy(NET_ONION, addrOnion);
-            SetReachable(NET_ONION, true);
+            onion_proxy = proxyType{addr.value(), proxyRandomize};
         }
+    }
+
+    if (onion_proxy.IsValid()) {
+        SetProxy(NET_ONION, onion_proxy);
+    } else {
+        if (args.IsArgSet("-onlynet") && IsReachable(NET_ONION)) {
+            return InitError(_("Outbound connections restricted to Tor "
+                               "(-onlynet=onion) but the proxy for "
+                               "reaching the Tor network is not provided (no "
+                               "-proxy= and no -onion= given) or "
+                               "it is explicitly forbidden (-onion=0)"));
+        }
+        SetReachable(NET_ONION, false);
     }
 
     for (const std::string &strAddr : args.GetArgs("-externalip")) {
@@ -3081,7 +3084,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             return InitError(strprintf(
                 _("Invalid -i2psam address or hostname: '%s'"), i2psam_arg));
         }
-        SetReachable(NET_I2P, true);
         SetProxy(NET_I2P, proxyType{addr.value()});
     } else {
         SetReachable(NET_I2P, false);
