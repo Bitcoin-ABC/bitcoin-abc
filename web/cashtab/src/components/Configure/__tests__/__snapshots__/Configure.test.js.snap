@@ -2,7 +2,7 @@
 
 exports[`Configure with a wallet 1`] = `
 <div
-  className="sc-kGXeez ldTGry"
+  className="sc-kEYyzF jqzglm"
 >
   <h2>
     <span
@@ -110,7 +110,7 @@ exports[`Configure with a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kpOJdX eglhol"
+    className="sc-kkGfuU lbBTMM"
   />
   <h2>
     <span
@@ -188,7 +188,7 @@ exports[`Configure with a wallet 1`] = `
      Import Wallet
   </button>
   <div
-    className="sc-kpOJdX eglhol"
+    className="sc-kkGfuU lbBTMM"
   />
   <h2>
     <span
@@ -305,11 +305,11 @@ exports[`Configure with a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kpOJdX eglhol"
+    className="sc-kkGfuU lbBTMM"
   />
   [
   <a
-    className="sc-jzJRlG lcaLuD"
+    className="sc-dxgOiQ jbuVAx"
     href="https://docs.cashtabapp.com/docs/"
     rel="noreferrer"
     target="_blank"
@@ -323,7 +323,7 @@ exports[`Configure with a wallet 1`] = `
 
 exports[`Configure without a wallet 1`] = `
 <div
-  className="sc-kGXeez ldTGry"
+  className="sc-kEYyzF jqzglm"
 >
   <h2>
     <span
@@ -393,7 +393,7 @@ exports[`Configure without a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kpOJdX eglhol"
+    className="sc-kkGfuU lbBTMM"
   />
   <h2>
     <span
@@ -471,7 +471,7 @@ exports[`Configure without a wallet 1`] = `
      Import Wallet
   </button>
   <div
-    className="sc-kpOJdX eglhol"
+    className="sc-kkGfuU lbBTMM"
   />
   <h2>
     <span
@@ -588,11 +588,11 @@ exports[`Configure without a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kpOJdX eglhol"
+    className="sc-kkGfuU lbBTMM"
   />
   [
   <a
-    className="sc-jzJRlG lcaLuD"
+    className="sc-dxgOiQ jbuVAx"
     href="https://docs.cashtabapp.com/docs/"
     rel="noreferrer"
     target="_blank"

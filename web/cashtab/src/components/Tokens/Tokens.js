@@ -1,5 +1,4 @@
 import React from 'react';
-import { CashLoader } from '@components/Common/CustomIcons';
 import { WalletContext } from '@utils/context';
 import { fromSmallestDenomination, getWalletState } from '@utils/cashMethods';
 import CreateTokenForm from '@components/Tokens/CreateTokenForm';
@@ -9,6 +8,7 @@ import useBCH from '@hooks/useBCH';
 import { BalanceHeader } from '@components/Common/BalanceHeader';
 import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
 import { ZeroBalanceHeader, AlertMsg } from '@components/Common/Atoms';
+import { ApiError } from '@components/Common/ApiError';
 
 const Tokens = ({ jestBCH, passLoadingStatus }) => {
     /*
@@ -60,19 +60,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                     )}
                 </>
             )}
-            {apiError && (
-                <>
-                    <p
-                        style={{
-                            color: 'red',
-                        }}
-                    >
-                        <b>An error occurred on our end.</b>
-                        <br></br> Re-establishing connection...
-                    </p>
-                    <CashLoader />
-                </>
-            )}
+            {apiError && <ApiError />}
             <CreateTokenForm
                 BCH={BCH}
                 getRestUrl={getRestUrl}

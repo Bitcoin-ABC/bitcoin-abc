@@ -13,7 +13,6 @@ import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
     SecondaryButton,
 } from '@components/Common/PrimaryButton';
-import { CashLoader } from '@components/Common/CustomIcons';
 import {
     FormItemWithMaxAddon,
     FormItemWithQRCodeAddon,
@@ -37,6 +36,7 @@ import {
     convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
 import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
+import { ApiError } from '@components/Common/ApiError';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
@@ -363,7 +363,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                             <SecondaryButton>
                                                 Send {token.info.tokenName}
                                             </SecondaryButton>
-                                            {apiError && <CashLoader />}
                                         </>
                                     ) : (
                                         <PrimaryButton onClick={() => submit()}>
@@ -378,18 +377,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                         type="warning"
                                     />
                                 )}
-                                {apiError && (
-                                    <p
-                                        style={{
-                                            color: 'red',
-                                        }}
-                                    >
-                                        <b>
-                                            An error occured on our end.
-                                            Reconnecting...
-                                        </b>
-                                    </p>
-                                )}
+                                {apiError && <ApiError />}
                             </Form>
                             {tokenStats !== null && (
                                 <Descriptions

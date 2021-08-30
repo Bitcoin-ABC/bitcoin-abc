@@ -48,7 +48,7 @@ export const TokenParamLabel = styled.span`
 `;
 
 export const AlertMsg = styled.p`
-    color: ${props => props.theme.forms.error};
+    color: ${props => props.theme.forms.error} !important;
 `;
 
 export const ConvertAmount = styled.div`

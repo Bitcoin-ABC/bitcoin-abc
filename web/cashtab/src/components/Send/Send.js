@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WalletContext } from '@utils/context';
 import { Form, notification, message, Modal, Alert } from 'antd';
-import { CashLoader } from '@components/Common/CustomIcons';
 import { Row, Col } from 'antd';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
@@ -31,6 +30,7 @@ import {
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
 import { CashReceivedNotificationIcon } from '@components/Common/CustomIcons';
+import { ApiError } from '@components/Common/ApiError';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -510,21 +510,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 type="warning"
                             />
                         )}
-                        {apiError && (
-                            <>
-                                <CashLoader />
-                                <p
-                                    style={{
-                                        color: 'red',
-                                    }}
-                                >
-                                    <b>
-                                        An error occured on our end.
-                                        Reconnecting...
-                                    </b>
-                                </p>
-                            </>
-                        )}
+                        {apiError && <ApiError />}
                     </Form>
                 </Col>
             </Row>

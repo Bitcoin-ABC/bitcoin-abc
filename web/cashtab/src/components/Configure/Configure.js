@@ -19,7 +19,6 @@ import PrimaryButton, {
     SmartButton,
 } from '@components/Common/PrimaryButton';
 import {
-    CashLoader,
     ThemedCopyOutlined,
     ThemedWalletOutlined,
     ThemedDollarOutlined,
@@ -27,6 +26,7 @@ import {
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
+import { ApiError } from '@components/Common/ApiError';
 
 const { Panel } = Collapse;
 
@@ -474,12 +474,7 @@ const Configure = () => {
                 <ThemedWalletOutlined /> Manage Wallets
             </h2>
             {apiError ? (
-                <>
-                    <CashLoader />
-                    <p style={{ color: 'red' }}>
-                        <b>An error occured on our end. Reconnecting...</b>
-                    </p>
-                </>
+                <ApiError />
             ) : (
                 <>
                     <PrimaryButton onClick={() => updateSavedWalletsOnCreate()}>
