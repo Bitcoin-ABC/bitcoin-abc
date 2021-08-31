@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
     ArrowUpOutlined,
@@ -322,6 +323,12 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
             )}
         </TxWrapper>
     );
+};
+
+Tx.propTypes = {
+    data: PropTypes.object,
+    fiatPrice: PropTypes.number,
+    fiatCurrency: PropTypes.string,
 };
 
 export default Tx;

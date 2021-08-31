@@ -2,7 +2,7 @@ import * as React from 'react';
 import { CashLoader } from '@components/Common/CustomIcons';
 import { AlertMsg } from '@components/Common/Atoms';
 
-export const ApiError = () => {
+const ApiError = () => {
     return (
         <>
             <AlertMsg>
@@ -13,3 +13,5 @@ export const ApiError = () => {
         </>
     );
 };
+
+export default ApiError;

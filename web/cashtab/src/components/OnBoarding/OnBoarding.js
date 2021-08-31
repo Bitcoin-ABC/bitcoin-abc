@@ -29,7 +29,7 @@ export const WelcomeLink = styled.a`
     color: ${props => props.theme.primary};
 `;
 
-export const OnBoarding = ({ history }) => {
+const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
     const { createWallet, validateMnemonic } = ContextValue;
     const [formData, setFormData] = useState({
@@ -151,3 +151,5 @@ export const OnBoarding = ({ history }) => {
         </>
     );
 };
+
+export default OnBoarding;

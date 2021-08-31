@@ -1,8 +1,9 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
 import { BalanceHeaderFiatWrap } from '@components/Common/Atoms';
 import { currency } from '@components/Common/Ticker.js';
 
-export const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
+const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
     return (
         <BalanceHeaderFiatWrap>
             {settings
@@ -17,3 +18,11 @@ export const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
         </BalanceHeaderFiatWrap>
     );
 };
+
+BalanceHeaderFiat.propTypes = {
+    balance: PropTypes.number,
+    settings: PropTypes.object,
+    fiatPrice: PropTypes.number,
+};
+
+export default BalanceHeaderFiat;

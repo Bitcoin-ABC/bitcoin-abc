@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
 import { Form, notification, message, Modal, Alert } from 'antd';
 import { Row, Col } from 'antd';
@@ -21,8 +22,8 @@ import {
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
-import { BalanceHeader } from '@components/Common/BalanceHeader';
-import { BalanceHeaderFiat } from '@components/Common/BalanceHeaderFiat';
+import BalanceHeader from '@components/Common/BalanceHeader';
+import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
 import {
     ZeroBalanceHeader,
     ConvertAmount,
@@ -30,7 +31,7 @@ import {
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
 import { CashReceivedNotificationIcon } from '@components/Common/CustomIcons';
-import { ApiError } from '@components/Common/ApiError';
+import ApiError from '@components/Common/ApiError';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -529,6 +530,11 @@ SendBCH.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);
     },
+};
+
+SendBCH.propTypes = {
+    jestBCH: PropTypes.object,
+    passLoadingStatus: PropTypes.func,
 };
 
 export default SendBCH;

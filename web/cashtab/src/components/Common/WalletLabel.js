@@ -1,4 +1,5 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const WalletName = styled.h4`
@@ -20,6 +21,10 @@ const WalletLabel = ({ name }) => {
             )}
         </>
     );
+};
+
+WalletLabel.propTypes = {
+    name: PropTypes.string,
 };
 
 export default WalletLabel;

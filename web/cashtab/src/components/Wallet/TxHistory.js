@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Tx from './Tx';
 
@@ -23,6 +24,12 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
             ))}
         </div>
     );
+};
+
+TxHistory.propTypes = {
+    txs: PropTypes.array,
+    fiatPrice: PropTypes.number,
+    fiatCurrency: PropTypes.string,
 };
 
 export default TxHistory;

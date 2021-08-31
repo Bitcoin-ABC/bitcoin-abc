@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Alert, Modal } from 'antd';
 import { ThemedQrcodeOutlined } from '@components/Common/CustomIcons';
 import styled from 'styled-components';
@@ -28,8 +29,7 @@ const QRPreview = styled.video`
     width: 100%;
 `;
 
-export const ScanQRCode = ({
-    width,
+const ScanQRCode = ({
     loadWithCameraOpen,
     onScan = () => null,
     ...otherProps
@@ -168,3 +168,10 @@ export const ScanQRCode = ({
         </>
     );
 };
+
+ScanQRCode.propTypes = {
+    loadWithCameraOpen: PropTypes.bool,
+    onScan: PropTypes.func,
+};
+
+export default ScanQRCode;

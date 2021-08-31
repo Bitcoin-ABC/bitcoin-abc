@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { AntdFormWrapper } from '@components/Common/EnhancedInputs';
 import { TokenCollapse } from '@components/Common/StyledCollapse';
 import { currency } from '@components/Common/Ticker.js';
@@ -375,6 +376,14 @@ CreateTokenForm.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);
     },
+};
+
+CreateTokenForm.propTypes = {
+    BCH: PropTypes.object,
+    getRestUrl: PropTypes.func,
+    createToken: PropTypes.func,
+    disabled: PropTypes.bool,
+    passLoadingStatus: PropTypes.func,
 };
 
 export default CreateTokenForm;

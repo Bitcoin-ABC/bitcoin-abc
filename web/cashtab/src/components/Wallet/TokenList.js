@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
 import { formatBalance } from '@utils/cashMethods';
@@ -17,6 +18,10 @@ const TokenList = ({ tokens }) => {
             ))}
         </div>
     );
+};
+
+TokenList.propTypes = {
+    tokens: PropTypes.array,
 };
 
 export default TokenList;

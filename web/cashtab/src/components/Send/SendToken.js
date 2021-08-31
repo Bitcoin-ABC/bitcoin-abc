@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
 import {
     Form,
@@ -18,7 +19,7 @@ import {
     FormItemWithQRCodeAddon,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
-import { BalanceHeader } from '@components/Common/BalanceHeader';
+import BalanceHeader from '@components/Common/BalanceHeader';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -36,7 +37,7 @@ import {
     convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
 import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
-import { ApiError } from '@components/Common/ApiError';
+import ApiError from '@components/Common/ApiError';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
@@ -445,6 +446,12 @@ SendToken.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);
     },
+};
+
+SendToken.propTypes = {
+    tokenId: PropTypes.string,
+    jestBCH: PropTypes.object,
+    passLoadingStatus: PropTypes.func,
 };
 
 export default SendToken;

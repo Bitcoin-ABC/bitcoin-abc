@@ -26,7 +26,7 @@ import {
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
-import { ApiError } from '@components/Common/ApiError';
+import ApiError from '@components/Common/ApiError';
 
 const { Panel } = Collapse;
 

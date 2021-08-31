@@ -1,11 +1,12 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
 import { Form, Input, Select } from 'antd';
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
 } from '@components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
-import { ScanQRCode } from './ScanQRCode';
+import ScanQRCode from './ScanQRCode';
 import useBCH from '@hooks/useBCH';
 import { currency } from '@components/Common/Ticker.js';
 
@@ -195,6 +196,13 @@ export const SendBchInput = ({
     );
 };
 
+SendBchInput.propTypes = {
+    onMax: PropTypes.func,
+    inputProps: PropTypes.object,
+    selectProps: PropTypes.object,
+    activeFiatCode: PropTypes.string,
+};
+
 export const FormItemWithMaxAddon = ({ onMax, inputProps, ...otherProps }) => {
     return (
         <AntdFormWrapper>
@@ -224,6 +232,11 @@ export const FormItemWithMaxAddon = ({ onMax, inputProps, ...otherProps }) => {
     );
 };
 
+FormItemWithMaxAddon.propTypes = {
+    onMax: PropTypes.func,
+    inputProps: PropTypes.object,
+};
+
 // loadWithCameraOpen prop: if true, load page with camera scanning open
 export const FormItemWithQRCodeAddon = ({
     onScan,
@@ -248,6 +261,12 @@ export const FormItemWithQRCodeAddon = ({
             </Form.Item>
         </AntdFormWrapper>
     );
+};
+
+FormItemWithQRCodeAddon.propTypes = {
+    onScan: PropTypes.func,
+    loadWithCameraOpen: PropTypes.bool,
+    inputProps: PropTypes.object,
 };
 
 export const CurrencySelectDropdown = selectProps => {

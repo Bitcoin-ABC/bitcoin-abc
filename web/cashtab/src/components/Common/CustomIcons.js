@@ -7,7 +7,7 @@ import {
     WalletOutlined,
     QrcodeOutlined,
 } from '@ant-design/icons';
-import { Avatar, Image } from 'antd';
+import { Image } from 'antd';
 import { currency } from '@components/Common/Ticker';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;

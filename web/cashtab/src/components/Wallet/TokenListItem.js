@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
@@ -69,6 +70,12 @@ const TokenListItem = ({ ticker, balance, tokenId }) => {
             </BalanceAndTicker>
         </Wrapper>
     );
+};
+
+TokenListItem.propTypes = {
+    ticker: PropTypes.string,
+    balance: PropTypes.string,
+    tokenId: PropTypes.string,
 };
 
 export default TokenListItem;
