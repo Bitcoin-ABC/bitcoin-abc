@@ -44,6 +44,10 @@ NO_JEMALLOC ?=
 NO_CPYTHON ?=
 FALLBACK_DOWNLOAD_PATH ?= https://download.bitcoinabc.org/depends-sources
 
+# OpenSSL bn implementation uses inline asm so we have to use gnu extensions
+C_STANDARD ?= gnu11
+CXX_STANDARD ?= c++17
+
 BUILD = $(shell ./config.guess)
 HOST ?= $(BUILD)
 PATCHES_PATH = $(BASEDIR)/patches

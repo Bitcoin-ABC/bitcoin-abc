@@ -1,5 +1,5 @@
-mingw32_CFLAGS=-pipe
-mingw32_CXXFLAGS=$(mingw32_CFLAGS)
+mingw32_CFLAGS=-pipe -std=$(C_STANDARD)
+mingw32_CXXFLAGS=-pipe -std=$(CXX_STANDARD)
 
 mingw32_release_CFLAGS=-O2
 mingw32_release_CXXFLAGS=$(mingw32_release_CFLAGS)
