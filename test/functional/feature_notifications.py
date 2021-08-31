@@ -12,9 +12,8 @@ from test_framework.util import (
     assert_equal,
     connect_nodes,
     disconnect_nodes,
-    wait_until,
-    disconnect_nodes,
     hex_str_to_bytes,
+    wait_until,
 )
 
 FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}"
