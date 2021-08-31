@@ -119,9 +119,6 @@ BasicTestingSetup::BasicTestingSetup(
     }
     SelectParams(chainName);
     SeedInsecureRand();
-    if (G_TEST_LOG_FUN) {
-        LogInstance().PushBackCallback(G_TEST_LOG_FUN);
-    }
     InitLogging(*m_node.args);
     AppInitParameterInteraction(config, *m_node.args);
     LogInstance().StartLogging();

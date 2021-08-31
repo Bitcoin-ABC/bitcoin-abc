@@ -4,13 +4,9 @@
 
 #include <test/fuzz/fuzz.h>
 
-#include <test/util/setup_common.h>
-
 #include <cstdint>
 #include <unistd.h>
 #include <vector>
-
-const std::function<void(const std::string &)> G_TEST_LOG_FUN{};
 
 // Decide if main(...) should be provided:
 // * AFL needs main(...) regardless of platform.
@@ -22,7 +18,6 @@ const std::function<void(const std::string &)> G_TEST_LOG_FUN{};
 #endif
 
 #if defined(PROVIDE_MAIN_FUNCTION)
-
 static bool read_stdin(std::vector<uint8_t> &data) {
     uint8_t buffer[1024];
     ssize_t length = 0;
