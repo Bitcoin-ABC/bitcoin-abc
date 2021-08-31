@@ -22,7 +22,7 @@ else
 $(package)_toolset_$(host_os)=gcc
 endif
 $(package)_config_libraries=atomic,date_time,test
-$(package)_cxxflags=-std=c++17 -fvisibility=hidden
+$(package)_cxxflags+=-std=c++17 -fvisibility=hidden
 $(package)_cxxflags_linux=-fPIC
 endef
 
