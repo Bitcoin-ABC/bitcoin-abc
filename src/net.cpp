@@ -585,13 +585,12 @@ Network CNode::ConnectedThroughNetwork() const {
     return IsInboundConn() && m_inbound_onion ? NET_ONION : addr.GetNetClass();
 }
 
-void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap) {
+void CNode::copyStats(CNodeStats &stats) {
     stats.nodeid = this->GetId();
     stats.nServices = nServices;
     stats.addr = addr;
     stats.addrBind = addrBind;
     stats.m_network = GetNetworkName(ConnectedThroughNetwork());
-    stats.m_mapped_as = addr.GetMappedAS(m_asmap);
     if (m_tx_relay != nullptr) {
         LOCK(m_tx_relay->cs_filter);
         stats.fRelayTxes = m_tx_relay->fRelayTxes;
@@ -3103,7 +3102,8 @@ void CConnman::GetNodeStats(std::vector<CNodeStats> &vstats) {
     vstats.reserve(vNodes.size());
     for (CNode *pnode : vNodes) {
         vstats.emplace_back();
-        pnode->copyStats(vstats.back(), addrman.m_asmap);
+        pnode->copyStats(vstats.back());
+        vstats.back().m_mapped_as = pnode->addr.GetMappedAS(addrman.m_asmap);
     }
 }
 

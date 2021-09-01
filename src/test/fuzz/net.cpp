@@ -71,14 +71,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 break;
             }
             case 2: {
-                const std::vector<bool> asmap =
-                    ConsumeRandomLengthIntegralVector<bool>(
-                        fuzzed_data_provider, 128);
-                if (!SanityCheckASMap(asmap, 128)) {
-                    break;
-                }
                 CNodeStats stats;
-                node.copyStats(stats, asmap);
+                node.copyStats(stats);
                 break;
             }
             case 3: {
