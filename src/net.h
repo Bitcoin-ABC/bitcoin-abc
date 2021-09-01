@@ -251,7 +251,6 @@ public:
         bool m_use_addrman_outgoing = true;
         std::vector<std::string> m_specified_outgoing;
         std::vector<std::string> m_added_nodes;
-        std::vector<bool> m_asmap;
     };
 
     void Init(const Options &connOptions) {
