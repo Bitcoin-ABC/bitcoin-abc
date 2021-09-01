@@ -16,6 +16,7 @@ option(BUILD_BITCOIN_TX "Build bitcoin-tx" ON)
 option(BUILD_BITCOIN_QT "Build bitcoin-qt" ON)
 option(BUILD_BITCOIN_SEEDER "Build bitcoin-seeder" ON)
 option(BUILD_LIBBITCOINCONSENSUS "Build the bitcoinconsenus shared library" ON)
+option(BUILD_BITCOIN_CHAINSTATE "Build bitcoin-chainstate" OFF)
 option(ENABLE_BIP70 "Enable BIP70 (payment protocol) support in GUI" ON)
 option(ENABLE_HARDENING "Harden the executables" ON)
 option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
@@ -470,16 +471,20 @@ endif()
 
 set(Boost_USE_STATIC_LIBS ON)
 
+macro(link_windows_dependencies TARGET)
+	find_package(SHLWAPI REQUIRED)
+	target_link_libraries(${TARGET} SHLWAPI::shlwapi)
+
+	find_library(WS2_32_LIBRARY NAMES ws2_32)
+	target_link_libraries(${TARGET} ${WS2_32_LIBRARY})
+endmacro()
+
 # Target specific configs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(Boost_USE_STATIC_RUNTIME ON)
 	set(Boost_THREADAPI win32)
 
-	find_package(SHLWAPI REQUIRED)
-	target_link_libraries(util SHLWAPI::shlwapi)
-
-	find_library(WS2_32_LIBRARY NAMES ws2_32)
-	target_link_libraries(util ${WS2_32_LIBRARY})
+	link_windows_dependencies(util)
 endif()
 
 target_link_libraries(util univalue crypto)
@@ -814,6 +819,159 @@ if(BUILD_BITCOIN_TX)
 
 	install_target(bitcoin-tx)
 	install_manpages(bitcoin-tx)
+endif()
+
+# bitcoin-chainstate
+if(BUILD_BITCOIN_CHAINSTATE)
+	add_executable(bitcoin-chainstate
+		bitcoin-chainstate.cpp
+
+		# bitcoin-chainstate dependencies
+		# The goal is for this list to grow shorter as more and more modules
+		# of the codebase are decoupled from the consensus engine.
+		arith_uint256.cpp
+		blockfileinfo.cpp
+		blockfilter.cpp
+		blockindex.cpp
+		bloom.cpp
+		chain.cpp
+		chainparamsbase.cpp
+		chainparams.cpp
+		checkpoints.cpp
+		clientversion.cpp
+		coins.cpp
+		compat/glibcxx_sanity.cpp
+		compressor.cpp
+		config.cpp
+		consensus/activation.cpp
+		consensus/amount.cpp
+		consensus/merkle.cpp
+		consensus/tx_check.cpp
+		consensus/tx_verify.cpp
+		core_read.cpp
+		dbwrapper.cpp
+		deploymentstatus.cpp
+		eventloop.cpp
+		feerate.cpp
+		flatfile.cpp
+		fs.cpp
+		hash.cpp
+		index/base.cpp
+		index/blockfilterindex.cpp
+		index/coinstatsindex.cpp
+		init/common.cpp
+		key.cpp
+		logging.cpp
+		netaddress.cpp
+		networks/abc/chainparamsconstants.cpp
+		networks/abc/checkpoints.cpp
+		node/blockstorage.cpp
+		node/chainstate.cpp
+		node/coinstats.cpp
+		node/ui_interface.cpp
+		node/utxo_snapshot.cpp
+		policy/fees.cpp
+		policy/packages.cpp
+		policy/policy.cpp
+		policy/settings.cpp
+		pow/aserti32d.cpp
+		pow/daa.cpp
+		pow/eda.cpp
+		pow/pow.cpp
+		primitives/block.cpp
+		primitives/transaction.cpp
+		pubkey.cpp
+		random.cpp
+		randomenv.cpp
+		rcu.cpp
+		scheduler.cpp
+		script/bitfield.cpp
+		script/interpreter.cpp
+		script/script.cpp
+		script/scriptcache.cpp
+		script/script_error.cpp
+		script/sigcache.cpp
+		script/sigencoding.cpp
+		script/standard.cpp
+		shutdown.cpp
+		support/cleanse.cpp
+		support/lockedpool.cpp
+		sync.cpp
+		threadinterrupt.cpp
+		timedata.cpp
+		txdb.cpp
+		txmempool.cpp
+		uint256.cpp
+		util/asmap.cpp
+		util/bytevectorhash.cpp
+		util/check.cpp
+		util/getuniquepath.cpp
+		util/hasher.cpp
+		util/moneystr.cpp
+		util/settings.cpp
+		util/strencodings.cpp
+		util/string.cpp
+		util/system.cpp
+		util/thread.cpp
+		util/threadnames.cpp
+		util/time.cpp
+		util/tokenpipe.cpp
+		validation.cpp
+		validationinterface.cpp
+		versionbits.cpp
+		warnings.cpp
+
+		# Bitcoin ABC specific dependencies that will not go away with Core backports
+		addrdb.cpp   # via banman.cpp
+		addrman.cpp  # via net.cpp
+		banman.cpp   # via net.cpp
+		base58.cpp   # via key_io.cpp
+		avalanche/avalanche.cpp
+		avalanche/delegation.cpp
+		avalanche/delegationbuilder.cpp
+		avalanche/peermanager.cpp
+		avalanche/processor.cpp
+		avalanche/proof.cpp
+		avalanche/proofid.cpp
+		avalanche/proofpool.cpp
+		avalanche/voterecord.cpp
+		cashaddr.cpp         # via cashaddrenc.cpp
+		cashaddrenc.cpp      # via key_io.cpp
+		dnsseeds.cpp         # via net.cpp (GetRandomizedDNSSeeds)
+		i2p.cpp              # via net.cpp
+		key_io.cpp           # avalanche/processor.cpp uses DecodeSecret
+		minerfund.cpp        # via policy/block/minerfund.cpp
+		net.cpp              # avalanche uses CConnman
+		netbase.cpp          # via net.cpp
+		net_permissions.cpp  # via net.cpp
+		policy/block/minerfund.cpp
+		policy/block/stakingrewards.cpp
+		protocol.cpp            # avalanche/processor.cpp uses NetMsgType
+		util/error.cpp          # via net_permissions.cpp (ResolveErrMsg)
+		util/readwritefile.cpp  # via i2p.cpp
+		util/sock.cpp           # via net.cpp
+	)
+
+	target_include_directories(bitcoin-chainstate
+		PRIVATE
+			.
+			leveldb/helpers/memenv
+			# To access the config/ and obj/ directories
+			${CMAKE_CURRENT_BINARY_DIR}
+	)
+	target_link_libraries(bitcoin-chainstate crypto univalue secp256k1 leveldb memenv)
+	link_boost_headers_only(bitcoin-chainstate headers)
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		link_windows_dependencies(bitcoin-chainstate)
+	endif()
+
+	generate_windows_version_info(bitcoin-chainstate
+		DESCRIPTION "CLI Datadir information utility (experimental)"
+	)
+
+	add_to_symbols_check(bitcoin-chainstate)
+	add_to_security_check(bitcoin-chainstate)
 endif()
 
 # bitcoind
