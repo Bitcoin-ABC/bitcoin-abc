@@ -867,8 +867,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWalletFromFile, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(ZapSelectTx, TestChain100Setup) {
-    NodeContext node;
-    auto chain = interfaces::MakeChain(node, Params());
+    auto chain = interfaces::MakeChain(m_node, Params());
     auto wallet = TestLoadWallet(*chain);
     CKey key;
     key.MakeNewKey(true);
