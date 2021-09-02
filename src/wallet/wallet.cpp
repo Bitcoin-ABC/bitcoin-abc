@@ -2965,8 +2965,6 @@ CWallet::Create(WalletContext &context, const std::string &name,
     // Try to top up keypool. No-op if the wallet is locked.
     walletInstance->TopUpKeyPool();
 
-    LOCK(walletInstance->cs_wallet);
-
     if (chain && !AttachChain(walletInstance, *chain, error, warnings)) {
         return nullptr;
     }
@@ -2978,10 +2976,10 @@ CWallet::Create(WalletContext &context, const std::string &name,
         }
     }
 
-    walletInstance->SetBroadcastTransactions(
-        gArgs.GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST));
-
     {
+        LOCK(walletInstance->cs_wallet);
+        walletInstance->SetBroadcastTransactions(
+            gArgs.GetBoolArg("-walletbroadcast", DEFAULT_WALLETBROADCAST));
         walletInstance->WalletLogPrintf("setKeyPool.size() = %u\n",
                                         walletInstance->GetKeyPoolSize());
         walletInstance->WalletLogPrintf("mapWallet.size() = %u\n",

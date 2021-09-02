@@ -863,35 +863,26 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
     // as soon as possible.
     addtx_count = 0;
     auto handler = HandleLoadWallet(
-        context,
-        [&](std::unique_ptr<interfaces::Wallet> wallet_param)
-            EXCLUSIVE_LOCKS_REQUIRED(wallet_param->wallet()->cs_wallet,
-                                     context.wallets_mutex) {
-                BOOST_CHECK(rescan_completed);
-                m_coinbase_txns.push_back(
-                    CreateAndProcessBlock(
-                        {}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
-                        .vtx[0]);
-                block_tx =
-                    TestSimpleSpend(*m_coinbase_txns[2], 0, coinbaseKey,
-                                    GetScriptForRawPubKey(key.GetPubKey()));
-                m_coinbase_txns.push_back(
-                    CreateAndProcessBlock(
-                        {block_tx},
-                        GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
-                        .vtx[0]);
-                mempool_tx =
-                    TestSimpleSpend(*m_coinbase_txns[3], 0, coinbaseKey,
-                                    GetScriptForRawPubKey(key.GetPubKey()));
-                BOOST_CHECK(m_node.chain->broadcastTransaction(
-                    GetConfig(), MakeTransactionRef(mempool_tx),
-                    DEFAULT_TRANSACTION_MAXFEE, false, error));
-                LEAVE_CRITICAL_SECTION(context.wallets_mutex);
-                LEAVE_CRITICAL_SECTION(wallet_param->wallet()->cs_wallet);
-                SyncWithValidationInterfaceQueue();
-                ENTER_CRITICAL_SECTION(wallet_param->wallet()->cs_wallet);
-                ENTER_CRITICAL_SECTION(context.wallets_mutex);
-            });
+        context, [&](std::unique_ptr<interfaces::Wallet> wallet_param) {
+            BOOST_CHECK(rescan_completed);
+            m_coinbase_txns.push_back(
+                CreateAndProcessBlock(
+                    {}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
+                    .vtx[0]);
+            block_tx = TestSimpleSpend(*m_coinbase_txns[2], 0, coinbaseKey,
+                                       GetScriptForRawPubKey(key.GetPubKey()));
+            m_coinbase_txns.push_back(
+                CreateAndProcessBlock(
+                    {block_tx}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()))
+                    .vtx[0]);
+            mempool_tx =
+                TestSimpleSpend(*m_coinbase_txns[3], 0, coinbaseKey,
+                                GetScriptForRawPubKey(key.GetPubKey()));
+            BOOST_CHECK(m_node.chain->broadcastTransaction(
+                GetConfig(), MakeTransactionRef(mempool_tx),
+                DEFAULT_TRANSACTION_MAXFEE, false, error));
+            SyncWithValidationInterfaceQueue();
+        });
     wallet = TestLoadWallet(context);
     BOOST_CHECK_EQUAL(addtx_count, 4);
     {
