@@ -32,6 +32,7 @@ from .util import (
     satoshi_round,
     wait_until,
 )
+from .wallet_util import bytes_to_wif
 
 
 def create_coinbase_stakes(
@@ -260,3 +261,19 @@ def get_ava_p2p_interface(
     n.nodeid = node.getpeerinfo()[-1]['id']
 
     return n
+
+
+def gen_proof(node, coinbase_utxos=1):
+    blockhashes = node.generate(coinbase_utxos)
+
+    privkey = ECKey()
+    privkey.generate()
+    pubkey = privkey.get_pubkey()
+
+    stakes = create_coinbase_stakes(
+        node, blockhashes, node.get_deterministic_priv_key().key)
+    proof_hex = node.buildavalancheproof(
+        42, 2000000000, pubkey.get_bytes().hex(), stakes)
+
+    return bytes_to_wif(privkey.get_bytes()), FromHex(
+        AvalancheProof(), proof_hex)

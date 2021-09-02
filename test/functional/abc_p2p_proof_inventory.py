@@ -7,7 +7,7 @@ Test proof inventory relaying
 """
 
 from test_framework.avatools import (
-    create_coinbase_stakes,
+    gen_proof,
     get_proof_ids,
     wait_for_proof,
 )
@@ -60,21 +60,6 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.extra_args = [['-enableavalanche=1',
                             '-avacooldown=0']] * self.num_nodes
 
-    def gen_proof(self, node):
-        blockhashes = node.generate(10)
-
-        privkey = ECKey()
-        privkey.generate()
-        pubkey = privkey.get_pubkey()
-
-        stakes = create_coinbase_stakes(
-            node, blockhashes, node.get_deterministic_priv_key().key)
-        proof_hex = node.buildavalancheproof(
-            42, 2000000000, pubkey.get_bytes().hex(), stakes)
-
-        return bytes_to_wif(privkey.get_bytes()), FromHex(
-            AvalancheProof(), proof_hex)
-
     def test_send_proof_inv(self):
         self.log.info("Test sending a proof to our peers")
 
@@ -83,7 +68,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         for i in range(10):
             node.add_p2p_connection(ProofInvStoreP2PInterface())
 
-        _, proof = self.gen_proof(node)
+        _, proof = gen_proof(node)
         assert node.sendavalancheproof(proof.serialize().hex())
 
         def proof_inv_found(peer):
@@ -116,7 +101,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.log.info("Test a peer is created on proof reception")
 
         node = self.nodes[0]
-        _, proof = self.gen_proof(node)
+        _, proof = gen_proof(node)
 
         peer = node.add_p2p_connection(P2PInterface())
 
@@ -152,7 +137,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
     def test_ban_invalid_proof(self):
         node = self.nodes[0]
-        _, bad_proof = self.gen_proof(node)
+        _, bad_proof = gen_proof(node)
         bad_proof.stakes = []
 
         peer = node.add_p2p_connection(P2PInterface())
@@ -173,7 +158,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         def restart_nodes_with_proof(nodes=self.nodes):
             proofids = set()
             for i, node in enumerate(nodes):
-                privkey, proof = self.gen_proof(node)
+                privkey, proof = gen_proof(node)
                 proofids.add(proof.proofid)
 
                 self.restart_node(node.index, self.extra_args[node.index] + [
@@ -199,7 +184,7 @@ class ProofInventoryTest(BitcoinTestFramework):
     def test_manually_sent_proof(self):
         node0 = self.nodes[0]
 
-        _, proof = self.gen_proof(node0)
+        _, proof = gen_proof(node0)
 
         self.log.info(
             "Send a proof via RPC and check all the nodes download it")
@@ -223,7 +208,7 @@ class ProofInventoryTest(BitcoinTestFramework):
                 peers.append(peer)
             return peers
 
-        _, proof = self.gen_proof(node)
+        _, proof = gen_proof(node)
         proofid_hex = "{:064x}".format(proof.proofid)
 
         # Broadcast the proof
