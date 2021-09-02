@@ -396,6 +396,11 @@ private:
         CTxMemPool::setEntries m_ancestors;
         std::unique_ptr<CTxMemPoolEntry> m_entry;
 
+        /**
+         * Virtual size of the transaction as used by the mempool, calculated
+         * using serialized size of the transaction and sigchecks.
+         */
+        int64_t m_vsize;
         Amount m_base_fees;
 
         Amount m_modified_fees;
@@ -626,14 +631,14 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
         ptx, ws.m_base_fees, nAcceptTime, m_active_chainstate.m_chain.Height(),
         fSpendsCoinbase, ws.m_sig_checks_standard, lp));
 
-    unsigned int nVirtualSize = entry->GetTxVirtualSize();
+    ws.m_vsize = entry->GetTxVirtualSize();
 
     Amount mempoolRejectFee =
         m_pool
             .GetMinFee(
                 gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                 1000000)
-            .GetFee(nVirtualSize);
+            .GetFee(ws.m_vsize);
     if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
         nModifiedFees < mempoolRejectFee) {
         return state.Invalid(
@@ -744,7 +749,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 
     // Tx was accepted, but not added
     if (args.m_test_accept) {
-        return MempoolAcceptResult::Success(ws.m_base_fees);
+        return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees);
     }
 
     if (!Finalize(args, ws)) {
@@ -754,7 +759,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     GetMainSignals().TransactionAddedToMempool(
         ptx, m_pool.GetAndIncrementSequence());
 
-    return MempoolAcceptResult::Success(ws.m_base_fees);
+    return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees);
 }
 
 PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
@@ -802,8 +807,8 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
             // When test_accept=true, transactions that pass PreChecks
             // are valid because there are no further mempool checks (passing
             // PreChecks implies passing ConsensusScriptChecks).
-            results.emplace(ws.m_ptx->GetId(),
-                            MempoolAcceptResult::Success(ws.m_base_fees));
+            results.emplace(ws.m_ptx->GetId(), MempoolAcceptResult::Success(
+                                                   ws.m_vsize, ws.m_base_fees));
         }
     }
 

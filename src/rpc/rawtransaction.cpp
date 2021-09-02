@@ -1208,7 +1208,7 @@ static RPCHelpMan testmempoolaccept() {
                     MempoolAcceptResult::ResultType::VALID) {
                     const Amount fee = tx_result.m_base_fees.value();
                     // Check that fee does not exceed maximum fee
-                    const int64_t virtual_size = GetVirtualTransactionSize(*tx);
+                    const int64_t virtual_size = tx_result.m_vsize.value();
                     const Amount max_raw_tx_fee =
                         max_raw_tx_fee_rate.GetFee(virtual_size);
                     if (max_raw_tx_fee != Amount::zero() &&
