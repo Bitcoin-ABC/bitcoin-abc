@@ -32,7 +32,6 @@ from .util import (
     satoshi_round,
     wait_until,
 )
-from .wallet_util import bytes_to_wif
 
 
 def create_coinbase_stakes(
@@ -275,5 +274,4 @@ def gen_proof(node, coinbase_utxos=1):
     proof_hex = node.buildavalancheproof(
         42, 2000000000, pubkey.get_bytes().hex(), stakes)
 
-    return bytes_to_wif(privkey.get_bytes()), FromHex(
-        AvalancheProof(), proof_hex)
+    return privkey, FromHex(AvalancheProof(), proof_hex)

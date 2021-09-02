@@ -163,7 +163,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
                 self.restart_node(node.index, self.extra_args[node.index] + [
                     "-avaproof={}".format(proof.serialize().hex()),
-                    "-avamasterkey={}".format(privkey)
+                    "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes()))
                 ])
 
                 # Connect a block to make the proof be added to our pool
