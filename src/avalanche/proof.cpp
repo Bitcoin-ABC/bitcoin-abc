@@ -95,13 +95,13 @@ void Proof::computeProofId() {
     proofid = limitedProofId.computeProofId(master);
 }
 
-uint32_t Proof::getScore() const {
+void Proof::computeScore() {
     Amount total = Amount::zero();
     for (const SignedStake &s : stakes) {
         total += s.getStake().getAmount();
     }
 
-    return uint32_t((100 * total) / COIN);
+    score = uint32_t((100 * total) / COIN);
 }
 
 bool Proof::verify(ProofValidationState &state) const {

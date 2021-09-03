@@ -111,6 +111,9 @@ class Proof {
     ProofId proofid;
     void computeProofId();
 
+    uint32_t score;
+    void computeScore();
+
 public:
     Proof()
         : sequence(0), expirationTime(0), master(), stakes(),
@@ -124,6 +127,7 @@ public:
           payoutScriptPubKey(payoutScriptPubKey_),
           signature(std::move(signature_)) {
         computeProofId();
+        computeScore();
     }
 
     SERIALIZE_METHODS(Proof, obj) {
@@ -132,6 +136,7 @@ public:
             READWRITE(obj.payoutScriptPubKey, obj.signature);
         }
         SER_READ(obj, obj.computeProofId());
+        SER_READ(obj, obj.computeScore());
     }
 
     static bool useLegacy();
@@ -154,7 +159,7 @@ public:
     const StakeCommitment getStakeCommitment() const {
         return StakeCommitment(proofid, expirationTime, master);
     };
-    uint32_t getScore() const;
+    uint32_t getScore() const { return score; }
 
     bool verify(ProofValidationState &state) const;
     bool verify(ProofValidationState &state, const CCoinsView &view) const;
