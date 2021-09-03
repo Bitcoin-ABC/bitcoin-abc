@@ -108,6 +108,66 @@ Arguments passed:
 5. SigChecks in the Block (excluding coinbase) as `uint64`
 6. Time it took to connect the Block in microseconds (µs) as `uint64`
 
+### Context `utxocache`
+
+The following tracepoints cover the in-memory UTXO cache. UTXOs are, for example,
+added to and removed (spent) from the cache when we connect a new block.
+**Note**: Bitcoin ABC uses temporary clones of the _main_ UTXO cache
+(`chainstate.CoinsTip()`). For example, the RPCs `generateblock` and
+`getblocktemplate` call `TestBlockValidity()`, which applies the UTXO set
+changes to a temporary cache. Similarly, mempool consistency checks, which are
+frequent on regtest, also apply the the UTXO set changes to a temporary cache.
+Changes to the _main_ UTXO cache and to temporary caches trigger the tracepoints.
+We can't tell if a temporary cache or the _main_ cache was changed.
+
+#### Tracepoint `utxocache:flush`
+
+Is called *after* the in-memory UTXO cache is flushed.
+
+Arguments passed:
+1. Time it took to flush the cache microseconds as `int64`
+2. Flush state mode as `uint32`. It's an enumerator class with values `0`
+   (`NONE`), `1` (`IF_NEEDED`), `2` (`PERIODIC`), `3` (`ALWAYS`)
+3. Cache size (number of coins) before the flush as `uint64`
+4. Cache memory usage in bytes as `uint64`
+5. If pruning caused the flush as `bool`
+
+#### Tracepoint `utxocache:add`
+
+Is called when a coin is added to a UTXO cache. This can be a temporary UTXO cache too.
+
+Arguments passed:
+1. Transaction ID (hash) as `pointer to unsigned chars` (i.e. 32 bytes in little-endian)
+2. Output index as `uint32`
+3. Block height the coin was added to the UTXO-set as  `uint32`
+4. Value of the coin as `int64`
+5. If the coin is a coinbase as `bool`
+
+#### Tracepoint `utxocache:spent`
+
+Is called when a coin is spent from a UTXO cache. This can be a temporary UTXO cache too.
+
+Arguments passed:
+1. Transaction ID (hash) as `pointer to unsigned chars` (i.e. 32 bytes in little-endian)
+2. Output index as `uint32`
+3. Block height the coin was spent, as `uint32`
+4. Value of the coin as `int64`
+5. If the coin is a coinbase as `bool`
+
+#### Tracepoint `utxocache:uncache`
+
+Is called when a coin is purposefully unloaded from a UTXO cache. This
+happens, for example, when we load an UTXO into a cache when trying to accept
+a transaction that turns out to be invalid. The loaded UTXO is uncached to avoid
+filling our UTXO cache up with irrelevant UTXOs.
+
+Arguments passed:
+1. Transaction ID (hash) as `pointer to unsigned chars` (i.e. 32 bytes in little-endian)
+2. Output index as `uint32`
+3. Block height the coin was uncached, as `uint32`
+4. Value of the coin as `int64`
+5. If the coin is a coinbase as `bool`
+
 ## Adding tracepoints to Bitcoin ABC
 
 To add a new tracepoint, `#include <util/trace.h>` in the compilation unit where
