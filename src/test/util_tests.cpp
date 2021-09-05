@@ -2429,9 +2429,8 @@ BOOST_AUTO_TEST_CASE(message_sign) {
     const std::string message = "Trust no one";
 
     const std::string expected_signature =
-        "IED/"
-        "JtZs3huKX9JEQIBPZPSZwOiMyDQ+"
-        "yNWQvL7YcFzCOGTcfleWOWSvfggenKCinqvOX8t1Iw+HYZqQjxzXQm0=";
+        "H3CcyS18y471Ya5WTYAke25spvA5eyBMvAuNhxDkuAjsdNGX+"
+        "NoouNlY1KoselGvF65Werf7OdtKAoOZ9WB17Rc=";
 
     CKey privkey;
     std::string generated_signature;
@@ -2487,15 +2486,15 @@ BOOST_AUTO_TEST_CASE(message_verify) {
 
     BOOST_CHECK_EQUAL(
         MessageVerify(*params, "15CRxFdyRpGZLW9w8HnHvVduizdL5jKNbs",
-                      "IPojfrX2dfPnH26UegfbGQQLrdK844DlHq5157/P6h57WyuS/Qsl+h/"
-                      "WSVGDF4MUi4rWSswW38oimDYfNNUBUOk=",
+                      "H3CcyS18y471Ya5WTYAke25spvA5eyBMvAuNhxDkuAjsdNGX+"
+                      "NoouNlY1KoselGvF65Werf7OdtKAoOZ9WB17Rc=",
                       "Trust no one"),
         MessageVerificationResult::OK);
 
     BOOST_CHECK_EQUAL(
-        MessageVerify(*params, "11canuhp9X2NocwCq7xNrQYTmUgZAnLK3",
-                      "IIcaIENoYW5jZWxsb3Igb24gYnJpbmsgb2Ygc2Vjb25kIGJhaWxvdXQg"
-                      "Zm9yIGJhbmtzIAaHRtbCeDZINyavx14=",
+        MessageVerify(*params, "1NoJrossxPBKfCHuJXT4HadJrXRE9Fxiqs",
+                      "HxO6qEsMrNvPA7QTMUbdzF/uXbW78yPG6gFITses9XVvMdBULIFwrfhN"
+                      "f196N+rxnK5eSl8eF3aKe4INunzFJXg=",
                       "Trust me"),
         MessageVerificationResult::OK);
 }

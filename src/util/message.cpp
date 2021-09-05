@@ -19,7 +19,7 @@
  * Text used to signify that a signed message follows and to prevent
  * inadvertently signing a transaction.
  */
-const std::string MESSAGE_MAGIC = "Bitcoin Signed Message:\n";
+const std::string MESSAGE_MAGIC = "eCash Signed Message:\n";
 
 MessageVerificationResult MessageVerify(const CChainParams &params,
                                         const std::string &address,
