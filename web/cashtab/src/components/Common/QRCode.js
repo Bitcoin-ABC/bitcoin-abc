@@ -228,7 +228,7 @@ export const QRCode = ({
                                 prefixLength + trimAmount,
                             )}
                         </AddressHighlightTrim>
-                        {address.slice(trimAmount, address_trim)}
+                        {address.slice(prefixLength + trimAmount, address_trim)}
                         <AddressHighlightTrim>
                             {address.slice(-trimAmount)}
                         </AddressHighlightTrim>
