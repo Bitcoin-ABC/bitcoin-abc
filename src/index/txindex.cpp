@@ -58,7 +58,7 @@ bool TxIndex::WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
         return true;
     }
 
-    CDiskTxPos pos(pindex->GetBlockPos(),
+    CDiskTxPos pos(WITH_LOCK(::cs_main, return pindex->GetBlockPos()),
                    GetSizeOfCompactSize(block.vtx.size()));
     std::vector<std::pair<TxId, CDiskTxPos>> vPos;
     vPos.reserve(block.vtx.size());

@@ -23,20 +23,23 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
 
     const BlockHash zero{};
     disk_block_index->phashBlock = &zero;
-    (void)disk_block_index->GetBlockHash();
-    (void)disk_block_index->GetBlockPos();
-    (void)disk_block_index->GetBlockTime();
-    (void)disk_block_index->GetBlockTimeMax();
-    (void)disk_block_index->GetChainSize();
-    (void)disk_block_index->GetChainTxCount();
-    (void)disk_block_index->GetHeaderReceivedTime();
-    (void)disk_block_index->GetMedianTimePast();
-    (void)disk_block_index->GetReceivedTimeDiff();
-    (void)disk_block_index->GetUndoPos();
-    (void)disk_block_index->HaveTxsDownloaded();
-    (void)disk_block_index->IsValid();
-    (void)disk_block_index->ToString();
-    (void)disk_block_index->UpdateChainStats();
+    {
+        LOCK(::cs_main);
+        (void)disk_block_index->GetBlockHash();
+        (void)disk_block_index->GetBlockPos();
+        (void)disk_block_index->GetBlockTime();
+        (void)disk_block_index->GetBlockTimeMax();
+        (void)disk_block_index->GetChainSize();
+        (void)disk_block_index->GetChainTxCount();
+        (void)disk_block_index->GetHeaderReceivedTime();
+        (void)disk_block_index->GetMedianTimePast();
+        (void)disk_block_index->GetReceivedTimeDiff();
+        (void)disk_block_index->GetUndoPos();
+        (void)disk_block_index->HaveTxsDownloaded();
+        (void)disk_block_index->IsValid();
+        (void)disk_block_index->ToString();
+        (void)disk_block_index->UpdateChainStats();
+    }
 
     const CBlockHeader block_header = disk_block_index->GetBlockHeader();
     (void)CDiskBlockIndex{*disk_block_index};

@@ -68,6 +68,7 @@ BOOST_AUTO_TEST_CASE(get_disk_positions) {
             }
 
             // Data and undo positions should be unmodified
+            LOCK(::cs_main);
             FlatFilePos dataPosition = index.GetBlockPos();
             if (flags & 0x01) {
                 BOOST_CHECK(dataPosition.nFile == expectedFile);

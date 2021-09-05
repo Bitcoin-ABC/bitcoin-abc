@@ -761,20 +761,17 @@ bool ReadBlockFromDisk(CBlock &block, const FlatFilePos &pos,
 
 bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
                        const Consensus::Params &params) {
-    FlatFilePos blockPos;
-    {
-        LOCK(cs_main);
-        blockPos = pindex->GetBlockPos();
-    }
+    const FlatFilePos block_pos{
+        WITH_LOCK(cs_main, return pindex->GetBlockPos())};
 
-    if (!ReadBlockFromDisk(block, blockPos, params)) {
+    if (!ReadBlockFromDisk(block, block_pos, params)) {
         return false;
     }
 
     if (block.GetHash() != pindex->GetBlockHash()) {
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() "
                      "doesn't match index for %s at %s",
-                     pindex->ToString(), pindex->GetBlockPos().ToString());
+                     pindex->ToString(), block_pos.ToString());
     }
 
     return true;

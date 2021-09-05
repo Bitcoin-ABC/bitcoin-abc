@@ -9,10 +9,13 @@
 #include <blockstatus.h>
 #include <flatfile.h>
 #include <primitives/block.h>
+#include <sync.h>
 #include <tinyformat.h>
 #include <uint256.h>
 
 struct BlockHash;
+
+extern RecursiveMutex cs_main;
 
 /**
  * The block chain is a tree shaped structure starting with the genesis block at
@@ -108,7 +111,8 @@ public:
           nTime{block.nTime}, nBits{block.nBits}, nNonce{block.nNonce},
           nTimeReceived{0} {}
 
-    FlatFilePos GetBlockPos() const {
+    FlatFilePos GetBlockPos() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        AssertLockHeld(::cs_main);
         FlatFilePos ret;
         if (nStatus.hasData()) {
             ret.nFile = nFile;
