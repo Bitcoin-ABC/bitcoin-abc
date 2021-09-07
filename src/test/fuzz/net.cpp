@@ -15,6 +15,7 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <test/util/setup_common.h>
+#include <util/asmap.h>
 
 #include <cstdint>
 #include <optional>
@@ -73,7 +74,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 const std::vector<bool> asmap =
                     ConsumeRandomLengthIntegralVector<bool>(
                         fuzzed_data_provider, 128);
-                if (!SanityCheckASMap(asmap)) {
+                if (!SanityCheckASMap(asmap, 128)) {
                     break;
                 }
                 CNodeStats stats;

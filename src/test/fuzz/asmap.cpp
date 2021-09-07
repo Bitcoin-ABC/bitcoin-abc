@@ -5,6 +5,7 @@
 #include <netaddress.h>
 
 #include <test/fuzz/fuzz.h>
+#include <util/asmap.h>
 
 #include <cstdint>
 #include <vector>
@@ -60,7 +61,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             asmap.push_back((buffer[1 + i] >> j) & 1);
         }
     }
-    if (!SanityCheckASMap(asmap)) {
+    if (!SanityCheckASMap(asmap, 128)) {
         return;
     }
 
