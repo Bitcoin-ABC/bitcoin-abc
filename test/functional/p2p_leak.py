@@ -30,7 +30,7 @@ from test_framework.util import (
     wait_until,
 )
 
-DISCOURAGEMENT_THRESHOLD = 100
+DISCOURAGEMENT_THRESHOLD = 10
 
 
 class CLazyNode(P2PInterface):
