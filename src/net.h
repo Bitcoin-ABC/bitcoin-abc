@@ -7,7 +7,6 @@
 #ifndef BITCOIN_NET_H
 #define BITCOIN_NET_H
 
-#include <addrdb.h>
 #include <addrman.h>
 #include <avalanche/proofid.h>
 #include <avalanche/proofradixtreeadapter.h>

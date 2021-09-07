@@ -13,10 +13,19 @@
 #include <string>
 #include <vector>
 
-class CAddress;
+class ArgsManager;
 class CAddrMan;
+class CAddress;
 class CDataStream;
 class CChainParams;
+
+bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
+                       const CAddrMan &addr);
+bool ReadPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
+                       CAddrMan &addr);
+/** Only used by tests. */
+bool ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
+                    CDataStream &ssPeers);
 
 class CBanEntry {
 public:
@@ -43,19 +52,6 @@ public:
         nCreateTime = 0;
         nBanUntil = 0;
     }
-};
-
-/** Access to the (IP) address database (peers.dat) */
-class CAddrDB {
-private:
-    fs::path pathAddr;
-    const CChainParams &chainParams;
-
-public:
-    explicit CAddrDB(const CChainParams &chainParams);
-    bool Write(const CAddrMan &addr);
-    bool Read(CAddrMan &addr);
-    bool Read(CAddrMan &addr, CDataStream &ssPeers);
 };
 
 /** Access to the banlist database (banlist.dat) */

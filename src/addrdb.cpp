@@ -136,20 +136,20 @@ bool CBanDB::Read(banmap_t &banSet) {
     return DeserializeFileDB(chainParams, m_ban_list_path, banSet);
 }
 
-CAddrDB::CAddrDB(const CChainParams &chainParamsIn)
-    : chainParams(chainParamsIn) {
-    pathAddr = gArgs.GetDataDirNet() / "peers.dat";
-}
-
-bool CAddrDB::Write(const CAddrMan &addr) {
+bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
+                       const CAddrMan &addr) {
+    const auto pathAddr = args.GetDataDirNet() / "peers.dat";
     return SerializeFileDB(chainParams, "peers", pathAddr, addr);
 }
 
-bool CAddrDB::Read(CAddrMan &addr) {
+bool ReadPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
+                       CAddrMan &addr) {
+    const auto pathAddr = args.GetDataDirNet() / "peers.dat";
     return DeserializeFileDB(chainParams, pathAddr, addr);
 }
 
-bool CAddrDB::Read(CAddrMan &addr, CDataStream &ssPeers) {
+bool ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
+                    CDataStream &ssPeers) {
     bool ret = DeserializeDB(chainParams, ssPeers, addr, false);
     if (!ret) {
         // Ensure addrman is left in a clean state

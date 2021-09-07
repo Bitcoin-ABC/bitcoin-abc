@@ -26,6 +26,7 @@
 #include <serialize.h>
 #include <streams.h>
 #include <uint256.h>
+#include <univalue.h>
 #include <util/check.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>

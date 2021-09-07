@@ -9,6 +9,7 @@
 
 #include <net.h>
 
+#include <addrdb.h>
 #include <avalanche/avalanche.h>
 #include <banman.h>
 #include <clientversion.h>
@@ -26,6 +27,7 @@
 #include <scheduler.h>
 #include <util/sock.h>
 #include <util/strencodings.h>
+#include <util/system.h>
 #include <util/thread.h>
 #include <util/translation.h>
 
@@ -2055,8 +2057,7 @@ void CConnman::ThreadDNSAddressSeed() {
 void CConnman::DumpAddresses() {
     int64_t nStart = GetTimeMillis();
 
-    CAddrDB adb(config->GetChainParams());
-    adb.Write(addrman);
+    DumpPeerAddresses(config->GetChainParams(), ::gArgs, addrman);
 
     LogPrint(BCLog::NET, "Flushed %d addresses to peers.dat  %dms\n",
              addrman.size(), GetTimeMillis() - nStart);
