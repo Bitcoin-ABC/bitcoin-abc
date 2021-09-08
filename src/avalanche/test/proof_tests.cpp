@@ -434,8 +434,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     {
         ProofBuilder pb(0, 0, pubkey);
         pb.addUTXO(pkh_outpoint, value, height, false, key);
-        pb.addUTXO(pkh_outpoint, value, height, false, key);
-        Proof p = pb.build();
+        Proof p = TestProofBuilder::buildDuplicatedStakes(pb);
 
         ProofValidationState state;
         BOOST_CHECK(!p.verify(state, coins));

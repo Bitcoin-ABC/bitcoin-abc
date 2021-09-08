@@ -577,8 +577,14 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     BOOST_CHECK(peer4 != NO_PEER && peer4 != peer1);
 
     // Duplicated input.
-    BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 3), COutPoint(txid1, 3)}),
-                      NO_PEER);
+    {
+        ProofBuilder pb(0, 0, CPubKey());
+        COutPoint o(txid1, 3);
+        pb.addUTXO(o, v, height, false, key);
+        PeerId peerid = pm.getPeerId(std::make_shared<Proof>(
+            TestProofBuilder::buildDuplicatedStakes(pb)));
+        BOOST_CHECK_EQUAL(peerid, NO_PEER);
+    }
 
     // Multiple inputs, collision on first input.
     BOOST_CHECK_EQUAL(getPeerId({COutPoint(txid1, 0), COutPoint(txid2, 4)}),

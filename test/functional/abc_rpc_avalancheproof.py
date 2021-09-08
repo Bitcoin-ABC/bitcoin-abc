@@ -234,10 +234,6 @@ class AvalancheProofTest(BitcoinTestFramework):
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key,
                                    amount=str(dust_amount)))
 
-        duplicate_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master,
-            create_coinbase_stakes(node, [blockhashes[0]] * 2, addrkey0.key))
-
         missing_stake = node.buildavalancheproof(
             proof_sequence, proof_expiration, proof_master, [{
                 'txid': '0' * 64,
@@ -248,6 +244,21 @@ class AvalancheProofTest(BitcoinTestFramework):
                 'privatekey': addrkey0.key,
             }]
         )
+
+        duplicate_stake = ("0b000000000000000c0000000000000021030b4c866585dd868"
+                           "a9d62348a9cd008d6a312937048fff31670e7e920cfc7a74402"
+                           "05c5f72f5d6da3085583e75ee79340eb4eff208c89988e7ed0e"
+                           "fb30b87298fa30000000000f2052a0100000003000000210227"
+                           "d85ba011276cf25b51df6a188b75e604b38770a462b2d0e9fb2"
+                           "fc839ef5d3f86076def2e8bc3c40671c1a0eb505da5857a950a"
+                           "0cf4625a80018cdd75ac62e61273ff8142f747de67e73f6368c"
+                           "8648942b0ef6c065d72a81ad7438a23c11cca05c5f72f5d6da3"
+                           "085583e75ee79340eb4eff208c89988e7ed0efb30b87298fa30"
+                           "000000000f2052a0100000003000000210227d85ba011276cf2"
+                           "5b51df6a188b75e604b38770a462b2d0e9fb2fc839ef5d3f860"
+                           "76def2e8bc3c40671c1a0eb505da5857a950a0cf4625a80018c"
+                           "dd75ac62e61273ff8142f747de67e73f6368c8648942b0ef6c0"
+                           "65d72a81ad7438a23c11cca")
 
         bad_sig = ("0b000000000000000c0000000000000021030b4c866585dd868a9d62348"
                    "a9cd008d6a312937048fff31670e7e920cfc7a7440105c5f72f5d6da3085"

@@ -25,10 +25,11 @@ bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
         return false;
     }
 
-    stakes.emplace_back(
-        Stake(std::move(utxo), amount, height, is_coinbase, key.GetPubKey()),
-        std::move(key));
-    return true;
+    return stakes
+        .emplace(Stake(std::move(utxo), amount, height, is_coinbase,
+                       key.GetPubKey()),
+                 std::move(key))
+        .second;
 }
 
 Proof ProofBuilder::build() {
@@ -37,26 +38,19 @@ Proof ProofBuilder::build() {
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(stakes.size());
 
-    for (auto &s : stakes) {
-        signedStakes.push_back(s.sign(proofid));
+    while (!stakes.empty()) {
+        auto handle = stakes.extract(stakes.begin());
+        signedStakes.push_back(handle.value().sign(proofid));
     }
 
-    stakes.clear();
     return Proof(sequence, expirationTime, std::move(master),
                  std::move(signedStakes));
 }
 
-ProofId ProofBuilder::getProofId() {
+ProofId ProofBuilder::getProofId() const {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
-
-    // TODO This can be avoided by using a sorted container instead of a vector
-    // for the stakes.
-    std::sort(stakes.begin(), stakes.end(),
-              [](const StakeSigner &lhs, const StakeSigner &rhs) {
-                  return lhs.stake.getId() < rhs.stake.getId();
-              });
 
     WriteCompactSize(ss, stakes.size());
     for (const auto &s : stakes) {

@@ -50,16 +50,9 @@ ProofId TestProofBuilder::getReverseOrderProofId(ProofBuilder &pb) {
     ss << pb.sequence;
     ss << pb.expirationTime;
 
-    // Reverse the sorting order
-    std::sort(pb.stakes.begin(), pb.stakes.end(),
-              [](const ProofBuilder::StakeSigner &lhs,
-                 const ProofBuilder::StakeSigner &rhs) {
-                  return lhs.stake.getId() > rhs.stake.getId();
-              });
-
     WriteCompactSize(ss, pb.stakes.size());
-    for (const auto &s : pb.stakes) {
-        ss << s.stake;
+    for (auto it = pb.stakes.rbegin(); it != pb.stakes.rend(); it++) {
+        ss << it->stake;
     }
 
     CHashWriter ss2(SER_GETHASH, 0);
@@ -75,11 +68,48 @@ Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(pb.stakes.size());
 
-    for (auto &s : pb.stakes) {
-        signedStakes.push_back(s.sign(proofid));
+    while (!pb.stakes.empty()) {
+        // We need a forward iterator, so pb.stakes.rbegin() is not an
+        // option.
+        auto handle = pb.stakes.extract(std::prev(pb.stakes.end()));
+        signedStakes.push_back(handle.value().sign(proofid));
     }
 
-    pb.stakes.clear();
+    return Proof(pb.sequence, pb.expirationTime, std::move(pb.master),
+                 std::move(signedStakes));
+}
+
+ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << pb.sequence;
+    ss << pb.expirationTime;
+
+    WriteCompactSize(ss, 2 * pb.stakes.size());
+    for (auto &s : pb.stakes) {
+        ss << s.stake;
+        ss << s.stake;
+    }
+
+    CHashWriter ss2(SER_GETHASH, 0);
+    ss2 << ss.GetHash();
+    ss2 << pb.master;
+
+    return ProofId(ss2.GetHash());
+}
+
+Proof TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
+    const ProofId proofid = TestProofBuilder::getDuplicatedStakeProofId(pb);
+
+    std::vector<SignedStake> signedStakes;
+    signedStakes.reserve(2 * pb.stakes.size());
+
+    while (!pb.stakes.empty()) {
+        auto handle = pb.stakes.extract(pb.stakes.begin());
+        SignedStake signedStake = handle.value().sign(proofid);
+        signedStakes.push_back(signedStake);
+        signedStakes.push_back(signedStake);
+    }
+
     return Proof(pb.sequence, pb.expirationTime, std::move(pb.master),
                  std::move(signedStakes));
 }

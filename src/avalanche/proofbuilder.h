@@ -29,7 +29,12 @@ class ProofBuilder {
         SignedStake sign(const ProofId &proofid);
     };
 
-    std::vector<StakeSigner> stakes;
+    struct StakeSignerComparator {
+        bool operator()(const StakeSigner &lhs, const StakeSigner &rhs) const {
+            return lhs.stake.getId() < rhs.stake.getId();
+        }
+    };
+    std::set<StakeSigner, StakeSignerComparator> stakes;
 
 public:
     ProofBuilder(uint64_t sequence_, int64_t expirationTime_, CPubKey master_)
@@ -42,7 +47,7 @@ public:
     Proof build();
 
 private:
-    ProofId getProofId();
+    ProofId getProofId() const;
 
     friend struct TestProofBuilder;
 };
