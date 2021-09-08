@@ -1164,7 +1164,7 @@ void RegisterMiningRPCCommands(CRPCTable &t) {
         {"generating", "generatetodescriptor",  generatetodescriptor,  {"num_blocks","descriptor","maxtries"}},
         {"generating", "generateblock",         generateblock,         {"output","transactions"}},
 
-        {"util",       "estimatefee",           estimatefee,           {"nblocks"}},
+        {"util",       "estimatefee",           estimatefee,           {}},
     };
     // clang-format on
     for (const auto &c : commands) {
