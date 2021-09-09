@@ -31,9 +31,8 @@
 #include <malloc.h>
 #endif
 
-static UniValue validateaddress(const Config &config,
-                                const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan validateaddress() {
+    return RPCHelpMan{
         "validateaddress",
         "Return information about the given bitcoin address.\n",
         {
@@ -56,34 +55,35 @@ static UniValue validateaddress(const Config &config,
             }},
         RPCExamples{HelpExampleCli("validateaddress", EXAMPLE_ADDRESS) +
                     HelpExampleRpc("validateaddress", EXAMPLE_ADDRESS)},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            CTxDestination dest = DecodeDestination(request.params[0].get_str(),
+                                                    config.GetChainParams());
+            bool isValid = IsValidDestination(dest);
 
-    CTxDestination dest =
-        DecodeDestination(request.params[0].get_str(), config.GetChainParams());
-    bool isValid = IsValidDestination(dest);
+            UniValue ret(UniValue::VOBJ);
+            ret.pushKV("isvalid", isValid);
 
-    UniValue ret(UniValue::VOBJ);
-    ret.pushKV("isvalid", isValid);
+            if (isValid) {
+                if (ret["address"].isNull()) {
+                    std::string currentAddress =
+                        EncodeDestination(dest, config);
+                    ret.pushKV("address", currentAddress);
 
-    if (isValid) {
-        if (ret["address"].isNull()) {
-            std::string currentAddress = EncodeDestination(dest, config);
-            ret.pushKV("address", currentAddress);
+                    CScript scriptPubKey = GetScriptForDestination(dest);
+                    ret.pushKV("scriptPubKey", HexStr(scriptPubKey));
 
-            CScript scriptPubKey = GetScriptForDestination(dest);
-            ret.pushKV("scriptPubKey", HexStr(scriptPubKey));
-
-            UniValue detail = DescribeAddress(dest);
-            ret.pushKVs(detail);
-        }
-    }
-    return ret;
+                    UniValue detail = DescribeAddress(dest);
+                    ret.pushKVs(detail);
+                }
+            }
+            return ret;
+        },
+    };
 }
 
-static UniValue createmultisig(const Config &config,
-                               const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan createmultisig() {
+    return RPCHelpMan{
         "createmultisig",
         "Creates a multi-signature address with n signature of m keys "
         "required.\n"
@@ -129,50 +129,51 @@ static UniValue createmultisig(const Config &config,
                            "42cf11ae157a7ace5fd\\\","
                            "\\\"03dbc6764b8884a92e871274b87583e6d5c2a58819473e1"
                            "7e107ef3f6aa5a61626\\\"]\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            int required = request.params[0].get_int();
 
-    int required = request.params[0].get_int();
+            // Get the public keys
+            const UniValue &keys = request.params[1].get_array();
+            std::vector<CPubKey> pubkeys;
+            for (size_t i = 0; i < keys.size(); ++i) {
+                if ((keys[i].get_str().length() ==
+                         2 * CPubKey::COMPRESSED_SIZE ||
+                     keys[i].get_str().length() == 2 * CPubKey::SIZE) &&
+                    IsHex(keys[i].get_str())) {
+                    pubkeys.push_back(HexToPubKey(keys[i].get_str()));
+                } else {
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                                       strprintf("Invalid public key: %s\n",
+                                                 keys[i].get_str()));
+                }
+            }
 
-    // Get the public keys
-    const UniValue &keys = request.params[1].get_array();
-    std::vector<CPubKey> pubkeys;
-    for (size_t i = 0; i < keys.size(); ++i) {
-        if ((keys[i].get_str().length() == 2 * CPubKey::COMPRESSED_SIZE ||
-             keys[i].get_str().length() == 2 * CPubKey::SIZE) &&
-            IsHex(keys[i].get_str())) {
-            pubkeys.push_back(HexToPubKey(keys[i].get_str()));
-        } else {
-            throw JSONRPCError(
-                RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Invalid public key: %s\n", keys[i].get_str()));
-        }
-    }
+            // Get the output type
+            OutputType output_type = OutputType::LEGACY;
 
-    // Get the output type
-    OutputType output_type = OutputType::LEGACY;
+            // Construct using pay-to-script-hash:
+            FillableSigningProvider keystore;
+            CScript inner;
+            const CTxDestination dest = AddAndGetMultisigDestination(
+                required, pubkeys, output_type, keystore, inner);
 
-    // Construct using pay-to-script-hash:
-    FillableSigningProvider keystore;
-    CScript inner;
-    const CTxDestination dest = AddAndGetMultisigDestination(
-        required, pubkeys, output_type, keystore, inner);
+            // Make the descriptor
+            std::unique_ptr<Descriptor> descriptor =
+                InferDescriptor(GetScriptForDestination(dest), keystore);
 
-    // Make the descriptor
-    std::unique_ptr<Descriptor> descriptor =
-        InferDescriptor(GetScriptForDestination(dest), keystore);
+            UniValue result(UniValue::VOBJ);
+            result.pushKV("address", EncodeDestination(dest, config));
+            result.pushKV("redeemScript", HexStr(inner));
+            result.pushKV("descriptor", descriptor->ToString());
 
-    UniValue result(UniValue::VOBJ);
-    result.pushKV("address", EncodeDestination(dest, config));
-    result.pushKV("redeemScript", HexStr(inner));
-    result.pushKV("descriptor", descriptor->ToString());
-
-    return result;
+            return result;
+        },
+    };
 }
 
-UniValue getdescriptorinfo(const Config &config,
-                           const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan getdescriptorinfo() {
+    return RPCHelpMan{
         "getdescriptorinfo",
         {"Analyses a descriptor.\n"},
         {
@@ -201,30 +202,32 @@ UniValue getdescriptorinfo(const Config &config,
                                    "\"pkh([d34db33f/84h/0h/"
                                    "0h]"
                                    "0279be667ef9dcbbac55a06295Ce870b07029Bfcdb2"
-                                   "dce28d959f2815b16f81798)\"")}}
-        .Check(request);
+                                   "dce28d959f2815b16f81798)\"")},
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VSTR});
 
-    RPCTypeCheck(request.params, {UniValue::VSTR});
+            FlatSigningProvider provider;
+            std::string error;
+            auto desc = Parse(request.params[0].get_str(), provider, error);
+            if (!desc) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
+            }
 
-    FlatSigningProvider provider;
-    std::string error;
-    auto desc = Parse(request.params[0].get_str(), provider, error);
-    if (!desc) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
-    }
-
-    UniValue result(UniValue::VOBJ);
-    result.pushKV("descriptor", desc->ToString());
-    result.pushKV("checksum",
-                  GetDescriptorChecksum(request.params[0].get_str()));
-    result.pushKV("isrange", desc->IsRange());
-    result.pushKV("issolvable", desc->IsSolvable());
-    result.pushKV("hasprivatekeys", provider.keys.size() > 0);
-    return result;
+            UniValue result(UniValue::VOBJ);
+            result.pushKV("descriptor", desc->ToString());
+            result.pushKV("checksum",
+                          GetDescriptorChecksum(request.params[0].get_str()));
+            result.pushKV("isrange", desc->IsRange());
+            result.pushKV("issolvable", desc->IsSolvable());
+            result.pushKV("hasprivatekeys", provider.keys.size() > 0);
+            return result;
+        },
+    };
 }
 
-UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan deriveaddresses() {
+    return RPCHelpMan{
         "deriveaddresses",
         {"Derives one or more addresses corresponding to an output "
          "descriptor.\n"
@@ -261,75 +264,77 @@ UniValue deriveaddresses(const Config &config, const JSONRPCRequest &request) {
                         "\"pkh([d34db33f/84h/0h/0h]"
                         "xpub6DJ2dNUysrn5Vt36jH2KLBT2i1auw1tTSSomg8P"
                         "hqNiUtx8QX2SvC9nrHu81fT41fvDUnhMjEzQgXnQjKE"
-                        "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)#3vhfv5h5\" \"[0,2]\"")}}
-        .Check(request);
+                        "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)#3vhfv5h5\" \"[0,2]\"")},
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            // Range argument is checked later
+            RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
+            const std::string desc_str = request.params[0].get_str();
 
-    // Range argument is checked later
-    RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
-    const std::string desc_str = request.params[0].get_str();
+            int64_t range_begin = 0;
+            int64_t range_end = 0;
 
-    int64_t range_begin = 0;
-    int64_t range_end = 0;
-
-    if (request.params.size() >= 2 && !request.params[1].isNull()) {
-        std::tie(range_begin, range_end) =
-            ParseDescriptorRange(request.params[1]);
-    }
-
-    FlatSigningProvider key_provider;
-    std::string error;
-    auto desc =
-        Parse(desc_str, key_provider, error, /* require_checksum = */ true);
-    if (!desc) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
-    }
-
-    if (!desc->IsRange() && request.params.size() > 1) {
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            "Range should not be specified for an un-ranged descriptor");
-    }
-
-    if (desc->IsRange() && request.params.size() == 1) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "Range must be specified for a ranged descriptor");
-    }
-
-    UniValue addresses(UniValue::VARR);
-
-    for (int i = range_begin; i <= range_end; ++i) {
-        FlatSigningProvider provider;
-        std::vector<CScript> scripts;
-        if (!desc->Expand(i, key_provider, scripts, provider)) {
-            throw JSONRPCError(
-                RPC_INVALID_ADDRESS_OR_KEY,
-                strprintf("Cannot derive script without private keys"));
-        }
-
-        for (const CScript &script : scripts) {
-            CTxDestination dest;
-            if (!ExtractDestination(script, dest)) {
-                throw JSONRPCError(
-                    RPC_INVALID_ADDRESS_OR_KEY,
-                    strprintf(
-                        "Descriptor does not have a corresponding address"));
+            if (request.params.size() >= 2 && !request.params[1].isNull()) {
+                std::tie(range_begin, range_end) =
+                    ParseDescriptorRange(request.params[1]);
             }
 
-            addresses.push_back(EncodeDestination(dest, config));
-        }
-    }
+            FlatSigningProvider key_provider;
+            std::string error;
+            auto desc = Parse(desc_str, key_provider, error,
+                              /* require_checksum = */ true);
+            if (!desc) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, error);
+            }
 
-    // This should not be possible, but an assert seems overkill:
-    if (addresses.empty()) {
-        throw JSONRPCError(RPC_MISC_ERROR, "Unexpected empty result");
-    }
+            if (!desc->IsRange() && request.params.size() > 1) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "Range should not be specified for an "
+                                   "un-ranged descriptor");
+            }
 
-    return addresses;
+            if (desc->IsRange() && request.params.size() == 1) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    "Range must be specified for a ranged descriptor");
+            }
+
+            UniValue addresses(UniValue::VARR);
+
+            for (int i = range_begin; i <= range_end; ++i) {
+                FlatSigningProvider provider;
+                std::vector<CScript> scripts;
+                if (!desc->Expand(i, key_provider, scripts, provider)) {
+                    throw JSONRPCError(
+                        RPC_INVALID_ADDRESS_OR_KEY,
+                        strprintf("Cannot derive script without private keys"));
+                }
+
+                for (const CScript &script : scripts) {
+                    CTxDestination dest;
+                    if (!ExtractDestination(script, dest)) {
+                        throw JSONRPCError(
+                            RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("Descriptor does not have a "
+                                      "corresponding address"));
+                    }
+
+                    addresses.push_back(EncodeDestination(dest, config));
+                }
+            }
+
+            // This should not be possible, but an assert seems overkill:
+            if (addresses.empty()) {
+                throw JSONRPCError(RPC_MISC_ERROR, "Unexpected empty result");
+            }
+
+            return addresses;
+        },
+    };
 }
 
-static UniValue verifymessage(const Config &config,
-                              const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan verifymessage() {
+    return RPCHelpMan{
         "verifymessage",
         "Verify a signed message\n",
         {
@@ -358,37 +363,38 @@ static UniValue verifymessage(const Config &config,
             HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4"
                                             "XX\", \"signature\", \"my "
                                             "message\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            LOCK(cs_main);
 
-    LOCK(cs_main);
+            std::string strAddress = request.params[0].get_str();
+            std::string strSign = request.params[1].get_str();
+            std::string strMessage = request.params[2].get_str();
 
-    std::string strAddress = request.params[0].get_str();
-    std::string strSign = request.params[1].get_str();
-    std::string strMessage = request.params[2].get_str();
+            switch (MessageVerify(config.GetChainParams(), strAddress, strSign,
+                                  strMessage)) {
+                case MessageVerificationResult::ERR_INVALID_ADDRESS:
+                    throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
+                case MessageVerificationResult::ERR_ADDRESS_NO_KEY:
+                    throw JSONRPCError(RPC_TYPE_ERROR,
+                                       "Address does not refer to key");
+                case MessageVerificationResult::ERR_MALFORMED_SIGNATURE:
+                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                                       "Malformed base64 encoding");
+                case MessageVerificationResult::ERR_PUBKEY_NOT_RECOVERED:
+                case MessageVerificationResult::ERR_NOT_SIGNED:
+                    return false;
+                case MessageVerificationResult::OK:
+                    return true;
+            }
 
-    switch (MessageVerify(config.GetChainParams(), strAddress, strSign,
-                          strMessage)) {
-        case MessageVerificationResult::ERR_INVALID_ADDRESS:
-            throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
-        case MessageVerificationResult::ERR_ADDRESS_NO_KEY:
-            throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
-        case MessageVerificationResult::ERR_MALFORMED_SIGNATURE:
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "Malformed base64 encoding");
-        case MessageVerificationResult::ERR_PUBKEY_NOT_RECOVERED:
-        case MessageVerificationResult::ERR_NOT_SIGNED:
             return false;
-        case MessageVerificationResult::OK:
-            return true;
-    }
-
-    return false;
+        },
+    };
 }
 
-static UniValue signmessagewithprivkey(const Config &config,
-                                       const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan signmessagewithprivkey() {
+    return RPCHelpMan{
         "signmessagewithprivkey",
         "Sign a message with the private key of an address\n",
         {
@@ -409,29 +415,30 @@ static UniValue signmessagewithprivkey(const Config &config,
                     "\nAs a JSON-RPC call\n" +
                     HelpExampleRpc("signmessagewithprivkey",
                                    "\"privkey\", \"my message\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            std::string strPrivkey = request.params[0].get_str();
+            std::string strMessage = request.params[1].get_str();
 
-    std::string strPrivkey = request.params[0].get_str();
-    std::string strMessage = request.params[1].get_str();
+            CKey key = DecodeSecret(strPrivkey);
+            if (!key.IsValid()) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                                   "Invalid private key");
+            }
 
-    CKey key = DecodeSecret(strPrivkey);
-    if (!key.IsValid()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
-    }
+            std::string signature;
 
-    std::string signature;
+            if (!MessageSign(key, strMessage, signature)) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
+            }
 
-    if (!MessageSign(key, strMessage, signature)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
-    }
-
-    return signature;
+            return signature;
+        },
+    };
 }
 
-static UniValue setmocktime(const Config &config,
-                            const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan setmocktime() {
+    return RPCHelpMan{
         "setmocktime",
         "Set the local time to given timestamp (-regtest only)\n",
         {
@@ -442,41 +449,41 @@ static UniValue setmocktime(const Config &config,
         },
         RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{""},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!config.GetChainParams().IsMockableChain()) {
+                throw std::runtime_error(
+                    "setmocktime for regression testing (-regtest mode) only");
+            }
 
-    if (!config.GetChainParams().IsMockableChain()) {
-        throw std::runtime_error(
-            "setmocktime for regression testing (-regtest mode) only");
-    }
+            // For now, don't change mocktime if we're in the middle of
+            // validation, as this could have an effect on mempool time-based
+            // eviction, as well as IsInitialBlockDownload().
+            // TODO: figure out the right way to synchronize around mocktime,
+            // and ensure all call sites of GetTime() are accessing this safely.
+            LOCK(cs_main);
 
-    // For now, don't change mocktime if we're in the middle of validation, as
-    // this could have an effect on mempool time-based eviction, as well as
-    // IsInitialBlockDownload().
-    // TODO: figure out the right way to synchronize around mocktime, and
-    // ensure all call sites of GetTime() are accessing this safely.
-    LOCK(cs_main);
+            RPCTypeCheck(request.params, {UniValue::VNUM});
+            int64_t time = request.params[0].get_int64();
+            if (time < 0) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "Timestamp must be 0 or greater");
+            }
+            SetMockTime(time);
+            if (request.context.Has<NodeContext>()) {
+                for (const auto &chain_client :
+                     request.context.Get<NodeContext>().chain_clients) {
+                    chain_client->setMockTime(time);
+                }
+            }
 
-    RPCTypeCheck(request.params, {UniValue::VNUM});
-    int64_t time = request.params[0].get_int64();
-    if (time < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "Timestamp must be 0 or greater");
-    }
-    SetMockTime(time);
-    if (request.context.Has<NodeContext>()) {
-        for (const auto &chain_client :
-             request.context.Get<NodeContext>().chain_clients) {
-            chain_client->setMockTime(time);
-        }
-    }
-
-    return NullUniValue;
+            return NullUniValue;
+        },
+    };
 }
 
-static UniValue mockscheduler(const Config &config,
-                              const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan mockscheduler() {
+    return RPCHelpMan{
         "mockscheduler",
         "Bump the scheduler into the future (-regtest only)\n",
         {
@@ -485,29 +492,30 @@ static UniValue mockscheduler(const Config &config,
         },
         RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{""},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!Params().IsMockableChain()) {
+                throw std::runtime_error("mockscheduler is for regression "
+                                         "testing (-regtest mode) only");
+            }
 
-    if (!Params().IsMockableChain()) {
-        throw std::runtime_error(
-            "mockscheduler is for regression testing (-regtest mode) only");
-    }
+            // check params are valid values
+            RPCTypeCheck(request.params, {UniValue::VNUM});
+            int64_t delta_seconds = request.params[0].get_int64();
+            if ((delta_seconds <= 0) || (delta_seconds > 3600)) {
+                throw std::runtime_error(
+                    "delta_time must be between 1 and 3600 seconds (1 hr)");
+            }
 
-    // check params are valid values
-    RPCTypeCheck(request.params, {UniValue::VNUM});
-    int64_t delta_seconds = request.params[0].get_int64();
-    if ((delta_seconds <= 0) || (delta_seconds > 3600)) {
-        throw std::runtime_error(
-            "delta_time must be between 1 and 3600 seconds (1 hr)");
-    }
+            // protect against null pointer dereference
+            CHECK_NONFATAL(request.context.Has<NodeContext>());
+            NodeContext &node = request.context.Get<NodeContext>();
+            CHECK_NONFATAL(node.scheduler);
+            node.scheduler->MockForward(std::chrono::seconds(delta_seconds));
 
-    // protect against null pointer dereference
-    CHECK_NONFATAL(request.context.Has<NodeContext>());
-    NodeContext &node = request.context.Get<NodeContext>();
-    CHECK_NONFATAL(node.scheduler);
-    node.scheduler->MockForward(std::chrono::seconds(delta_seconds));
-
-    return NullUniValue;
+            return NullUniValue;
+        },
+    };
 }
 
 static UniValue RPCLockedMemoryInfo() {
@@ -540,12 +548,11 @@ static std::string RPCMallocInfo() {
 }
 #endif
 
-static UniValue getmemoryinfo(const Config &config,
-                              const JSONRPCRequest &request) {
+static RPCHelpMan getmemoryinfo() {
     /* Please, avoid using the word "pool" here in the RPC interface or help,
      * as users will undoubtedly confuse it with the other "memory pool"
      */
-    RPCHelpMan{
+    return RPCHelpMan{
         "getmemoryinfo",
         "Returns an object containing information about memory usage.\n",
         {
@@ -588,26 +595,29 @@ static UniValue getmemoryinfo(const Config &config,
         },
         RPCExamples{HelpExampleCli("getmemoryinfo", "") +
                     HelpExampleRpc("getmemoryinfo", "")},
-    }
-        .Check(request);
-
-    std::string mode =
-        request.params[0].isNull() ? "stats" : request.params[0].get_str();
-    if (mode == "stats") {
-        UniValue obj(UniValue::VOBJ);
-        obj.pushKV("locked", RPCLockedMemoryInfo());
-        return obj;
-    } else if (mode == "mallocinfo") {
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            std::string mode = request.params[0].isNull()
+                                   ? "stats"
+                                   : request.params[0].get_str();
+            if (mode == "stats") {
+                UniValue obj(UniValue::VOBJ);
+                obj.pushKV("locked", RPCLockedMemoryInfo());
+                return obj;
+            } else if (mode == "mallocinfo") {
 #ifdef HAVE_MALLOC_INFO
-        return RPCMallocInfo();
+                return RPCMallocInfo();
 #else
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            "mallocinfo is only available when compiled with glibc 2.10+");
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "mallocinfo is only available when compiled "
+                                   "with glibc 2.10+");
 #endif
-    } else {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "unknown mode " + mode);
-    }
+            } else {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "unknown mode " + mode);
+            }
+        },
+    };
 }
 
 static void EnableOrDisableLogCategories(UniValue cats, bool enable) {
@@ -629,8 +639,8 @@ static void EnableOrDisableLogCategories(UniValue cats, bool enable) {
     }
 }
 
-static UniValue logging(const Config &config, const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan logging() {
+    return RPCHelpMan{
         "logging",
         "Gets and sets the logging configuration.\n"
         "When called without an argument, returns the list of categories with "
@@ -677,99 +687,110 @@ static UniValue logging(const Config &config, const JSONRPCRequest &request) {
         RPCExamples{
             HelpExampleCli("logging", "\"[\\\"all\\\"]\" \"[\\\"http\\\"]\"") +
             HelpExampleRpc("logging", "[\"all\"], [\"libevent\"]")},
-    }
-        .Check(request);
-
-    uint32_t original_log_categories = LogInstance().GetCategoryMask();
-    if (request.params[0].isArray()) {
-        EnableOrDisableLogCategories(request.params[0], true);
-    }
-
-    if (request.params[1].isArray()) {
-        EnableOrDisableLogCategories(request.params[1], false);
-    }
-
-    uint32_t updated_log_categories = LogInstance().GetCategoryMask();
-    uint32_t changed_log_categories =
-        original_log_categories ^ updated_log_categories;
-
-    /**
-     * Update libevent logging if BCLog::LIBEVENT has changed.
-     * If the library version doesn't allow it, UpdateHTTPServerLogging()
-     * returns false, in which case we should clear the BCLog::LIBEVENT flag.
-     * Throw an error if the user has explicitly asked to change only the
-     * libevent flag and it failed.
-     */
-    if (changed_log_categories & BCLog::LIBEVENT) {
-        if (!UpdateHTTPServerLogging(
-                LogInstance().WillLogCategory(BCLog::LIBEVENT))) {
-            LogInstance().DisableCategory(BCLog::LIBEVENT);
-            if (changed_log_categories == BCLog::LIBEVENT) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                   "libevent logging cannot be updated when "
-                                   "using libevent before v2.1.1.");
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            uint32_t original_log_categories = LogInstance().GetCategoryMask();
+            if (request.params[0].isArray()) {
+                EnableOrDisableLogCategories(request.params[0], true);
             }
-        }
-    }
 
-    UniValue result(UniValue::VOBJ);
-    for (const auto &logCatActive : LogInstance().LogCategoriesList()) {
-        result.pushKV(logCatActive.category, logCatActive.active);
-    }
+            if (request.params[1].isArray()) {
+                EnableOrDisableLogCategories(request.params[1], false);
+            }
 
-    return result;
+            uint32_t updated_log_categories = LogInstance().GetCategoryMask();
+            uint32_t changed_log_categories =
+                original_log_categories ^ updated_log_categories;
+
+            /**
+             * Update libevent logging if BCLog::LIBEVENT has changed.
+             * If the library version doesn't allow it,
+             * UpdateHTTPServerLogging() returns false, in which case we should
+             * clear the BCLog::LIBEVENT flag. Throw an error if the user has
+             * explicitly asked to change only the libevent flag and it failed.
+             */
+            if (changed_log_categories & BCLog::LIBEVENT) {
+                if (!UpdateHTTPServerLogging(
+                        LogInstance().WillLogCategory(BCLog::LIBEVENT))) {
+                    LogInstance().DisableCategory(BCLog::LIBEVENT);
+                    if (changed_log_categories == BCLog::LIBEVENT) {
+                        throw JSONRPCError(
+                            RPC_INVALID_PARAMETER,
+                            "libevent logging cannot be updated when "
+                            "using libevent before v2.1.1.");
+                    }
+                }
+            }
+
+            UniValue result(UniValue::VOBJ);
+            for (const auto &logCatActive : LogInstance().LogCategoriesList()) {
+                result.pushKV(logCatActive.category, logCatActive.active);
+            }
+
+            return result;
+        },
+    };
 }
 
-static UniValue echo(const Config &config, const JSONRPCRequest &request) {
-    if (request.fHelp) {
-        throw std::runtime_error(RPCHelpMan{
-            "echo|echojson ...",
-            "Simply echo back the input arguments. This command is for "
-            "testing.\n"
-            "\nIt will return an internal bug report when "
-            "arg9='trigger_internal_bug' is passed.\n"
-            "\nThe difference between echo and echojson is that echojson has "
-            "argument conversion enabled in the client-side table in "
-            "bitcoin-cli and the GUI. There is no server-side difference.",
-            {
-                {"arg0", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg1", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg2", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg3", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg4", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg5", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg6", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg7", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg8", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-                {"arg9", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
-                 ""},
-            },
-            RPCResult{RPCResult::Type::NONE, "",
-                      "Returns whatever was passed in"},
-            RPCExamples{""},
-        }
-                                     .ToString());
-    }
+static RPCHelpMan echo(const std::string &name) {
+    return RPCHelpMan{
+        name,
+        "Simply echo back the input arguments. This command is for "
+        "testing.\n"
+        "\nIt will return an internal bug report when "
+        "arg9='trigger_internal_bug' is passed.\n"
+        "\nThe difference between echo and echojson is that echojson has "
+        "argument conversion enabled in the client-side table in "
+        "bitcoin-cli and the GUI. There is no server-side difference.",
+        {
+            {"arg0", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg1", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg2", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg3", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg4", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg5", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg6", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg7", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg8", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+            {"arg9", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG,
+             ""},
+        },
+        RPCResult{RPCResult::Type::NONE, "", "Returns whatever was passed in"},
+        RPCExamples{""},
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (request.fHelp) {
+                throw std::runtime_error(self.ToString());
+            }
 
-    if (request.params[9].isStr()) {
-        CHECK_NONFATAL(request.params[9].get_str() != "trigger_internal_bug");
-    }
+            if (request.params[9].isStr()) {
+                CHECK_NONFATAL(request.params[9].get_str() !=
+                               "trigger_internal_bug");
+            }
 
-    return request.params;
+            return request.params;
+        },
+    };
 }
 
-static UniValue getcurrencyinfo(const Config &config,
-                                const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan echo() {
+    return echo("echo");
+}
+static RPCHelpMan echojson() {
+    return echo("echojson");
+}
+
+static RPCHelpMan getcurrencyinfo() {
+    return RPCHelpMan{
         "getcurrencyinfo",
         "Returns an object containing information about the currency.\n",
         {},
@@ -788,16 +809,17 @@ static UniValue getcurrencyinfo(const Config &config,
         },
         RPCExamples{HelpExampleCli("getcurrencyinfo", "") +
                     HelpExampleRpc("getcurrencyinfo", "")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const Currency &currency = Currency::get();
 
-    const Currency &currency = Currency::get();
-
-    UniValue res(UniValue::VOBJ);
-    res.pushKV("ticker", currency.ticker);
-    res.pushKV("satoshisperunit", currency.baseunit / SATOSHI);
-    res.pushKV("decimals", currency.decimals);
-    return res;
+            UniValue res(UniValue::VOBJ);
+            res.pushKV("ticker", currency.ticker);
+            res.pushKV("satoshisperunit", currency.baseunit / SATOSHI);
+            res.pushKV("decimals", currency.decimals);
+            return res;
+        },
+    };
 }
 
 void RegisterMiscRPCCommands(CRPCTable &t) {
@@ -819,7 +841,7 @@ void RegisterMiscRPCCommands(CRPCTable &t) {
         { "hidden",             "setmocktime",            setmocktime,            {"timestamp"}},
         { "hidden",             "mockscheduler",          mockscheduler,          {"delta_time"}},
         { "hidden",             "echo",                   echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-        { "hidden",             "echojson",               echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+        { "hidden",             "echojson",               echojson,               {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
     };
     // clang-format on
     for (const auto &c : commands) {
