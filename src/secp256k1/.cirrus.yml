@@ -167,7 +167,9 @@ task:
         WRAPPER_CMD: "valgrind --error-exitcode=42"
         TEST_ITERS: 2
         AUTOTOOLS_TARGET:
-        CMAKE_TARGET: "secp256k1-tests secp256k1-exhaustive_tests"
+        # FIXME: enable exhaustive_tests again when backporting 5106226991117da78f85ca88b7ea66c2ac8fe0b3
+        # CMAKE_TARGET: "secp256k1-tests secp256k1-exhaustive_tests"
+        CMAKE_TARGET: "secp256k1-tests"
     - name: "UBSan, ASan, LSan"
       env:
         CFLAGS: "-fsanitize=undefined,address"
