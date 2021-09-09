@@ -39,12 +39,6 @@ public:
 
     Proof build();
 
-    /**
-     * Builds a randomized (and therefore invalid) Proof.
-     * Useful for tests.
-     */
-    static Proof buildRandom(uint32_t score);
-
 private:
     ProofId getProofId() const;
 };
