@@ -8,6 +8,7 @@
 #include <hash.h>
 #include <logging.h>
 #include <serialize.h>
+#include <util/check.h>
 
 #include <cmath>
 
@@ -174,11 +175,16 @@ void CAddrMan::ClearNew(int nUBucket, int nUBucketPos) {
 
 void CAddrMan::MakeTried(CAddrInfo &info, int nId) {
     // remove the entry from all new buckets
-    for (int bucket = 0; bucket < ADDRMAN_NEW_BUCKET_COUNT; bucket++) {
-        int pos = info.GetBucketPosition(nKey, true, bucket);
+    const int start_bucket{info.GetNewBucket(nKey, m_asmap)};
+    for (int n = 0; n < ADDRMAN_NEW_BUCKET_COUNT; ++n) {
+        const int bucket{(start_bucket + n) % ADDRMAN_NEW_BUCKET_COUNT};
+        const int pos{info.GetBucketPosition(nKey, true, bucket)};
         if (vvNew[bucket][pos] == nId) {
             vvNew[bucket][pos] = -1;
             info.nRefCount--;
+            if (info.nRefCount == 0) {
+                break;
+            }
         }
     }
     nNew--;
@@ -253,21 +259,8 @@ void CAddrMan::Good_(const CService &addr, bool test_before_evict,
         return;
     }
 
-    // find a bucket it is in now
-    int nRnd = insecure_rand.randrange(ADDRMAN_NEW_BUCKET_COUNT);
-    int nUBucket = -1;
-    for (unsigned int n = 0; n < ADDRMAN_NEW_BUCKET_COUNT; n++) {
-        int nB = (n + nRnd) % ADDRMAN_NEW_BUCKET_COUNT;
-        int nBpos = info.GetBucketPosition(nKey, true, nB);
-        if (vvNew[nB][nBpos] == nId) {
-            nUBucket = nB;
-            break;
-        }
-    }
-
-    // if no bucket is found, something bad happened;
-    // TODO: maybe re-add the node, but for now, just bail out
-    if (nUBucket == -1) {
+    // if it is not in new, something bad happened
+    if (!Assume(info.nRefCount > 0)) {
         return;
     }
 
