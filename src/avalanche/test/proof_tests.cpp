@@ -49,9 +49,9 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
 
     for (int i = 0; i < 3; i++) {
         key.MakeNewKey(true);
-        pb.addUTXO(COutPoint(TxId(GetRandHash()), InsecureRand32()),
-                   int64_t(InsecureRand32()) * COIN / 100, InsecureRand32(),
-                   InsecureRandBool(), key);
+        BOOST_CHECK(pb.addUTXO(COutPoint(TxId(GetRandHash()), InsecureRand32()),
+                               int64_t(InsecureRand32()) * COIN / 100,
+                               InsecureRand32(), InsecureRandBool(), key));
     }
 
     Proof p = pb.build();
@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE(verify) {
                               const CKey &k) {
         // Generate a proof that match the UTXO.
         ProofBuilder pb(0, 0, pubkey);
-        pb.addUTXO(o, v, h, is_coinbase, k);
+        BOOST_CHECK(pb.addUTXO(o, v, h, is_coinbase, k));
         Proof p = pb.build();
 
         ProofValidationState state;
@@ -411,7 +411,8 @@ BOOST_AUTO_TEST_CASE(verify) {
     // Dust thresold
     {
         ProofBuilder pb(0, 0, pubkey);
-        pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key);
+        BOOST_CHECK(
+            pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key));
         Proof p = pb.build();
 
         ProofValidationState state;
@@ -421,8 +422,8 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     {
         ProofBuilder pb(0, 0, pubkey);
-        pb.addUTXO(pkh_outpoint, PROOF_DUST_THRESHOLD - 1 * SATOSHI, height,
-                   false, key);
+        BOOST_CHECK(pb.addUTXO(pkh_outpoint, PROOF_DUST_THRESHOLD - 1 * SATOSHI,
+                               height, false, key));
         Proof p = pb.build();
 
         ProofValidationState state;
@@ -433,7 +434,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     // Duplicated input
     {
         ProofBuilder pb(0, 0, pubkey);
-        pb.addUTXO(pkh_outpoint, value, height, false, key);
+        BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
         Proof p = TestProofBuilder::buildDuplicatedStakes(pb);
 
         ProofValidationState state;
@@ -450,8 +451,8 @@ BOOST_AUTO_TEST_CASE(verify) {
                       false);
 
         ProofBuilder pb(0, 0, pubkey);
-        pb.addUTXO(pkh_outpoint, value, height, false, key);
-        pb.addUTXO(other_pkh_outpoint, value, height, false, key);
+        BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
+        BOOST_CHECK(pb.addUTXO(other_pkh_outpoint, value, height, false, key));
         Proof p = TestProofBuilder::buildWithReversedOrderStakes(pb);
 
         ProofValidationState state;
@@ -479,7 +480,7 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
     auto computeProofId = [&]() {
         ProofBuilder pb(0, 0, pubkey);
         for (const COutPoint &outpoint : outpoints) {
-            pb.addUTXO(outpoint, value, height, false, key);
+            BOOST_CHECK(pb.addUTXO(outpoint, value, height, false, key));
         }
         Proof p = pb.build();
 

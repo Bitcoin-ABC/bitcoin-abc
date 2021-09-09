@@ -11,6 +11,8 @@
 #include <script/standard.h>
 #include <validation.h>
 
+#include <boost/test/unit_test.hpp>
+
 #include <limits>
 
 namespace avalanche {
@@ -32,7 +34,7 @@ Proof buildRandomProof(uint32_t score, const CPubKey &master) {
     }
 
     ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), master);
-    pb.addUTXO(o, v, height, is_coinbase, std::move(key));
+    BOOST_CHECK(pb.addUTXO(o, v, height, is_coinbase, std::move(key)));
     return pb.build();
 }
 

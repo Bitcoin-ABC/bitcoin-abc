@@ -464,7 +464,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     COutPoint utxo(TxId(GetRandHash()), 0);
     Amount amount = 1 * COIN;
     const int height = 1234;
-    pb.addUTXO(utxo, amount, height, false, key);
+    BOOST_CHECK(pb.addUTXO(utxo, amount, height, false, key));
     auto proof = std::make_shared<Proof>(pb.build());
     const ProofId &proofid = proof->getId();
 
@@ -548,7 +548,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
         ProofBuilder pb(0, 0, CPubKey());
         for (const auto &o : outpoints) {
-            pb.addUTXO(o, v, height, false, key);
+            BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         }
 
         return pm.getPeerId(std::make_shared<Proof>(pb.build()));
@@ -580,7 +580,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     {
         ProofBuilder pb(0, 0, CPubKey());
         COutPoint o(txid1, 3);
-        pb.addUTXO(o, v, height, false, key);
+        BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         PeerId peerid = pm.getPeerId(std::make_shared<Proof>(
             TestProofBuilder::buildDuplicatedStakes(pb)));
         BOOST_CHECK_EQUAL(peerid, NO_PEER);
@@ -615,7 +615,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
 
     const auto makeProof = [&](const COutPoint &outpoint, const int h) {
         ProofBuilder pb(0, 0, CPubKey());
-        pb.addUTXO(outpoint, v, h, false, key);
+        BOOST_CHECK(pb.addUTXO(outpoint, v, h, false, key));
         return std::make_shared<Proof>(pb.build());
     };
 

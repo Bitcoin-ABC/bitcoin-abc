@@ -25,8 +25,8 @@ static std::shared_ptr<Proof> makeProof(const size_t nStakes) {
     ProofBuilder pb(0, 0, CPubKey());
     for (size_t i = 0; i < nStakes; i++) {
         TxId txid(GetRandHash());
-        pb.addUTXO(COutPoint(txid, 0), v, height, false,
-                   CKey::MakeCompressedKey());
+        BOOST_CHECK(pb.addUTXO(COutPoint(txid, 0), v, height, false,
+                               CKey::MakeCompressedKey()));
     }
     return std::make_shared<Proof>(pb.build());
 }
