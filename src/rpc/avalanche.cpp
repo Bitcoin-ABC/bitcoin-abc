@@ -278,9 +278,13 @@ static UniValue buildavalancheproof(const Config &config,
             iscbparam.isNull() ? false : iscbparam.get_bool();
         CKey key = DecodeSecret(find_value(stake, "privatekey").get_str());
 
+        if (!key.IsValid()) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid private key");
+        }
+
         if (!pb.addUTXO(utxo, amount, uint32_t(height), iscoinbase,
                         std::move(key))) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid private key");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Duplicated stake");
         }
     }
 

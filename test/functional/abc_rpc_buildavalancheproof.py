@@ -82,6 +82,12 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
                                         [invalid_privkey],
                                         )
 
+        duplicate_stake = [good_stake] * 2
+        check_buildavalancheproof_error(-8,
+                                        "Duplicated stake",
+                                        duplicate_stake,
+                                        )
+
         self.log.info("Happy path")
         assert node.buildavalancheproof(0, 0, proof_master, [good_stake])
 
