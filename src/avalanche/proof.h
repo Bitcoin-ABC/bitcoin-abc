@@ -31,6 +31,8 @@ static constexpr Amount PROOF_DUST_THRESHOLD = 1 * COIN;
 
 class ProofValidationState;
 
+using StakeId = uint256;
+
 class Stake {
     COutPoint utxo;
 
@@ -38,15 +40,21 @@ class Stake {
     uint32_t height;
     CPubKey pubkey;
 
+    StakeId stakeid;
+    void computeStakeId();
+
 public:
     explicit Stake() = default;
     Stake(COutPoint utxo_, Amount amount_, uint32_t height_, bool is_coinbase,
           CPubKey pubkey_)
         : utxo(utxo_), amount(amount_), height(height_ << 1 | is_coinbase),
-          pubkey(std::move(pubkey_)) {}
+          pubkey(std::move(pubkey_)) {
+        computeStakeId();
+    }
 
     SERIALIZE_METHODS(Stake, obj) {
         READWRITE(obj.utxo, obj.amount, obj.height, obj.pubkey);
+        SER_READ(obj, obj.computeStakeId());
     }
 
     const COutPoint &getUTXO() const { return utxo; }
@@ -56,6 +64,8 @@ public:
     const CPubKey &getPubkey() const { return pubkey; }
 
     uint256 getHash(const ProofId &proofid) const;
+
+    const StakeId &getId() const { return stakeid; }
 };
 
 class SignedStake {

@@ -178,24 +178,24 @@ BOOST_AUTO_TEST_CASE(deserialization) {
                           "f79cebeb5983"),
          3280755132, ProofValidationResult::DUPLICATE_STAKE},
         {"Properly signed 3 UTXO proof",
-         "c964aa6fde575e4ce8404581c7be874e21023beefdde700a6bc02036335b4df141c8b"
-         "c67bb05a971f5ac2745fd683797dde30305d427b706705a5d4b6a368a231d6db62aba"
-         "cf8c29bc32b61e7f65a0a6976aa8b86b687bc0260e821e4f0200b9d3bf6d2102449fb"
-         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68052365271b6"
-         "c71189f5cd7e3b694b77b579080f0b35bae567b96590ab6aa3019b018ff9f061f52f1"
-         "426bdb195d4b6d4dff5114cee90e33dabf0c588ebadf7774418f54247f6390791706a"
-         "f36fac782302479898b5273f9e51a92cb1fb5af43deeb6c8c269403d30ffcb3803001"
-         "34398c42103e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9"
-         "e645efa08e97ea0c60e1f0a064fbf08989c084707082727e85dcb9f79bb503f76ee6c"
-         "8dad42a07ef15c89b3750a5631d604b21fafff0f4de354ade95c2f28160ae549af0d4"
-         "ce48c4ca9d0714b1fa51920270f8575e0af610f07b4e602a018ecdbb649b64fff614c"
-         "0026e9fc8e0030092533d422103aac52f4cfca700e7e9824298e0184755112e32f359"
-         "c832f5f6ad2ef62a2c024af812d6d7f2ecc6223a774e19bce1fb20d94d6b01ea69363"
-         "8f55c74fdaa5358fa9239d03e4caf3d817e8f748ccad55a27b9d365db06ad5a0b779a"
-         "c385f3dc8710",
-         ProofId::fromHex("39488854a79a87a37a5042f3934983d116337f0a38cfa0c78712"
-                          "26ba8edf6a15"),
-         2648393347, ProofValidationResult::NONE},
+         "c964aa6fde575e4ce8404581c7be874e21038439233261789dd340bdc1450172d9c67"
+         "1b72ee8c0b2736ed2a3a250760897fd03e4ed76e1f19b2c2a0fcc069b4ace4a078cb5"
+         "cc31e9e19b266d0af41ea8bb0c30c8b47c95a856d9aa000000007dfdd89a21030f588"
+         "3ac0b61082277ad94d9f5f979baffc49d516167aeda0eb7de30db319a411f97bc976e"
+         "0490468f2f6d552c8cf87e8def1492b8ac81df0b4448a3c212e9000f9e753b97c93e0"
+         "2fbe8976c95488b54a24f7df00d3cfed308701e6d690c394cac098c86414715db364a"
+         "4e32216084c561acdd79e0860b1fdf7497b159cb13230451200296c902ee000000009"
+         "f2bc7392102a397e8e1f737cae7d8c41ec68445261e9201ed36bc694d753095f716b3"
+         "97319d5c5ef9a7712ec77b6826b29bf53691bbcb6873a326f313efb8cdb8911715bc6"
+         "7d61a3b804f9ac9162374c6df42dc918b0ba3f05d0578cd9f96d5078c903b89f30b1e"
+         "5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b42377764698a9"
+         "15c2ac4000000000f28db3221039f1ae9bbeeafa63abdc362f0a2c00e6c0582615b79"
+         "61745180c47a0b7800abc1e97c016b9e99625394b738643e8ef0d3d4936165caff79c"
+         "1070d36ca432ba04dbbb54474a42f9e72587d05ba6353ce1be41a0e80e2d2257bc444"
+         "99fa26f5c1d7",
+         ProofId::fromHex("317289c8d2f4fb7b4fea5195e4dbc9804018c6aab71606b50e27"
+                          "ddd8e2d985db"),
+         10150, ProofValidationResult::NONE},
         {"Changing sequence affect ProofId",
          "d87587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -442,6 +442,54 @@ BOOST_AUTO_TEST_CASE(verify) {
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::DUPLICATE_STAKE);
     }
+
+    // Wrong stake ordering
+    {
+        COutPoint other_pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
+        CTxOut other_pkh_output(value, GetScriptForRawPubKey(pubkey));
+        coins.AddCoin(other_pkh_outpoint, Coin(other_pkh_output, height, false),
+                      false);
+
+        ProofBuilder pb(0, 0, pubkey);
+        pb.addUTXO(pkh_outpoint, value, height, false, key);
+        pb.addUTXO(other_pkh_outpoint, value, height, false, key);
+        Proof p = TestProofBuilder::buildWithReversedOrderStakes(pb);
+
+        ProofValidationState state;
+        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(state.GetResult() ==
+                    ProofValidationResult::WRONG_STAKE_ORDERING);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(deterministic_proofid) {
+    CCoinsView coinsDummy;
+    CCoinsViewCache coins(&coinsDummy);
+
+    auto key = CKey::MakeCompressedKey();
+    const CPubKey pubkey = key.GetPubKey();
+
+    const Amount value = 12345 * COIN;
+    const uint32_t height = 10;
+
+    std::vector<COutPoint> outpoints(10);
+    for (size_t i = 0; i < 10; i++) {
+        outpoints[i] = COutPoint(TxId(InsecureRand256()), InsecureRand32());
+    }
+
+    auto computeProofId = [&]() {
+        ProofBuilder pb(0, 0, pubkey);
+        for (const COutPoint &outpoint : outpoints) {
+            pb.addUTXO(outpoint, value, height, false, key);
+        }
+        Proof p = pb.build();
+
+        return p.getId();
+    };
+
+    const ProofId proofid = computeProofId();
+    Shuffle(outpoints.begin(), outpoints.end(), FastRandomContext());
+    BOOST_CHECK_EQUAL(proofid, computeProofId());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

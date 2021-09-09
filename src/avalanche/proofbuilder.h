@@ -12,6 +12,8 @@
 
 namespace avalanche {
 
+struct TestProofBuilder;
+
 class ProofBuilder {
     uint64_t sequence;
     int64_t expirationTime;
@@ -40,7 +42,9 @@ public:
     Proof build();
 
 private:
-    ProofId getProofId() const;
+    ProofId getProofId();
+
+    friend struct TestProofBuilder;
 };
 
 } // namespace avalanche

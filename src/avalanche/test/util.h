@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_TEST_UTIL_H
 
 #include <avalanche/proof.h>
+#include <avalanche/proofbuilder.h>
 #include <pubkey.h>
 
 #include <cstdio>
@@ -17,6 +18,11 @@ constexpr uint32_t MIN_VALID_PROOF_SCORE = 100 * PROOF_DUST_THRESHOLD / COIN;
 Proof buildRandomProof(uint32_t score, const CPubKey &master = CPubKey());
 
 bool hasDustStake(const Proof &proof);
+
+struct TestProofBuilder {
+    static ProofId getReverseOrderProofId(ProofBuilder &pb);
+    static Proof buildWithReversedOrderStakes(ProofBuilder &pb);
+};
 
 } // namespace avalanche
 

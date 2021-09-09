@@ -17,6 +17,12 @@
 
 namespace avalanche {
 
+void Stake::computeStakeId() {
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << *this;
+    stakeid = StakeId(ss.GetHash());
+}
+
 uint256 Stake::getHash(const ProofId &proofid) const {
     CHashWriter ss(SER_GETHASH, 0);
     ss << proofid;
@@ -81,6 +87,7 @@ bool Proof::verify(ProofValidationState &state) const {
             strprintf("%u > %u", stakes.size(), AVALANCHE_MAX_PROOF_STAKES));
     }
 
+    StakeId prevId = uint256::ZERO;
     std::unordered_set<COutPoint, SaltedOutpointHasher> utxos;
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();
@@ -90,6 +97,12 @@ bool Proof::verify(ProofValidationState &state) const {
                                  strprintf("%s < %s", s.getAmount().ToString(),
                                            PROOF_DUST_THRESHOLD.ToString()));
         }
+
+        if (s.getId() < prevId) {
+            return state.Invalid(ProofValidationResult::WRONG_STAKE_ORDERING,
+                                 "wrong-stake-ordering");
+        }
+        prevId = s.getId();
 
         if (!utxos.insert(s.getUTXO()).second) {
             return state.Invalid(ProofValidationResult::DUPLICATE_STAKE,

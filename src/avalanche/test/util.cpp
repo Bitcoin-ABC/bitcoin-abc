@@ -45,4 +45,43 @@ bool hasDustStake(const Proof &proof) {
     return false;
 }
 
+ProofId TestProofBuilder::getReverseOrderProofId(ProofBuilder &pb) {
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << pb.sequence;
+    ss << pb.expirationTime;
+
+    // Reverse the sorting order
+    std::sort(pb.stakes.begin(), pb.stakes.end(),
+              [](const ProofBuilder::StakeSigner &lhs,
+                 const ProofBuilder::StakeSigner &rhs) {
+                  return lhs.stake.getId() > rhs.stake.getId();
+              });
+
+    WriteCompactSize(ss, pb.stakes.size());
+    for (const auto &s : pb.stakes) {
+        ss << s.stake;
+    }
+
+    CHashWriter ss2(SER_GETHASH, 0);
+    ss2 << ss.GetHash();
+    ss2 << pb.master;
+
+    return ProofId(ss2.GetHash());
+}
+
+Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
+    const ProofId proofid = TestProofBuilder::getReverseOrderProofId(pb);
+
+    std::vector<SignedStake> signedStakes;
+    signedStakes.reserve(pb.stakes.size());
+
+    for (auto &s : pb.stakes) {
+        signedStakes.push_back(s.sign(proofid));
+    }
+
+    pb.stakes.clear();
+    return Proof(pb.sequence, pb.expirationTime, std::move(pb.master),
+                 std::move(signedStakes));
+}
+
 } // namespace avalanche

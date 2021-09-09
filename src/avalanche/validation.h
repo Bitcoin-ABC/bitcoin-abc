@@ -14,6 +14,7 @@ enum class ProofValidationResult {
     NO_STAKE,
     DUST_THRESOLD,
     DUPLICATE_STAKE,
+    WRONG_STAKE_ORDERING,
     INVALID_SIGNATURE,
     TOO_MANY_UTXOS,
 

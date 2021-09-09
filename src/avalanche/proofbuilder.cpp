@@ -46,10 +46,17 @@ Proof ProofBuilder::build() {
                  std::move(signedStakes));
 }
 
-ProofId ProofBuilder::getProofId() const {
+ProofId ProofBuilder::getProofId() {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
+
+    // TODO This can be avoided by using a sorted container instead of a vector
+    // for the stakes.
+    std::sort(stakes.begin(), stakes.end(),
+              [](const StakeSigner &lhs, const StakeSigner &rhs) {
+                  return lhs.stake.getId() < rhs.stake.getId();
+              });
 
     WriteCompactSize(ss, stakes.size());
     for (const auto &s : stakes) {
