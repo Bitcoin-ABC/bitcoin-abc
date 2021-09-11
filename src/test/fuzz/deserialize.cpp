@@ -84,7 +84,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         BlockFilter block_filter;
         DeserializeFromFuzzingInput(buffer, block_filter);
 #elif ADDR_INFO_DESERIALIZE
-        CAddrInfo addr_info;
+        AddrInfo addr_info;
         DeserializeFromFuzzingInput(buffer, addr_info);
 #elif BLOCK_FILE_INFO_DESERIALIZE
         CBlockFileInfo block_file_info;

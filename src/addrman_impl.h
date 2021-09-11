@@ -37,7 +37,7 @@ static constexpr int ADDRMAN_BUCKET_SIZE{1 << ADDRMAN_BUCKET_SIZE_LOG2};
 /**
  * Extended statistics about a CAddress
  */
-class CAddrInfo : public CAddress {
+class AddrInfo : public CAddress {
 public:
     //! last try whatsoever by us (memory only)
     int64_t nLastTry{0};
@@ -63,15 +63,15 @@ public:
     //! position in vRandom
     mutable int nRandomPos{-1};
 
-    SERIALIZE_METHODS(CAddrInfo, obj) {
+    SERIALIZE_METHODS(AddrInfo, obj) {
         READWRITEAS(CAddress, obj);
         READWRITE(obj.source, obj.nLastSuccess, obj.nAttempts);
     }
 
-    CAddrInfo(const CAddress &addrIn, const CNetAddr &addrSource)
+    AddrInfo(const CAddress &addrIn, const CNetAddr &addrSource)
         : CAddress(addrIn), source(addrSource) {}
 
-    CAddrInfo() : CAddress(), source() {}
+    AddrInfo() : CAddress(), source() {}
 
     //! Calculate in which "tried" bucket this entry belongs
     int GetTriedBucket(const uint256 &nKey,
@@ -192,7 +192,7 @@ private:
     int nIdCount GUARDED_BY(cs);
 
     //! table with information about all nIds
-    std::unordered_map<int, CAddrInfo> mapInfo GUARDED_BY(cs);
+    std::unordered_map<int, AddrInfo> mapInfo GUARDED_BY(cs);
 
     //! find an nId based on its network address
     std::unordered_map<CNetAddr, int, CNetAddrHash> mapAddr GUARDED_BY(cs);
@@ -248,13 +248,13 @@ private:
     bool deterministic = false;
 
     //! Find an entry.
-    CAddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr)
+    AddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! find an entry, creating it if necessary.
     //! nTime and nServices of the found node are updated, if necessary.
-    CAddrInfo *Create(const CAddress &addr, const CNetAddr &addrSource,
-                      int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    AddrInfo *Create(const CAddress &addr, const CNetAddr &addrSource,
+                     int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Swap two elements in vRandom.
     void SwapRandom(unsigned int nRandomPos1, unsigned int nRandomPos2) const
@@ -268,7 +268,7 @@ private:
     void ClearNew(int nUBucket, int nUBucketPos) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Move an entry from the "new" table(s) to the "tried" table
-    void MakeTried(CAddrInfo &info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void MakeTried(AddrInfo &info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void Good_(const CService &addr, bool test_before_evict, int64_t time)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
