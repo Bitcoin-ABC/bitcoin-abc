@@ -5,6 +5,8 @@
 #ifndef BITCOIN_UTIL_STRING_H
 #define BITCOIN_UTIL_STRING_H
 
+#include <util/spanparsing.h>
+
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -12,10 +14,16 @@
 #include <locale>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 void ReplaceAll(std::string &in_out, const std::string &search,
                 const std::string &substitute);
+
+[[nodiscard]] inline std::vector<std::string> SplitString(std::string_view str,
+                                                          char sep) {
+    return spanparsing::Split<std::string>(str, sep);
+}
 
 [[nodiscard]] inline std::string
 TrimString(const std::string &str, const std::string &pattern = " \f\n\r\t\v") {

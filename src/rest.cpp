@@ -24,8 +24,6 @@
 #include <validation.h>
 #include <version.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include <univalue.h>
 
 #include <any>
@@ -190,8 +188,7 @@ static bool rest_headers(Config &config, const std::any &context,
 
     std::string param;
     const RetFormat rf = ParseDataFormat(param, strURIPart);
-    std::vector<std::string> path;
-    boost::split(path, param, boost::is_any_of("/"));
+    std::vector<std::string> path = SplitString(param, '/');
 
     if (path.size() != 2) {
         return RESTERR(req, HTTP_BAD_REQUEST,
@@ -543,7 +540,7 @@ static bool rest_getutxos(Config &config, const std::any &context,
     std::vector<std::string> uriParts;
     if (param.length() > 1) {
         std::string strUriParams = param.substr(1);
-        boost::split(uriParts, strUriParams, boost::is_any_of("/"));
+        uriParts = SplitString(strUriParams, '/');
     }
 
     // throw exception in case of an empty request

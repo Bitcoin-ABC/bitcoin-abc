@@ -138,6 +138,8 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 1024),
             &amount_out);
     }
+    (void)SplitString(random_string_1,
+                      fuzzed_data_provider.ConsumeIntegral<char>());
     {
         (void)Untranslated(random_string_1);
         const bilingual_str bs1{random_string_1, random_string_2};

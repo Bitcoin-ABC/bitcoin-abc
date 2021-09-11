@@ -11,9 +11,8 @@
 #include <shutdown.h>
 #include <sync.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/signals2/signal.hpp>
 
 #include <cassert>
@@ -460,9 +459,7 @@ transformNamedArguments(const JSONRPCRequest &in,
     // Process expected parameters.
     int hole = 0;
     for (const std::string &argNamePattern : argNames) {
-        std::vector<std::string> vargNames;
-        boost::algorithm::split(vargNames, argNamePattern,
-                                boost::algorithm::is_any_of("|"));
+        std::vector<std::string> vargNames = SplitString(argNamePattern, '|');
         auto fr = argsIn.end();
         for (const std::string &argName : vargNames) {
             fr = argsIn.find(argName);

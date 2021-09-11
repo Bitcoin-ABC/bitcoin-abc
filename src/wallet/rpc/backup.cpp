@@ -26,8 +26,6 @@
 #include <wallet/spend.h>
 #include <wallet/wallet.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
@@ -729,8 +727,7 @@ RPCHelpMan importwallet() {
                         continue;
                     }
 
-                    std::vector<std::string> vstr;
-                    boost::split(vstr, line, boost::is_any_of(" "));
+                    std::vector<std::string> vstr = SplitString(line, ' ');
                     if (vstr.size() < 2) {
                         continue;
                     }
