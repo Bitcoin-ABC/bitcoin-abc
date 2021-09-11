@@ -112,7 +112,7 @@ class AddrmanTest(BitcoinTestFramework):
         write_addrman(peers_dat, len_tried=-1)
         self.nodes[0].assert_start_raises_init_error(
             expected_msg=init_error(
-                "Corrupt CAddrMan serialization: nTried=-1, should be in \\[0, 16384\\]:.*"),
+                "Corrupt AddrMan serialization: nTried=-1, should be in \\[0, 16384\\]:.*"),
             match=ErrorMatch.FULL_REGEX,
         )
 
@@ -121,7 +121,7 @@ class AddrmanTest(BitcoinTestFramework):
         write_addrman(peers_dat, len_new=-1)
         self.nodes[0].assert_start_raises_init_error(
             expected_msg=init_error(
-                "Corrupt CAddrMan serialization: nNew=-1, should be in \\[0, 65536\\]:.*"),
+                "Corrupt AddrMan serialization: nNew=-1, should be in \\[0, 65536\\]:.*"),
             match=ErrorMatch.FULL_REGEX,
         )
 

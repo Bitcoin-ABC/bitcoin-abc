@@ -15,16 +15,16 @@
 #include <vector>
 
 class ArgsManager;
-class CAddrMan;
+class AddrMan;
 class CAddress;
 class CDataStream;
 class CChainParams;
 struct bilingual_str;
 
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
-                       const CAddrMan &addr);
+                       const AddrMan &addr);
 /** Only used by tests. */
-void ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
+void ReadFromStream(const CChainParams &chainParams, AddrMan &addr,
                     CDataStream &ssPeers);
 
 class CBanEntry {
@@ -70,7 +70,7 @@ public:
 std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
                                          const std::vector<bool> &asmap,
                                          const ArgsManager &args,
-                                         std::unique_ptr<CAddrMan> &addrman);
+                                         std::unique_ptr<AddrMan> &addrman);
 
 /**
  * Dump the anchor IP address database (anchors.dat)

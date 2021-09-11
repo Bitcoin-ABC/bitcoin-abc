@@ -60,13 +60,13 @@ static constexpr int32_t DEFAULT_ADDRMAN_CONSISTENCY_CHECKS{0};
  * introduce (expensive) consistency checks for the entire data structure.
  */
 
-class CAddrMan {
+class AddrMan {
     const std::unique_ptr<AddrManImpl> m_impl;
 
 public:
-    CAddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio);
+    AddrMan(std::vector<bool> asmap, int32_t consistency_check_ratio);
 
-    ~CAddrMan();
+    ~AddrMan();
 
     template <typename Stream> void Serialize(Stream &s_) const;
 
@@ -149,8 +149,8 @@ public:
     //! Ensure that bucket placement is always the same for testing purposes.
     void MakeDeterministic();
 
-    friend class CAddrManTest;
-    friend class CAddrManCorrupted;
+    friend class AddrManTest;
+    friend class AddrManCorrupted;
 };
 
 #endif // BITCOIN_ADDRMAN_H

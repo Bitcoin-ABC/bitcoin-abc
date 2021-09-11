@@ -56,13 +56,13 @@ static void CreateAddresses() {
     }
 }
 
-static void AddAddressesToAddrMan(CAddrMan &addrman) {
+static void AddAddressesToAddrMan(AddrMan &addrman) {
     for (size_t source_i = 0; source_i < NUM_SOURCES; ++source_i) {
         addrman.Add(g_addresses[source_i], g_sources[source_i]);
     }
 }
 
-static void FillAddrMan(CAddrMan &addrman) {
+static void FillAddrMan(AddrMan &addrman) {
     CreateAddresses();
 
     AddAddressesToAddrMan(addrman);
@@ -73,8 +73,8 @@ static void FillAddrMan(CAddrMan &addrman) {
 static void AddrManAdd(benchmark::Bench &bench) {
     CreateAddresses();
 
-    CAddrMan addrman(/* asmap= */ std::vector<bool>(),
-                     /* consistency_check_ratio= */ 0);
+    AddrMan addrman(/* asmap= */ std::vector<bool>(),
+                    /* consistency_check_ratio= */ 0);
 
     bench.run([&] {
         AddAddressesToAddrMan(addrman);
@@ -83,8 +83,8 @@ static void AddrManAdd(benchmark::Bench &bench) {
 }
 
 static void AddrManSelect(benchmark::Bench &bench) {
-    CAddrMan addrman(/* asmap= */ std::vector<bool>(),
-                     /* consistency_check_ratio= */ 0);
+    AddrMan addrman(/* asmap= */ std::vector<bool>(),
+                    /* consistency_check_ratio= */ 0);
 
     FillAddrMan(addrman);
 
@@ -95,8 +95,8 @@ static void AddrManSelect(benchmark::Bench &bench) {
 }
 
 static void AddrManGetAddr(benchmark::Bench &bench) {
-    CAddrMan addrman(/* asmap= */ std::vector<bool>(),
-                     /* consistency_check_ratio= */ 0);
+    AddrMan addrman(/* asmap= */ std::vector<bool>(),
+                    /* consistency_check_ratio= */ 0);
 
     FillAddrMan(addrman);
 
@@ -110,8 +110,8 @@ static void AddrManGetAddr(benchmark::Bench &bench) {
 
 static void AddrManGood(benchmark::Bench &bench) {
     /*
-     * Create many CAddrMan objects - one to be modified at each loop iteration.
-     * This is necessary because the CAddrMan::Good() method modifies the
+     * Create many AddrMan objects - one to be modified at each loop iteration.
+     * This is necessary because the AddrMan::Good() method modifies the
      * object, affecting the timing of subsequent calls to the same method and
      * we want to do the same amount of work in every loop iteration.
      */
@@ -120,14 +120,14 @@ static void AddrManGood(benchmark::Bench &bench) {
     const uint64_t addrman_count{bench.epochs() * bench.epochIterations()};
     Assert(addrman_count == 5U);
 
-    std::vector<std::unique_ptr<CAddrMan>> addrmans(addrman_count);
+    std::vector<std::unique_ptr<AddrMan>> addrmans(addrman_count);
     for (size_t i{0}; i < addrmans.size(); ++i) {
-        addrmans[i] = std::make_unique<CAddrMan>(
+        addrmans[i] = std::make_unique<AddrMan>(
             /* asmap= */ std::vector<bool>(), /* consistency_check_ratio= */ 0);
         FillAddrMan(*addrmans[i]);
     }
 
-    auto markSomeAsGood = [](CAddrMan &addrman) {
+    auto markSomeAsGood = [](AddrMan &addrman) {
         for (size_t source_i = 0; source_i < NUM_SOURCES; ++source_i) {
             for (size_t addr_i = 0; addr_i < NUM_ADDRESSES_PER_SOURCE;
                  ++addr_i) {

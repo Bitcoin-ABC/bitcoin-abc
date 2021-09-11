@@ -12,7 +12,7 @@
 
 class ArgsManager;
 class BanMan;
-class CAddrMan;
+class AddrMan;
 class CConnman;
 class CScheduler;
 class CTxMemPool;
@@ -35,7 +35,7 @@ class WalletClient;
 //! any member functions. It should just be a collection of references that can
 //! be used without pulling in unwanted dependencies or functionality.
 struct NodeContext {
-    std::unique_ptr<CAddrMan> addrman;
+    std::unique_ptr<AddrMan> addrman;
     std::unique_ptr<CConnman> connman;
     std::unique_ptr<CTxMemPool> mempool;
     std::unique_ptr<PeerManager> peerman;

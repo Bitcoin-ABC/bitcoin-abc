@@ -465,7 +465,7 @@ using PeerRef = std::shared_ptr<Peer>;
 class PeerManagerImpl final : public PeerManager {
 public:
     PeerManagerImpl(const CChainParams &chainparams, CConnman &connman,
-                    CAddrMan &addrman, BanMan *banman,
+                    AddrMan &addrman, BanMan *banman,
                     ChainstateManager &chainman, CTxMemPool &pool,
                     bool ignore_incoming_txs);
 
@@ -654,7 +654,7 @@ private:
 
     const CChainParams &m_chainparams;
     CConnman &m_connman;
-    CAddrMan &m_addrman;
+    AddrMan &m_addrman;
     /**
      * Pointer to this node's banman. May be nullptr - check existence before
      * dereferencing.
@@ -2063,16 +2063,15 @@ bool PeerManagerImpl::BlockRequestAllowed(
 
 std::unique_ptr<PeerManager>
 PeerManager::make(const CChainParams &chainparams, CConnman &connman,
-                  CAddrMan &addrman, BanMan *banman,
-                  ChainstateManager &chainman, CTxMemPool &pool,
-                  bool ignore_incoming_txs) {
+                  AddrMan &addrman, BanMan *banman, ChainstateManager &chainman,
+                  CTxMemPool &pool, bool ignore_incoming_txs) {
     return std::make_unique<PeerManagerImpl>(chainparams, connman, addrman,
                                              banman, chainman, pool,
                                              ignore_incoming_txs);
 }
 
 PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
-                                 CConnman &connman, CAddrMan &addrman,
+                                 CConnman &connman, AddrMan &addrman,
                                  BanMan *banman, ChainstateManager &chainman,
                                  CTxMemPool &pool, bool ignore_incoming_txs)
     : m_chainparams(chainparams), m_connman(connman), m_addrman(addrman),
@@ -3670,7 +3669,7 @@ void PeerManagerImpl::ProcessMessage(
             // table is also potentially detrimental because new-table entries
             // are subject to eviction in the event of addrman collisions.  We
             // mitigate the information-leak by never calling
-            // CAddrMan::Connected() on block-relay-only peers; see
+            // AddrMan::Connected() on block-relay-only peers; see
             // FinalizeNode().
             //
             // This moves an address from New to Tried table in Addrman,

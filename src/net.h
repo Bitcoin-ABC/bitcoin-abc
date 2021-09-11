@@ -1012,7 +1012,7 @@ public:
     }
 
     CConnman(const Config &configIn, uint64_t seed0, uint64_t seed1,
-             CAddrMan &addrmanIn, bool network_active = true);
+             AddrMan &addrmanIn, bool network_active = true);
     ~CConnman();
 
     bool Start(CScheduler &scheduler, const Options &options);
@@ -1298,7 +1298,7 @@ private:
     std::vector<ListenSocket> vhListenSocket;
     std::atomic<bool> fNetworkActive{true};
     bool fAddressesInitialized{false};
-    CAddrMan &addrman;
+    AddrMan &addrman;
     std::deque<std::string> m_addr_fetches GUARDED_BY(m_addr_fetches_mutex);
     RecursiveMutex m_addr_fetches_mutex;
     std::vector<std::string> vAddedNodes GUARDED_BY(cs_vAddedNodes);

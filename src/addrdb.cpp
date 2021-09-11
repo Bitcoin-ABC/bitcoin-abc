@@ -147,12 +147,12 @@ bool CBanDB::Read(banmap_t &banSet) {
 }
 
 bool DumpPeerAddresses(const CChainParams &chainParams, const ArgsManager &args,
-                       const CAddrMan &addr) {
+                       const AddrMan &addr) {
     const auto pathAddr = args.GetDataDirNet() / "peers.dat";
     return SerializeFileDB(chainParams, "peers", pathAddr, addr);
 }
 
-void ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
+void ReadFromStream(const CChainParams &chainParams, AddrMan &addr,
                     CDataStream &ssPeers) {
     DeserializeDB(chainParams, ssPeers, addr, false);
 }
@@ -160,11 +160,11 @@ void ReadFromStream(const CChainParams &chainParams, CAddrMan &addr,
 std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
                                          const std::vector<bool> &asmap,
                                          const ArgsManager &args,
-                                         std::unique_ptr<CAddrMan> &addrman) {
+                                         std::unique_ptr<AddrMan> &addrman) {
     auto check_addrman = std::clamp<int32_t>(
         args.GetIntArg("-checkaddrman", DEFAULT_ADDRMAN_CONSISTENCY_CHECKS), 0,
         1000000);
-    addrman = std::make_unique<CAddrMan>(
+    addrman = std::make_unique<AddrMan>(
         asmap, /* consistency_check_ratio= */ check_addrman);
 
     int64_t nStart = GetTimeMillis();
@@ -175,7 +175,7 @@ std::optional<bilingual_str> LoadAddrman(const CChainParams &chainparams,
                   GetTimeMillis() - nStart);
     } catch (const DbNotFoundError &) {
         // Addrman can be in an inconsistent state after failure, reset it
-        addrman = std::make_unique<CAddrMan>(
+        addrman = std::make_unique<AddrMan>(
             asmap, /* consistency_check_ratio= */ check_addrman);
         LogPrintf("Creating peers.dat because the file was not found (%s)\n",
                   fs::quoted(fs::PathToString(path_addr)));

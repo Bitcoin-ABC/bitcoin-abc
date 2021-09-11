@@ -148,8 +148,8 @@ public:
 
     void MakeDeterministic() EXCLUSIVE_LOCKS_REQUIRED(!cs);
 
-    friend class CAddrManTest;
-    friend class CAddrManCorrupted;
+    friend class AddrManTest;
+    friend class AddrManCorrupted;
 
 private:
     //! A mutex to protect the inner data structures.

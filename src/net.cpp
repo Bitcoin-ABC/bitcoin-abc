@@ -2863,7 +2863,7 @@ void CConnman::SetNetworkActive(bool active) {
 }
 
 CConnman::CConnman(const Config &configIn, uint64_t nSeed0In, uint64_t nSeed1In,
-                   CAddrMan &addrmanIn, bool network_active)
+                   AddrMan &addrmanIn, bool network_active)
     : config(&configIn), addrman(addrmanIn), nSeed0(nSeed0In),
       nSeed1(nSeed1In) {
     SetTryNewOutboundPeer(false);
