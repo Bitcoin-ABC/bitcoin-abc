@@ -335,7 +335,7 @@ class NetTest(BitcoinTestFramework):
             node.addpeeraddress(
                 address="1.2.3.4", tried=True, port=8333), {
                 "success": True})
-        with node.assert_debug_log(expected_msgs=["Addrman checks started: new 0, tried 1, total 1"]):
+        with node.assert_debug_log(expected_msgs=["CheckAddrman: new 0, tried 1, total 1 started"]):
             # getnodeaddresses re-runs the addrman checks
             addrs = node.getnodeaddresses(count=0)
             assert_equal(len(addrs), 1)
@@ -357,7 +357,7 @@ class NetTest(BitcoinTestFramework):
             node.addpeeraddress(
                 address="2.0.0.0", port=8333), {
                 "success": True})
-        with node.assert_debug_log(expected_msgs=["Addrman checks started: new 1, tried 1, total 2"]):
+        with node.assert_debug_log(expected_msgs=["CheckAddrman: new 1, tried 1, total 2 started"]):
             # getnodeaddresses re-runs the addrman checks
             addrs = node.getnodeaddresses(count=0)
             assert_equal(len(addrs), 2)

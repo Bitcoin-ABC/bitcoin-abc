@@ -7,6 +7,8 @@
 #include <addrman_impl.h>
 
 #include <hash.h>
+#include <logging.h>
+#include <logging/timer.h>
 #include <netaddress.h>
 #include <protocol.h>
 #include <random.h>
@@ -424,7 +426,7 @@ template <typename Stream> void AddrManImpl::Unserialize(Stream &s_) {
                  nLostUnk, nLost);
     }
 
-    const int check_code{ForceCheckAddrman()};
+    const int check_code{CheckAddrman()};
     if (check_code != 0) {
         throw std::ios_base::failure(strprintf(
             "Corrupt data. Consistency check failed with code %s", check_code));
@@ -1045,19 +1047,19 @@ void AddrManImpl::Check() const {
         return;
     }
 
-    const int err{ForceCheckAddrman()};
+    const int err{CheckAddrman()};
     if (err) {
         LogPrintf("ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
         assert(false);
     }
 }
 
-int AddrManImpl::ForceCheckAddrman() const {
+int AddrManImpl::CheckAddrman() const {
     AssertLockHeld(cs);
 
-    LogPrint(BCLog::ADDRMAN,
-             "Addrman checks started: new %i, tried %i, total %u\n", nNew,
-             nTried, vRandom.size());
+    LOG_TIME_MILLIS_WITH_CATEGORY_MSG_ONCE(
+        strprintf("new %i, tried %i, total %u", nNew, nTried, vRandom.size()),
+        BCLog::ADDRMAN);
 
     std::unordered_set<int> setTried;
     std::unordered_map<int, int> mapNew;
@@ -1157,7 +1159,6 @@ int AddrManImpl::ForceCheckAddrman() const {
         return -16;
     }
 
-    LogPrint(BCLog::ADDRMAN, "Addrman checks completed successfully\n");
     return 0;
 }
 
