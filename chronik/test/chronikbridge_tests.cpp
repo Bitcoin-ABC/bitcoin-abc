@@ -15,6 +15,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <cmath>
+
 BOOST_AUTO_TEST_SUITE(chronikbridge_tests)
 
 BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_empty, ChainTestingSetup) {
@@ -370,10 +372,10 @@ BOOST_FIXTURE_TEST_CASE(test_calc_fee, BasicTestingSetup) {
     BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(1000, 1000), 1000);
     BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(1000'000, 1000'000),
                       1000'000'000);
-    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(123456789, 100), 12345678);
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(123456789, 100), 12345679);
     BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(2, 1), 1);
     BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(0xdeadbeef, 0xcafe),
-                      0xdeadbeefll * 0xcafell / 1000);
+                      std::ceil(0xdeadbeefll * 0xcafell / 1000.));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

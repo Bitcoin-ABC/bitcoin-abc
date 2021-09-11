@@ -11,12 +11,12 @@
 #include <wallet/wallet.h>
 
 Amount GetRequiredFee(const CWallet &wallet, unsigned int nTxBytes) {
-    return GetRequiredFeeRate(wallet).GetFeeCeiling(nTxBytes);
+    return GetRequiredFeeRate(wallet).GetFee(nTxBytes);
 }
 
 Amount GetMinimumFee(const CWallet &wallet, unsigned int nTxBytes,
                      const CCoinControl &coin_control) {
-    return GetMinimumFeeRate(wallet, coin_control).GetFeeCeiling(nTxBytes);
+    return GetMinimumFeeRate(wallet, coin_control).GetFee(nTxBytes);
 }
 
 CFeeRate GetRequiredFeeRate(const CWallet &wallet) {

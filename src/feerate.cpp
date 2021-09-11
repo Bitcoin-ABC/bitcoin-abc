@@ -19,39 +19,25 @@ CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
     }
 }
 
-template <bool ceil>
-static Amount GetFee(size_t nBytes_, Amount nSatoshisPerK) {
+Amount CFeeRate::GetFee(size_t nBytes_) const {
     assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));
     int64_t nSize = int64_t(nBytes_);
 
-    // Ensure fee is rounded up when truncated if ceil is true.
-    Amount nFee = Amount::zero();
-    if (ceil) {
-        nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount::zero()
-                          ? nSize * nSatoshisPerK / 1000 + SATOSHI
-                          : nSize * nSatoshisPerK / 1000);
-    } else {
-        nFee = nSize * nSatoshisPerK / 1000;
-    }
+    // Ensure fee is rounded up
+    Amount nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount::zero()
+                             ? nSize * nSatoshisPerK / 1000 + SATOSHI
+                             : nSize * nSatoshisPerK / 1000);
 
-    if (nFee == Amount::zero() && nSize != 0) {
-        if (nSatoshisPerK > Amount::zero()) {
-            nFee = SATOSHI;
-        }
-        if (nSatoshisPerK < Amount::zero()) {
-            nFee = -SATOSHI;
-        }
+    // Special case introduced in core#7796 for symetry around 0.
+    // A fee had to be at least + or -1 satoshi for any non-zero transaction
+    // size. The symetry was broken when the code was switched to always round
+    // up fees (core#22949), but the special case was kept. We keep it to
+    // make later backports easier.
+    if (nFee == Amount::zero() && nSize != 0 &&
+        nSatoshisPerK < Amount::zero()) {
+        nFee = -SATOSHI;
     }
-
     return nFee;
-}
-
-Amount CFeeRate::GetFee(size_t nBytes) const {
-    return ::GetFee<false>(nBytes, nSatoshisPerK);
-}
-
-Amount CFeeRate::GetFeeCeiling(size_t nBytes) const {
-    return ::GetFee<true>(nBytes, nSatoshisPerK);
 }
 
 std::string CFeeRate::ToString() const {

@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE(package_validation_tests) {
         auto it_child =
             result_parent_child.m_tx_results.find(tx_child->GetId());
 
-        BOOST_CHECK(it_parent->second.m_effective_feerate.value().GetFeeCeiling(
+        BOOST_CHECK(it_parent->second.m_effective_feerate.value().GetFee(
                         GetVirtualTransactionSize(*tx_parent)) == COIN);
         BOOST_CHECK_EQUAL(
             it_parent->second.m_txids_fee_calculations.value().size(), 1);
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(package_validation_tests) {
             it_parent->second.m_txids_fee_calculations.value().front(),
             tx_parent->GetId());
 
-        BOOST_CHECK(it_child->second.m_effective_feerate.value().GetFeeCeiling(
+        BOOST_CHECK(it_child->second.m_effective_feerate.value().GetFee(
                         GetVirtualTransactionSize(*tx_child)) == COIN);
         BOOST_CHECK_EQUAL(
             it_child->second.m_txids_fee_calculations.value().size(), 1);

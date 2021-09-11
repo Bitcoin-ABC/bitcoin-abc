@@ -651,13 +651,13 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // nDustThreshold = 182 * 3702 / 1000
     g_dust = CFeeRate(3702 * SATOSHI);
     // dust:
-    t.vout[0].nValue = (673 - 1) * SATOSHI;
+    t.vout[0].nValue = (674 - 1) * SATOSHI;
     reason.clear();
     BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
                               g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "dust");
     // not dust:
-    t.vout[0].nValue = 673 * SATOSHI;
+    t.vout[0].nValue = 674 * SATOSHI;
     BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
                              g_dust, reason));
     g_dust = CFeeRate{DUST_RELAY_TX_FEE};

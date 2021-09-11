@@ -39,14 +39,10 @@ public:
 
     /**
      * Return the fee in satoshis for the given size in bytes.
+     * If the calculated fee would have fractional satoshis, then the returned
+     * fee will always be rounded up to the nearest satoshi.
      */
     Amount GetFee(size_t nBytes) const;
-
-    /**
-     * Return the ceiling of a fee calculation in satoshis for the given size in
-     * bytes.
-     */
-    Amount GetFeeCeiling(size_t nBytes) const;
 
     /**
      * Return the fee in satoshis for a size of 1000 bytes
