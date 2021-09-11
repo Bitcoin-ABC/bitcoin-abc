@@ -5,8 +5,8 @@
 #ifndef BITCOIN_TEST_UTIL_SETUP_COMMON_H
 #define BITCOIN_TEST_UTIL_SETUP_COMMON_H
 
-#include <amount.h>
 #include <chainparamsbase.h>
+#include <consensus/amount.h>
 #include <fs.h>
 #include <key.h>
 #include <node/context.h>

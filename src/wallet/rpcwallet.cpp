@@ -3,10 +3,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <amount.h>
 #include <chainparams.h> // for GetConsensus.
 #include <coins.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <interfaces/chain.h>

@@ -6,7 +6,7 @@
 #ifndef BITCOIN_SCRIPT_STANDARD_H
 #define BITCOIN_SCRIPT_STANDARD_H
 
-#include <amount.h>
+#include <consensus/amount.h>
 #include <pubkey.h>
 #include <script/script_flags.h>
 #include <uint256.h>

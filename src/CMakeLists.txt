@@ -469,7 +469,6 @@ add_network_sources(NETWORK_SOURCES
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
 add_library(common
-	amount.cpp
 	base58.cpp
 	bloom.cpp
 	cashaddr.cpp
@@ -528,6 +527,7 @@ add_library(bitcoinconsensus
 	pubkey.cpp
 	uint256.cpp
 	util/strencodings.cpp
+	consensus/amount.cpp
 	consensus/tx_check.cpp
 )
 

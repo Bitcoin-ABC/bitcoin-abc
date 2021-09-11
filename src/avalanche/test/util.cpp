@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <amount.h>
 #include <avalanche/proofbuilder.h>
 #include <avalanche/test/util.h>
+#include <consensus/amount.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <random.h>

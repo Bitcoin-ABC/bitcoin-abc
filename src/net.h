@@ -9,12 +9,12 @@
 
 #include <addrdb.h>
 #include <addrman.h>
-#include <amount.h>
 #include <avalanche/proofid.h>
 #include <avalanche/proofradixtreeadapter.h>
 #include <bloom.h>
 #include <chainparams.h>
 #include <compat.h>
+#include <consensus/amount.h>
 #include <crypto/siphash.h>
 #include <hash.h>
 #include <i2p.h>

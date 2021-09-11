@@ -6,6 +6,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
 #include <pow/pow.h>

@@ -6,8 +6,8 @@
 #ifndef BITCOIN_TXMEMPOOL_H
 #define BITCOIN_TXMEMPOOL_H
 
-#include <amount.h>
 #include <coins.h>
+#include <consensus/amount.h>
 #include <core_memusage.h>
 #include <indirectmap.h>
 #include <policy/packages.h>

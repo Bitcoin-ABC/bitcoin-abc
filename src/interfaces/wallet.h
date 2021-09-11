@@ -5,7 +5,7 @@
 #ifndef BITCOIN_INTERFACES_WALLET_H
 #define BITCOIN_INTERFACES_WALLET_H
 
-#include <amount.h>           // For Amount
+#include <consensus/amount.h>
 #include <interfaces/chain.h> // For ChainClient
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h> // For CTxOut

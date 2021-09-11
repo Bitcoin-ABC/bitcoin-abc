@@ -4,6 +4,7 @@
 
 #include <bench/bench.h>
 #include <chainparams.h>
+#include <consensus/amount.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
 #include <wallet/coinselection.h>

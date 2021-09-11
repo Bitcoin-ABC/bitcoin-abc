@@ -5,8 +5,8 @@
 #ifndef BITCOIN_AVALANCHE_PROOF_H
 #define BITCOIN_AVALANCHE_PROOF_H
 
-#include <amount.h>
 #include <avalanche/proofid.h>
+#include <consensus/amount.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>

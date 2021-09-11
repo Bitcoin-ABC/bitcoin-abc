@@ -4,6 +4,7 @@
 
 #include <qt/bitcoinunits.h>
 
+#include <consensus/amount.h>
 #include <currencyunit.h>
 #include <util/system.h>
 

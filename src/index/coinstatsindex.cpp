@@ -4,9 +4,9 @@
 
 #include <index/coinstatsindex.h>
 
-#include <amount.h>
 #include <chainparams.h>
 #include <coins.h>
+#include <consensus/amount.h>
 #include <crypto/muhash.h>
 #include <node/blockstorage.h>
 #include <primitives/blockhash.h>

@@ -3,13 +3,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <amount.h>
 #include <blockvalidity.h>
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/activation.h>
+#include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <consensus/params.h>
 #include <consensus/validation.h>

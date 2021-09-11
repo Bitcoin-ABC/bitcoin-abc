@@ -4,9 +4,9 @@
 
 #include <interfaces/wallet.h>
 
-#include <amount.h>
 #include <chainparams.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>

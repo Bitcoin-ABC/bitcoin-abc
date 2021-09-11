@@ -4,7 +4,7 @@
 
 #include <qt/test/paymentservertests.h>
 
-#include <amount.h>
+#include <consensus/amount.h>
 #include <interfaces/node.h>
 #include <qt/optionsmodel.h>
 #include <qt/test/paymentrequestdata.h>

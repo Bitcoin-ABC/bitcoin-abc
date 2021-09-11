@@ -5,7 +5,7 @@
 #ifndef BITCOIN_INTERFACES_NODE_H
 #define BITCOIN_INTERFACES_NODE_H
 
-#include <amount.h>     // For Amount
+#include <consensus/amount.h>
 #include <net.h>        // For CConnman::NumConnections
 #include <net_types.h>  // For banmap_t
 #include <netaddress.h> // For Network

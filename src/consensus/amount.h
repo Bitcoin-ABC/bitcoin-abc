@@ -4,8 +4,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_AMOUNT_H
-#define BITCOIN_AMOUNT_H
+#ifndef BITCOIN_CONSENSUS_AMOUNT_H
+#define BITCOIN_CONSENSUS_AMOUNT_H
 
 #include <serialize.h>
 
@@ -172,9 +172,9 @@ struct Currency {
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  */
-static const Amount MAX_MONEY = 21000000 * COIN;
+static constexpr Amount MAX_MONEY = 21000000 * COIN;
 inline bool MoneyRange(const Amount nValue) {
     return nValue >= Amount::zero() && nValue <= MAX_MONEY;
 }
 
-#endif // BITCOIN_AMOUNT_H
+#endif // BITCOIN_CONSENSUS_AMOUNT_H

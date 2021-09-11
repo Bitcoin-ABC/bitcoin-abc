@@ -4,6 +4,7 @@
 
 #include <bench/bench.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
 #include <validationinterface.h>

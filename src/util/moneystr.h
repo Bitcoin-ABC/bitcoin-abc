@@ -9,10 +9,11 @@
 #ifndef BITCOIN_UTIL_MONEYSTR_H
 #define BITCOIN_UTIL_MONEYSTR_H
 
-#include <amount.h>
 #include <attributes.h>
 
 #include <string>
+
+struct Amount;
 
 /**
  * Do not use these functions to represent or parse monetary amounts to or from

@@ -5,6 +5,7 @@
 #include <core_io.h>
 
 #include <config.h>
+#include <consensus/amount.h>
 #include <key_io.h>
 #include <primitives/transaction.h>
 #include <script/script.h>

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <coins.h>
+#include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <primitives/transaction.h>

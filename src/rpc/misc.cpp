@@ -3,9 +3,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <amount.h>
 #include <chainparams.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <httpserver.h>
 #include <index/blockfilterindex.h>
 #include <index/coinstatsindex.h>

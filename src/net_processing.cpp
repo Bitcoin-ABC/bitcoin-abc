@@ -19,6 +19,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <consensus/validation.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>

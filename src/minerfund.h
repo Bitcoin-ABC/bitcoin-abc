@@ -5,7 +5,7 @@
 #ifndef BITCOIN_MINERFUND_H
 #define BITCOIN_MINERFUND_H
 
-#include <amount.h>
+#include <consensus/amount.h>
 #include <script/standard.h>
 
 #include <vector>

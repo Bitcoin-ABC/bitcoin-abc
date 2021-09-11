@@ -7,7 +7,6 @@
 #ifndef BITCOIN_WALLET_WALLETDB_H
 #define BITCOIN_WALLET_WALLETDB_H
 
-#include <amount.h>
 #include <key.h>
 #include <script/sign.h>
 #include <script/standard.h> // for CTxDestination

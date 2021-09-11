@@ -5,11 +5,11 @@
 #ifndef BITCOIN_TEST_FUZZ_UTIL_H
 #define BITCOIN_TEST_FUZZ_UTIL_H
 
-#include <amount.h>
 #include <arith_uint256.h>
 #include <attributes.h>
 #include <chainparamsbase.h>
 #include <coins.h>
+#include <consensus/amount.h>
 #include <netbase.h>
 #include <script/script.h>
 #include <script/standard.h>

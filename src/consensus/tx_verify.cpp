@@ -4,10 +4,10 @@
 
 #include <consensus/tx_verify.h>
 
-#include <amount.h>
 #include <chain.h>
 #include <coins.h>
 #include <consensus/activation.h>
+#include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <consensus/params.h>
 #include <consensus/validation.h>

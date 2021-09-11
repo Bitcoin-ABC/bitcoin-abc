@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <net.h>
 #include <primitives/transaction.h>

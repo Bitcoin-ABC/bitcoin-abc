@@ -10,7 +10,6 @@
 #include <init.h>
 
 #include <addrman.h>
-#include <amount.h>
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h> // For AVALANCHE_LEGACY_PROOF_DEFAULT
@@ -22,6 +21,7 @@
 #include <chainparams.h>
 #include <compat/sanity.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <currencyunit.h>
 #include <flatfile.h>
 #include <fs.h>

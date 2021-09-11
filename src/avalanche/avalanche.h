@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <memory>
 
-#include <amount.h>
+#include <consensus/amount.h>
 
 namespace avalanche {
 class Processor;

@@ -5,12 +5,12 @@
 
 #include <rpc/blockchain.h>
 
-#include <amount.h>
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
 #include <config.h>
+#include <consensus/amount.h>
 #include <consensus/validation.h>
 #include <core_io.h>
 #include <hash.h>

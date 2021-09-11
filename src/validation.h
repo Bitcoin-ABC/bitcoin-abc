@@ -11,11 +11,11 @@
 #include <config/bitcoin-config.h>
 #endif
 
-#include <amount.h>
 #include <attributes.h>
 #include <blockfileinfo.h>
 #include <blockindexworkcomparator.h>
 #include <coins.h>
+#include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
 #include <disconnectresult.h>
