@@ -3956,15 +3956,15 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        // We won't accept tx inv's if we're in blocks-only mode, or this is a
+        // Reject tx INVs when the -blocksonly setting is enabled, or this is a
         // block-relay-only peer
-        bool fBlocksOnly =
-            m_ignore_incoming_txs || (pfrom.m_tx_relay == nullptr);
+        bool reject_tx_invs{m_ignore_incoming_txs ||
+                            (pfrom.m_tx_relay == nullptr)};
 
         // Allow peers with relay permission to send data other than blocks
         // in blocks only mode
         if (pfrom.HasPermission(PF_RELAY)) {
-            fBlocksOnly = false;
+            reject_tx_invs = false;
         }
 
         const auto current_time = GetTime<std::chrono::microseconds>();
@@ -4024,7 +4024,7 @@ void PeerManagerImpl::ProcessMessage(
                 logInv(inv, fAlreadyHave);
 
                 pfrom.AddKnownTx(txid);
-                if (fBlocksOnly) {
+                if (reject_tx_invs) {
                     LogPrint(BCLog::NET,
                              "transaction (%s) inv sent in violation of "
                              "protocol, disconnecting peer=%d\n",
