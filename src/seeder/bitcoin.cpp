@@ -5,6 +5,7 @@
 #include <seeder/bitcoin.h>
 
 #include <chainparams.h>
+#include <clientversion.h>
 #include <hash.h>
 #include <netbase.h>
 #include <primitives/blockhash.h>
@@ -223,10 +224,16 @@ bool CSeederNode::Run() {
     uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
     CService myService;
     CAddress me(myService, ServiceFlags(NODE_NETWORK));
-    std::string ver = "/bitcoin-cash-seeder:0.15/";
+
+    const std::string clientName = gArgs.GetArg("-uaclientname", CLIENT_NAME);
+    const std::string clientVersion =
+        gArgs.GetArg("-uaclientversion", FormatVersion(CLIENT_VERSION));
+    const std::string userAgent =
+        FormatUserAgent(clientName, clientVersion, {"seeder"});
+
     MessageWriter::WriteMessage(vSend, NetMsgType::VERSION, PROTOCOL_VERSION,
                                 nLocalServices, GetTime(), you, me, nLocalNonce,
-                                ver, GetRequireHeight());
+                                userAgent, GetRequireHeight());
     Send();
 
     bool res = true;
