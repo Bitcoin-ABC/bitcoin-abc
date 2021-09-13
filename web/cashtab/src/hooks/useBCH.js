@@ -292,12 +292,26 @@ export default function useBCH() {
 
     const addTokenTxDataToSingleTx = async (BCH, parsedTx) => {
         // Accept one parsedTx
-        // If it's a token tx, do an API call to get token info and return it
-        // If it's not a token tx, just return it
+
+        // If it's not a token tx, just return it as is and do not parse for token data
         if (!parsedTx.tokenTx) {
             return parsedTx;
         }
-        const tokenData = await BCH.SLP.Utils.txDetails(parsedTx.txid);
+
+        // If it could be a token tx, do an API call to get token info and return it
+        let tokenData;
+        try {
+            tokenData = await BCH.SLP.Utils.txDetails(parsedTx.txid);
+        } catch (err) {
+            console.log(
+                `Error in parsing BCH.SLP.Utils.txDetails(${parsedTx.txid})`,
+            );
+            console.log(err);
+            // This is not a token tx
+            parsedTx.tokenTx = false;
+            return parsedTx;
+        }
+
         const { tokenInfo } = tokenData;
 
         parsedTx.tokenInfo = parseTokenInfoForTxHistory(
