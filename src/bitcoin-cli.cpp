@@ -380,6 +380,8 @@ public:
             }
             result.pushKV("paytxfee",
                           batch[ID_WALLETINFO]["result"]["paytxfee"]);
+            result.pushKV("coinjoin_balance", 
+                          batch[ID_WALLETINFO]["result"]["coinjoin_balance"]); //We can provide this info in ID_BALANCES but for now putting it as part of WalletInfo
         }
         if (!batch[ID_BALANCES]["result"].isNull()) {
             result.pushKV("balance",
