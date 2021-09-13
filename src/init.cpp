@@ -2277,25 +2277,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         GetRand(std::numeric_limits<uint64_t>::max()), *node.addrman,
         args.GetBoolArg("-networkactive", true));
 
-    assert(!node.mempool);
-    int check_ratio = std::min<int>(
-        std::max<int>(
-            args.GetIntArg("-checkmempool",
-                           chainparams.DefaultConsistencyChecks() ? 1 : 0),
-            0),
-        1000000);
-    node.mempool = std::make_unique<CTxMemPool>(check_ratio);
-
-    assert(!node.chainman);
-    node.chainman = std::make_unique<ChainstateManager>();
-    ChainstateManager &chainman = *node.chainman;
-
-    assert(!node.peerman);
-    node.peerman = PeerManager::make(
-        chainparams, *node.connman, *node.addrman, node.banman.get(), chainman,
-        *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
-    RegisterValidationInterface(node.peerman.get());
-
     // sanitize comments per BIP-0014, format user agent and check total size
     std::vector<std::string> uacomments;
     for (const std::string &cmt : args.GetArgs("-uacomment")) {
@@ -2451,8 +2432,22 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
               cache_sizes.coins * (1.0 / 1024 / 1024),
               nMempoolSizeMax * (1.0 / 1024 / 1024));
 
+    assert(!node.mempool);
+    assert(!node.chainman);
+    int check_ratio = std::min<int>(
+        std::max<int>(
+            args.GetIntArg("-checkmempool",
+                           chainparams.DefaultConsistencyChecks() ? 1 : 0),
+            0),
+        1000000);
+
     bool fLoaded = false;
     while (!fLoaded && !ShutdownRequested()) {
+        node.mempool = std::make_unique<CTxMemPool>(check_ratio);
+
+        node.chainman = std::make_unique<ChainstateManager>();
+        ChainstateManager &chainman = *node.chainman;
+
         const bool fReset = fReindex;
         bilingual_str strLoadError;
 
@@ -2597,6 +2592,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }
+
+    ChainstateManager &chainman = *Assert(node.chainman);
+
+    assert(!node.peerman);
+    node.peerman = PeerManager::make(
+        chainparams, *node.connman, *node.addrman, node.banman.get(), chainman,
+        *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+    RegisterValidationInterface(node.peerman.get());
 
     // Encoded addresses using cashaddr instead of base58.
     // We do this by default to avoid confusion with BTC addresses.
