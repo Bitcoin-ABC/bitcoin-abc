@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(simple_header_and_payload_message_writer_test) {
     CService service;
     CAddress addrTo(service, ServiceFlags(NODE_NETWORK));
     CAddress addrFrom(service, ServiceFlags(NODE_NETWORK));
-    std::string user_agent = "/bitcoin-cash-seeder:0.15/";
+    std::string user_agent = "/Bitcoin ABC:0.0.0(seeder)/";
     int start_height = 1;
 
     CDataStream versionPayload(SER_NETWORK, PROTOCOL_VERSION);
