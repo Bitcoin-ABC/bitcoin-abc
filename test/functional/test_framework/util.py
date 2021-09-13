@@ -379,6 +379,11 @@ def initialize_datadir(dirname, n, chain):
         f.write("fixedseeds=0\n")
         f.write("listenonion=0\n")
         f.write("usecashaddr=1\n")
+        # Increase peertimeout to avoid disconnects while using mocktime.
+        # peertimeout is measured in wall clock time, so setting it to the
+        # duration of the longest test is sufficient. It can be overridden in
+        # tests.
+        f.write("peertimeout=999999\n")
         f.write("shrinkdebugfile=0\n")
         os.makedirs(os.path.join(datadir, 'stderr'), exist_ok=True)
         os.makedirs(os.path.join(datadir, 'stdout'), exist_ok=True)

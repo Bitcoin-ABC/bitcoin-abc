@@ -43,8 +43,6 @@ class MaxUploadTest(BitcoinTestFramework):
         self.extra_args = [[
             "-maxuploadtarget=200",
             "-acceptnonstdtxn=1",
-            # bump because mocktime might cause a disconnect otherwise
-            "-peertimeout=9999",
         ]]
         self.supports_cli = False
 
