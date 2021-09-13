@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "77d8fcf68c54ebfadf08b9a446c251a0088301c50d53",
          ProofId::fromHex("82754c0d4170521b19360c6862483ad435b7b95f078aedf781d6"
                           "9a6c5b89a916"),
-         7584312, ProofValidationResult::INVALID_SIGNATURE},
+         7584312, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"2 utxo staked",
          "872379ab64f55b4166ca0e79639999ec4104a66861de557a54eefc0375264cc17c3a3"
          "50ccabca6fd9c91883e899ab55bb140517aa56c5b4041908e7027a786b99f66488a04"
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "91c965cba4dbc11c210979217f1ac3ece7a748f5b2fcf5cced40a5d4c40e",
          ProofId::fromHex("ba5aba9be72c9c2c52f857b81245e1ec85c879bbc8e111008673"
                           "d78c26610b05"),
-         15610172, ProofValidationResult::INVALID_SIGNATURE},
+         15610172, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"3 utxo staked",
          "525e2aa04af0e2457c66ac9e7f66257f210252db8e3ceea6fca44a7696e82f7b77e5a"
          "4025e60ac60271b174e91ffbb6ce01f039ce8d3b77938e49ce3bc9824e90b72c65542"
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "91b185e",
          ProofId::fromHex("9ea64e9760f2c7832f1c9840923947915361acb22dcc0bae4404"
                           "94be0d51842d"),
-         29026903, ProofValidationResult::INVALID_SIGNATURE},
+         29026903, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"4 utxo staked",
          "eef33172651f752ac255c85a4e1374992102c12b37ff6139157865fc4c3a9d7ad999b"
          "686ade45d453545d04e76f6e14793b404295de5ebf9fbbbb65fc1d9a71587c5284cff"
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "14a348c80ca1833d68b3d7b",
          ProofId::fromHex("ae60f62b336c6a948f95af123bc25574b0c5f423d1cab8f795d3"
                           "bf8f895457f3"),
-         44059793, ProofValidationResult::INVALID_SIGNATURE},
+         44059793, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Properly signed 1 UTXO proof",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("333c462a0161e9146da55d77733a2d4ccd022217a70beb004742"
                           "5069f1d32ed5"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing expiration affect ProofId",
          "d97587e6c882615797011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("6b7d6b32a88e68e830454bb0189ac14dc938917bdc64f22ef11d"
                           "d41535ede85a"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the master key affect ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469aa5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("d4e2673f9df2e5c506892f3794b986910c77aa9b0c292cdcfea8"
                           "3dd804008b00"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the TxId affect the ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("fefa0e3d8f76358431caba523ac71faaf57921bb6f1049f74a3e"
                           "8bebd512c20b"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the outpoint index change the ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("a9f6b78b97a01d21d47b834bb8bf5d9397f50bfac115ec3da05b"
                           "695189aef040"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the amount changes the ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("89796be200e6eeeefdb894e47f16653afc572310d5f94c859cac"
                           "628ffc0d9781"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the height changes the ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("77db71b3099331de1e09262d03ee4a5f2d2c21f5abc48f68e28d"
                           "456cecc822ce"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the pubkey changes the ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e2",
          ProofId::fromHex("3663e72aae7fe4dacde5aa6d5e6f2a3041171d9e7756a47662e1"
                           "e0a11e82621c"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the signature does NOT change the ProofId",
          "d97587e6c882615796011ec8f9a7b1c6410469ab5a892ffa4bb104a3d5760dd893a55"
          "02512eea4ba32a6d6672767be4959c0f70489b803a47a3abf83f30e8d9da978de4027"
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "4440ad829030c685ca03d4fd9ce95b298e79c5eee6e3",
          ProofId::fromHex("cbd77dad2ebc525c591ab44a0f6a25803c1d934c3e5caa61f9f4"
                           "c63c9f29a4e6"),
-         444638638, ProofValidationResult::INVALID_SIGNATURE},
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"1 utxo staked but zero coins",
          "a6d6852ffa70b172d37a0ad2c01c2acd21023beefdde700a6bc02036335b4df141c8b"
          "c67bb05a971f5ac2745fd683797dde30145a4d07798547464daa53acefb7c97c0c415"

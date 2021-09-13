@@ -15,7 +15,7 @@ enum class ProofValidationResult {
     DUST_THRESOLD,
     DUPLICATE_STAKE,
     WRONG_STAKE_ORDERING,
-    INVALID_SIGNATURE,
+    INVALID_STAKE_SIGNATURE,
     TOO_MANY_UTXOS,
 
     // UTXO based errors.

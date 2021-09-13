@@ -61,7 +61,7 @@ static bool VerifyProof(const Proof &proof, bilingual_str &error) {
             case ProofValidationResult::DUPLICATE_STAKE:
                 error = _("The avalanche proof has duplicated stake.");
                 return false;
-            case ProofValidationResult::INVALID_SIGNATURE:
+            case ProofValidationResult::INVALID_STAKE_SIGNATURE:
                 error = _("The avalanche proof has invalid stake signatures.");
                 return false;
             case ProofValidationResult::TOO_MANY_UTXOS:

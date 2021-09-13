@@ -110,8 +110,10 @@ bool Proof::verify(ProofValidationState &state) const {
         }
 
         if (!ss.verify(proofid)) {
-            return state.Invalid(ProofValidationResult::INVALID_SIGNATURE,
-                                 "invalid-signature");
+            return state.Invalid(
+                ProofValidationResult::INVALID_STAKE_SIGNATURE,
+                "invalid-stake-signature",
+                strprintf("TxId: %s", s.getUTXO().GetTxId().ToString()));
         }
     }
 

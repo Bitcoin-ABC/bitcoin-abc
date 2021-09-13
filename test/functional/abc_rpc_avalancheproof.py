@@ -325,7 +325,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             check_rpc_failure(dust, "amount-below-dust-threshold")
             check_rpc_failure(duplicate_stake, "duplicated-stake")
             check_rpc_failure(missing_stake, "utxo-missing-or-spent")
-            check_rpc_failure(bad_sig, "invalid-signature")
+            check_rpc_failure(bad_sig, "invalid-stake-signature")
             check_rpc_failure(wrong_order, "wrong-stake-ordering")
             if self.is_wallet_compiled():
                 check_rpc_failure(too_many_utxos, "too-many-utxos")
