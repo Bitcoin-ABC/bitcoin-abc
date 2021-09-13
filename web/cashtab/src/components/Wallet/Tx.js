@@ -5,6 +5,7 @@ import {
     ArrowUpOutlined,
     ArrowDownOutlined,
     ExperimentOutlined,
+    ExclamationOutlined,
 } from '@ant-design/icons';
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
@@ -18,6 +19,9 @@ const ReceivedTx = styled(ArrowDownOutlined)`
     color: ${props => props.theme.primary} !important;
 `;
 const GenesisTx = styled(ExperimentOutlined)`
+    color: ${props => props.theme.primary} !important;
+`;
+const UnparsedTx = styled(ExclamationOutlined)`
     color: ${props => props.theme.primary} !important;
 `;
 const DateType = styled.div`
@@ -147,48 +151,81 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
         typeof data.blocktime === 'undefined'
             ? new Date().toLocaleDateString()
             : new Date(data.blocktime * 1000).toLocaleDateString();
-
+    // if data only includes height and txid, then the tx could not be parsed by cashtab
+    // render as such but keep link to block explorer
+    let unparsedTx = false;
+    if (!Object.keys(data).includes('outgoingTx')) {
+        unparsedTx = true;
+    }
     return (
-        <TxWrapper>
-            <TxIcon>
-                {data.outgoingTx ? (
-                    <>
-                        {data.tokenTx &&
-                        data.tokenInfo.transactionType === 'GENESIS' ? (
-                            <GenesisTx />
+        <>
+            {unparsedTx ? (
+                <TxWrapper>
+                    <TxIcon>
+                        <UnparsedTx />
+                    </TxIcon>
+                    <DateType>
+                        <ReceivedLabel>Unparsed</ReceivedLabel>
+                        <br />
+                        {txDate}
+                    </DateType>
+                    <TxInfo>Open in Explorer</TxInfo>
+                </TxWrapper>
+            ) : (
+                <TxWrapper>
+                    <TxIcon>
+                        {data.outgoingTx ? (
+                            <>
+                                {data.tokenTx &&
+                                data.tokenInfo.transactionType === 'GENESIS' ? (
+                                    <GenesisTx />
+                                ) : (
+                                    <SentTx />
+                                )}
+                            </>
                         ) : (
-                            <SentTx />
+                            <ReceivedTx />
                         )}
-                    </>
-                ) : (
-                    <ReceivedTx />
-                )}
-            </TxIcon>
-            <DateType>
-                {data.outgoingTx ? (
-                    <>
-                        {data.tokenTx &&
-                        data.tokenInfo.transactionType === 'GENESIS' ? (
-                            <ReceivedLabel>Genesis</ReceivedLabel>
+                    </TxIcon>
+                    <DateType>
+                        {data.outgoingTx ? (
+                            <>
+                                {data.tokenTx &&
+                                data.tokenInfo.transactionType === 'GENESIS' ? (
+                                    <ReceivedLabel>Genesis</ReceivedLabel>
+                                ) : (
+                                    <SentLabel>Sent</SentLabel>
+                                )}
+                            </>
                         ) : (
-                            <SentLabel>Sent</SentLabel>
+                            <ReceivedLabel>Received</ReceivedLabel>
                         )}
-                    </>
-                ) : (
-                    <ReceivedLabel>Received</ReceivedLabel>
-                )}
-                <br />
-                {txDate}
-            </DateType>
-            {data.tokenTx ? (
-                <TokenInfo outgoing={data.outgoingTx}>
-                    {data.tokenTx && data.tokenInfo ? (
-                        <>
-                            <TxTokenIcon>
-                                {currency.tokenIconsUrl !== '' ? (
-                                    <Img
-                                        src={`${currency.tokenIconsUrl}/${data.tokenInfo.tokenId}.png`}
-                                        unloader={
+                        <br />
+                        {txDate}
+                    </DateType>
+                    {data.tokenTx ? (
+                        <TokenInfo outgoing={data.outgoingTx}>
+                            {data.tokenTx && data.tokenInfo ? (
+                                <>
+                                    <TxTokenIcon>
+                                        {currency.tokenIconsUrl !== '' ? (
+                                            <Img
+                                                src={`${currency.tokenIconsUrl}/${data.tokenInfo.tokenId}.png`}
+                                                unloader={
+                                                    <img
+                                                        alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
+                                                        style={{
+                                                            borderRadius: '50%',
+                                                        }}
+                                                        key={`identicon-${data.tokenInfo.tokenId}`}
+                                                        src={makeBlockie(
+                                                            data.tokenInfo
+                                                                .tokenId,
+                                                        )}
+                                                    />
+                                                }
+                                            />
+                                        ) : (
                                             <img
                                                 alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
                                                 style={{
@@ -199,25 +236,50 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                     data.tokenInfo.tokenId,
                                                 )}
                                             />
-                                        }
-                                    />
-                                ) : (
-                                    <img
-                                        alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
-                                        style={{
-                                            borderRadius: '50%',
-                                        }}
-                                        key={`identicon-${data.tokenInfo.tokenId}`}
-                                        src={makeBlockie(
-                                            data.tokenInfo.tokenId,
                                         )}
-                                    />
-                                )}
-                            </TxTokenIcon>
-                            {data.outgoingTx ? (
-                                <>
-                                    {data.tokenInfo.transactionType ===
-                                    'GENESIS' ? (
+                                    </TxTokenIcon>
+                                    {data.outgoingTx ? (
+                                        <>
+                                            {data.tokenInfo.transactionType ===
+                                            'GENESIS' ? (
+                                                <>
+                                                    <TokenTxAmt>
+                                                        +{' '}
+                                                        {data.tokenInfo.qtyReceived.toString()}
+                                                        &nbsp;
+                                                        {
+                                                            data.tokenInfo
+                                                                .tokenTicker
+                                                        }
+                                                    </TokenTxAmt>
+                                                    <TokenName>
+                                                        {
+                                                            data.tokenInfo
+                                                                .tokenName
+                                                        }
+                                                    </TokenName>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <TokenTxAmt>
+                                                        -{' '}
+                                                        {data.tokenInfo.qtySent.toString()}
+                                                        &nbsp;
+                                                        {
+                                                            data.tokenInfo
+                                                                .tokenTicker
+                                                        }
+                                                    </TokenTxAmt>
+                                                    <TokenName>
+                                                        {
+                                                            data.tokenInfo
+                                                                .tokenName
+                                                        }
+                                                    </TokenName>
+                                                </>
+                                            )}
+                                        </>
+                                    ) : (
                                         <>
                                             <TokenTxAmt>
                                                 +{' '}
@@ -229,99 +291,82 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                 {data.tokenInfo.tokenName}
                                             </TokenName>
                                         </>
-                                    ) : (
-                                        <>
-                                            <TokenTxAmt>
-                                                -{' '}
-                                                {data.tokenInfo.qtySent.toString()}
-                                                &nbsp;
-                                                {data.tokenInfo.tokenTicker}
-                                            </TokenTxAmt>
-                                            <TokenName>
-                                                {data.tokenInfo.tokenName}
-                                            </TokenName>
-                                        </>
                                     )}
                                 </>
                             ) : (
-                                <>
-                                    <TokenTxAmt>
-                                        +{' '}
-                                        {data.tokenInfo.qtyReceived.toString()}
-                                        &nbsp;{data.tokenInfo.tokenTicker}
-                                    </TokenTxAmt>
-                                    <TokenName>
-                                        {data.tokenInfo.tokenName}
-                                    </TokenName>
-                                </>
+                                <span>Token Tx</span>
                             )}
-                        </>
+                        </TokenInfo>
                     ) : (
-                        <span>Token Tx</span>
-                    )}
-                </TokenInfo>
-            ) : (
-                <>
-                    <TxInfo outgoing={data.outgoingTx}>
-                        {data.outgoingTx ? (
-                            <>
-                                -{' '}
-                                {formatBalance(
-                                    fromLegacyDecimals(data.amountSent),
-                                )}{' '}
-                                {currency.ticker}
-                                <br />
-                                {fiatPrice !== null && !isNaN(data.amountSent) && (
-                                    <TxFiatPrice>
+                        <>
+                            <TxInfo outgoing={data.outgoingTx}>
+                                {data.outgoingTx ? (
+                                    <>
                                         -{' '}
-                                        {
-                                            currency.fiatCurrencies[
-                                                fiatCurrency
-                                            ].symbol
-                                        }
-                                        {(
+                                        {formatBalance(
+                                            fromLegacyDecimals(data.amountSent),
+                                        )}{' '}
+                                        {currency.ticker}
+                                        <br />
+                                        {fiatPrice !== null &&
+                                            !isNaN(data.amountSent) && (
+                                                <TxFiatPrice>
+                                                    -{' '}
+                                                    {
+                                                        currency.fiatCurrencies[
+                                                            fiatCurrency
+                                                        ].symbol
+                                                    }
+                                                    {(
+                                                        fromLegacyDecimals(
+                                                            data.amountSent,
+                                                        ) * fiatPrice
+                                                    ).toFixed(2)}{' '}
+                                                    {
+                                                        currency.fiatCurrencies
+                                                            .fiatCurrency
+                                                    }
+                                                </TxFiatPrice>
+                                            )}
+                                    </>
+                                ) : (
+                                    <>
+                                        +{' '}
+                                        {formatBalance(
                                             fromLegacyDecimals(
-                                                data.amountSent,
-                                            ) * fiatPrice
-                                        ).toFixed(2)}{' '}
-                                        {currency.fiatCurrencies.fiatCurrency}
-                                    </TxFiatPrice>
+                                                data.amountReceived,
+                                            ),
+                                        )}{' '}
+                                        {currency.ticker}
+                                        <br />
+                                        {fiatPrice !== null &&
+                                            !isNaN(data.amountReceived) && (
+                                                <TxFiatPrice>
+                                                    +{' '}
+                                                    {
+                                                        currency.fiatCurrencies[
+                                                            fiatCurrency
+                                                        ].symbol
+                                                    }
+                                                    {(
+                                                        fromLegacyDecimals(
+                                                            data.amountReceived,
+                                                        ) * fiatPrice
+                                                    ).toFixed(2)}{' '}
+                                                    {
+                                                        currency.fiatCurrencies
+                                                            .fiatCurrency
+                                                    }
+                                                </TxFiatPrice>
+                                            )}
+                                    </>
                                 )}
-                            </>
-                        ) : (
-                            <>
-                                +{' '}
-                                {formatBalance(
-                                    fromLegacyDecimals(data.amountReceived),
-                                )}{' '}
-                                {currency.ticker}
-                                <br />
-                                {fiatPrice !== null &&
-                                    !isNaN(data.amountReceived) && (
-                                        <TxFiatPrice>
-                                            +{' '}
-                                            {
-                                                currency.fiatCurrencies[
-                                                    fiatCurrency
-                                                ].symbol
-                                            }
-                                            {(
-                                                fromLegacyDecimals(
-                                                    data.amountReceived,
-                                                ) * fiatPrice
-                                            ).toFixed(2)}{' '}
-                                            {
-                                                currency.fiatCurrencies
-                                                    .fiatCurrency
-                                            }
-                                        </TxFiatPrice>
-                                    )}
-                            </>
-                        )}
-                    </TxInfo>
-                </>
+                            </TxInfo>
+                        </>
+                    )}
+                </TxWrapper>
             )}
-        </TxWrapper>
+        </>
     );
 };
 

@@ -91,18 +91,30 @@ export default function useBCH() {
         const parsedTxHistory = [];
         for (let i = 0; i < txData.length; i += 1) {
             const tx = txData[i];
+
             const parsedTx = {};
+
             // Move over info that does not need to be calculated
             parsedTx.txid = tx.txid;
-            parsedTx.confirmations = tx.confirmations;
             parsedTx.height = tx.height;
+            let destinationAddress = tx.address;
+
+            // If this tx had too many inputs to be parsed by getTxDataWithPassThrough, skip it
+            // When this occurs, the tx will only have txid and height
+            // So, it will not have 'vin'
+            if (!Object.keys(tx).includes('vin')) {
+                // Populate as a limited-info tx that can be expanded in a block explorer
+                parsedTxHistory.push(parsedTx);
+                continue;
+            }
+
+            parsedTx.confirmations = tx.confirmations;
             parsedTx.blocktime = tx.blocktime;
             let amountSent = 0;
             let amountReceived = 0;
             // Assume an incoming transaction
             let outgoingTx = false;
             let tokenTx = false;
-            let destinationAddress = tx.address;
 
             // If vin includes tx address, this is an outgoing tx
             // Note that with bch-input data, we do not have input amounts
@@ -141,7 +153,6 @@ export default function useBCH() {
                 }
             }
             // Construct parsedTx
-            parsedTx.txid = tx.txid;
             parsedTx.amountSent = amountSent;
             parsedTx.amountReceived = amountReceived;
             parsedTx.tokenTx = tokenTx;
@@ -177,9 +188,19 @@ export default function useBCH() {
 
     const getTxDataWithPassThrough = async (BCH, flatTx) => {
         // necessary as BCH.RawTransactions.getTxData does not return address or blockheight
-        const txDataWithPassThrough = await BCH.RawTransactions.getTxData(
-            flatTx.txid,
-        );
+        let txDataWithPassThrough = {};
+        try {
+            txDataWithPassThrough = await BCH.RawTransactions.getTxData(
+                flatTx.txid,
+            );
+        } catch (err) {
+            console.log(
+                `Error in BCH.RawTransactions.getTxData(${flatTx.txid})`,
+            );
+            console.log(err);
+            // Include txid if you don't get it from the attempted response
+            txDataWithPassThrough.txid = flatTx.txid;
+        }
         txDataWithPassThrough.height = flatTx.height;
         txDataWithPassThrough.address = flatTx.address;
         return txDataWithPassThrough;
