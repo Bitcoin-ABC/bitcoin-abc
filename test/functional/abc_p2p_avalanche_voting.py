@@ -19,6 +19,7 @@ from test_framework.util import (
     assert_equal,
     wait_until,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 BLOCK_ACCEPTED = 0
 BLOCK_INVALID = 1
@@ -138,18 +139,18 @@ class AvalancheTest(BitcoinTestFramework):
         privkey = ECKey()
         privkey.set(bytes.fromhex(
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
-        pubkey = privkey.get_pubkey()
 
         proof_sequence = 11
         proof_expiration = 12
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
+            proof_sequence, proof_expiration, bytes_to_wif(
+                privkey.get_bytes()),
             stakes)
 
         # Activate the quorum.
         for n in quorum:
             success = node.addavalanchenode(
-                n.nodeid, pubkey.get_bytes().hex(), proof)
+                n.nodeid, privkey.get_pubkey().get_bytes().hex(), proof)
             assert success is True
 
         def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):

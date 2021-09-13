@@ -27,6 +27,7 @@ from test_framework.util import (
     p2p_port,
     wait_until,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 
 def assert_net_servicesnames(servicesflag, servicenames):
@@ -185,7 +186,7 @@ class NetTest(BitcoinTestFramework):
         privkey = ECKey()
         privkey.generate()
         proof = self.nodes[1].buildavalancheproof(
-            42, 2000000000, privkey.get_pubkey().get_bytes().hex(), stake)
+            42, 2000000000, bytes_to_wif(privkey.get_bytes()), stake)
         self.nodes[1].sendavalancheproof(proof)
         self.sync_proofs()
 

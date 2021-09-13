@@ -7,7 +7,7 @@
 
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
-#include <pubkey.h>
+#include <key.h>
 
 #include <cstdio>
 
@@ -15,7 +15,8 @@ namespace avalanche {
 
 constexpr uint32_t MIN_VALID_PROOF_SCORE = 100 * PROOF_DUST_THRESHOLD / COIN;
 
-Proof buildRandomProof(uint32_t score, const CPubKey &master = CPubKey());
+Proof buildRandomProof(uint32_t score,
+                       const CKey &masterKey = CKey::MakeCompressedKey());
 
 bool hasDustStake(const Proof &proof);
 

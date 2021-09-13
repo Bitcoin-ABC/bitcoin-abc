@@ -10,6 +10,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_raises_rpc_error,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 
 class BuildAvalancheProofTest(BitcoinTestFramework):
@@ -26,11 +27,10 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
 
         privkey = ECKey()
         privkey.generate()
-
-        proof_master = privkey.get_pubkey().get_bytes().hex()
+        wif_privkey = bytes_to_wif(privkey.get_bytes())
 
         def check_buildavalancheproof_error(
-                error_code, error_message, stakes):
+                error_code, error_message, stakes, master_key=wif_privkey):
             assert_raises_rpc_error(
                 error_code,
                 error_message,
@@ -39,14 +39,19 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
                 0,
                 # Expiration
                 0,
-                # Master
-                proof_master,
+                master_key,
                 stakes,
             )
 
         good_stake = stakes[0]
 
         self.log.info("Error cases")
+
+        check_buildavalancheproof_error(-8,
+                                        "Invalid master key",
+                                        [good_stake],
+                                        master_key=bytes_to_wif(b'f00')
+                                        )
 
         negative_vout = good_stake.copy()
         negative_vout['vout'] = -1
@@ -89,7 +94,7 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
                                         )
 
         self.log.info("Happy path")
-        assert node.buildavalancheproof(0, 0, proof_master, [good_stake])
+        assert node.buildavalancheproof(0, 0, wif_privkey, [good_stake])
 
 
 if __name__ == '__main__':

@@ -19,6 +19,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_raises_rpc_error,
 )
+from test_framework.wallet_util import bytes_to_wif
 
 
 def add_interface_node(test_node) -> int:
@@ -45,12 +46,13 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
 
         privkey = ECKey()
         privkey.generate()
+        wif_privkey = bytes_to_wif(privkey.get_bytes())
 
         proof_master = privkey.get_pubkey().get_bytes().hex()
         proof_sequence = 42
         proof_expiration = 2000000000
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master, stakes)
+            proof_sequence, proof_expiration, wif_privkey, stakes)
 
         nodeid = add_interface_node(node)
 
@@ -74,7 +76,7 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
                                      "Proof has invalid format",
                                      proof="f000")
         no_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master, [])
+            proof_sequence, proof_expiration, wif_privkey, [])
         check_addavalanchenode_error(-8,
                                      "The proof is invalid: no-stake",
                                      proof=no_stake)

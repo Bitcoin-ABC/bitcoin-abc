@@ -43,7 +43,7 @@ Proof ProofBuilder::build() {
         signedStakes.push_back(handle.value().sign(proofid));
     }
 
-    return Proof(sequence, expirationTime, std::move(master),
+    return Proof(sequence, expirationTime, masterKey.GetPubKey(),
                  std::move(signedStakes));
 }
 
@@ -59,7 +59,7 @@ ProofId ProofBuilder::getProofId() const {
 
     CHashWriter ss2(SER_GETHASH, 0);
     ss2 << ss.GetHash();
-    ss2 << master;
+    ss2 << masterKey.GetPubKey();
 
     return ProofId(ss2.GetHash());
 }

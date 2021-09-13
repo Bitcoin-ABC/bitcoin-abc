@@ -458,7 +458,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     avalanche::PeerManager pm;
 
-    ProofBuilder pb(0, 0, CPubKey());
+    ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
     auto key = CKey::MakeCompressedKey();
     const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
     COutPoint utxo(TxId(GetRandHash()), 0);
@@ -545,8 +545,9 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     }
 
     avalanche::PeerManager pm;
+    CKey masterKey = CKey::MakeCompressedKey();
     const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
-        ProofBuilder pb(0, 0, CPubKey());
+        ProofBuilder pb(0, 0, masterKey);
         for (const auto &o : outpoints) {
             BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         }
@@ -578,7 +579,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
 
     // Duplicated input.
     {
-        ProofBuilder pb(0, 0, CPubKey());
+        ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
         COutPoint o(txid1, 3);
         BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         PeerId peerid = pm.getPeerId(std::make_shared<Proof>(
@@ -614,7 +615,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     const int wrongHeight = 12345;
 
     const auto makeProof = [&](const COutPoint &outpoint, const int h) {
-        ProofBuilder pb(0, 0, CPubKey());
+        ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
         BOOST_CHECK(pb.addUTXO(outpoint, v, h, false, key));
         return std::make_shared<Proof>(pb.build());
     };

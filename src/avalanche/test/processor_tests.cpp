@@ -119,7 +119,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     std::shared_ptr<Proof> GetProof() {
         size_t current_coinbase = next_coinbase++;
         const CTransaction &coinbase = *m_coinbase_txns[current_coinbase];
-        ProofBuilder pb(0, 0, masterpriv.GetPubKey());
+        ProofBuilder pb(0, 0, masterpriv);
         BOOST_CHECK(pb.addUTXO(COutPoint(coinbase.GetId(), 0),
                                coinbase.vout[0].nValue, current_coinbase + 1,
                                true, coinbaseKey));

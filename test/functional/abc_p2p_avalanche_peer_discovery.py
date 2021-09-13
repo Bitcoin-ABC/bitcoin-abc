@@ -55,7 +55,7 @@ class AvalancheTest(BitcoinTestFramework):
         privkey = ECKey()
         privkey.set(bytes.fromhex(
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
-        pubkey = privkey.get_pubkey()
+        wif_privkey = bytes_to_wif(privkey.get_bytes())
 
         self.log.info(
             "Check the node is signalling the avalanche service bit only if there is a proof.")
@@ -71,8 +71,7 @@ class AvalancheTest(BitcoinTestFramework):
         proof_sequence = 11
         proof_expiration = 12
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
-            stakes)
+            proof_sequence, proof_expiration, wif_privkey, stakes)
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
@@ -122,8 +121,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         stakes = create_coinbase_stakes(node, [blockhashes[1]], addrkey0.key)
         interface_proof_hex = node.buildavalancheproof(
-            proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
-            stakes)
+            proof_sequence, proof_expiration, wif_privkey, stakes)
         limited_id = FromHex(
             AvalancheProof(),
             interface_proof_hex).limited_proofid

@@ -33,7 +33,7 @@ static void CheckDelegation(const Delegation &dg, const Proof &p,
 BOOST_AUTO_TEST_CASE(verify_random) {
     auto key = CKey::MakeCompressedKey();
 
-    const Proof p = buildRandomProof(123456, key.GetPubKey());
+    const Proof p = buildRandomProof(123456, key);
     DelegationBuilder dgb(p);
 
     {

@@ -190,8 +190,8 @@ static UniValue buildavalancheproof(const Config &config,
              "The proof's sequence"},
             {"expiration", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "A timestamp indicating when the proof expire"},
-            {"master", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-             "The master public key"},
+            {"master", RPCArg::Type::STR, RPCArg::Optional::NO,
+             "The master private key in base58-encoding"},
             {
                 "stakes",
                 RPCArg::Type::ARR,
@@ -235,8 +235,13 @@ static UniValue buildavalancheproof(const Config &config,
 
     const uint64_t sequence = request.params[0].get_int64();
     const int64_t expiration = request.params[1].get_int64();
-    avalanche::ProofBuilder pb(sequence, expiration,
-                               ParsePubKey(request.params[2]));
+
+    CKey masterKey = DecodeSecret(request.params[2].get_str());
+    if (!masterKey.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid master key");
+    }
+
+    avalanche::ProofBuilder pb(sequence, expiration, masterKey);
 
     const UniValue &stakes = request.params[3].get_array();
     for (size_t i = 0; i < stakes.size(); i++) {

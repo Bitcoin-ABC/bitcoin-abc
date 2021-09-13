@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
     const uint64_t sequence = InsecureRandBits(64);
     const int64_t expiration = InsecureRandBits(64);
 
-    ProofBuilder pb(sequence, expiration, master);
+    ProofBuilder pb(sequence, expiration, key);
 
     for (int i = 0; i < 3; i++) {
         key.MakeNewKey(true);
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(verify) {
                               const uint32_t h, const bool is_coinbase,
                               const CKey &k) {
         // Generate a proof that match the UTXO.
-        ProofBuilder pb(0, 0, pubkey);
+        ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(o, v, h, is_coinbase, k));
         Proof p = pb.build();
 
@@ -401,7 +401,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // No stake
     {
-        Proof p = ProofBuilder(0, 0, pubkey).build();
+        Proof p = ProofBuilder(0, 0, key).build();
 
         ProofValidationState state;
         BOOST_CHECK(!p.verify(state, coins));
@@ -410,7 +410,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // Dust thresold
     {
-        ProofBuilder pb(0, 0, pubkey);
+        ProofBuilder pb(0, 0, key);
         BOOST_CHECK(
             pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key));
         Proof p = pb.build();
@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     }
 
     {
-        ProofBuilder pb(0, 0, pubkey);
+        ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, PROOF_DUST_THRESHOLD - 1 * SATOSHI,
                                height, false, key));
         Proof p = pb.build();
@@ -433,7 +433,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // Duplicated input
     {
-        ProofBuilder pb(0, 0, pubkey);
+        ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
         Proof p = TestProofBuilder::buildDuplicatedStakes(pb);
 
@@ -450,7 +450,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         coins.AddCoin(other_pkh_outpoint, Coin(other_pkh_output, height, false),
                       false);
 
-        ProofBuilder pb(0, 0, pubkey);
+        ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
         BOOST_CHECK(pb.addUTXO(other_pkh_outpoint, value, height, false, key));
         Proof p = TestProofBuilder::buildWithReversedOrderStakes(pb);
@@ -467,7 +467,6 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
     CCoinsViewCache coins(&coinsDummy);
 
     auto key = CKey::MakeCompressedKey();
-    const CPubKey pubkey = key.GetPubKey();
 
     const Amount value = 12345 * COIN;
     const uint32_t height = 10;
@@ -478,7 +477,7 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
     }
 
     auto computeProofId = [&]() {
-        ProofBuilder pb(0, 0, pubkey);
+        ProofBuilder pb(0, 0, key);
         for (const COutPoint &outpoint : outpoints) {
             BOOST_CHECK(pb.addUTXO(outpoint, value, height, false, key));
         }

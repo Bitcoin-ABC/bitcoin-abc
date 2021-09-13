@@ -10,6 +10,7 @@ from test_framework.avatools import (
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet_util import bytes_to_wif
 
 
 class GetAvalanchePeerInfoTest(BitcoinTestFramework):
@@ -39,7 +40,8 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             proof_sequence = 11
             proof_expiration = 12
             proof = node.buildavalancheproof(
-                proof_sequence, proof_expiration, pubkey.get_bytes().hex(),
+                proof_sequence, proof_expiration, bytes_to_wif(
+                    privkey.get_bytes()),
                 [stake])
             return (pubkey.get_bytes().hex(), proof)
 

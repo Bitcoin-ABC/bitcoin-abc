@@ -72,6 +72,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         privkey = ECKey()
         privkey.set(bytes.fromhex(
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
+        wif_privkey = bytes_to_wif(privkey.get_bytes())
 
         def get_hex_pubkey(privkey):
             return privkey.get_pubkey().get_bytes().hex()
@@ -81,7 +82,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         proof_expiration = 12
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
         proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master, stakes)
+            proof_sequence, proof_expiration, wif_privkey, stakes)
 
         self.log.info("Test decodeavalancheproof RPC")
         proofobj = FromHex(AvalancheProof(), proof)
@@ -165,7 +166,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         # Invalid proof
         no_stake = node.buildavalancheproof(proof_sequence, proof_expiration,
-                                            proof_master, [])
+                                            wif_privkey, [])
 
         # Invalid privkey
         assert_raises_rpc_error(-5, "The private key is invalid",
@@ -225,17 +226,17 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         # Test invalid proofs
         dust = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master,
+            proof_sequence, proof_expiration, wif_privkey,
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key, amount="0"))
 
         dust_amount = Decimal(f"{PROOF_DUST_THRESHOLD * 0.9999:.4f}")
         dust2 = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master,
+            proof_sequence, proof_expiration, wif_privkey,
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key,
                                    amount=str(dust_amount)))
 
         missing_stake = node.buildavalancheproof(
-            proof_sequence, proof_expiration, proof_master, [{
+            proof_sequence, proof_expiration, wif_privkey, [{
                 'txid': '0' * 64,
                 'vout': 0,
                 'amount': 10000000,
@@ -302,11 +303,11 @@ class AvalancheProofTest(BitcoinTestFramework):
 
             good_proof = node.buildavalancheproof(
                 proof_sequence, proof_expiration,
-                proof_master, maximum_stakes)
+                wif_privkey, maximum_stakes)
 
             too_many_utxos = node.buildavalancheproof(
                 proof_sequence, proof_expiration,
-                proof_master, too_many_stakes)
+                wif_privkey, too_many_stakes)
 
             assert node.verifyavalancheproof(good_proof)
 
@@ -330,7 +331,7 @@ class AvalancheProofTest(BitcoinTestFramework):
                 check_rpc_failure(too_many_utxos, "too-many-utxos")
 
         conflicting_utxo = node.buildavalancheproof(
-            proof_sequence + 1, proof_expiration, proof_master, stakes)
+            proof_sequence + 1, proof_expiration, wif_privkey, stakes)
         assert_raises_rpc_error(-8, "The proof has conflicting utxo with an existing proof",
                                     node.sendavalancheproof, conflicting_utxo)
 
