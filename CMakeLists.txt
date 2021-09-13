@@ -122,7 +122,7 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(test)
-
+add_subdirectory(src/coinjoin)
 add_subdirectory(contrib)
 add_subdirectory(doc)
 
