@@ -390,7 +390,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
         # Build a proof with missing utxos so it will be orphaned
         orphan = node.buildavalancheproof(
-            42, 2000000000, privkey.get_pubkey().get_bytes().hex(), [{
+            42, 2000000000, bytes_to_wif(privkey.get_bytes()), [{
                 'txid': '0' * 64,
                 'vout': 0,
                 'amount': 10e6,
@@ -427,7 +427,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
         # Build an invalid proof (no stake)
         no_stake_hex = node.buildavalancheproof(
-            42, 2000000000, privkey.get_pubkey().get_bytes().hex(), []
+            42, 2000000000, bytes_to_wif(privkey.get_bytes()), []
         )
         no_stake = FromHex(AvalancheProof(), no_stake_hex)
         assert_raises_rpc_error(-8,
