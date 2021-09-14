@@ -6,6 +6,7 @@
 from decimal import Decimal
 
 from test_framework.blocktools import COINBASE_MATURITY
+from test_framework.messages import XEC
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -29,11 +30,14 @@ class MempoolLimitTest(BitcoinTestFramework):
         ]
         self.supports_cli = False
 
-    def send_large_txs(self, node, miniwallet, txouts, fee_rate, tx_batch_size):
+    def send_large_txs(self, node, miniwallet, txouts, fee, tx_batch_size):
         for _ in range(tx_batch_size):
-            tx = miniwallet.create_self_transfer(fee_rate=fee_rate)["tx"]
+            tx = miniwallet.create_self_transfer(fee_rate=0)["tx"]
             for txout in txouts:
                 tx.vout.append(txout)
+            tx.vout[0].nValue -= int(fee * XEC)
+            res = node.testmempoolaccept([tx.serialize().hex()])[0]
+            assert_equal(res["fees"]["base"], fee)
             miniwallet.sendrawtransaction(from_node=node, tx_hex=tx.serialize().hex())
 
     def run_test(self):
@@ -64,14 +68,16 @@ class MempoolLimitTest(BitcoinTestFramework):
             from_node=node, fee_rate=relayfee
         )["txid"]
 
-        # Increase the tx fee rate massively to give the subsequent transactions
-        # a higher priority in the mempool
-        base_fee = relayfee * 1000
+        # Increase the tx fee rate to give the subsequent transactions a higher
+        # priority in the mempool. The tx has an approx. vsize of 65k, i.e.
+        # multiplying the previous fee rate (in sats/kvB) by 130 should result
+        # in a fee that corresponds to 2x of that fee rate
+        base_fee = relayfee * 130
 
         self.log.info("Fill up the mempool with txs with higher fee rate")
         for batch_of_txid in range(num_of_batches):
-            fee_rate = (batch_of_txid + 1) * base_fee
-            self.send_large_txs(node, miniwallet, txouts, fee_rate, tx_batch_size)
+            fee = (batch_of_txid + 1) * base_fee
+            self.send_large_txs(node, miniwallet, txouts, fee, tx_batch_size)
 
         self.log.info("The tx should be evicted by now")
         # The number of transactions created should be greater than the ones
