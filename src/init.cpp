@@ -13,6 +13,7 @@
 #include <amount.h>
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
+#include <avalanche/proof.h> // For AVALANCHE_LEGACY_PROOF_DEFAULT
 #include <avalanche/validation.h>
 #include <banman.h>
 #include <blockdb.h>
@@ -1262,6 +1263,11 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-avaproof",
                    "Avalanche proof to be used by this node (default: none)",
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-legacyavaproof",
+        strprintf("Use the legacy avalanche proof format (default: %u)",
+                  AVALANCHE_DEFAULT_LEGACY_PROOF),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avamasterkey",
                    "Master key associated with the proof. If a proof is "
                    "required, this is mandatory.",

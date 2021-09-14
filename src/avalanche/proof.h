@@ -11,6 +11,7 @@
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <serialize.h>
+#include <util/system.h>
 #include <util/translation.h>
 
 #include <array>
@@ -23,6 +24,11 @@ class CCoinsView;
  * How many UTXOs can be used for a single proof.
  */
 static constexpr int AVALANCHE_MAX_PROOF_STAKES = 1000;
+
+/**
+ * Whether the legacy proof format should be used by default.
+ */
+static constexpr bool AVALANCHE_DEFAULT_LEGACY_PROOF = true;
 
 namespace avalanche {
 
@@ -90,23 +96,36 @@ class Proof {
     int64_t expirationTime;
     CPubKey master;
     std::vector<SignedStake> stakes;
+    CScript payoutScriptPubKey;
 
     LimitedProofId limitedProofId;
     ProofId proofid;
     void computeProofId();
 
 public:
-    Proof() : sequence(0), expirationTime(0), master(), stakes(), proofid() {}
+    Proof()
+        : sequence(0), expirationTime(0), master(), stakes(),
+          payoutScriptPubKey(CScript()), limitedProofId(), proofid() {}
+
     Proof(uint64_t sequence_, int64_t expirationTime_, CPubKey master_,
-          std::vector<SignedStake> stakes_)
+          std::vector<SignedStake> stakes_, const CScript &payoutScriptPubKey_)
         : sequence(sequence_), expirationTime(expirationTime_),
-          master(std::move(master_)), stakes(std::move(stakes_)) {
+          master(std::move(master_)), stakes(std::move(stakes_)),
+          payoutScriptPubKey(payoutScriptPubKey_) {
         computeProofId();
     }
 
     SERIALIZE_METHODS(Proof, obj) {
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
+        if (!useLegacy(gArgs)) {
+            READWRITE(obj.payoutScriptPubKey);
+        }
         SER_READ(obj, obj.computeProofId());
+    }
+
+    static bool useLegacy(const ArgsManager &argsman) {
+        return argsman.GetBoolArg("-legacyavaproof",
+                                  AVALANCHE_DEFAULT_LEGACY_PROOF);
     }
 
     static bool FromHex(Proof &proof, const std::string &hexProof,

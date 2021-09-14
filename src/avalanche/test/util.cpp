@@ -78,7 +78,7 @@ Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
     }
 
     return Proof(pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
-                 std::move(signedStakes));
+                 std::move(signedStakes), pb.payoutScriptPubKey);
 }
 
 ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
@@ -113,7 +113,7 @@ Proof TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
     }
 
     return Proof(pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
-                 std::move(signedStakes));
+                 std::move(signedStakes), pb.payoutScriptPubKey);
 }
 
 } // namespace avalanche

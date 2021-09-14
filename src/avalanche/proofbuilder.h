@@ -18,6 +18,7 @@ class ProofBuilder {
     uint64_t sequence;
     int64_t expirationTime;
     CKey masterKey;
+    CScript payoutScriptPubKey;
 
     struct StakeSigner {
         Stake stake;
@@ -37,9 +38,11 @@ class ProofBuilder {
     std::set<StakeSigner, StakeSignerComparator> stakes;
 
 public:
-    ProofBuilder(uint64_t sequence_, int64_t expirationTime_, CKey masterKey_)
+    ProofBuilder(uint64_t sequence_, int64_t expirationTime_, CKey masterKey_,
+                 const CScript &payoutScriptPubKey_ = CScript())
         : sequence(sequence_), expirationTime(expirationTime_),
-          masterKey(std::move(masterKey_)) {}
+          masterKey(std::move(masterKey_)),
+          payoutScriptPubKey(payoutScriptPubKey_) {}
 
     [[nodiscard]] bool addUTXO(COutPoint utxo, Amount amount, uint32_t height,
                                bool is_coinbase, CKey key);

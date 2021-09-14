@@ -7,6 +7,7 @@
 #include <avalanche/validation.h>
 #include <coins.h>
 #include <hash.h>
+#include <policy/policy.h>
 #include <script/standard.h>
 #include <streams.h>
 #include <util/strencodings.h>
@@ -57,6 +58,9 @@ void Proof::computeProofId() {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
+    if (!useLegacy(gArgs)) {
+        ss << payoutScriptPubKey;
+    }
 
     WriteCompactSize(ss, stakes.size());
     for (const SignedStake &s : stakes) {
@@ -85,6 +89,14 @@ bool Proof::verify(ProofValidationState &state) const {
         return state.Invalid(
             ProofValidationResult::TOO_MANY_UTXOS, "too-many-utxos",
             strprintf("%u > %u", stakes.size(), AVALANCHE_MAX_PROOF_STAKES));
+    }
+
+    if (!useLegacy(gArgs)) {
+        TxoutType scriptType;
+        if (!IsStandard(payoutScriptPubKey, scriptType)) {
+            return state.Invalid(ProofValidationResult::INVALID_PAYOUT_SCRIPT,
+                                 "payout-script-non-standard");
+        }
     }
 
     StakeId prevId = uint256::ZERO;

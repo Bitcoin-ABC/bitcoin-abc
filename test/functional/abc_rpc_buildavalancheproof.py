@@ -96,6 +96,21 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
         self.log.info("Happy path")
         assert node.buildavalancheproof(0, 0, wif_privkey, [good_stake])
 
+        self.log.info("Check the payout address")
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0] +
+            ['-legacyavaproof=0'])
+
+        # FIXME The buildavalancheproof does not support a payout script
+        # parameter yet, so it builds an invalid proof with an empty script
+        invalid_payout = node.buildavalancheproof(
+            0, 0, wif_privkey, [good_stake])
+        assert_raises_rpc_error(-8,
+                                "The proof is invalid: payout-script-non-standard",
+                                node.verifyavalancheproof,
+                                invalid_payout)
+
 
 if __name__ == '__main__':
     BuildAvalancheProofTest().main()

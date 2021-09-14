@@ -75,7 +75,9 @@ struct TestVector {
 };
 
 BOOST_AUTO_TEST_CASE(deserialization) {
-    std::vector<TestVector> testcases{
+    // All stakes signed using the key:
+    // KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM
+    std::vector<TestVector> legacyFormatTestCases{
         {"No utxo staked",
          "96527eae083f1f24625f049d9e54bb9a2102a93d98bf42ab90cfc0bf9e7c634ed76a7"
          "3e95b02cacfd357b64e4fb6c92e92dd00",
@@ -307,19 +309,135 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          0, ProofValidationResult::DUST_THRESOLD},
     };
 
-    for (auto &c : testcases) {
-        CDataStream stream(ParseHex(c.hex), SER_NETWORK, 0);
-        Proof p;
-        stream >> p;
-        BOOST_CHECK_EQUAL(p.getId(), c.proofid);
-        BOOST_CHECK_EQUAL(p.getScore(), c.score);
+    std::vector<TestVector> regularFormatTestCases{
+        {"Properly signed 1 UTXO proof, P2PK payout script",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac",
+         ProofId::fromHex("455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e9"
+                          "74aa4ae7db6d"),
+         444638638, ProofValidationResult::NONE},
+        {"Properly signed 1 UTXO proof, P2PKH payout script",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6802ddcceb12b"
+         "f6fa6f3b5001e0c7a60dd79ae373bb83d52630a11691b62a9c32e43a3003f6c13ca22"
+         "8e33add06fafba4c76ce91bab15171b0c53aef732e824f78b1976a914f8172c51efbf"
+         "34413a308a030fd4b164c5bfcd8f88ac",
+         ProofId::fromHex("8a2fcc5700a89f37a3726cdf3202353bf61f280815a9df744e3c"
+                          "9de6215a745a"),
+         444638638, ProofValidationResult::NONE},
+        {"Properly signed 1 UTXO proof, P2SH payout script",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680091c7780f8"
+         "981eb8edbdf98aae9a9072cb2f0af1a87b426c734e79e32704b02878086b5e933ba5d"
+         "3fc6948ab24b14669e1f670ff0ac2965cce03dcd315e9322a17a914da1745e9b549bd"
+         "0bfa1a569971c77eba30cd5a4b87",
+         ProofId::fromHex("c61ee0416eb9549ea0e09dfd2c6062a11aa5d3ab0adcdf59abcc"
+                          "02dd0de401fc"),
+         444638638, ProofValidationResult::NONE},
+        {"Properly signed 1 UTXO proof, 1-of-1 multisig payout script",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680e669fa3d48"
+         "1cce63ddf4dd4f1bc486f7294f4d3fa06bf3e03185423d614aeba8b8577aaca91b0d6"
+         "212a335e4977523c54d701db772ac5a16b352efc085fb0741255121023beefdde700a"
+         "6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde351ae",
+         ProofId::fromHex("29deedc94713bbc4d4f88fe96fae6801b91c5ae50601f158fa76"
+                          "a036e18ea468"),
+         444638638, ProofValidationResult::NONE},
+        {"Properly signed 1 UTXO proof, 2-of-3 multisig payout script",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6808d8b48717e"
+         "f23eafb7254c8bdb79cec84b259d023f973c6a086fb6c369671c97c93d2a22c698d17"
+         "5b4c37c30f5b681a6b019106dd1fab54dc6212e8eb12c500f695221023beefdde700a"
+         "6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6"
+         "bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde353ae",
+         ProofId::fromHex("c24dc13d98d0e0a80c19346b9590368557a66f0f65c0088c179d"
+                          "89eca25107c8"),
+         444638638, ProofValidationResult::NONE},
+        {"Properly signed 1 UTXO proof, OP_RETURN payout script",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680a89393513c"
+         "b33ef4c1941f19e25e5cc9d75f648e89b91b748598d9966de35a0781c4e0409765bdf"
+         "896f53f8430b7150077e1952c118d374bdfaab1c37713cdb01b6a19492077616e7420"
+         "746f206275726e206d792072657761726473",
+         ProofId::fromHex("bfc250ca1986177acc779f26eaff80aa8916d23cb3e7e0ce6d35"
+                          "89c4f5ea364c"),
+         444638638, ProofValidationResult::NONE},
+        {"Invalid payout script (OP_FALSE)",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680176d115007"
+         "f81be4be87ae2883fda15d87a7991645f00c8acf79b7f31501ee823604df88d29acfb"
+         "4d911c02294d5157191ebcf6657926764757da69dad2897540100",
+         ProofId::fromHex("046e75fa2d7f0868dcfa683bbdf657fc6a49b8f8b0d5c2dfdf90"
+                          "736ded26b076"),
+         444638638, ProofValidationResult::INVALID_PAYOUT_SCRIPT},
+        {"Invalid payout script (1-of-5 multisig)",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680a90f09c643"
+         "edc82a5babbd25c446fe22df502eba5c9eff4dee2c471fb8c9cc8e5142d71583ac970"
+         "d5dc717f5cd4969a1089f9b74ac558afe94398022422fce0cad5121023beefdde700a"
+         "6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6"
+         "bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6bc"
+         "02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6bc0"
+         "2036335b4df141c8bc67bb05a971f5ac2745fd683797dde355ae",
+         ProofId::fromHex("e66b0ab11de5e2f358d2e1f65b1ebe608e4a1f10a9f5d42f1173"
+                          "b262e1a218a6"),
+         444638638, ProofValidationResult::INVALID_PAYOUT_SCRIPT},
+        {"Changing the payout address changes the ProofId (P2PK)",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde4ac",
+         ProofId::fromHex("ce2812a1decdef0267e0266c68ab53c5ecad292f7b7d0fbd3db9"
+                          "285a08ccd2a1"),
+         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
+    };
 
-        ProofValidationState state;
-        BOOST_CHECK_EQUAL(p.verify(state),
-                          c.result == ProofValidationResult::NONE);
-        BOOST_CHECK(state.GetResult() == c.result);
-        BOOST_TEST_MESSAGE(c.proofid);
-    }
+    auto checkCases = [&](const std::vector<TestVector> &testcases) {
+        for (auto &c : testcases) {
+            CDataStream stream(ParseHex(c.hex), SER_NETWORK, 0);
+            Proof p;
+            stream >> p;
+            BOOST_CHECK_EQUAL(p.getId(), c.proofid);
+            BOOST_CHECK_EQUAL(p.getScore(), c.score);
+
+            ProofValidationState state;
+            BOOST_CHECK_EQUAL(p.verify(state),
+                              c.result == ProofValidationResult::NONE);
+            BOOST_CHECK(state.GetResult() == c.result);
+            BOOST_TEST_MESSAGE(c.proofid);
+        }
+    };
+
+    checkCases(legacyFormatTestCases);
+
+    gArgs.ForceSetArg("-legacyavaproof", "0");
+    BOOST_CHECK(!Proof::useLegacy(gArgs));
+    checkCases(regularFormatTestCases);
+    gArgs.ClearForcedArg("-legacyavaproof");
 }
 
 BOOST_AUTO_TEST_CASE(verify) {

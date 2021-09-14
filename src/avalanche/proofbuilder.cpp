@@ -44,13 +44,17 @@ Proof ProofBuilder::build() {
     }
 
     return Proof(sequence, expirationTime, masterKey.GetPubKey(),
-                 std::move(signedStakes));
+                 std::move(signedStakes), payoutScriptPubKey);
 }
 
 ProofId ProofBuilder::getProofId() const {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
+
+    if (!Proof::useLegacy(gArgs)) {
+        ss << payoutScriptPubKey;
+    }
 
     WriteCompactSize(ss, stakes.size());
     for (const auto &s : stakes) {
