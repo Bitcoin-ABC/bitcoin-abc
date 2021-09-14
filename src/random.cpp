@@ -358,6 +358,8 @@ void GetOSRand(uint8_t *ent32) {
     if (getentropy(ent32, NUM_OS_RANDOM_BYTES) != 0) {
         RandFailure();
     }
+    // Silence a compiler warning about unused function.
+    (void)GetDevURandom;
 #elif defined(HAVE_GETENTROPY_RAND) && defined(MAC_OSX)
     /**
      * getentropy() is available on macOS 10.12 and later.
@@ -365,6 +367,8 @@ void GetOSRand(uint8_t *ent32) {
     if (getentropy(ent32, NUM_OS_RANDOM_BYTES) != 0) {
         RandFailure();
     }
+    // Silence a compiler warning about unused function.
+    (void)GetDevURandom;
 #elif defined(HAVE_SYSCTL_ARND)
     /**
      * FreeBSD and similar. It is possible for the call to return less bytes
@@ -379,6 +383,8 @@ void GetOSRand(uint8_t *ent32) {
         }
         have += len;
     } while (have < NUM_OS_RANDOM_BYTES);
+    // Silence a compiler warning about unused function.
+    (void)GetDevURandom;
 #else
     /**
      * Fall back to /dev/urandom if there is no specific method implemented to
