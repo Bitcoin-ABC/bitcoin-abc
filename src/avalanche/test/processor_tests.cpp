@@ -860,9 +860,7 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
     auto confidence = m_processor->getConfidence(pindex);
     BOOST_REQUIRE(confidence > 0);
 
-    for (auto &[nodeid, round] : node_round_map) {
-        uint64_t r = round;
-
+    for (auto &[nodeid, r] : node_round_map) {
         if (nodeid == firstNodeId) {
             // Node 0 is the only one which can vote at this stage.
             round = r;
