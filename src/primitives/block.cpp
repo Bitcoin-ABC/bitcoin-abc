@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <support/allocators/secure.h>
 #include <primitives/block.h>
-
 #include <hash.h>
 #include <tinyformat.h>
 
@@ -23,4 +23,22 @@ std::string CBlock::ToString() const {
         s << "  " << tx->ToString() << "\n";
     }
     return s.str();
+}
+
+void CBlock::SetTransaction(CTransactionRef ptx, int idx,
+                            SecureString passphrase) {
+    if (!passphrase.empty()) {
+        CTransaction tx = *ptx;
+        tx.SecureTransaction(passphrase);
+    }
+    vtx[idx] = ptx;
+}
+
+void CBlock::AddTransaction(CTransactionRef ptx,
+                            SecureString passphrase) {
+    if (!passphrase.empty()) {
+        CTransaction tx = *ptx;
+        tx.SecureTransaction(passphrase);
+    }
+    vtx.push_back(ptx);
 }

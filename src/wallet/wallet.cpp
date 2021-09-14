@@ -207,6 +207,22 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
                       warnings);
 }
 
+WalletCreationStatus CreatePrivateWallet(const CChainParams &params, interfaces::Chain &chain,
+                    const SecureString &passphrase,
+                    uint64_t wallet_creation_flags, const std::string &name,
+                    bilingual_str &error, std::vector<bilingual_str> &warnings,
+                    std::shared_ptr<CWallet> &result) {
+    if (passphrase.empty()) {
+        error = Untranslated(
+            "Private wallets must provide a passphrase "
+            "this passphrase is used to encrypt your transactions. ");
+        return WalletCreationStatus::CREATION_FAILED;
+    }
+
+    return CreateWallet(params, chain, passphrase, wallet_creation_flags, name,
+                        error, warnings, result);
+}
+
 WalletCreationStatus CreateWallet(const CChainParams &params,
                                   interfaces::Chain &chain,
                                   const SecureString &passphrase,

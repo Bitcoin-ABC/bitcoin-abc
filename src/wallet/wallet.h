@@ -67,6 +67,14 @@ std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
 
 enum class WalletCreationStatus { SUCCESS, CREATION_FAILED, ENCRYPTION_FAILED };
 
+WalletCreationStatus CreatePrivateWallet(const CChainParams &params,
+                                  interfaces::Chain &chain,
+                                  const SecureString &passphrase,
+                                  uint64_t wallet_creation_flags,
+                                  const std::string &name, bilingual_str &error,
+                                  std::vector<bilingual_str> &warnings,
+                                  std::shared_ptr<CWallet> &result);
+
 WalletCreationStatus CreateWallet(const CChainParams &params,
                                   interfaces::Chain &chain,
                                   const SecureString &passphrase,
@@ -781,6 +789,8 @@ private:
     /** Internal database handle. */
     std::unique_ptr<WalletDatabase> database;
 
+    /** Is this wallet private **/
+    bool m_private_wallet;
     /**
      * The following is used to keep track of how far behind the wallet is
      * from the chain sync, and to allow clients to block on us being caught up.
@@ -853,6 +863,12 @@ public:
             std::unique_ptr<WalletDatabase> _database)
         : m_chain(chain), m_location(location), database(std::move(_database)) {
     }
+    
+    /** Constructs a secured wallet with privacy functions enabled **/
+    CWallet(interfaces::Chain *chain, const WalletLocation &location,
+            std::unique_ptr<WalletDatabase> _database, bool privateWallet)
+        : m_chain(chain), m_location(location), database(std::move(_database)), m_private_wallet(privateWallet) {
+    }
 
     ~CWallet() {
         // Should not have slots connected at this point.
@@ -865,6 +881,9 @@ public:
     bool IsCrypted() const;
     bool IsLocked() const override;
     bool Lock();
+    
+    /* Returns whether the wallet is private or not*/
+    bool IsPrivateWallet() const { return m_private_wallet; }
 
     /** Interface to assert chain access */
     bool HaveChain() const { return m_chain ? true : false; }

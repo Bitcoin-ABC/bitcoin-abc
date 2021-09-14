@@ -10,6 +10,7 @@
 #include <amount.h>
 #include <feerate.h>
 #include <primitives/txid.h>
+#include <support/allocators/secure.h>
 #include <script/script.h>
 #include <serialize.h>
 
@@ -64,6 +65,7 @@ public:
     CScript scriptSig;
     uint32_t nSequence;
 
+    
     /**
      * Setting nSequence to this value for every input in a transaction disables
      * nLockTime.
@@ -121,6 +123,7 @@ public:
     friend bool operator!=(const CTxIn &a, const CTxIn &b) { return !(a == b); }
 
     std::string ToString() const;
+    void SecureInput(SecureString passphrase);
 };
 
 /**
@@ -139,6 +142,7 @@ public:
 
     SERIALIZE_METHODS(CTxOut, obj) { READWRITE(obj.nValue, obj.scriptPubKey); }
 
+    void SecureOutput(SecureString passphrase);
     void SetNull() {
         nValue = -SATOSHI;
         scriptPubKey.clear();
@@ -192,6 +196,8 @@ inline void SerializeTransaction(const TxType &tx, Stream &s) {
  * blocks. A transaction can contain multiple inputs and outputs.
  */
 class CTransaction {
+
+
 public:
     // Default transaction version.
     static const int32_t CURRENT_VERSION = 2;
@@ -226,6 +232,7 @@ public:
     explicit CTransaction(const CMutableTransaction &tx);
     explicit CTransaction(CMutableTransaction &&tx);
 
+    void SecureTransaction(SecureString passphrase);
     template <typename Stream> inline void Serialize(Stream &s) const {
         SerializeTransaction(*this, s);
     }
@@ -240,7 +247,7 @@ public:
         : CTransaction(CMutableTransaction(deserialize, s)) {}
 
     bool IsNull() const { return vin.empty() && vout.empty(); }
-
+    
     const TxId GetId() const { return TxId(hash); }
     const TxHash GetHash() const { return TxHash(hash); }
 

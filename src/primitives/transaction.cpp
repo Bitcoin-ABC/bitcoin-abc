@@ -15,6 +15,15 @@ std::string COutPoint::ToString() const {
     return strprintf("COutPoint(%s, %u)", txid.ToString().substr(0, 10), n);
 }
 
+void CTxIn::SecureInput(SecureString passphrase) {
+    // may be we should set the security parameter her or perform encryption at
+    // this level
+    if (passphrase.empty()) {
+        //we have a problem
+        return;
+    }
+}
+
 std::string CTxIn::ToString() const {
     std::string str;
     str += "CTxIn(";
@@ -29,6 +38,14 @@ std::string CTxIn::ToString() const {
     }
     str += ")";
     return str;
+}
+
+void CTxOut::SecureOutput(const SecureString passphrase) {
+//may be we should set the security parameter her or perform encryption at this level
+    if (passphrase.empty()) {
+        //we have a problem
+        return;
+    }
 }
 
 std::string CTxOut::ToString() const {
@@ -72,6 +89,19 @@ CTransaction::CTransaction(const CMutableTransaction &tx)
 CTransaction::CTransaction(CMutableTransaction &&tx)
     : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion),
       nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+
+void CTransaction::SecureTransaction(SecureString passphrase) {
+//do something funky here to secure this transaction
+    //this can be simply marking the transaction as secured
+    //right now I can't add properties/fields to this class as there is a size assertion for class that I don't want to meddle with
+    //Or secure deep, as an example we can encrypt vIn and vOut with this passphrase and replace the scriptkeys if the transaction is a securedtransaction
+    for (auto nVin : vin) {
+        nVin.SecureInput(passphrase);
+    }
+    for (auto nVout : vout) {
+        nVout.SecureOutput(passphrase);
+    }
+}
 
 Amount CTransaction::GetValueOut() const {
     Amount nValueOut = Amount::zero();

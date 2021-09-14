@@ -53,6 +53,9 @@ public:
 };
 
 class CBlock : public CBlockHeader {
+private:
+    bool m_is_block_private{false};
+
 public:
     // network and disk
     std::vector<CTransactionRef> vtx;
@@ -67,6 +70,10 @@ public:
         *(static_cast<CBlockHeader *>(this)) = header;
     }
 
+    CBlock(const CBlockHeader &header, bool privateBlock) : CBlock(header) {
+        m_is_block_private = privateBlock;
+    }
+
     SERIALIZE_METHODS(CBlock, obj) {
         READWRITEAS(CBlockHeader, obj);
         READWRITE(obj.vtx);
@@ -77,7 +84,7 @@ public:
         vtx.clear();
         fChecked = false;
     }
-
+    bool isPrivateBlock() const { return m_is_block_private;}
     CBlockHeader GetBlockHeader() const {
         CBlockHeader block;
         block.nVersion = nVersion;
@@ -90,6 +97,9 @@ public:
     }
 
     std::string ToString() const;
+    void SetTransaction(CTransactionRef tx, int idx,
+                        SecureString passphrase);
+    void AddTransaction(CTransactionRef tx, SecureString passphrase);
 };
 
 /**
