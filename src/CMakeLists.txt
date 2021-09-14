@@ -228,10 +228,14 @@ add_compiler_flags(
 	-Wunreachable-code-loop-increment
 	-Wsign-compare
 	-Wconditional-uninitialized
+	-Wduplicated-branches
+	-Wduplicated-cond
+	-Wlogical-op
 )
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(
 	-Wredundant-move
+	-Woverloaded-virtual
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

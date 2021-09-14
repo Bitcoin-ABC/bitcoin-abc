@@ -52,6 +52,7 @@ add_c_compiler_flags(
 	-Wnested-externs
 	-Wstrict-prototypes
 	-Wno-long-long
+	-Wno-duplicated-branches
 )
 
 # Default visibility is hidden on all targets.

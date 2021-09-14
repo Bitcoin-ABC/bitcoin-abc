@@ -24,6 +24,9 @@ public:
     explicit ArgsTestRPCCommand(const std::string &nameIn)
         : RPCCommandWithArgsContext(nameIn) {}
 
+    // Suppress a [-Werror=overloaded-virtual] warning
+    using RPCCommandWithArgsContext::Execute;
+
     UniValue Execute(const UniValue &args) const override {
         BOOST_CHECK_EQUAL(args["arg1"].get_str(), "value1");
         return UniValue("testing1");
