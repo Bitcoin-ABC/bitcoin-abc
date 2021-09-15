@@ -62,7 +62,7 @@ final class StdintLinter extends ArcanistLinter {
           pht(
             '`'.$replacement.'` should be preferred over `'.$unsignedType.'`'),
           $unsignedType,
-          $replacement,
+          $replacement
         );
       }
     }
