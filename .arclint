@@ -292,6 +292,12 @@
             "type": "prettier",
             "include": "(^web/.*\\.(css|html|js|json|jsx|md|scss|ts|tsx)$)",
             "exclude": "(^web/.*/translations/.*\\.json$)"
+        },
+        "lint-python-isort": {
+            "type": "lint-python-isort",
+            "version": ">=5.6.4",
+            "include": "(\\.py$)",
+            "exclude": "(^contrib/)"
         }
     }
 }

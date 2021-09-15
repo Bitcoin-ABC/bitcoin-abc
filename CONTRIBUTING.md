@@ -133,7 +133,7 @@ will have to install the following:
 
 On Ubuntu 20.04:
 ```
-sudo apt-get install clang-format clang-tidy clang-tools cppcheck python3-autopep8 flake8 php-codesniffer yamllint
+sudo apt-get install clang-format clang-tidy clang-tools cppcheck python3-isort python3-autopep8 flake8 php-codesniffer yamllint
 ```
 
 If not available in the distribution, `clang-format-10` and `clang-tidy` can be
@@ -153,12 +153,13 @@ ln -s $PWD/clang+llvm-10.0.0-x86_64-apple-darwin/bin/clang-format /usr/local/bin
 ln -s $PWD/clang+llvm-10.0.0-x86_64-apple-darwin/bin/clang-tidy /usr/local/bin/clang-tidy
 ```
 
-If you are modifying a python script, you will need to install `mypy`. The minimum required version is 0.780, because
-the previous ones are known to have issues with some python type annotations.
+If you are modifying a python script, you will need to install `mypy` and `isort`.
+The minimum required version for `mypy` is 0.780, because the previous ones are
+known to have issues with some python type annotations.
 On Debian based systems, this can be installed via:
 ```
 sudo apt-get install python3-pip
-pip3 install mypy==0.780
+pip3 install isort==5.6.4 mypy==0.780
 echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
 source ~/.bashrc
 ```

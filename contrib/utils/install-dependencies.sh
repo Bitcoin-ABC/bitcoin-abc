@@ -122,8 +122,8 @@ pip3 install deepmerge
 # For running Python test suites
 pip3 install pytest
 
-# An up-to-date mypy is required as a python linter
-pip3 install mypy==0.780
+# Up-to-date mypy and isort packages are required python linters
+pip3 install isort==5.6.4 mypy==0.780
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc
