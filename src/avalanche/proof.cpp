@@ -108,6 +108,11 @@ bool Proof::verify(ProofValidationState &state) const {
             return state.Invalid(ProofValidationResult::INVALID_PAYOUT_SCRIPT,
                                  "payout-script-non-standard");
         }
+
+        if (!master.VerifySchnorr(limitedProofId, signature)) {
+            return state.Invalid(ProofValidationResult::INVALID_PROOF_SIGNATURE,
+                                 "invalid-proof-signature");
+        }
     }
 
     StakeId prevId = uint256::ZERO;

@@ -50,6 +50,7 @@ public:
     Proof build();
 
 private:
+    LimitedProofId getLimitedProofId() const;
     ProofId getProofId() const;
 
     friend struct TestProofBuilder;

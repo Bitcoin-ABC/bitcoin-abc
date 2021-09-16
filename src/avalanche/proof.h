@@ -102,6 +102,7 @@ class Proof {
     CPubKey master;
     std::vector<SignedStake> stakes;
     CScript payoutScriptPubKey;
+    SchnorrSig signature;
 
     LimitedProofId limitedProofId;
     ProofId proofid;
@@ -113,17 +114,19 @@ public:
           payoutScriptPubKey(CScript()), limitedProofId(), proofid() {}
 
     Proof(uint64_t sequence_, int64_t expirationTime_, CPubKey master_,
-          std::vector<SignedStake> stakes_, const CScript &payoutScriptPubKey_)
+          std::vector<SignedStake> stakes_, const CScript &payoutScriptPubKey_,
+          SchnorrSig signature_)
         : sequence(sequence_), expirationTime(expirationTime_),
           master(std::move(master_)), stakes(std::move(stakes_)),
-          payoutScriptPubKey(payoutScriptPubKey_) {
+          payoutScriptPubKey(payoutScriptPubKey_),
+          signature(std::move(signature_)) {
         computeProofId();
     }
 
     SERIALIZE_METHODS(Proof, obj) {
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
         if (!useLegacy()) {
-            READWRITE(obj.payoutScriptPubKey);
+            READWRITE(obj.payoutScriptPubKey, obj.signature);
         }
         SER_READ(obj, obj.computeProofId());
     }

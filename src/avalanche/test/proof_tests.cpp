@@ -317,7 +317,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
         {"No utxo staked",
          "96527eae083f1f24625f049d9e54bb9a21023beefdde700a6bc02036335b4df141c8b"
          "c67bb05a971f5ac2745fd683797dde3002321023beefdde700a6bc02036335b4df141"
-         "c8bc67bb05a971f5ac2745fd683797dde3ac",
+         "c8bc67bb05a971f5ac2745fd683797dde3ac135da984db510334abe41134e3d4ef09a"
+         "d006b1152be8bc413182bf6f947eac1f8580fe265a382195aa2d73935cabf86d90a8f"
+         "666d0a62385ae24732eca51575",
          ProofId::fromHex("979dbc3b1351ee12f91f537e04e61fdf93a73d5ebfc317bccd12"
                           "643b8be87b02"),
          0, ProofValidationResult::NO_STAKE},
@@ -329,7 +331,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "97ca2bec6e0dd4acf50a66204bde1ebb5d6c551684cff2f939920f7fbb2efd860d6d5"
          "926bf425eb47b78bf6979cdcd67eb705e2c9a4d45a0930ba25463178a3fb99cb28c8b"
          "77d8fcf68c54ebfadf08b9a446c251a0088301c50d532321023beefdde700a6bc0203"
-         "6335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac",
+         "6335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac845148594a3067f06bc2cf"
+         "495a1191c00e012dd3d0e4b0c393b3e46c2adcebc3df50f1a203f02e445a0101f4675"
+         "26becb0aa4c64400a10bbde83b3f0290bdeaa",
          ProofId::fromHex("e01bac293ed39e8d5e06214e7fe0bceb9646ef253ce501dcd7a4"
                           "75f802ab07f1"),
          7584312, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -344,7 +348,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "41099912102ebfcea8e1864c1273c41e0d7c1e9097be5c491bbbf5fe31161d8e5589b"
          "9d6b5b12f3b963c7fc7614d56d83af907e5cb18ac2f4c3e70a8c4253995f6bc002ec5"
          "e350491c965cba4dbc11c210979217f1ac3ece7a748f5b2fcf5cced40a5d4c40e2321"
-         "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac",
+         "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ace"
+         "a8c988e488eaeef3dc441eb8ede93d2e249ecac3a4277d0347bb1abfdb79b7ebc507e"
+         "5447309db034983b38bd663242834b89026424472e192220863274b266",
          ProofId::fromHex("ebf52f8d3c845761e55ef145a37537162e5fbbcc87c58a5b0040"
                           "d0a9c89003c4"),
          15610172, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -365,7 +371,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "b24f0b0ea1cbfc4030bec095a8d3e9c2a233778535dc1fcc07755149b23ea8c17931a"
          "37e9377eaa2f45bafb8d0bb9ba1700aab88fd6a53ea3e83d95ad2d84e7abe828f5570"
          "91b185e2321023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd68"
-         "3797dde3ac",
+         "3797dde3acf3c32376092a751c432eb727544e6e5caab7e9be1c947ece79995ddc883"
+         "e6e1d48c6865554267cd8f388af277e4fa7a4ad6801f17db36074985ac477e250702"
+         "b",
          ProofId::fromHex("8542635d83f8020bc781d9e8a3de53c23f5e3f77c21588719b58"
                           "b6618ee1782b"),
          29026903, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -390,7 +398,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "6af5395780a2d3c42505146c095bc861fab15238fb8aa1fb82c7ad28b0ee5d1335348"
          "76dc7887490c7c6e61103b2cd221f1991826a73fecf08e0b5a0a7d357a5431eee032d"
          "14a348c80ca1833d68b3d7b2321023beefdde700a6bc02036335b4df141c8bc67bb05"
-         "a971f5ac2745fd683797dde3ac",
+         "a971f5ac2745fd683797dde3ac157f7621dd2ce427c07dc0da1fc46412edd5c78b10c"
+         "e70e7e6010c65d22de2f434e4f08c158af3c9f5a2411677bd69adbaec068cbb04e79f"
+         "90dbdcb6be2b437f",
          ProofId::fromHex("6ba2a3ff986d5bc4457da693096bab408cfd8cf4e988e5ac013f"
                           "e48a4e2961c9"),
          44059793, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -402,7 +412,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "0cf224e0dc3056061a95f263601de3e0710a542229abfb3aacd57f7f2c0ecfdf33ed5"
          "f297dfaee8fc9cd704b16e1c12d44a71118dfa840f8a92b2f43410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac05a9ea3a5333926249331f"
+         "34a41a3519bab179ce9228dc940019ee80f754da0499379229f9b49f1bccc6566a734"
+         "7227299f775939444505952f920ccea8b9f18",
          ProofId::fromHex("cdcdd71605139f49d4884b0c3d9a6be309f07b008a760bb3b25f"
                           "cfcb7a3ffc46"),
          444638638, ProofValidationResult::NONE},
@@ -417,7 +429,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "f8462872102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8"
          "bce680ce0defb9f4586ef8fd4d26b34de05aa6a4f0d1c9b0bad3dea2ff32bec0c9d44"
          "35cb1a5628751c60770f47d72c8b1227544358a0d1705672cbe991e0283b5f0bf2321"
-         "038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fdac",
+         "038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fdac3"
+         "dfb66133d94674a3a6565d8f84e1a31e2f79a4bb399c04adc802abcf8b395f62315d3"
+         "ad8450ba57e11dfb61b1f5a7325094d5ffda1f5830e0990dcc2ebb9be8",
          ProofId::fromHex("5d4919b43a1afb6acdeddaf1678397eaa10562125db6b911ec4e"
                           "35fd8598ad73"),
          3280755132, ProofValidationResult::DUPLICATE_STAKE},
@@ -437,7 +451,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "a2a71ffc6a13ecc8bce68063cd2862613da2315977965e75e4bd47b99f77be0d83e8e"
          "6677c35cafe6ee2de8fb2240c7b81e47c9bc7e21a230939d701cd5d784d7b68a3fdf1"
          "d1e6d9dc53652321038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a"
-         "3a250760897fdac",
+         "3a250760897fdace7662689aa1c9c5d9d9a6dbe9a94859be27fbddca080abff31012a"
+         "5277bc98630c47bb04830514ac04304d726b598e05c4cd89506bb2e1f0a78f54ab3f3"
+         "15cfe",
          ProofId::fromHex("95c9673bc14f3c36e9310297e8df81867b42dd1a7bb7944aeb6c"
                           "1797fbd2a6d5"),
          10150, ProofValidationResult::NONE},
@@ -449,7 +465,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac80bdeb2ada22b35856fa25"
+         "d2fe7a145b4ce09c6332b72925dbf2b09140d6163863437a8076f7836fcbb7154b831"
+         "65a65910d1b2a8c3655d111f008a57315f5a0",
          ProofId::fromHex("8b0640e7bf81f487d90d6b5c3ead4bc41eae418da4e6874618b2"
                           "89124e52ba1e"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -461,21 +479,11 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac5995555107107e656abd8e"
+         "2852f311ff0f5c4f606695b63ec44e04303e3378a2e21e16bf05727240ebee1334d2f"
+         "858c6c2e3bdd8d289400b99d7f70b35f9d2fa",
          ProofId::fromHex("26ce40e7b5dfc8d3d48d743ed23fa6ff32ca269a59c4fb101b3b"
                           "48e5d8450465"),
-         444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
-        {"Changing the master key affect ProofId",
-         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
-         "c67bb05a971f5ac2745fd683797dde40169a79ff23e1d58c64afad42ad81cffe53967"
-         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
-         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680a7adc748c0"
-         "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
-         "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
-         "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
-         ProofId::fromHex("76aa889eaab967198744b119e5f1e2a9461b5df8f2fe4136e977"
-                          "0c1a792505cc"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
         {"Changing the TxId affect the ProofId",
          "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
@@ -485,7 +493,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9acaefee33b8b7a0ce4d5d1ab"
+         "92ea8d08dd2538102a4dde790f6317558ceb68e5d2267aac97a0f313dccec827d0401"
+         "a3095b4e862068077ce942380b474c30b64e0",
          ProofId::fromHex("4b57e163adc5174820ce21eb0e0e9d6565bc00d51bf9f86c58c5"
                           "6947428c2d84"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -497,7 +507,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9acecc6e78166848efad9772b"
+         "a11ed0a8b1e9e844cbc2727c69c5e1898430548c9062a52ca9dc1dbe614213d9f7d54"
+         "65dc297d0dc1880adb7daf088f6927a4d6a51",
          ProofId::fromHex("b569969b77b683904a89c3364c667ac434602936548c80352a85"
                           "ffed4c934cbc"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -509,7 +521,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9acefbdde03c4cc7065075d06"
+         "6c693086c0df0b6b349ec9300ff1333cca65d076364560fb2cbb1365240cdd6c9c323"
+         "d73fc17576da71a5c336a170f76a1b52ffc89",
          ProofId::fromHex("6989ce300064196c177eae6fd73cf3f89719ddedf068e757eb39"
                           "eb2030baa846"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -521,7 +535,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac4fc8c51b5a993c0a8f3a53"
+         "c88fb49f228305da66d20b8c73e7e9de55300ac1de52c898fa73e8c5f54a727edc4a6"
+         "76a66dc8bb89bd6c54d41053edceaead6d7b1",
          ProofId::fromHex("81d217bbfa019439ab6dfbe02b8b703b93eb26e6047a7ee3cc4a"
                           "ba1366286d8d"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -533,7 +549,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3443410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac893ad17cf6a17016f35337"
+         "f6a10f85357689be2760734137c51225cbe0eca4fa00b671f50deacfb86afd61d9cdf"
+         "ae24aa1e9ced62954c4f8eb8114bb4fb852fe",
          ProofId::fromHex("e33e02f3d608b4a6447c3b3ee283763718716fff02f3a79e3251"
                           "417bd03b9834"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -545,7 +563,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7a7dd7a9f62c0d755bb7dd840a1f658096f178734683b11f2bc193a567146ed5513c6"
          "d6f3e6c27a95c1ca4c01110aac03c0f5aa7660f6efb964f3543410469ab5a892ffa4b"
          "b104a3d5760dd893a5502512eea4ba32a6d6672767be4959c0f70489b803a47a3abf8"
-         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac",
+         "3f30e8d9da978de4027c70ce7e0d3b0ad62eb08edd8f9ac3359ba425e0084157ca510"
+         "e30865693578e3f5eb426d97597ccbd7766db411abaf653aea59c34861cbafeaee076"
+         "8ae58fa2b68a7bfdcdbdc041c50ea59cf1b22",
          ProofId::fromHex("cdcdd71605139f49d4884b0c3d9a6be309f07b008a760bb3b25f"
                           "cfcb7a3ffc46"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
@@ -556,7 +576,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68065cd42e0e6"
          "9d511ad24ecb3c3af07176bcf890caa7cfc64039dc65e51014dd99d11bd00ffbfbcc1"
          "9619ca502bfd4dd6dbc0967692ff6d2211b0bd9b9f05e12982321023beefdde700a6b"
-         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac",
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac6ad76de70caa0fb07"
+         "12a44e24f791244f733017920ef42c876220a9c50f0239d97414829fe9103741aba28"
+         "7579d8ea26ca28162e3091d53cc51fd58be9b18d22",
          ProofId::fromHex("c95e3c6417a799dd3085af689ea12fb3d2e1130870fef9f0bdc6"
                           "d10a27df746a"),
          0, ProofValidationResult::DUST_THRESOLD},
@@ -569,7 +591,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
          "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
          "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
-         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac",
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
          ProofId::fromHex("455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e9"
                           "74aa4ae7db6d"),
          444638638, ProofValidationResult::NONE},
@@ -580,7 +604,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6802ddcceb12b"
          "f6fa6f3b5001e0c7a60dd79ae373bb83d52630a11691b62a9c32e43a3003f6c13ca22"
          "8e33add06fafba4c76ce91bab15171b0c53aef732e824f78b1976a914f8172c51efbf"
-         "34413a308a030fd4b164c5bfcd8f88ac",
+         "34413a308a030fd4b164c5bfcd8f88ac2d805b078f5efe022304f8c6ccd0ef5255d80"
+         "6a473fc85a5ad1caf1aa94a4e49ef7625b9dc85d263b2829d5822af62226bc50a4a83"
+         "76a3a6e1cd0a37ea2fbbf9",
          ProofId::fromHex("8a2fcc5700a89f37a3726cdf3202353bf61f280815a9df744e3c"
                           "9de6215a745a"),
          444638638, ProofValidationResult::NONE},
@@ -591,7 +617,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680091c7780f8"
          "981eb8edbdf98aae9a9072cb2f0af1a87b426c734e79e32704b02878086b5e933ba5d"
          "3fc6948ab24b14669e1f670ff0ac2965cce03dcd315e9322a17a914da1745e9b549bd"
-         "0bfa1a569971c77eba30cd5a4b87",
+         "0bfa1a569971c77eba30cd5a4b87fea0a245528a4aadfc1dd5731c0cfe738e276c938"
+         "15c69789fe97b15a5fb5b4f75b598ed94096205561e8d16203b8ef21763891d8e79a5"
+         "9862bccbbd5bdf3a58",
          ProofId::fromHex("c61ee0416eb9549ea0e09dfd2c6062a11aa5d3ab0adcdf59abcc"
                           "02dd0de401fc"),
          444638638, ProofValidationResult::NONE},
@@ -602,7 +630,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680e669fa3d48"
          "1cce63ddf4dd4f1bc486f7294f4d3fa06bf3e03185423d614aeba8b8577aaca91b0d6"
          "212a335e4977523c54d701db772ac5a16b352efc085fb0741255121023beefdde700a"
-         "6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde351ae",
+         "6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde351ae29eaecb058c9b"
+         "b74eef68dbeaa5da8b96aacc00bc89c911095ad016cfbdc53b1eeb10a9f29d6c48a5f"
+         "b3a1e6e30d332a05bdc67062f94acffbe6d6c909bb5643",
          ProofId::fromHex("29deedc94713bbc4d4f88fe96fae6801b91c5ae50601f158fa76"
                           "a036e18ea468"),
          444638638, ProofValidationResult::NONE},
@@ -615,7 +645,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5b4c37c30f5b681a6b019106dd1fab54dc6212e8eb12c500f695221023beefdde700a"
          "6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6"
          "bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6b"
-         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde353ae",
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde353ae34814734c1bd2c4"
+         "76fdae6fb1145530c3244878f3c2e0c2e5c05da14f17456aedee6beb80f68f42248fd"
+         "89042346be54beaef7da8e549d7d5ff07f9a2cc63c83",
          ProofId::fromHex("c24dc13d98d0e0a80c19346b9590368557a66f0f65c0088c179d"
                           "89eca25107c8"),
          444638638, ProofValidationResult::NONE},
@@ -626,7 +658,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680a89393513c"
          "b33ef4c1941f19e25e5cc9d75f648e89b91b748598d9966de35a0781c4e0409765bdf"
          "896f53f8430b7150077e1952c118d374bdfaab1c37713cdb01b6a19492077616e7420"
-         "746f206275726e206d792072657761726473",
+         "746f206275726e206d792072657761726473f42ae2e5fa253a700e5dcb3970a894db4"
+         "48b61960b45c84723bf769d4dab0370994d0163e235b688da2fabc8e5b57e24805dce"
+         "3baa62e064c32266a723c6adb6",
          ProofId::fromHex("bfc250ca1986177acc779f26eaff80aa8916d23cb3e7e0ce6d35"
                           "89c4f5ea364c"),
          444638638, ProofValidationResult::NONE},
@@ -636,7 +670,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680176d115007"
          "f81be4be87ae2883fda15d87a7991645f00c8acf79b7f31501ee823604df88d29acfb"
-         "4d911c02294d5157191ebcf6657926764757da69dad2897540100",
+         "4d911c02294d5157191ebcf6657926764757da69dad2897540100b71f0e77b4ad5d73"
+         "d5a872ab43699309b5c194f72be5ee0812236c1a46a5b2c22ddd71d909cf52143f487"
+         "54a61dfe0c6566342fa50b7d62c40fb44d1ff5abed3",
          ProofId::fromHex("046e75fa2d7f0868dcfa683bbdf657fc6a49b8f8b0d5c2dfdf90"
                           "736ded26b076"),
          444638638, ProofValidationResult::INVALID_PAYOUT_SCRIPT},
@@ -651,20 +687,156 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6b"
          "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6bc"
          "02036335b4df141c8bc67bb05a971f5ac2745fd683797dde321023beefdde700a6bc0"
-         "2036335b4df141c8bc67bb05a971f5ac2745fd683797dde355ae",
+         "2036335b4df141c8bc67bb05a971f5ac2745fd683797dde355ae005dfe80b01bc99f9"
+         "3ae1d1c2d7176f7ea54a7f7c76b6eabb1aec5d31de170b0690282f624d01070fb2700"
+         "18694aea6a73ac5b7a96e30ed69df9b7684298b986",
          ProofId::fromHex("e66b0ab11de5e2f358d2e1f65b1ebe608e4a1f10a9f5d42f1173"
                           "b262e1a218a6"),
          444638638, ProofValidationResult::INVALID_PAYOUT_SCRIPT},
-        {"Changing the payout address changes the ProofId (P2PK)",
+        {"Changing the payout address changes the proof signature (P2PK)",
          "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
          "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
          "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
          "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
          "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
          "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
-         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde4ac",
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde4ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
          ProofId::fromHex("ce2812a1decdef0267e0266c68ab53c5ecad292f7b7d0fbd3db9"
                           "285a08ccd2a1"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        // The following tests are based on the valid 1 UTXO proof (P2PK script)
+        {"Changing the sequence changes the proof signature",
+         "da7587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("37a08e004f35d6410b24a5724b8351b41d4e3ac04f285cd76d73"
+                          "a023b2ae5519"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the expiration time changes the proof signature",
+         "d97587e6c882615797011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("1312eff53594f63e61f044c36b2cf2d3e7e44c706f17bfabcf49"
+                          "954741380bbc"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the master pubkey does NOT change the proof signature (but "
+         "signature verification obviously fails)",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde40169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("de837b44ae2df5408f89dc42039ae53a61ea508a15e214e69a50"
+                          "d940b72e7713"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the TxId changes the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde3016aa79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("2c90b8359740d675952b570cca76ffb7c1a225984b8c7f47bc27"
+                          "607c58a613b5"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the outpoint index changes the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91df00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("289c082f835c2edd24b95e1aee7dbb353dff30cdcaab02d5dc2a"
+                          "c44c57181468"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the amount changes the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21814712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("8d97d3ed1884462122976da4706778593fc4b5eaafb859bec0b4"
+                          "5f590219f5ba"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the height changes the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf2180471280659401003ae168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("690cb3d74b5add1cfb7d4cf186426d41117586c57d59da330cc9"
+                          "50e2d18d613c"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the coinbase flag changes the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010039e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("f713dec5d2f798360748914face171d5a45706b9c5f0bc4d561f"
+                          "6e80e098beef"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the stake pubkey changes the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce681baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbda2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("df84548b3a085e29d58ba5e83ad2fd1c9ecbe8595d4240f3f588"
+                          "e52af84cc65b"),
+         444638638, ProofValidationResult::INVALID_PROOF_SIGNATURE},
+        {"Changing the stake signature does NOT change the proof signature",
+         "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+         "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+         "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+         "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680baa8704cc7"
+         "97482ae7b673f04fec50be1cdcefdffc3863029352aef07b16336d57a6036c0c62782"
+         "780fb12051839ac46328040bffe675bfbcdd15f5f6a5acbdb2321023beefdde700a6b"
+         "c02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac7b0b7865200f63052"
+         "ff980b93f965f398dda04917d411dd46e3c009a5fef35661fac28779b6a22760c0000"
+         "4f5ddf7d9865c7fead7e4a840b947939590261640f",
+         ProofId::fromHex("455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e9"
+                          "74aa4ae7db6d"),
          444638638, ProofValidationResult::INVALID_STAKE_SIGNATURE},
     };
 

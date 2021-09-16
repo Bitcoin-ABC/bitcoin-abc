@@ -18,6 +18,7 @@ enum class ProofValidationResult {
     INVALID_STAKE_SIGNATURE,
     TOO_MANY_UTXOS,
     INVALID_PAYOUT_SCRIPT,
+    INVALID_PROOF_SIGNATURE,
 
     // UTXO based errors.
     MISSING_UTXO,

@@ -34,6 +34,12 @@ bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
 }
 
 Proof ProofBuilder::build() {
+    SchnorrSig proofSignature;
+    const LimitedProofId limitedProofId = getLimitedProofId();
+    if (!masterKey.SignSchnorr(limitedProofId, proofSignature)) {
+        proofSignature.fill(0);
+    }
+
     const ProofId proofid = getProofId();
     const StakeCommitment commitment(proofid);
 
@@ -46,10 +52,11 @@ Proof ProofBuilder::build() {
     }
 
     return Proof(sequence, expirationTime, masterKey.GetPubKey(),
-                 std::move(signedStakes), payoutScriptPubKey);
+                 std::move(signedStakes), payoutScriptPubKey,
+                 std::move(proofSignature));
 }
 
-ProofId ProofBuilder::getProofId() const {
+LimitedProofId ProofBuilder::getLimitedProofId() const {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;
     ss << expirationTime;
@@ -63,11 +70,15 @@ ProofId ProofBuilder::getProofId() const {
         ss << s.stake;
     }
 
-    CHashWriter ss2(SER_GETHASH, 0);
-    ss2 << ss.GetHash();
-    ss2 << masterKey.GetPubKey();
+    return LimitedProofId(ss.GetHash());
+}
 
-    return ProofId(ss2.GetHash());
+ProofId ProofBuilder::getProofId() const {
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << getLimitedProofId();
+    ss << masterKey.GetPubKey();
+
+    return ProofId(ss.GetHash());
 }
 
 } // namespace avalanche
