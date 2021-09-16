@@ -222,6 +222,8 @@ static UniValue buildavalancheproof(const Config &config,
                     },
                 },
             },
+            {"payoutAddress", RPCArg::Type::STR, RPCArg::Optional::OMITTED,
+             "A payout address (not required for legacy proofs)"},
         },
         RPCResult{RPCResult::Type::STR_HEX, "proof",
                   "A string that is a serialized, hex-encoded proof data."},
@@ -241,7 +243,23 @@ static UniValue buildavalancheproof(const Config &config,
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid master key");
     }
 
-    avalanche::ProofBuilder pb(sequence, expiration, masterKey);
+    CTxDestination payoutAddress = CNoDestination();
+    if (!avalanche::Proof::useLegacy(gArgs)) {
+        if (request.params[4].isNull()) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                "A payout address is required if `-legacyavaproof` is false");
+        }
+        payoutAddress = DecodeDestination(request.params[4].get_str(),
+                                          config.GetChainParams());
+
+        if (!IsValidDestination(payoutAddress)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid payout address");
+        }
+    }
+
+    avalanche::ProofBuilder pb(sequence, expiration, masterKey,
+                               GetScriptForDestination(payoutAddress));
 
     const UniValue &stakes = request.params[3].get_array();
     for (size_t i = 0; i < stakes.size(); i++) {
@@ -661,7 +679,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         //  ------------------- ------------------------  ----------------------  ----------
         { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
         { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
-        { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes"}},
+        { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes", "payoutAddress"}},
         { "avalanche",          "decodeavalancheproof",   decodeavalancheproof,   {"proof"}},
         { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},

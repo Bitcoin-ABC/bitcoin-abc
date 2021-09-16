@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the buildavalancheproof RPC"""
 
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
@@ -102,14 +103,32 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
             extra_args=self.extra_args[0] +
             ['-legacyavaproof=0'])
 
-        # FIXME The buildavalancheproof does not support a payout script
-        # parameter yet, so it builds an invalid proof with an empty script
-        invalid_payout = node.buildavalancheproof(
-            0, 0, wif_privkey, [good_stake])
         assert_raises_rpc_error(-8,
-                                "The proof is invalid: payout-script-non-standard",
-                                node.verifyavalancheproof,
-                                invalid_payout)
+                                "A payout address is required if `-legacyavaproof` is false",
+                                node.buildavalancheproof,
+                                0,
+                                0,
+                                wif_privkey,
+                                [good_stake],
+                                )
+
+        assert_raises_rpc_error(-8,
+                                "Invalid payout address",
+                                node.buildavalancheproof,
+                                0,
+                                0,
+                                wif_privkey,
+                                [good_stake],
+                                "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkq",
+                                )
+
+        # Happy path
+        node.buildavalancheproof(
+            0,
+            0,
+            wif_privkey,
+            [good_stake],
+            ADDRESS_ECREG_UNSPENDABLE)
 
 
 if __name__ == '__main__':
