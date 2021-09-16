@@ -178,7 +178,7 @@ export function parseAddress(BCH, addressString, isToken = false) {
             // Amount in satoshis
             try {
                 amount = new BigNumber(parseInt(addrParams.get('amount')))
-                    .div(1e8)
+                    .div(10 ** currency.cashDecimals)
                     .toString();
             } catch (err) {
                 amount = null;

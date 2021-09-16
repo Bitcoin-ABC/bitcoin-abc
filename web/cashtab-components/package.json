@@ -1,6 +1,6 @@
 {
     "name": "cashtab-components",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Integrate the Cashtab Wallet into your React app with ease.",
     "main": "dist/index",
     "typings": "dist/index",

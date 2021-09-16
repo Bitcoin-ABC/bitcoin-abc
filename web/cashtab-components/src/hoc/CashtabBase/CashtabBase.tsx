@@ -207,7 +207,9 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
             const sendParams: sendParamsArr = {
                 to,
                 protocol: coinType,
-                value: amount?.toString() || adjustAmount(satoshis, 8, true),
+                value:
+                    amount?.toString() ||
+                    adjustAmount(satoshis, Ticker.coinDecimals, true),
             };
             if (coinType === Ticker.tokenTicker) {
                 sendParams.assetId = tokenId;
