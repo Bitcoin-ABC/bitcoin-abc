@@ -31,7 +31,6 @@ from test_framework.util import (
     assert_equal,
     assert_greater_than,
     connect_nodes,
-    wait_until,
 )
 from test_framework.wallet_util import bytes_to_wif
 
@@ -76,7 +75,7 @@ class ProofInventoryTest(BitcoinTestFramework):
                 return peer.last_message.get(
                     "inv") and peer.last_message["inv"].inv[-1].hash == proof.proofid
 
-        wait_until(lambda: all(proof_inv_found(i) for i in node.p2ps))
+        self.wait_until(lambda: all(proof_inv_found(i) for i in node.p2ps))
 
         self.log.info("Test that we don't send the same inv several times")
 
@@ -87,7 +86,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         node.sendavalancheproof(proof.serialize().hex())
 
         # Our new extra peer should receive it but not the others
-        wait_until(lambda: proof_inv_found(extra_peer))
+        self.wait_until(lambda: proof_inv_found(extra_peer))
         assert all(p.proof_invs_counter == 1 for p in node.p2ps)
 
         # Send the proof again and force the send loop to be processed
@@ -109,7 +108,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         msg.proof = proof
         peer.send_message(msg)
 
-        wait_until(lambda: proof.proofid in get_proof_ids(node))
+        self.wait_until(lambda: proof.proofid in get_proof_ids(node))
 
         self.log.info("Test receiving a proof with missing utxo is orphaned")
 
@@ -168,7 +167,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
                 # Connect a block to make the proof be added to our pool
                 node.generate(1)
-                wait_until(lambda: proof.proofid in get_proof_ids(node))
+                self.wait_until(lambda: proof.proofid in get_proof_ids(node))
 
                 [connect_nodes(node, n) for n in nodes[:i]]
 
@@ -221,14 +220,14 @@ class ProofInventoryTest(BitcoinTestFramework):
                 return all(p.last_message.get(
                     "inv") and p.last_message["inv"].inv[-1].hash == proof.proofid for p in peers)
 
-        wait_until(lambda: proof_inv_received(peers))
+        self.wait_until(lambda: proof_inv_received(peers))
 
         # If no peer request the proof for download, the node should reattempt
         # broadcasting to all new peers after 10 to 15 minutes.
         peers = add_peers(3)
         node.mockscheduler(MAX_INITIAL_BROADCAST_DELAY + 1)
         peers[-1].sync_with_ping()
-        wait_until(lambda: proof_inv_received(peers))
+        self.wait_until(lambda: proof_inv_received(peers))
 
         # If at least one peer requests the proof, there is no more attempt to
         # broadcast it
@@ -252,7 +251,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         # Broadcast the proof
         peers = add_peers(3)
         assert node.sendavalancheproof(proof.serialize().hex())
-        wait_until(lambda: proof_inv_received(peers))
+        self.wait_until(lambda: proof_inv_received(peers))
 
         # Sanity check our node knows the proof, and it is valid
         wait_for_proof(node, proofid_hex, expect_orphan=False)
@@ -278,7 +277,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         node.generate(1)
 
         # Wait for the proof to be orphaned
-        wait_until(lambda: node.getrawavalancheproof(
+        self.wait_until(lambda: node.getrawavalancheproof(
             proofid_hex)["orphan"] is True)
 
         # It should no longer be broadcasted

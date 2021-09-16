@@ -11,7 +11,6 @@ from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
     set_node_times,
-    wait_until,
 )
 
 RPC_FINALIZE_INVALID_BLOCK_ERROR = 'finalize-invalid-block'
@@ -41,7 +40,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
         def wait_for_tip(node, tip):
             def check_tip():
                 return node.getbestblockhash() == tip
-            wait_until(check_tip)
+            self.wait_until(check_tip)
 
         alt_node = self.nodes[1]
         wait_for_tip(alt_node, tip)
@@ -78,7 +77,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
                         assert tip["status"] != "active"
                         return tip["status"] == status
                 return False
-            wait_until(check_block)
+            self.wait_until(check_block)
 
         # First block header is accepted as valid-header
         alt_node.generatetoaddress(

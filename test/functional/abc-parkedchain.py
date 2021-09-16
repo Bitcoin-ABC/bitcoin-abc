@@ -8,7 +8,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     connect_nodes,
-    wait_until
 )
 
 
@@ -35,7 +34,7 @@ class ParkedChainTest(BitcoinTestFramework):
         def wait_for_tip(node, tip):
             def check_tip():
                 return node.getbestblockhash() == tip
-            wait_until(check_tip)
+            self.wait_until(check_tip)
 
         node = self.nodes[0]
         parking_node = self.nodes[1]
@@ -167,7 +166,7 @@ class ParkedChainTest(BitcoinTestFramework):
                         assert tip["status"] != "active"
                         return tip["status"] == "parked"
                 return False
-            wait_until(check_block)
+            self.wait_until(check_block)
 
         def check_reorg_protection(depth, extra_blocks):
             self.log.info(
@@ -189,8 +188,8 @@ class ParkedChainTest(BitcoinTestFramework):
 
             # If we mine one more block, the node reorgs.
             node.generate(1)
-            wait_until(lambda: parking_node.getbestblockhash()
-                       == node.getbestblockhash())
+            self.wait_until(lambda: parking_node.getbestblockhash()
+                            == node.getbestblockhash())
 
         check_reorg_protection(1, 0)
         check_reorg_protection(2, 0)
@@ -214,8 +213,8 @@ class ParkedChainTest(BitcoinTestFramework):
                 node.generatetoaddress(
                     nblocks=20,
                     address=node.getnewaddress(label='coinbase'))
-                wait_until(lambda: parking_node.getbestblockhash() ==
-                           node.getbestblockhash())
+                self.wait_until(lambda: parking_node.getbestblockhash() ==
+                                node.getbestblockhash())
         except AssertionError as exc:
             # good, we want an absence of "Park block" messages
             assert "does not partially match log" in exc.args[0]
@@ -242,8 +241,8 @@ class ParkedChainTest(BitcoinTestFramework):
         wait_for_parked_block(node.getbestblockhash())
         # Final block pushes over the edge, and should unpark.
         node.generate(1)
-        wait_until(lambda: parking_node.getbestblockhash() ==
-                   node.getbestblockhash(), timeout=5)
+        self.wait_until(lambda: parking_node.getbestblockhash() ==
+                        node.getbestblockhash(), timeout=5)
 
         # Do not append tests after this point without restarting node again.
         # Parking node is no longer parking.

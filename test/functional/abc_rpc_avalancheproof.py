@@ -27,7 +27,6 @@ from test_framework.util import (
     append_config,
     assert_equal,
     connect_nodes,
-    wait_until,
     assert_raises_rpc_error,
 )
 from test_framework.wallet_util import bytes_to_wif
@@ -119,7 +118,8 @@ class AvalancheProofTest(BitcoinTestFramework):
         self.log.info("The proof is registered at first chaintip update")
         assert_equal(len(node.getavalanchepeerinfo()), 0)
         node.generate(1)
-        wait_until(lambda: len(node.getavalanchepeerinfo()) == 1, timeout=5)
+        self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1,
+                        timeout=5)
 
         # This case will occur for users building proofs with a third party
         # tool and then starting a new node that is not yet aware of the
@@ -348,7 +348,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             with p2p_lock:
                 return peer.last_message.get(
                     "inv") and peer.last_message["inv"].inv[-1].hash == proofid
-        wait_until(inv_found)
+        self.wait_until(inv_found)
 
         self.log.info("Check the getrawproof RPC")
 
@@ -368,7 +368,7 @@ class AvalancheProofTest(BitcoinTestFramework):
         signed_tx = node.signrawtransactionwithkey(raw_tx, [addrkey0.key])
         node.sendrawtransaction(signed_tx["hex"])
         node.generate(1)
-        wait_until(lambda: proofid not in get_proof_ids(node))
+        self.wait_until(lambda: proofid not in get_proof_ids(node))
 
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)

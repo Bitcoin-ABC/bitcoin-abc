@@ -17,7 +17,6 @@ from test_framework.p2p import (
     P2PInterface,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import wait_until
 
 
 def msg_bad_checksum(connection, original_message):
@@ -82,7 +81,7 @@ class InvalidMessageTest(BitcoinTestFramework):
                 if not interface.last_message.get("pong"):
                     return False
                 return interface.last_message["pong"].nonce == interface.ping_counter
-            wait_until(check_ping, lock=p2p_lock)
+            self.wait_until(check_ping, lock=p2p_lock)
             interface.ping_counter += 1
 
         # The valid message is accepted

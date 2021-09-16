@@ -15,7 +15,6 @@ from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CBlockHeader, msg_block, msg_headers
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import wait_until
 
 
 NUM_IBD_BLOCKS = 50
@@ -66,7 +65,7 @@ class SyncChainTest(BitcoinTestFramework):
         # The node should eventually, completely sync without getting stuck
         def node_synced():
             return node0.getbestblockhash() == blocks[-1].hash
-        wait_until(node_synced)
+        self.wait_until(node_synced)
 
 
 if __name__ == '__main__':

@@ -15,10 +15,7 @@ from test_framework.key import (
 )
 from test_framework.messages import AvalancheVote
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    wait_until,
-)
+from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
 
 BLOCK_ACCEPTED = 0
@@ -181,7 +178,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Now that we have a peer, we should start polling for the tip.
         hash_tip = int(node.getbestblockhash(), 16)
-        wait_until(lambda: can_find_block_in_poll(hash_tip), timeout=5)
+        self.wait_until(lambda: can_find_block_in_poll(hash_tip), timeout=5)
 
         # Make sure the fork node has synced the blocks
         self.sync_blocks([node, fork_node])
@@ -201,7 +198,7 @@ class AvalancheTest(BitcoinTestFramework):
             return False
 
         fork_tip = fork_node.getbestblockhash()
-        wait_until(lambda: parked_block(fork_tip))
+        self.wait_until(lambda: parked_block(fork_tip))
 
         self.log.info("Answer all polls to finalize...")
 
@@ -212,7 +209,7 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers yes, the node will accept that block.
-        wait_until(has_accepted_new_tip, timeout=15)
+        self.wait_until(has_accepted_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info("Answer all polls to park...")
@@ -227,7 +224,7 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
-        wait_until(has_parked_new_tip, timeout=15)
+        self.wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info(

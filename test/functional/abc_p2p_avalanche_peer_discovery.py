@@ -31,10 +31,7 @@ from test_framework.messages import (
     NODE_NETWORK,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    wait_until,
-)
+from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
 
 UNCONDITIONAL_RELAY_DELAY = 2 * 60
@@ -155,7 +152,7 @@ class AvalancheTest(BitcoinTestFramework):
             with p2p_lock:
                 return good_interface.last_message.get(
                     "getdata") and good_interface.last_message["getdata"].inv[-1].hash == proofid
-        wait_until(lambda: getdata_found(good_interface, proofid))
+        self.wait_until(lambda: getdata_found(good_interface, proofid))
 
         self.log.info('Check that we can download the proof from our peer')
 
@@ -164,7 +161,7 @@ class AvalancheTest(BitcoinTestFramework):
         def wait_for_proof_validation():
             # Connect some blocks to trigger the proof verification
             node.generate(1)
-            wait_until(lambda: node_proofid in get_proof_ids(node))
+            self.wait_until(lambda: node_proofid in get_proof_ids(node))
 
         wait_for_proof_validation()
 
@@ -178,7 +175,7 @@ class AvalancheTest(BitcoinTestFramework):
             with p2p_lock:
                 return peer.last_message.get(
                     "avaproof") and peer.last_message["avaproof"].proof.proofid == node_proofid
-        wait_until(lambda: proof_received(good_interface))
+        self.wait_until(lambda: proof_received(good_interface))
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
@@ -202,7 +199,7 @@ class AvalancheTest(BitcoinTestFramework):
         node.setmocktime(current_time + UNCONDITIONAL_RELAY_DELAY)
 
         peer.send_message(getdata)
-        wait_until(lambda: proof_received(peer))
+        self.wait_until(lambda: proof_received(peer))
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
@@ -218,7 +215,7 @@ class AvalancheTest(BitcoinTestFramework):
         peer_proofid = peer.send_avahello(
             interface_delegation_hex, delegated_key)
 
-        wait_until(lambda: getdata_found(peer, peer_proofid))
+        self.wait_until(lambda: getdata_found(peer, peer_proofid))
         assert peer_proofid not in get_proof_ids(node)
 
         self.log.info(
@@ -231,7 +228,7 @@ class AvalancheTest(BitcoinTestFramework):
                     peerinfo[-1]["proof"] == interface_proof_hex and
                     peerinfo[-1]["nodecount"] == count)
 
-        wait_until(lambda: has_node_count(1))
+        self.wait_until(lambda: has_node_count(1))
 
         self.log.info(
             "Check that the peer gets added immediately if the proof is already known")
@@ -240,7 +237,7 @@ class AvalancheTest(BitcoinTestFramework):
         peer_proof_known = get_ava_p2p_interface(node)
         peer_proof_known.send_avahello(interface_delegation_hex, delegated_key)
 
-        wait_until(lambda: has_node_count(2))
+        self.wait_until(lambda: has_node_count(2))
 
         self.log.info("Invalidate the proof and check the nodes are removed")
         tip = node.getbestblockhash()
@@ -250,15 +247,15 @@ class AvalancheTest(BitcoinTestFramework):
         # to the one we just invalidated. Can be generate(1) after D9694 or
         # D9697 is landed.
         forked_tip = node.generatetoaddress(1, ADDRESS_ECREG_UNSPENDABLE)[0]
-        wait_until(lambda: node.getbestblockhash() == forked_tip)
+        self.wait_until(lambda: node.getbestblockhash() == forked_tip)
 
-        wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)
+        self.wait_until(lambda: len(node.getavalanchepeerinfo()) == 1)
         assert peer_proofid not in get_proof_ids(node)
 
         self.log.info("Reorg back and check the nodes are added back")
         node.invalidateblock(forked_tip)
         node.reconsiderblock(tip)
-        wait_until(lambda: has_node_count(2), timeout=2)
+        self.wait_until(lambda: has_node_count(2), timeout=2)
 
 
 if __name__ == '__main__':
