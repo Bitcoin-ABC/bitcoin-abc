@@ -336,13 +336,14 @@ public:
                std::vector<RPCArg> args, RPCResults results,
                RPCExamples examples);
     using RPCMethodImpl = std::function<UniValue(
-        const RPCHelpMan &, Config &config, const JSONRPCRequest &)>;
+        const RPCHelpMan &, const Config &config, const JSONRPCRequest &)>;
     RPCHelpMan(std::string name, std::string description,
                std::vector<RPCArg> args, RPCResults results,
                RPCExamples examples, RPCMethodImpl fun);
 
     std::string ToString() const;
-    UniValue HandleRequest(Config &config, const JSONRPCRequest &request) {
+    UniValue HandleRequest(const Config &config,
+                           const JSONRPCRequest &request) {
         Check(request);
         return m_fun(*this, config, request);
     }

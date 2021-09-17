@@ -57,7 +57,7 @@ static RPCHelpMan validateaddress() {
             }},
         RPCExamples{HelpExampleCli("validateaddress", EXAMPLE_ADDRESS) +
                     HelpExampleRpc("validateaddress", EXAMPLE_ADDRESS)},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             CTxDestination dest = DecodeDestination(request.params[0].get_str(),
                                                     config.GetChainParams());
@@ -131,7 +131,7 @@ static RPCHelpMan createmultisig() {
                            "42cf11ae157a7ace5fd\\\","
                            "\\\"03dbc6764b8884a92e871274b87583e6d5c2a58819473e1"
                            "7e107ef3f6aa5a61626\\\"]\"")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             int required = request.params[0].get_int();
 
@@ -205,7 +205,7 @@ static RPCHelpMan getdescriptorinfo() {
                                    "0h]"
                                    "0279be667ef9dcbbac55a06295Ce870b07029Bfcdb2"
                                    "dce28d959f2815b16f81798)\"")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             RPCTypeCheck(request.params, {UniValue::VSTR});
 
@@ -267,7 +267,7 @@ static RPCHelpMan deriveaddresses() {
                         "xpub6DJ2dNUysrn5Vt36jH2KLBT2i1auw1tTSSomg8P"
                         "hqNiUtx8QX2SvC9nrHu81fT41fvDUnhMjEzQgXnQjKE"
                         "u3oaqMSzhSrHMxyyoEAmUHQbY/0/*)#3vhfv5h5\" \"[0,2]\"")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             // Range argument is checked later
             RPCTypeCheck(request.params, {UniValue::VSTR, UniValueType()});
@@ -365,7 +365,7 @@ static RPCHelpMan verifymessage() {
             HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4"
                                             "XX\", \"signature\", \"my "
                                             "message\"")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             LOCK(cs_main);
 
@@ -417,7 +417,7 @@ static RPCHelpMan signmessagewithprivkey() {
                     "\nAs a JSON-RPC call\n" +
                     HelpExampleRpc("signmessagewithprivkey",
                                    "\"privkey\", \"my message\"")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             std::string strPrivkey = request.params[0].get_str();
             std::string strMessage = request.params[1].get_str();
@@ -451,7 +451,7 @@ static RPCHelpMan setmocktime() {
         },
         RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{""},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             if (!config.GetChainParams().IsMockableChain()) {
                 throw std::runtime_error(
@@ -494,7 +494,7 @@ static RPCHelpMan mockscheduler() {
         },
         RPCResult{RPCResult::Type::NONE, "", ""},
         RPCExamples{""},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             if (!Params().IsMockableChain()) {
                 throw std::runtime_error("mockscheduler is for regression "
@@ -597,7 +597,7 @@ static RPCHelpMan getmemoryinfo() {
         },
         RPCExamples{HelpExampleCli("getmemoryinfo", "") +
                     HelpExampleRpc("getmemoryinfo", "")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             std::string mode = request.params[0].isNull()
                                    ? "stats"
@@ -689,7 +689,7 @@ static RPCHelpMan logging() {
         RPCExamples{
             HelpExampleCli("logging", "\"[\\\"all\\\"]\" \"[\\\"http\\\"]\"") +
             HelpExampleRpc("logging", "[\"all\"], [\"libevent\"]")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             uint32_t original_log_categories = LogInstance().GetCategoryMask();
             if (request.params[0].isArray()) {
@@ -768,7 +768,7 @@ static RPCHelpMan echo(const std::string &name) {
         },
         RPCResult{RPCResult::Type::NONE, "", "Returns whatever was passed in"},
         RPCExamples{""},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             if (request.fHelp) {
                 throw std::runtime_error(self.ToString());
@@ -811,7 +811,7 @@ static RPCHelpMan getcurrencyinfo() {
         },
         RPCExamples{HelpExampleCli("getcurrencyinfo", "") +
                     HelpExampleRpc("getcurrencyinfo", "")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const Currency &currency = Currency::get();
 
@@ -868,7 +868,7 @@ static RPCHelpMan getindexinfo() {
                     HelpExampleRpc("getindexinfo", "") +
                     HelpExampleCli("getindexinfo", "txindex") +
                     HelpExampleRpc("getindexinfo", "txindex")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             UniValue result(UniValue::VOBJ);
             const std::string index_name =

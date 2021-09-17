@@ -51,7 +51,7 @@ public:
      * Attempts to execute an RPC command from the given request.
      * If no RPC command exists that matches the request, an error is returned.
      */
-    UniValue ExecuteCommand(Config &config,
+    UniValue ExecuteCommand(const Config &config,
                             const JSONRPCRequest &request) const;
 
     /**
@@ -142,10 +142,8 @@ void RPCUnsetTimerInterface(RPCTimerInterface *iface);
 void RPCRunLater(const std::string &name, std::function<void()> func,
                  int64_t nSeconds);
 
-using rpcfn_type = UniValue (*)(Config &config,
+using rpcfn_type = UniValue (*)(const Config &config,
                                 const JSONRPCRequest &jsonRequest);
-using const_rpcfn_type = UniValue (*)(const Config &config,
-                                      const JSONRPCRequest &jsonRequest);
 using RpcMethodFnType = RPCHelpMan (*)();
 
 class CRPCCommand {
@@ -154,7 +152,7 @@ public:
     //! true if request is fully handled, false if it should be passed on to
     //! subsequent handlers.
     using Actor =
-        std::function<bool(Config &config, const JSONRPCRequest &request,
+        std::function<bool(const Config &config, const JSONRPCRequest &request,
                            UniValue &result, bool last_handler)>;
 
     //! Constructor taking Actor callback supporting multiple handlers.
@@ -169,7 +167,7 @@ public:
                 std::vector<std::string> args_in)
         : CRPCCommand(
               _category, _fn().m_name,
-              [_fn](Config &config, const JSONRPCRequest &request,
+              [_fn](const Config &config, const JSONRPCRequest &request,
                     UniValue &result, bool) {
                   result = _fn().HandleRequest(config, request);
                   return true;
@@ -179,20 +177,8 @@ public:
         CHECK_NONFATAL(_fn().GetArgNames() == args_in);
     }
 
-    //! Simplified constructor taking plain rpcfn_type function pointer.
-    CRPCCommand(const char *_category, const char *_name, rpcfn_type _fn,
-                std::initializer_list<const char *> _args)
-        : CRPCCommand(
-              _category, _name,
-              [_fn](Config &config, const JSONRPCRequest &request,
-                    UniValue &result, bool) {
-                  result = _fn(config, request);
-                  return true;
-              },
-              {_args.begin(), _args.end()}, intptr_t(_fn)) {}
-
     //! Simplified constructor taking plain const_rpcfn_type function pointer.
-    CRPCCommand(const char *_category, const char *_name, const_rpcfn_type _fn,
+    CRPCCommand(const char *_category, const char *_name, rpcfn_type _fn,
                 std::initializer_list<const char *> _args)
         : CRPCCommand(
               _category, _name,
@@ -219,7 +205,7 @@ private:
 
 public:
     CRPCTable();
-    std::string help(Config &config, const std::string &name,
+    std::string help(const Config &config, const std::string &name,
                      const JSONRPCRequest &helpreq) const;
 
     /**
@@ -228,7 +214,7 @@ public:
      * @returns Result of the call.
      * @throws an exception (UniValue) when an error happens.
      */
-    UniValue execute(Config &config, const JSONRPCRequest &request) const;
+    UniValue execute(const Config &config, const JSONRPCRequest &request) const;
 
     /**
      * Returns a list of registered commands
@@ -260,7 +246,7 @@ extern CRPCTable tableRPC;
 void StartRPC();
 void InterruptRPC();
 void StopRPC();
-std::string JSONRPCExecBatch(Config &config, RPCServer &rpcServer,
+std::string JSONRPCExecBatch(const Config &config, RPCServer &rpcServer,
                              const JSONRPCRequest &req, const UniValue &vReq);
 
 /**

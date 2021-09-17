@@ -473,7 +473,7 @@ namespace {
             for (const CRPCCommand &command : commands) {
                 m_rpc_commands.emplace_back(
                     command.category, command.name,
-                    [this, &command](Config &config,
+                    [this, &command](const Config &config,
                                      const JSONRPCRequest &request,
                                      UniValue &result, bool last_handler) {
                         return command.actor(config, {request, m_context},

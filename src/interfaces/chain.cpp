@@ -121,7 +121,7 @@ namespace {
     public:
         explicit RpcHandlerImpl(const CRPCCommand &command)
             : m_command(command), m_wrapped_command(&command) {
-            m_command.actor = [this](Config &config,
+            m_command.actor = [this](const Config &config,
                                      const JSONRPCRequest &request,
                                      UniValue &result, bool last_handler) {
                 if (!m_wrapped_command) {

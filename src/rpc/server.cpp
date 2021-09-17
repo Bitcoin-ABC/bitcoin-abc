@@ -33,7 +33,7 @@ static RPCTimerInterface *timerInterface = nullptr;
 static Mutex g_deadline_timers_mutex;
 static std::map<std::string, std::unique_ptr<RPCTimerBase>>
     deadlineTimers GUARDED_BY(g_deadline_timers_mutex);
-static bool ExecuteCommand(Config &config, const CRPCCommand &command,
+static bool ExecuteCommand(const Config &config, const CRPCCommand &command,
                            const JSONRPCRequest &request, UniValue &result,
                            bool last_handler);
 
@@ -63,7 +63,7 @@ struct RPCCommandExecution {
     }
 };
 
-UniValue RPCServer::ExecuteCommand(Config &config,
+UniValue RPCServer::ExecuteCommand(const Config &config,
                                    const JSONRPCRequest &request) const {
     // Return immediately if in warmup
     // This is retained from the old RPC implementation because a lot of state
@@ -113,7 +113,7 @@ void RPCServerSignals::OnStopped(std::function<void()> slot) {
     g_rpcSignals.Stopped.connect(slot);
 }
 
-std::string CRPCTable::help(Config &config, const std::string &strCommand,
+std::string CRPCTable::help(const Config &config, const std::string &strCommand,
                             const JSONRPCRequest &helpreq) const {
     std::string strRet;
     std::string category;
@@ -184,7 +184,7 @@ static RPCHelpMan help() {
         },
         RPCResult{RPCResult::Type::STR, "", "The help text"},
         RPCExamples{""},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &jsonRequest) -> UniValue {
             std::string strCommand;
             if (jsonRequest.params.size() > 0) {
@@ -216,7 +216,7 @@ static RPCHelpMan stop() {
         RPCResult{RPCResult::Type::STR, "",
                   "A string with the content '" + RESULT + "'"},
         RPCExamples{""},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &jsonRequest) -> UniValue {
             // Event loop will exit after current HTTP requests have been
             // handled, so this reply will get back to the client.
@@ -239,7 +239,7 @@ static RPCHelpMan uptime() {
                   "The number of seconds that the server has been running"},
         RPCExamples{HelpExampleCli("uptime", "") +
                     HelpExampleRpc("uptime", "")},
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             return GetTime() - GetStartupTime();
         }};
@@ -274,7 +274,7 @@ static RPCHelpMan getrpcinfo() {
         RPCExamples{HelpExampleCli("getrpcinfo", "") +
                     HelpExampleRpc("getrpcinfo", "")},
 
-        [&](const RPCHelpMan &self, Config &config,
+        [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             LOCK(g_rpc_server_info.mutex);
             UniValue active_commands(UniValue::VARR);
@@ -406,7 +406,7 @@ bool IsDeprecatedRPCEnabled(const ArgsManager &args,
            enabled_methods.end();
 }
 
-static UniValue JSONRPCExecOne(Config &config, RPCServer &rpcServer,
+static UniValue JSONRPCExecOne(const Config &config, RPCServer &rpcServer,
                                JSONRPCRequest jreq, const UniValue &req) {
     UniValue rpc_result(UniValue::VOBJ);
 
@@ -425,7 +425,7 @@ static UniValue JSONRPCExecOne(Config &config, RPCServer &rpcServer,
     return rpc_result;
 }
 
-std::string JSONRPCExecBatch(Config &config, RPCServer &rpcServer,
+std::string JSONRPCExecBatch(const Config &config, RPCServer &rpcServer,
                              const JSONRPCRequest &jreq, const UniValue &vReq) {
     UniValue ret(UniValue::VARR);
     for (size_t i = 0; i < vReq.size(); i++) {
@@ -488,7 +488,7 @@ transformNamedArguments(const JSONRPCRequest &in,
     return out;
 }
 
-UniValue CRPCTable::execute(Config &config,
+UniValue CRPCTable::execute(const Config &config,
                             const JSONRPCRequest &request) const {
     // Return immediately if in warmup
     {
@@ -512,7 +512,7 @@ UniValue CRPCTable::execute(Config &config,
     throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
 }
 
-static bool ExecuteCommand(Config &config, const CRPCCommand &command,
+static bool ExecuteCommand(const Config &config, const CRPCCommand &command,
                            const JSONRPCRequest &request, UniValue &result,
                            bool last_handler) {
     try {
