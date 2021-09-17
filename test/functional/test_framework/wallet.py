@@ -50,14 +50,6 @@ class MiniWallet:
             self._utxos.append(
                 {'txid': utxo['txid'], 'vout': utxo['vout'], 'value': utxo['amount']})
 
-    def scan_blocks(self, *, start=1, num):
-        """Scan the blocks for self._address outputs and add them to self._utxos"""
-        for i in range(start, start + num):
-            block = self._test_node.getblock(
-                blockhash=self._test_node.getblockhash(i), verbosity=2)
-            for tx in block['tx']:
-                self.scan_tx(tx)
-
     def scan_tx(self, tx):
         """Scan the tx for self._scriptPubKey outputs and add them to self._utxos"""
         for out in tx['vout']:
