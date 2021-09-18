@@ -11,8 +11,10 @@
 
 #include <span.h>
 
+#include <charconv>
 #include <cstdint>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -107,6 +109,26 @@ constexpr inline bool IsSpace(char c) noexcept {
 }
 
 /**
+ * Convert string to integral type T. Leading whitespace, a leading +, or any
+ * trailing character fail the parsing. The required format expressed as regex
+ * is `-?[0-9]+`.
+ *
+ * @returns std::nullopt if the entire string could not be parsed, or if the
+ *   parsed value is not in the range representable by the type T.
+ */
+template <typename T> std::optional<T> ToIntegral(const std::string &str) {
+    static_assert(std::is_integral<T>::value);
+    T result;
+    const auto [first_nonmatching, error_condition] =
+        std::from_chars(str.data(), str.data() + str.size(), result);
+    if (first_nonmatching != str.data() + str.size() ||
+        error_condition != std::errc{}) {
+        return std::nullopt;
+    }
+    return result;
+}
+
+/**
  * Convert string to signed 32-bit integer with strict parse error feedback.
  * @returns true if the entire string could be parsed as valid integer, false if
  * not the entire string could be parsed or when overflow or underflow occurred.
@@ -153,13 +175,6 @@ constexpr inline bool IsSpace(char c) noexcept {
  * not the entire string could be parsed or when overflow or underflow occurred.
  */
 [[nodiscard]] bool ParseUInt64(const std::string &str, uint64_t *out);
-
-/**
- * Convert string to double with strict parse error feedback.
- * @returns true if the entire string could be parsed as valid double, false if
- * not the entire string could be parsed or when overflow or underflow occurred.
- */
-[[nodiscard]] bool ParseDouble(const std::string &str, double *out);
 
 /**
  * Convert a span of bytes to a lower-case hexadecimal string.

@@ -1376,7 +1376,9 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-avaminquorumconnectedstakeratio",
         strprintf("Minimum proportion of known stake we"
-                  " need nodes for to have a usable quorum (default: %s)",
+                  " need nodes for to have a usable quorum (default: %s). "
+                  "This parameter is parsed with a maximum precision of "
+                  "0.000001.",
                   AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO),
         ArgsManager::ALLOW_STRING, OptionsCategory::AVALANCHE);
     argsman.AddArg(

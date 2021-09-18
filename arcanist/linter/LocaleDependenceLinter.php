@@ -76,13 +76,16 @@ final class LocaleDependenceLinter extends ArcanistLinter {
       "setlocale",
     ],
     "src/test/fuzz/parse_numbers.cpp" => ["atoi"],
-    "src/common/args.cpp" => ["atoi"],
-    "src/util/strencodings.cpp" => [
-      "atoi",
+    "src/test/fuzz/string.cpp" => [
       "strtol",
       "strtoll",
       "strtoul",
       "strtoull",
+    ],
+    "src/common/args.cpp" => ["atoi"],
+    "src/util/strencodings.cpp" => [
+      "atoi",
+      "strtoll",
     ],
     "src/util/strencodings.h" => ["atoi"],
     // False positive DbEnv::strerror

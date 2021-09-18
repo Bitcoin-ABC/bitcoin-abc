@@ -337,11 +337,17 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
 
     double minQuorumConnectedStakeRatio =
         AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO;
-    if (argsman.IsArgSet("-avaminquorumconnectedstakeratio") &&
-        !ParseDouble(argsman.GetArg("-avaminquorumconnectedstakeratio", ""),
-                     &minQuorumConnectedStakeRatio)) {
-        error = _("The avalanche min quorum connected stake ratio is invalid.");
-        return nullptr;
+    if (argsman.IsArgSet("-avaminquorumconnectedstakeratio")) {
+        // Parse the parameter with a precision of 0.000001.
+        int64_t megaMinRatio;
+        if (!ParseFixedPoint(
+                argsman.GetArg("-avaminquorumconnectedstakeratio", ""), 6,
+                &megaMinRatio)) {
+            error =
+                _("The avalanche min quorum connected stake ratio is invalid.");
+            return nullptr;
+        }
+        minQuorumConnectedStakeRatio = double(megaMinRatio) / 1000000;
     }
 
     if (minQuorumConnectedStakeRatio < 0 || minQuorumConnectedStakeRatio > 1) {
