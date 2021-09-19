@@ -2843,7 +2843,6 @@ static UniValue dumptxoutset(const Config &config,
         "Write the serialized UTXO set to disk.\n",
         {
             {"path", RPCArg::Type::STR, RPCArg::Optional::NO,
-             /* default_val */ "",
              "path to the output file. If relative, will be prefixed by "
              "datadir."},
         },
