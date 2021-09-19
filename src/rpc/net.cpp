@@ -986,7 +986,7 @@ static UniValue addpeeraddress(const Config &config,
                                const JSONRPCRequest &request) {
     RPCHelpMan{
         "addpeeraddress",
-        "\nAdd the address of a potential peer to the address manager. This "
+        "Add the address of a potential peer to the address manager. This "
         "RPC is for testing only.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,

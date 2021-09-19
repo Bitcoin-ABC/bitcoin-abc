@@ -1592,7 +1592,7 @@ static int64_t GetImportTimestamp(const UniValue &data, int64_t now) {
 UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     RPCHelpMan{
         "importmulti",
-        "\nImport addresses/scripts (with private or public keys, redeem "
+        "Import addresses/scripts (with private or public keys, redeem "
         "script (P2SH)), optionally rescanning the blockchain from the "
         "earliest creation time of the imported scripts. Requires a new wallet "
         "backup.\n"
@@ -2079,7 +2079,7 @@ UniValue importdescriptors(const Config &config,
                            const JSONRPCRequest &main_request) {
     RPCHelpMan{
         "importdescriptors",
-        "\nImport descriptors. This will trigger a rescan of the blockchain "
+        "Import descriptors. This will trigger a rescan of the blockchain "
         "based on the earliest timestamp of all descriptors being imported. "
         "Requires a new wallet backup.\n"
         "\nNote: This call can take over an hour to complete if using an early "

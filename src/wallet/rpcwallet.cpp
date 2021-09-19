@@ -4230,7 +4230,7 @@ static UniValue AddressBookDataToJSON(const CAddressBookData &data,
 UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request) {
     RPCHelpMan{
         "getaddressinfo",
-        "\nReturn information about the given bitcoin address.\n"
+        "Return information about the given bitcoin address.\n"
         "Some of the information will only be present if the address is in the "
         "active wallet.\n",
         {
@@ -4891,7 +4891,7 @@ static UniValue walletcreatefundedpsbt(const Config &config,
 static UniValue upgradewallet(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{"upgradewallet",
-               "\nUpgrade the wallet. Upgrades to the latest version if no "
+               "Upgrade the wallet. Upgrades to the latest version if no "
                "version number is specified\n"
                "New keys may be generated and a new wallet backup will need to "
                "be made.",

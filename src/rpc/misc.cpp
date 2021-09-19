@@ -841,7 +841,7 @@ static UniValue SummaryToJSON(const IndexSummary &&summary,
 static RPCHelpMan getindexinfo() {
     return RPCHelpMan{
         "getindexinfo",
-        "\nReturns the status of one or all available indices currently "
+        "Returns the status of one or all available indices currently "
         "running in the node.\n",
         {
             {"index_name", RPCArg::Type::STR,

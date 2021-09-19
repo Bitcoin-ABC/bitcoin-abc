@@ -240,7 +240,7 @@ static UniValue generatetodescriptor(const Config &config,
                                      const JSONRPCRequest &request) {
     RPCHelpMan{
         "generatetodescriptor",
-        "\nMine blocks immediately to a specified descriptor (before the RPC "
+        "Mine blocks immediately to a specified descriptor (before the RPC "
         "call returns)\n",
         {
             {"num_blocks", RPCArg::Type::NUM, RPCArg::Optional::NO,
@@ -348,7 +348,7 @@ static UniValue generateblock(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "generateblock",
-        "\nMine a block with a set of ordered transactions immediately to a "
+        "Mine a block with a set of ordered transactions immediately to a "
         "specified address or descriptor (before the RPC call returns)\n",
         {
             {"output", RPCArg::Type::STR, RPCArg::Optional::NO,

@@ -193,7 +193,7 @@ static UniValue getblockcount(const Config &config,
                               const JSONRPCRequest &request) {
     RPCHelpMan{
         "getblockcount",
-        "\nReturns the height of the most-work fully-validated chain.\n"
+        "Returns the height of the most-work fully-validated chain.\n"
         "The genesis block has height 0.\n",
         {},
         RPCResult{RPCResult::Type::NUM, "", "The current block count"},
@@ -2840,7 +2840,7 @@ static UniValue dumptxoutset(const Config &config,
                              const JSONRPCRequest &request) {
     RPCHelpMan{
         "dumptxoutset",
-        "\nWrite the serialized UTXO set to disk.\n",
+        "Write the serialized UTXO set to disk.\n",
         {
             {"path", RPCArg::Type::STR, RPCArg::Optional::NO,
              /* default_val */ "",
