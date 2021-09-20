@@ -1589,6 +1589,22 @@ static int64_t GetImportTimestamp(const UniValue &data, int64_t now) {
                        "Missing required timestamp field for key");
 }
 
+static std::string GetRescanErrorMessage(const std::string &object,
+                                         const int64_t objectTimestamp,
+                                         const int64_t blockTimestamp) {
+    return strprintf(
+        "Rescan failed for %s with creation timestamp %d. There was an error "
+        "reading a block from time %d, which is after or within %d seconds of "
+        "key creation, and could contain transactions pertaining to the %s. As "
+        "a result, transactions and coins using this %s may not appear in "
+        "the wallet. This error could be caused by pruning or data corruption "
+        "(see bitcoind log for details) and could be dealt with by downloading "
+        "and rescanning the relevant blocks (see -reindex and -rescan "
+        "options).",
+        object, objectTimestamp, blockTimestamp, TIMESTAMP_WINDOW, object,
+        object);
+}
+
 UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
     RPCHelpMan{
         "importmulti",
@@ -1866,24 +1882,11 @@ UniValue importmulti(const Config &config, const JSONRPCRequest &mainRequest) {
                     result.pushKV("success", UniValue(false));
                     result.pushKV(
                         "error",
-                        JSONRPCError(
-                            RPC_MISC_ERROR,
-                            strprintf(
-                                "Rescan failed for key with creation timestamp "
-                                "%d. There was an error reading a block from "
-                                "time %d, which is after or within %d seconds "
-                                "of key creation, and could contain "
-                                "transactions pertaining to the key. As a "
-                                "result, transactions and coins using this key "
-                                "may not appear in the wallet. This error "
-                                "could be caused by pruning or data corruption "
-                                "(see bitcoind log for details) and could be "
-                                "dealt with by downloading and rescanning the "
-                                "relevant blocks (see -reindex and -rescan "
-                                "options).",
-                                GetImportTimestamp(request, now),
-                                scannedTime - TIMESTAMP_WINDOW - 1,
-                                TIMESTAMP_WINDOW)));
+                        JSONRPCError(RPC_MISC_ERROR,
+                                     GetRescanErrorMessage(
+                                         "key",
+                                         GetImportTimestamp(request, now),
+                                         scannedTime - TIMESTAMP_WINDOW - 1)));
                     response.push_back(std::move(result));
                 }
                 ++i;
@@ -2280,24 +2283,11 @@ UniValue importdescriptors(const Config &config,
                     result.pushKV("success", UniValue(false));
                     result.pushKV(
                         "error",
-                        JSONRPCError(
-                            RPC_MISC_ERROR,
-                            strprintf(
-                                "Rescan failed for descriptor with timestamp "
-                                "%d. There was an error reading a block from "
-                                "time %d, which is after or within %d seconds "
-                                "of key creation, and could contain "
-                                "transactions pertaining to the desc. As a "
-                                "result, transactions and coins using this "
-                                "desc may not appear in the wallet. This error "
-                                "could be caused by pruning or data corruption "
-                                "(see bitcoind log for details) and could be "
-                                "dealt with by downloading and rescanning the "
-                                "relevant blocks (see -reindex and -rescan "
-                                "options).",
-                                GetImportTimestamp(request, now),
-                                scanned_time - TIMESTAMP_WINDOW - 1,
-                                TIMESTAMP_WINDOW)));
+                        JSONRPCError(RPC_MISC_ERROR,
+                                     GetRescanErrorMessage(
+                                         "descriptor",
+                                         GetImportTimestamp(request, now),
+                                         scanned_time - TIMESTAMP_WINDOW - 1)));
                     response.push_back(std::move(result));
                 }
             }
