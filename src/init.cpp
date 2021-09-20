@@ -2654,10 +2654,16 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         uiInterface.InitMessage(_("Loading block index...").translated);
 
+        const int64_t load_block_index_start_time = GetTimeMillis();
+
         if (!LoadChainstate(fLoaded, strLoadError, fReset, chainman, node,
                             fPruneMode, config, args, fReindexChainState,
                             nBlockTreeDBCache, nCoinDBCache, nCoinCacheUsage)) {
             return false;
+        }
+        if (fLoaded) {
+            LogPrintf(" block index %15dms\n",
+                      GetTimeMillis() - load_block_index_start_time);
         }
 
         if (!fLoaded && !ShutdownRequested()) {

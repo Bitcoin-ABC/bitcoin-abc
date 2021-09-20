@@ -31,7 +31,6 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
 
     do {
         bool failed_verification = false;
-        const int64_t load_block_index_start_time = GetTimeMillis();
         try {
             LOCK(cs_main);
             chainman.InitializeChainstate(Assert(node.mempool.get()));
@@ -215,8 +214,6 @@ bool LoadChainstate(bool &fLoaded, bilingual_str &strLoadError, bool fReset,
 
         if (!failed_verification) {
             fLoaded = true;
-            LogPrintf(" block index %15dms\n",
-                      GetTimeMillis() - load_block_index_start_time);
         }
     } while (false);
 
