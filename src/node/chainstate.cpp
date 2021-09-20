@@ -7,7 +7,6 @@
 #include <chainparams.h>
 #include <config.h>
 #include <node/blockstorage.h>
-#include <node/context.h>
 #include <node/ui_interface.h>
 #include <rpc/blockchain.h>
 #include <shutdown.h>
@@ -15,7 +14,7 @@
 #include <validation.h>
 
 std::optional<ChainstateLoadingError>
-LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
+LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                bool fPruneMode_, const Config &config, bool fReindexChainState,
                int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
                int64_t nCoinCacheUsage, unsigned int check_blocks,
@@ -31,11 +30,11 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
     do {
         try {
             LOCK(cs_main);
-            chainman.InitializeChainstate(Assert(node.mempool.get()));
+            chainman.InitializeChainstate(Assert(mempool));
             chainman.m_total_coinstip_cache = nCoinCacheUsage;
             chainman.m_total_coinsdb_cache = nCoinDBCache;
 
-            UnloadBlockIndex(node.mempool.get(), chainman);
+            UnloadBlockIndex(mempool, chainman);
 
             auto &pblocktree{chainman.m_blockman.m_block_tree_db};
             // new CBlockTreeDB tries to delete the existing file, which

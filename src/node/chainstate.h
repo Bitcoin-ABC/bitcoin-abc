@@ -11,7 +11,7 @@
 struct bilingual_str;
 class Config;
 class ChainstateManager;
-struct NodeContext;
+class CTxMemPool;
 
 enum class ChainstateLoadingError {
     ERROR_UPGRADING_BLOCK_DB,
@@ -56,7 +56,7 @@ enum class ChainstateLoadingError {
  *      - Success!
  */
 std::optional<ChainstateLoadingError>
-LoadChainstate(bool fReset, ChainstateManager &chainman, NodeContext &node,
+LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                bool fPruneMode, const Config &config, bool fReindexChainState,
                int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
                int64_t nCoinCacheUsage, unsigned int check_blocks,
