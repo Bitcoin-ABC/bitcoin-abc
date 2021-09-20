@@ -6,19 +6,17 @@
 #define BITCOIN_WALLET_RPCDUMP_H
 
 #include <span.h>
-#include <univalue.h>
 
 #include <memory>
 #include <vector>
 
-class Config;
+class RPCHelpMan;
 class CRPCCommand;
-class JSONRPCRequest;
 
 Span<const CRPCCommand> GetWalletDumpRPCCommands();
 
-UniValue importmulti(const Config &config, const JSONRPCRequest &request);
-UniValue dumpwallet(const Config &config, const JSONRPCRequest &request);
-UniValue importwallet(const Config &config, const JSONRPCRequest &request);
+RPCHelpMan importmulti();
+RPCHelpMan dumpwallet();
+RPCHelpMan importwallet();
 
 #endif // BITCOIN_WALLET_RPCDUMP_H

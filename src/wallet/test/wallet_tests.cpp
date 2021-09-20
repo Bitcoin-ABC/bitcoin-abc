@@ -239,7 +239,7 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
         request.params.setArray();
         request.params.push_back(keys);
 
-        UniValue response = importmulti(GetConfig(), request);
+        UniValue response = importmulti().HandleRequest(GetConfig(), request);
         BOOST_CHECK_EQUAL(
             response.write(),
             strprintf("[{\"success\":false,\"error\":{\"code\":-1,\"message\":"
@@ -310,7 +310,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         JSONRPCRequest request(context);
         request.params.setArray();
         request.params.push_back(backup_file);
-        ::dumpwallet(GetConfig(), request);
+        ::dumpwallet().HandleRequest(GetConfig(), request);
         RemoveWallet(wallet);
     }
 
@@ -329,7 +329,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         AddWallet(wallet);
         wallet->SetLastBlockProcessed(::ChainActive().Height(),
                                       ::ChainActive().Tip()->GetBlockHash());
-        ::importwallet(GetConfig(), request);
+        ::importwallet().HandleRequest(GetConfig(), request);
         RemoveWallet(wallet);
 
         BOOST_CHECK_EQUAL(wallet->mapWallet.size(), 3U);
