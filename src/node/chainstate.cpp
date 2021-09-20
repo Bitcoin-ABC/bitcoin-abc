@@ -4,20 +4,18 @@
 
 #include <node/chainstate.h>
 
-#include <chainparams.h>
 #include <config.h>
+#include <consensus/params.h>
 #include <node/blockstorage.h>
 #include <validation.h>
 
 std::optional<ChainstateLoadingError>
 LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
-               bool fPruneMode_, const Config &config, bool fReindexChainState,
-               int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
-               int64_t nCoinCacheUsage,
+               bool fPruneMode_, const Consensus::Params &consensus_params,
+               bool fReindexChainState, int64_t nBlockTreeDBCache,
+               int64_t nCoinDBCache, int64_t nCoinCacheUsage,
                std::function<bool()> shutdown_requested,
                std::function<void()> coins_error_cb) {
-    const CChainParams &chainparams = config.GetChainParams();
-
     auto is_coinsview_empty =
         [&](CChainState *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             return fReset || fReindexChainState ||
@@ -47,12 +45,10 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
             }
         }
 
-        const Consensus::Params &params = chainparams.GetConsensus();
-
         // If necessary, upgrade from older database format.
         // This is a no-op if we cleared the block tree db with -reindex
         // or -reindex-chainstate
-        if (!pblocktree->Upgrade(params)) {
+        if (!pblocktree->Upgrade(consensus_params)) {
             return ChainstateLoadingError::ERROR_UPGRADING_BLOCK_DB;
         }
 
@@ -73,7 +69,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
 
         if (!chainman.BlockIndex().empty() &&
             !chainman.m_blockman.LookupBlockIndex(
-                chainparams.GetConsensus().hashGenesisBlock)) {
+                consensus_params.hashGenesisBlock)) {
             return ChainstateLoadingError::ERROR_BAD_GENESIS_BLOCK;
         }
 
