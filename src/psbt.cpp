@@ -175,7 +175,7 @@ void UpdatePSBTOutput(const SigningProvider &provider,
     // Note that ProduceSignature is used to fill in metadata (not actual
     // signatures), so provider does not need to provide any private keys (it
     // can be a HidingSigningProvider).
-    MutableTransactionSignatureCreator creator(&tx, /* index */ 0, out.nValue,
+    MutableTransactionSignatureCreator creator(&tx, /*input_idx=*/0, out.nValue,
                                                SigHashType().withForkId());
     ProduceSignature(provider, creator, out.scriptPubKey, sigdata);
 

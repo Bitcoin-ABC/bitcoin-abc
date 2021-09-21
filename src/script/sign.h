@@ -44,8 +44,8 @@ class MutableTransactionSignatureCreator : public BaseSignatureCreator {
 
 public:
     MutableTransactionSignatureCreator(
-        const CMutableTransaction *txToIn, unsigned int nInIn,
-        const Amount &amountIn, SigHashType sigHashTypeIn = SigHashType());
+        const CMutableTransaction *tx, unsigned int input_idx,
+        const Amount &amount, SigHashType sig_hash_type = SigHashType());
     const BaseSignatureChecker &Checker() const override { return checker; }
     bool CreateSig(const SigningProvider &provider,
                    std::vector<uint8_t> &vchSig, const CKeyID &keyid,

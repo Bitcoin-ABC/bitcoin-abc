@@ -16,10 +16,10 @@
 typedef std::vector<uint8_t> valtype;
 
 MutableTransactionSignatureCreator::MutableTransactionSignatureCreator(
-    const CMutableTransaction *txToIn, unsigned int nInIn,
-    const Amount &amountIn, SigHashType sigHashTypeIn)
-    : txTo(txToIn), nIn(nInIn), amount(amountIn), sigHashType(sigHashTypeIn),
-      checker(txTo, nIn, amountIn) {}
+    const CMutableTransaction *tx, unsigned int input_idx, const Amount &amount,
+    SigHashType sig_hash_type)
+    : txTo(tx), nIn(input_idx), amount(amount), sigHashType(sig_hash_type),
+      checker(txTo, nIn, amount) {}
 
 bool MutableTransactionSignatureCreator::CreateSig(
     const SigningProvider &provider, std::vector<uint8_t> &vchSig,
