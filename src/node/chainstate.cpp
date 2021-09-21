@@ -14,6 +14,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                bool fPruneMode_, const Consensus::Params &consensus_params,
                bool fReindexChainState, int64_t nBlockTreeDBCache,
                int64_t nCoinDBCache, int64_t nCoinCacheUsage,
+               bool block_tree_db_in_memory, bool coins_db_in_memory,
                std::function<bool()> shutdown_requested,
                std::function<void()> coins_error_cb) {
     auto is_coinsview_empty =
@@ -34,7 +35,8 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
         // new CBlockTreeDB tries to delete the existing file, which
         // fails if it's still open from the previous loop. Close it first:
         pblocktree.reset();
-        pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache, false, fReset));
+        pblocktree.reset(new CBlockTreeDB(nBlockTreeDBCache,
+                                          block_tree_db_in_memory, fReset));
 
         if (fReset) {
             pblocktree->WriteReindexing(true);
@@ -94,7 +96,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
         for (CChainState *chainstate : chainman.GetAll()) {
             chainstate->InitCoinsDB(
                 /* cache_size_bytes */ nCoinDBCache,
-                /* in_memory */ false,
+                /* in_memory */ coins_db_in_memory,
                 /* should_wipe */ fReset || fReindexChainState);
 
             if (coins_error_cb) {
