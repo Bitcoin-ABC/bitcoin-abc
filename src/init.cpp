@@ -41,6 +41,7 @@
 #include <net_processing.h>
 #include <netbase.h>
 #include <node/blockstorage.h>
+#include <node/caches.h>     // for CalculateCacheSizes
 #include <node/chainstate.h> // for LoadChainstate
 #include <node/context.h>
 #include <node/ui_interface.h>
@@ -2405,55 +2406,28 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
 
     // cache size calculations
-    int64_t nTotalCache =
-        (args.GetIntArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
-    // total cache cannot be less than MIN_DB_CACHE_MB
-    nTotalCache = std::max(nTotalCache, MIN_DB_CACHE_MB << 20);
-    // total cache cannot be greater than MAX_DB_CACHE_MB
-    nTotalCache = std::min(nTotalCache, MAX_DB_CACHE_MB << 20);
-    int64_t nBlockTreeDBCache =
-        std::min(nTotalCache / 8, MAX_BLOCK_DB_CACHE_MB << 20);
-    nTotalCache -= nBlockTreeDBCache;
-    int64_t nTxIndexCache =
-        std::min(nTotalCache / 8, args.GetBoolArg("-txindex", DEFAULT_TXINDEX)
-                                      ? MAX_TX_INDEX_CACHE_MB << 20
-                                      : 0);
-    nTotalCache -= nTxIndexCache;
-    int64_t filter_index_cache = 0;
-    if (!g_enabled_filter_types.empty()) {
-        size_t n_indexes = g_enabled_filter_types.size();
-        int64_t max_cache =
-            std::min(nTotalCache / 8, MAX_FILTER_INDEX_CACHE_MB << 20);
-        filter_index_cache = max_cache / n_indexes;
-        nTotalCache -= filter_index_cache * n_indexes;
-    }
-    // use 25%-50% of the remainder for disk cache
-    int64_t nCoinDBCache =
-        std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
-    // cap total coins db cache
-    nCoinDBCache = std::min(nCoinDBCache, MAX_COINS_DB_CACHE_MB << 20);
-    nTotalCache -= nCoinDBCache;
-    // the rest goes to in-memory cache
-    int64_t nCoinCacheUsage = nTotalCache;
+    CacheSizes cache_sizes =
+        CalculateCacheSizes(args, g_enabled_filter_types.size());
+
     int64_t nMempoolSizeMax =
         args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Using %.1f MiB for block index database\n",
-              nBlockTreeDBCache * (1.0 / 1024 / 1024));
+              cache_sizes.block_tree_db * (1.0 / 1024 / 1024));
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
         LogPrintf("* Using %.1f MiB for transaction index database\n",
-                  nTxIndexCache * (1.0 / 1024 / 1024));
+                  cache_sizes.tx_index * (1.0 / 1024 / 1024));
     }
     for (BlockFilterType filter_type : g_enabled_filter_types) {
         LogPrintf("* Using %.1f MiB for %s block filter index database\n",
-                  filter_index_cache * (1.0 / 1024 / 1024),
+                  cache_sizes.filter_index * (1.0 / 1024 / 1024),
                   BlockFilterTypeName(filter_type));
     }
     LogPrintf("* Using %.1f MiB for chain state database\n",
-              nCoinDBCache * (1.0 / 1024 / 1024));
+              cache_sizes.coins_db * (1.0 / 1024 / 1024));
     LogPrintf("* Using %.1f MiB for in-memory UTXO set (plus up to %.1f MiB of "
               "unused mempool space)\n",
-              nCoinCacheUsage * (1.0 / 1024 / 1024),
+              cache_sizes.coins * (1.0 / 1024 / 1024),
               nMempoolSizeMax * (1.0 / 1024 / 1024));
 
     bool fLoaded = false;
@@ -2470,8 +2444,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             rv = LoadChainstate(
                 fReset, chainman, Assert(node.mempool.get()), fPruneMode,
                 chainparams.GetConsensus(), fReindexChainState,
-                nBlockTreeDBCache, nCoinDBCache, nCoinCacheUsage,
-                ShutdownRequested, []() {
+                cache_sizes.block_tree_db, cache_sizes.coins_db,
+                cache_sizes.coins, ShutdownRequested, []() {
                     uiInterface.ThreadSafeMessageBox(
                         _("Error reading from database, shutting down."), "",
                         CClientUIInterface::MSG_ERROR);
@@ -2613,12 +2587,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             return InitError(*error);
         }
 
-        g_txindex = std::make_unique<TxIndex>(nTxIndexCache, false, fReindex);
+        g_txindex =
+            std::make_unique<TxIndex>(cache_sizes.tx_index, false, fReindex);
         g_txindex->Start(chainman.ActiveChainstate());
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
-        InitBlockFilterIndex(filter_type, filter_index_cache, false, fReindex);
+        InitBlockFilterIndex(filter_type, cache_sizes.filter_index, false,
+                             fReindex);
         GetBlockFilterIndex(filter_type)->Start(chainman.ActiveChainstate());
     }
 

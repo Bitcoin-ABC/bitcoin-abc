@@ -594,6 +594,7 @@ add_library(server
 	net.cpp
 	net_processing.cpp
 	node/blockstorage.cpp
+	node/caches.cpp
 	node/chainstate.cpp
 	node/coin.cpp
 	node/coinstats.cpp
