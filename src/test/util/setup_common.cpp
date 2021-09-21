@@ -17,6 +17,8 @@
 #include <miner.h>
 #include <net.h>
 #include <net_processing.h>
+#include <node/blockstorage.h>
+#include <node/chainstate.h>
 #include <noui.h>
 #include <pow/pow.h>
 #include <rpc/blockchain.h>
@@ -26,6 +28,7 @@
 #include <script/script_error.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
+#include <shutdown.h>
 #include <streams.h>
 #include <txdb.h>
 #include <txmempool.h>
@@ -166,9 +169,11 @@ ChainTestingSetup::ChainTestingSetup(
 
     m_node.mempool = std::make_unique<CTxMemPool>(1);
 
+    m_cache_sizes = CalculateCacheSizes(m_args);
+
     m_node.chainman = std::make_unique<ChainstateManager>();
     m_node.chainman->m_blockman.m_block_tree_db =
-        std::make_unique<CBlockTreeDB>(1 << 20, true);
+        std::make_unique<CBlockTreeDB>(m_cache_sizes.block_tree_db, true);
     // Call Upgrade on the block database so that the version field is set,
     // else LoadBlockIndexGuts will fail (see D8319).
     m_node.chainman->m_blockman.m_block_tree_db->Upgrade(
@@ -217,23 +222,18 @@ TestingSetup::TestingSetup(const std::string &chainName,
         SetRPCWarmupFinished();
     }
 
-    m_node.chainman->InitializeChainstate(m_node.mempool.get());
-    m_node.chainman->ActiveChainstate().InitCoinsDB(
-        /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
-        /* should_wipe */ false);
-    assert(!m_node.chainman->ActiveChainstate().CanFlushToDisk());
-    m_node.chainman->ActiveChainstate().InitCoinsCache(1 << 23);
-    assert(m_node.chainman->ActiveChainstate().CanFlushToDisk());
-    if (!m_node.chainman->ActiveChainstate().LoadGenesisBlock()) {
-        throw std::runtime_error("LoadGenesisBlock failed.");
-    }
-    {
-        BlockValidationState state;
-        if (!m_node.chainman->ActiveChainstate().ActivateBestChain(config,
-                                                                   state)) {
-            throw std::runtime_error(
-                strprintf("ActivateBestChain failed. (%s)", state.ToString()));
-        }
+    auto rv = LoadChainstate(
+        fReindex.load(), *Assert(m_node.chainman.get()),
+        Assert(m_node.mempool.get()), fPruneMode, chainparams.GetConsensus(),
+        m_args.GetBoolArg("-reindex-chainstate", false),
+        m_cache_sizes.block_tree_db, m_cache_sizes.coins_db,
+        m_cache_sizes.coins, true, true);
+    assert(!rv.has_value());
+
+    BlockValidationState state;
+    if (!m_node.chainman->ActiveChainstate().ActivateBestChain(config, state)) {
+        throw std::runtime_error(
+            strprintf("ActivateBestChain failed. (%s)", state.ToString()));
     }
 
     m_node.addrman = std::make_unique<AddrMan>(
