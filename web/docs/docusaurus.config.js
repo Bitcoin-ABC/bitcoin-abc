@@ -16,12 +16,12 @@ module.exports = {
         googleAnalytics: {
             trackingID: 'UA-183678810-2',
         },
-        image: 'img/twitter-card.jpg',
+        image: 'img/cashtab_twitter.png',
         navbar: {
             title: 'Cashtab',
             logo: {
                 alt: 'Cashtab Logo',
-                src: 'img/logo.svg',
+                src: 'img/ecash512.png',
             },
             items: [
                 {
@@ -58,7 +58,7 @@ module.exports = {
                     items: [
                         {
                             label: 'Twitter',
-                            href: 'https://twitter.com/Bitcoin_ABC',
+                            href: 'https://twitter.com/ecashofficial',
                         },
                     ],
                 },
@@ -66,13 +66,13 @@ module.exports = {
                     title: 'More',
                     items: [
                         {
-                            label: 'BCHA',
-                            href: 'https://bitcoinabc.org/bcha/',
+                            label: 'eCash Home',
+                            href: 'https://e.cash//',
                         },
                     ],
                 },
             ],
-            copyright: `Copyright © ${new Date().getFullYear()} Bitcoin ABC.`,
+            copyright: `Copyright © ${new Date().getFullYear()} Bitcoin ABC`,
         },
     },
     presets: [
