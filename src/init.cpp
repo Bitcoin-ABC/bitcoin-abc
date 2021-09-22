@@ -2470,7 +2470,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             rv = LoadChainstate(
                 fReset, chainman, Assert(node.mempool.get()), fPruneMode,
                 config, fReindexChainState, nBlockTreeDBCache, nCoinDBCache,
-                nCoinCacheUsage, []() {
+                nCoinCacheUsage, ShutdownRequested, []() {
                     uiInterface.ThreadSafeMessageBox(
                         _("Error reading from database, shutting down."), "",
                         CClientUIInterface::MSG_ERROR);
