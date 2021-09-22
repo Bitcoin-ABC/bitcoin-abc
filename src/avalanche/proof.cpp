@@ -24,15 +24,15 @@ void Stake::computeStakeId() {
     stakeid = StakeId(ss.GetHash());
 }
 
-uint256 Stake::getHash(const ProofId &proofid) const {
+uint256 Stake::getHash(const StakeCommitment &commitment) const {
     CHashWriter ss(SER_GETHASH, 0);
-    ss << proofid;
+    ss << commitment;
     ss << *this;
     return ss.GetHash();
 }
 
-bool SignedStake::verify(const ProofId &proofid) const {
-    return stake.getPubkey().VerifySchnorr(stake.getHash(proofid), sig);
+bool SignedStake::verify(const StakeCommitment &commitment) const {
+    return stake.getPubkey().VerifySchnorr(stake.getHash(commitment), sig);
 }
 
 bool Proof::FromHex(Proof &proof, const std::string &hexProof,
@@ -121,7 +121,7 @@ bool Proof::verify(ProofValidationState &state) const {
                                  "duplicated-stake");
         }
 
-        if (!ss.verify(proofid)) {
+        if (!ss.verify(getStakeCommitment())) {
             return state.Invalid(
                 ProofValidationResult::INVALID_STAKE_SIGNATURE,
                 "invalid-stake-signature",

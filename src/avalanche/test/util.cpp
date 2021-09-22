@@ -66,6 +66,7 @@ ProofId TestProofBuilder::getReverseOrderProofId(ProofBuilder &pb) {
 
 Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
     const ProofId proofid = TestProofBuilder::getReverseOrderProofId(pb);
+    const StakeCommitment commitment(proofid);
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(pb.stakes.size());
@@ -74,7 +75,7 @@ Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
         // We need a forward iterator, so pb.stakes.rbegin() is not an
         // option.
         auto handle = pb.stakes.extract(std::prev(pb.stakes.end()));
-        signedStakes.push_back(handle.value().sign(proofid));
+        signedStakes.push_back(handle.value().sign(commitment));
     }
 
     return Proof(pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
@@ -101,13 +102,14 @@ ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
 
 Proof TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
     const ProofId proofid = TestProofBuilder::getDuplicatedStakeProofId(pb);
+    const StakeCommitment commitment(proofid);
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(2 * pb.stakes.size());
 
     while (!pb.stakes.empty()) {
         auto handle = pb.stakes.extract(pb.stakes.begin());
-        SignedStake signedStake = handle.value().sign(proofid);
+        SignedStake signedStake = handle.value().sign(commitment);
         signedStakes.push_back(signedStake);
         signedStakes.push_back(signedStake);
     }

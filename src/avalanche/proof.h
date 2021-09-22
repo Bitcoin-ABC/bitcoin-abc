@@ -39,6 +39,11 @@ class ProofValidationState;
 
 using StakeId = uint256;
 
+struct StakeCommitment : public uint256 {
+    explicit StakeCommitment() : uint256() {}
+    explicit StakeCommitment(const uint256 &b) : uint256(b) {}
+};
+
 class Stake {
     COutPoint utxo;
 
@@ -69,7 +74,7 @@ public:
     bool isCoinbase() const { return height & 1; }
     const CPubKey &getPubkey() const { return pubkey; }
 
-    uint256 getHash(const ProofId &proofid) const;
+    uint256 getHash(const StakeCommitment &commitment) const;
 
     const StakeId &getId() const { return stakeid; }
 };
@@ -88,7 +93,7 @@ public:
     const Stake &getStake() const { return stake; }
     const SchnorrSig &getSignature() const { return sig; }
 
-    bool verify(const ProofId &proofid) const;
+    bool verify(const StakeCommitment &commitment) const;
 };
 
 class Proof {
@@ -138,6 +143,9 @@ public:
 
     const ProofId &getId() const { return proofid; }
     const LimitedProofId &getLimitedId() const { return limitedProofId; }
+    const StakeCommitment getStakeCommitment() const {
+        return StakeCommitment(proofid);
+    }
     uint32_t getScore() const;
 
     bool verify(ProofValidationState &state) const;

@@ -27,7 +27,7 @@ class ProofBuilder {
         StakeSigner(Stake stake_, CKey key_)
             : stake(std::move(stake_)), key(std::move(key_)) {}
 
-        SignedStake sign(const ProofId &proofid);
+        SignedStake sign(const StakeCommitment &commitment);
     };
 
     struct StakeSignerComparator {

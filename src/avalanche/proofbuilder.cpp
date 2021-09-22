@@ -8,8 +8,8 @@
 
 namespace avalanche {
 
-SignedStake ProofBuilder::StakeSigner::sign(const ProofId &proofid) {
-    const uint256 h = stake.getHash(proofid);
+SignedStake ProofBuilder::StakeSigner::sign(const StakeCommitment &commitment) {
+    const uint256 h = stake.getHash(commitment);
 
     SchnorrSig sig;
     if (!key.SignSchnorr(h, sig)) {
@@ -34,13 +34,14 @@ bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
 
 Proof ProofBuilder::build() {
     const ProofId proofid = getProofId();
+    const StakeCommitment commitment(proofid);
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(stakes.size());
 
     while (!stakes.empty()) {
         auto handle = stakes.extract(stakes.begin());
-        signedStakes.push_back(handle.value().sign(proofid));
+        signedStakes.push_back(handle.value().sign(commitment));
     }
 
     return Proof(sequence, expirationTime, masterKey.GetPubKey(),
