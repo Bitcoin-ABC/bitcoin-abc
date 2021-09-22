@@ -819,9 +819,9 @@ std::pair<CAddress, int64_t> AddrManImpl::Select_(bool newOnly) const {
     }
 }
 
-void AddrManImpl::GetAddr_(std::vector<CAddress> &vAddr, size_t max_addresses,
-                           size_t max_pct,
-                           std::optional<Network> network) const {
+std::vector<CAddress>
+AddrManImpl::GetAddr_(size_t max_addresses, size_t max_pct,
+                      std::optional<Network> network) const {
     AssertLockHeld(cs);
 
     size_t nNodes = vRandom.size();
@@ -834,8 +834,9 @@ void AddrManImpl::GetAddr_(std::vector<CAddress> &vAddr, size_t max_addresses,
 
     // gather a list of random nodes, skipping those of low quality
     const int64_t now{GetAdjustedTime()};
+    std::vector<CAddress> addresses;
     for (unsigned int n = 0; n < vRandom.size(); n++) {
-        if (vAddr.size() >= nNodes) {
+        if (addresses.size() >= nNodes) {
             break;
         }
 
@@ -856,8 +857,10 @@ void AddrManImpl::GetAddr_(std::vector<CAddress> &vAddr, size_t max_addresses,
             continue;
         }
 
-        vAddr.push_back(ai);
+        addresses.push_back(ai);
     }
+
+    return addresses;
 }
 
 void AddrManImpl::Connected_(const CService &addr, int64_t nTime) {
@@ -1213,10 +1216,9 @@ AddrManImpl::GetAddr(size_t max_addresses, size_t max_pct,
                      std::optional<Network> network) const {
     LOCK(cs);
     Check();
-    std::vector<CAddress> vAddr;
-    GetAddr_(vAddr, max_addresses, max_pct, network);
+    const auto addresses = GetAddr_(max_addresses, max_pct, network);
     Check();
-    return vAddr;
+    return addresses;
 }
 
 void AddrManImpl::Connected(const CService &addr, int64_t nTime) {
