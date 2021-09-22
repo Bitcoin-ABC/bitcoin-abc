@@ -2535,7 +2535,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
                 rv2 = VerifyLoadedChainstate(
                     chainman, fReset, fReindexChainState, config, check_blocks,
-                    args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
+                    args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL),
+                    static_cast<int64_t (*)()>(GetTime));
             } catch (const std::exception &e) {
                 LogPrintf("%s\n", e.what());
                 rv2 = ChainstateLoadVerifyError::ERROR_GENERIC_FAILURE;
