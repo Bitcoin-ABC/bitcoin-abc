@@ -257,7 +257,7 @@ void Shutdown(NodeContext &node) {
     node.banman.reset();
 
     if (node.mempool && node.mempool->IsLoaded() &&
-        node.args->GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
+        node.args->GetBoolArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         DumpMempool(*node.mempool);
     }
 

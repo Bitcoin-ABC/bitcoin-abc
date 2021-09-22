@@ -4753,7 +4753,7 @@ bool CChainState::LoadBlockIndexDB(const Consensus::Params &params) {
 }
 
 void CChainState::LoadMempool(const Config &config, const ArgsManager &args) {
-    if (args.GetArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
+    if (args.GetBoolArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         ::LoadMempool(config, m_mempool, *this);
     }
     m_mempool.SetIsLoaded(!ShutdownRequested());
