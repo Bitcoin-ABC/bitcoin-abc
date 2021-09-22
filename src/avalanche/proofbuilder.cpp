@@ -41,7 +41,9 @@ Proof ProofBuilder::build() {
     }
 
     const ProofId proofid = getProofId();
-    const StakeCommitment commitment(proofid);
+
+    const StakeCommitment commitment(proofid, expirationTime,
+                                     masterKey.GetPubKey());
 
     std::vector<SignedStake> signedStakes;
     signedStakes.reserve(stakes.size());

@@ -20,6 +20,19 @@
 
 namespace avalanche {
 
+StakeCommitment::StakeCommitment(const ProofId &proofid, int64_t expirationTime,
+                                 const CPubKey &master) {
+    if (Proof::useLegacy(gArgs)) {
+        memcpy(m_data, proofid.data(), sizeof(m_data));
+    } else {
+        CHashWriter ss(SER_GETHASH, 0);
+        ss << expirationTime;
+        ss << master;
+        const uint256 &hash = ss.GetHash();
+        memcpy(m_data, hash.data(), sizeof(m_data));
+    }
+}
+
 void Stake::computeStakeId() {
     CHashWriter ss(SER_GETHASH, 0);
     ss << *this;

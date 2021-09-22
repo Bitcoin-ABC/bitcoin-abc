@@ -42,6 +42,8 @@ using StakeId = uint256;
 struct StakeCommitment : public uint256 {
     explicit StakeCommitment() : uint256() {}
     explicit StakeCommitment(const uint256 &b) : uint256(b) {}
+    StakeCommitment(const ProofId &proofid, int64_t expirationTime,
+                    const CPubKey &master);
 };
 
 class Stake {
@@ -145,8 +147,8 @@ public:
     const ProofId &getId() const { return proofid; }
     const LimitedProofId &getLimitedId() const { return limitedProofId; }
     const StakeCommitment getStakeCommitment() const {
-        return StakeCommitment(proofid);
-    }
+        return StakeCommitment(proofid, expirationTime, master);
+    };
     uint32_t getScore() const;
 
     bool verify(ProofValidationState &state) const;
