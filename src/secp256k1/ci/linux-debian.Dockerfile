@@ -1,4 +1,4 @@
-FROM debian:stable
+FROM debian:buster
 
 RUN dpkg --add-architecture i386
 RUN dpkg --add-architecture s390x
