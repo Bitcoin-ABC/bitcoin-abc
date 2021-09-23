@@ -12,6 +12,7 @@ from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
+from test_framework.key import ECKey
 from test_framework.messages import (
     XEC,
     COutPoint,
@@ -20,6 +21,14 @@ from test_framework.messages import (
     CTxOut,
     FromHex,
     ToHex,
+)
+from test_framework.script import (
+    OP_CHECKSIG,
+    OP_DUP,
+    OP_EQUALVERIFY,
+    OP_HASH160,
+    CScript,
+    hash160,
 )
 from test_framework.txtools import pad_tx
 from test_framework.util import (
@@ -92,6 +101,30 @@ class MiniWallet:
             tx_hex=tx['hex'])
         return tx
 
+    def send_to(self, *, from_node, scriptPubKey, amount, fee=1000):
+        """
+        Create and send a tx with an output to a given scriptPubKey/amount,
+        plus a change output to our internal address. To keep things simple, a
+        fixed fee given in Satoshi is used.
+        Note that this method fails if there is no single internal utxo
+        available that can cover the cost for the amount and the fixed fee
+        (the utxo with the largest value is taken).
+        Returns a tuple (txid, n) referring to the created external utxo outpoint.
+        """
+        tx = self.create_self_transfer(
+            from_node=from_node,
+            fee_rate=0,
+            mempool_valid=False)['tx']
+        assert_greater_than_or_equal(tx.vout[0].nValue, amount + fee)
+        # change output -> MiniWallet
+        tx.vout[0].nValue -= (amount + fee)
+        # arbitrary output -> to be returned
+        tx.vout.append(CTxOut(amount, scriptPubKey))
+        txid = self.sendrawtransaction(
+            from_node=from_node,
+            tx_hex=tx.serialize().hex())
+        return txid, len(tx.vout) - 1
+
     def create_self_transfer(self, *, fee_rate=Decimal("3000.00"),
                              from_node, utxo_to_spend=None, mempool_valid=True, locktime=0):
         """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
@@ -122,8 +155,18 @@ class MiniWallet:
         return {'txid': tx_info['txid'], 'hex': tx_hex, 'tx': tx}
 
     def sendrawtransaction(self, *, from_node, tx_hex):
-        from_node.sendrawtransaction(tx_hex)
+        txid = from_node.sendrawtransaction(tx_hex)
         self.scan_tx(from_node.decoderawtransaction(tx_hex))
+        return txid
+
+
+def random_p2pkh():
+    """Generate a random P2PKH scriptPubKey. Can be used when a random destination is needed,
+    but no compiled wallet is available (e.g. as replacement to the getnewaddress RPC)."""
+    key = ECKey()
+    key.generate()
+    return CScript([OP_DUP, OP_HASH160, hash160(
+        key.get_pubkey().get_bytes()), OP_EQUALVERIFY, OP_CHECKSIG])
 
 
 def make_chain(node, address, privkeys, parent_txid, parent_value, n=0,
