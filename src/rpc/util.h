@@ -26,6 +26,8 @@ class CPubKey;
 class CScript;
 struct Sections;
 
+static constexpr bool DEFAULT_RPC_DOC_CHECK{false};
+
 /**
  * String used to describe UNIX epoch time in documentation, factored out to a
  * constant for consistency.
@@ -266,6 +268,7 @@ struct RPCResult {
     const std::string m_key_name;         //!< Only used for dicts
     const std::vector<RPCResult> m_inner; //!< Only used for arrays or dicts
     const bool m_optional;
+    const bool m_skip_type_check;
     const std::string m_description;
     const std::string m_cond;
 
@@ -273,8 +276,9 @@ struct RPCResult {
               const std::string key_name, const bool optional,
               const std::string description,
               const std::vector<RPCResult> inner = {})
-        : m_type{std::move(type)}, m_key_name{std::move(key_name)},
-          m_inner{std::move(inner)}, m_optional{optional},
+        : m_type{std::move(type)},
+          m_key_name{std::move(key_name)}, m_inner{std::move(inner)},
+          m_optional{optional}, m_skip_type_check{false},
           m_description{std::move(description)}, m_cond{std::move(cond)} {
         CHECK_NONFATAL(!m_cond.empty());
         CheckInnerDoc();
@@ -287,17 +291,21 @@ struct RPCResult {
 
     RPCResult(const Type type, const std::string key_name, const bool optional,
               const std::string description,
-              const std::vector<RPCResult> inner = {})
-        : m_type{std::move(type)}, m_key_name{std::move(key_name)},
-          m_inner{std::move(inner)}, m_optional{optional},
+              const std::vector<RPCResult> inner = {},
+              bool skip_type_check = false)
+        : m_type{std::move(type)},
+          m_key_name{std::move(key_name)}, m_inner{std::move(inner)},
+          m_optional{optional}, m_skip_type_check{skip_type_check},
           m_description{std::move(description)}, m_cond{} {
         CheckInnerDoc();
     }
 
     RPCResult(const Type type, const std::string key_name,
               const std::string description,
-              const std::vector<RPCResult> inner = {})
-        : RPCResult{type, key_name, false, description, inner} {}
+              const std::vector<RPCResult> inner = {},
+              bool skip_type_check = false)
+        : RPCResult{type,        key_name, false,
+                    description, inner,    skip_type_check} {}
 
     /** Append the sections of the result. */
     void ToSections(Sections &sections, OuterType outer_type = OuterType::NONE,

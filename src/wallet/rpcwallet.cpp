@@ -2491,14 +2491,15 @@ static RPCHelpMan getwalletinfo() {
                  "the total number of transactions in the wallet"},
                 {RPCResult::Type::NUM_TIME, "keypoololdest",
                  "the " + UNIX_EPOCH_TIME +
-                     " of the oldest pre-generated key in the key pool. Legacy "
-                     "wallets only."},
+                     " of the oldest pre-generated key in the key pool. "
+                     "Legacy wallets only."},
                 {RPCResult::Type::NUM, "keypoolsize",
                  "how many new keys are pre-generated (only counts external "
                  "keys)"},
                 {RPCResult::Type::NUM, "keypoolsize_hd_internal",
                  "how many new keys are pre-generated for internal use (used "
-                 "for change outputs, only appears if the wallet is using this "
+                 "for change outputs, only appears if the wallet is using "
+                 "this "
                  "feature, otherwise external keys are used)"},
                 {RPCResult::Type::NUM_TIME, "unlocked_until",
                  /* optional */ true,
@@ -2517,13 +2518,15 @@ static RPCHelpMan getwalletinfo() {
                  "watch-only wallet)"},
                 {RPCResult::Type::OBJ,
                  "scanning",
-                 "current scanning details, or false if no scan is in progress",
+                 "current scanning details, or false if no scan is in "
+                 "progress",
                  {
                      {RPCResult::Type::NUM, "duration",
                       "elapsed seconds since scan start"},
                      {RPCResult::Type::NUM, "progress",
                       "scanning progress percentage [0.0, 1.0]"},
-                 }},
+                 },
+                 /*skip_type_check=*/true},
                 {RPCResult::Type::BOOL, "avoid_reuse",
                  "whether this wallet tracks clean/dirty coins in terms of "
                  "reuse"},

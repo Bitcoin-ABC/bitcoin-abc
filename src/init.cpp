@@ -1226,6 +1226,12 @@ void SetupServerArgs(NodeContext &node) {
             ArgsManager::SENSITIVE,
         OptionsCategory::RPC);
     argsman.AddArg(
+        "-rpcdoccheck",
+        strprintf("Throw a non-fatal error at runtime if the documentation for "
+                  "an RPC is incorrect (default: %u)",
+                  DEFAULT_RPC_DOC_CHECK),
+        ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::RPC);
+    argsman.AddArg(
         "-rpccookiefile=<loc>",
         "Location of the auth cookie. Relative paths will be prefixed "
         "by a net-specific datadir location. (default: data dir)",

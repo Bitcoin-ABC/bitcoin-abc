@@ -599,9 +599,11 @@ UniValue RPCHelpMan::HandleRequest(const Config &config,
         throw std::runtime_error(ToString());
     }
     const UniValue ret = m_fun(*this, config, request);
-    CHECK_NONFATAL(std::any_of(
-        m_results.m_results.begin(), m_results.m_results.end(),
-        [ret](const RPCResult &res) { return res.MatchesType(ret); }));
+    if (gArgs.GetBoolArg("-rpcdoccheck", DEFAULT_RPC_DOC_CHECK)) {
+        CHECK_NONFATAL(std::any_of(
+            m_results.m_results.begin(), m_results.m_results.end(),
+            [ret](const RPCResult &res) { return res.MatchesType(ret); }));
+    }
     return ret;
 }
 
@@ -804,7 +806,7 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
     // comma
     const std::string maybe_separator{outer_type != OuterType::NONE ? "," : ""};
 
-    // The key name if recursed into an dictionary
+    // The key name if recursed into a dictionary
     const std::string maybe_key{
         outer_type == OuterType::OBJ ? "\"" + this->m_key_name + "\" : " : ""};
 
@@ -909,10 +911,12 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
 }
 
 bool RPCResult::MatchesType(const UniValue &result) const {
+    if (m_skip_type_check) {
+        return true;
+    }
+
     switch (m_type) {
-        case Type::ELISION: {
-            return false;
-        }
+        case Type::ELISION:
         case Type::ANY: {
             return true;
         }
@@ -933,11 +937,68 @@ bool RPCResult::MatchesType(const UniValue &result) const {
         }
         case Type::ARR_FIXED:
         case Type::ARR: {
-            return UniValue::VARR == result.getType();
+            if (UniValue::VARR != result.getType()) {
+                return false;
+            }
+            for (size_t i{0}; i < result.get_array().size(); ++i) {
+                // If there are more results than documented, re-use the last
+                // doc_inner.
+                const RPCResult &doc_inner{
+                    m_inner.at(std::min(m_inner.size() - 1, i))};
+                if (!doc_inner.MatchesType(result.get_array()[i])) {
+                    return false;
+                }
+            }
+            // empty result array is valid
+            return true;
         }
         case Type::OBJ_DYN:
         case Type::OBJ: {
-            return UniValue::VOBJ == result.getType();
+            if (UniValue::VOBJ != result.getType()) {
+                return false;
+            }
+            if (!m_inner.empty() && m_inner.at(0).m_type == Type::ELISION) {
+                return true;
+            }
+            if (m_type == Type::OBJ_DYN) {
+                // Assume all types are the same, randomly pick the first
+                const RPCResult &doc_inner{m_inner.at(0)};
+                for (size_t i{0}; i < result.get_obj().size(); ++i) {
+                    if (!doc_inner.MatchesType(result.get_obj()[i])) {
+                        return false;
+                    }
+                }
+                // empty result obj is valid
+                return true;
+            }
+            std::set<std::string> doc_keys;
+            for (const auto &doc_entry : m_inner) {
+                doc_keys.insert(doc_entry.m_key_name);
+            }
+            std::map<std::string, UniValue> result_obj;
+            result.getObjMap(result_obj);
+            for (const auto &result_entry : result_obj) {
+                if (doc_keys.find(result_entry.first) == doc_keys.end()) {
+                    // missing documentation
+                    return false;
+                }
+            }
+
+            for (const auto &doc_entry : m_inner) {
+                const auto result_it{result_obj.find(doc_entry.m_key_name)};
+                if (result_it == result_obj.end()) {
+                    if (!doc_entry.m_optional) {
+                        // result is missing a required key
+                        return false;
+                    }
+                    continue;
+                }
+                if (!doc_entry.MatchesType(result_it->second)) {
+                    // wrong type
+                    return false;
+                }
+            }
+            return true;
         }
     } // no default case, so the compiler can warn about missing cases
     NONFATAL_UNREACHABLE();
