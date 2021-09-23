@@ -1473,7 +1473,6 @@ static int64_t nTimeForks = 0;
 static int64_t nTimeVerify = 0;
 static int64_t nTimeConnect = 0;
 static int64_t nTimeIndex = 0;
-static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
 
@@ -1926,12 +1925,6 @@ MinerFundSuccess:
     LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n",
              MILLI * (nTime5 - nTime4), nTimeIndex * MICRO,
              nTimeIndex * MILLI / nBlocksTotal);
-
-    int64_t nTime6 = GetTimeMicros();
-    nTimeCallbacks += nTime6 - nTime5;
-    LogPrint(BCLog::BENCH, "    - Callbacks: %.2fms [%.2fs (%.2fms/blk)]\n",
-             MILLI * (nTime6 - nTime5), nTimeCallbacks * MICRO,
-             nTimeCallbacks * MILLI / nBlocksTotal);
 
     return true;
 }
