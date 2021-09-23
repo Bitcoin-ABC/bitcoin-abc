@@ -10,7 +10,6 @@
 #include <vector>
 
 class ArgsManager;
-class CChainParams;
 class CScheduler;
 
 namespace interfaces {
@@ -19,11 +18,11 @@ class Chain;
 
 //! Responsible for reading and validating the -wallet arguments and verifying
 //! the wallet database.
-bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
+bool VerifyWallets(interfaces::Chain &chain,
                    const std::vector<std::string> &wallet_files);
 
 //! Load wallet databases.
-bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
+bool LoadWallets(interfaces::Chain &chain,
                  const std::vector<std::string> &wallet_files);
 
 //! Complete startup of wallets.

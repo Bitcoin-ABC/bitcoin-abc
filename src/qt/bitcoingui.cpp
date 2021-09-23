@@ -474,8 +474,7 @@ void BitcoinGUI::createActions() {
 
                 connect(action, &QAction::triggered, [this, path] {
                     auto activity =
-                        new OpenWalletActivity(m_wallet_controller, this,
-                                               this->config->GetChainParams());
+                        new OpenWalletActivity(m_wallet_controller, this);
                     connect(activity, &OpenWalletActivity::opened, this,
                             &BitcoinGUI::setCurrentWallet);
                     connect(activity, &OpenWalletActivity::finished, activity,
@@ -494,8 +493,7 @@ void BitcoinGUI::createActions() {
                                              this);
         });
         connect(m_create_wallet_action, &QAction::triggered, [this] {
-            auto activity = new CreateWalletActivity(
-                m_wallet_controller, this, this->config->GetChainParams());
+            auto activity = new CreateWalletActivity(m_wallet_controller, this);
             connect(activity, &CreateWalletActivity::created, this,
                     &BitcoinGUI::setCurrentWallet);
             connect(activity, &CreateWalletActivity::finished, activity,

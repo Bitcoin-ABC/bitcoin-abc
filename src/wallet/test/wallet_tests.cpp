@@ -34,8 +34,8 @@ BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)
 static std::shared_ptr<CWallet> TestLoadWallet(interfaces::Chain &chain) {
     bilingual_str error;
     std::vector<bilingual_str> warnings;
-    auto wallet = CWallet::CreateWalletFromFile(
-        chain.params(), chain, WalletLocation(""), error, warnings);
+    auto wallet = CWallet::CreateWalletFromFile(chain, WalletLocation(""),
+                                                error, warnings);
     wallet->postInitProcess();
     return wallet;
 }

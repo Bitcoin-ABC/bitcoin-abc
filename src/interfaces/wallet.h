@@ -310,15 +310,15 @@ class WalletClient : public ChainClient {
 public:
     //! Create new wallet.
     virtual std::unique_ptr<Wallet>
-    createWallet(const CChainParams &params, const std::string &name,
-                 const SecureString &passphrase, uint64_t wallet_creation_flags,
-                 WalletCreationStatus &status, bilingual_str &error,
+    createWallet(const std::string &name, const SecureString &passphrase,
+                 uint64_t wallet_creation_flags, WalletCreationStatus &status,
+                 bilingual_str &error,
                  std::vector<bilingual_str> &warnings) = 0;
 
     //! Load existing wallet.
     virtual std::unique_ptr<Wallet>
-    loadWallet(const CChainParams &params, const std::string &name,
-               bilingual_str &error, std::vector<bilingual_str> &warnings) = 0;
+    loadWallet(const std::string &name, bilingual_str &error,
+               std::vector<bilingual_str> &warnings) = 0;
 
     //! Return default wallet directory.
     virtual std::string getWalletDir() = 0;

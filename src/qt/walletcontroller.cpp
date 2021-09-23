@@ -184,10 +184,9 @@ void WalletController::removeAndDeleteWallet(WalletModel *wallet_model) {
 }
 
 WalletControllerActivity::WalletControllerActivity(
-    WalletController *wallet_controller, QWidget *parent_widget,
-    const CChainParams &chainparams)
+    WalletController *wallet_controller, QWidget *parent_widget)
     : QObject(wallet_controller), m_wallet_controller(wallet_controller),
-      m_parent_widget(parent_widget), m_chainparams(chainparams) {}
+      m_parent_widget(parent_widget) {}
 
 WalletControllerActivity::~WalletControllerActivity() {
     delete m_progress_dialog;
@@ -211,9 +210,8 @@ void WalletControllerActivity::destroyProgressDialog() {
 }
 
 CreateWalletActivity::CreateWalletActivity(WalletController *wallet_controller,
-                                           QWidget *parent_widget,
-                                           const CChainParams &chainparams)
-    : WalletControllerActivity(wallet_controller, parent_widget, chainparams) {
+                                           QWidget *parent_widget)
+    : WalletControllerActivity(wallet_controller, parent_widget) {
     m_passphrase.reserve(MAX_PASSPHRASE_SIZE);
 }
 
@@ -256,9 +254,9 @@ void CreateWalletActivity::createWallet() {
     QTimer::singleShot(500, worker(), [this, name, flags] {
         WalletCreationStatus status;
         std::unique_ptr<interfaces::Wallet> wallet =
-            node().walletClient().createWallet(
-                m_chainparams, name, m_passphrase, flags, status,
-                m_error_message, m_warning_message);
+            node().walletClient().createWallet(name, m_passphrase, flags,
+                                               status, m_error_message,
+                                               m_warning_message);
 
         if (status == WalletCreationStatus::SUCCESS) {
             m_wallet_model =
@@ -309,9 +307,8 @@ void CreateWalletActivity::create() {
 }
 
 OpenWalletActivity::OpenWalletActivity(WalletController *wallet_controller,
-                                       QWidget *parent_widget,
-                                       const CChainParams &chainparams)
-    : WalletControllerActivity(wallet_controller, parent_widget, chainparams) {}
+                                       QWidget *parent_widget)
+    : WalletControllerActivity(wallet_controller, parent_widget) {}
 
 void OpenWalletActivity::finish() {
     destroyProgressDialog();
@@ -343,8 +340,8 @@ void OpenWalletActivity::open(const std::string &path) {
 
     QTimer::singleShot(0, worker(), [this, path] {
         std::unique_ptr<interfaces::Wallet> wallet =
-            node().walletClient().loadWallet(
-                this->m_chainparams, path, m_error_message, m_warning_message);
+            node().walletClient().loadWallet(path, m_error_message,
+                                             m_warning_message);
 
         if (wallet) {
             m_wallet_model =

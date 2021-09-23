@@ -3121,8 +3121,6 @@ static UniValue loadwallet(const Config &config,
     }
         .Check(request);
 
-    const CChainParams &chainParams = config.GetChainParams();
-
     WalletContext &context = EnsureWalletContext(request.context);
     WalletLocation location(request.params[0].get_str());
 
@@ -3143,7 +3141,7 @@ static UniValue loadwallet(const Config &config,
     bilingual_str error;
     std::vector<bilingual_str> warnings;
     std::shared_ptr<CWallet> const wallet =
-        LoadWallet(chainParams, *context.chain, location, error, warnings);
+        LoadWallet(*context.chain, location, error, warnings);
     if (!wallet) {
         throw JSONRPCError(RPC_WALLET_ERROR, error.original);
     }
@@ -3309,7 +3307,7 @@ static UniValue createwallet(const Config &config,
     bilingual_str error;
     std::shared_ptr<CWallet> wallet;
     WalletCreationStatus status =
-        CreateWallet(config.GetChainParams(), *context.chain, passphrase, flags,
+        CreateWallet(*context.chain, passphrase, flags,
                      request.params[0].get_str(), error, warnings, wallet);
     switch (status) {
         case WalletCreationStatus::CREATION_FAILED:

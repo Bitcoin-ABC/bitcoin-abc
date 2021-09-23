@@ -58,8 +58,7 @@ bool AddWallet(const std::shared_ptr<CWallet> &wallet);
 bool RemoveWallet(const std::shared_ptr<CWallet> &wallet);
 std::vector<std::shared_ptr<CWallet>> GetWallets();
 std::shared_ptr<CWallet> GetWallet(const std::string &name);
-std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
-                                    interfaces::Chain &chain,
+std::shared_ptr<CWallet> LoadWallet(interfaces::Chain &chain,
                                     const WalletLocation &location,
                                     bilingual_str &error,
                                     std::vector<bilingual_str> &warnings);
@@ -67,8 +66,7 @@ std::unique_ptr<interfaces::Handler> HandleLoadWallet(LoadWalletFn load_wallet);
 
 enum class WalletCreationStatus { SUCCESS, CREATION_FAILED, ENCRYPTION_FAILED };
 
-WalletCreationStatus CreateWallet(const CChainParams &params,
-                                  interfaces::Chain &chain,
+WalletCreationStatus CreateWallet(interfaces::Chain &chain,
                                   const SecureString &passphrase,
                                   uint64_t wallet_creation_flags,
                                   const std::string &name, bilingual_str &error,
@@ -1384,8 +1382,7 @@ public:
     bool AbandonTransaction(const TxId &txid);
 
     //! Verify wallet naming and perform salvage on the wallet if required
-    static bool Verify(const CChainParams &chainParams,
-                       interfaces::Chain &chain, const WalletLocation &location,
+    static bool Verify(interfaces::Chain &chain, const WalletLocation &location,
                        bilingual_str &error_string,
                        std::vector<bilingual_str> &warnings);
 
@@ -1394,8 +1391,7 @@ public:
      * in case of an error.
      */
     static std::shared_ptr<CWallet>
-    CreateWalletFromFile(const CChainParams &chainParams,
-                         interfaces::Chain &chain,
+    CreateWalletFromFile(interfaces::Chain &chain,
                          const WalletLocation &location, bilingual_str &error,
                          std::vector<bilingual_str> &warnings,
                          uint64_t wallet_creation_flags = 0);

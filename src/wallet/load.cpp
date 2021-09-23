@@ -13,7 +13,7 @@
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
 
-bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
+bool VerifyWallets(interfaces::Chain &chain,
                    const std::vector<std::string> &wallet_files) {
     if (gArgs.IsArgSet("-walletdir")) {
         fs::path wallet_dir = gArgs.GetArg("-walletdir", "");
@@ -61,8 +61,8 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
 
         bilingual_str error_string;
         std::vector<bilingual_str> warnings;
-        bool verify_success = CWallet::Verify(chainParams, chain, location,
-                                              error_string, warnings);
+        bool verify_success =
+            CWallet::Verify(chain, location, error_string, warnings);
         if (!warnings.empty()) {
             chain.initWarning(Join(warnings, Untranslated("\n")));
         }
@@ -75,15 +75,14 @@ bool VerifyWallets(const CChainParams &chainParams, interfaces::Chain &chain,
     return true;
 }
 
-bool LoadWallets(const CChainParams &chainParams, interfaces::Chain &chain,
+bool LoadWallets(interfaces::Chain &chain,
                  const std::vector<std::string> &wallet_files) {
     try {
         for (const std::string &walletFile : wallet_files) {
             bilingual_str error;
             std::vector<bilingual_str> warnings;
             std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(
-                chainParams, chain, WalletLocation(walletFile), error,
-                warnings);
+                chain, WalletLocation(walletFile), error, warnings);
             if (!warnings.empty()) {
                 chain.initWarning(Join(warnings, Untranslated("\n")));
             }

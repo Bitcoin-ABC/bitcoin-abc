@@ -491,13 +491,11 @@ namespace {
             registerRpcs(GetWalletRPCCommands());
             registerRpcs(GetWalletDumpRPCCommands());
         }
-        bool verify(const CChainParams &chainParams) override {
-            return VerifyWallets(chainParams, *m_context.chain,
-                                 m_wallet_filenames);
+        bool verify() override {
+            return VerifyWallets(*m_context.chain, m_wallet_filenames);
         }
-        bool load(const CChainParams &chainParams) override {
-            return LoadWallets(chainParams, *m_context.chain,
-                               m_wallet_filenames);
+        bool load() override {
+            return LoadWallets(*m_context.chain, m_wallet_filenames);
         }
         void start(CScheduler &scheduler) override {
             return StartWallets(scheduler, *Assert(m_context.args));
@@ -508,24 +506,21 @@ namespace {
 
         //! WalletClient methods
         std::unique_ptr<Wallet>
-        createWallet(const CChainParams &params, const std::string &name,
-                     const SecureString &passphrase,
+        createWallet(const std::string &name, const SecureString &passphrase,
                      uint64_t wallet_creation_flags,
                      WalletCreationStatus &status, bilingual_str &error,
                      std::vector<bilingual_str> &warnings) override {
             std::shared_ptr<CWallet> wallet;
-            status = CreateWallet(params, *m_context.chain, passphrase,
+            status = CreateWallet(*m_context.chain, passphrase,
                                   wallet_creation_flags, name, error, warnings,
                                   wallet);
             return MakeWallet(std::move(wallet));
         }
         std::unique_ptr<Wallet>
-        loadWallet(const CChainParams &params, const std::string &name,
-                   bilingual_str &error,
+        loadWallet(const std::string &name, bilingual_str &error,
                    std::vector<bilingual_str> &warnings) override {
-            return MakeWallet(LoadWallet(params, *m_context.chain,
-                                         WalletLocation(name), error,
-                                         warnings));
+            return MakeWallet(LoadWallet(*m_context.chain, WalletLocation(name),
+                                         error, warnings));
         }
         std::string getWalletDir() override { return GetWalletDir().string(); }
         std::vector<std::string> listWalletDir() override {

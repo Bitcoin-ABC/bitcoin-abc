@@ -2281,7 +2281,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 5: verify wallet database integrity
     for (const auto &client : node.chain_clients) {
-        if (!client->verify(chainparams)) {
+        if (!client->verify()) {
             return false;
         }
     }
@@ -2833,7 +2833,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 9: load wallet
     for (const auto &client : node.chain_clients) {
-        if (!client->load(chainparams)) {
+        if (!client->load()) {
             return false;
         }
     }

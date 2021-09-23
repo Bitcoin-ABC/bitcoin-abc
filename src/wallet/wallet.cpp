@@ -153,18 +153,17 @@ static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 
 namespace {
 std::shared_ptr<CWallet>
-LoadWalletInternal(const CChainParams &chainParams, interfaces::Chain &chain,
-                   const WalletLocation &location, bilingual_str &error,
-                   std::vector<bilingual_str> &warnings) {
+LoadWalletInternal(interfaces::Chain &chain, const WalletLocation &location,
+                   bilingual_str &error, std::vector<bilingual_str> &warnings) {
     try {
-        if (!CWallet::Verify(chainParams, chain, location, error, warnings)) {
+        if (!CWallet::Verify(chain, location, error, warnings)) {
             error = Untranslated("Wallet file verification failed.") +
                     Untranslated(" ") + error;
             return nullptr;
         }
 
-        std::shared_ptr<CWallet> wallet = CWallet::CreateWalletFromFile(
-            chainParams, chain, location, error, warnings);
+        std::shared_ptr<CWallet> wallet =
+            CWallet::CreateWalletFromFile(chain, location, error, warnings);
         if (!wallet) {
             error = Untranslated("Wallet loading failed.") + Untranslated(" ") +
                     error;
@@ -180,8 +179,7 @@ LoadWalletInternal(const CChainParams &chainParams, interfaces::Chain &chain,
 }
 } // namespace
 
-std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
-                                    interfaces::Chain &chain,
+std::shared_ptr<CWallet> LoadWallet(interfaces::Chain &chain,
                                     const WalletLocation &location,
                                     bilingual_str &error,
                                     std::vector<bilingual_str> &warnings) {
@@ -192,14 +190,12 @@ std::shared_ptr<CWallet> LoadWallet(const CChainParams &chainParams,
         error = Untranslated("Wallet already being loading.");
         return nullptr;
     }
-    auto wallet =
-        LoadWalletInternal(chainParams, chain, location, error, warnings);
+    auto wallet = LoadWalletInternal(chain, location, error, warnings);
     WITH_LOCK(g_loading_wallet_mutex, g_loading_wallet_set.erase(result.first));
     return wallet;
 }
 
-WalletCreationStatus CreateWallet(const CChainParams &params,
-                                  interfaces::Chain &chain,
+WalletCreationStatus CreateWallet(interfaces::Chain &chain,
                                   const SecureString &passphrase,
                                   uint64_t wallet_creation_flags,
                                   const std::string &name, bilingual_str &error,
@@ -224,7 +220,7 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
 
     // Wallet::Verify will check if we're trying to create a wallet with a
     // duplicate name.
-    if (!CWallet::Verify(params, chain, location, error, warnings)) {
+    if (!CWallet::Verify(chain, location, error, warnings)) {
         error = Untranslated("Wallet file verification failed.") +
                 Untranslated(" ") + error;
         return WalletCreationStatus::CREATION_FAILED;
@@ -242,7 +238,7 @@ WalletCreationStatus CreateWallet(const CChainParams &params,
 
     // Make the wallet
     std::shared_ptr<CWallet> wallet = CWallet::CreateWalletFromFile(
-        params, chain, location, error, warnings, wallet_creation_flags);
+        chain, location, error, warnings, wallet_creation_flags);
     if (!wallet) {
         error =
             Untranslated("Wallet creation failed.") + Untranslated(" ") + error;
@@ -4123,8 +4119,7 @@ CWallet::GetDestValues(const std::string &prefix) const {
     return values;
 }
 
-bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
-                     const WalletLocation &location,
+bool CWallet::Verify(interfaces::Chain &chain, const WalletLocation &location,
                      bilingual_str &error_string,
                      std::vector<bilingual_str> &warnings) {
     // Do some checking on wallet path. It should be either a:
@@ -4175,9 +4170,9 @@ bool CWallet::Verify(const CChainParams &chainParams, interfaces::Chain &chain,
 }
 
 std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(
-    const CChainParams &chainParams, interfaces::Chain &chain,
-    const WalletLocation &location, bilingual_str &error,
-    std::vector<bilingual_str> &warnings, uint64_t wallet_creation_flags) {
+    interfaces::Chain &chain, const WalletLocation &location,
+    bilingual_str &error, std::vector<bilingual_str> &warnings,
+    uint64_t wallet_creation_flags) {
     const std::string walletFile =
         WalletDataFilePath(location.GetPath()).string();
 

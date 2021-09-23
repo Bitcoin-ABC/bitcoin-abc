@@ -93,8 +93,7 @@ class WalletControllerActivity : public QObject {
 
 public:
     WalletControllerActivity(WalletController *wallet_controller,
-                             QWidget *parent_widget,
-                             const CChainParams &chainparams);
+                             QWidget *parent_widget);
     virtual ~WalletControllerActivity();
 
 Q_SIGNALS:
@@ -113,8 +112,6 @@ protected:
     WalletModel *m_wallet_model{nullptr};
     bilingual_str m_error_message;
     std::vector<bilingual_str> m_warning_message;
-
-    const CChainParams &m_chainparams;
 };
 
 class CreateWalletActivity : public WalletControllerActivity {
@@ -122,8 +119,7 @@ class CreateWalletActivity : public WalletControllerActivity {
 
 public:
     CreateWalletActivity(WalletController *wallet_controller,
-                         QWidget *parent_widget,
-                         const CChainParams &chainparams);
+                         QWidget *parent_widget);
     virtual ~CreateWalletActivity();
 
     void create();
@@ -146,7 +142,7 @@ class OpenWalletActivity : public WalletControllerActivity {
 
 public:
     OpenWalletActivity(WalletController *wallet_controller,
-                       QWidget *parent_widget, const CChainParams &chainparams);
+                       QWidget *parent_widget);
 
     void open(const std::string &path);
 

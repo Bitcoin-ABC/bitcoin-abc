@@ -329,10 +329,10 @@ public:
     virtual void registerRpcs() = 0;
 
     //! Check for errors before loading.
-    virtual bool verify(const CChainParams &chainParams) = 0;
+    virtual bool verify() = 0;
 
     //! Load saved state.
-    virtual bool load(const CChainParams &chainParams) = 0;
+    virtual bool load() = 0;
 
     //! Start client execution and provide a scheduler.
     virtual void start(CScheduler &scheduler) = 0;
