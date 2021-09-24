@@ -50,16 +50,6 @@ MacOS code signing
 ------------------
 In order to sign builds for MacOS, you need to download the free SDK and extract a file. The steps are described [here](./gitian-building/gitian-building-mac-os-sdk.md).
 
-It is possible to download the resulting archive directly for users that desire to do so:
-
-```bash
-cd bitcoin-abc/contrib/gitian-builder
-curl -LO https://storage.googleapis.com/27cd7b2a42a430926cc621acdc3bda72a8ed2b0efc080e3/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
-echo "a1b8af4c4d82d519dd5aff2135fe56184fa758c30e310b5fb4bfc8d9d3b45d8a Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz" | sha256sum -c
-mkdir -p inputs
-mv Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz inputs
-```
-
 Alternatively, you can skip the macOS build by adding `--os=lw` below.
 
 Initial Gitian Setup
