@@ -115,13 +115,13 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
     }
     {
         bool expect_overflow = !IsInScriptBounds(a - b);
-        // Test AddInt63OverflowEmulated
+        // Test SubInt63OverflowEmulated
         int64_t result_emulated;
         bool had_overflow_emulated =
             SubInt63OverflowEmulated(a_64, b_64, result_emulated);
         CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
                               had_overflow_emulated, result_emulated, a - b);
-        // Test AddInt63Overflow
+        // Test SubInt63Overflow
         int64_t result;
         bool had_overflow = SubInt63Overflow(a_64, b_64, result);
         CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
