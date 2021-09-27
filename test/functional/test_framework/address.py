@@ -7,7 +7,7 @@
 import unittest
 
 from .script import CScript, hash160, hash256
-from .util import hex_str_to_bytes, assert_equal
+from .util import assert_equal, hex_str_to_bytes
 
 ADDRESS_ECREG_UNSPENDABLE = 'ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt'
 ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR = 'addr(ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt)#u6xx93xc'

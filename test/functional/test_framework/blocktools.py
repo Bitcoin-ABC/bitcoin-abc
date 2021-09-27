@@ -6,10 +6,18 @@
 
 import unittest
 
+from .messages import (
+    COIN,
+    XEC,
+    CBlock,
+    COutPoint,
+    CTransaction,
+    CTxIn,
+    CTxOut,
+    FromHex,
+    ToHex,
+)
 from .script import (
-    CScript,
-    CScriptNum,
-    CScriptOp,
     OP_1,
     OP_CHECKSIG,
     OP_DUP,
@@ -17,17 +25,9 @@ from .script import (
     OP_HASH160,
     OP_RETURN,
     OP_TRUE,
-)
-from .messages import (
-    CBlock,
-    COIN,
-    XEC,
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-    FromHex,
-    ToHex,
+    CScript,
+    CScriptNum,
+    CScriptOp,
 )
 from .txtools import pad_tx
 from .util import assert_equal, satoshi_round

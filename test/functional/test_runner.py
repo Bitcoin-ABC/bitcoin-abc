@@ -14,23 +14,23 @@ For a description of arguments recognized by test scripts, see
 """
 
 import argparse
-from collections import deque
 import configparser
 import datetime
-import os
-import time
-import shutil
-import sys
-import subprocess
-import tempfile
-import re
-import logging
-import xml.etree.ElementTree as ET
 import json
-import threading
+import logging
 import multiprocessing
-from queue import Queue, Empty
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import time
 import unittest
+import xml.etree.ElementTree as ET
+from collections import deque
+from queue import Empty, Queue
 
 # Formatting. Default colors to empty strings.
 BOLD, GREEN, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")

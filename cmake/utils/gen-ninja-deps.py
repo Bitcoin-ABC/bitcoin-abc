@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import subprocess
-import os
 import argparse
+import os
+import subprocess
 
 parser = argparse.ArgumentParser(description='Produce a dep file from ninja.')
 parser.add_argument(

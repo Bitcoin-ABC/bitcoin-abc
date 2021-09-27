@@ -3,13 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import hmac
 from argparse import ArgumentParser
 from base64 import urlsafe_b64encode
 from binascii import hexlify
 from getpass import getpass
 from os import urandom
-
-import hmac
 
 
 def generate_salt(size):

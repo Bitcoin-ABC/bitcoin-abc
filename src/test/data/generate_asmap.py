@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) 2020 The Bitcoin developers
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 
 def main(input_file, output_file):

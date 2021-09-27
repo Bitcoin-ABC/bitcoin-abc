@@ -5,14 +5,9 @@
 """Useful util functions for testing the wallet"""
 from collections import namedtuple
 
-from test_framework.address import (
-    byte_to_base58,
-    key_to_p2pkh,
-    script_to_p2sh,
-)
+from test_framework.address import byte_to_base58, key_to_p2pkh, script_to_p2sh
 from test_framework.key import ECKey
 from test_framework.script import (
-    CScript,
     OP_2,
     OP_3,
     OP_CHECKMULTISIG,
@@ -21,6 +16,7 @@ from test_framework.script import (
     OP_EQUAL,
     OP_EQUALVERIFY,
     OP_HASH160,
+    CScript,
     hash160,
 )
 from test_framework.util import hex_str_to_bytes

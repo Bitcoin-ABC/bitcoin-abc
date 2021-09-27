@@ -8,12 +8,12 @@ Roughly based on http://voorloopnul.com/blog/a-python-netstat-in-less-than-100-l
 """
 
 import array
-from binascii import unhexlify
-from errno import ENOENT, EINVAL
 import os
 import socket
 import struct
 import sys
+from binascii import unhexlify
+from errno import EINVAL, ENOENT
 
 # STATE_ESTABLISHED = '01'
 # STATE_SYN_SENT = '02'
@@ -171,6 +171,7 @@ def test_ipv6_local():
     Check for (local) IPv6 support.
     '''
     import socket
+
     # By using SOCK_DGRAM this will not actually make a connection, but it will
     # fail if there is no route to IPv6 localhost.
     have_ipv6 = True

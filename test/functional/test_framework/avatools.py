@@ -5,33 +5,29 @@
 """Utilities for avalanche tests."""
 
 import struct
-from typing import Any, Optional, List, Dict
+from typing import Any, Dict, List, Optional
 
 from .authproxy import JSONRPCException
 from .key import ECKey
 from .messages import (
+    NODE_AVALANCHE,
+    NODE_NETWORK,
     AvalancheDelegation,
     AvalancheProof,
     AvalancheResponse,
     CInv,
     CTransaction,
     FromHex,
+    TCPAvalancheResponse,
+    ToHex,
     hash256,
     msg_avahello,
     msg_avapoll,
     msg_tcpavaresponse,
-    NODE_AVALANCHE,
-    NODE_NETWORK,
-    TCPAvalancheResponse,
-    ToHex,
 )
 from .p2p import P2PInterface, p2p_lock
 from .test_node import TestNode
-from .util import (
-    assert_equal,
-    satoshi_round,
-    wait_until_helper,
-)
+from .util import assert_equal, satoshi_round, wait_until_helper
 from .wallet_util import bytes_to_wif
 
 

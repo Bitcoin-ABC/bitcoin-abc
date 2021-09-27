@@ -14,22 +14,11 @@ is testing and *how* it's being tested
 from collections import defaultdict
 
 # Avoid wildcard * imports if possible
-from test_framework.blocktools import (create_block, create_coinbase)
-from test_framework.messages import (
-    CInv,
-    MSG_BLOCK,
-    msg_block,
-    msg_getdata
-)
-from test_framework.p2p import (
-    P2PInterface,
-    p2p_lock,
-)
+from test_framework.blocktools import create_block, create_coinbase
+from test_framework.messages import MSG_BLOCK, CInv, msg_block, msg_getdata
+from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-)
+from test_framework.util import assert_equal, connect_nodes
 
 # P2PInterface is a class containing callbacks to be executed when a P2P
 # message is received from the node-under-test. Subclass P2PInterface and

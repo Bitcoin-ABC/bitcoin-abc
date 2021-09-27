@@ -10,7 +10,7 @@ This file is modified from python-bitcoinlib.
 import hashlib
 import struct
 import unittest
-from typing import List, Dict
+from typing import Dict, List
 
 from .messages import (
     CTransaction,
@@ -21,7 +21,6 @@ from .messages import (
     sha256,
     uint256_from_str,
 )
-
 
 MAX_SCRIPT_ELEMENT_SIZE = 520
 OPCODE_NAMES: Dict["CScriptOp", str] = {}

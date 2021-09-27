@@ -18,21 +18,19 @@ ser_*, deser_*: functions that handle serialization/deserialization.
 Classes use __slots__ to ensure extraneous attributes aren't accidentally added
 by tests, compromising their intended effect.
 """
-from codecs import encode
 import copy
 import hashlib
-from io import BytesIO
 import random
 import socket
 import struct
 import time
 import unittest
-
+from codecs import encode
+from io import BytesIO
 from typing import List
 
 from test_framework.siphash import siphash256
-from test_framework.util import hex_str_to_bytes, assert_equal
-
+from test_framework.util import assert_equal, hex_str_to_bytes
 
 MIN_VERSION_SUPPORTED = 60001
 # past bip-31 for ping/pong

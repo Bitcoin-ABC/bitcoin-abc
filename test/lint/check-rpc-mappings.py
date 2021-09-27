@@ -4,11 +4,11 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Check RPC argument consistency."""
 
-from collections import defaultdict
 import glob
 import os
 import re
 import sys
+from collections import defaultdict
 
 # Source files (relative to root) to scan for dispatch tables
 SOURCE_PATTERNS = [

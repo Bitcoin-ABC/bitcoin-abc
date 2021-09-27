@@ -6,12 +6,12 @@
 """
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import configparser
 import logging
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def main():

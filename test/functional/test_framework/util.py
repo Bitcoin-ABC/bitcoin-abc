@@ -4,11 +4,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Helpful routines for regression testing."""
 
-from base64 import b64encode
-from binascii import unhexlify
-from decimal import Decimal, ROUND_DOWN
-from io import BytesIO
-from subprocess import CalledProcessError
 import inspect
 import json
 import logging
@@ -17,6 +12,11 @@ import random
 import re
 import time
 import unittest
+from base64 import b64encode
+from binascii import unhexlify
+from decimal import ROUND_DOWN, Decimal
+from io import BytesIO
+from subprocess import CalledProcessError
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException

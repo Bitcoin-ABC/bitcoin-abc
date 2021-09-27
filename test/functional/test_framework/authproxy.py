@@ -36,7 +36,6 @@ ServiceProxy class:
 
 import base64
 import decimal
-from http import HTTPStatus
 import http.client
 import json
 import logging
@@ -44,6 +43,7 @@ import os
 import socket
 import time
 import urllib.parse
+from http import HTTPStatus
 
 HTTP_TIMEOUT = 30
 USER_AGENT = "AuthServiceProxy/0.1"

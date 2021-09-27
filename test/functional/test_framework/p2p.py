@@ -21,25 +21,27 @@ P2PTxInvStore: A p2p interface class that inherits from P2PDataStore, and keeps
               a count of how many times each txid has been announced."""
 
 import asyncio
-from collections import defaultdict
-from io import BytesIO
 import logging
 import struct
 import sys
 import threading
+from collections import defaultdict
+from io import BytesIO
 
 from test_framework.messages import (
-    CBlockHeader,
     MAX_HEADERS_RESULTS,
     MIN_VERSION_SUPPORTED,
+    MSG_BLOCK,
+    MSG_TX,
+    MSG_TYPE_MASK,
+    NODE_NETWORK,
+    CBlockHeader,
     msg_addr,
     msg_addrv2,
+    msg_avahello,
     msg_avapoll,
     msg_avaproof,
-    msg_tcpavaresponse,
-    msg_avahello,
     msg_block,
-    MSG_BLOCK,
     msg_blocktxn,
     msg_cfcheckpt,
     msg_cfheaders,
@@ -64,12 +66,10 @@ from test_framework.messages import (
     msg_sendaddrv2,
     msg_sendcmpct,
     msg_sendheaders,
+    msg_tcpavaresponse,
     msg_tx,
-    MSG_TX,
-    MSG_TYPE_MASK,
     msg_verack,
     msg_version,
-    NODE_NETWORK,
     sha256,
 )
 from test_framework.util import wait_until_helper

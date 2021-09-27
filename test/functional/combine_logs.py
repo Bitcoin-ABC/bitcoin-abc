@@ -10,7 +10,6 @@ to write to an outputfile.
 If no argument is provided, the most recent test directory will be used."""
 
 import argparse
-from collections import defaultdict, namedtuple
 import heapq
 import itertools
 import os
@@ -18,6 +17,7 @@ import pathlib
 import re
 import sys
 import tempfile
+from collections import defaultdict, namedtuple
 
 # N.B.: don't import any local modules here - this script must remain executable
 # without the parent module installed.

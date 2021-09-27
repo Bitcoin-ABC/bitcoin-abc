@@ -11,10 +11,10 @@ Return value is 0 to indicate no error.
 Author: @MarcoFalke
 '''
 
-from subprocess import check_output
-from pprint import PrettyPrinter
 import glob
 import re
+from pprint import PrettyPrinter
+from subprocess import check_output
 
 TOP_LEVEL = 'git rev-parse --show-toplevel'
 FOLDER_SRC = '/src/**/'

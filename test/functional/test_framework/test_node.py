@@ -4,28 +4,29 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Class for bitcoind node under test"""
 
+import collections
 import contextlib
 import decimal
-from enum import Enum
 import errno
 import http.client
 import json
 import logging
 import os
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
 import time
 import urllib.parse
-import collections
-import shlex
+from enum import Enum
 
 from .authproxy import JSONRPCException
 from .descriptors import descsum_create
-from .messages import XEC, CTransaction, FromHex, MY_SUBVERSION
+from .messages import MY_SUBVERSION, XEC, CTransaction, FromHex
 from .util import (
     MAX_NODES,
+    EncodeDecimal,
     append_config,
     delete_cookie_file,
     get_auth_cookie,
@@ -33,7 +34,6 @@ from .util import (
     p2p_port,
     rpc_url,
     wait_until_helper,
-    EncodeDecimal,
 )
 
 BITCOIND_PROC_WAIT_TIMEOUT = 60

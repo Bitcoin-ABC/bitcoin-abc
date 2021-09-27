@@ -6,10 +6,10 @@
 Extract _("...") strings for translation and convert to Qt stringdefs so that
 they can be picked up by Qt linguist.
 '''
-from subprocess import Popen, PIPE
 import operator
 import os
 import sys
+from subprocess import PIPE, Popen
 
 OUT_CPP = "qt/bitcoinstrings.cpp"
 EMPTY = ['""']
