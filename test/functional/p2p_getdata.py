@@ -5,10 +5,7 @@
 """Test GETDATA processing behavior"""
 from collections import defaultdict
 
-from test_framework.messages import (
-    CInv,
-    msg_getdata,
-)
+from test_framework.messages import CInv, msg_getdata
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 

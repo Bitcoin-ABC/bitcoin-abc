@@ -12,9 +12,11 @@ import random
 
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import (
+    MSG_BLOCK,
+    MSG_CMPCT_BLOCK,
+    NODE_NETWORK,
     BlockTransactions,
     BlockTransactionsRequest,
-    calculate_shortid,
     CBlock,
     CBlockHeader,
     CInv,
@@ -24,8 +26,10 @@ from test_framework.messages import (
     CTxOut,
     FromHex,
     HeaderAndShortIDs,
-    MSG_BLOCK,
-    MSG_CMPCT_BLOCK,
+    P2PHeaderAndShortIDs,
+    PrefilledTransaction,
+    ToHex,
+    calculate_shortid,
     msg_block,
     msg_blocktxn,
     msg_cmpctblock,
@@ -37,16 +41,9 @@ from test_framework.messages import (
     msg_sendcmpct,
     msg_sendheaders,
     msg_tx,
-    NODE_NETWORK,
-    P2PHeaderAndShortIDs,
-    PrefilledTransaction,
-    ToHex,
 )
-from test_framework.p2p import (
-    p2p_lock,
-    P2PInterface,
-)
-from test_framework.script import CScript, OP_TRUE
+from test_framework.p2p import P2PInterface, p2p_lock
+from test_framework.script import OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal

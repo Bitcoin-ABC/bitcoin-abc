@@ -6,34 +6,28 @@
 Test inventory download behavior
 """
 
+import functools
+import time
+
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import wait_for_proof
 from test_framework.key import ECKey
 from test_framework.messages import (
+    MSG_AVA_PROOF,
+    MSG_TX,
+    MSG_TYPE_MASK,
     AvalancheProof,
     CInv,
     CTransaction,
     FromHex,
-    MSG_AVA_PROOF,
-    MSG_TX,
-    MSG_TYPE_MASK,
     msg_avaproof,
     msg_inv,
     msg_notfound,
 )
-from test_framework.p2p import (
-    P2PInterface,
-    p2p_lock,
-)
+from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet_util import bytes_to_wif
-
-import functools
-import time
 
 
 class TestP2PConn(P2PInterface):

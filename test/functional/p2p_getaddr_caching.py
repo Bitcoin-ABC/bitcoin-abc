@@ -5,20 +5,16 @@
 """Test addr response caching"""
 
 import time
+
 from test_framework.messages import (
-    CAddress,
     NODE_NETWORK,
+    CAddress,
     msg_addr,
     msg_getaddr,
 )
-from test_framework.p2p import (
-    P2PInterface,
-    p2p_lock
-)
+from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-)
+from test_framework.util import assert_equal
 
 MAX_ADDR_TO_SEND = 1000
 

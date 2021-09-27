@@ -13,17 +13,10 @@ into sending us something it shouldn't.
 
 import time
 
-from test_framework.messages import (
-    msg_getaddr,
-    msg_ping,
-    msg_version,
-)
+from test_framework.messages import msg_getaddr, msg_ping, msg_version
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_greater_than_or_equal,
-)
+from test_framework.util import assert_equal, assert_greater_than_or_equal
 
 DISCOURAGEMENT_THRESHOLD = 10
 

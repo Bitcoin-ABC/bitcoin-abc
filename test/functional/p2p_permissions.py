@@ -7,19 +7,12 @@
 Test that permissions are correctly calculated and applied
 """
 
-from test_framework.messages import (
-    CTransaction,
-    FromHex,
-)
+from test_framework.messages import CTransaction, FromHex
 from test_framework.p2p import P2PDataStore
-from test_framework.test_node import ErrorMatch
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_node import ErrorMatch
 from test_framework.txtools import pad_tx
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-    p2p_port,
-)
+from test_framework.util import assert_equal, connect_nodes, p2p_port
 
 
 class P2PPermissionsTests(BitcoinTestFramework):

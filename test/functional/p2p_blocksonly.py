@@ -4,7 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test p2p blocksonly"""
 
-from test_framework.messages import msg_tx, CTransaction, FromHex
+from test_framework.messages import CTransaction, FromHex, msg_tx
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal

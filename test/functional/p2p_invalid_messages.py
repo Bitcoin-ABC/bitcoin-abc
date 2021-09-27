@@ -7,11 +7,12 @@ import struct
 import time
 
 from test_framework.messages import (
-    CBlockHeader,
-    CInv,
     MAX_HEADERS_RESULTS,
     MAX_INV_SIZE,
     MAX_PROTOCOL_MESSAGE_LENGTH,
+    MSG_TX,
+    CBlockHeader,
+    CInv,
     msg_avahello,
     msg_avapoll,
     msg_avaresponse,
@@ -19,18 +20,11 @@ from test_framework.messages import (
     msg_headers,
     msg_inv,
     msg_ping,
-    MSG_TX,
     ser_string,
 )
-from test_framework.p2p import (
-    P2PDataStore,
-    P2PInterface,
-)
+from test_framework.p2p import P2PDataStore, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    hex_str_to_bytes,
-    assert_equal,
-)
+from test_framework.util import assert_equal, hex_str_to_bytes
 
 # Account for the 5-byte length prefix
 VALID_DATA_LIMIT = MAX_PROTOCOL_MESSAGE_LENGTH - 5

@@ -6,17 +6,12 @@
 Test addr relay
 """
 
-from test_framework.messages import (
-    CAddress,
-    NODE_NETWORK,
-    msg_addr,
-)
+import time
+
+from test_framework.messages import NODE_NETWORK, CAddress, msg_addr
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-)
-import time
+from test_framework.util import assert_equal
 
 ADDRS = []
 for i in range(10):

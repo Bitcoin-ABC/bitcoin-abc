@@ -4,17 +4,11 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test that we reject low difficulty headers to prevent our block tree from filling up with useless bloat"""
 
-from test_framework.messages import (
-    CBlockHeader,
-    FromHex,
-)
-from test_framework.p2p import (
-    P2PInterface,
-    msg_headers,
-)
-from test_framework.test_framework import BitcoinTestFramework
-
 import os
+
+from test_framework.messages import CBlockHeader, FromHex
+from test_framework.p2p import P2PInterface, msg_headers
+from test_framework.test_framework import BitcoinTestFramework
 
 
 class RejectLowDifficultyHeadersTest(BitcoinTestFramework):

@@ -9,20 +9,16 @@ and that it responds to getdata requests for blocks correctly:
     - send a block within 288 + 2 of the tip
     - disconnect peers who request blocks older than that."""
 from test_framework.messages import (
-    CInv,
     MSG_BLOCK,
-    msg_getdata,
-    msg_verack,
     NODE_BLOOM,
     NODE_NETWORK_LIMITED,
+    CInv,
+    msg_getdata,
+    msg_verack,
 )
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-    disconnect_nodes,
-)
+from test_framework.util import assert_equal, connect_nodes, disconnect_nodes
 
 
 class P2PIgnoreInv(P2PInterface):
