@@ -4287,9 +4287,12 @@ ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
     // making AcceptToMemoryPool take a CChainParams instead of a Config.
     // This avoids passing an extra Config argument to this function that will
     // be removed soon.
-    return AcceptToMemoryPool(active_chainstate, ::GetConfig(),
-                              *active_chainstate.m_mempool, tx,
-                              /*bypass_limits=*/false, test_accept);
+    auto result = AcceptToMemoryPool(active_chainstate, ::GetConfig(),
+                                     *active_chainstate.m_mempool, tx,
+                                     /*bypass_limits=*/false, test_accept);
+    active_chainstate.m_mempool->check(active_chainstate.CoinsTip(),
+                                       active_chainstate.m_chain.Height() + 1);
+    return result;
 }
 
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,

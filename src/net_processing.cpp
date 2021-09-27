@@ -3133,9 +3133,6 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             break;
         }
     }
-    CChainState &active_chainstate = m_chainman.ActiveChainstate();
-    m_mempool.check(active_chainstate.CoinsTip(),
-                    active_chainstate.m_chain.Height() + 1);
 }
 
 bool PeerManagerImpl::PrepareBlockFilterRequest(
@@ -4367,9 +4364,6 @@ void PeerManagerImpl::ProcessMessage(
         const TxValidationState &state = result.m_state;
 
         if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
-            CChainState &active_chainstate = m_chainman.ActiveChainstate();
-            m_mempool.check(active_chainstate.CoinsTip(),
-                            active_chainstate.m_chain.Height() + 1);
             // As this version of the transaction was acceptable, we can forget
             // about any requests for it.
             m_txrequest.ForgetInvId(tx.GetId());
