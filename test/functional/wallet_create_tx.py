@@ -3,14 +3,9 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+from test_framework.blocktools import TIME_GENESIS_BLOCK
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-)
-from test_framework.blocktools import (
-    TIME_GENESIS_BLOCK,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class CreateTxWalletTest(BitcoinTestFramework):

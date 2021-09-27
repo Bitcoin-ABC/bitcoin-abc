@@ -6,11 +6,11 @@
 
 Verify that a bitcoind node can load multiple wallet files
 """
-from decimal import Decimal
-from threading import Thread
 import os
 import shutil
 import time
+from decimal import Decimal
+from threading import Thread
 
 from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import BitcoinTestFramework

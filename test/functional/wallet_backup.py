@@ -30,10 +30,10 @@ confirm 1/2/3/4 balances are same as before.
 Shutdown again, restore using importwallet,
 and confirm again balances are correct.
 """
-from decimal import Decimal
 import os
-from random import randint
 import shutil
+from decimal import Decimal
+from random import randint
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (

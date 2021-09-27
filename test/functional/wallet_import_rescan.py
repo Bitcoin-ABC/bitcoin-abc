@@ -19,19 +19,14 @@ importing nodes pick up the new transactions regardless of whether rescans
 happened previously.
 """
 
-from decimal import Decimal
 import collections
 import enum
 import itertools
 import random
+from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-    set_node_times,
-)
-
+from test_framework.util import assert_equal, connect_nodes, set_node_times
 
 Call = enum.Enum("Call", "single multiaddress multiscript")
 Data = enum.Enum("Data", "address pub priv")

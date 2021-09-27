@@ -15,17 +15,14 @@ variants.
 - `test_address()` is called to call getaddressinfo for an address on node1
   and test the values returned."""
 
-from test_framework.test_framework import BitcoinTestFramework
 from test_framework.descriptors import descsum_create
+from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_raises_rpc_error,
     find_vout_for_address,
 )
-from test_framework.wallet_util import (
-    get_generate_key,
-    test_address,
-)
+from test_framework.wallet_util import get_generate_key, test_address
 
 
 class ImportDescriptorsTest(BitcoinTestFramework):

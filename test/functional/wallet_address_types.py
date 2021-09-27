@@ -32,14 +32,11 @@ multisig addresses. Repeat test. As every node sends coins after receiving,
 this also verifies that spending coins sent to all these address types works.
 """
 
-from decimal import Decimal
 import itertools
+from decimal import Decimal
 
+from test_framework.descriptors import descsum_check, descsum_create
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.descriptors import (
-    descsum_create,
-    descsum_check,
-)
 from test_framework.util import (
     assert_equal,
     assert_greater_than,

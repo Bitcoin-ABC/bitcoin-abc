@@ -5,7 +5,7 @@
 """Test the wallet."""
 from decimal import Decimal
 
-from test_framework.messages import FromHex, CTransaction
+from test_framework.messages import CTransaction, FromHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_array_result,

@@ -3,10 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the wallet balance RPC methods."""
-from decimal import Decimal
 import struct
+from decimal import Decimal
 
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE as ADDRESS_WATCHONLY
+from test_framework.address import (
+    ADDRESS_ECREG_UNSPENDABLE as ADDRESS_WATCHONLY,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,

@@ -7,9 +7,7 @@
 Verify that a bitcoind node can maintain list of wallets loading on startup
 """
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-)
+from test_framework.util import assert_equal
 
 
 class WalletStartupTest(BitcoinTestFramework):
