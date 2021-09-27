@@ -329,11 +329,22 @@ struct PackageMempoolAcceptResult {
 };
 
 /**
- * (try to) add transaction to memory pool
+ * Try to add a transaction to the mempool. This is an internal function and is
+ * exposed only for testing. Client code should use
+ * ChainstateManager::ProcessTransaction()
  *
- * @param[in]  bypass_limits   When true, don't enforce mempool fee limits.
- * @param[in]  test_accept     When true, run validation checks but don't submit
- *     to mempool.
+ * @param[in]  active_chainstate  Reference to the active chainstate.
+ * @param[in]  pool               Reference to the node's mempool.
+ * @param[in]  config             The global configuration.
+ * @param[in]  tx                 The transaction to submit for mempool
+ *                                acceptance.
+ * @param[in]  bypass_limits      When true, don't enforce mempool fee and
+ *                                capacity limits.
+ * @param[in]  test_accept        When true, run validation checks but don't
+ *                                submit to mempool.
+ *
+ * @returns a MempoolAcceptResult indicating whether the transaction was
+ *     accepted/rejected with reason.
  */
 MempoolAcceptResult
 AcceptToMemoryPool(CChainState &active_chainstate, const Config &config,
@@ -1378,6 +1389,18 @@ public:
                                 BlockValidationState &state,
                                 const CBlockIndex **ppindex = nullptr)
         LOCKS_EXCLUDED(cs_main);
+
+    /**
+     * Try to add a transaction to the memory pool.
+     *
+     * @param[in]  tx              The transaction to submit for mempool
+     *                             acceptance.
+     * @param[in]  test_accept     When true, run validation checks but don't
+     *                             submit to mempool.
+     */
+    [[nodiscard]] MempoolAcceptResult
+    ProcessTransaction(const CTransactionRef &tx, bool test_accept = false)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     //! Load the block tree and coins database from disk, initializing state if
     //! we're running with -reindex

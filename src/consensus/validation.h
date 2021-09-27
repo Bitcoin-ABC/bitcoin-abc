@@ -40,6 +40,8 @@ enum class TxValidationResult {
     TX_CONFLICT,
     //! violated mempool's fee/size/descendant/etc limits
     TX_MEMPOOL_POLICY,
+    //! this node does not have a mempool so can't validate the transaction
+    TX_NO_MEMPOOL,
 };
 
 /**

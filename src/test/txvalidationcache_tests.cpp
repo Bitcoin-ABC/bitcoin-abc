@@ -32,9 +32,8 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup) {
     const auto ToMemPool = [this](const CMutableTransaction &tx) {
         LOCK(cs_main);
 
-        const MempoolAcceptResult result = AcceptToMemoryPool(
-            m_node.chainman->ActiveChainstate(), GetConfig(), *m_node.mempool,
-            MakeTransactionRef(tx), false /* bypass_limits */);
+        const MempoolAcceptResult result =
+            m_node.chainman->ProcessTransaction(MakeTransactionRef(tx));
         return result.m_result_type == MempoolAcceptResult::ResultType::VALID;
     };
 

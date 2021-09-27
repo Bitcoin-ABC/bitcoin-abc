@@ -1168,7 +1168,8 @@ static RPCHelpMan testmempoolaccept() {
 
             NodeContext &node = EnsureAnyNodeContext(request.context);
             CTxMemPool &mempool = EnsureMemPool(node);
-            CChainState &chainstate = EnsureChainman(node).ActiveChainstate();
+            ChainstateManager &chainman = EnsureChainman(node);
+            CChainState &chainstate = chainman.ActiveChainstate();
             const PackageMempoolAcceptResult package_result = [&] {
                 LOCK(::cs_main);
                 if (txns.size() > 1) {
@@ -1177,9 +1178,8 @@ static RPCHelpMan testmempoolaccept() {
                 }
                 return PackageMempoolAcceptResult(
                     txns[0]->GetId(),
-                    AcceptToMemoryPool(chainstate, config, mempool, txns[0],
-                                       /* bypass_limits */ false,
-                                       /* test_accept*/ true));
+                    chainman.ProcessTransaction(txns[0],
+                                                /* test_accept*/ true));
             }();
 
             UniValue rpc_result(UniValue::VARR);

@@ -331,9 +331,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
             LOCK(cs_main);
             for (const auto &tx : txs) {
                 const MempoolAcceptResult result =
-                    AcceptToMemoryPool(m_node.chainman->ActiveChainstate(),
-                                       config, *m_node.mempool, tx,
-                                       /* bypass_limits */ false);
+                    m_node.chainman->ProcessTransaction(tx);
                 BOOST_REQUIRE_MESSAGE(
                     result.m_result_type ==
                         MempoolAcceptResult::ResultType::VALID,

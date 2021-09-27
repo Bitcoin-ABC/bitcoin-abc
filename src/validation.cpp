@@ -4274,6 +4274,24 @@ bool ChainstateManager::ProcessNewBlock(
     return true;
 }
 
+MempoolAcceptResult
+ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
+                                      bool test_accept) {
+    CChainState &active_chainstate = ActiveChainstate();
+    if (!active_chainstate.m_mempool) {
+        TxValidationState state;
+        state.Invalid(TxValidationResult::TX_NO_MEMPOOL, "no-mempool");
+        return MempoolAcceptResult::Failure(state);
+    }
+    // Use GetConfig() temporarily. It will be removed in a follow-up by
+    // making AcceptToMemoryPool take a CChainParams instead of a Config.
+    // This avoids passing an extra Config argument to this function that will
+    // be removed soon.
+    return AcceptToMemoryPool(active_chainstate, ::GetConfig(),
+                              *active_chainstate.m_mempool, tx,
+                              /*bypass_limits=*/false, test_accept);
+}
+
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                        CChainState &chainstate, const CBlock &block,
                        CBlockIndex *pindexPrev,
