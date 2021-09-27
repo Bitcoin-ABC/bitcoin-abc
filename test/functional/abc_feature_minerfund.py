@@ -3,18 +3,12 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-)
+from decimal import Decimal
+
+from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import ToHex
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_greater_than_or_equal,
-)
-
-from decimal import Decimal
+from test_framework.util import assert_equal, assert_greater_than_or_equal
 
 AXION_ACTIVATION_TIME = 2000000600
 

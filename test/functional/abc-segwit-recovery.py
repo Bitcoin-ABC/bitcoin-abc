@@ -23,20 +23,16 @@ from test_framework.messages import (
     CTxOut,
     ToHex,
 )
-from test_framework.p2p import (
-    P2PDataStore,
-)
+from test_framework.p2p import P2PDataStore
 from test_framework.script import (
-    CScript,
-    hash160,
     OP_EQUAL,
     OP_HASH160,
     OP_TRUE,
+    CScript,
+    hash160,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_raises_rpc_error,
-)
+from test_framework.util import assert_raises_rpc_error
 
 TEST_TIME = int(time.time())
 

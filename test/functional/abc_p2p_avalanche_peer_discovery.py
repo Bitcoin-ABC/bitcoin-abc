@@ -12,24 +12,21 @@ import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
-    get_ava_p2p_interface,
     create_coinbase_stakes,
+    get_ava_p2p_interface,
     get_proof_ids,
 )
-from test_framework.key import (
-    ECKey,
-    ECPubKey,
-)
-from test_framework.p2p import p2p_lock
+from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
+    MSG_AVA_PROOF,
+    NODE_AVALANCHE,
+    NODE_NETWORK,
     AvalancheProof,
     CInv,
     FromHex,
-    MSG_AVA_PROOF,
     msg_getdata,
-    NODE_AVALANCHE,
-    NODE_NETWORK,
 )
+from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif

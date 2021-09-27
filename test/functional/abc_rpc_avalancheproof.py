@@ -26,8 +26,8 @@ from test_framework.test_node import ErrorMatch
 from test_framework.util import (
     append_config,
     assert_equal,
-    connect_nodes,
     assert_raises_rpc_error,
+    connect_nodes,
 )
 from test_framework.wallet_util import bytes_to_wif
 

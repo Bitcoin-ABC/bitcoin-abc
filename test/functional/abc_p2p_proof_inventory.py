@@ -6,26 +6,21 @@
 Test proof inventory relaying
 """
 
-from test_framework.avatools import (
-    gen_proof,
-    get_proof_ids,
-    wait_for_proof,
-)
+import time
+
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.avatools import gen_proof, get_proof_ids, wait_for_proof
 from test_framework.key import ECKey
 from test_framework.messages import (
+    MSG_AVA_PROOF,
+    MSG_TYPE_MASK,
     AvalancheProof,
     CInv,
     FromHex,
-    MSG_AVA_PROOF,
-    MSG_TYPE_MASK,
     msg_avaproof,
     msg_getdata,
 )
-from test_framework.p2p import (
-    P2PInterface,
-    p2p_lock,
-)
+from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -33,8 +28,6 @@ from test_framework.util import (
     connect_nodes,
 )
 from test_framework.wallet_util import bytes_to_wif
-
-import time
 
 # Broadcast reattempt occurs every 10 to 15 minutes
 MAX_INITIAL_BROADCAST_DELAY = 15 * 60

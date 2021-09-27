@@ -5,13 +5,10 @@
 
 import time
 
-from test_framework.test_framework import BitcoinTestFramework
+from test_framework.blocktools import create_block, create_coinbase
 from test_framework.p2p import P2PDataStore
+from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-)
 
 
 class InvalidChainsTest(BitcoinTestFramework):

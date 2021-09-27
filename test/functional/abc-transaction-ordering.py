@@ -7,27 +7,18 @@ This test checks that the node software accepts transactions in
 non topological order once the feature is activated.
 """
 
-from collections import deque
 import random
 import time
+from collections import deque
 
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
     make_conform_to_ctor,
 )
-from test_framework.messages import (
-    COutPoint,
-    CTransaction,
-    CTxIn,
-    CTxOut,
-)
+from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
-from test_framework.script import (
-    CScript,
-    OP_RETURN,
-    OP_TRUE,
-)
+from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 

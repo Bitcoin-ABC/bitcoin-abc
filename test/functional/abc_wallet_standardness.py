@@ -6,29 +6,22 @@
 that it might try to spend."""
 
 from decimal import Decimal
-from test_framework.messages import (
-    CTransaction,
-    CTxOut,
-    FromHex,
-    ToHex,
-)
+
+from test_framework.messages import CTransaction, CTxOut, FromHex, ToHex
 from test_framework.script import (
-    CScript,
     OP_1,
     OP_5,
-    OP_CHECKSIG,
     OP_CHECKMULTISIG,
+    OP_CHECKSIG,
     OP_DUP,
     OP_EQUALVERIFY,
     OP_HASH160,
     OP_PUSHDATA1,
+    CScript,
     hash160,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_raises_rpc_error,
-    assert_equal,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 SATOSHI = Decimal('0.01')
 

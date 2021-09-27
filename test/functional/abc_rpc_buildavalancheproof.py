@@ -8,9 +8,7 @@ from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_raises_rpc_error,
-)
+from test_framework.util import assert_raises_rpc_error
 from test_framework.wallet_util import bytes_to_wif
 
 

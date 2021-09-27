@@ -27,14 +27,8 @@ from test_framework.messages import (
     FromHex,
     ToHex,
 )
-from test_framework.p2p import (
-    P2PDataStore,
-)
-from test_framework.script import (
-    CScript,
-    OP_ADD,
-    OP_TRUE,
-)
+from test_framework.p2p import P2PDataStore
+from test_framework.script import OP_ADD, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_raises_rpc_error

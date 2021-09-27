@@ -6,21 +6,19 @@
 Tests for Bitcoin ABC mining RPCs
 """
 
+from decimal import Decimal
+
 from test_framework.cdefs import (
     BLOCK_MAXBYTES_MAXSIGCHECKS_RATIO,
     DEFAULT_MAX_BLOCK_SIZE,
 )
-from test_framework.messages import (
-    XEC,
-)
+from test_framework.messages import XEC
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_greater_than_or_equal,
     connect_nodes,
 )
-
-from decimal import Decimal
 
 AXION_ACTIVATION_TIME = 2000000600
 MINER_FUND_ADDR = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'

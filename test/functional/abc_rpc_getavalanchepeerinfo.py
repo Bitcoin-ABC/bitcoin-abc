@@ -4,8 +4,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the getavalanchepeerinfo RPC."""
 from test_framework.avatools import (
-    get_ava_p2p_interface,
     create_coinbase_stakes,
+    get_ava_p2p_interface,
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework

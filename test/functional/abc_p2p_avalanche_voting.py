@@ -6,13 +6,10 @@
 import random
 
 from test_framework.avatools import (
-    get_ava_p2p_interface,
     create_coinbase_stakes,
+    get_ava_p2p_interface,
 )
-from test_framework.key import (
-    ECKey,
-    ECPubKey,
-)
+from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import AvalancheVote
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal

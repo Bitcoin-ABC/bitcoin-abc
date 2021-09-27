@@ -29,22 +29,19 @@ from test_framework.messages import (
     FromHex,
     ToHex,
 )
-from test_framework.p2p import (
-    P2PDataStore,
-)
+from test_framework.p2p import P2PDataStore
 from test_framework.script import (
-    CScript,
     OP_0,
     OP_1,
     OP_CHECKMULTISIG,
     OP_TRUE,
     SIGHASH_ALL,
     SIGHASH_FORKID,
+    CScript,
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
-
 
 # ECDSA checkmultisig with non-null dummy are invalid since the new mode
 # refuses ECDSA.

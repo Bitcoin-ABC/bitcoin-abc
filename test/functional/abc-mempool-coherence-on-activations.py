@@ -36,16 +36,15 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PDataStore
 from test_framework.script import (
-    CScript,
     OP_CHECKSIG,
     OP_TRUE,
     SIGHASH_ALL,
     SIGHASH_FORKID,
+    CScript,
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
-
 
 # ---Code specific to the activation used for this test---
 

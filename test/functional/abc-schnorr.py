@@ -26,17 +26,15 @@ from test_framework.messages import (
     FromHex,
     ToHex,
 )
-from test_framework.p2p import (
-    P2PDataStore,
-)
+from test_framework.p2p import P2PDataStore
 from test_framework.script import (
-    CScript,
     OP_1,
     OP_CHECKMULTISIG,
     OP_CHECKSIG,
     OP_TRUE,
     SIGHASH_ALL,
     SIGHASH_FORKID,
+    CScript,
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework

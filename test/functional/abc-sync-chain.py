@@ -16,7 +16,6 @@ from test_framework.messages import CBlockHeader, msg_block, msg_headers
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 
-
 NUM_IBD_BLOCKS = 50
 
 

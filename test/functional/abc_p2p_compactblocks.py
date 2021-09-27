@@ -11,9 +11,9 @@ this one can be extended, to cover the checks done for bigger blocks
 (e.g. sigops limits).
 """
 
-from collections import deque
 import random
 import time
+from collections import deque
 
 from test_framework.blocktools import (
     create_block,
@@ -32,12 +32,8 @@ from test_framework.messages import (
     msg_sendcmpct,
     ser_compact_size,
 )
-from test_framework.p2p import (
-    p2p_lock,
-    P2PDataStore,
-    P2PInterface,
-)
-from test_framework.script import CScript, OP_RETURN, OP_TRUE
+from test_framework.p2p import P2PDataStore, P2PInterface, p2p_lock
+from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
