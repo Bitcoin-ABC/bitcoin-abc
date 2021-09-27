@@ -4,21 +4,18 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test mempool acceptance of raw transactions."""
 
-from test_framework.test_framework import BitcoinTestFramework
 from test_framework.key import ECKey
 from test_framework.messages import (
+    MAX_BLOCK_BASE_SIZE,
+    MAX_MONEY,
     XEC,
     COutPoint,
     CTransaction,
     CTxOut,
     FromHex,
-    MAX_BLOCK_BASE_SIZE,
     ToHex,
-    MAX_MONEY,
 )
 from test_framework.script import (
-    hash160,
-    CScript,
     OP_0,
     OP_2,
     OP_3,
@@ -26,11 +23,11 @@ from test_framework.script import (
     OP_EQUAL,
     OP_HASH160,
     OP_RETURN,
+    CScript,
+    hash160,
 )
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-)
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class MempoolAcceptanceTest(BitcoinTestFramework):

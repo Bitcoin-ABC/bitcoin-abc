@@ -5,6 +5,7 @@
 """Tests some generic aspects of the RPC interface."""
 
 import os
+
 from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than_or_equal

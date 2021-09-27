@@ -8,8 +8,8 @@ Test mempool update of transaction descendants/ancestors information (count, siz
 when transactions have been re-added from a disconnected block to the mempool.
 """
 import time
-
 from decimal import Decimal
+
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 

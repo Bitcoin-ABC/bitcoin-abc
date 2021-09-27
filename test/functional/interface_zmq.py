@@ -5,15 +5,12 @@
 """Test the ZMQ notification interface."""
 import struct
 from io import BytesIO
+from time import sleep
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
-from test_framework.test_framework import BitcoinTestFramework
 from test_framework.messages import CTransaction, hash256
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-)
-from time import sleep
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, connect_nodes
 
 
 def hash256_reversed(byte_str):

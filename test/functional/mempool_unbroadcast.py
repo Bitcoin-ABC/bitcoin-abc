@@ -10,11 +10,7 @@ import time
 from test_framework.blocktools import create_confirmed_utxos
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-    disconnect_nodes,
-)
+from test_framework.util import assert_equal, connect_nodes, disconnect_nodes
 
 # 15 minutes in seconds
 MAX_INITIAL_BROADCAST_DELAY = 15 * 60

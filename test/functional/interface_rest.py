@@ -5,14 +5,15 @@
 """Test the REST API."""
 
 import binascii
+import http.client
+import json
+import urllib.parse
 from decimal import Decimal
 from enum import Enum
-import http.client
 from io import BytesIO
-import json
 from struct import pack, unpack
-import urllib.parse
 
+from test_framework.messages import BLOCK_HEADER_SIZE
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -20,8 +21,6 @@ from test_framework.util import (
     assert_greater_than_or_equal,
     hex_str_to_bytes,
 )
-
-from test_framework.messages import BLOCK_HEADER_SIZE
 
 
 class ReqType(Enum):

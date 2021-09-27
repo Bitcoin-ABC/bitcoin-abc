@@ -35,9 +35,9 @@ Test is as follows:
     node1 can't write to disk.
 
 """
-from decimal import Decimal
 import os
 import time
+from decimal import Decimal
 
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
