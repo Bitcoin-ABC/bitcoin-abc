@@ -4,9 +4,10 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test bitcoind shutdown."""
 
+from threading import Thread
+
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, get_rpc_proxy
-from threading import Thread
 
 
 def test_long_call(node):

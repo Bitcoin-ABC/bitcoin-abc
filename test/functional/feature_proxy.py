@@ -38,11 +38,7 @@ from test_framework.socks5 import (
     Socks5Server,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    PORT_MIN,
-    PORT_RANGE,
-)
+from test_framework.util import PORT_MIN, PORT_RANGE, assert_equal
 
 RANGE_BEGIN = PORT_MIN + 2 * PORT_RANGE  # Start after p2p and rpc ports
 

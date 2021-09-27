@@ -13,7 +13,7 @@ import os
 
 from test_framework.blocktools import create_coinbase
 from test_framework.messages import CBlock, ToHex
-from test_framework.script import CScript, OP_RETURN, OP_NOP
+from test_framework.script import OP_NOP, OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,

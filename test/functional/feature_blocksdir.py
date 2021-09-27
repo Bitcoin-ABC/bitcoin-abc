@@ -8,7 +8,10 @@
 import os
 import shutil
 
-from test_framework.test_framework import BitcoinTestFramework, initialize_datadir
+from test_framework.test_framework import (
+    BitcoinTestFramework,
+    initialize_datadir,
+)
 
 
 class BlocksdirTest(BitcoinTestFramework):

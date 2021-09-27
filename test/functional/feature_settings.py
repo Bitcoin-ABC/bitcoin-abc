@@ -5,7 +5,6 @@
 """Test various command line arguments and configuration file parameters."""
 
 import json
-
 from pathlib import Path
 
 from test_framework.test_framework import BitcoinTestFramework

@@ -11,12 +11,12 @@ if uploadtarget has been reached.
 * Verify that the upload counters are reset after 24 hours.
 """
 
-from collections import defaultdict
 import time
+from collections import defaultdict
 
-from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.blocktools import mine_big_block
-from test_framework.messages import CInv, MSG_BLOCK, msg_getdata
+from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
+from test_framework.messages import MSG_BLOCK, CInv, msg_getdata
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal

@@ -41,10 +41,7 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    hex_str_to_bytes,
-)
+from test_framework.util import assert_equal, hex_str_to_bytes
 
 
 class ChainstateWriteCrashTest(BitcoinTestFramework):

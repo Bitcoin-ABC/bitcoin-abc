@@ -40,9 +40,9 @@ bip112txs_vary_OP_CSV_9 - 16 txs with nSequence = 9 evaluated against varying {r
 bip112tx_special - test negative argument to OP_CSV
 """
 
+import time
 from decimal import Decimal
 from itertools import product
-import time
 
 from test_framework.blocktools import (
     create_block,
@@ -52,10 +52,10 @@ from test_framework.blocktools import (
 from test_framework.messages import XEC, CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PDataStore
 from test_framework.script import (
-    CScript,
     OP_CHECKSEQUENCEVERIFY,
     OP_DROP,
     OP_TRUE,
+    CScript,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx

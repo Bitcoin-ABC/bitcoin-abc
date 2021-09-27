@@ -7,7 +7,11 @@
 Test that the DERSIG soft-fork activates at (regtest) height 1251.
 """
 
-from test_framework.blocktools import create_block, create_coinbase, create_transaction
+from test_framework.blocktools import (
+    create_block,
+    create_coinbase,
+    create_transaction,
+)
 from test_framework.messages import msg_block
 from test_framework.p2p import P2PInterface
 from test_framework.script import CScript

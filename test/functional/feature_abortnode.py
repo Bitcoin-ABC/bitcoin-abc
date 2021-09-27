@@ -10,9 +10,10 @@
 - Verify that bitcoind AbortNode's.
 """
 
-from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import get_datadir_path, connect_nodes
 import os
+
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import connect_nodes, get_datadir_path
 
 
 class AbortNodeTest(BitcoinTestFramework):

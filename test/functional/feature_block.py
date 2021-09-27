@@ -8,6 +8,7 @@ import copy
 import struct
 import time
 
+from data import invalid_txs
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
@@ -17,8 +18,8 @@ from test_framework.blocktools import (
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.key import ECKey
 from test_framework.messages import (
-    CBlock,
     COIN,
+    CBlock,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -28,7 +29,6 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PDataStore
 from test_framework.script import (
-    CScript,
     OP_ELSE,
     OP_ENDIF,
     OP_FALSE,
@@ -38,13 +38,12 @@ from test_framework.script import (
     OP_TRUE,
     SIGHASH_ALL,
     SIGHASH_FORKID,
+    CScript,
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
-
-from data import invalid_txs
 
 #  Use this class for tests that require behavior other than normal p2p behavior.
 #  For now, it is used to serialize a bloated varint (b64).
