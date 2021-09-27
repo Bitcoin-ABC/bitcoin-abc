@@ -6,8 +6,11 @@
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
-    assert_equal, assert_is_hex_string, assert_raises_rpc_error,
-    connect_nodes, disconnect_nodes
+    assert_equal,
+    assert_is_hex_string,
+    assert_raises_rpc_error,
+    connect_nodes,
+    disconnect_nodes,
 )
 
 FILTER_TYPES = ["basic"]

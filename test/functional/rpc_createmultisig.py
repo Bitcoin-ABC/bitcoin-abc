@@ -12,10 +12,7 @@ import os
 from test_framework.descriptors import descsum_create, drop_origins
 from test_framework.key import ECPubKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_raises_rpc_error,
-    assert_equal,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class RpcCreateMultiSigTest(BitcoinTestFramework):

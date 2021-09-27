@@ -7,21 +7,21 @@
 Tests correspond to code in rpc/net.cpp.
 """
 
+import time
 from decimal import Decimal
 from itertools import product
-import time
 
+import test_framework.messages
 from test_framework.avatools import create_coinbase_stakes
 from test_framework.key import ECKey
-from test_framework.p2p import P2PInterface
-import test_framework.messages
 from test_framework.messages import NODE_NETWORK
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_approx,
     assert_equal,
-    assert_greater_than_or_equal,
     assert_greater_than,
+    assert_greater_than_or_equal,
     assert_raises_rpc_error,
     connect_nodes,
     p2p_port,

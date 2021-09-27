@@ -5,15 +5,12 @@
 """
 A test for RPC users with restricted permissions
 """
-from test_framework.test_framework import BitcoinTestFramework
-import os
-from test_framework.util import (
-    get_datadir_path,
-    assert_equal,
-    str_to_b64str
-)
 import http.client
+import os
 import urllib.parse
+
+from test_framework.test_framework import BitcoinTestFramework
+from test_framework.util import assert_equal, get_datadir_path, str_to_b64str
 
 
 def rpccall(node, user, method):

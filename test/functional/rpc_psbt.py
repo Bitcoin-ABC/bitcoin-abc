@@ -7,8 +7,8 @@
 
 import json
 import os
-
 from decimal import Decimal
+
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_approx,

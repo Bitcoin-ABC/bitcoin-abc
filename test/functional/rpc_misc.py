@@ -5,15 +5,14 @@
 """Test RPC misc output."""
 import xml.etree.ElementTree as ET
 
+from test_framework.authproxy import JSONRPCException
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
-    assert_raises_rpc_error,
     assert_equal,
     assert_greater_than,
     assert_greater_than_or_equal,
+    assert_raises_rpc_error,
 )
-
-from test_framework.authproxy import JSONRPCException
 
 
 class RpcMiscTest(BitcoinTestFramework):

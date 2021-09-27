@@ -12,10 +12,10 @@ Test the following RPCs:
    - getrawtransaction
 """
 
-from decimal import Decimal
-
 from collections import OrderedDict
+from decimal import Decimal
 from io import BytesIO
+
 from test_framework.messages import (
     COutPoint,
     CTransaction,

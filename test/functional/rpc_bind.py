@@ -4,10 +4,15 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test running bitcoind with the -rpcbind and -rpcallowip options."""
 
-from platform import uname
 import sys
+from platform import uname
 
-from test_framework.netutil import addr_to_hex, all_interfaces, get_bind_addrs, test_ipv6_local
+from test_framework.netutil import (
+    addr_to_hex,
+    all_interfaces,
+    get_bind_addrs,
+    test_ipv6_local,
+)
 from test_framework.test_framework import BitcoinTestFramework, SkipTest
 from test_framework.util import (
     assert_equal,

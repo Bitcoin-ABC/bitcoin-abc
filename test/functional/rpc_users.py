@@ -7,18 +7,14 @@
 import configparser
 import http.client
 import os
-from random import SystemRandom
 import string
 import subprocess
 import sys
 import urllib.parse
+from random import SystemRandom
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    get_datadir_path,
-    str_to_b64str,
-)
+from test_framework.util import assert_equal, get_datadir_path, str_to_b64str
 
 
 def call_with_auth(node, user, password):

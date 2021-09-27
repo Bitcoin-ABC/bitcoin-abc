@@ -5,10 +5,7 @@
 """Test the setban rpc call."""
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    connect_nodes,
-    p2p_port
-)
+from test_framework.util import connect_nodes, p2p_port
 
 
 class SetBanTests(BitcoinTestFramework):
