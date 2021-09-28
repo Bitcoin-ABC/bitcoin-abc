@@ -739,6 +739,8 @@ class TestNodeCLIAttr:
 def arg_to_cli(arg):
     if isinstance(arg, bool):
         return str(arg).lower()
+    elif arg is None:
+        return 'null'
     elif isinstance(arg, dict) or isinstance(arg, list):
         return json.dumps(arg, default=EncodeDecimal)
     else:
@@ -825,17 +827,6 @@ class RPCOverloadWrapper():
 
     def createwallet(self, wallet_name, disable_private_keys=None, blank=None,
                      passphrase='', avoid_reuse=None, descriptors=None, load_on_startup=None):
-        if self.is_cli:
-            if disable_private_keys is None:
-                disable_private_keys = 'null'
-            if blank is None:
-                blank = 'null'
-            if passphrase is None:
-                passphrase = ''
-            if avoid_reuse is None:
-                avoid_reuse = 'null'
-            if load_on_startup is None:
-                load_on_startup = 'null'
         if descriptors is None:
             descriptors = self.descriptors
         return self.__getattr__('createwallet')(
@@ -843,11 +834,6 @@ class RPCOverloadWrapper():
 
     def importprivkey(self, privkey, label=None, rescan=None):
         wallet_info = self.getwalletinfo()
-        if self.is_cli:
-            if label is None:
-                label = 'null'
-            if rescan is None:
-                rescan = 'null'
         if 'descriptors' not in wallet_info or (
                 'descriptors' in wallet_info and not wallet_info['descriptors']):
             return self.__getattr__('importprivkey')(privkey, label, rescan)
@@ -864,9 +850,6 @@ class RPCOverloadWrapper():
     def addmultisigaddress(self, nrequired, keys,
                            label=None):
         wallet_info = self.getwalletinfo()
-        if self.is_cli:
-            if label is None:
-                label = 'null'
         if 'descriptors' not in wallet_info or (
                 'descriptors' in wallet_info and not wallet_info['descriptors']):
             return self.__getattr__('addmultisigaddress')(
@@ -884,11 +867,6 @@ class RPCOverloadWrapper():
 
     def importpubkey(self, pubkey, label=None, rescan=None):
         wallet_info = self.getwalletinfo()
-        if self.is_cli:
-            if label is None:
-                label = 'null'
-            if rescan is None:
-                rescan = 'null'
         if 'descriptors' not in wallet_info or (
                 'descriptors' in wallet_info and not wallet_info['descriptors']):
             return self.__getattr__('importpubkey')(pubkey, label, rescan)
@@ -904,13 +882,6 @@ class RPCOverloadWrapper():
 
     def importaddress(self, address, label=None, rescan=None, p2sh=None):
         wallet_info = self.getwalletinfo()
-        if self.is_cli:
-            if label is None:
-                label = 'null'
-            if rescan is None:
-                rescan = 'null'
-            if p2sh is None:
-                p2sh = 'null'
         if 'descriptors' not in wallet_info or (
                 'descriptors' in wallet_info and not wallet_info['descriptors']):
             return self.__getattr__('importaddress')(
