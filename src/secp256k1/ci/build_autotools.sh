@@ -43,7 +43,6 @@ pushd buildautotools
   --enable-module-schnorr=$SCHNORR \
   --enable-module-schnorrsig=$SCHNORRSIG \
   --enable-jni=$JNI \
-  --enable-openssl-tests=$OPENSSL_TESTS \
   --with-valgrind=$WITH_VALGRIND \
   $AUTOTOOLS_EXTRA_FLAGS \
   $USE_HOST

@@ -16,7 +16,6 @@ env:
   SCHNORRSIG: no
   EXPERIMENTAL: no
   JNI: no
-  OPENSSL_TESTS: auto
   MULTISET: no
   CTIMETEST: yes
   BENCH: yes
@@ -78,7 +77,6 @@ task:
         EXPERIMENTAL: yes
         MULTISET: yes
         SCHNORRSIG: yes
-        OPENSSL_TESTS: no
         AUTOTOOLS_TARGET:
         CMAKE_TARGET: "secp256k1-tests secp256k1-exhaustive_tests"
   matrix:
@@ -103,7 +101,6 @@ task:
     RECOVERY: yes
     EXPERIMENTAL: yes
     SCHNORRSIG: yes
-    OPENSSL_TESTS: no
   matrix:
     - env:
         CC: i686-linux-gnu-gcc
@@ -189,7 +186,6 @@ task:
     EXPERIMENTAL: yes
     MULTISET: yes
     SCHNORRSIG: yes
-    OPENSSL_TESTS: no
     CTIMETEST: no
     AUTOTOOLS_TARGET:
   test_script:

@@ -27,8 +27,6 @@
 #cmakedefine ENABLE_MODULE_EXTRAKEYS
 #cmakedefine ENABLE_MODULE_SCHNORRSIG
 
-#cmakedefine ENABLE_OPENSSL_TESTS
-
 #cmakedefine COVERAGE
 
 #endif /* LIBSECP256K1_CONFIG_H */
