@@ -432,11 +432,14 @@ BOOST_AUTO_TEST_CASE(deserialization) {
         }
     };
 
+    gArgs.ForceSetArg("-legacyavaproof", "1");
+    BOOST_CHECK(Proof::useLegacy(gArgs));
     checkCases(legacyFormatTestCases);
 
     gArgs.ForceSetArg("-legacyavaproof", "0");
     BOOST_CHECK(!Proof::useLegacy(gArgs));
     checkCases(regularFormatTestCases);
+
     gArgs.ClearForcedArg("-legacyavaproof");
 }
 
