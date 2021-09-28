@@ -23,9 +23,9 @@
 #include <util/system.h>
 
 #ifdef ENABLE_WALLET
+#include <wallet/bdb.h>
+#include <wallet/db.h>
 #include <wallet/wallet.h>
-
-#include <db_cxx.h>
 #endif
 
 #include <univalue.h>
@@ -37,6 +37,7 @@
 #include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
+#include <QString>
 #include <QStringList>
 #include <QTime>
 #include <QTimer>
@@ -555,7 +556,8 @@ RPCConsole::RPCConsole(interfaces::Node &node,
 
 // set library version labels
 #ifdef ENABLE_WALLET
-    ui->berkeleyDBVersion->setText(DbEnv::version(nullptr, nullptr, nullptr));
+    ui->berkeleyDBVersion->setText(
+        QString::fromStdString(BerkeleyDatabaseVersion()));
 #else
     ui->label_berkeleyDBVersion->hide();
     ui->berkeleyDBVersion->hide();

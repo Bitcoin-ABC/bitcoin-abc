@@ -297,8 +297,7 @@ bool BerkeleyDatabase::Verify(bilingual_str &errorStr) {
     fs::path walletDir = env->Directory();
     fs::path file_path = walletDir / strFile;
 
-    LogPrintf("Using BerkeleyDB version %s\n",
-              DbEnv::version(nullptr, nullptr, nullptr));
+    LogPrintf("Using BerkeleyDB version %s\n", BerkeleyDatabaseVersion());
     LogPrintf("Using wallet %s\n", file_path.string());
 
     if (!env->Open(errorStr)) {
@@ -823,6 +822,10 @@ bool BerkeleyBatch::TxnAbort() {
     int ret = activeTxn->abort();
     activeTxn = nullptr;
     return (ret == 0);
+}
+
+std::string BerkeleyDatabaseVersion() {
+    return DbEnv::version(nullptr, nullptr, nullptr);
 }
 
 bool BerkeleyBatch::ReadKey(CDataStream &&key, CDataStream &value) {

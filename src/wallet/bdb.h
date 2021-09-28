@@ -243,4 +243,6 @@ public:
     bool TxnAbort() override;
 };
 
+std::string BerkeleyDatabaseVersion();
+
 #endif // BITCOIN_WALLET_BDB_H
