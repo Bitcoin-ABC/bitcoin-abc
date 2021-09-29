@@ -747,20 +747,6 @@ void CTxMemPool::clear() {
     _clear();
 }
 
-static void CheckInputsAndUpdateCoins(const CTransaction &tx,
-                                      CCoinsViewCache &mempoolDuplicate,
-                                      const int64_t spendheight) {
-    // Not used. CheckTxInputs() should always pass
-    TxValidationState dummy_state;
-    Amount txfee = Amount::zero();
-    bool fCheckResult =
-        tx.IsCoinBase() ||
-        Consensus::CheckTxInputs(tx, dummy_state, mempoolDuplicate, spendheight,
-                                 txfee);
-    assert(fCheckResult);
-    UpdateCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
-}
-
 void CTxMemPool::check(CChainState &active_chainstate) const {
     if (m_check_ratio == 0) {
         return;
@@ -876,7 +862,15 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
         assert(it->GetSigOpCountWithDescendants() >=
                child_sigop_counts + it->GetSigOpCount());
 
-        CheckInputsAndUpdateCoins(tx, mempoolDuplicate, spendheight);
+        // Not used. CheckTxInputs() should always pass
+        TxValidationState dummy_state;
+        Amount txfee{Amount::zero()};
+        bool fCheckResult =
+            tx.IsCoinBase() ||
+            Consensus::CheckTxInputs(tx, dummy_state, mempoolDuplicate,
+                                     spendheight, txfee);
+        assert(fCheckResult);
+        UpdateCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
     }
 
     for (auto it = mapNextTx.cbegin(); it != mapNextTx.cend(); it++) {
