@@ -147,18 +147,23 @@ private:
                        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         argsman.AddArg("-mbox=<mbox>", "E-Mail address reported in SOA records",
                        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        argsman.AddArg("-threads=<threads>",
-                       "Number of crawlers to run in parallel (default 96)",
-                       ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+        argsman.AddArg(
+            "-threads=<threads>",
+            strprintf("Number of crawlers to run in parallel (default: %d)",
+                      DEFAULT_NUM_THREADS),
+            ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         argsman.AddArg("-dnsthreads=<threads>",
-                       "Number of DNS server threads (default 4)",
+                       strprintf("Number of DNS server threads (default: %d)",
+                                 DEFAULT_NUM_DNS_THREADS),
                        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
         argsman.AddArg("-address=<address>",
                        strprintf("Address to listen on (default: '%s')",
                                  DEFAULT_LISTEN_ADDRESS),
                        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
-        argsman.AddArg("-port=<port>", "UDP port to listen on (default 53)",
-                       ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+        argsman.AddArg(
+            "-port=<port>",
+            strprintf("UDP port to listen on (default: %d)", DEFAULT_PORT),
+            ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         argsman.AddArg("-onion=<ip:port>", "Tor proxy IP/Port",
                        ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
         argsman.AddArg("-overridednsseed",
