@@ -729,17 +729,14 @@ void CTxMemPool::removeForReorg(const Config &config,
                         continue;
                     }
 
-                    const Coin &coin =
-                        active_chainstate.CoinsTip().AccessCoin(txin.prevout);
-                    if (m_check_ratio != 0) {
-                        assert(!coin.IsSpent());
-                    }
+                    const Coin &coin{
+                        active_chainstate.CoinsTip().AccessCoin(txin.prevout)};
+                    assert(!coin.IsSpent());
                     const auto mempool_spend_height{
                         active_chainstate.m_chain.Tip()->nHeight + 1};
-                    if (coin.IsSpent() ||
-                        (coin.IsCoinBase() &&
-                         mempool_spend_height - coin.GetHeight() <
-                             COINBASE_MATURITY)) {
+                    if (coin.IsCoinBase() &&
+                        mempool_spend_height - coin.GetHeight() <
+                            COINBASE_MATURITY) {
                         should_remove = true;
                         break;
                     }
