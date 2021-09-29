@@ -2847,7 +2847,7 @@ bool CChainState::ActivateBestChainStep(
         disconnectpool.updateMempoolForReorg(config, *this, true, m_mempool);
     }
 
-    m_mempool.check(*this);
+    m_mempool.check(this->CoinsTip(), this->m_chain.Height() + 1);
 
     // Callbacks/notifications for a new best chain.
     if (fInvalidFound) {
