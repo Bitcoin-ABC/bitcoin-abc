@@ -80,6 +80,31 @@ const SWName = styled.div`
     }
 `;
 
+const SWBalance = styled.div`
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    word-wrap: break-word;
+    hyphens: auto;
+
+    @media (max-width: 500px) {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    h4 {
+        font-size: 16px;
+        color: ${props => props.theme.wallet.text.secondary};
+        margin: 0;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+`;
+
 const SWButtonCtn = styled.div`
     width: 50%;
     display: flex;
@@ -533,6 +558,7 @@ const Configure = () => {
                         <Panel header="Saved wallets" key="2">
                             <AWRow>
                                 <h3>{wallet.name}</h3>
+                                <h4>Balance</h4>
                                 <h4>Currently active</h4>
                             </AWRow>
                             <div>
@@ -541,7 +567,15 @@ const Configure = () => {
                                         <SWName>
                                             <h3>{sw.name}</h3>
                                         </SWName>
-
+                                        
+                                        <SWBalance>
+                                            <h4>
+                                                {
+                                                    sw.state?.balances
+                                                        .totalBalance
+                                                }
+                                            </h4>
+                                        </SWBalance>
                                         <SWButtonCtn>
                                             <Edit
                                                 onClick={() =>
