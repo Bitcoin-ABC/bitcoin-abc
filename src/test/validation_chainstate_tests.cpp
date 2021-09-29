@@ -111,24 +111,23 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
 
     curr_tip = BlockHash{::g_best_block};
 
-    Chainstate *background_cs = nullptr;
+    BOOST_CHECK_EQUAL(chainman.GetAll().size(), 2);
 
-    auto chainstates = chainman.GetAll();
-    BOOST_CHECK_EQUAL(chainstates.size(), 2);
-    for (Chainstate *cs : chainman.GetAll()) {
-        BOOST_CHECK(cs);
-        if (cs != &chainman.ActiveChainstate()) {
-            background_cs = cs;
+    Chainstate &background_cs{*[&] {
+        for (Chainstate *cs : chainman.GetAll()) {
+            if (cs != &chainman.ActiveChainstate()) {
+                return cs;
+            }
         }
-    }
-    BOOST_CHECK(background_cs);
+        assert(false);
+    }()};
 
     // Create a block to append to the validation chain.
     std::vector<CMutableTransaction> noTxns;
     CScript scriptPubKey = CScript() << ToByteVector(coinbaseKey.GetPubKey())
                                      << OP_CHECKSIG;
     CBlock validation_block =
-        this->CreateBlock(noTxns, scriptPubKey, *background_cs);
+        this->CreateBlock(noTxns, scriptPubKey, background_cs);
     auto pblock = std::make_shared<const CBlock>(validation_block);
     BlockValidationState state;
     bool newblock = false;
@@ -142,15 +141,15 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
         bool checked = CheckBlock(
             *pblock, state, config.GetChainParams().GetConsensus(), options);
         BOOST_CHECK(checked);
-        bool accepted = background_cs->AcceptBlock(config, pblock, state, true,
-                                                   nullptr, &newblock);
+        bool accepted = background_cs.AcceptBlock(config, pblock, state, true,
+                                                  nullptr, &newblock);
         BOOST_CHECK(accepted);
     }
     // UpdateTip is called here
-    bool block_added = background_cs->ActivateBestChain(config, state, pblock);
+    bool block_added = background_cs.ActivateBestChain(config, state, pblock);
 
     // Ensure tip is as expected
-    BOOST_CHECK_EQUAL(background_cs->m_chain.Tip()->GetBlockHash(),
+    BOOST_CHECK_EQUAL(background_cs.m_chain.Tip()->GetBlockHash(),
                       validation_block.GetHash());
 
     // g_best_block should be unchanged after adding a block to the background
