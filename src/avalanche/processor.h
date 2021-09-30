@@ -105,7 +105,7 @@ class Processor {
     /**
      * Blocks to run avalanche on.
      */
-    RWCollection<BlockVoteMap> vote_records;
+    RWCollection<BlockVoteMap> blockVoteRecords;
 
     /**
      * Keep track of peers and queries sent.

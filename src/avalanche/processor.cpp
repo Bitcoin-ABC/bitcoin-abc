@@ -256,13 +256,13 @@ bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
         isAccepted = ::ChainActive().Contains(pindex);
     }
 
-    return vote_records.getWriteView()
+    return blockVoteRecords.getWriteView()
         ->insert(std::make_pair(pindex, VoteRecord(isAccepted)))
         .second;
 }
 
 bool Processor::isAccepted(const CBlockIndex *pindex) const {
-    auto r = vote_records.getReadView();
+    auto r = blockVoteRecords.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
         return false;
@@ -272,7 +272,7 @@ bool Processor::isAccepted(const CBlockIndex *pindex) const {
 }
 
 int Processor::getConfidence(const CBlockIndex *pindex) const {
-    auto r = vote_records.getReadView();
+    auto r = blockVoteRecords.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
         return -1;
@@ -387,7 +387,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 
     {
         // Register votes.
-        auto w = vote_records.getWriteView();
+        auto w = blockVoteRecords.getWriteView();
         for (const auto &p : responseIndex) {
             CBlockIndex *pindex = p.first;
             const Vote &v = p.second;
@@ -484,7 +484,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     // First remove all blocks that are not worth polling.
     {
         LOCK(cs_main);
-        auto w = vote_records.getWriteView();
+        auto w = blockVoteRecords.getWriteView();
         for (auto it = w->begin(); it != w->end();) {
             const CBlockIndex *pindex = it->first;
             if (!IsWorthPolling(pindex)) {
@@ -495,7 +495,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         }
     }
 
-    auto r = vote_records.getReadView();
+    auto r = blockVoteRecords.getReadView();
     for (const std::pair<const CBlockIndex *const, VoteRecord> &p :
          reverse_iterate(r)) {
         // Check if we can run poll.
@@ -558,7 +558,7 @@ void Processor::clearTimedoutRequests() {
             }
         }
 
-        auto w = vote_records.getWriteView();
+        auto w = blockVoteRecords.getWriteView();
         auto it = w->find(pindex);
         if (it == w.end()) {
             continue;
