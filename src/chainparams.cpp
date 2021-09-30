@@ -201,6 +201,8 @@ public:
         vSeeds.emplace_back("seed.bchd.cash");
         // Fabien
         vSeeds.emplace_back("seeder.fabien.cash");
+        // status.cash
+        vSeeds.emplace_back("seeder.status.cash");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<uint8_t>(1, 0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<uint8_t>(1, 5);
