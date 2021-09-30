@@ -18,7 +18,6 @@ from collections import deque
 from test_framework.blocktools import (
     create_block,
     create_coinbase,
-    create_tx_with_script,
     make_conform_to_ctor,
 )
 from test_framework.cdefs import ONE_MEGABYTE
@@ -68,11 +67,6 @@ class FullBlockTest(BitcoinTestFramework):
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
-
-    # this is a little handier to use than the version in blocktools.py
-    def create_tx(self, spend, value, script=CScript([OP_TRUE])):
-        tx = create_tx_with_script(spend.tx, spend.n, b"", value, script)
-        return tx
 
     def next_block(self, number, spend=None,
                    script=CScript([OP_TRUE]), block_size=0):
