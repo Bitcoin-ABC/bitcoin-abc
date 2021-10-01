@@ -26,6 +26,7 @@ import struct
 import time
 import unittest
 from codecs import encode
+from enum import IntEnum
 from io import BytesIO
 from typing import List
 
@@ -975,6 +976,16 @@ class AvalanchePoll():
     def __repr__(self):
         return "AvalanchePoll(round={}, invs={})".format(
             self.round, repr(self.invs))
+
+
+class AvalancheVoteError(IntEnum):
+    ACCEPTED = 0
+    INVALID = 1
+    PARKED = 2
+    FORK = 3
+    UNKNOWN = -1
+    MISSING = -2
+    PENDING = -3
 
 
 class AvalancheVote():

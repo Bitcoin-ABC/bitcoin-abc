@@ -10,18 +10,10 @@ from test_framework.avatools import (
     get_ava_p2p_interface,
 )
 from test_framework.key import ECKey, ECPubKey
-from test_framework.messages import AvalancheVote
+from test_framework.messages import AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
-
-BLOCK_ACCEPTED = 0
-BLOCK_INVALID = 1
-BLOCK_PARKED = 2
-BLOCK_FORK = 3
-BLOCK_UNKNOWN = -1
-BLOCK_MISSING = -2
-BLOCK_PENDING = -3
 
 QUORUM_NODE_COUNT = 16
 
@@ -79,7 +71,8 @@ class AvalancheTest(BitcoinTestFramework):
             for i in range(0, len(votes)):
                 assert_equal(repr(votes[i]), repr(expected[i]))
 
-        assert_response([AvalancheVote(BLOCK_ACCEPTED, best_block_hash)])
+        assert_response(
+            [AvalancheVote(AvalancheVoteError.ACCEPTED, best_block_hash)])
 
         self.log.info("Poll for a selection of blocks...")
         various_block_hashes = [
@@ -94,7 +87,7 @@ class AvalancheTest(BitcoinTestFramework):
         ]
 
         poll_node.send_poll(various_block_hashes)
-        assert_response([AvalancheVote(BLOCK_ACCEPTED, h)
+        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, h)
                          for h in various_block_hashes])
 
         self.log.info(
@@ -108,8 +101,8 @@ class AvalancheTest(BitcoinTestFramework):
         node.reconsiderblock(invalidated_block)
 
         poll_node.send_poll(various_block_hashes)
-        assert_response([AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:5]] +
-                        [AvalancheVote(BLOCK_FORK, h) for h in various_block_hashes[-3:]])
+        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, h) for h in various_block_hashes[:5]] +
+                        [AvalancheVote(AvalancheVoteError.FORK, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Poll for unknown blocks...")
         various_block_hashes = [
@@ -124,9 +117,9 @@ class AvalancheTest(BitcoinTestFramework):
             random.randrange(1 << 255, (1 << 256) - 1),
         ]
         poll_node.send_poll(various_block_hashes)
-        assert_response([AvalancheVote(BLOCK_ACCEPTED, h) for h in various_block_hashes[:3]] +
-                        [AvalancheVote(BLOCK_FORK, h) for h in various_block_hashes[3:6]] +
-                        [AvalancheVote(BLOCK_UNKNOWN, h) for h in various_block_hashes[-3:]])
+        assert_response([AvalancheVote(AvalancheVoteError.ACCEPTED, h) for h in various_block_hashes[:3]] +
+                        [AvalancheVote(AvalancheVoteError.FORK, h) for h in various_block_hashes[3:6]] +
+                        [AvalancheVote(AvalancheVoteError.UNKNOWN, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Trigger polling from the node...")
         # duplicate the deterministic sig test from src/test/key_tests.cpp
@@ -147,7 +140,7 @@ class AvalancheTest(BitcoinTestFramework):
                 n.nodeid, privkey.get_pubkey().get_bytes().hex(), proof)
             assert success is True
 
-        def can_find_block_in_poll(hash, resp=BLOCK_ACCEPTED):
+        def can_find_block_in_poll(hash, resp=AvalancheVoteError.ACCEPTED):
             found_hash = False
             for n in quorum:
                 poll = n.get_avapoll_if_available()
@@ -160,7 +153,7 @@ class AvalancheTest(BitcoinTestFramework):
                 votes = []
                 for inv in poll.invs:
                     # Vote yes to everything
-                    r = BLOCK_ACCEPTED
+                    r = AvalancheVoteError.ACCEPTED
 
                     # Look for what we expect
                     if inv.hash == hash:
@@ -217,7 +210,7 @@ class AvalancheTest(BitcoinTestFramework):
         assert(tip_to_park != fork_tip)
 
         def has_parked_new_tip():
-            can_find_block_in_poll(hash_to_find, BLOCK_PARKED)
+            can_find_block_in_poll(hash_to_find, AvalancheVoteError.PARKED)
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
