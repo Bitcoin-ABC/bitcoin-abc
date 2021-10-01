@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_PROCESSOR_H
 
 #include <avalanche/node.h>
+#include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
 #include <blockindexworkcomparator.h>
 #include <eventloop.h>
@@ -91,6 +92,8 @@ public:
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
+using ProofVoteMap = std::map<const std::shared_ptr<Proof>, VoteRecord,
+                              ProofSharedPointerComparator>;
 
 struct query_timeout {};
 
@@ -106,6 +109,11 @@ class Processor {
      * Blocks to run avalanche on.
      */
     RWCollection<BlockVoteMap> blockVoteRecords;
+
+    /**
+     * Proofs to run avalanche on.
+     */
+    RWCollection<ProofVoteMap> proofsVoteRecords;
 
     /**
      * Keep track of peers and queries sent.
@@ -176,6 +184,8 @@ public:
     }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
+    void addProofToReconcile(const std::shared_ptr<Proof> &proof,
+                             bool isAccepted);
     bool isAccepted(const CBlockIndex *pindex) const;
     int getConfidence(const CBlockIndex *pindex) const;
 
