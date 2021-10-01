@@ -97,6 +97,7 @@ The Bitcoin ABC repo's [root README](/README.md) contains relevant information o
 
 ### Miscellaneous
 - [Assets Attribution](assets-attribution.md)
+- [Assumeutxo design](assumeutxo.md)
 - [bitcoin.conf Configuration File](bitcoin-conf.md)
 - [Files](files.md)
 - [Fuzz-testing](fuzzing.md)
