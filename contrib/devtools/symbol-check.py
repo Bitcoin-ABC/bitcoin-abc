@@ -74,6 +74,23 @@ IGNORE_EXPORTS = {
     "_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv",
 }
 
+# Expected linker-loader names can be found here:
+# https://sourceware.org/glibc/wiki/ABIList?action=recall&rev=16
+ELF_INTERPRETER_NAMES = {
+    lief.ELF.ARCH.i386: {
+        lief.ENDIANNESS.LITTLE: "/lib/ld-linux.so.2",
+    },
+    lief.ELF.ARCH.x86_64: {
+        lief.ENDIANNESS.LITTLE: "/lib64/ld-linux-x86-64.so.2",
+    },
+    lief.ELF.ARCH.ARM: {
+        lief.ENDIANNESS.LITTLE: "/lib/ld-linux-armhf.so.3",
+    },
+    lief.ELF.ARCH.AARCH64: {
+        lief.ENDIANNESS.LITTLE: "/lib/ld-linux-aarch64.so.1",
+    },
+}
+
 # Allowed NEEDED libraries
 ELF_ALLOWED_LIBRARIES = {
     # bitcoind and bitcoin-qt
@@ -291,11 +308,21 @@ def check_PE_subsystem_version(filename) -> bool:
     return major == 6 and minor == 1
 
 
+def check_ELF_interpreter(filename) -> bool:
+    binary = lief.parse(filename)
+    expected_interpreter = ELF_INTERPRETER_NAMES[binary.header.machine_type][
+        binary.abstract.header.endianness
+    ]
+
+    return binary.concrete.interpreter == expected_interpreter
+
+
 CHECKS = {
     "ELF": [
         ("IMPORTED_SYMBOLS", check_imported_symbols),
         ("EXPORTED_SYMBOLS", check_exported_symbols),
         ("LIBRARY_DEPENDENCIES", check_ELF_libraries),
+        ("INTERPRETER_NAME", check_ELF_interpreter),
     ],
     "MACHO": [
         ("DYNAMIC_LIBRARIES", check_MACHO_libraries),
