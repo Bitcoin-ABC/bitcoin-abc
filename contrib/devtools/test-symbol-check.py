@@ -14,7 +14,17 @@ from utils import determine_wellknown_cmd
 
 
 def call_symbol_check(cc: List[str], source, executable, options):
-    subprocess.run([*cc, source, "-o", executable] + options, check=True)
+    # This should behave the same as AC_TRY_LINK, so arrange well-known flags
+    # in the same order as autoconf would.
+    #
+    # See the definitions for ac_link in autoconf's lib/autoconf/c.m4 file for
+    # reference.
+    # Arrange well-known flags in the same order as cmake would.
+    env_flags: List[str] = []
+    for var in ["CFLAGS", "CPPFLAGS", "LDFLAGS"]:
+        env_flags += filter(None, os.environ.get(var, "").split(" "))
+
+    subprocess.run([*cc, source, "-o", executable] + env_flags + options, check=True)
     p = subprocess.run(
         ["./contrib/devtools/symbol-check.py", executable],
         stdout=subprocess.PIPE,
@@ -22,7 +32,7 @@ def call_symbol_check(cc: List[str], source, executable, options):
     )
     os.remove(source)
     os.remove(executable)
-    return (p.returncode, p.stdout.rstrip())
+    return p.returncode, p.stdout.rstrip()
 
 
 class TestSymbolChecks(unittest.TestCase):
@@ -54,7 +64,7 @@ class TestSymbolChecks(unittest.TestCase):
             (
                 1,
                 executable
-                + ": symbol renameat2 from unsupported version GLIBC_2.28\n"
+                + ": symbol renameat2 from unsupported version GLIBC_2.28(3)\n"
                 + executable
                 + ": failed IMPORTED_SYMBOLS",
             ),
@@ -81,7 +91,7 @@ class TestSymbolChecks(unittest.TestCase):
             (
                 1,
                 executable
-                + ": NEEDED library libutil.so.1 is not allowed\n"
+                + ": libutil.so.1 is not ALLOWED_LIBRARIES\n"
                 + executable
                 + ": failed LIBRARY_DEPENDENCIES",
             ),

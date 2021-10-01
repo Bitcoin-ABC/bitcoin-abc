@@ -10,13 +10,9 @@ Example usage:
 
     find contrib/gitian-builder/build -type f -executable | xargs python3 contrib/devtools/symbol-check.py
 """
-import subprocess
 import sys
-from typing import Optional
 
 import lief
-import pixie
-from utils import determine_wellknown_cmd
 
 # Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS
 #
@@ -32,10 +28,10 @@ from utils import determine_wellknown_cmd
 MAX_VERSIONS = {
     "GCC": (8, 3, 0),
     "GLIBC": {
-        pixie.EM_386: (2, 28),
-        pixie.EM_X86_64: (2, 28),
-        pixie.EM_ARM: (2, 28),
-        pixie.EM_AARCH64: (2, 28),
+        lief.ELF.ARCH.i386: (2, 28),
+        lief.ELF.ARCH.x86_64: (2, 28),
+        lief.ELF.ARCH.ARM: (2, 28),
+        lief.ELF.ARCH.AARCH64: (2, 28),
     },
     "LIBATOMIC": (1, 0),
     "V": (0, 5, 0),  # xkb (bitcoin-qt only)
@@ -184,38 +180,8 @@ PE_ALLOWED_LIBRARIES = {
 }
 
 
-class CPPFilt(object):
-    """
-    Demangle C++ symbol names.
-
-    Use a pipe to the 'c++filt' command.
-    """
-
-    def __init__(self):
-        self.proc = subprocess.Popen(
-            determine_wellknown_cmd("CPPFILT", "c++filt"),
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            universal_newlines=True,
-        )
-
-    def __call__(self, mangled):
-        self.proc.stdin.write(mangled + "\n")
-        self.proc.stdin.flush()
-        return self.proc.stdout.readline().rstrip()
-
-    def close(self):
-        self.proc.stdin.close()
-        self.proc.stdout.close()
-        self.proc.wait()
-
-
 def check_version(max_versions, version, arch) -> bool:
-    if "_" in version:
-        (lib, _, ver) = version.rpartition("_")
-    else:
-        lib = version
-        ver = "0"
+    (lib, _, ver) = version.rpartition("_")
     ver = tuple([int(x) for x in ver.split(".")])
     if lib not in max_versions:
         return False
@@ -225,53 +191,57 @@ def check_version(max_versions, version, arch) -> bool:
         return ver <= max_versions[lib][arch]
 
 
-def check_imported_symbols(filename) -> bool:
-    elf = pixie.load(filename)
-    cppfilt = CPPFilt()
+def check_imported_symbols(binary) -> bool:
     ok = True
 
-    for symbol in elf.dyn_symbols:
-        if not symbol.is_import:
+    for symbol in binary.imported_symbols:
+        if not symbol.imported:
             continue
-        sym = symbol.name.decode()
-        version = symbol.version.decode() if symbol.version is not None else None
-        if version and not check_version(MAX_VERSIONS, version, elf.hdr.e_machine):
-            print(
-                f"{filename}: symbol {cppfilt(sym)} from unsupported version {version}"
+
+        version = symbol.symbol_version if symbol.has_version else None
+
+        if version:
+            aux_version = (
+                version.symbol_version_auxiliary.name
+                if version.has_auxiliary_version
+                else None
             )
-            ok = False
+            if aux_version and not check_version(
+                MAX_VERSIONS, aux_version, binary.header.machine_type
+            ):
+                print(
+                    f"{filename}: symbol {symbol.name} from unsupported version"
+                    f" {version}"
+                )
+                ok = False
     return ok
 
 
-def check_exported_symbols(filename) -> bool:
-    elf = pixie.load(filename)
-    cppfilt = CPPFilt()
+def check_exported_symbols(binary) -> bool:
     ok = True
-    for symbol in elf.dyn_symbols:
-        if not symbol.is_export:
+
+    for symbol in binary.dynamic_symbols:
+        if not symbol.exported:
             continue
-        sym = symbol.name.decode()
-        if sym in IGNORE_EXPORTS:
+        name = symbol.name
+        if name in IGNORE_EXPORTS:
             continue
-        print(f"{filename}: export of symbol {cppfilt(sym)} not allowed")
+        print(f"{binary.name}: export of symbol {name} not allowed!")
         ok = False
     return ok
 
 
-def check_ELF_libraries(filename) -> bool:
+def check_ELF_libraries(binary) -> bool:
     ok = True
-    elf = pixie.load(filename)
-    for library_name in elf.query_dyn_tags(pixie.DT_NEEDED):
-        assert isinstance(library_name, bytes)
-        if library_name.decode() not in ELF_ALLOWED_LIBRARIES:
-            print(f"{filename}: NEEDED library {library_name.decode()} is not allowed")
+    for library in binary.libraries:
+        if library not in ELF_ALLOWED_LIBRARIES:
+            print(f"{filename}: {library} is not in ALLOWED_LIBRARIES!")
             ok = False
     return ok
 
 
-def check_MACHO_libraries(filename) -> bool:
-    ok: bool = True
-    binary = lief.parse(filename)
+def check_MACHO_libraries(binary) -> bool:
+    ok = True
     for dylib in binary.libraries:
         split = dylib.name.split("/")
         if split[-1] not in MACHO_ALLOWED_LIBRARIES:
@@ -280,19 +250,16 @@ def check_MACHO_libraries(filename) -> bool:
     return ok
 
 
-def check_MACHO_min_os(filename) -> bool:
-    binary = lief.parse(filename)
+def check_MACHO_min_os(binary) -> bool:
     return binary.build_version.minos == [10, 15, 0]
 
 
-def check_MACHO_sdk(filename) -> bool:
-    binary = lief.parse(filename)
+def check_MACHO_sdk(binary) -> bool:
     return binary.build_version.sdk == [10, 15, 6]
 
 
-def check_PE_libraries(filename) -> bool:
+def check_PE_libraries(binary) -> bool:
     ok: bool = True
-    binary = lief.parse(filename)
     for dylib in binary.libraries:
         if dylib not in PE_ALLOWED_LIBRARIES:
             print(f"{dylib} is not in ALLOWED_LIBRARIES!")
@@ -300,15 +267,14 @@ def check_PE_libraries(filename) -> bool:
     return ok
 
 
-def check_PE_subsystem_version(filename) -> bool:
+def check_PE_subsystem_version(binary) -> bool:
     binary = lief.parse(filename)
     major: int = binary.optional_header.major_subsystem_version
     minor: int = binary.optional_header.minor_subsystem_version
     return major == 6 and minor == 1
 
 
-def check_ELF_interpreter(filename) -> bool:
-    binary = lief.parse(filename)
+def check_ELF_interpreter(binary) -> bool:
     expected_interpreter = ELF_INTERPRETER_NAMES[binary.header.machine_type][
         binary.abstract.header.endianness
     ]
@@ -335,31 +301,18 @@ CHECKS = {
 }
 
 
-def identify_executable(filename) -> Optional[str]:
-    with open(filename, "rb") as f:
-        magic = f.read(4)
-    if magic.startswith(b"MZ"):
-        return "PE"
-    elif magic.startswith(b"\x7fELF"):
-        return "ELF"
-    elif magic.startswith(b"\xcf\xfa"):
-        return "MACHO"
-    return None
-
-
 if __name__ == "__main__":
     retval = 0
     for filename in sys.argv[1:]:
         try:
-            etype = identify_executable(filename)
-            if etype is None:
-                print(f"{filename}: unknown format")
-                retval = 1
-                continue
+            binary = lief.parse(filename)
+            etype = binary.format.name
+            if etype == lief.EXE_FORMATS.UNKNOWN:
+                print(f"{filename}: unknown executable format")
 
             failed = []
             for name, func in CHECKS[etype]:
-                if not func(filename):
+                if not func(binary):
                     failed.append(name)
             if failed:
                 print(f'{filename}: failed {" ".join(failed)}')
