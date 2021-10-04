@@ -11,6 +11,8 @@ from .util import assert_equal, hex_str_to_bytes
 
 ADDRESS_ECREG_UNSPENDABLE = 'ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt'
 ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR = 'addr(ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt)#u6xx93xc'
+# Coins sent to this address can be spent with a scriptSig of just OP_TRUE
+ADDRESS_ECREG_P2SH_OP_TRUE = 'ecregtest:prdpw30fk4ym6zl6rftfjuw806arpn26fvkgfu97xt'
 
 chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 

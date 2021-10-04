@@ -7,8 +7,10 @@
 Test that permissions are correctly calculated and applied
 """
 
+from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE
 from test_framework.messages import CTransaction, FromHex
 from test_framework.p2p import P2PDataStore
+from test_framework.script import OP_TRUE, CScript, CScriptOp
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.txtools import pad_tx
@@ -117,11 +119,8 @@ class P2PPermissionsTests(BitcoinTestFramework):
             match=ErrorMatch.PARTIAL_REGEX)
 
     def check_tx_relay(self):
-        address = self.nodes[0].get_deterministic_priv_key().address
-        key = self.nodes[0].get_deterministic_priv_key().key
-        block = self.nodes[0].getblock(
-            self.nodes[0].generatetoaddress(
-                100, address)[0])
+        block_op_true = self.nodes[0].getblock(
+            self.nodes[0].generatetoaddress(100, ADDRESS_ECREG_P2SH_OP_TRUE)[0])
         self.sync_all()
 
         self.log.debug(
@@ -135,12 +134,12 @@ class P2PPermissionsTests(BitcoinTestFramework):
             P2PDataStore())
 
         self.log.debug("Send a tx from the wallet initially")
-        raw_tx = self.nodes[0].createrawtransaction(
-            inputs=[{'txid': block['tx'][0], 'vout': 0}],
-            outputs=[{address: 50, }])
-        signed_tx = self.nodes[0].signrawtransactionwithkey(raw_tx,
-                                                            [key])['hex']
-        tx = FromHex(CTransaction(), signed_tx)
+        tx = FromHex(CTransaction(),
+                     self.nodes[0].createrawtransaction(
+                         inputs=[{'txid': block_op_true['tx'][0], 'vout': 0}],
+                         outputs=[{ADDRESS_ECREG_P2SH_OP_TRUE: 50}]))
+        # push the one byte script to the stack
+        tx.vin[0].scriptSig = CScriptOp.encode_op_pushdata(CScript([OP_TRUE]))
         pad_tx(tx)
         txid = tx.rehash()
 
