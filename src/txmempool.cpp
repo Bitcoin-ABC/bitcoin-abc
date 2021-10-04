@@ -8,6 +8,7 @@
 #include <chain.h>
 #include <chainparams.h> // for GetConsensus.
 #include <clientversion.h>
+#include <coins.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/tx_verify.h>
@@ -870,7 +871,10 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
             Consensus::CheckTxInputs(tx, dummy_state, mempoolDuplicate,
                                      spendheight, txfee);
         assert(fCheckResult);
-        UpdateCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
+        for (const auto &input : tx.vin) {
+            mempoolDuplicate.SpendCoin(input.prevout);
+        }
+        AddCoins(mempoolDuplicate, tx, std::numeric_limits<int>::max());
     }
 
     for (auto it = mapNextTx.cbegin(); it != mapNextTx.cend(); it++) {

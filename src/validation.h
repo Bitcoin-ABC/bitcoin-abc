@@ -465,7 +465,6 @@ void SpendCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
 /**
  * Apply the effects of this transaction on the UTXO set represented by view.
  */
-void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight);
 void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight);
 

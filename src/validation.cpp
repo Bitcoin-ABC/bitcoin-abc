@@ -1145,19 +1145,6 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
     AddCoins(view, tx, nHeight);
 }
 
-void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, int nHeight) {
-    // Mark inputs spent.
-    if (!tx.IsCoinBase()) {
-        for (const CTxIn &txin : tx.vin) {
-            bool is_spent = view.SpendCoin(txin.prevout);
-            assert(is_spent);
-        }
-    }
-
-    // Add outputs.
-    AddCoins(view, tx, nHeight);
-}
-
 bool CScriptCheck::operator()() {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
     if (!VerifyScript(scriptSig, m_tx_out.scriptPubKey, nFlags,
