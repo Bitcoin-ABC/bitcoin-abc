@@ -209,7 +209,8 @@ void UnlinkPrunedFiles(const std::set<int> &setFilesToPrune) {
         FlatFilePos pos(i, 0);
         fs::remove(BlockFileSeq().FileName(pos));
         fs::remove(UndoFileSeq().FileName(pos));
-        LogPrintf("Prune: %s deleted blk/rev (%05u)\n", __func__, i);
+        LogPrint(BCLog::BLOCKSTORE, "Prune: %s deleted blk/rev (%05u)\n",
+                 __func__, i);
     }
 }
 
@@ -268,7 +269,7 @@ bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int nHeight,
 
     if ((int)nFile != nLastBlockFile) {
         if (!fKnown) {
-            LogPrint(BCLog::VALIDATION, "Leaving block file %i: %s\n",
+            LogPrint(BCLog::BLOCKSTORE, "Leaving block file %i: %s\n",
                      nLastBlockFile, vinfoBlockFile[nLastBlockFile].ToString());
         }
         FlushBlockFile(!fKnown, finalize_undo);

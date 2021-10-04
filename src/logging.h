@@ -61,6 +61,7 @@ enum LogFlags : uint32_t {
     AVALANCHE = (1 << 22),
     I2P = (1 << 23),
     CHRONIK = (1 << 24),
+    BLOCKSTORE = (1 << 26),
     ALL = ~uint32_t(0),
 };
 
