@@ -113,7 +113,7 @@ class Processor {
     /**
      * Proofs to run avalanche on.
      */
-    RWCollection<ProofVoteMap> proofsVoteRecords;
+    RWCollection<ProofVoteMap> proofVoteRecords;
 
     /**
      * Keep track of peers and queries sent.

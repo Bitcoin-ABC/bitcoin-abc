@@ -266,7 +266,7 @@ void Processor::addProofToReconcile(const std::shared_ptr<Proof> &proof,
     // TODO We don't want to accept an infinite number of conflicting proofs.
     // They should be some rules to make them expensive and/or limited by
     // design.
-    proofsVoteRecords.getWriteView()->insert(
+    proofVoteRecords.getWriteView()->insert(
         std::make_pair(proof, VoteRecord(isAccepted)));
 }
 
@@ -490,13 +490,13 @@ bool Processor::stopEventLoop() {
 std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
 
-    auto conflictingProofsReadView = proofsVoteRecords.getReadView();
+    auto proofVoteRecordsReadView = proofVoteRecords.getReadView();
 
-    auto pit = conflictingProofsReadView.begin();
+    auto pit = proofVoteRecordsReadView.begin();
     // Clamp to AVALANCHE_MAX_ELEMENT_POLL - 1 so we're always able to poll
     // for a new block. Since the proofs are sorted by score, the most
     // valuable are voted first.
-    while (pit != conflictingProofsReadView.end() &&
+    while (pit != proofVoteRecordsReadView.end() &&
            invs.size() < AVALANCHE_MAX_ELEMENT_POLL - 1) {
         invs.emplace_back(MSG_AVA_PROOF, pit->first->getId());
         ++pit;
