@@ -292,17 +292,19 @@ BOOST_AUTO_TEST_CASE(block_update) {
     CBlockIndex index;
     CBlockIndex *pindex = &index;
 
-    std::set<BlockUpdate::Status> status{
-        BlockUpdate::Status::Invalid,
-        BlockUpdate::Status::Rejected,
-        BlockUpdate::Status::Accepted,
-        BlockUpdate::Status::Finalized,
+    std::set<VoteStatus> status{
+        VoteStatus::Invalid,
+        VoteStatus::Rejected,
+        VoteStatus::Accepted,
+        VoteStatus::Finalized,
     };
 
     for (auto s : status) {
         BlockUpdate abu(pindex, s);
+        // The use of BOOST_CHECK instead of BOOST_CHECK_EQUAL prevents from
+        // having to define operator<<() for each argument type.
         BOOST_CHECK(abu.getBlockIndex() == pindex);
-        BOOST_CHECK_EQUAL(abu.getStatus(), s);
+        BOOST_CHECK(abu.getStatus() == s);
     }
 }
 
@@ -409,7 +411,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     registerNewVote(next(resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
+    BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates = {};
 
     // Once the decision is finalized, there is no poll for it.
@@ -435,7 +437,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(!m_processor->isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Rejected);
+    BOOST_CHECK(updates[0].getStatus() == VoteStatus::Rejected);
     updates = {};
 
     // Now it is rejected, but we can vote for it numerous times.
@@ -456,7 +458,7 @@ BOOST_AUTO_TEST_CASE(block_register) {
     BOOST_CHECK(!m_processor->isAccepted(pindex));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindex);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Invalid);
+    BOOST_CHECK(updates[0].getStatus() == VoteStatus::Invalid);
     updates = {};
 
     // Once the decision is finalized, there is no poll for it.
@@ -549,7 +551,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(registerVotes(firstNodeid, next(resp), updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexA);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
+    BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates = {};
 
     // We do not vote on A anymore.
@@ -562,7 +564,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     BOOST_CHECK(registerVotes(secondNodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 1);
     BOOST_CHECK(updates[0].getBlockIndex() == pindexB);
-    BOOST_CHECK_EQUAL(updates[0].getStatus(), BlockUpdate::Status::Finalized);
+    BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates = {};
 
     // There is nothing left to vote on.

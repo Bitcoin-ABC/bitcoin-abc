@@ -54,6 +54,13 @@ class PeerManager;
 class Proof;
 struct VoteRecord;
 
+enum struct VoteStatus : uint8_t {
+    Invalid,
+    Rejected,
+    Accepted,
+    Finalized,
+};
+
 class BlockUpdate {
     union {
         CBlockIndex *pindex;
@@ -68,18 +75,11 @@ class BlockUpdate {
         "CBlockIndex alignement doesn't allow for Status to be stored.");
 
 public:
-    enum Status : uint8_t {
-        Invalid,
-        Rejected,
-        Accepted,
-        Finalized,
-    };
-
-    BlockUpdate(CBlockIndex *pindexIn, Status statusIn) : pindex(pindexIn) {
-        raw |= statusIn;
+    BlockUpdate(CBlockIndex *pindexIn, VoteStatus statusIn) : pindex(pindexIn) {
+        raw |= static_cast<uint8_t>(statusIn);
     }
 
-    Status getStatus() const { return Status(raw & MASK); }
+    VoteStatus getStatus() const { return VoteStatus(raw & MASK); }
 
     CBlockIndex *getBlockIndex() {
         return reinterpret_cast<CBlockIndex *>(raw & ~MASK);

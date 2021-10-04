@@ -416,17 +416,16 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             if (!vr.hasFinalized()) {
                 // This item has note been finalized, so we have nothing more to
                 // do.
-                updates.emplace_back(
-                    pindex, vr.isAccepted() ? BlockUpdate::Status::Accepted
-                                            : BlockUpdate::Status::Rejected);
+                updates.emplace_back(pindex, vr.isAccepted()
+                                                 ? VoteStatus::Accepted
+                                                 : VoteStatus::Rejected);
                 continue;
             }
 
             // We just finalized a vote. If it is valid, then let the caller
             // know. Either way, remove the item from the map.
-            updates.emplace_back(pindex, vr.isAccepted()
-                                             ? BlockUpdate::Status::Finalized
-                                             : BlockUpdate::Status::Invalid);
+            updates.emplace_back(pindex, vr.isAccepted() ? VoteStatus::Finalized
+                                                         : VoteStatus::Invalid);
             w->erase(it);
         }
     }

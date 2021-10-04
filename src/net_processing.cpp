@@ -4394,8 +4394,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             for (avalanche::BlockUpdate &u : updates) {
                 CBlockIndex *pindex = u.getBlockIndex();
                 switch (u.getStatus()) {
-                    case avalanche::BlockUpdate::Status::Invalid:
-                    case avalanche::BlockUpdate::Status::Rejected: {
+                    case avalanche::VoteStatus::Invalid:
+                    case avalanche::VoteStatus::Rejected: {
                         LogPrintf("Avalanche rejected %s, parking\n",
                                   pindex->GetBlockHash().GetHex());
                         BlockValidationState state;
@@ -4406,8 +4406,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                             return;
                         }
                     } break;
-                    case avalanche::BlockUpdate::Status::Accepted:
-                    case avalanche::BlockUpdate::Status::Finalized: {
+                    case avalanche::VoteStatus::Accepted:
+                    case avalanche::VoteStatus::Finalized: {
                         LogPrintf("Avalanche accepted %s\n",
                                   pindex->GetBlockHash().GetHex());
                         LOCK(cs_main);
