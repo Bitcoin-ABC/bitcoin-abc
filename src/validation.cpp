@@ -3857,7 +3857,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         // Get prev block index
         BlockMap::iterator mi = m_block_index.find(block.hashPrevBlock);
         if (mi == m_block_index.end()) {
-            LogPrintf("ERROR: %s: prev block not found\n", __func__);
+            LogPrintf("ERROR: %s: %s prev block not found\n", __func__,
+                      hash.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_MISSING_PREV,
                                  "prev-blk-not-found");
         }
@@ -3865,7 +3866,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         CBlockIndex *pindexPrev = (*mi).second;
         assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
-            LogPrintf("ERROR: %s: prev block invalid\n", __func__);
+            LogPrintf("ERROR: %s: %s prev block invalid\n", __func__,
+                      hash.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_PREV,
                                  "bad-prevblk");
         }
@@ -3911,7 +3913,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
                         setDirtyBlockIndex.insert(invalid_walk);
                         invalid_walk = invalid_walk->pprev;
                     }
-                    LogPrintf("ERROR: %s: prev block invalid\n", __func__);
+                    LogPrintf("ERROR: %s: %s prev block invalid\n", __func__,
+                              hash.ToString());
                     return state.Invalid(
                         BlockValidationResult::BLOCK_INVALID_PREV,
                         "bad-prevblk");
