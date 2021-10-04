@@ -61,34 +61,21 @@ enum struct VoteStatus : uint8_t {
     Finalized,
 };
 
-class BlockUpdate {
-    union {
-        CBlockIndex *pindex;
-        uintptr_t raw;
-    };
-
-    static const size_t STATUS_BITS = 2;
-    static const uintptr_t MASK = (1 << STATUS_BITS) - 1;
-
-    static_assert(
-        alignof(CBlockIndex) >= (1 << STATUS_BITS),
-        "CBlockIndex alignement doesn't allow for Status to be stored.");
+template <typename VoteItem> class VoteItemUpdate {
+    VoteItem item;
+    VoteStatus status;
 
 public:
-    BlockUpdate(CBlockIndex *pindexIn, VoteStatus statusIn) : pindex(pindexIn) {
-        raw |= static_cast<uint8_t>(statusIn);
-    }
+    VoteItemUpdate(const VoteItem itemIn, VoteStatus statusIn)
+        : item(itemIn), status(statusIn) {}
 
-    VoteStatus getStatus() const { return VoteStatus(raw & MASK); }
+    const VoteStatus &getStatus() const { return status; }
 
-    CBlockIndex *getBlockIndex() {
-        return reinterpret_cast<CBlockIndex *>(raw & ~MASK);
-    }
-
-    const CBlockIndex *getBlockIndex() const {
-        return const_cast<BlockUpdate *>(this)->getBlockIndex();
-    }
+    VoteItem getVoteItem() { return item; }
+    const VoteItem getVoteItem() const { return item; }
 };
+
+using BlockUpdate = VoteItemUpdate<CBlockIndex *>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;

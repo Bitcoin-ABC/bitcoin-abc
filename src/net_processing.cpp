@@ -4392,7 +4392,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         if (updates.size()) {
             for (avalanche::BlockUpdate &u : updates) {
-                CBlockIndex *pindex = u.getBlockIndex();
+                CBlockIndex *pindex = u.getVoteItem();
                 switch (u.getStatus()) {
                     case avalanche::VoteStatus::Invalid:
                     case avalanche::VoteStatus::Rejected: {
