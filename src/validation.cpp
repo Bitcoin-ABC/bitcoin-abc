@@ -3837,8 +3837,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
             }
 
             if (pindex->nStatus.isInvalid()) {
-                LogPrintf("ERROR: %s: block %s is marked invalid\n", __func__,
-                          hash.ToString());
+                LogPrint(BCLog::VALIDATION, "%s: block %s is marked invalid\n",
+                         __func__, hash.ToString());
                 return state.Invalid(
                     BlockValidationResult::BLOCK_CACHED_INVALID, "duplicate");
             }
@@ -3857,8 +3857,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         // Get prev block index
         BlockMap::iterator mi = m_block_index.find(block.hashPrevBlock);
         if (mi == m_block_index.end()) {
-            LogPrintf("ERROR: %s: %s prev block not found\n", __func__,
-                      hash.ToString());
+            LogPrint(BCLog::VALIDATION, "%s: %s prev block not found\n",
+                     __func__, hash.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_MISSING_PREV,
                                  "prev-blk-not-found");
         }
@@ -3866,16 +3866,18 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         CBlockIndex *pindexPrev = (*mi).second;
         assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
-            LogPrintf("ERROR: %s: %s prev block invalid\n", __func__,
-                      hash.ToString());
+            LogPrint(BCLog::VALIDATION, "%s: %s prev block invalid\n", __func__,
+                     hash.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_PREV,
                                  "bad-prevblk");
         }
 
         if (!ContextualCheckBlockHeader(chainparams, block, state, *this,
                                         pindexPrev, GetAdjustedTime())) {
-            return error("%s: Consensus::ContextualCheckBlockHeader: %s, %s",
-                         __func__, hash.ToString(), state.ToString());
+            LogPrint(BCLog::VALIDATION,
+                     "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n",
+                     __func__, hash.ToString(), state.ToString());
+            return false;
         }
 
         /* Determine if this block descends from any block which has been found
@@ -3913,8 +3915,8 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
                         setDirtyBlockIndex.insert(invalid_walk);
                         invalid_walk = invalid_walk->pprev;
                     }
-                    LogPrintf("ERROR: %s: %s prev block invalid\n", __func__,
-                              hash.ToString());
+                    LogPrint(BCLog::VALIDATION, "%s: %s prev block invalid\n",
+                             __func__, hash.ToString());
                     return state.Invalid(
                         BlockValidationResult::BLOCK_INVALID_PREV,
                         "bad-prevblk");
