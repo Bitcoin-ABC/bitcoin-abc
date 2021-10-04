@@ -790,15 +790,13 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
                 const CTransaction &tx2 = it2->GetTx();
                 assert(tx2.vout.size() > txin.prevout.GetN() &&
                        !tx2.vout[txin.prevout.GetN()].IsNull());
-                // We are iterating through the mempool entries sorted in order
-                // by ancestor count.
-                // All parents must have been checked before their children and
-                // their coins added to the mempoolDuplicate coins cache.
-                assert(mempoolDuplicate.HaveCoin(txin.prevout));
                 setParentCheck.insert(*it2);
-            } else {
-                assert(active_coins_tip.HaveCoin(txin.prevout));
             }
+            // We are iterating through the mempool entries sorted in order by
+            // ancestor count.
+            // All parents must have been checked before their children and
+            // their coins added to the mempoolDuplicate coins cache.
+            assert(mempoolDuplicate.HaveCoin(txin.prevout));
             // Check whether its inputs are marked in mapNextTx.
             auto it3 = mapNextTx.find(txin.prevout);
             assert(it3 != mapNextTx.end());
@@ -866,11 +864,9 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
         // Not used. CheckTxInputs() should always pass
         TxValidationState dummy_state;
         Amount txfee{Amount::zero()};
-        bool fCheckResult =
-            tx.IsCoinBase() ||
-            Consensus::CheckTxInputs(tx, dummy_state, mempoolDuplicate,
-                                     spendheight, txfee);
-        assert(fCheckResult);
+        assert(!tx.IsCoinBase());
+        assert(Consensus::CheckTxInputs(tx, dummy_state, mempoolDuplicate,
+                                        spendheight, txfee));
         for (const auto &input : tx.vin) {
             mempoolDuplicate.SpendCoin(input.prevout);
         }
