@@ -211,7 +211,10 @@ export const QRCode = ({
                 />
 
                 {address && (
-                    <CustomInput xec={address && isCash ? 1 : 0}>
+                    <CustomInput
+                        className="notranslate"
+                        xec={address && isCash ? 1 : 0}
+                    >
                         <input
                             ref={txtRef}
                             readOnly

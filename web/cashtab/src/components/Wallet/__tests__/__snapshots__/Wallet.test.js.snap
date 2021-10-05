@@ -92,7 +92,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf fuxBvT"
+      className="sc-kgoBCf fuxBvT notranslate"
     >
       <input
         readOnly={true}
@@ -229,7 +229,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf fuxBvT"
+      className="sc-kgoBCf fuxBvT notranslate"
     >
       <input
         readOnly={true}
@@ -348,7 +348,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf fuxBvT"
+      className="sc-kgoBCf fuxBvT notranslate"
     >
       <input
         readOnly={true}
@@ -485,7 +485,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf fuxBvT"
+      className="sc-kgoBCf fuxBvT notranslate"
     >
       <input
         readOnly={true}
