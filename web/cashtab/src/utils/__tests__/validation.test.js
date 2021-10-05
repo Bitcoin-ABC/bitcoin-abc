@@ -8,6 +8,7 @@ import {
     isValidTokenDocumentUrl,
     isValidTokenStats,
     isValidCashtabSettings,
+    formatSavedBalance,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -224,5 +225,39 @@ describe('Validation utils', () => {
         expect(isValidCashtabSettings({ fiatCurrencyWrongLabel: 'usd' })).toBe(
             false,
         );
+    });
+    it(`test formatSavedBalance with zero XEC balance input`, () => {
+        expect(formatSavedBalance('0', 'en-US')).toBe('0');
+    });
+    it(`test formatSavedBalance with a small XEC balance input with 2+ decimal figures`, () => {
+        expect(formatSavedBalance('1574.5445', 'en-US')).toBe('1,574.54');
+    });
+    it(`test formatSavedBalance with 1 Million XEC balance input`, () => {
+        expect(formatSavedBalance('1000000', 'en-US')).toBe('1,000,000');
+    });
+    it(`test formatSavedBalance with 1 Billion XEC balance input`, () => {
+        expect(formatSavedBalance('1000000000', 'en-US')).toBe('1,000,000,000');
+    });
+    it(`test formatSavedBalance with total supply as XEC balance input`, () => {
+        expect(formatSavedBalance('21000000000000', 'en-US')).toBe(
+            '21,000,000,000,000',
+        );
+    });
+    it(`test formatSavedBalance with > total supply as XEC balance input`, () => {
+        expect(formatSavedBalance('31000000000000', 'en-US')).toBe(
+            '31,000,000,000,000',
+        );
+    });
+    it(`test formatSavedBalance with no balance`, () => {
+        expect(formatSavedBalance('', 'en-US')).toBe('0');
+    });
+    it(`test formatSavedBalance with null input`, () => {
+        expect(formatSavedBalance(null, 'en-US')).toBe('0');
+    });
+    it(`test formatSavedBalance with undefined sw.state.balance or sw.state.balance.totalBalance as input`, () => {
+        expect(formatSavedBalance(undefined, 'en-US')).toBe('N/A');
+    });
+    it(`test formatSavedBalance with non-numeric input`, () => {
+        expect(formatSavedBalance('CainBCHA', 'en-US')).toBe('NaN');
     });
 });

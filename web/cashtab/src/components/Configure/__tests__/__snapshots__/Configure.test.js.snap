@@ -2,7 +2,7 @@
 
 exports[`Configure with a wallet 1`] = `
 <div
-  className="sc-kEYyzF jqzglm"
+  className="sc-kkGfuU liSflp"
 >
   <h2>
     <span
@@ -110,7 +110,7 @@ exports[`Configure with a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kkGfuU lbBTMM"
+    className="sc-iAyFgw AbOBK"
   />
   <h2>
     <span
@@ -188,7 +188,7 @@ exports[`Configure with a wallet 1`] = `
      Import Wallet
   </button>
   <div
-    className="sc-kkGfuU lbBTMM"
+    className="sc-iAyFgw AbOBK"
   />
   <h2>
     <span
@@ -305,7 +305,7 @@ exports[`Configure with a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kkGfuU lbBTMM"
+    className="sc-iAyFgw AbOBK"
   />
   [
   <a
@@ -323,7 +323,7 @@ exports[`Configure with a wallet 1`] = `
 
 exports[`Configure without a wallet 1`] = `
 <div
-  className="sc-kEYyzF jqzglm"
+  className="sc-kkGfuU liSflp"
 >
   <h2>
     <span
@@ -393,7 +393,7 @@ exports[`Configure without a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kkGfuU lbBTMM"
+    className="sc-iAyFgw AbOBK"
   />
   <h2>
     <span
@@ -471,7 +471,7 @@ exports[`Configure without a wallet 1`] = `
      Import Wallet
   </button>
   <div
-    className="sc-kkGfuU lbBTMM"
+    className="sc-iAyFgw AbOBK"
   />
   <h2>
     <span
@@ -588,7 +588,7 @@ exports[`Configure without a wallet 1`] = `
     </div>
   </div>
   <div
-    className="sc-kkGfuU lbBTMM"
+    className="sc-iAyFgw AbOBK"
   />
   [
   <a
