@@ -191,7 +191,7 @@ template <typename Stream> void AddrManImpl::Serialize(Stream &s_) const {
 
     // Increment `lowest_compatible` iff a newly introduced format is
     // incompatible with the previous one.
-    static constexpr uint8_t lowest_compatible = Format::V3_BIP155;
+    static constexpr uint8_t lowest_compatible = Format::V4_MULTIPORT;
     s << static_cast<uint8_t>(INCOMPATIBILITY_BASE + lowest_compatible);
 
     s << nKey;
@@ -425,7 +425,7 @@ template <typename Stream> void AddrManImpl::Unserialize(Stream &s_) {
     }
 }
 
-AddrInfo *AddrManImpl::Find(const CNetAddr &addr, int *pnId) {
+AddrInfo *AddrManImpl::Find(const CService &addr, int *pnId) {
     AssertLockHeld(cs);
 
     const auto it = mapAddr.find(addr);
@@ -591,12 +591,6 @@ void AddrManImpl::Good_(const CService &addr, bool test_before_evict,
 
     AddrInfo &info = *pinfo;
 
-    // check whether we are talking about the exact same CService (including
-    // same port)
-    if (info != addr) {
-        return;
-    }
-
     // update info
     info.nLastSuccess = nTime;
     info.nLastTry = nTime;
@@ -743,12 +737,6 @@ void AddrManImpl::Attempt_(const CService &addr, bool fCountFailure,
     }
 
     AddrInfo &info = *pinfo;
-
-    // check whether we are talking about the exact same CService (including
-    // same port)
-    if (info != addr) {
-        return;
-    }
 
     // update info
     info.nLastTry = nTime;
@@ -906,12 +894,6 @@ void AddrManImpl::Connected_(const CService &addr, int64_t nTime) {
 
     AddrInfo &info = *pinfo;
 
-    // check whether we are talking about the exact same CService
-    // (including same port)
-    if (info != addr) {
-        return;
-    }
-
     // update info
     int64_t nUpdateInterval = 20 * 60;
     if (nTime - info.nTime > nUpdateInterval) {
@@ -930,12 +912,6 @@ void AddrManImpl::SetServices_(const CService &addr, ServiceFlags nServices) {
     }
 
     AddrInfo &info = *pinfo;
-
-    // check whether we are talking about the exact same CService
-    // (including same port)
-    if (info != addr) {
-        return;
-    }
 
     // update info
     info.nServices = nServices;

@@ -16,7 +16,7 @@ from test_framework.util import assert_equal
 def serialize_addrman(
     *,
     format=1,
-    lowest_compatible=3,
+    lowest_compatible=4,
     net_magic=b"\xfa\xbf\xb5\xda",
     bucket_key=1,
     len_new=None,
@@ -77,7 +77,7 @@ class AddrmanTest(BitcoinTestFramework):
             expected_msg=init_error(
                 "Unsupported format of addrman database: 1. It is compatible with "
                 "formats >=111, but the maximum supported by this version of "
-                f"{self.config['environment']['PACKAGE_NAME']} is 3.: (.+)"
+                f"{self.config['environment']['PACKAGE_NAME']} is 4.: (.+)"
             ),
             match=ErrorMatch.FULL_REGEX,
         )

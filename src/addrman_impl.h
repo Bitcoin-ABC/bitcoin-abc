@@ -171,6 +171,8 @@ private:
         V2_ASMAP = 2,
         //! same as V2_ASMAP plus addresses are in BIP155 format
         V3_BIP155 = 3,
+        //! adds support for multiple ports per IP
+        V4_MULTIPORT = 4,
     };
 
     //! The maximum format this software knows it can unserialize. Also, we
@@ -178,7 +180,7 @@ private:
     //! serialized stream) can be higher than this and still this software may
     //! be able to unserialize the file - if the second byte (see
     //! `lowest_compatible` in `Unserialize()`) is less or equal to this.
-    static constexpr Format FILE_FORMAT = Format::V3_BIP155;
+    static constexpr Format FILE_FORMAT = Format::V4_MULTIPORT;
 
     //! The initial value of a field that is incremented every time an
     //! incompatible format change is made (such that old software versions
@@ -194,8 +196,8 @@ private:
     //! table with information about all nIds
     std::unordered_map<int, AddrInfo> mapInfo GUARDED_BY(cs);
 
-    //! find an nId based on its network address
-    std::unordered_map<CNetAddr, int, CNetAddrHash> mapAddr GUARDED_BY(cs);
+    //! find an nId based on its network address and port.
+    std::unordered_map<CService, int, CServiceHash> mapAddr GUARDED_BY(cs);
 
     //! randomly-ordered vector of all nIds
     //! This is mutable because it is unobservable outside the class, so any
@@ -248,7 +250,7 @@ private:
     bool deterministic = false;
 
     //! Find an entry.
-    AddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr)
+    AddrInfo *Find(const CService &addr, int *pnId = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! find an entry, creating it if necessary.
