@@ -91,8 +91,8 @@ void SplitHostPort(std::string_view in, uint16_t &portOut,
 
 // LocaleIndependentAtoi is provided for backwards compatibility reasons.
 //
-// New code should use the ParseInt64/ParseUInt64/ParseInt32/ParseUInt32
-// functions which provide parse error feedback.
+// New code should use ToIntegral or the ParseInt* functions which provide parse
+// error feedback.
 //
 // The goal of LocaleIndependentAtoi is to replicate the exact defined behaviour
 // of atoi and atoi64 as they behave under the "C" locale.
@@ -144,7 +144,7 @@ constexpr inline bool IsSpace(char c) noexcept {
 /**
  * Convert string to integral type T. Leading whitespace, a leading +, or any
  * trailing character fail the parsing. The required format expressed as regex
- * is `-?[0-9]+`.
+ * is `-?[0-9]+`. The minus sign is only permitted for signed integer types.
  *
  * @returns std::nullopt if the entire string could not be parsed, or if the
  *   parsed value is not in the range representable by the type T.
