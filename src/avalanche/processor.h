@@ -192,7 +192,7 @@ public:
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
     bool registerVotes(NodeId nodeid, const Response &response,
-                       std::vector<BlockUpdate> &updates, int &banscore,
+                       std::vector<BlockUpdate> &blockUpdates, int &banscore,
                        std::string &error);
 
     template <typename Callable> auto withPeerManager(Callable &&func) const {

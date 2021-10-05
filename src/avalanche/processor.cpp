@@ -327,8 +327,8 @@ void Processor::sendResponse(CNode *pfrom, Response response) const {
 }
 
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
-                              std::vector<BlockUpdate> &updates, int &banscore,
-                              std::string &error) {
+                              std::vector<BlockUpdate> &blockUpdates,
+                              int &banscore, std::string &error) {
     {
         // Save the time at which we can query again.
         LOCK(cs_peerManager);
@@ -394,15 +394,17 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
     }
 
-    {
+    // Thanks to C++14 generic lambdas, we can apply the same logic to various
+    // parameter types sharing the same interface.
+    auto registerVoteItems = [&](auto voteRecordsWriteView, auto &updates,
+                                 auto responseItems) {
         // Register votes.
-        auto w = blockVoteRecords.getWriteView();
-        for (const auto &p : responseIndex) {
-            CBlockIndex *pindex = p.first;
+        for (const auto &p : responseItems) {
+            auto item = p.first;
             const Vote &v = p.second;
 
-            auto it = w->find(pindex);
-            if (it == w.end()) {
+            auto it = voteRecordsWriteView->find(item);
+            if (it == voteRecordsWriteView.end()) {
                 // We are not voting on that item anymore.
                 continue;
             }
@@ -416,19 +418,22 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             if (!vr.hasFinalized()) {
                 // This item has note been finalized, so we have nothing more to
                 // do.
-                updates.emplace_back(pindex, vr.isAccepted()
-                                                 ? VoteStatus::Accepted
-                                                 : VoteStatus::Rejected);
+                updates.emplace_back(item, vr.isAccepted()
+                                               ? VoteStatus::Accepted
+                                               : VoteStatus::Rejected);
                 continue;
             }
 
             // We just finalized a vote. If it is valid, then let the caller
             // know. Either way, remove the item from the map.
-            updates.emplace_back(pindex, vr.isAccepted() ? VoteStatus::Finalized
-                                                         : VoteStatus::Invalid);
-            w->erase(it);
+            updates.emplace_back(item, vr.isAccepted() ? VoteStatus::Finalized
+                                                       : VoteStatus::Invalid);
+            voteRecordsWriteView->erase(it);
         }
-    }
+    };
+
+    registerVoteItems(blockVoteRecords.getWriteView(), blockUpdates,
+                      responseIndex);
 
     return true;
 }
