@@ -708,14 +708,42 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK(registerVotes(avanodeid, resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
+}
+
+BOOST_AUTO_TEST_CASE(dont_poll_invalid_block) {
+    std::vector<BlockUpdate> updates;
+
+    CBlock blockA = CreateAndProcessBlock({}, CScript());
+    CBlock blockB = CreateAndProcessBlock({}, CScript());
+    const BlockHash blockHashA = blockA.GetHash();
+    const BlockHash blockHashB = blockB.GetHash();
+    const CBlockIndex *pindexA;
+    CBlockIndex *pindexB;
+    {
+        LOCK(cs_main);
+        pindexA = LookupBlockIndex(blockHashA);
+        pindexB = LookupBlockIndex(blockHashB);
+    }
+
+    auto avanodes = ConnectNodes();
+
+    // Register the blocks and check they are added to the list of elements to
+    // poll.
+    BOOST_CHECK(m_processor->addBlockToReconcile(pindexA));
+    BOOST_CHECK(m_processor->addBlockToReconcile(pindexB));
+    auto invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 2);
+    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
+    BOOST_CHECK(invs[0].hash == blockHashB);
+    BOOST_CHECK_EQUAL(invs[1].type, MSG_BLOCK);
+    BOOST_CHECK(invs[1].hash == blockHashA);
 
     // When a block is marked invalid, stop polling.
-    pindex2->nStatus = pindex2->nStatus.withFailed();
-    resp = {getRound(), 0, {Vote(0, blockHash)}};
+    pindexB->nStatus = pindexB->nStatus.withFailed();
+    Response resp{getRound(), 0, {Vote(0, blockHashA)}};
     runEventLoop();
-    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(registerVotes(avanodes[0]->GetId(), resp, updates));
     BOOST_CHECK_EQUAL(updates.size(), 0);
-    BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 }
 
 BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
