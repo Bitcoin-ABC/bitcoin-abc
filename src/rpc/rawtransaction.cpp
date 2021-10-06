@@ -532,13 +532,13 @@ static UniValue createrawtransaction(const Config &config,
         RPCExamples{
             HelpExampleCli("createrawtransaction",
                            "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]"
-                           "\" \"[{\\\"address\\\":0.01}]\"") +
+                           "\" \"[{\\\"address\\\":10000.00}]\"") +
             HelpExampleCli("createrawtransaction",
                            "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]"
                            "\" \"[{\\\"data\\\":\\\"00010203\\\"}]\"") +
             HelpExampleRpc("createrawtransaction",
                            "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]"
-                           "\", \"[{\\\"address\\\":0.01}]\"") +
+                           "\", \"[{\\\"address\\\":10000.00}]\"") +
             HelpExampleRpc("createrawtransaction",
                            "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]"
                            "\", \"[{\\\"data\\\":\\\"00010203\\\"}]\"")},
@@ -983,7 +983,7 @@ static UniValue sendrawtransaction(const Config &config,
             HelpExampleCli(
                 "createrawtransaction",
                 "\"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" "
-                "\"{\\\"myaddress\\\":0.01}\"") +
+                "\"{\\\"myaddress\\\":10000}\"") +
             "Sign the transaction, and get back the hex\n" +
             HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
             "\nSend the transaction (signed hex)\n" +
@@ -1082,7 +1082,7 @@ static UniValue testmempoolaccept(const Config &config,
             HelpExampleCli(
                 "createrawtransaction",
                 "\"[{\\\"txid\\\" : \\\"mytxid\\\",\\\"vout\\\":0}]\" "
-                "\"{\\\"myaddress\\\":0.01}\"") +
+                "\"{\\\"myaddress\\\":10000}\"") +
             "Sign the transaction, and get back the hex\n" +
             HelpExampleCli("signrawtransactionwithwallet", "\"myhex\"") +
             "\nTest acceptance of the transaction (signed hex)\n" +

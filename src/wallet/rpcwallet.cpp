@@ -451,15 +451,16 @@ static UniValue sendtoaddress(const Config &config,
         RPCResult{RPCResult::Type::STR_HEX, "txid", "The transaction id."},
         RPCExamples{
             HelpExampleCli("sendtoaddress",
-                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1") +
+                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 100000") +
             HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
-                                            "dd\" 0.1 \"donation\" \"seans "
+                                            "dd\" 100000 \"donation\" \"seans "
                                             "outpost\"") +
             HelpExampleCli("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44"
-                                            "Jvaydd\" 0.1 \"\" \"\" true") +
-            HelpExampleRpc("sendtoaddress", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
-                                            "dd\", 0.1, \"donation\", \"seans "
-                                            "outpost\"")},
+                                            "Jvaydd\" 100000 \"\" \"\" true") +
+            HelpExampleRpc("sendtoaddress",
+                           "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvay"
+                           "dd\", 100000, \"donation\", \"seans "
+                           "outpost\"")},
     }
         .Check(request);
 
@@ -3880,7 +3881,7 @@ static UniValue fundrawtransaction(const Config &config,
         RPCExamples{
             "\nCreate a transaction with no inputs\n" +
             HelpExampleCli("createrawtransaction",
-                           "\"[]\" \"{\\\"myaddress\\\":0.01}\"") +
+                           "\"[]\" \"{\\\"myaddress\\\":10000}\"") +
             "\nAdd sufficient unsigned inputs to meet the output value\n" +
             HelpExampleCli("fundrawtransaction", "\"rawtransactionhex\"") +
             "\nSign the transaction\n" +
