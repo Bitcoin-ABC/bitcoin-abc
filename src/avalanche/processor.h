@@ -62,7 +62,7 @@ enum struct VoteStatus : uint8_t {
 };
 
 template <typename VoteItem> class VoteItemUpdate {
-    VoteItem item;
+    std::remove_reference_t<VoteItem> item;
     VoteStatus status;
 
 public:
@@ -76,6 +76,7 @@ public:
 };
 
 using BlockUpdate = VoteItemUpdate<CBlockIndex *>;
+using ProofUpdate = VoteItemUpdate<std::shared_ptr<Proof> &>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
@@ -181,7 +182,8 @@ public:
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
     bool registerVotes(NodeId nodeid, const Response &response,
-                       std::vector<BlockUpdate> &blockUpdates, int &banscore,
+                       std::vector<BlockUpdate> &blockUpdates,
+                       std::vector<ProofUpdate> &proofUpdates, int &banscore,
                        std::string &error);
 
     template <typename Callable> auto withPeerManager(Callable &&func) const {

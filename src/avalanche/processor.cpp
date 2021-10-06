@@ -348,6 +348,7 @@ void Processor::sendResponse(CNode *pfrom, Response response) const {
 
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
                               std::vector<BlockUpdate> &blockUpdates,
+                              std::vector<ProofUpdate> &proofUpdates,
                               int &banscore, std::string &error) {
     {
         // Save the time at which we can query again.
@@ -395,11 +396,14 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     }
 
     std::map<CBlockIndex *, Vote> responseIndex;
+    std::map<std::shared_ptr<Proof>, Vote> responseProof;
 
-    {
-        LOCK(cs_main);
-        for (const auto &v : votes) {
-            auto pindex = LookupBlockIndex(BlockHash(v.GetHash()));
+    // At this stage we are certain that invs[i] matches votes[i], so we can use
+    // the inv type to retrieve what is being voted on.
+    for (size_t i = 0; i < size; i++) {
+        if (invs[i].IsMsgBlk()) {
+            LOCK(cs_main);
+            auto pindex = LookupBlockIndex(BlockHash(votes[i].GetHash()));
             if (!pindex) {
                 // This should not happen, but just in case...
                 continue;
@@ -410,7 +414,21 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
                 continue;
             }
 
-            responseIndex.insert(std::make_pair(pindex, v));
+            responseIndex.insert(std::make_pair(pindex, votes[i]));
+        }
+
+        if (invs[i].IsMsgProof()) {
+            const ProofId proofid(votes[i].GetHash());
+
+            // TODO Use an unordered map or similar to avoid the loop
+            auto proofVoteRecordsReadView = proofVoteRecords.getReadView();
+            for (auto it = proofVoteRecordsReadView.begin();
+                 it != proofVoteRecordsReadView.end(); it++) {
+                if (it->first->getId() == proofid) {
+                    responseProof.insert(std::make_pair(it->first, votes[i]));
+                    break;
+                }
+            }
         }
     }
 
@@ -454,6 +472,8 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 
     registerVoteItems(blockVoteRecords.getWriteView(), blockUpdates,
                       responseIndex);
+    registerVoteItems(proofVoteRecords.getWriteView(), proofUpdates,
+                      responseProof);
 
     return true;
 }
@@ -591,7 +611,9 @@ void Processor::clearTimedoutRequests() {
     // In flight request accounting.
     for (const auto &p : timedout_items) {
         const CInv &inv = p.first;
-        assert(inv.type == MSG_BLOCK);
+        if (inv.type != MSG_BLOCK) {
+            continue;
+        }
 
         CBlockIndex *pindex;
 

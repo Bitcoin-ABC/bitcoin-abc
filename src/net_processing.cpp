@@ -4379,19 +4379,20 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             return;
         }
 
-        std::vector<avalanche::BlockUpdate> updates;
+        std::vector<avalanche::BlockUpdate> blockUpdates;
+        std::vector<avalanche::ProofUpdate> proofUpdates;
         int banscore;
         std::string error;
-        if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates,
-                                        banscore, error)) {
+        if (!g_avalanche->registerVotes(pfrom.GetId(), response, blockUpdates,
+                                        proofUpdates, banscore, error)) {
             Misbehaving(pfrom, banscore, error);
             return;
         }
 
         pfrom.m_avalanche_state->invsVoted(response.GetVotes().size());
 
-        if (updates.size()) {
-            for (avalanche::BlockUpdate &u : updates) {
+        if (blockUpdates.size()) {
+            for (avalanche::BlockUpdate &u : blockUpdates) {
                 CBlockIndex *pindex = u.getVoteItem();
                 switch (u.getStatus()) {
                     case avalanche::VoteStatus::Invalid:

@@ -173,11 +173,12 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     uint64_t getRound() const { return AvalancheTest::getRound(*m_processor); }
 
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
-                       std::vector<avalanche::BlockUpdate> &updates) {
+                       std::vector<avalanche::BlockUpdate> &blockUpdates) {
         int banscore;
         std::string error;
-        return m_processor->registerVotes(nodeid, response, updates, banscore,
-                                          error);
+        std::vector<avalanche::ProofUpdate> proofUpdates;
+        return m_processor->registerVotes(nodeid, response, blockUpdates,
+                                          proofUpdates, banscore, error);
     }
 };
 
@@ -205,8 +206,9 @@ struct BlockOnlyTestingContext {
     bool registerVotes(NodeId nodeid, const avalanche::Response &response,
                        std::string &error) {
         int banscore;
-        return fixture->m_processor->registerVotes(nodeid, response, updates,
-                                                   banscore, error);
+        std::vector<avalanche::ProofUpdate> proofUpdates;
+        return fixture->m_processor->registerVotes(
+            nodeid, response, updates, proofUpdates, banscore, error);
     }
     bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
         std::string error;
@@ -234,12 +236,63 @@ struct BlockOnlyTestingContext {
     }
 };
 
+struct ProofOnlyTestingContext {
+    AvalancheTestingSetup *fixture;
+
+    std::vector<ProofUpdate> updates;
+    uint32_t invType;
+
+    ProofOnlyTestingContext(AvalancheTestingSetup *_fixture)
+        : fixture(_fixture), invType(MSG_AVA_PROOF) {}
+
+    std::shared_ptr<Proof> buildVoteItem() const { return fixture->GetProof(); }
+
+    uint256 getVoteItemId(const std::shared_ptr<Proof> &proof) const {
+        return proof->getId();
+    }
+
+    bool registerVotes(NodeId nodeid, const avalanche::Response &response,
+                       std::string &error) {
+        int banscore;
+        std::vector<avalanche::BlockUpdate> blockUpdates;
+        return fixture->m_processor->registerVotes(
+            nodeid, response, blockUpdates, updates, banscore, error);
+    }
+    bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
+        std::string error;
+        return registerVotes(nodeid, response, error);
+    }
+
+    bool addToReconcile(const std::shared_ptr<Proof> &proof) {
+        fixture->m_processor->addProofToReconcile(proof, true);
+        return true;
+    }
+
+    std::vector<Vote>
+    buildVotesForItems(uint32_t error,
+                       std::vector<std::shared_ptr<Proof>> &&items) {
+        size_t numItems = items.size();
+
+        std::vector<Vote> votes;
+        votes.reserve(numItems);
+
+        // Votes are sorted by high score first
+        std::sort(items.begin(), items.end(), ProofSharedPointerComparator());
+        for (auto &item : items) {
+            votes.emplace_back(error, item->getId());
+        }
+
+        return votes;
+    }
+};
+
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(processor_tests, AvalancheTestingSetup)
 
 // FIXME A std::tuple can be used instead of boost::mpl::list after boost 1.67
-typedef boost::mpl::list<BlockOnlyTestingContext> voteItemTestingContexts;
+typedef boost::mpl::list<BlockOnlyTestingContext, ProofOnlyTestingContext>
+    voteItemTestingContexts;
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
     vr.registerVote(NO_NODE, vote);                                            \
