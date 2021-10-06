@@ -21,6 +21,7 @@
 #include <avalanche/test/util.h>
 #include <test/util/setup_common.h>
 
+#include <boost/mpl/list.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace avalanche;
@@ -178,9 +179,50 @@ struct AvalancheTestingSetup : public TestChain100Setup {
                                           error);
     }
 };
+
+struct BlockOnlyTestingContext {
+    AvalancheTestingSetup *fixture;
+
+    std::vector<BlockUpdate> updates;
+    uint32_t invType;
+
+    BlockOnlyTestingContext(AvalancheTestingSetup *_fixture)
+        : fixture(_fixture), invType(MSG_BLOCK) {}
+
+    CBlockIndex *buildVoteItem() const {
+        CBlock block = fixture->CreateAndProcessBlock({}, CScript());
+        const BlockHash blockHash = block.GetHash();
+
+        LOCK(cs_main);
+        return LookupBlockIndex(blockHash);
+    }
+
+    uint256 getVoteItemId(const CBlockIndex *pindex) const {
+        return pindex->GetBlockHash();
+    }
+
+    bool registerVotes(NodeId nodeid, const avalanche::Response &response,
+                       std::string &error) {
+        int banscore;
+        return fixture->m_processor->registerVotes(nodeid, response, updates,
+                                                   banscore, error);
+    }
+    bool registerVotes(NodeId nodeid, const avalanche::Response &response) {
+        std::string error;
+        return registerVotes(nodeid, response, error);
+    }
+
+    bool addToReconcile(const CBlockIndex *pindex) {
+        return fixture->m_processor->addBlockToReconcile(pindex);
+    }
+};
+
 } // namespace
 
 BOOST_FIXTURE_TEST_SUITE(processor_tests, AvalancheTestingSetup)
+
+// FIXME A std::tuple can be used instead of boost::mpl::list after boost 1.67
+typedef boost::mpl::list<BlockOnlyTestingContext> voteItemTestingContexts;
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
     vr.registerVote(NO_NODE, vote);                                            \
@@ -331,150 +373,146 @@ Response next(Response &r) {
 }
 } // namespace
 
-BOOST_AUTO_TEST_CASE(block_register) {
-    std::vector<BlockUpdate> updates;
+BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, T, voteItemTestingContexts) {
+    T context(this);
+    auto &updates = context.updates;
+    const uint32_t invType = context.invType;
 
-    CBlock block = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash = block.GetHash();
-    const CBlockIndex *pindex;
-    {
-        LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
-    }
+    const auto item = context.buildVoteItem();
+    const auto itemid = context.getVoteItemId(item);
 
     // Create nodes that supports avalanche.
     auto avanodes = ConnectNodes();
 
-    // Querying for random block returns false.
-    BOOST_CHECK(!m_processor->isAccepted(pindex));
+    // Querying for random item returns false.
+    BOOST_CHECK(!m_processor->isAccepted(item));
 
-    // Add a new block. Check it is added to the polls.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    // Add a new item. Check it is added to the polls.
+    BOOST_CHECK(context.addToReconcile(item));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHash);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
 
-    // Newly added blocks' state reflect the blockchain.
-    BOOST_CHECK(m_processor->isAccepted(pindex));
+    BOOST_CHECK(m_processor->isAccepted(item));
 
     int nextNodeIndex = 0;
     auto registerNewVote = [&](const Response &resp) {
         runEventLoop();
         auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
-        BOOST_CHECK(registerVotes(nodeid, resp, updates));
+        BOOST_CHECK(context.registerVotes(nodeid, resp));
     };
 
-    // Let's vote for this block a few times.
-    Response resp{0, 0, {Vote(0, blockHash)}};
+    // Let's vote for this item a few times.
+    Response resp{0, 0, {Vote(0, itemid)}};
     for (int i = 0; i < 6; i++) {
         registerNewVote(next(resp));
-        BOOST_CHECK(m_processor->isAccepted(pindex));
-        BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), 0);
+        BOOST_CHECK(m_processor->isAccepted(item));
+        BOOST_CHECK_EQUAL(m_processor->getConfidence(item), 0);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // A single neutral vote do not change anything.
-    resp = {getRound(), 0, {Vote(-1, blockHash)}};
+    resp = {getRound(), 0, {Vote(-1, itemid)}};
     registerNewVote(next(resp));
-    BOOST_CHECK(m_processor->isAccepted(pindex));
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), 0);
+    BOOST_CHECK(m_processor->isAccepted(item));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(item), 0);
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
-    resp = {getRound(), 0, {Vote(0, blockHash)}};
+    resp = {getRound(), 0, {Vote(0, itemid)}};
     for (int i = 1; i < 7; i++) {
         registerNewVote(next(resp));
-        BOOST_CHECK(m_processor->isAccepted(pindex));
-        BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), i);
+        BOOST_CHECK(m_processor->isAccepted(item));
+        BOOST_CHECK_EQUAL(m_processor->getConfidence(item), i);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Two neutral votes will stall progress.
-    resp = {getRound(), 0, {Vote(-1, blockHash)}};
+    resp = {getRound(), 0, {Vote(-1, itemid)}};
     registerNewVote(next(resp));
-    BOOST_CHECK(m_processor->isAccepted(pindex));
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), 6);
+    BOOST_CHECK(m_processor->isAccepted(item));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(item), 6);
     BOOST_CHECK_EQUAL(updates.size(), 0);
     registerNewVote(next(resp));
-    BOOST_CHECK(m_processor->isAccepted(pindex));
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), 6);
+    BOOST_CHECK(m_processor->isAccepted(item));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(item), 6);
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
-    resp = {getRound(), 0, {Vote(0, blockHash)}};
+    resp = {getRound(), 0, {Vote(0, itemid)}};
     for (int i = 2; i < 8; i++) {
         registerNewVote(next(resp));
-        BOOST_CHECK(m_processor->isAccepted(pindex));
-        BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), 6);
+        BOOST_CHECK(m_processor->isAccepted(item));
+        BOOST_CHECK_EQUAL(m_processor->getConfidence(item), 6);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // We vote for it numerous times to finalize it.
     for (int i = 7; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         registerNewVote(next(resp));
-        BOOST_CHECK(m_processor->isAccepted(pindex));
-        BOOST_CHECK_EQUAL(m_processor->getConfidence(pindex), i);
+        BOOST_CHECK(m_processor->isAccepted(item));
+        BOOST_CHECK_EQUAL(m_processor->getConfidence(item), i);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // As long as it is not finalized, we poll.
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHash);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
 
     // Now finalize the decision.
     registerNewVote(next(resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == pindex);
+    BOOST_CHECK(updates[0].getVoteItem() == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
-    updates = {};
+    updates.clear();
 
     // Once the decision is finalized, there is no poll for it.
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 0);
 
     // Now let's undo this and finalize rejection.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    BOOST_CHECK(context.addToReconcile(item));
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHash);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
 
-    resp = {getRound(), 0, {Vote(1, blockHash)}};
+    resp = {getRound(), 0, {Vote(1, itemid)}};
     for (int i = 0; i < 6; i++) {
         registerNewVote(next(resp));
-        BOOST_CHECK(m_processor->isAccepted(pindex));
+        BOOST_CHECK(m_processor->isAccepted(item));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // Now the state will flip.
     registerNewVote(next(resp));
-    BOOST_CHECK(!m_processor->isAccepted(pindex));
+    BOOST_CHECK(!m_processor->isAccepted(item));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == pindex);
+    BOOST_CHECK(updates[0].getVoteItem() == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Rejected);
-    updates = {};
+    updates.clear();
 
     // Now it is rejected, but we can vote for it numerous times.
     for (int i = 1; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         registerNewVote(next(resp));
-        BOOST_CHECK(!m_processor->isAccepted(pindex));
+        BOOST_CHECK(!m_processor->isAccepted(item));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
     // As long as it is not finalized, we poll.
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHash);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
 
     // Now finalize the decision.
     registerNewVote(next(resp));
-    BOOST_CHECK(!m_processor->isAccepted(pindex));
+    BOOST_CHECK(!m_processor->isAccepted(item));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == pindex);
+    BOOST_CHECK(updates[0].getVoteItem() == item);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Invalid);
-    updates = {};
+    updates.clear();
 
     // Once the decision is finalized, there is no poll for it.
     invs = getInvsForNextPoll();
