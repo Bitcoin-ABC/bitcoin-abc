@@ -80,6 +80,7 @@ TEST_FRAMEWORK_MODULES = [
     "messages",
     "muhash",
     "script",
+    "txtools",
     "util",
 ]
 
