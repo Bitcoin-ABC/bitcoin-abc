@@ -84,7 +84,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
         assert_equal(wpriv.getwalletinfo()['keypoolsize'], 0)
 
         self.log.info('Mining coins')
-        self.generatetoaddress(w0, 101, w0.getnewaddress())
+        self.generatetoaddress(self.nodes[0], 101, w0.getnewaddress())
 
         # RPC importdescriptors -----------------------------------------------
 
@@ -305,7 +305,7 @@ class ImportDescriptorsTest(BitcoinTestFramework):
                      solvable=True,
                      ismine=True)
         txid = w0.sendtoaddress(address, 49999996.00)
-        self.generatetoaddress(w0, 6, w0.getnewaddress())
+        self.generatetoaddress(self.nodes[0], 6, w0.getnewaddress())
         self.sync_blocks()
         tx = wpriv.createrawtransaction([{"txid": txid, "vout": 0}], {
                                         w0.getnewaddress(): 49999000})

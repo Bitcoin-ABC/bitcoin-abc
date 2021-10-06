@@ -65,11 +65,11 @@ class MiniWallet:
                 self._utxos.append(
                     {'txid': tx['txid'], 'vout': out['n'], 'value': out['value']})
 
-    def generate(self, num_blocks):
+    def generate(self, num_blocks, **kwargs):
         """Generate blocks with coinbase outputs to the internal address,
         and append the outputs to the internal list"""
         blocks = self._test_node.generatetodescriptor(
-            num_blocks, f'raw({self._scriptPubKey.hex()})')
+            num_blocks, f'raw({self._scriptPubKey.hex()})', **kwargs)
         for b in blocks:
             cb_tx = self._test_node.getblock(blockhash=b, verbosity=2)['tx'][0]
             self._utxos.append(

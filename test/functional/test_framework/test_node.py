@@ -397,11 +397,23 @@ class TestNode:
             "Unable to retrieve cookie credentials after {}s".format(
                 self.rpc_timeout))
 
-    def generate(self, nblocks, maxtries=1000000):
+    def generate(self, nblocks, maxtries=1000000, **kwargs):
         self.log.debug(
             "TestNode.generate() dispatches `generate` call to `generatetoaddress`")
         return self.generatetoaddress(
-            nblocks=nblocks, address=self.get_deterministic_priv_key().address, maxtries=maxtries)
+            nblocks=nblocks, address=self.get_deterministic_priv_key().address, maxtries=maxtries, **kwargs)
+
+    def generateblock(self, *args, invalid_call, **kwargs):
+        assert not invalid_call
+        return self.__getattr__('generateblock')(*args, **kwargs)
+
+    def generatetoaddress(self, *args, invalid_call, **kwargs):
+        assert not invalid_call
+        return self.__getattr__('generatetoaddress')(*args, **kwargs)
+
+    def generatetodescriptor(self, *args, invalid_call, **kwargs):
+        assert not invalid_call
+        return self.__getattr__('generatetodescriptor')(*args, **kwargs)
 
     def buildavalancheproof(self, sequence: int, expiration: int, master: str,
                             stakes: List[Dict[str, Any]], payoutAddress: Optional[str] = ADDRESS_ECREG_UNSPENDABLE) -> str:

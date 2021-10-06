@@ -337,8 +337,8 @@ class ZMQTest (BitcoinTestFramework):
         self.disconnect_nodes(0, 1)
         txid_to_be_replaced = send_conflicting_transaction(self.nodes[0])
         replacement_txid = send_conflicting_transaction(self.nodes[1])
-        block_hash = self.nodes[1].generatetoaddress(
-            1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
+        block_hash = self.generatetoaddress(
+            self.nodes[1], 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         self.connect_nodes(0, 1)
         self.sync_all()
 
