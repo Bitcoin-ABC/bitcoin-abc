@@ -190,61 +190,6 @@ public:
     mutable Epoch::Marker m_epoch_marker;
 };
 
-// Helpers for modifying CTxMemPool::mapTx, which is a boost multi_index.
-struct update_descendant_state {
-    update_descendant_state(int64_t _modifySize, Amount _modifyFee,
-                            int64_t _modifyCount, int64_t _modifySigOpCount)
-        : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigOpCount(_modifySigOpCount) {}
-
-    void operator()(CTxMemPoolEntry &e) {
-        e.UpdateDescendantState(modifySize, modifyFee, modifyCount,
-                                modifySigOpCount);
-    }
-
-private:
-    int64_t modifySize;
-    Amount modifyFee;
-    int64_t modifyCount;
-    int64_t modifySigOpCount;
-};
-
-struct update_ancestor_state {
-    update_ancestor_state(int64_t _modifySize, Amount _modifyFee,
-                          int64_t _modifyCount, int64_t _modifySigOpCount)
-        : modifySize(_modifySize), modifyFee(_modifyFee),
-          modifyCount(_modifyCount), modifySigOpCount(_modifySigOpCount) {}
-
-    void operator()(CTxMemPoolEntry &e) {
-        e.UpdateAncestorState(modifySize, modifyFee, modifyCount,
-                              modifySigOpCount);
-    }
-
-private:
-    int64_t modifySize;
-    Amount modifyFee;
-    int64_t modifyCount;
-    int64_t modifySigOpCount;
-};
-
-struct update_fee_delta {
-    explicit update_fee_delta(Amount _feeDelta) : feeDelta(_feeDelta) {}
-
-    void operator()(CTxMemPoolEntry &e) { e.UpdateFeeDelta(feeDelta); }
-
-private:
-    Amount feeDelta;
-};
-
-struct update_lock_points {
-    explicit update_lock_points(const LockPoints &_lp) : lp(_lp) {}
-
-    void operator()(CTxMemPoolEntry &e) { e.UpdateLockPoints(lp); }
-
-private:
-    const LockPoints &lp;
-};
-
 // extracts a transaction id from CTxMemPoolEntry or CTransactionRef
 struct mempoolentry_txid {
     typedef TxId result_type;
