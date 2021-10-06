@@ -308,6 +308,21 @@ BOOST_AUTO_TEST_CASE(block_update) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(block_reconcile_twice) {
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    const BlockHash blockHash = block.GetHash();
+    CBlockIndex *pindex;
+    {
+        LOCK(cs_main);
+        pindex = LookupBlockIndex(blockHash);
+    }
+
+    // Adding the block twice does nothing.
+    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    BOOST_CHECK(!m_processor->addBlockToReconcile(pindex));
+    BOOST_CHECK(m_processor->isAccepted(pindex));
+}
+
 namespace {
 Response next(Response &r) {
     auto copy = r;
@@ -464,11 +479,6 @@ BOOST_AUTO_TEST_CASE(block_register) {
     // Once the decision is finalized, there is no poll for it.
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 0);
-
-    // Adding the block twice does nothing.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
-    BOOST_CHECK(!m_processor->addBlockToReconcile(pindex));
-    BOOST_CHECK(m_processor->isAccepted(pindex));
 }
 
 BOOST_AUTO_TEST_CASE(multi_block_register) {
