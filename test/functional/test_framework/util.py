@@ -46,7 +46,7 @@ def assert_fee_amount(fee, tx_size, fee_per_kB, wiggleroom=2):
     during fee calculation, or due to the wallet funding transactions using the
     ceiling of the calculated fee.
     """
-    target_fee = round(tx_size * fee_per_kB / 1000, 8)
+    target_fee = satoshi_round(tx_size * fee_per_kB / 1000)
     if fee < (tx_size - wiggleroom) * fee_per_kB / 1000:
         raise AssertionError(
             "Fee of {} XEC too low! (Should be {} XEC)".format(str(fee), str(target_fee)))
