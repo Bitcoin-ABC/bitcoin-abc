@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js';
 export const currency = {
     name: 'eCash',
     ticker: 'XEC',
-    appUrl: 'cashtabapp.com',
+    appUrl: 'cashtab.com',
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
     prefixes: ['ecash'],
