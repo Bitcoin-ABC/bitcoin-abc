@@ -11,6 +11,7 @@
 #include <chain.h>
 #include <config.h>
 #include <net_processing.h> // For ::PeerManager
+#include <reverse_iterator.h>
 #include <scheduler.h>
 #include <util/time.h>
 #include <util/translation.h> // For bilingual_str
@@ -214,6 +215,22 @@ struct BlockOnlyTestingContext {
 
     bool addToReconcile(const CBlockIndex *pindex) {
         return fixture->m_processor->addBlockToReconcile(pindex);
+    }
+
+    std::vector<Vote> buildVotesForItems(uint32_t error,
+                                         std::vector<CBlockIndex *> &&items) {
+        size_t numItems = items.size();
+
+        std::vector<Vote> votes;
+        votes.reserve(numItems);
+
+        // Votes are sorted by most work first
+        std::sort(items.begin(), items.end(), CBlockIndexWorkComparator());
+        for (auto &item : reverse_iterate(items)) {
+            votes.emplace_back(error, item->GetBlockHash());
+        }
+
+        return votes;
     }
 };
 
@@ -519,62 +536,55 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, T, voteItemTestingContexts) {
     BOOST_CHECK_EQUAL(invs.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(multi_block_register) {
-    CBlockIndex indexA, indexB;
+BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, T, voteItemTestingContexts) {
+    T context(this);
+    auto &updates = context.updates;
+    const uint32_t invType = context.invType;
 
-    std::vector<BlockUpdate> updates;
+    auto itemA = context.buildVoteItem();
+    auto itemidA = context.getVoteItemId(itemA);
+
+    auto itemB = context.buildVoteItem();
+    auto itemidB = context.getVoteItemId(itemB);
 
     // Create several nodes that support avalanche.
     auto avanodes = ConnectNodes();
 
-    // Make sure the block has a hash.
-    CBlock blockA = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHashA = blockA.GetHash();
+    // Querying for random item returns false.
+    BOOST_CHECK(!m_processor->isAccepted(itemA));
+    BOOST_CHECK(!m_processor->isAccepted(itemB));
 
-    CBlock blockB = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHashB = blockB.GetHash();
-    const CBlockIndex *pindexA;
-    const CBlockIndex *pindexB;
-    {
-        LOCK(cs_main);
-        pindexA = LookupBlockIndex(blockHashA);
-        pindexB = LookupBlockIndex(blockHashB);
-    }
-
-    // Querying for random block returns false.
-    BOOST_CHECK(!m_processor->isAccepted(pindexA));
-    BOOST_CHECK(!m_processor->isAccepted(pindexB));
-
-    // Start voting on block A.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindexA));
+    // Start voting on item A.
+    BOOST_CHECK(context.addToReconcile(itemA));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHashA);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemidA);
 
     uint64_t round = getRound();
     runEventLoop();
-    BOOST_CHECK(registerVotes(avanodes[0]->GetId(),
-                              {round, 0, {Vote(0, blockHashA)}}, updates));
+    BOOST_CHECK(context.registerVotes(avanodes[0]->GetId(),
+                                      {round, 0, {Vote(0, itemidA)}}));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
-    // Start voting on block B after one vote.
-    Response resp{round + 1, 0, {Vote(0, blockHashB), Vote(0, blockHashA)}};
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindexB));
+    // Start voting on item B after one vote.
+    std::vector<Vote> votes = context.buildVotesForItems(0, {itemA, itemB});
+    Response resp{round + 1, 0, votes};
+    BOOST_CHECK(context.addToReconcile(itemB));
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 2);
 
-    // Ensure B comes before A because it has accumulated more PoW.
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHashB);
-    BOOST_CHECK_EQUAL(invs[1].type, MSG_BLOCK);
-    BOOST_CHECK(invs[1].hash == blockHashA);
+    // Ensure the inv ordering is as expected
+    for (size_t i = 0; i < invs.size(); i++) {
+        BOOST_CHECK_EQUAL(invs[i].type, invType);
+        BOOST_CHECK(invs[i].hash == votes[i].GetHash());
+    }
 
-    // Let's vote for these blocks a few times.
+    // Let's vote for these items a few times.
     for (int i = 0; i < 4; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         runEventLoop();
-        BOOST_CHECK(registerVotes(nodeid, next(resp), updates));
+        BOOST_CHECK(context.registerVotes(nodeid, next(resp)));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -582,7 +592,7 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
     for (int i = 0; i < AVALANCHE_FINALIZATION_SCORE; i++) {
         NodeId nodeid = getSuitableNodeToQuery();
         runEventLoop();
-        BOOST_CHECK(registerVotes(nodeid, next(resp), updates));
+        BOOST_CHECK(context.registerVotes(nodeid, next(resp)));
         BOOST_CHECK_EQUAL(updates.size(), 0);
     }
 
@@ -595,23 +605,23 @@ BOOST_AUTO_TEST_CASE(multi_block_register) {
 
     BOOST_CHECK(firstNodeid != secondNodeid);
 
-    // Next vote will finalize block A.
-    BOOST_CHECK(registerVotes(firstNodeid, next(resp), updates));
+    // Next vote will finalize item A.
+    BOOST_CHECK(context.registerVotes(firstNodeid, next(resp)));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == pindexA);
+    BOOST_CHECK(updates[0].getVoteItem() == itemA);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates = {};
 
     // We do not vote on A anymore.
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHashB);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemidB);
 
-    // Next vote will finalize block B.
-    BOOST_CHECK(registerVotes(secondNodeid, resp, updates));
+    // Next vote will finalize item B.
+    BOOST_CHECK(context.registerVotes(secondNodeid, resp));
     BOOST_CHECK_EQUAL(updates.size(), 1);
-    BOOST_CHECK(updates[0].getVoteItem() == pindexB);
+    BOOST_CHECK(updates[0].getVoteItem() == itemB);
     BOOST_CHECK(updates[0].getStatus() == VoteStatus::Finalized);
     updates = {};
 
