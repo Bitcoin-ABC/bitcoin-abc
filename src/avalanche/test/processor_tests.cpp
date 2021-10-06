@@ -630,16 +630,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(multi_item_register, T, voteItemTestingContexts) {
     BOOST_CHECK_EQUAL(invs.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(poll_and_response) {
-    std::vector<BlockUpdate> updates;
+BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, T, voteItemTestingContexts) {
+    T context(this);
+    auto &updates = context.updates;
+    const uint32_t invType = context.invType;
 
-    CBlock block = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash = block.GetHash();
-    const CBlockIndex *pindex;
-    {
-        LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
-    }
+    const auto item = context.buildVoteItem();
+    const auto itemid = context.getVoteItemId(item);
 
     // There is no node to query.
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), NO_NODE);
@@ -653,12 +650,12 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     // It returns the avalanche peer.
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
-    // Register a block and check it is added to the list of elements to poll.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    // Register an item and check it is added to the list of elements to poll.
+    BOOST_CHECK(context.addToReconcile(item));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHash);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
 
     // Trigger a poll on avanode.
     uint64_t round = getRound();
@@ -668,8 +665,8 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), NO_NODE);
 
     // Respond to the request.
-    Response resp = {round, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
+    Response resp = {round, 0, {Vote(0, itemid)}};
+    BOOST_CHECK(context.registerVotes(avanodeid, resp));
     BOOST_CHECK_EQUAL(updates.size(), 0);
 
     // Now that avanode fullfilled his request, it is added back to the list of
@@ -679,10 +676,8 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
     auto checkRegisterVotesError = [&](NodeId nodeid,
                                        const avalanche::Response &response,
                                        const std::string &expectedError) {
-        int banscore;
         std::string error;
-        BOOST_CHECK(!m_processor->registerVotes(nodeid, response, updates,
-                                                banscore, error));
+        BOOST_CHECK(!context.registerVotes(nodeid, response, error));
         BOOST_CHECK_EQUAL(error, expectedError);
         BOOST_CHECK_EQUAL(updates.size(), 0);
     };
@@ -697,7 +692,7 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     // Sending responses that do not match the request also fails.
     // 1. Too many results.
-    resp = {round, 0, {Vote(0, blockHash), Vote(0, blockHash)}};
+    resp = {round, 0, {Vote(0, itemid), Vote(0, itemid)}};
     runEventLoop();
     checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-size");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
@@ -726,34 +721,29 @@ BOOST_AUTO_TEST_CASE(poll_and_response) {
 
     // 5. Making request for invalid nodes do not work. Request is not
     // discarded.
-    resp = {queryRound, 0, {Vote(0, blockHash)}};
+    resp = {queryRound, 0, {Vote(0, itemid)}};
     checkRegisterVotesError(avanodeid + 1234, resp, "unexpected-ava-response");
 
     // Proper response gets processed and avanode is available again.
-    resp = {queryRound, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
+    resp = {queryRound, 0, {Vote(0, itemid)}};
+    BOOST_CHECK(context.registerVotes(avanodeid, resp));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
     // Out of order response are rejected.
-    CBlock block2 = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash2 = block2.GetHash();
-    CBlockIndex *pindex2;
-    {
-        LOCK(cs_main);
-        pindex2 = LookupBlockIndex(blockHash2);
-    }
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex2));
+    const auto item2 = context.buildVoteItem();
+    BOOST_CHECK(context.addToReconcile(item2));
 
-    resp = {getRound(), 0, {Vote(0, blockHash), Vote(0, blockHash2)}};
+    std::vector<Vote> votes = context.buildVotesForItems(0, {item, item2});
+    resp = {getRound(), 0, {votes[1], votes[0]}};
     runEventLoop();
     checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-content");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
     // But they are accepted in order.
-    resp = {getRound(), 0, {Vote(0, blockHash2), Vote(0, blockHash)}};
+    resp = {getRound(), 0, votes};
     runEventLoop();
-    BOOST_CHECK(registerVotes(avanodeid, resp, updates));
+    BOOST_CHECK(context.registerVotes(avanodeid, resp));
     BOOST_CHECK_EQUAL(updates.size(), 0);
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 }
