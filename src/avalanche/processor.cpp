@@ -280,9 +280,29 @@ bool Processor::isAccepted(const CBlockIndex *pindex) const {
     return it->second.isAccepted();
 }
 
+bool Processor::isAccepted(const std::shared_ptr<Proof> &proof) const {
+    auto r = proofVoteRecords.getReadView();
+    auto it = r->find(proof);
+    if (it == r.end()) {
+        return false;
+    }
+
+    return it->second.isAccepted();
+}
+
 int Processor::getConfidence(const CBlockIndex *pindex) const {
     auto r = blockVoteRecords.getReadView();
     auto it = r->find(pindex);
+    if (it == r.end()) {
+        return -1;
+    }
+
+    return it->second.getConfidence();
+}
+
+int Processor::getConfidence(const std::shared_ptr<Proof> &proof) const {
+    auto r = proofVoteRecords.getReadView();
+    auto it = r->find(proof);
     if (it == r.end()) {
         return -1;
     }

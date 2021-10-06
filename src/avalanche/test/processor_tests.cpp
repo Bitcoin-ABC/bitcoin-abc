@@ -1120,4 +1120,29 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(proof_record) {
+    BOOST_CHECK(!m_processor->isAccepted(nullptr));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
+
+    auto proofA = GetProof();
+    auto proofB = GetProof();
+
+    BOOST_CHECK(!m_processor->isAccepted(proofA));
+    BOOST_CHECK(!m_processor->isAccepted(proofB));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), -1);
+
+    m_processor->addProofToReconcile(proofA, false);
+    BOOST_CHECK(!m_processor->isAccepted(proofA));
+    BOOST_CHECK(!m_processor->isAccepted(proofB));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), -1);
+
+    m_processor->addProofToReconcile(proofB, true);
+    BOOST_CHECK(!m_processor->isAccepted(proofA));
+    BOOST_CHECK(m_processor->isAccepted(proofB));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

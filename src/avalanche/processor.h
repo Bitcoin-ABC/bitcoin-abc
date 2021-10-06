@@ -174,7 +174,9 @@ public:
     void addProofToReconcile(const std::shared_ptr<Proof> &proof,
                              bool isAccepted);
     bool isAccepted(const CBlockIndex *pindex) const;
+    bool isAccepted(const std::shared_ptr<Proof> &proof) const;
     int getConfidence(const CBlockIndex *pindex) const;
+    int getConfidence(const std::shared_ptr<Proof> &proof) const;
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
