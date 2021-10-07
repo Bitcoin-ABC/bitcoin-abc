@@ -1422,9 +1422,7 @@ void CConnman::NotifyNumConnectionsChanged() {
     }
 }
 
-bool CConnman::ShouldRunInactivityChecks(const CNode &node,
-                                         std::optional<int64_t> now_in) const {
-    const int64_t now = now_in ? now_in.value() : GetSystemTimeInSeconds();
+bool CConnman::ShouldRunInactivityChecks(const CNode &node, int64_t now) const {
     return node.nTimeConnected + m_peer_connect_timeout < now;
 }
 

@@ -18,6 +18,7 @@
 #include <util/time.h>
 #include <validation.h>
 
+#include <test/util/net.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -77,6 +78,8 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     const Config &config = GetConfig();
 
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
+    // Disable inactivity checks for this test to avoid interference
+    static_cast<ConnmanTestMsg *>(connman.get())->SetPeerConnectTimeout(99999);
     auto peerLogic = PeerManager::make(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
         *m_node.chainman, *m_node.mempool, false);
