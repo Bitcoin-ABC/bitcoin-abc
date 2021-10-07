@@ -837,19 +837,16 @@ BOOST_AUTO_TEST_CASE(dont_poll_invalid_block) {
     BOOST_CHECK_EQUAL(updates.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
-    std::vector<BlockUpdate> updates;
+BOOST_TEST_DECORATOR(*boost::unit_test::timeout(60))
+BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, T,
+                              voteItemTestingContexts) {
+    T context(this);
 
-    CBlock block = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash = block.GetHash();
-    const CBlockIndex *pindex;
-    {
-        LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
-    }
+    const auto item = context.buildVoteItem();
+    const auto itemid = context.getVoteItemId(item);
 
-    // Add the block
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    // Add the item
+    BOOST_CHECK(context.addToReconcile(item));
 
     // Create a node that supports avalanche.
     auto avanode = ConnectNode(NODE_AVALANCHE);
@@ -860,7 +857,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
     auto queryTimeDuration = std::chrono::milliseconds(10);
     m_processor->setQueryTimeoutDuration(queryTimeDuration);
     for (int i = 0; i < 10; i++) {
-        Response resp = {getRound(), 0, {Vote(0, blockHash)}};
+        Response resp = {getRound(), 0, {Vote(0, itemid)}};
 
         auto start = std::chrono::steady_clock::now();
         runEventLoop();
@@ -869,7 +866,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         runEventLoop();
 
-        bool ret = registerVotes(avanodeid, next(resp), updates);
+        bool ret = context.registerVotes(avanodeid, next(resp));
         if (std::chrono::steady_clock::now() > start + queryTimeDuration) {
             // We waited for too long, bail. Because we can't know for sure when
             // previous steps ran, ret is not deterministic and we do not check
@@ -885,7 +882,7 @@ BOOST_AUTO_TEST_CASE(poll_inflight_timeout, *boost::unit_test::timeout(60)) {
         runEventLoop();
         std::this_thread::sleep_for(queryTimeDuration);
         runEventLoop();
-        BOOST_CHECK(!registerVotes(avanodeid, next(resp), updates));
+        BOOST_CHECK(!context.registerVotes(avanodeid, next(resp)));
     }
 }
 

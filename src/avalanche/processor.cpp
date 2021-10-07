@@ -611,27 +611,34 @@ void Processor::clearTimedoutRequests() {
     // In flight request accounting.
     for (const auto &p : timedout_items) {
         const CInv &inv = p.first;
-        if (inv.type != MSG_BLOCK) {
-            continue;
-        }
+        if (inv.IsMsgBlk()) {
+            CBlockIndex *pindex;
 
-        CBlockIndex *pindex;
+            {
+                LOCK(cs_main);
+                pindex = LookupBlockIndex(BlockHash(inv.hash));
+                if (!pindex) {
+                    continue;
+                }
+            }
 
-        {
-            LOCK(cs_main);
-            pindex = LookupBlockIndex(BlockHash(inv.hash));
-            if (!pindex) {
+            auto w = blockVoteRecords.getWriteView();
+            auto it = w->find(pindex);
+            if (it == w.end()) {
                 continue;
             }
+
+            it->second.clearInflightRequest(p.second);
         }
 
-        auto w = blockVoteRecords.getWriteView();
-        auto it = w->find(pindex);
-        if (it == w.end()) {
-            continue;
+        if (inv.IsMsgProof()) {
+            auto w = proofVoteRecords.getWriteView();
+            for (auto it = w.begin(); it != w.end(); it++) {
+                if (it->first->getId() == inv.hash) {
+                    it->second.clearInflightRequest(p.second);
+                }
+            }
         }
-
-        it->second.clearInflightRequest(p.second);
     }
 }
 
