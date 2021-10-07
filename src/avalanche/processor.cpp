@@ -542,7 +542,11 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     // valuable are voted first.
     while (pit != proofVoteRecordsReadView.end() &&
            invs.size() < AVALANCHE_MAX_ELEMENT_POLL - 1) {
-        invs.emplace_back(MSG_AVA_PROOF, pit->first->getId());
+        const bool shouldPoll =
+            forPoll ? pit->second.registerPoll() : pit->second.shouldPoll();
+        if (shouldPoll) {
+            invs.emplace_back(MSG_AVA_PROOF, pit->first->getId());
+        }
         ++pit;
     }
 

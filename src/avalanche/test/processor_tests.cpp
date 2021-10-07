@@ -886,7 +886,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, T,
     }
 }
 
-BOOST_AUTO_TEST_CASE(poll_inflight_count) {
+BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_count, T, voteItemTestingContexts) {
+    T context(this);
+    const uint32_t invType = context.invType;
+
     // Create enough nodes so that we run into the inflight request limit.
     auto proof = GetProof();
     BOOST_CHECK(m_processor->withPeerManager(
@@ -898,15 +901,10 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
         BOOST_CHECK(addNode(n->GetId(), proof->getId()));
     }
 
-    // Add a block to poll
-    CBlock block = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash = block.GetHash();
-    const CBlockIndex *pindex;
-    {
-        LOCK(cs_main);
-        pindex = LookupBlockIndex(blockHash);
-    }
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    // Add an item to poll
+    const auto item = context.buildVoteItem();
+    const auto itemid = context.getVoteItemId(item);
+    BOOST_CHECK(context.addToReconcile(item));
 
     // Ensure there are enough requests in flight.
     std::map<NodeId, uint64_t> node_round_map;
@@ -916,8 +914,8 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
         node_round_map.insert(std::pair<NodeId, uint64_t>(nodeid, getRound()));
         auto invs = getInvsForNextPoll();
         BOOST_CHECK_EQUAL(invs.size(), 1);
-        BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-        BOOST_CHECK(invs[0].hash == blockHash);
+        BOOST_CHECK_EQUAL(invs[0].type, invType);
+        BOOST_CHECK(invs[0].hash == itemid);
         runEventLoop();
     }
 
@@ -929,18 +927,16 @@ BOOST_AUTO_TEST_CASE(poll_inflight_count) {
     runEventLoop();
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), suitablenodeid);
 
-    std::vector<BlockUpdate> updates;
-
     // Send one response, now we can poll again.
     auto it = node_round_map.begin();
-    Response resp = {it->second, 0, {Vote(0, blockHash)}};
-    BOOST_CHECK(registerVotes(it->first, resp, updates));
+    Response resp = {it->second, 0, {Vote(0, itemid)}};
+    BOOST_CHECK(context.registerVotes(it->first, resp));
     node_round_map.erase(it);
 
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHash);
+    BOOST_CHECK_EQUAL(invs[0].type, invType);
+    BOOST_CHECK(invs[0].hash == itemid);
 }
 
 BOOST_AUTO_TEST_CASE(quorum_diversity) {
