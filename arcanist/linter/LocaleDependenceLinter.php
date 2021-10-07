@@ -46,7 +46,6 @@ final class LocaleDependenceLinter extends ArcanistLinter {
         "vsnprintf"
     ],
     "src/netbase.cpp" => ["to_lower"],
-    "src/rest.cpp" => ["strtol"],
     "src/rpc/server.cpp" => ["to_upper"],
     "src/test/dbwrapper_tests.cpp" => ["snprintf"],
     "src/test/getarg_tests.cpp" => [

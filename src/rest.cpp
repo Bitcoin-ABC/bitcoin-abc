@@ -196,8 +196,9 @@ static bool rest_headers(Config &config, const std::any &context,
                        "/rest/headers/<count>/<hash>.<ext>.");
     }
 
-    long count = strtol(path[0].c_str(), nullptr, 10);
-    if (count < 1 || count > 2000) {
+    const auto parsed_count{ToIntegral<size_t>(path[0])};
+    if (!parsed_count.has_value() || *parsed_count < 1 ||
+        *parsed_count > 2000) {
         return RESTERR(req, HTTP_BAD_REQUEST,
                        "Header count out of range: " + path[0]);
     }
@@ -210,7 +211,7 @@ static bool rest_headers(Config &config, const std::any &context,
 
     const CBlockIndex *tip = nullptr;
     std::vector<const CBlockIndex *> headers;
-    headers.reserve(count);
+    headers.reserve(*parsed_count);
     {
         ChainstateManager *maybe_chainman = GetChainman(context, req);
         if (!maybe_chainman) {
@@ -223,7 +224,7 @@ static bool rest_headers(Config &config, const std::any &context,
         const CBlockIndex *pindex{chainman.m_blockman.LookupBlockIndex(*hash)};
         while (pindex != nullptr && active_chain.Contains(pindex)) {
             headers.push_back(pindex);
-            if (headers.size() == size_t(count)) {
+            if (headers.size() == *parsed_count) {
                 break;
             }
             pindex = active_chain.Next(pindex);

@@ -395,6 +395,15 @@ class RESTTest(BitcoinTestFramework):
         # Now we should have 5 header objects
         assert_equal(len(json_obj), 5)
 
+        # Test number parsing
+        for num in ["5a", "-5", "0", "2001", "99999999999999999999999999999999999"]:
+            assert_equal(
+                bytes(f"Header count out of range: {num}\r\n", "ascii"),
+                self.test_rest_request(
+                    f"/headers/{num}/{bb_hash}", ret_type=RetType.BYTES, status=400
+                ),
+            )
+
         self.log.info("Test tx inclusion in the /mempool and /block URIs")
 
         # Make 3 tx and mine them on node 1
