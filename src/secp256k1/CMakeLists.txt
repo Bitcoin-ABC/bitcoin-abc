@@ -262,14 +262,14 @@ if(SECP256K1_ECMULT_STATIC_PRECOMPUTATION)
 		"-DSECP256K1_USE_ASM=OFF"
 		"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
 	)
-	add_native_executable(gen_context src/gen_context.c)
+	add_native_executable(gen_ecmult_gen_static_prec_table src/gen_ecmult_gen_static_prec_table.c)
 
 	add_custom_command(
-		OUTPUT src/ecmult_static_context.h
-		COMMAND gen_context
+		OUTPUT src/ecmult_gen_static_prec_table.h
+		COMMAND gen_ecmult_gen_static_prec_table
 	)
 
-	target_sources(secp256k1 PRIVATE src/ecmult_static_context.h)
+	target_sources(secp256k1 PRIVATE src/ecmult_gen_static_prec_table.h)
 endif()
 
 # If this project is not the top level project, then don't install by default
