@@ -305,16 +305,14 @@ if(SECP256K1_BUILD_TEST)
 	endfunction()
 
 	create_secp256k1_test(secp256k1-tests src/tests.c)
-	# FIXME: enable exhaustive_tests again when backporting 5106226991117da78f85ca88b7ea66c2ac8fe0b3
-	# create_secp256k1_test(secp256k1-exhaustive_tests src/tests_exhaustive.c)
+	create_secp256k1_test(secp256k1-exhaustive_tests src/tests_exhaustive.c)
 
 	# This should not be enabled at the same time as coverage is.
 	# The VERIFY failure branch is not expected to be reached, so it would make
 	# coverage appear lower if set.
 	if(NOT SECP256K1_ENABLE_COVERAGE)
 		target_compile_definitions(secp256k1-tests PRIVATE VERIFY)
-		# FIXME: enable exhaustive_tests again when backporting 5106226991117da78f85ca88b7ea66c2ac8fe0b3
-		# target_compile_definitions(secp256k1-exhaustive_tests PRIVATE VERIFY)
+		target_compile_definitions(secp256k1-exhaustive_tests PRIVATE VERIFY)
 	endif()
 endif(SECP256K1_BUILD_TEST)
 
