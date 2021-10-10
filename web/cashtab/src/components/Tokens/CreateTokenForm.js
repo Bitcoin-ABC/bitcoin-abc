@@ -215,7 +215,7 @@ const CreateTokenForm = ({
                         marginBottom: '24px',
                     }}
                 >
-                    <Panel header="Create Token" key="1">
+                    <Panel header="Create eToken" key="1">
                         <AntdFormWrapper>
                             <Form
                                 size="small"
@@ -352,7 +352,7 @@ const CreateTokenForm = ({
                             disabled={!tokenGenesisDataIsValid}
                         >
                             <PlusSquareOutlined />
-                            &nbsp;Create Token
+                            &nbsp;Create eToken
                         </SmartButton>
                     </Panel>
                 </TokenCollapse>

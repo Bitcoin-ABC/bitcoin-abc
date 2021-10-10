@@ -40,7 +40,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           />
         </svg>
       </span>
-      Create Token
+      Create eToken
     </div>
   </div>
 </div>

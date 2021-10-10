@@ -287,7 +287,7 @@ const App = () => {
                                     onClick={() => history.push('/tokens')}
                                 >
                                     <AppstoreAddOutlined />
-                                    Tokens
+                                    eTokens
                                 </NavButton>
 
                                 <NavButton

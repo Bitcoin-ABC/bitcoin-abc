@@ -48,14 +48,14 @@ export const TabLine = styled.div`
     background-color: ${props => props.theme.primary};
     pointer-events: none;
 
-    margin-left: 72%;
-    width: 28%;
+    margin-left: 69.5%;
+    width: 29%;
 
     ${({ left, ...props }) =>
         left &&
         `
-        margin-left: 1%
-        width: 69%;
+        margin-left: 3%
+        width: 63%;
   `}
 `;
 export const TabPane = styled.div`
@@ -274,7 +274,7 @@ const WalletInfo = () => {
                             active={activeTab === 'tokens'}
                             onClick={() => setActiveTab('tokens')}
                         >
-                            Tokens
+                            eTokens
                         </TabLabel>
                         <TabLine left={activeTab === 'txHistory'} />
                     </Tabs>
