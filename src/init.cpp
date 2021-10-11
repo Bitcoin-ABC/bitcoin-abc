@@ -848,7 +848,7 @@ void SetupServerArgs(NodeContext &node) {
         strprintf("Set publish hash block outbound message high water "
                   "mark (default: %d)",
                   CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-        false, OptionsCategory::ZMQ);
+        ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg(
         "-zmqpubhashtxhwm=<n>",
         strprintf("Set publish hash transaction outbound message high "
@@ -860,13 +860,13 @@ void SetupServerArgs(NodeContext &node) {
         strprintf("Set publish raw block outbound message high water "
                   "mark (default: %d)",
                   CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-        false, OptionsCategory::ZMQ);
+        ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg(
         "-zmqpubrawtxhwm=<n>",
         strprintf("Set publish raw transaction outbound message high "
                   "water mark (default: %d)",
                   CZMQAbstractNotifier::DEFAULT_ZMQ_SNDHWM),
-        false, OptionsCategory::ZMQ);
+        ArgsManager::ALLOW_ANY, OptionsCategory::ZMQ);
     argsman.AddArg("-zmqpubsequencehwm=<n>",
                    strprintf("Set publish hash sequence message high water mark"
                              " (default: %d)",
