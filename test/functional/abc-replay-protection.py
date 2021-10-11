@@ -86,6 +86,12 @@ class ReplayProtectionTest(BitcoinTestFramework):
         self.blocks[number] = block
         return block
 
+    def set_tip(self, number: int):
+        """
+        Move the tip back to a previous block.
+        """
+        self.tip = self.blocks[number]
+
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
@@ -102,10 +108,6 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # get an output that we previously marked as spendable
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
 
         # adds transactions to the block and updates state
         def update_block(block_number, new_transactions):
@@ -202,7 +204,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             [self.tip], node, success=False, reject_reason='blk-bad-inputs')
 
         # Rewind bad block
-        tip(1)
+        self.set_tip(1)
 
         # Create a block that would activate the replay protection.
         bfork = block(5555)
@@ -231,7 +233,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             [self.tip], node, success=False, reject_reason='blk-bad-inputs')
 
         # Rewind bad block
-        tip(5104)
+        self.set_tip(5104)
 
         # Send some non replay protected txns in the mempool to check
         # they get cleaned at activation.
@@ -264,7 +266,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             [self.tip], node, success=False, reject_reason='blk-bad-inputs')
 
         # Rewind bad block
-        tip(5556)
+        self.set_tip(5556)
 
         # The replay protected transaction is now valid
         replay_tx0_id = send_transaction_to_mempool(replay_txns[0])

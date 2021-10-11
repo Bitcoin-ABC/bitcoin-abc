@@ -138,10 +138,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         def accepted(node):
             node.p2p.send_blocks_and_test([self.tip], node)
 
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
-
         # adds transactions to the block and updates state
         def update_block(block_number, new_transactions):
             block = self.blocks[block_number]

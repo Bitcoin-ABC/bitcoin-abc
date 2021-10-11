@@ -190,10 +190,6 @@ class FullBlockTest(BitcoinTestFramework):
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
 
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
-
         # adds transactions to the block and updates state
         def update_block(block_number, new_transactions):
             block = self.blocks[block_number]
@@ -248,7 +244,7 @@ class FullBlockTest(BitcoinTestFramework):
             [self.tip], node, success=False, reject_reason='bad-blk-length')
 
         # Rewind bad block.
-        tip(17)
+        self.tip = self.blocks[17]
 
         # Submit a very large block via RPC
         large_block = block(

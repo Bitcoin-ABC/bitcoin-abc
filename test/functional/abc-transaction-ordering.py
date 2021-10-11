@@ -115,6 +115,12 @@ class TransactionOrderingTest(BitcoinTestFramework):
         self.blocks[number] = block
         return block
 
+    def set_tip(self, number: int):
+        """
+        Move the tip back to a previous block.
+        """
+        self.tip = self.blocks[number]
+
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
@@ -130,10 +136,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # get an output that we previously marked as spendable
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
 
         # update block state
         def update_block(block_number):
@@ -182,7 +184,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
             5557, out[17], tx_count=16)], node, success=False, reject_reason='tx-ordering')
 
         # Rewind bad block.
-        tip(5556)
+        self.set_tip(5556)
 
         # After we activate the Nov 15, 2018 HF, transaction order is enforced.
         def ordered_block(block_number, spend):
@@ -205,7 +207,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
             [self.tip], node, success=False, reject_reason='bad-txns-duplicate')
 
         # Rewind bad block.
-        tip(4446)
+        self.set_tip(4446)
 
         # Check over two blocks.
         proper_block = ordered_block(4448, out[20])

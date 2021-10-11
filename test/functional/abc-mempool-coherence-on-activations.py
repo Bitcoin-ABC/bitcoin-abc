@@ -171,10 +171,6 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
 
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
-
         # adds transactions to the block and updates state
         def update_block(block_number, new_transactions):
             block = self.blocks[block_number]
@@ -353,7 +349,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework):
         # Set up a longer competing chain that doesn't confirm any of our txns.
         # This starts after 5204, so it contains neither the forkblockid nor
         # the postforkblockid from above.
-        tip(5204)
+        self.tip = self.blocks[5204]
         reorg_blocks = []
         for i in range(3):
             reorg_blocks.append(block(5900 + i))

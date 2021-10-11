@@ -235,10 +235,6 @@ class FullBlockTest(BitcoinTestFramework):
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
 
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
-
         # shorthand for functions
         block = self.next_block
 

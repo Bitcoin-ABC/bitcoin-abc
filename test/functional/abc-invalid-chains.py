@@ -40,16 +40,18 @@ class InvalidChainsTest(BitcoinTestFramework):
         self.blocks[number] = block
         return block
 
+    def set_tip(self, number: int):
+        """
+        Move the tip back to a previous block.
+        """
+        self.tip = self.blocks[number]
+
     def run_test(self):
         node = self.nodes[0]
         node.add_p2p_connection(P2PDataStore())
 
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
-
-        # move the tip back to a previous block
-        def tip(number):
-            self.tip = self.blocks[number]
 
         # shorthand for functions
         block = self.next_block
@@ -75,11 +77,11 @@ class InvalidChainsTest(BitcoinTestFramework):
         assert_equal(self.blocks[0].hash, node.getbestblockhash())
 
         # Mining on top of blocks 1 or 2 is rejected
-        tip(1)
+        self.set_tip(1)
         node.p2p.send_blocks_and_test(
             [block(11)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
-        tip(2)
+        self.set_tip(2)
         node.p2p.send_blocks_and_test(
             [block(21)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
@@ -91,16 +93,16 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Mining on the block 1 chain should be accepted
         # (needs to mine two blocks because less-work chains are not processed)
-        tip(1)
+        self.set_tip(1)
         node.p2p.send_blocks_and_test([block(12), block(13)], node)
 
         # Mining on the block 2 chain should still be accepted
         # (needs to mine two blocks because less-work chains are not processed)
-        tip(2)
+        self.set_tip(2)
         node.p2p.send_blocks_and_test([block(22), block(221)], node)
 
         # Mine more blocks from block 22 to be longest chain
-        tip(22)
+        self.set_tip(22)
         node.p2p.send_blocks_and_test([block(23), block(24)], node)
 
         # Sanity checks
@@ -113,17 +115,17 @@ class InvalidChainsTest(BitcoinTestFramework):
         assert_equal(self.blocks[13].hash, node.getbestblockhash())
 
         # Mining on the block 2 chain should be rejected
-        tip(24)
+        self.set_tip(24)
         node.p2p.send_blocks_and_test(
             [block(25)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         # Continued mining on the block 1 chain is still ok
-        tip(13)
+        self.set_tip(13)
         node.p2p.send_blocks_and_test([block(14)], node)
 
         # Mining on a once-valid chain forking from block 2's longest chain,
         # which is now invalid, should also be rejected.
-        tip(221)
+        self.set_tip(221)
         node.p2p.send_blocks_and_test(
             [block(222)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
@@ -131,7 +133,7 @@ class InvalidChainsTest(BitcoinTestFramework):
             "Make sure that reconsidering a block behaves correctly when cousin chains (neither ancestors nor descendants) become available as a result")
 
         # Reorg out 14 with four blocks.
-        tip(13)
+        self.set_tip(13)
         node.p2p.send_blocks_and_test(
             [block(15), block(16), block(17), block(18)], node)
 
