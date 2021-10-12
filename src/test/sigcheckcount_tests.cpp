@@ -11,11 +11,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-// to be removed once Boost 1.59+ is minimum version.
-#ifndef BOOST_TEST_CONTEXT
-#define BOOST_TEST_CONTEXT(x)
-#endif
-
 typedef std::vector<uint8_t> valtype;
 typedef std::vector<valtype> stacktype;
 
