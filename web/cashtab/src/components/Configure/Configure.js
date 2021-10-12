@@ -241,6 +241,7 @@ const Configure = () => {
     const [newWalletNameIsValid, setNewWalletNameIsValid] = useState(null);
     const [walletDeleteValid, setWalletDeleteValid] = useState(null);
     const [seedInput, openSeedInput] = useState(false);
+    const [showTranslationWarning, setShowTranslationWarning] = useState(false);
 
     const showPopulatedDeleteWalletModal = walletInfo => {
         setWalletToBeDeleted(walletInfo);
@@ -280,6 +281,13 @@ const Configure = () => {
         // Update savedWallets every time the active wallet changes
         updateSavedWallets(wallet);
     }, [wallet]);
+
+    useEffect(() => {
+        const detectedBrowserLang = navigator.language;
+        if (!detectedBrowserLang.includes('en-')) {
+            setShowTranslationWarning(true);
+        }
+    }, []);
 
     // Need this function to ensure that savedWallets are updated on new wallet creation
     const updateSavedWalletsOnCreate = async importMnemonic => {
@@ -506,6 +514,14 @@ const Configure = () => {
                 type="warning"
                 showIcon
             />
+            {showTranslationWarning && (
+                <Alert
+                    style={{ marginBottom: '12px' }}
+                    description="Please do not translate your seed phrase. Store your seed phrase in English. You must re-enter these exact English words to restore your wallet from seed."
+                    type="warning"
+                    showIcon
+                />
+            )}
             {wallet && wallet.mnemonic && (
                 <StyledCollapse>
                     <Panel header="Click to reveal seed phrase" key="1">
