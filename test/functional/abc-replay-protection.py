@@ -94,7 +94,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
-        node.add_p2p_connection(P2PDataStore())
+        peer = node.add_p2p_connection(P2PDataStore())
         node.setmocktime(REPLAY_PROTECTION_START_TIME)
 
         self.genesis_hash = int(node.getbestblockhash(), 16)
@@ -132,7 +132,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # Create a new block
         block(0)
         save_spendable_output()
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Now we need that block to mature so we can spend the coinbase.
         maturity_blocks = []
@@ -140,7 +140,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
             block(5000 + i)
             maturity_blocks.append(self.tip)
             save_spendable_output()
-        node.p2p.send_blocks_and_test(maturity_blocks, node)
+        peer.send_blocks_and_test(maturity_blocks, node)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -189,7 +189,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # And txns get mined in a block properly.
         block(1)
         update_block(1, txns)
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Replay protected transactions are rejected.
         replay_txns = create_fund_and_spend_tx(out[1], 0xffdead)
@@ -200,7 +200,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # And block containing them are rejected as well.
         block(2)
         update_block(2, replay_txns)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='blk-bad-inputs')
 
         # Rewind bad block
@@ -210,13 +210,13 @@ class ReplayProtectionTest(BitcoinTestFramework):
         bfork = block(5555)
         bfork.nTime = REPLAY_PROTECTION_START_TIME - 1
         update_block(5555, [])
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         activation_blocks = []
         for i in range(5):
             block(5100 + i)
             activation_blocks.append(self.tip)
-        node.p2p.send_blocks_and_test(activation_blocks, node)
+        peer.send_blocks_and_test(activation_blocks, node)
 
         # Check we are just before the activation time
         assert_equal(
@@ -229,7 +229,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         block(3)
         update_block(3, replay_txns)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='blk-bad-inputs')
 
         # Rewind bad block
@@ -243,7 +243,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
 
         # Activate the replay protection
         block(5556)
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Check we just activated the replay protection
         assert_equal(
@@ -262,7 +262,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # They also cannot be mined
         block(4)
         update_block(4, txns)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='blk-bad-inputs')
 
         # Rewind bad block
@@ -294,7 +294,7 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # They also can also be mined
         block(5)
         update_block(5, replay_txns)
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Ok, now we check if a reorg work properly across the activation.
         postforkblockid = node.getbestblockhash()

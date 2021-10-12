@@ -176,7 +176,7 @@ class FullBlockTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
-        node.add_p2p_connection(P2PDataStore())
+        peer = node.add_p2p_connection(P2PDataStore())
 
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
@@ -213,7 +213,7 @@ class FullBlockTest(BitcoinTestFramework):
         # Create a new block
         block(0)
         save_spendable_output()
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Now we need that block to mature so we can spend the coinbase.
         maturity_blocks = []
@@ -221,7 +221,7 @@ class FullBlockTest(BitcoinTestFramework):
             block(5000 + i)
             maturity_blocks.append(self.tip)
             save_spendable_output()
-        node.p2p.send_blocks_and_test(maturity_blocks, node)
+        peer.send_blocks_and_test(maturity_blocks, node)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -232,15 +232,15 @@ class FullBlockTest(BitcoinTestFramework):
         for i in range(16):
             n = i + 1
             block(n, spend=out[i], block_size=n * ONE_MEGABYTE)
-            node.p2p.send_blocks_and_test([self.tip], node)
+            peer.send_blocks_and_test([self.tip], node)
 
         # block of maximal size
         block(17, spend=out[16], block_size=self.excessive_block_size)
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Reject oversized blocks with bad-blk-length error
         block(18, spend=out[17], block_size=self.excessive_block_size + 1)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='bad-blk-length')
 
         # Rewind bad block.

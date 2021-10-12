@@ -48,7 +48,7 @@ class InvalidChainsTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
-        node.add_p2p_connection(P2PDataStore())
+        peer = node.add_p2p_connection(P2PDataStore())
 
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
@@ -67,7 +67,7 @@ class InvalidChainsTest(BitcoinTestFramework):
         #                -- 15 - 16 - 17 - 18
 
         # Generate some valid blocks
-        node.p2p.send_blocks_and_test([block(0), block(1), block(2)], node)
+        peer.send_blocks_and_test([block(0), block(1), block(2)], node)
 
         # Explicitly invalidate blocks 1 and 2
         # See below for why we do this
@@ -78,11 +78,11 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Mining on top of blocks 1 or 2 is rejected
         self.set_tip(1)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [block(11)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         self.set_tip(2)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [block(21)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         # Reconsider block 2 to remove invalid status from *both* 1 and 2
@@ -94,16 +94,16 @@ class InvalidChainsTest(BitcoinTestFramework):
         # Mining on the block 1 chain should be accepted
         # (needs to mine two blocks because less-work chains are not processed)
         self.set_tip(1)
-        node.p2p.send_blocks_and_test([block(12), block(13)], node)
+        peer.send_blocks_and_test([block(12), block(13)], node)
 
         # Mining on the block 2 chain should still be accepted
         # (needs to mine two blocks because less-work chains are not processed)
         self.set_tip(2)
-        node.p2p.send_blocks_and_test([block(22), block(221)], node)
+        peer.send_blocks_and_test([block(22), block(221)], node)
 
         # Mine more blocks from block 22 to be longest chain
         self.set_tip(22)
-        node.p2p.send_blocks_and_test([block(23), block(24)], node)
+        peer.send_blocks_and_test([block(23), block(24)], node)
 
         # Sanity checks
         assert_equal(self.blocks[24].hash, node.getbestblockhash())
@@ -116,17 +116,17 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Mining on the block 2 chain should be rejected
         self.set_tip(24)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [block(25)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         # Continued mining on the block 1 chain is still ok
         self.set_tip(13)
-        node.p2p.send_blocks_and_test([block(14)], node)
+        peer.send_blocks_and_test([block(14)], node)
 
         # Mining on a once-valid chain forking from block 2's longest chain,
         # which is now invalid, should also be rejected.
         self.set_tip(221)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [block(222)], node, success=False, force_send=True, reject_reason='bad-prevblk')
 
         self.log.info(
@@ -134,7 +134,7 @@ class InvalidChainsTest(BitcoinTestFramework):
 
         # Reorg out 14 with four blocks.
         self.set_tip(13)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [block(15), block(16), block(17), block(18)], node)
 
         # Invalidate 17 (so 18 now has failed parent)

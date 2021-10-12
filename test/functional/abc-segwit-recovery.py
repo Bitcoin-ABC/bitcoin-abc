@@ -98,25 +98,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         self.blocks[number] = block
         return block
 
-    def bootstrap_p2p(self, *, num_connections=1):
-        """Add a P2P connection to the node.
-
-        Helper to connect and wait for version handshake."""
-        for node in self.nodes:
-            for _ in range(num_connections):
-                node.add_p2p_connection(P2PDataStore())
-
-    def reconnect_p2p(self, **kwargs):
-        """Tear down and bootstrap the P2P connection to the node.
-
-        The node gets disconnected several times in this test. This helper
-        method reconnects the p2p and restarts the network thread."""
-        for node in self.nodes:
-            node.disconnect_p2ps()
-        self.bootstrap_p2p(**kwargs)
-
     def run_test(self):
-        self.bootstrap_p2p()
         self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
@@ -126,6 +108,9 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         node_nonstd = self.nodes[0]
         node_std = self.nodes[1]
 
+        peer_nonstd = node_nonstd.add_p2p_connection(P2PDataStore())
+        peer_std = node_std.add_p2p_connection(P2PDataStore())
+
         # save the current tip so it can be spent by a later block
         def save_spendable_output():
             spendable_outputs.append(self.tip)
@@ -133,10 +118,6 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # get an output that we previously marked as spendable
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
-        # submit current tip and check it was accepted
-        def accepted(node):
-            node.p2p.send_blocks_and_test([self.tip], node)
 
         # adds transactions to the block and updates state
         def update_block(block_number, new_transactions):
@@ -202,15 +183,10 @@ class SegwitRecoveryTest(BitcoinTestFramework):
 
             return txfund, txspend
 
-        # Check we are not banned when sending a txn that is rejected.
-        def check_for_no_ban_on_rejected_tx(node, tx, reject_reason):
-            node.p2p.send_txs_and_test(
-                [tx], node, success=False, reject_reason=reject_reason)
-
         # Create a new block
         block(0)
         save_spendable_output()
-        accepted(node_nonstd)
+        peer_nonstd.send_blocks_and_test([self.tip], node_nonstd)
 
         # Now we need that block to mature so we can spend the coinbase.
         matureblocks = []
@@ -218,7 +194,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
             block(5000 + i)
             matureblocks.append(self.tip)
             save_spendable_output()
-        node_nonstd.p2p.send_blocks_and_test(matureblocks, node_nonstd)
+        peer_nonstd.send_blocks_and_test(matureblocks, node_nonstd)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -234,21 +210,21 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # nonstandard.
         block(5555)
         update_block(5555, [txfund, txfund_case0])
-        accepted(node_nonstd)
+        peer_nonstd.send_blocks_and_test([self.tip], node_nonstd)
 
         # Check both nodes are synchronized before continuing.
         self.sync_blocks()
 
         # Check that upgraded nodes checking for standardness are not banning
         # nodes sending segwit spending txns.
-        check_for_no_ban_on_rejected_tx(
-            node_nonstd, txspend, CLEANSTACK_ERROR)
-        check_for_no_ban_on_rejected_tx(
-            node_nonstd, txspend_case0, EVAL_FALSE_ERROR)
-        check_for_no_ban_on_rejected_tx(
-            node_std, txspend, CLEANSTACK_ERROR)
-        check_for_no_ban_on_rejected_tx(
-            node_std, txspend_case0, EVAL_FALSE_ERROR)
+        peer_nonstd.send_txs_and_test([txspend], node_nonstd, success=False,
+                                      reject_reason=CLEANSTACK_ERROR)
+        peer_nonstd.send_txs_and_test([txspend_case0], node_nonstd, success=False,
+                                      reject_reason=EVAL_FALSE_ERROR)
+        peer_std.send_txs_and_test([txspend], node_std, success=False,
+                                   reject_reason=CLEANSTACK_ERROR)
+        peer_std.send_txs_and_test([txspend_case0], node_std, success=False,
+                                   reject_reason=EVAL_FALSE_ERROR)
 
         # Segwit recovery txns are never accepted into the mempool,
         # as they are included in standard flags.
@@ -264,7 +240,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
         # Blocks containing segwit spending txns are accepted in both nodes.
         block(5)
         update_block(5, [txspend, txspend_case0])
-        accepted(node_nonstd)
+        peer_nonstd.send_blocks_and_test([self.tip], node_nonstd)
         self.sync_blocks()
 
 

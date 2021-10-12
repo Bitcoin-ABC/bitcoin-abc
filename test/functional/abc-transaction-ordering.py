@@ -123,7 +123,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
 
     def run_test(self):
         node = self.nodes[0]
-        node.add_p2p_connection(P2PDataStore())
+        peer = node.add_p2p_connection(P2PDataStore())
 
         self.genesis_hash = int(node.getbestblockhash(), 16)
         self.block_heights[self.genesis_hash] = 0
@@ -157,7 +157,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # Create a new block
         block(0)
         save_spendable_output()
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         # Now we need that block to mature so we can spend the coinbase.
         maturity_blocks = []
@@ -165,7 +165,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
             block(5000 + i)
             maturity_blocks.append(self.tip)
             save_spendable_output()
-        node.p2p.send_blocks_and_test(maturity_blocks, node)
+        peer.send_blocks_and_test(maturity_blocks, node)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
@@ -175,12 +175,12 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # Let's build some blocks and test them.
         for i in range(17):
             n = i + 1
-            node.p2p.send_blocks_and_test([block(n)], node)
+            peer.send_blocks_and_test([block(n)], node)
 
-        node.p2p.send_blocks_and_test([block(5556)], node)
+        peer.send_blocks_and_test([block(5556)], node)
 
         # Block with regular ordering are now rejected.
-        node.p2p.send_blocks_and_test([block(
+        peer.send_blocks_and_test([block(
             5557, out[17], tx_count=16)], node, success=False, reject_reason='tx-ordering')
 
         # Rewind bad block.
@@ -194,8 +194,8 @@ class TransactionOrderingTest(BitcoinTestFramework):
             return b
 
         # Now that the fork activated, we need to order transaction per txid.
-        node.p2p.send_blocks_and_test([ordered_block(4445, out[17])], node)
-        node.p2p.send_blocks_and_test([ordered_block(4446, out[18])], node)
+        peer.send_blocks_and_test([ordered_block(4445, out[17])], node)
+        peer.send_blocks_and_test([ordered_block(4446, out[18])], node)
 
         # Generate a block with a duplicated transaction.
         double_tx_block = ordered_block(4447, out[19])
@@ -203,7 +203,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         double_tx_block.vtx = double_tx_block.vtx[:8] + \
             [double_tx_block.vtx[8]] + double_tx_block.vtx[8:]
         update_block(4447)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='bad-txns-duplicate')
 
         # Rewind bad block.
@@ -211,7 +211,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
 
         # Check over two blocks.
         proper_block = ordered_block(4448, out[20])
-        node.p2p.send_blocks_and_test([self.tip], node)
+        peer.send_blocks_and_test([self.tip], node)
 
         replay_tx_block = ordered_block(4449, out[21])
         assert_equal(len(replay_tx_block.vtx), 16)
@@ -219,7 +219,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
         replay_tx_block.vtx = [replay_tx_block.vtx[0]] + \
             sorted(replay_tx_block.vtx[1:], key=lambda tx: tx.get_id())
         update_block(4449)
-        node.p2p.send_blocks_and_test(
+        peer.send_blocks_and_test(
             [self.tip], node, success=False, reject_reason='bad-txns-BIP30')
 
 

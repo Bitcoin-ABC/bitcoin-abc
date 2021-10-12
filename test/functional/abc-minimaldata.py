@@ -47,20 +47,13 @@ class MinimaldataTest(BitcoinTestFramework):
         self.block_heights = {}
         self.extra_args = [['-acceptnonstdtxn=1']]
 
-    def bootstrap_p2p(self, *, num_connections=1):
-        """Add a P2P connection to the node.
-
-        Helper to connect and wait for version handshake."""
-        for _ in range(num_connections):
-            self.nodes[0].add_p2p_connection(P2PDataStore())
-
-    def reconnect_p2p(self, **kwargs):
+    def reconnect_p2p(self):
         """Tear down and bootstrap the P2P connection to the node.
 
         The node gets disconnected several times in this test. This helper
         method reconnects the p2p and restarts the network thread."""
         self.nodes[0].disconnect_p2ps()
-        self.bootstrap_p2p(**kwargs)
+        self.nodes[0].add_p2p_connection(P2PDataStore())
 
     def getbestblock(self, node):
         """Get the best block. Register its height so we can use build_block."""
@@ -92,7 +85,7 @@ class MinimaldataTest(BitcoinTestFramework):
         """Check we are disconnected when sending a txn that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
-        self.nodes[0].p2p.send_txs_and_test(
+        self.nodes[0].p2ps[0].send_txs_and_test(
             [tx], self.nodes[0], success=False, expect_disconnect=True, reject_reason=reject_reason)
         self.reconnect_p2p()
 
@@ -100,14 +93,14 @@ class MinimaldataTest(BitcoinTestFramework):
         """Check we are disconnected when sending a block that the node rejects.
 
         (Can't actually get banned, since bitcoind won't ban local peers.)"""
-        self.nodes[0].p2p.send_blocks_and_test(
+        self.nodes[0].p2ps[0].send_blocks_and_test(
             [block], self.nodes[0], success=False, reject_reason=reject_reason, expect_disconnect=True)
         self.reconnect_p2p()
 
     def run_test(self):
         node, = self.nodes
 
-        self.bootstrap_p2p()
+        self.nodes[0].add_p2p_connection(P2PDataStore())
 
         tip = self.getbestblock(node)
 
@@ -116,7 +109,7 @@ class MinimaldataTest(BitcoinTestFramework):
         for _ in range(10):
             tip = self.build_block(tip)
             blocks.append(tip)
-        node.p2p.send_blocks_and_test(blocks, node, success=True)
+        node.p2ps[0].send_blocks_and_test(blocks, node, success=True)
         spendable_outputs = [block.vtx[0] for block in blocks]
 
         self.log.info("Mature the blocks and get out of IBD.")
@@ -159,7 +152,7 @@ class MinimaldataTest(BitcoinTestFramework):
         nonminimaltx = create_fund_and_spend_tx()
 
         tip = self.build_block(tip, fundings)
-        node.p2p.send_blocks_and_test([tip], node)
+        node.p2ps[0].send_blocks_and_test([tip], node)
 
         self.log.info("Trying to mine a minimaldata violation.")
         self.check_for_ban_on_rejected_block(
@@ -173,7 +166,7 @@ class MinimaldataTest(BitcoinTestFramework):
 
         self.log.info("Mine a normal block")
         tip = self.build_block(tip)
-        node.p2p.send_blocks_and_test([tip], node)
+        node.p2ps[0].send_blocks_and_test([tip], node)
 
 
 if __name__ == '__main__':
