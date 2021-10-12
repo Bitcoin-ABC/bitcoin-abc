@@ -62,12 +62,12 @@ enum struct VoteStatus : uint8_t {
 };
 
 template <typename VoteItem> class VoteItemUpdate {
-    std::remove_reference_t<VoteItem> item;
+    VoteItem item;
     VoteStatus status;
 
 public:
     VoteItemUpdate(const VoteItem itemIn, VoteStatus statusIn)
-        : item(itemIn), status(statusIn) {}
+        : item(std::move(itemIn)), status(statusIn) {}
 
     const VoteStatus &getStatus() const { return status; }
 
@@ -76,7 +76,7 @@ public:
 };
 
 using BlockUpdate = VoteItemUpdate<CBlockIndex *>;
-using ProofUpdate = VoteItemUpdate<std::shared_ptr<Proof> &>;
+using ProofUpdate = VoteItemUpdate<std::shared_ptr<Proof>>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
