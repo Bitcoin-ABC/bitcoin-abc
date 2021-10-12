@@ -32,21 +32,19 @@ def msg_bad_checksum(connection, original_message):
 class BadVersionP2PInterface(P2PInterface):
     def peer_connect(self, *args, services=NODE_NETWORK,
                      send_version=False, **kwargs):
-        create_conn = super().peer_connect(*args, send_version=send_version, **kwargs)
+        self.services = services
+        return super().peer_connect(*args, send_version=send_version, **kwargs)
 
+    def send_version(self):
         # Send version message with invalid checksum
         vt = msg_version()
-        vt.nServices = services
+        vt.nServices = self.services
         vt.addrTo.ip = self.dstaddr
         vt.addrTo.port = self.dstport
         vt.addrFrom.ip = "0.0.0.0"
         vt.addrFrom.port = 0
         invalid_vt = msg_bad_checksum(self, vt)
-        # Will be sent right after connection_made
-        self.on_connection_send_msg = invalid_vt
-        self.on_connection_send_msg_is_raw = True
-
-        return create_conn
+        self.send_raw_message(invalid_vt)
 
 
 class InvalidMessageTest(BitcoinTestFramework):
@@ -55,7 +53,11 @@ class InvalidMessageTest(BitcoinTestFramework):
         self.num_nodes = 2
 
     def run_test(self):
-        # Try to connect to a node using an invalid checksum on version message
+        # Try to connect to a node using an invalid checksum on version message.
+        # The version message is delayed because add_p2p_connection checks that
+        # the connection is established, and sending a bad version immedately
+        # on the first connection might get our peer disconnected before the
+        # check happened, causing the test to fail.
         bad_interface = BadVersionP2PInterface()
         self.nodes[0].add_p2p_connection(
             bad_interface, send_version=False, wait_for_verack=False)
@@ -65,8 +67,9 @@ class InvalidMessageTest(BitcoinTestFramework):
         # Node with valid version message should connect successfully
         connection = self.nodes[1].add_p2p_connection(interface)
 
-        # The invalid version message should cause a disconnect on the first
-        # connection because we are now banned
+        self.log.info(
+            "Send an invalid version message and check we get banned")
+        bad_interface.send_version()
         bad_interface.wait_for_disconnect()
 
         # Create a valid message
