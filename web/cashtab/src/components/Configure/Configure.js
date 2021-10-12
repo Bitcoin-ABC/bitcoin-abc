@@ -578,14 +578,14 @@ const Configure = () => {
                     <StyledCollapse>
                         <Panel header="Saved wallets" key="2">
                             <AWRow>
-                                <h3>{wallet.name}</h3>
+                                <h3 className="notranslate">{wallet.name}</h3>
                                 <h4>Currently active</h4>
                             </AWRow>
                             <div>
                                 {savedWallets.map(sw => (
                                     <SWRow key={sw.name}>
                                         <SWName>
-                                            <h3 className="overflow">
+                                            <h3 className="overflow notranslate">
                                                 {sw.name}
                                             </h3>
                                         </SWName>
