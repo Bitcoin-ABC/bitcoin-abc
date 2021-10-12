@@ -174,7 +174,7 @@ bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp) {
     // If there are no relative lock times, the LockPoints don't depend on the
     // chain
     if (lp->maxInputBlock) {
-        // Check whether ::ChainActive() is an extension of the block at which
+        // Check whether active_chain is an extension of the block at which
         // the LockPoints calculation was valid. If not LockPoints are no longer
         // valid.
         if (!active_chain.Contains(lp->maxInputBlock)) {
@@ -2351,7 +2351,6 @@ bool CChainState::DisconnectTip(const CChainParams &params,
 
     m_chain.SetTip(pindexDelete->pprev);
 
-    // Update ::ChainActive() and related variables.
     UpdateTip(m_mempool, pindexDelete->pprev, params, *this);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:

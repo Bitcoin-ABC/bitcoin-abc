@@ -112,7 +112,7 @@ static const int DEFAULT_MAX_REORG_DEPTH = 10;
 static const int64_t DEFAULT_MIN_FINALIZATION_DELAY = 2 * 60 * 60;
 /**
  * Block files containing a block-height within MIN_BLOCKS_TO_KEEP of
- * ::ChainActive().Tip() will not be pruned.
+ * ActiveChain().Tip() will not be pruned.
  */
 static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 static const signed int DEFAULT_CHECKBLOCKS = 6;
@@ -1182,7 +1182,7 @@ public:
     //! - "Fast forward" the tip of the new chainstate to the base of the
     //!   snapshot, faking nTx* block index data along the way.
     //! - Move the new chainstate to `m_snapshot_chainstate` and make it our
-    //!   ChainstateActive().
+    //!   ActiveChainstate().
     [[nodiscard]] bool ActivateSnapshot(CAutoFile &coins_file,
                                         const SnapshotMetadata &metadata,
                                         bool in_memory);

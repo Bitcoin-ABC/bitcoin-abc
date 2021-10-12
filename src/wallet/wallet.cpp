@@ -1391,7 +1391,7 @@ void CWallet::updatedBlockTip() {
 void CWallet::BlockUntilSyncedToCurrentChain() const {
     AssertLockNotHeld(cs_wallet);
     // Skip the queue-draining stuff if we know we're caught up with
-    // chainActive.Tip(), otherwise put a callback in the validation interface
+    // chain().Tip(), otherwise put a callback in the validation interface
     // queue and wait for the queue to drain enough to execute it (indicating we
     // are caught up at least with the time we entered this function).
     const BlockHash last_block_hash =
