@@ -11,6 +11,8 @@
 #include <script/standard.h>
 #include <streams.h>
 #include <util/strencodings.h>
+#include <util/system.h>
+#include <util/translation.h>
 
 #include <tinyformat.h>
 
@@ -33,6 +35,15 @@ uint256 Stake::getHash(const StakeCommitment &commitment) const {
 
 bool SignedStake::verify(const StakeCommitment &commitment) const {
     return stake.getPubkey().VerifySchnorr(stake.getHash(commitment), sig);
+}
+
+bool Proof::useLegacy() {
+    return useLegacy(gArgs);
+}
+
+bool Proof::useLegacy(const ArgsManager &argsman) {
+    return argsman.GetBoolArg("-legacyavaproof",
+                              AVALANCHE_DEFAULT_LEGACY_PROOF);
 }
 
 bool Proof::FromHex(Proof &proof, const std::string &hexProof,

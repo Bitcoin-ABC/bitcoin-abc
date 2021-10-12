@@ -19,6 +19,7 @@
 #include <rpc/server.h>
 #include <rpc/util.h>
 #include <util/strencodings.h>
+#include <util/translation.h>
 
 #include <univalue.h>
 

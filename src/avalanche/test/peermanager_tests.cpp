@@ -7,6 +7,7 @@
 #include <avalanche/proofbuilder.h>
 #include <avalanche/test/util.h>
 #include <script/standard.h>
+#include <util/translation.h>
 #include <validation.h>
 
 #include <test/util/setup_common.h>

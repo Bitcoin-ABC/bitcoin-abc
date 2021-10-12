@@ -11,14 +11,14 @@
 #include <primitives/transaction.h>
 #include <pubkey.h>
 #include <serialize.h>
-#include <util/system.h>
-#include <util/translation.h>
 
 #include <array>
 #include <cstdint>
 #include <vector>
 
+class ArgsManager;
 class CCoinsView;
+struct bilingual_str;
 
 /**
  * How many UTXOs can be used for a single proof.
@@ -122,16 +122,14 @@ public:
 
     SERIALIZE_METHODS(Proof, obj) {
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
-        if (!useLegacy(gArgs)) {
+        if (!useLegacy()) {
             READWRITE(obj.payoutScriptPubKey);
         }
         SER_READ(obj, obj.computeProofId());
     }
 
-    static bool useLegacy(const ArgsManager &argsman) {
-        return argsman.GetBoolArg("-legacyavaproof",
-                                  AVALANCHE_DEFAULT_LEGACY_PROOF);
-    }
+    static bool useLegacy();
+    static bool useLegacy(const ArgsManager &argsman);
 
     static bool FromHex(Proof &proof, const std::string &hexProof,
                         bilingual_str &errorOut);
