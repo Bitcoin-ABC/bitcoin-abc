@@ -62,6 +62,12 @@ const PrefixLabel = styled.span`
     @media (max-width: 400px) {
         font-size: 10px;
     }
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 `;
 const AddressHighlightTrim = styled.span`
     font-weight: bold;
@@ -72,6 +78,12 @@ const AddressHighlightTrim = styled.span`
     @media (max-width: 400px) {
         font-size: 10px;
     }
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 `;
 
 const CustomInput = styled.div`
@@ -86,6 +98,12 @@ const CustomInput = styled.div`
     padding: 6px 0;
     font-family: 'Roboto Mono', monospace;
     border-radius: 5px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 
     input {
         border: none;
