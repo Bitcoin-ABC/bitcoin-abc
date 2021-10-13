@@ -44,26 +44,6 @@ describe('Correctly executes cash utility functions', () => {
             10000000.12345678,
         );
     });
-    it(`Formats a large number to add spaces as thousands separator`, () => {
-        expect(formatBalance(1000000012345678)).toBe('1 000 000 012 345 678');
-    });
-    it(`Formats a large number with 2 decimal places to add as thousands separator`, () => {
-        expect(formatBalance(10000000123456.78)).toBe('10 000 000 123 456.78');
-    });
-    it(`Formats a large number with 9 decimal places to add as thousands separator without adding them to decimals`, () => {
-        expect(formatBalance('10000000123456.789123456')).toBe(
-            '10 000 000 123 456.789123456',
-        );
-    });
-    it(`formatBalance handles an input of 0`, () => {
-        expect(formatBalance('0')).toBe('0');
-    });
-    it(`formatBalance handles an input of undefined`, () => {
-        expect(formatBalance(undefined)).toBe(undefined);
-    });
-    it(`formatBalance handles an input of null`, () => {
-        expect(formatBalance(null)).toBe(null);
-    });
     it(`Correctly converts an array of length 10 to an array of 4 arrays, each with max length 3`, () => {
         expect(batchArray(unbatchedArray, 3)).toStrictEqual(
             arrayBatchedByThree,
@@ -121,5 +101,42 @@ describe('Correctly executes cash utility functions', () => {
                 'simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa',
             ),
         ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
+    });
+    it(`test formatBalance with an input of 0`, () => {
+        expect(formatBalance('0')).toBe('0');
+    });
+    it(`test formatBalance with zero XEC balance input`, () => {
+        expect(formatBalance('0', 'en-US')).toBe('0');
+    });
+    it(`test formatBalance with a small XEC balance input with 2+ decimal figures`, () => {
+        expect(formatBalance('1574.5445', 'en-US')).toBe('1,574.54');
+    });
+    it(`test formatBalance with 1 Million XEC balance input`, () => {
+        expect(formatBalance('1000000', 'en-US')).toBe('1,000,000');
+    });
+    it(`test formatBalance with 1 Billion XEC balance input`, () => {
+        expect(formatBalance('1000000000', 'en-US')).toBe('1,000,000,000');
+    });
+    it(`test formatBalance with total supply as XEC balance input`, () => {
+        expect(formatBalance('21000000000000', 'en-US')).toBe(
+            '21,000,000,000,000',
+        );
+    });
+    it(`test formatBalance with > total supply as XEC balance input`, () => {
+        expect(formatBalance('31000000000000', 'en-US')).toBe(
+            '31,000,000,000,000',
+        );
+    });
+    it(`test formatBalance with no balance`, () => {
+        expect(formatBalance('', 'en-US')).toBe('0');
+    });
+    it(`test formatBalance with null input`, () => {
+        expect(formatBalance(null, 'en-US')).toBe('0');
+    });
+    it(`test formatBalance with undefined as input`, () => {
+        expect(formatBalance(undefined, 'en-US')).toBe('NaN');
+    });
+    it(`test formatBalance with non-numeric input`, () => {
+        expect(formatBalance('CainBCHA', 'en-US')).toBe('NaN');
     });
 });

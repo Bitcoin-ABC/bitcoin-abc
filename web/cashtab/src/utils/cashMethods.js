@@ -47,18 +47,20 @@ export const toSmallestDenomination = (
     return sendAmountSmallestDenomination;
 };
 
-export const formatBalance = x => {
+export const formatBalance = (unformattedBalance, optionalLocale) => {
     try {
-        let balanceInParts = x.toString().split('.');
-        balanceInParts[0] = balanceInParts[0].replace(
-            /\B(?=(\d{3})+(?!\d))/g,
-            ' ',
-        );
-        return balanceInParts.join('.');
+        if (optionalLocale === undefined) {
+            return new Number(unformattedBalance).toLocaleString({
+                maximumFractionDigits: currency.cashDecimals,
+            });
+        }
+        return new Number(unformattedBalance).toLocaleString(optionalLocale, {
+            maximumFractionDigits: currency.cashDecimals,
+        });
     } catch (err) {
-        console.log(`Error in formatBalance for ${x}`);
+        console.log(`Error in formatBalance for ${unformattedBalance}`);
         console.log(err);
-        return x;
+        return unformattedBalance;
     }
 };
 
