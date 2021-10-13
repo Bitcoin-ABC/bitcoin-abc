@@ -34,6 +34,7 @@ import {
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
+import { formatFiatBalance } from '@utils/validation';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -342,6 +343,15 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     let fiatPriceString = '';
     if (fiatPrice !== null && !isNaN(formData.value)) {
         if (selectedCurrency === currency.ticker) {
+            // calculate conversion to fiatPrice
+            fiatPriceString = `${(fiatPrice * Number(formData.value)).toFixed(
+                2,
+            )}`;
+
+            // formats to fiat locale style
+            fiatPriceString = formatFiatBalance(Number(fiatPriceString));
+
+            // insert symbol and currency before/after the locale formatted fiat balance
             fiatPriceString = `${
                 cashtabSettings
                     ? `${
@@ -349,14 +359,18 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                               .symbol
                       } `
                     : '$ '
-            } ${(fiatPrice * Number(formData.value)).toFixed(2)} ${
+            } ${fiatPriceString} ${
                 cashtabSettings && cashtabSettings.fiatCurrency
                     ? cashtabSettings.fiatCurrency.toUpperCase()
                     : 'USD'
             }`;
         } else {
             fiatPriceString = `${
-                formData.value ? fiatToCrypto(formData.value, fiatPrice) : '0'
+                formData.value
+                    ? formatFiatBalance(
+                          Number(fiatToCrypto(formData.value, fiatPrice)),
+                      )
+                    : formatFiatBalance(0)
             } ${currency.ticker}`;
         }
     }

@@ -139,3 +139,21 @@ export const formatSavedBalance = (swBalance, optionalLocale) => {
         return 'N/A';
     }
 };
+
+export const formatFiatBalance = (fiatBalance, optionalLocale) => {
+    try {
+        if (fiatBalance === 0) {
+            return Number(fiatBalance).toFixed(currency.cashDecimals);
+        }
+        if (optionalLocale === undefined) {
+            return fiatBalance.toLocaleString({
+                maximumFractionDigits: currency.cashDecimals,
+            });
+        }
+        return fiatBalance.toLocaleString(optionalLocale, {
+            maximumFractionDigits: currency.cashDecimals,
+        });
+    } catch (err) {
+        return fiatBalance;
+    }
+};

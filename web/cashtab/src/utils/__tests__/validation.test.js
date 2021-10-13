@@ -9,6 +9,7 @@ import {
     isValidTokenStats,
     isValidCashtabSettings,
     formatSavedBalance,
+    formatFiatBalance,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -259,5 +260,25 @@ describe('Validation utils', () => {
     });
     it(`test formatSavedBalance with non-numeric input`, () => {
         expect(formatSavedBalance('CainBCHA', 'en-US')).toBe('NaN');
+    });
+    it(`test formatFiatBalance with zero XEC balance input`, () => {
+        expect(formatFiatBalance(Number('0'), 'en-US')).toBe('0.00');
+    });
+    it(`test formatFiatBalance with a small XEC balance input with 2+ decimal figures`, () => {
+        expect(formatFiatBalance(Number('565.54111'), 'en-US')).toBe('565.54');
+    });
+    it(`test formatFiatBalance with a large XEC balance input with 2+ decimal figures`, () => {
+        expect(formatFiatBalance(Number('131646565.54111'), 'en-US')).toBe(
+            '131,646,565.54',
+        );
+    });
+    it(`test formatFiatBalance with no balance`, () => {
+        expect(formatFiatBalance('', 'en-US')).toBe('');
+    });
+    it(`test formatFiatBalance with null input`, () => {
+        expect(formatFiatBalance(null, 'en-US')).toBe(null);
+    });
+    it(`test formatFiatBalance with undefined input`, () => {
+        expect(formatFiatBalance(undefined, 'en-US')).toBe(undefined);
     });
 });
