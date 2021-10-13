@@ -17,3 +17,5 @@ This release includes the following features and fixes:
   is encouraged: `sendmany` and `sendtoaddress` may be deprecated in a future release.
 - The `testmempoolaccept` RPC returns `size` and a `fee` object with the `base` fee
   if the transaction passes validation.
+- A "sequence" notifier is added to ZeroMQ notifications, enabling client-side mempool
+  tracking.
