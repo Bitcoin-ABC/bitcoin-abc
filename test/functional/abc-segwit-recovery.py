@@ -9,6 +9,7 @@ that segwit recovery transactions are rejected from mempool acceptance (even wit
 """
 
 import time
+from typing import Optional, Sequence
 
 from test_framework.blocktools import (
     create_block,
@@ -17,6 +18,7 @@ from test_framework.blocktools import (
 )
 from test_framework.messages import (
     COIN,
+    CBlock,
     COutPoint,
     CTransaction,
     CTxIn,
@@ -55,9 +57,7 @@ class SegwitRecoveryTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.setup_clean_chain = True
-        self.block_heights = {}
-        self.tip = None
-        self.blocks = {}
+        self.tip_height = 0
         # We have 2 nodes:
         # 1) node_nonstd (nodes[0]) accepts non-standard txns. It does not
         #    accept Segwit recovery transactions, since it is included in
@@ -77,68 +77,47 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                             "-acceptnonstdtxn"],
                            ["-acceptnonstdtxn=0"]]
 
-    def next_block(self, number):
-        if self.tip is None:
+    def make_block(self, base_block: Optional[CBlock]) -> CBlock:
+        """
+        Build a new block and return it.
+        Increment the tip_height counter.
+
+        If base_block is None, use the genesis block as base block.
+        """
+        if base_block is None:
             base_block_hash = self.genesis_hash
             block_time = TEST_TIME
         else:
-            base_block_hash = self.tip.sha256
-            block_time = self.tip.nTime + 1
+            base_block_hash = base_block.sha256
+            block_time = base_block.nTime + 1
         # First create the coinbase
-        height = self.block_heights[base_block_hash] + 1
-        coinbase = create_coinbase(height)
+        self.tip_height += 1
+        coinbase = create_coinbase(self.tip_height)
         coinbase.rehash()
         block = create_block(base_block_hash, coinbase, block_time)
 
         # Do PoW, which is cheap on regnet
         block.solve()
-        self.tip = block
-        self.block_heights[block.sha256] = height
-        assert number not in self.blocks
-        self.blocks[number] = block
         return block
 
     def run_test(self):
         self.genesis_hash = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_heights[self.genesis_hash] = 0
         spendable_outputs = []
 
         # shorthand
-        block = self.next_block
         node_nonstd = self.nodes[0]
         node_std = self.nodes[1]
 
         peer_nonstd = node_nonstd.add_p2p_connection(P2PDataStore())
         peer_std = node_std.add_p2p_connection(P2PDataStore())
 
-        # save the current tip so it can be spent by a later block
-        def save_spendable_output():
-            spendable_outputs.append(self.tip)
-
-        # get an output that we previously marked as spendable
-        def get_spendable_output():
-            return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
-
         # adds transactions to the block and updates state
-        def update_block(block_number, new_transactions):
-            block = self.blocks[block_number]
+        def update_block(block: CBlock,
+                         new_transactions: Sequence[CTransaction]):
             block.vtx.extend(new_transactions)
-            old_sha256 = block.sha256
             make_conform_to_ctor(block)
             block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
-            # Update the internal state just like in next_block
-            self.tip = block
-            if block.sha256 != old_sha256:
-                self.block_heights[
-                    block.sha256] = self.block_heights[old_sha256]
-                del self.block_heights[old_sha256]
-            self.blocks[block_number] = block
-            return block
-
-        # checks the mempool has exactly the same txns as in the provided list
-        def check_mempool_equal(node, txns):
-            assert set(node.getrawmempool()) == set(tx.hash for tx in txns)
 
         # Returns 2 transactions:
         # 1) txfund: create outputs in segwit addresses
@@ -184,22 +163,23 @@ class SegwitRecoveryTest(BitcoinTestFramework):
             return txfund, txspend
 
         # Create a new block
-        block(0)
-        save_spendable_output()
-        peer_nonstd.send_blocks_and_test([self.tip], node_nonstd)
+        block = self.make_block(base_block=None)
+        spendable_outputs.append(block)
+        peer_nonstd.send_blocks_and_test([block], node_nonstd)
 
         # Now we need that block to mature so we can spend the coinbase.
         matureblocks = []
-        for i in range(199):
-            block(5000 + i)
-            matureblocks.append(self.tip)
-            save_spendable_output()
+        for _ in range(199):
+            block = self.make_block(block)
+            matureblocks.append(block)
+            spendable_outputs.append(block)
         peer_nonstd.send_blocks_and_test(matureblocks, node_nonstd)
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
-        for i in range(100):
-            out.append(get_spendable_output())
+        for _ in range(100):
+            out.append(
+                PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0))
 
         # Create segwit funding and spending transactions
         txfund, txspend = create_segwit_fund_and_spend_tx(out[0])
@@ -208,9 +188,9 @@ class SegwitRecoveryTest(BitcoinTestFramework):
 
         # Mine txfund, as it can't go into node_std mempool because it's
         # nonstandard.
-        block(5555)
-        update_block(5555, [txfund, txfund_case0])
-        peer_nonstd.send_blocks_and_test([self.tip], node_nonstd)
+        block = self.make_block(block)
+        update_block(block, [txfund, txfund_case0])
+        peer_nonstd.send_blocks_and_test([block], node_nonstd)
 
         # Check both nodes are synchronized before continuing.
         self.sync_blocks()
@@ -238,9 +218,9 @@ class SegwitRecoveryTest(BitcoinTestFramework):
                                 node_std.sendrawtransaction, ToHex(txspend_case0))
 
         # Blocks containing segwit spending txns are accepted in both nodes.
-        block(5)
-        update_block(5, [txspend, txspend_case0])
-        peer_nonstd.send_blocks_and_test([self.tip], node_nonstd)
+        block = self.make_block(block)
+        update_block(block, [txspend, txspend_case0])
+        peer_nonstd.send_blocks_and_test([block], node_nonstd)
         self.sync_blocks()
 
 
