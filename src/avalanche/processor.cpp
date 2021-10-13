@@ -533,18 +533,34 @@ bool Processor::stopEventLoop() {
 std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
 
-    auto proofVoteRecordsReadView = proofVoteRecords.getReadView();
+    auto extractVoteRecordsToInvs = [&](const auto &itemVoteRecordRange,
+                                        auto buildInvFromVoteItem) {
+        for (const auto &[item, voteRecord] : itemVoteRecordRange) {
+            if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
+                // Make sure we do not produce more invs than specified by the
+                // protocol.
+                return true;
+            }
 
-    auto pit = proofVoteRecordsReadView.begin();
-    // TODO Factorize the proof and block loops
-    while (pit != proofVoteRecordsReadView.end() &&
-           invs.size() < AVALANCHE_MAX_ELEMENT_POLL) {
-        const bool shouldPoll =
-            forPoll ? pit->second.registerPoll() : pit->second.shouldPoll();
-        if (shouldPoll) {
-            invs.emplace_back(MSG_AVA_PROOF, pit->first->getId());
+            const bool shouldPoll =
+                forPoll ? voteRecord.registerPoll() : voteRecord.shouldPoll();
+
+            if (!shouldPoll) {
+                continue;
+            }
+
+            invs.emplace_back(buildInvFromVoteItem(item));
         }
-        ++pit;
+
+        return invs.size() >= AVALANCHE_MAX_ELEMENT_POLL;
+    };
+
+    if (extractVoteRecordsToInvs(proofVoteRecords.getReadView(),
+                                 [](const ProofRef &proof) {
+                                     return CInv(MSG_AVA_PROOF, proof->getId());
+                                 })) {
+        // The inventory vector is full, we're done
+        return invs;
     }
 
     // First remove all blocks that are not worth polling.
@@ -562,23 +578,9 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     }
 
     auto r = blockVoteRecords.getReadView();
-    for (const std::pair<const CBlockIndex *const, VoteRecord> &p :
-         reverse_iterate(r)) {
-        // Check if we can run poll.
-        const bool shouldPoll =
-            forPoll ? p.second.registerPoll() : p.second.shouldPoll();
-        if (!shouldPoll) {
-            continue;
-        }
-
-        // We don't have a decision, we need more votes.
-        invs.emplace_back(MSG_BLOCK, p.first->GetBlockHash());
-        if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
-            // Make sure we do not produce more invs than specified by the
-            // protocol.
-            return invs;
-        }
-    }
+    extractVoteRecordsToInvs(reverse_iterate(r), [](const CBlockIndex *pindex) {
+        return CInv(MSG_BLOCK, pindex->GetBlockHash());
+    });
 
     return invs;
 }
