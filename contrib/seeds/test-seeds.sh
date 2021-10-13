@@ -73,7 +73,7 @@ ${BITCOIND} || {
 cleanup() {
   # Cleanup background processes spawned by this script.
   >&2 echo "Cleaning up bitcoin daemon..."
-  ${BITCOIN_CLI} stop
+  >&2 ${BITCOIN_CLI} stop
   rm -rf "${TEMP_DATADIR}"
 }
 trap "cleanup" EXIT
