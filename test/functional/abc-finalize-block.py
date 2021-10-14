@@ -91,7 +91,7 @@ class FinalizeBlockTest(BitcoinTestFramework):
         wait_for_block(node, invalid_block)
 
         # Later block headers are rejected
-        for i in range(2, 9):
+        for _ in range(2, 9):
             alt_node.generatetoaddress(
                 1, alt_node.get_deterministic_priv_key().address)
             assert_raises_rpc_error(-5, RPC_BLOCK_NOT_FOUND_ERROR,

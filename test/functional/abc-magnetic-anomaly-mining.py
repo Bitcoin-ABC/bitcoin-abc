@@ -43,7 +43,7 @@ class CTORMiningTest(BitcoinTestFramework):
 
         # Generate some unspent utxos and also
         # activate magnetic anomaly
-        for x in range(150):
+        for _ in range(150):
             update_time()
             mining_node.generate(1)
 

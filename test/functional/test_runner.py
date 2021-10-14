@@ -559,7 +559,7 @@ def execute_test_processes(
     resultCollector.start()
 
     # Start some worker threads
-    for job in range(num_jobs):
+    for _ in range(num_jobs):
         t = threading.Thread(target=handle_test_cases)
         t.daemon = True
         t.start()
@@ -576,7 +576,7 @@ def execute_test_processes(
 
     # Flush our queues so the threads exit
     update_queue.put(None)
-    for job in range(num_jobs):
+    for _ in range(num_jobs):
         job_queue.put(None)
 
     return test_results

@@ -179,7 +179,7 @@ class ParkedChainTest(BitcoinTestFramework):
                 nblocks=depth,
                 address=node.getnewaddress(label='coinbase'))
             # extra block should now find themselves parked
-            for i in range(extra_blocks):
+            for _ in range(extra_blocks):
                 node.generate(1)
                 wait_for_parked_block(node.getbestblockhash())
 

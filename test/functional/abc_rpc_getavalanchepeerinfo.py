@@ -46,8 +46,8 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             return (pubkey.get_bytes().hex(), proof)
 
         # Create peercount * nodecount node array
-        nodes = [[get_ava_p2p_interface(node) for n in range(
-            nodecount)] for p in range(peercount)]
+        nodes = [[get_ava_p2p_interface(node) for _ in range(
+            nodecount)] for _ in range(peercount)]
 
         # Add peercount peers and bind all the nodes to each
         proofs = []
