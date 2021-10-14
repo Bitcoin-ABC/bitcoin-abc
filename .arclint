@@ -35,7 +35,7 @@
                 "(^contrib/apple-sdk-tools/)"
             ],
             "flags": [
-                "--ignore=E501,E704,W503,W504"
+                "--ignore=E303,E305,E501,E704,W503,W504"
             ]
         },
         "lint-format-strings": {
