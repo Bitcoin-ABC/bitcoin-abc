@@ -76,12 +76,11 @@ public:
 };
 
 using BlockUpdate = VoteItemUpdate<CBlockIndex *>;
-using ProofUpdate = VoteItemUpdate<std::shared_ptr<Proof>>;
+using ProofUpdate = VoteItemUpdate<ProofRef>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
-using ProofVoteMap =
-    std::map<const std::shared_ptr<Proof>, VoteRecord, ProofComparator>;
+using ProofVoteMap = std::map<const ProofRef, VoteRecord, ProofComparator>;
 
 struct query_timeout {};
 
@@ -172,12 +171,11 @@ public:
     }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
-    void addProofToReconcile(const std::shared_ptr<Proof> &proof,
-                             bool isAccepted);
+    void addProofToReconcile(const ProofRef &proof, bool isAccepted);
     bool isAccepted(const CBlockIndex *pindex) const;
-    bool isAccepted(const std::shared_ptr<Proof> &proof) const;
+    bool isAccepted(const ProofRef &proof) const;
     int getConfidence(const CBlockIndex *pindex) const;
-    int getConfidence(const std::shared_ptr<Proof> &proof) const;
+    int getConfidence(const ProofRef &proof) const;
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
@@ -194,7 +192,7 @@ public:
     CPubKey getSessionPubKey() const;
     bool sendHello(CNode *pfrom) const;
 
-    std::shared_ptr<Proof> getLocalProof() const;
+    ProofRef getLocalProof() const;
 
     /*
      * Return whether the avalanche service flag should be set.

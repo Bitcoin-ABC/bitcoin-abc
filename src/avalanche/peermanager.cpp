@@ -142,7 +142,7 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
 }
 
-bool PeerManager::registerProof(const std::shared_ptr<Proof> &proof) {
+bool PeerManager::registerProof(const ProofRef &proof) {
     return !getProof(proof->getId()) && getPeerId(proof) != NO_PEER;
 }
 
@@ -176,7 +176,7 @@ static bool isOrphanState(const ProofValidationState &state) {
 
 void PeerManager::updatedBlockTip() {
     std::vector<PeerId> invalidPeers;
-    std::vector<std::shared_ptr<Proof>> newOrphans;
+    std::vector<ProofRef> newOrphans;
 
     {
         LOCK(cs_main);
@@ -204,13 +204,13 @@ void PeerManager::updatedBlockTip() {
     }
 }
 
-PeerId PeerManager::getPeerId(const std::shared_ptr<Proof> &proof) {
+PeerId PeerManager::getPeerId(const ProofRef &proof) {
     auto it = fetchOrCreatePeer(proof);
     return it == peers.end() ? NO_PEER : it->peerid;
 }
 
-std::shared_ptr<Proof> PeerManager::getProof(const ProofId &proofid) const {
-    std::shared_ptr<Proof> proof = nullptr;
+ProofRef PeerManager::getProof(const ProofId &proofid) const {
+    ProofRef proof = nullptr;
 
     forPeer(proofid, [&](const Peer &p) {
         proof = p.proof;
@@ -221,7 +221,7 @@ std::shared_ptr<Proof> PeerManager::getProof(const ProofId &proofid) const {
 }
 
 PeerManager::PeerSet::iterator
-PeerManager::fetchOrCreatePeer(const std::shared_ptr<Proof> &proof) {
+PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
     assert(proof);
     const ProofId &proofid = proof->getId();
     {
@@ -512,7 +512,7 @@ bool PeerManager::isOrphan(const ProofId &id) const {
     return orphanProofs.getProof(id) != nullptr;
 }
 
-std::shared_ptr<Proof> PeerManager::getOrphan(const ProofId &id) const {
+ProofRef PeerManager::getOrphan(const ProofId &id) const {
     return orphanProofs.getProof(id);
 }
 

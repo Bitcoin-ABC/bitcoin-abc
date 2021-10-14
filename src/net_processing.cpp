@@ -2092,10 +2092,10 @@ static CTransactionRef FindTxForGetData(const CTxMemPool &mempool,
 
 //! Determine whether or not a peer can request a proof, and return it (or
 //! nullptr if not found or not allowed).
-static std::shared_ptr<avalanche::Proof>
+static avalanche::ProofRef
 FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
                     const std::chrono::seconds now) {
-    std::shared_ptr<avalanche::Proof> proof = nullptr;
+    avalanche::ProofRef proof = nullptr;
 
     bool send_unconditionally =
         g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {

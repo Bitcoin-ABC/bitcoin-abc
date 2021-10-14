@@ -17,7 +17,7 @@
 
 namespace avalanche {
 
-std::shared_ptr<Proof> buildRandomProof(uint32_t score, const CKey &masterKey) {
+ProofRef buildRandomProof(uint32_t score, const CKey &masterKey) {
     auto key = CKey::MakeCompressedKey();
 
     const COutPoint o(TxId(GetRandHash()), 0);
@@ -38,7 +38,7 @@ std::shared_ptr<Proof> buildRandomProof(uint32_t score, const CKey &masterKey) {
     return std::make_shared<Proof>(pb.build());
 }
 
-bool hasDustStake(const std::shared_ptr<Proof> &proof) {
+bool hasDustStake(const ProofRef &proof) {
     for (const SignedStake &s : proof->getStakes()) {
         if (s.getStake().getAmount() < PROOF_DUST_THRESHOLD) {
             return true;

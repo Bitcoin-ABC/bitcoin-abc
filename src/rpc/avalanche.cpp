@@ -53,7 +53,7 @@ static CPubKey ParsePubKey(const UniValue &param) {
     return HexToPubKey(keyHex);
 }
 
-static bool registerProofIfNeeded(std::shared_ptr<avalanche::Proof> proof) {
+static bool registerProofIfNeeded(avalanche::ProofRef proof) {
     return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         return pm.getProof(proof->getId()) ||
                pm.registerProof(std::move(proof));

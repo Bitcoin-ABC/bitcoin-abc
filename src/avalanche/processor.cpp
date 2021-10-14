@@ -106,7 +106,7 @@ static bool VerifyDelegation(const Delegation &dg,
 }
 
 struct Processor::PeerData {
-    std::shared_ptr<Proof> proof;
+    ProofRef proof;
     Delegation delegation;
 };
 
@@ -261,8 +261,7 @@ bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
         .second;
 }
 
-void Processor::addProofToReconcile(const std::shared_ptr<Proof> &proof,
-                                    bool isAccepted) {
+void Processor::addProofToReconcile(const ProofRef &proof, bool isAccepted) {
     // TODO We don't want to accept an infinite number of conflicting proofs.
     // They should be some rules to make them expensive and/or limited by
     // design.
@@ -280,7 +279,7 @@ bool Processor::isAccepted(const CBlockIndex *pindex) const {
     return it->second.isAccepted();
 }
 
-bool Processor::isAccepted(const std::shared_ptr<Proof> &proof) const {
+bool Processor::isAccepted(const ProofRef &proof) const {
     auto r = proofVoteRecords.getReadView();
     auto it = r->find(proof);
     if (it == r.end()) {
@@ -300,7 +299,7 @@ int Processor::getConfidence(const CBlockIndex *pindex) const {
     return it->second.getConfidence();
 }
 
-int Processor::getConfidence(const std::shared_ptr<Proof> &proof) const {
+int Processor::getConfidence(const ProofRef &proof) const {
     auto r = proofVoteRecords.getReadView();
     auto it = r->find(proof);
     if (it == r.end()) {
@@ -396,7 +395,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     }
 
     std::map<CBlockIndex *, Vote> responseIndex;
-    std::map<std::shared_ptr<Proof>, Vote> responseProof;
+    std::map<ProofRef, Vote> responseProof;
 
     // At this stage we are certain that invs[i] matches votes[i], so we can use
     // the inv type to retrieve what is being voted on.
@@ -518,7 +517,7 @@ bool Processor::sendHello(CNode *pfrom) const {
     return true;
 }
 
-std::shared_ptr<Proof> Processor::getLocalProof() const {
+ProofRef Processor::getLocalProof() const {
     return peerData ? peerData->proof : nullptr;
 }
 

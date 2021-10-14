@@ -24,8 +24,7 @@ struct ProofComparator {
                                       : lhs.getId() < rhs.getId();
     }
 
-    bool operator()(const std::shared_ptr<Proof> &lhs,
-                    const std::shared_ptr<Proof> &rhs) const {
+    bool operator()(const ProofRef &lhs, const ProofRef &rhs) const {
         return (*this)(*lhs, *rhs);
     }
 };

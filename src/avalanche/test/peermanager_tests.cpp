@@ -643,7 +643,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     // HEIGHT_MISMATCH
     BOOST_CHECK(pm.isOrphan(proof3->getId()));
 
-    const auto isGoodPeer = [&pm](const std::shared_ptr<Proof> &p) {
+    const auto isGoodPeer = [&pm](const ProofRef &p) {
         bool ret = false;
         pm.forEachPeer([&](const Peer &peer) {
             if (p->getId() == peer.proof->getId()) {
@@ -761,7 +761,7 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
 
     constexpr int numProofs = 10;
 
-    std::vector<std::shared_ptr<Proof>> proofs;
+    std::vector<ProofRef> proofs;
     proofs.reserve(numProofs);
     for (int i = 0; i < numProofs; i++) {
         proofs.push_back(buildRandomProof(MIN_VALID_PROOF_SCORE));

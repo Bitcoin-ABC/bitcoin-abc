@@ -19,8 +19,7 @@ using namespace avalanche;
 
 BOOST_FIXTURE_TEST_SUITE(delegation_tests, TestingSetup)
 
-static void CheckDelegation(const Delegation &dg,
-                            const std::shared_ptr<Proof> &p,
+static void CheckDelegation(const Delegation &dg, const ProofRef &p,
                             const CPubKey &expected_pubkey) {
     DelegationState state;
     CPubKey pubkey;

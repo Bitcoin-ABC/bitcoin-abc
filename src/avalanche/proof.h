@@ -155,6 +155,8 @@ public:
     bool verify(ProofValidationState &state, const CCoinsView &view) const;
 };
 
+using ProofRef = std::shared_ptr<Proof>;
+
 } // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_PROOF_H

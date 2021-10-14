@@ -119,7 +119,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     }
 
     size_t next_coinbase = 0;
-    std::shared_ptr<Proof> GetProof() {
+    ProofRef GetProof() {
         size_t current_coinbase = next_coinbase++;
         const CTransaction &coinbase = *m_coinbase_txns[current_coinbase];
         ProofBuilder pb(0, 0, masterpriv);
@@ -245,9 +245,9 @@ struct ProofProvider {
     ProofProvider(AvalancheTestingSetup *_fixture)
         : fixture(_fixture), invType(MSG_AVA_PROOF) {}
 
-    std::shared_ptr<Proof> buildVoteItem() const { return fixture->GetProof(); }
+    ProofRef buildVoteItem() const { return fixture->GetProof(); }
 
-    uint256 getVoteItemId(const std::shared_ptr<Proof> &proof) const {
+    uint256 getVoteItemId(const ProofRef &proof) const {
         return proof->getId();
     }
 
@@ -263,14 +263,13 @@ struct ProofProvider {
         return registerVotes(nodeid, response, error);
     }
 
-    bool addToReconcile(const std::shared_ptr<Proof> &proof) {
+    bool addToReconcile(const ProofRef &proof) {
         fixture->m_processor->addProofToReconcile(proof, true);
         return true;
     }
 
-    std::vector<Vote>
-    buildVotesForItems(uint32_t error,
-                       std::vector<std::shared_ptr<Proof>> &&items) {
+    std::vector<Vote> buildVotesForItems(uint32_t error,
+                                         std::vector<ProofRef> &&items) {
         size_t numItems = items.size();
 
         std::vector<Vote> votes;

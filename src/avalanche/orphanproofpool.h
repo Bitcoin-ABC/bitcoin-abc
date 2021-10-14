@@ -19,7 +19,7 @@ class PeerManager;
 // Extracts a ProofId from a Proof
 struct proofid_extractor {
     using result_type = ProofId;
-    result_type operator()(const std::shared_ptr<Proof> &proof) const {
+    result_type operator()(const ProofRef &proof) const {
         return proof->getId();
     }
 };
@@ -28,7 +28,7 @@ struct by_sequence {};
 struct by_proofid {};
 
 using ProofContainer = boost::multi_index_container<
-    std::shared_ptr<Proof>,
+    ProofRef,
     boost::multi_index::indexed_by<
         // keep insertion order
         boost::multi_index::sequenced<boost::multi_index::tag<by_sequence>>,
@@ -63,7 +63,7 @@ public:
      * Add a proof to the pool.
      * The caller is responsible for checking the proof.
      */
-    bool addProof(const std::shared_ptr<Proof> &proof);
+    bool addProof(const ProofRef &proof);
 
     /** Remove a proof from the pool. */
     bool removeProof(const ProofId &proofId);
@@ -72,7 +72,7 @@ public:
      * Get a pointer to a proof by id, or nullptr if the proof is not in the
      * pool.
      */
-    std::shared_ptr<Proof> getProof(const ProofId &proofId) const;
+    ProofRef getProof(const ProofId &proofId) const;
 
     /**
      * Rescan the pool to remove previously orphaned proofs that have become

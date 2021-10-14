@@ -19,7 +19,7 @@ using namespace avalanche;
 BOOST_FIXTURE_TEST_SUITE(orphanproofpool_tests, TestingSetup)
 
 /** Make a proof with stakes using random txids */
-static std::shared_ptr<Proof> makeProof(const size_t nStakes) {
+static ProofRef makeProof(const size_t nStakes) {
     const Amount v = 5 * COIN;
     const int height = 1234;
     ProofBuilder pb(0, 0, CKey::MakeCompressedKey());

@@ -77,12 +77,12 @@ struct Peer {
     uint32_t index = -1;
     uint32_t node_count = 0;
 
-    std::shared_ptr<Proof> proof;
+    ProofRef proof;
 
     // The network stack uses timestamp in seconds, so we oblige.
     std::chrono::seconds registration_time;
 
-    Peer(PeerId peerid_, std::shared_ptr<Proof> proof_)
+    Peer(PeerId peerid_, ProofRef proof_)
         : peerid(peerid_), proof(std::move(proof_)),
           registration_time(GetTime<std::chrono::seconds>()) {}
 
@@ -204,7 +204,7 @@ public:
     /**
      * Proof and Peer related API.
      */
-    bool registerProof(const std::shared_ptr<Proof> &proof);
+    bool registerProof(const ProofRef &proof);
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;
     }
@@ -241,7 +241,7 @@ public:
      * Provide the PeerId associated with the given proof. If the peer does not
      * exist, then it is created.
      */
-    PeerId getPeerId(const std::shared_ptr<Proof> &proof);
+    PeerId getPeerId(const ProofRef &proof);
 
     /**
      * Remove an existing peer.
@@ -268,13 +268,13 @@ public:
     uint64_t getSlotCount() const { return slotCount; }
     uint64_t getFragmentation() const { return fragmentation; }
 
-    std::shared_ptr<Proof> getProof(const ProofId &proofid) const;
+    ProofRef getProof(const ProofId &proofid) const;
 
     bool isOrphan(const ProofId &id) const;
-    std::shared_ptr<Proof> getOrphan(const ProofId &id) const;
+    ProofRef getOrphan(const ProofId &id) const;
 
 private:
-    PeerSet::iterator fetchOrCreatePeer(const std::shared_ptr<Proof> &proof);
+    PeerSet::iterator fetchOrCreatePeer(const ProofRef &proof);
     bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);

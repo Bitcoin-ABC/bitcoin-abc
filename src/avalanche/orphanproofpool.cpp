@@ -19,7 +19,7 @@ void OrphanProofPool::trimToMaximumSize() {
     }
 }
 
-bool OrphanProofPool::addProof(const std::shared_ptr<Proof> &proof) {
+bool OrphanProofPool::addProof(const ProofRef &proof) {
     size_t nStakesProof = proof->getStakes().size();
     if (!proofs.push_back(proof).second) {
         return false;
@@ -40,7 +40,7 @@ bool OrphanProofPool::removeProof(const ProofId &proofId) {
     return true;
 }
 
-std::shared_ptr<Proof> OrphanProofPool::getProof(const ProofId &proofId) const {
+ProofRef OrphanProofPool::getProof(const ProofId &proofId) const {
     auto &proofs_by_proofid = proofs.get<by_proofid>();
     auto it = proofs_by_proofid.find(proofId);
     return it == proofs_by_proofid.end() ? nullptr : *it;
