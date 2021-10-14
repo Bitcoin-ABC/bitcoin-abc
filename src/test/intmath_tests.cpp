@@ -12,7 +12,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(intmath_tests, BasicTestingSetup)
 
-typedef boost::multiprecision::checked_int128_t i128_t;
+using i128_t = boost::multiprecision::checked_int128_t;
 
 const i128_t MAX_SCRIPT_63_BIT_INT = 0x7fff'ffff'ffff'ffff;
 const i128_t MIN_SCRIPT_63_BIT_INT = -0x7fff'ffff'ffff'ffff;
@@ -98,7 +98,7 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
     {
         bool expect_overflow = !IsInScriptBounds(a + b);
         // Test AddInt63OverflowEmulated
-        int64_t result_emulated;
+        int64_t result_emulated = uint64_t(1) + a_64 + b_64;
         bool had_overflow_emulated =
             AddInt63OverflowEmulated(a_64, b_64, result_emulated);
         CheckArithmeticResult(strprintf("%d + %d", a, b), expect_overflow,
@@ -116,7 +116,7 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
     {
         bool expect_overflow = !IsInScriptBounds(a - b);
         // Test SubInt63OverflowEmulated
-        int64_t result_emulated;
+        int64_t result_emulated = uint64_t(1) + a_64 - b_64;
         bool had_overflow_emulated =
             SubInt63OverflowEmulated(a_64, b_64, result_emulated);
         CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
