@@ -23,15 +23,15 @@ BOOST_FIXTURE_TEST_SUITE(proof_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(proof_random) {
     for (int i = 0; i < 1000; i++) {
         const uint32_t score = InsecureRand32();
-        const Proof p = buildRandomProof(score);
-        BOOST_CHECK_EQUAL(p.getScore(), score);
+        auto p = buildRandomProof(score);
+        BOOST_CHECK_EQUAL(p->getScore(), score);
 
         ProofValidationResult expected_state =
             hasDustStake(p) ? ProofValidationResult::DUST_THRESOLD
                             : ProofValidationResult::NONE;
 
         ProofValidationState state;
-        BOOST_CHECK_EQUAL(p.verify(state),
+        BOOST_CHECK_EQUAL(p->verify(state),
                           state.GetResult() == ProofValidationResult::NONE);
         BOOST_CHECK(state.GetResult() == expected_state);
     }

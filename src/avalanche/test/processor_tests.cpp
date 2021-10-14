@@ -1109,7 +1109,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
     uint32_t score = MIN_VALID_PROOF_SCORE;
 
     auto addProofToReconcile = [&](uint32_t proofScore) {
-        auto proof = std::make_shared<Proof>(buildRandomProof(proofScore));
+        auto proof = buildRandomProof(proofScore);
         m_processor->addProofToReconcile(proof, GetRandInt(1));
         return proof;
     };

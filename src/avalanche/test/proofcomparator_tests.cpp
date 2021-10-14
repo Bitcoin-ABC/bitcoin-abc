@@ -22,18 +22,15 @@ BOOST_FIXTURE_TEST_SUITE(proofcomparator_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     uint32_t score = MIN_VALID_PROOF_SCORE;
 
-    auto proofMinScore =
-        std::make_shared<Proof>(buildRandomProof(MIN_VALID_PROOF_SCORE));
-    auto proofMaxScore = std::make_shared<Proof>(
-        buildRandomProof(std::numeric_limits<uint32_t>::max()));
+    auto proofMinScore = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    auto proofMaxScore = buildRandomProof(std::numeric_limits<uint32_t>::max());
 
     const ProofSharedPointerComparator comparator;
 
     auto prevProof = proofMinScore;
     for (size_t i = 0; i < 100; i++) {
         score += 1000 + GetRandInt(10000);
-        auto higherScoreProof =
-            std::make_shared<Proof>(buildRandomProof(score));
+        auto higherScoreProof = buildRandomProof(score);
         BOOST_CHECK(comparator(higherScoreProof, proofMinScore));
         BOOST_CHECK(comparator(higherScoreProof, prevProof));
         BOOST_CHECK(!comparator(higherScoreProof, proofMaxScore));
@@ -44,7 +41,7 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     // the score reached the minimal value.
     for (size_t i = 0; i < 100; i++) {
         score -= 1 + GetRandInt(100);
-        auto lowerScoreProof = std::make_shared<Proof>(buildRandomProof(score));
+        auto lowerScoreProof = buildRandomProof(score);
         BOOST_CHECK(comparator(lowerScoreProof, proofMinScore));
         BOOST_CHECK(!comparator(lowerScoreProof, prevProof));
         BOOST_CHECK(!comparator(lowerScoreProof, proofMaxScore));
@@ -52,8 +49,7 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     }
 
     for (size_t i = 0; i < 100; i++) {
-        auto anotherProofMinScore =
-            std::make_shared<Proof>(buildRandomProof(MIN_VALID_PROOF_SCORE));
+        auto anotherProofMinScore = buildRandomProof(MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(comparator(anotherProofMinScore, proofMinScore),
                           anotherProofMinScore->getId() <
                               proofMinScore->getId());

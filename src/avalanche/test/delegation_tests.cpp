@@ -19,7 +19,8 @@ using namespace avalanche;
 
 BOOST_FIXTURE_TEST_SUITE(delegation_tests, TestingSetup)
 
-static void CheckDelegation(const Delegation &dg, const Proof &p,
+static void CheckDelegation(const Delegation &dg,
+                            const std::shared_ptr<Proof> &p,
                             const CPubKey &expected_pubkey) {
     DelegationState state;
     CPubKey pubkey;
@@ -27,19 +28,19 @@ static void CheckDelegation(const Delegation &dg, const Proof &p,
     BOOST_CHECK(state.GetResult() == DelegationResult::NONE);
     BOOST_CHECK(pubkey == expected_pubkey);
 
-    BOOST_CHECK(dg.getProofId() == p.getId());
+    BOOST_CHECK(dg.getProofId() == p->getId());
 }
 
 BOOST_AUTO_TEST_CASE(verify_random) {
     auto key = CKey::MakeCompressedKey();
 
-    const Proof p = buildRandomProof(123456, key);
-    DelegationBuilder dgb(p);
+    auto p = buildRandomProof(123456, key);
+    DelegationBuilder dgb(*p);
 
     {
         Delegation dg = dgb.build();
-        BOOST_CHECK_EQUAL(dg.getId(), p.getId());
-        CheckDelegation(dg, p, p.getMaster());
+        BOOST_CHECK_EQUAL(dg.getId(), p->getId());
+        CheckDelegation(dg, p, p->getMaster());
     }
 
     auto l1key = CKey::MakeCompressedKey();

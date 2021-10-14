@@ -173,13 +173,9 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
     }
 }
 
-static std::shared_ptr<Proof> getRandomProofPtr(uint32_t score) {
-    return std::make_shared<Proof>(buildRandomProof(score));
-}
-
 static void addNodeWithScore(avalanche::PeerManager &pm, NodeId node,
                              uint32_t score) {
-    auto proof = getRandomProofPtr(score);
+    auto proof = buildRandomProof(score);
     BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
     BOOST_CHECK(pm.addNode(node, proof->getId()));
 };
@@ -228,7 +224,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        auto p = getRandomProofPtr(100);
+        auto p = buildRandomProof(100);
         peerids[i] = pm.getPeerId(p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -260,7 +256,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        auto p = getRandomProofPtr(100);
+        auto p = buildRandomProof(100);
         peerids[i + 4] = pm.getPeerId(p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -302,7 +298,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        auto p = getRandomProofPtr(100);
+        auto p = buildRandomProof(100);
         peerids[i] = pm.getPeerId(p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -329,7 +325,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
     avalanche::PeerManager pm;
 
     // Create one peer.
-    auto proof = getRandomProofPtr(10000000 * MIN_VALID_PROOF_SCORE);
+    auto proof = buildRandomProof(10000000 * MIN_VALID_PROOF_SCORE);
     BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
@@ -388,7 +384,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 BOOST_AUTO_TEST_CASE(node_binding) {
     avalanche::PeerManager pm;
 
-    auto proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     const ProofId &proofid = proof->getId();
 
     // Add a bunch of nodes with no associated peer
@@ -420,7 +416,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
     }
 
-    auto alt_proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    auto alt_proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     const ProofId &alt_proofid = alt_proof->getId();
 
     // Update some nodes from a known proof to an unknown proof
@@ -430,7 +426,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
     }
 
-    auto alt2_proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    auto alt2_proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     const ProofId &alt2_proofid = alt2_proof->getId();
 
     // Update some nodes from an unknown proof to another unknown proof
@@ -718,7 +714,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
 BOOST_AUTO_TEST_CASE(dangling_node) {
     avalanche::PeerManager pm;
 
-    auto proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     PeerId peerid = pm.getPeerId(proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
@@ -740,7 +736,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     }
 
     // Build a new one
-    proof = getRandomProofPtr(MIN_VALID_PROOF_SCORE);
+    proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     peerid = pm.getPeerId(proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
@@ -768,7 +764,7 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
     std::vector<std::shared_ptr<Proof>> proofs;
     proofs.reserve(numProofs);
     for (int i = 0; i < numProofs; i++) {
-        proofs.push_back(getRandomProofPtr(MIN_VALID_PROOF_SCORE));
+        proofs.push_back(buildRandomProof(MIN_VALID_PROOF_SCORE));
     }
 
     for (int i = 0; i < numProofs; i++) {
