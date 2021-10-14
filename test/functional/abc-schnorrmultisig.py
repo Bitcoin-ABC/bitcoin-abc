@@ -55,12 +55,6 @@ SCHNORR_LEGACY_MULTISIG_ERROR = 'mandatory-script-verify-flag-failed (Signature 
 BADINPUTS_ERROR = 'blk-bad-inputs'
 
 
-# This 64-byte signature is used to test exclusion & banning according to
-# the above error messages.
-# Tests of real 64 byte ECDSA signatures can be found in script_tests.
-sig64 = b'\0' * 64
-
-
 class SchnorrMultisigTest(BitcoinTestFramework):
 
     def set_test_params(self):
