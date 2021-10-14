@@ -15,11 +15,10 @@
 class CRPCCommand;
 class CTransaction;
 class CWallet;
-class Config;
 class JSONRPCRequest;
 class LegacyScriptPubKeyMan;
 struct PartiallySignedTransaction;
-class UniValue;
+class RPCHelpMan;
 struct WalletContext;
 
 namespace util {
@@ -42,8 +41,7 @@ WalletContext &EnsureWalletContext(const util::Ref &context);
 LegacyScriptPubKeyMan &EnsureLegacyScriptPubKeyMan(CWallet &wallet,
                                                    bool also_create = false);
 
-UniValue signrawtransactionwithwallet(const Config &config,
-                                      const JSONRPCRequest &request);
-UniValue getaddressinfo(const Config &config, const JSONRPCRequest &request);
+RPCHelpMan signrawtransactionwithwallet();
+RPCHelpMan getaddressinfo();
 
 #endif // BITCOIN_WALLET_RPCWALLET_H
