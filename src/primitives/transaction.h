@@ -316,7 +316,7 @@ static_assert(sizeof(CMutableTransaction) == 56,
               "sizeof CMutableTransaction is expected to be 56 bytes");
 #endif
 
-typedef std::shared_ptr<const CTransaction> CTransactionRef;
+using CTransactionRef = std::shared_ptr<const CTransaction>;
 static inline CTransactionRef MakeTransactionRef() {
     return std::make_shared<const CTransaction>();
 }
