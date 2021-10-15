@@ -80,7 +80,7 @@ public:
     mutable std::atomic<int> m_cached_num_blocks{-1};
 
     Mutex m_cached_tip_mutex;
-    BlockHash m_cached_tip_blocks GUARDED_BY(m_cached_tip_mutex){};
+    BlockHash m_cached_tip_blocks GUARDED_BY(m_cached_tip_mutex);
 
 private:
     interfaces::Node &m_node;
