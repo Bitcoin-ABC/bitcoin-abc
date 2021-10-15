@@ -141,6 +141,18 @@ ninja coverage-check-secp256k1
 The coverage report will be available by opening the file
 `check-secp256k1.coverage/index.html` with a web browser.
 
+Benchmark
+------------
+If configured with `--enable-benchmark` (which is the default), binaries for benchmarking the libsecp256k1 functions will be present in the root directory after the build.
+
+To print the benchmark result to the command line:
+
+    $ ./bench_name
+
+To create a CSV file for the benchmark result :
+
+    $ ./bench_name | sed '2d;s/ \{1,\}//g' > bench_name.csv
+
 Reporting a vulnerability
 ------------
 

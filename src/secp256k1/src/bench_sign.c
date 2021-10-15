@@ -72,6 +72,8 @@ int main(void) {
 
     data.ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
 
+    print_output_table_header_row();
+    
     run_benchmark("ecdsa_sign", bench_sign_run, bench_sign_setup, NULL, &data, 10, iters);
 #ifdef ENABLE_MODULE_SCHNORR
     run_benchmark("schnorr_sign", bench_schnorr_sign_run, bench_sign_setup, NULL, &data, 10, iters);

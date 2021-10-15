@@ -15,6 +15,7 @@ valgrind_ctime_test
 *.exe
 *.so
 *.a
+*.csv
 !.gitignore
 
 Makefile
