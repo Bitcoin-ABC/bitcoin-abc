@@ -14,6 +14,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 class ArgsManager;
@@ -143,6 +144,10 @@ public:
     int64_t getExpirationTime() const { return expirationTime; }
     const CPubKey &getMaster() const { return master; }
     const std::vector<SignedStake> &getStakes() const { return stakes; }
+    const CScript &getPayoutScript() const { return payoutScriptPubKey; }
+    std::optional<const SchnorrSig> getSignature() const {
+        return useLegacy() ? std::nullopt : std::make_optional(signature);
+    }
 
     const ProofId &getId() const { return proofid; }
     const LimitedProofId &getLimitedId() const { return limitedProofId; }

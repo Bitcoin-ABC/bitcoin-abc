@@ -17,6 +17,7 @@ from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheDelegation,
     AvalancheDelegationLevel,
+    AvalancheProof,
     FromHex,
     LegacyAvalancheProof,
 )
@@ -51,8 +52,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
-        self.extra_args = [['-enableavalanche=1', '-avacooldown=0'],
-                           ['-enableavalanche=1', '-avacooldown=0']]
+        self.extra_args = [
+            ['-enableavalanche=1', '-avacooldown=0', '-legacyavaproof=1']] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 
@@ -90,6 +91,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_equal(decodedproof["sequence"], proof_sequence)
         assert_equal(decodedproof["expiration"], proof_expiration)
         assert_equal(decodedproof["master"], proof_master)
+        assert_equal(decodedproof["payoutscript"]["hex"], "")
+        assert "signature" not in decodedproof.keys()
         assert_equal(decodedproof["proofid"], f"{proofobj.proofid:0{64}x}")
         assert_equal(decodedproof["limitedid"], limited_id_hex)
         assert_equal(decodedproof["stakes"][0]["txid"], stakes[0]["txid"])
@@ -108,6 +111,56 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         # Valid hex but invalid proof
         assert_raises_rpc_error(-22, "Proof has invalid format",
                                 node.decodeavalancheproof, proof[:-2])
+
+        self.log.info(
+            "Testing decodeavalancheproof with legacyavaproof disabled")
+        self.restart_node(0, self.extra_args[0] + ["-legacyavaproof=0"])
+
+        regular_proof = node.buildavalancheproof(
+            proof_sequence, proof_expiration, wif_privkey, stakes, ADDRESS_ECREG_UNSPENDABLE)
+        decoded_regular_proof = node.decodeavalancheproof(regular_proof)
+
+        assert_equal(
+            decoded_regular_proof["sequence"],
+            decodedproof["sequence"])
+        assert_equal(
+            decoded_regular_proof["expiration"],
+            decodedproof["expiration"])
+        assert_equal(decoded_regular_proof["master"], decodedproof["master"])
+        assert_equal(decoded_regular_proof["payoutscript"], {
+            "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+            "hex": "76a914000000000000000000000000000000000000000088ac",
+            "reqSigs": 1,
+            "type": "pubkeyhash",
+            "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+        })
+
+        regular_proof_obj = FromHex(AvalancheProof(), regular_proof)
+        assert_equal(
+            decoded_regular_proof["signature"],
+            base64.b64encode(regular_proof_obj.signature).decode("ascii"))
+        assert_equal(
+            decoded_regular_proof["proofid"],
+            f"{regular_proof_obj.proofid:0{64}x}")
+        assert_equal(
+            decoded_regular_proof["limitedid"],
+            f"{regular_proof_obj.limited_proofid:0{64}x}")
+
+        assert_equal(
+            decoded_regular_proof["stakes"][0]["txid"],
+            decodedproof["stakes"][0]["txid"])
+        assert_equal(
+            decoded_regular_proof["stakes"][0]["vout"],
+            decodedproof["stakes"][0]["vout"])
+        assert_equal(
+            decoded_regular_proof["stakes"][0]["height"],
+            decodedproof["stakes"][0]["height"])
+        assert_equal(
+            decoded_regular_proof["stakes"][0]["iscoinbase"],
+            decodedproof["stakes"][0]["iscoinbase"])
+        assert_equal(
+            decoded_regular_proof["stakes"][0]["signature"],
+            base64.b64encode(regular_proof_obj.stakes[0].sig).decode("ascii"))
 
         # Restart the node with this proof
         self.restart_node(0, self.extra_args[0] + [

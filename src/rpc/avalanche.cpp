@@ -339,6 +339,28 @@ static UniValue decodeavalancheproof(const Config &config,
                 {RPCResult::Type::NUM, "expiration",
                  "A timestamp indicating when the proof expires"},
                 {RPCResult::Type::STR_HEX, "master", "The master public key"},
+                {RPCResult::Type::STR, "signature",
+                 "The proof signature (base64 encoded). Not available when "
+                 "-legacyavaproof is enabled."},
+                {RPCResult::Type::OBJ,
+                 "payoutscript",
+                 "The proof payout script. Always empty when -legacyavaproof "
+                 "is enabled.",
+                 {
+                     {RPCResult::Type::STR, "asm", "Decoded payout script"},
+                     {RPCResult::Type::STR_HEX, "hex",
+                      "Raw payout script in hex format"},
+                     {RPCResult::Type::STR, "type",
+                      "The output type (e.g. " + GetAllOutputTypes() + ")"},
+                     {RPCResult::Type::NUM, "reqSigs",
+                      "The required signatures"},
+                     {RPCResult::Type::ARR,
+                      "addresses",
+                      "",
+                      {
+                          {RPCResult::Type::STR, "address", "eCash address"},
+                      }},
+                 }},
                 {RPCResult::Type::STR_HEX, "limitedid",
                  "A hash of the proof data excluding the master key."},
                 {RPCResult::Type::STR_HEX, "proofid",
@@ -385,6 +407,17 @@ static UniValue decodeavalancheproof(const Config &config,
     result.pushKV("sequence", proof.getSequence());
     result.pushKV("expiration", proof.getExpirationTime());
     result.pushKV("master", HexStr(proof.getMaster()));
+
+    const auto signature = proof.getSignature();
+    if (signature) {
+        result.pushKV("signature", EncodeBase64(*signature));
+    }
+
+    const auto payoutScript = proof.getPayoutScript();
+    UniValue payoutScriptObj(UniValue::VOBJ);
+    ScriptPubKeyToUniv(payoutScript, payoutScriptObj, /* fIncludeHex */ true);
+    result.pushKV("payoutscript", payoutScriptObj);
+
     result.pushKV("limitedid", proof.getLimitedId().ToString());
     result.pushKV("proofid", proof.getId().ToString());
 
