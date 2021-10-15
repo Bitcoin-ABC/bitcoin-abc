@@ -283,6 +283,15 @@ UniValue DescribeAddress(const CTxDestination &dest) {
     return boost::apply_visitor(DescribeAddressVisitor(), dest);
 }
 
+std::string GetAllOutputTypes() {
+    std::vector<std::string> ret;
+    using U = std::underlying_type<TxoutType>::type;
+    for (U i = (U)TxoutType::NONSTANDARD; i <= (U)TxoutType::NULL_DATA; ++i) {
+        ret.emplace_back(GetTxnOutputType(static_cast<TxoutType>(i)));
+    }
+    return Join(ret, ", ");
+}
+
 RPCErrorCode RPCErrorFromTransactionError(TransactionError terr) {
     switch (terr) {
         case TransactionError::MEMPOOL_REJECTED:

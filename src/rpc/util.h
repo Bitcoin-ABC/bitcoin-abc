@@ -100,6 +100,7 @@ CTxDestination AddAndGetMultisigDestination(const int required,
                                             CScript &script_out);
 
 UniValue DescribeAddress(const CTxDestination &dest);
+std::string GetAllOutputTypes();
 
 RPCErrorCode RPCErrorFromTransactionError(TransactionError terr);
 UniValue JSONRPCTransactionError(TransactionError terr,
