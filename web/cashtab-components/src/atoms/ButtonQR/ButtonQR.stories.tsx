@@ -25,8 +25,7 @@ storiesOf('ButtonQR', module)
             </ButtonQR>
         ),
         {
-            notes:
-                'Button is a stateful controlled component which is the primary visual indicator for the Cashtab payment process',
+            notes: 'Button is a stateful controlled component which is the primary visual indicator for the Cashtab payment process',
         },
     )
     .add(
@@ -80,7 +79,6 @@ storiesOf('ButtonQR', module)
             </ButtonQR>
         ),
         {
-            notes:
-                'Cashtab plugin not installed, prompt user to install Cashtab',
+            notes: 'Cashtab plugin not installed, prompt user to install Cashtab',
         },
     );

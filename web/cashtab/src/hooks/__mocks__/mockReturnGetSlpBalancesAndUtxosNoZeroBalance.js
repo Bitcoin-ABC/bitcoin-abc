@@ -9,8 +9,7 @@ export default {
                     '16b624b60de4a1d8a06baa129e3a88a4becd499e1d5d0d40b9f2ff4d28e3f660',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '16b624b60de4a1d8a06baa129e3a88a4becd499e1d5d0d40b9f2ff4d28e3f660',
+                txid: '16b624b60de4a1d8a06baa129e3a88a4becd499e1d5d0d40b9f2ff4d28e3f660',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -39,8 +38,7 @@ export default {
                     'c7da9ae6a0ce9d4f2f3345f9f0e5da5371228c8aee72b6eeac1b42871b216e6b',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'c7da9ae6a0ce9d4f2f3345f9f0e5da5371228c8aee72b6eeac1b42871b216e6b',
+                txid: 'c7da9ae6a0ce9d4f2f3345f9f0e5da5371228c8aee72b6eeac1b42871b216e6b',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -70,8 +68,7 @@ export default {
                     'dac23f10dd65caa51359c1643ffc93b94d14c05b739590ade85557d338a21040',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'dac23f10dd65caa51359c1643ffc93b94d14c05b739590ade85557d338a21040',
+                txid: 'dac23f10dd65caa51359c1643ffc93b94d14c05b739590ade85557d338a21040',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -100,8 +97,7 @@ export default {
                     'efa6f67078810875513a116b389886610d81ecf6daf97d55dd96d3fdd201dfac',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'efa6f67078810875513a116b389886610d81ecf6daf97d55dd96d3fdd201dfac',
+                txid: 'efa6f67078810875513a116b389886610d81ecf6daf97d55dd96d3fdd201dfac',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -144,8 +140,7 @@ export default {
                 tx_hash:
                     'b622b770f74f056e07e5d2ea4d7f8da1c4d865e21e11c31a263602a38d4a2474',
                 tx_pos: 2,
-                txid:
-                    'b622b770f74f056e07e5d2ea4d7f8da1c4d865e21e11c31a263602a38d4a2474',
+                txid: 'b622b770f74f056e07e5d2ea4d7f8da1c4d865e21e11c31a263602a38d4a2474',
                 utxoType: 'minting-baton',
                 value: 546,
                 vout: 2,
@@ -177,8 +172,7 @@ export default {
                 tx_hash:
                     '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
                 tx_pos: 2,
-                txid:
-                    '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
+                txid: '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
                 utxoType: 'minting-baton',
                 value: 546,
                 vout: 2,
@@ -193,8 +187,7 @@ export default {
                     'e9a94cc174839e3659d2fe4d33490528d18ad91404b65eb8cc35d8fa2d3f5096',
                 tx_pos: 2,
                 value: 546,
-                txid:
-                    'e9a94cc174839e3659d2fe4d33490528d18ad91404b65eb8cc35d8fa2d3f5096',
+                txid: 'e9a94cc174839e3659d2fe4d33490528d18ad91404b65eb8cc35d8fa2d3f5096',
                 vout: 2,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -223,8 +216,7 @@ export default {
                     'dd560d87bd632e40c6548021006653a150197ede13fadb5eadfa29abe4400d0e',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'dd560d87bd632e40c6548021006653a150197ede13fadb5eadfa29abe4400d0e',
+                txid: 'dd560d87bd632e40c6548021006653a150197ede13fadb5eadfa29abe4400d0e',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -254,8 +246,7 @@ export default {
                 '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
             tx_pos: 0,
             value: 1000,
-            txid:
-                '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
             vout: 0,
             isValid: false,
             address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
@@ -267,8 +258,7 @@ export default {
                 '39521b38cd1b6126a57a68b8adfd836020cd53b195f3b4675c58095c5c300ef8',
             tx_pos: 0,
             value: 700000,
-            txid:
-                '39521b38cd1b6126a57a68b8adfd836020cd53b195f3b4675c58095c5c300ef8',
+            txid: '39521b38cd1b6126a57a68b8adfd836020cd53b195f3b4675c58095c5c300ef8',
             vout: 0,
             isValid: false,
             address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
@@ -280,8 +270,7 @@ export default {
                 '93949923f02cb5271bd6d0b5a5b937ce5ae22df5bf6117161078f175f0c29d56',
             tx_pos: 0,
             value: 700000,
-            txid:
-                '93949923f02cb5271bd6d0b5a5b937ce5ae22df5bf6117161078f175f0c29d56',
+            txid: '93949923f02cb5271bd6d0b5a5b937ce5ae22df5bf6117161078f175f0c29d56',
             vout: 0,
             isValid: false,
             address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
@@ -293,8 +282,7 @@ export default {
                 'ddace66ea968e16e55ebf218814401acc38e0a39150529fa3d1108af04e81373',
             tx_pos: 0,
             value: 300000,
-            txid:
-                'ddace66ea968e16e55ebf218814401acc38e0a39150529fa3d1108af04e81373',
+            txid: 'ddace66ea968e16e55ebf218814401acc38e0a39150529fa3d1108af04e81373',
             vout: 0,
             isValid: false,
             address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
@@ -306,8 +294,7 @@ export default {
                 'f1147285ac384159b5dfae513bda47a0459f876d046b48f13c8a7ec4f0d20d96',
             tx_pos: 0,
             value: 700000,
-            txid:
-                'f1147285ac384159b5dfae513bda47a0459f876d046b48f13c8a7ec4f0d20d96',
+            txid: 'f1147285ac384159b5dfae513bda47a0459f876d046b48f13c8a7ec4f0d20d96',
             vout: 0,
             isValid: false,
             address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
@@ -319,8 +306,7 @@ export default {
                 'f4ca891d090f2682c7086b27a4d3bc2ed1543fb96123b6649e8f26b644a45b51',
             tx_pos: 0,
             value: 30000,
-            txid:
-                'f4ca891d090f2682c7086b27a4d3bc2ed1543fb96123b6649e8f26b644a45b51',
+            txid: 'f4ca891d090f2682c7086b27a4d3bc2ed1543fb96123b6649e8f26b644a45b51',
             vout: 0,
             isValid: false,
             address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
@@ -334,8 +320,7 @@ export default {
                 '16b624b60de4a1d8a06baa129e3a88a4becd499e1d5d0d40b9f2ff4d28e3f660',
             tx_pos: 1,
             value: 546,
-            txid:
-                '16b624b60de4a1d8a06baa129e3a88a4becd499e1d5d0d40b9f2ff4d28e3f660',
+            txid: '16b624b60de4a1d8a06baa129e3a88a4becd499e1d5d0d40b9f2ff4d28e3f660',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -357,8 +342,7 @@ export default {
                 'c7da9ae6a0ce9d4f2f3345f9f0e5da5371228c8aee72b6eeac1b42871b216e6b',
             tx_pos: 1,
             value: 546,
-            txid:
-                'c7da9ae6a0ce9d4f2f3345f9f0e5da5371228c8aee72b6eeac1b42871b216e6b',
+            txid: 'c7da9ae6a0ce9d4f2f3345f9f0e5da5371228c8aee72b6eeac1b42871b216e6b',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -381,8 +365,7 @@ export default {
                 'dac23f10dd65caa51359c1643ffc93b94d14c05b739590ade85557d338a21040',
             tx_pos: 1,
             value: 546,
-            txid:
-                'dac23f10dd65caa51359c1643ffc93b94d14c05b739590ade85557d338a21040',
+            txid: 'dac23f10dd65caa51359c1643ffc93b94d14c05b739590ade85557d338a21040',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -404,8 +387,7 @@ export default {
                 'efa6f67078810875513a116b389886610d81ecf6daf97d55dd96d3fdd201dfac',
             tx_pos: 1,
             value: 546,
-            txid:
-                'efa6f67078810875513a116b389886610d81ecf6daf97d55dd96d3fdd201dfac',
+            txid: 'efa6f67078810875513a116b389886610d81ecf6daf97d55dd96d3fdd201dfac',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -427,8 +409,7 @@ export default {
                 'b622b770f74f056e07e5d2ea4d7f8da1c4d865e21e11c31a263602a38d4a2474',
             tx_pos: 2,
             value: 546,
-            txid:
-                'b622b770f74f056e07e5d2ea4d7f8da1c4d865e21e11c31a263602a38d4a2474',
+            txid: 'b622b770f74f056e07e5d2ea4d7f8da1c4d865e21e11c31a263602a38d4a2474',
             vout: 2,
             utxoType: 'minting-baton',
             transactionType: 'mint',
@@ -450,8 +431,7 @@ export default {
                 '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
             tx_pos: 2,
             value: 546,
-            txid:
-                '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
+            txid: '67605f3d18135b52d95a4877a427d100c14f2610c63ee84eaf4856f883a0b70e',
             vout: 2,
             utxoType: 'minting-baton',
             transactionType: 'mint',
@@ -476,8 +456,7 @@ export default {
                 'b399a5ae69e4ac4c96b27c680a541e6b8142006bdc2484a959821858fc0b4ca3',
             tx_pos: 2,
             value: 546,
-            txid:
-                'b399a5ae69e4ac4c96b27c680a541e6b8142006bdc2484a959821858fc0b4ca3',
+            txid: 'b399a5ae69e4ac4c96b27c680a541e6b8142006bdc2484a959821858fc0b4ca3',
             vout: 2,
             utxoType: 'token',
             transactionType: 'send',
@@ -499,8 +478,7 @@ export default {
                 '4ca7f70996c699b0f988597a2dd2700f1f24f305318ddc8fe137d96d5fa96bf5',
             tx_pos: 1,
             value: 546,
-            txid:
-                '4ca7f70996c699b0f988597a2dd2700f1f24f305318ddc8fe137d96d5fa96bf5',
+            txid: '4ca7f70996c699b0f988597a2dd2700f1f24f305318ddc8fe137d96d5fa96bf5',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -522,8 +500,7 @@ export default {
                 'de912bc7a6a1b14abe04960cd9a0ef88a4f59eb04db765f7bc2c0d2c2f997054',
             tx_pos: 1,
             value: 546,
-            txid:
-                'de912bc7a6a1b14abe04960cd9a0ef88a4f59eb04db765f7bc2c0d2c2f997054',
+            txid: 'de912bc7a6a1b14abe04960cd9a0ef88a4f59eb04db765f7bc2c0d2c2f997054',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -548,8 +525,7 @@ export default {
                 'e25cebd4cccbbdd91b36f672d51f5ce978e0817839be9854c3550704aec4359d',
             tx_pos: 1,
             value: 546,
-            txid:
-                'e25cebd4cccbbdd91b36f672d51f5ce978e0817839be9854c3550704aec4359d',
+            txid: 'e25cebd4cccbbdd91b36f672d51f5ce978e0817839be9854c3550704aec4359d',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -571,8 +547,7 @@ export default {
                 'e9a94cc174839e3659d2fe4d33490528d18ad91404b65eb8cc35d8fa2d3f5096',
             tx_pos: 2,
             value: 546,
-            txid:
-                'e9a94cc174839e3659d2fe4d33490528d18ad91404b65eb8cc35d8fa2d3f5096',
+            txid: 'e9a94cc174839e3659d2fe4d33490528d18ad91404b65eb8cc35d8fa2d3f5096',
             vout: 2,
             utxoType: 'token',
             transactionType: 'send',
@@ -594,8 +569,7 @@ export default {
                 '05e87142de1bb8c2a43d22a2e4b97855eb84c3c76f4ea956a654efda8d0557ca',
             tx_pos: 1,
             value: 546,
-            txid:
-                '05e87142de1bb8c2a43d22a2e4b97855eb84c3c76f4ea956a654efda8d0557ca',
+            txid: '05e87142de1bb8c2a43d22a2e4b97855eb84c3c76f4ea956a654efda8d0557ca',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -617,8 +591,7 @@ export default {
                 '99583b593a3bec993328b076f4988fd77b8423d788183bf2968ed43cec11c454',
             tx_pos: 2,
             value: 546,
-            txid:
-                '99583b593a3bec993328b076f4988fd77b8423d788183bf2968ed43cec11c454',
+            txid: '99583b593a3bec993328b076f4988fd77b8423d788183bf2968ed43cec11c454',
             vout: 2,
             utxoType: 'token',
             transactionType: 'send',
@@ -640,8 +613,7 @@ export default {
                 '34002080b2e1b42ff9f33d36dbbd0d8f1aaddc5a00b916054a40c45feebaf548',
             tx_pos: 2,
             value: 546,
-            txid:
-                '34002080b2e1b42ff9f33d36dbbd0d8f1aaddc5a00b916054a40c45feebaf548',
+            txid: '34002080b2e1b42ff9f33d36dbbd0d8f1aaddc5a00b916054a40c45feebaf548',
             vout: 2,
             utxoType: 'token',
             transactionType: 'send',
@@ -663,8 +635,7 @@ export default {
                 '8edccfafe4b002da8f1aa71daae31846c51848968e7d92dcba5f0ff97beb734d',
             tx_pos: 2,
             value: 546,
-            txid:
-                '8edccfafe4b002da8f1aa71daae31846c51848968e7d92dcba5f0ff97beb734d',
+            txid: '8edccfafe4b002da8f1aa71daae31846c51848968e7d92dcba5f0ff97beb734d',
             vout: 2,
             utxoType: 'token',
             transactionType: 'send',
@@ -689,8 +660,7 @@ export default {
                 'd3183b663a8d67b2b558654896b95102bbe68d164de219da96273ae52de93813',
             tx_pos: 1,
             value: 546,
-            txid:
-                'd3183b663a8d67b2b558654896b95102bbe68d164de219da96273ae52de93813',
+            txid: 'd3183b663a8d67b2b558654896b95102bbe68d164de219da96273ae52de93813',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',
@@ -712,8 +682,7 @@ export default {
                 'dd560d87bd632e40c6548021006653a150197ede13fadb5eadfa29abe4400d0e',
             tx_pos: 1,
             value: 546,
-            txid:
-                'dd560d87bd632e40c6548021006653a150197ede13fadb5eadfa29abe4400d0e',
+            txid: 'dd560d87bd632e40c6548021006653a150197ede13fadb5eadfa29abe4400d0e',
             vout: 1,
             utxoType: 'token',
             transactionType: 'send',

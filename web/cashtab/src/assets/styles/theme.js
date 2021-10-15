@@ -14,13 +14,11 @@ export const theme = {
         },
         switch: {
             activeCash: {
-                shadow:
-                    'inset 8px 8px 16px #0074C2, inset -8px -8px 16px #273498',
+                shadow: 'inset 8px 8px 16px #0074C2, inset -8px -8px 16px #273498',
             },
             activeToken: {
                 background: '#CD0BC3',
-                shadow:
-                    'inset 5px 5px 11px #FF21D0, inset -5px -5px 11px #CD0BC3',
+                shadow: 'inset 5px 5px 11px #FF21D0, inset -5px -5px 11px #CD0BC3',
             },
             inactive: {
                 background: 'linear-gradient(145deg, #eeeeee, #c8c8c8)',
@@ -59,8 +57,7 @@ export const theme = {
         copyBorderToken: '#FF21D0',
         background: '#fff',
         token: '#231F20',
-        shadow:
-            'rgba(0, 0, 0, 0.01) 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 4px 8px, rgba(0, 0, 0, 0.04) 0px 16px 24px, rgba(0, 0, 0, 0.01) 0px 24px 32px',
+        shadow: 'rgba(0, 0, 0, 0.01) 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 4px 8px, rgba(0, 0, 0, 0.04) 0px 16px 24px, rgba(0, 0, 0, 0.01) 0px 24px 32px',
     },
     buttons: {
         primary: {

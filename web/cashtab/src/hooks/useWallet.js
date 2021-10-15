@@ -977,9 +977,8 @@ const useWallet = () => {
             // Calculate amount received
             //console.log(`receivedTokenObject:`, tokens[receivedTokenObjectIndex]);
 
-            const receivedSlpQty = tokens[
-                receivedTokenObjectIndex
-            ].balance.toString();
+            const receivedSlpQty =
+                tokens[receivedTokenObjectIndex].balance.toString();
             const receivedSlpTicker =
                 tokens[receivedTokenObjectIndex].info.tokenTicker;
             const receivedSlpName =

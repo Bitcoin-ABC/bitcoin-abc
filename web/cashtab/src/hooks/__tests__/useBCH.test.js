@@ -280,12 +280,8 @@ describe('useBCH hook', () => {
     it('creates a token correctly', async () => {
         const { createToken } = useBCH();
         const BCH = new BCHJS();
-        const {
-            expectedTxId,
-            expectedHex,
-            wallet,
-            configObj,
-        } = createTokenMock;
+        const { expectedTxId, expectedHex, wallet, configObj } =
+            createTokenMock;
 
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()

@@ -241,9 +241,8 @@ export default function useBCH() {
         // Here in cashtab, destinationAddress is in bitcoincash: format
         // In the API response of tokenInfo, this will be in simpleledger: format
         // So, must convert to simpleledger
-        const receivingSlpAddress = BCH.SLP.Address.toSLPAddress(
-            destinationAddress,
-        );
+        const receivingSlpAddress =
+            BCH.SLP.Address.toSLPAddress(destinationAddress);
 
         const { transactionType, sendInputsFull, sendOutputsFull } = tokenInfo;
         const sendingTokenAddresses = [];
@@ -393,9 +392,8 @@ export default function useBCH() {
 
         try {
             hydratedUtxoDetails = await Promise.all(hydrateUtxosPromises);
-            const flattenedBatchedHydratedUtxos = flattenBatchedHydratedUtxos(
-                hydratedUtxoDetails,
-            );
+            const flattenedBatchedHydratedUtxos =
+                flattenBatchedHydratedUtxos(hydratedUtxoDetails);
             return flattenedBatchedHydratedUtxos;
         } catch (err) {
             console.log(`Error in Promise.all(hydrateUtxosPromises)`);
@@ -607,9 +605,8 @@ export default function useBCH() {
             }
 
             // Generate the OP_RETURN entry for an SLP GENESIS transaction.
-            const script = BCH.SLP.TokenType1.generateGenesisOpReturn(
-                configObj,
-            );
+            const script =
+                BCH.SLP.TokenType1.generateGenesisOpReturn(configObj);
             // OP_RETURN needs to be the first output in the transaction.
             transactionBuilder.addOutput(script, 0);
 
@@ -935,9 +932,8 @@ export default function useBCH() {
             let isValidChangeAddress;
             try {
                 REMAINDER_ADDR = inputUtxos[0].address;
-                isValidChangeAddress = BCH.Address.isCashAddress(
-                    REMAINDER_ADDR,
-                );
+                isValidChangeAddress =
+                    BCH.Address.isCashAddress(REMAINDER_ADDR);
             } catch (err) {
                 isValidChangeAddress = false;
             }

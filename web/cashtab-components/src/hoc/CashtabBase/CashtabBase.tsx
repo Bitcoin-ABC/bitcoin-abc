@@ -345,11 +345,8 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
         }
 
         componentWillUnmount() {
-            const {
-                intervalPrice,
-                intervalUnconfirmed,
-                intervalTimer,
-            } = this.state;
+            const { intervalPrice, intervalUnconfirmed, intervalTimer } =
+                this.state;
             intervalPrice && clearInterval(intervalPrice);
             intervalUnconfirmed && clearInterval(intervalUnconfirmed);
             intervalTimer && clearInterval(intervalTimer);
@@ -357,12 +354,8 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
 
         componentDidUpdate(prevProps: CashtabBaseProps, prevState: IState) {
             if (typeof window !== 'undefined') {
-                const {
-                    currency,
-                    price,
-                    isRepeatable,
-                    watchAddress,
-                } = this.props;
+                const { currency, price, isRepeatable, watchAddress } =
+                    this.props;
 
                 const prevCurrency = prevProps.currency;
                 const prevPrice = prevProps.price;
@@ -391,20 +384,10 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
         }
 
         render() {
-            const {
-                amount,
-                showQR,
-                opReturn,
-                coinType,
-                stepControlled,
-            } = this.props;
-            const {
-                step,
-                satoshis,
-                coinDecimals,
-                coinSymbol,
-                coinName,
-            } = this.state;
+            const { amount, showQR, opReturn, coinType, stepControlled } =
+                this.props;
+            const { step, satoshis, coinDecimals, coinSymbol, coinName } =
+                this.state;
 
             let calculatedAmount =
                 adjustAmount(amount, coinDecimals, false) || satoshis;

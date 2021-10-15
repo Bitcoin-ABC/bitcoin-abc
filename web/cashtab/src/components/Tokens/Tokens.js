@@ -26,9 +26,8 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
     wallet state parameters not stored in the wallet object are deprecated
     */
 
-    const { wallet, apiError, fiatPrice, cashtabSettings } = React.useContext(
-        WalletContext,
-    );
+    const { wallet, apiError, fiatPrice, cashtabSettings } =
+        React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { balances, tokens } = walletState;
 

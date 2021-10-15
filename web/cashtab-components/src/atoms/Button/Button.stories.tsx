@@ -18,8 +18,7 @@ storiesOf('Button', module)
             </Button>
         ),
         {
-            notes:
-                'Button is a stateful controlled component which is the primary visual indicator for the badger payment process',
+            notes: 'Button is a stateful controlled component which is the primary visual indicator for the badger payment process',
         },
     )
     .add(
@@ -52,7 +51,6 @@ storiesOf('Button', module)
             </Button>
         ),
         {
-            notes:
-                'CashTab extension not installed, prompt user to install CashTab',
+            notes: 'CashTab extension not installed, prompt user to install CashTab',
         },
     );

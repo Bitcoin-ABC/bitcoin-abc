@@ -50,9 +50,8 @@ const CreateTokenForm = ({
 
     // New Token Decimals
     const [newTokenDecimals, setNewTokenDecimals] = useState(0);
-    const [newTokenDecimalsIsValid, setNewTokenDecimalsIsValid] = useState(
-        true,
-    );
+    const [newTokenDecimalsIsValid, setNewTokenDecimalsIsValid] =
+        useState(true);
     const handleNewTokenDecimalsInput = e => {
         const { value } = e.target;
         // validation
@@ -69,9 +68,8 @@ const CreateTokenForm = ({
 
     // New Token Initial Quantity
     const [newTokenInitialQty, setNewTokenInitialQty] = useState('');
-    const [newTokenInitialQtyIsValid, setNewTokenInitialQtyIsValid] = useState(
-        null,
-    );
+    const [newTokenInitialQtyIsValid, setNewTokenInitialQtyIsValid] =
+        useState(null);
     const handleNewTokenInitialQtyInput = e => {
         const { value } = e.target;
         // validation
@@ -83,10 +81,8 @@ const CreateTokenForm = ({
     // New Token document URL
     const [newTokenDocumentUrl, setNewTokenDocumentUrl] = useState('');
     // Start with this as true, field is not required
-    const [
-        newTokenDocumentUrlIsValid,
-        setNewTokenDocumentUrlIsValid,
-    ] = useState(true);
+    const [newTokenDocumentUrlIsValid, setNewTokenDocumentUrlIsValid] =
+        useState(true);
 
     const handleNewTokenDocumentUrlInput = e => {
         const { value } = e.target;

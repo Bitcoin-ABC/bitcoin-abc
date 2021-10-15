@@ -129,13 +129,8 @@ class ButtonQR extends React.PureComponent<Props> {
     };
 
     render() {
-        const {
-            children,
-            step,
-            toAddress,
-            amountSatoshis,
-            sizeQR,
-        } = this.props;
+        const { children, step, toAddress, amountSatoshis, sizeQR } =
+            this.props;
 
         const widthQR = sizeQR >= 125 ? sizeQR : 125; // Minimum width 125
 

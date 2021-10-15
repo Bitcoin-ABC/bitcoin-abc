@@ -129,8 +129,7 @@ export const walletWithBalancesAndTokens = {
                 tx_pos: 2,
                 value: 546,
                 satoshis: 546,
-                txid:
-                    'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
+                txid: 'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
                 vout: 2,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -203,8 +202,7 @@ export const walletWithBalancesAndTokensWithCorrectState = {
                         tx_pos: 2,
                         value: 546,
                         satoshis: 546,
-                        txid:
-                            'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
+                        txid: 'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
                         vout: 2,
                         utxoType: 'token',
                         transactionType: 'send',
@@ -243,8 +241,7 @@ export const walletWithBalancesAndTokensWithCorrectState = {
                 tx_pos: 2,
                 value: 546,
                 satoshis: 546,
-                txid:
-                    'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
+                txid: 'e7d554c317db71fd5b50fcf0b2cb4cbdce54a09f1732cfaade0820659318e30a',
                 vout: 2,
                 utxoType: 'token',
                 transactionType: 'send',

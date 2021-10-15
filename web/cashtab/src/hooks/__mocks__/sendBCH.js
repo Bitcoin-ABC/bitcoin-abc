@@ -11,8 +11,7 @@ export default {
             value: 131689,
             address: 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
             satoshis: 131689,
-            txid:
-                '6e83b4bf54b5a85b6c40c4e2076a6e3945b86e4d219a931d0eb93ba1a1e3bd6f',
+            txid: '6e83b4bf54b5a85b6c40c4e2076a6e3945b86e4d219a931d0eb93ba1a1e3bd6f',
             vout: 1,
             isValid: false,
             wif: 'L3ufcMjHZ2u8v2NeyHB2pCSE5ezCk8dvR7kcLLX2B3xK5VgK9wz4',

@@ -3,7 +3,7 @@
 import BigNumber from 'bignumber.js';
 
 export const cachedUtxos = {
-    slpBalancesAndUtxos: { nonSlpUtxos: [], },
+    slpBalancesAndUtxos: { nonSlpUtxos: [] },
     tokens: [
         {
             info: {
@@ -12,8 +12,7 @@ export const cachedUtxos = {
                     '5b74e05ced6b7d862fe9cab94071b2ccfa475c0cef94b90c7edb8a06f90e5ad6',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '5b74e05ced6b7d862fe9cab94071b2ccfa475c0cef94b90c7edb8a06f90e5ad6',
+                txid: '5b74e05ced6b7d862fe9cab94071b2ccfa475c0cef94b90c7edb8a06f90e5ad6',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -49,8 +48,7 @@ export const cachedUtxos = {
                     '52fe0ccf7b5936095bbdadebc0de9f844a99457096ca4f7b45543a2badefdf35',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '52fe0ccf7b5936095bbdadebc0de9f844a99457096ca4f7b45543a2badefdf35',
+                txid: '52fe0ccf7b5936095bbdadebc0de9f844a99457096ca4f7b45543a2badefdf35',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -84,8 +82,7 @@ export const cachedUtxos = {
                     'e9dca9aa954131a0004325fff11dfddcd6e5843c468116cf4d38cb264032cdc0',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'e9dca9aa954131a0004325fff11dfddcd6e5843c468116cf4d38cb264032cdc0',
+                txid: 'e9dca9aa954131a0004325fff11dfddcd6e5843c468116cf4d38cb264032cdc0',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -119,8 +116,7 @@ export const cachedUtxos = {
                     'b35c502f388cdfbdd6841b7a73e973149b3c8deca76295a3e4665939e0562796',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'b35c502f388cdfbdd6841b7a73e973149b3c8deca76295a3e4665939e0562796',
+                txid: 'b35c502f388cdfbdd6841b7a73e973149b3c8deca76295a3e4665939e0562796',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -153,8 +149,7 @@ export const cachedUtxos = {
                     'c70408fca1a5bf48f338f7ef031e586293be6948a5bff1fbbdd4eb923ef11e59',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'c70408fca1a5bf48f338f7ef031e586293be6948a5bff1fbbdd4eb923ef11e59',
+                txid: 'c70408fca1a5bf48f338f7ef031e586293be6948a5bff1fbbdd4eb923ef11e59',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -187,8 +182,7 @@ export const cachedUtxos = {
                     'e1097932e5a607c100dc73fa18169be2e501e1782c7c94500742974d6353476c',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'e1097932e5a607c100dc73fa18169be2e501e1782c7c94500742974d6353476c',
+                txid: 'e1097932e5a607c100dc73fa18169be2e501e1782c7c94500742974d6353476c',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -221,8 +215,7 @@ export const cachedUtxos = {
                     'f6ef57f697219aaa576bf43d69a7f8b8753dcbcbb502f602259a7d14fafd52c5',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'f6ef57f697219aaa576bf43d69a7f8b8753dcbcbb502f602259a7d14fafd52c5',
+                txid: 'f6ef57f697219aaa576bf43d69a7f8b8753dcbcbb502f602259a7d14fafd52c5',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -255,8 +248,7 @@ export const cachedUtxos = {
                     '16ccf6a34209b25fe78f6a3cdf685eb89f498a7edf144b9e049958c8eda2b439',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '16ccf6a34209b25fe78f6a3cdf685eb89f498a7edf144b9e049958c8eda2b439',
+                txid: '16ccf6a34209b25fe78f6a3cdf685eb89f498a7edf144b9e049958c8eda2b439',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -284,14 +276,14 @@ export const cachedUtxos = {
         },
     ],
 };
-export const utxosLoadedFromCache = {     
-       balances:  {
-         totalBalance: 0,
-         totalBalanceInSatoshis: 0,
-       },
-       slpBalancesAndUtxos:  {
-         nonSlpUtxos:  [],
-       },
+export const utxosLoadedFromCache = {
+    balances: {
+        totalBalance: 0,
+        totalBalanceInSatoshis: 0,
+    },
+    slpBalancesAndUtxos: {
+        nonSlpUtxos: [],
+    },
     tokens: [
         {
             info: {
@@ -300,8 +292,7 @@ export const utxosLoadedFromCache = {
                     '5b74e05ced6b7d862fe9cab94071b2ccfa475c0cef94b90c7edb8a06f90e5ad6',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '5b74e05ced6b7d862fe9cab94071b2ccfa475c0cef94b90c7edb8a06f90e5ad6',
+                txid: '5b74e05ced6b7d862fe9cab94071b2ccfa475c0cef94b90c7edb8a06f90e5ad6',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -338,8 +329,7 @@ export const utxosLoadedFromCache = {
                     '52fe0ccf7b5936095bbdadebc0de9f844a99457096ca4f7b45543a2badefdf35',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '52fe0ccf7b5936095bbdadebc0de9f844a99457096ca4f7b45543a2badefdf35',
+                txid: '52fe0ccf7b5936095bbdadebc0de9f844a99457096ca4f7b45543a2badefdf35',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -374,8 +364,7 @@ export const utxosLoadedFromCache = {
                     'e9dca9aa954131a0004325fff11dfddcd6e5843c468116cf4d38cb264032cdc0',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'e9dca9aa954131a0004325fff11dfddcd6e5843c468116cf4d38cb264032cdc0',
+                txid: 'e9dca9aa954131a0004325fff11dfddcd6e5843c468116cf4d38cb264032cdc0',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -410,8 +399,7 @@ export const utxosLoadedFromCache = {
                     'b35c502f388cdfbdd6841b7a73e973149b3c8deca76295a3e4665939e0562796',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'b35c502f388cdfbdd6841b7a73e973149b3c8deca76295a3e4665939e0562796',
+                txid: 'b35c502f388cdfbdd6841b7a73e973149b3c8deca76295a3e4665939e0562796',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -445,8 +433,7 @@ export const utxosLoadedFromCache = {
                     'c70408fca1a5bf48f338f7ef031e586293be6948a5bff1fbbdd4eb923ef11e59',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'c70408fca1a5bf48f338f7ef031e586293be6948a5bff1fbbdd4eb923ef11e59',
+                txid: 'c70408fca1a5bf48f338f7ef031e586293be6948a5bff1fbbdd4eb923ef11e59',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -480,8 +467,7 @@ export const utxosLoadedFromCache = {
                     'e1097932e5a607c100dc73fa18169be2e501e1782c7c94500742974d6353476c',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'e1097932e5a607c100dc73fa18169be2e501e1782c7c94500742974d6353476c',
+                txid: 'e1097932e5a607c100dc73fa18169be2e501e1782c7c94500742974d6353476c',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -515,8 +501,7 @@ export const utxosLoadedFromCache = {
                     'f6ef57f697219aaa576bf43d69a7f8b8753dcbcbb502f602259a7d14fafd52c5',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    'f6ef57f697219aaa576bf43d69a7f8b8753dcbcbb502f602259a7d14fafd52c5',
+                txid: 'f6ef57f697219aaa576bf43d69a7f8b8753dcbcbb502f602259a7d14fafd52c5',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',
@@ -550,8 +535,7 @@ export const utxosLoadedFromCache = {
                     '16ccf6a34209b25fe78f6a3cdf685eb89f498a7edf144b9e049958c8eda2b439',
                 tx_pos: 1,
                 value: 546,
-                txid:
-                    '16ccf6a34209b25fe78f6a3cdf685eb89f498a7edf144b9e049958c8eda2b439',
+                txid: '16ccf6a34209b25fe78f6a3cdf685eb89f498a7edf144b9e049958c8eda2b439',
                 vout: 1,
                 utxoType: 'token',
                 transactionType: 'send',

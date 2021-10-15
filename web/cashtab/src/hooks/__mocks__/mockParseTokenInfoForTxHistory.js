@@ -3,8 +3,7 @@
 export const tokenSendWdt = {
     txid: 'b923fba5b011df438c96f7f8f715fcf2b9ac2f96ea73139885e00aee4361f98f',
     parsedTx: {
-        txid:
-            'b923fba5b011df438c96f7f8f715fcf2b9ac2f96ea73139885e00aee4361f98f',
+        txid: 'b923fba5b011df438c96f7f8f715fcf2b9ac2f96ea73139885e00aee4361f98f',
         confirmations: 15,
         height: 679246,
         blocktime: 1616790444,
@@ -78,8 +77,7 @@ export const tokenSendWdt = {
 export const tokenReceiveGarmonbozia = {
     txid: '9f2413e5e290015ef573596187115205579d583f4a1b2f0eb5db5383875b9ede',
     parsedTx: {
-        txid:
-            '9f2413e5e290015ef573596187115205579d583f4a1b2f0eb5db5383875b9ede',
+        txid: '9f2413e5e290015ef573596187115205579d583f4a1b2f0eb5db5383875b9ede',
         confirmations: 22,
         height: 701191,
         blocktime: 1629743058,
@@ -141,8 +139,7 @@ export const tokenSendHonk = {
 export const tokenReceiveTBS = {
     txid: '82845d3c814d715b2c36aea0b076cc03815469a9c172c5bab7fc6a9f71b1906d',
     parsedTx: {
-        txid:
-            '82845d3c814d715b2c36aea0b076cc03815469a9c172c5bab7fc6a9f71b1906d',
+        txid: '82845d3c814d715b2c36aea0b076cc03815469a9c172c5bab7fc6a9f71b1906d',
         confirmations: 269,
         height: 678992,
         blocktime: 1616610925,
@@ -202,8 +199,7 @@ export const tokenReceiveTBS = {
 export const tokenGenesisCashtabMintAlpha = {
     txid: '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
     parsedTx: {
-        txid:
-            '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
+        txid: '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
         confirmations: 11,
         height: 685170,
         blocktime: 1620250206,

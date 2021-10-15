@@ -10,8 +10,7 @@ export const mockSentCashTx = [
         height: 674993,
         outgoingTx: true,
         tokenTx: false,
-        txid:
-            '089f2188d5771a7de0589def2b8d6c1a1f33f45b6de26d9a0ef32782f019ecf1',
+        txid: '089f2188d5771a7de0589def2b8d6c1a1f33f45b6de26d9a0ef32782f019ecf1',
     },
 ];
 
@@ -26,8 +25,7 @@ export const mockReceivedCashTx = [
         height: 672077,
         outgoingTx: false,
         tokenTx: false,
-        txid:
-            '42d39fbe068a40fe691f987b22fdf04b80f94d71d2fec20a58125e7b1a06d2a9',
+        txid: '42d39fbe068a40fe691f987b22fdf04b80f94d71d2fec20a58125e7b1a06d2a9',
     },
 ];
 
@@ -42,8 +40,7 @@ export const mockSentTokenTx = [
         height: 674444,
         outgoingTx: true,
         tokenTx: true,
-        txid:
-            'ffe3a7500dbcc98021ad581c98d9947054d1950a7f3416664715066d3d20ad72',
+        txid: 'ffe3a7500dbcc98021ad581c98d9947054d1950a7f3416664715066d3d20ad72',
     },
 ];
 export const mockReceivedTokenTx = [
@@ -57,7 +54,6 @@ export const mockReceivedTokenTx = [
         height: 674143,
         outgoingTx: false,
         tokenTx: true,
-        txid:
-            '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
+        txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
     },
 ];
