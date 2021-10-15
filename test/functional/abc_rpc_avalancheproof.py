@@ -17,8 +17,8 @@ from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheDelegation,
     AvalancheDelegationLevel,
-    AvalancheProof,
     FromHex,
+    LegacyAvalancheProof,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
@@ -47,7 +47,7 @@ def add_interface_node(test_node) -> str:
     return test_node.getpeerinfo()[-1]['id']
 
 
-class AvalancheProofTest(BitcoinTestFramework):
+class LegacyAvalancheProofTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 2
@@ -84,7 +84,7 @@ class AvalancheProofTest(BitcoinTestFramework):
             proof_sequence, proof_expiration, wif_privkey, stakes)
 
         self.log.info("Test decodeavalancheproof RPC")
-        proofobj = FromHex(AvalancheProof(), proof)
+        proofobj = FromHex(LegacyAvalancheProof(), proof)
         decodedproof = node.decodeavalancheproof(proof)
         limited_id_hex = f"{proofobj.limited_proofid:0{64}x}"
         assert_equal(decodedproof["sequence"], proof_sequence)
@@ -340,7 +340,7 @@ class AvalancheProofTest(BitcoinTestFramework):
 
         peer = node.add_p2p_connection(P2PInterface())
 
-        proofid = FromHex(AvalancheProof(), proof).proofid
+        proofid = FromHex(LegacyAvalancheProof(), proof).proofid
         node.sendavalancheproof(proof)
         assert proofid in get_proof_ids(node)
 
@@ -478,4 +478,4 @@ class AvalancheProofTest(BitcoinTestFramework):
 
 
 if __name__ == '__main__':
-    AvalancheProofTest().main()
+    LegacyAvalancheProofTest().main()

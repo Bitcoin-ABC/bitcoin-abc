@@ -21,9 +21,9 @@ from test_framework.messages import (
     MSG_AVA_PROOF,
     NODE_AVALANCHE,
     NODE_NETWORK,
-    AvalancheProof,
     CInv,
     FromHex,
+    LegacyAvalancheProof,
     msg_getdata,
 )
 from test_framework.p2p import p2p_lock
@@ -99,7 +99,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         master_key = ECKey()
         master_key.generate()
-        limited_id = FromHex(AvalancheProof(), proof).limited_proofid
+        limited_id = FromHex(LegacyAvalancheProof(), proof).limited_proofid
         delegation = node.delegateavalancheproof(
             f"{limited_id:0{64}x}",
             bytes_to_wif(privkey.get_bytes()),
@@ -117,7 +117,7 @@ class AvalancheTest(BitcoinTestFramework):
         interface_proof_hex = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, stakes)
         limited_id = FromHex(
-            AvalancheProof(),
+            LegacyAvalancheProof(),
             interface_proof_hex).limited_proofid
 
         # delegate
@@ -153,7 +153,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info('Check that we can download the proof from our peer')
 
-        node_proofid = FromHex(AvalancheProof(), proof).proofid
+        node_proofid = FromHex(LegacyAvalancheProof(), proof).proofid
 
         def wait_for_proof_validation():
             # Connect some blocks to trigger the proof verification

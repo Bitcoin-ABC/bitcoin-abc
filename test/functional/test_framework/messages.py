@@ -25,6 +25,7 @@ import socket
 import struct
 import time
 import unittest
+from base64 import b64decode, b64encode
 from codecs import encode
 from enum import IntEnum
 from io import BytesIO
@@ -870,11 +871,6 @@ class AvalancheStake:
         r += self.pubkey
         return r
 
-    def get_hash(self, proofid) -> bytes:
-        """Return the bitcoin hash of the concatenation of proofid
-        and the serialized stake."""
-        return hash256(proofid + self.serialize())
-
     def __repr__(self):
         return f"AvalancheStake(utxo={self.utxo}, amount={self.amount}," \
                f" height={self.height}, " \
@@ -902,11 +898,13 @@ class AvalancheProof:
         "expiration",
         "master",
         "stakes",
+        "payout_script",
+        "signature",
         "limited_proofid",
         "proofid")
 
     def __init__(self, sequence=0, expiration=0,
-                 master=b"", signed_stakes=None):
+                 master=b"", signed_stakes=None, payout_script=b"", signature=b""):
         self.sequence: int = sequence
         self.expiration: int = expiration
         self.master: bytes = master
@@ -914,9 +912,62 @@ class AvalancheProof:
         self.stakes: List[AvalancheSignedStake] = signed_stakes or [
             AvalancheSignedStake()]
 
+        self.payout_script = payout_script
+        self.signature = signature
+
         self.limited_proofid: int = None
         self.proofid: int = None
         self.compute_proof_id()
+
+    def compute_proof_id(self):
+        """Compute Bitcoin's 256-bit hash (double SHA-256) of the
+        serialized proof data.
+        """
+        ss = struct.pack("<Qq", self.sequence, self.expiration)
+        ss += ser_string(self.payout_script)
+        ss += ser_compact_size(len(self.stakes))
+        # Use unsigned stakes
+        for s in self.stakes:
+            ss += s.stake.serialize()
+        h = hash256(ss)
+        self.limited_proofid = uint256_from_str(h)
+        h += ser_string(self.master)
+        h = hash256(h)
+        # make it an int, for comparing with Delegation.proofid
+        self.proofid = uint256_from_str(h)
+
+    def deserialize(self, f):
+        self.sequence = struct.unpack("<Q", f.read(8))[0]
+        self.expiration = struct.unpack("<q", f.read(8))[0]
+        self.master = deser_string(f)
+        self.stakes = deser_vector(f, AvalancheSignedStake)
+        self.payout_script = deser_string(f)
+        self.signature = f.read(64)
+        self.compute_proof_id()
+
+    def serialize(self):
+        r = b""
+        r += struct.pack("<Q", self.sequence)
+        r += struct.pack("<q", self.expiration)
+        r += ser_string(self.master)
+        r += ser_vector(self.stakes)
+        r += ser_string(self.payout_script)
+        r += self.signature
+        return r
+
+    def __repr__(self):
+        return f"AvalancheProof(sequence={self.sequence}, " \
+               f"expiration={self.expiration}, " \
+               f"master={self.master.hex()}, " \
+               f"payout_script={self.payout_script.hex()}, " \
+               f"signature={b64encode(self.signature)}, " \
+               f"stakes={self.stakes})"
+
+
+class LegacyAvalancheProof(AvalancheProof):
+    def __init__(self, sequence=0, expiration=0,
+                 master=b"", signed_stakes=None):
+        super().__init__(sequence, expiration, master, signed_stakes)
 
     def compute_proof_id(self):
         """Compute Bitcoin's 256-bit hash (double SHA-256) of the
@@ -950,7 +1001,7 @@ class AvalancheProof:
         return r
 
     def __repr__(self):
-        return f"AvalancheProof(sequence={self.sequence}, " \
+        return f"LegacyAvalancheProof(sequence={self.sequence}, " \
                f"expiration={self.expiration}, " \
                f"master={self.master.hex()}, " \
                f"stakes={self.stakes})"
@@ -1953,7 +2004,8 @@ class msg_avaproof():
     msgtype = b"avaproof"
 
     def __init__(self):
-        self.proof = AvalancheProof()
+        # TODO Handle both legacy and regular proof format
+        self.proof = LegacyAvalancheProof()
 
     def deserialize(self, f):
         self.proof.deserialize(f)
@@ -2044,9 +2096,9 @@ class msg_avahello():
 
 
 class TestFrameworkMessages(unittest.TestCase):
-    def test_serialization_round_trip(self):
-        """Verify that messages and serialized objects are unchanged after
-        a round-trip of deserialization-serialization.
+    def test_legacy_avalanche_proof_serialization_round_trip(self):
+        """Verify that a LegacyAvalancheProof object is unchanged after a
+        round-trip of deserialization-serialization.
         """
 
         proof_hex = (
@@ -2060,7 +2112,7 @@ class TestFrameworkMessages(unittest.TestCase):
             "665"
         )
 
-        avaproof = FromHex(AvalancheProof(), proof_hex)
+        avaproof = FromHex(LegacyAvalancheProof(), proof_hex)
         self.assertEqual(ToHex(avaproof), proof_hex)
 
         self.assertEqual(
@@ -2091,6 +2143,62 @@ class TestFrameworkMessages(unittest.TestCase):
         self.assertEqual(avaproof.stakes[0].stake.pubkey, bytes.fromhex(
             "04d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645"
             "cd85228a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a"
+        ))
+
+        msg_proof = msg_avaproof()
+        msg_proof.proof = avaproof
+        self.assertEqual(ToHex(msg_proof), proof_hex)
+
+    def test_avalanche_proof_serialization_round_trip(self):
+        """Verify that an AvalancheProof object is unchanged after a round-trip
+        of deserialization-serialization.
+        """
+
+        # Extracted from proof_tests.cpp
+        proof_hex = (
+            "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141"
+            "c8bc67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cff"
+            "e53967e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a3"
+            "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
+            "804534ca1f5e22670be3df5cbd5957d8dd83d05c8f17eae391f0e7ffdce4fb3def"
+            "adb7c079473ebeccf88c1f8ce87c61e451447b89c445967335ffd1aadef4299823"
+            "21023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dd"
+            "e3ac7b0b7865200f63052ff980b93f965f398dda04917d411dd46e3c009a5fef35"
+            "661fac28779b6a22760c00004f5ddf7d9865c7fead7e4a840b947939590261640f"
+        )
+
+        avaproof = FromHex(AvalancheProof(), proof_hex)
+        self.assertEqual(ToHex(avaproof), proof_hex)
+
+        self.assertEqual(
+            f"{avaproof.proofid:0{64}x}",
+            "455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e974aa4ae7db6d"
+        )
+        self.assertEqual(avaproof.sequence, 6296457553413371353)
+        self.assertEqual(avaproof.expiration, -4129334692075929194)
+        self.assertEqual(avaproof.master, bytes.fromhex(
+            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+        ))
+        # P2PK to master pubkey
+        # We can't use a CScript() here because it would cause a circular
+        # import
+        self.assertEqual(avaproof.payout_script, bytes.fromhex(
+            "21023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3ac"))
+        self.assertEqual(avaproof.signature, b64decode(
+            "ewt4ZSAPYwUv+YC5P5ZfOY3aBJF9QR3UbjwAml/vNWYfrCh3m2oidgwAAE9d332YZcf+rX5KhAuUeTlZAmFkDw=="))
+
+        self.assertEqual(len(avaproof.stakes), 1)
+        self.assertEqual(avaproof.stakes[0].sig, b64decode(
+            "RTTKH14iZwvj31y9WVfY3YPQXI8X6uOR8Of/3OT7Pe+tt8B5Rz6+zPiMH4zofGHkUUR7icRFlnM1/9Gq3vQpmA=="))
+        self.assertEqual(f"{avaproof.stakes[0].stake.utxo.hash:x}",
+                         "915d9cc742b46b77c52f69eb6be16739e5ff1cd82ad4fa4ac6581d3ef29fa769"
+                         )
+        self.assertEqual(avaproof.stakes[0].stake.utxo.n, 567214302)
+        self.assertEqual(avaproof.stakes[0].stake.amount, 444638638000000)
+        self.assertEqual(avaproof.stakes[0].stake.height, 1370779804)
+        self.assertEqual(avaproof.stakes[0].stake.is_coinbase, False)
+        self.assertEqual(avaproof.stakes[0].stake.pubkey, bytes.fromhex(
+            "02449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680"
         ))
 
         msg_proof = msg_avaproof()

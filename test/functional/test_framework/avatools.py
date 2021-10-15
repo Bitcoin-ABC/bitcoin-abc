@@ -13,11 +13,11 @@ from .messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
     AvalancheDelegation,
-    AvalancheProof,
     AvalancheResponse,
     CInv,
     CTransaction,
     FromHex,
+    LegacyAvalancheProof,
     TCPAvalancheResponse,
     ToHex,
     hash256,
@@ -133,7 +133,7 @@ def create_stakes(
 
 
 def get_proof_ids(node):
-    return [FromHex(AvalancheProof(), peer['proof']
+    return [FromHex(LegacyAvalancheProof(), peer['proof']
                     ).proofid for peer in node.getavalanchepeerinfo()]
 
 
@@ -268,4 +268,4 @@ def gen_proof(node, coinbase_utxos=1):
     proof_hex = node.buildavalancheproof(
         42, 2000000000, bytes_to_wif(privkey.get_bytes()), stakes)
 
-    return privkey, FromHex(AvalancheProof(), proof_hex)
+    return privkey, FromHex(LegacyAvalancheProof(), proof_hex)

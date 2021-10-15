@@ -19,9 +19,9 @@ from test_framework.avatools import AvaP2PInterface, create_coinbase_stakes
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.key import ECKey
 from test_framework.messages import (
-    AvalancheProof,
     CTransaction,
     FromHex,
+    LegacyAvalancheProof,
     msg_avaproof,
     msg_pong,
     msg_tx,
@@ -107,7 +107,7 @@ class P2PEvict(BitcoinTestFramework):
                 42, 2000000000, wif_privkey, [stakes[i]])
 
             avaproof_msg = msg_avaproof()
-            avaproof_msg.proof = FromHex(AvalancheProof(), proof)
+            avaproof_msg.proof = FromHex(LegacyAvalancheProof(), proof)
             proof_peer.send_message(avaproof_msg)
             protected_peers.add(current_peer)
 
@@ -156,7 +156,7 @@ class P2PEvict(BitcoinTestFramework):
 
         proof = node.buildavalancheproof(
             42, 2000000000, wif_privkey, [stakes[0]])
-        proof_obj = FromHex(AvalancheProof(), proof)
+        proof_obj = FromHex(LegacyAvalancheProof(), proof)
         delegation = node.delegateavalancheproof(
             f"{proof_obj.limited_proofid:064x}",
             bytes_to_wif(privkey.get_bytes()),

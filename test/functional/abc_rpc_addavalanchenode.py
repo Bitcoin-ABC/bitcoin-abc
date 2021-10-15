@@ -9,8 +9,8 @@ from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheDelegation,
     AvalancheDelegationLevel,
-    AvalancheProof,
     FromHex,
+    LegacyAvalancheProof,
     hash256,
     ser_string,
 )
@@ -104,7 +104,7 @@ class AddAvalancheNodeTest(BitcoinTestFramework):
                                      pubkey=dg_pubkey.hex(),
                                      delegation=delegation_wrong_proofid.serialize().hex())
 
-        proofobj = FromHex(AvalancheProof(), proof)
+        proofobj = FromHex(LegacyAvalancheProof(), proof)
         delegation = AvalancheDelegation(
             limited_proofid=proofobj.limited_proofid,
             proof_master=proofobj.master,
