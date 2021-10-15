@@ -20,6 +20,7 @@ import tempfile
 import time
 import urllib.parse
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .address import ADDRESS_ECREG_UNSPENDABLE
@@ -496,6 +497,14 @@ class TestNode:
             timeout=timeout,
             timeout_factor=self.timeout_factor)
 
+    @property
+    def chain_path(self) -> Path:
+        return Path(self.datadir) / self.chain
+
+    @property
+    def debug_log_path(self) -> Path:
+        return self.chain_path / 'debug.log'
+
     @contextlib.contextmanager
     def assert_debug_log(self, expected_msgs, unexpected_msgs=None, timeout=2):
         """Assert that some debug messages are present within some timeout.
@@ -513,8 +522,7 @@ class TestNode:
         if unexpected_msgs is None:
             unexpected_msgs = []
         time_end = time.time() + timeout * self.timeout_factor
-        debug_log = os.path.join(self.datadir, self.chain, 'debug.log')
-        with open(debug_log, encoding='utf-8') as dl:
+        with open(self.debug_log_path, encoding='utf-8') as dl:
             dl.seek(0, 2)
             prev_size = dl.tell()
 
@@ -522,7 +530,7 @@ class TestNode:
 
         while True:
             found = True
-            with open(debug_log, encoding='utf-8') as dl:
+            with open(self.debug_log_path, encoding='utf-8') as dl:
                 dl.seek(prev_size)
                 log = dl.read()
             print_log = " - " + "\n - ".join(log.splitlines())
