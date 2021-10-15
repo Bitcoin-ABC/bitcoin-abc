@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
-import { Form, notification, message, Modal, Alert } from 'antd';
+import { Form, message, Modal, Alert } from 'antd';
 import { Row, Col } from 'antd';
-import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
     SecondaryButton,
 } from '@components/Common/PrimaryButton';
@@ -13,6 +12,10 @@ import {
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {
+    sendXecNotification,
+    errorNotification,
+} from '@components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import {
     currency,
@@ -30,7 +33,6 @@ import {
     AlertMsg,
 } from '@components/Common/Atoms';
 import { getWalletState } from '@utils/cashMethods';
-import { CashReceivedNotificationIcon } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
@@ -192,21 +194,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 bchValue,
                 currency.defaultFee,
             );
-
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a href={link} target="_blank" rel="noopener noreferrer">
-                        <Paragraph>
-                            Transaction successful. Click to view in block
-                            explorer.
-                        </Paragraph>
-                    </a>
-                ),
-                duration: 3,
-                icon: <CashReceivedNotificationIcon />,
-                style: { width: '100%' },
-            });
+            sendXecNotification(link);
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
@@ -231,12 +219,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 message = e.message || e.error || JSON.stringify(e);
             }
 
-            notification.error({
-                message: 'Error',
-                description: message,
-                duration: 5,
-            });
-            console.error(e);
+            errorNotification(e, message, 'Sending XEC');
         }
     }
 

@@ -13,11 +13,13 @@ import {
 } from '@utils/validation';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import { SmartButton } from '@components/Common/PrimaryButton';
-import { Collapse, Form, Input, Modal, notification } from 'antd';
+import { Collapse, Form, Input, Modal } from 'antd';
 const { Panel } = Collapse;
-import Paragraph from 'antd/lib/typography/Paragraph';
 import { TokenParamLabel } from '@components/Common/Atoms';
-import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
+import {
+    createTokenNotification,
+    errorNotification,
+} from '@components/Common/Notifications';
 
 const CreateTokenForm = ({
     BCH,
@@ -136,19 +138,7 @@ const CreateTokenForm = ({
                 currency.defaultFee,
                 configObj,
             );
-
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a href={link} target="_blank" rel="noopener noreferrer">
-                        <Paragraph>
-                            Token created! Click to view in block explorer.
-                        </Paragraph>
-                    </a>
-                ),
-                icon: <TokenReceivedNotificationIcon />,
-                style: { width: '100%' },
-            });
+            createTokenNotification(link);
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
@@ -172,13 +162,7 @@ const CreateTokenForm = ({
             } else {
                 message = e.message || e.error || JSON.stringify(e);
             }
-
-            notification.error({
-                message: 'Error',
-                description: message,
-                duration: 5,
-            });
-            console.error(e);
+            errorNotification(e, message, 'Creating eToken');
         }
         // Hide the modal
         setShowConfirmCreateToken(false);

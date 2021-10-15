@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
-import {
-    Form,
-    notification,
-    message,
-    Row,
-    Col,
-    Alert,
-    Descriptions,
-} from 'antd';
-import Paragraph from 'antd/lib/typography/Paragraph';
+import { Form, message, Row, Col, Alert, Descriptions } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
 } from '@components/Common/PrimaryButton';
@@ -36,8 +27,11 @@ import {
     getWalletState,
     convertEtokenToSimpleledger,
 } from '@utils/cashMethods';
-import { TokenReceivedNotificationIcon } from '@components/Common/CustomIcons';
 import ApiError from '@components/Common/ApiError';
+import {
+    sendTokenNotification,
+    errorNotification,
+} from '@components/Common/Notifications';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
@@ -114,20 +108,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                 amount: value,
             });
 
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a href={link} target="_blank" rel="noopener noreferrer">
-                        <Paragraph>
-                            Transaction successful. Click to view in block
-                            explorer.
-                        </Paragraph>
-                    </a>
-                ),
-                duration: 3,
-                icon: <TokenReceivedNotificationIcon />,
-                style: { width: '100%' },
-            });
+            sendTokenNotification(link);
         } catch (e) {
             passLoadingStatus(false);
             let message;
@@ -143,13 +124,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
             } else {
                 message = e.message || e.error || JSON.stringify(e);
             }
-            console.log(e);
-            notification.error({
-                message: 'Error',
-                description: message,
-                duration: 3,
-            });
-            console.error(e);
+            errorNotification(e, message, 'Sending eToken');
         }
     }
 
