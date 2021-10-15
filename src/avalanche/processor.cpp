@@ -177,12 +177,12 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
         }
 
         peerData = std::make_unique<PeerData>();
-        peerData->proof = std::make_shared<Proof>();
-        if (!Proof::FromHex(*peerData->proof, argsman.GetArg("-avaproof", ""),
-                            error)) {
+        Proof proof;
+        if (!Proof::FromHex(proof, argsman.GetArg("-avaproof", ""), error)) {
             // error is set by FromHex
             return nullptr;
         }
+        peerData->proof = std::make_shared<Proof>(std::move(proof));
 
         if (!VerifyProof(*peerData->proof, error)) {
             // error is set by VerifyProof

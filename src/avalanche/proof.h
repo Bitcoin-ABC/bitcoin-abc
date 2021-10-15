@@ -155,7 +155,7 @@ public:
     bool verify(ProofValidationState &state, const CCoinsView &view) const;
 };
 
-using ProofRef = std::shared_ptr<Proof>;
+using ProofRef = std::shared_ptr<const Proof>;
 
 } // namespace avalanche
 
