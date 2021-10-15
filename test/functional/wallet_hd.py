@@ -160,8 +160,8 @@ class WalletHDTest(BitcoinTestFramework):
         # changeoutput
         txid = self.nodes[1].sendtoaddress(
             self.nodes[0].getnewaddress(), 1000000)
-        outs = self.nodes[1].decoderawtransaction(
-            self.nodes[1].gettransaction(txid)['hex'])['vout']
+        outs = self.nodes[1].gettransaction(
+            txid=txid, verbose=True)['decoded']['vout']
         keypath = ""
         for out in outs:
             if out['value'] != 1000000:

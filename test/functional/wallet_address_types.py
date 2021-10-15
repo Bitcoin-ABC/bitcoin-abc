@@ -140,8 +140,8 @@ class AddressTypeTest(BitcoinTestFramework):
         txid = self.nodes[node_sender].sendmany(
             dummy="", amounts=dict.fromkeys(
                 destinations, 1000.00))
-        raw_tx = self.nodes[node_sender].getrawtransaction(txid)
-        tx = self.nodes[node_sender].decoderawtransaction(raw_tx)
+        tx = self.nodes[node_sender].gettransaction(
+            txid=txid, verbose=True)['decoded']
 
         # Make sure the transaction has change:
         assert_equal(len(tx["vout"]), len(destinations) + 1)
