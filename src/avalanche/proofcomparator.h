@@ -13,16 +13,20 @@
 namespace avalanche {
 
 /**
- * Compare shared pointers to proof by score, then by id in case of equality.
+ * Compare proofs by score, then by id in case of equality.
  */
-struct ProofSharedPointerComparator {
-    bool operator()(const std::shared_ptr<Proof> &lhs,
-                    const std::shared_ptr<Proof> &rhs) const {
-        uint32_t scoreLhs = lhs->getScore();
-        uint32_t scoreRhs = rhs->getScore();
+struct ProofComparator {
+    bool operator()(const Proof &lhs, const Proof &rhs) const {
+        uint32_t scoreLhs = lhs.getScore();
+        uint32_t scoreRhs = rhs.getScore();
 
         return (scoreLhs != scoreRhs) ? scoreLhs > scoreRhs
-                                      : lhs->getId() < rhs->getId();
+                                      : lhs.getId() < rhs.getId();
+    }
+
+    bool operator()(const std::shared_ptr<Proof> &lhs,
+                    const std::shared_ptr<Proof> &rhs) const {
+        return (*this)(*lhs, *rhs);
     }
 };
 

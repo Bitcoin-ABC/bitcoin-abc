@@ -277,7 +277,7 @@ struct ProofProvider {
         votes.reserve(numItems);
 
         // Votes are sorted by high score first
-        std::sort(items.begin(), items.end(), ProofSharedPointerComparator());
+        std::sort(items.begin(), items.end(), ProofComparator());
         for (auto &item : items) {
             votes.emplace_back(error, item->getId());
         }

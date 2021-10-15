@@ -80,8 +80,8 @@ using ProofUpdate = VoteItemUpdate<std::shared_ptr<Proof>>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
-using ProofVoteMap = std::map<const std::shared_ptr<Proof>, VoteRecord,
-                              ProofSharedPointerComparator>;
+using ProofVoteMap =
+    std::map<const std::shared_ptr<Proof>, VoteRecord, ProofComparator>;
 
 struct query_timeout {};
 
