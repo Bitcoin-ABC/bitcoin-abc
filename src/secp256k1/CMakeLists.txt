@@ -171,7 +171,6 @@ endfunction(add_secp256k1_bench)
 option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" OFF)
 if(SECP256K1_ENABLE_MODULE_ECDH)
 	set(ENABLE_MODULE_ECDH 1)
-	add_secp256k1_bench(ecdh src/bench_ecdh.c)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_ecdh.h)
 endif()
 
@@ -179,7 +178,6 @@ endif()
 option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" OFF)
 if(SECP256K1_ENABLE_MODULE_MULTISET)
     set(ENABLE_MODULE_MULTISET 1)
-	add_secp256k1_bench(multiset src/bench_multiset.c)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_multiset.h)
 endif()
 
@@ -187,7 +185,6 @@ endif()
 option(SECP256K1_ENABLE_MODULE_RECOVERY "Build libsecp256k1's recovery module" ON)
 if(SECP256K1_ENABLE_MODULE_RECOVERY)
 	set(ENABLE_MODULE_RECOVERY 1)
-	add_secp256k1_bench(recover src/bench_recover.c)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_recovery.h)
 endif()
 
@@ -212,7 +209,6 @@ if(SECP256K1_ENABLE_MODULE_SCHNORRSIG)
 		message(FATAL_ERROR "The module Schnorrsig require Extrakeys. Try running cmake using -DSECP256K1_ENABLE_MODULE_EXTRAKEYS=On")
 	endif()
 	set(ENABLE_MODULE_SCHNORRSIG 1)
-	add_secp256k1_bench(schnorrsig src/bench_schnorrsig.c)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorrsig.h)
 endif()
 
@@ -321,7 +317,23 @@ if(SECP256K1_BUILD_TEST)
 endif(SECP256K1_BUILD_TEST)
 
 # Benchmarks
-add_secp256k1_bench(verify src/bench_verify.c)
-add_secp256k1_bench(sign src/bench_sign.c)
 add_secp256k1_bench(internal src/bench_internal.c)
 add_secp256k1_bench(ecmult src/bench_ecmult.c)
+
+# "External" benchmarks
+set(EXECUTABLE_NAME "bench")
+add_executable(bench src/bench.c)
+link_secp256k1_internal(bench)
+
+set(BENCH_NAME "bench-secp256k1-external")
+add_custom_target(${BENCH_NAME}
+	COMMENT "Benchmarking libsecp256k1 ${NAME}"
+	COMMAND "$<TARGET_FILE:bench>"
+	USES_TERMINAL
+)
+add_dependencies(bench-secp256k1 ${BENCH_NAME})
+
+install_target(bench
+	COMPONENT secp256k1-bench
+	EXCLUDE_FROM_ALL
+)

@@ -4,10 +4,10 @@
  * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
  ***********************************************************************/
 
-#include "include/secp256k1.h"
-#include "include/secp256k1_multiset.h"
-#include "util.h"
-#include "bench.h"
+#ifndef SECP256K1_MODULE_MULTISET_BENCH_H
+#define SECP256K1_MODULE_MULTISET_BENCH_H
+
+#include "../include/secp256k1_multiset.h"
 
 secp256k1_context *ctx;
 
@@ -40,12 +40,10 @@ void bench_multiset_setup(void* arg) {
     UNUSED(arg);
 }
 
-int main(void) {
-    int iters = get_iters(300000);
-
+void run_multiset_bench(int iters) {
     ctx = secp256k1_context_create(SECP256K1_CONTEXT_VERIFY);
     run_benchmark("multiset", bench_multiset, bench_multiset_setup, NULL, NULL, 5, iters);
     secp256k1_context_destroy(ctx);
-
-    return 0;
 }
+
+#endif /* SECP256K1_MODULE_MULTISET_BENCH_H */
