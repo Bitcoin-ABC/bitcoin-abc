@@ -536,11 +536,9 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     auto proofVoteRecordsReadView = proofVoteRecords.getReadView();
 
     auto pit = proofVoteRecordsReadView.begin();
-    // Clamp to AVALANCHE_MAX_ELEMENT_POLL - 1 so we're always able to poll
-    // for a new block. Since the proofs are sorted by score, the most
-    // valuable are voted first.
+    // TODO Factorize the proof and block loops
     while (pit != proofVoteRecordsReadView.end() &&
-           invs.size() < AVALANCHE_MAX_ELEMENT_POLL - 1) {
+           invs.size() < AVALANCHE_MAX_ELEMENT_POLL) {
         const bool shouldPoll =
             forPoll ? pit->second.registerPoll() : pit->second.shouldPoll();
         if (shouldPoll) {

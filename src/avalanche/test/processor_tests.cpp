@@ -1113,7 +1113,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         return proof;
     };
 
-    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL - 1; i++) {
+    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
         auto proof = addProofToReconcile(++score);
 
         auto invs = AvalancheTest::getInvsForNextPoll(*m_processor);
@@ -1129,7 +1129,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         auto proof = addProofToReconcile(++score);
 
         auto invs = AvalancheTest::getInvsForNextPoll(*m_processor);
-        BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL - 1);
+        BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL);
         BOOST_CHECK(invs.front().IsMsgProof());
         BOOST_CHECK_EQUAL(invs.front().hash, proof->getId());
 
@@ -1140,7 +1140,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         auto proof = addProofToReconcile(--score);
 
         auto invs = AvalancheTest::getInvsForNextPoll(*m_processor);
-        BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL - 1);
+        BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL);
         BOOST_CHECK(invs.front().IsMsgProof());
         BOOST_CHECK_EQUAL(invs.front().hash, lastProofId);
     }
