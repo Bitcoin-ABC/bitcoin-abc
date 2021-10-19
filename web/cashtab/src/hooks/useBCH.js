@@ -419,12 +419,10 @@ export default function useBCH() {
         // If you hit rate limits, your above utxos object will come back with `isValid` as null, but otherwise ok
         // You need to throw an error before setting nonSlpUtxos and slpUtxos in this case
         const nullUtxos = hydratedUtxos.filter(utxo => utxo.isValid === null);
-        //console.log(`nullUtxos`, nullUtxos);
+
         if (nullUtxos.length > 0) {
-            console.log(
-                `${nullUtxos.length} null utxos found, ignoring results`,
-            );
-            throw new Error('Null utxos found, ignoring results');
+            console.log(`${nullUtxos.length} null utxos found!`);
+            console.log('nullUtxos', nullUtxos);
         }
 
         // Prevent app from treating slpUtxos as nonSlpUtxos
