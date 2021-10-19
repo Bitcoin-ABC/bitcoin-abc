@@ -31,12 +31,28 @@ to for example vps.example.com:
     ;; ANSWER SECTION
     dnsseed.example.com.   86400    IN      NS     vps.example.com.
 
-On the system vps.example.com, you can now run dnsseed:
+On the system vps.example.com, you can now run bitcoin-seeder:
 
     ./bitcoin-seeder -host=dnsseed.example.com -ns=vps.example.com
 
 If you want the DNS server to report SOA records, please provide an
 e-mail address (with the `@` part replaced by `.`) using `-mbox`.
+
+TESTING
+-------
+
+It's sometimes useful to test `bitcoin-seeder` locally to ensure it's giving good
+output (either as part of development or sanity checking). You can inspect
+`dnsseed.dump` to inspect all nodes being tracked for crawling, or you can
+issue DNS requests directly. Example:
+
+$ dig @:: -p 15353 dnsseed.example.com
+       ^       ^    ^
+       |       |    |__ Should match the host (-h) argument supplied to bitcoin-seeder
+       |       |
+       |       |_______ Port number (example uses the user space port; see below)
+       |
+       |_______________ Explicitly call the DNS server on localhost
 
 
 RUNNING AS NON-ROOT
@@ -49,7 +65,7 @@ a non-privileged port:
 
     iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-port 15353
 
-If properly configured, this will allow you to run dnsseed in userspace, using
+If properly configured, this will allow you to run bitcoin-seeder in userspace, using
 the `-port=15353` option.
 
 Generate Seed Lists
