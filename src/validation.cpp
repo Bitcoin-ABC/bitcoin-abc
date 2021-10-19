@@ -1601,9 +1601,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
     // can be duplicated to remove the ability to spend the first instance --
     // even after being sent to another address.
     // See BIP30, CVE-2012-1909, and http://r6.ca/blog/20120206T005236Z.html
-    // for more information. This logic is not necessary for memory pool
-    // transactions, as AcceptToMemoryPool already refuses previously-known
-    // transaction ids entirely. This rule was originally applied to all blocks
+    // for more information. This rule was originally applied to all blocks
     // with a timestamp after March 15, 2012, 0:00 UTC. Now that the whole
     // chain is irreversibly beyond that time it is applied to all blocks
     // except the two in the chain that violate it. This prevents exploiting
