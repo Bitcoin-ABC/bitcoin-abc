@@ -70,12 +70,12 @@ jobs:
       matrix:
         configuration:
           - env_vars: {WIDEMUL:  'int64',  RECOVERY: 'yes'}
-          - env_vars: {WIDEMUL:  'int64',                 ECDH: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes'}
+          - env_vars: {WIDEMUL:  'int64',                 ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
           - env_vars: {WIDEMUL: 'int128'}
-          - env_vars: {WIDEMUL: 'int128',  RECOVERY: 'yes',            EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes'}
-          - env_vars: {WIDEMUL: 'int128',                 ECDH: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes'}
+          - env_vars: {WIDEMUL: 'int128',  RECOVERY: 'yes',            SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
+          - env_vars: {WIDEMUL: 'int128',                 ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
           - env_vars: {WIDEMUL: 'int128',  ASM: 'x86_64'}
-          - env_vars: {                  RECOVERY: 'yes',            EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes'}
+          - env_vars: {                    RECOVERY: 'yes',            SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
           - env_vars: {AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install', WITH_VALGRIND: 'no', CTIMETEST: 'no', BENCH: 'no'}
           - env_vars: {AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DDETERMINISTIC', CMAKE_EXTRA_FLAGS: '-DCMAKE_C_FLAGS=-DDETERMINISTIC'}
           - env_vars: {AUTOTOOLS_EXTRA_FLAGS: 'CFLAGS=-O0', CMAKE_EXTRA_FLAGS: '-DCMAKE_BUILD_TYPE=Debug', CTIMETEST: 'no'}
@@ -130,7 +130,6 @@ jobs:
       HOST: 'i686-linux-gnu'
       ECDH: 'yes'
       RECOVERY: 'yes'
-      EXPERIMENTAL: 'yes'
       SCHNORRSIG: 'yes'
       CC: ${{ matrix.cc }}
 
@@ -176,7 +175,7 @@ jobs:
       matrix:
         configuration:
           - env_vars: {}
-          - env_vars: { ASM: 'arm' }
+          - env_vars: { EXPERIMENTAL: 'yes', ASM: 'arm' }
 
     env:
       WRAPPER_CMD: 'qemu-arm'
@@ -185,7 +184,6 @@ jobs:
       WITH_VALGRIND: 'no'
       ECDH: 'yes'
       RECOVERY: 'yes'
-      EXPERIMENTAL: 'yes'
       SCHNORRSIG: 'yes'
       CTIMETESTS: 'no'
 
@@ -206,7 +204,6 @@ jobs:
       WITH_VALGRIND: 'no'
       ECDH: 'yes'
       RECOVERY: 'yes'
-      EXPERIMENTAL: 'yes'
       SCHNORRSIG: 'yes'
       CTIMETESTS: 'no'
 
@@ -237,7 +234,6 @@ jobs:
       WITH_VALGRIND: 'no'
       ECDH: 'yes'
       RECOVERY: 'yes'
-      EXPERIMENTAL: 'yes'
       SCHNORRSIG: 'yes'
       CTIMETESTS: 'no'
 
@@ -384,13 +380,13 @@ jobs:
       fail-fast: false
       matrix:
         env_vars:
-          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes' }
-          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes', CC: 'gcc' }
+          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes' }
+          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', CC: 'gcc' }
           - { ECMULTGENPRECISION: 2, ECMULTWINDOW: 4 }
-          - { WIDEMUL: 'int128',                  ECDH: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', SCHNORRSIG: 'yes' }
-          - { WIDEMUL: 'int128', RECOVERY: 'yes',              EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes' }
-          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes', CC: 'gcc' }
-          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', EXPERIMENTAL: 'yes',                  SCHNORRSIG: 'yes', AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DVERIFY' }
+          - { WIDEMUL: 'int128',                  ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes',              SCHNORRSIG: 'yes' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', CC: 'gcc' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DVERIFY' }
           # Fixme: the following task fails with error "System.IO.IOException: No space left on device" even if we run only the autotools job
           # - { AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install' }
     steps:
@@ -429,7 +425,6 @@ jobs:
       CFLAGS: '-fpermissive -g'
       CPPFLAGS: '-DSECP256K1_CPLUSPLUS_TEST_OVERRIDE'
       WERROR_CFLAGS:
-      EXPERIMENTAL: yes
       ECDH: 'yes'
       RECOVERY: 'yes'
       SCHNORRSIG: 'yes'
