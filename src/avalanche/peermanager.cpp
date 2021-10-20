@@ -411,7 +411,29 @@ bool PeerManager::verify() const {
         }
     }
 
+    std::unordered_set<COutPoint, SaltedOutpointHasher> peersUtxos;
     for (const auto &p : peers) {
+        // A peer should have a proof attached
+        if (!p.proof) {
+            return false;
+        }
+
+        // Check utxos consistency
+        for (const auto &ss : p.proof->getStakes()) {
+            auto it = utxos.find(ss.getStake().getUTXO());
+
+            if (it == utxos.end()) {
+                return false;
+            }
+            if (it->second != p.peerid) {
+                return false;
+            }
+
+            if (!peersUtxos.emplace(it->first).second) {
+                return false;
+            }
+        }
+
         // Count node attached to this peer.
         const auto count_nodes = [&]() {
             size_t count = 0;
@@ -444,6 +466,13 @@ bool PeerManager::verify() const {
 
         // If the score do not match, same thing.
         if (slots[p.index].getScore() != p.getScore()) {
+            return false;
+        }
+    }
+
+    // Check there is no dangling utxo
+    for (const auto &[outpoint, peerid] : utxos) {
+        if (!peersUtxos.count(outpoint)) {
             return false;
         }
     }
