@@ -88,15 +88,6 @@ ninja check-secp256k1
 sudo ninja install  # optional
 ```
 
-Exhaustive tests
------------
-
-    $ ./exhaustive_tests
-
-With valgrind, you might need to increase the max stack size:
-
-    $ valgrind --max-stackframe=2500000 ./exhaustive_tests
-
 Test coverage
 -----------
 
