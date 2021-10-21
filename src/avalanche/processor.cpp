@@ -404,16 +404,19 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     // the inv type to retrieve what is being voted on.
     for (size_t i = 0; i < size; i++) {
         if (invs[i].IsMsgBlk()) {
-            LOCK(cs_main);
-            auto pindex = LookupBlockIndex(BlockHash(votes[i].GetHash()));
-            if (!pindex) {
-                // This should not happen, but just in case...
-                continue;
-            }
+            CBlockIndex *pindex;
+            {
+                LOCK(cs_main);
+                pindex = LookupBlockIndex(BlockHash(votes[i].GetHash()));
+                if (!pindex) {
+                    // This should not happen, but just in case...
+                    continue;
+                }
 
-            if (!IsWorthPolling(pindex)) {
-                // There is no point polling this block.
-                continue;
+                if (!IsWorthPolling(pindex)) {
+                    // There is no point polling this block.
+                    continue;
+                }
             }
 
             responseIndex.insert(std::make_pair(pindex, votes[i]));
