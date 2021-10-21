@@ -293,6 +293,10 @@ PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
             }
         }
 
+        // Orphan the proof so it can be pulled back if the conflicting ones are
+        // invalidated.
+        orphanProofs.addProof(proof);
+
         return peers.end();
     }
 

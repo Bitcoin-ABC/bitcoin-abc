@@ -808,7 +808,6 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
 
     const COutPoint conflictingOutpoint = addCoin();
     const COutPoint outpointToSend = addCoin();
-    const COutPoint outpointToAdd(TxId(GetRandHash()), 0);
 
     ProofRef proofToInvalidate;
     {
@@ -827,13 +826,12 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        BOOST_CHECK(
-            pb.addUTXO(outpointToAdd, amount, height, is_coinbase, key));
+        BOOST_CHECK(pb.addUTXO(addCoin(), amount, height, is_coinbase, key));
         conflictingProof = std::make_shared<Proof>(pb.build());
     }
 
     BOOST_CHECK(!pm.registerProof(conflictingProof));
-    // The conflicting proof is orphaned due to the missing outpointToAdd
+    // The conflicting proof is orphaned
     BOOST_CHECK(pm.isOrphan(conflictingProof->getId()));
 
     {
@@ -841,9 +839,6 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
         CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
         // Make proofToInvalidate invalid
         coins.SpendCoin(outpointToSend);
-        // Make conflictingProof valid
-        coins.AddCoin(outpointToAdd,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
     }
 
     pm.updatedBlockTip();
