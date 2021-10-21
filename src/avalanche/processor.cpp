@@ -422,15 +422,13 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         if (invs[i].IsMsgProof()) {
             const ProofId proofid(votes[i].GetHash());
 
-            // TODO Use an unordered map or similar to avoid the loop
-            auto proofVoteRecordsReadView = proofVoteRecords.getReadView();
-            for (auto it = proofVoteRecordsReadView.begin();
-                 it != proofVoteRecordsReadView.end(); it++) {
-                if (it->first->getId() == proofid) {
-                    responseProof.insert(std::make_pair(it->first, votes[i]));
-                    break;
-                }
+            const ProofRef proof = WITH_LOCK(
+                cs_peerManager, return peerManager->getProof(proofid));
+            if (!proof) {
+                continue;
             }
+
+            responseProof.insert(std::make_pair(proof, votes[i]));
         }
     }
 
@@ -644,15 +642,9 @@ void Processor::clearTimedoutRequests() {
         }
 
         if (inv.IsMsgProof()) {
-            ProofRef proof;
-            {
-                auto w = proofVoteRecords.getWriteView();
-                for (auto it = w.begin(); it != w.end(); it++) {
-                    if (it->first->getId() == inv.hash) {
-                        proof = it->first;
-                    }
-                }
-            }
+            const ProofRef proof =
+                WITH_LOCK(cs_peerManager,
+                          return peerManager->getProof(ProofId(inv.hash)));
 
             if (!clearInflightRequest(proofVoteRecords, proof, p.second)) {
                 continue;
