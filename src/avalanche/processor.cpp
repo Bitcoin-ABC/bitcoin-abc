@@ -261,10 +261,13 @@ bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
         .second;
 }
 
-void Processor::addProofToReconcile(const ProofRef &proof, bool isAccepted) {
+void Processor::addProofToReconcile(const ProofRef &proof) {
     // TODO We don't want to accept an infinite number of conflicting proofs.
     // They should be some rules to make them expensive and/or limited by
     // design.
+    const bool isAccepted =
+        WITH_LOCK(cs_peerManager, return peerManager->isValid(proof->getId()));
+
     proofVoteRecords.getWriteView()->insert(
         std::make_pair(proof, VoteRecord(isAccepted)));
 }

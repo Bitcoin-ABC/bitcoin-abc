@@ -171,7 +171,7 @@ public:
     }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
-    void addProofToReconcile(const ProofRef &proof, bool isAccepted);
+    void addProofToReconcile(const ProofRef &proof);
     bool isAccepted(const CBlockIndex *pindex) const;
     bool isAccepted(const ProofRef &proof) const;
     int getConfidence(const CBlockIndex *pindex) const;
