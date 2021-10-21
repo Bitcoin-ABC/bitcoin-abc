@@ -269,9 +269,8 @@ public:
     uint64_t getFragmentation() const { return fragmentation; }
 
     ProofRef getProof(const ProofId &proofid) const;
-
-    bool isOrphan(const ProofId &id) const;
-    ProofRef getOrphan(const ProofId &id) const;
+    bool isValid(const ProofId &proofid) const;
+    bool isOrphan(const ProofId &proofid) const;
 
 private:
     PeerSet::iterator fetchOrCreatePeer(const ProofRef &proof);

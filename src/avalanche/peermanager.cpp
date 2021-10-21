@@ -143,7 +143,7 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
 }
 
 bool PeerManager::registerProof(const ProofRef &proof) {
-    return !getProof(proof->getId()) && getPeerId(proof) != NO_PEER;
+    return !exists(proof->getId()) && getPeerId(proof) != NO_PEER;
 }
 
 NodeId PeerManager::selectNode() {
@@ -217,7 +217,20 @@ ProofRef PeerManager::getProof(const ProofId &proofid) const {
         return true;
     });
 
+    if (!proof) {
+        proof = orphanProofs.getProof(proofid);
+    }
+
     return proof;
+}
+
+bool PeerManager::isValid(const ProofId &proofid) const {
+    auto &pview = peers.get<proof_index>();
+    return pview.find(proofid) != pview.end();
+}
+
+bool PeerManager::isOrphan(const ProofId &proofid) const {
+    return orphanProofs.getProof(proofid) != nullptr;
 }
 
 PeerManager::PeerSet::iterator
@@ -537,17 +550,9 @@ PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
     return NO_PEER;
 }
 
-bool PeerManager::isOrphan(const ProofId &id) const {
-    return orphanProofs.getProof(id) != nullptr;
-}
-
-ProofRef PeerManager::getOrphan(const ProofId &id) const {
-    return orphanProofs.getProof(id);
-}
-
 void PeerManager::addUnbroadcastProof(const ProofId &proofid) {
-    // The proof should be known
-    if (getProof(proofid)) {
+    // The proof should be valid
+    if (isValid(proofid)) {
         m_unbroadcast_proofids.insert(proofid);
     }
 }

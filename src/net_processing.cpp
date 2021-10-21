@@ -1106,9 +1106,9 @@ void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
             auto unbroadcasted_proofids = pm.getUnbroadcastProofs();
 
             for (const auto &proofid : unbroadcasted_proofids) {
-                // Sanity check: all unbroadcast proofs should exist in the
+                // Sanity check: all unbroadcast proofs should be valid in the
                 // peermanager
-                if (pm.exists(proofid)) {
+                if (pm.isValid(proofid)) {
                     RelayProof(proofid, m_connman);
                 } else {
                     pm.removeUnbroadcastProof(proofid);
@@ -1814,10 +1814,8 @@ static bool AlreadyHaveBlock(const BlockHash &block_hash)
 static bool AlreadyHaveProof(const avalanche::ProofId &proofid) {
     assert(g_avalanche);
 
-    const bool hasProof =
-        g_avalanche->withPeerManager([&proofid](avalanche::PeerManager &pm) {
-            return pm.getProof(proofid) || pm.getOrphan(proofid);
-        });
+    const bool hasProof = g_avalanche->withPeerManager(
+        [&proofid](avalanche::PeerManager &pm) { return pm.exists(proofid); });
 
     LOCK(cs_rejectedProofs);
     return hasProof || rejectedProofs->contains(proofid);
@@ -4463,7 +4461,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             // invalid. In the latter case we should increase the ban score.
             // TODO improve the ban reason by printing the validation state
             if (!g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                    return pm.getOrphan(proofid);
+                    return pm.isOrphan(proofid);
                 })) {
                 WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
                 Misbehaving(nodeid, 100, "invalid-avaproof");

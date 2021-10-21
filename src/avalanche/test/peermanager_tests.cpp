@@ -444,7 +444,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
     // Remove the peer, the nodes should be pending again
     BOOST_CHECK(pm.removePeer(peerid));
-    BOOST_CHECK(!pm.getProof(proof->getId()));
+    BOOST_CHECK(!pm.exists(proof->getId()));
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
@@ -491,7 +491,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     pm.updatedBlockTip();
     BOOST_CHECK(pm.isOrphan(proofid));
-    BOOST_CHECK(!pm.getProof(proofid));
+    BOOST_CHECK(!pm.isValid(proofid));
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
@@ -507,7 +507,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     pm.updatedBlockTip();
     BOOST_CHECK(!pm.isOrphan(proofid));
-    BOOST_CHECK(pm.getProof(proofid));
+    BOOST_CHECK(pm.isValid(proofid));
     // The peerid has certainly been updated
     peerid = pm.getPeerId(proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
@@ -636,26 +636,28 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     BOOST_CHECK(pm.getPeerId(proof2) == NO_PEER);
     BOOST_CHECK(pm.getPeerId(proof3) == NO_PEER);
 
-    // Good
-    BOOST_CHECK(!pm.isOrphan(proof1->getId()));
-    // MISSING_UTXO
-    BOOST_CHECK(pm.isOrphan(proof2->getId()));
-    // HEIGHT_MISMATCH
-    BOOST_CHECK(pm.isOrphan(proof3->getId()));
+    auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
+        const ProofId &proofid = proof->getId();
+        BOOST_CHECK(pm.exists(proofid));
 
-    const auto isGoodPeer = [&pm](const ProofRef &p) {
+        BOOST_CHECK_EQUAL(pm.isOrphan(proofid), expectedOrphan);
+        BOOST_CHECK_EQUAL(pm.isValid(proofid), !expectedOrphan);
+
         bool ret = false;
         pm.forEachPeer([&](const Peer &peer) {
-            if (p->getId() == peer.proof->getId()) {
+            if (proof->getId() == peer.proof->getId()) {
                 ret = true;
             }
         });
-        return ret;
+        BOOST_CHECK_EQUAL(ret, !expectedOrphan);
     };
 
-    BOOST_CHECK(isGoodPeer(proof1));
-    BOOST_CHECK(!isGoodPeer(proof2));
-    BOOST_CHECK(!isGoodPeer(proof3));
+    // Good
+    checkOrphan(proof1, false);
+    // MISSING_UTXO
+    checkOrphan(proof2, true);
+    // HEIGHT_MISMATCH
+    checkOrphan(proof3, true);
 
     // Add outpoint2, proof2 is no longer considered orphan
     {
@@ -665,14 +667,11 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     }
 
     pm.updatedBlockTip();
-    BOOST_CHECK(!pm.isOrphan(proof2->getId()));
-    BOOST_CHECK(isGoodPeer(proof2));
+    checkOrphan(proof2, false);
 
     // The status of proof1 and proof3 are unchanged
-    BOOST_CHECK(!pm.isOrphan(proof1->getId()));
-    BOOST_CHECK(isGoodPeer(proof1));
-    BOOST_CHECK(pm.isOrphan(proof3->getId()));
-    BOOST_CHECK(!isGoodPeer(proof3));
+    checkOrphan(proof1, false);
+    checkOrphan(proof3, true);
 
     // Spend outpoint1, proof1 becomes orphan
     {
@@ -682,14 +681,11 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     }
 
     pm.updatedBlockTip();
-    BOOST_CHECK(pm.isOrphan(proof1->getId()));
-    BOOST_CHECK(!isGoodPeer(proof1));
+    checkOrphan(proof1, true);
 
     // The status of proof2 and proof3 are unchanged
-    BOOST_CHECK(!pm.isOrphan(proof2->getId()));
-    BOOST_CHECK(isGoodPeer(proof2));
-    BOOST_CHECK(pm.isOrphan(proof3->getId()));
-    BOOST_CHECK(!isGoodPeer(proof3));
+    checkOrphan(proof2, false);
+    checkOrphan(proof3, true);
 
     // A reorg could make a previous HEIGHT_MISMATCH become valid
     {
@@ -701,14 +697,11 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     }
 
     pm.updatedBlockTip();
-    BOOST_CHECK(!pm.isOrphan(proof3->getId()));
-    BOOST_CHECK(isGoodPeer(proof3));
+    checkOrphan(proof3, false);
 
     // The status of proof 1 and proof2 are unchanged
-    BOOST_CHECK(pm.isOrphan(proof1->getId()));
-    BOOST_CHECK(!isGoodPeer(proof1));
-    BOOST_CHECK(!pm.isOrphan(proof2->getId()));
-    BOOST_CHECK(isGoodPeer(proof2));
+    checkOrphan(proof1, true);
+    checkOrphan(proof2, false);
 }
 
 BOOST_AUTO_TEST_CASE(dangling_node) {

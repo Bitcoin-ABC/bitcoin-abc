@@ -615,12 +615,8 @@ static UniValue getrawavalancheproof(const Config &config,
 
     bool isOrphan = false;
     auto proof = g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        auto proof = pm.getProof(proofid);
-        if (!proof) {
-            proof = pm.getOrphan(proofid);
-            isOrphan = true;
-        }
-        return proof;
+        isOrphan = pm.isOrphan(proofid);
+        return pm.getProof(proofid);
     });
 
     if (!proof) {
