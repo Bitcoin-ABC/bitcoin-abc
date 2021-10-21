@@ -11,7 +11,10 @@
 #include <chain.h>
 #include <fs.h>
 #include <protocol.h> // For CMessageHeader::MessageStartChars
+#include <sync.h>
 #include <txdb.h>
+
+extern RecursiveMutex cs_main;
 
 class ArgsManager;
 class BlockValidationState;
@@ -173,7 +176,8 @@ public:
 
     bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
                                BlockValidationState &state, CBlockIndex *pindex,
-                               const CChainParams &chainparams);
+                               const CChainParams &chainparams)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
                                 CChain &active_chain,
