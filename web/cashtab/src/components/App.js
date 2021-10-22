@@ -81,14 +81,15 @@ const CustomApp = styled.div`
 const Footer = styled.div`
     z-index: 2;
     background-color: ${props => props.theme.footer.background};
-    border-radius: 20px;
+    border-radius: 20px 20px 0 0;
     position: fixed;
     bottom: 0;
     width: 500px;
+    box-shadow: rgb(136 172 243 / 25%) 0px 10px 30px,
+        rgb(0 0 0 / 3%) 0px 1px 1px, rgb(0 51 167 / 10%) 0px 10px 20px;
     @media (max-width: 768px) {
         width: 100%;
     }
-    border-top: 1px solid ${props => props.theme.wallet.borders.color};
 `;
 
 export const NavButton = styled.button`
@@ -164,7 +165,6 @@ export const HeaderCtn = styled.div`
     padding: 20px 0 30px;
     margin-bottom: 20px;
     justify-content: space-between;
-    border-bottom: 1px solid ${props => props.theme.wallet.borders.color};
 
     a {
         color: ${props => props.theme.wallet.text.secondary};

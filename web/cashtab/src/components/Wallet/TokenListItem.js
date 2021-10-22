@@ -19,14 +19,17 @@ const Wrapper = styled.div`
     justify-content: space-between;
     align-items: center;
     padding: 15px 25px;
-    border-radius: 3px;
+    border-radius: 16px;
     background: ${props => props.theme.tokenListItem.background};
-    margin-bottom: 3px;
+    margin-bottom: 10px;
     box-shadow: ${props => props.theme.tokenListItem.boxShadow};
     border: 1px solid ${props => props.theme.tokenListItem.border};
 
     :hover {
-        border-color: ${props => props.theme.tokenListItem.hoverBorder};
+        transform: translateY(-2px);
+        box-shadow: rgb(136 172 243 / 25%) 0px 10px 30px,
+            rgb(0 0 0 / 3%) 0px 1px 1px, rgb(0 51 167 / 10%) 0px 10px 20px;
+        transition: all 0.8s cubic-bezier(0.075, 0.82, 0.165, 1) 0s;
     }
 `;
 

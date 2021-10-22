@@ -12,11 +12,10 @@ import { convertToEcashPrefix } from '@utils/cashMethods';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
-    border-radius: 23px;
+    border-radius: 26px;
     background: ${props => props.theme.qr.background};
     box-shadow: ${props => props.theme.qr.shadow};
     margin-bottom: 10px;
-    border: 1px solid ${props => props.theme.wallet.borders.color};
     path:first-child {
         fill: ${props => props.theme.qr.background};
     }

@@ -31,7 +31,7 @@ export const theme = {
         background: '#ffffff',
         color: '',
         boxShadow:
-            'rgba(0, 0, 0, 0.01) 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 4px 8px,rgba(0, 0, 0, 0.04) 0px 16px 24px, rgba(0, 0, 0, 0.01) 0px 24px 32px',
+            'rgb(136 172 243 / 25%) 0px 10px 30px,rgb(0 0 0 / 3%) 0px 1px 1px, rgb(0 51 167 / 10%) 0px 10px 20px',
         border: '#e9eaed',
         hoverBorder: '#231F20',
     },
@@ -57,7 +57,7 @@ export const theme = {
         copyBorderToken: '#FF21D0',
         background: '#fff',
         token: '#231F20',
-        shadow: 'rgba(0, 0, 0, 0.01) 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 4px 8px, rgba(0, 0, 0, 0.04) 0px 16px 24px, rgba(0, 0, 0, 0.01) 0px 24px 32px',
+        shadow: 'rgb(136 172 243 / 25%) 0px 10px 30px, rgb(0 0 0 / 3%) 0px 1px 1px, rgb(0 51 167 / 10%) 0px 10px 20px',
     },
     buttons: {
         primary: {
