@@ -785,4 +785,73 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
         !pm.registerProof(std::make_shared<Proof>(std::move(badProof))));
 }
 
+BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount = 10 * COIN;
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    auto addCoin = [&]() {
+        LOCK(cs_main);
+        COutPoint outpoint(TxId(GetRandHash()), 0);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+
+        return outpoint;
+    };
+
+    const COutPoint conflictingOutpoint = addCoin();
+    const COutPoint outpointToSend = addCoin();
+    const COutPoint outpointToAdd(TxId(GetRandHash()), 0);
+
+    ProofRef proofToInvalidate;
+    {
+        ProofBuilder pb(0, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+        BOOST_CHECK(
+            pb.addUTXO(outpointToSend, amount, height, is_coinbase, key));
+        proofToInvalidate = std::make_shared<Proof>(pb.build());
+    }
+
+    BOOST_CHECK(pm.registerProof(proofToInvalidate));
+
+    ProofRef conflictingProof;
+    {
+        ProofBuilder pb(0, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+        BOOST_CHECK(
+            pb.addUTXO(outpointToAdd, amount, height, is_coinbase, key));
+        conflictingProof = std::make_shared<Proof>(pb.build());
+    }
+
+    BOOST_CHECK(!pm.registerProof(conflictingProof));
+    // The conflicting proof is orphaned due to the missing outpointToAdd
+    BOOST_CHECK(pm.isOrphan(conflictingProof->getId()));
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        // Make proofToInvalidate invalid
+        coins.SpendCoin(outpointToSend);
+        // Make conflictingProof valid
+        coins.AddCoin(outpointToAdd,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    pm.updatedBlockTip();
+
+    BOOST_CHECK(pm.isOrphan(proofToInvalidate->getId()));
+
+    BOOST_CHECK(!pm.isOrphan(conflictingProof->getId()));
+    BOOST_CHECK(pm.isValid(conflictingProof->getId()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

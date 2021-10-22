@@ -193,14 +193,17 @@ void PeerManager::updatedBlockTip() {
         }
     }
 
+    // Remove the invalid peers before the orphans rescan. This makes it
+    // possible to pull back proofs with utxos that conflicted with these
+    // invalid peers.
+    for (const auto &pid : invalidPeers) {
+        removePeer(pid);
+    }
+
     orphanProofs.rescan(*this);
 
     for (auto &p : newOrphans) {
         orphanProofs.addProof(p);
-    }
-
-    for (const auto &pid : invalidPeers) {
-        removePeer(pid);
     }
 }
 
