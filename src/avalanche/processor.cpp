@@ -614,35 +614,48 @@ void Processor::clearTimedoutRequests() {
         return;
     }
 
+    auto clearInflightRequest = [&](auto &voteRecords, const auto &voteItem,
+                                    uint8_t count) {
+        if (!voteItem) {
+            return false;
+        }
+
+        auto voteRecordsWriteView = voteRecords.getWriteView();
+        auto it = voteRecordsWriteView->find(voteItem);
+        if (it == voteRecordsWriteView.end()) {
+            return false;
+        }
+
+        it->second.clearInflightRequest(count);
+
+        return true;
+    };
+
     // In flight request accounting.
     for (const auto &p : timedout_items) {
         const CInv &inv = p.first;
         if (inv.IsMsgBlk()) {
-            CBlockIndex *pindex;
+            const CBlockIndex *pindex = WITH_LOCK(
+                cs_main, return LookupBlockIndex(BlockHash(inv.hash)));
 
-            {
-                LOCK(cs_main);
-                pindex = LookupBlockIndex(BlockHash(inv.hash));
-                if (!pindex) {
-                    continue;
-                }
-            }
-
-            auto w = blockVoteRecords.getWriteView();
-            auto it = w->find(pindex);
-            if (it == w.end()) {
+            if (!clearInflightRequest(blockVoteRecords, pindex, p.second)) {
                 continue;
             }
-
-            it->second.clearInflightRequest(p.second);
         }
 
         if (inv.IsMsgProof()) {
-            auto w = proofVoteRecords.getWriteView();
-            for (auto it = w.begin(); it != w.end(); it++) {
-                if (it->first->getId() == inv.hash) {
-                    it->second.clearInflightRequest(p.second);
+            ProofRef proof;
+            {
+                auto w = proofVoteRecords.getWriteView();
+                for (auto it = w.begin(); it != w.end(); it++) {
+                    if (it->first->getId() == inv.hash) {
+                        proof = it->first;
+                    }
                 }
+            }
+
+            if (!clearInflightRequest(proofVoteRecords, proof, p.second)) {
+                continue;
             }
         }
     }
