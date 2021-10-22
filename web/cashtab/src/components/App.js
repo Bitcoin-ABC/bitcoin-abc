@@ -110,7 +110,7 @@ export const NavButton = styled.button`
     }
     background-color: ${props => props.theme.footer.background};
     border: none;
-    font-size: 12px;
+    font-size: 10.5px;
     font-weight: bold;
     .anticon {
         display: block;
