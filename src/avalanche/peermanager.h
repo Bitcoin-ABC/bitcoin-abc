@@ -282,10 +282,13 @@ private:
 };
 
 /**
- * This is an internal method that is exposed for testing purposes.
+ * Internal methods that are exposed for testing purposes.
  */
 PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
                       const uint64_t max);
+
+bool isConflictingProofPreferred(const ProofRef &conflicting,
+                                 const ProofRef &current);
 
 } // namespace avalanche
 

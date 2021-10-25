@@ -849,4 +849,103 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
     BOOST_CHECK(pm.isValid(conflictingProof->getId()));
 }
 
+BOOST_AUTO_TEST_CASE(conflicting_proof_same_pubkey) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const COutPoint outpoint(TxId(GetRandHash()), 0);
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, GetRandInt(std::numeric_limits<int>::max()),
+                        key);
+        BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
+        return pb.build();
+    };
+
+    auto proof_base = buildProofWithSequence(10);
+
+    auto proof_lowSequence = buildProofWithSequence(9);
+    BOOST_CHECK(!isConflictingProofPreferred(proof_lowSequence, proof_base));
+
+    auto proof_sameSequence = buildProofWithSequence(10);
+    // Collision might occur here, but it's so unlikely that it's not a concern
+    BOOST_CHECK(!isConflictingProofPreferred(proof_sameSequence, proof_base));
+
+    auto proof_highSequence = buildProofWithSequence(11);
+    BOOST_CHECK(isConflictingProofPreferred(proof_highSequence, proof_base));
+}
+
+BOOST_AUTO_TEST_CASE(conflicting_proof_different_pubkey) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    auto addCoin = [&](const Amount &amount) {
+        LOCK(cs_main);
+        COutPoint outpoint(TxId(GetRandHash()), 0);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+
+        return outpoint;
+    };
+
+    const Amount conflictingOutpointAmount = 10 * COIN;
+    // This is the outpoint that will conflict through the test
+    COutPoint conflictingOutpoint = addCoin(conflictingOutpointAmount);
+
+    auto buildProofFromAmounts = [&](std::vector<Amount> amounts) {
+        CKey master = CKey::MakeCompressedKey();
+        ProofBuilder pb(0, 0, std::move(master));
+        BOOST_CHECK(pb.addUTXO(conflictingOutpoint, conflictingOutpointAmount,
+                               height, is_coinbase, key));
+        for (Amount &amount : amounts) {
+            auto outpoint = addCoin(amount);
+            BOOST_CHECK(pb.addUTXO(std::move(outpoint), amount, height,
+                                   is_coinbase, key));
+        }
+        return pb.build();
+    };
+
+    auto proof_base = buildProofFromAmounts({10 * COIN, 10 * COIN});
+
+    auto proof_lowAmount = buildProofFromAmounts({10 * COIN, 9 * COIN});
+    BOOST_CHECK(!isConflictingProofPreferred(proof_lowAmount, proof_base));
+
+    auto proof_highAmount = buildProofFromAmounts({10 * COIN, 11 * COIN});
+    BOOST_CHECK(isConflictingProofPreferred(proof_highAmount, proof_base));
+
+    auto proof_lowStakeCount = buildProofFromAmounts({21 * COIN});
+    BOOST_CHECK(
+        isConflictingProofPreferred(proof_lowStakeCount, proof_highAmount));
+
+    auto proof_highStakeCount =
+        buildProofFromAmounts({1 * COIN, 5 * COIN, 5 * COIN});
+    BOOST_CHECK(!isConflictingProofPreferred(proof_highStakeCount,
+                                             proof_lowStakeCount));
+
+    auto proof_similar = buildProofFromAmounts({21 * COIN});
+    BOOST_CHECK_EQUAL(
+        isConflictingProofPreferred(proof_similar, proof_lowStakeCount),
+        proof_similar->getId() < proof_lowStakeCount->getId());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
