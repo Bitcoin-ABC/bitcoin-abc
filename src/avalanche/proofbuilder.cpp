@@ -33,7 +33,7 @@ bool ProofBuilder::addUTXO(COutPoint utxo, Amount amount, uint32_t height,
         .second;
 }
 
-Proof ProofBuilder::build() {
+ProofRef ProofBuilder::build() {
     SchnorrSig proofSignature;
     const LimitedProofId limitedProofId = getLimitedProofId();
     if (!masterKey.SignSchnorr(limitedProofId, proofSignature)) {
@@ -53,9 +53,9 @@ Proof ProofBuilder::build() {
         signedStakes.push_back(handle.value().sign(commitment));
     }
 
-    return Proof(sequence, expirationTime, masterKey.GetPubKey(),
-                 std::move(signedStakes), payoutScriptPubKey,
-                 std::move(proofSignature));
+    return std::make_shared<Proof>(
+        sequence, expirationTime, masterKey.GetPubKey(),
+        std::move(signedStakes), payoutScriptPubKey, std::move(proofSignature));
 }
 
 LimitedProofId ProofBuilder::getLimitedProofId() const {

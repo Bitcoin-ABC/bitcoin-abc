@@ -47,7 +47,7 @@ public:
     [[nodiscard]] bool addUTXO(COutPoint utxo, Amount amount, uint32_t height,
                                bool is_coinbase, CKey key);
 
-    Proof build();
+    ProofRef build();
 
 private:
     LimitedProofId getLimitedProofId() const;

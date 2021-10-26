@@ -35,7 +35,7 @@ ProofRef buildRandomProof(uint32_t score, const CKey &masterKey) {
 
     ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), masterKey);
     BOOST_CHECK(pb.addUTXO(o, v, height, is_coinbase, std::move(key)));
-    return std::make_shared<Proof>(pb.build());
+    return pb.build();
 }
 
 bool hasDustStake(const ProofRef &proof) {
@@ -64,7 +64,7 @@ ProofId TestProofBuilder::getReverseOrderProofId(ProofBuilder &pb) {
     return ProofId(ss2.GetHash());
 }
 
-Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
+ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
     const ProofId proofid = TestProofBuilder::getReverseOrderProofId(pb);
     const StakeCommitment commitment(proofid);
 
@@ -78,8 +78,9 @@ Proof TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
         signedStakes.push_back(handle.value().sign(commitment));
     }
 
-    return Proof(pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
-                 std::move(signedStakes), pb.payoutScriptPubKey, SchnorrSig());
+    return std::make_shared<Proof>(
+        pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
+        std::move(signedStakes), pb.payoutScriptPubKey, SchnorrSig());
 }
 
 ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
@@ -100,7 +101,7 @@ ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
     return ProofId(ss2.GetHash());
 }
 
-Proof TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
+ProofRef TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
     const ProofId proofid = TestProofBuilder::getDuplicatedStakeProofId(pb);
     const StakeCommitment commitment(proofid);
 
@@ -114,8 +115,9 @@ Proof TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
         signedStakes.push_back(signedStake);
     }
 
-    return Proof(pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
-                 std::move(signedStakes), pb.payoutScriptPubKey, SchnorrSig());
+    return std::make_shared<Proof>(
+        pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
+        std::move(signedStakes), pb.payoutScriptPubKey, SchnorrSig());
 }
 
 } // namespace avalanche

@@ -54,14 +54,14 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
                                InsecureRand32(), InsecureRandBool(), key));
     }
 
-    Proof p = pb.build();
+    ProofRef p = pb.build();
 
     ProofValidationState state;
-    BOOST_CHECK(p.verify(state));
+    BOOST_CHECK(p->verify(state));
 
-    BOOST_CHECK_EQUAL(p.getSequence(), sequence);
-    BOOST_CHECK_EQUAL(p.getExpirationTime(), expiration);
-    BOOST_CHECK(p.getMaster() == master);
+    BOOST_CHECK_EQUAL(p->getSequence(), sequence);
+    BOOST_CHECK_EQUAL(p->getExpirationTime(), expiration);
+    BOOST_CHECK(p->getMaster() == master);
 
     BOOST_CHECK(state.GetResult() == ProofValidationResult::NONE);
 }
@@ -916,11 +916,11 @@ BOOST_AUTO_TEST_CASE(verify) {
         // Generate a proof that match the UTXO.
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(o, v, h, is_coinbase, k));
-        Proof p = pb.build();
+        ProofRef p = pb.build();
 
         ProofValidationState state;
-        BOOST_CHECK(p.verify(state));
-        BOOST_CHECK(p.verify(state, coins) ==
+        BOOST_CHECK(p->verify(state));
+        BOOST_CHECK(p->verify(state, coins) ==
                     (result == ProofValidationResult::NONE));
         BOOST_CHECK(state.GetResult() == result);
     };
@@ -965,10 +965,10 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // No stake
     {
-        Proof p = ProofBuilder(0, 0, key).build();
+        ProofRef p = ProofBuilder(0, 0, key).build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(!p->verify(state, coins));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::NO_STAKE);
     }
 
@@ -977,10 +977,10 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(
             pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key));
-        Proof p = pb.build();
+        ProofRef p = pb.build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(!p->verify(state, coins));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESOLD);
     }
 
@@ -988,10 +988,10 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, PROOF_DUST_THRESHOLD - 1 * SATOSHI,
                                height, false, key));
-        Proof p = pb.build();
+        ProofRef p = pb.build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(!p->verify(state, coins));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESOLD);
     }
 
@@ -999,10 +999,10 @@ BOOST_AUTO_TEST_CASE(verify) {
     {
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
-        Proof p = TestProofBuilder::buildDuplicatedStakes(pb);
+        ProofRef p = TestProofBuilder::buildDuplicatedStakes(pb);
 
         ProofValidationState state;
-        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(!p->verify(state, coins));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::DUPLICATE_STAKE);
     }
@@ -1017,10 +1017,10 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(pb.addUTXO(pkh_outpoint, value, height, false, key));
         BOOST_CHECK(pb.addUTXO(other_pkh_outpoint, value, height, false, key));
-        Proof p = TestProofBuilder::buildWithReversedOrderStakes(pb);
+        ProofRef p = TestProofBuilder::buildWithReversedOrderStakes(pb);
 
         ProofValidationState state;
-        BOOST_CHECK(!p.verify(state, coins));
+        BOOST_CHECK(!p->verify(state, coins));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::WRONG_STAKE_ORDERING);
     }
@@ -1045,9 +1045,9 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
         for (const COutPoint &outpoint : outpoints) {
             BOOST_CHECK(pb.addUTXO(outpoint, value, height, false, key));
         }
-        Proof p = pb.build();
+        ProofRef p = pb.build();
 
-        return p.getId();
+        return p->getId();
     };
 
     const ProofId proofid = computeProofId();

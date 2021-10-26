@@ -312,10 +312,10 @@ static UniValue buildavalancheproof(const Config &config,
         }
     }
 
-    const avalanche::Proof proof = pb.build();
+    const avalanche::ProofRef proof = pb.build();
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << proof;
+    ss << *proof;
     return HexStr(ss);
 }
 

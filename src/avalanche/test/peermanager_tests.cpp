@@ -462,7 +462,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     Amount amount = 1 * COIN;
     const int height = 1234;
     BOOST_CHECK(pb.addUTXO(utxo, amount, height, false, key));
-    auto proof = std::make_shared<Proof>(pb.build());
+    auto proof = pb.build();
     const ProofId &proofid = proof->getId();
 
     {
@@ -549,7 +549,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
             BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         }
 
-        return pm.getPeerId(std::make_shared<Proof>(pb.build()));
+        return pm.getPeerId(pb.build());
     };
 
     // Add one peer.
@@ -579,8 +579,8 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
         ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
         COutPoint o(txid1, 3);
         BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
-        PeerId peerid = pm.getPeerId(std::make_shared<Proof>(
-            TestProofBuilder::buildDuplicatedStakes(pb)));
+        PeerId peerid =
+            pm.getPeerId(TestProofBuilder::buildDuplicatedStakes(pb));
         BOOST_CHECK_EQUAL(peerid, NO_PEER);
     }
 
@@ -614,7 +614,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     const auto makeProof = [&](const COutPoint &outpoint, const int h) {
         ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
         BOOST_CHECK(pb.addUTXO(outpoint, v, h, false, key));
-        return std::make_shared<Proof>(pb.build());
+        return pb.build();
     };
 
     auto proof1 = makeProof(outpoint1, height);
@@ -816,7 +816,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
             pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
         BOOST_CHECK(
             pb.addUTXO(outpointToSend, amount, height, is_coinbase, key));
-        proofToInvalidate = std::make_shared<Proof>(pb.build());
+        proofToInvalidate = pb.build();
     }
 
     BOOST_CHECK(pm.registerProof(proofToInvalidate));
@@ -827,7 +827,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
         BOOST_CHECK(pb.addUTXO(addCoin(), amount, height, is_coinbase, key));
-        conflictingProof = std::make_shared<Proof>(pb.build());
+        conflictingProof = pb.build();
     }
 
     BOOST_CHECK(!pm.registerProof(conflictingProof));

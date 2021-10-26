@@ -22,9 +22,9 @@ bool hasDustStake(const ProofRef &proof);
 
 struct TestProofBuilder {
     static ProofId getReverseOrderProofId(ProofBuilder &pb);
-    static Proof buildWithReversedOrderStakes(ProofBuilder &pb);
+    static ProofRef buildWithReversedOrderStakes(ProofBuilder &pb);
     static ProofId getDuplicatedStakeProofId(ProofBuilder &pb);
-    static Proof buildDuplicatedStakes(ProofBuilder &pb);
+    static ProofRef buildDuplicatedStakes(ProofBuilder &pb);
 };
 
 } // namespace avalanche

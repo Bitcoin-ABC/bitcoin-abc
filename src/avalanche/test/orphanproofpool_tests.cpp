@@ -28,7 +28,7 @@ static ProofRef makeProof(const size_t nStakes) {
         BOOST_CHECK(pb.addUTXO(COutPoint(txid, 0), v, height, false,
                                CKey::MakeCompressedKey()));
     }
-    return std::make_shared<Proof>(pb.build());
+    return pb.build();
 }
 
 BOOST_AUTO_TEST_CASE(pool_starts_empty) {

@@ -126,7 +126,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         BOOST_CHECK(pb.addUTXO(COutPoint(coinbase.GetId(), 0),
                                coinbase.vout[0].nValue, current_coinbase + 1,
                                true, coinbaseKey));
-        return std::make_shared<Proof>(pb.build());
+        return pb.build();
     }
 
     bool addNode(NodeId nodeid, const ProofId &proofid) {
