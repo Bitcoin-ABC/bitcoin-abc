@@ -18,7 +18,7 @@ const sendXecNotification = link => {
                 </Paragraph>
             </a>
         ),
-        duration: 3,
+        duration: currency.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
         style: { width: '100%' },
     });
@@ -49,7 +49,7 @@ const sendTokenNotification = link => {
                 </Paragraph>
             </a>
         ),
-        duration: 3,
+        duration: currency.notificationDurationShort,
         icon: <TokenReceivedNotificationIcon />,
         style: { width: '100%' },
     });
@@ -87,7 +87,7 @@ const xecReceivedNotification = (
                     )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
             </Paragraph>
         ),
-        duration: 3,
+        duration: currency.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
         style: { width: '100%' },
     });
@@ -106,7 +106,7 @@ const eTokenReceivedNotification = (
                 You received {receivedSlpQty.toString()} {receivedSlpName}
             </Paragraph>
         ),
-        duration: 3,
+        duration: currency.notificationDurationShort,
         icon: <TokenReceivedNotificationIcon />,
         style: { width: '100%' },
     });
@@ -119,7 +119,7 @@ const errorNotification = (error, message, stringDescribingCallEvent) => {
     notification.error({
         message: 'Error',
         description: message,
-        duration: 5,
+        duration: currency.notificationDurationLong,
     });
 };
 
