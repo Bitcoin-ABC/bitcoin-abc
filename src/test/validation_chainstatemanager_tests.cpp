@@ -247,6 +247,9 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
     BOOST_CHECK_EQUAL(*chainman.ActiveChainstate().m_from_snapshot_blockhash,
                       *chainman.SnapshotBlockhash());
 
+    // Ensure that the genesis block was not marked assumed-valid.
+    BOOST_CHECK(!chainman.ActiveChain().Genesis()->IsAssumedValid());
+
     const AssumeutxoData &au_data =
         *ExpectedAssumeutxo(snapshot_height, ::Params());
     const CBlockIndex *tip = chainman.ActiveTip();
