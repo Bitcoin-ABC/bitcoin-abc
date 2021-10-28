@@ -31,7 +31,7 @@ bool CBlockIndex::UpdateChainStats() {
         return true;
     }
 
-    if (pprev->HaveTxsDownloaded()) {
+    if (pprev->nChainTx > 0) {
         nChainTx = pprev->nChainTx + nTx;
         nChainSize = pprev->nChainSize + nSize;
         return true;

@@ -684,21 +684,16 @@ public:
 
     std::unique_ptr<CBlockTreeDB> m_block_tree_db GUARDED_BY(::cs_main);
 
-    bool LoadBlockIndexDB(std::set<CBlockIndex *, CBlockIndexWorkComparator>
-                              &setBlockIndexCandidates)
+    bool LoadBlockIndexDB(ChainstateManager &chainman)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /**
      * Load the blocktree off disk and into memory. Populate certain metadata
      * per index entry (nStatus, nChainWork, nTimeMax, etc.) as well as
      * peripheral collections like setDirtyBlockIndex.
-     *
-     * @param[out] block_index_candidates  Fill this set with any valid blocks
-     * for which we've downloaded all transactions.
      */
     bool LoadBlockIndex(const Consensus::Params &consensus_params,
-                        std::set<CBlockIndex *, CBlockIndexWorkComparator>
-                            &block_index_candidates)
+                        ChainstateManager &chainman)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** Clear all data members. */
@@ -908,9 +903,16 @@ public:
      */
     const std::optional<BlockHash> m_from_snapshot_blockhash{};
 
+    //! Return true if this chainstate relies on blocks that are assumed-valid.
+    //! In practice this means it was created based on a UTXO snapshot.
+    bool reliesOnAssumedValid() {
+        return m_from_snapshot_blockhash.has_value();
+    }
+
     /**
-     * The set of all CBlockIndex entries with BLOCK_VALID_TRANSACTIONS (for
-     * itself and all ancestors) and as good as our current tip or better.
+     * The set of all CBlockIndex entries with either BLOCK_VALID_TRANSACTIONS
+     * (for itself and all ancestors) *or* BLOCK_ASSUMED_VALID (if using
+     * background chainstates) and as good as our current tip or better.
      * Entries may be failed, though, and pruning nodes may be missing the data
      * for the block.
      */

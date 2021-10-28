@@ -169,6 +169,10 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.chainman = std::make_unique<ChainstateManager>();
     m_node.chainman->m_blockman.m_block_tree_db =
         std::make_unique<CBlockTreeDB>(1 << 20, true);
+    // Call Upgrade on the block database so that the version field is set,
+    // else LoadBlockIndexGuts will fail (see D8319).
+    m_node.chainman->m_blockman.m_block_tree_db->Upgrade(
+        GetConfig().GetChainParams().GetConsensus());
 
     constexpr int script_check_threads = 2;
     StartScriptCheckWorkerThreads(script_check_threads);
