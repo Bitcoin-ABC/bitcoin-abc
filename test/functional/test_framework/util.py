@@ -439,6 +439,12 @@ def set_node_times(nodes, t):
         node.setmocktime(t)
 
 
+def check_node_connections(*, node, num_in, num_out):
+    info = node.getnetworkinfo()
+    assert_equal(info["connections_in"], num_in)
+    assert_equal(info["connections_out"], num_out)
+
+
 # Transaction/Block functions
 #############################
 
