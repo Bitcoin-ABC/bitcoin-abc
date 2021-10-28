@@ -509,7 +509,7 @@ const useWallet = () => {
             return false;
         }
         /*
-        When a legacy user runs cashtabapp.com/, their active wallet will be migrated to Path1899 by 
+        When a legacy user runs cashtab.com/, their active wallet will be migrated to Path1899 by 
         the getWallet function
 
         Wallets in savedWallets are migrated when they are activated, in this function

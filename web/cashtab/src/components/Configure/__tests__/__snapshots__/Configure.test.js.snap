@@ -310,7 +310,7 @@ exports[`Configure with a wallet 1`] = `
   [
   <a
     className="sc-dxgOiQ jbuVAx"
-    href="https://docs.cashtabapp.com/docs/"
+    href="https://docs.cashtab.com/docs/"
     rel="noreferrer"
     target="_blank"
     type="link"
@@ -593,7 +593,7 @@ exports[`Configure without a wallet 1`] = `
   [
   <a
     className="sc-dxgOiQ jbuVAx"
-    href="https://docs.cashtabapp.com/docs/"
+    href="https://docs.cashtab.com/docs/"
     rel="noreferrer"
     target="_blank"
     type="link"

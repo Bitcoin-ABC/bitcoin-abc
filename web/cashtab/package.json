@@ -2,7 +2,7 @@
     "name": "cashtab",
     "version": "1.0.0",
     "private": true,
-    "homepage": "https://cashtabapp.com/",
+    "homepage": "https://cashtab.com/",
     "dependencies": {
         "@ant-design/icons": "^4.3.0",
         "@fortawesome/fontawesome-free": "^5.15.1",

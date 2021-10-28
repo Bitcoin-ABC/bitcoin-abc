@@ -666,7 +666,7 @@ const Configure = () => {
             <StyledSpacer />[
             <SettingsLink
                 type="link"
-                href="https://docs.cashtabapp.com/docs/"
+                href="https://docs.cashtab.com/docs/"
                 target="_blank"
                 rel="noreferrer"
             >
