@@ -731,9 +731,7 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     // at the very end to make sure the mempool is still within limits and
     // package submission happens atomically.
     if (!args.m_package_submission && !bypass_limits) {
-        m_pool.LimitSize(m_active_chainstate.CoinsTip(),
-                         std::chrono::hours{gArgs.GetIntArg(
-                             "-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+        m_pool.LimitSize(m_active_chainstate.CoinsTip());
         if (!m_pool.exists(txid)) {
             return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
                                  "mempool full");
@@ -799,9 +797,7 @@ bool MemPoolAccept::SubmitPackage(
 
     // It may or may not be the case that all the transactions made it into the
     // mempool. Regardless, make sure we haven't exceeded max mempool size.
-    m_pool.LimitSize(m_active_chainstate.CoinsTip(),
-                     std::chrono::hours{gArgs.GetIntArg(
-                         "-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+    m_pool.LimitSize(m_active_chainstate.CoinsTip());
     if (!all_submitted) {
         return false;
     }
@@ -5740,8 +5736,7 @@ static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
 bool LoadMempool(const Config &config, CTxMemPool &pool,
                  Chainstate &active_chainstate) {
-    int64_t nExpiryTimeout =
-        gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60;
+    int64_t nExpiryTimeout = std::chrono::seconds{pool.m_expiry}.count();
     FILE *filestr =
         fsbridge::fopen(gArgs.GetDataDirNet() / "mempool.dat", "rb");
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);

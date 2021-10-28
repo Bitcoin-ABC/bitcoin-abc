@@ -159,7 +159,8 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
 }
 
 CTxMemPool::CTxMemPool(const Options &opts)
-    : m_check_ratio(opts.check_ratio), m_max_size_bytes{opts.max_size_bytes} {
+    : m_check_ratio(opts.check_ratio),
+      m_max_size_bytes{opts.max_size_bytes}, m_expiry{opts.expiry} {
     // lock free clear
     _clear();
 }
@@ -741,11 +742,10 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     return stage.size();
 }
 
-void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache,
-                           std::chrono::seconds age) {
+void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache) {
     AssertLockHeld(::cs_main);
     AssertLockHeld(cs);
-    int expired = Expire(GetTime<std::chrono::seconds>() - age);
+    int expired = Expire(GetTime<std::chrono::seconds>() - m_expiry);
     if (expired != 0) {
         LogPrint(BCLog::MEMPOOL,
                  "Expired %i transactions from the memory pool\n", expired);
@@ -1034,7 +1034,5 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
     txInfo.clear();
 
     // Re-limit mempool size, in case we added any transactions
-    pool.LimitSize(active_chainstate.CoinsTip(),
-                   std::chrono::hours{gArgs.GetIntArg("-mempoolexpiry",
-                                                      DEFAULT_MEMPOOL_EXPIRY)});
+    pool.LimitSize(active_chainstate.CoinsTip());
 }

@@ -18,4 +18,8 @@ void ApplyArgsManOptions(const ArgsManager &argsman,
     if (auto mb = argsman.GetIntArg("-maxmempool")) {
         mempool_opts.max_size_bytes = *mb * 1'000'000;
     }
+
+    if (auto hours = argsman.GetIntArg("-mempoolexpiry")) {
+        mempool_opts.expiry = std::chrono::hours{*hours};
+    }
 }

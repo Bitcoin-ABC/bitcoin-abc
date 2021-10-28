@@ -476,6 +476,7 @@ public:
     using Options = kernel::MemPoolOptions;
 
     const int64_t m_max_size_bytes;
+    const std::chrono::seconds m_expiry;
 
     /**
      * Create a new CTxMemPool.
@@ -600,7 +601,7 @@ public:
     /**
      * Reduce the size of the mempool by expiring and then trimming the mempool.
      */
-    void LimitSize(CCoinsViewCache &coins_cache, std::chrono::seconds age)
+    void LimitSize(CCoinsViewCache &coins_cache)
         EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main);
 
     /** @returns true if the mempool is fully loaded */

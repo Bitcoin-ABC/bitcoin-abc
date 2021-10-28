@@ -5,7 +5,7 @@
 """Tests that a mempool transaction expires after a given timeout and that its
 children are removed as well.
 
-Both the default expiry timeout defined by DEFAULT_MEMPOOL_EXPIRY and a user
+Both the default expiry timeout defined by DEFAULT_MEMPOOL_EXPIRY_HOURS and a user
 definable expiry timeout via the '-mempoolexpiry=<n>' command line argument
 (<n> is the timeout in hours) are tested.
 """
@@ -16,7 +16,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet import MiniWallet
 
-DEFAULT_MEMPOOL_EXPIRY = 336  # hours
+DEFAULT_MEMPOOL_EXPIRY_HOURS = 336  # hours
 CUSTOM_MEMPOOL_EXPIRY = 10  # hours
 
 
@@ -112,9 +112,9 @@ class MempoolExpiryTest(BitcoinTestFramework):
 
     def run_test(self):
         self.log.info(
-            f"Test default mempool expiry timeout of {DEFAULT_MEMPOOL_EXPIRY} hours."
+            f"Test default mempool expiry timeout of {DEFAULT_MEMPOOL_EXPIRY_HOURS} hours."
         )
-        self.test_transaction_expiry(DEFAULT_MEMPOOL_EXPIRY)
+        self.test_transaction_expiry(DEFAULT_MEMPOOL_EXPIRY_HOURS)
 
         self.log.info(
             f"Test custom mempool expiry timeout of {CUSTOM_MEMPOOL_EXPIRY} hours."

@@ -543,7 +543,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-mempoolexpiry=<n>",
                    strprintf("Do not keep transactions in the mempool longer "
                              "than <n> hours (default: %u)",
-                             DEFAULT_MEMPOOL_EXPIRY),
+                             DEFAULT_MEMPOOL_EXPIRY_HOURS),
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-minimumchainwork=<hex>",
