@@ -43,10 +43,6 @@ static constexpr unsigned int MAX_STANDARD_TX_SIZE{100000};
 static constexpr unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE{1650};
 
 /**
- * Default for -maxmempool, maximum megabytes of mempool memory usage.
- */
-static constexpr unsigned int DEFAULT_MAX_MEMPOOL_SIZE_MB{300};
-/**
  * Default for -incrementalrelayfee, which sets the minimum feerate increase for
  * mempool limiting or BIP 125 replacement.
  */

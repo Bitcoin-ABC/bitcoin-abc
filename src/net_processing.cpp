@@ -7484,12 +7484,7 @@ void PeerManagerImpl::MaybeSendFeefilter(
         return;
     }
 
-    Amount currentFilter =
-        m_mempool
-            .GetMinFee(
-                gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) *
-                1000000)
-            .GetFeePerK();
+    Amount currentFilter = m_mempool.GetMinFee().GetFeePerK();
     static FeeFilterRounder g_filter_rounder{
         CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB}};
 

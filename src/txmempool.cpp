@@ -158,7 +158,8 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
     }
 }
 
-CTxMemPool::CTxMemPool(const Options &opts) : m_check_ratio(opts.check_ratio) {
+CTxMemPool::CTxMemPool(const Options &opts)
+    : m_check_ratio(opts.check_ratio), m_max_size_bytes{opts.max_size_bytes} {
     // lock free clear
     _clear();
 }
@@ -578,13 +579,11 @@ TxMempoolInfo CTxMemPool::info(const TxId &txid) const {
 CFeeRate CTxMemPool::estimateFee() const {
     LOCK(cs);
 
-    uint64_t maxMempoolSize =
-        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000;
     // minerPolicy uses recent blocks to figure out a reasonable fee.  This
     // may disagree with the rollingMinimumFeerate under certain scenarios
     // where the mempool  increases rapidly, or blocks are being mined which
     // do not contain propagated transactions.
-    return std::max(::minRelayTxFee, GetMinFee(maxMempoolSize));
+    return std::max(::minRelayTxFee, GetMinFee());
 }
 
 void CTxMemPool::PrioritiseTransaction(const TxId &txid,
@@ -742,7 +741,7 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     return stage.size();
 }
 
-void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
+void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache,
                            std::chrono::seconds age) {
     AssertLockHeld(::cs_main);
     AssertLockHeld(cs);
@@ -753,7 +752,7 @@ void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
     }
 
     std::vector<COutPoint> vNoSpendsRemaining;
-    TrimToSize(limit, &vNoSpendsRemaining);
+    TrimToSize(m_max_size_bytes, &vNoSpendsRemaining);
     for (const COutPoint &removed : vNoSpendsRemaining) {
         coins_cache.Uncache(removed);
     }
@@ -1036,8 +1035,6 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
 
     // Re-limit mempool size, in case we added any transactions
     pool.LimitSize(active_chainstate.CoinsTip(),
-                   gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) *
-                       1000000,
                    std::chrono::hours{gArgs.GetIntArg("-mempoolexpiry",
                                                       DEFAULT_MEMPOOL_EXPIRY)});
 }

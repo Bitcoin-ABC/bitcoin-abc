@@ -475,6 +475,8 @@ public:
 
     using Options = kernel::MemPoolOptions;
 
+    const int64_t m_max_size_bytes;
+
     /**
      * Create a new CTxMemPool.
      * Sanity checks will be off by default for performance, because otherwise
@@ -576,6 +578,7 @@ public:
      * to 0. When the feerate would otherwise be half of this, it is set to 0
      * instead.
      */
+    CFeeRate GetMinFee() const { return GetMinFee(m_max_size_bytes); }
     CFeeRate GetMinFee(size_t sizelimit) const;
 
     /**
@@ -597,8 +600,7 @@ public:
     /**
      * Reduce the size of the mempool by expiring and then trimming the mempool.
      */
-    void LimitSize(CCoinsViewCache &coins_cache, size_t limit,
-                   std::chrono::seconds age)
+    void LimitSize(CCoinsViewCache &coins_cache, std::chrono::seconds age)
         EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main);
 
     /** @returns true if the mempool is fully loaded */

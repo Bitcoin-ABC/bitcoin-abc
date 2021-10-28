@@ -658,12 +658,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     ws.m_vsize = ws.m_entry->GetTxVirtualSize();
 
-    Amount mempoolRejectFee =
-        m_pool
-            .GetMinFee(
-                gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) *
-                1000000)
-            .GetFee(ws.m_vsize);
+    Amount mempoolRejectFee = m_pool.GetMinFee().GetFee(ws.m_vsize);
     if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
         ws.m_modified_fees < mempoolRejectFee) {
         return state.Invalid(
@@ -736,12 +731,9 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     // at the very end to make sure the mempool is still within limits and
     // package submission happens atomically.
     if (!args.m_package_submission && !bypass_limits) {
-        m_pool.LimitSize(
-            m_active_chainstate.CoinsTip(),
-            gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) *
-                1000000,
-            std::chrono::hours{
-                gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+        m_pool.LimitSize(m_active_chainstate.CoinsTip(),
+                         std::chrono::hours{gArgs.GetIntArg(
+                             "-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
         if (!m_pool.exists(txid)) {
             return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
                                  "mempool full");
@@ -807,11 +799,9 @@ bool MemPoolAccept::SubmitPackage(
 
     // It may or may not be the case that all the transactions made it into the
     // mempool. Regardless, make sure we haven't exceeded max mempool size.
-    m_pool.LimitSize(
-        m_active_chainstate.CoinsTip(),
-        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000,
-        std::chrono::hours{
-            gArgs.GetIntArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
+    m_pool.LimitSize(m_active_chainstate.CoinsTip(),
+                     std::chrono::hours{gArgs.GetIntArg(
+                         "-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
     if (!all_submitted) {
         return false;
     }
@@ -2170,9 +2160,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
 CoinsCacheSizeState Chainstate::GetCoinsCacheSizeState() {
     AssertLockHeld(::cs_main);
-    return this->GetCoinsCacheSizeState(
-        m_coinstip_cache_size_bytes,
-        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000);
+    return this->GetCoinsCacheSizeState(m_coinstip_cache_size_bytes,
+                                        m_mempool ? m_mempool->m_max_size_bytes
+                                                  : 0);
 }
 
 CoinsCacheSizeState
