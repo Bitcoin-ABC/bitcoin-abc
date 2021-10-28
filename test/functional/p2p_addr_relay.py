@@ -173,7 +173,6 @@ class AddrTest(BitcoinTestFramework):
         msg = self.setup_addr_msg(num_ipv4_addrs)
         with self.nodes[0].assert_debug_log(
             [
-                f"Added {num_ipv4_addrs} addresses from 127.0.0.1: 0 tried",
                 "received: addr (301 bytes) peer=1",
             ]
         ):

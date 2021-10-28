@@ -61,7 +61,6 @@ class AddrTest(BitcoinTestFramework):
         msg.addrs = ADDRS
         with self.nodes[0].assert_debug_log(
             [
-                "Added 10 addresses from 127.0.0.1: 0 tried",
                 "received: addrv2 (131 bytes) peer=0",
                 "sending addrv2 (131 bytes) peer=1",
             ]
