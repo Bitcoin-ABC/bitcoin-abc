@@ -207,7 +207,22 @@ static fs::path GetPidFile(const ArgsManager &args) {
 // ShutdownRequested() getting set, and then does the normal Qt shutdown thing.
 //
 
+#if HAVE_SYSTEM
+static void ShutdownNotify(const ArgsManager &args) {
+    std::vector<std::thread> threads;
+    for (const auto &cmd : args.GetArgs("-shutdownnotify")) {
+        threads.emplace_back(runCommand, cmd);
+    }
+    for (auto &t : threads) {
+        t.join();
+    }
+}
+#endif
+
 void Interrupt(NodeContext &node) {
+#if HAVE_SYSTEM
+    ShutdownNotify(*node.args);
+#endif
     InterruptHTTPServer();
     InterruptHTTPRPC();
     InterruptRPC();
@@ -678,6 +693,13 @@ void SetupServerArgs(NodeContext &node) {
 #if HAVE_SYSTEM
     argsman.AddArg("-startupnotify=<cmd>", "Execute command on startup.",
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg(
+        "-shutdownnotify=<cmd>",
+        "Execute command immediately before beginning shutdown. The need for "
+        "shutdown may be urgent, so be careful not to delay it long (if the "
+        "command doesn't require interaction with the server, consider having "
+        "it fork into the background).",
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #endif
 #ifndef WIN32
     argsman.AddArg(

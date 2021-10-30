@@ -39,15 +39,21 @@ class NotificationsTest(BitcoinTestFramework):
         self.alertnotify_dir = os.path.join(self.options.tmpdir, "alertnotify")
         self.blocknotify_dir = os.path.join(self.options.tmpdir, "blocknotify")
         self.walletnotify_dir = os.path.join(self.options.tmpdir, "walletnotify")
+        self.shutdownnotify_dir = os.path.join(self.options.tmpdir, "shutdownnotify")
+        self.shutdownnotify_file = os.path.join(
+            self.shutdownnotify_dir, "shutdownnotify.txt"
+        )
         os.mkdir(self.alertnotify_dir)
         os.mkdir(self.blocknotify_dir)
         os.mkdir(self.walletnotify_dir)
+        os.mkdir(self.shutdownnotify_dir)
 
         # -alertnotify and -blocknotify on node0, walletnotify on node1
         self.extra_args = [
             [
                 f"-alertnotify=echo > {os.path.join(self.alertnotify_dir, '%s')}",
                 f"-blocknotify=echo > {os.path.join(self.blocknotify_dir, '%s')}",
+                f"-shutdownnotify=echo > {self.shutdownnotify_file}",
             ],
             [
                 "-rescan",
@@ -216,6 +222,10 @@ class NotificationsTest(BitcoinTestFramework):
 
         for notify_file in os.listdir(self.alertnotify_dir):
             os.remove(os.path.join(self.alertnotify_dir, notify_file))
+
+        self.log.info("test -shutdownnotify")
+        self.stop_nodes()
+        self.wait_until(lambda: os.path.isfile(self.shutdownnotify_file))
 
     def expect_wallet_notify(self, tx_details):
         self.wait_until(
