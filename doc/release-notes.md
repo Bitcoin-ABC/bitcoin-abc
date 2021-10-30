@@ -11,3 +11,4 @@ This release includes the following features and fixes:
    before putting the process in the background. This allows the user or parent
    process to more easily know whether the daemon started successfully by observing
    the program’s output or exit code.
+ - The `savemempool` RPC now returns the path to the saved mempool in the `filename` field.

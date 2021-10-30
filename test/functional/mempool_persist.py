@@ -160,8 +160,9 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.log.debug(
             "Remove the mempool.dat file. Verify that savemempool to disk via RPC re-creates it")
         os.remove(mempooldat0)
-        self.nodes[0].savemempool()
+        result0 = self.nodes[0].savemempool()
         assert os.path.isfile(mempooldat0)
+        assert_equal(result0['filename'], mempooldat0)
 
         self.log.debug(
             "Stop nodes, make node1 use mempool.dat from node0. Verify it has 6 transactions")
