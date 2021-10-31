@@ -5,6 +5,7 @@
 #include <wallet/test/wallet_test_fixture.h>
 
 #include <chainparams.h>
+#include <scheduler.h>
 #include <validationinterface.h>
 #include <wallet/rpcdump.h>
 
@@ -16,4 +17,10 @@ WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
     m_chain_notifications_handler =
         m_chain->handleNotifications({&m_wallet, [](CWallet *) {}});
     m_wallet_client->registerRpcs();
+}
+
+WalletTestingSetup::~WalletTestingSetup() {
+    if (m_node.scheduler) {
+        m_node.scheduler->stop();
+    }
 }
