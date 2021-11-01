@@ -6,6 +6,7 @@ import {
 } from '@components/Common/CustomIcons';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import { currency } from '@components/Common/Ticker';
+import { MessageSignedNotificationIcon } from '@components/Common/CustomIcons';
 
 // Success Notifications:
 const sendXecNotification = link => {
@@ -123,6 +124,15 @@ const errorNotification = (error, message, stringDescribingCallEvent) => {
     });
 };
 
+const messageSignedNotification = msgSignature => {
+    notification.success({
+        message: 'Message Signature Generated',
+        description: <Paragraph>{msgSignature}</Paragraph>,
+        icon: <MessageSignedNotificationIcon />,
+        style: { width: '100%' },
+    });
+};
+
 export {
     sendXecNotification,
     createTokenNotification,
@@ -130,4 +140,5 @@ export {
     xecReceivedNotification,
     eTokenReceivedNotification,
     errorNotification,
+    messageSignedNotification,
 };

@@ -3,7 +3,7 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-cSHVUG evOoHm"
+    className="sc-kgoBCf fswuXg"
   >
     You currently have 0 
     XEC
@@ -30,7 +30,7 @@ Array [
         }
       >
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -99,7 +99,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-htoDjs clindv"
+                          className="sc-gZMcBi kJTcOr"
                           onClick={[Function]}
                         >
                           <span
@@ -140,7 +140,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -285,7 +285,7 @@ Array [
                       </span>
                     </div>
                     <span
-                      className="sc-VigVT hzxqG"
+                      className="sc-jzJRlG kQuQkS"
                       disabled={false}
                       onClick={[Function]}
                       style={
@@ -314,7 +314,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-kgoBCf kMQqjE"
+          className="sc-dxgOiQ kbCOBL"
         >
           =
            
@@ -328,12 +328,60 @@ Array [
           }
         >
           <button
-            className="sc-bZQynM hlOQYo"
+            className="sc-dnqmqq fryMgW"
           >
             Send
           </button>
         </div>
       </form>
+    </div>
+  </div>,
+  <br />,
+  <br />,
+  <div
+    className="sc-ksYbfQ fUkkAB"
+  />,
+  <div
+    className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
+    role={null}
+    style={
+      Object {
+        "marginBottom": "24px",
+      }
+    }
+  >
+    <div
+      className="ant-collapse-item"
+    >
+      <div
+        aria-expanded={false}
+        className="ant-collapse-header"
+        onClick={[Function]}
+        onKeyPress={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          aria-label="right"
+          className="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+        Sign Message
+      </div>
     </div>
   </div>,
 ]
@@ -342,7 +390,7 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-cSHVUG evOoHm"
+    className="sc-kgoBCf fswuXg"
   >
     You currently have 0 
     XEC
@@ -369,7 +417,7 @@ Array [
         }
       >
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -438,7 +486,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-htoDjs clindv"
+                          className="sc-gZMcBi kJTcOr"
                           onClick={[Function]}
                         >
                           <span
@@ -479,7 +527,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -624,7 +672,7 @@ Array [
                       </span>
                     </div>
                     <span
-                      className="sc-VigVT hzxqG"
+                      className="sc-jzJRlG kQuQkS"
                       disabled={false}
                       onClick={[Function]}
                       style={
@@ -653,7 +701,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-kgoBCf kMQqjE"
+          className="sc-dxgOiQ kbCOBL"
         >
           =
            
@@ -667,12 +715,60 @@ Array [
           }
         >
           <button
-            className="sc-bZQynM hlOQYo"
+            className="sc-dnqmqq fryMgW"
           >
             Send
           </button>
         </div>
       </form>
+    </div>
+  </div>,
+  <br />,
+  <br />,
+  <div
+    className="sc-ksYbfQ fUkkAB"
+  />,
+  <div
+    className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
+    role={null}
+    style={
+      Object {
+        "marginBottom": "24px",
+      }
+    }
+  >
+    <div
+      className="ant-collapse-item"
+    >
+      <div
+        aria-expanded={false}
+        className="ant-collapse-header"
+        onClick={[Function]}
+        onKeyPress={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          aria-label="right"
+          className="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+        Sign Message
+      </div>
     </div>
   </div>,
 ]
@@ -681,14 +777,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-fjdhpX llHaIR"
+    className="sc-kAzzGY kdOdTZ"
   >
     0.06
      
     XEC
   </div>,
   <div
-    className="sc-jzJRlG fVAWpo"
+    className="sc-chPdSV elAazB"
   >
     $ 
     NaN
@@ -715,7 +811,7 @@ Array [
         }
       >
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -784,7 +880,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-htoDjs clindv"
+                          className="sc-gZMcBi kJTcOr"
                           onClick={[Function]}
                         >
                           <span
@@ -825,7 +921,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -970,7 +1066,7 @@ Array [
                       </span>
                     </div>
                     <span
-                      className="sc-VigVT hzxqG"
+                      className="sc-jzJRlG kQuQkS"
                       disabled={false}
                       onClick={[Function]}
                       style={
@@ -999,7 +1095,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-kgoBCf kMQqjE"
+          className="sc-dxgOiQ kbCOBL"
         >
           =
            
@@ -1013,7 +1109,7 @@ Array [
           }
         >
           <button
-            className="sc-EHOje bfWfmf"
+            className="sc-htoDjs jyAknT"
             onClick={[Function]}
           >
             Send
@@ -1022,13 +1118,61 @@ Array [
       </form>
     </div>
   </div>,
+  <br />,
+  <br />,
+  <div
+    className="sc-ksYbfQ fUkkAB"
+  />,
+  <div
+    className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
+    role={null}
+    style={
+      Object {
+        "marginBottom": "24px",
+      }
+    }
+  >
+    <div
+      className="ant-collapse-item"
+    >
+      <div
+        aria-expanded={false}
+        className="ant-collapse-header"
+        onClick={[Function]}
+        onKeyPress={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          aria-label="right"
+          className="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+        Sign Message
+      </div>
+    </div>
+  </div>,
 ]
 `;
 
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-cSHVUG evOoHm"
+    className="sc-kgoBCf fswuXg"
   >
     You currently have 0 
     XEC
@@ -1055,7 +1199,7 @@ Array [
         }
       >
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -1124,7 +1268,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-htoDjs clindv"
+                          className="sc-gZMcBi kJTcOr"
                           onClick={[Function]}
                         >
                           <span
@@ -1165,7 +1309,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -1310,7 +1454,7 @@ Array [
                       </span>
                     </div>
                     <span
-                      className="sc-VigVT hzxqG"
+                      className="sc-jzJRlG kQuQkS"
                       disabled={false}
                       onClick={[Function]}
                       style={
@@ -1339,7 +1483,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-kgoBCf kMQqjE"
+          className="sc-dxgOiQ kbCOBL"
         >
           =
            
@@ -1353,12 +1497,60 @@ Array [
           }
         >
           <button
-            className="sc-bZQynM hlOQYo"
+            className="sc-dnqmqq fryMgW"
           >
             Send
           </button>
         </div>
       </form>
+    </div>
+  </div>,
+  <br />,
+  <br />,
+  <div
+    className="sc-ksYbfQ fUkkAB"
+  />,
+  <div
+    className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
+    role={null}
+    style={
+      Object {
+        "marginBottom": "24px",
+      }
+    }
+  >
+    <div
+      className="ant-collapse-item"
+    >
+      <div
+        aria-expanded={false}
+        className="ant-collapse-header"
+        onClick={[Function]}
+        onKeyPress={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          aria-label="right"
+          className="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+        Sign Message
+      </div>
     </div>
   </div>,
 ]
@@ -1367,7 +1559,7 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-cSHVUG evOoHm"
+    className="sc-kgoBCf fswuXg"
   >
     You currently have 0 
     XEC
@@ -1394,7 +1586,7 @@ Array [
         }
       >
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -1463,7 +1655,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-htoDjs clindv"
+                          className="sc-gZMcBi kJTcOr"
                           onClick={[Function]}
                         >
                           <span
@@ -1504,7 +1696,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-gZMcBi bZwSTm"
+          className="sc-jTzLTM fKDsMv"
         >
           <div
             className="ant-row ant-form-item"
@@ -1649,7 +1841,7 @@ Array [
                       </span>
                     </div>
                     <span
-                      className="sc-VigVT hzxqG"
+                      className="sc-jzJRlG kQuQkS"
                       disabled={false}
                       onClick={[Function]}
                       style={
@@ -1678,7 +1870,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-kgoBCf kMQqjE"
+          className="sc-dxgOiQ kbCOBL"
         >
           =
            
@@ -1692,12 +1884,60 @@ Array [
           }
         >
           <button
-            className="sc-bZQynM hlOQYo"
+            className="sc-dnqmqq fryMgW"
           >
             Send
           </button>
         </div>
       </form>
+    </div>
+  </div>,
+  <br />,
+  <br />,
+  <div
+    className="sc-ksYbfQ fUkkAB"
+  />,
+  <div
+    className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
+    role={null}
+    style={
+      Object {
+        "marginBottom": "24px",
+      }
+    }
+  >
+    <div
+      className="ant-collapse-item"
+    >
+      <div
+        aria-expanded={false}
+        className="ant-collapse-header"
+        onClick={[Function]}
+        onKeyPress={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          aria-label="right"
+          className="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+        Sign Message
+      </div>
     </div>
   </div>,
 ]

@@ -28,6 +28,18 @@ export const AntdFormCss = css`
         opacity: 1;
         height: 50px;
     }
+    textarea.ant-input,
+    .ant-select-selection {
+        background-color: ${props =>
+            props.theme.forms.selectionBackground} !important;
+        box-shadow: none !important;
+        border-radius: 4px;
+        font-weight: bold;
+        color: ${props => props.theme.forms.text};
+        opacity: 1;
+        height: 50px;
+        min-height: 100px;
+    }
     .ant-input-affix-wrapper {
         background-color: ${props => props.theme.forms.selectionBackground};
         border: 1px solid ${props => props.theme.wallet.borders.color} !important;

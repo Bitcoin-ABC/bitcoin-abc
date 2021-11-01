@@ -24,6 +24,14 @@ export const TokenReceivedNotificationIcon = () => (
     />
 );
 
+export const MessageSignedNotificationIcon = () => (
+    <Image
+        src={currency.tokenLogo}
+        height={'33px'}
+        width={'30px'}
+        preview={false}
+    />
+);
 export const ThemedCopyOutlined = styled(CopyOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;

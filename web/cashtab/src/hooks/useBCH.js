@@ -860,6 +860,19 @@ export default function useBCH() {
         return link;
     };
 
+    const signPkMessage = async (BCH, pk, message) => {
+        try {
+            let signature = await BCH.BitcoinCash.signMessageWithPrivKey(
+                pk,
+                message,
+            );
+            return signature;
+        } catch (err) {
+            console.log(`useBCH.signPkMessage() error: `, err);
+            throw err;
+        }
+    };
+
     const sendBch = async (
         BCH,
         wallet,
@@ -1033,6 +1046,7 @@ export default function useBCH() {
         parseTokenInfoForTxHistory,
         getTxData,
         getRestUrl,
+        signPkMessage,
         sendBch,
         sendToken,
         createToken,

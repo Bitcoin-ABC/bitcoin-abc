@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-chPdSV kmzXKJ"
+    className="sc-kgoBCf fswuXg"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-cSHVUG lalYdv"
+    className="sc-kAzzGY kdOdTZ"
   >
     0
      
@@ -60,7 +60,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-kGXeez gsczLr"
+    className="sc-kpOJdX bjUfnF"
   >
     You need at least
      
@@ -83,14 +83,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-chPdSV kmzXKJ"
+    className="sc-kgoBCf fswuXg"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-cSHVUG lalYdv"
+    className="sc-kAzzGY kdOdTZ"
   >
     0
      
@@ -140,7 +140,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-kGXeez gsczLr"
+    className="sc-kpOJdX bjUfnF"
   >
     You need at least
      
@@ -163,14 +163,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-cSHVUG lalYdv"
+    className="sc-kAzzGY kdOdTZ"
   >
     0.06
      
     XEC
   </div>,
   <div
-    className="sc-kAzzGY hVJvbw"
+    className="sc-chPdSV elAazB"
   >
     $ 
     NaN
@@ -226,10 +226,10 @@ Array [
       onClick={[Function]}
     >
       <div
-        className="sc-jKJlTe dOjZdK"
+        className="sc-eNQAEJ jnzudA"
       >
         <div
-          className="sc-dxgOiQ ehOwnn"
+          className="sc-ckVGcZ ealBRQ"
         >
           <img
             alt="identicon of tokenId bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba "
@@ -244,7 +244,7 @@ Array [
           />
         </div>
         <div
-          className="sc-ckVGcZ dWSPyd"
+          className="sc-jKJlTe bUCZgB"
         >
           6.001
            
@@ -261,14 +261,14 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-chPdSV kmzXKJ"
+    className="sc-kgoBCf fswuXg"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-cSHVUG lalYdv"
+    className="sc-kAzzGY kdOdTZ"
   >
     0
      
@@ -318,7 +318,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-kGXeez gsczLr"
+    className="sc-kpOJdX bjUfnF"
   >
     You need at least
      
@@ -341,14 +341,14 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-chPdSV kmzXKJ"
+    className="sc-kgoBCf fswuXg"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-cSHVUG lalYdv"
+    className="sc-kAzzGY kdOdTZ"
   >
     0
      
@@ -398,7 +398,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-kGXeez gsczLr"
+    className="sc-kpOJdX bjUfnF"
   >
     You need at least
      

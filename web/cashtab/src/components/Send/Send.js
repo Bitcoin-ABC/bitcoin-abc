@@ -1,20 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
-import { Form, message, Modal, Alert } from 'antd';
+import {
+    Form,
+    message,
+    Modal,
+    Alert,
+    Collapse,
+    Input,
+    notification,
+} from 'antd';
+const { TextArea } = Input;
 import { Row, Col } from 'antd';
+import {
+    StyledCollapse,
+    AdvancedCollapse,
+} from '@components/Common/StyledCollapse';
 import PrimaryButton, {
     SecondaryButton,
+    SmartButton,
 } from '@components/Common/PrimaryButton';
 import {
     SendBchInput,
     FormItemWithQRCodeAddon,
+    AntdFormWrapper,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {
     sendXecNotification,
     errorNotification,
+    messageSignedNotification,
 } from '@components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import {
@@ -35,6 +51,26 @@ import {
 import { getWalletState } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
 import { formatFiatBalance } from '@utils/validation';
+import WalletLabel from '@components/Common/WalletLabel.js';
+import Wallet from '@components/Wallet/Wallet';
+import { TokenParamLabel } from '@components/Common/Atoms';
+import { PlusSquareOutlined } from '@ant-design/icons';
+const { Panel } = Collapse;
+import styled from 'styled-components';
+import { convertToEcashPrefix } from '@utils/cashMethods';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+
+const StyledSpacer = styled.div`
+    height: 1px;
+    width: 100%;
+    background-color: ${props => props.theme.wallet.borders.color};
+    margin: 60px 0 50px;
+`;
+
+const SignMessageLabel = styled.div`
+    text-align: left;
+    color: #0074c2;
+`;
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -47,7 +83,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const { wallet, fiatPrice, apiError, cashtabSettings } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, slpBalancesAndUtxos } = walletState;
-
+    // Modal settings
+    const [showConfirmMsgToSign, setShowConfirmMsgToSign] = useState(false);
+    const [msgToSign, setMsgToSign] = useState('');
+    const [signMessageIsValid, setSignMessageIsValid] = useState(null);
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -70,6 +109,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // Show a confirmation modal on transactions created by populating form from web page button
     const [isModalVisible, setIsModalVisible] = useState(false);
 
+    const [messageSignature, setMessageSignature] = useState('');
+    const [sigCopySuccess, setSigCopySuccess] = useState('');
+
     const showModal = () => {
         setIsModalVisible(true);
     };
@@ -83,7 +125,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
-    const { getBCH, getRestUrl, sendBch, calcFee } = useBCH();
+    const { getBCH, getRestUrl, sendBch, calcFee, signPkMessage } = useBCH();
 
     // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
     const BCH = jestBCH ? jestBCH : getBCH();
@@ -311,6 +353,45 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }));
     };
 
+    const handleSignMsgChange = e => {
+        const { value } = e.target;
+        // validation
+        if (value && value.length && value.length < 150) {
+            setMsgToSign(value);
+            setSignMessageIsValid(true);
+        } else {
+            setSignMessageIsValid(false);
+        }
+    };
+
+    const signMessageByPk = async () => {
+        try {
+            const messageSignature = await signPkMessage(
+                BCH,
+                wallet.Path1899.fundingWif,
+                msgToSign,
+            );
+            setMessageSignature(messageSignature);
+            messageSignedNotification(messageSignature);
+        } catch (err) {
+            let message;
+            if (!err.error && !err.message) {
+                message = err.message || err.error || JSON.stringify(err);
+            }
+            errorNotification(err, message, 'Message Signing Error');
+            throw err;
+        }
+        // Hide the modal
+        setShowConfirmMsgToSign(false);
+        setSigCopySuccess('');
+    };
+
+    const handleOnSigCopy = () => {
+        if (messageSignature != '') {
+            setSigCopySuccess('Signature copied to clipboard');
+        }
+    };
+
     const onMax = async () => {
         // Clear amt error
         setSendBchAmountError(false);
@@ -512,6 +593,89 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     </Form>
                 </Col>
             </Row>
+            <br />
+            <br />
+            <StyledSpacer />
+            <Modal
+                title={`Please review and confirm your message to be signed using this wallet.`}
+                visible={showConfirmMsgToSign}
+                onOk={signMessageByPk}
+                onCancel={() => setShowConfirmMsgToSign(false)}
+            >
+                <TokenParamLabel>Message:</TokenParamLabel> {msgToSign}
+                <br />
+            </Modal>
+            <AdvancedCollapse
+                style={{
+                    marginBottom: '24px',
+                }}
+            >
+                <Panel header="Sign Message" key="1">
+                    <AntdFormWrapper>
+                        <Form
+                            size="small"
+                            style={{
+                                width: 'auto',
+                            }}
+                        >
+                            <Form.Item>
+                                <SignMessageLabel>Message:</SignMessageLabel>
+                                <TextArea
+                                    name="signMessage"
+                                    onChange={e => handleSignMsgChange(e)}
+                                    showCount
+                                    maxLength={150}
+                                />
+                            </Form.Item>
+                            <Form.Item>
+                                <SignMessageLabel>Address:</SignMessageLabel>
+                                <Input
+                                    name="signMessageAddress"
+                                    disabled="true"
+                                    value={
+                                        wallet &&
+                                        wallet.Path1899 &&
+                                        wallet.Path1899.cashAddress
+                                            ? convertToEcashPrefix(
+                                                  wallet.Path1899.cashAddress,
+                                              )
+                                            : ''
+                                    }
+                                />
+                            </Form.Item>
+                            <SmartButton
+                                onClick={() => setShowConfirmMsgToSign(true)}
+                                disabled={!signMessageIsValid}
+                            >
+                                <PlusSquareOutlined />
+                                &nbsp;Sign Message
+                            </SmartButton>
+                            <CopyToClipboard
+                                style={{
+                                    display: 'inline-block',
+                                    width: '100%',
+                                    position: 'relative',
+                                }}
+                                text={messageSignature}
+                            >
+                                <Form.Item>
+                                    <SignMessageLabel>
+                                        Signature:
+                                    </SignMessageLabel>
+                                    <TextArea
+                                        name="signMessageSignature"
+                                        placeholder="The signature will be generated upon signing of the message"
+                                        readonly="true"
+                                        value={messageSignature}
+                                        onClick={() => handleOnSigCopy()}
+                                    />
+                                </Form.Item>
+                            </CopyToClipboard>
+                            {sigCopySuccess}
+                        </Form>
+                    </AntdFormWrapper>
+                </Panel>
+            </AdvancedCollapse>
         </>
     );
 };
