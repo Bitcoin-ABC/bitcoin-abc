@@ -87,6 +87,7 @@ public:
 
     //! Simple read-only vector-like interface.
     unsigned int size() const { return (fValid ? keydata.size() : 0); }
+    const uint8_t *data() const { return keydata.data(); }
     const uint8_t *begin() const { return keydata.data(); }
     const uint8_t *end() const { return keydata.data() + size(); }
 
@@ -180,7 +181,7 @@ struct CExtKey {
     void Decode(const uint8_t code[BIP32_EXTKEY_SIZE]);
     bool Derive(CExtKey &out, unsigned int nChild) const;
     CExtPubKey Neuter() const;
-    void SetSeed(const uint8_t *seed, unsigned int nSeedLen);
+    void SetSeed(Span<const uint8_t> seed);
 
     CExtKey() = default;
 };

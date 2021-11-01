@@ -363,7 +363,7 @@ void LegacyScriptPubKeyMan::UpgradeKeyMetadata() {
             CKey key;
             GetKey(meta.hd_seed_id, key);
             CExtKey masterKey;
-            masterKey.SetSeed(key.begin(), key.size());
+            masterKey.SetSeed(key);
             // Add to map
             CKeyID master_id = masterKey.key.GetPubKey().GetID();
             std::copy(master_id.begin(), master_id.begin() + 4,
@@ -1052,7 +1052,7 @@ void LegacyScriptPubKeyMan::DeriveNewChildKey(WalletBatch &batch,
         throw std::runtime_error(std::string(__func__) + ": seed not found");
     }
 
-    masterKey.SetSeed(seed.begin(), seed.size());
+    masterKey.SetSeed(seed);
 
     // derive m/0'
     // use hardened derivation (child keys >= 0x80000000 are hardened after

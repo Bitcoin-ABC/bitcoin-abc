@@ -51,9 +51,8 @@ BOOST_AUTO_TEST_CASE(key_io_valid_parse) {
             BOOST_CHECK_MESSAGE(privkey.IsValid(), "!IsValid:" + strTest);
             BOOST_CHECK_MESSAGE(privkey.IsCompressed() == isCompressed,
                                 "compressed mismatch:" + strTest);
-            BOOST_CHECK_MESSAGE(privkey.size() == exp_payload.size() &&
-                                    std::equal(privkey.begin(), privkey.end(),
-                                               exp_payload.begin()),
+            BOOST_CHECK_MESSAGE(Span<const uint8_t>{privkey} ==
+                                    Span<const uint8_t>{exp_payload},
                                 "key mismatch:" + strTest);
 
             // Private key must be invalid public key
