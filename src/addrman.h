@@ -27,7 +27,8 @@ class AddrManImpl;
 /** Default for -checkaddrman */
 static constexpr int32_t DEFAULT_ADDRMAN_CONSISTENCY_CHECKS{0};
 
-/** Stochastic address manager
+/**
+ * Stochastic address manager
  *
  * Design goals:
  *  * Keep the address tables in-memory, and asynchronously dump the entire
@@ -64,8 +65,8 @@ static constexpr int32_t DEFAULT_ADDRMAN_CONSISTENCY_CHECKS{0};
  * m_consistency_check_ratio with the -checkaddrman configuration option will
  * introduce (expensive) consistency checks for the entire data structure.
  */
-
 class AddrMan {
+protected:
     const std::unique_ptr<AddrManImpl> m_impl;
 
 public:
@@ -159,9 +160,6 @@ public:
     void SetServices(const CService &addr, ServiceFlags nServices);
 
     const std::vector<bool> &GetAsmap() const;
-
-    friend class AddrManTest;
-    friend class AddrManCorrupted;
 };
 
 #endif // BITCOIN_ADDRMAN_H
