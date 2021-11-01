@@ -110,6 +110,24 @@ BOOST_AUTO_TEST_CASE(MoneyRangeTest) {
     BOOST_CHECK_EQUAL(MoneyRange(MAX_MONEY + SATOSHI), false);
 }
 
+BOOST_AUTO_TEST_CASE(CheckedAddTest) {
+    constexpr Amount MINI{std::numeric_limits<int64_t>::min() * SATOSHI};
+    constexpr Amount MAXI{std::numeric_limits<int64_t>::max() * SATOSHI};
+
+    BOOST_CHECK(!SATOSHI.CheckedAdd(MAXI));
+    BOOST_CHECK(!MAXI.CheckedAdd(MAXI));
+    BOOST_CHECK_EQUAL(Amount::zero(),
+                      Amount::zero().CheckedAdd(Amount::zero()).value());
+    BOOST_CHECK_EQUAL(MAXI, Amount::zero().CheckedAdd(MAXI).value());
+    BOOST_CHECK_EQUAL(MAXI, SATOSHI.CheckedAdd(MAXI - SATOSHI).value());
+
+    BOOST_CHECK(!MINI.CheckedAdd(-SATOSHI));
+    BOOST_CHECK(!MINI.CheckedAdd(MINI));
+    BOOST_CHECK_EQUAL(MINI, Amount::zero().CheckedAdd(MINI).value());
+    BOOST_CHECK_EQUAL(MINI, (-SATOSHI).CheckedAdd(MINI + SATOSHI).value());
+    BOOST_CHECK_EQUAL(-SATOSHI, MINI.CheckedAdd(MAXI).value());
+}
+
 BOOST_AUTO_TEST_CASE(BinaryOperatorTest) {
     CFeeRate a, b;
     a = CFeeRate(1 * SATOSHI);

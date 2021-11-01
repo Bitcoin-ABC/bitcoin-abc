@@ -8,8 +8,10 @@
 #define BITCOIN_CONSENSUS_AMOUNT_H
 
 #include <serialize.h>
+#include <util/overflow.h>
 
 #include <cstdlib>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <type_traits>
@@ -84,6 +86,9 @@ public:
     friend constexpr Amount operator-(const Amount a, const Amount b) {
         return a + -b;
     }
+    /** Amount addition with integer overflow check. */
+    [[nodiscard]] std::optional<Amount>
+    CheckedAdd(const Amount &other) const noexcept;
 
     /**
      * Multiplication

@@ -7,8 +7,9 @@
 
 #include <coins.h>
 #include <index/coinstatsindex.h>
-#include <optional>
 #include <validation.h>
+
+#include <optional>
 
 namespace node {
 

@@ -359,7 +359,7 @@ CoinStatsIndex::LookUpStats(const CBlockIndex *block_index) const {
     stats.hashSerialized = entry.muhash;
     stats.nTransactionOutputs = entry.transaction_output_count;
     stats.nBogoSize = entry.bogo_size;
-    stats.nTotalAmount = entry.total_amount;
+    stats.total_amount = entry.total_amount;
     stats.total_subsidy = entry.total_subsidy;
     stats.total_unspendable_amount = entry.total_unspendable_amount;
     stats.total_prevout_spent_amount = entry.total_prevout_spent_amount;

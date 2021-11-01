@@ -36,3 +36,11 @@ Amount::operator UniValue() const {
                     strprintf("%s%d.%0*d", sign ? "-" : "", quotient,
                               currency.decimals, remainder));
 }
+
+std::optional<Amount> Amount::CheckedAdd(const Amount &other) const noexcept {
+    auto result = ::CheckedAdd(this->amount, other.amount);
+    if (result.has_value()) {
+        return Amount(result.value());
+    }
+    return std::nullopt;
+}

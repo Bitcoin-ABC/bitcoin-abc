@@ -82,7 +82,10 @@ static void ApplyStats(CCoinsStats &stats, const TxId &txid,
     stats.nTransactions++;
     for (auto it = outputs.begin(); it != outputs.end(); ++it) {
         stats.nTransactionOutputs++;
-        stats.nTotalAmount += it->second.GetTxOut().nValue;
+        if (stats.total_amount.has_value()) {
+            stats.total_amount =
+                (*stats.total_amount).CheckedAdd(it->second.GetTxOut().nValue);
+        }
         stats.nBogoSize += GetBogoSize(it->second.GetTxOut().scriptPubKey);
     }
 }

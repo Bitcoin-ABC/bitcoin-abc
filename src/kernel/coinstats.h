@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 class CCoinsView;
 namespace node {
@@ -34,7 +35,8 @@ struct CCoinsStats {
     uint64_t nBogoSize{0};
     uint256 hashSerialized{};
     uint64_t nDiskSize{0};
-    Amount nTotalAmount{Amount::zero()};
+    //! The total amount, or nullopt if an overflow occurred calculating it
+    std::optional<Amount> total_amount{Amount::zero()};
 
     //! The number of coins contained.
     uint64_t coins_count{0};
