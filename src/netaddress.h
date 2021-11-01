@@ -451,7 +451,7 @@ private:
 
         if (SetNetFromBIP155Network(bip155_net, address_size)) {
             m_addr.resize(address_size);
-            s >> MakeSpan(m_addr);
+            s >> Span{m_addr};
 
             if (m_net != NET_IPV6) {
                 return;
@@ -530,7 +530,7 @@ public:
             // keep doing so in serialized form.
             uint8_t dummy[12] = {0};
             READWRITE(dummy);
-            READWRITE(MakeSpan(obj.netmask).first(4));
+            READWRITE(Span{obj.netmask}.first(4));
         } else {
             READWRITE(obj.netmask);
         }

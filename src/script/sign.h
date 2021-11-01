@@ -157,7 +157,7 @@ void SerializeHDKeypaths(Stream &s,
         if (!keypath_pair.first.IsValid()) {
             throw std::ios_base::failure("Invalid CPubKey being serialized");
         }
-        SerializeToVector(s, type, MakeSpan(keypath_pair.first));
+        SerializeToVector(s, type, Span{keypath_pair.first});
         WriteCompactSize(s, (keypath_pair.second.path.size() + 1) *
                                 sizeof(uint32_t));
         s << keypath_pair.second.fingerprint;

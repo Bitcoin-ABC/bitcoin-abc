@@ -154,7 +154,7 @@ bool CSeederNode::ProcessMessages() {
             break;
         }
         if (vRecv.GetVersion() >= 209) {
-            uint256 hash = Hash(MakeSpan(vRecv).first(nMessageSize));
+            uint256 hash = Hash(Span{vRecv}.first(nMessageSize));
             if (memcmp(hash.begin(), hdr.pchChecksum,
                        CMessageHeader::CHECKSUM_SIZE) != 0) {
                 continue;

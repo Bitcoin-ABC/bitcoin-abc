@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(sig_pubkey_hash_variations) {
     for (int n = 0; n < 16; n++) {
         std::string strMsg = strprintf("Sigcache test1 %i: xx", n);
         uint256 hashMsg = Hash(strMsg);
-        uint256 hashMsg2 = Hash(MakeSpan(strMsg).last(strMsg.size() - 1));
+        uint256 hashMsg2 = Hash(Span{strMsg}.last(strMsg.size() - 1));
 
         std::vector<uint8_t> sig;
         BOOST_CHECK(key1.SignECDSA(hashMsg, sig));

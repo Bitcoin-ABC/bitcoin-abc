@@ -67,7 +67,7 @@ struct PSBTInput {
             // Write any partial signatures
             for (auto sig_pair : partial_sigs) {
                 SerializeToVector(s, PSBT_IN_PARTIAL_SIG,
-                                  MakeSpan(sig_pair.second.first));
+                                  Span{sig_pair.second.first});
                 s << sig_pair.second.second;
             }
 

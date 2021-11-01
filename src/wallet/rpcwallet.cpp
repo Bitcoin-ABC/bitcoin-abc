@@ -5012,5 +5012,5 @@ Span<const CRPCCommand> GetWalletRPCCommands() {
     };
     // clang-format on
 
-    return MakeSpan(commands);
+    return Span{commands};
 }
