@@ -189,13 +189,9 @@ BOOST_AUTO_TEST_CASE(util_HexStr) {
                       "ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d"
                       "578a4c702b6bf11d5f");
 
-    BOOST_CHECK_EQUAL(HexStr(Span<const uint8_t>(
-                          ParseHex_expected + sizeof(ParseHex_expected),
-                          ParseHex_expected + sizeof(ParseHex_expected))),
-                      "");
+    BOOST_CHECK_EQUAL(HexStr(Span{ParseHex_expected}.last(0)), "");
 
-    BOOST_CHECK_EQUAL(
-        HexStr(Span<const uint8_t>(ParseHex_expected, ParseHex_expected)), "");
+    BOOST_CHECK_EQUAL(HexStr(Span{ParseHex_expected}.first(0)), "");
 
     std::vector<uint8_t> ParseHex_vec(ParseHex_expected, ParseHex_expected + 5);
 

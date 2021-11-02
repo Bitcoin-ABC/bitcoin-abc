@@ -790,12 +790,11 @@ V1TransportDeserializer::GetMessage(const Config &config,
                                    CMessageHeader::CHECKSUM_SIZE) == 0);
 
     if (!msg.m_valid_checksum) {
-        LogPrint(
-            BCLog::NET, "CHECKSUM ERROR (%s, %u bytes), expected %s was %s\n",
-            SanitizeString(msg.m_command), msg.m_message_size,
-            HexStr(Span<uint8_t>(hash.begin(),
-                                 hash.begin() + CMessageHeader::CHECKSUM_SIZE)),
-            HexStr(hdr.pchChecksum));
+        LogPrint(BCLog::NET,
+                 "CHECKSUM ERROR (%s, %u bytes), expected %s was %s\n",
+                 SanitizeString(msg.m_command), msg.m_message_size,
+                 HexStr(Span{hash}.first(CMessageHeader::CHECKSUM_SIZE)),
+                 HexStr(hdr.pchChecksum));
     }
 
     // store receive time
@@ -1823,8 +1822,8 @@ void CConnman::SocketHandler() {
             }
             if (nBytes > 0) {
                 bool notify = false;
-                if (!pnode->ReceiveMsgBytes(
-                        *config, Span<const uint8_t>(pchBuf, nBytes), notify)) {
+                if (!pnode->ReceiveMsgBytes(*config, {pchBuf, (size_t)nBytes},
+                                            notify)) {
                     pnode->CloseSocketDisconnect();
                 }
                 RecordBytesRecv(nBytes);
