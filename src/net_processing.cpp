@@ -279,9 +279,6 @@ static constexpr uint32_t MAX_GETCFHEADERS_SIZE = 2000;
  */
 static constexpr size_t MAX_PCT_ADDR_TO_SEND = 23;
 
-/// How many non standard orphan do we consider from a node before ignoring it.
-static constexpr uint32_t MAX_NON_STANDARD_ORPHAN_PER_NODE = 5;
-
 struct COrphanTx {
     // When modifying, adapt the copy of this definition in tests/DoS_tests.
     CTransactionRef tx;
@@ -2540,7 +2537,6 @@ void PeerManager::ProcessOrphanTx(const Config &config,
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
-    std::unordered_map<NodeId, uint32_t> rejectCountPerNode;
     while (!orphan_work_set.empty()) {
         const TxId orphanTxId = *orphan_work_set.begin();
         orphan_work_set.erase(orphan_work_set.begin());
@@ -2558,12 +2554,6 @@ void PeerManager::ProcessOrphanTx(const Config &config,
         // orphan map, not based on the peer that relayed the previous
         // transaction).
         TxValidationState orphan_state;
-
-        auto it = rejectCountPerNode.find(fromPeer);
-        if (it != rejectCountPerNode.end() &&
-            it->second > MAX_NON_STANDARD_ORPHAN_PER_NODE) {
-            continue;
-        }
 
         if (AcceptToMemoryPool(config, m_mempool, orphan_state, porphanTx,
                                false /* bypass_limits */,
@@ -2585,12 +2575,12 @@ void PeerManager::ProcessOrphanTx(const Config &config,
         } else if (orphan_state.GetResult() !=
                    TxValidationResult::TX_MISSING_INPUTS) {
             if (orphan_state.IsInvalid()) {
-                // Punish peer that gave us an invalid orphan tx
-                MaybePunishNodeForTx(fromPeer, orphan_state);
                 LogPrint(BCLog::MEMPOOL,
                          "   invalid orphan tx %s from peer=%d. %s\n",
                          orphanTxId.ToString(), fromPeer,
                          orphan_state.ToString());
+                // Punish peer that gave us an invalid orphan tx
+                MaybePunishNodeForTx(fromPeer, orphan_state);
             }
             // Has inputs but not accepted to mempool
             // Probably non-standard or insufficient fee
