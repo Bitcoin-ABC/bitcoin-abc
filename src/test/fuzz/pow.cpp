@@ -12,6 +12,7 @@
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
 #include <util/chaintype.h>
+#include <util/overflow.h>
 
 #include <cstdint>
 #include <optional>

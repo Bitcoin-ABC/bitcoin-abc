@@ -8,6 +8,25 @@
 #include <climits>
 #include <limits>
 #include <optional>
+#include <type_traits>
+
+template <class T>
+[[nodiscard]] bool AdditionOverflow(const T i, const T j) noexcept {
+    static_assert(std::is_integral<T>::value, "Integral required.");
+    if (std::numeric_limits<T>::is_signed) {
+        return (i > 0 && j > std::numeric_limits<T>::max() - i) ||
+               (i < 0 && j < std::numeric_limits<T>::min() - i);
+    }
+    return std::numeric_limits<T>::max() - i < j;
+}
+
+template <class T>
+[[nodiscard]] std::optional<T> CheckedAdd(const T i, const T j) noexcept {
+    if (AdditionOverflow(i, j)) {
+        return std::nullopt;
+    }
+    return i + j;
+}
 
 /**
  * @brief Left bit shift with overflow checking.
@@ -15,8 +34,7 @@
  * @param shift The number of bits to left shift.
  * @return (input * 2^shift) or nullopt if it would not fit in the return type.
  */
-// TODO: use template <std::integral T> afer we switch to C++20
-template <typename T>
+template <std::integral T>
 constexpr std::optional<T> CheckedLeftShift(T input, unsigned shift) noexcept {
     if (shift == 0 || input == 0) {
         return input;
@@ -42,8 +60,7 @@ constexpr std::optional<T> CheckedLeftShift(T input, unsigned shift) noexcept {
  * @return (input * 2^shift) clamped to fit between the lowest and highest
  *         representable values of the type T.
  */
-// TODO: use template <std::integral T> afer we switch to C++20
-template <typename T>
+template <std::integral T>
 constexpr T SaturatingLeftShift(T input, unsigned shift) noexcept {
     if (auto result{CheckedLeftShift(input, shift)}) {
         return *result;

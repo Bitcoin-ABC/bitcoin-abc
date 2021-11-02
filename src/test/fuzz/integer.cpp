@@ -33,6 +33,7 @@
 #include <util/chaintype.h>
 #include <util/check.h>
 #include <util/moneystr.h>
+#include <util/overflow.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
