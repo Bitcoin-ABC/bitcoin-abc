@@ -522,7 +522,7 @@ BOOST_AUTO_TEST_CASE(GetModifiedFeeRateTest) {
 
     // Add modified fee
     CTxMemPoolEntryRef entryFeeModified = entry.Fee(1000 * SATOSHI).FromTx(tx);
-    entryFeeModified->UpdateFeeDelta(1000 * SATOSHI);
+    entryFeeModified->UpdateModifiedFee(1000 * SATOSHI);
     BOOST_CHECK_EQUAL(2000 * SATOSHI,
                       entryFeeModified->GetModifiedFeeRate().GetFee(1000));
 
@@ -571,7 +571,7 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
         CTxMemPoolEntryRef entryA = entry.Fee(100 * SATOSHI).FromTx(a);
         CTxMemPoolEntryRef entryB = entry.Fee(200 * SATOSHI).FromTx(b);
         // .. A and B have same modified fee, ordering is by lowest txid
-        entryA->UpdateFeeDelta(100 * SATOSHI);
+        entryA->UpdateModifiedFee(100 * SATOSHI);
         checkOrdering(entryB, entryA);
     }
     // .. A is first entering the mempool
@@ -579,7 +579,7 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
     CTxMemPoolEntryRef entryB = entry.Fee(100 * SATOSHI).EntryId(2).FromTx(b);
     checkOrdering(entryA, entryB);
     // .. B has higher modified fee.
-    entryB->UpdateFeeDelta(1 * SATOSHI);
+    entryB->UpdateModifiedFee(1 * SATOSHI);
     checkOrdering(entryB, entryA);
 }
 

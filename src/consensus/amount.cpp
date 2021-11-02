@@ -44,3 +44,7 @@ std::optional<Amount> Amount::CheckedAdd(const Amount &other) const noexcept {
     }
     return std::nullopt;
 }
+
+void Amount::SaturatingAdd(const Amount &other) noexcept {
+    amount = ::SaturatingAdd(this->amount, other.amount);
+}

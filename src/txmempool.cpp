@@ -154,7 +154,10 @@ void CTxMemPool::addUnchecked(CTxMemPoolEntryRef entry) {
     {
         Amount feeDelta = Amount::zero();
         ApplyDelta(entry->GetTx().GetId(), feeDelta);
-        entry->UpdateFeeDelta(feeDelta);
+        // The following call to UpdateModifiedFee assumes no previous fee
+        // modifications
+        Assume(entry->GetFee() == entry->GetModifiedFee());
+        entry->UpdateModifiedFee(feeDelta);
     }
 
     // Add to memory pool without checking anything.
@@ -708,11 +711,11 @@ void CTxMemPool::PrioritiseTransaction(const TxId &txid,
     {
         LOCK(cs);
         Amount &delta = mapDeltas[txid];
-        delta += nFeeDelta;
+        delta.SaturatingAdd(nFeeDelta);
         txiter it = mapTx.find(txid);
         if (it != mapTx.end()) {
-            mapTx.modify(it, [&delta](CTxMemPoolEntryRef &e) {
-                e->UpdateFeeDelta(delta);
+            mapTx.modify(it, [&nFeeDelta](CTxMemPoolEntryRef &e) {
+                e->UpdateModifiedFee(nFeeDelta);
             });
             ++nTransactionsUpdated;
         }

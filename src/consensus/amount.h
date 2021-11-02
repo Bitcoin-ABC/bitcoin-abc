@@ -91,6 +91,9 @@ public:
     [[nodiscard]] std::optional<Amount>
     CheckedAdd(const Amount &other) const noexcept;
 
+    /** Amount addition with integer saturation. */
+    void SaturatingAdd(const Amount &other) noexcept;
+
     /**
      * Multiplication
      */

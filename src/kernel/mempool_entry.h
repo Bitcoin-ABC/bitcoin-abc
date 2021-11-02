@@ -93,7 +93,7 @@ private:
     const int64_t sigChecks;
     //! Used for determining the priority of the transaction for mining in a
     //! block
-    Amount feeDelta{Amount::zero()};
+    Amount m_modified_fee{Amount::zero()};
     //! Track the height and time at which tx was final
     LockPoints lockPoints;
 
@@ -104,7 +104,8 @@ public:
                     unsigned int entry_height, int64_t sigchecks, LockPoints lp)
         : tx{_tx}, nFee{fee}, nTxSize(tx->GetTotalSize()),
           nUsageSize{RecursiveDynamicUsage(tx)}, nTime(time),
-          entryHeight{entry_height}, sigChecks(sigchecks), lockPoints(lp) {}
+          entryHeight{entry_height}, sigChecks(sigchecks), m_modified_fee{nFee},
+          lockPoints(lp) {}
 
     CTxMemPoolEntry(const CTxMemPoolEntry &other) = delete;
     CTxMemPoolEntry(CTxMemPoolEntry &&other)
@@ -113,7 +114,7 @@ public:
           m_children(std::move(other.m_children)), nFee(other.nFee),
           nTxSize(other.nTxSize), nUsageSize(other.nUsageSize),
           nTime(other.nTime), entryHeight(other.entryHeight),
-          sigChecks(other.sigChecks), feeDelta(other.feeDelta),
+          sigChecks(other.sigChecks), m_modified_fee(other.m_modified_fee),
           lockPoints(std::move(other.lockPoints)),
           refcount(other.refcount.load()){};
 
@@ -134,15 +135,17 @@ public:
     std::chrono::seconds GetTime() const { return std::chrono::seconds{nTime}; }
     unsigned int GetHeight() const { return entryHeight; }
     int64_t GetSigChecks() const { return sigChecks; }
-    Amount GetModifiedFee() const { return nFee + feeDelta; }
+    Amount GetModifiedFee() const { return m_modified_fee; }
     CFeeRate GetModifiedFeeRate() const {
         return CFeeRate(GetModifiedFee(), GetTxVirtualSize());
     }
     size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints &GetLockPoints() const { return lockPoints; }
 
-    // Updates the fee delta used for mining priority score
-    void UpdateFeeDelta(Amount newFeeDelta) { feeDelta = newFeeDelta; }
+    // Updates the modified fees used for mining priority score
+    void UpdateModifiedFee(Amount fee_diff) {
+        m_modified_fee.SaturatingAdd(fee_diff);
+    };
 
     const Parents &GetMemPoolParentsConst() const { return m_parents; }
     const Children &GetMemPoolChildrenConst() const { return m_children; }
