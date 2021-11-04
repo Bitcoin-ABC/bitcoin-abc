@@ -31,6 +31,9 @@ import {
 } from 'react-router-dom';
 // Extension-only import used for open in new tab link
 import PopOut from '@assets/popout.svg';
+import GitInfo from 'react-git-info/macro';
+const gitInfo = GitInfo();
+const formattedCommitHash = gitInfo.commit.hash.slice(0, 9);
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -266,7 +269,11 @@ const App = () => {
                                     )}
                                 />
                                 <Route path="/configure">
-                                    <Configure />
+                                    <Configure
+                                        formattedCommitHash={
+                                            formattedCommitHash
+                                        }
+                                    />
                                 </Route>
                                 <Redirect exact from="/" to="/wallet" />
                                 <Route component={NotFound} />

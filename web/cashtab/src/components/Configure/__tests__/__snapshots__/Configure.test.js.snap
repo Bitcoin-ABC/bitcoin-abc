@@ -318,6 +318,24 @@ exports[`Configure with a wallet 1`] = `
     Documentation
   </a>
   ]
+  <br />
+  <div
+    className="sc-hSdWYo fdXXAb"
+  >
+    <p
+      className="sc-eHgmQL gPThIU"
+    >
+      Source:
+       
+      <a
+        className="sc-dxgOiQ jbuVAx"
+        href="https://reviews.bitcoinabc.org/"
+        rel="noreferrer"
+        target="_blank"
+        type="link"
+      />
+    </p>
+  </div>
 </div>
 `;
 
@@ -601,5 +619,23 @@ exports[`Configure without a wallet 1`] = `
     Documentation
   </a>
   ]
+  <br />
+  <div
+    className="sc-hSdWYo fdXXAb"
+  >
+    <p
+      className="sc-eHgmQL gPThIU"
+    >
+      Source:
+       
+      <a
+        className="sc-dxgOiQ jbuVAx"
+        href="https://reviews.bitcoinabc.org/"
+        rel="noreferrer"
+        target="_blank"
+        type="link"
+      />
+    </p>
+  </div>
 </div>
 `;

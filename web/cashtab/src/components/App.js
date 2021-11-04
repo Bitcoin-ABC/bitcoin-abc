@@ -34,6 +34,9 @@ import TabCash from '@assets/tabcash.png';
 import ABC from '@assets/logo_topright.png';
 import { checkForTokenById } from '@utils/tokenMethods.js';
 import { currency } from './Common/Ticker';
+import GitInfo from 'react-git-info/macro';
+const gitInfo = GitInfo();
+const formattedCommitHash = gitInfo.commit.hash.slice(0, 9);
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
@@ -331,7 +334,11 @@ const App = () => {
                                     )}
                                 />
                                 <Route path="/configure">
-                                    <Configure />
+                                    <Configure
+                                        formattedCommitHash={
+                                            formattedCommitHash
+                                        }
+                                    />
                                 </Route>
                                 <Redirect exact from="/" to="/wallet" />
                                 <Route component={NotFound} />
