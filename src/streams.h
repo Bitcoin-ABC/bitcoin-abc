@@ -219,7 +219,7 @@ public:
     explicit CDataStream(int nTypeIn, int nVersionIn)
         : nType{nTypeIn}, nVersion{nVersionIn} {}
 
-    explicit CDataStream(Span<const uint8_t> sp, int nTypeIn, int nVersionIn)
+    explicit CDataStream(Span<const value_type> sp, int nTypeIn, int nVersionIn)
         : vch(sp.data(), sp.data() + sp.size()), nType{nTypeIn},
           nVersion{nVersionIn} {}
 
@@ -245,7 +245,9 @@ public:
     iterator end() { return vch.end(); }
     size_type size() const { return vch.size() - nReadPos; }
     bool empty() const { return vch.size() == nReadPos; }
-    void resize(size_type n, value_type c = 0) { vch.resize(n + nReadPos, c); }
+    void resize(size_type n, value_type c = value_type{}) {
+        vch.resize(n + nReadPos, c);
+    }
     void reserve(size_type n) { vch.reserve(n + nReadPos); }
     const_reference operator[](size_type pos) const {
         return vch[pos + nReadPos];
@@ -255,15 +257,17 @@ public:
         vch.clear();
         nReadPos = 0;
     }
-    iterator insert(iterator it, const uint8_t x) { return vch.insert(it, x); }
-    void insert(iterator it, size_type n, const uint8_t x) {
+    iterator insert(iterator it, const value_type x) {
+        return vch.insert(it, x);
+    }
+    void insert(iterator it, size_type n, const value_type x) {
         vch.insert(it, n, x);
     }
     value_type *data() { return vch.data() + nReadPos; }
     const value_type *data() const { return vch.data() + nReadPos; }
 
-    void insert(iterator it, std::vector<uint8_t>::const_iterator first,
-                std::vector<uint8_t>::const_iterator last) {
+    void insert(iterator it, std::vector<value_type>::const_iterator first,
+                std::vector<value_type>::const_iterator last) {
         if (last == first) {
             return;
         }
@@ -279,6 +283,8 @@ public:
         }
     }
 
+    // This was added to have full compat with the std::vector interface but is
+    // unused (except in a Bitcoin ABC specific test in stream_tests)
     void insert(iterator it, const char *first, const char *last) {
         if (last == first) {
             return;
