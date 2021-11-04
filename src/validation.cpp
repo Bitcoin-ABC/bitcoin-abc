@@ -393,7 +393,13 @@ private:
             : m_ptx(ptx),
               m_next_block_script_verify_flags(next_block_script_verify_flags) {
         }
+        /** All mempool ancestors of this transaction. */
         CTxMemPool::setEntries m_ancestors;
+        /**
+         * Mempool entry constructed for this transaction.
+         * Constructed in PreChecks() but not inserted into the mempool until
+         * Finalize().
+         */
         std::unique_ptr<CTxMemPoolEntry> m_entry;
 
         /**
@@ -401,8 +407,16 @@ private:
          * using serialized size of the transaction and sigchecks.
          */
         int64_t m_vsize;
+        /**
+         * Fees paid by this transaction: total input amounts subtracted by
+         * total output amounts.
+         */
         Amount m_base_fees;
 
+        /**
+         * Base fees + any fee delta set by the user with
+         * prioritisetransaction.
+         */
         Amount m_modified_fees;
 
         const CTransactionRef &m_ptx;
