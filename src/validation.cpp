@@ -804,16 +804,14 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
 
 } // namespace
 
-/**
- * (try to) add transaction to memory pool with a specified acceptance time.
- */
-static MempoolAcceptResult AcceptToMemoryPoolWithTime(
-    const Config &config, CTxMemPool &pool, CChainState &active_chainstate,
-    const CTransactionRef &tx, int64_t nAcceptTime, bool bypass_limits,
-    bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+MempoolAcceptResult AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
+                                       CChainState &active_chainstate,
+                                       const CTransactionRef &tx,
+                                       int64_t accept_time, bool bypass_limits,
+                                       bool test_accept) {
     AssertLockHeld(cs_main);
     std::vector<COutPoint> coins_to_uncache;
-    MemPoolAccept::ATMPArgs args{config, nAcceptTime, bypass_limits,
+    MemPoolAccept::ATMPArgs args{config, accept_time, bypass_limits,
                                  coins_to_uncache, test_accept};
     const MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
                                            .AcceptSingleTransaction(tx, args);
@@ -834,14 +832,6 @@ static MempoolAcceptResult AcceptToMemoryPoolWithTime(
     BlockValidationState stateDummy;
     active_chainstate.FlushStateToDisk(stateDummy, FlushStateMode::PERIODIC);
     return result;
-}
-
-MempoolAcceptResult AcceptToMemoryPool(CChainState &active_chainstate,
-                                       const Config &config, CTxMemPool &pool,
-                                       const CTransactionRef &tx,
-                                       bool bypass_limits, bool test_accept) {
-    return AcceptToMemoryPoolWithTime(config, pool, active_chainstate, tx,
-                                      GetTime(), bypass_limits, test_accept);
 }
 
 PackageMempoolAcceptResult
@@ -929,7 +919,7 @@ void CoinsViews::InitCache() {
 
 CChainState::CChainState(CTxMemPool *mempool, BlockManager &blockman,
                          std::optional<BlockHash> from_snapshot_blockhash)
-    : m_mempool(mempool), m_params(::Params()), m_blockman(blockman),
+    : m_mempool(mempool), m_blockman(blockman), m_params(::Params()),
       m_from_snapshot_blockhash(from_snapshot_blockhash) {}
 
 void CChainState::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
@@ -4287,9 +4277,10 @@ ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
     // making AcceptToMemoryPool take a CChainParams instead of a Config.
     // This avoids passing an extra Config argument to this function that will
     // be removed soon.
-    auto result = AcceptToMemoryPool(active_chainstate, ::GetConfig(),
-                                     *active_chainstate.m_mempool, tx,
-                                     /*bypass_limits=*/false, test_accept);
+    auto result =
+        AcceptToMemoryPool(::GetConfig(), *active_chainstate.m_mempool,
+                           active_chainstate, tx, GetTime(),
+                           /* bypass_limits= */ false, test_accept);
     active_chainstate.m_mempool->check(active_chainstate.CoinsTip(),
                                        active_chainstate.m_chain.Height() + 1);
     return result;
@@ -5635,9 +5626,9 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
             }
             if (nTime > nNow - nExpiryTimeout) {
                 LOCK(cs_main);
-                if (AcceptToMemoryPoolWithTime(
-                        config, pool, active_chainstate, tx, nTime,
-                        false /* bypass_limits */, false /* test_accept */)
+                if (AcceptToMemoryPool(config, pool, active_chainstate, tx,
+                                       nTime, /* bypass_limits= */ false,
+                                       /* test_accept= */ false)
                         .m_result_type ==
                     MempoolAcceptResult::ResultType::VALID) {
                     ++count;

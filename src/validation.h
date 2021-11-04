@@ -333,11 +333,16 @@ struct PackageMempoolAcceptResult {
  * exposed only for testing. Client code should use
  * ChainstateManager::ProcessTransaction()
  *
- * @param[in]  active_chainstate  Reference to the active chainstate.
- * @param[in]  pool               Reference to the node's mempool.
  * @param[in]  config             The global configuration.
+ * @param[in]  pool               Reference to the node's mempool.
+ * @param[in]  active_chainstate  Reference to the active chainstate.
  * @param[in]  tx                 The transaction to submit for mempool
  *                                acceptance.
+ * @param[in]  accept_time        The timestamp for adding the transaction to
+ *                                the mempool. Usually the current system time,
+ *                                but may be different.
+ *                                It is also used to determine when the entry
+ *                                expires.
  * @param[in]  bypass_limits      When true, don't enforce mempool fee and
  *                                capacity limits.
  * @param[in]  test_accept        When true, run validation checks but don't
@@ -346,10 +351,11 @@ struct PackageMempoolAcceptResult {
  * @returns a MempoolAcceptResult indicating whether the transaction was
  *     accepted/rejected with reason.
  */
-MempoolAcceptResult
-AcceptToMemoryPool(CChainState &active_chainstate, const Config &config,
-                   CTxMemPool &pool, const CTransactionRef &tx,
-                   bool bypass_limits, bool test_accept = false)
+MempoolAcceptResult AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
+                                       CChainState &active_chainstate,
+                                       const CTransactionRef &tx,
+                                       int64_t accept_time, bool bypass_limits,
+                                       bool test_accept = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
@@ -845,8 +851,6 @@ private:
     //! Only the active chainstate has a mempool.
     CTxMemPool *m_mempool;
 
-    const CChainParams &m_params;
-
     //! Manages the UTXO set, which is a reflection of the contents of
     //! `m_chain`.
     std::unique_ptr<CoinsViews> m_coins_views;
@@ -870,6 +874,9 @@ public:
     //! Reference to a BlockManager instance which itself is shared across all
     //! CChainState instances.
     BlockManager &m_blockman;
+
+    /** Chain parameters for this chainstate */
+    const CChainParams &m_params;
 
     explicit CChainState(
         CTxMemPool *mempool, BlockManager &blockman,
