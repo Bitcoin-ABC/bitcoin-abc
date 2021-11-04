@@ -210,18 +210,7 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
-const FooterWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-`;
-
-const StyledFooterP = styled.p`
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-`;
-
-const Configure = ({ formattedCommitHash }) => {
+const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const { wallet, apiError } = ContextValue;
 
@@ -684,20 +673,6 @@ const Configure = ({ formattedCommitHash }) => {
                 Documentation
             </SettingsLink>
             ]
-            <br />
-            <FooterWrapper>
-                <StyledFooterP>
-                    Source:{' '}
-                    <SettingsLink
-                        type="link"
-                        href="https://reviews.bitcoinabc.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        {formattedCommitHash}
-                    </SettingsLink>
-                </StyledFooterP>
-            </FooterWrapper>
         </StyledConfigure>
     );
 };
