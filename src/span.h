@@ -207,6 +207,9 @@ public:
         return m_data[m_size - 1];
     }
     constexpr std::size_t size() const noexcept { return m_size; }
+    constexpr std::size_t size_bytes() const noexcept {
+        return sizeof(C) * m_size;
+    }
     constexpr bool empty() const noexcept { return size() == 0; }
     CONSTEXPR_IF_NOT_DEBUG C &operator[](std::size_t pos) const noexcept {
         ASSERT_IF_DEBUG(size() > pos);
@@ -278,6 +281,21 @@ template <typename T> T &SpanPopBack(Span<T> &span) {
     return back;
 }
 
+// From C++20 as_bytes and as_writeable_bytes
+template <typename T> Span<const std::byte> AsBytes(Span<T> s) noexcept {
+    return {reinterpret_cast<const std::byte *>(s.data()), s.size_bytes()};
+}
+template <typename T> Span<std::byte> AsWritableBytes(Span<T> s) noexcept {
+    return {reinterpret_cast<std::byte *>(s.data()), s.size_bytes()};
+}
+
+template <typename V> Span<const std::byte> MakeByteSpan(V &&v) noexcept {
+    return AsBytes(Span(std::forward<V>(v)));
+}
+template <typename V> Span<std::byte> MakeWritableByteSpan(V &&v) noexcept {
+    return AsWritableBytes(Span(std::forward<V>(v)));
+}
+
 // Helper functions to safely cast to uint8_t pointers.
 inline uint8_t *UCharCast(char *c) {
     return (uint8_t *)c;
@@ -290,6 +308,9 @@ inline const uint8_t *UCharCast(const char *c) {
 }
 inline const uint8_t *UCharCast(const uint8_t *c) {
     return c;
+}
+inline const uint8_t *UCharCast(const std::byte *c) {
+    return reinterpret_cast<const uint8_t *>(c);
 }
 
 // Helper function to safely convert a Span to a Span<[const] uint8_t>.

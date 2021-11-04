@@ -53,7 +53,12 @@ bool IsHexNumber(const std::string &str);
 std::vector<uint8_t> DecodeBase64(const char *p, bool *pf_invalid = nullptr);
 std::string DecodeBase64(const std::string &str, bool *pf_invalid = nullptr);
 std::string EncodeBase64(Span<const uint8_t> input);
-std::string EncodeBase64(const std::string &str);
+inline std::string EncodeBase64(Span<const std::byte> input) {
+    return EncodeBase64(MakeUCharSpan(input));
+}
+inline std::string EncodeBase64(const std::string &str) {
+    return EncodeBase64(MakeUCharSpan(str));
+}
 std::vector<uint8_t> DecodeBase32(const char *p, bool *pf_invalid = nullptr);
 std::string DecodeBase32(const std::string &str, bool *pf_invalid = nullptr);
 
@@ -161,6 +166,9 @@ constexpr inline bool IsSpace(char c) noexcept {
  */
 std::string HexStr(const Span<const uint8_t> s);
 inline std::string HexStr(const Span<const char> s) {
+    return HexStr(MakeUCharSpan(s));
+}
+inline std::string HexStr(const Span<const std::byte> s) {
     return HexStr(MakeUCharSpan(s));
 }
 
