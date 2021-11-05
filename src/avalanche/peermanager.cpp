@@ -240,7 +240,9 @@ bool isConflictingProofPreferred(const ProofRef &conflicting,
     // aggregation mechanism inefficient.
     // TODO this only makes sense if the staked coins are locked.
     if (conflicting->getMaster() == current->getMaster()) {
-        return conflicting->getSequence() > current->getSequence();
+        if (conflicting->getSequence() != current->getSequence()) {
+            return conflicting->getSequence() > current->getSequence();
+        }
     }
 
     // Favor the proof which is the most likely to be selected, i.e. the one

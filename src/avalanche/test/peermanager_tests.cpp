@@ -857,50 +857,12 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
     BOOST_CHECK(pm.isValid(conflictingProof->getId()));
 }
 
-BOOST_AUTO_TEST_CASE(conflicting_proof_same_pubkey) {
+BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint outpoint(TxId(GetRandHash()), 0);
     const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
-
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(outpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    }
-
-    auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, GetRandInt(std::numeric_limits<int>::max()),
-                        key);
-        BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
-        return pb.build();
-    };
-
-    auto proof_base = buildProofWithSequence(10);
-
-    auto proof_lowSequence = buildProofWithSequence(9);
-    BOOST_CHECK(!isConflictingProofPreferred(proof_lowSequence, proof_base));
-
-    auto proof_sameSequence = buildProofWithSequence(10);
-    // Collision might occur here, but it's so unlikely that it's not a concern
-    BOOST_CHECK(!isConflictingProofPreferred(proof_sameSequence, proof_base));
-
-    auto proof_highSequence = buildProofWithSequence(11);
-    BOOST_CHECK(isConflictingProofPreferred(proof_highSequence, proof_base));
-}
-
-BOOST_AUTO_TEST_CASE(conflicting_proof_different_pubkey) {
-    avalanche::PeerManager pm;
-
-    const CKey key = CKey::MakeCompressedKey();
-
     const uint32_t height = 100;
     const bool is_coinbase = false;
 
@@ -908,52 +870,76 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_different_pubkey) {
 
     auto addCoin = [&](const Amount &amount) {
         LOCK(cs_main);
-        COutPoint outpoint(TxId(GetRandHash()), 0);
+        const COutPoint outpoint(TxId(GetRandHash()), 0);
         CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
         coins.AddCoin(outpoint,
                       Coin(CTxOut(amount, script), height, is_coinbase), false);
-
         return outpoint;
     };
 
-    const Amount conflictingOutpointAmount = 10 * COIN;
-    // This is the outpoint that will conflict through the test
-    COutPoint conflictingOutpoint = addCoin(conflictingOutpointAmount);
+    // This will be the conflicting UTXO for all the following proofs
+    auto conflictingOutpoint = addCoin(amount);
 
-    auto buildProofFromAmounts = [&](std::vector<Amount> amounts) {
-        CKey master = CKey::MakeCompressedKey();
-        ProofBuilder pb(0, 0, std::move(master));
-        BOOST_CHECK(pb.addUTXO(conflictingOutpoint, conflictingOutpointAmount,
-                               height, is_coinbase, key));
-        for (Amount &amount : amounts) {
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, GetRandInt(std::numeric_limits<int>::max()),
+                        key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+
+        return pb.build();
+    };
+
+    auto proof_base = buildProofWithSequence(10);
+
+    auto checkPreferred = [&](const ProofRef &candidate,
+                              const ProofRef &reference, bool expectAccepted) {
+        BOOST_CHECK_EQUAL(isConflictingProofPreferred(candidate, reference),
+                          expectAccepted);
+        BOOST_CHECK_EQUAL(isConflictingProofPreferred(reference, candidate),
+                          !expectAccepted);
+    };
+
+    // Same master key, lower sequence number
+    checkPreferred(buildProofWithSequence(9), proof_base, false);
+    // Same master key, higher sequence number
+    checkPreferred(buildProofWithSequence(11), proof_base, true);
+
+    auto buildProofFromAmounts = [&](const CKey &master,
+                                     std::vector<Amount> &&amounts) {
+        ProofBuilder pb(0, 0, master);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+        for (const Amount &v : amounts) {
             auto outpoint = addCoin(amount);
-            BOOST_CHECK(pb.addUTXO(std::move(outpoint), amount, height,
-                                   is_coinbase, key));
+            BOOST_CHECK(
+                pb.addUTXO(std::move(outpoint), v, height, is_coinbase, key));
         }
         return pb.build();
     };
 
-    auto proof_base = buildProofFromAmounts({10 * COIN, 10 * COIN});
+    auto proof_multiUtxo = buildProofFromAmounts(key, {10 * COIN, 10 * COIN});
 
-    auto proof_lowAmount = buildProofFromAmounts({10 * COIN, 9 * COIN});
-    BOOST_CHECK(!isConflictingProofPreferred(proof_lowAmount, proof_base));
-
-    auto proof_highAmount = buildProofFromAmounts({10 * COIN, 11 * COIN});
-    BOOST_CHECK(isConflictingProofPreferred(proof_highAmount, proof_base));
-
-    auto proof_lowStakeCount = buildProofFromAmounts({21 * COIN});
-    BOOST_CHECK(
-        isConflictingProofPreferred(proof_lowStakeCount, proof_highAmount));
-
-    auto proof_highStakeCount =
-        buildProofFromAmounts({1 * COIN, 5 * COIN, 5 * COIN});
-    BOOST_CHECK(!isConflictingProofPreferred(proof_highStakeCount,
-                                             proof_lowStakeCount));
-
-    auto proof_similar = buildProofFromAmounts({21 * COIN});
-    BOOST_CHECK_EQUAL(
-        isConflictingProofPreferred(proof_similar, proof_lowStakeCount),
-        proof_similar->getId() < proof_lowStakeCount->getId());
+    // Test for both the same master and a different one. The sequence number
+    // is the same for all these tests.
+    for (const CKey &k : {key, CKey::MakeCompressedKey()}) {
+        // Low amount
+        checkPreferred(buildProofFromAmounts(k, {10 * COIN, 5 * COIN}),
+                       proof_multiUtxo, false);
+        // High amount
+        checkPreferred(buildProofFromAmounts(k, {10 * COIN, 15 * COIN}),
+                       proof_multiUtxo, true);
+        // Same amount, low stake count
+        checkPreferred(buildProofFromAmounts(k, {20 * COIN}), proof_multiUtxo,
+                       true);
+        // Same amount, high stake count
+        checkPreferred(
+            buildProofFromAmounts(k, {10 * COIN, 5 * COIN, 5 * COIN}),
+            proof_multiUtxo, false);
+        // Same amount, same stake count, selection is done on proof id
+        auto proofSimilar = buildProofFromAmounts(k, {10 * COIN, 10 * COIN});
+        checkPreferred(proofSimilar, proof_multiUtxo,
+                       proofSimilar->getId() < proof_multiUtxo->getId());
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
