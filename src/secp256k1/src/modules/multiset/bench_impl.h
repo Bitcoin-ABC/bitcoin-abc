@@ -7,6 +7,7 @@
 #ifndef SECP256K1_MODULE_MULTISET_BENCH_H
 #define SECP256K1_MODULE_MULTISET_BENCH_H
 
+#include "../../bench.h"
 #include "../include/secp256k1_multiset.h"
 
 secp256k1_context *ctx;
@@ -40,9 +41,10 @@ void bench_multiset_setup(void* arg) {
     UNUSED(arg);
 }
 
-void run_multiset_bench(int iters) {
+void run_multiset_bench(int iters, int argc, char** argv) {
+    int d = argc ==1;
     ctx = secp256k1_context_create(SECP256K1_CONTEXT_VERIFY);
-    run_benchmark("multiset", bench_multiset, bench_multiset_setup, NULL, NULL, 5, iters);
+    if (d || have_flag(argc, argv, "multiset")) run_benchmark("multiset", bench_multiset, bench_multiset_setup, NULL, NULL, 5, iters);
     secp256k1_context_destroy(ctx);
 }
 
