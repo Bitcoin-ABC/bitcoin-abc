@@ -336,11 +336,11 @@ Array [
       </form>
     </div>
   </div>,
-  <br />,
-  <br />,
   <div
     className="sc-ksYbfQ fUkkAB"
-  />,
+  >
+    Signatures
+  </div>,
   <div
     className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
     role={null}
@@ -723,11 +723,11 @@ Array [
       </form>
     </div>
   </div>,
-  <br />,
-  <br />,
   <div
     className="sc-ksYbfQ fUkkAB"
-  />,
+  >
+    Signatures
+  </div>,
   <div
     className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
     role={null}
@@ -1118,11 +1118,11 @@ Array [
       </form>
     </div>
   </div>,
-  <br />,
-  <br />,
   <div
     className="sc-ksYbfQ fUkkAB"
-  />,
+  >
+    Signatures
+  </div>,
   <div
     className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
     role={null}
@@ -1505,11 +1505,11 @@ Array [
       </form>
     </div>
   </div>,
-  <br />,
-  <br />,
   <div
     className="sc-ksYbfQ fUkkAB"
-  />,
+  >
+    Signatures
+  </div>,
   <div
     className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
     role={null}
@@ -1892,11 +1892,11 @@ Array [
       </form>
     </div>
   </div>,
-  <br />,
-  <br />,
   <div
     className="sc-ksYbfQ fUkkAB"
-  />,
+  >
+    Signatures
+  </div>,
   <div
     className="ant-collapse ant-collapse-icon-position-left sc-gzVnrw fYpbQV"
     role={null}

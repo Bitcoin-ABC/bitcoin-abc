@@ -593,9 +593,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     </Form>
                 </Col>
             </Row>
-            <br />
-            <br />
-            <StyledSpacer />
+            <StyledSpacer>Signatures</StyledSpacer>
             <Modal
                 title={`Please review and confirm your message to be signed using this wallet.`}
                 visible={showConfirmMsgToSign}
