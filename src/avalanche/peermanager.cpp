@@ -298,23 +298,23 @@ PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
     const PeerId peerid = nextPeerId++;
 
     // Attach UTXOs to this proof.
-    std::unordered_set<PeerId> conflicting_peerids;
+    std::unordered_set<ProofRef> conflicting_proofs;
     for (const auto &s : proof->getStakes()) {
-        auto p = utxos.emplace(s.getStake().getUTXO(), peerid);
+        auto p = utxos.emplace(s.getStake().getUTXO(), proof);
         if (!p.second) {
             // We have a collision with an existing proof.
-            conflicting_peerids.insert(p.first->second);
+            conflicting_proofs.insert(p.first->second);
         }
     }
 
     // For now, if there is a conflict, just cleanup the mess.
-    if (conflicting_peerids.size() > 0) {
+    if (conflicting_proofs.size() > 0) {
         for (const auto &s : proof->getStakes()) {
             auto it = utxos.find(s.getStake().getUTXO());
             assert(it != utxos.end());
 
             // We need to delete that one.
-            if (it->second == peerid) {
+            if (it->second->getId() == proofid) {
                 utxos.erase(it);
             }
         }
@@ -471,7 +471,7 @@ bool PeerManager::verify() const {
             if (it == utxos.end()) {
                 return false;
             }
-            if (it->second != p.peerid) {
+            if (it->second->getId() != p.getProofId()) {
                 return false;
             }
 
@@ -517,7 +517,7 @@ bool PeerManager::verify() const {
     }
 
     // Check there is no dangling utxo
-    for (const auto &[outpoint, peerid] : utxos) {
+    for (const auto &[outpoint, proof] : utxos) {
         if (!peersUtxos.count(outpoint)) {
             return false;
         }

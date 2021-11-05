@@ -130,7 +130,7 @@ class PeerManager {
     PeerId nextPeerId = 0;
     PeerSet peers;
 
-    std::unordered_map<COutPoint, PeerId, SaltedOutpointHasher> utxos;
+    std::unordered_map<COutPoint, ProofRef, SaltedOutpointHasher> utxos;
 
     using NodeSet = boost::multi_index_container<
         Node,
