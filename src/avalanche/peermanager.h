@@ -282,9 +282,6 @@ private:
 PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
                       const uint64_t max);
 
-bool isConflictingProofPreferred(const ProofRef &conflicting,
-                                 const ProofRef &current);
-
 } // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_PEERMANAGER_H

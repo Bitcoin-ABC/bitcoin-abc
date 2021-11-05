@@ -5,6 +5,7 @@
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/proofbuilder.h>
+#include <avalanche/proofcomparator.h>
 #include <avalanche/test/util.h>
 #include <script/standard.h>
 #include <util/translation.h>
@@ -891,12 +892,11 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
 
     auto proof_base = buildProofWithSequence(10);
 
+    ConflictingProofComparator comparator;
     auto checkPreferred = [&](const ProofRef &candidate,
                               const ProofRef &reference, bool expectAccepted) {
-        BOOST_CHECK_EQUAL(isConflictingProofPreferred(candidate, reference),
-                          expectAccepted);
-        BOOST_CHECK_EQUAL(isConflictingProofPreferred(reference, candidate),
-                          !expectAccepted);
+        BOOST_CHECK_EQUAL(comparator(candidate, reference), expectAccepted);
+        BOOST_CHECK_EQUAL(comparator(reference, candidate), !expectAccepted);
     };
 
     // Same master key, lower sequence number

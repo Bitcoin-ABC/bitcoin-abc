@@ -231,37 +231,6 @@ bool PeerManager::isOrphan(const ProofId &proofid) const {
     return orphanProofs.getProof(proofid) != nullptr;
 }
 
-bool isConflictingProofPreferred(const ProofRef &conflicting,
-                                 const ProofRef &current) {
-    // If the proof master is the same, assume the sequence number is the
-    // righteous discriminant; otherwise, use costly parameters.
-    // This is so to prevent a user participating in an aggregated proof with
-    // other users from being able to invalidate the proof for free and make the
-    // aggregation mechanism inefficient.
-    // TODO this only makes sense if the staked coins are locked.
-    if (conflicting->getMaster() == current->getMaster()) {
-        if (conflicting->getSequence() != current->getSequence()) {
-            return conflicting->getSequence() > current->getSequence();
-        }
-    }
-
-    // Favor the proof which is the most likely to be selected, i.e. the one
-    // with the highest staked amount.
-    if (conflicting->getScore() != current->getScore()) {
-        return conflicting->getScore() > current->getScore();
-    }
-
-    // Select the proof with the least stakes, as this means the individual
-    // stakes have higher amount in average.
-    if (conflicting->getStakes().size() != current->getStakes().size()) {
-        return conflicting->getStakes().size() < current->getStakes().size();
-    }
-
-    // When there is no better discriminant, use the proof id which is
-    // guaranteed to be unique so equality is not possible.
-    return conflicting->getId() < current->getId();
-}
-
 PeerManager::PeerSet::iterator
 PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
     assert(proof);
