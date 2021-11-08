@@ -52,9 +52,6 @@ ${CMAKE_COMMAND} -GNinja .. \
   $ECMULT_GEN_PRECISION_ARG \
   "${CMAKE_EXTRA_FLAGS[@]}"
 
-# This limits the iterations in the benchmarks below to ITER iterations.
-export SECP256K1_BENCH_ITERS="$ITERS"
-
 ninja $CMAKE_TARGET
 
 # Print information about binaries so that we can see that the architecture is correct

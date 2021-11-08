@@ -74,10 +74,6 @@ trap 'print_logs' ERR
 # This tells `make check` to wrap test invocations.
 export LOG_COMPILER="$WRAPPER_CMD"
 
-# This limits the iterations in the tests and benchmarks.
-export SECP256K1_TEST_ITERS="$TEST_ITERS"
-export SECP256K1_BENCH_ITERS="$BENCH_ITERS"
-
 # We have set "-j<n>" in MAKEFLAGS.
 make $AUTOTOOLS_TARGET
 
