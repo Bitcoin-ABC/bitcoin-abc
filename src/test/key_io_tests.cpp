@@ -36,7 +36,8 @@ BOOST_AUTO_TEST_CASE(key_io_valid_parse) {
             continue;
         }
         std::string exp_base58string = test[0].get_str();
-        std::vector<uint8_t> exp_payload = ParseHex(test[1].get_str());
+        const std::vector<std::byte> exp_payload{
+            ParseHex<std::byte>(test[1].get_str())};
         const UniValue &metadata = test[2].get_obj();
         bool isPrivkey = metadata.find_value("isPrivkey").get_bool();
         SelectParams(metadata.find_value("chain").get_str());
@@ -51,8 +52,7 @@ BOOST_AUTO_TEST_CASE(key_io_valid_parse) {
             BOOST_CHECK_MESSAGE(privkey.IsValid(), "!IsValid:" + strTest);
             BOOST_CHECK_MESSAGE(privkey.IsCompressed() == isCompressed,
                                 "compressed mismatch:" + strTest);
-            BOOST_CHECK_MESSAGE(Span<const uint8_t>{privkey} ==
-                                    Span<const uint8_t>{exp_payload},
+            BOOST_CHECK_MESSAGE(Span{privkey} == Span{exp_payload},
                                 "key mismatch:" + strTest);
 
             // Private key must be invalid public key

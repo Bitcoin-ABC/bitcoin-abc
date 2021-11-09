@@ -158,7 +158,7 @@ static const uint8_t ParseHex_expected[65] = {
     0x49, 0xf6, 0xbc, 0x3f, 0x4c, 0xef, 0x38, 0xc4, 0xf3, 0x55, 0x04,
     0xe5, 0x1e, 0xc1, 0x12, 0xde, 0x5c, 0x38, 0x4d, 0xf7, 0xba, 0x0b,
     0x8d, 0x57, 0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f};
-BOOST_AUTO_TEST_CASE(util_ParseHex) {
+BOOST_AUTO_TEST_CASE(parse_hex) {
     std::vector<uint8_t> result;
     std::vector<uint8_t> expected(
         ParseHex_expected, ParseHex_expected + sizeof(ParseHex_expected));
@@ -178,6 +178,14 @@ BOOST_AUTO_TEST_CASE(util_ParseHex) {
     result = ParseHex(" 89 34 56 78");
     BOOST_CHECK(result.size() == 4 && result[0] == 0x89 && result[1] == 0x34 &&
                 result[2] == 0x56 && result[3] == 0x78);
+
+    // Embedded null is treated as end
+    const std::string with_embedded_null{" 11 "s
+                                         " \0 "
+                                         " 22 "s};
+    BOOST_CHECK_EQUAL(with_embedded_null.size(), 11);
+    result = ParseHex(with_embedded_null);
+    BOOST_CHECK(result.size() == 1 && result[0] == 0x11);
 
     // Stop parsing at invalid value
     result = ParseHex("1234 invalid 1234");
