@@ -1,14 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Collapse, Form, Input, Modal, Alert } from 'antd';
+import { Collapse, Form, Input, Modal, Alert, Switch, Tag } from 'antd';
 import {
     PlusSquareOutlined,
     WalletFilled,
     ImportOutlined,
     LockOutlined,
+    CheckOutlined,
+    CloseOutlined,
+    LockFilled,
+    ExclamationCircleFilled,
 } from '@ant-design/icons';
-import { WalletContext } from '@utils/context';
+import { WalletContext, AuthenticationContext } from '@utils/context';
 import { StyledCollapse } from '@components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -22,6 +26,7 @@ import {
     ThemedCopyOutlined,
     ThemedWalletOutlined,
     ThemedDollarOutlined,
+    ThemedSettingOutlined,
 } from '@components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
@@ -210,8 +215,30 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
+const GeneralSettingsItem = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .title {
+        color: ${props => props.theme.generalSettings.item.title};
+    }
+    .anticon {
+        color: ${props => props.theme.generalSettings.item.icon};
+    }
+    .ant-switch {
+        background-color: ${props => props.theme.generalSettings.item.icon};
+        .anticon {
+            color: ${props => props.theme.generalSettings.background};
+        }
+    }
+    .ant-switch-checked {
+        background-color: ${props => props.theme.primary};
+    }
+`;
+
 const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
+    const authentication = React.useContext(AuthenticationContext);
     const { wallet, apiError } = ContextValue;
 
     const {
@@ -431,6 +458,22 @@ const Configure = () => {
             setWalletDeleteValid(false);
         }
         setConfirmationOfWalletToBeDeleted(value);
+    };
+
+    const handleAppLockToggle = (checked, e) => {
+        if (checked) {
+            // if there is an existing credential, that means user has registered
+            // simply turn on the Authentication Required flag
+            if (authentication.credentialId) {
+                authentication.turnOnAuthentication();
+            } else {
+                // there is no existing credential, that means user has not registered
+                // user need to register
+                authentication.signUp();
+            }
+        } else {
+            authentication.turnOffAuthentication();
+        }
     };
 
     return (
@@ -663,6 +706,34 @@ const Configure = () => {
                     }
                 />
             </AntdFormWrapper>
+            <StyledSpacer />
+            <h2>
+                <ThemedSettingOutlined /> General Settings
+            </h2>
+            <GeneralSettingsItem>
+                <div className="title">
+                    <LockFilled /> Lock App
+                </div>
+                {authentication ? (
+                    <Switch
+                        size="small"
+                        checkedChildren={<CheckOutlined />}
+                        unCheckedChildren={<CloseOutlined />}
+                        checked={
+                            authentication.isAuthenticationRequired &&
+                            authentication.credentialId
+                                ? true
+                                : false
+                        }
+                        // checked={false}
+                        onChange={handleAppLockToggle}
+                    />
+                ) : (
+                    <Tag color="warning" icon={<ExclamationCircleFilled />}>
+                        Not Supported
+                    </Tag>
+                )}
+            </GeneralSettingsItem>
             <StyledSpacer />[
             <SettingsLink
                 type="link"

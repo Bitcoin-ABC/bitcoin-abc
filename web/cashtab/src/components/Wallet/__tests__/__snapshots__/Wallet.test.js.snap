@@ -1,9 +1,9 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cnnkkE"
+    className="sc-fBuWsC dWuyYQ"
   >
     <span
       aria-label="party emoji"
@@ -29,7 +29,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-Rmtcm doZmKW"
+    className="sc-hzDkRC lmPOKb"
   >
     0
      
@@ -46,7 +46,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG ckubWs"
+      className="sc-chPdSV iDFVZe"
       style={
         Object {
           "display": "none",
@@ -66,7 +66,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-jzJRlG dYsuyj"
+      className="sc-kAzzGY lanDwf"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -92,7 +92,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf iYHBff notranslate"
+      className="sc-kpOJdX eicPsf notranslate"
     >
       <input
         readOnly={true}
@@ -101,34 +101,34 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kAzzGY bGeWfk"
+        className="sc-kgoBCf bHwLKM"
       >
         ecash:
       </span>
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-gisBJw bgeSVQ"
+    className="sc-cHGsZl hAuusT"
   >
     <div
-      className="sc-kjoXOD bocqe"
+      className="sc-TOsTZ gBqYyX"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-kjoXOD bocqe nonactiveBtn"
+      className="sc-TOsTZ gBqYyX nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -140,7 +140,7 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cnnkkE"
+    className="sc-fBuWsC dWuyYQ"
   >
     <span
       aria-label="party emoji"
@@ -166,7 +166,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-Rmtcm doZmKW"
+    className="sc-hzDkRC lmPOKb"
   >
     0
      
@@ -183,7 +183,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG ckubWs"
+      className="sc-chPdSV iDFVZe"
       style={
         Object {
           "display": "none",
@@ -203,7 +203,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-jzJRlG dYsuyj"
+      className="sc-kAzzGY lanDwf"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -229,7 +229,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf iYHBff notranslate"
+      className="sc-kpOJdX eicPsf notranslate"
     >
       <input
         readOnly={true}
@@ -238,34 +238,34 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kAzzGY bGeWfk"
+        className="sc-kgoBCf bHwLKM"
       >
         ecash:
       </span>
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-gisBJw bgeSVQ"
+    className="sc-cHGsZl hAuusT"
   >
     <div
-      className="sc-kjoXOD bocqe"
+      className="sc-TOsTZ gBqYyX"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-kjoXOD bocqe nonactiveBtn"
+      className="sc-TOsTZ gBqYyX nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -277,14 +277,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-Rmtcm doZmKW"
+    className="sc-hzDkRC lmPOKb"
   >
     0.06
      
     XEC
   </div>,
   <div
-    className="sc-bRBYWo itMbWO"
+    className="sc-jhAzac fkirzc"
   >
     $ 
     NaN
@@ -302,7 +302,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG ckubWs"
+      className="sc-chPdSV iDFVZe"
       style={
         Object {
           "display": "none",
@@ -322,7 +322,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-jzJRlG dYsuyj"
+      className="sc-kAzzGY lanDwf"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -348,7 +348,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf iYHBff notranslate"
+      className="sc-kpOJdX eicPsf notranslate"
     >
       <input
         readOnly={true}
@@ -357,34 +357,34 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kAzzGY bGeWfk"
+        className="sc-kgoBCf bHwLKM"
       >
         ecash:
       </span>
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-gisBJw bgeSVQ"
+    className="sc-cHGsZl hAuusT"
   >
     <div
-      className="sc-kjoXOD bocqe"
+      className="sc-TOsTZ gBqYyX"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-kjoXOD bocqe nonactiveBtn"
+      className="sc-TOsTZ gBqYyX nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -396,7 +396,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cnnkkE"
+    className="sc-fBuWsC dWuyYQ"
   >
     <span
       aria-label="party emoji"
@@ -422,7 +422,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-Rmtcm doZmKW"
+    className="sc-hzDkRC lmPOKb"
   >
     0
      
@@ -439,7 +439,7 @@ Array [
     }
   >
     <div
-      className="sc-cSHVUG ckubWs"
+      className="sc-chPdSV iDFVZe"
       style={
         Object {
           "display": "none",
@@ -459,7 +459,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-jzJRlG dYsuyj"
+      className="sc-kAzzGY lanDwf"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -485,7 +485,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kgoBCf iYHBff notranslate"
+      className="sc-kpOJdX eicPsf notranslate"
     >
       <input
         readOnly={true}
@@ -494,34 +494,34 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kAzzGY bGeWfk"
+        className="sc-kgoBCf bHwLKM"
       >
         ecash:
       </span>
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-chPdSV jcbRDb"
+        className="sc-kGXeez jNbIFN"
       >
         cxkrr6zd
       </span>
     </div>
   </div>,
   <div
-    className="sc-gisBJw bgeSVQ"
+    className="sc-cHGsZl hAuusT"
   >
     <div
-      className="sc-kjoXOD bocqe"
+      className="sc-TOsTZ gBqYyX"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-kjoXOD bocqe nonactiveBtn"
+      className="sc-TOsTZ gBqYyX nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -536,12 +536,12 @@ Array [
     Welcome to Cashtab!
   </h2>,
   <p
-    className="sc-jTzLTM iZNmqq"
+    className="sc-jzJRlG leTPdT"
   >
     Cashtab is an
      
     <a
-      className="sc-fjdhpX cfxeWn"
+      className="sc-cSHVUG dlQkwn"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -557,7 +557,7 @@ Array [
     Want to learn more?
      
     <a
-      className="sc-fjdhpX cfxeWn"
+      className="sc-cSHVUG dlQkwn"
       href="https://docs.cashtabapp.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -566,7 +566,7 @@ Array [
     </a>
   </p>,
   <button
-    className="sc-gZMcBi JUqLQ"
+    className="sc-VigVT RpRhe"
     onClick={[Function]}
   >
     <span
@@ -594,7 +594,7 @@ Array [
      New Wallet
   </button>,
   <button
-    className="sc-gqjmRU eEPviq"
+    className="sc-jTzLTM bLkbAy"
     onClick={[Function]}
   >
     <span

@@ -6,6 +6,8 @@ import {
     LoadingOutlined,
     WalletOutlined,
     QrcodeOutlined,
+    SettingOutlined,
+    LockOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { currency } from '@components/Common/Ticker';
@@ -42,6 +44,12 @@ export const ThemedWalletOutlined = styled(WalletOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;
 export const ThemedQrcodeOutlined = styled(QrcodeOutlined)`
+    color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedSettingOutlined = styled(SettingOutlined)`
+    color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedLockOutlined = styled(LockOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;
 

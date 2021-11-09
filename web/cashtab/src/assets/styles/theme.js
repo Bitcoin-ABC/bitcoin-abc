@@ -65,16 +65,25 @@ export const theme = {
                 'linear-gradient(270deg, #0074C2 0%, #273498 100%)',
             color: '#fff',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
+            disabledOverlay: 'rgba(255, 255, 255, 0.5)',
         },
         secondary: {
             background: '#e9eaed',
             color: '#444',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
+            disabledOverlay: 'rgba(255, 255, 255, 0.5)',
         },
     },
     collapses: {
         background: '#fbfcfd',
         border: '#eaedf3',
         color: '#3e3f42',
+    },
+    generalSettings: {
+        item: {
+            icon: '#949494',
+            title: '#949494',
+        },
+        background: '#fff',
     },
 };

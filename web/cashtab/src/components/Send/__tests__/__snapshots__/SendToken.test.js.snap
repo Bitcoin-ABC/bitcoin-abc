@@ -5,7 +5,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-fjdhpX llHaIR"
+    className="sc-cSHVUG lalYdv"
   >
     6.001
      
@@ -78,7 +78,7 @@ Array [
         }
       >
         <div
-          className="sc-gZMcBi iFeyXx"
+          className="sc-VigVT ktfrOp"
         >
           <div
             className="ant-row ant-form-item"
@@ -147,7 +147,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-htoDjs clindv"
+                          className="sc-iwsKbI cVxKUE"
                           onClick={[Function]}
                         >
                           <span
@@ -188,7 +188,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-gZMcBi iFeyXx"
+          className="sc-VigVT ktfrOp"
         >
           <div
             className="ant-row ant-form-item"
@@ -242,7 +242,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-gqjmRU dcHtfz"
+                          className="sc-jTzLTM PEluH"
                           disabled={false}
                           onClick={[Function]}
                         >
@@ -273,7 +273,7 @@ Array [
           }
         >
           <button
-            className="sc-EHOje bfWfmf"
+            className="sc-gzVnrw wXhZP"
             onClick={[Function]}
           >
             Send 

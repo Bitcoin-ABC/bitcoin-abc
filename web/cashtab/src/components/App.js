@@ -34,6 +34,7 @@ import TabCash from '@assets/tabcash.png';
 import ABC from '@assets/logo_topright.png';
 import { checkForTokenById } from '@utils/tokenMethods.js';
 import { currency } from './Common/Ticker';
+import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
 
 const GlobalStyle = createGlobalStyle`    
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button, #cropControlsConfirm {
@@ -307,42 +308,46 @@ const App = () => {
                                 </a>
                                 {/*Begin component not included in extension as replaced by open in tab link*/}
                             </HeaderCtn>
-                            <WalletLabel name={wallet.name}></WalletLabel>
-                            <Switch>
-                                <Route path="/wallet">
-                                    <Wallet />
-                                </Route>
-                                <Route path="/tokens">
-                                    <Tokens
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
-                                <Route path="/send">
-                                    <Send
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
-                                <Route
-                                    path="/send-token/:tokenId"
-                                    render={props => (
-                                        <SendToken
-                                            tokenId={props.match.params.tokenId}
+                            <ProtectableComponentWrapper>
+                                <WalletLabel name={wallet.name}></WalletLabel>
+                                <Switch>
+                                    <Route path="/wallet">
+                                        <Wallet />
+                                    </Route>
+                                    <Route path="/tokens">
+                                        <Tokens
                                             passLoadingStatus={
                                                 setLoadingUtxosAfterSend
                                             }
                                         />
-                                    )}
-                                />
-                                <Route path="/configure">
-                                    <Configure />
-                                </Route>
-                                <Redirect exact from="/" to="/wallet" />
-                                <Route component={NotFound} />
-                            </Switch>
+                                    </Route>
+                                    <Route path="/send">
+                                        <Send
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    </Route>
+                                    <Route
+                                        path="/send-token/:tokenId"
+                                        render={props => (
+                                            <SendToken
+                                                tokenId={
+                                                    props.match.params.tokenId
+                                                }
+                                                passLoadingStatus={
+                                                    setLoadingUtxosAfterSend
+                                                }
+                                            />
+                                        )}
+                                    />
+                                    <Route path="/configure">
+                                        <Configure />
+                                    </Route>
+                                    <Redirect exact from="/" to="/wallet" />
+                                    <Route component={NotFound} />
+                                </Switch>
+                            </ProtectableComponentWrapper>
                         </WalletCtn>
                         {wallet ? (
                             <Footer>

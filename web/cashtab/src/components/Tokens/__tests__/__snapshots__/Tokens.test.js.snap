@@ -3,14 +3,14 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-dxgOiQ mrtGb"
+    className="sc-jKJlTe klaRFe"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-kGXeez fOxCHe"
+    className="sc-dxgOiQ eYoaKZ"
   >
     0
      
@@ -64,7 +64,7 @@ Array [
     </div>
   </div>,
   <div
-    className="ant-collapse ant-collapse-icon-position-left sc-gqjmRU eryBsW"
+    className="ant-collapse ant-collapse-icon-position-left sc-jTzLTM fDvaHF"
     role={null}
     style={
       Object {
@@ -107,7 +107,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-jKJlTe iXuMkO"
+    className="sc-hMqMXs blALfb"
   >
     You need at least
      
@@ -130,14 +130,14 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-dxgOiQ mrtGb"
+    className="sc-jKJlTe klaRFe"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-kGXeez fOxCHe"
+    className="sc-dxgOiQ eYoaKZ"
   >
     0
      
@@ -191,7 +191,7 @@ Array [
     </div>
   </div>,
   <div
-    className="ant-collapse ant-collapse-icon-position-left sc-gqjmRU eryBsW"
+    className="ant-collapse ant-collapse-icon-position-left sc-jTzLTM fDvaHF"
     role={null}
     style={
       Object {
@@ -234,7 +234,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-jKJlTe iXuMkO"
+    className="sc-hMqMXs blALfb"
   >
     You need at least
      
@@ -257,14 +257,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kGXeez fOxCHe"
+    className="sc-dxgOiQ eYoaKZ"
   >
     0.06
      
     XEC
   </div>,
   <div
-    className="sc-kpOJdX feFYke"
+    className="sc-ckVGcZ hCLjtP"
   >
     $ 
     NaN
@@ -319,7 +319,7 @@ Array [
     </div>
   </div>,
   <div
-    className="ant-collapse ant-collapse-icon-position-left sc-gqjmRU fLjHet"
+    className="ant-collapse ant-collapse-icon-position-left sc-jTzLTM RrYKP"
     role={null}
     style={
       Object {
@@ -367,13 +367,13 @@ Array [
       onClick={[Function]}
     >
       <div
-        className="sc-kkGfuU etpeuT"
+        className="sc-hSdWYo tUbiI"
       >
         <div
-          className="sc-hMqMXs kTHajp"
+          className="sc-kkGfuU dSxERO"
         />
         <div
-          className="sc-kEYyzF lnzmEY"
+          className="sc-iAyFgw clPeTt"
         >
           6.001
            
@@ -390,14 +390,14 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-dxgOiQ mrtGb"
+    className="sc-jKJlTe klaRFe"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-kGXeez fOxCHe"
+    className="sc-dxgOiQ eYoaKZ"
   >
     0
      
@@ -451,7 +451,7 @@ Array [
     </div>
   </div>,
   <div
-    className="ant-collapse ant-collapse-icon-position-left sc-gqjmRU eryBsW"
+    className="ant-collapse ant-collapse-icon-position-left sc-jTzLTM fDvaHF"
     role={null}
     style={
       Object {
@@ -494,7 +494,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-jKJlTe iXuMkO"
+    className="sc-hMqMXs blALfb"
   >
     You need at least
      
@@ -517,14 +517,14 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-dxgOiQ mrtGb"
+    className="sc-jKJlTe klaRFe"
   >
     You need some 
     XEC
      in your wallet to create tokens.
   </div>,
   <div
-    className="sc-kGXeez fOxCHe"
+    className="sc-dxgOiQ eYoaKZ"
   >
     0
      
@@ -578,7 +578,7 @@ Array [
     </div>
   </div>,
   <div
-    className="ant-collapse ant-collapse-icon-position-left sc-gqjmRU eryBsW"
+    className="ant-collapse ant-collapse-icon-position-left sc-jTzLTM fDvaHF"
     role={null}
     style={
       Object {
@@ -621,7 +621,7 @@ Array [
     </div>
   </div>,
   <p
-    className="sc-jKJlTe iXuMkO"
+    className="sc-hMqMXs blALfb"
   >
     You need at least
      
