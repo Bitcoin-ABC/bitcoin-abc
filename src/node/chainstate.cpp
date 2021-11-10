@@ -17,8 +17,7 @@ std::optional<ChainstateLoadingError>
 LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                bool fPruneMode_, const Config &config, bool fReindexChainState,
                int64_t nBlockTreeDBCache, int64_t nCoinDBCache,
-               int64_t nCoinCacheUsage, unsigned int check_blocks,
-               unsigned int check_level) {
+               int64_t nCoinCacheUsage) {
     const CChainParams &chainparams = config.GetChainParams();
 
     auto is_coinsview_empty =
@@ -136,6 +135,26 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                 assert(chainstate->m_chain.Tip() != nullptr);
             }
         }
+    } catch (const std::exception &e) {
+        LogPrintf("%s\n", e.what());
+        return ChainstateLoadingError::ERROR_GENERIC_BLOCKDB_OPEN_FAILED;
+    }
+
+    return std::nullopt;
+}
+
+std::optional<ChainstateLoadVerifyError>
+VerifyLoadedChainstate(ChainstateManager &chainman, bool fReset,
+                       bool fReindexChainState, const Config &config,
+                       unsigned int check_blocks, unsigned int check_level) {
+    auto is_coinsview_empty =
+        [&](CChainState *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+            return fReset || fReindexChainState ||
+                   chainstate->CoinsTip().GetBestBlock().IsNull();
+        };
+
+    try {
+        LOCK(cs_main);
 
         for (CChainState *chainstate : chainman.GetAll()) {
             if (!is_coinsview_empty(chainstate)) {
@@ -149,19 +168,19 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                 const CBlockIndex *tip = chainstate->m_chain.Tip();
                 RPCNotifyBlockChange(tip);
                 if (tip && tip->nTime > GetTime() + MAX_FUTURE_BLOCK_TIME) {
-                    return ChainstateLoadingError::ERROR_BLOCK_FROM_FUTURE;
+                    return ChainstateLoadVerifyError::ERROR_BLOCK_FROM_FUTURE;
                 }
 
                 if (!CVerifyDB().VerifyDB(*chainstate, config,
                                           chainstate->CoinsDB(), check_level,
                                           check_blocks)) {
-                    return ChainstateLoadingError::ERROR_CORRUPTED_BLOCK_DB;
+                    return ChainstateLoadVerifyError::ERROR_CORRUPTED_BLOCK_DB;
                 }
             }
         }
     } catch (const std::exception &e) {
         LogPrintf("%s\n", e.what());
-        return ChainstateLoadingError::ERROR_GENERIC_BLOCKDB_OPEN_FAILED;
+        return ChainstateLoadVerifyError::ERROR_GENERIC_FAILURE;
     }
 
     return std::nullopt;

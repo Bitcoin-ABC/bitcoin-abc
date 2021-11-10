@@ -2468,9 +2468,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         auto rv =
             LoadChainstate(fReset, chainman, Assert(node.mempool.get()),
                            fPruneMode, config, fReindexChainState,
-                           nBlockTreeDBCache, nCoinDBCache, nCoinCacheUsage,
-                           args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
-                           args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
+                           nBlockTreeDBCache, nCoinDBCache, nCoinCacheUsage);
 
         if (rv.has_value()) {
             switch (rv.value()) {
@@ -2509,25 +2507,37 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 case ChainstateLoadingError::ERROR_GENERIC_BLOCKDB_OPEN_FAILED:
                     strLoadError = _("Error opening block database");
                     break;
-                case ChainstateLoadingError::ERROR_BLOCK_FROM_FUTURE:
-                    strLoadError =
-                        _("The block database contains a block which appears "
-                          "to be from the future. "
-                          "This may be due to your computer's date and time "
-                          "being set incorrectly. "
-                          "Only rebuild the block database if you are sure "
-                          "that your computer's date and time are correct");
-                    break;
-                case ChainstateLoadingError::ERROR_CORRUPTED_BLOCK_DB:
-                    strLoadError = _("Corrupted block database detected");
-                    break;
                 case ChainstateLoadingError::SHUTDOWN_PROBED:
                     break;
             }
         } else {
-            fLoaded = true;
-            LogPrintf(" block index %15dms\n",
-                      GetTimeMillis() - load_block_index_start_time);
+            auto rv2 = VerifyLoadedChainstate(
+                chainman, fReset, fReindexChainState, config,
+                args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
+                args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
+            if (rv2.has_value()) {
+                switch (rv2.value()) {
+                    case ChainstateLoadVerifyError::ERROR_BLOCK_FROM_FUTURE:
+                        strLoadError = _(
+                            "The block database contains a block which appears "
+                            "to be from the future. "
+                            "This may be due to your computer's date and time "
+                            "being set incorrectly. "
+                            "Only rebuild the block database if you are sure "
+                            "that your computer's date and time are correct");
+                        break;
+                    case ChainstateLoadVerifyError::ERROR_CORRUPTED_BLOCK_DB:
+                        strLoadError = _("Corrupted block database detected");
+                        break;
+                    case ChainstateLoadVerifyError::ERROR_GENERIC_FAILURE:
+                        strLoadError = _("Error opening block database");
+                        break;
+                }
+            } else {
+                fLoaded = true;
+                LogPrintf(" block index %15dms\n",
+                          GetTimeMillis() - load_block_index_start_time);
+            }
         }
 
         if (!fLoaded && !ShutdownRequested()) {
