@@ -168,7 +168,7 @@ task:
         CMAKE_TARGET: "secp256k1-tests secp256k1-exhaustive_tests"
     - name: "UBSan, ASan, LSan"
       env:
-        CFLAGS: "-fsanitize=undefined,address"
+        CFLAGS: "-fsanitize=undefined,address -g"
         UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
         ASAN_OPTIONS: "strict_string_checks=1:detect_stack_use_after_return=1:detect_leaks=1"
         LSAN_OPTIONS: "use_unaligned=1"
@@ -199,7 +199,7 @@ task:
     # We hack around this by passing CC=g++ only to make.
     CC: gcc
     MAKEFLAGS: -j2 CC=g++
-    AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-fpermissive
+    AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-fpermissive\ -g
     WERROR_CFLAGS:
     EXPERIMENTAL: yes
     ECDH: yes
