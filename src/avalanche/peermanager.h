@@ -268,7 +268,7 @@ public:
     bool isOrphan(const ProofId &proofid) const;
 
 private:
-    PeerSet::iterator fetchOrCreatePeer(const ProofRef &proof);
+    bool createPeer(const ProofRef &proof);
     bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);

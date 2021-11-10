@@ -142,8 +142,35 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
 }
 
+static bool isOrphanState(const ProofValidationState &state) {
+    return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
+           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
+}
+
 bool PeerManager::registerProof(const ProofRef &proof) {
-    return !exists(proof->getId()) && fetchOrCreatePeer(proof) != peers.end();
+    if (exists(proof->getId())) {
+        // The proof is already registered, or orphaned.
+        return false;
+    }
+
+    // Check the proof's validity.
+    ProofValidationState state;
+    bool valid = [&](ProofValidationState &state) {
+        LOCK(cs_main);
+        const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        return proof->verify(state, coins);
+    }(state);
+
+    if (!valid) {
+        if (isOrphanState(state)) {
+            orphanProofs.addProof(proof);
+        }
+
+        // Reject invalid proof.
+        return false;
+    }
+
+    return createPeer(proof);
 }
 
 NodeId PeerManager::selectNode() {
@@ -167,11 +194,6 @@ NodeId PeerManager::selectNode() {
     }
 
     return NO_NODE;
-}
-
-static bool isOrphanState(const ProofValidationState &state) {
-    return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
-           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
 }
 
 void PeerManager::updatedBlockTip() {
@@ -231,37 +253,14 @@ bool PeerManager::isOrphan(const ProofId &proofid) const {
     return orphanProofs.getProof(proofid) != nullptr;
 }
 
-PeerManager::PeerSet::iterator
-PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
+bool PeerManager::createPeer(const ProofRef &proof) {
     assert(proof);
+
     const ProofId &proofid = proof->getId();
-    {
-        // Check if we already know of that peer.
-        auto &pview = peers.get<proof_index>();
-        auto it = pview.find(proofid);
-        if (it != pview.end()) {
-            return peers.project<0>(it);
-        }
+
+    if (isValid(proofid)) {
+        return false;
     }
-
-    // Check the proof's validity.
-    ProofValidationState state;
-    bool valid = [&](ProofValidationState &state) {
-        LOCK(cs_main);
-        const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        return proof->verify(state, coins);
-    }(state);
-
-    if (!valid) {
-        if (isOrphanState(state)) {
-            orphanProofs.addProof(proof);
-        }
-
-        // Reject invalid proof.
-        return peers.end();
-    }
-
-    orphanProofs.removeProof(proofid);
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
@@ -292,7 +291,7 @@ PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
         // invalidated.
         orphanProofs.addProof(proof);
 
-        return peers.end();
+        return false;
     }
 
     // We have no peer for this proof, time to create it.
@@ -315,7 +314,7 @@ PeerManager::fetchOrCreatePeer(const ProofRef &proof) {
         addOrUpdateNode(inserted.first, nodeid);
     }
 
-    return inserted.first;
+    return true;
 }
 
 bool PeerManager::removePeer(const PeerId peerid) {
