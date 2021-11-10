@@ -51,7 +51,7 @@ void OrphanProofPool::rescan(PeerManager &peerManager) {
     proofs.clear();
 
     for (auto &proof : last_gen_proofs.get<by_sequence>()) {
-        peerManager.getPeerId(proof);
+        peerManager.registerProof(proof);
     }
 }
 

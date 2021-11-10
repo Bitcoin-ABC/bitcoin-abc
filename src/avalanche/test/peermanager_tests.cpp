@@ -30,6 +30,15 @@ namespace {
             auto &pendingNodesView = pm.pendingNodes.get<by_nodeid>();
             return pendingNodesView.find(nodeid) != pendingNodesView.end();
         }
+
+        static PeerId registerAndGetPeerId(PeerManager &pm,
+                                           const ProofRef &proof) {
+            pm.registerProof(proof);
+
+            auto &pview = pm.peers.get<proof_index>();
+            auto it = pview.find(proof->getId());
+            return it == pview.end() ? NO_PEER : it->peerid;
+        }
     };
 } // namespace
 } // namespace avalanche
@@ -176,7 +185,7 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
 static void addNodeWithScore(avalanche::PeerManager &pm, NodeId node,
                              uint32_t score) {
     auto proof = buildRandomProof(score);
-    BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
+    BOOST_CHECK(pm.registerProof(proof));
     BOOST_CHECK(pm.addNode(node, proof->getId()));
 };
 
@@ -225,7 +234,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(100);
-        peerids[i] = pm.getPeerId(p);
+        peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
@@ -257,7 +266,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(100);
-        peerids[i + 4] = pm.getPeerId(p);
+        peerids[i + 4] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
@@ -299,7 +308,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
         auto p = buildRandomProof(100);
-        peerids[i] = pm.getPeerId(p);
+        peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
@@ -326,7 +335,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Create one peer.
     auto proof = buildRandomProof(10000000 * MIN_VALID_PROOF_SCORE);
-    BOOST_CHECK_NE(pm.getPeerId(proof), NO_PEER);
+    BOOST_CHECK(pm.registerProof(proof));
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     // Add 4 nodes.
@@ -394,7 +403,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
     }
 
     // Now create the peer and check all the nodes are bound
-    const PeerId peerid = pm.getPeerId(proof);
+    const PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
@@ -471,7 +480,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
         coins.AddCoin(utxo, Coin(CTxOut(amount, script), height, false), false);
     }
 
-    PeerId peerid = pm.getPeerId(proof);
+    PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
     BOOST_CHECK(pm.verify());
 
@@ -509,7 +518,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     BOOST_CHECK(!pm.isOrphan(proofid));
     BOOST_CHECK(pm.isValid(proofid));
     // The peerid has certainly been updated
-    peerid = pm.getPeerId(proof);
+    peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
@@ -549,7 +558,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
             BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
         }
 
-        return pm.getPeerId(pb.build());
+        return TestPeerManager::registerAndGetPeerId(pm, pb.build());
     };
 
     // Add one peer.
@@ -579,9 +588,8 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
         ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
         COutPoint o(txid1, 3);
         BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
-        PeerId peerid =
-            pm.getPeerId(TestProofBuilder::buildDuplicatedStakes(pb));
-        BOOST_CHECK_EQUAL(peerid, NO_PEER);
+        BOOST_CHECK(
+            !pm.registerProof(TestProofBuilder::buildDuplicatedStakes(pb)));
     }
 
     // Multiple inputs, collision on first input.
@@ -632,9 +640,9 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     }
 
     // Add the proofs
-    BOOST_CHECK(pm.getPeerId(proof1) != NO_PEER);
-    BOOST_CHECK(pm.getPeerId(proof2) == NO_PEER);
-    BOOST_CHECK(pm.getPeerId(proof3) == NO_PEER);
+    BOOST_CHECK(pm.registerProof(proof1));
+    BOOST_CHECK(!pm.registerProof(proof2));
+    BOOST_CHECK(!pm.registerProof(proof3));
 
     auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
         const ProofId &proofid = proof->getId();
@@ -708,7 +716,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     avalanche::PeerManager pm;
 
     auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
-    PeerId peerid = pm.getPeerId(proof);
+    PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
     const TimePoint theFuture(std::chrono::steady_clock::now() +
@@ -730,7 +738,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
 
     // Build a new one
     proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
-    peerid = pm.getPeerId(proof);
+    peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
     // Update the nodes with the new proof

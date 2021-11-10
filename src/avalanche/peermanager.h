@@ -237,11 +237,6 @@ public:
     /****************************************************
      * Functions which are public for testing purposes. *
      ****************************************************/
-    /**
-     * Provide the PeerId associated with the given proof. If the peer does not
-     * exist, then it is created.
-     */
-    PeerId getPeerId(const ProofRef &proof);
 
     /**
      * Remove an existing peer.

@@ -143,7 +143,7 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
 }
 
 bool PeerManager::registerProof(const ProofRef &proof) {
-    return !exists(proof->getId()) && getPeerId(proof) != NO_PEER;
+    return !exists(proof->getId()) && fetchOrCreatePeer(proof) != peers.end();
 }
 
 NodeId PeerManager::selectNode() {
@@ -205,11 +205,6 @@ void PeerManager::updatedBlockTip() {
     for (auto &p : newOrphans) {
         orphanProofs.addProof(p);
     }
-}
-
-PeerId PeerManager::getPeerId(const ProofRef &proof) {
-    auto it = fetchOrCreatePeer(proof);
-    return it == peers.end() ? NO_PEER : it->peerid;
 }
 
 ProofRef PeerManager::getProof(const ProofId &proofid) const {
