@@ -11,3 +11,6 @@ This release includes the following features and fixes:
   "Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)." The
   `testmempoolaccept` RPC returns `max-fee-exceeded` rather than `absurdly-high-fee`
   as the `reject-reason`.
+- To make wallet and rawtransaction RPCs more consistent, the error message for
+  exceeding maximum feerate has been changed to "Fee exceeds maximum configured by user
+  (e.g. -maxtxfee, maxfeerate)."

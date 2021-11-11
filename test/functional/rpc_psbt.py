@@ -132,7 +132,7 @@ class PSBTTest(BitcoinTestFramework):
         # feeRate of 10,000,000 XEC / KB produces a total fee well above -maxtxfee
         # previously this was silently capped at -maxtxfee
         assert_raises_rpc_error(-4,
-                                "Fee exceeds maximum configured by -maxtxfee",
+                                "Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)",
                                 self.nodes[1].walletcreatefundedpsbt,
                                 [{"txid": txid,
                                   "vout": p2sh_pos},
@@ -143,7 +143,7 @@ class PSBTTest(BitcoinTestFramework):
                                 {"feeRate": 10000000,
                                     "add_inputs": True})
         assert_raises_rpc_error(-4,
-                                "Fee exceeds maximum configured by -maxtxfee",
+                                "Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)",
                                 self.nodes[1].walletcreatefundedpsbt,
                                 [{"txid": txid,
                                   "vout": p2sh_pos},

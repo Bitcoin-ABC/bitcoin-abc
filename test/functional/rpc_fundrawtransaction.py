@@ -733,7 +733,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         result3 = self.nodes[3].fundrawtransaction(
             rawTx, {"feeRate": 10 * self.min_relay_tx_fee})
         assert_raises_rpc_error(-4,
-                                "Fee exceeds maximum configured by -maxtxfee",
+                                "Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)",
                                 self.nodes[3].fundrawtransaction,
                                 rawTx,
                                 {"feeRate": 1000000})

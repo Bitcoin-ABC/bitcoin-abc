@@ -623,7 +623,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         assert_equal(testres['reject-reason'], 'max-fee-exceeded')
         # and sendrawtransaction should throw
         assert_raises_rpc_error(-25,
-                                'Fee exceeds maximum configured by -maxtxfee',
+                                'Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)',
                                 self.nodes[2].sendrawtransaction,
                                 rawTxSigned['hex'],
                                 10.00)
@@ -655,7 +655,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         assert_equal(testres['reject-reason'], 'max-fee-exceeded')
         # and sendrawtransaction should throw
         assert_raises_rpc_error(-25,
-                                'Fee exceeds maximum configured by -maxtxfee',
+                                'Fee exceeds maximum configured by user (e.g. -maxtxfee, maxfeerate)',
                                 self.nodes[2].sendrawtransaction,
                                 rawTxSigned['hex'])
         # and the following calls should both succeed
