@@ -76,8 +76,6 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                 return ChainstateLoadingError::ERROR_LOADING_BLOCK_DB;
             }
 
-            // If the loaded chain has a wrong genesis, bail out immediately
-            // (we're likely using a testnet datadir, or the other way around).
             if (!chainman.BlockIndex().empty() &&
                 !chainman.m_blockman.LookupBlockIndex(
                     chainparams.GetConsensus().hashGenesisBlock)) {
