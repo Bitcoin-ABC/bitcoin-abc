@@ -21,6 +21,8 @@
 
 #include <memory>
 
+using node::DEFAULT_PRINTPRIORITY;
+
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 namespace init {

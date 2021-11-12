@@ -50,6 +50,11 @@
 #include <memory>
 #include <typeinfo>
 
+using node::fImporting;
+using node::fPruneMode;
+using node::fReindex;
+using node::ReadBlockFromDisk;
+
 /** How long to cache transactions in mapRelay for normal relay */
 static constexpr auto RELAY_TX_CACHE_TIME = 15min;
 /**

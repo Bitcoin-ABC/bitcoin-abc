@@ -47,6 +47,16 @@
 #include <memory>
 #include <mutex>
 
+using node::BlockManager;
+using node::CCoinsStats;
+using node::CoinStatsHashType;
+using node::GetUTXOStats;
+using node::IsBlockPruned;
+using node::NodeContext;
+using node::ReadBlockFromDisk;
+using node::SnapshotMetadata;
+using node::UndoReadFromDisk;
+
 struct CUpdatedBlock {
     BlockHash hash;
     int height;
@@ -1242,7 +1252,7 @@ static RPCHelpMan pruneblockchain() {
                     HelpExampleRpc("pruneblockchain", "1000")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            if (!fPruneMode) {
+            if (!node::fPruneMode) {
                 throw JSONRPCError(
                     RPC_MISC_ERROR,
                     "Cannot prune blocks because node is not in prune mode.");
@@ -1903,9 +1913,9 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("chainwork", tip->nChainWork.GetHex());
             obj.pushKV("size_on_disk",
                        chainman.m_blockman.CalculateCurrentUsage());
-            obj.pushKV("pruned", fPruneMode);
+            obj.pushKV("pruned", node::fPruneMode);
 
-            if (fPruneMode) {
+            if (node::fPruneMode) {
                 const CBlockIndex *block = tip;
                 CHECK_NONFATAL(block);
                 while (block->pprev && (block->pprev->nStatus.hasData())) {
@@ -1918,7 +1928,7 @@ RPCHelpMan getblockchaininfo() {
                 bool automatic_pruning = (gArgs.GetIntArg("-prune", 0) != 1);
                 obj.pushKV("automatic_pruning", automatic_pruning);
                 if (automatic_pruning) {
-                    obj.pushKV("prune_target_size", nPruneTarget);
+                    obj.pushKV("prune_target_size", node::nPruneTarget);
                 }
             }
 

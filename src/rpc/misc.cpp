@@ -34,6 +34,8 @@
 #include <malloc.h>
 #endif
 
+using node::NodeContext;
+
 static RPCHelpMan validateaddress() {
     return RPCHelpMan{
         "validateaddress",

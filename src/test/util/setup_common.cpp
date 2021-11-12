@@ -45,6 +45,14 @@
 #include <functional>
 #include <memory>
 
+using node::BlockAssembler;
+using node::CalculateCacheSizes;
+using node::fPruneMode;
+using node::fReindex;
+using node::IncrementExtraNonce;
+using node::LoadChainstate;
+using node::VerifyLoadedChainstate;
+
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 FastRandomContext g_insecure_rand_ctx;

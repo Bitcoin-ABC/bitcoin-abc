@@ -10,15 +10,17 @@
 class CConnman;
 class ChainstateManager;
 class CTxMemPool;
+namespace node {
 struct NodeContext;
+} // namespace node
 class PeerManager;
 
-NodeContext &EnsureAnyNodeContext(const std::any &context);
-CTxMemPool &EnsureMemPool(const NodeContext &node);
+node::NodeContext &EnsureAnyNodeContext(const std::any &context);
+CTxMemPool &EnsureMemPool(const node::NodeContext &node);
 CTxMemPool &EnsureAnyMemPool(const std::any &context);
-ChainstateManager &EnsureChainman(const NodeContext &node);
+ChainstateManager &EnsureChainman(const node::NodeContext &node);
 ChainstateManager &EnsureAnyChainman(const std::any &context);
-CConnman &EnsureConnman(const NodeContext &node);
-PeerManager &EnsurePeerman(const NodeContext &node);
+CConnman &EnsureConnman(const node::NodeContext &node);
+PeerManager &EnsurePeerman(const node::NodeContext &node);
 
 #endif // BITCOIN_RPC_SERVER_UTIL_H

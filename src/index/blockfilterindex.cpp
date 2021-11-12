@@ -10,6 +10,8 @@
 
 #include <map>
 
+using node::UndoReadFromDisk;
+
 /**
  * The index database stores three items for each block: the disk location of
  * the encoded filter, its dSHA256 hash, and the header. Those belonging to

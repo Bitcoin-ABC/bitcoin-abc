@@ -45,6 +45,8 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 #endif
 
+using node::NodeContext;
+
 // This is all you need to run all the tests
 int main(int argc, char *argv[]) {
     // Initialize persistent globals with the testing setup state for sanity.

@@ -56,7 +56,7 @@ public:
 
     // Look up stats for a specific block using CBlockIndex
     bool LookUpStats(const CBlockIndex *block_index,
-                     CCoinsStats &coins_stats) const;
+                     node::CCoinsStats &coins_stats) const;
 };
 
 /// The global UTXO set hash object.

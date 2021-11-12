@@ -9,6 +9,7 @@
 #include <primitives/blockhash.h>
 #include <serialize.h>
 
+namespace node {
 //! Metadata describing a serialized version of a UTXO set from which an
 //! assumeutxo CChainState can be constructed.
 class SnapshotMetadata {
@@ -30,5 +31,6 @@ public:
         READWRITE(obj.m_base_blockhash, obj.m_coins_count);
     }
 };
+} // namespace node
 
 #endif // BITCOIN_NODE_UTXO_SNAPSHOT_H

@@ -29,13 +29,15 @@ struct CNodeStats;
 class Coin;
 class Config;
 class HTTPRPCRequestProcessor;
-struct NodeContext;
 class proxyType;
 class RPCServer;
 class RPCTimerInterface;
 enum class SynchronizationState;
 class UniValue;
 struct bilingual_str;
+namespace node {
+struct NodeContext;
+} // namespace node
 
 namespace interfaces {
 class Handler;
@@ -238,12 +240,12 @@ public:
 
     //! Get and set internal node context. Useful for testing, but not
     //! accessible across processes.
-    virtual NodeContext *context() { return nullptr; }
-    virtual void setContext(NodeContext *context) {}
+    virtual node::NodeContext *context() { return nullptr; }
+    virtual void setContext(node::NodeContext *context) {}
 };
 
 //! Return implementation of Node interface.
-std::unique_ptr<Node> MakeNode(NodeContext *context = nullptr);
+std::unique_ptr<Node> MakeNode(node::NodeContext *context = nullptr);
 
 //! Block tip (could be a header or not, depends on the subscribed signal).
 struct BlockTip {

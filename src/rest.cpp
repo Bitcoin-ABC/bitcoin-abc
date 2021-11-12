@@ -30,6 +30,11 @@
 
 #include <any>
 
+using node::GetTransaction;
+using node::IsBlockPruned;
+using node::NodeContext;
+using node::ReadBlockFromDisk;
+
 // Allow a max of 15 outpoints to be queried at once.
 static const size_t MAX_GETUTXOS_OUTPOINTS = 15;
 

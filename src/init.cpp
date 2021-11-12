@@ -100,6 +100,21 @@
 #include <thread>
 #include <vector>
 
+using node::CacheSizes;
+using node::CalculateCacheSizes;
+using node::ChainstateLoadingError;
+using node::ChainstateLoadVerifyError;
+using node::CleanupBlockRevFiles;
+using node::DEFAULT_STOPAFTERBLOCKIMPORT;
+using node::fHavePruned;
+using node::fPruneMode;
+using node::fReindex;
+using node::LoadChainstate;
+using node::NodeContext;
+using node::nPruneTarget;
+using node::ThreadImport;
+using node::VerifyLoadedChainstate;
+
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
 

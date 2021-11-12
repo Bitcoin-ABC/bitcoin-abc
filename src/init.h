@@ -22,15 +22,17 @@ class Config;
 class CScheduler;
 class CWallet;
 class HTTPRPCRequestProcessor;
-struct NodeContext;
 namespace interfaces {
 struct BlockAndHeaderTipInfo;
 }
+namespace node {
+struct NodeContext;
+} // namespace node
 class RPCServer;
 
 /** Interrupt threads */
-void Interrupt(NodeContext &node);
-void Shutdown(NodeContext &node);
+void Interrupt(node::NodeContext &node);
+void Shutdown(node::NodeContext &node);
 //! Initialize the logging infrastructure
 void InitLogging(const ArgsManager &args);
 //! Parameter interaction: change current parameters depending on various rules
@@ -71,7 +73,7 @@ bool AppInitLockDataDirectory();
  * Initialize node and wallet interface pointers. Has no prerequisites or side
  * effects besides allocating memory.
  */
-bool AppInitInterfaces(NodeContext &node);
+bool AppInitInterfaces(node::NodeContext &node);
 /**
  * Bitcoin main initialization.
  * @note This should only be done after daemonization.
@@ -80,13 +82,13 @@ bool AppInitInterfaces(NodeContext &node);
  */
 bool AppInitMain(Config &config, RPCServer &rpcServer,
                  HTTPRPCRequestProcessor &httpRPCRequestProcessor,
-                 NodeContext &node,
+                 node::NodeContext &node,
                  interfaces::BlockAndHeaderTipInfo *tip_info = nullptr);
 
 /**
  * Register all arguments with the ArgsManager
  */
-void SetupServerArgs(NodeContext &node);
+void SetupServerArgs(node::NodeContext &node);
 
 /** Returns licensing information (for -version) */
 std::string LicenseInfo();

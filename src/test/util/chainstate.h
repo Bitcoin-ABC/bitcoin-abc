@@ -16,10 +16,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-const auto NoMalleation = [](CAutoFile &file, SnapshotMetadata &meta) {};
+const auto NoMalleation = [](CAutoFile &file, node::SnapshotMetadata &meta) {};
 
 template <typename F = decltype(NoMalleation)>
-static bool CreateAndActivateUTXOSnapshot(NodeContext &node,
+static bool CreateAndActivateUTXOSnapshot(node::NodeContext &node,
                                           const fs::path root,
                                           F malleation = NoMalleation) {
     // Write out a snapshot to the test's tempdir.
@@ -40,7 +40,7 @@ static bool CreateAndActivateUTXOSnapshot(NodeContext &node,
     //
     FILE *infile{fsbridge::fopen(snapshot_path, "rb")};
     CAutoFile auto_infile{infile, SER_DISK, CLIENT_VERSION};
-    SnapshotMetadata metadata;
+    node::SnapshotMetadata metadata;
     auto_infile >> metadata;
 
     malleation(auto_infile, metadata);

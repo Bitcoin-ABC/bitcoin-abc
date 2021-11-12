@@ -31,7 +31,9 @@ enum class MemPoolRemovalReason;
 struct BlockHash;
 struct bilingual_str;
 struct CBlockLocator;
+namespace node {
 struct NodeContext;
+} // namespace node
 
 namespace Consensus {
 struct Params;
@@ -350,7 +352,8 @@ public:
 };
 
 //! Return implementation of Chain interface.
-std::unique_ptr<Chain> MakeChain(NodeContext &node, const CChainParams &params);
+std::unique_ptr<Chain> MakeChain(node::NodeContext &node,
+                                 const CChainParams &params);
 
 } // namespace interfaces
 

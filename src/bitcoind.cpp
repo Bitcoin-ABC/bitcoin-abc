@@ -28,6 +28,8 @@
 #include <any>
 #include <functional>
 
+using node::NodeContext;
+
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
 #if HAVE_DECL_FORK

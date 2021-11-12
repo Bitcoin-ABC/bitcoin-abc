@@ -26,6 +26,7 @@ namespace Consensus {
 struct Params;
 }
 
+namespace node {
 static const bool DEFAULT_PRINTPRIORITY = false;
 
 struct CBlockTemplateEntry {
@@ -234,4 +235,6 @@ void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
                          unsigned int &nExtraNonce);
 int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
                    const CBlockIndex *pindexPrev);
+} // namespace node
+
 #endif // BITCOIN_NODE_MINER_H

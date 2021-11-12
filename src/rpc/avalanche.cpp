@@ -25,6 +25,9 @@
 
 #include <univalue.h>
 
+using node::GetTransaction;
+using node::NodeContext;
+
 static RPCHelpMan getavalanchekey() {
     return RPCHelpMan{
         "getavalanchekey",

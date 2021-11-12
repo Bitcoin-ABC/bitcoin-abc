@@ -70,6 +70,8 @@ Q_DECLARE_METATYPE(uint256)
 // Config is non-copyable so we can only register pointers to it
 Q_DECLARE_METATYPE(Config *)
 
+using node::NodeContext;
+
 static void RegisterMetaTypes() {
     // Register meta types used for QMetaObject::invokeMethod and
     // Qt::QueuedConnection

@@ -17,6 +17,8 @@
 
 #include <functional>
 
+using node::ReadBlockFromDisk;
+
 constexpr char DB_BEST_BLOCK = 'B';
 
 constexpr int64_t SYNC_LOG_INTERVAL = 30;           // secon

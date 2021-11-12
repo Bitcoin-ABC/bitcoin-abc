@@ -13,5 +13,7 @@
 #include <txmempool.h>
 #include <validation.h>
 
+namespace node {
 NodeContext::NodeContext() {}
 NodeContext::~NodeContext() {}
+} // namespace node

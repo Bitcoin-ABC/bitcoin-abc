@@ -17,6 +17,7 @@
 
 #include <map>
 
+namespace node {
 uint64_t GetBogoSize(const CScript &script_pub_key) {
     return 32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ +
            8 /* amount */ + 2 /* scriptPubKey len */ +
@@ -182,3 +183,4 @@ static void FinalizeHash(MuHash3072 &muhash, CCoinsStats &stats) {
     stats.hashSerialized = out;
 }
 static void FinalizeHash(std::nullptr_t, CCoinsStats &stats) {}
+} // namespace node

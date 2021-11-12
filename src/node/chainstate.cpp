@@ -9,6 +9,7 @@
 #include <node/blockstorage.h>
 #include <validation.h>
 
+namespace node {
 std::optional<ChainstateLoadingError>
 LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
                bool fPruneMode_, const Consensus::Params &consensus_params,
@@ -163,3 +164,4 @@ VerifyLoadedChainstate(ChainstateManager &chainman, bool fReset,
 
     return std::nullopt;
 }
+} // namespace node

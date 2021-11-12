@@ -14,12 +14,14 @@ struct BlockHash;
 class CBlockIndex;
 class Config;
 class CTxMemPool;
-struct NodeContext;
 struct TxId;
 
 namespace Consensus {
 struct Params;
 }
+
+namespace node {
+struct NodeContext;
 
 /**
  * Maximum fee rate for sendrawtransaction and testmempoolaccept RPC calls.
@@ -77,5 +79,6 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                const TxId &txid,
                                const Consensus::Params &consensusParams,
                                BlockHash &hashBlock);
+} // namespace node
 
 #endif // BITCOIN_NODE_TRANSACTION_H

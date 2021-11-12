@@ -15,6 +15,9 @@
 #include <util/check.h>
 #include <validation.h>
 
+using node::BlockAssembler;
+using node::NodeContext;
+
 CTxIn generatetoaddress(const Config &config, const NodeContext &node,
                         const std::string &address) {
     const auto dest = DecodeDestination(address, config.GetChainParams());

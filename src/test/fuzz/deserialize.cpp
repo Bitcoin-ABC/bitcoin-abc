@@ -33,6 +33,8 @@
 #include <unistd.h>
 #include <vector>
 
+using node::SnapshotMetadata;
+
 void initialize() {
     // Fuzzers using pubkey must hold an ECCVerifyHandle.
     static const ECCVerifyHandle verify_handle;

@@ -8,6 +8,7 @@
 #include <util/system.h>
 #include <validation.h>
 
+namespace node {
 CacheSizes CalculateCacheSizes(const ArgsManager &args, size_t n_indexes) {
     int64_t nTotalCache =
         (args.GetIntArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
@@ -44,3 +45,4 @@ CacheSizes CalculateCacheSizes(const ArgsManager &args, size_t n_indexes) {
 
     return sizes;
 }
+} // namespace node

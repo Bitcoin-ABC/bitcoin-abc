@@ -21,6 +21,7 @@
 #include <util/system.h>
 #include <validation.h>
 
+namespace node {
 std::atomic_bool fImporting(false);
 std::atomic_bool fReindex(false);
 bool fHavePruned = false;
@@ -520,6 +521,7 @@ void CleanupBlockRevFiles() {
         remove(item.second);
     }
 }
+} // namespace node
 
 std::string CBlockFileInfo::ToString() const {
     return strprintf(
@@ -528,6 +530,7 @@ std::string CBlockFileInfo::ToString() const {
         FormatISO8601DateTime(nTimeFirst), FormatISO8601DateTime(nTimeLast));
 }
 
+namespace node {
 CBlockFileInfo *BlockManager::GetBlockFileInfo(size_t n) {
     LOCK(cs_LastBlockFile);
 
@@ -1009,3 +1012,4 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
     } // End scope of CImportingNow
     chainman.ActiveChainstate().LoadMempool(config, args);
 }
+} // namespace node

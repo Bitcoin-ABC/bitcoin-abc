@@ -33,6 +33,10 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+using node::AnalyzePSBT;
+using node::DEFAULT_MAX_RAW_TX_FEE_RATE;
+using node::PSBTAnalysis;
+
 WalletView::WalletView(const PlatformStyle *_platformStyle,
                        WalletModel *_walletModel, QWidget *parent)
     : QStackedWidget(parent), clientModel(nullptr), walletModel(_walletModel),

@@ -33,7 +33,7 @@ BOOST_FIXTURE_TEST_SUITE(coinselector_tests, WalletTestingSetup)
 typedef std::set<CInputCoin> CoinSet;
 
 static std::vector<COutput> vCoins;
-static NodeContext testNode;
+static node::NodeContext testNode;
 static Amount balance = Amount::zero();
 
 CoinEligibilityFilter filter_standard(1, 6, 0);

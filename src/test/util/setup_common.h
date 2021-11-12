@@ -101,7 +101,7 @@ extern std::vector<const char *> fixture_extra_args;
  */
 struct BasicTestingSetup {
     ECCVerifyHandle globalVerifyHandle;
-    NodeContext m_node;
+    node::NodeContext m_node;
 
     explicit BasicTestingSetup(
         const std::string &chainName = CBaseChainParams::MAIN,
@@ -118,7 +118,7 @@ struct BasicTestingSetup {
  * initialization behaviour.
  */
 struct ChainTestingSetup : public BasicTestingSetup {
-    CacheSizes m_cache_sizes{};
+    node::CacheSizes m_cache_sizes{};
 
     explicit ChainTestingSetup(
         const std::string &chainName = CBaseChainParams::MAIN,

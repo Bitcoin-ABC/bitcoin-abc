@@ -33,6 +33,8 @@
 
 #include <univalue.h>
 
+using node::NodeContext;
+
 static RPCHelpMan getconnectioncount() {
     return RPCHelpMan{
         "getconnectioncount",

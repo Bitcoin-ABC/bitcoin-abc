@@ -12,11 +12,12 @@
 struct bilingual_str;
 class Config;
 class ChainstateManager;
+class CTxMemPool;
 namespace Consensus {
 struct Params;
-}
-class CTxMemPool;
+} // namespace Consensus
 
+namespace node {
 enum class ChainstateLoadingError {
     ERROR_UPGRADING_BLOCK_DB,
     ERROR_LOADING_BLOCK_DB,
@@ -77,5 +78,6 @@ VerifyLoadedChainstate(ChainstateManager &chainman, bool fReset,
                        bool fReindexChainState, const Config &config,
                        unsigned int check_blocks, unsigned int check_level,
                        std::function<int64_t()> get_unix_time_seconds);
+} // namespace node
 
 #endif // BITCOIN_NODE_CHAINSTATE_H

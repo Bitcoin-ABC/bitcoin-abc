@@ -20,6 +20,8 @@
 
 #include <thread>
 
+using node::BlockAssembler;
+
 namespace validation_block_tests {
 struct MinerTestingSetup : public RegTestingSetup {
     std::shared_ptr<CBlock> Block(const Config &config,

@@ -30,6 +30,9 @@
 #include <memory>
 #include <vector>
 
+using node::MAX_BLOCKFILE_SIZE;
+using node::UnlinkPrunedFiles;
+
 extern RecursiveMutex cs_wallets;
 
 BOOST_FIXTURE_TEST_SUITE(wallet_tests, WalletTestingSetup)

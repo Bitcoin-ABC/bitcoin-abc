@@ -29,6 +29,11 @@
 
 #include <memory>
 
+using node::BlockAssembler;
+using node::CBlockTemplate;
+using node::CBlockTemplateEntry;
+using node::IncrementExtraNonce;
+
 namespace miner_tests {
 struct MinerTestingSetup : public TestingSetup {
     void TestPackageSelection(const CChainParams &chainparams,
