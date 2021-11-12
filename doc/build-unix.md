@@ -38,6 +38,7 @@ Optional dependencies:
  ------------|------------------|----------------------
  miniupnpc   | UPnP Support     | Firewall-jumping support
  libdb       | Berkeley DB      | Wallet storage (only needed when wallet enabled)
+ libsqlite3  | SQLite 3         | Wallet storage (only needed when wallet enabled)
  jemalloc    | Memory allocator | Library to enhance the memory allocation and improve performances
  qt          | GUI              | GUI toolkit (only needed when GUI enabled)
  protobuf    | Payments in GUI  | Data interchange format used for payment protocol (only needed when BIP70 enabled)
@@ -103,9 +104,9 @@ install necessary parts of boost:
 
         sudo apt-get install libboost-all-dev
 
-BerkeleyDB 5.3 or later is required for the wallet. This can be installed with:
+BerkeleyDB 5.3 or later and SQLite 3.7 or later are required for the wallet. These can be installed with:
 
-        sudo apt-get install libdb-dev libdb++-dev
+        sudo apt-get install libdb-dev libdb++-dev libsqlite3-dev
 
 See the section "Disable-wallet mode" to build Bitcoin ABC without wallet.
 
@@ -157,6 +158,10 @@ To build with Qt 5 you need the following:
 libqrencode dependencies (can be disabled by passing `-DENABLE_QRCODE=OFF`):
 
     sudo dnf install qrencode-devel
+
+SQLite can be installed with:
+
+    sudo dnf install sqlite-devel
 
 Notes
 -----

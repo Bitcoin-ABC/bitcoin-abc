@@ -51,6 +51,7 @@ PACKAGES=(
   libqt5dbus5
   libqt5gui5
   librsvg2-bin
+  libsqlite3-dev
   libssl-dev
   libtiff-tools
   libtinfo5
