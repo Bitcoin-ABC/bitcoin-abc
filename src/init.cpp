@@ -2524,9 +2524,17 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             std::optional<ChainstateLoadVerifyError> rv2;
             try {
                 uiInterface.InitMessage(_("Verifying blocks…").translated);
+
+                auto check_blocks =
+                    args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS);
+                if (fHavePruned && check_blocks > MIN_BLOCKS_TO_KEEP) {
+                    LogPrintf("Prune: pruned datadir may not have more than %d "
+                              "blocks; only checking available blocks\n",
+                              MIN_BLOCKS_TO_KEEP);
+                }
+
                 rv2 = VerifyLoadedChainstate(
-                    chainman, fReset, fReindexChainState, config,
-                    args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
+                    chainman, fReset, fReindexChainState, config, check_blocks,
                     args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
             } catch (const std::exception &e) {
                 LogPrintf("%s\n", e.what());
