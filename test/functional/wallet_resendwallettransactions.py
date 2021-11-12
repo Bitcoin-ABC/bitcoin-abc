@@ -51,7 +51,6 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
             create_coinbase(node.getblockcount() + 1),
             block_time,
         )
-        block.rehash()
         block.solve()
         node.submitblock(ToHex(block))
 

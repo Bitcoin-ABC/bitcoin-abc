@@ -179,7 +179,6 @@ class BIP68_112_113Test(BitcoinTestFramework):
         block.vtx.extend(txs)
         make_conform_to_ctor(block)
         block.hashMerkleRoot = block.calc_merkle_root()
-        block.rehash()
         block.solve()
         return block
 

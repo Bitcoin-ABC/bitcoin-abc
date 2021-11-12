@@ -86,7 +86,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
             block2.vtx[1:], key=lambda tx: tx.get_id()
         )
         block2.hashMerkleRoot = block2.calc_merkle_root()
-        block2.rehash()
         block2.solve()
         orig_hash = block2.sha256
         block2_orig = copy.deepcopy(block2)
@@ -109,7 +108,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block2_dup.vtx[2].rehash()
         make_conform_to_ctor(block2_dup)
         block2_dup.hashMerkleRoot = block2_dup.calc_merkle_root()
-        block2_dup.rehash()
         block2_dup.solve()
         peer.send_blocks_and_test(
             [block2_dup], node, success=False, reject_reason="bad-txns-inputs-duplicate"
@@ -123,7 +121,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block3.vtx[0].sha256 = None
         block3.vtx[0].calc_sha256()
         block3.hashMerkleRoot = block3.calc_merkle_root()
-        block3.rehash()
         block3.solve()
 
         peer.send_blocks_and_test(
@@ -155,7 +152,6 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         block4.vtx.append(tx3)
         make_conform_to_ctor(block4)
         block4.hashMerkleRoot = block4.calc_merkle_root()
-        block4.rehash()
         block4.solve()
         self.log.info("Test inflation by duplicating input")
         peer.send_blocks_and_test(

@@ -61,7 +61,6 @@ class BIP66Test(BitcoinTestFramework):
         block_time = self.nodes[0].getblockheader(tip)["mediantime"] + 1
         block = create_block(int(tip, 16), create_coinbase(DERSIG_HEIGHT), block_time)
         block.nVersion = 2
-        block.rehash()
         block.solve()
 
         with self.nodes[0].assert_debug_log(
@@ -101,7 +100,6 @@ class BIP66Test(BitcoinTestFramework):
         # Now we verify that a block with this transaction is also invalid.
         block.vtx.append(spendtx)
         block.hashMerkleRoot = block.calc_merkle_root()
-        block.rehash()
         block.solve()
 
         with self.nodes[0].assert_debug_log(
@@ -117,7 +115,6 @@ class BIP66Test(BitcoinTestFramework):
         )
         block.vtx[1] = self.create_tx(self.coinbase_txids[1])
         block.hashMerkleRoot = block.calc_merkle_root()
-        block.rehash()
         block.solve()
 
         peer.send_and_ping(msg_block(block))
