@@ -92,4 +92,15 @@ if [ "$CTIMETEST" = "yes" ]; then
   ./libtool --mode=execute valgrind --error-exitcode=42 ./valgrind_ctime_test > valgrind_ctime_test.log 2>&1
 fi
 
+# Rebuild precomputed files (if not cross-compiling).
+if [ -z "$HOST" ]
+then
+    make clean-precomp
+    make precomp
+fi
+
+# Check that no repo files have been modified by the build.
+# (This fails for example if the precomp files need to be updated in the repo.)
+git diff --exit-code
+
 popd

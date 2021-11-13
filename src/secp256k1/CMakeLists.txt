@@ -225,26 +225,37 @@ if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GRE
 endif()
 if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
 	# A window size larger than 15 will require deletion of the prebuilt ecmult_static_pre_g.h
-	# file so that it can be rebuilt.
+	# file so that it can be rebuilt (see gen-precomp target).
 	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
 endif()
 
-# Conditionally regenerate precomputed header if they do not exist
 include(NativeExecutable)
 
+# Targets to delete and regenerate precomputed tables
+add_custom_target(clean-precomp)
+add_custom_target(gen-precomp)
+
 function(gen_precomputed_header EXECUTABLE_NAME HEADER_NAME)
-	add_native_executable(${EXECUTABLE_NAME} "src/${EXECUTABLE_NAME}.c")
+	add_native_executable("${EXECUTABLE_NAME}" "src/${EXECUTABLE_NAME}.c")
 	add_custom_command(
-		OUTPUT src/${HEADER_NAME}.h
+		OUTPUT "src/${HEADER_NAME}.h"
 		COMMAND  "$<TARGET_FILE:${EXECUTABLE_NAME}>"
 		COMMENT "Generating src/${HEADER_NAME}.h"
 	)
-	target_sources(secp256k1 PRIVATE src/${HEADER_NAME}.h)
+
+	add_custom_target("clean-precomp-${HEADER_NAME}"
+			COMMAND "${CMAKE_COMMAND}" -E rm -f "${CMAKE_CURRENT_SOURCE_DIR}/src/${HEADER_NAME}.h"
+	)
+	add_dependencies(clean-precomp "clean-precomp-${HEADER_NAME}")
+
+	add_custom_target("gen-precomp-${HEADER_NAME}"
+			DEPENDS "src/${HEADER_NAME}.h"
+			COMMAND "${CMAKE_COMMAND}" -E copy_if_different "src/${HEADER_NAME}.h" "${CMAKE_CURRENT_SOURCE_DIR}/src/${HEADER_NAME}.h"
+	)
+	add_dependencies(gen-precomp "gen-precomp-${HEADER_NAME}")
 endfunction(gen_precomputed_header)
 
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
-	gen_precomputed_header(gen_ecmult_static_pre_g ecmult_static_pre_g)
-endif()
+gen_precomputed_header(gen_ecmult_static_pre_g ecmult_static_pre_g)
 
 set(SECP256K1_ECMULT_GEN_PRECISION 4 CACHE STRING "Precision bits to tune the precomputed table size for signing.")
 set(VALID_PRECISIONS 2 4 8)
@@ -253,15 +264,13 @@ if(NOT ${SECP256K1_ECMULT_GEN_PRECISION} IN_LIST VALID_PRECISIONS)
 endif()
 
 # Static precomputation for elliptic curve multiplication
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_gen_static_prec_table.h")
-	native_add_cmake_flags(
-		"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
-		"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
-		"-DSECP256K1_USE_ASM=OFF"
-		"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
-	)
-	gen_precomputed_header(gen_ecmult_gen_static_prec_table ecmult_gen_static_prec_table)
-endif()
+native_add_cmake_flags(
+	"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
+	"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
+	"-DSECP256K1_USE_ASM=OFF"
+	"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
+)
+gen_precomputed_header(gen_ecmult_gen_static_prec_table ecmult_gen_static_prec_table)
 
 # If this project is not the top level project, then don't install by default
 get_directory_property(SECP256K1_PARENT_DIRECTORY PARENT_DIRECTORY)

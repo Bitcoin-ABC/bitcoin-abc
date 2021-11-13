@@ -57,4 +57,15 @@ file *tests || true
 file *bench || true
 file libsecp256k1.* || true
 
+# Rebuild precomputed files (if not cross-compiling).
+if [ -z "$HOST" ]
+then
+    ninja clean-precomp
+    ninja gen-precomp
+fi
+
+# Check that no repo files have been modified by the build.
+# (This fails for example if the precomp files need to be updated in the repo.)
+git diff --exit-code
+
 popd
