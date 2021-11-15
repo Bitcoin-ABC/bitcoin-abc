@@ -891,9 +891,9 @@ static RPCHelpMan decodepsbt() {
                 }
 
                 // Sighash
-                uint8_t sighashbyte =
-                    input.sighash_type.getRawSigHashType() & 0xff;
-                if (sighashbyte > 0) {
+                if (input.sighash_type != std::nullopt) {
+                    uint8_t sighashbyte =
+                        input.sighash_type->getRawSigHashType() & 0xff;
                     in.pushKV("sighash", SighashToStr(sighashbyte));
                 }
 

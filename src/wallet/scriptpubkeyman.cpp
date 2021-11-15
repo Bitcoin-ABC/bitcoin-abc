@@ -581,8 +581,8 @@ LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
         }
 
         // Get the Sighash type
-        if (sign && input.sighash_type.getRawSigHashType() > 0 &&
-            input.sighash_type != sighash_type) {
+        if (sign && input.sighash_type != std::nullopt &&
+            *input.sighash_type != sighash_type) {
             return PSBTError::SIGHASH_MISMATCH;
         }
 
@@ -2199,8 +2199,8 @@ DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
         }
 
         // Get the Sighash type
-        if (sign && input.sighash_type.getRawSigHashType() > 0 &&
-            input.sighash_type != sighash_type) {
+        if (sign && input.sighash_type != std::nullopt &&
+            *input.sighash_type != sighash_type) {
             return PSBTError::SIGHASH_MISMATCH;
         }
 

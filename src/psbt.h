@@ -48,7 +48,7 @@ struct PSBTInput {
     std::map<CPubKey, KeyOriginInfo> hd_keypaths;
     std::map<CKeyID, SigPair> partial_sigs;
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> unknown;
-    SigHashType sighash_type = SigHashType(0);
+    std::optional<SigHashType> sighash_type;
 
     bool IsNull() const;
     void FillSignatureData(SignatureData &sigdata) const;
@@ -72,9 +72,9 @@ struct PSBTInput {
             }
 
             // Write the sighash type
-            if (sighash_type.getRawSigHashType() != 0) {
+            if (sighash_type != std::nullopt) {
                 SerializeToVector(s, PSBT_IN_SIGHASH);
-                SerializeToVector(s, sighash_type);
+                SerializeToVector(s, *sighash_type);
             }
 
             // Write the redeem script
@@ -173,7 +173,9 @@ struct PSBTInput {
                         throw std::ios_base::failure(
                             "Sighash type key is more than one byte type");
                     }
-                    UnserializeFromVector(s, sighash_type);
+                    int sighash;
+                    UnserializeFromVector(s, sighash);
+                    sighash_type = SigHashType(sighash);
                     break;
                 case PSBT_IN_REDEEMSCRIPT: {
                     if (!key_lookup.emplace(key).second) {
