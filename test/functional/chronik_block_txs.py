@@ -16,7 +16,6 @@ from test_framework.blocktools import (
     GENESIS_BLOCK_HASH,
     create_block,
     create_coinbase,
-    make_conform_to_ctor,
 )
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
@@ -126,10 +125,7 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
 
         tx_coinbase = create_coinbase(102, b"\x03" * 33)
 
-        block = create_block(int(tip, 16), tx_coinbase, 1300000500)
-        block.vtx += [tx1, tx2]
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(int(tip, 16), tx_coinbase, 1300000500, txlist=[tx1, tx2])
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

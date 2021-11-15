@@ -14,7 +14,6 @@ from test_framework.blocktools import (
     create_block,
     create_coinbase,
     create_tx_with_script,
-    make_conform_to_ctor,
 )
 from test_framework.messages import CBlock, FromHex
 from test_framework.p2p import P2PDataStore
@@ -132,11 +131,7 @@ class TxVersionTest(BitcoinTestFramework):
             coinbase.nVersion = coinbase_version
         coinbase.rehash()
 
-        block = create_block(prev_block.sha256, coinbase, block_time)
-        if txs:
-            block.vtx += txs
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(prev_block.sha256, coinbase, block_time, txlist=txs)
         block.solve()
         self.block_heights[block.sha256] = height
         return block

@@ -11,12 +11,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import (
-    COINBASE_MATURITY,
-    create_block,
-    create_coinbase,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.chronik.slp import slp_genesis, slp_mint_vault, slp_send
 from test_framework.chronik.token_tx import TokenTx
 from test_framework.hash import hash160
@@ -194,9 +189,8 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
             int(block_hashes[-1], 16),
             create_coinbase(block_height, b"\x03" * 33),
             1300000500,
+            txlist=[genesis.tx],
         )
-        block.vtx += [genesis.tx]
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
@@ -308,10 +302,8 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
             int(block_hashes[-1], 16),
             create_coinbase(block_height, b"\x03" * 33),
             1300000500,
+            txlist=[genesis.tx, mint2.tx],
         )
-        block.vtx += [genesis.tx, mint2.tx]
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

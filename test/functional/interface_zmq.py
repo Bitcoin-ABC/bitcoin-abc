@@ -7,11 +7,7 @@ from io import BytesIO
 from time import sleep
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
-from test_framework.blocktools import (
-    create_block,
-    create_coinbase,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CTransaction, FromHex, hash256
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
@@ -519,17 +515,16 @@ class ZMQTest(BitcoinTestFramework):
                 )
 
             raw_tx = self.nodes[0].getrawtransaction(orig_txid)
+            txs_to_add = [
+                FromHex(CTransaction(), tx_hex)
+                for tx_hex in [raw_tx]
+                + [self.nodes[0].getrawtransaction(txid) for txid in more_tx]
+            ]
             block = create_block(
                 int(self.nodes[0].getbestblockhash(), 16),
                 create_coinbase(self.nodes[0].getblockcount() + 1),
+                txlist=txs_to_add,
             )
-            tx = FromHex(CTransaction(), raw_tx)
-            block.vtx.append(tx)
-            for txid in more_tx:
-                tx = FromHex(CTransaction(), self.nodes[0].getrawtransaction(txid))
-                block.vtx.append(tx)
-            make_conform_to_ctor(block)
-            block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
             assert_equal(self.nodes[0].submitblock(block.serialize().hex()), None)
             tip = self.nodes[0].getbestblockhash()

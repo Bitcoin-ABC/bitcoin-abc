@@ -59,8 +59,9 @@ class BIP66Test(BitcoinTestFramework):
         self.log.info("Test that blocks must now be at least version 3")
         tip = self.nodes[0].getbestblockhash()
         block_time = self.nodes[0].getblockheader(tip)["mediantime"] + 1
-        block = create_block(int(tip, 16), create_coinbase(DERSIG_HEIGHT), block_time)
-        block.nVersion = 2
+        block = create_block(
+            int(tip, 16), create_coinbase(DERSIG_HEIGHT), block_time, version=2
+        )
         block.solve()
 
         with self.nodes[0].assert_debug_log(

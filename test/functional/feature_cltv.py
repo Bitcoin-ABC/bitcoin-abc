@@ -96,13 +96,13 @@ class BIP65Test(BitcoinTestFramework):
 
         tip = self.nodes[0].getbestblockhash()
         block_time = self.nodes[0].getblockheader(tip)["mediantime"] + 1
-        block = create_block(int(tip, 16), create_coinbase(CLTV_HEIGHT - 1), block_time)
-        block.nVersion = 3
-        block.vtx.append(fundtx)
-        # include the -1 CLTV in block
-        block.vtx.append(spendtx)
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(
+            int(tip, 16),
+            create_coinbase(CLTV_HEIGHT - 1),
+            block_time,
+            version=3,
+            txlist=[fundtx, spendtx],
+        )
         block.solve()
 
         peer.send_and_ping(msg_block(block))
@@ -112,8 +112,7 @@ class BIP65Test(BitcoinTestFramework):
         self.log.info("Test that blocks must now be at least version 4")
         tip = block.sha256
         block_time += 1
-        block = create_block(tip, create_coinbase(CLTV_HEIGHT), block_time)
-        block.nVersion = 3
+        block = create_block(tip, create_coinbase(CLTV_HEIGHT), block_time, version=3)
         block.solve()
 
         with self.nodes[0].assert_debug_log(
@@ -164,10 +163,13 @@ class BIP65Test(BitcoinTestFramework):
 
         tip = block.hash
         block_time += 1
-        block = create_block(block.sha256, create_coinbase(CLTV_HEIGHT + 1), block_time)
-        block.nVersion = 4
-        block.vtx.append(spendtx)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(
+            block.sha256,
+            create_coinbase(CLTV_HEIGHT + 1),
+            block_time,
+            version=4,
+            txlist=[spendtx],
+        )
         block.solve()
 
         with self.nodes[0].assert_debug_log(

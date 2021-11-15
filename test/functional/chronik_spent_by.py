@@ -10,12 +10,7 @@ from test_framework.address import (
     ADDRESS_ECREG_UNSPENDABLE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import (
-    COINBASE_MATURITY,
-    create_block,
-    create_coinbase,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.hash import hash160
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
@@ -162,11 +157,11 @@ class ChronikSpentByTest(BitcoinTestFramework):
 
         # Block mines tx, tx2 and tx3_conflict
         block = create_block(
-            int(tip, 16), create_coinbase(102, b"\x03" * 33), 1300000500
+            int(tip, 16),
+            create_coinbase(102, b"\x03" * 33),
+            1300000500,
+            txlist=[tx, tx2, tx3_conflict],
         )
-        block.vtx += [tx, tx2, tx3_conflict]
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

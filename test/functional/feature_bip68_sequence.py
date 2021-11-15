@@ -491,9 +491,9 @@ class BIP68Test(BitcoinTestFramework):
         )
 
         # make a block that violates bip68; ensure that the tip updates
-        block = create_block(tmpl=self.nodes[0].getblocktemplate())
-        block.vtx.extend(sorted([tx1, tx2, tx3], key=lambda tx: tx.get_id()))
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(
+            tmpl=self.nodes[0].getblocktemplate(), txlist=[tx1, tx2, tx3]
+        )
         block.solve()
 
         assert_equal(None, self.nodes[0].submitblock(ToHex(block)))

@@ -173,12 +173,12 @@ class BIP68_112_113Test(BitcoinTestFramework):
 
     def create_test_block(self, txs, version=536870912):
         block = create_block(
-            self.tip, create_coinbase(self.tipheight + 1), self.last_block_time + 600
+            self.tip,
+            create_coinbase(self.tipheight + 1),
+            self.last_block_time + 600,
+            version=version,
+            txlist=txs,
         )
-        block.nVersion = version
-        block.vtx.extend(txs)
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         return block
 

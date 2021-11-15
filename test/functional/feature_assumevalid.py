@@ -123,10 +123,10 @@ class AssumeValidTest(BitcoinTestFramework):
         pad_tx(tx)
         tx.calc_sha256()
 
-        block102 = create_block(self.tip, create_coinbase(height), self.block_time)
+        block102 = create_block(
+            self.tip, create_coinbase(height), self.block_time, txlist=[tx]
+        )
         self.block_time += 1
-        block102.vtx.extend([tx])
-        block102.hashMerkleRoot = block102.calc_merkle_root()
         block102.solve()
         self.blocks.append(block102)
         self.tip = block102.sha256
@@ -135,8 +135,9 @@ class AssumeValidTest(BitcoinTestFramework):
 
         # Bury the assumed valid block 2100 deep
         for _ in range(2100):
-            block = create_block(self.tip, create_coinbase(height), self.block_time)
-            block.nVersion = 4
+            block = create_block(
+                self.tip, create_coinbase(height), self.block_time, version=4
+            )
             block.solve()
             self.blocks.append(block)
             self.tip = block.sha256

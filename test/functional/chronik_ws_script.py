@@ -9,12 +9,7 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.blocktools import (
-    COINBASE_MATURITY,
-    create_block,
-    create_coinbase,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.hash import hash160
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
@@ -170,11 +165,11 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         # Mine tx, tx2 and tx3_conflict
         height = 102
         block = create_block(
-            int(tip, 16), create_coinbase(height, b"\x03" * 33), 1300000500
+            int(tip, 16),
+            create_coinbase(height, b"\x03" * 33),
+            1300000500,
+            txlist=[tx, tx2, tx3_conflict],
         )
-        block.vtx += [tx, tx2, tx3_conflict]
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

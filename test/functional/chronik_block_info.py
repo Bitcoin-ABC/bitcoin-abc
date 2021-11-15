@@ -11,12 +11,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import (
-    COINBASE_MATURITY,
-    create_block,
-    create_coinbase,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_RETURN, CScript
@@ -102,11 +97,11 @@ class ChronikBlockInfoTest(BitcoinTestFramework):
         tx2.rehash()
 
         block = create_block(
-            int(prev_hash, 16), create_coinbase(102, b"\x03" * 33), 1300000500
+            int(prev_hash, 16),
+            create_coinbase(102, b"\x03" * 33),
+            1300000500,
+            txlist=[tx, tx2],
         )
-        block.vtx += [tx, tx2]
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

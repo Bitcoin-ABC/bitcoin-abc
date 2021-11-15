@@ -15,7 +15,6 @@ from test_framework.blocktools import (
     GENESIS_CB_SCRIPT_PUBKEY,
     GENESIS_CB_TXID,
     create_block,
-    make_conform_to_ctor,
 )
 from test_framework.hash import hex_be_sha256
 from test_framework.messages import XEC, CTransaction, FromHex, ToHex
@@ -368,10 +367,9 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         replacement_tx = wallet.create_self_transfer(utxo_to_spend=utxo_to_spend1)
         assert replacement_tx["txid"] != mempool_tx_to_be_replaced["txid"]
 
-        block = create_block(tmpl=self.node.getblocktemplate())
-        block.vtx.append(replacement_tx["tx"])
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(
+            tmpl=self.node.getblocktemplate(), txlist=[replacement_tx["tx"]]
+        )
         block.solve()
         self.node.submitblock(ToHex(block))
 
@@ -416,10 +414,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         replacement_tx.vout[out_idx].scriptPubKey = b"\x21\x03" + 32 * b"\xee" + b"\xac"
         replacement_tx.rehash()
 
-        block = create_block(tmpl=self.node.getblocktemplate())
-        block.vtx.append(replacement_tx)
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(tmpl=self.node.getblocktemplate(), txlist=[replacement_tx])
         block.solve()
         self.node.submitblock(ToHex(block))
 

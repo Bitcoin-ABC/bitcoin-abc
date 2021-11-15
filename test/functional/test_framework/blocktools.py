@@ -61,6 +61,7 @@ def create_block(
     *,
     version: Optional[int] = None,
     tmpl: Optional[dict] = None,
+    txlist: Optional[list] = None,
 ) -> CBlock:
     """Create a block (with regtest difficulty)."""
     block = CBlock()
@@ -75,6 +76,9 @@ def create_block(
         # difficulty retargeting is disabled in REGTEST chainparams
         block.nBits = 0x207FFFFF
     block.vtx.append(coinbase or create_coinbase(height=tmpl["height"]))
+    if txlist:
+        block.vtx.extend(txlist)
+        make_conform_to_ctor(block)
     block.hashMerkleRoot = block.calc_merkle_root()
     block.calc_sha256()
     return block

@@ -17,7 +17,6 @@ from test_framework.blocktools import (
     create_block,
     create_coinbase,
     create_tx_with_script,
-    make_conform_to_ctor,
 )
 from test_framework.key import ECKey
 from test_framework.messages import (
@@ -88,10 +87,12 @@ class SchnorrMultisigTest(BitcoinTestFramework):
         block_height = self.block_heights[parent.sha256] + 1
         block_time = (parent.nTime + 1) if nTime is None else nTime
 
-        block = create_block(parent.sha256, create_coinbase(block_height), block_time)
-        block.vtx.extend(transactions)
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(
+            parent.sha256,
+            create_coinbase(block_height),
+            block_time,
+            txlist=transactions,
+        )
         block.solve()
         self.block_heights[block.sha256] = block_height
         return block

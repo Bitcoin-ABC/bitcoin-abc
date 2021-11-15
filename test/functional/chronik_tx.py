@@ -193,10 +193,11 @@ class ChronikTxTest(BitcoinTestFramework):
         conflict_tx = CTransaction(tx2)
         conflict_tx.nLockTime = 13
         block = create_block(
-            int(txblockhash, 16), create_coinbase(103, b"\x03" * 33), 1333333500
+            int(txblockhash, 16),
+            create_coinbase(103, b"\x03" * 33),
+            1333333500,
+            txlist=[conflict_tx],
         )
-        block.vtx += [conflict_tx]
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

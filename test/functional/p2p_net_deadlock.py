@@ -11,7 +11,7 @@ See https://github.com/bitcoin/bitcoin/pull/27981
 
 import threading
 
-from test_framework.blocktools import create_block, make_conform_to_ctor
+from test_framework.blocktools import create_block
 from test_framework.messages import ToHex
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
@@ -35,10 +35,7 @@ class NetDeadlockTest(BitcoinTestFramework):
         for tx in txs:
             pad_tx(tx, 999_990)
 
-        block = create_block(tmpl=node0.getblocktemplate())
-        block.vtx += txs
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        block = create_block(tmpl=node0.getblocktemplate(), txlist=txs)
         block.solve()
         hex_block = ToHex(block)
         assert_greater_than(len(hex_block) // 2, 4_000_000)

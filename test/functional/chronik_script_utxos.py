@@ -225,10 +225,11 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
 
         # Mining conflicting tx returns the mempool UTXO spent by tx3 to the mempool
         block = create_block(
-            int(tip, 16), create_coinbase(103, b"\x03" * 33), 1300000500
+            int(tip, 16),
+            create_coinbase(103, b"\x03" * 33),
+            1300000500,
+            txlist=[tx3_conflict],
         )
-        block.vtx += [tx3_conflict]
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

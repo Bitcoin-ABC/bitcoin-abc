@@ -11,12 +11,7 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
-from test_framework.blocktools import (
-    COINBASE_MATURITY,
-    create_block,
-    create_coinbase,
-    make_conform_to_ctor,
-)
+from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
 from test_framework.chronik.alp import (
     alp_burn,
     alp_genesis,
@@ -573,17 +568,15 @@ be in ascending order""",
             int(block_hashes[-1], 16),
             create_coinbase(block_height, b"\x03" * 33),
             1300000500,
+            txlist=[
+                genesis.tx,
+                mint.tx,
+                send.tx,
+                genesis2.tx,
+                multi.tx,
+                all_things.tx,
+            ],
         )
-        block.vtx += [
-            genesis.tx,
-            mint.tx,
-            send.tx,
-            genesis2.tx,
-            multi.tx,
-            all_things.tx,
-        ]
-        make_conform_to_ctor(block)
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
@@ -610,9 +603,8 @@ be in ascending order""",
                 int(prev_hash, 16),
                 create_coinbase(block_height + block_idx, b"\x03" * 33),
                 1300000500 + block_idx,
+                txlist=[mined_tx.tx],
             )
-            block.vtx += [mined_tx.tx]
-            block.hashMerkleRoot = block.calc_merkle_root()
             block.solve()
             prev_hash = block.hash
             peer.send_blocks_and_test([block], node)
@@ -628,9 +620,8 @@ be in ascending order""",
             int(prev_hash, 16),
             create_coinbase(block_height + len(txs), b"\x03" * 33),
             1300000500 + len(txs),
+            txlist=[all_things.tx],
         )
-        block.vtx += [all_things.tx]
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()
@@ -659,9 +650,8 @@ be in ascending order""",
             int(block_hashes[-1], 16),
             create_coinbase(block_height, b"\x03" * 33),
             1300000500,
+            txlist=[conflict_tx],
         )
-        block.vtx += [conflict_tx]
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         node.syncwithvalidationinterfacequeue()

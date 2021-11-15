@@ -154,9 +154,8 @@ class ChronikClientTokenSlpMintVault(SetupFramework):
             int(block_hashes[-1], 16),
             create_coinbase(block_height, b"\x03" * 33),
             1300000500,
+            txlist=[slp_vault_genesis_tx],
         )
-        block.vtx += [slp_vault_genesis_tx]
-        block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
         assert_equal(node.getblockcount(), 103)
