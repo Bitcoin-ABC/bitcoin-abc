@@ -63,7 +63,7 @@ top priority, more important than completing other tasks.
 Here are some handy links for development practices aligned with Bitcoin ABC:
 
 - [Developer Notes](doc/developer-notes.md)
-- [Statement of Bitcoin ABC Values and Visions](https://www.yours.org/content/bitcoin-abc---our-values-and-vision-a282afaade7c)
+- [Statement of Bitcoin ABC Values and Visions](https://archive.md/ulgFI)
 - [How to Make Your Code Reviewer Fall in Love with You](https://mtlynch.io/code-review-love/)
 - [Large Diffs Are Hurting Your Ability To Ship](https://medium.com/@kurtisnusbaum/large-diffs-are-hurting-your-ability-to-ship-e0b2b41e8acf)
 - [Stacked Diffs: Keeping Phabricator Diffs Small](https://medium.com/@kurtisnusbaum/stacked-diffs-keeping-phabricator-diffs-small-d9964f4dcfa6)
