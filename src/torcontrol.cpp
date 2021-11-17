@@ -311,10 +311,15 @@ std::map<std::string, std::string> ParseTorReplyMapping(const std::string &s) {
                         if (j == 3 && value[i] > '3') {
                             j--;
                         }
-                        escaped_value.push_back(
-                            strtol(value.substr(i, j).c_str(), nullptr, 8));
+                        const auto end{i + j};
+                        uint8_t val{0};
+                        while (i < end) {
+                            val *= 8;
+                            val += value[i++] - '0';
+                        }
+                        escaped_value.push_back(char(val));
                         // Account for automatic incrementing at loop end
-                        i += j - 1;
+                        --i;
                     } else {
                         escaped_value.push_back(value[i]);
                     }

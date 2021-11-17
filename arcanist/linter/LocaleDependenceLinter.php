@@ -55,9 +55,6 @@ final class LocaleDependenceLinter extends ArcanistLinter {
         "strftime",
     ],
     "src/seeder/dns.cpp" => ["strcasecmp"],
-    "src/torcontrol.cpp" => [
-      "strtol",
-    ],
     "src/test/fuzz/locale.cpp" => [
       "setlocale",
     ],
