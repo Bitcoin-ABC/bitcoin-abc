@@ -60,7 +60,7 @@ function Home() {
     const { siteConfig = {} } = context;
     return (
         <Layout
-            title={`Build on BCHA`}
+            title={`Build on XEC`}
             description="Comprehensive documentation for the Cashtab product suite"
         >
             <header className={clsx('hero hero--primary', styles.heroBanner)}>
