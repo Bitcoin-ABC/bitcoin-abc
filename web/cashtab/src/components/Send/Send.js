@@ -629,7 +629,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 <SignMessageLabel>Address:</SignMessageLabel>
                                 <Input
                                     name="signMessageAddress"
-                                    disabled="true"
+                                    disabled={true}
                                     value={
                                         wallet &&
                                         wallet.Path1899 &&
@@ -663,7 +663,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     <TextArea
                                         name="signMessageSignature"
                                         placeholder="The signature will be generated upon signing of the message"
-                                        readonly="true"
+                                        readOnly={true}
                                         value={messageSignature}
                                         onClick={() => handleOnSigCopy()}
                                     />
