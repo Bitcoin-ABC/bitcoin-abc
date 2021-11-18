@@ -24,6 +24,8 @@ import {
     mockReceivedCashTx,
     mockSentTokenTx,
     mockReceivedTokenTx,
+    mockSentOpReturnMessageTx,
+    mockReceivedOpReturnMessageTx,
 } from '../__mocks__/mockParsedTxs';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
@@ -391,5 +393,19 @@ describe('useBCH hook', () => {
                 tokenGenesisCashtabMintAlpha.tokenInfo,
             ),
         ).toStrictEqual(tokenGenesisCashtabMintAlpha.cashtabTokenInfo);
+    });
+
+    it(`Correctly parses a "send ${currency.ticker}" transaction with an OP_RETURN message`, () => {
+        const { parseTxData } = useBCH();
+        expect(parseTxData([mockTxDataWithPassthrough[10]])).toStrictEqual(
+            mockSentOpReturnMessageTx,
+        );
+    });
+
+    it(`Correctly parses a "receive ${currency.ticker}" transaction with an OP_RETURN message`, () => {
+        const { parseTxData } = useBCH();
+        expect(parseTxData([mockTxDataWithPassthrough[11]])).toStrictEqual(
+            mockReceivedOpReturnMessageTx,
+        );
     });
 });

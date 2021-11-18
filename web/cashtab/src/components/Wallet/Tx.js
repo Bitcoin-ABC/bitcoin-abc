@@ -31,7 +31,15 @@ const DateType = styled.div`
         font-size: 0.8rem;
     }
 `;
-
+const OpReturnType = styled.div`
+    text-align: left;
+    width: 260px;
+    max-height: 100px;
+    padding: 3px;
+    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
 const SentLabel = styled.span`
     font-weight: bold;
 
@@ -40,6 +48,10 @@ const SentLabel = styled.span`
 const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.primary} !important;
+`;
+const MessageLabel = styled.span`
+    font-weight: bold;
+    color: ${props => props.theme.secondary} !important;
 `;
 const TxIcon = styled.div`
     svg {
@@ -204,6 +216,22 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                         )}
                         <br />
                         {txDate}
+
+                        {data.opReturnMessage && (
+                            <>
+                                <br />
+                                <br />
+                                <MessageLabel>Message</MessageLabel>
+                                <br />
+                                <OpReturnType>
+                                    {data.opReturnMessage
+                                        ? Buffer.from(
+                                              data.opReturnMessage,
+                                          ).toString()
+                                        : ''}
+                                </OpReturnType>
+                            </>
+                        )}
                     </DateType>
                     {data.tokenTx ? (
                         <TokenInfo outgoing={data.outgoingTx}>

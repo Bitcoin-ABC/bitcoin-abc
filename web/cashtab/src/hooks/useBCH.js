@@ -28,6 +28,16 @@ export default function useBCH() {
         return apiArray[apiIndex];
     };
 
+    // filter out prefixes for OP_RETURN encoded messages
+    // Note: only for use with encoded message strings
+    const removeOpReturnPrefixes = asmStr => {
+        if (asmStr.includes(' 621')) {
+            //strip out the 621 (6d02) prefix if exists
+            asmStr = asmStr.replace(' 621', '');
+        }
+        return asmStr;
+    };
+
     const flattenTransactions = (
         txHistory,
         txCount = currency.txHistoryCount,
@@ -84,6 +94,7 @@ export default function useBCH() {
             tokenQty:
             txType: mint, send, other
         }
+        opReturnMessage: 'message extracted from asm' or ''
         }
         ]
         */
@@ -112,6 +123,7 @@ export default function useBCH() {
             parsedTx.blocktime = tx.blocktime;
             let amountSent = 0;
             let amountReceived = 0;
+            let opReturnMessage = '';
             // Assume an incoming transaction
             let outgoingTx = false;
             let tokenTx = false;
@@ -129,13 +141,22 @@ export default function useBCH() {
             for (let j = 0; j < tx.vout.length; j += 1) {
                 const thisOutput = tx.vout[j];
 
-                // If there is no addresses object in the output, OP_RETURN or token tx
+                // If there is no addresses object in the output, it's either an OP_RETURN msg or token tx
                 if (
                     !Object.keys(thisOutput.scriptPubKey).includes('addresses')
                 ) {
-                    // For now, assume this is a token tx
-                    tokenTx = true;
-                    continue;
+                    let asm = thisOutput.scriptPubKey.asm;
+                    if (asm.includes('OP_RETURN 5262419')) {
+                        // assume this is an eToken tx for now
+                        // future diffs will add additional NFT parsing logic in this segment
+                        tokenTx = true;
+                    } else {
+                        // if this is not an eToken tx and does not contain addresses, then assume encoded message
+                        asm = removeOpReturnPrefixes(asm);
+                        let msgBody = asm.substr(asm.indexOf(' ') + 1); // extract everything after the OP_RETURN opcode
+                        opReturnMessage = Buffer.from(msgBody, 'hex');
+                    }
+                    continue; // skipping the remainder of tx data parsing logic in both token and OP_RETURN tx cases
                 }
                 if (
                     thisOutput.scriptPubKey.addresses &&
@@ -158,6 +179,7 @@ export default function useBCH() {
             parsedTx.tokenTx = tokenTx;
             parsedTx.outgoingTx = outgoingTx;
             parsedTx.destinationAddress = destinationAddress;
+            parsedTx.opReturnMessage = opReturnMessage;
 
             parsedTxHistory.push(parsedTx);
         }
