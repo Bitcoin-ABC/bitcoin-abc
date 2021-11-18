@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
 import {
+    AntdFormWrapper,
+    SendBchInput,
+    FormItemWithQRCodeAddon,
+} from '@components/Common/EnhancedInputs';
+import {
+    StyledCollapse,
+    AdvancedCollapse,
+} from '@components/Common/StyledCollapse';
+import {
     Form,
     message,
     Modal,
@@ -10,21 +19,14 @@ import {
     Input,
     notification,
 } from 'antd';
+const { Panel } = Collapse;
 const { TextArea } = Input;
 import { Row, Col } from 'antd';
-import {
-    StyledCollapse,
-    AdvancedCollapse,
-} from '@components/Common/StyledCollapse';
+import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from '@components/Common/PrimaryButton';
-import {
-    SendBchInput,
-    FormItemWithQRCodeAddon,
-    AntdFormWrapper,
-} from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {
@@ -55,7 +57,6 @@ import WalletLabel from '@components/Common/WalletLabel.js';
 import Wallet from '@components/Wallet/Wallet';
 import { TokenParamLabel } from '@components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
-const { Panel } = Collapse;
 import styled from 'styled-components';
 import { convertToEcashPrefix } from '@utils/cashMethods';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -186,6 +187,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             return;
         }
 
+        let optionalOpReturnMsg = formData.opReturnMsg;
+
         // Event("Category", "Action", "Label")
         // Track number of BCHA send transactions and whether users
         // are sending BCHA or USD
@@ -236,6 +239,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 cleanAddress,
                 bchValue,
                 currency.defaultFee,
+                optionalOpReturnMsg,
             );
             sendXecNotification(link);
         } catch (e) {
@@ -333,6 +337,15 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setFormData(p => ({
             ...p,
             value: '',
+        }));
+    };
+
+    const handleOpReturnMsgChange = e => {
+        const { value, name } = e.target;
+
+        setFormData(p => ({
+            ...p,
+            [name]: value,
         }));
     };
 
@@ -557,6 +570,47 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         <ConvertAmount>
                             {fiatPriceString !== '' && '='} {fiatPriceString}
                         </ConvertAmount>
+                        <div
+                            style={{
+                                paddingTop: '32px',
+                            }}
+                        >
+                            <AdvancedCollapse
+                                style={{
+                                    marginBottom: '24px',
+                                }}
+                            >
+                                <Panel header="Advanced" key="1">
+                                    <AntdFormWrapper>
+                                        <Form
+                                            size="small"
+                                            style={{
+                                                width: 'auto',
+                                            }}
+                                        >
+                                            <Form.Item>
+                                                <Input
+                                                    addonBefore="Message"
+                                                    placeholder="Optional OP_RETURN Msg (max 150 chars)"
+                                                    name="opReturnMsg"
+                                                    onChange={e =>
+                                                        handleOpReturnMsgChange(
+                                                            e,
+                                                        )
+                                                    }
+                                                    maxLength="150"
+                                                    onKeyDown={e =>
+                                                        e.keyCode == 13
+                                                            ? e.preventDefault()
+                                                            : ''
+                                                    }
+                                                />
+                                            </Form.Item>
+                                        </Form>
+                                    </AntdFormWrapper>
+                                </Panel>
+                            </AdvancedCollapse>
+                        </div>
                         <div
                             style={{
                                 paddingTop: '12px',
