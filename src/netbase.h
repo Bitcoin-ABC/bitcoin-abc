@@ -226,4 +226,13 @@ bool SetSocketNonBlocking(const SOCKET &hSocket, bool fNonBlocking);
 bool SetSocketNoDelay(const SOCKET &hSocket);
 void InterruptSocks5(bool interrupt);
 
+/**
+ * Determine if a port is "bad" from the perspective of attempting to connect
+ * to a node on that port.
+ * @see doc/p2p-bad-ports.md
+ * @param[in] port Port to check.
+ * @returns whether the port is bad
+ */
+bool IsBadPort(uint16_t port);
+
 #endif // BITCOIN_NETBASE_H
