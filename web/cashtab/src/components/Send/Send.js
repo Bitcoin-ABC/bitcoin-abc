@@ -72,7 +72,11 @@ const SignMessageLabel = styled.div`
     text-align: left;
     color: #0074c2;
 `;
-
+const TextAreaLabel = styled.div`
+    text-align: left;
+    color: #0074c2;
+    padding-left: 1px;
+`;
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
@@ -589,16 +593,19 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                             }}
                                         >
                                             <Form.Item>
-                                                <Input
-                                                    addonBefore="Message"
-                                                    placeholder="(max 150 characters)"
+                                                <TextAreaLabel>
+                                                    Message:
+                                                </TextAreaLabel>
+                                                <TextArea
                                                     name="opReturnMsg"
+                                                    placeholder="(max 160 characters)"
                                                     onChange={e =>
                                                         handleOpReturnMsgChange(
                                                             e,
                                                         )
                                                     }
-                                                    maxLength="150"
+                                                    showCount
+                                                    maxLength={160}
                                                     onKeyDown={e =>
                                                         e.keyCode == 13
                                                             ? e.preventDefault()
