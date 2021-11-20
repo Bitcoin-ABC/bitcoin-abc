@@ -31,16 +31,15 @@ const DateType = styled.div`
         font-size: 0.8rem;
     }
 `;
-const OpReturnType = styled.div`
+const OpReturnType = styled.span`
     text-align: left;
     width: 300%;
-    max-height: 130px;
+    max-height: 170px;
     padding: 3px;
-    padding-left: 14px;
-    padding-right: 25px;
+    margin: auto;
     word-break: break-word;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding-left: 13px;
+    padding-right: 30px;
 `;
 const SentLabel = styled.span`
     font-weight: bold;
@@ -49,6 +48,18 @@ const SentLabel = styled.span`
 const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.primary} !important;
+`;
+const CashtabMessageLabel = styled.span`
+    text-align: left;
+    font-weight: bold;
+    color: ${props => props.theme.primary} !important;
+    white-space: nowrap;
+`;
+const MessageLabel = styled.span`
+    text-align: left;
+    font-weight: bold;
+    color: ${props => props.theme.secondary} !important;
+    white-space: nowrap;
 `;
 const TxIcon = styled.div`
     svg {
@@ -379,7 +390,15 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                         <>
                             <br />
                             <OpReturnType>
-                                <b>Message: </b>
+                                {data.isCashtabMessage ? (
+                                    <CashtabMessageLabel>
+                                        Cashtab Message
+                                    </CashtabMessageLabel>
+                                ) : (
+                                    <MessageLabel>
+                                        External Message
+                                    </MessageLabel>
+                                )}
                                 <br />
                                 {data.opReturnMessage
                                     ? Buffer.from(

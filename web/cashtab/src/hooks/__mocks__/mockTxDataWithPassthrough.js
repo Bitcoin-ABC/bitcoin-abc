@@ -789,8 +789,8 @@ export default [
                 value: 0,
                 n: 0,
                 scriptPubKey: {
-                    asm: 'OP_RETURN 621 74657374696e67206d657373616765203132',
-                    hex: '6a026d021274657374696e67206d657373616765203132',
+                    asm: 'OP_RETURN 62696e676f656c65637472756d',
+                    hex: '6a0d62696e676f656c65637472756d',
                     type: 'nulldata',
                 },
             },
@@ -840,10 +840,11 @@ export default [
                 value: 0,
                 n: 0,
                 scriptPubKey: {
-                    asm: 'OP_RETURN 621 74657374696e67206d657373616765203133',
-                    hex: '6a026d021274657374696e67206d657373616765203133',
+                    asm: 'OP_RETURN 1650553856 63617368746162756c6172',
+                    hex: '6a04007461620b63617368746162756c6172',
                     type: 'nulldata',
                 },
+                value: '0',
             },
             {
                 value: 0.000045,

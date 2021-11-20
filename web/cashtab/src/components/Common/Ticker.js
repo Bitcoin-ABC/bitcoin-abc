@@ -30,6 +30,15 @@ export const currency = {
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     newTokenDefaultUrl: 'https://cashtab.com/',
+    opReturn: {
+        opReturnPrefixHex: '6a',
+        opReturnPushDataHex: '04',
+        opReturnAppPrefixLengthHex: '04',
+        appPrefixesHex: {
+            eToken: '534c5000',
+            cashtab: '00746162',
+        },
+    },
     settingsValidation: {
         fiatCurrency: [
             'usd',
@@ -73,6 +82,55 @@ export const currency = {
         vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
     },
 };
+
+export function getETokenEncodingSubstring() {
+    let encodingStr =
+        currency.opReturn.opReturnPrefixHex + // 6a
+        currency.opReturn.opReturnAppPrefixLengthHex + // 04
+        currency.opReturn.appPrefixesHex.eToken; // 534c5000
+
+    return encodingStr;
+}
+
+export function getCashtabEncodingSubstring() {
+    let encodingStr =
+        currency.opReturn.opReturnPrefixHex + // 6a
+        currency.opReturn.opReturnAppPrefixLengthHex + // 04
+        currency.opReturn.appPrefixesHex.cashtab; // 00746162
+
+    return encodingStr;
+}
+
+export function isCashtabOutput(hexStr) {
+    if (!hexStr || typeof hexStr !== 'string') {
+        return false;
+    }
+    return hexStr.startsWith(getCashtabEncodingSubstring());
+}
+
+export function isEtokenOutput(hexStr) {
+    if (!hexStr || typeof hexStr !== 'string') {
+        return false;
+    }
+    return hexStr.startsWith(getETokenEncodingSubstring());
+}
+
+export function extractCashtabMessage(hexSubstring) {
+    if (!hexSubstring || typeof hexSubstring !== 'string') {
+        return '';
+    }
+    let substring = hexSubstring.replace(getCashtabEncodingSubstring(), ''); // remove the cashtab encoding
+    substring = substring.slice(2); // remove the 2 bytes indicating the size of the next element on the stack e.g. a0 -> 160 bytes
+    return substring;
+}
+
+export function extractExternalMessage(hexSubstring) {
+    if (!hexSubstring || typeof hexSubstring !== 'string') {
+        return '';
+    }
+    let substring = hexSubstring.slice(4); // remove the preceding OP_RETURN prefixes
+    return substring;
+}
 
 export function isValidCashPrefix(addressString) {
     // Note that this function validates prefix only

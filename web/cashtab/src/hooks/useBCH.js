@@ -1,5 +1,11 @@
 import BigNumber from 'bignumber.js';
-import { currency } from '@components/Common/Ticker';
+import {
+    currency,
+    isCashtabOutput,
+    isEtokenOutput,
+    extractCashtabMessage,
+    extractExternalMessage,
+} from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
 import SlpWallet from 'minimal-slp-wallet';
 import {
@@ -28,16 +34,6 @@ export default function useBCH() {
                 : process.env.REACT_APP_BCHA_APIS_TEST;
         const apiArray = apiString.split(',');
         return apiArray[apiIndex];
-    };
-
-    // filter out prefixes for OP_RETURN encoded messages
-    // Note: only for use with encoded message strings
-    const removeOpReturnPrefixes = asmStr => {
-        if (asmStr.includes(' 621')) {
-            //strip out the 621 (6d02) prefix if exists
-            asmStr = asmStr.replace(' 621', '');
-        }
-        return asmStr;
     };
 
     const flattenTransactions = (
@@ -126,9 +122,11 @@ export default function useBCH() {
             let amountSent = 0;
             let amountReceived = 0;
             let opReturnMessage = '';
+            let isCashtabMessage = false;
             // Assume an incoming transaction
             let outgoingTx = false;
             let tokenTx = false;
+            let substring = '';
 
             // If vin includes tx address, this is an outgoing tx
             // Note that with bch-input data, we do not have input amounts
@@ -147,19 +145,37 @@ export default function useBCH() {
                 if (
                     !Object.keys(thisOutput.scriptPubKey).includes('addresses')
                 ) {
-                    let asm = thisOutput.scriptPubKey.asm;
-                    if (asm.includes('OP_RETURN 5262419')) {
-                        // assume this is an eToken tx for now
-                        // future diffs will add additional NFT parsing logic in this segment
+                    let hex = thisOutput.scriptPubKey.hex;
+
+                    if (isEtokenOutput(hex)) {
+                        // this is an eToken transaction
                         tokenTx = true;
-                    } else {
-                        // if this is not an eToken tx and does not contain addresses, then assume encoded message
-                        asm = removeOpReturnPrefixes(asm);
-                        let msgBody = asm.substr(asm.indexOf(' ') + 1); // extract everything after the OP_RETURN opcode
+                    } else if (isCashtabOutput(hex)) {
+                        // this is a cashtab.com generated message
                         try {
-                            opReturnMessage = Buffer.from(msgBody, 'hex');
+                            substring = extractCashtabMessage(hex);
+                            opReturnMessage = Buffer.from(substring, 'hex');
+                            isCashtabMessage = true;
                         } catch (err) {
+                            // soft error if an unexpected or invalid cashtab hex is encountered
                             opReturnMessage = '';
+                            console.log(
+                                'useBCH.parsedTxHistory() error: invalid cashtab msg hex: ' +
+                                    substring,
+                            );
+                        }
+                    } else {
+                        // this is an externally generated message
+                        try {
+                            substring = extractExternalMessage(hex);
+                            opReturnMessage = Buffer.from(substring, 'hex');
+                        } catch (err) {
+                            // soft error if an unexpected or invalid cashtab hex is encountered
+                            opReturnMessage = '';
+                            console.log(
+                                'useBCH.parsedTxHistory() error: invalid external msg hex: ' +
+                                    substring,
+                            );
                         }
                     }
                     continue; // skipping the remainder of tx data parsing logic in both token and OP_RETURN tx cases
@@ -186,7 +202,7 @@ export default function useBCH() {
             parsedTx.outgoingTx = outgoingTx;
             parsedTx.destinationAddress = destinationAddress;
             parsedTx.opReturnMessage = opReturnMessage;
-
+            parsedTx.isCashtabMessage = isCashtabMessage;
             parsedTxHistory.push(parsedTx);
         }
         return parsedTxHistory;
@@ -989,8 +1005,11 @@ export default function useBCH() {
                 optionalOpReturnMsg.trim() !== ''
             ) {
                 const script = [
-                    BCH.Script.opcodes.OP_RETURN,
-                    Buffer.from('6d02', 'hex'),
+                    BCH.Script.opcodes.OP_RETURN, // 6a
+                    Buffer.from(
+                        currency.opReturn.appPrefixesHex.cashtab,
+                        'hex',
+                    ), // 00746162
                     Buffer.from(optionalOpReturnMsg),
                 ];
                 const data = BCH.Script.encode(script);

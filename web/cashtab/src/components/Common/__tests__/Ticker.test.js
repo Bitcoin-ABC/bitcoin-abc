@@ -1,5 +1,15 @@
 import { ValidationError } from 'ecashaddrjs';
-import { isValidCashPrefix, isValidTokenPrefix, toLegacy } from '../Ticker';
+import {
+    isValidCashPrefix,
+    isValidTokenPrefix,
+    toLegacy,
+    isCashtabOutput,
+    isEtokenOutput,
+    extractCashtabMessage,
+    extractExternalMessage,
+    getETokenEncodingSubstring,
+    getCashtabEncodingSubstring,
+} from '../Ticker';
 
 test('Rejects cash address with bitcoincash: prefix', async () => {
     const result = isValidCashPrefix(
@@ -105,4 +115,77 @@ test('toLegacy throws error if input address has invalid prefix', async () => {
             'Address prefix is not a valid cash address with a prefix from the Ticker.prefixes array',
         ),
     );
+});
+
+test('getCashtabEncodingSubstring() returns the appropriate substring for cashtab message outputs', async () => {
+    const result = getCashtabEncodingSubstring();
+    expect(result).toStrictEqual('6a0400746162');
+});
+
+test('getETokenEncodingSubstring() returns the appropriate substring for eToken outputs', async () => {
+    const result = getETokenEncodingSubstring();
+    expect(result).toStrictEqual('6a04534c5000');
+});
+
+test('isCashtabOutput() correctly validates a cashtab message output hex', async () => {
+    const result = isCashtabOutput('6a04007461620b63617368746162756c6172');
+    expect(result).toStrictEqual(true);
+});
+
+test('isCashtabOutput() correctly invalidates an external message output hex', async () => {
+    const result = isCashtabOutput('6a0c7069616e6f74656e6e697332');
+    expect(result).toStrictEqual(false);
+});
+
+test('isCashtabOutput() correctly handles null input', async () => {
+    const result = isCashtabOutput(null);
+    expect(result).toStrictEqual(false);
+});
+
+test('isCashtabOutput() correctly handles non-string input', async () => {
+    const result = isCashtabOutput(7623723323);
+    expect(result).toStrictEqual(false);
+});
+
+test('isCashtabOutput() correctly invalidates an external message output hex', async () => {
+    const result = isCashtabOutput(
+        '6a202731afddf3b83747943f0e650b938ea0670dcae2e08c415f53bd4c6acfd15e09',
+    );
+    expect(result).toStrictEqual(false);
+});
+
+test('isEtokenOutput() correctly validates an eToken output hex', async () => {
+    const result = isEtokenOutput(
+        '6a04534c500001010453454e442069b8431ddecf775393b1b36aa1d0ddcd7b342f1157b9671a03747378ed35ea0d08000000000000012c080000000000002008',
+    );
+    expect(result).toStrictEqual(true);
+});
+
+test('isEtokenOutput() correctly invalidates an eToken output hex', async () => {
+    const result = isEtokenOutput(
+        '5434c500001010453454e442069b8431ddecf775393b1b36aa1d0ddcd7b342f1157b9671a03747378ed35ea0d08000000000000012c080000000000002008',
+    );
+    expect(result).toStrictEqual(false);
+});
+
+test('isEtokenOutput() correctly handles null input', async () => {
+    const result = isEtokenOutput(null);
+    expect(result).toStrictEqual(false);
+});
+
+test('isEtokenOutput() correctly handles non-string input', async () => {
+    const result = isEtokenOutput(7623723323);
+    expect(result).toStrictEqual(false);
+});
+
+test('extractCashtabMessage() correctly extracts a Cashtab message', async () => {
+    const result = extractCashtabMessage(
+        '6a04007461620b63617368746162756c6172',
+    );
+    expect(result).toStrictEqual('63617368746162756c6172');
+});
+
+test('extractExternalMessage() correctly extracts an external message', async () => {
+    const result = extractExternalMessage('6a0d62696e676f656c65637472756d');
+    expect(result).toStrictEqual('62696e676f656c65637472756d');
 });
