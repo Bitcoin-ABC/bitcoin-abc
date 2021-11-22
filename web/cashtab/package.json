@@ -24,6 +24,7 @@
         "react-dev-utils": "^11.0.4",
         "react-device-detect": "^1.15.0",
         "react-dom": "^17.0.1",
+        "react-easy-crop": "^3.5.3",
         "react-ga": "^3.3.0",
         "react-image": "^4.0.3",
         "react-router": "^5.2.0",

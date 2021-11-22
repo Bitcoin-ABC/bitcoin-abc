@@ -40,6 +40,17 @@ const createTokenNotification = link => {
     });
 };
 
+const tokenIconSubmitSuccess = () => {
+    notification.success({
+        message: 'Success',
+        description: (
+            <Paragraph>Your eToken icon was successfully submitted.</Paragraph>
+        ),
+        icon: <TokenReceivedNotificationIcon />,
+        style: { width: '100%' },
+    });
+};
+
 const sendTokenNotification = link => {
     notification.success({
         message: 'Success',
@@ -136,6 +147,7 @@ const messageSignedNotification = msgSignature => {
 export {
     sendXecNotification,
     createTokenNotification,
+    tokenIconSubmitSuccess,
     sendTokenNotification,
     xecReceivedNotification,
     eTokenReceivedNotification,

@@ -20,9 +20,10 @@ export const currency = {
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
     tokenName: 'eToken',
     tokenTicker: 'eToken',
+    tokenIconSubmitApi: 'https://icons.etokens.cash/new',
     tokenLogo: tokenLogo,
     tokenPrefixes: ['etoken'],
-    tokenIconsUrl: '', //https://tokens.bitcoin.com/32 for BCH SLP
+    tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com/32',
     txHistoryCount: 5,
     hydrateUtxoBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
