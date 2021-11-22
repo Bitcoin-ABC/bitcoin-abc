@@ -591,7 +591,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                             <Form.Item>
                                                 <Input
                                                     addonBefore="Message"
-                                                    placeholder="Optional OP_RETURN Msg (max 150 chars)"
+                                                    placeholder="(max 150 characters)"
                                                     name="opReturnMsg"
                                                     onChange={e =>
                                                         handleOpReturnMsgChange(
