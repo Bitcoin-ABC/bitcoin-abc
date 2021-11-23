@@ -1123,7 +1123,7 @@ void CChainState::InvalidBlockFound(CBlockIndex *pindex,
                                     const BlockValidationState &state) {
     if (state.GetResult() != BlockValidationResult::BLOCK_MUTATED) {
         pindex->nStatus = pindex->nStatus.withFailed();
-        m_blockman.m_failed_blocks.insert(pindex);
+        m_chainman.m_failed_blocks.insert(pindex);
         setDirtyBlockIndex.insert(pindex);
         InvalidChainFound(pindex);
     }
@@ -3238,7 +3238,7 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
                        : to_mark_failed_or_parked->nStatus.withParked();
         setDirtyBlockIndex.insert(to_mark_failed_or_parked);
         if (invalidate) {
-            m_blockman.m_failed_blocks.insert(to_mark_failed_or_parked);
+            m_chainman.m_failed_blocks.insert(to_mark_failed_or_parked);
         }
 
         // If any new blocks somehow arrived while we were disconnecting
@@ -3344,7 +3344,7 @@ bool CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
         pindex->nStatus = newStatus;
         setDirtyBlockIndex.insert(pindex);
         if (newStatus.isValid()) {
-            m_blockman.m_failed_blocks.erase(pindex);
+            m_chainman.m_failed_blocks.erase(pindex);
         }
 
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
@@ -4012,7 +4012,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
             // a performance optimization, in the common case of adding a new
             // block to the tip, we don't need to iterate over the failed blocks
             // list.
-            for (const CBlockIndex *failedit : m_blockman.m_failed_blocks) {
+            for (const CBlockIndex *failedit : m_failed_blocks) {
                 if (pindexPrev->GetAncestor(failedit->nHeight) == failedit) {
                     assert(failedit->nStatus.hasFailed());
                     CBlockIndex *invalid_walk = pindexPrev;
@@ -4657,7 +4657,6 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
 }
 
 void BlockManager::Unload() {
-    m_failed_blocks.clear();
     m_blocks_unlinked.clear();
 
     for (const BlockMap::value_type &entry : m_block_index) {
@@ -6267,6 +6266,7 @@ void ChainstateManager::Unload() {
         chainstate->UnloadBlockIndex();
     }
 
+    m_failed_blocks.clear();
     m_blockman.Unload();
 }
 
