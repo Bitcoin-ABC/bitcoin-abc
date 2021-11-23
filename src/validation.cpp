@@ -107,12 +107,6 @@ arith_uint256 nMinimumChainWork;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB);
 
-// Internal stuff
-namespace {
-CBlockIndex *pindexBestInvalid = nullptr;
-CBlockIndex *pindexBestParked = nullptr;
-} // namespace
-
 // Internal stuff from blockstorage ...
 extern RecursiveMutex cs_LastBlockFile;
 extern std::vector<CBlockFileInfo> vinfoBlockFile;
@@ -1025,8 +1019,8 @@ void CChainState::CheckForkWarningConditions() {
     }
 
     if (pindexBestForkTip ||
-        (pindexBestInvalid &&
-         pindexBestInvalid->nChainWork >
+        (m_chainman.m_best_invalid &&
+         m_chainman.m_best_invalid->nChainWork >
              m_chain.Tip()->nChainWork + (GetBlockProof(*m_chain.Tip()) * 6))) {
         if (!GetfLargeWorkForkFound() && pindexBestForkBase) {
             std::string warning =
@@ -1089,9 +1083,9 @@ void CChainState::CheckForkWarningConditionsOnNewFork(
 // Called both upon regular invalid block discovery *and* InvalidateBlock
 void CChainState::InvalidChainFound(CBlockIndex *pindexNew) {
     AssertLockHeld(cs_main);
-    if (!pindexBestInvalid ||
-        pindexNew->nChainWork > pindexBestInvalid->nChainWork) {
-        pindexBestInvalid = pindexNew;
+    if (!m_chainman.m_best_invalid ||
+        pindexNew->nChainWork > m_chainman.m_best_invalid->nChainWork) {
+        m_chainman.m_best_invalid = pindexNew;
     }
     if (pindexBestHeader != nullptr &&
         pindexBestHeader->GetAncestor(pindexNew->nHeight) == pindexNew) {
@@ -2661,16 +2655,16 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             hasValidAncestor = false;
             setBlockIndexCandidates.erase(pindexTest);
 
-            if (fInvalidChain &&
-                (pindexBestInvalid == nullptr ||
-                 pindexNew->nChainWork > pindexBestInvalid->nChainWork)) {
-                pindexBestInvalid = pindexNew;
+            if (fInvalidChain && (m_chainman.m_best_invalid == nullptr ||
+                                  pindexNew->nChainWork >
+                                      m_chainman.m_best_invalid->nChainWork)) {
+                m_chainman.m_best_invalid = pindexNew;
             }
 
-            if (fParkedChain &&
-                (pindexBestParked == nullptr ||
-                 pindexNew->nChainWork > pindexBestParked->nChainWork)) {
-                pindexBestParked = pindexNew;
+            if (fParkedChain && (m_chainman.m_best_parked == nullptr ||
+                                 pindexNew->nChainWork >
+                                     m_chainman.m_best_parked->nChainWork)) {
+                m_chainman.m_best_parked = pindexNew;
             }
 
             LogPrintf("Considered switching to better tip %s but that chain "
@@ -3400,7 +3394,7 @@ void CChainState::ResetBlockFailureFlags(CBlockIndex *pindex) {
     }
 
     UpdateFlags(
-        pindex, pindexBestInvalid,
+        pindex, m_chainman.m_best_invalid,
         [](const BlockStatus status) {
             return status.withClearedFailureFlags();
         },
@@ -3416,7 +3410,7 @@ void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
     AssertLockHeld(cs_main);
 
     UpdateFlags(
-        pindex, pindexBestParked,
+        pindex, m_chainman.m_best_parked,
         [](const BlockStatus status) {
             return status.withClearedParkedFlags();
         },
@@ -4631,15 +4625,15 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
         }
 
         if (pindex->nStatus.isInvalid() &&
-            (!pindexBestInvalid ||
-             pindex->nChainWork > pindexBestInvalid->nChainWork)) {
-            pindexBestInvalid = pindex;
+            (!chainman.m_best_invalid ||
+             pindex->nChainWork > chainman.m_best_invalid->nChainWork)) {
+            chainman.m_best_invalid = pindex;
         }
 
         if (pindex->nStatus.isOnParkedChain() &&
-            (!pindexBestParked ||
-             pindex->nChainWork > pindexBestParked->nChainWork)) {
-            pindexBestParked = pindex;
+            (!chainman.m_best_parked ||
+             pindex->nChainWork > chainman.m_best_parked->nChainWork)) {
+            chainman.m_best_parked = pindex;
         }
 
         if (pindex->pprev) {
@@ -5085,8 +5079,6 @@ void CChainState::UnloadBlockIndex() {
 void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
     LOCK(cs_main);
     chainman.Unload();
-    pindexBestInvalid = nullptr;
-    pindexBestParked = nullptr;
     pindexBestHeader = nullptr;
     pindexBestForkTip = nullptr;
     pindexBestForkBase = nullptr;
@@ -6268,6 +6260,8 @@ void ChainstateManager::Unload() {
 
     m_failed_blocks.clear();
     m_blockman.Unload();
+    m_best_invalid = nullptr;
+    m_best_parked = nullptr;
 }
 
 void ChainstateManager::Reset() {

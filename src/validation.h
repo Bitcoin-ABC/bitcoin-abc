@@ -1207,6 +1207,11 @@ private:
     //! by the background validation chainstate.
     bool m_snapshot_validated{false};
 
+    CBlockIndex *m_best_invalid;
+    CBlockIndex *m_best_parked;
+    friend bool BlockManager::LoadBlockIndex(const Consensus::Params &,
+                                             ChainstateManager &);
+
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
     PopulateAndValidateSnapshot(CChainState &snapshot_chainstate,
