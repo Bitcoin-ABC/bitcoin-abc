@@ -41,6 +41,17 @@ namespace {
             auto it = pview.find(proof->getId());
             return it == pview.end() ? NO_PEER : it->peerid;
         }
+
+        static std::vector<uint32_t> getOrderedScores(const PeerManager &pm) {
+            std::vector<uint32_t> scores;
+
+            auto &peerView = pm.peers.get<by_score>();
+            for (const Peer &peer : peerView) {
+                scores.push_back(peer.getScore());
+            }
+
+            return scores;
+        }
     };
 } // namespace
 } // namespace avalanche
@@ -1508,6 +1519,31 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     BOOST_CHECK(pm.updateNextRequestTime(0, std::chrono::steady_clock::now()));
     BOOST_CHECK_NE(pm.selectNode(), NO_NODE);
     BOOST_CHECK(!pm.shouldRequestMoreNodes());
+}
+
+BOOST_AUTO_TEST_CASE(score_ordering) {
+    avalanche::PeerManager pm;
+
+    std::vector<uint32_t> expectedScores(10);
+    // Expect the peers to be ordered by descending score
+    std::generate(expectedScores.rbegin(), expectedScores.rend(),
+                  [n = 1]() mutable { return n++ * MIN_VALID_PROOF_SCORE; });
+
+    std::vector<ProofRef> proofs;
+    proofs.reserve(expectedScores.size());
+    for (uint32_t score : expectedScores) {
+        proofs.push_back(buildRandomProof(score));
+    }
+
+    // Shuffle the proofs so they are registered in a random score order
+    Shuffle(proofs.begin(), proofs.end(), FastRandomContext());
+    for (auto &proof : proofs) {
+        BOOST_CHECK(pm.registerProof(proof));
+    }
+
+    auto peersScores = TestPeerManager::getOrderedScores(pm);
+    BOOST_CHECK_EQUAL_COLLECTIONS(peersScores.begin(), peersScores.end(),
+                                  expectedScores.begin(), expectedScores.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

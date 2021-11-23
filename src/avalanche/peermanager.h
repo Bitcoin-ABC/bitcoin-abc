@@ -94,6 +94,11 @@ struct proof_index {
     result_type operator()(const Peer &p) const { return p.proof->getId(); }
 };
 
+struct score_index {
+    using result_type = uint32_t;
+    result_type operator()(const Peer &p) const { return p.getScore(); }
+};
+
 struct next_request_time {};
 
 struct PendingNode {
@@ -106,6 +111,7 @@ struct PendingNode {
 
 struct by_proofid;
 struct by_nodeid;
+struct by_score;
 
 enum class ProofRegistrationResult {
     NONE = 0,
@@ -137,7 +143,10 @@ class PeerManager {
                   bmi::hashed_unique<bmi::member<Peer, PeerId, &Peer::peerid>>,
                   // index by proof
                   bmi::hashed_unique<bmi::tag<by_proofid>, proof_index,
-                                     SaltedProofIdHasher>>>;
+                                     SaltedProofIdHasher>,
+                  // ordered by score, decreasing order
+                  bmi::ordered_non_unique<bmi::tag<by_score>, score_index,
+                                          std::greater<uint32_t>>>>;
 
     PeerId nextPeerId = 0;
     PeerSet peers;
