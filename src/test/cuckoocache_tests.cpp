@@ -44,6 +44,8 @@ struct TestMapElement {
             std::copy(k.begin() + 4, k.end(), data.begin());
         }
 
+        KeyType &operator=(const KeyType &rhs) = default;
+
         bool operator==(const KeyType &rhs) const { return rhs.data == data; }
     };
 
@@ -59,6 +61,8 @@ public:
         : TestMapElement(data, data.GetUint64(0)) {}
     TestMapElement(const KeyType &keyIn, uint32_t valueIn)
         : key(keyIn), value(valueIn) {}
+
+    TestMapElement &operator=(const TestMapElement &e) = default;
 
     const KeyType &getKey() const { return key; }
     uint32_t getValue() const { return value; }

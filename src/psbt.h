@@ -359,9 +359,6 @@ struct PartiallySignedTransaction {
      */
     bool GetInputUTXO(CTxOut &utxo, int input_index) const;
 
-    PartiallySignedTransaction &
-    operator=(const PartiallySignedTransaction &other) = default;
-
     template <typename Stream> inline void Serialize(Stream &s) const {
         // magic bytes
         s << PSBT_MAGIC_BYTES;

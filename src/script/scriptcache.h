@@ -33,6 +33,8 @@ public:
     ScriptCacheKey(const ScriptCacheKey &rhs) = default;
     ScriptCacheKey(const CTransaction &tx, uint32_t flags);
 
+    ScriptCacheKey &operator=(const ScriptCacheKey &rhs) = default;
+
     bool operator==(const ScriptCacheKey &rhs) const {
         return rhs.data == data;
     }
