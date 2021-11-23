@@ -728,15 +728,6 @@ public:
     CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    /**
-     * Return the spend height, which is one more than the
-     * inputs.GetBestBlock(). While checking, GetBestBlock() refers to the
-     * parent block. (protected by cs_main)
-     * This is also true for mempool checks.
-     */
-    int GetSpendHeight(const CCoinsViewCache &inputs)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
     ~BlockManager() { Unload(); }
 };
 

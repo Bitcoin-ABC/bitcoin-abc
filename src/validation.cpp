@@ -561,6 +561,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // added to coins_to_uncache)
     m_view.SetBackend(m_dummy);
 
+    assert(m_active_chainstate.m_blockman.LookupBlockIndex(
+               m_view.GetBestBlock()) == m_active_chainstate.m_chain.Tip());
+
     // Only accept BIP68 sequence locked transactions that can be mined in
     // the next block; we don't want our mempool filled up with transactions
     // that can't be mined yet.
@@ -573,10 +576,11 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
                              "non-BIP68-final");
     }
 
-    if (!Consensus::CheckTxInputs(
-            tx, state, m_view,
-            m_active_chainstate.m_blockman.GetSpendHeight(m_view),
-            ws.m_base_fees)) {
+    // The mempool holds txs for the next block, so pass height+1 to
+    // CheckTxInputs
+    if (!Consensus::CheckTxInputs(tx, state, m_view,
+                                  m_active_chainstate.m_chain.Height() + 1,
+                                  ws.m_base_fees)) {
         // state filled in by CheckTxInputs
         return false;
     }
@@ -1162,12 +1166,6 @@ bool CScriptCheck::operator()() {
         return false;
     }
     return true;
-}
-
-int BlockManager::GetSpendHeight(const CCoinsViewCache &inputs) {
-    AssertLockHeld(cs_main);
-    CBlockIndex *pindexPrev = LookupBlockIndex(inputs.GetBestBlock());
-    return pindexPrev->nHeight + 1;
 }
 
 bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
