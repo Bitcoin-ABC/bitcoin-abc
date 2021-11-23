@@ -700,15 +700,6 @@ public:
     void PruneOneBlockFile(const int fileNumber)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    /**
-     * If a block header hasn't already been seen, call CheckBlockHeader on it,
-     * ensure that it doesn't descend from an invalid block, and then add it to
-     * m_block_index.
-     */
-    bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
-                           BlockValidationState &state, CBlockIndex **ppindex)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
     CBlockIndex *LookupBlockIndex(const BlockHash &hash) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -840,11 +831,11 @@ public:
     //! The chainstate manager that owns this chainstate. The reference is
     //! necessary so that this instance can check whether it is the active
     //! chainstate within deeply nested method calls.
-    const ChainstateManager &m_chainman;
+    ChainstateManager &m_chainman;
 
     explicit CChainState(
         CTxMemPool *mempool, BlockManager &blockman,
-        const ChainstateManager &chainman,
+        ChainstateManager &chainman,
         std::optional<BlockHash> from_snapshot_blockhash = std::nullopt);
 
     /**
@@ -1242,6 +1233,15 @@ private:
     PopulateAndValidateSnapshot(CChainState &snapshot_chainstate,
                                 CAutoFile &coins_file,
                                 const SnapshotMetadata &metadata);
+    /**
+     * If a block header hasn't already been seen, call CheckBlockHeader on it,
+     * ensure that it doesn't descend from an invalid block, and then add it to
+     * m_block_index.
+     */
+    bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
+                           BlockValidationState &state, CBlockIndex **ppindex)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    friend CChainState;
 
 public:
     std::thread m_load_block;

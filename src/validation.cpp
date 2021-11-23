@@ -929,7 +929,7 @@ void CoinsViews::InitCache() {
 }
 
 CChainState::CChainState(CTxMemPool *mempool, BlockManager &blockman,
-                         const ChainstateManager &chainman,
+                         ChainstateManager &chainman,
                          std::optional<BlockHash> from_snapshot_blockhash)
     : m_mempool(mempool), m_blockman(blockman), m_params(::Params()),
       m_chainman(chainman), m_from_snapshot_blockhash(from_snapshot_blockhash) {
@@ -3924,18 +3924,18 @@ static bool ContextualCheckBlock(const CBlock &block,
  *
  * Returns true if the block is successfully added to the block index.
  */
-bool BlockManager::AcceptBlockHeader(const Config &config,
-                                     const CBlockHeader &block,
-                                     BlockValidationState &state,
-                                     CBlockIndex **ppindex) {
+bool ChainstateManager::AcceptBlockHeader(const Config &config,
+                                          const CBlockHeader &block,
+                                          BlockValidationState &state,
+                                          CBlockIndex **ppindex) {
     AssertLockHeld(cs_main);
     const CChainParams &chainparams = config.GetChainParams();
 
     // Check for duplicate
     BlockHash hash = block.GetHash();
-    BlockMap::iterator miSelf = m_block_index.find(hash);
+    BlockMap::iterator miSelf{m_blockman.m_block_index.find(hash)};
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
-        if (miSelf != m_block_index.end()) {
+        if (miSelf != m_blockman.m_block_index.end()) {
             // Block header is already known.
             CBlockIndex *pindex = miSelf->second;
             if (ppindex) {
@@ -3961,8 +3961,9 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         }
 
         // Get prev block index
-        BlockMap::iterator mi = m_block_index.find(block.hashPrevBlock);
-        if (mi == m_block_index.end()) {
+        BlockMap::iterator mi{
+            m_blockman.m_block_index.find(block.hashPrevBlock)};
+        if (mi == m_blockman.m_block_index.end()) {
             LogPrint(BCLog::VALIDATION, "%s: %s prev block not found\n",
                      __func__, hash.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_MISSING_PREV,
@@ -3978,7 +3979,7 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
                                  "bad-prevblk");
         }
 
-        if (!ContextualCheckBlockHeader(chainparams, block, state, *this,
+        if (!ContextualCheckBlockHeader(chainparams, block, state, m_blockman,
                                         pindexPrev, GetAdjustedTime())) {
             LogPrint(BCLog::VALIDATION,
                      "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n",
@@ -4011,7 +4012,7 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
             // a performance optimization, in the common case of adding a new
             // block to the tip, we don't need to iterate over the failed blocks
             // list.
-            for (const CBlockIndex *failedit : m_failed_blocks) {
+            for (const CBlockIndex *failedit : m_blockman.m_failed_blocks) {
                 if (pindexPrev->GetAncestor(failedit->nHeight) == failedit) {
                     assert(failedit->nStatus.hasFailed());
                     CBlockIndex *invalid_walk = pindexPrev;
@@ -4031,7 +4032,7 @@ bool BlockManager::AcceptBlockHeader(const Config &config,
         }
     }
 
-    CBlockIndex *pindex = AddToBlockIndex(block);
+    CBlockIndex *pindex{m_blockman.AddToBlockIndex(block)};
 
     if (ppindex) {
         *ppindex = pindex;
@@ -4050,8 +4051,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = nullptr;
-            bool accepted =
-                m_blockman.AcceptBlockHeader(config, header, state, &pindex);
+            bool accepted = AcceptBlockHeader(config, header, state, &pindex);
             ActiveChainstate().CheckBlockIndex();
 
             if (!accepted) {
@@ -4103,8 +4103,8 @@ bool CChainState::AcceptBlock(const Config &config,
 
     CBlockIndex *pindex = nullptr;
 
-    bool accepted_header =
-        m_blockman.AcceptBlockHeader(config, block, state, &pindex);
+    bool accepted_header{
+        m_chainman.AcceptBlockHeader(config, block, state, &pindex)};
     CheckBlockIndex();
 
     if (!accepted_header) {
