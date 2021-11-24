@@ -910,7 +910,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
         for (const Amount &v : amounts) {
-            auto outpoint = addCoin(amount);
+            auto outpoint = addCoin(v);
             BOOST_CHECK(
                 pb.addUTXO(std::move(outpoint), v, height, is_coinbase, key));
         }
