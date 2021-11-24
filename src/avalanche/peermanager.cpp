@@ -15,7 +15,7 @@
 namespace avalanche {
 
 bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
-    auto &pview = peers.get<proof_index>();
+    auto &pview = peers.get<by_proofid>();
     auto it = pview.find(proofid);
     if (it == pview.end()) {
         // If the node exists, it is actually updating its proof to an unknown
@@ -245,7 +245,7 @@ ProofRef PeerManager::getProof(const ProofId &proofid) const {
 }
 
 bool PeerManager::isValid(const ProofId &proofid) const {
-    auto &pview = peers.get<proof_index>();
+    auto &pview = peers.get<by_proofid>();
     return pview.find(proofid) != pview.end();
 }
 

@@ -124,7 +124,7 @@ class PeerManager {
                   // index by peerid
                   bmi::hashed_unique<bmi::member<Peer, PeerId, &Peer::peerid>>,
                   // index by proof
-                  bmi::hashed_unique<bmi::tag<proof_index>, proof_index,
+                  bmi::hashed_unique<bmi::tag<by_proofid>, proof_index,
                                      SaltedProofIdHasher>>>;
 
     PeerId nextPeerId = 0;
@@ -211,7 +211,7 @@ public:
 
     template <typename Callable>
     bool forPeer(const ProofId &proofid, Callable &&func) const {
-        auto &pview = peers.get<proof_index>();
+        auto &pview = peers.get<by_proofid>();
         auto it = pview.find(proofid);
         return it != pview.end() && func(*it);
     }

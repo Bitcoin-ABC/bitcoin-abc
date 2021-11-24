@@ -36,7 +36,7 @@ namespace {
                                            const ProofRef &proof) {
             pm.registerProof(proof);
 
-            auto &pview = pm.peers.get<proof_index>();
+            auto &pview = pm.peers.get<by_proofid>();
             auto it = pview.find(proof->getId());
             return it == pview.end() ? NO_PEER : it->peerid;
         }
