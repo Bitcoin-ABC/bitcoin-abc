@@ -21,6 +21,7 @@ EXPECTED_BOOST_INCLUDES=(
     boost/multi_index/composite_key.hpp
     boost/multi_index/hashed_index.hpp
     boost/multi_index/member.hpp
+    boost/multi_index/mem_fun.hpp
     boost/multi_index/ordered_index.hpp
     boost/multi_index/sequenced_index.hpp
     boost/multi_index_container.hpp

@@ -265,23 +265,23 @@ bool PeerManager::createPeer(const ProofRef &proof) {
 
     // Attach UTXOs to this proof.
     std::unordered_set<ProofRef> conflicting_proofs;
-    for (const auto &s : proof->getStakes()) {
-        auto p = utxos.emplace(s.getStake().getUTXO(), proof);
+    for (size_t i = 0; i < proof->getStakes().size(); i++) {
+        auto p = validProofPool.emplace(i, proof);
         if (!p.second) {
             // We have a collision with an existing proof.
-            conflicting_proofs.insert(p.first->second);
+            conflicting_proofs.insert(p.first->proof);
         }
     }
 
     // For now, if there is a conflict, just cleanup the mess.
     if (conflicting_proofs.size() > 0) {
         for (const auto &s : proof->getStakes()) {
-            auto it = utxos.find(s.getStake().getUTXO());
-            assert(it != utxos.end());
+            auto it = validProofPool.find(s.getStake().getUTXO());
+            assert(it != validProofPool.end());
 
             // We need to delete that one.
-            if (it->second->getId() == proofid) {
-                utxos.erase(it);
+            if (it->proof->getId() == proofid) {
+                validProofPool.erase(it);
             }
         }
 
@@ -341,7 +341,7 @@ bool PeerManager::removePeer(const PeerId peerid) {
 
     // Release UTXOs attached to this proof.
     for (const auto &s : it->proof->getStakes()) {
-        bool deleted = utxos.erase(s.getStake().getUTXO()) > 0;
+        bool deleted = validProofPool.erase(s.getStake().getUTXO()) > 0;
         assert(deleted);
     }
 
@@ -430,18 +430,18 @@ bool PeerManager::verify() const {
             return false;
         }
 
-        // Check utxos consistency
+        // Check proof pool consistency
         for (const auto &ss : p.proof->getStakes()) {
-            auto it = utxos.find(ss.getStake().getUTXO());
+            auto it = validProofPool.find(ss.getStake().getUTXO());
 
-            if (it == utxos.end()) {
+            if (it == validProofPool.end()) {
                 return false;
             }
-            if (it->second->getId() != p.getProofId()) {
+            if (it->proof->getId() != p.getProofId()) {
                 return false;
             }
 
-            if (!peersUtxos.emplace(it->first).second) {
+            if (!peersUtxos.emplace(it->getUTXO()).second) {
                 return false;
             }
         }
@@ -483,8 +483,8 @@ bool PeerManager::verify() const {
     }
 
     // Check there is no dangling utxo
-    for (const auto &[outpoint, proof] : utxos) {
-        if (!peersUtxos.count(outpoint)) {
+    for (const auto &entry : validProofPool) {
+        if (!peersUtxos.count(entry.getUTXO())) {
             return false;
         }
     }

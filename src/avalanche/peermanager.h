@@ -15,6 +15,7 @@
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
@@ -90,9 +91,25 @@ struct Peer {
     uint32_t getScore() const { return proof->getScore(); }
 };
 
-struct proof_index {
+struct ProofPoolEntry {
+    size_t utxoIndex;
+    ProofRef proof;
+
+    const COutPoint &getUTXO() const {
+        return proof->getStakes().at(utxoIndex).getStake().getUTXO();
+    }
+
+    ProofPoolEntry(size_t _utxoIndex, const ProofRef &_proof)
+        : utxoIndex(_utxoIndex), proof(_proof) {}
+};
+
+struct by_utxo;
+
+template <typename StructWithProof> struct proof_index {
     using result_type = ProofId;
-    result_type operator()(const Peer &p) const { return p.proof->getId(); }
+    result_type operator()(const StructWithProof &s) const {
+        return s.proof->getId();
+    }
 };
 
 struct next_request_time {};
@@ -124,13 +141,30 @@ class PeerManager {
                   // index by peerid
                   bmi::hashed_unique<bmi::member<Peer, PeerId, &Peer::peerid>>,
                   // index by proof
-                  bmi::hashed_unique<bmi::tag<by_proofid>, proof_index,
+                  bmi::hashed_unique<bmi::tag<by_proofid>, proof_index<Peer>,
                                      SaltedProofIdHasher>>>;
 
     PeerId nextPeerId = 0;
     PeerSet peers;
 
-    std::unordered_map<COutPoint, ProofRef, SaltedOutpointHasher> utxos;
+    /**
+     * Map a proof to each utxo. A proof can be mapped with several utxos.
+     */
+    using ProofPool = boost::multi_index_container<
+        ProofPoolEntry,
+        bmi::indexed_by<
+            // index by utxo
+            bmi::hashed_unique<
+                bmi::tag<by_utxo>,
+                bmi::const_mem_fun<ProofPoolEntry, const COutPoint &,
+                                   &ProofPoolEntry::getUTXO>,
+                SaltedOutpointHasher>,
+            // index by proofid
+            bmi::hashed_non_unique<bmi::tag<by_proofid>,
+                                   proof_index<ProofPoolEntry>,
+                                   SaltedProofIdHasher>>>;
+
+    ProofPool validProofPool;
 
     using NodeSet = boost::multi_index_container<
         Node,
