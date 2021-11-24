@@ -28,6 +28,7 @@ export const currency = {
     defaultSettings: { fiatCurrency: 'usd' },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
+    newTokenDefaultUrl: 'https://cashtab.com/',
     settingsValidation: {
         fiatCurrency: [
             'usd',

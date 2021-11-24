@@ -123,7 +123,7 @@ const CreateTokenForm = ({
             ticker: newTokenTicker,
             documentUrl:
                 newTokenDocumentUrl === ''
-                    ? 'https://cashtab.com/'
+                    ? currency.newTokenDefaultUrl
                     : newTokenDocumentUrl,
             decimals: newTokenDecimals,
             initialQty: newTokenInitialQty,
@@ -187,7 +187,7 @@ const CreateTokenForm = ({
                 <br />
                 <TokenParamLabel>Document URL:</TokenParamLabel>{' '}
                 {newTokenDocumentUrl === ''
-                    ? 'https://cashtab.com/'
+                    ? currency.newTokenDefaultUrl
                     : newTokenDocumentUrl}
                 <br />
             </Modal>
