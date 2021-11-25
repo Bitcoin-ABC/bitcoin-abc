@@ -717,9 +717,10 @@ bool MemPoolAccept::ConsensusScriptChecks(const ATMPArgs &args, Workspace &ws) {
         // This can occur under some circumstances, if the node receives an
         // unrequested tx which is invalid due to new consensus rules not
         // being activated yet (during IBD).
-        return error("%s: BUG! PLEASE REPORT THIS! CheckInputScripts failed "
-                     "against next-block but not STANDARD flags %s, %s",
-                     __func__, txid.ToString(), state.ToString());
+        LogPrintf("BUG! PLEASE REPORT THIS! CheckInputScripts failed against "
+                  "latest-block but not STANDARD flags %s, %s\n",
+                  txid.ToString(), state.ToString());
+        return Assume(false);
     }
 
     if (ws.m_sig_checks_standard != nSigChecksConsensus) {
