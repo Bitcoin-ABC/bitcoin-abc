@@ -8,6 +8,8 @@ import {
     fromLegacyDecimals,
     convertToEcashPrefix,
     convertEtokenToSimpleledger,
+    checkNullUtxosForTokenStatus,
+    confirmNonEtokenUtxos,
 } from '@utils/cashMethods';
 import {
     unbatchedArray,
@@ -26,6 +28,14 @@ import {
     validStoredWallet,
     invalidStoredWallet,
 } from '../__mocks__/mockStoredWallets';
+
+import {
+    mockTxDataResults,
+    mockNonEtokenUtxos,
+    mockTxDataResultsWithEtoken,
+    mockHydratedUtxosWithNullValues,
+    mockHydratedUtxosWithNullValuesSetToFalse,
+} from '../__mocks__/nullUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -138,5 +148,24 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`test formatBalance with non-numeric input`, () => {
         expect(formatBalance('CainBCHA', 'en-US')).toBe('NaN');
+    });
+
+    it(`Correctly parses utxo vout tx data to confirm the transactions are not eToken txs`, () => {
+        expect(checkNullUtxosForTokenStatus(mockTxDataResults)).toStrictEqual(
+            mockNonEtokenUtxos,
+        );
+    });
+    it(`Correctly parses utxo vout tx data and screens out an eToken by asm field`, () => {
+        expect(
+            checkNullUtxosForTokenStatus(mockTxDataResultsWithEtoken),
+        ).toStrictEqual([]);
+    });
+    it(`Changes isValid from 'null' to 'false' for confirmed nonEtokenUtxos`, () => {
+        expect(
+            confirmNonEtokenUtxos(
+                mockHydratedUtxosWithNullValues,
+                mockNonEtokenUtxos,
+            ),
+        ).toStrictEqual(mockHydratedUtxosWithNullValuesSetToFalse);
     });
 });

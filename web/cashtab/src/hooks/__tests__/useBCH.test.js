@@ -71,8 +71,9 @@ describe('useBCH hook', () => {
 
     it('gets SLP and BCH balances and utxos from hydrated utxo details', async () => {
         const { getSlpBalancesAndUtxos } = useBCH();
-
+        const BCH = new BCHJS();
         const result = await getSlpBalancesAndUtxos(
+            BCH,
             mockReturnGetHydratedUtxoDetails,
         );
 
@@ -81,8 +82,10 @@ describe('useBCH hook', () => {
 
     it(`Ignores SLP utxos with utxo.tokenQty === '0'`, async () => {
         const { getSlpBalancesAndUtxos } = useBCH();
+        const BCH = new BCHJS();
 
         const result = await getSlpBalancesAndUtxos(
+            BCH,
             mockReturnGetHydratedUtxoDetailsWithZeroBalance,
         );
 
@@ -93,12 +96,15 @@ describe('useBCH hook', () => {
 
     it(`Parses flattened batched hydrateUtxosResponse to yield same result as legacy unbatched hydrateUtxosResponse`, async () => {
         const { getSlpBalancesAndUtxos } = useBCH();
+        const BCH = new BCHJS();
 
         const batchedResult = await getSlpBalancesAndUtxos(
+            BCH,
             flattenedHydrateUtxosResponse,
         );
 
         const legacyResult = await getSlpBalancesAndUtxos(
+            BCH,
             legacyHydrateUtxosResponse,
         );
 

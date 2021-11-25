@@ -239,6 +239,7 @@ const useWallet = () => {
             );
 
             const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
+                BCH,
                 hydratedUtxoDetails,
             );
             const txHistory = await getTxHistory(BCH, cashAddresses);

@@ -8,6 +8,8 @@ import {
     batchArray,
     flattenBatchedHydratedUtxos,
     isValidStoredWallet,
+    checkNullUtxosForTokenStatus,
+    confirmNonEtokenUtxos,
 } from '@utils/cashMethods';
 
 export default function useBCH() {
@@ -424,8 +426,34 @@ export default function useBCH() {
         }
     };
 
-    const getSlpBalancesAndUtxos = hydratedUtxoDetails => {
-        const hydratedUtxos = [];
+    const fetchTxDataForNullUtxos = async (BCH, nullUtxos) => {
+        // Check nullUtxos. If they aren't eToken txs, count them
+        console.log(
+            `Null utxos found, checking OP_RETURN fields to confirm they are not eToken txs.`,
+        );
+        const txids = [];
+        for (let i = 0; i < nullUtxos.length; i += 1) {
+            // Batch API call to get their OP_RETURN asm info
+            txids.push(nullUtxos[i].tx_hash);
+        }
+        let nullUtxoTxData;
+        try {
+            nullUtxoTxData = await BCH.Electrumx.txData(txids);
+            console.log(`nullUtxoTxData`, nullUtxoTxData.transactions);
+            // Scan tx data for each utxo to confirm they are not eToken txs
+            const txDataResults = nullUtxoTxData.transactions;
+            const nonEtokenUtxos = checkNullUtxosForTokenStatus(txDataResults);
+            return nonEtokenUtxos;
+        } catch (err) {
+            console.log(`Error in checkNullUtxosForTokenStatus(nullUtxos)`);
+            console.log(`nullUtxos`, nullUtxos);
+            // If error, ignore these utxos, will be updated next utxo set refresh
+            return [];
+        }
+    };
+
+    const getSlpBalancesAndUtxos = async (BCH, hydratedUtxoDetails) => {
+        let hydratedUtxos = [];
         for (let i = 0; i < hydratedUtxoDetails.slpUtxos.length; i += 1) {
             const hydratedUtxosAtAddress = hydratedUtxoDetails.slpUtxos[i];
             for (let j = 0; j < hydratedUtxosAtAddress.utxos.length; j += 1) {
@@ -445,11 +473,20 @@ export default function useBCH() {
         if (nullUtxos.length > 0) {
             console.log(`${nullUtxos.length} null utxos found!`);
             console.log('nullUtxos', nullUtxos);
+            const nullNonEtokenUtxos = await fetchTxDataForNullUtxos(
+                BCH,
+                nullUtxos,
+            );
+
+            // Set isValid === false for nullUtxos that are confirmed non-eToken
+            hydratedUtxos = confirmNonEtokenUtxos(
+                hydratedUtxos,
+                nullNonEtokenUtxos,
+            );
         }
 
         // Prevent app from treating slpUtxos as nonSlpUtxos
         // Must enforce === false as api will occasionally return utxo.isValid === null
-        // Do not classify utxos with 546 satoshis as nonSlpUtxos as a precaution
         // Do not classify any utxos that include token information as nonSlpUtxos
         const nonSlpUtxos = hydratedUtxos.filter(
             utxo =>

@@ -231,3 +231,47 @@ export function convertEtokenToSimpleledger(etokenPrefixedAddress) {
         return etokenPrefixedAddress;
     }
 }
+
+export const confirmNonEtokenUtxos = (hydratedUtxos, nonEtokenUtxos) => {
+    // scan through hydratedUtxoDetails
+    for (let i = 0; i < hydratedUtxos.length; i += 1) {
+        // Find utxos with txids matching nonEtokenUtxos
+        if (nonEtokenUtxos.includes(hydratedUtxos[i].txid)) {
+            // Confirm that such utxos are not eToken utxos
+            hydratedUtxos[i].isValid = false;
+        }
+    }
+    return hydratedUtxos;
+};
+
+export const checkNullUtxosForTokenStatus = txDataResults => {
+    const nonEtokenUtxos = [];
+    for (let j = 0; j < txDataResults.length; j += 1) {
+        const thisUtxoTxid = txDataResults[j].txid;
+        const thisUtxoVout = txDataResults[j].details.vout;
+        // Iterate over outputs
+        for (let k = 0; k < thisUtxoVout.length; k += 1) {
+            const thisOutput = thisUtxoVout[k];
+            if (thisOutput.scriptPubKey.type === 'nulldata') {
+                const asmOutput = thisOutput.scriptPubKey.asm;
+                if (asmOutput.includes('OP_RETURN 5262419')) {
+                    // then it's an eToken tx that has not been properly validated
+                    // Do not include it in nonEtokenUtxos
+                    // App will ignore it until SLPDB is able to validate it
+                    console.log(
+                        `utxo ${thisUtxoTxid} requires further eToken validation, ignoring`,
+                    );
+                } else {
+                    // Otherwise it's just an OP_RETURN tx that SLPDB has some issue with
+                    // It should still be in the user's utxo set
+                    // Include it in nonEtokenUtxos
+                    console.log(
+                        `utxo ${thisUtxoTxid} is not an eToken tx, adding to nonSlpUtxos`,
+                    );
+                    nonEtokenUtxos.push(thisUtxoTxid);
+                }
+            }
+        }
+    }
+    return nonEtokenUtxos;
+};
