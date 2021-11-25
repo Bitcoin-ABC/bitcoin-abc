@@ -46,6 +46,7 @@ export const currency = {
             'rub',
             'inr',
             'brl',
+            'php',
         ],
     },
     fiatCurrencies: {
@@ -60,6 +61,7 @@ export const currency = {
         jpy: { name: 'Japanese Yen', symbol: '¥', slug: 'jpy' },
         krw: { name: 'Korean Won', symbol: '₩', slug: 'krw' },
         nok: { name: 'Norwegian Krone', symbol: 'kr', slug: 'nok' },
+        php: { name: 'Philippine Peso', symbol: '₱', slug: 'php' },
         rub: { name: 'Russian Ruble', symbol: 'р.', slug: 'rub' },
         zar: { name: 'South African Rand', symbol: 'R', slug: 'zar' },
         try: { name: 'Turkish Lira', symbol: '₺', slug: 'try' },
