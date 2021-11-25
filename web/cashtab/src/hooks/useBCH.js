@@ -156,7 +156,11 @@ export default function useBCH() {
                         // if this is not an eToken tx and does not contain addresses, then assume encoded message
                         asm = removeOpReturnPrefixes(asm);
                         let msgBody = asm.substr(asm.indexOf(' ') + 1); // extract everything after the OP_RETURN opcode
-                        opReturnMessage = Buffer.from(msgBody, 'hex');
+                        try {
+                            opReturnMessage = Buffer.from(msgBody, 'hex');
+                        } catch (err) {
+                            opReturnMessage = '';
+                        }
                     }
                     continue; // skipping the remainder of tx data parsing logic in both token and OP_RETURN tx cases
                 }
