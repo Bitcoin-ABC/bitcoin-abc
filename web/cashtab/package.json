@@ -42,7 +42,7 @@
         "build": "node scripts/build.js",
         "extension": "./scripts/extension.sh",
         "predeploy": "npm run build",
-        "pretest": "./scripts/addGenerated.sh",
+        "posttest": "./scripts/addGenerated.sh",
         "test": "node scripts/test.js",
         "test:coverage": "CI=true npm run test --coverage",
         "debug": "node --inspect-brk=9229 scripts/start.js"
