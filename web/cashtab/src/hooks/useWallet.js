@@ -203,6 +203,12 @@ const useWallet = () => {
                 wallet.Path1899.cashAddress,
             ];
 
+            const publicKeys = [
+                wallet.Path145.publicKey,
+                wallet.Path245.publicKey,
+                wallet.Path1899.publicKey,
+            ];
+
             const utxos = await getUtxos(BCH, cashAddresses);
 
             // If an error is returned or utxos from only 1 address are returned
@@ -239,7 +245,9 @@ const useWallet = () => {
                 hydratedUtxoDetails,
             );
             const txHistory = await getTxHistory(BCH, cashAddresses);
-            const parsedTxHistory = await getTxData(BCH, txHistory);
+
+            // public keys are used to determined if a tx is incoming outgoing
+            const parsedTxHistory = await getTxData(BCH, txHistory, publicKeys);
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
 

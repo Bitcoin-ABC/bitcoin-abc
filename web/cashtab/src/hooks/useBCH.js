@@ -79,7 +79,7 @@ export default function useBCH() {
         return flatTxHistory.splice(0, txCount);
     };
 
-    const parseTxData = txData => {
+    const parseTxData = async (BCH, txData, publicKeys) => {
         /*
         Desired output
         [
@@ -110,8 +110,7 @@ export default function useBCH() {
             parsedTx.height = tx.height;
             let destinationAddress = tx.address;
 
-            // If this tx had too many inputs to be parsed by getTxDataWithPassThrough, skip it
-            // When this occurs, the tx will only have txid and height
+            // if there was an error in getting the tx data from api, the tx will only have txid and height
             // So, it will not have 'vin'
             if (!Object.keys(tx).includes('vin')) {
                 // Populate as a limited-info tx that can be expanded in a block explorer
@@ -130,20 +129,41 @@ export default function useBCH() {
             let tokenTx = false;
             let substring = '';
 
-            // get the address of the sender for this tx and encode into eCash address
-            let senderBchAddress = tx.vin[0].address;
-            const { type, hash } = cashaddr.decode(senderBchAddress);
-            const senderAddress = cashaddr.encode('ecash', type, hash);
-
-            // If vin includes tx address, this is an outgoing tx
-            // Note that with bch-input data, we do not have input amounts
+            // If vin's scriptSig contains one of the publicKeys of this wallet
+            // This is an outgoing tx
             for (let j = 0; j < tx.vin.length; j += 1) {
-                const thisInput = tx.vin[j];
-                if (thisInput.address === tx.address) {
-                    // This is an outgoing transaction
-                    outgoingTx = true;
+                // Since Cashtab only concerns with utxos of Path145, Path245 and Path1899 addresses,
+                // which are hashes of thier public keys. We can safely assume that Cashtab can only
+                // consumes utxos of type 'pubkeyhash'
+                // Therefore, only tx with vin's scriptSig of type 'pubkeyhash' can potentially be an outgoing tx.
+                // any other scriptSig type indicates that the tx is incoming.
+                try {
+                    const thisInputScriptSig = tx.vin[j].scriptSig;
+                    let inputPubKey = undefined;
+                    const inputType = BCH.Script.classifyInput(
+                        BCH.Script.decode(
+                            Buffer.from(thisInputScriptSig.hex, 'hex'),
+                        ),
+                    );
+                    if (inputType === 'pubkeyhash') {
+                        inputPubKey = thisInputScriptSig.hex.substring(
+                            thisInputScriptSig.hex.length - 66,
+                        );
+                    }
+                    publicKeys.forEach(pubKey => {
+                        if (pubKey === inputPubKey) {
+                            // This is an outgoing transaction
+                            outgoingTx = true;
+                        }
+                    });
+                    if (outgoingTx === true) break;
+                } catch (err) {
+                    console.log(
+                        "useBCH.parsedTxHistory() error: in trying to classify Input' scriptSig",
+                    );
                 }
             }
+
             // Iterate over vout to find how much was sent or received
             for (let j = 0; j < tx.vout.length; j += 1) {
                 const thisOutput = tx.vout[j];
@@ -223,6 +243,32 @@ export default function useBCH() {
                     destinationAddress = thisOutput.scriptPubKey.addresses[0];
                 }
             }
+
+            // If the tx is incoming and have a message attached
+            // get the address of the sender for this tx and encode into eCash address
+            let senderAddress = null;
+            if (!outgoingTx && opReturnMessage !== '') {
+                const firstVin = tx.vin[0];
+                try {
+                    // get the tx that generated the first vin of this tx
+                    const firstVinTxData =
+                        await BCH.RawTransactions.getRawTransaction(
+                            firstVin.txid,
+                            true,
+                        );
+                    // extract the address of the tx output
+                    let senderBchAddress =
+                        firstVinTxData.vout[firstVin.vout].scriptPubKey
+                            .addresses[0];
+                    const { prefix, type, hash } =
+                        cashaddr.decode(senderBchAddress);
+                    senderAddress = cashaddr.encode('ecash', type, hash);
+                } catch (err) {
+                    console.log(
+                        `Error in BCH.RawTransactions.getRawTransaction(${firstVin.txid}, true)`,
+                    );
+                }
+            }
             // Construct parsedTx
             parsedTx.amountSent = amountSent;
             parsedTx.amountReceived = amountReceived;
@@ -260,15 +306,16 @@ export default function useBCH() {
     };
 
     const getTxDataWithPassThrough = async (BCH, flatTx) => {
-        // necessary as BCH.RawTransactions.getTxData does not return address or blockheight
+        // necessary as BCH.RawTransactions.getRawTransaction does not return address or blockheight
         let txDataWithPassThrough = {};
         try {
-            txDataWithPassThrough = await BCH.RawTransactions.getTxData(
+            txDataWithPassThrough = await BCH.RawTransactions.getRawTransaction(
                 flatTx.txid,
+                true,
             );
         } catch (err) {
             console.log(
-                `Error in BCH.RawTransactions.getTxData(${flatTx.txid})`,
+                `Error in BCH.RawTransactions.getRawTransaction(${flatTx.txid}, true)`,
             );
             console.log(err);
             // Include txid if you don't get it from the attempted response
@@ -279,7 +326,7 @@ export default function useBCH() {
         return txDataWithPassThrough;
     };
 
-    const getTxData = async (BCH, txHistory) => {
+    const getTxData = async (BCH, txHistory, publicKeys) => {
         // Flatten tx history
         let flatTxs = flattenTransactions(txHistory);
 
@@ -298,7 +345,7 @@ export default function useBCH() {
         try {
             txDataPromiseResponse = await Promise.all(txDataPromises);
 
-            const parsed = parseTxData(txDataPromiseResponse);
+            const parsed = parseTxData(BCH, txDataPromiseResponse, publicKeys);
 
             return parsed;
         } catch (err) {

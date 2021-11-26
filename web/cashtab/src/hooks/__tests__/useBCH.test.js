@@ -9,6 +9,7 @@ import createTokenMock from '../__mocks__/createToken';
 import mockTxHistory from '../__mocks__/mockTxHistory';
 import mockFlatTxHistory from '../__mocks__/mockFlatTxHistory';
 import mockTxDataWithPassthrough from '../__mocks__/mockTxDataWithPassthrough';
+import mockPublicKeys from '../__mocks__/mockPublicKeys';
 import {
     flattenedHydrateUtxosResponse,
     legacyHydrateUtxosResponse,
@@ -387,32 +388,52 @@ describe('useBCH hook', () => {
         );
     });
 
-    it(`Correctly parses a "send ${currency.ticker}" transaction`, () => {
+    it(`Correctly parses a "send ${currency.ticker}" transaction`, async () => {
         const { parseTxData } = useBCH();
-        expect(parseTxData([mockTxDataWithPassthrough[0]])).toStrictEqual(
-            mockSentCashTx,
-        );
+        const BCH = new BCHJS();
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[0]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockSentCashTx);
     });
 
-    it(`Correctly parses a "receive ${currency.ticker}" transaction`, () => {
+    it(`Correctly parses a "receive ${currency.ticker}" transaction`, async () => {
         const { parseTxData } = useBCH();
-        expect(parseTxData([mockTxDataWithPassthrough[5]])).toStrictEqual(
-            mockReceivedCashTx,
-        );
+        const BCH = new BCHJS();
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[5]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockReceivedCashTx);
     });
 
-    it(`Correctly parses a "send ${currency.tokenTicker}" transaction`, () => {
+    it(`Correctly parses a "send ${currency.tokenTicker}" transaction`, async () => {
         const { parseTxData } = useBCH();
-        expect(parseTxData([mockTxDataWithPassthrough[1]])).toStrictEqual(
-            mockSentTokenTx,
-        );
+        const BCH = new BCHJS();
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[1]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockSentTokenTx);
     });
 
-    it(`Correctly parses a "receive ${currency.tokenTicker}" transaction`, () => {
+    it(`Correctly parses a "receive ${currency.tokenTicker}" transaction`, async () => {
         const { parseTxData } = useBCH();
-        expect(parseTxData([mockTxDataWithPassthrough[3]])).toStrictEqual(
-            mockReceivedTokenTx,
-        );
+        const BCH = new BCHJS();
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[3]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockReceivedTokenTx);
     });
 
     it(`Correctly parses a "send ${currency.tokenTicker}" transaction with token details`, () => {
@@ -463,17 +484,30 @@ describe('useBCH hook', () => {
         ).toStrictEqual(tokenGenesisCashtabMintAlpha.cashtabTokenInfo);
     });
 
-    it(`Correctly parses a "send ${currency.ticker}" transaction with an OP_RETURN message`, () => {
+    it(`Correctly parses a "send ${currency.ticker}" transaction with an OP_RETURN message`, async () => {
         const { parseTxData } = useBCH();
-        expect(parseTxData([mockTxDataWithPassthrough[10]])).toStrictEqual(
-            mockSentOpReturnMessageTx,
-        );
+        const BCH = new BCHJS();
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[10]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockSentOpReturnMessageTx);
     });
 
-    it(`Correctly parses a "receive ${currency.ticker}" transaction with an OP_RETURN message`, () => {
+    it(`Correctly parses a "receive ${currency.ticker}" transaction with an OP_RETURN message`, async () => {
         const { parseTxData } = useBCH();
-        expect(parseTxData([mockTxDataWithPassthrough[11]])).toStrictEqual(
-            mockReceivedOpReturnMessageTx,
-        );
+        const BCH = new BCHJS();
+        BCH.RawTransactions.getRawTransaction = jest
+            .fn()
+            .mockResolvedValue(mockTxDataWithPassthrough[12]);
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[11]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockReceivedOpReturnMessageTx);
     });
 });
