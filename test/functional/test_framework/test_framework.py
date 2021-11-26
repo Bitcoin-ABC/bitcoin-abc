@@ -27,8 +27,6 @@ from .util import (
     PortSeed,
     assert_equal,
     check_json_precision,
-    connect_nodes,
-    disconnect_nodes,
     get_datadir_path,
     initialize_datadir,
     p2p_port,
@@ -528,10 +526,55 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.nodes[i].process.wait(timeout)
 
     def connect_nodes(self, a, b):
-        connect_nodes(self.nodes[a], self.nodes[b])
+        from_node = self.nodes[a]
+        to_node = self.nodes[b]
+
+        host = to_node.host
+        if host is None:
+            host = '127.0.0.1'
+        ip_port = host + ':' + str(to_node.p2p_port)
+        from_node.addnode(ip_port, "onetry")
+        # poll until version handshake complete to avoid race conditions
+        # with transaction relaying
+        # See comments in net_processing:
+        # * Must have a version message before anything else
+        # * Must have a verack message before anything else
+        wait_until_helper(
+            lambda: all(peer['version'] != 0
+                        for peer in from_node.getpeerinfo()))
+        wait_until_helper(
+            lambda: all(peer['bytesrecv_per_msg'].pop('verack', 0) == 24
+                        for peer in from_node.getpeerinfo()))
 
     def disconnect_nodes(self, a, b):
-        disconnect_nodes(self.nodes[a], self.nodes[b])
+        from_node = self.nodes[a]
+        to_node = self.nodes[b]
+
+        def get_peer_ids():
+            result = []
+            for peer in from_node.getpeerinfo():
+                if to_node.name in peer['subver']:
+                    result.append(peer['id'])
+            return result
+
+        peer_ids = get_peer_ids()
+        if not peer_ids:
+            self.log.warning(
+                f"disconnect_nodes: {from_node.index} and {to_node.index} were not connected")
+            return
+        for peer_id in peer_ids:
+            try:
+                from_node.disconnectnode(nodeid=peer_id)
+            except JSONRPCException as e:
+                # If this node is disconnected between calculating the peer id
+                # and issuing the disconnect, don't worry about it.
+                # This avoids a race condition if we're mass-disconnecting
+                # peers.
+                if e.error['code'] != -29:  # RPC_CLIENT_NODE_NOT_CONNECTED
+                    raise
+
+        # wait to disconnect
+        wait_until_helper(lambda: not get_peer_ids(), timeout=5)
 
     def split_network(self):
         """
