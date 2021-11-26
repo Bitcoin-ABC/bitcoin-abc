@@ -8,11 +8,7 @@ import os
 import shutil
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_raises_rpc_error,
-    connect_nodes,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error
 
 
 class WalletHDTest(BitcoinTestFramework):
@@ -111,7 +107,7 @@ class WalletHDTest(BitcoinTestFramework):
                 assert_equal(hd_info_2["hdkeypath"], "m/0'/0'/" + str(i) + "'")
             assert_equal(hd_info_2["hdmasterfingerprint"], hd_fingerprint)
         assert_equal(hd_add, hd_add_2)
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         self.sync_all()
 
         # Needs rescan
@@ -134,7 +130,7 @@ class WalletHDTest(BitcoinTestFramework):
             os.path.join(self.nodes[1].datadir, self.chain, "wallets",
                          self.default_wallet_name, self.wallet_data_filename))
         self.start_node(1, extra_args=self.extra_args[1])
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         self.sync_all()
         # Wallet automatically scans blocks older than key on startup
         assert_equal(
@@ -233,7 +229,7 @@ class WalletHDTest(BitcoinTestFramework):
             # Restart node 1 with keypool of 3 and a different wallet
             self.nodes[1].createwallet(wallet_name='origin', blank=True)
             self.restart_node(1, extra_args=['-keypool=3', '-wallet=origin'])
-            connect_nodes(self.nodes[0], self.nodes[1])
+            self.connect_nodes(0, 1)
 
             # sethdseed restoring and seeing txs to addresses out of the
             # keypool

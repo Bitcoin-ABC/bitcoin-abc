@@ -20,7 +20,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes, disconnect_nodes
+from test_framework.util import assert_equal
 
 
 class CFiltersClient(P2PInterface):
@@ -59,7 +59,7 @@ class CompactFiltersTest(BitcoinTestFramework):
         self.sync_blocks(timeout=600)
 
         # Stale blocks by disconnecting nodes 0 & 1, mining, then reconnecting
-        disconnect_nodes(self.nodes[0], self.nodes[1])
+        self.disconnect_nodes(0, 1)
 
         self.nodes[0].generate(1)
         self.wait_until(lambda: self.nodes[0].getblockcount() == 1000)
@@ -92,7 +92,7 @@ class CompactFiltersTest(BitcoinTestFramework):
         assert_equal(len(response.headers), 1)
 
         self.log.info("Reorg node 0 to a new chain.")
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         self.sync_blocks(timeout=600)
 
         main_block_hash = self.nodes[0].getblockhash(1000)

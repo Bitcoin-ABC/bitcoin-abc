@@ -37,11 +37,7 @@ from decimal import Decimal
 
 from test_framework.descriptors import descsum_check, descsum_create
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_greater_than,
-    connect_nodes,
-)
+from test_framework.util import assert_equal, assert_greater_than
 
 
 class AddressTypeTest(BitcoinTestFramework):
@@ -59,7 +55,7 @@ class AddressTypeTest(BitcoinTestFramework):
         # Fully mesh-connect nodes for faster mempool sync
         for i, j in itertools.product(range(self.num_nodes), repeat=2):
             if i > j:
-                connect_nodes(self.nodes[i], self.nodes[j])
+                self.connect_nodes(i, j)
         self.sync_all()
 
     def get_balances(self, key='trusted'):

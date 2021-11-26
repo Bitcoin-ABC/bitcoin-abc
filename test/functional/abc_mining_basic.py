@@ -14,11 +14,7 @@ from test_framework.cdefs import (
 )
 from test_framework.messages import XEC
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_greater_than_or_equal,
-    connect_nodes,
-)
+from test_framework.util import assert_equal, assert_greater_than_or_equal
 
 AXION_ACTIVATION_TIME = 2000000600
 MINER_FUND_ADDR = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
@@ -45,7 +41,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         # Since the other nodes are mining blocks "in the future" compared to node0,
         # node0 will not broadcast blocks between the other nodes.
         for n in range(1, len(self.nodes)):
-            connect_nodes(self.nodes[0], self.nodes[n])
+            self.connect_nodes(0, n)
 
     def run_for_node(self, node, expectedMinerFundAddress):
         address = node.get_deterministic_priv_key().address

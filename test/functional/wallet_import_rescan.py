@@ -26,7 +26,7 @@ import random
 from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes, set_node_times
+from test_framework.util import assert_equal, set_node_times
 
 Call = enum.Enum("Call", "single multiaddress multiscript")
 Data = enum.Enum("Data", "address pub priv")
@@ -166,7 +166,7 @@ class ImportRescanTest(BitcoinTestFramework):
 
         self.start_nodes()
         for i in range(1, self.num_nodes):
-            connect_nodes(self.nodes[i], self.nodes[0])
+            self.connect_nodes(i, 0)
 
     def run_test(self):
         # Create one transaction on node 0 with a unique amount for

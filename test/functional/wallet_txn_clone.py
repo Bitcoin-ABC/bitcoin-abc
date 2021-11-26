@@ -8,7 +8,7 @@ import io
 
 from test_framework.messages import XEC, CTransaction
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, connect_nodes, disconnect_nodes
+from test_framework.util import assert_equal
 
 
 class TxnMallTest(BitcoinTestFramework):
@@ -27,7 +27,7 @@ class TxnMallTest(BitcoinTestFramework):
     def setup_network(self):
         # Start with split network:
         super().setup_network()
-        disconnect_nodes(self.nodes[1], self.nodes[2])
+        self.disconnect_nodes(1, 2)
 
     def run_test(self):
         output_type = "legacy"
@@ -119,7 +119,7 @@ class TxnMallTest(BitcoinTestFramework):
         self.nodes[2].generate(1)
 
         # Reconnect the split network, and sync chain:
-        connect_nodes(self.nodes[1], self.nodes[2])
+        self.connect_nodes(1, 2)
         self.nodes[2].sendrawtransaction(node0_tx2["hex"])
         self.nodes[2].sendrawtransaction(tx2["hex"])
         self.nodes[2].generate(1)  # Mine another block to make sure we sync

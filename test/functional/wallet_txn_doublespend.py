@@ -6,12 +6,7 @@
 from decimal import Decimal
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    connect_nodes,
-    disconnect_nodes,
-    find_output,
-)
+from test_framework.util import assert_equal, find_output
 
 
 class TxnMallTest(BitcoinTestFramework):
@@ -30,7 +25,7 @@ class TxnMallTest(BitcoinTestFramework):
     def setup_network(self):
         # Start with split network:
         super().setup_network()
-        disconnect_nodes(self.nodes[1], self.nodes[2])
+        self.disconnect_nodes(1, 2)
 
     def run_test(self):
         # All nodes should start with 1,250,000,000 XEC:
@@ -125,7 +120,7 @@ class TxnMallTest(BitcoinTestFramework):
         self.nodes[2].generate(1)
 
         # Reconnect the split network, and sync chain:
-        connect_nodes(self.nodes[1], self.nodes[2])
+        self.connect_nodes(1, 2)
         self.nodes[2].generate(1)  # Mine another block to make sure we sync
         self.sync_blocks()
         assert_equal(self.nodes[0].gettransaction(

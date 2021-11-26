@@ -13,7 +13,6 @@ from test_framework.util import (
     assert_greater_than,
     assert_greater_than_or_equal,
     assert_raises_rpc_error,
-    connect_nodes,
     find_vout_for_address,
 )
 
@@ -40,10 +39,10 @@ class RawTransactionsTest(BitcoinTestFramework):
     def setup_network(self):
         self.setup_nodes()
 
-        connect_nodes(self.nodes[0], self.nodes[1])
-        connect_nodes(self.nodes[1], self.nodes[2])
-        connect_nodes(self.nodes[0], self.nodes[2])
-        connect_nodes(self.nodes[0], self.nodes[3])
+        self.connect_nodes(0, 1)
+        self.connect_nodes(1, 2)
+        self.connect_nodes(0, 2)
+        self.connect_nodes(0, 3)
 
     def run_test(self):
         self.log.info("Connect nodes, set fees, generate blocks, and sync")

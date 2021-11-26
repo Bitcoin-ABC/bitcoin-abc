@@ -5,7 +5,7 @@
 """Test the setban rpc call."""
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import connect_nodes, p2p_port
+from test_framework.util import p2p_port
 
 
 class SetBanTests(BitcoinTestFramework):
@@ -17,7 +17,7 @@ class SetBanTests(BitcoinTestFramework):
     def run_test(self):
         # Node 0 connects to Node 1, check that the noban permission is not
         # granted
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         peerinfo = self.nodes[1].getpeerinfo()[0]
         assert('noban' not in peerinfo['permissions'])
 
@@ -32,7 +32,7 @@ class SetBanTests(BitcoinTestFramework):
         # However, node 0 should be able to reconnect if it has noban
         # permission
         self.restart_node(1, ['-whitelist=127.0.0.1'])
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         peerinfo = self.nodes[1].getpeerinfo()[0]
         assert('noban' in peerinfo['permissions'])
 
@@ -40,7 +40,7 @@ class SetBanTests(BitcoinTestFramework):
         # noban permission
         self.nodes[1].setban("127.0.0.1", "remove")
         self.restart_node(1, [])
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         peerinfo = self.nodes[1].getpeerinfo()[0]
         assert('noban' not in peerinfo['permissions'])
 

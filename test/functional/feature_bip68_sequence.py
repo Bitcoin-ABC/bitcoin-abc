@@ -23,8 +23,6 @@ from test_framework.util import (
     assert_equal,
     assert_greater_than,
     assert_raises_rpc_error,
-    connect_nodes,
-    disconnect_nodes,
     satoshi_round,
 )
 
@@ -480,13 +478,13 @@ class BIP68Test(BitcoinTestFramework):
         assert_greater_than(csv_activation_height - height, 1)
         self.nodes[0].generate(csv_activation_height - height - 1)
         assert_equal(self.get_csv_status(), False)
-        disconnect_nodes(self.nodes[0], self.nodes[1])
+        self.disconnect_nodes(0, 1)
         self.nodes[0].generate(1)
         assert_equal(self.get_csv_status(), True)
         # We have a block that has CSV activated, but we want to be at
         # the activation point, so we invalidate the tip.
         self.nodes[0].invalidateblock(self.nodes[0].getbestblockhash())
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         self.sync_blocks()
 
     # Use self.nodes[1] to test that version 2 transactions are standard.

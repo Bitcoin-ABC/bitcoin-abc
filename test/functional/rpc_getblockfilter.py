@@ -9,8 +9,6 @@ from test_framework.util import (
     assert_equal,
     assert_is_hex_string,
     assert_raises_rpc_error,
-    connect_nodes,
-    disconnect_nodes,
 )
 
 FILTER_TYPES = ["basic"]
@@ -26,7 +24,7 @@ class GetBlockFilterTest(BitcoinTestFramework):
     def run_test(self):
         # Create two chains by disconnecting nodes 0 & 1, mining, then
         # reconnecting
-        disconnect_nodes(self.nodes[0], self.nodes[1])
+        self.disconnect_nodes(0, 1)
 
         self.nodes[0].generate(3)
         self.nodes[1].generate(4)
@@ -36,7 +34,7 @@ class GetBlockFilterTest(BitcoinTestFramework):
             block_height) for block_height in range(4)]
 
         # Reorg node 0 to a new chain
-        connect_nodes(self.nodes[0], self.nodes[1])
+        self.connect_nodes(0, 1)
         self.sync_blocks()
 
         assert_equal(self.nodes[0].getblockcount(), 4)
