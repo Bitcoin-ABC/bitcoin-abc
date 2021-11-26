@@ -49,6 +49,7 @@ export const currency = {
             'brl',
             'php',
             'ils',
+            'clp',
         ],
     },
     fiatCurrencies: {
@@ -56,6 +57,7 @@ export const currency = {
         brl: { name: 'Brazilian Real', symbol: 'R$', slug: 'brl' },
         gbp: { name: 'British Pound', symbol: '£', slug: 'gbp' },
         cad: { name: 'Canadian Dollar', symbol: '$', slug: 'cad' },
+        clp: { name: 'Chilean Peso', symbol: '$', slug: 'clp' },
         cny: { name: 'Chinese Yuan', symbol: '元', slug: 'cny' },
         eur: { name: 'Euro', symbol: '€', slug: 'eur' },
         inr: { name: 'Indian Rupee', symbol: '₹', slug: 'inr' },
