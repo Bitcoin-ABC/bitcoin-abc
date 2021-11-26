@@ -59,6 +59,7 @@ export const currency = {
             'php',
             'ils',
             'clp',
+            'twd',
         ],
     },
     fiatCurrencies: {
@@ -77,6 +78,7 @@ export const currency = {
         nok: { name: 'Norwegian Krone', symbol: 'kr', slug: 'nok' },
         php: { name: 'Philippine Peso', symbol: '₱', slug: 'php' },
         rub: { name: 'Russian Ruble', symbol: 'р.', slug: 'rub' },
+        twd: { name: 'New Taiwan Dollar', symbol: 'NT$', slug: 'twd' },
         zar: { name: 'South African Rand', symbol: 'R', slug: 'zar' },
         try: { name: 'Turkish Lira', symbol: '₺', slug: 'try' },
         vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
