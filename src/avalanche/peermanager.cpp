@@ -155,12 +155,10 @@ bool PeerManager::registerProof(const ProofRef &proof) {
 
     // Check the proof's validity.
     ProofValidationState state;
-    bool valid = [&](ProofValidationState &state) {
-        LOCK(cs_main);
-        const CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        return proof->verify(state, coins);
-    }(state);
-
+    // Using WITH_LOCK directly inside the if statement will trigger a cppcheck
+    // false positive syntax error
+    const bool valid = WITH_LOCK(
+        cs_main, return proof->verify(state, ::ChainstateActive().CoinsTip()));
     if (!valid) {
         if (isOrphanState(state)) {
             orphanProofs.addProof(proof);
