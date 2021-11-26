@@ -242,7 +242,7 @@ ProofRef PeerManager::getProof(const ProofId &proofid) const {
     return proof;
 }
 
-bool PeerManager::isValid(const ProofId &proofid) const {
+bool PeerManager::isBoundToPeer(const ProofId &proofid) const {
     auto &pview = peers.get<by_proofid>();
     return pview.find(proofid) != pview.end();
 }
@@ -256,7 +256,7 @@ bool PeerManager::createPeer(const ProofRef &proof) {
 
     const ProofId &proofid = proof->getId();
 
-    if (isValid(proofid)) {
+    if (isBoundToPeer(proofid)) {
         return false;
     }
 
@@ -550,8 +550,8 @@ PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,
 }
 
 void PeerManager::addUnbroadcastProof(const ProofId &proofid) {
-    // The proof should be valid
-    if (isValid(proofid)) {
+    // The proof should be bound to a peer
+    if (isBoundToPeer(proofid)) {
         m_unbroadcast_proofids.insert(proofid);
     }
 }

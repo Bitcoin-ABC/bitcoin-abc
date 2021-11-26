@@ -501,7 +501,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     pm.updatedBlockTip();
     BOOST_CHECK(pm.isOrphan(proofid));
-    BOOST_CHECK(!pm.isValid(proofid));
+    BOOST_CHECK(!pm.isBoundToPeer(proofid));
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
@@ -517,7 +517,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     pm.updatedBlockTip();
     BOOST_CHECK(!pm.isOrphan(proofid));
-    BOOST_CHECK(pm.isValid(proofid));
+    BOOST_CHECK(pm.isBoundToPeer(proofid));
     // The peerid has certainly been updated
     peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
@@ -650,7 +650,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         BOOST_CHECK(pm.exists(proofid));
 
         BOOST_CHECK_EQUAL(pm.isOrphan(proofid), expectedOrphan);
-        BOOST_CHECK_EQUAL(pm.isValid(proofid), !expectedOrphan);
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(proofid), !expectedOrphan);
 
         bool ret = false;
         pm.forEachPeer([&](const Peer &peer) {
@@ -855,7 +855,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
     BOOST_CHECK(pm.isOrphan(proofToInvalidate->getId()));
 
     BOOST_CHECK(!pm.isOrphan(conflictingProof->getId()));
-    BOOST_CHECK(pm.isValid(conflictingProof->getId()));
+    BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {

@@ -1143,9 +1143,9 @@ void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
             auto unbroadcasted_proofids = pm.getUnbroadcastProofs();
 
             for (const auto &proofid : unbroadcasted_proofids) {
-                // Sanity check: all unbroadcast proofs should be valid in the
-                // peermanager
-                if (pm.isValid(proofid)) {
+                // Sanity check: all unbroadcast proofs should be bound to a
+                // peer in the peermanager
+                if (pm.isBoundToPeer(proofid)) {
                     RelayProof(proofid, m_connman);
                 } else {
                     pm.removeUnbroadcastProof(proofid);

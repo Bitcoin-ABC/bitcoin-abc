@@ -264,7 +264,7 @@ public:
     uint64_t getFragmentation() const { return fragmentation; }
 
     ProofRef getProof(const ProofId &proofid) const;
-    bool isValid(const ProofId &proofid) const;
+    bool isBoundToPeer(const ProofId &proofid) const;
     bool isOrphan(const ProofId &proofid) const;
 
 private:
