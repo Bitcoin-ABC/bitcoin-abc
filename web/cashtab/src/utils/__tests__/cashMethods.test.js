@@ -10,6 +10,7 @@ import {
     convertEtokenToSimpleledger,
     checkNullUtxosForTokenStatus,
     confirmNonEtokenUtxos,
+    isLegacyMigrationRequired,
 } from '@utils/cashMethods';
 import {
     unbatchedArray,
@@ -36,6 +37,14 @@ import {
     mockHydratedUtxosWithNullValues,
     mockHydratedUtxosWithNullValuesSetToFalse,
 } from '../__mocks__/nullUtxoMocks';
+
+import {
+    missingPath1899Wallet,
+    missingPublicKeyInPath1899Wallet,
+    missingPublicKeyInPath145Wallet,
+    missingPublicKeyInPath245Wallet,
+    notLegacyWallet,
+} from '../__mocks__/mockLegacyWallets';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -167,5 +176,26 @@ describe('Correctly executes cash utility functions', () => {
                 mockNonEtokenUtxos,
             ),
         ).toStrictEqual(mockHydratedUtxosWithNullValuesSetToFalse);
+    });
+    it(`Recognizes a wallet with missing Path1889 is a Legacy Wallet and requires migration`, () => {
+        expect(isLegacyMigrationRequired(missingPath1899Wallet)).toBe(true);
+    });
+    it(`Recognizes a wallet with missing PublicKey in Path1889 is a Legacy Wallet and requires migration`, () => {
+        expect(
+            isLegacyMigrationRequired(missingPublicKeyInPath1899Wallet),
+        ).toBe(true);
+    });
+    it(`Recognizes a wallet with missing PublicKey in Path145 is a Legacy Wallet and requires migration`, () => {
+        expect(isLegacyMigrationRequired(missingPublicKeyInPath145Wallet)).toBe(
+            true,
+        );
+    });
+    it(`Recognizes a wallet with missing PublicKey in Path245 is a Legacy Wallet and requires migration`, () => {
+        expect(isLegacyMigrationRequired(missingPublicKeyInPath245Wallet)).toBe(
+            true,
+        );
+    });
+    it(`Recognizes a latest, current wallet that does not require migration`, () => {
+        expect(isLegacyMigrationRequired(notLegacyWallet)).toBe(false);
     });
 });
