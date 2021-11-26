@@ -48,6 +48,7 @@ export const currency = {
             'inr',
             'brl',
             'php',
+            'ils',
         ],
     },
     fiatCurrencies: {
@@ -59,6 +60,7 @@ export const currency = {
         eur: { name: 'Euro', symbol: '€', slug: 'eur' },
         inr: { name: 'Indian Rupee', symbol: '₹', slug: 'inr' },
         idr: { name: 'Indonesian Rupiah', symbol: 'Rp', slug: 'idr' },
+        ils: { name: 'Israeli Shekel', symbol: '₪', slug: 'ils' },
         jpy: { name: 'Japanese Yen', symbol: '¥', slug: 'jpy' },
         krw: { name: 'Korean Won', symbol: '₩', slug: 'krw' },
         nok: { name: 'Norwegian Krone', symbol: 'kr', slug: 'nok' },
