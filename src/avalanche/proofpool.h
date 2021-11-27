@@ -45,18 +45,31 @@ namespace bmi = boost::multi_index;
 /**
  * Map a proof to each utxo. A proof can be mapped with several utxos.
  */
-using ProofPool = boost::multi_index_container<
-    ProofPoolEntry,
-    bmi::indexed_by<
-        // index by utxo
-        bmi::hashed_unique<bmi::tag<by_utxo>,
-                           bmi::const_mem_fun<ProofPoolEntry, const COutPoint &,
-                                              &ProofPoolEntry::getUTXO>,
-                           SaltedOutpointHasher>,
-        // index by proofid
-        bmi::hashed_non_unique<bmi::tag<by_proofid>,
-                               ProofPoolEntryProofIdKeyExtractor,
-                               SaltedProofIdHasher>>>;
+struct ProofPool {
+    boost::multi_index_container<
+        ProofPoolEntry,
+        bmi::indexed_by<
+            // index by utxo
+            bmi::hashed_unique<
+                bmi::tag<by_utxo>,
+                bmi::const_mem_fun<ProofPoolEntry, const COutPoint &,
+                                   &ProofPoolEntry::getUTXO>,
+                SaltedOutpointHasher>,
+            // index by proofid
+            bmi::hashed_non_unique<bmi::tag<by_proofid>,
+                                   ProofPoolEntryProofIdKeyExtractor,
+                                   SaltedProofIdHasher>>>
+        pool;
+
+    enum AddProofStatus {
+        REJECTED = 0,   //!< Rejected due to conflicts
+        SUCCEED = 1,    //!< Added successfully
+        DUPLICATED = 2, //!< Already in pool
+    };
+
+    AddProofStatus addProof(const ProofRef &proof);
+    bool removeProof(ProofRef proof);
+};
 
 } // namespace avalanche
 

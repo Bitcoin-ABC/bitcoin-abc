@@ -254,43 +254,23 @@ bool PeerManager::isOrphan(const ProofId &proofid) const {
 bool PeerManager::createPeer(const ProofRef &proof) {
     assert(proof);
 
-    const ProofId &proofid = proof->getId();
+    switch (validProofPool.addProof(proof)) {
+        case ProofPool::AddProofStatus::REJECTED:
+            // The proof has conflicts, orphan the proof so it can be pulled
+            // back if the conflicting ones are invalidated.
+            orphanProofs.addProof(proof);
+            return false;
+        case ProofPool::AddProofStatus::DUPLICATED:
+            // If the proof was already in the pool, don't duplicate the peer.
+            return false;
+        case ProofPool::AddProofStatus::SUCCEED:
+            break;
 
-    if (isBoundToPeer(proofid)) {
-        return false;
+            // No default case, so the compiler can warn about missing cases
     }
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
-
-    // Attach UTXOs to this proof.
-    std::unordered_set<ProofRef> conflicting_proofs;
-    for (size_t i = 0; i < proof->getStakes().size(); i++) {
-        auto p = validProofPool.emplace(i, proof);
-        if (!p.second) {
-            // We have a collision with an existing proof.
-            conflicting_proofs.insert(p.first->proof);
-        }
-    }
-
-    // For now, if there is a conflict, just cleanup the mess.
-    if (conflicting_proofs.size() > 0) {
-        for (const auto &s : proof->getStakes()) {
-            auto it = validProofPool.find(s.getStake().getUTXO());
-            assert(it != validProofPool.end());
-
-            // We need to delete that one.
-            if (it->proof->getId() == proofid) {
-                validProofPool.erase(it);
-            }
-        }
-
-        // Orphan the proof so it can be pulled back if the conflicting ones are
-        // invalidated.
-        orphanProofs.addProof(proof);
-
-        return false;
-    }
 
     // We have no peer for this proof, time to create it.
     auto inserted = peers.emplace(peerid, proof);
@@ -298,7 +278,7 @@ bool PeerManager::createPeer(const ProofRef &proof) {
 
     // If there are nodes waiting for this proof, add them
     auto &pendingNodesView = pendingNodes.get<by_proofid>();
-    auto range = pendingNodesView.equal_range(proofid);
+    auto range = pendingNodesView.equal_range(proof->getId());
 
     // We want to update the nodes then remove them from the pending set. That
     // will invalidate the range iterators, so we need to save the node ids
@@ -340,10 +320,7 @@ bool PeerManager::removePeer(const PeerId peerid) {
                     peerid, std::chrono::steady_clock::now())));
 
     // Release UTXOs attached to this proof.
-    for (const auto &s : it->proof->getStakes()) {
-        bool deleted = validProofPool.erase(s.getStake().getUTXO()) > 0;
-        assert(deleted);
-    }
+    validProofPool.removeProof(it->proof);
 
     m_unbroadcast_proofids.erase(it->proof->getId());
 
@@ -432,9 +409,9 @@ bool PeerManager::verify() const {
 
         // Check proof pool consistency
         for (const auto &ss : p.proof->getStakes()) {
-            auto it = validProofPool.find(ss.getStake().getUTXO());
+            auto it = validProofPool.pool.find(ss.getStake().getUTXO());
 
-            if (it == validProofPool.end()) {
+            if (it == validProofPool.pool.end()) {
                 return false;
             }
             if (it->proof->getId() != p.getProofId()) {
@@ -483,7 +460,7 @@ bool PeerManager::verify() const {
     }
 
     // Check there is no dangling utxo
-    for (const auto &entry : validProofPool) {
+    for (const auto &entry : validProofPool.pool) {
         if (!peersUtxos.count(entry.getUTXO())) {
             return false;
         }

@@ -19,6 +19,7 @@ add_boost_unit_tests_to_suite(avalanche test-avalanche
 		processor_tests.cpp
 		proof_tests.cpp
 		proofcomparator_tests.cpp
+		proofpool_tests.cpp
 )
 
 target_link_libraries(test-avalanche server testutil)
