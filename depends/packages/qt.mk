@@ -11,7 +11,6 @@ $(package)_linguist_tools = lrelease lupdate lconvert
 $(package)_patches = qt.pro qttools_src.pro
 $(package)_patches += fix_qt_pkgconfig.patch mac-qmake.conf fix_no_printer.patch no-xlib.patch
 $(package)_patches+= dont_hardcode_pwd.patch
-$(package)_patches+= no_sdk_version_check.patch
 $(package)_patches+= fix_lib_paths.patch
 $(package)_patches+= fix_numeric_limits_compile_error.patch
 
@@ -188,7 +187,6 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/fix_qt_pkgconfig.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_no_printer.patch && \
   patch -p1 -i $($(package)_patch_dir)/no-xlib.patch && \
-  patch -p1 -i $($(package)_patch_dir)/no_sdk_version_check.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_lib_paths.patch && \
   mkdir -p qtbase/mkspecs/macx-clang-linux &&\
   cp -f qtbase/mkspecs/macx-clang/qplatformdefs.h qtbase/mkspecs/macx-clang-linux/ &&\
@@ -206,6 +204,7 @@ endef
 define $(package)_config_cmds
   export PKG_CONFIG_SYSROOT_DIR=/ && \
   export PKG_CONFIG_LIBDIR=$(host_prefix)/lib/pkgconfig && \
+  export QT_MAC_SDK_NO_VERSION_CHECK=1 && \
   cd qtbase && \
   ./configure -top-level $($(package)_config_opts)
 endef
