@@ -39,7 +39,7 @@ const TokenListItem = ({ ticker, balance, tokenId }) => {
             <TokenIcon>
                 {currency.tokenIconsUrl !== '' ? (
                     <Img
-                        src={`${currency.tokenIconsUrl}/${tokenId}.png`}
+                        src={`${currency.tokenIconsUrl}/32/${tokenId}.png`}
                         width={32}
                         height={32}
                         unloader={

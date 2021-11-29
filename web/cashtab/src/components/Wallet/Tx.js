@@ -232,7 +232,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                     <TxTokenIcon>
                                         {currency.tokenIconsUrl !== '' ? (
                                             <Img
-                                                src={`${currency.tokenIconsUrl}/${data.tokenInfo.tokenId}.png`}
+                                                src={`${currency.tokenIconsUrl}/32/${data.tokenInfo.tokenId}.png`}
                                                 unloader={
                                                     <img
                                                         alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}

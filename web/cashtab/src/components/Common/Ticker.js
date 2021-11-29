@@ -23,7 +23,7 @@ export const currency = {
     tokenIconSubmitApi: 'https://icons.etokens.cash/new',
     tokenLogo: tokenLogo,
     tokenPrefixes: ['etoken'],
-    tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com/32',
+    tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
     txHistoryCount: 5,
     hydrateUtxoBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
