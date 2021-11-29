@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import React, { useState, useEffect } from 'react';
-import Paragraph from 'antd/lib/typography/Paragraph';
-import { notification } from 'antd';
+import { useState, useEffect } from 'react';
 import useAsyncTimeout from '@hooks/useAsyncTimeout';
 import usePrevious from '@hooks/usePrevious';
 import useBCH from '@hooks/useBCH';
@@ -21,10 +19,6 @@ import {
     xecReceivedNotification,
     eTokenReceivedNotification,
 } from '@components/Common/Notifications';
-import {
-    CashReceivedNotificationIcon,
-    TokenReceivedNotificationIcon,
-} from '@components/Common/CustomIcons';
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
     const [cashtabSettings, setCashtabSettings] = useState(false);
