@@ -33,14 +33,14 @@ import {
 import PopOut from '@assets/popout.svg';
 
 const GlobalStyle = createGlobalStyle`    
-    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button {
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button, #cropControlsConfirm{
         border-radius: 8px;
         background-color: ${props => props.theme.modals.buttons.background};
         color: ${props => props.theme.wallet.text.secondary};
         font-weight: bold;
     }    
     
-    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover {
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover, #cropControlsConfirm:hover {
         color: ${props => props.theme.primary};
         transition: color 0.3s;
         background-color: ${props => props.theme.modals.buttons.background};
@@ -58,14 +58,21 @@ const GlobalStyle = createGlobalStyle`
         color: ${props => props.theme.contrast} !important;
         background-color: ${props => props.theme.primary} !important;
     }
-    #addrSwitch {
+    #addrSwitch, #cropSwitch {
         .ant-switch-checked {
             background-color: white !important;
         }
     }
-    #addrSwitch.ant-switch-checked {
+    #addrSwitch.ant-switch-checked, #cropSwitch.ant-switch-checked {
         background-image: ${props =>
             props.theme.buttons.primary.backgroundImage} !important;
+    }
+
+    .ant-slider-rail {
+        background-color: ${props => props.theme.forms.border} !important;
+    }
+    .ant-slider-track {
+        background-color: ${props => props.theme.primary} !important;
     }
 `;
 
@@ -235,6 +242,8 @@ const App = () => {
                                 </OpenInTabBtn>
                                 {/*End extension-only components*/}
                             </HeaderCtn>
+                            {/*Note that the extension does not support biometric security*/}
+                            {/*Hence <ProtectableComponentWrapper> is not pulled in*/}
                             <WalletLabel name={wallet.name}></WalletLabel>
                             <Switch>
                                 <Route path="/wallet">
