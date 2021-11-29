@@ -3752,16 +3752,18 @@ void PeerManagerImpl::ProcessMessage(
                  peer->m_starting_height, addrMe.ToString(), fRelay,
                  pfrom.GetId(), remoteAddr);
 
-        // Ignore time offsets that are improbable (before the Genesis block)
-        // and may underflow the nTimeOffset calculation.
         int64_t currentTime = GetTime();
-        if (nTime >= int64_t(m_chainparams.GenesisBlock().nTime)) {
-            int64_t nTimeOffset = nTime - currentTime;
-            pfrom.nTimeOffset = nTimeOffset;
-            AddTimeData(pfrom.addr, nTimeOffset);
-        } else {
+        int64_t nTimeOffset = nTime - currentTime;
+        pfrom.nTimeOffset = nTimeOffset;
+        if (nTime < int64_t(m_chainparams.GenesisBlock().nTime)) {
+            // Ignore time offsets that are improbable (before the Genesis
+            // block) and may underflow our adjusted time.
             Misbehaving(pfrom, 20,
                         "Ignoring invalid timestamp in version message");
+        } else if (!pfrom.IsInboundConn()) {
+            // Don't use timedata samples from inbound peers to make it
+            // harder for others to tamper with our adjusted time.
+            AddTimeData(pfrom.addr, nTimeOffset);
         }
 
         // Feeler connections exist only to verify if address is online.
