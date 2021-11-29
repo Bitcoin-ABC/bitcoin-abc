@@ -6,7 +6,6 @@
 #define BITCOIN_AVALANCHE_PEERMANAGER_H
 
 #include <avalanche/node.h>
-#include <avalanche/orphanproofpool.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
 #include <coins.h>
@@ -28,13 +27,6 @@
 #include <vector>
 
 namespace avalanche {
-
-/**
- * Maximum number of stakes in the orphanProofs.
- * Benchmarking on a consumer grade computer shows that 10000 stakes can be
- * verified in less than 1 second.
- */
-static constexpr size_t AVALANCHE_ORPHANPROOFPOOL_SIZE = 10000;
 
 class Delegation;
 
@@ -133,6 +125,7 @@ class PeerManager {
     PeerSet peers;
 
     ProofPool validProofPool;
+    ProofPool orphanProofPool;
 
     using NodeSet = boost::multi_index_container<
         Node,
@@ -164,11 +157,6 @@ class PeerManager {
 
     static constexpr int SELECT_PEER_MAX_RETRY = 3;
     static constexpr int SELECT_NODE_MAX_RETRY = 3;
-
-    /**
-     * Tracks proof which for which the UTXO are unavailable.
-     */
-    OrphanProofPool orphanProofs{AVALANCHE_ORPHANPROOFPOOL_SIZE};
 
     /**
      * Track proof ids to broadcast

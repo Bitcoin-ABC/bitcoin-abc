@@ -161,7 +161,7 @@ bool PeerManager::registerProof(const ProofRef &proof) {
         cs_main, return proof->verify(state, ::ChainstateActive().CoinsTip()));
     if (!valid) {
         if (isOrphanState(state)) {
-            orphanProofs.addProof(proof);
+            orphanProofPool.addProof(proof);
         }
 
         // Reject invalid proof.
@@ -220,10 +220,10 @@ void PeerManager::updatedBlockTip() {
         removePeer(pid);
     }
 
-    orphanProofs.rescan(*this);
+    orphanProofPool.rescan(*this);
 
     for (auto &p : newOrphans) {
-        orphanProofs.addProof(p);
+        orphanProofPool.addProof(p);
     }
 }
 
@@ -236,7 +236,7 @@ ProofRef PeerManager::getProof(const ProofId &proofid) const {
     });
 
     if (!proof) {
-        proof = orphanProofs.getProof(proofid);
+        proof = orphanProofPool.getProof(proofid);
     }
 
     return proof;
@@ -248,7 +248,7 @@ bool PeerManager::isBoundToPeer(const ProofId &proofid) const {
 }
 
 bool PeerManager::isOrphan(const ProofId &proofid) const {
-    return orphanProofs.getProof(proofid) != nullptr;
+    return orphanProofPool.getProof(proofid) != nullptr;
 }
 
 bool PeerManager::createPeer(const ProofRef &proof) {
@@ -258,7 +258,7 @@ bool PeerManager::createPeer(const ProofRef &proof) {
         case ProofPool::AddProofStatus::REJECTED:
             // The proof has conflicts, orphan the proof so it can be pulled
             // back if the conflicting ones are invalidated.
-            orphanProofs.addProof(proof);
+            orphanProofPool.addProof(proof);
             return false;
         case ProofPool::AddProofStatus::DUPLICATED:
             // If the proof was already in the pool, don't duplicate the peer.

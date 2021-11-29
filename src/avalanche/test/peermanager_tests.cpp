@@ -942,4 +942,35 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(conflicting_orphans) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+
+        return pb.build();
+    };
+
+    auto orphan10 = buildProofWithSequence(10);
+    auto orphan20 = buildProofWithSequence(20);
+
+    BOOST_CHECK(!pm.registerProof(orphan10));
+    BOOST_CHECK(pm.isOrphan(orphan10->getId()));
+
+    BOOST_CHECK(!pm.registerProof(orphan20));
+    BOOST_CHECK(!pm.isOrphan(orphan20->getId()));
+    BOOST_CHECK(!pm.exists(orphan20->getId()));
+    BOOST_CHECK(pm.isOrphan(orphan10->getId()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

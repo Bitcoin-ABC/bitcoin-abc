@@ -387,6 +387,9 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_raises_rpc_error(-8, "The proof has conflicting utxo with an existing proof",
                                     node.sendavalancheproof, conflicting_utxo)
 
+        # Clear the proof pool
+        self.restart_node(0)
+
         # Good proof
         assert node.verifyavalancheproof(proof)
 
