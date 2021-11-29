@@ -76,7 +76,7 @@ script: |
         echo "REAL=\`which -a ${i}-${prog} | grep -v ${WRAP_DIR}/${i}-${prog} | head -1\`" >> ${WRAP_DIR}/${i}-${prog}
         echo 'export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${i}-${prog}
         echo "export FAKETIME=\"$1\"" >> ${WRAP_DIR}/${i}-${prog}
-        echo "\$REAL \"\$@\"" >> $WRAP_DIR/${i}-${prog}
+        echo "\$REAL \$@" >> $WRAP_DIR/${i}-${prog}
         chmod +x ${WRAP_DIR}/${i}-${prog}
     done
   done
@@ -91,7 +91,7 @@ script: |
         echo '#!/usr/bin/env bash' > ${WRAP_DIR}/${i}/${prog}
         REAL=$(${i}-gcc -print-prog-name=${prog})
         echo "export MALLOC_PERTURB_=255" >> ${WRAP_DIR}/${i}/${prog}
-        echo "${REAL} \$@" >> $WRAP_DIR/${i}/${prog}
+        echo "${REAL} \"\$@\"" >> $WRAP_DIR/${i}/${prog}
         chmod +x ${WRAP_DIR}/${i}/${prog}
     done
     for prog in gcc g++; do
@@ -100,7 +100,7 @@ script: |
         echo 'export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1' >> ${WRAP_DIR}/${i}-${prog}
         echo "export FAKETIME=\"$1\"" >> ${WRAP_DIR}/${i}-${prog}
         echo "export COMPILER_PATH=${WRAP_DIR}/${i}" >> ${WRAP_DIR}/${i}-${prog}
-        echo "\$REAL \$@" >> $WRAP_DIR/${i}-${prog}
+        echo "\$REAL \"\$@\"" >> $WRAP_DIR/${i}-${prog}
         chmod +x ${WRAP_DIR}/${i}-${prog}
     done
   done
