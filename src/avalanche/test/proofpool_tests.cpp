@@ -67,4 +67,22 @@ BOOST_AUTO_TEST_CASE(add_remove_proof) {
     BOOST_CHECK(testPool.pool.empty());
 }
 
+BOOST_AUTO_TEST_CASE(get_proof) {
+    ProofPool testPool;
+
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(!testPool.getProof(ProofId(GetRandHash())));
+    }
+
+    for (size_t i = 0; i < 10; i++) {
+        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK_EQUAL(testPool.addProof(proof),
+                          ProofPool::AddProofStatus::SUCCEED);
+
+        auto retrievedProof = testPool.getProof(proof->getId());
+        BOOST_CHECK_NE(retrievedProof, nullptr);
+        BOOST_CHECK_EQUAL(retrievedProof->getId(), proof->getId());
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

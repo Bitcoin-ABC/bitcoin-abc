@@ -53,4 +53,10 @@ bool ProofPool::removeProof(ProofRef proof) {
     return poolView.erase(proof->getId());
 }
 
+ProofRef ProofPool::getProof(const ProofId &proofid) const {
+    auto &poolView = pool.get<by_proofid>();
+    auto it = poolView.find(proofid);
+    return it == poolView.end() ? nullptr : it->proof;
+}
+
 } // namespace avalanche

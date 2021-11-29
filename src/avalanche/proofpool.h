@@ -69,6 +69,8 @@ struct ProofPool {
 
     AddProofStatus addProof(const ProofRef &proof);
     bool removeProof(ProofRef proof);
+
+    ProofRef getProof(const ProofId &proofid) const;
 };
 
 } // namespace avalanche
