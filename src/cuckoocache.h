@@ -90,7 +90,7 @@ public:
      * ordering) to bit_is_set(s) == true.
      */
     inline void bit_set(uint32_t s) {
-        mem[s >> 3].fetch_or(1 << (s & 7), std::memory_order_relaxed);
+        mem[s >> 3].fetch_or(uint8_t(1 << (s & 7)), std::memory_order_relaxed);
     }
 
     /**
@@ -101,7 +101,8 @@ public:
      * ordering) to bit_is_set(s) == false.
      */
     inline void bit_unset(uint32_t s) {
-        mem[s >> 3].fetch_and(~(1 << (s & 7)), std::memory_order_relaxed);
+        mem[s >> 3].fetch_and(uint8_t(~(1 << (s & 7))),
+                              std::memory_order_relaxed);
     }
 
     /**
