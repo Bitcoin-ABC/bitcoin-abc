@@ -60,6 +60,7 @@ export const currency = {
             'ils',
             'clp',
             'twd',
+            'hkd',
         ],
     },
     fiatCurrencies: {
@@ -70,6 +71,7 @@ export const currency = {
         clp: { name: 'Chilean Peso', symbol: '$', slug: 'clp' },
         cny: { name: 'Chinese Yuan', symbol: '元', slug: 'cny' },
         eur: { name: 'Euro', symbol: '€', slug: 'eur' },
+        hkd: { name: 'Hong Kong Dollar', symbol: 'HK$', slug: 'hkd' },
         inr: { name: 'Indian Rupee', symbol: '₹', slug: 'inr' },
         idr: { name: 'Indonesian Rupiah', symbol: 'Rp', slug: 'idr' },
         ils: { name: 'Israeli Shekel', symbol: '₪', slug: 'ils' },
