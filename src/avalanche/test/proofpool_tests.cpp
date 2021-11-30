@@ -4,6 +4,7 @@
 
 #include <avalanche/proofpool.h>
 
+#include <avalanche/peermanager.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
@@ -64,6 +65,36 @@ BOOST_AUTO_TEST_CASE(add_remove_proof) {
     for (auto proof : proofs) {
         BOOST_CHECK(testPool.removeProof(proof));
     }
+    BOOST_CHECK(testPool.pool.empty());
+}
+
+BOOST_AUTO_TEST_CASE(rescan) {
+    ProofPool testPool;
+    avalanche::PeerManager pm;
+
+    testPool.rescan(pm);
+    BOOST_CHECK(testPool.pool.empty());
+
+    // No peer should be created
+    bool hasPeer = false;
+    pm.forEachPeer([&](const Peer &p) { hasPeer = true; });
+    BOOST_CHECK(!hasPeer);
+
+    std::set<ProofRef> poolProofs;
+    for (size_t i = 0; i < 10; i++) {
+        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK_EQUAL(testPool.addProof(proof),
+                          ProofPool::AddProofStatus::SUCCEED);
+        poolProofs.insert(std::move(proof));
+    }
+
+    testPool.rescan(pm);
+
+    // All the proofs should be registered as peer
+    std::set<ProofRef> pmProofs;
+    pm.forEachPeer([&](const Peer &p) { pmProofs.insert(p.proof); });
+    BOOST_CHECK_EQUAL_COLLECTIONS(poolProofs.begin(), poolProofs.end(),
+                                  pmProofs.begin(), pmProofs.end());
     BOOST_CHECK(testPool.pool.empty());
 }
 

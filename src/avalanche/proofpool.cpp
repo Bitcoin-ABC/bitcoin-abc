@@ -4,6 +4,8 @@
 
 #include <avalanche/proofpool.h>
 
+#include <avalanche/peermanager.h>
+
 namespace avalanche {
 
 ProofPool::AddProofStatus ProofPool::addProof(const ProofRef &proof) {
@@ -51,6 +53,15 @@ ProofPool::AddProofStatus ProofPool::addProof(const ProofRef &proof) {
 bool ProofPool::removeProof(ProofRef proof) {
     auto &poolView = pool.get<by_proofid>();
     return poolView.erase(proof->getId());
+}
+
+void ProofPool::rescan(PeerManager &peerManager) {
+    auto previousPool = std::move(pool);
+    pool.clear();
+
+    for (auto &entry : previousPool) {
+        peerManager.registerProof(entry.proof);
+    }
 }
 
 ProofRef ProofPool::getProof(const ProofId &proofid) const {

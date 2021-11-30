@@ -18,6 +18,8 @@
 
 namespace avalanche {
 
+class PeerManager;
+
 struct ProofPoolEntry {
     size_t utxoIndex;
     ProofRef proof;
@@ -69,6 +71,8 @@ struct ProofPool {
 
     AddProofStatus addProof(const ProofRef &proof);
     bool removeProof(ProofRef proof);
+
+    void rescan(PeerManager &peerManager);
 
     ProofRef getProof(const ProofId &proofid) const;
 };
