@@ -409,18 +409,19 @@ bool PeerManager::verify() const {
 
         // Check proof pool consistency
         for (const auto &ss : p.proof->getStakes()) {
-            auto it = validProofPool.pool.find(ss.getStake().getUTXO());
+            const COutPoint &outpoint = ss.getStake().getUTXO();
+            auto proof = validProofPool.getProof(outpoint);
 
-            if (it == validProofPool.pool.end()) {
+            if (!proof) {
                 // Missing utxo
                 return false;
             }
-            if (it->proof != p.proof) {
+            if (proof != p.proof) {
                 // Wrong proof
                 return false;
             }
 
-            if (!peersUtxos.emplace(it->getUTXO()).second) {
+            if (!peersUtxos.emplace(outpoint).second) {
                 // Duplicated utxo
                 return false;
             }
@@ -462,11 +463,10 @@ bool PeerManager::verify() const {
         }
     }
 
-    // Check there is no dangling utxo
-    for (const auto &entry : validProofPool.pool) {
-        if (!peersUtxos.count(entry.getUTXO())) {
-            return false;
-        }
+    // We checked the utxo consistency for all our peers utxos already, so if
+    // the pool size differs from the expected one there are dangling utxos.
+    if (validProofPool.size() != peersUtxos.size()) {
+        return false;
     }
 
     return true;

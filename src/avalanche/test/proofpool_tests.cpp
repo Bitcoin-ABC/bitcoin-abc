@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(add_remove_proof) {
     for (auto proof : proofs) {
         BOOST_CHECK(testPool.removeProof(proof));
     }
-    BOOST_CHECK(testPool.pool.empty());
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(rescan) {
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
     avalanche::PeerManager pm;
 
     testPool.rescan(pm);
-    BOOST_CHECK(testPool.pool.empty());
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
 
     // No peer should be created
     bool hasPeer = false;
@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
     pm.forEachPeer([&](const Peer &p) { pmProofs.insert(p.proof); });
     BOOST_CHECK_EQUAL_COLLECTIONS(poolProofs.begin(), poolProofs.end(),
                                   pmProofs.begin(), pmProofs.end());
-    BOOST_CHECK(testPool.pool.empty());
+    BOOST_CHECK_EQUAL(testPool.size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(get_proof) {

@@ -70,4 +70,9 @@ ProofRef ProofPool::getProof(const ProofId &proofid) const {
     return it == poolView.end() ? nullptr : it->proof;
 }
 
+ProofRef ProofPool::getProof(const COutPoint &outpoint) const {
+    auto it = pool.find(outpoint);
+    return it == pool.end() ? nullptr : it->proof;
+}
+
 } // namespace avalanche

@@ -47,7 +47,7 @@ namespace bmi = boost::multi_index;
 /**
  * Map a proof to each utxo. A proof can be mapped with several utxos.
  */
-struct ProofPool {
+class ProofPool {
     boost::multi_index_container<
         ProofPoolEntry,
         bmi::indexed_by<
@@ -63,6 +63,7 @@ struct ProofPool {
                                    SaltedProofIdHasher>>>
         pool;
 
+public:
     enum AddProofStatus {
         REJECTED = 0,   //!< Rejected due to conflicts
         SUCCEED = 1,    //!< Added successfully
@@ -75,6 +76,9 @@ struct ProofPool {
     void rescan(PeerManager &peerManager);
 
     ProofRef getProof(const ProofId &proofid) const;
+    ProofRef getProof(const COutPoint &outpoint) const;
+
+    size_t size() const { return pool.size(); }
 };
 
 } // namespace avalanche
