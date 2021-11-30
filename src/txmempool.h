@@ -30,6 +30,7 @@
 #include <vector>
 
 class CBlockIndex;
+class CChain;
 class CChainState;
 class Config;
 
@@ -52,6 +53,13 @@ struct LockPoints {
     // values are still valid even after a reorg.
     CBlockIndex *maxInputBlock{nullptr};
 };
+
+/**
+ * Test whether the LockPoints height and time are still valid on the current
+ * chain.
+ */
+bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 struct CompareIteratorById {
     // SFINAE for T where T is either a pointer type (e.g., a txiter) or a

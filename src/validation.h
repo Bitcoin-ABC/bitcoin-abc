@@ -471,13 +471,6 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
                  int nHeight);
 
 /**
- * Test whether the LockPoints height and time are still valid on the current
- * chain.
- */
-bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-/**
  * Check if transaction will be BIP68 final in the next block to be created on
  * top of tip.
  * @param[in]   tip             Chain tip to check tx sequence locks against.
