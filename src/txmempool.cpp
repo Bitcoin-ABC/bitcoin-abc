@@ -703,7 +703,8 @@ void CTxMemPool::removeForReorg(const Config &config,
          it != mapTx.end(); it++) {
         const CTransaction &tx = it->GetTx();
         LockPoints lp = it->GetLockPoints();
-        bool validLP = TestLockPointValidity(active_chainstate.m_chain, &lp);
+        const bool validLP{
+            TestLockPointValidity(active_chainstate.m_chain, &lp)};
         CCoinsViewMemPool view_mempool(&active_chainstate.CoinsTip(), *this);
 
         TxValidationState state;
@@ -729,17 +730,17 @@ void CTxMemPool::removeForReorg(const Config &config,
                 if (m_check_ratio != 0) {
                     assert(!coin.IsSpent());
                 }
-                unsigned int nMemPoolHeight =
-                    active_chainstate.m_chain.Tip()->nHeight + 1;
-                if (coin.IsSpent() ||
-                    (coin.IsCoinBase() &&
-                     int64_t(nMemPoolHeight) - coin.GetHeight() <
-                         COINBASE_MATURITY)) {
+                const auto mempool_spend_height{
+                    active_chainstate.m_chain.Tip()->nHeight + 1};
+                if (coin.IsSpent() || (coin.IsCoinBase() &&
+                                       mempool_spend_height - coin.GetHeight() <
+                                           COINBASE_MATURITY)) {
                     txToRemove.insert(it);
                     break;
                 }
             }
         }
+        // CheckSequenceLocks updates lp. Update the mempool entry LockPoints.
         if (!validLP) {
             mapTx.modify(it, update_lock_points(lp));
         }
@@ -749,6 +750,11 @@ void CTxMemPool::removeForReorg(const Config &config,
         CalculateDescendants(it, setAllRemoves);
     }
     RemoveStaged(setAllRemoves, false, MemPoolRemovalReason::REORG);
+    auto &chain = active_chainstate.m_chain;
+    for (indexed_transaction_set::const_iterator it = mapTx.begin();
+         it != mapTx.end(); it++) {
+        assert(TestLockPointValidity(chain, &it->GetLockPoints()));
+    }
 }
 
 void CTxMemPool::removeConflicts(const CTransaction &tx) {
