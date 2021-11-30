@@ -7,7 +7,6 @@
 #ifndef BITCOIN_NET_H
 #define BITCOIN_NET_H
 
-#include <addrman.h>
 #include <avalanche/proofid.h>
 #include <avalanche/proofradixtreeadapter.h>
 #include <bloom.h>
@@ -43,6 +42,7 @@
 #include <thread>
 #include <vector>
 
+class AddrMan;
 class BanMan;
 class Config;
 class CNode;

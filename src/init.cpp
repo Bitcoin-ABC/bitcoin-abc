@@ -2821,7 +2821,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                         const CBlockIndex *tip = chainstate->m_chain.Tip();
                         RPCNotifyBlockChange(tip);
                         if (tip &&
-                            tip->nTime > GetAdjustedTime() + 2 * 60 * 60) {
+                            tip->nTime > GetTime() + MAX_FUTURE_BLOCK_TIME) {
                             strLoadError =
                                 _("The block database contains a block which "
                                   "appears to be from the future. "

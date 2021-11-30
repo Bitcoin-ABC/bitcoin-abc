@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include <net.h>
 
+#include <addrman.h>
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <chainparams.h>

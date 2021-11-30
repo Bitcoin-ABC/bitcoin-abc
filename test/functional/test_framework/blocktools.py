@@ -37,6 +37,8 @@ from .util import assert_equal, satoshi_round
 # Genesis block time (regtest)
 TIME_GENESIS_BLOCK = 1296688602
 
+MAX_FUTURE_BLOCK_TIME = 2 * 60 * 60
+
 
 def create_block(
         hashprev: Optional[int] = None,
