@@ -61,10 +61,12 @@ export const currency = {
             'clp',
             'twd',
             'hkd',
+            'bhd',
         ],
     },
     fiatCurrencies: {
         usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },
+        bhd: { name: 'Bahraini Dinar', symbol: 'BD', slug: 'bhd' },
         brl: { name: 'Brazilian Real', symbol: 'R$', slug: 'brl' },
         gbp: { name: 'British Pound', symbol: '£', slug: 'gbp' },
         cad: { name: 'Canadian Dollar', symbol: '$', slug: 'cad' },
