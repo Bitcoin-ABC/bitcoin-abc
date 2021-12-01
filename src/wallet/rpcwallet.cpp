@@ -85,7 +85,7 @@ static void WalletTxToJSON(const CWallet &wallet, const CWalletTx &wtx,
     }
     entry.pushKV("walletconflicts", conflicts);
     entry.pushKV("time", wtx.GetTxTime());
-    entry.pushKV("timereceived", (int64_t)wtx.nTimeReceived);
+    entry.pushKV("timereceived", int64_t{wtx.nTimeReceived});
 
     for (const std::pair<const std::string, std::string> &item : wtx.mapValue) {
         entry.pushKV(item.first, item.second);

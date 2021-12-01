@@ -29,7 +29,6 @@
 #include <rpc/server.h>
 #include <shutdown.h>
 #include <sync.h>
-#include <timedata.h>
 #include <txmempool.h>
 #include <uint256.h>
 #include <util/check.h>
@@ -678,7 +677,6 @@ namespace {
             return chainman().ActiveChainstate().IsInitialBlockDownload();
         }
         bool shutdownRequested() override { return ShutdownRequested(); }
-        int64_t getAdjustedTime() override { return GetAdjustedTime(); }
         void initMessage(const std::string &message) override {
             ::uiInterface.InitMessage(message);
         }

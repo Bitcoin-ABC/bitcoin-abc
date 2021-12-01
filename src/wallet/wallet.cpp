@@ -979,7 +979,7 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
     bool fUpdated = update_wtx && update_wtx(wtx, fInsertedNew);
     if (fInsertedNew) {
         wtx.m_confirm = confirm;
-        wtx.nTimeReceived = chain().getAdjustedTime();
+        wtx.nTimeReceived = GetTime();
         wtx.nOrderPos = IncOrderPosNext(&batch);
         wtx.m_it_wtxOrdered =
             wtxOrdered.insert(std::make_pair(wtx.nOrderPos, &wtx));
