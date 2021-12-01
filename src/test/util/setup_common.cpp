@@ -50,8 +50,6 @@
 
 using node::BlockAssembler;
 using node::CalculateCacheSizes;
-using node::fPruneMode;
-using node::fReindex;
 using node::LoadChainstate;
 using node::VerifyLoadedChainstate;
 
@@ -211,6 +209,34 @@ ChainTestingSetup::~ChainTestingSetup() {
     m_node.chainman.reset();
 }
 
+void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
+    node::ChainstateLoadOptions options;
+    options.mempool = Assert(m_node.mempool.get());
+    options.block_tree_db_in_memory = true;
+    options.coins_db_in_memory = true;
+    options.reindex = node::fReindex;
+    options.reindex_chainstate =
+        m_args.GetBoolArg("-reindex-chainstate", false);
+    options.prune = node::fPruneMode;
+    options.check_blocks =
+        m_args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS);
+    options.check_level = m_args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL);
+    auto [status, error] =
+        LoadChainstate(*Assert(m_node.chainman), m_cache_sizes, options);
+    std::cerr << status << "  " << error.original;
+    assert(status == node::ChainstateLoadStatus::SUCCESS);
+
+    std::tie(status, error) =
+        VerifyLoadedChainstate(*Assert(m_node.chainman), options, GetConfig());
+    assert(status == node::ChainstateLoadStatus::SUCCESS);
+
+    BlockValidationState state;
+    if (!m_node.chainman->ActiveChainstate().ActivateBestChain(config, state)) {
+        throw std::runtime_error(
+            strprintf("ActivateBestChain failed. (%s)", state.ToString()));
+    }
+}
+
 TestingSetup::TestingSetup(const std::string &chainName,
                            const std::vector<const char *> &extra_args)
     : ChainTestingSetup(chainName, extra_args) {
@@ -231,27 +257,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
         SetRPCWarmupFinished();
     }
 
-    auto maybe_load_error =
-        LoadChainstate(fReindex.load(), *Assert(m_node.chainman.get()),
-                       Assert(m_node.mempool.get()), fPruneMode,
-                       m_args.GetBoolArg("-reindex-chainstate", false),
-                       m_cache_sizes.block_tree_db, m_cache_sizes.coins_db,
-                       m_cache_sizes.coins, /*block_tree_db_in_memory=*/true,
-                       /*coins_db_in_memory=*/true);
-    assert(!maybe_load_error.has_value());
-
-    auto maybe_verify_error = VerifyLoadedChainstate(
-        *Assert(m_node.chainman), fReindex.load(),
-        m_args.GetBoolArg("-reindex-chainstate", false), GetConfig(),
-        m_args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS),
-        m_args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL));
-    assert(!maybe_verify_error.has_value());
-
-    BlockValidationState state;
-    if (!m_node.chainman->ActiveChainstate().ActivateBestChain(config, state)) {
-        throw std::runtime_error(
-            strprintf("ActivateBestChain failed. (%s)", state.ToString()));
-    }
+    LoadVerifyActivateChainstate(config);
 
     m_node.addrman = std::make_unique<AddrMan>(
         /* asmap= */ std::vector<bool>(), /* consistency_check_ratio= */ 0);

@@ -23,6 +23,8 @@
 #include <type_traits>
 #include <vector>
 
+class Config;
+
 // Enable BOOST_CHECK_EQUAL for enum class types
 template <typename T>
 std::ostream &operator<<(
@@ -122,6 +124,8 @@ struct ChainTestingSetup : public BasicTestingSetup {
  * Testing setup that configures a complete environment.
  */
 struct TestingSetup : public ChainTestingSetup {
+    void LoadVerifyActivateChainstate(const Config &config);
+
     explicit TestingSetup(const std::string &chainName = CBaseChainParams::MAIN,
                           const std::vector<const char *> &extra_args = {});
 };
