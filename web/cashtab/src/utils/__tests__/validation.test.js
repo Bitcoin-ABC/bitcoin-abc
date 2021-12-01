@@ -10,6 +10,7 @@ import {
     isValidCashtabSettings,
     formatSavedBalance,
     formatFiatBalance,
+    isValidSendToMany,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -280,5 +281,84 @@ describe('Validation utils', () => {
     });
     it(`test formatFiatBalance with undefined input`, () => {
         expect(formatFiatBalance(undefined, 'en-US')).toBe(undefined);
+    });
+    it(`test isValidSendToMany with null inputs`, () => {
+        expect(isValidSendToMany(null)).toBe('invalid address input');
+    });
+    it(`test isValidSendToMany with null addressInfo and valid valueString and ticker`, () => {
+        expect(isValidSendToMany(null, '233.32', 'XEC')).toBe(
+            'invalid address input',
+        );
+    });
+    it(`test isValidSendToMany with valid addressInfo and ticker, null valueString`, () => {
+        const validAddressInfo = {
+            address: 'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+            isValid: true,
+            queryString: null,
+            amount: null,
+        };
+        expect(isValidSendToMany(validAddressInfo, null, 'XEC')).toBe(
+            'invalid value input',
+        );
+    });
+    it(`test isValidSendToMany with valid addressInfo and valueString, null ticker`, () => {
+        const validAddressInfo = {
+            address: 'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+            isValid: true,
+            queryString: null,
+            amount: null,
+        };
+        expect(isValidSendToMany(validAddressInfo, '234.32', null)).toBe(
+            'invalid ticker input',
+        );
+    });
+    it(`test isValidSendToMany with undefined addressInfo and valid valueString and ticker`, () => {
+        expect(isValidSendToMany(undefined, '233.32', 'XEC')).toBe(
+            'invalid address input',
+        );
+    });
+    it(`test isValidSendToMany with valid addressInfo and ticker, undefined valueString`, () => {
+        const validAddressInfo = {
+            address: 'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+            isValid: true,
+            queryString: null,
+            amount: null,
+        };
+        expect(isValidSendToMany(validAddressInfo, undefined, 'XEC')).toBe(
+            'invalid value input',
+        );
+    });
+    it(`test isValidSendToMany with valid addressInfo and valueString, undefined ticker`, () => {
+        const validAddressInfo = {
+            address: 'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+            isValid: true,
+            queryString: null,
+            amount: null,
+        };
+        expect(isValidSendToMany(validAddressInfo, '234.32', undefined)).toBe(
+            'invalid ticker input',
+        );
+    });
+    it(`test isValidSendToMany with invalid addressInfo and valid valueString and ticker`, () => {
+        const validAddressInfo = {
+            address: 'ecash:qpatqlfooobarrrrrrrrrrkpyrlwu8',
+            isValid: false,
+            queryString: null,
+            amount: null,
+        };
+        expect(isValidSendToMany(validAddressInfo, '234.32', 'XEC')).toBe(
+            'Invalid XEC address',
+        );
+    });
+    it(`test isValidSendToMany with valid addressInfo and ticker, less than minimal valueString`, () => {
+        const validAddressInfo = {
+            address: 'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+            isValid: true,
+            queryString: null,
+            amount: null,
+        };
+        expect(isValidSendToMany(validAddressInfo, '2.548', 'XEC')).toBe(
+            'Send amount must be at least 5.5 XEC',
+        );
     });
 });

@@ -959,32 +959,75 @@ export default function useBCH() {
         }
     };
 
-    const sendBch = async (
+    const sendXec = async (
         BCH,
         wallet,
         utxos,
-        destinationAddress,
-        sendAmount,
         feeInSatsPerByte,
         optionalOpReturnMsg,
+        isOneToMany,
+        destinationAddressAndValueArray,
+        destinationAddress,
+        sendAmount,
     ) => {
         try {
-            if (!sendAmount) {
-                return null;
-            }
+            let value = new BigNumber(0);
 
-            const value = new BigNumber(sendAmount);
+            if (isOneToMany) {
+                // this is a one to many XEC transaction
+                if (
+                    !destinationAddressAndValueArray ||
+                    !destinationAddressAndValueArray.length
+                ) {
+                    throw new Error('Invalid destinationAddressAndValueArray');
+                }
+                const arrayLength = destinationAddressAndValueArray.length;
+                for (let i = 0; i < arrayLength; i++) {
+                    // add the total value being sent in this array of recipients
+                    value = BigNumber.sum(
+                        value,
+                        new BigNumber(
+                            destinationAddressAndValueArray[i].split(',')[1],
+                        ),
+                    );
+                }
 
-            // If user is attempting to send less than minimum accepted by the backend
-            if (
-                value.lt(
-                    new BigNumber(
-                        fromSmallestDenomination(currency.dustSats).toString(),
-                    ),
-                )
-            ) {
-                // Throw the same error given by the backend attempting to broadcast such a tx
-                throw new Error('dust');
+                // If user is attempting to send an aggregate value that is less than minimum accepted by the backend
+                if (
+                    value.lt(
+                        new BigNumber(
+                            fromSmallestDenomination(
+                                currency.dustSats,
+                            ).toString(),
+                        ),
+                    )
+                ) {
+                    // Throw the same error given by the backend attempting to broadcast such a tx
+                    throw new Error('dust');
+                }
+            } else {
+                // this is a one to one XEC transaction then check sendAmount
+                // note: one to many transactions won't be sending a single sendAmount
+
+                if (!sendAmount) {
+                    return null;
+                }
+
+                value = new BigNumber(sendAmount);
+
+                // If user is attempting to send less than minimum accepted by the backend
+                if (
+                    value.lt(
+                        new BigNumber(
+                            fromSmallestDenomination(
+                                currency.dustSats,
+                            ).toString(),
+                        ),
+                    )
+                ) {
+                    // Throw the same error given by the backend attempting to broadcast such a tx
+                    throw new Error('dust');
+                }
             }
 
             const inputUtxos = [];
@@ -1068,11 +1111,28 @@ export default function useBCH() {
                 throw error;
             }
 
-            // add output w/ address and amount to send
-            transactionBuilder.addOutput(
-                BCH.Address.toCashAddress(destinationAddress),
-                parseInt(toSmallestDenomination(value)),
-            );
+            if (isOneToMany) {
+                // for one to many mode, add the multiple outputs from the array
+                let arrayLength = destinationAddressAndValueArray.length;
+                for (let i = 0; i < arrayLength; i++) {
+                    // add each send tx from the array as an output
+                    let outputAddress =
+                        destinationAddressAndValueArray[i].split(',')[0];
+                    let outputValue = new BigNumber(
+                        destinationAddressAndValueArray[i].split(',')[1],
+                    );
+                    transactionBuilder.addOutput(
+                        BCH.Address.toCashAddress(outputAddress),
+                        parseInt(toSmallestDenomination(outputValue)),
+                    );
+                }
+            } else {
+                // for one to one mode, add output w/ single address and amount to send
+                transactionBuilder.addOutput(
+                    BCH.Address.toCashAddress(destinationAddress),
+                    parseInt(toSmallestDenomination(value)),
+                );
+            }
 
             if (remainder.gte(new BigNumber(currency.dustSats))) {
                 transactionBuilder.addOutput(
@@ -1154,7 +1214,7 @@ export default function useBCH() {
         getTxData,
         getRestUrl,
         signPkMessage,
-        sendBch,
+        sendXec,
         sendToken,
         createToken,
         getTokenStats,

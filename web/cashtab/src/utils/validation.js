@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { currency } from '@components/Common/Ticker.js';
+import { currency, isValidTokenPrefix } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
 
 // Validate cash amount
@@ -155,5 +155,37 @@ export const formatFiatBalance = (fiatBalance, optionalLocale) => {
         });
     } catch (err) {
         return fiatBalance;
+    }
+};
+
+export const isValidSendToMany = (addressInfo, valueString, ticker) => {
+    let isValidInput = true;
+
+    try {
+        if (addressInfo === null || addressInfo === undefined) {
+            return 'invalid address input';
+        } else if (valueString === null || valueString === undefined) {
+            return 'invalid value input';
+        } else if (ticker === null || ticker === undefined) {
+            return 'invalid ticker input';
+        }
+
+        const { address, isValid, queryString, amount } = addressInfo;
+
+        // Is this valid address?
+        if (!isValid) {
+            isValidInput = `Invalid ${ticker} address`;
+            // If valid address but token format
+            if (isValidTokenPrefix(address)) {
+                isValidInput = `Token addresses are not supported for ${ticker} sends`;
+            }
+            // Is this send value above minimum
+        } else if (valueString < 5.5) {
+            // value can only be XEC ticker in multi recipient mode
+            isValidInput = `Send amount must be at least 5.5 XEC`;
+        }
+        return isValidInput;
+    } catch (err) {
+        return err;
     }
 };

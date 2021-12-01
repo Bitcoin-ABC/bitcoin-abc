@@ -29,6 +29,17 @@ Array [
           }
         }
       >
+        <button
+          className="ant-btn ant-btn-text ant-btn-block"
+          onClick={[Function]}
+          type="button"
+        >
+          <div
+            className="sc-uJMKN kqcgKC"
+          >
+            Switch to multiple recipients
+          </div>
+        </button>
         <div
           className="sc-iwsKbI bwAByd"
         >
@@ -467,6 +478,17 @@ Array [
           }
         }
       >
+        <button
+          className="ant-btn ant-btn-text ant-btn-block"
+          onClick={[Function]}
+          type="button"
+        >
+          <div
+            className="sc-uJMKN kqcgKC"
+          >
+            Switch to multiple recipients
+          </div>
+        </button>
         <div
           className="sc-iwsKbI bwAByd"
         >
@@ -912,6 +934,17 @@ Array [
           }
         }
       >
+        <button
+          className="ant-btn ant-btn-text ant-btn-block"
+          onClick={[Function]}
+          type="button"
+        >
+          <div
+            className="sc-uJMKN kqcgKC"
+          >
+            Switch to multiple recipients
+          </div>
+        </button>
         <div
           className="sc-iwsKbI bwAByd"
         >
@@ -1351,6 +1384,17 @@ Array [
           }
         }
       >
+        <button
+          className="ant-btn ant-btn-text ant-btn-block"
+          onClick={[Function]}
+          type="button"
+        >
+          <div
+            className="sc-uJMKN kqcgKC"
+          >
+            Switch to multiple recipients
+          </div>
+        </button>
         <div
           className="sc-iwsKbI bwAByd"
         >
@@ -1789,6 +1833,17 @@ Array [
           }
         }
       >
+        <button
+          className="ant-btn ant-btn-text ant-btn-block"
+          onClick={[Function]}
+          type="button"
+        >
+          <div
+            className="sc-uJMKN kqcgKC"
+          >
+            Switch to multiple recipients
+          </div>
+        </button>
         <div
           className="sc-iwsKbI bwAByd"
         >

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { Form, Input, Select } from 'antd';
+const { TextArea } = Input;
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
@@ -278,6 +279,24 @@ export const DestinationAddressSingle = ({
 DestinationAddressSingle.propTypes = {
     onScan: PropTypes.func,
     loadWithCameraOpen: PropTypes.bool,
+    inputProps: PropTypes.object,
+};
+
+export const DestinationAddressMulti = ({ inputProps, ...otherProps }) => {
+    return (
+        <AntdFormWrapper>
+            <Form.Item {...otherProps}>
+                <TextArea
+                    prefix={<ThemedWalletOutlined />}
+                    autoComplete="off"
+                    {...inputProps}
+                />
+            </Form.Item>
+        </AntdFormWrapper>
+    );
+};
+
+DestinationAddressMulti.propTypes = {
     inputProps: PropTypes.object,
 };
 

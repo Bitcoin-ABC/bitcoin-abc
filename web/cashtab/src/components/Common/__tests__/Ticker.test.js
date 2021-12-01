@@ -3,6 +3,7 @@ import {
     isValidCashPrefix,
     isValidTokenPrefix,
     toLegacy,
+    toLegacyArray,
     isCashtabOutput,
     isEtokenOutput,
     extractCashtabMessage,
@@ -10,6 +11,13 @@ import {
     getETokenEncodingSubstring,
     getCashtabEncodingSubstring,
 } from '../Ticker';
+import {
+    validAddressArrayInput,
+    validAddressArrayOutput,
+    validLargeAddressArrayInput,
+    validLargeAddressArrayOutput,
+    invalidAddressArrayInput,
+} from '../__mocks__/mockAddressArray';
 
 test('Rejects cash address with bitcoincash: prefix', async () => {
     const result = isValidCashPrefix(
@@ -113,6 +121,52 @@ test('toLegacy throws error if input address has invalid prefix', async () => {
     expect(result).toStrictEqual(
         new Error(
             'Address prefix is not a valid cash address with a prefix from the Ticker.prefixes array',
+        ),
+    );
+});
+
+test('toLegacyArray throws error if the addressArray input is null', async () => {
+    const result = toLegacyArray(null);
+
+    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
+});
+
+test('toLegacyArray throws error if the addressArray input is empty', async () => {
+    const result = toLegacyArray([]);
+
+    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
+});
+
+test('toLegacyArray throws error if the addressArray input is a number', async () => {
+    const result = toLegacyArray(12345);
+
+    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
+});
+
+test('toLegacyArray throws error if the addressArray input is undefined', async () => {
+    const result = toLegacyArray(undefined);
+
+    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
+});
+
+test('toLegacyArray successfully converts a standard sized valid addressArray input', async () => {
+    const result = toLegacyArray(validAddressArrayInput);
+
+    expect(result).toStrictEqual(validAddressArrayOutput);
+});
+
+test('toLegacyArray successfully converts a large valid addressArray input', async () => {
+    const result = toLegacyArray(validLargeAddressArrayInput);
+
+    expect(result).toStrictEqual(validLargeAddressArrayOutput);
+});
+
+test('toLegacyArray throws an error on an addressArray with invalid addresses', async () => {
+    const result = toLegacyArray(invalidAddressArrayInput);
+
+    expect(result).toStrictEqual(
+        new ValidationError(
+            'Invalid checksum: ecash:qrqgwxrrrrrrrrrrrrrrrrrrrrrrrrr7zsvk.',
         ),
     );
 });

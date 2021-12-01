@@ -6,6 +6,7 @@ import {
     AntdFormWrapper,
     SendBchInput,
     DestinationAddressSingle,
+    DestinationAddressMulti,
 } from '@components/Common/EnhancedInputs';
 import {
     StyledCollapse,
@@ -18,6 +19,7 @@ import {
     Alert,
     Collapse,
     Input,
+    Button,
     notification,
 } from 'antd';
 const { Panel } = Collapse;
@@ -41,9 +43,14 @@ import {
     isValidTokenPrefix,
     parseAddress,
     toLegacy,
+    toLegacyArray,
 } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
-import { fiatToCrypto, shouldRejectAmountInput } from '@utils/validation';
+import {
+    fiatToCrypto,
+    shouldRejectAmountInput,
+    isValidSendToMany,
+} from '@utils/validation';
 import BalanceHeader from '@components/Common/BalanceHeader';
 import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
 import {
@@ -73,6 +80,9 @@ const SignMessageLabel = styled.div`
     text-align: left;
     color: #0074c2;
 `;
+const RecipientModeLabel = styled.div`
+    color: silver;
+`;
 const TextAreaLabel = styled.div`
     text-align: left;
     color: #0074c2;
@@ -94,6 +104,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [showConfirmMsgToSign, setShowConfirmMsgToSign] = useState(false);
     const [msgToSign, setMsgToSign] = useState('');
     const [signMessageIsValid, setSignMessageIsValid] = useState(null);
+    const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -125,14 +136,14 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const handleOk = () => {
         setIsModalVisible(false);
-        submit();
+        send();
     };
 
     const handleCancel = () => {
         setIsModalVisible(false);
     };
 
-    const { getBCH, getRestUrl, sendBch, calcFee, signPkMessage } = useBCH();
+    const { getBCH, getRestUrl, sendXec, calcFee, signPkMessage } = useBCH();
 
     // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
     const BCH = jestBCH ? jestBCH : getBCH();
@@ -187,100 +198,152 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }
     }
 
-    async function submit() {
+    function handleSendXecError(errorObj, oneToManyFlag) {
+        // Set loading to false here as well, as balance may not change depending on where error occured in try loop
+        passLoadingStatus(false);
+        let message;
+
+        if (!errorObj.error && !errorObj.message) {
+            message = `Transaction failed: no response from ${getRestUrl()}.`;
+        } else if (
+            /Could not communicate with full node or other external service/.test(
+                errorObj.error,
+            )
+        ) {
+            message = 'Could not communicate with API. Please try again.';
+        } else if (
+            errorObj.error &&
+            errorObj.error.includes(
+                'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',
+            )
+        ) {
+            message = `The ${currency.ticker} you are trying to send has too many unconfirmed ancestors to send (limit 50). Sending will be possible after a block confirmation. Try again in about 10 minutes.`;
+        } else {
+            message =
+                errorObj.message || errorObj.error || JSON.stringify(errorObj);
+        }
+
+        if (oneToManyFlag) {
+            errorNotification(errorObj, message, 'Sending XEC one to many');
+        } else {
+            errorNotification(errorObj, message, 'Sending XEC');
+        }
+    }
+
+    async function send() {
         setFormData({
             ...formData,
             dirty: false,
         });
 
-        if (
-            !formData.address ||
-            !formData.value ||
-            Number(formData.value) <= 0
-        ) {
-            return;
-        }
-
         let optionalOpReturnMsg = formData.opReturnMsg;
 
-        // Event("Category", "Action", "Label")
-        // Track number of BCHA send transactions and whether users
-        // are sending BCHA or USD
-        Event('Send.js', 'Send', selectedCurrency);
+        if (isOneToManyXECSend) {
+            // this is a one to many XEC send transactions
 
-        passLoadingStatus(true);
-        const { address, value } = formData;
-
-        // Get the param-free address
-        let cleanAddress = address.split('?')[0];
-
-        // Ensure address has bitcoincash: prefix and checksum
-        cleanAddress = toLegacy(cleanAddress);
-
-        let hasValidCashPrefix;
-        try {
-            hasValidCashPrefix = cleanAddress.startsWith(
-                currency.legacyPrefix + ':',
-            );
-        } catch (err) {
-            hasValidCashPrefix = false;
-            console.log(`toLegacy() returned an error:`, cleanAddress);
-        }
-
-        if (!hasValidCashPrefix) {
-            // set loading to false and set address validation to false
-            // Now that the no-prefix case is handled, this happens when user tries to send
-            // BCHA to an SLPA address
-            passLoadingStatus(false);
-            setSendBchAddressError(
-                `Destination is not a valid ${currency.ticker} address`,
-            );
-            return;
-        }
-
-        // Calculate the amount in BCH
-        let bchValue = value;
-
-        if (selectedCurrency !== 'XEC') {
-            bchValue = fiatToCrypto(value, fiatPrice);
-        }
-
-        try {
-            const link = await sendBch(
-                BCH,
-                wallet,
-                slpBalancesAndUtxos.nonSlpUtxos,
-                cleanAddress,
-                bchValue,
-                currency.defaultFee,
-                optionalOpReturnMsg,
-            );
-            sendXecNotification(link);
-        } catch (e) {
-            // Set loading to false here as well, as balance may not change depending on where error occured in try loop
-            passLoadingStatus(false);
-            let message;
-
-            if (!e.error && !e.message) {
-                message = `Transaction failed: no response from ${getRestUrl()}.`;
-            } else if (
-                /Could not communicate with full node or other external service/.test(
-                    e.error,
-                )
-            ) {
-                message = 'Could not communicate with API. Please try again.';
-            } else if (
-                e.error &&
-                e.error.includes(
-                    'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',
-                )
-            ) {
-                message = `The ${currency.ticker} you are trying to send has too many unconfirmed ancestors to send (limit 50). Sending will be possible after a block confirmation. Try again in about 10 minutes.`;
-            } else {
-                message = e.message || e.error || JSON.stringify(e);
+            // ensure multi-recipient input is not blank
+            if (!formData.address) {
+                return;
             }
 
-            errorNotification(e, message, 'Sending XEC');
+            // Event("Category", "Action", "Label")
+            // Track number of XEC send-to-many transactions
+            Event('Send.js', 'SendToMany', selectedCurrency);
+
+            passLoadingStatus(true);
+            const { address, value } = formData;
+
+            //convert each line from TextArea input
+            let addressAndValueArray = address.split('\n');
+
+            try {
+                // construct array of XEC->BCH addresses due to bch-api constraint
+                let cleanAddressAndValueArray =
+                    toLegacyArray(addressAndValueArray);
+
+                const link = await sendXec(
+                    BCH,
+                    wallet,
+                    slpBalancesAndUtxos.nonSlpUtxos,
+                    currency.defaultFee,
+                    optionalOpReturnMsg,
+                    true, // indicate send mode is one to many
+                    cleanAddressAndValueArray,
+                );
+                sendXecNotification(link);
+            } catch (e) {
+                handleSendXecError(e, isOneToManyXECSend);
+            }
+        } else {
+            // standard one to one XEC send transaction
+
+            if (
+                !formData.address ||
+                !formData.value ||
+                Number(formData.value) <= 0
+            ) {
+                return;
+            }
+
+            // Event("Category", "Action", "Label")
+            // Track number of BCHA send transactions and whether users
+            // are sending BCHA or USD
+            Event('Send.js', 'Send', selectedCurrency);
+
+            passLoadingStatus(true);
+            const { address, value } = formData;
+
+            // Get the param-free address
+            let cleanAddress = address.split('?')[0];
+
+            // Ensure address has bitcoincash: prefix and checksum
+            cleanAddress = toLegacy(cleanAddress);
+
+            let hasValidCashPrefix;
+
+            try {
+                hasValidCashPrefix = cleanAddress.startsWith(
+                    currency.legacyPrefix + ':',
+                );
+            } catch (err) {
+                hasValidCashPrefix = false;
+                console.log(`toLegacy() returned an error:`, cleanAddress);
+            }
+
+            if (!hasValidCashPrefix) {
+                // set loading to false and set address validation to false
+                // Now that the no-prefix case is handled, this happens when user tries to send
+                // BCHA to an SLPA address
+                passLoadingStatus(false);
+                setSendBchAddressError(
+                    `Destination is not a valid ${currency.ticker} address`,
+                );
+                return;
+            }
+
+            // Calculate the amount in BCH
+            let bchValue = value;
+
+            if (selectedCurrency !== 'XEC') {
+                bchValue = fiatToCrypto(value, fiatPrice);
+            }
+
+            try {
+                const link = await sendXec(
+                    BCH,
+                    wallet,
+                    slpBalancesAndUtxos.nonSlpUtxos,
+                    currency.defaultFee,
+                    optionalOpReturnMsg,
+                    false, // sendToMany boolean flag
+                    null, // address array not applicable for one to many tx
+                    cleanAddress,
+                    bchValue,
+                );
+                sendXecNotification(link);
+            } catch (e) {
+                handleSendXecError(e, isOneToManyXECSend);
+            }
         }
     }
 
@@ -345,6 +408,60 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }));
     };
 
+    const handleMultiAddressChange = e => {
+        const { value, name } = e.target;
+        let error;
+
+        if (!value) {
+            error = 'recipient input must not be blank';
+        }
+
+        //convert each line from the <TextArea> input into array
+        let addressStringArray = value.split('\n');
+        const arrayLength = addressStringArray.length;
+
+        // loop through each row in the <TextArea> input
+        for (let i = 0; i < arrayLength; i++) {
+            if (addressStringArray[i].trim() === '') {
+                // if this line is a line break or bunch of spaces
+                error = 'Empty spaces and rows must be removed';
+                break;
+            }
+
+            let addressString = addressStringArray[i].split(',')[0];
+            let valueString = addressStringArray[i].split(',')[1];
+
+            let addressInfo = parseAddress(BCH, addressString);
+
+            let validation = isValidSendToMany(
+                addressInfo,
+                valueString,
+                currency.ticker,
+            );
+
+            if (validation !== true) {
+                // not using 'if(validation)' since error strings can be interpreted the same
+                error = validation;
+            }
+            if (error) {
+                // if one line is invalid, break loop and avoid wasting further iterations
+                break;
+            }
+        }
+
+        // no error displayed if isValid returns true, otherwise display error message
+        if (error) {
+            setSendBchAddressError(error);
+        } else {
+            setSendBchAddressError(false);
+        }
+        // Set address field to user input
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
     const handleSelectedCurrencyChange = e => {
         setSelectedCurrency(e);
         // Clear input field to prevent accidentally sending 1 BCH instead of 1 USD
@@ -361,6 +478,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             ...p,
             [name]: value,
         }));
+    };
+
+    // true: renders the multi recipient <TextArea>
+    // false: renders the single recipient <Input>
+    const handleOneToManyXECSend = sendXecMode => {
+        setIsOneToManyXECSend(sendXecMode);
     };
 
     const handleBchAmountChange = e => {
@@ -527,63 +650,121 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             width: 'auto',
                         }}
                     >
-                        <DestinationAddressSingle
-                            loadWithCameraOpen={scannerSupported}
-                            validateStatus={sendBchAddressError ? 'error' : ''}
-                            help={
-                                sendBchAddressError ? sendBchAddressError : ''
-                            }
-                            onScan={result =>
-                                handleAddressChange({
-                                    target: {
+                        {!isOneToManyXECSend ? (
+                            <>
+                                <Button
+                                    type="text"
+                                    block
+                                    onClick={() => setIsOneToManyXECSend(true)}
+                                >
+                                    <RecipientModeLabel>
+                                        Switch to multiple recipients
+                                    </RecipientModeLabel>
+                                </Button>
+                                <DestinationAddressSingle
+                                    loadWithCameraOpen={scannerSupported}
+                                    validateStatus={
+                                        sendBchAddressError ? 'error' : ''
+                                    }
+                                    help={
+                                        sendBchAddressError
+                                            ? sendBchAddressError
+                                            : ''
+                                    }
+                                    onScan={result =>
+                                        handleAddressChange({
+                                            target: {
+                                                name: 'address',
+                                                value: result,
+                                            },
+                                        })
+                                    }
+                                    inputProps={{
+                                        placeholder: `${currency.ticker} Address`,
                                         name: 'address',
-                                        value: result,
-                                    },
-                                })
-                            }
-                            inputProps={{
-                                placeholder: `${currency.ticker} Address`,
-                                name: 'address',
-                                onChange: e => handleAddressChange(e),
-                                required: true,
-                                value: formData.address,
-                            }}
-                        ></DestinationAddressSingle>
-                        <SendBchInput
-                            activeFiatCode={
-                                cashtabSettings && cashtabSettings.fiatCurrency
-                                    ? cashtabSettings.fiatCurrency.toUpperCase()
-                                    : 'USD'
-                            }
-                            validateStatus={sendBchAmountError ? 'error' : ''}
-                            help={sendBchAmountError ? sendBchAmountError : ''}
-                            onMax={onMax}
-                            inputProps={{
-                                name: 'value',
-                                dollar: selectedCurrency === 'USD' ? 1 : 0,
-                                placeholder: 'Amount',
-                                onChange: e => handleBchAmountChange(e),
-                                required: true,
-                                value: formData.value,
-                            }}
-                            selectProps={{
-                                value: selectedCurrency,
-                                disabled: queryStringText !== null,
-                                onChange: e => handleSelectedCurrencyChange(e),
-                            }}
-                        ></SendBchInput>
-                        {priceApiError && (
-                            <AlertMsg>
-                                Error fetching fiat price. Setting send by{' '}
-                                {currency.fiatCurrencies[
-                                    cashtabSettings.fiatCurrency
-                                ].slug.toUpperCase()}{' '}
-                                disabled
-                            </AlertMsg>
+                                        onChange: e => handleAddressChange(e),
+                                        required: true,
+                                        value: formData.address,
+                                    }}
+                                ></DestinationAddressSingle>
+                                <SendBchInput
+                                    activeFiatCode={
+                                        cashtabSettings &&
+                                        cashtabSettings.fiatCurrency
+                                            ? cashtabSettings.fiatCurrency.toUpperCase()
+                                            : 'USD'
+                                    }
+                                    validateStatus={
+                                        sendBchAmountError ? 'error' : ''
+                                    }
+                                    help={
+                                        sendBchAmountError
+                                            ? sendBchAmountError
+                                            : ''
+                                    }
+                                    onMax={onMax}
+                                    inputProps={{
+                                        name: 'value',
+                                        dollar:
+                                            selectedCurrency === 'USD' ? 1 : 0,
+                                        placeholder: 'Amount',
+                                        onChange: e => handleBchAmountChange(e),
+                                        required: true,
+                                        value: formData.value,
+                                    }}
+                                    selectProps={{
+                                        value: selectedCurrency,
+                                        disabled: queryStringText !== null,
+                                        onChange: e =>
+                                            handleSelectedCurrencyChange(e),
+                                    }}
+                                ></SendBchInput>
+                                {priceApiError && (
+                                    <AlertMsg>
+                                        Error fetching fiat price. Setting send
+                                        by{' '}
+                                        {currency.fiatCurrencies[
+                                            cashtabSettings.fiatCurrency
+                                        ].slug.toUpperCase()}{' '}
+                                        disabled
+                                    </AlertMsg>
+                                )}
+                                <ConvertAmount>
+                                    {fiatPriceString !== '' && '='}{' '}
+                                    {fiatPriceString}
+                                </ConvertAmount>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    type="text"
+                                    block
+                                    onClick={() => setIsOneToManyXECSend(false)}
+                                >
+                                    <RecipientModeLabel>
+                                        Switch to a single recipient
+                                    </RecipientModeLabel>
+                                </Button>
+                                <DestinationAddressMulti
+                                    validateStatus={
+                                        sendBchAddressError ? 'error' : ''
+                                    }
+                                    help={
+                                        sendBchAddressError
+                                            ? sendBchAddressError
+                                            : ''
+                                    }
+                                    inputProps={{
+                                        placeholder: `One XEC address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
+                                        name: 'address',
+                                        onChange: e =>
+                                            handleMultiAddressChange(e),
+                                        required: true,
+                                        value: formData.address,
+                                    }}
+                                ></DestinationAddressMulti>
+                            </>
                         )}
-                        <ConvertAmount>
-                            {fiatPriceString !== '' && '='} {fiatPriceString}
-                        </ConvertAmount>
                         <div
                             style={{
                                 paddingTop: '32px',
@@ -645,7 +826,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                             Send
                                         </PrimaryButton>
                                     ) : (
-                                        <PrimaryButton onClick={() => submit()}>
+                                        <PrimaryButton onClick={() => send()}>
                                             Send
                                         </PrimaryButton>
                                     )}
