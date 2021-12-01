@@ -412,13 +412,16 @@ bool PeerManager::verify() const {
             auto it = validProofPool.pool.find(ss.getStake().getUTXO());
 
             if (it == validProofPool.pool.end()) {
+                // Missing utxo
                 return false;
             }
-            if (it->proof->getId() != p.getProofId()) {
+            if (it->proof != p.proof) {
+                // Wrong proof
                 return false;
             }
 
             if (!peersUtxos.emplace(it->getUTXO()).second) {
+                // Duplicated utxo
                 return false;
             }
         }
