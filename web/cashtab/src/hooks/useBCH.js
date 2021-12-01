@@ -17,6 +17,7 @@ import {
     checkNullUtxosForTokenStatus,
     confirmNonEtokenUtxos,
 } from '@utils/cashMethods';
+import cashaddr from 'ecashaddrjs';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -128,6 +129,11 @@ export default function useBCH() {
             let tokenTx = false;
             let substring = '';
 
+            // get the address of the sender for this tx and encode into eCash address
+            let senderBchAddress = tx.vin[0].address;
+            const { prefix, type, hash } = cashaddr.decode(senderBchAddress);
+            const senderAddress = cashaddr.encode('ecash', type, hash);
+
             // If vin includes tx address, this is an outgoing tx
             // Note that with bch-input data, we do not have input amounts
             for (let j = 0; j < tx.vin.length; j += 1) {
@@ -200,6 +206,7 @@ export default function useBCH() {
             parsedTx.amountReceived = amountReceived;
             parsedTx.tokenTx = tokenTx;
             parsedTx.outgoingTx = outgoingTx;
+            parsedTx.replyAddress = senderAddress;
             parsedTx.destinationAddress = destinationAddress;
             parsedTx.opReturnMessage = opReturnMessage;
             parsedTx.isCashtabMessage = isCashtabMessage;

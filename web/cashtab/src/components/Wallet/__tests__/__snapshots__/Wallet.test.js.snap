@@ -3,7 +3,7 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-fBuWsC dWuyYQ"
+    className="sc-fMiknA fHWQKC"
   >
     <span
       aria-label="party emoji"
@@ -29,7 +29,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-hzDkRC lmPOKb"
+    className="sc-jhAzac jLDVSr"
   >
     0
      
@@ -119,16 +119,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl hAuusT"
+    className="sc-TOsTZ ihWfGS"
   >
     <div
-      className="sc-TOsTZ gBqYyX"
+      className="sc-kgAjT kbUjME"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-TOsTZ gBqYyX nonactiveBtn"
+      className="sc-kgAjT kbUjME nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -140,7 +140,7 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-fBuWsC dWuyYQ"
+    className="sc-fMiknA fHWQKC"
   >
     <span
       aria-label="party emoji"
@@ -166,7 +166,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-hzDkRC lmPOKb"
+    className="sc-jhAzac jLDVSr"
   >
     0
      
@@ -256,16 +256,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl hAuusT"
+    className="sc-TOsTZ ihWfGS"
   >
     <div
-      className="sc-TOsTZ gBqYyX"
+      className="sc-kgAjT kbUjME"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-TOsTZ gBqYyX nonactiveBtn"
+      className="sc-kgAjT kbUjME nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -277,14 +277,14 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-hzDkRC lmPOKb"
+    className="sc-jhAzac jLDVSr"
   >
     0.06
      
     XEC
   </div>,
   <div
-    className="sc-jhAzac fkirzc"
+    className="sc-fBuWsC cWYAdq"
   >
     $ 
     NaN
@@ -375,16 +375,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl hAuusT"
+    className="sc-TOsTZ ihWfGS"
   >
     <div
-      className="sc-TOsTZ gBqYyX"
+      className="sc-kgAjT kbUjME"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-TOsTZ gBqYyX nonactiveBtn"
+      className="sc-kgAjT kbUjME nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -396,7 +396,7 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-fBuWsC dWuyYQ"
+    className="sc-fMiknA fHWQKC"
   >
     <span
       aria-label="party emoji"
@@ -422,7 +422,7 @@ Array [
      to send to others
   </div>,
   <div
-    className="sc-hzDkRC lmPOKb"
+    className="sc-jhAzac jLDVSr"
   >
     0
      
@@ -512,16 +512,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl hAuusT"
+    className="sc-TOsTZ ihWfGS"
   >
     <div
-      className="sc-TOsTZ gBqYyX"
+      className="sc-kgAjT kbUjME"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-TOsTZ gBqYyX nonactiveBtn"
+      className="sc-kgAjT kbUjME nonactiveBtn"
       onClick={[Function]}
     >
       eToken
