@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(streams_vector_writer) {
 BOOST_AUTO_TEST_CASE(streams_vector_reader) {
     std::vector<uint8_t> vch = {1, 255, 3, 4, 5, 6};
 
-    VectorReader reader(SER_NETWORK, INIT_PROTO_VERSION, vch, 0);
+    SpanReader reader{SER_NETWORK, INIT_PROTO_VERSION, vch};
     BOOST_CHECK_EQUAL(reader.size(), 6U);
     BOOST_CHECK(!reader.empty());
 
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(streams_vector_reader) {
     BOOST_CHECK_THROW(reader >> d, std::ios_base::failure);
 
     // Read a 4 bytes as a (signed) int32_t from the beginning of the buffer.
-    VectorReader new_reader(SER_NETWORK, INIT_PROTO_VERSION, vch, 0);
+    SpanReader new_reader{SER_NETWORK, INIT_PROTO_VERSION, vch};
     new_reader >> d;
     // 67370753 = 1,255,3,4 in little-endian base-256
     BOOST_CHECK_EQUAL(d, 67370753);
