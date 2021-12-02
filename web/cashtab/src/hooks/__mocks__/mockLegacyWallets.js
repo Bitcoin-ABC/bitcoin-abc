@@ -1,8 +1,8 @@
 export default {
-    legacyAlpha: {
+    legacyAlphaMainnet: {
         mnemonic:
             'apart vacuum color cream drama kind foil history hurt alone ask census',
-        name: 'MigrationTestAlpha',
+        name: 'MigrationTestAlpha on Mainnet',
         Path245: {
             cashAddress:
                 'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
@@ -24,10 +24,11 @@ export default {
             legacyAddress: '1511T3ynXKgCwXhFijCUWKuTfqbPxFV1AF',
         },
     },
-    migratedLegacyAlpha: {
+
+    migratedLegacyAlphaMainnet: {
         mnemonic:
             'apart vacuum color cream drama kind foil history hurt alone ask census',
-        name: 'MigrationTestAlpha',
+        name: 'MigrationTestAlpha on Mainnet',
         Path245: {
             cashAddress:
                 'bitcoincash:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy54hkry298',
@@ -57,6 +58,58 @@ export default {
             fundingAddress:
                 'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
             legacyAddress: '1J1Aq5tAAYxZgSDRo8soKM2Rb41z3xrYpm',
+        },
+    },
+
+    legacyAlphaTestnet: {
+        mnemonic:
+            'apart vacuum color cream drama kind foil history hurt alone ask census',
+        name: 'MigrationTestAlpha on Testnet',
+        Path245: {
+            cashAddress: 'bchtest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy539jyxazm',
+            fundingAddress:
+                'slptest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5234lu2sx',
+            fundingWif: 'cN3NDtiabeeX1Wzg2CPgLgrb7fsDG8PgWqTnmwAhYWmY6osSta7Q',
+            legacyAddress: 'muCLmiGfH961UuWrTTFNU3KxH9pVQJJx6Z',
+            slpAddress: 'slptest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5234lu2sx',
+        },
+        Path145: {
+            cashAddress: 'bchtest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vtdvpkdz7',
+            fundingAddress:
+                'slptest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vset6v6sr',
+            fundingWif: 'cTKuvZ644Sf7xra5z3dPshEECJNaDyBCq7HyBsysQPh1ySSpxtQ1',
+            legacyAddress: 'mjWxk74mLM7TieAsSJArLF7nXqC6oc2mof',
+            slpAddress: 'slptest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vset6v6sr',
+        },
+    },
+
+    migratedLegacyAlphaTestnet: {
+        mnemonic:
+            'apart vacuum color cream drama kind foil history hurt alone ask census',
+        name: 'MigrationTestAlpha on Testnet',
+        Path245: {
+            cashAddress: 'bchtest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy539jyxazm',
+            fundingAddress:
+                'slptest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5234lu2sx',
+            fundingWif: 'cN3NDtiabeeX1Wzg2CPgLgrb7fsDG8PgWqTnmwAhYWmY6osSta7Q',
+            legacyAddress: 'muCLmiGfH961UuWrTTFNU3KxH9pVQJJx6Z',
+            slpAddress: 'slptest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5234lu2sx',
+        },
+        Path145: {
+            cashAddress: 'bchtest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vtdvpkdz7',
+            fundingAddress:
+                'slptest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vset6v6sr',
+            fundingWif: 'cTKuvZ644Sf7xra5z3dPshEECJNaDyBCq7HyBsysQPh1ySSpxtQ1',
+            legacyAddress: 'mjWxk74mLM7TieAsSJArLF7nXqC6oc2mof',
+            slpAddress: 'slptest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vset6v6sr',
+        },
+        Path1899: {
+            cashAddress: 'bchtest:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7c9ex06hrx',
+            fundingAddress:
+                'slptest:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7c7dp5qq3m',
+            fundingWif: 'cNRFB6MmkNhyhAj1TpGhXdbHgzWg4BsdHbAkKjiz4vt4vwgpC44F',
+            legacyAddress: 'mxX888y8yaPpTYh3WhrB9GEkT3cgumYwPw',
+            slpAddress: 'slptest:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7c7dp5qq3m',
         },
     },
 };
