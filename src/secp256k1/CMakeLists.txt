@@ -222,6 +222,11 @@ if(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS)
 	set(USE_EXTERNAL_DEFAULT_CALLBACKS 1)
 endif()
 
+# Do not allow unresolved symbols, except when external default callbacks are enabled or when using sanitizers
+if(NOT SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS AND NOT ENABLE_SANITIZERS)
+	add_target_linker_flags(secp256k1 PRIVATE -Wl,--no-undefined)
+endif()
+
 # Make the emult window size customizable.
 set(SECP256K1_ECMULT_WINDOW_SIZE 15 CACHE STRING "Window size for ecmult precomputation for verification, specified as integer in range [2..24].")
 if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 24)

@@ -223,6 +223,16 @@ function(add_linker_flags)
 	endforeach()
 endfunction()
 
+function(add_target_linker_flags TARGET SCOPE)
+	foreach(f ${ARGN})
+		custom_check_linker_flag(FLAG_IS_SUPPORTED ${f})
+
+		if(${FLAG_IS_SUPPORTED})
+			target_link_options(${TARGET} ${SCOPE} ${f})
+		endif()
+	endforeach()
+endfunction()
+
 macro(remove_optimization_level_from_var VAR)
 	string(REGEX REPLACE "-O[0-3gs]( |$)" "" ${VAR} "${${VAR}}")
 endmacro()

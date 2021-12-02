@@ -8,7 +8,6 @@ here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" $here
 
 if ! [ -x configure ] ; then
-    echo "libsecp256k1_la_LDFLAGS = -no-undefined" >> Makefile.am
     echo "LDFLAGS = -no-undefined" >> Makefile.am
     ./autogen.sh || fail "Could not run autogen for $pkgname. Please make sure you have automake and libtool installed, and try again."
 fi
