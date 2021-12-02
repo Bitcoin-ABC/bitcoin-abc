@@ -88,25 +88,25 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         )
 
         self.log.info('A transaction not in the mempool')
-        fee = 7.00
+        fee = Decimal("7.00")
         raw_tx_0 = node.signrawtransactionwithwallet(node.createrawtransaction(
             inputs=[{"txid": txid_in_block, "vout": 0,
                      "sequence": 0xfffffffd}],
-            outputs=[{node.getnewaddress(): 300000 - fee}],
+            outputs=[{node.getnewaddress(): Decimal(300_000) - fee}],
         ))['hex']
         tx = FromHex(CTransaction(), raw_tx_0)
         txid_0 = tx.rehash()
         self.check_mempool_result(
             result_expected=[{'txid': txid_0, 'allowed': True,
                               'size': tx.billable_size(),
-                              'fees': {'base': Decimal(str(fee))}}],
+                              'fees': {'base': fee}}],
             rawtxs=[raw_tx_0],
         )
 
         self.log.info('A final transaction not in the mempool')
         # Pick a random coin(base) to spend
         coin = coins.pop()
-        output_amount = 25_000
+        output_amount = Decimal(25_000)
         raw_tx_final = node.signrawtransactionwithwallet(node.createrawtransaction(
             inputs=[{'txid': coin['txid'], 'vout': coin['vout'],
                      "sequence": 0xffffffff}],  # SEQUENCE_FINAL
@@ -114,11 +114,11 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
             locktime=node.getblockcount() + 2000,  # Can be anything
         ))['hex']
         tx = FromHex(CTransaction(), raw_tx_final)
-        fee_expected = int(coin['amount']) - output_amount
+        fee_expected = coin['amount'] - output_amount
         self.check_mempool_result(
             result_expected=[{'txid': tx.rehash(), 'allowed': True,
                               'size': tx.billable_size(),
-                              'fees': {'base': Decimal(str(fee_expected))}}],
+                              'fees': {'base': fee_expected}}],
             rawtxs=[tx.serialize().hex()],
             maxfeerate=0,
         )
