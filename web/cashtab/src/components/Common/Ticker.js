@@ -62,6 +62,7 @@ export const currency = {
             'twd',
             'hkd',
             'bhd',
+            'sar',
         ],
     },
     fiatCurrencies: {
@@ -83,6 +84,7 @@ export const currency = {
         php: { name: 'Philippine Peso', symbol: '₱', slug: 'php' },
         rub: { name: 'Russian Ruble', symbol: 'р.', slug: 'rub' },
         twd: { name: 'New Taiwan Dollar', symbol: 'NT$', slug: 'twd' },
+        sar: { name: 'Saudi Riyal', symbol: 'SAR', slug: 'sar' },
         zar: { name: 'South African Rand', symbol: 'R', slug: 'zar' },
         try: { name: 'Turkish Lira', symbol: '₺', slug: 'try' },
         vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
