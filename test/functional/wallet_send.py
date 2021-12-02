@@ -294,7 +294,7 @@ class WalletSendTest(BitcoinTestFramework):
             add_to_wallet=False)
         fee = self.nodes[1].decodepsbt(res["psbt"])["fee"]
         assert_fee_amount(fee,
-                          Decimal(len(res["hex"]) / 2),
+                          len(res["hex"]) // 2,
                           Decimal("20.00"))
         self.test_send(from_wallet=w0, to_wallet=w1, amount=1_000_000, fee_rate=-1,
                        expect_error=(-3, "Amount out of range"))

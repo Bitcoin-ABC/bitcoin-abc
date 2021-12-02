@@ -281,11 +281,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             proof_sequence, proof_expiration, wif_privkey,
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key, amount="0"))
 
-        dust_amount = Decimal(f"{PROOF_DUST_THRESHOLD * 0.9999:.4f}")
         dust2 = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey,
             create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key,
-                                   amount=str(dust_amount)))
+                                   amount=f"{PROOF_DUST_THRESHOLD * 0.9999:.2f}"))
 
         missing_stake = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, [{
