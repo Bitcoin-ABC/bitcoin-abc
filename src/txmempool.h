@@ -58,7 +58,7 @@ struct LockPoints {
  * Test whether the LockPoints height and time are still valid on the current
  * chain.
  */
-bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp)
+bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 struct CompareIteratorById {

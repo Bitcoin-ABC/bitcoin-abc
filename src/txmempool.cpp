@@ -82,17 +82,16 @@ private:
     const LockPoints &lp;
 };
 
-bool TestLockPointValidity(const CChain &active_chain, const LockPoints *lp) {
+bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp) {
     AssertLockHeld(cs_main);
-    assert(lp);
     // If there are relative lock times then the maxInputBlock will be set
     // If there are no relative lock times, the LockPoints don't depend on the
     // chain
-    if (lp->maxInputBlock) {
+    if (lp.maxInputBlock) {
         // Check whether active_chain is an extension of the block at which the
         // LockPoints calculation was valid.  If not LockPoints are no longer
         // valid
-        if (!active_chain.Contains(lp->maxInputBlock)) {
+        if (!active_chain.Contains(lp.maxInputBlock)) {
             return false;
         }
     }
@@ -713,7 +712,7 @@ void CTxMemPool::removeForReorg(
     RemoveStaged(setAllRemoves, false, MemPoolRemovalReason::REORG);
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
          it != mapTx.end(); it++) {
-        assert(TestLockPointValidity(chain, &it->GetLockPoints()));
+        assert(TestLockPointValidity(chain, it->GetLockPoints()));
     }
 }
 
@@ -1537,7 +1536,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
             const CTransaction &tx = it->GetTx();
             LockPoints lp = it->GetLockPoints();
             const bool validLP{
-                TestLockPointValidity(active_chainstate.m_chain, &lp)};
+                TestLockPointValidity(active_chainstate.m_chain, lp)};
             CCoinsViewMemPool view_mempool(&active_chainstate.CoinsTip(), pool);
 
             TxValidationState state;
