@@ -8,7 +8,7 @@ import PrimaryButton, {
 } from '@components/Common/PrimaryButton';
 import {
     FormItemWithMaxAddon,
-    FormItemWithQRCodeAddon,
+    DestinationAddressSingle,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
 import BalanceHeader from '@components/Common/BalanceHeader';
@@ -247,7 +247,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                     width: 'auto',
                                 }}
                             >
-                                <FormItemWithQRCodeAddon
+                                <DestinationAddressSingle
                                     loadWithCameraOpen={scannerSupported}
                                     validateStatus={
                                         sendTokenAddressError ? 'error' : ''

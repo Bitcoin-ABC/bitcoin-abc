@@ -5,7 +5,7 @@ import { WalletContext } from '@utils/context';
 import {
     AntdFormWrapper,
     SendBchInput,
-    FormItemWithQRCodeAddon,
+    DestinationAddressSingle,
 } from '@components/Common/EnhancedInputs';
 import {
     StyledCollapse,
@@ -527,7 +527,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             width: 'auto',
                         }}
                     >
-                        <FormItemWithQRCodeAddon
+                        <DestinationAddressSingle
                             loadWithCameraOpen={scannerSupported}
                             validateStatus={sendBchAddressError ? 'error' : ''}
                             help={
@@ -548,7 +548,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 required: true,
                                 value: formData.address,
                             }}
-                        ></FormItemWithQRCodeAddon>
+                        ></DestinationAddressSingle>
                         <SendBchInput
                             activeFiatCode={
                                 cashtabSettings && cashtabSettings.fiatCurrency

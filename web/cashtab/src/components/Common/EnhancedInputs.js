@@ -250,7 +250,7 @@ FormItemWithMaxAddon.propTypes = {
 };
 
 // loadWithCameraOpen prop: if true, load page with camera scanning open
-export const FormItemWithQRCodeAddon = ({
+export const DestinationAddressSingle = ({
     onScan,
     loadWithCameraOpen,
     inputProps,
@@ -275,7 +275,7 @@ export const FormItemWithQRCodeAddon = ({
     );
 };
 
-FormItemWithQRCodeAddon.propTypes = {
+DestinationAddressSingle.propTypes = {
     onScan: PropTypes.func,
     loadWithCameraOpen: PropTypes.bool,
     inputProps: PropTypes.object,
