@@ -847,12 +847,15 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
 
 } // namespace
 
-MempoolAcceptResult AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
+MempoolAcceptResult AcceptToMemoryPool(const Config &config,
                                        CChainState &active_chainstate,
                                        const CTransactionRef &tx,
                                        int64_t accept_time, bool bypass_limits,
                                        bool test_accept) {
     AssertLockHeld(cs_main);
+    assert(active_chainstate.GetMempool() != nullptr);
+    CTxMemPool &pool{*active_chainstate.GetMempool()};
+
     std::vector<COutPoint> coins_to_uncache;
     auto args = MemPoolAccept::ATMPArgs::SingleAccept(
         config, accept_time, bypass_limits, coins_to_uncache, test_accept);
@@ -4296,7 +4299,7 @@ MempoolAcceptResult
 ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
                                       bool test_accept) {
     CChainState &active_chainstate = ActiveChainstate();
-    if (!active_chainstate.m_mempool) {
+    if (!active_chainstate.GetMempool()) {
         TxValidationState state;
         state.Invalid(TxValidationResult::TX_NO_MEMPOOL, "no-mempool");
         return MempoolAcceptResult::Failure(state);
@@ -4306,11 +4309,10 @@ ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
     // This avoids passing an extra Config argument to this function that will
     // be removed soon.
     auto result =
-        AcceptToMemoryPool(::GetConfig(), *active_chainstate.m_mempool,
-                           active_chainstate, tx, GetTime(),
-                           /* bypass_limits= */ false, test_accept);
-    active_chainstate.m_mempool->check(active_chainstate.CoinsTip(),
-                                       active_chainstate.m_chain.Height() + 1);
+        AcceptToMemoryPool(::GetConfig(), active_chainstate, tx, GetTime(),
+                           /*bypass_limits=*/false, test_accept);
+    active_chainstate.GetMempool()->check(
+        active_chainstate.CoinsTip(), active_chainstate.m_chain.Height() + 1);
     return result;
 }
 
@@ -5733,10 +5735,11 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
             }
             if (nTime > nNow - nExpiryTimeout) {
                 LOCK(cs_main);
-                if (AcceptToMemoryPool(config, pool, active_chainstate, tx,
-                                       nTime, /* bypass_limits= */ false,
-                                       /* test_accept= */ false)
-                        .m_result_type ==
+                const auto &accepted =
+                    AcceptToMemoryPool(config, active_chainstate, tx, nTime,
+                                       /*bypass_limits=*/false,
+                                       /*test_accept=*/false);
+                if (accepted.m_result_type ==
                     MempoolAcceptResult::ResultType::VALID) {
                     ++count;
                 } else {

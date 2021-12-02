@@ -321,13 +321,11 @@ struct PackageMempoolAcceptResult {
  * ChainstateManager::ProcessTransaction()
  *
  * @param[in]  config             The global configuration.
- * @param[in]  pool               Reference to the node's mempool.
  * @param[in]  active_chainstate  Reference to the active chainstate.
  * @param[in]  tx                 The transaction to submit for mempool
  *                                acceptance.
  * @param[in]  accept_time        The timestamp for adding the transaction to
- *                                the mempool. Usually the current system time,
- *                                but may be different.
+ *                                the mempool.
  *                                It is also used to determine when the entry
  *                                expires.
  * @param[in]  bypass_limits      When true, don't enforce mempool fee and
@@ -338,11 +336,10 @@ struct PackageMempoolAcceptResult {
  * @returns a MempoolAcceptResult indicating whether the transaction was
  *     accepted/rejected with reason.
  */
-MempoolAcceptResult AcceptToMemoryPool(const Config &config, CTxMemPool &pool,
-                                       CChainState &active_chainstate,
-                                       const CTransactionRef &tx,
-                                       int64_t accept_time, bool bypass_limits,
-                                       bool test_accept = false)
+MempoolAcceptResult
+AcceptToMemoryPool(const Config &config, CChainState &active_chainstate,
+                   const CTransactionRef &tx, int64_t accept_time,
+                   bool bypass_limits, bool test_accept = false)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
@@ -915,6 +912,9 @@ public:
 
     //! @returns A reference to the on-disk UTXO set database.
     CCoinsViewDB &CoinsDB() { return m_coins_views->m_dbview; }
+
+    //! @returns A pointer to the mempool.
+    CTxMemPool *GetMempool() { return m_mempool; }
 
     //! @returns A reference to a wrapped view of the in-memory UTXO set that
     //!     handles disk read errors gracefully.
