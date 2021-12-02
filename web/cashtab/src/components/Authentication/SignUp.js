@@ -36,7 +36,7 @@ const SignUp = () => {
     if (authentication) {
         signUpBody = (
             <div>
-                <p>Enable wallet lock to protect your fund.</p>
+                <p>Enable wallet lock to protect your funds.</p>
                 <p>
                     You will need to unlock with your{' '}
                     <strong>fingerprint / device pin</strong> in order to access
