@@ -618,12 +618,16 @@ public:
     void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     /**
-     * After reorg, check if mempool entries are now non-final, premature
-     * coinbase spends, or have invalid lockpoints. Update lockpoints and
-     * remove entries (and descendants of entries) that are no longer valid.
+     * After reorg, filter the entries that would no longer be valid in the
+     * next block, and update the entries' cached LockPoints if needed.
+     * The mempool does not have any knowledge of consensus rules. It just
+     * applies the callable function and removes the ones for which it
+     * returns true.
+     * @param[in]   filter_final_and_mature   Predicate that checks the
+     *     relevant validation rules and updates an entry's LockPoints.
      */
     void removeForReorg(const Config &config, CChain &chain,
-                        std::function<bool(txiter)> check_final_and_mature)
+                        std::function<bool(txiter)> filter_final_and_mature)
         EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
     void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeForBlock(const std::vector<CTransactionRef> &vtx,
