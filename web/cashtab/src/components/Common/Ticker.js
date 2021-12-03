@@ -63,10 +63,12 @@ export const currency = {
             'hkd',
             'bhd',
             'sar',
+            'aud',
         ],
     },
     fiatCurrencies: {
         usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },
+        aud: { name: 'Australian Dollar', symbol: '$', slug: 'aud' },
         bhd: { name: 'Bahraini Dinar', symbol: 'BD', slug: 'bhd' },
         brl: { name: 'Brazilian Real', symbol: 'R$', slug: 'brl' },
         gbp: { name: 'British Pound', symbol: '£', slug: 'gbp' },
