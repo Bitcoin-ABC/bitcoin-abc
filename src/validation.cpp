@@ -1324,6 +1324,7 @@ DisconnectResult UndoCoinSpend(const Coin &undo, CCoinsViewCache &view,
 DisconnectResult CChainState::DisconnectBlock(const CBlock &block,
                                               const CBlockIndex *pindex,
                                               CCoinsViewCache &view) {
+    AssertLockHeld(::cs_main);
     CBlockUndo blockUndo;
     if (!UndoReadFromDisk(blockUndo, pindex)) {
         error("DisconnectBlock(): failure reading undo data");

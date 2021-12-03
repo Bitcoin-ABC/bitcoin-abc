@@ -991,7 +991,8 @@ public:
     // Block (dis)connection on a given view:
     DisconnectResult DisconnectBlock(const CBlock &block,
                                      const CBlockIndex *pindex,
-                                     CCoinsViewCache &view);
+                                     CCoinsViewCache &view)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
     bool ConnectBlock(const CBlock &block, BlockValidationState &state,
                       CBlockIndex *pindex, CCoinsViewCache &view,
                       BlockValidationOptions options, bool fJustCheck = false)
