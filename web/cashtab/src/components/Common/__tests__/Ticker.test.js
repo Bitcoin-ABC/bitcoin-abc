@@ -4,12 +4,8 @@ import {
     isValidTokenPrefix,
     toLegacy,
     toLegacyArray,
-    isCashtabOutput,
-    isEtokenOutput,
-    extractCashtabMessage,
-    extractExternalMessage,
-    getETokenEncodingSubstring,
-    getCashtabEncodingSubstring,
+    parseOpReturn,
+    currency,
 } from '../Ticker';
 import {
     validAddressArrayInput,
@@ -18,6 +14,24 @@ import {
     validLargeAddressArrayOutput,
     invalidAddressArrayInput,
 } from '../__mocks__/mockAddressArray';
+import {
+    shortCashtabMessageInputHex,
+    longCashtabMessageInputHex,
+    shortExternalMessageInputHex,
+    longExternalMessageInputHex,
+    shortSegmentedExternalMessageInputHex,
+    longSegmentedExternalMessageInputHex,
+    mixedSegmentedExternalMessageInputHex,
+    mockParsedShortCashtabMessageArray,
+    mockParsedLongCashtabMessageArray,
+    mockParsedShortExternalMessageArray,
+    mockParsedLongExternalMessageArray,
+    mockParsedShortSegmentedExternalMessageArray,
+    mockParsedLongSegmentedExternalMessageArray,
+    mockParsedMixedSegmentedExternalMessageArray,
+    eTokenInputHex,
+    mockParsedETokenOutputArray,
+} from '../__mocks__/mockOpReturnParsedArray';
 
 test('Rejects cash address with bitcoincash: prefix', async () => {
     const result = isValidCashPrefix(
@@ -171,75 +185,42 @@ test('toLegacyArray throws an error on an addressArray with invalid addresses', 
     );
 });
 
-test('getCashtabEncodingSubstring() returns the appropriate substring for cashtab message outputs', async () => {
-    const result = getCashtabEncodingSubstring();
-    expect(result).toStrictEqual('6a0400746162');
+test('parseOpReturn() successfully parses a short cashtab message', async () => {
+    const result = parseOpReturn(shortCashtabMessageInputHex);
+    expect(result).toStrictEqual(mockParsedShortCashtabMessageArray);
 });
 
-test('getETokenEncodingSubstring() returns the appropriate substring for eToken outputs', async () => {
-    const result = getETokenEncodingSubstring();
-    expect(result).toStrictEqual('6a04534c5000');
+test('parseOpReturn() successfully parses a long cashtab message where an additional PUSHDATA1 is present', async () => {
+    const result = parseOpReturn(longCashtabMessageInputHex);
+    expect(result).toStrictEqual(mockParsedLongCashtabMessageArray);
 });
 
-test('isCashtabOutput() correctly validates a cashtab message output hex', async () => {
-    const result = isCashtabOutput('6a04007461620b63617368746162756c6172');
-    expect(result).toStrictEqual(true);
+test('parseOpReturn() successfully parses a short external message', async () => {
+    const result = parseOpReturn(shortExternalMessageInputHex);
+    expect(result).toStrictEqual(mockParsedShortExternalMessageArray);
 });
 
-test('isCashtabOutput() correctly invalidates an external message output hex', async () => {
-    const result = isCashtabOutput('6a0c7069616e6f74656e6e697332');
-    expect(result).toStrictEqual(false);
+test('parseOpReturn() successfully parses a long external message where an additional PUSHDATA1 is present', async () => {
+    const result = parseOpReturn(longExternalMessageInputHex);
+    expect(result).toStrictEqual(mockParsedLongExternalMessageArray);
 });
 
-test('isCashtabOutput() correctly handles null input', async () => {
-    const result = isCashtabOutput(null);
-    expect(result).toStrictEqual(false);
+test('parseOpReturn() successfully parses an external message that is segmented into separate short parts', async () => {
+    const result = parseOpReturn(shortSegmentedExternalMessageInputHex);
+    expect(result).toStrictEqual(mockParsedShortSegmentedExternalMessageArray);
 });
 
-test('isCashtabOutput() correctly handles non-string input', async () => {
-    const result = isCashtabOutput(7623723323);
-    expect(result).toStrictEqual(false);
+test('parseOpReturn() successfully parses an external message that is segmented into separate long parts', async () => {
+    const result = parseOpReturn(longSegmentedExternalMessageInputHex);
+    expect(result).toStrictEqual(mockParsedLongSegmentedExternalMessageArray);
 });
 
-test('isCashtabOutput() correctly invalidates an external message output hex', async () => {
-    const result = isCashtabOutput(
-        '6a202731afddf3b83747943f0e650b938ea0670dcae2e08c415f53bd4c6acfd15e09',
-    );
-    expect(result).toStrictEqual(false);
+test('parseOpReturn() successfully parses an external message that is segmented into separate long and short parts', async () => {
+    const result = parseOpReturn(mixedSegmentedExternalMessageInputHex);
+    expect(result).toStrictEqual(mockParsedMixedSegmentedExternalMessageArray);
 });
 
-test('isEtokenOutput() correctly validates an eToken output hex', async () => {
-    const result = isEtokenOutput(
-        '6a04534c500001010453454e442069b8431ddecf775393b1b36aa1d0ddcd7b342f1157b9671a03747378ed35ea0d08000000000000012c080000000000002008',
-    );
-    expect(result).toStrictEqual(true);
-});
-
-test('isEtokenOutput() correctly invalidates an eToken output hex', async () => {
-    const result = isEtokenOutput(
-        '5434c500001010453454e442069b8431ddecf775393b1b36aa1d0ddcd7b342f1157b9671a03747378ed35ea0d08000000000000012c080000000000002008',
-    );
-    expect(result).toStrictEqual(false);
-});
-
-test('isEtokenOutput() correctly handles null input', async () => {
-    const result = isEtokenOutput(null);
-    expect(result).toStrictEqual(false);
-});
-
-test('isEtokenOutput() correctly handles non-string input', async () => {
-    const result = isEtokenOutput(7623723323);
-    expect(result).toStrictEqual(false);
-});
-
-test('extractCashtabMessage() correctly extracts a Cashtab message', async () => {
-    const result = extractCashtabMessage(
-        '6a04007461620b63617368746162756c6172',
-    );
-    expect(result).toStrictEqual('63617368746162756c6172');
-});
-
-test('extractExternalMessage() correctly extracts an external message', async () => {
-    const result = extractExternalMessage('6a0d62696e676f656c65637472756d');
-    expect(result).toStrictEqual('62696e676f656c65637472756d');
+test('parseOpReturn() successfully parses an eToken output', async () => {
+    const result = parseOpReturn(eTokenInputHex);
+    expect(result).toStrictEqual(mockParsedETokenOutputArray);
 });

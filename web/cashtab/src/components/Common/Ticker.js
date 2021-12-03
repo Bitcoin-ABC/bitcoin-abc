@@ -32,8 +32,8 @@ export const currency = {
     newTokenDefaultUrl: 'https://cashtab.com/',
     opReturn: {
         opReturnPrefixHex: '6a',
-        opReturnPushDataHex: '04',
         opReturnAppPrefixLengthHex: '04',
+        opPushDataOne: '4c',
         appPrefixesHex: {
             eToken: '534c5000',
             cashtab: '00746162',
@@ -95,53 +95,64 @@ export const currency = {
     },
 };
 
-export function getETokenEncodingSubstring() {
-    let encodingStr =
-        currency.opReturn.opReturnPrefixHex + // 6a
-        currency.opReturn.opReturnAppPrefixLengthHex + // 04
-        currency.opReturn.appPrefixesHex.eToken; // 534c5000
-
-    return encodingStr;
-}
-
-export function getCashtabEncodingSubstring() {
-    let encodingStr =
-        currency.opReturn.opReturnPrefixHex + // 6a
-        currency.opReturn.opReturnAppPrefixLengthHex + // 04
-        currency.opReturn.appPrefixesHex.cashtab; // 00746162
-
-    return encodingStr;
-}
-
-export function isCashtabOutput(hexStr) {
-    if (!hexStr || typeof hexStr !== 'string') {
+export function parseOpReturn(hexStr) {
+    if (
+        !hexStr ||
+        typeof hexStr !== 'string' ||
+        hexStr.substring(0, 2) !== currency.opReturn.opReturnPrefixHex
+    ) {
         return false;
     }
-    return hexStr.startsWith(getCashtabEncodingSubstring());
-}
 
-export function isEtokenOutput(hexStr) {
-    if (!hexStr || typeof hexStr !== 'string') {
-        return false;
-    }
-    return hexStr.startsWith(getETokenEncodingSubstring());
-}
+    hexStr = hexStr.slice(2); // remove the first byte i.e. 6a
 
-export function extractCashtabMessage(hexSubstring) {
-    if (!hexSubstring || typeof hexSubstring !== 'string') {
-        return '';
-    }
-    let substring = hexSubstring.replace(getCashtabEncodingSubstring(), ''); // remove the cashtab encoding
-    substring = substring.slice(2); // remove the 2 bytes indicating the size of the next element on the stack e.g. a0 -> 160 bytes
-    return substring;
-}
+    /*
+     * @Return: resultArray is structured as follows:
+     *  resultArray[0] is the transaction type i.e. eToken prefix, cashtab prefix, external message itself if unrecognized prefix
+     *  resultArray[1] is the actual cashtab message or the 2nd part of an external message
+     *  resultArray[2 - n] are the additional messages for future protcols
+     */
+    let resultArray = [];
+    let message = '';
+    let hexStrLength = hexStr.length;
 
-export function extractExternalMessage(hexSubstring) {
-    if (!hexSubstring || typeof hexSubstring !== 'string') {
-        return '';
+    for (let i = 0; hexStrLength !== 0; i++) {
+        // part 1: check the preceding byte value for the subsequent message
+        let byteValue = hexStr.substring(0, 2);
+        let msgByteSize = 0;
+        if (byteValue === currency.opReturn.opPushDataOne) {
+            // if this byte is 4c then the next byte is the message byte size - retrieve the message byte size only
+            msgByteSize = parseInt(hexStr.substring(2, 4), 16); // hex base 16 to decimal base 10
+            hexStr = hexStr.slice(4); // strip the 4c + message byte size info
+        } else {
+            // take the byte as the message byte size
+            msgByteSize = parseInt(hexStr.substring(0, 2), 16); // hex base 16 to decimal base 10
+            hexStr = hexStr.slice(2); // strip the message byte size info
+        }
+
+        // part 2: parse the subsequent message based on bytesize
+        const msgCharLength = 2 * msgByteSize;
+        message = hexStr.substring(0, msgCharLength);
+        if (i === 0 && message === currency.opReturn.appPrefixesHex.eToken) {
+            // add the extracted eToken prefix to array then exit loop
+            resultArray[i] = currency.opReturn.appPrefixesHex.eToken;
+            break;
+        } else if (
+            i === 0 &&
+            message === currency.opReturn.appPrefixesHex.cashtab
+        ) {
+            // add the extracted Cashtab prefix to array
+            resultArray[i] = currency.opReturn.appPrefixesHex.cashtab;
+        } else {
+            // this is either an external message or a subsequent cashtab message loop to extract the message
+            resultArray[i] = message;
+        }
+
+        // strip out the parsed message
+        hexStr = hexStr.slice(msgCharLength);
+        hexStrLength = hexStr.length;
     }
-    let substring = hexSubstring.slice(4); // remove the preceding OP_RETURN prefixes
-    return substring;
+    return resultArray;
 }
 
 export function isValidCashPrefix(addressString) {
