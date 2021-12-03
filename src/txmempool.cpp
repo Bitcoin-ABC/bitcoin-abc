@@ -73,15 +73,6 @@ private:
     Amount feeDelta;
 };
 
-struct update_lock_points {
-    explicit update_lock_points(const LockPoints &_lp) : lp(_lp) {}
-
-    void operator()(CTxMemPoolEntry &e) { e.UpdateLockPoints(lp); }
-
-private:
-    const LockPoints &lp;
-};
-
 bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp) {
     AssertLockHeld(cs_main);
     // If there are relative lock times then the maxInputBlock will be set
