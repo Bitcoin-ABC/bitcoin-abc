@@ -15,32 +15,32 @@ CacheSizes CalculateCacheSizes(const ArgsManager &args, size_t n_indexes) {
     nTotalCache = std::max(nTotalCache, MIN_DB_CACHE_MB << 20);
     // total cache cannot be greater than MAX_DB_CACHE_MB
     nTotalCache = std::min(nTotalCache, MAX_DB_CACHE_MB << 20);
-    int64_t nBlockTreeDBCache =
+
+    CacheSizes sizes;
+    sizes.block_tree_db =
         std::min(nTotalCache / 8, MAX_BLOCK_DB_CACHE_MB << 20);
-    nTotalCache -= nBlockTreeDBCache;
-    int64_t nTxIndexCache =
+    nTotalCache -= sizes.block_tree_db;
+    sizes.tx_index =
         std::min(nTotalCache / 8, args.GetBoolArg("-txindex", DEFAULT_TXINDEX)
                                       ? MAX_TX_INDEX_CACHE_MB << 20
                                       : 0);
-    nTotalCache -= nTxIndexCache;
-    int64_t filter_index_cache = 0;
+    nTotalCache -= sizes.tx_index;
+    sizes.filter_index = 0;
+
     if (n_indexes > 0) {
         int64_t max_cache =
             std::min(nTotalCache / 8, MAX_FILTER_INDEX_CACHE_MB << 20);
-        filter_index_cache = max_cache / n_indexes;
-        nTotalCache -= filter_index_cache * n_indexes;
+        sizes.filter_index = max_cache / n_indexes;
+        nTotalCache -= sizes.filter_index * n_indexes;
     }
-    // use 25%-50% of the remainder for disk cache
-    int64_t nCoinDBCache =
-        std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
-    // cap total coins db cache
-    nCoinDBCache = std::min(nCoinDBCache, MAX_COINS_DB_CACHE_MB << 20);
-    nTotalCache -= nCoinDBCache;
-    // the rest goes to in-memory cache
-    int64_t nCoinCacheUsage = nTotalCache;
 
-    return {
-        nBlockTreeDBCache, nCoinDBCache,       nCoinCacheUsage,
-        nTxIndexCache,     filter_index_cache,
-    };
+    // use 25%-50% of the remainder for disk cache
+    sizes.coins_db = std::min(nTotalCache / 2, (nTotalCache / 4) + (1 << 23));
+    // cap total coins db cache
+    sizes.coins_db = std::min(sizes.coins_db, MAX_COINS_DB_CACHE_MB << 20);
+    nTotalCache -= sizes.coins_db;
+    // the rest goes to in-memory cache
+    sizes.coins = nTotalCache;
+
+    return sizes;
 }
