@@ -47,7 +47,6 @@ const useWallet = () => {
           };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
-    const previousWallet = usePrevious(wallet);
     const previousUtxos = usePrevious(utxos);
 
     // If you catch API errors, call this function
