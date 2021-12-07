@@ -7,7 +7,7 @@ import PrimaryButton, {
     SecondaryButton,
 } from '@components/Common/PrimaryButton';
 import {
-    FormItemWithMaxAddon,
+    DestinationAmount,
     DestinationAddressSingle,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
@@ -274,7 +274,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                         value: formData.address,
                                     }}
                                 />
-                                <FormItemWithMaxAddon
+                                <DestinationAmount
                                     validateStatus={
                                         sendTokenAmountError ? 'error' : ''
                                     }

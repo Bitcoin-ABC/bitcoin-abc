@@ -216,7 +216,7 @@ SendBchInput.propTypes = {
     activeFiatCode: PropTypes.string,
 };
 
-export const FormItemWithMaxAddon = ({ onMax, inputProps, ...otherProps }) => {
+export const DestinationAmount = ({ onMax, inputProps, ...otherProps }) => {
     return (
         <AntdFormWrapper>
             <Form.Item {...otherProps}>
@@ -245,7 +245,7 @@ export const FormItemWithMaxAddon = ({ onMax, inputProps, ...otherProps }) => {
     );
 };
 
-FormItemWithMaxAddon.propTypes = {
+DestinationAmount.propTypes = {
     onMax: PropTypes.func,
     inputProps: PropTypes.object,
 };
