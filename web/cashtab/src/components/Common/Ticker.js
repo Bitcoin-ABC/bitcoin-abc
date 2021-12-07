@@ -64,6 +64,7 @@ export const currency = {
             'bhd',
             'sar',
             'aud',
+            'nzd',
         ],
     },
     fiatCurrencies: {
@@ -82,6 +83,7 @@ export const currency = {
         ils: { name: 'Israeli Shekel', symbol: '₪', slug: 'ils' },
         jpy: { name: 'Japanese Yen', symbol: '¥', slug: 'jpy' },
         krw: { name: 'Korean Won', symbol: '₩', slug: 'krw' },
+        nzd: { name: 'New Zealand Dollar', symbol: '$', slug: 'nzd' },
         nok: { name: 'Norwegian Krone', symbol: 'kr', slug: 'nok' },
         php: { name: 'Philippine Peso', symbol: '₱', slug: 'php' },
         rub: { name: 'Russian Ruble', symbol: 'р.', slug: 'rub' },
