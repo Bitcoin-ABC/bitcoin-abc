@@ -131,7 +131,7 @@ export default function useBCH() {
 
             // get the address of the sender for this tx and encode into eCash address
             let senderBchAddress = tx.vin[0].address;
-            const { prefix, type, hash } = cashaddr.decode(senderBchAddress);
+            const { type, hash } = cashaddr.decode(senderBchAddress);
             const senderAddress = cashaddr.encode('ecash', type, hash);
 
             // If vin includes tx address, this is an outgoing tx
