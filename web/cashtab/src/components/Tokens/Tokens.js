@@ -81,8 +81,8 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                               currency.fiatCurrencies[
                                   cashtabSettings.fiatCurrency
                               ].symbol
-                          } `
-                        : '$ '}
+                          }`
+                        : '$'}
                     {(
                         fromSmallestDenomination(currency.dustSats).toString() *
                         fiatPrice
