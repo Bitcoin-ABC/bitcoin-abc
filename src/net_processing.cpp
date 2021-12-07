@@ -634,7 +634,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_proofrequest);
 
     /** Send a version message to a peer */
-    void PushNodeVersion(const Config &config, CNode &pnode, int64_t nTime);
+    void PushNodeVersion(const Config &config, CNode &pnode);
 
     /**
      * Send a ping message every PING_INTERVAL or if requested via RPC. May mark
@@ -1534,12 +1534,12 @@ ComputeRequestTime(const CNode &node,
     return current_time + delay;
 }
 
-void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
-                                      int64_t nTime) {
+void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode) {
     // Note that pnode.GetLocalServices() is a reflection of the local
     // services we were offering when the CNode object was created for this
     // peer.
     ServiceFlags nLocalNodeServices = pnode.GetLocalServices();
+    const int64_t nTime{count_seconds(GetTime<std::chrono::seconds>())};
     uint64_t nonce = pnode.GetLocalNonce();
     const int nNodeStartingHeight{m_best_height};
     NodeId nodeid = pnode.GetId();
@@ -1635,7 +1635,7 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
         m_peer_map.emplace_hint(m_peer_map.end(), nodeid, std::move(peer));
     }
     if (!pnode->IsInboundConn()) {
-        PushNodeVersion(config, *pnode, GetTime());
+        PushNodeVersion(config, *pnode);
     }
 }
 
@@ -3630,7 +3630,7 @@ void PeerManagerImpl::ProcessMessage(
         // Inbound peers send us their version message when they connect.
         // We send our version message in response.
         if (pfrom.IsInboundConn()) {
-            PushNodeVersion(config, pfrom, GetAdjustedTime());
+            PushNodeVersion(config, pfrom);
         }
 
         // Change version
