@@ -1,7 +1,7 @@
 module.exports = {
     title: 'Cashtab Docs',
     tagline: 'Add cash payments to your website',
-    url: 'https://docs.cashtabapp.com',
+    url: 'https://docs.cashtab.com',
     baseUrl: '/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
