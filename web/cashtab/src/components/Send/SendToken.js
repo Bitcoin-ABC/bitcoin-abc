@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
-import { Form, message, Row, Col, Alert, Descriptions } from 'antd';
+import { Form, message, Row, Col, Alert, Descriptions, Popover } from 'antd';
 import TokenIconAlert from '@components/Common/Alerts.js';
 import PrimaryButton, {
     SecondaryButton,
@@ -362,6 +362,52 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                     bordered
                                     title={`Token info for "${token.info.tokenName}"`}
                                 >
+                                    <Descriptions.Item label="Icon">
+                                        {currency.tokenIconsUrl !== '' ? (
+                                            <Popover
+                                                style={{ width: 256 }}
+                                                content={
+                                                    <Img
+                                                        src={`${currency.tokenIconsUrl}/256/${tokenId}.png`}
+                                                    />
+                                                }
+                                                trigger="click"
+                                                color="transparent"
+                                            >
+                                                <Img
+                                                    src={`${currency.tokenIconsUrl}/32/${tokenId}.png`}
+                                                    width={32}
+                                                    height={32}
+                                                    unloader={
+                                                        <img
+                                                            alt={`identicon of tokenId ${tokenId} `}
+                                                            height="32"
+                                                            width="32"
+                                                            style={{
+                                                                borderRadius:
+                                                                    '50%',
+                                                            }}
+                                                            key={`identicon-${tokenId}`}
+                                                            src={makeBlockie(
+                                                                tokenId,
+                                                            )}
+                                                        />
+                                                    }
+                                                />
+                                            </Popover>
+                                        ) : (
+                                            <img
+                                                alt={`identicon of tokenId ${tokenId} `}
+                                                height="32"
+                                                width="32"
+                                                style={{
+                                                    borderRadius: '50%',
+                                                }}
+                                                key={`identicon-${tokenId}`}
+                                                src={makeBlockie(tokenId)}
+                                            />
+                                        )}
+                                    </Descriptions.Item>
                                     <Descriptions.Item label="Decimals">
                                         {token.info.decimals}
                                     </Descriptions.Item>
