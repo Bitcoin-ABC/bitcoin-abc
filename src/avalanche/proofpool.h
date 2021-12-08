@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_PROOFPOOL_H
 
 #include <avalanche/proof.h>
+#include <avalanche/proofcomparator.h>
 #include <avalanche/proofid.h>
 #include <coins.h>
 #include <primitives/transaction.h>
@@ -70,7 +71,30 @@ public:
         DUPLICATED = 2, //!< Already in pool
     };
 
-    AddProofStatus addProof(const ProofRef &proof);
+    using ConflictingProofSet = std::set<ProofRef, ConflictingProofComparator>;
+
+    /**
+     * Attempt to add a proof to the pool, and fail if there is a conflict on
+     * any UTXO.
+     */
+    AddProofStatus addProofIfNoConflict(const ProofRef &proof,
+                                        ConflictingProofSet &conflictingProofs);
+    AddProofStatus addProofIfNoConflict(const ProofRef &proof) {
+        ConflictingProofSet dummy;
+        return addProofIfNoConflict(proof, dummy);
+    }
+    /**
+     * Attempt to add a proof to the pool. In case there is a conflict with one
+     * or more UTXO, the proof is only added if it is the best candidate over
+     * all the conflicting proofs according to ConflictingProofComparator.
+     */
+    AddProofStatus addProofIfPreferred(const ProofRef &proof,
+                                       ConflictingProofSet &conflictingProofs);
+    AddProofStatus addProofIfPreferred(const ProofRef &proof) {
+        ConflictingProofSet dummy;
+        return addProofIfPreferred(proof, dummy);
+    }
+
     bool removeProof(ProofRef proof);
 
     void rescan(PeerManager &peerManager);

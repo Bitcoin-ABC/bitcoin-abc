@@ -5,13 +5,17 @@
 #include <avalanche/proofpool.h>
 
 #include <avalanche/peermanager.h>
+#include <avalanche/proofcomparator.h>
 
 namespace avalanche {
 
-ProofPool::AddProofStatus ProofPool::addProof(const ProofRef &proof) {
-    assert(proof);
-
+ProofPool::AddProofStatus
+ProofPool::addProofIfNoConflict(const ProofRef &proof,
+                                ConflictingProofSet &conflictingProofs) {
     const ProofId &proofid = proof->getId();
+
+    // Make sure the set is empty before we add items
+    conflictingProofs.clear();
 
     auto &poolView = pool.get<by_proofid>();
     if (poolView.find(proofid) != poolView.end()) {
@@ -19,17 +23,16 @@ ProofPool::AddProofStatus ProofPool::addProof(const ProofRef &proof) {
     }
 
     // Attach UTXOs to this proof.
-    std::unordered_set<ProofRef> conflicting_proofs;
     for (size_t i = 0; i < proof->getStakes().size(); i++) {
         auto p = pool.emplace(i, proof);
         if (!p.second) {
             // We have a collision with an existing proof.
-            conflicting_proofs.insert(p.first->proof);
+            conflictingProofs.insert(p.first->proof);
         }
     }
 
-    // For now, if there is a conflict, just cleanup the mess.
-    if (conflicting_proofs.size() > 0) {
+    // If there is a conflict, just cleanup the mess.
+    if (conflictingProofs.size() > 0) {
         for (const auto &s : proof->getStakes()) {
             auto it = pool.find(s.getStake().getUTXO());
             assert(it != pool.end());
@@ -44,6 +47,26 @@ ProofPool::AddProofStatus ProofPool::addProof(const ProofRef &proof) {
     }
 
     return AddProofStatus::SUCCEED;
+}
+
+ProofPool::AddProofStatus
+ProofPool::addProofIfPreferred(const ProofRef &proof,
+                               ConflictingProofSet &conflictingProofs) {
+    auto added = addProofIfNoConflict(proof, conflictingProofs);
+
+    ConflictingProofComparator compare;
+    // In case the proof was rejected due to conflict and it is the best
+    // candidate, override the conflicting ones and add it again
+    if (!added && compare(proof, *conflictingProofs.begin())) {
+        for (auto &conflictingProof : conflictingProofs) {
+            removeProof(conflictingProof);
+        }
+
+        added = addProofIfNoConflict(proof);
+        assert(added == AddProofStatus::SUCCEED);
+    }
+
+    return added;
 }
 
 // Having the ProofRef passed by reference is risky because the proof could be
