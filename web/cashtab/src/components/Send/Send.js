@@ -8,24 +8,11 @@ import {
     DestinationAddressSingle,
     DestinationAddressMulti,
 } from '@components/Common/EnhancedInputs';
-import {
-    StyledCollapse,
-    AdvancedCollapse,
-} from '@components/Common/StyledCollapse';
-import {
-    Form,
-    message,
-    Modal,
-    Alert,
-    Collapse,
-    Input,
-    Button,
-    notification,
-} from 'antd';
+import { AdvancedCollapse } from '@components/Common/StyledCollapse';
+import { Form, message, Modal, Alert, Collapse, Input, Button } from 'antd';
 const { Panel } = Collapse;
 const { TextArea } = Input;
 import { Row, Col } from 'antd';
-import Paragraph from 'antd/lib/typography/Paragraph';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
@@ -61,8 +48,6 @@ import {
 import { getWalletState } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
 import { formatFiatBalance } from '@utils/validation';
-import WalletLabel from '@components/Common/WalletLabel.js';
-import Wallet from '@components/Wallet/Wallet';
 import { TokenParamLabel } from '@components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
