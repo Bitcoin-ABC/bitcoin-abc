@@ -72,7 +72,7 @@ class GetBlockFromPeerTest(BitcoinTestFramework):
 
         self.log.info("Non-existent peer generates error")
         assert_raises_rpc_error(-1,
-                                f"Peer nodeid {peer_0_peer_1_id + 1} does not exist",
+                                "Peer does not exist",
                                 self.nodes[0].getblockfrompeer,
                                 short_tip,
                                 peer_0_peer_1_id + 1)
