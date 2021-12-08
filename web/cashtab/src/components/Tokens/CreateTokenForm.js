@@ -597,7 +597,7 @@ const CreateTokenForm = ({
                                         newTokenDocumentUrlIsValid === null ||
                                         newTokenDocumentUrlIsValid
                                             ? ''
-                                            : 'Document URL cannot exceed 68 characters'
+                                            : 'Must be valid URL. Cannot exceed 68 characters.'
                                     }
                                 >
                                     <Input

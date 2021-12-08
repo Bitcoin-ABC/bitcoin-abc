@@ -86,10 +86,23 @@ export const isValidTokenInitialQty = (tokenInitialQty, tokenDecimals) => {
 };
 
 export const isValidTokenDocumentUrl = tokenDocumentUrl => {
+    const urlPattern = new RegExp(
+        '^(https?:\\/\\/)?' + // protocol
+            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+            '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+            '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+            '(\\#[-a-z\\d_]*)?$',
+        'i',
+    ); // fragment locator
+
+    const urlTestResult = urlPattern.test(tokenDocumentUrl);
     return (
-        typeof tokenDocumentUrl === 'string' &&
-        tokenDocumentUrl.length >= 0 &&
-        tokenDocumentUrl.length < 68
+        tokenDocumentUrl === '' ||
+        (typeof tokenDocumentUrl === 'string' &&
+            tokenDocumentUrl.length >= 0 &&
+            tokenDocumentUrl.length < 68 &&
+            urlTestResult)
     );
 };
 

@@ -205,6 +205,25 @@ describe('Validation utils', () => {
             ),
         ).toBe(false);
     });
+    it(`Accepts a domain input with https protocol as ${currency.tokenTicker} token document URL`, () => {
+        expect(isValidTokenDocumentUrl('https://google.com')).toBe(true);
+    });
+    it(`Accepts a domain input with http protocol as ${currency.tokenTicker} token document URL`, () => {
+        expect(isValidTokenDocumentUrl('http://test.com')).toBe(true);
+    });
+    it(`Accepts a domain input with a primary and secondary top level domain as ${currency.tokenTicker} token document URL`, () => {
+        expect(isValidTokenDocumentUrl('http://test.co.uk')).toBe(true);
+    });
+    it(`Accepts a domain input with just a subdomain as ${currency.tokenTicker} token document URL`, () => {
+        expect(isValidTokenDocumentUrl('www.test.co.uk')).toBe(true);
+    });
+    it(`Rejects a domain input with no top level domain, protocol or subdomain  ${currency.tokenTicker} token document URL`, () => {
+        expect(isValidTokenDocumentUrl('mywebsite')).toBe(false);
+    });
+    it(`Rejects a domain input as numbers ${currency.tokenTicker} token document URL`, () => {
+        expect(isValidTokenDocumentUrl(12345)).toBe(false);
+    });
+
     it(`Correctly validates token stats for token created before the ${currency.ticker} fork`, () => {
         expect(isValidTokenStats(stStatsValid)).toBe(true);
     });
