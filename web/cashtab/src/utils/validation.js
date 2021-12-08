@@ -213,6 +213,23 @@ export const isValidXecAddress = addr => {
     return isValidXecAddress;
 };
 
+export const formatDate = dateString => {
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    const dateFormattingError = 'Unable to format date.';
+    try {
+        const userLocale = navigator.language;
+        if (dateString) {
+            return new Date(dateString * 1000).toLocaleDateString(
+                userLocale,
+                options,
+            );
+        }
+        return new Date().toLocaleDateString(userLocale, options);
+    } catch (error) {
+        return dateFormattingError;
+    }
+};
+
 export const isValidEtokenAddress = addr => {
     /* 
     Returns true for a valid eToken address

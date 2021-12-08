@@ -26,7 +26,11 @@ import {
     sendTokenNotification,
     errorNotification,
 } from '@components/Common/Notifications';
-import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
+import {
+    isValidXecAddress,
+    isValidEtokenAddress,
+    formatDate,
+} from '@utils/validation';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
@@ -236,7 +240,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     return (
         <>
             {!token && <Redirect to="/" />}
-
             {token && (
                 <>
                     <BalanceHeader
@@ -426,10 +429,9 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                             <Descriptions.Item label="Genesis Date">
                                                 {tokenStats.timestampUnix !==
                                                 null
-                                                    ? new Date(
-                                                          tokenStats.timestampUnix *
-                                                              1000,
-                                                      ).toLocaleDateString()
+                                                    ? formatDate(
+                                                          tokenStats.timestampUnix,
+                                                      )
                                                     : 'Just now (Genesis tx confirming)'}
                                             </Descriptions.Item>
                                             <Descriptions.Item label="Fixed Supply?">

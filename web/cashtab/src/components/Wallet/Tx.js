@@ -12,7 +12,7 @@ import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
-
+import { formatDate } from '@utils/validation';
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.secondary} !important;
 `;
@@ -196,8 +196,8 @@ const TxWrapper = styled.div`
 const Tx = ({ data, fiatPrice, fiatCurrency }) => {
     const txDate =
         typeof data.blocktime === 'undefined'
-            ? new Date().toLocaleDateString()
-            : new Date(data.blocktime * 1000).toLocaleDateString();
+            ? formatDate()
+            : formatDate(data.blocktime);
     // if data only includes height and txid, then the tx could not be parsed by cashtab
     // render as such but keep link to block explorer
     let unparsedTx = false;

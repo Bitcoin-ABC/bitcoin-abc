@@ -13,6 +13,8 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidXecSendAmount,
+    formatDate,
+    isValidSendToMany,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -225,7 +227,45 @@ describe('Validation utils', () => {
     it(`Rejects a domain input as numbers ${currency.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
     });
+    it(`Accepts a valid unix timestamp`, () => {
+        expect(formatDate('1639679649')).toBe('Dec 16, 2021');
+    });
 
+    it(`Accepts an empty string and generates a new timestamp`, () => {
+        expect(formatDate('')).toBe(
+            new Date().toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            }),
+        );
+    });
+
+    it(`Accepts no parameter and generates a new timestamp`, () => {
+        expect(formatDate()).toBe(
+            new Date().toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            }),
+        );
+    });
+
+    it(`Accepts 'undefined' as a parameter and generates a new date`, () => {
+        expect(formatDate(undefined)).toBe(
+            new Date().toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            }),
+        );
+    });
+    it(`Rejects an invalid string containing letters.`, () => {
+        expect(formatDate('f')).toBe('Invalid Date');
+    });
+    it(`Rejects an invalid string containing numbers.`, () => {
+        expect(formatDate('10000000000000000')).toBe('Invalid Date');
+    });
     it(`Correctly validates token stats for token created before the ${currency.ticker} fork`, () => {
         expect(isValidTokenStats(stStatsValid)).toBe(true);
     });
