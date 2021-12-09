@@ -35,6 +35,15 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
         return EXIT_SUCCESS;
     }
 
+    dumpInterval = std::chrono::seconds(
+        argsManager->GetArg("-dumpinterval", DEFAULT_DUMP_INTERVAL_SECONDS));
+    if (dumpInterval.count() <= 0) {
+        tfm::format(
+            std::cerr,
+            "Error: -dumpinterval argument expects only positive integers\n");
+        return EXIT_FAILURE;
+    }
+
     nThreads = argsManager->GetArg("-threads", DEFAULT_NUM_THREADS);
     if (nThreads <= 0) {
         tfm::format(
@@ -117,6 +126,11 @@ void CDnsSeedOpts::SetupSeederArgs() {
     argsManager->AddArg("-mbox=<mbox>",
                         "E-Mail address reported in SOA records",
                         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsManager->AddArg(
+        "-dumpinterval=<seconds>",
+        strprintf("Number of seconds between each database dump (default: %d)",
+                  DEFAULT_DUMP_INTERVAL_SECONDS),
+        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsManager->AddArg(
         "-threads=<threads>",
         strprintf("Number of crawlers to run in parallel (default: %d)",

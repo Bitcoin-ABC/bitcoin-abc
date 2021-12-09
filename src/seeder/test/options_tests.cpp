@@ -24,6 +24,8 @@ BOOST_AUTO_TEST_SUITE(options_tests)
 BOOST_FIXTURE_TEST_CASE(options_defaults_test, ArgsTestingSetup) {
     const char *argv[] = {"ignored"};
     BOOST_CHECK(opts.ParseCommandLine(1, argv) == seeder::CONTINUE_EXECUTION);
+    BOOST_CHECK(opts.dumpInterval ==
+                std::chrono::seconds(seeder::DEFAULT_DUMP_INTERVAL_SECONDS));
     BOOST_CHECK(opts.nPort == seeder::DEFAULT_PORT);
     BOOST_CHECK(opts.nThreads == seeder::DEFAULT_NUM_THREADS);
     BOOST_CHECK(opts.nDnsThreads == seeder::DEFAULT_NUM_DNS_THREADS);
@@ -39,6 +41,26 @@ BOOST_FIXTURE_TEST_CASE(options_basic_test, ArgsTestingSetup) {
     BOOST_CHECK(opts.ns == "localhost");
     BOOST_CHECK(opts.mbox == "email@bitcoinabc.org");
     BOOST_CHECK(opts.nPort == 5555);
+}
+
+BOOST_FIXTURE_TEST_CASE(options_dumpinterval_test, ArgsTestingSetup) {
+    const std::map<int, int> expectedResults = {
+        {-9999, EXIT_FAILURE},
+        {-1, EXIT_FAILURE},
+        {0, EXIT_FAILURE},
+        {1, seeder::CONTINUE_EXECUTION},
+        {seeder::DEFAULT_DUMP_INTERVAL_SECONDS, seeder::CONTINUE_EXECUTION},
+        {9999, seeder::CONTINUE_EXECUTION}};
+
+    for (const auto entry : expectedResults) {
+        const std::string testArg = "-dumpinterval=" + ToString(entry.first);
+        const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
+                              testArg.c_str()};
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
+        if (entry.second == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.dumpInterval == std::chrono::seconds(entry.first));
+        }
+    }
 }
 
 BOOST_FIXTURE_TEST_CASE(options_threads_test, ArgsTestingSetup) {

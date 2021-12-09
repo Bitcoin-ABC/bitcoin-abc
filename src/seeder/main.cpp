@@ -238,53 +238,51 @@ int StatCompare(const CAddrReport &a, const CAddrReport &b) {
     }
 }
 
-extern "C" void *ThreadDumper(void *) {
-    int count = 0;
-    do {
-        // First 100s, than 200s, 400s, 800s, 1600s, and then 3200s forever
-        UninterruptibleSleep(std::chrono::seconds(100 << count));
-        if (count < 5) {
-            count++;
-        }
+extern "C" void *ThreadDumper(void *data) {
+    assert(data);
+    const auto dumpInterval(*(const std::chrono::seconds *)data);
 
-        {
-            std::vector<CAddrReport> v = db.GetAll();
-            sort(v.begin(), v.end(), StatCompare);
-            FILE *f = fsbridge::fopen("dnsseed.dat.new", "w+");
-            if (f) {
-                {
-                    CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
-                    cf << db;
-                }
-                rename("dnsseed.dat.new", "dnsseed.dat");
+    // First dump should occur no later than 10 seconds. Successive dumps will
+    // occur every dump interval.
+    UninterruptibleSleep(std::min(10s, dumpInterval));
+    do {
+        std::vector<CAddrReport> v = db.GetAll();
+        sort(v.begin(), v.end(), StatCompare);
+        FILE *f = fsbridge::fopen("dnsseed.dat.new", "w+");
+        if (f) {
+            {
+                CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
+                cf << db;
             }
-            fsbridge::ofstream d{"dnsseed.dump"};
-            tfm::format(
-                d, "# address                                        good  "
-                   "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
-                   "%%(30d)  blocks      svcs  version\n");
-            double stat[5] = {0, 0, 0, 0, 0};
-            for (CAddrReport rep : v) {
-                tfm::format(
-                    d,
-                    "%-47s  %4d  %11" PRId64
-                    "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
-                    "  %5i \"%s\"\n",
-                    rep.ip.ToString(), (int)rep.fGood, rep.lastSuccess,
-                    100.0 * rep.uptime[0], 100.0 * rep.uptime[1],
-                    100.0 * rep.uptime[2], 100.0 * rep.uptime[3],
-                    100.0 * rep.uptime[4], rep.blocks, rep.services,
-                    rep.clientVersion, rep.clientSubVersion);
-                stat[0] += rep.uptime[0];
-                stat[1] += rep.uptime[1];
-                stat[2] += rep.uptime[2];
-                stat[3] += rep.uptime[3];
-                stat[4] += rep.uptime[4];
-            }
-            fsbridge::ofstream ff{"dnsstats.log", std::ios_base::app};
-            tfm::format(ff, "%llu %g %g %g %g %g\n", GetTime(), stat[0],
-                        stat[1], stat[2], stat[3], stat[4]);
+            rename("dnsseed.dat.new", "dnsseed.dat");
         }
+        fsbridge::ofstream d{"dnsseed.dump"};
+        tfm::format(d, "# address                                        good  "
+                       "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
+                       "%%(30d)  blocks      svcs  version\n");
+        double stat[5] = {0, 0, 0, 0, 0};
+        for (CAddrReport rep : v) {
+            tfm::format(
+                d,
+                "%-47s  %4d  %11" PRId64
+                "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
+                "  %5i \"%s\"\n",
+                rep.ip.ToString(), (int)rep.fGood, rep.lastSuccess,
+                100.0 * rep.uptime[0], 100.0 * rep.uptime[1],
+                100.0 * rep.uptime[2], 100.0 * rep.uptime[3],
+                100.0 * rep.uptime[4], rep.blocks, rep.services,
+                rep.clientVersion, rep.clientSubVersion);
+            stat[0] += rep.uptime[0];
+            stat[1] += rep.uptime[1];
+            stat[2] += rep.uptime[2];
+            stat[3] += rep.uptime[3];
+            stat[4] += rep.uptime[4];
+        }
+        fsbridge::ofstream ff{"dnsstats.log", std::ios_base::app};
+        tfm::format(ff, "%llu %g %g %g %g %g\n", GetTime(), stat[0], stat[1],
+                    stat[2], stat[3], stat[4]);
+
+        UninterruptibleSleep(dumpInterval);
     } while (1);
     return nullptr;
 }
@@ -445,7 +443,7 @@ int main(int argc, char **argv) {
     pthread_attr_destroy(&attr_crawler);
     tfm::format(std::cout, "done\n");
     pthread_create(&threadStats, nullptr, ThreadStats, nullptr);
-    pthread_create(&threadDump, nullptr, ThreadDumper, nullptr);
+    pthread_create(&threadDump, nullptr, ThreadDumper, &opts.dumpInterval);
     void *res;
     pthread_join(threadDump, &res);
     return EXIT_SUCCESS;
