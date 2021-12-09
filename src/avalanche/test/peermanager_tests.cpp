@@ -967,9 +967,8 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(pm.isOrphan(orphan10->getId()));
 
     BOOST_CHECK(!pm.registerProof(orphan20));
-    BOOST_CHECK(!pm.isOrphan(orphan20->getId()));
-    BOOST_CHECK(!pm.exists(orphan20->getId()));
-    BOOST_CHECK(pm.isOrphan(orphan10->getId()));
+    BOOST_CHECK(pm.isOrphan(orphan20->getId()));
+    BOOST_CHECK(!pm.exists(orphan10->getId()));
 }
 
 BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {

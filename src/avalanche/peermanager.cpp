@@ -161,7 +161,7 @@ bool PeerManager::registerProof(const ProofRef &proof) {
         cs_main, return proof->verify(state, ::ChainstateActive().CoinsTip()));
     if (!valid) {
         if (isOrphanState(state)) {
-            orphanProofPool.addProofIfNoConflict(proof);
+            orphanProofPool.addProofIfPreferred(proof);
         }
 
         // Reject invalid proof.
