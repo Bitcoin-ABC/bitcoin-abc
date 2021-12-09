@@ -217,7 +217,24 @@ void PeerManager::updatedBlockTip() {
     // possible to pull back proofs with utxos that conflicted with these
     // invalid peers.
     for (const auto &pid : invalidPeers) {
+        auto it = peers.find(pid);
+        assert(it != peers.end());
+
+        const ProofRef peerProof = it->proof;
+
         removePeer(pid);
+
+        // If the peer had conflicting proofs, attempt to pull them back
+        for (const SignedStake &ss : peerProof->getStakes()) {
+            const ProofRef conflictingProof =
+                conflictingProofPool.getProof(ss.getStake().getUTXO());
+            if (!conflictingProof) {
+                continue;
+            }
+
+            conflictingProofPool.removeProof(conflictingProof);
+            registerProof(conflictingProof);
+        }
     }
 
     orphanProofPool.rescan(*this);
@@ -236,6 +253,10 @@ ProofRef PeerManager::getProof(const ProofId &proofid) const {
     });
 
     if (!proof) {
+        proof = conflictingProofPool.getProof(proofid);
+    }
+
+    if (!proof) {
         proof = orphanProofPool.getProof(proofid);
     }
 
@@ -251,14 +272,18 @@ bool PeerManager::isOrphan(const ProofId &proofid) const {
     return orphanProofPool.getProof(proofid) != nullptr;
 }
 
+bool PeerManager::isInConflictingPool(const ProofId &proofid) const {
+    return conflictingProofPool.getProof(proofid) != nullptr;
+}
+
 bool PeerManager::createPeer(const ProofRef &proof) {
     assert(proof);
 
     switch (validProofPool.addProofIfNoConflict(proof)) {
         case ProofPool::AddProofStatus::REJECTED:
-            // The proof has conflicts, orphan the proof so it can be pulled
-            // back if the conflicting ones are invalidated.
-            orphanProofPool.addProofIfNoConflict(proof);
+            // The proof has conflicts, move it to the conflicting proof pool so
+            // it can be pulled back if the conflicting ones are invalidated.
+            conflictingProofPool.addProofIfNoConflict(proof);
             return false;
         case ProofPool::AddProofStatus::DUPLICATED:
             // If the proof was already in the pool, don't duplicate the peer.
@@ -268,6 +293,8 @@ bool PeerManager::createPeer(const ProofRef &proof) {
 
             // No default case, so the compiler can warn about missing cases
     }
+
+    conflictingProofPool.removeProof(proof);
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;

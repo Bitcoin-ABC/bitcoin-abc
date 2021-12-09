@@ -840,8 +840,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
     }
 
     BOOST_CHECK(!pm.registerProof(conflictingProof));
-    // The conflicting proof is orphaned
-    BOOST_CHECK(pm.isOrphan(conflictingProof->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
 
     {
         LOCK(cs_main);
@@ -854,7 +853,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
 
     BOOST_CHECK(pm.isOrphan(proofToInvalidate->getId()));
 
-    BOOST_CHECK(!pm.isOrphan(conflictingProof->getId()));
+    BOOST_CHECK(!pm.isInConflictingPool(conflictingProof->getId()));
     BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
 }
 
@@ -971,6 +970,56 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(!pm.isOrphan(orphan20->getId()));
     BOOST_CHECK(!pm.exists(orphan20->getId()));
     BOOST_CHECK(pm.isOrphan(orphan10->getId()));
+}
+
+BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(conflictingOutpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+
+        return pb.build();
+    };
+
+    auto proofSeq10 = buildProofWithSequence(10);
+    auto proofSeq20 = buildProofWithSequence(20);
+    auto proofSeq30 = buildProofWithSequence(30);
+
+    BOOST_CHECK(pm.registerProof(proofSeq30));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+    BOOST_CHECK(!pm.isInConflictingPool(proofSeq30->getId()));
+
+    // proofSeq10 is a worst candidate than proofSeq30, so it goes to the
+    // conflicting pool.
+    BOOST_CHECK(!pm.registerProof(proofSeq10));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+    BOOST_CHECK(!pm.isBoundToPeer(proofSeq10->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
+
+    // proofSeq20 is a worst candidate than proofSeq30 but a better one than
+    // proogSeq10. However it is not permitted to override a proof in the
+    // conflicting pool so proofSeq20 is rejectd
+    BOOST_CHECK(!pm.registerProof(proofSeq20));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
+    BOOST_CHECK(!pm.exists(proofSeq20->getId()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

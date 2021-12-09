@@ -125,6 +125,7 @@ class PeerManager {
     PeerSet peers;
 
     ProofPool validProofPool;
+    ProofPool conflictingProofPool;
     ProofPool orphanProofPool;
 
     using NodeSet = boost::multi_index_container<
@@ -256,6 +257,7 @@ public:
     ProofRef getProof(const ProofId &proofid) const;
     bool isBoundToPeer(const ProofId &proofid) const;
     bool isOrphan(const ProofId &proofid) const;
+    bool isInConflictingPool(const ProofId &proofid) const;
 
 private:
     bool createPeer(const ProofRef &proof);
