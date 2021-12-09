@@ -106,6 +106,7 @@ TEST_PARAMS = {
     "rpc_createmultisig.py": [["--descriptors"]],
     "rpc_deriveaddresses.py": [["--usecli"]],
     "rpc_fundrawtransaction.py": [["--descriptors"]],
+    "rpc_signrawtransaction.py": [["--descriptors"]],
     # FIXME: "rpc_psbt.py": [["--descriptors"]],
     "wallet_avoidreuse.py": [["--descriptors"]],
     "wallet_balance.py": [["--descriptors"]],
