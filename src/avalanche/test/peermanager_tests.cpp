@@ -1013,12 +1013,13 @@ BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {
     BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
 
     // proofSeq20 is a worst candidate than proofSeq30 but a better one than
-    // proogSeq10. However it is not permitted to override a proof in the
-    // conflicting pool so proofSeq20 is rejectd
+    // proogSeq10, so it replaces it in the conflicting pool and proofSeq10 is
+    // evicted.
     BOOST_CHECK(!pm.registerProof(proofSeq20));
     BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
-    BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
-    BOOST_CHECK(!pm.exists(proofSeq20->getId()));
+    BOOST_CHECK(!pm.isBoundToPeer(proofSeq20->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq20->getId()));
+    BOOST_CHECK(!pm.exists(proofSeq10->getId()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

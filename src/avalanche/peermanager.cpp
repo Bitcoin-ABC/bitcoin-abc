@@ -283,7 +283,7 @@ bool PeerManager::createPeer(const ProofRef &proof) {
         case ProofPool::AddProofStatus::REJECTED:
             // The proof has conflicts, move it to the conflicting proof pool so
             // it can be pulled back if the conflicting ones are invalidated.
-            conflictingProofPool.addProofIfNoConflict(proof);
+            conflictingProofPool.addProofIfPreferred(proof);
             return false;
         case ProofPool::AddProofStatus::DUPLICATED:
             // If the proof was already in the pool, don't duplicate the peer.
