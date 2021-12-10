@@ -505,6 +505,11 @@ class TestNode:
     def debug_log_path(self) -> Path:
         return self.chain_path / 'debug.log'
 
+    def debug_log_bytes(self) -> int:
+        with open(self.debug_log_path, encoding='utf-8') as dl:
+            dl.seek(0, 2)
+            return dl.tell()
+
     @contextlib.contextmanager
     def assert_debug_log(self, expected_msgs, unexpected_msgs=None, timeout=2):
         """Assert that some debug messages are present within some timeout.
@@ -522,9 +527,7 @@ class TestNode:
         if unexpected_msgs is None:
             unexpected_msgs = []
         time_end = time.time() + timeout * self.timeout_factor
-        with open(self.debug_log_path, encoding='utf-8') as dl:
-            dl.seek(0, 2)
-            prev_size = dl.tell()
+        prev_size = self.debug_log_bytes()
 
         yield
 
@@ -552,6 +555,45 @@ class TestNode:
         self._raise_assertion_error(
             'Expected messages "{}" does not partially match log:\n\n{}\n\n'.format(
                 str(expected_msgs), print_log))
+
+    def wait_for_debug_log(self, expected_msgs, timeout=10,
+                           ignore_case=False) -> int:
+        """
+        Block until we see a particular debug log message fragment or until we exceed the timeout.
+        Return:
+            the number of log lines we encountered when matching
+        """
+        time_end = time.time() + timeout * self.timeout_factor
+        prev_size = self.debug_log_bytes()
+        re_flags = re.MULTILINE | (re.IGNORECASE if ignore_case else 0)
+
+        while True:
+            found = True
+            with open(self.debug_log_path, encoding='utf-8') as dl:
+                dl.seek(prev_size)
+                log = dl.read()
+
+            for expected_msg in expected_msgs:
+                if re.search(re.escape(expected_msg), log,
+                             flags=re_flags) is None:
+                    found = False
+
+            if found:
+                num_logs = len(log.splitlines())
+                return num_logs
+
+            if time.time() >= time_end:
+                print_log = " - " + "\n - ".join(log.splitlines())
+                break
+
+            # No sleep here because we want to detect the message fragment as fast as
+            # possible.
+
+        self._raise_assertion_error(
+            'Expected messages "{}" does not partially match log:\n\n{}\n\n'.format(
+                str(expected_msgs), print_log))
+        # useless return to satisfy linter
+        return -1
 
     @contextlib.contextmanager
     def profile_with_perf(self, profile_name: str):
