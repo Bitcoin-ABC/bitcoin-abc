@@ -949,19 +949,25 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-
-    auto buildProofWithSequence = [&](uint64_t sequence) {
+    auto buildProofWithSequence = [&](uint64_t sequence,
+                                      const std::vector<COutPoint> &outpoints) {
         ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+
+        for (const COutPoint &outpoint : outpoints) {
+            BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
+        }
 
         return pb.build();
     };
 
-    auto orphan10 = buildProofWithSequence(10);
-    auto orphan20 = buildProofWithSequence(20);
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+    const COutPoint randomOutpoint1(TxId(GetRandHash()), 0);
+
+    auto orphan10 = buildProofWithSequence(10, {conflictingOutpoint});
+    auto orphan20 =
+        buildProofWithSequence(20, {conflictingOutpoint, randomOutpoint1});
 
     BOOST_CHECK(!pm.registerProof(orphan10));
     BOOST_CHECK(pm.isOrphan(orphan10->getId()));
@@ -969,6 +975,40 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(!pm.registerProof(orphan20));
     BOOST_CHECK(pm.isOrphan(orphan20->getId()));
     BOOST_CHECK(!pm.exists(orphan10->getId()));
+
+    auto addCoin = [&](const COutPoint &outpoint) {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    };
+
+    const COutPoint outpointToSend(TxId(GetRandHash()), 0);
+    // Add both randomOutpoint1 and outpointToSend to the UTXO set. The orphan20
+    // proof is still an orphan because the conflictingOutpoint is unknown.
+    addCoin(randomOutpoint1);
+    addCoin(outpointToSend);
+
+    // Build and register proof valid proof that will conflict with the orphan
+    auto proof30 =
+        buildProofWithSequence(30, {randomOutpoint1, outpointToSend});
+    BOOST_CHECK(pm.registerProof(proof30));
+    BOOST_CHECK(pm.isBoundToPeer(proof30->getId()));
+
+    // Spend the outpointToSend to orphan proof30
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.SpendCoin(outpointToSend);
+    }
+
+    // Check that a rescan will also select the preferred orphan, in this case
+    // proof30 will replace orphan20.
+    pm.updatedBlockTip();
+
+    BOOST_CHECK(!pm.isBoundToPeer(proof30->getId()));
+    BOOST_CHECK(pm.isOrphan(proof30->getId()));
+    BOOST_CHECK(!pm.exists(orphan20->getId()));
 }
 
 BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {

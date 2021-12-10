@@ -240,7 +240,7 @@ void PeerManager::updatedBlockTip() {
     orphanProofPool.rescan(*this);
 
     for (auto &p : newOrphans) {
-        orphanProofPool.addProofIfNoConflict(p);
+        orphanProofPool.addProofIfPreferred(p);
     }
 }
 
