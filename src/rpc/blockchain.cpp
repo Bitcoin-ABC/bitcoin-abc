@@ -888,9 +888,9 @@ static RPCHelpMan getblockfrompeer() {
         "scheduled.",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
-             "The block hash"},
-            {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO,
-             "The node ID (see getpeerinfo for node IDs)"},
+             "The block hash to try to fetch"},
+            {"peer_id", RPCArg::Type::NUM, RPCArg::Optional::NO,
+             "The peer to fetch it from (see getpeerinfo for peer IDs)"},
         },
         RPCResult{RPCResult::Type::OBJ_EMPTY, "", /*optional=*/false, "", {}},
         RPCExamples{HelpExampleCli("getblockfrompeer",
@@ -905,11 +905,13 @@ static RPCHelpMan getblockfrompeer() {
             ChainstateManager &chainman = EnsureChainman(node);
             PeerManager &peerman = EnsurePeerman(node);
 
-            const BlockHash hash{ParseHashV(request.params[0], "hash")};
-            const NodeId nodeid{request.params[1].get_int64()};
+            const BlockHash block_hash{
+                ParseHashV(request.params[0], "blockhash")};
+            const NodeId peer_id{request.params[1].get_int64()};
 
             const CBlockIndex *const index = WITH_LOCK(
-                cs_main, return chainman.m_blockman.LookupBlockIndex(hash););
+                cs_main,
+                return chainman.m_blockman.LookupBlockIndex(block_hash););
 
             if (!index) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Block header missing");
@@ -919,7 +921,7 @@ static RPCHelpMan getblockfrompeer() {
                 throw JSONRPCError(RPC_MISC_ERROR, "Block already downloaded");
             }
 
-            if (const auto err{peerman.FetchBlock(config, nodeid, *index)}) {
+            if (const auto err{peerman.FetchBlock(config, peer_id, *index)}) {
                 throw JSONRPCError(RPC_MISC_ERROR, err.value());
             }
             return UniValue::VOBJ;

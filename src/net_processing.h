@@ -61,13 +61,13 @@ public:
      * the header.
      *
      * @param[in]  config       The global config
-     * @param[in]  id           The peer id
+     * @param[in]  peer_id      The peer id
      * @param[in]  block_index  The block index
      * @returns std::nullopt if a request was successfully made, otherwise an
      *     error message
      */
     virtual std::optional<std::string>
-    FetchBlock(const Config &config, NodeId id,
+    FetchBlock(const Config &config, NodeId peer_id,
                const CBlockIndex &block_index) = 0;
 
     /** Begin running background tasks, should only be called once */

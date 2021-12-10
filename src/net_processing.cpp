@@ -495,7 +495,7 @@ public:
     void StartScheduledTasks(CScheduler &scheduler) override;
     void CheckForStaleTipAndEvictPeers() override;
     std::optional<std::string>
-    FetchBlock(const Config &config, NodeId id,
+    FetchBlock(const Config &config, NodeId peer_id,
                const CBlockIndex &block_index) override;
     bool GetNodeStateStats(NodeId nodeid,
                            CNodeStateStats &stats) const override;
@@ -2063,7 +2063,7 @@ bool PeerManagerImpl::BlockRequestAllowed(
 }
 
 std::optional<std::string>
-PeerManagerImpl::FetchBlock(const Config &config, NodeId id,
+PeerManagerImpl::FetchBlock(const Config &config, NodeId peer_id,
                             const CBlockIndex &block_index) {
     if (fImporting) {
         return "Importing...";
@@ -2074,14 +2074,14 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId id,
 
     LOCK(cs_main);
     // Ensure this peer exists and hasn't been disconnected
-    CNodeState *state = State(id);
+    CNodeState *state = State(peer_id);
     if (state == nullptr) {
         return "Peer does not exist";
     }
     // Mark block as in-flight unless it already is (for this peer).
     // If a block was already in-flight for a different peer, its BLOCKTXN
     // response will be dropped.
-    if (!BlockRequested(config, id, block_index)) {
+    if (!BlockRequested(config, peer_id, block_index)) {
         return "Already requested from this peer";
     }
 
@@ -2090,7 +2090,7 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId id,
     const std::vector<CInv> invs{CInv(MSG_BLOCK, hash)};
 
     // Send block request message to the peer
-    if (!m_connman.ForNode(id, [this, &invs](CNode *node) {
+    if (!m_connman.ForNode(peer_id, [this, &invs](CNode *node) {
             const CNetMsgMaker msgMaker(node->GetCommonVersion());
             this->m_connman.PushMessage(
                 node, msgMaker.Make(NetMsgType::GETDATA, invs));
@@ -2100,7 +2100,7 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId id,
     }
 
     LogPrint(BCLog::NET, "Requesting block %s from peer=%d\n", hash.ToString(),
-             id);
+             peer_id);
     return std::nullopt;
 }
 
