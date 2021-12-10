@@ -6029,6 +6029,18 @@ bool ChainstateManager::ActivateSnapshot(CAutoFile &coins_file,
     return true;
 }
 
+static void FlushSnapshotToDisk(CCoinsViewCache &coins_cache,
+                                bool snapshot_loaded) {
+    LOG_TIME_MILLIS_WITH_CATEGORY_MSG_ONCE(
+        strprintf("%s (%.2f MB)",
+                  snapshot_loaded ? "saving snapshot chainstate"
+                                  : "flushing coins cache",
+                  coins_cache.DynamicMemoryUsage() / (1000 * 1000)),
+        BCLog::LogFlags::ALL);
+
+    coins_cache.Flush();
+}
+
 bool ChainstateManager::PopulateAndValidateSnapshot(
     CChainState &snapshot_chainstate, CAutoFile &coins_file,
     const SnapshotMetadata &metadata) {
@@ -6070,7 +6082,6 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
 
     LogPrintf("[snapshot] loading coins from snapshot %s\n",
               base_blockhash.ToString());
-    int64_t flush_now{0};
     int64_t coins_processed{0};
 
     while (coins_left > 0) {
@@ -6119,19 +6130,15 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
                 ::cs_main, return snapshot_chainstate.GetCoinsCacheSizeState());
 
             if (snapshot_cache_state >= CoinsCacheSizeState::CRITICAL) {
-                LogPrintfToBeContinued(
-                    "[snapshot] flushing coins cache (%.2f MB)... ",
-                    coins_cache.DynamicMemoryUsage() / (1000 * 1000));
-                flush_now = GetTimeMillis();
-
                 // This is a hack - we don't know what the actual best block is,
                 // but that doesn't matter for the purposes of flushing the
                 // cache here. We'll set this to its correct value
                 // (`base_blockhash`) below after the coins are loaded.
                 coins_cache.SetBestBlock(BlockHash{GetRandHash()});
 
-                coins_cache.Flush();
-                LogPrintf("done (%.2fms)\n", GetTimeMillis() - flush_now);
+                // No need to acquire cs_main since this chainstate isn't being
+                // used yet.
+                FlushSnapshotToDisk(coins_cache, /*snapshot_loaded=*/false);
             }
         }
     }
@@ -6161,10 +6168,8 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
               coins_count, coins_cache.DynamicMemoryUsage() / (1000 * 1000),
               base_blockhash.ToString());
 
-    LogPrintf("[snapshot] flushing snapshot chainstate to disk\n");
     // No need to acquire cs_main since this chainstate isn't being used yet.
-    // TODO: if #17487 is merged, add erase=false here for better performance.
-    coins_cache.Flush();
+    FlushSnapshotToDisk(coins_cache, /*snapshot_loaded=*/true);
 
     assert(coins_cache.GetBestBlock() == base_blockhash);
 
