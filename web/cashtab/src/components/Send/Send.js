@@ -100,6 +100,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         dirty: true,
         value: '',
         address: '',
+        opReturnMsg: '',
     });
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendBchAddressError, setSendBchAddressError] = useState(false);
@@ -114,6 +115,15 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const [messageSignature, setMessageSignature] = useState('');
     const [sigCopySuccess, setSigCopySuccess] = useState('');
+
+    const clearInputForms = () => {
+        setFormData({
+            dirty: true,
+            value: '',
+            address: '',
+            opReturnMsg: '',
+        });
+    };
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -256,6 +266,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     cleanAddressAndValueArray,
                 );
                 sendXecNotification(link);
+                clearInputForms();
             } catch (e) {
                 handleSendXecError(e, isOneToManyXECSend);
             }
@@ -326,6 +337,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     bchValue,
                 );
                 sendXecNotification(link);
+                clearInputForms();
             } catch (e) {
                 handleSendXecError(e, isOneToManyXECSend);
             }
@@ -777,6 +789,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                         <TextArea
                                             name="opReturnMsg"
                                             placeholder="(max 160 characters)"
+                                            value={formData.opReturnMsg}
                                             onChange={e =>
                                                 handleOpReturnMsgChange(e)
                                             }
@@ -811,7 +824,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                             Send
                                         </PrimaryButton>
                                     ) : (
-                                        <PrimaryButton onClick={() => send()}>
+                                        <PrimaryButton
+                                            onClick={() => {
+                                                send();
+                                            }}
+                                        >
                                             Send
                                         </PrimaryButton>
                                     )}
