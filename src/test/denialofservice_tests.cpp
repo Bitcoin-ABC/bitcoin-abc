@@ -178,6 +178,11 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     options.m_max_outbound_full_relay = max_outbound_full_relay;
     options.nMaxFeeler = MAX_FEELER_CONNECTIONS;
 
+    const auto time_init{GetTime<std::chrono::seconds>()};
+    SetMockTime(time_init.count());
+    const auto time_later{
+        time_init +
+        3 * std::chrono::seconds{consensusParams.nPowTargetSpacing} + 1s};
     connman->Init(options);
     std::vector<CNode *> vNodes;
 
@@ -193,7 +198,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
         BOOST_CHECK(node->fDisconnect == false);
     }
 
-    SetMockTime(GetTime() + 3 * consensusParams.nPowTargetSpacing + 1);
+    SetMockTime(time_later.count());
 
     // Now tip should definitely be stale, and we should look for an extra
     // outbound peer
@@ -208,7 +213,9 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     // If we add one more peer, something should get marked for eviction
     // on the next check (since we're mocking the time to be in the future, the
     // required time connected check should be satisfied).
+    SetMockTime(time_init.count());
     AddRandomOutboundPeer(config, vNodes, *peerLogic, connman.get());
+    SetMockTime(time_later.count());
 
     peerLogic->CheckForStaleTipAndEvictPeers();
     for (int i = 0; i < max_outbound_full_relay; ++i) {

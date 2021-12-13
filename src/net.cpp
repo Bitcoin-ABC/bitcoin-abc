@@ -3572,8 +3572,9 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
              uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
              ConnectionType conn_type_in, bool inbound_onion)
-    : nTimeConnected(GetTimeSeconds()), addr(addrIn), addrBind(addrBindIn),
-      m_inbound_onion(inbound_onion), nKeyedNetGroup(nKeyedNetGroupIn),
+    : nTimeConnected(GetTime<std::chrono::seconds>()), addr(addrIn),
+      addrBind(addrBindIn), m_inbound_onion(inbound_onion),
+      nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
