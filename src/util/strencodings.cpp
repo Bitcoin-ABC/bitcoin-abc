@@ -95,7 +95,7 @@ std::vector<uint8_t> ParseHex(const char *psz) {
         if (c == (signed char)-1) {
             break;
         }
-        uint8_t n = (c << 4);
+        auto n{uint8_t(c << 4)};
         c = HexDigit(*psz++);
         if (c == (signed char)-1) {
             break;
@@ -153,7 +153,7 @@ std::string EncodeBase64(const std::string &str) {
 }
 
 std::vector<uint8_t> DecodeBase64(const char *p, bool *pf_invalid) {
-    static const int decode64_table[256] = {
+    static const int8_t decode64_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57,
@@ -178,7 +178,7 @@ std::vector<uint8_t> DecodeBase64(const char *p, bool *pf_invalid) {
         if (x == -1) {
             break;
         }
-        val.push_back(x);
+        val.push_back(uint8_t(x));
         ++p;
     }
 
@@ -234,7 +234,7 @@ std::string EncodeBase32(const std::string &str, bool pad) {
 }
 
 std::vector<uint8_t> DecodeBase32(const char *p, bool *pf_invalid) {
-    static const int decode32_table[256] = {
+    static const int8_t decode32_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29,
@@ -259,7 +259,7 @@ std::vector<uint8_t> DecodeBase32(const char *p, bool *pf_invalid) {
         if (x == -1) {
             break;
         }
-        val.push_back(x);
+        val.push_back(uint8_t(x));
         ++p;
     }
 
