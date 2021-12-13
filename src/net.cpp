@@ -1167,13 +1167,13 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // (vEvictionCandidates is already sorted by reverse connect time)
     uint64_t naMostConnections;
     unsigned int nMostConnections = 0;
-    int64_t nMostConnectionsTime = 0;
+    std::chrono::seconds nMostConnectionsTime{0};
     std::map<uint64_t, std::vector<NodeEvictionCandidate>> mapNetGroupNodes;
     for (const NodeEvictionCandidate &node : vEvictionCandidates) {
         std::vector<NodeEvictionCandidate> &group =
             mapNetGroupNodes[node.nKeyedNetGroup];
         group.push_back(node);
-        const int64_t grouptime = group[0].nTimeConnected;
+        const auto grouptime{group[0].nTimeConnected};
         size_t group_size = group.size();
         if (group_size > nMostConnections ||
             (group_size == nMostConnections &&
@@ -1535,8 +1535,7 @@ void CConnman::NotifyNumConnectionsChanged() {
 
 bool CConnman::ShouldRunInactivityChecks(const CNode &node,
                                          std::chrono::seconds now) const {
-    return std::chrono::seconds{node.nTimeConnected} + m_peer_connect_timeout <
-           now;
+    return node.nTimeConnected + m_peer_connect_timeout < now;
 }
 
 bool CConnman::InactivityCheck(const CNode &node) const {

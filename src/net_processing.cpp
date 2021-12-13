@@ -85,7 +85,7 @@ static constexpr int64_t EXTRA_PEER_CHECK_INTERVAL = 45;
  * Minimum time an outbound-peer-eviction candidate must be connected for, in
  * order to evict, in seconds.
  */
-static constexpr int64_t MINIMUM_CONNECT_TIME = 30;
+static constexpr std::chrono::seconds MINIMUM_CONNECT_TIME{30};
 /** SHA256("main address relay")[0:8] */
 static constexpr uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
 /// Age after which a stale block will no longer be served if requested as
@@ -515,7 +515,7 @@ private:
      * If we have extra outbound peers, try to disconnect the one with the
      * oldest block announcement.
      */
-    void EvictExtraOutboundPeers(int64_t time_in_seconds)
+    void EvictExtraOutboundPeers(std::chrono::seconds now)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -4392,7 +4392,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
-            pfrom.nLastTXTime = GetTime();
+            pfrom.nLastTXTime = GetTime<std::chrono::seconds>();
 
             LogPrint(BCLog::MEMPOOL,
                      "AcceptToMemoryPool: peer=%d: accepted %s "
@@ -4750,7 +4750,7 @@ void PeerManagerImpl::ProcessMessage(
             m_chainman.ProcessNewBlock(config, pblock,
                                        /*fForceProcessing=*/true, &fNewBlock);
             if (fNewBlock) {
-                pfrom.nLastBlockTime = GetTime();
+                pfrom.nLastBlockTime = GetTime<std::chrono::seconds>();
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
@@ -4860,7 +4860,7 @@ void PeerManagerImpl::ProcessMessage(
             m_chainman.ProcessNewBlock(config, pblock,
                                        /*fForceProcessing=*/true, &fNewBlock);
             if (fNewBlock) {
-                pfrom.nLastBlockTime = GetTime();
+                pfrom.nLastBlockTime = GetTime<std::chrono::seconds>();
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
@@ -4935,7 +4935,7 @@ void PeerManagerImpl::ProcessMessage(
         bool fNewBlock = false;
         m_chainman.ProcessNewBlock(config, pblock, forceProcessing, &fNewBlock);
         if (fNewBlock) {
-            pfrom.nLastBlockTime = GetTime();
+            pfrom.nLastBlockTime = GetTime<std::chrono::seconds>();
         } else {
             LOCK(cs_main);
             mapBlockSource.erase(hash);
@@ -5211,7 +5211,7 @@ void PeerManagerImpl::ProcessMessage(
             WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
             RelayProof(proofid, m_connman);
 
-            pfrom.nLastProofTime = GetTime();
+            pfrom.nLastProofTime = GetTime<std::chrono::seconds>();
 
             LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
                      nodeid, proofid.ToString());
@@ -5855,7 +5855,7 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
     }
 }
 
-void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
+void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
     // If we have any extra block-relay-only peers, disconnect the youngest
     // unless it's given us a block -- in which case, compare with the
     // second-youngest, and out of those two, disconnect the peer who least
@@ -5864,7 +5864,7 @@ void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     // to temporarily in order to sync our tip; see net.cpp.
     // Note that we use higher nodeid as a measure for most recent connection.
     if (m_connman.GetExtraBlockRelayCount() > 0) {
-        std::pair<NodeId, int64_t> youngest_peer{-1, 0},
+        std::pair<NodeId, std::chrono::seconds> youngest_peer{-1, 0},
             next_youngest_peer{-1, 0};
 
         m_connman.ForEachNode([&](CNode *pnode) {
@@ -5896,21 +5896,21 @@ void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
                 // tip.
                 CNodeState *node_state = State(pnode->GetId());
                 if (node_state == nullptr ||
-                    (time_in_seconds - pnode->nTimeConnected >=
-                         MINIMUM_CONNECT_TIME &&
+                    (now - pnode->nTimeConnected >= MINIMUM_CONNECT_TIME &&
                      node_state->nBlocksInFlight == 0)) {
                     pnode->fDisconnect = true;
                     LogPrint(BCLog::NET,
                              "disconnecting extra block-relay-only peer=%d "
                              "(last block received at time %d)\n",
-                             pnode->GetId(), pnode->nLastBlockTime);
+                             pnode->GetId(),
+                             count_seconds(pnode->nLastBlockTime));
                     return true;
                 } else {
                     LogPrint(
                         BCLog::NET,
                         "keeping block-relay-only peer=%d chosen for eviction "
                         "(connect time: %d, blocks_in_flight: %d)\n",
-                        pnode->GetId(), pnode->nTimeConnected,
+                        pnode->GetId(), count_seconds(pnode->nTimeConnected),
                         node_state->nBlocksInFlight);
                 }
                 return false;
@@ -5968,8 +5968,7 @@ void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
             // new information to have arrived. Also don't disconnect any peer
             // we're trying to download a block from.
             CNodeState &state = *State(pnode->GetId());
-            if (time_in_seconds - pnode->nTimeConnected >
-                    MINIMUM_CONNECT_TIME &&
+            if (now - pnode->nTimeConnected > MINIMUM_CONNECT_TIME &&
                 state.nBlocksInFlight == 0) {
                 LogPrint(BCLog::NET,
                          "disconnecting extra outbound peer=%d (last block "
@@ -5981,7 +5980,7 @@ void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
                 LogPrint(BCLog::NET,
                          "keeping outbound peer=%d chosen for eviction "
                          "(connect time: %d, blocks_in_flight: %d)\n",
-                         pnode->GetId(), pnode->nTimeConnected,
+                         pnode->GetId(), count_seconds(pnode->nTimeConnected),
                          state.nBlocksInFlight);
                 return false;
             }
@@ -6002,7 +6001,7 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
 
     int64_t time_in_seconds = GetTime();
 
-    EvictExtraOutboundPeers(time_in_seconds);
+    EvictExtraOutboundPeers(std::chrono::seconds{time_in_seconds});
 
     if (time_in_seconds > m_stale_tip_check_time) {
         // Check whether our tip is stale, and if so, allow using an extra
@@ -6216,9 +6215,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
     const auto current_time = GetTime<std::chrono::microseconds>();
 
-    if (pto->IsAddrFetchConn() &&
-        current_time - std::chrono::seconds(pto->nTimeConnected) >
-            10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
+    if (pto->IsAddrFetchConn() && current_time - pto->nTimeConnected >
+                                      10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
         LogPrint(BCLog::NET,
                  "addrfetch connection timeout; disconnecting peer=%d\n",
                  pto->GetId());

@@ -41,7 +41,7 @@ static void EvictionProtectionCommon(
 static void EvictionProtection0Networks250Candidates(benchmark::Bench &bench) {
     EvictionProtectionCommon(bench, 250 /* num_candidates */,
                              [](NodeEvictionCandidate &c) {
-                                 c.nTimeConnected = c.id;
+                                 c.nTimeConnected = std::chrono::seconds{c.id};
                                  c.m_network = NET_IPV4;
                              });
 }
@@ -49,7 +49,7 @@ static void EvictionProtection0Networks250Candidates(benchmark::Bench &bench) {
 static void EvictionProtection1Networks250Candidates(benchmark::Bench &bench) {
     EvictionProtectionCommon(bench, 250 /* num_candidates */,
                              [](NodeEvictionCandidate &c) {
-                                 c.nTimeConnected = c.id;
+                                 c.nTimeConnected = std::chrono::seconds{c.id};
                                  c.m_is_local = false;
                                  // 110 Tor
                                  if (c.id >= 130 && c.id < 240) {
@@ -63,7 +63,7 @@ static void EvictionProtection1Networks250Candidates(benchmark::Bench &bench) {
 static void EvictionProtection2Networks250Candidates(benchmark::Bench &bench) {
     EvictionProtectionCommon(bench, 250 /* num_candidates */,
                              [](NodeEvictionCandidate &c) {
-                                 c.nTimeConnected = c.id;
+                                 c.nTimeConnected = std::chrono::seconds{c.id};
                                  c.m_is_local = false;
                                  if (c.id >= 90 && c.id < 160) {
                                      // 70 Tor
@@ -80,7 +80,7 @@ static void EvictionProtection2Networks250Candidates(benchmark::Bench &bench) {
 static void EvictionProtection3Networks050Candidates(benchmark::Bench &bench) {
     EvictionProtectionCommon(bench, 50 /* num_candidates */,
                              [](NodeEvictionCandidate &c) {
-                                 c.nTimeConnected = c.id;
+                                 c.nTimeConnected = std::chrono::seconds{c.id};
                                  //  2 localhost
                                  c.m_is_local = (c.id == 28 || c.id == 47);
                                  if (c.id >= 30 && c.id < 47) {
@@ -98,7 +98,7 @@ static void EvictionProtection3Networks050Candidates(benchmark::Bench &bench) {
 static void EvictionProtection3Networks100Candidates(benchmark::Bench &bench) {
     EvictionProtectionCommon(bench, 100 /* num_candidates */,
                              [](NodeEvictionCandidate &c) {
-                                 c.nTimeConnected = c.id;
+                                 c.nTimeConnected = std::chrono::seconds{c.id};
                                  //  5 localhost
                                  c.m_is_local = (c.id >= 55 && c.id < 60);
                                  if (c.id >= 70 && c.id < 80) {
@@ -116,7 +116,7 @@ static void EvictionProtection3Networks100Candidates(benchmark::Bench &bench) {
 static void EvictionProtection3Networks250Candidates(benchmark::Bench &bench) {
     EvictionProtectionCommon(bench, 250 /* num_candidates */,
                              [](NodeEvictionCandidate &c) {
-                                 c.nTimeConnected = c.id;
+                                 c.nTimeConnected = std::chrono::seconds{c.id};
                                  // 20 localhost
                                  c.m_is_local = (c.id >= 140 && c.id < 160);
                                  if (c.id >= 170 && c.id < 180) {
