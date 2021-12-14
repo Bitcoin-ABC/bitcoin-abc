@@ -1284,6 +1284,10 @@ void SetupServerArgs(NodeContext &node) {
                              "in seconds (default: %u)",
                              AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN),
                    ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-enableavalancheproofreplacement",
+                   strprintf("Enable avalanche proof replacement (default: %u)",
+                             AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED),
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-avacooldown",
         strprintf("Mandatory cooldown between two avapoll (default: %u)",

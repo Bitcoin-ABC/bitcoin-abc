@@ -165,6 +165,16 @@ bool PeerManager::updateNextPossibleConflictTime(
     return it->nextPossibleConflictTime == nextTime;
 }
 
+void PeerManager::moveToConflictingPool(const ProofRef &proof) {
+    auto &peersView = peers.get<by_proofid>();
+    auto it = peersView.find(proof->getId());
+    if (it != peersView.end()) {
+        removePeer(it->peerid);
+    }
+
+    conflictingProofPool.addProofIfPreferred(proof);
+}
+
 bool PeerManager::registerProof(const ProofRef &proof,
                                 ProofRegistrationState &registrationState,
                                 RegistrationMode mode) {
@@ -236,9 +246,26 @@ bool PeerManager::registerProof(const ProofRef &proof,
                         "cooldown-not-elapsed");
                 }
 
-                // The proof has conflicts, move it to the conflicting proof
-                // pool so it can be pulled back if the conflicting ones are
-                // invalidated.
+                // If proof replacement is enabled, give the proof a chance to
+                // replace the conflicting ones.
+                if (gArgs.GetBoolArg(
+                        "-enableavalancheproofreplacement",
+                        AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
+                    if (validProofPool.addProofIfPreferred(proof)) {
+                        // If we have overridden other proofs due to conflict,
+                        // remove the peers and attempt to move them to the
+                        // conflicting pool.
+                        for (const ProofRef &conflictingProof :
+                             conflictingProofs) {
+                            moveToConflictingPool(conflictingProof);
+                        }
+
+                        // Replacement is successful, continue to peer creation
+                        break;
+                    }
+                }
+
+                // Not the preferred proof, or replacement is not enabled
                 return conflictingProofPool.addProofIfPreferred(proof) ==
                                ProofPool::AddProofStatus::REJECTED
                            ? invalidate(ProofRegistrationResult::REJECTED,

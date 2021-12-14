@@ -887,9 +887,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
 }
 
-BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
-    avalanche::PeerManager pm;
-
+BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     const CKey key = CKey::MakeCompressedKey();
 
     const Amount amount(10 * COIN);
@@ -921,11 +919,33 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
 
     auto proof_base = buildProofWithSequence(10);
 
+    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
+
     ConflictingProofComparator comparator;
     auto checkPreferred = [&](const ProofRef &candidate,
                               const ProofRef &reference, bool expectAccepted) {
         BOOST_CHECK_EQUAL(comparator(candidate, reference), expectAccepted);
         BOOST_CHECK_EQUAL(comparator(reference, candidate), !expectAccepted);
+
+        avalanche::PeerManager pm;
+        BOOST_CHECK(pm.registerProof(reference));
+        BOOST_CHECK(pm.isBoundToPeer(reference->getId()));
+
+        ProofRegistrationState state;
+        BOOST_CHECK_EQUAL(pm.registerProof(candidate, state), expectAccepted);
+        BOOST_CHECK_EQUAL(state.IsValid(), expectAccepted);
+        BOOST_CHECK_EQUAL(state.GetResult() ==
+                              ProofRegistrationResult::CONFLICTING,
+                          !expectAccepted);
+
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(candidate->getId()), expectAccepted);
+        BOOST_CHECK_EQUAL(pm.isInConflictingPool(candidate->getId()),
+                          !expectAccepted);
+
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(reference->getId()),
+                          !expectAccepted);
+        BOOST_CHECK_EQUAL(pm.isInConflictingPool(reference->getId()),
+                          expectAccepted);
     };
 
     // Same master key, lower sequence number
@@ -969,6 +989,8 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_selection) {
         checkPreferred(proofSimilar, proof_multiUtxo,
                        proofSimilar->getId() < proof_multiUtxo->getId());
     }
+
+    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_orphans) {
