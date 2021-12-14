@@ -836,6 +836,8 @@ private:
      */
     std::map<NodeId, PeerRef> m_peer_map GUARDED_BY(m_peer_mutex);
 
+    std::atomic<std::chrono::microseconds> m_next_inv_to_inbounds{0us};
+
     /** Number of nodes with fSyncStarted. */
     int nSyncStarted GUARDED_BY(cs_main) = 0;
 
@@ -884,6 +886,17 @@ private:
     mutable Mutex m_recent_confirmed_transactions_mutex;
     CRollingBloomFilter m_recent_confirmed_transactions
         GUARDED_BY(m_recent_confirmed_transactions_mutex){24'000, 0.000'001};
+
+    /**
+     * For sending `inv`s to inbound peers, we use a single (exponentially
+     * distributed) timer for all peers. If we used a separate timer for each
+     * peer, a spy node could make multiple inbound connections to us to
+     * accurately determine when we received the transaction (and potentially
+     * determine the transaction's origin).
+     */
+    std::chrono::microseconds
+    NextInvToInbounds(std::chrono::microseconds now,
+                      std::chrono::seconds average_interval);
 
     /** Have we requested this block from a peer */
     bool IsBlockRequested(const BlockHash &hash)
@@ -1301,6 +1314,19 @@ static bool CanServeBlocks(const Peer &peer) {
 static bool IsLimitedPeer(const Peer &peer) {
     return (!(peer.m_their_services & NODE_NETWORK) &&
             (peer.m_their_services & NODE_NETWORK_LIMITED));
+}
+
+std::chrono::microseconds
+PeerManagerImpl::NextInvToInbounds(std::chrono::microseconds now,
+                                   std::chrono::seconds average_interval) {
+    if (m_next_inv_to_inbounds.load() < now) {
+        // If this function were called from multiple threads simultaneously
+        // it would possible that both update the next send variable, and return
+        // a different result to their caller. This is not possible in practice
+        // as only the net processing thread invokes this function.
+        m_next_inv_to_inbounds = GetExponentialRand(now, average_interval);
+    }
+    return m_next_inv_to_inbounds;
 }
 
 bool PeerManagerImpl::IsBlockRequested(const BlockHash &hash) {
@@ -6593,8 +6619,8 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
             FastRandomContext insecure_rand;
             PushAddress(peer, local_addr, insecure_rand);
         }
-        peer.m_next_local_addr_send =
-            PoissonNextSend(current_time, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
+        peer.m_next_local_addr_send = GetExponentialRand(
+            current_time, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
     }
 
     // We sent an `addr` message to this peer recently. Nothing more to do.
@@ -6603,7 +6629,7 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
     }
 
     peer.m_next_addr_send =
-        PoissonNextSend(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
+        GetExponentialRand(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
 
     const size_t max_addr_to_send = GetMaxAddrToSend();
     if (!Assume(peer.m_addrs_to_send.size() <= max_addr_to_send)) {
@@ -6702,7 +6728,7 @@ void PeerManagerImpl::MaybeSendFeefilter(
             peer.m_fee_filter_sent = filterToSend;
         }
         peer.m_next_send_feefilter =
-            PoissonNextSend(current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
+            GetExponentialRand(current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
     }
     // If the fee filter has changed substantially and it's still more than
     // MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then move the
@@ -7064,7 +7090,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             if (next < current_time) {
                 fSendTrickle = true;
                 if (pto->IsInboundConn()) {
-                    next = m_connman.PoissonNextSendInbound(
+                    next = NextInvToInbounds(
                         current_time, INBOUND_INVENTORY_BROADCAST_INTERVAL);
                 } else {
                     // Skip delay for outbound peers, as there is less privacy

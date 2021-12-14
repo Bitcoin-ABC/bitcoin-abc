@@ -34,7 +34,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     CSubNet random_subnet;
     std::string random_string;
     while (fuzzed_data_provider.ConsumeBool()) {
-        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 20)) {
+        switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 19)) {
             case 0:
                 random_netaddr = ConsumeNetAddr(fuzzed_data_provider);
                 break;
@@ -100,15 +100,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                 (void)connman.OutboundTargetReached(
                     fuzzed_data_provider.ConsumeBool());
                 break;
-            case 16:
-                // Limit now to int32_t to avoid signed integer overflow
-                (void)connman.PoissonNextSendInbound(
-                    std::chrono::microseconds{
-                        fuzzed_data_provider.ConsumeIntegral<int32_t>()},
-                    std::chrono::seconds{
-                        fuzzed_data_provider.ConsumeIntegral<int>()});
-                break;
-            case 17: {
+            case 16: {
                 CSerializedNetMsg serialized_net_msg;
                 serialized_net_msg.m_type =
                     fuzzed_data_provider.ConsumeRandomLengthString(
@@ -119,13 +111,13 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                                     std::move(serialized_net_msg));
                 break;
             }
-            case 18:
+            case 17:
                 connman.RemoveAddedNode(random_string);
                 break;
-            case 19:
+            case 18:
                 connman.SetNetworkActive(fuzzed_data_provider.ConsumeBool());
                 break;
-            case 20:
+            case 19:
                 connman.SetTryNewOutboundPeer(
                     fuzzed_data_provider.ConsumeBool());
                 break;
