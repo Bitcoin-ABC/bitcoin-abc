@@ -237,6 +237,7 @@ enum class DatabaseStatus {
     FAILED_LOAD,
     FAILED_VERIFY,
     FAILED_ENCRYPT,
+    FAILED_INVALID_BACKUP_FILE,
 };
 
 std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,

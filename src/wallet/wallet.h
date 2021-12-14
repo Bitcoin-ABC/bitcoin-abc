@@ -81,6 +81,11 @@ CreateWallet(WalletContext &context, const std::string &name,
              std::optional<bool> load_on_start, DatabaseOptions &options,
              DatabaseStatus &status, bilingual_str &error,
              std::vector<bilingual_str> &warnings);
+std::shared_ptr<CWallet>
+RestoreWallet(WalletContext &context, const fs::path &backup_file,
+              const std::string &wallet_name, std::optional<bool> load_on_start,
+              DatabaseStatus &status, bilingual_str &error,
+              std::vector<bilingual_str> &warnings);
 std::unique_ptr<interfaces::Handler> HandleLoadWallet(WalletContext &context,
                                                       LoadWalletFn load_wallet);
 std::unique_ptr<WalletDatabase>
@@ -785,7 +790,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
     util::Result<CTxDestination> GetNewDestination(const OutputType type,
-                                                   const std::string label);
+                                                   const std::string &label);
     util::Result<CTxDestination> GetNewChangeDestination(const OutputType type);
 
     isminetype IsMine(const CTxDestination &dest) const

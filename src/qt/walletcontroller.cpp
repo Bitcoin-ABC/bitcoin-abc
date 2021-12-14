@@ -254,14 +254,15 @@ void CreateWalletActivity::createWallet() {
         flags |= WALLET_FLAG_DESCRIPTORS;
     }
 
-    QTimer::singleShot(500, worker(), [this, name, flags] {
-        std::unique_ptr<interfaces::Wallet> wallet =
-            node().walletClient().createWallet(
-                name, m_passphrase, flags, m_error_message, m_warning_message);
+    QTimer::singleShot(500ms, worker(), [this, name, flags] {
+        auto wallet{node().walletClient().createWallet(
+            name, m_passphrase, flags, m_warning_message)};
 
         if (wallet) {
             m_wallet_model =
-                m_wallet_controller->getOrCreateWallet(std::move(wallet));
+                m_wallet_controller->getOrCreateWallet(std::move(*wallet));
+        } else {
+            m_error_message = util::ErrorString(wallet);
         }
 
         QTimer::singleShot(500, this, &CreateWalletActivity::finish);
@@ -340,13 +341,13 @@ void OpenWalletActivity::open(const std::string &path) {
         tr("Opening Wallet <b>%1</b>...").arg(name.toHtmlEscaped()));
 
     QTimer::singleShot(0, worker(), [this, path] {
-        std::unique_ptr<interfaces::Wallet> wallet =
-            node().walletClient().loadWallet(path, m_error_message,
-                                             m_warning_message);
+        auto wallet{node().walletClient().loadWallet(path, m_warning_message)};
 
         if (wallet) {
             m_wallet_model =
-                m_wallet_controller->getOrCreateWallet(std::move(wallet));
+                m_wallet_controller->getOrCreateWallet(std::move(*wallet));
+        } else {
+            m_error_message = util::ErrorString(wallet);
         }
 
         QTimer::singleShot(0, this, &OpenWalletActivity::finish);
