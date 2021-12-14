@@ -33,7 +33,6 @@ import {
 import TabCash from '@assets/tabcash.png';
 import ABC from '@assets/logo_topright.png';
 import { checkForTokenById } from '@utils/tokenMethods.js';
-import { currency } from './Common/Ticker';
 // Biometric security import not used in extension/src/components/App.js
 import ProtectableComponentWrapper from './Authentication/ProtectableComponentWrapper';
 
@@ -244,41 +243,6 @@ const App = () => {
               '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
           )
         : false;
-
-    useEffect(() => {
-        // If URL is not as specified in currency.appURL in Ticker.js, show a popup
-        const currentUrl = window.location.hostname;
-        if (currentUrl !== currency.appUrl) {
-            console.log(
-                `Loaded URL ${currentUrl} does not match app URL ${currency.appUrl}!`,
-            );
-            Modal.warning({
-                title: 'Cashtab is moving!',
-                content: (
-                    <div>
-                        <p>
-                            Cashtab is moving to a new home at{' '}
-                            <a
-                                href="https://cashtab.com/"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                Cashtab.com
-                            </a>
-                        </p>
-                        <p>
-                            Please write down your wallet 12-word seed and
-                            import it at the new domain.
-                        </p>
-                        <p>
-                            At the end of the month, cashtabapp.com will
-                            auto-fwd to cashtab.com after one minute.
-                        </p>
-                    </div>
-                ),
-            });
-        }
-    }, []);
 
     return (
         <ThemeProvider theme={theme}>
