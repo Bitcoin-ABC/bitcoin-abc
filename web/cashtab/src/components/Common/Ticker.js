@@ -24,7 +24,7 @@ export const currency = {
     tokenPrefixes: ['etoken'],
     tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
     txHistoryCount: 5,
-    hydrateUtxoBatchSize: 20,
+    xecApiBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
