@@ -148,6 +148,8 @@ static bool isOrphanState(const ProofValidationState &state) {
 }
 
 bool PeerManager::registerProof(const ProofRef &proof) {
+    assert(proof);
+
     if (exists(proof->getId())) {
         // The proof is already registered, or orphaned.
         return false;
@@ -168,7 +170,47 @@ bool PeerManager::registerProof(const ProofRef &proof) {
         return false;
     }
 
-    return createPeer(proof);
+    switch (validProofPool.addProofIfNoConflict(proof)) {
+        case ProofPool::AddProofStatus::REJECTED:
+            // The proof has conflicts, move it to the conflicting proof pool so
+            // it can be pulled back if the conflicting ones are invalidated.
+            conflictingProofPool.addProofIfPreferred(proof);
+            return false;
+        case ProofPool::AddProofStatus::DUPLICATED:
+            // If the proof was already in the pool, don't duplicate the peer.
+            return false;
+        case ProofPool::AddProofStatus::SUCCEED:
+            break;
+
+            // No default case, so the compiler can warn about missing cases
+    }
+
+    conflictingProofPool.removeProof(proof);
+
+    // New peer means new peerid!
+    const PeerId peerid = nextPeerId++;
+
+    // We have no peer for this proof, time to create it.
+    auto inserted = peers.emplace(peerid, proof);
+    assert(inserted.second);
+
+    // If there are nodes waiting for this proof, add them
+    auto &pendingNodesView = pendingNodes.get<by_proofid>();
+    auto range = pendingNodesView.equal_range(proof->getId());
+
+    // We want to update the nodes then remove them from the pending set. That
+    // will invalidate the range iterators, so we need to save the node ids
+    // first before we can loop over them.
+    std::vector<NodeId> nodeids;
+    nodeids.reserve(std::distance(range.first, range.second));
+    std::transform(range.first, range.second, std::back_inserter(nodeids),
+                   [](const PendingNode &n) { return n.nodeid; });
+
+    for (const NodeId &nodeid : nodeids) {
+        addOrUpdateNode(inserted.first, nodeid);
+    }
+
+    return true;
 }
 
 NodeId PeerManager::selectNode() {
@@ -274,52 +316,6 @@ bool PeerManager::isOrphan(const ProofId &proofid) const {
 
 bool PeerManager::isInConflictingPool(const ProofId &proofid) const {
     return conflictingProofPool.getProof(proofid) != nullptr;
-}
-
-bool PeerManager::createPeer(const ProofRef &proof) {
-    assert(proof);
-
-    switch (validProofPool.addProofIfNoConflict(proof)) {
-        case ProofPool::AddProofStatus::REJECTED:
-            // The proof has conflicts, move it to the conflicting proof pool so
-            // it can be pulled back if the conflicting ones are invalidated.
-            conflictingProofPool.addProofIfPreferred(proof);
-            return false;
-        case ProofPool::AddProofStatus::DUPLICATED:
-            // If the proof was already in the pool, don't duplicate the peer.
-            return false;
-        case ProofPool::AddProofStatus::SUCCEED:
-            break;
-
-            // No default case, so the compiler can warn about missing cases
-    }
-
-    conflictingProofPool.removeProof(proof);
-
-    // New peer means new peerid!
-    const PeerId peerid = nextPeerId++;
-
-    // We have no peer for this proof, time to create it.
-    auto inserted = peers.emplace(peerid, proof);
-    assert(inserted.second);
-
-    // If there are nodes waiting for this proof, add them
-    auto &pendingNodesView = pendingNodes.get<by_proofid>();
-    auto range = pendingNodesView.equal_range(proof->getId());
-
-    // We want to update the nodes then remove them from the pending set. That
-    // will invalidate the range iterators, so we need to save the node ids
-    // first before we can loop over them.
-    std::vector<NodeId> nodeids;
-    nodeids.reserve(std::distance(range.first, range.second));
-    std::transform(range.first, range.second, std::back_inserter(nodeids),
-                   [](const PendingNode &n) { return n.nodeid; });
-
-    for (const NodeId &nodeid : nodeids) {
-        addOrUpdateNode(inserted.first, nodeid);
-    }
-
-    return true;
 }
 
 bool PeerManager::removePeer(const PeerId peerid) {

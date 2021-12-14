@@ -83,6 +83,7 @@ public:
         ConflictingProofSet dummy;
         return addProofIfNoConflict(proof, dummy);
     }
+
     /**
      * Attempt to add a proof to the pool. In case there is a conflict with one
      * or more UTXO, the proof is only added if it is the best candidate over
