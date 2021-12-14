@@ -52,21 +52,23 @@ ProofPool::addProofIfNoConflict(const ProofRef &proof,
 ProofPool::AddProofStatus
 ProofPool::addProofIfPreferred(const ProofRef &proof,
                                ConflictingProofSet &conflictingProofs) {
-    auto added = addProofIfNoConflict(proof, conflictingProofs);
+    auto status = addProofIfNoConflict(proof, conflictingProofs);
 
-    ConflictingProofComparator compare;
     // In case the proof was rejected due to conflict and it is the best
     // candidate, override the conflicting ones and add it again
-    if (!added && compare(proof, *conflictingProofs.begin())) {
-        for (auto &conflictingProof : conflictingProofs) {
-            removeProof(conflictingProof);
-        }
-
-        added = addProofIfNoConflict(proof);
-        assert(added == AddProofStatus::SUCCEED);
+    if (status != AddProofStatus::REJECTED ||
+        ConflictingProofComparator()(*conflictingProofs.begin(), proof)) {
+        return status;
     }
 
-    return added;
+    for (auto &conflictingProof : conflictingProofs) {
+        removeProof(conflictingProof);
+    }
+
+    status = addProofIfNoConflict(proof);
+    assert(status == AddProofStatus::SUCCEED);
+
+    return AddProofStatus::SUCCEED;
 }
 
 // Having the ProofRef passed by reference is risky because the proof could be
