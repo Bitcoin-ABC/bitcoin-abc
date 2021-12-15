@@ -8,6 +8,7 @@ env:
   AUTOTOOLS_TARGET: check
   CMAKE_TARGET: check-secp256k1
   ### secp256k1 config
+  ECMULTWINDOW: auto
   ECMULTGENPRECISION: auto
   ASM: no
   WIDEMUL: auto
@@ -57,8 +58,8 @@ task:
     - env: {AUTOTOOLS_EXTRA_FLAGS: CPPFLAGS=-DDETERMINISTIC, CMAKE_EXTRA_FLAGS: -DCMAKE_C_FLAGS=-DDETERMINISTIC}
     - env: {AUTOTOOLS_EXTRA_FLAGS: CFLAGS=-O0, CMAKE_EXTRA_FLAGS: -DCMAKE_BUILD_TYPE=Debug, CTIMETEST: no}
     - env: {SCHNORR: no}
-    - env: { ECMULTGENPRECISION: 2 }
-    - env: { ECMULTGENPRECISION: 8 }
+    - env: { ECMULTGENPRECISION: 2, ECMULTWINDOW: 2 }
+    - env: { ECMULTGENPRECISION: 8, ECMULTWINDOW: 4 }
   matrix:
     - env:
         CC: gcc
@@ -177,6 +178,7 @@ task:
   matrix:
     - env:
         ECMULTGENPRECISION: 2
+        ECMULTWINDOW: 2
   matrix:
     - env:
         CC: clang

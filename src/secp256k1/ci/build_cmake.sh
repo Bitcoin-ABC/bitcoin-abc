@@ -21,11 +21,15 @@ if [ "$RUN_VALGRIND" = "yes" ]; then
   CMAKE_EXTRA_FLAGS+="-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"
 fi
 
-# "auto" is not a valid value for SECP256K1_ECMULT_GEN_PRECISION with cmake.
+# "auto" is not a valid value for SECP256K1_ECMULT_GEN_PRECISION and
+# SECP256K1_ECMULT_WINDOW_SIZE with cmake.
 # In this case we use the default value instead by not setting the cache
 # variable on the cmake command line.
 if [ "x$ECMULTGENPRECISION" != "xauto" ]; then
   ECMULT_GEN_PRECISION_ARG="-DSECP256K1_ECMULT_GEN_PRECISION=$ECMULTGENPRECISION"
+fi
+if [ "x$ECMULTWINDOW" != "xauto" ]; then
+  ECMULT_WINDOW_SIZE_ARG="-DSECP256K1_ECMULT_WINDOW_SIZE=$ECMULTWINDOW"
 fi
 
 mkdir -p buildcmake/install
@@ -44,6 +48,7 @@ ${CMAKE_COMMAND} -GNinja .. \
   -DSECP256K1_ENABLE_MODULE_SCHNORRSIG=$SCHNORRSIG \
   -DSECP256K1_USE_ASM=$ASM \
   -DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=$WIDEMUL \
+  $ECMULT_WINDOW_SIZE_ARG \
   $ECMULT_GEN_PRECISION_ARG \
   "${CMAKE_EXTRA_FLAGS[@]}"
 
