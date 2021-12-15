@@ -2868,6 +2868,56 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
            msg_type == NetMsgType::AVAPROOF;
 }
 
+/**
+ * Decide a response for an Avalanche poll about the given block.
+ *
+ * @param[in]   hash            The hash of the block being polled for
+ * @param[out]  uint32_t        Our current vote for the block
+ */
+static uint32_t getAvalancheVoteForBlock(const BlockHash &hash)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    AssertLockHeld(cs_main);
+
+    const CBlockIndex *pindex = LookupBlockIndex(hash);
+
+    // Unknown block.
+    if (!pindex) {
+        return -1;
+    }
+
+    // Invalid block
+    if (pindex->nStatus.isInvalid()) {
+        return 1;
+    }
+
+    // Parked block
+    if (pindex->nStatus.isOnParkedChain()) {
+        return 2;
+    }
+
+    const CBlockIndex *pindexTip = ::ChainActive().Tip();
+    const CBlockIndex *pindexFork = LastCommonAncestor(pindex, pindexTip);
+
+    // Active block.
+    if (pindex == pindexFork) {
+        return 0;
+    }
+
+    // Fork block.
+    if (pindexFork != pindexTip) {
+        return 3;
+    }
+
+    // Missing block data.
+    if (!pindex->nStatus.hasData()) {
+        return -2;
+    }
+
+    // This block is built on top of the tip, we have the data, it
+    // is pending connection or rejection.
+    return -3;
+};
+
 void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                                  const std::string &msg_type,
                                  CDataStream &vRecv,
@@ -4355,63 +4405,22 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
                 CInv inv;
                 vRecv >> inv;
 
-                const auto insertVote = [&](uint32_t e) {
-                    votes.emplace_back(e, inv.hash);
-                };
+                // Default vote for unknown inv type
+                uint32_t vote = -1;
 
-                // Not a block.
-                if (inv.type != MSG_BLOCK) {
-                    insertVote(-1);
-                    continue;
+                // If inv's type is known, get a vote for its hash
+                switch (inv.type) {
+                    case MSG_BLOCK: {
+                        vote = getAvalancheVoteForBlock(BlockHash(inv.hash));
+                    } break;
+                    default: {
+                        LogPrint(BCLog::AVALANCHE,
+                                 "poll inv type unknown from peer=%d\n",
+                                 inv.type);
+                    }
                 }
 
-                // We have a block.
-                const CBlockIndex *pindex =
-                    LookupBlockIndex(BlockHash(inv.hash));
-
-                // Unknown block.
-                if (!pindex) {
-                    insertVote(-1);
-                    continue;
-                }
-
-                // Invalid block
-                if (pindex->nStatus.isInvalid()) {
-                    insertVote(1);
-                    continue;
-                }
-
-                // Parked block
-                if (pindex->nStatus.isOnParkedChain()) {
-                    insertVote(2);
-                    continue;
-                }
-
-                const CBlockIndex *pindexTip = ::ChainActive().Tip();
-                const CBlockIndex *pindexFork =
-                    LastCommonAncestor(pindex, pindexTip);
-
-                // Active block.
-                if (pindex == pindexFork) {
-                    insertVote(0);
-                    continue;
-                }
-
-                // Fork block.
-                if (pindexFork != pindexTip) {
-                    insertVote(3);
-                    continue;
-                }
-
-                // Missing block data.
-                if (!pindex->nStatus.hasData()) {
-                    insertVote(-2);
-                    continue;
-                }
-
-                // This block is built on top of the tip, we have the data, it
-                // is pending connection or rejection.
-                insertVote(-3);
+                votes.emplace_back(vote, inv.hash);
             }
         }
 
