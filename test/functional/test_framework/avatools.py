@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from .authproxy import JSONRPCException
 from .key import ECKey
 from .messages import (
+    MSG_BLOCK,
     NODE_AVALANCHE,
     NODE_NETWORK,
     AvalancheDelegation,
@@ -207,12 +208,12 @@ class AvaP2PInterface(P2PInterface):
         with p2p_lock:
             return self.avaresponses.pop(0)
 
-    def send_poll(self, hashes):
+    def send_poll(self, hashes, type=MSG_BLOCK):
         msg = msg_avapoll()
         msg.poll.round = self.round
         self.round += 1
         for h in hashes:
-            msg.poll.invs.append(CInv(2, h))
+            msg.poll.invs.append(CInv(type, h))
         self.send_message(msg)
 
     def get_avapoll_if_available(self):
