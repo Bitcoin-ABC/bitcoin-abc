@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
-import { currency, isValidTokenPrefix } from '@components/Common/Ticker.js';
+import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
+import cashaddr from 'ecashaddrjs';
 
 // Validate cash amount
 export const shouldRejectAmountInput = (
@@ -171,34 +172,94 @@ export const formatFiatBalance = (fiatBalance, optionalLocale) => {
     }
 };
 
-export const isValidSendToMany = (addressInfo, valueString, ticker) => {
-    let isValidInput = true;
+export const isValidXecAddress = addr => {
+    /* 
+    Returns true for a valid XEC address
+
+    Valid XEC address:
+    - May or may not have prefix `ecash:`
+    - Checksum must validate for prefix `ecash:`
+    
+    An eToken address is not considered a valid XEC address
+    */
+
+    let isValidXecAddress;
+    let isPrefixedXecAddress;
+
+    // Check for possible prefix
+    if (addr.includes(':')) {
+        // Test for 'ecash:' prefix
+        isPrefixedXecAddress = addr.slice(0, 6) === 'ecash:';
+        // Any address including ':' that doesn't start explicitly with 'ecash:' is invalid
+        if (!isPrefixedXecAddress) {
+            isValidXecAddress = false;
+            return isValidXecAddress;
+        }
+    } else {
+        isPrefixedXecAddress = false;
+    }
+
+    // If no prefix, assume it is checksummed for an ecash: prefix
+    const testedXecAddr = isPrefixedXecAddress ? addr : `ecash:${addr}`;
 
     try {
-        if (addressInfo === null || addressInfo === undefined) {
-            return 'invalid address input';
-        } else if (valueString === null || valueString === undefined) {
-            return 'invalid value input';
-        } else if (ticker === null || ticker === undefined) {
-            return 'invalid ticker input';
+        const decoded = cashaddr.decode(testedXecAddr);
+        if (decoded.prefix === 'ecash') {
+            isValidXecAddress = true;
         }
-
-        const { address, isValid, queryString, amount } = addressInfo;
-
-        // Is this valid address?
-        if (!isValid) {
-            isValidInput = `Invalid ${ticker} address`;
-            // If valid address but token format
-            if (isValidTokenPrefix(address)) {
-                isValidInput = `Token addresses are not supported for ${ticker} sends`;
-            }
-            // Is this send value above minimum
-        } else if (valueString < 5.5) {
-            // value can only be XEC ticker in multi recipient mode
-            isValidInput = `Send amount must be at least 5.5 XEC`;
-        }
-        return isValidInput;
     } catch (err) {
-        return err;
+        isValidXecAddress = false;
     }
+    return isValidXecAddress;
+};
+
+export const isValidEtokenAddress = addr => {
+    /* 
+    Returns true for a valid eToken address
+
+    Valid eToken address:
+    - May or may not have prefix `etoken:`
+    - Checksum must validate for prefix `etoken:`
+    
+    An XEC address is not considered a valid eToken address
+    */
+
+    let isValidEtokenAddress;
+    let isPrefixedEtokenAddress;
+
+    // Check for possible prefix
+    if (addr.includes(':')) {
+        // Test for 'etoken:' prefix
+        isPrefixedEtokenAddress = addr.slice(0, 7) === 'etoken:';
+        // Any token address including ':' that doesn't start explicitly with 'etoken:' is invalid
+        if (!isPrefixedEtokenAddress) {
+            isValidEtokenAddress = false;
+            return isValidEtokenAddress;
+        }
+    } else {
+        isPrefixedEtokenAddress = false;
+    }
+
+    // If no prefix, assume it is checksummed for an etoken: prefix
+    const testedEtokenAddr = isPrefixedEtokenAddress ? addr : `etoken:${addr}`;
+
+    try {
+        const decoded = cashaddr.decode(testedEtokenAddr);
+        if (decoded.prefix === 'etoken') {
+            isValidEtokenAddress = true;
+        }
+    } catch (err) {
+        isValidEtokenAddress = false;
+    }
+    return isValidEtokenAddress;
+};
+
+export const isValidXecSendAmount = xecSendAmount => {
+    // A valid XEC send amount must be a number higher than the app dust limit
+    return (
+        xecSendAmount !== null &&
+        typeof xecSendAmount !== 'undefined' &&
+        !isNaN(parseFloat(xecSendAmount)) &&
+        parseFloat(xecSendAmount) >= fromSmallestDenomination(currency.dustSats)
+    );
 };

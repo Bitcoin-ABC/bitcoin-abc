@@ -18,21 +18,15 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
-import {
-    currency,
-    parseAddress,
-    isValidTokenPrefix,
-} from '@components/Common/Ticker.js';
+import { currency, parseAddressForParams } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
-import {
-    getWalletState,
-    convertEtokenToSimpleledger,
-} from '@utils/cashMethods';
+import { getWalletState, toLegacyToken } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
 import {
     sendTokenNotification,
     errorNotification,
 } from '@components/Common/Notifications';
+import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
@@ -108,7 +102,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         let cleanAddress = address.split('?')[0];
 
         // Convert to simpleledger prefix if etoken
-        cleanAddress = convertEtokenToSimpleledger(cleanAddress);
+        cleanAddress = toLegacyToken(cleanAddress);
 
         try {
             const link = await sendToken(BCH, wallet, slpBalancesAndUtxos, {
@@ -177,20 +171,21 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         let error = false;
         let addressString = value;
 
-        const addressInfo = parseAddress(BCH, addressString, true);
+        const isValid = isValidEtokenAddress(addressString);
+
+        const addressInfo = parseAddressForParams(addressString);
         /*
         Model
 
         addressInfo = 
         {
             address: '',
-            isValid: false,
             queryString: '',
             amount: null,
         };
         */
 
-        const { address, isValid, queryString } = addressInfo;
+        const { address, queryString } = addressInfo;
 
         // If query string,
         // Show an alert that only amount and currency.ticker are supported
@@ -199,9 +194,10 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         // Is this valid address?
         if (!isValid) {
             error = 'Address is not a valid etoken: address';
-            // If valid address but token format
-        } else if (!isValidTokenPrefix(address)) {
-            error = `Cashtab only supports sending to ${currency.tokenPrefixes[0]} prefixed addresses`;
+            // If valid address but xec format
+            if (isValidXecAddress(address)) {
+                error = `Cashtab does not support sending eTokens to XEC addresses. Please convert to an eToken address.`;
+            }
         }
         setSendTokenAddressError(error);
 

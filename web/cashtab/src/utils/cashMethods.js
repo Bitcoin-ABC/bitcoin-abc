@@ -1,4 +1,5 @@
 import { currency } from '@components/Common/Ticker';
+import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 
@@ -206,30 +207,81 @@ export function convertToEcashPrefix(bitcoincashPrefixedAddress) {
     }
 }
 
-export function convertEtokenToSimpleledger(etokenPrefixedAddress) {
-    // Prefix-less addresses may be valid, but the cashaddr.decode function used below
-    // will throw an error without a prefix. Hence, must ensure prefix to use that function.
-    const hasPrefix = etokenPrefixedAddress.includes(':');
-    if (hasPrefix) {
-        // Is it bitcoincash: or simpleledger:
-        const { type, hash, prefix } = cashaddr.decode(etokenPrefixedAddress);
-
-        let newPrefix;
-        if (prefix === 'etoken') {
-            newPrefix = 'simpleledger';
-        } else {
-            // return address with no change
-
-            return etokenPrefixedAddress;
-        }
-
-        const convertedAddress = cashaddr.encode(newPrefix, type, hash);
-
-        return convertedAddress;
-    } else {
-        // return address with no change
-        return etokenPrefixedAddress;
+export function toLegacyCash(addr) {
+    // Confirm input is a valid ecash address
+    const isValidInput = isValidXecAddress(addr);
+    if (!isValidInput) {
+        return new Error(`${addr} is not a valid ecash address`);
     }
+
+    // Check for ecash: prefix
+    const isPrefixedXecAddress = addr.slice(0, 6) === 'ecash:';
+
+    // If no prefix, assume it is checksummed for an ecash: prefix
+    const testedXecAddr = isPrefixedXecAddress ? addr : `ecash:${addr}`;
+
+    let legacyCashAddress;
+    try {
+        const { type, hash } = cashaddr.decode(testedXecAddr);
+        legacyCashAddress = cashaddr.encode(currency.legacyPrefix, type, hash);
+    } catch (err) {
+        return err;
+    }
+    return legacyCashAddress;
+}
+
+export function toLegacyCashArray(addressArray) {
+    let cleanArray = []; // array of bch converted addresses to be returned
+
+    if (
+        addressArray === null ||
+        addressArray === undefined ||
+        !addressArray.length ||
+        addressArray === ''
+    ) {
+        return new Error('Invalid addressArray input');
+    }
+
+    const arrayLength = addressArray.length;
+
+    for (let i = 0; i < arrayLength; i++) {
+        let addressValueArr = addressArray[i].split(',');
+        let address = addressValueArr[0];
+        let value = addressValueArr[1];
+
+        // NB that toLegacyCash() includes address validation; will throw error for invalid address input
+        const legacyAddress = toLegacyCash(address);
+        if (legacyAddress instanceof Error) {
+            return legacyAddress;
+        }
+        let convertedArrayData = legacyAddress + ',' + value + '\n';
+        cleanArray.push(convertedArrayData);
+    }
+
+    return cleanArray;
+}
+
+export function toLegacyToken(addr) {
+    // Confirm input is a valid ecash address
+    const isValidInput = isValidEtokenAddress(addr);
+    if (!isValidInput) {
+        return new Error(`${addr} is not a valid etoken address`);
+    }
+
+    // Check for ecash: prefix
+    const isPrefixedEtokenAddress = addr.slice(0, 7) === 'etoken:';
+
+    // If no prefix, assume it is checksummed for an ecash: prefix
+    const testedEtokenAddr = isPrefixedEtokenAddress ? addr : `etoken:${addr}`;
+
+    let legacyTokenAddress;
+    try {
+        const { type, hash } = cashaddr.decode(testedEtokenAddr);
+        legacyTokenAddress = cashaddr.encode('simpleledger', type, hash);
+    } catch (err) {
+        return err;
+    }
+    return legacyTokenAddress;
 }
 
 export const confirmNonEtokenUtxos = (hydratedUtxos, nonEtokenUtxos) => {

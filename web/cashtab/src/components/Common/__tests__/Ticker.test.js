@@ -1,19 +1,9 @@
-import { ValidationError } from 'ecashaddrjs';
 import {
     isValidCashPrefix,
     isValidTokenPrefix,
-    toLegacy,
-    toLegacyArray,
     parseOpReturn,
-    currency,
 } from '../Ticker';
-import {
-    validAddressArrayInput,
-    validAddressArrayOutput,
-    validLargeAddressArrayInput,
-    validLargeAddressArrayOutput,
-    invalidAddressArrayInput,
-} from '../__mocks__/mockAddressArray';
+
 import {
     shortCashtabMessageInputHex,
     longCashtabMessageInputHex,
@@ -101,88 +91,6 @@ test('Address with unlisted prefix is invalid', async () => {
         'ecashdoge:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
     );
     expect(result).toStrictEqual(false);
-});
-
-test('toLegacy() converts a valid ecash: prefix address to a valid bitcoincash: prefix address', async () => {
-    const result = toLegacy('ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc');
-    expect(result).toStrictEqual(
-        'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-    );
-});
-
-test('toLegacy() accepts a valid BCH address with no prefix and returns with prefix', async () => {
-    const result = toLegacy('qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0');
-    expect(result).toStrictEqual(
-        'bitcoincash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gjykk3wa0',
-    );
-});
-
-test('toLegacy throws error if input address has invalid checksum', async () => {
-    const result = toLegacy('ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25m');
-
-    expect(result).toStrictEqual(
-        new ValidationError(
-            'Invalid checksum: ecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25m.',
-        ),
-    );
-});
-
-test('toLegacy throws error if input address has invalid prefix', async () => {
-    const result = toLegacy(
-        'notecash:qqd3qn4zazjhygk5a2vzw2gvqgqwempr4gtfza25mc',
-    );
-
-    expect(result).toStrictEqual(
-        new Error(
-            'Address prefix is not a valid cash address with a prefix from the Ticker.prefixes array',
-        ),
-    );
-});
-
-test('toLegacyArray throws error if the addressArray input is null', async () => {
-    const result = toLegacyArray(null);
-
-    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-});
-
-test('toLegacyArray throws error if the addressArray input is empty', async () => {
-    const result = toLegacyArray([]);
-
-    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-});
-
-test('toLegacyArray throws error if the addressArray input is a number', async () => {
-    const result = toLegacyArray(12345);
-
-    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-});
-
-test('toLegacyArray throws error if the addressArray input is undefined', async () => {
-    const result = toLegacyArray(undefined);
-
-    expect(result).toStrictEqual(new Error('Invalid addressArray input'));
-});
-
-test('toLegacyArray successfully converts a standard sized valid addressArray input', async () => {
-    const result = toLegacyArray(validAddressArrayInput);
-
-    expect(result).toStrictEqual(validAddressArrayOutput);
-});
-
-test('toLegacyArray successfully converts a large valid addressArray input', async () => {
-    const result = toLegacyArray(validLargeAddressArrayInput);
-
-    expect(result).toStrictEqual(validLargeAddressArrayOutput);
-});
-
-test('toLegacyArray throws an error on an addressArray with invalid addresses', async () => {
-    const result = toLegacyArray(invalidAddressArrayInput);
-
-    expect(result).toStrictEqual(
-        new ValidationError(
-            'Invalid checksum: ecash:qrqgwxrrrrrrrrrrrrrrrrrrrrrrrrr7zsvk.',
-        ),
-    );
 });
 
 test('parseOpReturn() successfully parses a short cashtab message', async () => {

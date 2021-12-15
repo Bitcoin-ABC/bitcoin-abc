@@ -25,18 +25,14 @@ import {
     messageSignedNotification,
 } from '@components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import {
-    currency,
-    isValidTokenPrefix,
-    parseAddress,
-    toLegacy,
-    toLegacyArray,
-} from '@components/Common/Ticker.js';
+import { currency, parseAddressForParams } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import {
     fiatToCrypto,
     shouldRejectAmountInput,
-    isValidSendToMany,
+    isValidXecAddress,
+    isValidEtokenAddress,
+    isValidXecSendAmount,
 } from '@utils/validation';
 import BalanceHeader from '@components/Common/BalanceHeader';
 import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
@@ -45,13 +41,17 @@ import {
     ConvertAmount,
     AlertMsg,
 } from '@components/Common/Atoms';
-import { getWalletState } from '@utils/cashMethods';
+import {
+    getWalletState,
+    convertToEcashPrefix,
+    toLegacyCash,
+    toLegacyCashArray,
+} from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
 import { formatFiatBalance } from '@utils/validation';
 import { TokenParamLabel } from '@components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
-import { convertToEcashPrefix } from '@utils/cashMethods';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const StyledSpacer = styled.div`
@@ -251,7 +251,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             try {
                 // construct array of XEC->BCH addresses due to bch-api constraint
                 let cleanAddressAndValueArray =
-                    toLegacyArray(addressAndValueArray);
+                    toLegacyCashArray(addressAndValueArray);
 
                 const link = await sendXec(
                     BCH,
@@ -290,29 +290,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             let cleanAddress = address.split('?')[0];
 
             // Ensure address has bitcoincash: prefix and checksum
-            cleanAddress = toLegacy(cleanAddress);
-
-            let hasValidCashPrefix;
-
-            try {
-                hasValidCashPrefix = cleanAddress.startsWith(
-                    currency.legacyPrefix + ':',
-                );
-            } catch (err) {
-                hasValidCashPrefix = false;
-                console.log(`toLegacy() returned an error:`, cleanAddress);
-            }
-
-            if (!hasValidCashPrefix) {
-                // set loading to false and set address validation to false
-                // Now that the no-prefix case is handled, this happens when user tries to send
-                // BCHA to an SLPA address
-                passLoadingStatus(false);
-                setSendBchAddressError(
-                    `Destination is not a valid ${currency.ticker} address`,
-                );
-                return;
-            }
+            cleanAddress = toLegacyCash(cleanAddress);
 
             // Calculate the amount in BCH
             let bchValue = value;
@@ -346,21 +324,23 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         let error = false;
         let addressString = value;
 
-        // parse address
-        const addressInfo = parseAddress(BCH, addressString);
+        // validate address
+        const isValid = isValidXecAddress(addressString);
+
+        // parse address for parameters
+        const addressInfo = parseAddressForParams(addressString);
         /*
         Model
 
         addressInfo = 
         {
             address: '',
-            isValid: false,
             queryString: '',
             amount: null,
         };
         */
 
-        const { address, isValid, queryString, amount } = addressInfo;
+        const { address, queryString, amount } = addressInfo;
 
         // If query string,
         // Show an alert that only amount and currency.ticker are supported
@@ -370,8 +350,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (!isValid) {
             error = `Invalid ${currency.ticker} address`;
             // If valid address but token format
-            if (isValidTokenPrefix(address)) {
-                error = `Token addresses are not supported for ${currency.ticker} sends`;
+            if (isValidEtokenAddress(address)) {
+                error = `eToken addresses are not supported for ${currency.ticker} sends`;
             }
         }
         setSendBchAddressError(error);
@@ -407,7 +387,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         let error;
 
         if (!value) {
-            error = 'recipient input must not be blank';
+            error = 'Input must not be blank';
+            setSendBchAddressError(error);
+            return setFormData(p => ({
+                ...p,
+                [name]: value,
+            }));
         }
 
         //convert each line from the <TextArea> input into array
@@ -419,36 +404,40 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             if (addressStringArray[i].trim() === '') {
                 // if this line is a line break or bunch of spaces
                 error = 'Empty spaces and rows must be removed';
-                break;
+                setSendBchAddressError(error);
+                return setFormData(p => ({
+                    ...p,
+                    [name]: value,
+                }));
             }
 
             let addressString = addressStringArray[i].split(',')[0];
             let valueString = addressStringArray[i].split(',')[1];
 
-            let addressInfo = parseAddress(BCH, addressString);
+            const validAddress = isValidXecAddress(addressString);
+            const validValueString = isValidXecSendAmount(valueString);
 
-            let validation = isValidSendToMany(
-                addressInfo,
-                valueString,
-                currency.ticker,
-            );
-
-            if (validation !== true) {
-                // not using 'if(validation)' since error strings can be interpreted the same
-                error = validation;
+            if (!validAddress) {
+                error = `Invalid XEC address: ${addressString}, ${valueString}`;
+                setSendBchAddressError(error);
+                return setFormData(p => ({
+                    ...p,
+                    [name]: value,
+                }));
             }
-            if (error) {
-                // if one line is invalid, break loop and avoid wasting further iterations
-                break;
+            if (!validValueString) {
+                error = `Amount must be at least 5.5 XEC: ${addressString}, ${valueString}`;
+                setSendBchAddressError(error);
+                return setFormData(p => ({
+                    ...p,
+                    [name]: value,
+                }));
             }
         }
 
-        // no error displayed if isValid returns true, otherwise display error message
-        if (error) {
-            setSendBchAddressError(error);
-        } else {
-            setSendBchAddressError(false);
-        }
+        // If iterate to end of array with no errors, then there is no error msg
+        setSendBchAddressError(false);
+
         // Set address field to user input
         setFormData(p => ({
             ...p,
