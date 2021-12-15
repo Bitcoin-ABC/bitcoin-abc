@@ -3667,12 +3667,30 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         LOCK2(cs_main, g_cs_orphans);
 
-        TxValidationState state;
-
         m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
 
-        if (!AlreadyHaveTx(txid, m_mempool) &&
-            AcceptToMemoryPool(config, m_mempool, state, ptx,
+        if (AlreadyHaveTx(txid, m_mempool)) {
+            if (pfrom.HasPermission(PF_FORCERELAY)) {
+                // Always relay transactions received from peers with
+                // forcerelay permission, even if they were already in the
+                // mempool, allowing the node to function as a gateway for
+                // nodes hidden behind it.
+                if (!m_mempool.exists(tx.GetId())) {
+                    LogPrintf("Not relaying non-mempool transaction %s from "
+                              "forcerelay peer=%d\n",
+                              tx.GetId().ToString(), pfrom.GetId());
+                } else {
+                    LogPrintf("Force relaying tx %s from peer=%d\n",
+                              tx.GetId().ToString(), pfrom.GetId());
+                    RelayTransaction(tx.GetId(), m_connman);
+                }
+            }
+            return;
+        }
+
+        TxValidationState state;
+
+        if (AcceptToMemoryPool(config, m_mempool, state, ptx,
                                false /* bypass_limits */)) {
             m_mempool.check(&::ChainstateActive().CoinsTip());
             // As this version of the transaction was acceptable, we can forget
@@ -3765,22 +3783,6 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
             if (RecursiveDynamicUsage(*ptx) < 100000) {
                 AddToCompactExtraTransactions(ptx);
-            }
-
-            if (pfrom.HasPermission(PF_FORCERELAY)) {
-                // Always relay transactions received from peers with
-                // forcerelay permission, even if they were already in the
-                // mempool, allowing the node to function as a gateway for
-                // nodes hidden behind it.
-                if (!m_mempool.exists(tx.GetId())) {
-                    LogPrintf("Not relaying non-mempool transaction %s from "
-                              "forcerelay peer=%d\n",
-                              tx.GetId().ToString(), pfrom.GetId());
-                } else {
-                    LogPrintf("Force relaying tx %s from peer=%d\n",
-                              tx.GetId().ToString(), pfrom.GetId());
-                    RelayTransaction(tx.GetId(), m_connman);
-                }
             }
         }
 
