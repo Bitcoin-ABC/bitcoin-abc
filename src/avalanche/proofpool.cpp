@@ -62,7 +62,7 @@ ProofPool::addProofIfPreferred(const ProofRef &proof,
     }
 
     for (auto &conflictingProof : conflictingProofs) {
-        removeProof(conflictingProof);
+        removeProof(conflictingProof->getId());
     }
 
     status = addProofIfNoConflict(proof);
@@ -71,13 +71,12 @@ ProofPool::addProofIfPreferred(const ProofRef &proof,
     return AddProofStatus::SUCCEED;
 }
 
-// Having the ProofRef passed by reference is risky because the proof could be
-// deleted during the erasure loop, so we pass it by value. Since it's a shared
-// pointer, the copy is cheap enough and should not have any significant impact
-// on performance.
-bool ProofPool::removeProof(ProofRef proof) {
+// Having the ProofId passed by reference is risky because it is usually a
+// reference to a proof member. This proof will be deleted during the erasure
+// loop so we pass it by value.
+bool ProofPool::removeProof(ProofId proofid) {
     auto &poolView = pool.get<by_proofid>();
-    return poolView.erase(proof->getId());
+    return poolView.erase(proofid);
 }
 
 void ProofPool::rescan(PeerManager &peerManager) {

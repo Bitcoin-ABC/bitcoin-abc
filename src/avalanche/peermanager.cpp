@@ -185,7 +185,7 @@ bool PeerManager::registerProof(const ProofRef &proof) {
             // No default case, so the compiler can warn about missing cases
     }
 
-    conflictingProofPool.removeProof(proof);
+    conflictingProofPool.removeProof(proof->getId());
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
@@ -274,7 +274,7 @@ void PeerManager::updatedBlockTip() {
                 continue;
             }
 
-            conflictingProofPool.removeProof(conflictingProof);
+            conflictingProofPool.removeProof(conflictingProof->getId());
             registerProof(conflictingProof);
         }
     }
@@ -343,9 +343,9 @@ bool PeerManager::removePeer(const PeerId peerid) {
                     peerid, std::chrono::steady_clock::now())));
 
     // Release UTXOs attached to this proof.
-    validProofPool.removeProof(it->proof);
+    validProofPool.removeProof(it->getProofId());
 
-    m_unbroadcast_proofids.erase(it->proof->getId());
+    m_unbroadcast_proofids.erase(it->getProofId());
 
     peers.erase(it);
     return true;

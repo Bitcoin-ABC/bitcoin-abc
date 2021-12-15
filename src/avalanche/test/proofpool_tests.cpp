@@ -58,12 +58,11 @@ BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
 
     // Removing proofs which are not in the pool will fail
     for (size_t i = 0; i < 10; i++) {
-        BOOST_CHECK(
-            !testPool.removeProof(buildRandomProof(MIN_VALID_PROOF_SCORE)));
+        BOOST_CHECK(!testPool.removeProof(ProofId(GetRandHash())));
     }
 
     for (auto proof : proofs) {
-        BOOST_CHECK(testPool.removeProof(proof));
+        BOOST_CHECK(testPool.removeProof(proof->getId()));
     }
     BOOST_CHECK_EQUAL(testPool.size(), 0);
 }

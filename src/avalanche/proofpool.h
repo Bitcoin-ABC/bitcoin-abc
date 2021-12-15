@@ -96,7 +96,7 @@ public:
         return addProofIfPreferred(proof, dummy);
     }
 
-    bool removeProof(ProofRef proof);
+    bool removeProof(ProofId proofid);
 
     void rescan(PeerManager &peerManager);
 
