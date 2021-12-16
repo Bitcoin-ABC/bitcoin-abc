@@ -126,8 +126,8 @@ void BlockManager::FindFilesToPruneManual(std::set<int> &setFilesToPrune,
 
     // last block to prune is the lesser of (user-specified height,
     // MIN_BLOCKS_TO_KEEP from the tip)
-    unsigned int nLastBlockWeCanPrune = std::min(
-        (unsigned)nManualPruneHeight, chain_tip_height - MIN_BLOCKS_TO_KEEP);
+    unsigned int nLastBlockWeCanPrune{std::min(
+        (unsigned)nManualPruneHeight, chain_tip_height - MIN_BLOCKS_TO_KEEP)};
     int count = 0;
     for (int fileNumber = 0; fileNumber < m_last_blockfile; fileNumber++) {
         if (m_blockfile_info[fileNumber].nSize == 0 ||

@@ -2216,7 +2216,7 @@ CChainState::GetCoinsCacheSizeState(size_t max_coins_cache_size_bytes,
     int64_t cacheSize = CoinsTip().DynamicMemoryUsage();
     int64_t nTotalSpace =
         max_coins_cache_size_bytes +
-        std::max<int64_t>(max_mempool_size_bytes - nMempoolUsage, 0);
+        std::max<int64_t>(int64_t(max_mempool_size_bytes) - nMempoolUsage, 0);
 
     //! No need to periodic flush if at least this much space still available.
     static constexpr int64_t MAX_BLOCK_COINSDB_USAGE_BYTES =
@@ -4347,8 +4347,8 @@ bool CChainState::AcceptBlock(const Config &config,
     // blocks which are too close in height to the tip.  Apply this test
     // regardless of whether pruning is enabled; it should generally be safe to
     // not process unrequested blocks.
-    bool fTooFarAhead =
-        (pindex->nHeight > int(m_chain.Height() + MIN_BLOCKS_TO_KEEP));
+    bool fTooFarAhead{pindex->nHeight >
+                      m_chain.Height() + int(MIN_BLOCKS_TO_KEEP)};
 
     // TODO: Decouple this function from the block download logic by removing
     // fRequested
@@ -5024,7 +5024,7 @@ void CChainState::LoadExternalBlockFile(const Config &config, FILE *fileIn,
             try {
                 // Locate a header.
                 uint8_t buf[CMessageHeader::MESSAGE_START_SIZE];
-                blkdat.FindByte(m_params.DiskMagic()[0]);
+                blkdat.FindByte(char(m_params.DiskMagic()[0]));
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> buf;
                 if (memcmp(buf, m_params.DiskMagic().data(),
