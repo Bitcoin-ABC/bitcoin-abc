@@ -44,6 +44,8 @@ noinst_HEADERS += src/modinv32.h
 noinst_HEADERS += src/modinv32_impl.h
 noinst_HEADERS += src/modinv64.h
 noinst_HEADERS += src/modinv64_impl.h
+noinst_HEADERS += src/precomputed_ecmult.h
+noinst_HEADERS += src/precomputed_ecmult_gen.h
 noinst_HEADERS += src/assumptions.h
 noinst_HEADERS += src/util.h
 noinst_HEADERS += src/scratch.h
@@ -62,12 +64,17 @@ noinst_HEADERS += contrib/lax_der_parsing.c
 noinst_HEADERS += contrib/lax_der_privatekey_parsing.h
 noinst_HEADERS += contrib/lax_der_privatekey_parsing.c
 
+PRECOMPUTED_LIB = libsecp256k1_precomputed.la
+noinst_LTLIBRARIES = $(PRECOMPUTED_LIB)
+libsecp256k1_precomputed_la_SOURCES =  src/precomputed_ecmult.c src/precomputed_ecmult_gen.c
+libsecp256k1_precomputed_la_CPPFLAGS = $(SECP_INCLUDES)
+
 if USE_EXTERNAL_ASM
 COMMON_LIB = libsecp256k1_common.la
-noinst_LTLIBRARIES = $(COMMON_LIB)
 else
 COMMON_LIB =
 endif
+noinst_LTLIBRARIES += $(COMMON_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libsecp256k1.pc
@@ -80,7 +87,7 @@ endif
 
 libsecp256k1_la_SOURCES = src/secp256k1.c
 libsecp256k1_la_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src $(SECP_INCLUDES)
-libsecp256k1_la_LIBADD = $(SECP_LIBS) $(COMMON_LIB)
+libsecp256k1_la_LIBADD = $(SECP_LIBS) $(COMMON_LIB) $(PRECOMPUTED_LIB)
 
 if VALGRIND_ENABLED
 libsecp256k1_la_CPPFLAGS += -DVALGRIND
@@ -92,10 +99,10 @@ noinst_PROGRAMS += bench bench_internal bench_ecmult
 bench_SOURCES = src/bench.c
 bench_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
 bench_internal_SOURCES = src/bench_internal.c
-bench_internal_LDADD = $(SECP_LIBS) $(COMMON_LIB)
+bench_internal_LDADD = $(SECP_LIBS) $(COMMON_LIB) $(PRECOMPUTED_LIB)
 bench_internal_CPPFLAGS = -I$(top_srcdir)/src $(SECP_INCLUDES)
 bench_ecmult_SOURCES = src/bench_ecmult.c
-bench_ecmult_LDADD = $(SECP_LIBS) $(COMMON_LIB)
+bench_ecmult_LDADD = $(SECP_LIBS) $(COMMON_LIB) $(PRECOMPUTED_LIB)
 bench_ecmult_CPPFLAGS = -I$(top_srcdir)/src $(SECP_INCLUDES)
 endif
 
@@ -113,7 +120,7 @@ endif
 if !ENABLE_COVERAGE
 tests_CPPFLAGS += -DVERIFY
 endif
-tests_LDADD = $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
+tests_LDADD = $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB) $(PRECOMPUTED_LIB)
 tests_LDFLAGS = -static
 TESTS += tests
 endif
@@ -125,6 +132,7 @@ exhaustive_tests_CPPFLAGS = $(SECP_INCLUDES)
 if !ENABLE_COVERAGE
 exhaustive_tests_CPPFLAGS += -DVERIFY
 endif
+# Note: do not include $(PRECOMPUTED_LIB) in exhaustive_tests (it uses runtime-generated tables).
 exhaustive_tests_LDADD = $(SECP_LIBS) $(COMMON_LIB)
 exhaustive_tests_LDFLAGS = -static
 TESTS += exhaustive_tests
@@ -148,15 +156,14 @@ precompute_ecmult_gen_LDADD = $(SECP_LIBS) $(COMMON_LIB)
 # build by a normal user) depends on mtimes, and thus is very fragile.
 # This means that rebuilds of the prebuilt files always need to be
 # forced by deleting them, e.g., by invoking `make clean-precomp`.
-src/precomputed_ecmult.h:
+src/precomputed_ecmult.c:
 	$(MAKE) $(AM_MAKEFLAGS) precompute_ecmult$(EXEEXT)
 	./precompute_ecmult$(EXEEXT)
-src/precomputed_ecmult_gen.h:
+src/precomputed_ecmult_gen.c:
 	$(MAKE) $(AM_MAKEFLAGS) precompute_ecmult_gen$(EXEEXT)
 	./precompute_ecmult_gen$(EXEEXT)
 
-PRECOMP = src/precomputed_ecmult_gen.h src/precomputed_ecmult.h
-noinst_HEADERS += $(PRECOMP)
+PRECOMP = src/precomputed_ecmult_gen.c src/precomputed_ecmult.c
 precomp: $(PRECOMP)
 
 # Ensure the prebuilt files will be build first (only if they don't exist,

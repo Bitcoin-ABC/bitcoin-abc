@@ -60,6 +60,8 @@ fn main() {
     // secp256k1
     base_config
         .file(secp256k1path!("/contrib/lax_der_parsing.c"))
+        .file(secp256k1path!("/src/precomputed_ecmult_gen.c"))
+        .file(secp256k1path!("/src/precomputed_ecmult.c"))
         .file(secp256k1path!("/src/secp256k1.c"));
 
     if base_config.try_compile("libsecp256k1.a").is_err() {
