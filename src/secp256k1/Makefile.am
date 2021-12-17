@@ -30,8 +30,8 @@ noinst_HEADERS += src/ecmult_const.h
 noinst_HEADERS += src/ecmult_const_impl.h
 noinst_HEADERS += src/ecmult_gen.h
 noinst_HEADERS += src/ecmult_gen_impl.h
-noinst_HEADERS += src/ecmult_gen_prec.h
-noinst_HEADERS += src/ecmult_gen_prec_impl.h
+noinst_HEADERS += src/ecmult_gen_compute_table.h
+noinst_HEADERS += src/ecmult_gen_compute_table_impl.h
 noinst_HEADERS += src/field_10x26.h
 noinst_HEADERS += src/field_10x26_impl.h
 noinst_HEADERS += src/field_5x52.h
@@ -129,16 +129,16 @@ TESTS += exhaustive_tests
 endif
 
 ### Precomputed tables
-EXTRA_PROGRAMS = gen_ecmult_static_pre_g gen_ecmult_gen_static_prec_table
+EXTRA_PROGRAMS = precompute_ecmult precompute_ecmult_gen
 CLEANFILES = $(EXTRA_PROGRAMS)
 
-gen_ecmult_static_pre_g_SOURCES = src/gen_ecmult_static_pre_g.c
-gen_ecmult_static_pre_g_CPPFLAGS = $(SECP_INCLUDES)
-gen_ecmult_static_pre_g_LDADD = $(SECP_LIBS) $(COMMON_LIB)
+precompute_ecmult_SOURCES = src/precompute_ecmult.c
+precompute_ecmult_CPPFLAGS = $(SECP_INCLUDES)
+precompute_ecmult_LDADD = $(SECP_LIBS) $(COMMON_LIB)
 
-gen_ecmult_gen_static_prec_table_SOURCES = src/gen_ecmult_gen_static_prec_table.c
-gen_ecmult_gen_static_prec_table_CPPFLAGS = $(SECP_INCLUDES)
-gen_ecmult_gen_static_prec_table_LDADD = $(SECP_LIBS) $(COMMON_LIB)
+precompute_ecmult_gen_SOURCES = src/precompute_ecmult_gen.c
+precompute_ecmult_gen_CPPFLAGS = $(SECP_INCLUDES)
+precompute_ecmult_gen_LDADD = $(SECP_LIBS) $(COMMON_LIB)
 
 # See Automake manual, Section "Errors with distclean".
 # We don't list any dependencies for the prebuilt files here because
@@ -146,14 +146,14 @@ gen_ecmult_gen_static_prec_table_LDADD = $(SECP_LIBS) $(COMMON_LIB)
 # build by a normal user) depends on mtimes, and thus is very fragile.
 # This means that rebuilds of the prebuilt files always need to be
 # forced by deleting them, e.g., by invoking `make clean-precomp`.
-src/ecmult_static_pre_g.h:
-	$(MAKE) $(AM_MAKEFLAGS) gen_ecmult_static_pre_g$(EXEEXT)
-	./gen_ecmult_static_pre_g$(EXEEXT)
-src/ecmult_gen_static_prec_table.h:
-	$(MAKE) $(AM_MAKEFLAGS) gen_ecmult_gen_static_prec_table$(EXEEXT)
-	./gen_ecmult_gen_static_prec_table$(EXEEXT)
+src/precomputed_ecmult.h:
+	$(MAKE) $(AM_MAKEFLAGS) precompute_ecmult$(EXEEXT)
+	./precompute_ecmult$(EXEEXT)
+src/precomputed_ecmult_gen.h:
+	$(MAKE) $(AM_MAKEFLAGS) precompute_ecmult_gen$(EXEEXT)
+	./precompute_ecmult_gen$(EXEEXT)
 
-PRECOMP = src/ecmult_gen_static_prec_table.h src/ecmult_static_pre_g.h
+PRECOMP = src/precomputed_ecmult_gen.h src/precomputed_ecmult.h
 noinst_HEADERS += $(PRECOMP)
 precomp: $(PRECOMP)
 

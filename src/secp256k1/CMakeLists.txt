@@ -224,9 +224,9 @@ if(${SECP256K1_ECMULT_WINDOW_SIZE} LESS 2 OR ${SECP256K1_ECMULT_WINDOW_SIZE} GRE
 	message(FATAL_ERROR "SECP256K1_ECMULT_WINDOW_SIZE must be an integer in range [2..24]")
 endif()
 if(${SECP256K1_ECMULT_WINDOW_SIZE} GREATER 15)
-	# A window size larger than 15 will require deletion of the prebuilt ecmult_static_pre_g.h
+	# A window size larger than 15 will require deletion of the prebuilt precomputed_ecmult.h
 	# file so that it can be rebuilt (see gen-precomp target).
-	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/ecmult_static_pre_g.h")
+	file(REMOVE "${CMAKE_CURRENT_SOURCE_DIR}/src/precomputed_ecmult.h")
 endif()
 
 include(NativeExecutable)
@@ -255,7 +255,7 @@ function(gen_precomputed_header EXECUTABLE_NAME HEADER_NAME)
 	add_dependencies(gen-precomp "gen-precomp-${HEADER_NAME}")
 endfunction(gen_precomputed_header)
 
-gen_precomputed_header(gen_ecmult_static_pre_g ecmult_static_pre_g)
+gen_precomputed_header(precompute_ecmult precomputed_ecmult)
 
 set(SECP256K1_ECMULT_GEN_PRECISION 4 CACHE STRING "Precision bits to tune the precomputed table size for signing.")
 set(VALID_PRECISIONS 2 4 8)
@@ -270,7 +270,7 @@ native_add_cmake_flags(
 	"-DSECP256K1_USE_ASM=OFF"
 	"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
 )
-gen_precomputed_header(gen_ecmult_gen_static_prec_table ecmult_gen_static_prec_table)
+gen_precomputed_header(precompute_ecmult_gen precomputed_ecmult_gen)
 
 # If this project is not the top level project, then don't install by default
 get_directory_property(SECP256K1_PARENT_DIRECTORY PARENT_DIRECTORY)
