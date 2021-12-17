@@ -97,7 +97,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
 
     const [formData, setFormData] = useState({
-        dirty: true,
         value: '',
         address: '',
         opReturnMsg: '',
@@ -118,7 +117,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const clearInputForms = () => {
         setFormData({
-            dirty: true,
             value: '',
             address: '',
             opReturnMsg: '',
@@ -228,7 +226,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     async function send() {
         setFormData({
             ...formData,
-            dirty: false,
         });
 
         let optionalOpReturnMsg = formData.opReturnMsg;
