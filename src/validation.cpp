@@ -828,7 +828,12 @@ bool MemPoolAccept::SubmitPackage(
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Failure(ws.m_state));
             // Since PreChecks() passed, this should never fail.
-            all_submitted = Assume(false);
+            all_submitted = false;
+            package_state.Invalid(
+                PackageValidationResult::PCKG_MEMPOOL_ERROR,
+                strprintf("BUG! PolicyScriptChecks succeeded but "
+                          "ConsensusScriptChecks failed: %s",
+                          ws.m_ptx->GetId().ToString()));
         }
 
         // If we call LimitMempoolSize() for each individual Finalize(), the
@@ -842,16 +847,16 @@ bool MemPoolAccept::SubmitPackage(
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Failure(ws.m_state));
             // Since LimitMempoolSize() won't be called, this should never fail.
-            all_submitted = Assume(false);
+            all_submitted = false;
+            package_state.Invalid(PackageValidationResult::PCKG_MEMPOOL_ERROR,
+                                  strprintf("BUG! Adding to mempool failed: %s",
+                                            ws.m_ptx->GetId().ToString()));
         }
     }
 
     // It may or may not be the case that all the transactions made it into the
     // mempool. Regardless, make sure we haven't exceeded max mempool size.
     m_pool.LimitSize(m_active_chainstate.CoinsTip());
-    if (!all_submitted) {
-        return false;
-    }
 
     // Find the txids of the transactions that made it into the mempool. Allow
     // partial submission, but don't report success unless they all made it into
@@ -1016,8 +1021,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
     }
 
     if (!SubmitPackage(args, workspaces, package_state, results)) {
-        package_state.Invalid(PackageValidationResult::PCKG_TX,
-                              "submission failed");
+        // PackageValidationState filled in by SubmitPackage().
         return PackageMempoolAcceptResult(package_state, package_feerate,
                                           std::move(results));
     }

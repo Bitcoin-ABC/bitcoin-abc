@@ -409,6 +409,85 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(package_mix, TestChain100Setup) {
+    // Mine blocks to mature coinbases.
+    mineBlocks(5);
+    LOCK(::cs_main);
+
+    // A package Package{parent1, parent2, child} where the parents are a
+    // mixture of identical-tx-in-mempool and new transaction.
+    Package package_mixed;
+
+    // Give all the parents anyone-can-spend scripts so we don't have to deal
+    // with signing the child.
+    CScript acs_script = CScript() << OP_TRUE;
+    CScript acs_scriptsig = CScript() << std::vector<uint8_t>{OP_TRUE};
+    CScript acs_spk = GetScriptForDestination(ScriptHash(acs_script));
+
+    // parent1 will already be in the mempool
+    auto mtx_parent1 = CreateValidMempoolTransaction(
+        /*input_transaction=*/m_coinbase_txns[1], /*input_vout=*/0,
+        /*input_height=*/0, /*input_signing_key=*/coinbaseKey,
+        /*output_destination=*/acs_spk,
+        /*output_amount=*/Amount{49 * COIN}, /*submit=*/true);
+    CTransactionRef ptx_parent1 = MakeTransactionRef(mtx_parent1);
+    package_mixed.push_back(ptx_parent1);
+
+    // parent2 will be a new transaction
+    auto mtx_parent2 = CreateValidMempoolTransaction(
+        /*input_transaction=*/m_coinbase_txns[3], /*input_vout=*/0,
+        /*input_height=*/0, /*input_signing_key=*/coinbaseKey,
+        /*output_destination=*/acs_spk,
+        /*output_amount=*/Amount{49 * COIN}, /*submit=*/false);
+    CTransactionRef ptx_parent2 = MakeTransactionRef(mtx_parent2);
+    package_mixed.push_back(ptx_parent2);
+
+    // child spends parent1 and parent2
+    CKey mixed_grandchild_key;
+    mixed_grandchild_key.MakeNewKey(true);
+    CScript mixed_child_spk =
+        GetScriptForDestination(PKHash(mixed_grandchild_key.GetPubKey()));
+
+    CMutableTransaction mtx_mixed_child;
+    mtx_mixed_child.vin.push_back(
+        CTxIn(COutPoint(ptx_parent1->GetId(), 0), acs_scriptsig));
+    mtx_mixed_child.vin.push_back(
+        CTxIn(COutPoint(ptx_parent2->GetId(), 0), acs_scriptsig));
+    mtx_mixed_child.vout.push_back(CTxOut(97 * COIN, mixed_child_spk));
+    CTransactionRef ptx_mixed_child = MakeTransactionRef(mtx_mixed_child);
+    package_mixed.push_back(ptx_mixed_child);
+
+    // Submit package:
+    // parent1 should be ignored
+    // parent2 should be accepted
+    // child should be accepted
+    {
+        const auto mixed_result =
+            ProcessNewPackage(m_node.chainman->ActiveChainstate(),
+                              *m_node.mempool, package_mixed, false);
+        BOOST_CHECK_MESSAGE(mixed_result.m_state.IsValid(),
+                            mixed_result.m_state.GetRejectReason());
+        auto it_parent1 = mixed_result.m_tx_results.find(ptx_parent1->GetId());
+        auto it_parent2 = mixed_result.m_tx_results.find(ptx_parent2->GetId());
+        auto it_child =
+            mixed_result.m_tx_results.find(ptx_mixed_child->GetId());
+        BOOST_CHECK(it_parent1 != mixed_result.m_tx_results.end());
+        BOOST_CHECK(it_parent2 != mixed_result.m_tx_results.end());
+        BOOST_CHECK(it_child != mixed_result.m_tx_results.end());
+
+        BOOST_CHECK(it_parent1->second.m_result_type ==
+                    MempoolAcceptResult::ResultType::MEMPOOL_ENTRY);
+        BOOST_CHECK(it_parent2->second.m_result_type ==
+                    MempoolAcceptResult::ResultType::VALID);
+        BOOST_CHECK(it_child->second.m_result_type ==
+                    MempoolAcceptResult::ResultType::VALID);
+
+        BOOST_CHECK(m_node.mempool->exists(ptx_parent1->GetId()));
+        BOOST_CHECK(m_node.mempool->exists(ptx_parent2->GetId()));
+        BOOST_CHECK(m_node.mempool->exists(ptx_mixed_child->GetId()));
+    }
+}
+
 BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
     mineBlocks(5);
     LOCK(::cs_main);

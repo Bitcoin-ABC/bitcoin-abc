@@ -29,6 +29,8 @@ enum class PackageValidationResult {
     PCKG_POLICY,
     //! At least one tx is invalid.
     PCKG_TX,
+    //! Mempool logic error.
+    PCKG_MEMPOOL_ERROR,
 };
 
 /**
