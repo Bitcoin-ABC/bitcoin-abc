@@ -35,7 +35,10 @@ export const currency = {
         appPrefixesHex: {
             eToken: '534c5000',
             cashtab: '00746162',
+            cashtabEncrypted: '65746162',
         },
+        encryptedMsgCharLimit: 94,
+        unencryptedMsgCharLimit: 160,
     },
     settingsValidation: {
         fiatCurrency: [
@@ -141,6 +144,12 @@ export function parseOpReturn(hexStr) {
         ) {
             // add the extracted Cashtab prefix to array
             resultArray[i] = currency.opReturn.appPrefixesHex.cashtab;
+        } else if (
+            i === 0 &&
+            message === currency.opReturn.appPrefixesHex.cashtabEncrypted
+        ) {
+            // add the Cashtab encryption prefix to array
+            resultArray[i] = currency.opReturn.appPrefixesHex.cashtabEncrypted;
         } else {
             // this is either an external message or a subsequent cashtab message loop to extract the message
             resultArray[i] = message;

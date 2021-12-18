@@ -12,7 +12,7 @@ import { AdvancedCollapse } from '@components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Collapse, Input, Button } from 'antd';
 const { Panel } = Collapse;
 const { TextArea } = Input;
-import { Row, Col } from 'antd';
+import { Row, Col, Switch } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
@@ -90,6 +90,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [msgToSign, setMsgToSign] = useState('');
     const [signMessageIsValid, setSignMessageIsValid] = useState(null);
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
+    const [opReturnMsg, setOpReturnMsg] = useState(false);
+    const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] =
+        useState(false);
+    const [bchObj, setBchObj] = useState(false);
+
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -99,7 +104,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [formData, setFormData] = useState({
         value: '',
         address: '',
-        opReturnMsg: '',
     });
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendBchAddressError, setSendBchAddressError] = useState(false);
@@ -119,8 +123,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setFormData({
             value: '',
             address: '',
-            opReturnMsg: '',
         });
+        setOpReturnMsg(''); // OP_RETURN message has its own state field
     };
 
     const showModal = () => {
@@ -138,9 +142,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const { getBCH, getRestUrl, sendXec, calcFee, signPkMessage } = useBCH();
 
-    // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
-    const BCH = jestBCH ? jestBCH : getBCH();
-
     // If the balance has changed, unlock the UI
     // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
     useEffect(() => {
@@ -148,6 +149,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(() => {
+        // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
+        const BCH = jestBCH ? jestBCH : getBCH();
+
+        // set the BCH instance to state, for other functions to reference
+        setBchObj(BCH);
+
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
         // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field
@@ -228,8 +235,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             ...formData,
         });
 
-        let optionalOpReturnMsg = formData.opReturnMsg;
-
         if (isOneToManyXECSend) {
             // this is a one to many XEC send transactions
 
@@ -254,11 +259,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     toLegacyCashArray(addressAndValueArray);
 
                 const link = await sendXec(
-                    BCH,
+                    bchObj,
                     wallet,
                     slpBalancesAndUtxos.nonSlpUtxos,
                     currency.defaultFee,
-                    optionalOpReturnMsg,
+                    opReturnMsg,
                     true, // indicate send mode is one to many
                     cleanAddressAndValueArray,
                 );
@@ -299,9 +304,20 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 bchValue = fiatToCrypto(value, fiatPrice);
             }
 
+            // encrypted message limit truncation
+            let optionalOpReturnMsg;
+            if (isEncryptedOptionalOpReturnMsg) {
+                optionalOpReturnMsg = opReturnMsg.substring(
+                    0,
+                    currency.opReturn.encryptedMsgCharLimit,
+                );
+            } else {
+                optionalOpReturnMsg = opReturnMsg;
+            }
+
             try {
                 const link = await sendXec(
-                    BCH,
+                    bchObj,
                     wallet,
                     slpBalancesAndUtxos.nonSlpUtxos,
                     currency.defaultFee,
@@ -310,6 +326,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     null, // address array not applicable for one to many tx
                     cleanAddress,
                     bchValue,
+                    isEncryptedOptionalOpReturnMsg,
                 );
                 sendXecNotification(link);
                 clearInputForms();
@@ -454,15 +471,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         }));
     };
 
-    const handleOpReturnMsgChange = e => {
-        const { value, name } = e.target;
-
-        setFormData(p => ({
-            ...p,
-            [name]: value,
-        }));
-    };
-
     // true: renders the multi recipient <TextArea>
     // false: renders the single recipient <Input>
     const handleOneToManyXECSend = sendXecMode => {
@@ -500,7 +508,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const signMessageByPk = async () => {
         try {
             const messageSignature = await signPkMessage(
-                BCH,
+                bchObj,
                 wallet.Path1899.fundingWif,
                 msgToSign,
             );
@@ -531,7 +539,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         // Set currency to BCH
         setSelectedCurrency(currency.ticker);
         try {
-            const txFeeSats = calcFee(BCH, slpBalancesAndUtxos.nonSlpUtxos);
+            const txFeeSats = calcFee(bchObj, slpBalancesAndUtxos.nonSlpUtxos);
 
             const txFeeBch = txFeeSats / 10 ** currency.cashDecimals;
             let value =
@@ -771,22 +779,78 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                             marginBottom: '20px',
                                         }}
                                     >
-                                        <TextAreaLabel>Message:</TextAreaLabel>
-                                        <Alert
-                                            style={{ marginBottom: '10px' }}
-                                            description="Messages are public."
-                                            type="warning"
-                                            showIcon
-                                        />
+                                        <TextAreaLabel>
+                                            Message:&nbsp;&nbsp;
+                                            {!isOneToManyXECSend ? (
+                                                <Switch
+                                                    checkedChildren="Private"
+                                                    unCheckedChildren="Public"
+                                                    defaultunchecked="true"
+                                                    checked={
+                                                        isEncryptedOptionalOpReturnMsg
+                                                    }
+                                                    onChange={() =>
+                                                        setIsEncryptedOptionalOpReturnMsg(
+                                                            prev => !prev,
+                                                        )
+                                                    }
+                                                    style={{
+                                                        marginBottom: '7px',
+                                                    }}
+                                                />
+                                            ) : (
+                                                ''
+                                            )}
+                                        </TextAreaLabel>
+                                        {isEncryptedOptionalOpReturnMsg ? (
+                                            <Alert
+                                                style={{
+                                                    marginBottom: '10px',
+                                                }}
+                                                description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
+                                                type="warning"
+                                                showIcon
+                                            />
+                                        ) : (
+                                            <Alert
+                                                style={{
+                                                    marginBottom: '10px',
+                                                }}
+                                                description="Please note this message will be public."
+                                                type="warning"
+                                                showIcon
+                                            />
+                                        )}
                                         <TextArea
                                             name="opReturnMsg"
-                                            placeholder="(max 160 characters)"
-                                            value={formData.opReturnMsg}
+                                            placeholder={
+                                                isEncryptedOptionalOpReturnMsg
+                                                    ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                                    : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
+                                            }
+                                            value={
+                                                opReturnMsg
+                                                    ? isEncryptedOptionalOpReturnMsg
+                                                        ? opReturnMsg.substring(
+                                                              0,
+                                                              currency.opReturn
+                                                                  .encryptedMsgCharLimit +
+                                                                  1,
+                                                          )
+                                                        : opReturnMsg
+                                                    : ''
+                                            }
                                             onChange={e =>
-                                                handleOpReturnMsgChange(e)
+                                                setOpReturnMsg(e.target.value)
                                             }
                                             showCount
-                                            maxLength={160}
+                                            maxLength={
+                                                isEncryptedOptionalOpReturnMsg
+                                                    ? currency.opReturn
+                                                          .encryptedMsgCharLimit
+                                                    : currency.opReturn
+                                                          .unencryptedMsgCharLimit
+                                            }
                                             onKeyDown={e =>
                                                 e.keyCode == 13
                                                     ? e.preventDefault()

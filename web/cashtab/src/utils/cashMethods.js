@@ -310,22 +310,117 @@ export const checkNullUtxosForTokenStatus = txDataResults => {
                     // then it's an eToken tx that has not been properly validated
                     // Do not include it in nonEtokenUtxos
                     // App will ignore it until SLPDB is able to validate it
+                    /*
                     console.log(
                         `utxo ${thisUtxoTxid} requires further eToken validation, ignoring`,
-                    );
+                    );*/
                 } else {
                     // Otherwise it's just an OP_RETURN tx that SLPDB has some issue with
                     // It should still be in the user's utxo set
                     // Include it in nonEtokenUtxos
+                    /*
                     console.log(
                         `utxo ${thisUtxoTxid} is not an eToken tx, adding to nonSlpUtxos`,
                     );
+                    */
                     nonEtokenUtxos.push(thisUtxoTxid);
                 }
             }
         }
     }
     return nonEtokenUtxos;
+};
+
+/* Converts a serialized buffer containing encrypted data into an object
+ * that can be interpreted by the ecies-lite library.
+ *
+ * For reference on the parsing logic in this function refer to the link below on the segment of
+ * ecies-lite's encryption function where the encKey, macKey, iv and cipher are sliced and concatenated
+ * https://github.com/tibetty/ecies-lite/blob/8fd97e80b443422269d0223ead55802378521679/index.js#L46-L55
+ *
+ * A similar PSF implmentation can also be found at:
+ * https://github.com/Permissionless-Software-Foundation/bch-encrypt-lib/blob/master/lib/encryption.js
+ *
+ * For more detailed overview on the ecies encryption scheme, see https://cryptobook.nakov.com/asymmetric-key-ciphers/ecies-public-key-encryption
+ */
+export const convertToEncryptStruct = encryptionBuffer => {
+    // based on ecies-lite's encryption logic, the encryption buffer is concatenated as follows:
+    //  [ epk + iv + ct + mac ]  whereby:
+    // - The first 32 or 64 chars of the encryptionBuffer is the epk
+    // - Both iv and ct params are 16 chars each, hence their combined substring is 32 chars from the end of the epk string
+    //    - within this combined iv/ct substring, the first 16 chars is the iv param, and ct param being the later half
+    // - The mac param is appended to the end of the encryption buffer
+
+    // validate input buffer
+    if (!encryptionBuffer) {
+        throw new Error(
+            'cashmethods.convertToEncryptStruct() error: input must be a buffer',
+        );
+    }
+
+    try {
+        // variable tracking the starting char position for string extraction purposes
+        let startOfBuf = 0;
+
+        // *** epk param extraction ***
+        // The first char of the encryptionBuffer indicates the type of the public key
+        // If the first char is 4, then the public key is 64 chars
+        // If the first char is 3 or 2, then the public key is 32 chars
+        // Otherwise this is not a valid encryption buffer compatible with the ecies-lite library
+        let publicKey;
+        switch (encryptionBuffer[0]) {
+            case 4:
+                publicKey = encryptionBuffer.slice(0, 65); //  extract first 64 chars as public key
+                break;
+            case 3:
+            case 2:
+                publicKey = encryptionBuffer.slice(0, 33); //  extract first 32 chars as public key
+                break;
+            default:
+                throw new Error(`Invalid type: ${encryptionBuffer[0]}`);
+        }
+
+        // *** iv and ct param extraction ***
+        startOfBuf += publicKey.length; // sets the starting char position to the end of the public key (epk) in order to extract subsequent iv and ct substrings
+        const encryptionTagLength = 32; // the length of the encryption tag (i.e. mac param) computed from each block of ciphertext, and is used to verify no one has tampered with the encrypted data
+        const ivCtSubstring = encryptionBuffer.slice(
+            startOfBuf,
+            encryptionBuffer.length - encryptionTagLength,
+        ); // extract the substring containing both iv and ct params, which is after the public key but before the mac param i.e. the 'encryption tag'
+        const ivbufParam = ivCtSubstring.slice(0, 16); // extract the first 16 chars of substring as the iv param
+        const ctbufParam = ivCtSubstring.slice(16); // extract the last 16 chars as substring the ct param
+
+        // *** mac param extraction ***
+        const macParam = encryptionBuffer.slice(
+            encryptionBuffer.length - encryptionTagLength,
+            encryptionBuffer.length,
+        ); // extract the mac param appended to the end of the buffer
+
+        return {
+            iv: ivbufParam,
+            epk: publicKey,
+            ct: ctbufParam,
+            mac: macParam,
+        };
+    } catch (err) {
+        console.error(`useBCH.convertToEncryptStruct() error: `, err);
+        throw err;
+    }
+};
+
+export const getPublicKey = async (BCH, address) => {
+    try {
+        const publicKey = await BCH.encryption.getPubKey(address);
+        return publicKey.publicKey;
+    } catch (err) {
+        if (err['error'] === 'No transaction history.') {
+            throw new Error(
+                'Cannot send an encrypted message to a wallet with no outgoing transactions',
+            );
+        } else {
+            throw err;
+        }
+    }
 };
 
 export const isLegacyMigrationRequired = wallet => {

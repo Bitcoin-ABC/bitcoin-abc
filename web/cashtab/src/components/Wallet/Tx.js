@@ -41,6 +41,15 @@ const OpReturnType = styled.span`
     word-break: break-word;
     padding-left: 13px;
     padding-right: 30px;
+    /* invisible scrollbar */
+    overflow: hidden;
+    height: 100%;
+    margin-right: -50px; /* Maximum width of scrollbar */
+    padding-right: 50px; /* Maximum width of scrollbar */
+    overflow-y: scroll;
+    ::-webkit-scrollbar {
+        display: none;
+    }
 `;
 const SentLabel = styled.span`
     font-weight: bold;
@@ -55,6 +64,18 @@ const CashtabMessageLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.primary} !important;
     white-space: nowrap;
+`;
+const EncryptionMessageLabel = styled.span`
+    text-align: left;
+    font-weight: bold;
+    color: red;
+    white-space: nowrap;
+`;
+const UnauthorizedDecryptionMessage = styled.span`
+    text-align: left;
+    color: red;
+    white-space: nowrap;
+    font-style: italic;
 `;
 const MessageLabel = styled.span`
     text-align: left;
@@ -403,12 +424,41 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                         External Message
                                     </MessageLabel>
                                 )}
+                                {data.isEncryptedMessage ? (
+                                    <EncryptionMessageLabel>
+                                        &nbsp;-&nbsp;Encrypted
+                                    </EncryptionMessageLabel>
+                                ) : (
+                                    ''
+                                )}
                                 <br />
-                                {data.opReturnMessage
+                                {/*unencrypted OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                !data.isEncryptedMessage
                                     ? Buffer.from(
                                           data.opReturnMessage,
                                       ).toString()
                                     : ''}
+                                {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                data.isEncryptedMessage &&
+                                data.decryptionSuccess
+                                    ? Buffer.from(
+                                          data.opReturnMessage,
+                                      ).toString()
+                                    : ''}
+                                {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
+                                {data.opReturnMessage &&
+                                data.isEncryptedMessage &&
+                                !data.decryptionSuccess ? (
+                                    <UnauthorizedDecryptionMessage>
+                                        {Buffer.from(
+                                            data.opReturnMessage,
+                                        ).toString()}
+                                    </UnauthorizedDecryptionMessage>
+                                ) : (
+                                    ''
+                                )}
                                 {!data.outgoingTx && data.replyAddress ? (
                                     <Link
                                         to={{

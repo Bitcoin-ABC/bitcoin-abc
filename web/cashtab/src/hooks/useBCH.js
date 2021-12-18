@@ -10,8 +10,12 @@ import {
     isValidStoredWallet,
     checkNullUtxosForTokenStatus,
     confirmNonEtokenUtxos,
+    convertToEncryptStruct,
+    getPublicKey,
 } from '@utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
+import ecies from 'ecies-lite';
+import wif from 'wif';
 
 export default function useBCH() {
     const SEND_BCH_ERRORS = {
@@ -72,7 +76,7 @@ export default function useBCH() {
         return flatTxHistory.splice(0, txCount);
     };
 
-    const parseTxData = async (BCH, txData, publicKeys) => {
+    const parseTxData = async (BCH, txData, publicKeys, wallet) => {
         /*
         Desired output
         [
@@ -117,6 +121,8 @@ export default function useBCH() {
             let amountReceived = 0;
             let opReturnMessage = '';
             let isCashtabMessage = false;
+            let isEncryptedMessage = false;
+            let decryptionSuccess = false;
             // Assume an incoming transaction
             let outgoingTx = false;
             let tokenTx = false;
@@ -198,6 +204,57 @@ export default function useBCH() {
                                     parsedOpReturnArray[1],
                             );
                         }
+                    } else if (
+                        txType ===
+                        currency.opReturn.appPrefixesHex.cashtabEncrypted
+                    ) {
+                        // this is an encrypted Cashtab message
+                        let msgString = parsedOpReturnArray[1];
+                        let fundingWif, privateKeyObj, privateKeyBuff;
+                        if (
+                            wallet &&
+                            wallet.state &&
+                            wallet.state.slpBalancesAndUtxos &&
+                            wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
+                        ) {
+                            fundingWif =
+                                wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
+                                    .wif;
+                            privateKeyObj = wif.decode(fundingWif);
+                            privateKeyBuff = privateKeyObj.privateKey;
+                            if (!privateKeyBuff) {
+                                throw new Error('Private key extraction error');
+                            }
+                        } else {
+                            break;
+                        }
+
+                        let structData;
+                        let decryptedMessage;
+
+                        try {
+                            // Convert the hex encoded message to a buffer
+                            const msgBuf = Buffer.from(msgString, 'hex');
+
+                            // Convert the bufer into a structured object.
+                            structData = convertToEncryptStruct(msgBuf);
+
+                            decryptedMessage = await ecies.decrypt(
+                                privateKeyBuff,
+                                structData,
+                            );
+                            decryptionSuccess = true;
+                        } catch (err) {
+                            console.log(
+                                'useBCH.parsedTxData() decryption error: ' +
+                                    err,
+                            );
+                            decryptedMessage =
+                                'Only the message recipient can view this';
+                        }
+                        isCashtabMessage = true;
+                        isEncryptedMessage = true;
+                        opReturnMessage = decryptedMessage;
                     } else {
                         // this is an externally generated message
                         message = txType; // index 0 is the message content in this instance
@@ -270,6 +327,8 @@ export default function useBCH() {
             parsedTx.destinationAddress = destinationAddress;
             parsedTx.opReturnMessage = opReturnMessage;
             parsedTx.isCashtabMessage = isCashtabMessage;
+            parsedTx.isEncryptedMessage = isEncryptedMessage;
+            parsedTx.decryptionSuccess = decryptionSuccess;
             parsedTxHistory.push(parsedTx);
         }
         return parsedTxHistory;
@@ -318,7 +377,7 @@ export default function useBCH() {
         return txDataWithPassThrough;
     };
 
-    const getTxData = async (BCH, txHistory, publicKeys) => {
+    const getTxData = async (BCH, txHistory, publicKeys, wallet) => {
         // Flatten tx history
         let flatTxs = flattenTransactions(txHistory);
 
@@ -337,7 +396,12 @@ export default function useBCH() {
         try {
             txDataPromiseResponse = await Promise.all(txDataPromises);
 
-            const parsed = parseTxData(BCH, txDataPromiseResponse, publicKeys);
+            const parsed = parseTxData(
+                BCH,
+                txDataPromiseResponse,
+                publicKeys,
+                wallet,
+            );
 
             return parsed;
         } catch (err) {
@@ -1054,6 +1118,60 @@ export default function useBCH() {
         }
     };
 
+    const getRecipientPublicKey = async (BCH, recipientAddress) => {
+        let recipientPubKey;
+        try {
+            recipientPubKey = await getPublicKey(BCH, recipientAddress);
+        } catch (err) {
+            console.log(`useBCH.getRecipientPublicKey() error: ` + err);
+            throw err;
+        }
+        return recipientPubKey;
+    };
+
+    const handleEncryptedOpReturn = async (
+        BCH,
+        destinationAddress,
+        optionalOpReturnMsg,
+    ) => {
+        let recipientPubKey, encryptedEj;
+        try {
+            recipientPubKey = await getRecipientPublicKey(
+                BCH,
+                destinationAddress,
+            );
+        } catch (err) {
+            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
+            throw err;
+        }
+
+        if (recipientPubKey === 'not found') {
+            // if the API can't find a pub key, it is due to the wallet having no outbound tx
+            throw new Error(
+                'Cannot send an encrypted message to a wallet with no outgoing transactions',
+            );
+        }
+
+        try {
+            const pubKeyBuf = Buffer.from(recipientPubKey, 'hex');
+            const bufferedFile = Buffer.from(optionalOpReturnMsg);
+            const structuredEj = await ecies.encrypt(pubKeyBuf, bufferedFile);
+
+            // Serialize the encrypted data object
+            encryptedEj = Buffer.concat([
+                structuredEj.epk,
+                structuredEj.iv,
+                structuredEj.ct,
+                structuredEj.mac,
+            ]);
+        } catch (err) {
+            console.log(`useBCH.handleEncryptedOpReturn() error: ` + err);
+            throw err;
+        }
+
+        return encryptedEj;
+    };
+
     const sendXec = async (
         BCH,
         wallet,
@@ -1064,6 +1182,7 @@ export default function useBCH() {
         destinationAddressAndValueArray,
         destinationAddress,
         sendAmount,
+        encryptionFlag,
     ) => {
         try {
             let value = new BigNumber(0);
@@ -1143,20 +1262,48 @@ export default function useBCH() {
                 throw error;
             }
 
+            let script;
             // Start of building the OP_RETURN output.
             // only build the OP_RETURN output if the user supplied it
             if (
+                optionalOpReturnMsg &&
                 typeof optionalOpReturnMsg !== 'undefined' &&
                 optionalOpReturnMsg.trim() !== ''
             ) {
-                const script = [
-                    BCH.Script.opcodes.OP_RETURN, // 6a
-                    Buffer.from(
-                        currency.opReturn.appPrefixesHex.cashtab,
-                        'hex',
-                    ), // 00746162
-                    Buffer.from(optionalOpReturnMsg),
-                ];
+                if (encryptionFlag) {
+                    // if the user has opted to encrypt this message
+                    let encryptedEj;
+                    try {
+                        encryptedEj = await handleEncryptedOpReturn(
+                            BCH,
+                            destinationAddress,
+                            optionalOpReturnMsg,
+                        );
+                    } catch (err) {
+                        console.log(`useBCH.sendXec() encryption error.`);
+                        throw err;
+                    }
+
+                    // build the OP_RETURN script with the encryption prefix
+                    script = [
+                        BCH.Script.opcodes.OP_RETURN, // 6a
+                        Buffer.from(
+                            currency.opReturn.appPrefixesHex.cashtabEncrypted,
+                            'hex',
+                        ), // 65746162
+                        Buffer.from(encryptedEj),
+                    ];
+                } else {
+                    // this is an un-encrypted message
+                    script = [
+                        BCH.Script.opcodes.OP_RETURN, // 6a
+                        Buffer.from(
+                            currency.opReturn.appPrefixesHex.cashtab,
+                            'hex',
+                        ), // 00746162
+                        Buffer.from(optionalOpReturnMsg),
+                    ];
+                }
                 const data = BCH.Script.encode(script);
                 transactionBuilder.addOutput(data, 0);
             }
@@ -1313,5 +1460,7 @@ export default function useBCH() {
         sendToken,
         createToken,
         getTokenStats,
+        handleEncryptedOpReturn,
+        getRecipientPublicKey,
     };
 }

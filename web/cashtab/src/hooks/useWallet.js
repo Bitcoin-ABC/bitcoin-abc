@@ -247,7 +247,12 @@ const useWallet = () => {
             const txHistory = await getTxHistory(BCH, cashAddresses);
 
             // public keys are used to determined if a tx is incoming outgoing
-            const parsedTxHistory = await getTxData(BCH, txHistory, publicKeys);
+            const parsedTxHistory = await getTxData(
+                BCH,
+                txHistory,
+                publicKeys,
+                wallet,
+            );
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
 
