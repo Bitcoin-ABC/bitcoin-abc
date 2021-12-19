@@ -1736,7 +1736,10 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
                                bool fJustCheck) {
     AssertLockHeld(cs_main);
     assert(pindex);
-    assert(*pindex->phashBlock == block.GetHash());
+
+    const BlockHash block_hash{block.GetHash()};
+    assert(*pindex->phashBlock == block_hash);
+
     int64_t nTimeStart = GetTimeMicros();
 
     const Consensus::Params &consensusParams = m_params.GetConsensus();
@@ -1776,7 +1779,7 @@ bool CChainState::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     // Special case for the genesis block, skipping connection of its
     // transactions (its coinbase is unspendable)
-    if (block.GetHash() == consensusParams.hashGenesisBlock) {
+    if (block_hash == consensusParams.hashGenesisBlock) {
         if (!fJustCheck) {
             view.SetBestBlock(pindex->GetBlockHash());
         }
@@ -2174,10 +2177,10 @@ MinerFundSuccess:
              MILLI * (nTime5 - nTime4), nTimeIndex * MICRO,
              nTimeIndex * MILLI / nBlocksTotal);
 
-    TRACE6(validation, block_connected, block.GetHash().data(), pindex->nHeight,
+    TRACE6(validation, block_connected, block_hash.data(), pindex->nHeight,
            block.vtx.size(), nInputs, nSigChecksRet,
            // in microseconds (µs)
-           GetTimeMicros() - nTimeStart);
+           nTime5 - nTimeStart);
 
     return true;
 }
