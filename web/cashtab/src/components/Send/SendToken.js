@@ -72,6 +72,14 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
             },
         );
     }
+    // Clears address and amount fields following sendTokenNotification
+    const clearInputForms = () => {
+        setFormData({
+            dirty: true,
+            value: '',
+            address: '',
+        });
+    };
 
     async function submit() {
         setFormData({
@@ -108,8 +116,8 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                 tokenReceiverAddress: cleanAddress,
                 amount: value,
             });
-
             sendTokenNotification(link);
+            clearInputForms();
         } catch (e) {
             passLoadingStatus(false);
             let message;
