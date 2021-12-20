@@ -3,18 +3,17 @@
  * an array secp256k1_pre_g_128 with odd multiples of 2^128*G for accelerating the computation of a*P + b*G.
  */
 #if defined HAVE_CONFIG_H
-#    include "libsecp256k1-config.h"
+#include "libsecp256k1-config.h"
 #endif
 #include "../include/secp256k1.h"
 #include "group.h"
 #include "ecmult.h"
-#include "precomputed_ecmult.h"
 #define S(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SECP256K1_GE_STORAGE_CONST(0x##a##u,0x##b##u,0x##c##u,0x##d##u,0x##e##u,0x##f##u,0x##g##u,0x##h##u,0x##i##u,0x##j##u,0x##k##u,0x##l##u,0x##m##u,0x##n##u,0x##o##u,0x##p##u)
 #if ECMULT_TABLE_SIZE(ECMULT_WINDOW_SIZE) > 8192
    #error configuration mismatch, invalid ECMULT_WINDOW_SIZE. Try deleting precomputed_ecmult.c before the build.
 #endif
 #ifdef EXHAUSTIVE_TEST_ORDER
-#    error Cannot compile precomputed_ecmult.c in exhaustive test mode
+#error Cannot compile precomputed_ecmult.c in exhaustive test mode
 #endif /* EXHAUSTIVE_TEST_ORDER */
 #define WINDOW_G ECMULT_WINDOW_SIZE
 const secp256k1_ge_storage secp256k1_pre_g[ECMULT_TABLE_SIZE(WINDOW_G)] = {
