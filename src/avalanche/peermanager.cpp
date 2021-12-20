@@ -164,13 +164,17 @@ bool PeerManager::updateNextPossibleConflictTime(
     return it->nextPossibleConflictTime == nextTime;
 }
 
-bool PeerManager::registerProof(const ProofRef &proof) {
+bool PeerManager::registerProof(const ProofRef &proof, RegistrationMode mode) {
     assert(proof);
 
     const ProofId &proofid = proof->getId();
 
-    if (exists(proofid)) {
-        // The proof is already registered, or orphaned.
+    if ((mode != RegistrationMode::FORCE_ACCEPT ||
+         !isInConflictingPool(proofid)) &&
+        exists(proofid)) {
+        // In default mode, we expect the proof to be unknown, i.e. in none of
+        // the pools.
+        // In forced accept mode, the proof can be in the conflicting pool.
         return false;
     }
 
@@ -189,12 +193,36 @@ bool PeerManager::registerProof(const ProofRef &proof) {
         return false;
     }
 
-    switch (validProofPool.addProofIfNoConflict(proof)) {
-        case ProofPool::AddProofStatus::REJECTED:
-            // The proof has conflicts, move it to the conflicting proof pool so
-            // it can be pulled back if the conflicting ones are invalidated.
-            conflictingProofPool.addProofIfPreferred(proof);
-            return false;
+    ProofPool::ConflictingProofSet conflictingProofs;
+    switch (validProofPool.addProofIfNoConflict(proof, conflictingProofs)) {
+        case ProofPool::AddProofStatus::REJECTED: {
+            if (mode != RegistrationMode::FORCE_ACCEPT) {
+                // The proof has conflicts, move it to the conflicting proof
+                // pool so it can be pulled back if the conflicting ones are
+                // invalidated.
+                conflictingProofPool.addProofIfPreferred(proof);
+                return false;
+            }
+
+            conflictingProofPool.removeProof(proofid);
+
+            // Move the conflicting proofs from the valid pool to the
+            // conflicting pool
+            auto &peersView = peers.get<by_proofid>();
+            for (const ProofRef &conflictingProof : conflictingProofs) {
+                auto it = peersView.find(conflictingProof->getId());
+                if (it != peersView.end()) {
+                    removePeer(it->peerid);
+                }
+
+                conflictingProofPool.addProofIfPreferred(conflictingProof);
+            }
+
+            auto status = validProofPool.addProofIfNoConflict(proof);
+            assert(status == ProofPool::AddProofStatus::SUCCEED);
+
+            break;
+        }
         case ProofPool::AddProofStatus::DUPLICATED:
             // If the proof was already in the pool, don't duplicate the peer.
             return false;
@@ -204,6 +232,8 @@ bool PeerManager::registerProof(const ProofRef &proof) {
             // No default case, so the compiler can warn about missing cases
     }
 
+    // At this stage we are going to create a peer so the proof should never
+    // exist in the conflicting pool, but use belt and suspenders.
     conflictingProofPool.removeProof(proofid);
 
     // New peer means new peerid!

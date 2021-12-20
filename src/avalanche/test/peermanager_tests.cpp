@@ -1095,4 +1095,87 @@ BOOST_AUTO_TEST_CASE(update_next_conflict_time) {
     checkNextPossibleConflictTime(now + std::chrono::seconds{1});
 }
 
+BOOST_AUTO_TEST_CASE(register_force_accept) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(conflictingOutpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+
+        return pb.build();
+    };
+
+    auto proofSeq10 = buildProofWithSequence(10);
+    auto proofSeq20 = buildProofWithSequence(20);
+    auto proofSeq30 = buildProofWithSequence(30);
+
+    BOOST_CHECK(pm.registerProof(proofSeq30));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+    BOOST_CHECK(!pm.isInConflictingPool(proofSeq30->getId()));
+
+    // proofSeq20 is a worst candidate than proofSeq30, so it goes to the
+    // conflicting pool.
+    BOOST_CHECK(!pm.registerProof(proofSeq20));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq20->getId()));
+
+    // We can force the acceptance of proofSeq20
+    using RegistrationMode = avalanche::PeerManager::RegistrationMode;
+    BOOST_CHECK(pm.registerProof(proofSeq20, RegistrationMode::FORCE_ACCEPT));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq20->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq30->getId()));
+
+    // We can also force the acceptance of a proof which is not already in the
+    // conflicting pool.
+    BOOST_CHECK(!pm.registerProof(proofSeq10));
+    BOOST_CHECK(!pm.exists(proofSeq10->getId()));
+
+    BOOST_CHECK(pm.registerProof(proofSeq10, RegistrationMode::FORCE_ACCEPT));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq10->getId()));
+    BOOST_CHECK(!pm.exists(proofSeq20->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq30->getId()));
+
+    // Attempting to register again fails, and has no impact on the pools
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(!pm.registerProof(proofSeq10));
+        BOOST_CHECK(
+            !pm.registerProof(proofSeq10, RegistrationMode::FORCE_ACCEPT));
+
+        BOOST_CHECK(pm.isBoundToPeer(proofSeq10->getId()));
+        BOOST_CHECK(!pm.exists(proofSeq20->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(proofSeq30->getId()));
+    }
+
+    // Revert between proofSeq10 and proofSeq30 a few times
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(
+            pm.registerProof(proofSeq30, RegistrationMode::FORCE_ACCEPT));
+
+        BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
+
+        BOOST_CHECK(
+            pm.registerProof(proofSeq10, RegistrationMode::FORCE_ACCEPT));
+
+        BOOST_CHECK(pm.isBoundToPeer(proofSeq10->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(proofSeq30->getId()));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

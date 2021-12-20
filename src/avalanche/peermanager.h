@@ -205,7 +205,20 @@ public:
     bool updateNextPossibleConflictTime(PeerId peerid,
                                         const std::chrono::seconds &nextTime);
 
-    bool registerProof(const ProofRef &proof);
+    /**
+     * Registration mode
+     *  - DEFAULT: Default policy, register only if the proof is unknown and has
+     *    no conflict.
+     *  - FORCE_ACCEPT: Turn a valid proof into a peer even if it has conflicts
+     *    and is not the best candidate.
+     */
+    enum class RegistrationMode {
+        DEFAULT,
+        FORCE_ACCEPT,
+    };
+
+    bool registerProof(const ProofRef &proof,
+                       RegistrationMode mode = RegistrationMode::DEFAULT);
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;
     }
