@@ -783,6 +783,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                         }}
                                     >
                                         <TextAreaLabel>Message:</TextAreaLabel>
+                                        <Alert
+                                            style={{ marginBottom: '10px' }}
+                                            description="Messages are public."
+                                            type="warning"
+                                            showIcon
+                                        />
                                         <TextArea
                                             name="opReturnMsg"
                                             placeholder="(max 160 characters)"
