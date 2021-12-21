@@ -146,8 +146,6 @@ task:
 # Sanitizers
 task:
   << : *LINUX_CONTAINER
-  container:
-    memory: 2G
   env:
     ECDH: yes
     RECOVERY: yes
@@ -157,6 +155,8 @@ task:
     CTIMETEST: no
   matrix:
     - name: "Valgrind (memcheck)"
+      container:
+        cpu: 2
       env:
         # The `--error-exitcode` is required to make the test fail if valgrind
         # found errors, otherwise it'll return 0
@@ -166,6 +166,8 @@ task:
         AUTOTOOLS_TARGET:
         CMAKE_TARGET: "secp256k1-tests secp256k1-exhaustive_tests"
     - name: "UBSan, ASan, LSan"
+      container:
+        memory: 2G
       env:
         CFLAGS: "-fsanitize=undefined,address -g"
         UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
