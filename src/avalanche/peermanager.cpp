@@ -407,7 +407,7 @@ NodeId PeerManager::selectNode() {
 }
 
 void PeerManager::updatedBlockTip() {
-    std::vector<PeerId> invalidPeers;
+    std::vector<ProofId> invalidProofIds;
     std::vector<ProofRef> newOrphans;
 
     {
@@ -420,33 +420,16 @@ void PeerManager::updatedBlockTip() {
                 if (isOrphanState(state)) {
                     newOrphans.push_back(p.proof);
                 }
-                invalidPeers.push_back(p.peerid);
+                invalidProofIds.push_back(p.getProofId());
             }
         }
     }
 
-    // Remove the invalid peers before the orphans rescan. This makes it
+    // Remove the invalid proofs before the orphans rescan. This makes it
     // possible to pull back proofs with utxos that conflicted with these
-    // invalid peers.
-    for (const auto &pid : invalidPeers) {
-        auto it = peers.find(pid);
-        assert(it != peers.end());
-
-        const ProofRef peerProof = it->proof;
-
-        removePeer(pid);
-
-        // If the peer had conflicting proofs, attempt to pull them back
-        for (const SignedStake &ss : peerProof->getStakes()) {
-            const ProofRef conflictingProof =
-                conflictingProofPool.getProof(ss.getStake().getUTXO());
-            if (!conflictingProof) {
-                continue;
-            }
-
-            conflictingProofPool.removeProof(conflictingProof->getId());
-            registerProof(conflictingProof);
-        }
+    // invalid proofs.
+    for (const ProofId &invalidProofId : invalidProofIds) {
+        rejectProof(invalidProofId, RejectionMode::INVALIDATE);
     }
 
     orphanProofPool.rescan(*this);
