@@ -1364,4 +1364,102 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
     gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
 }
 
+BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(conflictingOutpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    auto buildProofWithSequenceAndOutpoints =
+        [&](uint64_t sequence, const std::vector<COutPoint> &outpoints) {
+            ProofBuilder pb(sequence, 0, key);
+            for (const COutPoint &outpoint : outpoints) {
+                BOOST_CHECK(
+                    pb.addUTXO(outpoint, amount, height, is_coinbase, key));
+            }
+            return pb.build();
+        };
+
+    // The good, the bad and the ugly
+    auto proofSeq10 =
+        buildProofWithSequenceAndOutpoints(10, {conflictingOutpoint});
+    auto proofSeq20 =
+        buildProofWithSequenceAndOutpoints(20, {conflictingOutpoint});
+    auto orphan30 = buildProofWithSequenceAndOutpoints(
+        30, {conflictingOutpoint, {TxId(GetRandHash()), 0}});
+
+    BOOST_CHECK(pm.registerProof(proofSeq20));
+    BOOST_CHECK(!pm.registerProof(proofSeq10));
+    BOOST_CHECK(!pm.registerProof(orphan30));
+
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq20->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
+    BOOST_CHECK(pm.isOrphan(orphan30->getId()));
+
+    // Rejecting a proof that doesn't exist should fail
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(
+            !pm.rejectProof(avalanche::ProofId(GetRandHash()),
+                            avalanche::PeerManager::RejectionMode::DEFAULT));
+        BOOST_CHECK(
+            !pm.rejectProof(avalanche::ProofId(GetRandHash()),
+                            avalanche::PeerManager::RejectionMode::INVALIDATE));
+    }
+
+    auto checkRejectDefault = [&](const ProofId &proofid) {
+        BOOST_CHECK(pm.exists(proofid));
+        const bool isOrphan = pm.isOrphan(proofid);
+        BOOST_CHECK(pm.rejectProof(
+            proofid, avalanche::PeerManager::RejectionMode::DEFAULT));
+        BOOST_CHECK(!pm.isBoundToPeer(proofid));
+        BOOST_CHECK_EQUAL(pm.exists(proofid), !isOrphan);
+    };
+
+    auto checkRejectInvalidate = [&](const ProofId &proofid) {
+        BOOST_CHECK(pm.exists(proofid));
+        BOOST_CHECK(pm.rejectProof(
+            proofid, avalanche::PeerManager::RejectionMode::INVALIDATE));
+    };
+
+    // Reject from the orphan pool
+    checkRejectDefault(orphan30->getId());
+    BOOST_CHECK(!pm.registerProof(orphan30));
+    BOOST_CHECK(pm.isOrphan(orphan30->getId()));
+    checkRejectInvalidate(orphan30->getId());
+
+    // Reject from the conflicting pool
+    checkRejectDefault(proofSeq10->getId());
+    checkRejectInvalidate(proofSeq10->getId());
+
+    // Add again a proof to the conflicting pool
+    BOOST_CHECK(!pm.registerProof(proofSeq10));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
+
+    // Reject from the valid pool, default mode
+    checkRejectDefault(proofSeq20->getId());
+
+    // The conflicting proof should be promoted to a peer
+    BOOST_CHECK(!pm.isInConflictingPool(proofSeq10->getId()));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq10->getId()));
+
+    // Reject from the valid pool, invalidate mode
+    checkRejectInvalidate(proofSeq10->getId());
+
+    // The conflicting proof should also be promoted to a peer
+    BOOST_CHECK(!pm.isInConflictingPool(proofSeq20->getId()));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq20->getId()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -241,6 +241,23 @@ public:
         return registerProof(proof, dummy, mode);
     }
 
+    /**
+     * Rejection mode
+     *  - DEFAULT: Default policy, reject a proof and attempt to keep it in the
+     *    conflicting pool if possible.
+     *  - INVALIDATE: Reject a proof by removing it from any of the pool.
+     *
+     * In any case if a peer is rejected, it attempts to pull the conflicting
+     * proofs back.
+     */
+    enum class RejectionMode {
+        DEFAULT,
+        INVALIDATE,
+    };
+
+    bool rejectProof(const ProofId &proofid,
+                     RejectionMode mode = RejectionMode::DEFAULT);
+
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;
     }

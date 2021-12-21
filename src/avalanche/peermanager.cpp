@@ -333,6 +333,56 @@ bool PeerManager::registerProof(const ProofRef &proof,
     return true;
 }
 
+bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
+    if (!exists(proofid)) {
+        return false;
+    }
+
+    if (orphanProofPool.removeProof(proofid)) {
+        return true;
+    }
+
+    if (mode == RejectionMode::DEFAULT &&
+        conflictingProofPool.getProof(proofid)) {
+        // In default mode we keep the proof in the conflicting pool
+        return true;
+    }
+
+    if (mode == RejectionMode::INVALIDATE &&
+        conflictingProofPool.removeProof(proofid)) {
+        // In invalidate mode we remove the proof completely
+        return true;
+    }
+
+    auto &pview = peers.get<by_proofid>();
+    auto it = pview.find(proofid);
+    assert(it != pview.end());
+
+    const ProofRef proof = it->proof;
+
+    if (!removePeer(it->peerid)) {
+        return false;
+    }
+
+    // If there was conflicting proofs, attempt to pull them back
+    for (const SignedStake &ss : it->proof->getStakes()) {
+        const ProofRef conflictingProof =
+            conflictingProofPool.getProof(ss.getStake().getUTXO());
+        if (!conflictingProof) {
+            continue;
+        }
+
+        conflictingProofPool.removeProof(conflictingProof->getId());
+        registerProof(conflictingProof);
+    }
+
+    if (mode == RejectionMode::DEFAULT) {
+        conflictingProofPool.addProofIfPreferred(proof);
+    }
+
+    return true;
+}
+
 NodeId PeerManager::selectNode() {
     for (int retry = 0; retry < SELECT_NODE_MAX_RETRY; retry++) {
         const PeerId p = selectPeer();
