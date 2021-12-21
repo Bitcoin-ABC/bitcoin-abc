@@ -75,10 +75,12 @@ struct Peer {
 
     // The network stack uses timestamp in seconds, so we oblige.
     std::chrono::seconds registration_time;
+    std::chrono::seconds nextPossibleConflictTime;
 
     Peer(PeerId peerid_, ProofRef proof_)
         : peerid(peerid_), proof(std::move(proof_)),
-          registration_time(GetTime<std::chrono::seconds>()) {}
+          registration_time(GetTime<std::chrono::seconds>()),
+          nextPossibleConflictTime(registration_time) {}
 
     const ProofId &getProofId() const { return proof->getId(); }
     uint32_t getScore() const { return proof->getScore(); }
@@ -195,6 +197,14 @@ public:
     /**
      * Proof and Peer related API.
      */
+
+    /**
+     * Update the time before which a proof is not allowed to have conflicting
+     * UTXO with this peer's proof.
+     */
+    bool updateNextPossibleConflictTime(PeerId peerid,
+                                        const std::chrono::seconds &nextTime);
+
     bool registerProof(const ProofRef &proof);
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;

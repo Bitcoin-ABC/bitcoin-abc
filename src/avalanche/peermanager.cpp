@@ -147,6 +147,23 @@ static bool isOrphanState(const ProofValidationState &state) {
            state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
 }
 
+bool PeerManager::updateNextPossibleConflictTime(
+    PeerId peerid, const std::chrono::seconds &nextTime) {
+    auto it = peers.find(peerid);
+    if (it == peers.end()) {
+        // No such peer
+        return false;
+    }
+
+    // Make sure we don't move the time in the past.
+    peers.modify(it, [&](Peer &p) {
+        p.nextPossibleConflictTime =
+            std::max(p.nextPossibleConflictTime, nextTime);
+    });
+
+    return it->nextPossibleConflictTime == nextTime;
+}
+
 bool PeerManager::registerProof(const ProofRef &proof) {
     assert(proof);
 

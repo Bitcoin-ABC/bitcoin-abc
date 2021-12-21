@@ -1062,4 +1062,37 @@ BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {
     BOOST_CHECK(!pm.exists(proofSeq10->getId()));
 }
 
+BOOST_AUTO_TEST_CASE(update_next_conflict_time) {
+    avalanche::PeerManager pm;
+
+    auto now = GetTime<std::chrono::seconds>();
+    SetMockTime(now.count());
+
+    // Updating the time of an unknown peer should fail
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(
+            !pm.updateNextPossibleConflictTime(PeerId(GetRandInt(1000)), now));
+    }
+
+    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+
+    auto checkNextPossibleConflictTime = [&](std::chrono::seconds expected) {
+        BOOST_CHECK(pm.forPeer(proof->getId(), [&](const Peer &p) {
+            return p.nextPossibleConflictTime == expected;
+        }));
+    };
+
+    checkNextPossibleConflictTime(now);
+
+    // Move the time in the past is not possible
+    BOOST_CHECK(!pm.updateNextPossibleConflictTime(
+        peerid, now - std::chrono::seconds{1}));
+    checkNextPossibleConflictTime(now);
+
+    BOOST_CHECK(pm.updateNextPossibleConflictTime(
+        peerid, now + std::chrono::seconds{1}));
+    checkNextPossibleConflictTime(now + std::chrono::seconds{1});
+}
+
 BOOST_AUTO_TEST_SUITE_END()
