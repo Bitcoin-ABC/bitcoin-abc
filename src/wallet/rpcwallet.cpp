@@ -3799,8 +3799,8 @@ static RPCHelpMan listunspent() {
 }
 
 void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
-                     Amount &fee_out, int &change_position, UniValue options,
-                     CCoinControl &coinControl) {
+                     Amount &fee_out, int &change_position,
+                     const UniValue &options, CCoinControl &coinControl) {
     // Make sure the results are valid at least up to the most recent block
     // the user could have gotten from another RPC command prior to now
     pwallet->BlockUntilSyncedToCurrentChain();
@@ -4825,7 +4825,8 @@ static RPCHelpMan send() {
                      "subtract_fee_from_outputs",
                      RPCArg::Type::ARR,
                      /* default */ "empty array",
-                     "A JSON array of integers.\n"
+                     "Outputs to subtract the fee from, specified as integer "
+                     "indices.\n"
                      "The fee will be equally deducted from the amount of each "
                      "specified output.\n"
                      "Those recipients will receive less bitcoins than you "

@@ -228,6 +228,8 @@ class WalletTest(BitcoinTestFramework):
         node_0_bal = self.check_fee_amount(self.nodes[0].getbalance(), Decimal(
             '20000000'), fee_per_byte, count_bytes(self.nodes[2].gettransaction(txid)['hex']))
 
+        self.log.info("Test sendmany")
+
         # Sendmany 10,000,000 XEC
         txid = self.nodes[2].sendmany('', {address: 10000000}, 0, "", [])
         self.nodes[2].generate(1)
