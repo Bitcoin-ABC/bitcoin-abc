@@ -82,12 +82,12 @@ class NetTest(BitcoinTestFramework):
             lambda:
                 self.nodes[0].getnettotals()['totalbytessent']
                 >= net_totals_before['totalbytessent'] + 32 * 2,
-            timeout=1)
+            timeout=10)
         self.wait_until(
             lambda:
                 self.nodes[0].getnettotals()['totalbytesrecv']
                 >= net_totals_before['totalbytesrecv'] + 32 * 2,
-            timeout=1)
+            timeout=10)
 
         for peer_before in peer_info_before:
             def peer_after():
@@ -99,13 +99,13 @@ class NetTest(BitcoinTestFramework):
                 lambda:
                     peer_after()['bytesrecv_per_msg'].get('pong', 0)
                     >= peer_before['bytesrecv_per_msg'].get('pong', 0) + 32,
-                timeout=1
+                timeout=10
             )
             self.wait_until(
                 lambda:
                     peer_after()['bytessent_per_msg'].get('ping', 0)
                     >= peer_before['bytessent_per_msg'].get('ping', 0) + 32,
-                timeout=1)
+                timeout=10)
 
     def test_getnetworkinfo(self):
         self.log.info("Test getnetworkinfo")
