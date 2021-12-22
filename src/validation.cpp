@@ -5850,7 +5850,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool) {
                 pool.PrioritiseTransaction(tx->GetId(), amountdelta);
             }
             TxValidationState state;
-            if (nTime + nExpiryTimeout > nNow) {
+            if (nTime > nNow - nExpiryTimeout) {
                 LOCK(cs_main);
                 AcceptToMemoryPoolWithTime(config, pool, state, tx, nTime,
                                            false /* bypass_limits */,
