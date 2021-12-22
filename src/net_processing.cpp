@@ -84,9 +84,9 @@ static constexpr auto STALE_CHECK_INTERVAL{10min};
 static constexpr auto EXTRA_PEER_CHECK_INTERVAL{45s};
 /**
  * Minimum time an outbound-peer-eviction candidate must be connected for, in
- * order to evict, in seconds.
+ * order to evict
  */
-static constexpr std::chrono::seconds MINIMUM_CONNECT_TIME{30};
+static constexpr auto MINIMUM_CONNECT_TIME{30s};
 /** SHA256("main address relay")[0:8] */
 static constexpr uint64_t RANDOMIZER_ID_ADDRESS_RELAY = 0x3cac0035b5866b90ULL;
 /// Age after which a stale block will no longer be served if requested as
@@ -98,7 +98,7 @@ static constexpr int HISTORICAL_BLOCK_AGE = 7 * 24 * 60 * 60;
 /**
  * Time between pings automatically sent out for latency probing and keepalive.
  */
-static constexpr std::chrono::minutes PING_INTERVAL{2};
+static constexpr auto PING_INTERVAL{2min};
 /** The maximum number of entries in a locator */
 static const unsigned int MAX_LOCATOR_SZ = 101;
 /** The maximum number of entries in an 'inv' protocol message */
@@ -108,13 +108,13 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
               "possible INV message");
 
 /** Minimum time between 2 successives getavaaddr messages from the same peer */
-static constexpr std::chrono::minutes GETAVAADDR_INTERVAL{2};
+static constexpr auto GETAVAADDR_INTERVAL{2min};
 
 /**
  * If no proof was requested from a compact proof message after this timeout
  * expired, the proof radix tree can be cleaned up.
  */
-static constexpr std::chrono::minutes AVALANCHE_AVAPROOFS_TIMEOUT{2};
+static constexpr auto AVALANCHE_AVAPROOFS_TIMEOUT{2min};
 
 struct DataRequestParameters {
     /**
@@ -188,7 +188,7 @@ static const int MAX_BLOCKS_IN_TRANSIT_PER_PEER = 16;
  * Time during which a peer must stall block download progress before being
  * disconnected.
  */
-static constexpr auto BLOCK_STALLING_TIMEOUT = 2s;
+static constexpr auto BLOCK_STALLING_TIMEOUT{2s};
 /**
  * Number of headers sent in one getheaders result. We rely on the assumption
  * that if a peer sends
@@ -235,16 +235,16 @@ static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
 /**
  * Average delay between local address broadcasts.
  */
-static constexpr auto AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL = 24h;
+static constexpr auto AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL{24h};
 /**
  * Average delay between peer address broadcasts.
  */
-static constexpr auto AVG_ADDRESS_BROADCAST_INTERVAL = 30s;
+static constexpr auto AVG_ADDRESS_BROADCAST_INTERVAL{30s};
 /**
  * Average delay between trickled inventory transmissions for inbound peers.
  * Blocks and peers with NetPermissionFlags::NoBan permission bypass this.
  */
-static constexpr auto INBOUND_INVENTORY_BROADCAST_INTERVAL = 5s;
+static constexpr auto INBOUND_INVENTORY_BROADCAST_INTERVAL{5s};
 /**
  * Maximum rate of inventory items to send per second.
  * Limits the impact of low-fee transaction floods.
@@ -268,13 +268,13 @@ static_assert(INVENTORY_MAX_RECENT_RELAY >= INVENTORY_BROADCAST_PER_SECOND *
               "INVENTORY_RELAY_MAX too low");
 
 /**
- * Average delay between feefilter broadcasts in seconds.
+ * Average delay between feefilter broadcasts
  */
-static constexpr auto AVG_FEEFILTER_BROADCAST_INTERVAL = 10min;
+static constexpr auto AVG_FEEFILTER_BROADCAST_INTERVAL{10min};
 /**
  * Maximum feefilter broadcast delay after significant change.
  */
-static constexpr auto MAX_FEEFILTER_CHANGE_DELAY = 5min;
+static constexpr auto MAX_FEEFILTER_CHANGE_DELAY{5min};
 /**
  * Maximum number of compact filters that may be requested with one
  * getcfilters. See BIP 157.
@@ -1054,7 +1054,7 @@ struct CNodeState {
      *   - it has a better chain than we have
      *
      * CHAIN_SYNC_TIMEOUT:  if a peer's best known block has less work than our
-     * tip, set a timeout CHAIN_SYNC_TIMEOUT seconds in the future:
+     * tip, set a timeout CHAIN_SYNC_TIMEOUT in the future:
      *   - If at timeout their best known block now has more work than our tip
      * when the timeout was set, then either reset the timeout or clear it
      * (after comparing against our current tip's work)
@@ -1928,7 +1928,7 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
     // complete, which might take a while. So, if a ping is taking an unusually
     // long time in flight, the caller can immediately detect that this is
     // happening.
-    std::chrono::microseconds ping_wait{0};
+    auto ping_wait{0us};
     if ((0 != peer->m_ping_nonce_sent) &&
         (0 != peer->m_ping_start.load().count())) {
         ping_wait =
@@ -2762,12 +2762,11 @@ void PeerManagerImpl::ProcessGetData(
     std::vector<CInv> vNotFound;
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
 
-    const std::chrono::seconds now = GetTime<std::chrono::seconds>();
+    const auto now{GetTime<std::chrono::seconds>()};
     // Get last mempool request time
-    const std::chrono::seconds mempool_req =
-        pfrom.m_tx_relay != nullptr
-            ? pfrom.m_tx_relay->m_last_mempool_req.load()
-            : std::chrono::seconds::min();
+    const auto mempool_req = pfrom.m_tx_relay != nullptr
+                                 ? pfrom.m_tx_relay->m_last_mempool_req.load()
+                                 : std::chrono::seconds::min();
 
     // Process as many TX or AVA_PROOF items from the front of the getdata
     // queue as possible, since they're common and it's efficient to batch
@@ -4032,7 +4031,7 @@ void PeerManagerImpl::ProcessMessage(
             reject_tx_invs = false;
         }
 
-        const auto current_time = GetTime<std::chrono::microseconds>();
+        const auto current_time{GetTime<std::chrono::microseconds>()};
         std::optional<BlockHash> best_block;
 
         auto logInv = [&](const CInv &inv, bool fAlreadyHave) {
@@ -4470,7 +4469,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
             if (!fRejectedParents) {
-                const auto current_time = GetTime<std::chrono::microseconds>();
+                const auto current_time{GetTime<std::chrono::microseconds>()};
 
                 for (const TxId &parent_txid : unique_parents) {
                     // FIXME: MSG_TX should use a TxHash, not a TxId.
@@ -6535,7 +6534,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     // can't change.
     const CNetMsgMaker msgMaker(pto->GetCommonVersion());
 
-    const auto current_time = GetTime<std::chrono::microseconds>();
+    const auto current_time{GetTime<std::chrono::microseconds>()};
 
     if (pto->IsAddrFetchConn() &&
         current_time - pto->m_connected > 10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
