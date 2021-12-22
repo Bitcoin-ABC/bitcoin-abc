@@ -46,6 +46,7 @@ import {
     convertToEcashPrefix,
     toLegacyCash,
     toLegacyCashArray,
+    fromSmallestDenomination,
 } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
 import { formatFiatBalance } from '@utils/validation';
@@ -161,7 +162,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                value: 5.5,
+                value: `${fromSmallestDenomination(currency.dustSats)}`,
             });
         }
 
@@ -443,7 +444,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 }));
             }
             if (!validValueString) {
-                error = `Amount must be at least 5.5 XEC: ${addressString}, ${valueString}`;
+                error = `Amount must be at least ${fromSmallestDenomination(
+                    currency.dustSats,
+                )} XEC: ${addressString}, ${valueString}`;
                 setSendBchAddressError(error);
                 return setFormData(p => ({
                     ...p,
