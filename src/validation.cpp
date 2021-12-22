@@ -2713,12 +2713,11 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                 }
                 m_last_flush = nNow;
                 full_flush_completed = true;
+                TRACE5(utxocache, flush,
+                       // in microseconds (µs)
+                       GetTimeMicros() - nNow.count(), uint32_t(mode),
+                       coins_count, uint64_t(coins_mem_usage), fFlushForPrune);
             }
-
-            TRACE5(utxocache, flush,
-                   // in microseconds (µs)
-                   GetTimeMicros() - nNow.count(), uint32_t(mode), coins_count,
-                   uint64_t(coins_mem_usage), fFlushForPrune);
         }
 
         if (full_flush_completed) {
