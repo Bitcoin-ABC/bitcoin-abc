@@ -1,52 +1,62 @@
-workbox.setConfig({
-    debug: false,
+import { clientsClaim } from 'workbox-core';
+import { setCacheNameDetails } from 'workbox-core';
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { ExpirationPlugin } from 'workbox-expiration';
+
+clientsClaim();
+self.skipWaiting();
+
+// cofingure prefix, suffix, and cacheNames
+const prefix = 'cashtab';
+const suffix = 'v1.0.0';
+const staticAssetsCache = `static-assets`;
+
+// configure prefix and suffix for default cache names
+setCacheNameDetails({
+    prefix: prefix,
+    suffix: suffix,
+    precache: staticAssetsCache,
 });
 
-workbox.core.skipWaiting();
-workbox.core.clientsClaim();
+// injection point for static assets caching
+precacheAndRoute(self.__WB_MANIFEST);
 
-const cachedPathNames = [
-    '/v2/transaction/details',
-    '/v2/rawtransactions/getRawTransaction',
-    '/v2/slp/validateTxid',
+// Caching TX and Token Details using CacheFirst Strategy
+const txDetailsCaches = [
+    {
+        // ecash tx
+        path: '/rawtransactions/getRawTransaction/',
+        name: `${prefix}-tx-data-${suffix}`,
+    },
+    {
+        // slp tx
+        path: '/slp/txDetails/',
+        name: `${prefix}-slp-tx-data-${suffix}`,
+    },
+    {
+        // slp token
+        path: '/slp/tokenStats/',
+        name: `${prefix}-slp-token-stats-${suffix}`,
+    },
 ];
 
-workbox.routing.registerRoute(
-    ({ url, event }) =>
-        cachedPathNames.some(cachedPathName =>
-            url.pathname.includes(cachedPathName),
-        ),
-    async ({ event, url }) => {
-        try {
-            const cache = await caches.open('api-cache');
-            const cacheKeys = await cache.keys();
-            if (cacheKeys.length > 100) {
-                await Promise.all(cacheKeys.map(key => cache.delete(key)));
-            }
-            const requestBody = await event.request.clone().text();
-
-            try {
-                const response = await cache.match(
-                    `${url.pathname}/${requestBody}`,
-                );
-                if (!response) {
-                    throw new Error('SW: Not cached!');
-                }
-                return response;
-            } catch (error) {
-                const response = await fetch(event.request.clone());
-                if (response.status === 200) {
-                    const body = await response.clone().text();
-                    cache.put(
-                        `${url.pathname}/${requestBody}`,
-                        new Response(body, { status: 200 }),
-                    );
-                }
-                return response.clone();
-            }
-        } catch (err) {
-            return fetch(event.request.clone());
-        }
-    },
-    'POST',
-);
+txDetailsCaches.forEach(cache => {
+    registerRoute(
+        ({ url }) => url.pathname.includes(cache.path),
+        new CacheFirst({
+            cacheName: cache.name,
+            plugins: [
+                new CacheableResponsePlugin({
+                    statuses: [200],
+                }),
+                new ExpirationPlugin({
+                    maxEntries: 1000,
+                    maxAgeSeconds: 365 * 24 * 60 * 60,
+                }),
+            ],
+        }),
+    );
+});

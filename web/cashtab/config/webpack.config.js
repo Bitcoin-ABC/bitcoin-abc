@@ -743,6 +743,8 @@ module.exports = function (webpackEnv) {
             new workboxPlugin.InjectManifest({
                 swSrc: './src/serviceWorker.js',
                 swDest: 'serviceWorker.js',
+                // set the maximum cachable file size to 4MB
+                maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
             }),
         ].filter(Boolean),
         // Some libraries import Node modules but don't use them in the browser.
