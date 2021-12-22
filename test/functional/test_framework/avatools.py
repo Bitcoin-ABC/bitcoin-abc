@@ -14,6 +14,7 @@ from .messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
     AvalancheDelegation,
+    AvalancheProof,
     AvalancheResponse,
     CInv,
     CTransaction,
@@ -247,6 +248,11 @@ class AvaP2PInterface(P2PInterface):
         self.send_message(msg)
 
         return delegation.proofid
+
+    def send_avaproof(self, proof: AvalancheProof):
+        msg = msg_avaproof()
+        msg.proof = proof
+        self.send_message(msg)
 
 
 def get_ava_p2p_interface(

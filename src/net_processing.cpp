@@ -5085,8 +5085,26 @@ void PeerManagerImpl::ProcessMessage(
         if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
             WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
             Misbehaving(nodeid, 100, state.GetRejectReason());
+            return;
         }
 
+        if (!gArgs.GetBoolArg("-enableavalancheproofreplacement",
+                              AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
+            // If proof replacement is not enabled there is no point dealing
+            // with proof polling, so we're done.
+            return;
+        }
+
+        if (state.IsValid() ||
+            state.GetResult() ==
+                avalanche::ProofRegistrationResult::CONFLICTING) {
+            g_avalanche->addProofToReconcile(proof);
+            return;
+        }
+
+        LogPrint(BCLog::AVALANCHE,
+                 "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
+                 state.GetRejectReason(), nodeid, proofid.ToString());
         return;
     }
 
