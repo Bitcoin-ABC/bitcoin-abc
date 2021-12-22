@@ -76,12 +76,8 @@ static constexpr auto HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER = 1ms;
  * slow/behind headers chain.
  */
 static constexpr int32_t MAX_OUTBOUND_PEERS_TO_PROTECT_FROM_DISCONNECT = 4;
-/**
- * Timeout for (unprotected) outbound peers to sync to our chainwork, in
- * seconds.
- */
-// 20 minutes
-static constexpr int64_t CHAIN_SYNC_TIMEOUT = 20 * 60;
+/** Timeout for (unprotected) outbound peers to sync to our chainwork */
+static constexpr auto CHAIN_SYNC_TIMEOUT{20min};
 /** How frequently to check for stale tips */
 static constexpr auto STALE_CHECK_INTERVAL{10min};
 /** How frequently to check for extra outbound peers and disconnect. */
@@ -522,7 +518,7 @@ private:
      * Consider evicting an outbound peer based on the amount of time they've
      * been behind our tip.
      */
-    void ConsiderEviction(CNode &pto, int64_t time_in_seconds)
+    void ConsiderEviction(CNode &pto, std::chrono::seconds time_in_seconds)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     /**
      * If we have extra outbound peers, try to disconnect the one with the
@@ -1074,7 +1070,7 @@ struct CNodeState {
     struct ChainSyncTimeoutState {
         //! A timeout used for checking whether our peer has sufficiently
         //! synced.
-        int64_t m_timeout{0};
+        std::chrono::seconds m_timeout{0s};
         //! A header with the work we require on our peer's chain.
         const CBlockIndex *m_work_header{nullptr};
         //! After timeout is reached, set to true after sending getheaders.
@@ -1325,11 +1321,13 @@ void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
 bool PeerManagerImpl::TipMayBeStale() {
     AssertLockHeld(cs_main);
     const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
-    if (count_seconds(m_last_tip_update) == 0) {
+    if (m_last_tip_update.load() == 0s) {
         m_last_tip_update = GetTime<std::chrono::seconds>();
     }
-    return count_seconds(m_last_tip_update) <
-               GetTime() - consensusParams.nPowTargetSpacing * 3 &&
+    return m_last_tip_update.load() <
+               GetTime<std::chrono::seconds>() -
+                   std::chrono::seconds{consensusParams.nPowTargetSpacing *
+                                        3} &&
            mapBlocksInFlight.empty();
 }
 
@@ -6033,7 +6031,8 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     return fMoreWork;
 }
 
-void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
+void PeerManagerImpl::ConsiderEviction(CNode &pto,
+                                       std::chrono::seconds time_in_seconds) {
     AssertLockHeld(cs_main);
 
     CNodeState &state = *State(pto.GetId());
@@ -6050,12 +6049,12 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
         if (state.pindexBestKnownBlock != nullptr &&
             state.pindexBestKnownBlock->nChainWork >=
                 m_chainman.ActiveChain().Tip()->nChainWork) {
-            if (state.m_chain_sync.m_timeout != 0) {
-                state.m_chain_sync.m_timeout = 0;
+            if (state.m_chain_sync.m_timeout != 0s) {
+                state.m_chain_sync.m_timeout = 0s;
                 state.m_chain_sync.m_work_header = nullptr;
                 state.m_chain_sync.m_sent_getheaders = false;
             }
-        } else if (state.m_chain_sync.m_timeout == 0 ||
+        } else if (state.m_chain_sync.m_timeout == 0s ||
                    (state.m_chain_sync.m_work_header != nullptr &&
                     state.pindexBestKnownBlock != nullptr &&
                     state.pindexBestKnownBlock->nChainWork >=
@@ -6067,7 +6066,7 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
             state.m_chain_sync.m_timeout = time_in_seconds + CHAIN_SYNC_TIMEOUT;
             state.m_chain_sync.m_work_header = m_chainman.ActiveChain().Tip();
             state.m_chain_sync.m_sent_getheaders = false;
-        } else if (state.m_chain_sync.m_timeout > 0 &&
+        } else if (state.m_chain_sync.m_timeout > 0s &&
                    time_in_seconds > state.m_chain_sync.m_timeout) {
             // No evidence yet that our peer has synced to a chain with work
             // equal to that of our tip, when we first detected it was behind.
@@ -6103,8 +6102,7 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
                                       state.m_chain_sync.m_work_header->pprev),
                                   uint256()));
                 state.m_chain_sync.m_sent_getheaders = true;
-                // 2 minutes
-                constexpr int64_t HEADERS_RESPONSE_TIME = 120;
+                constexpr auto HEADERS_RESPONSE_TIME{2min};
                 // Bump the timeout to allow a response, which could clear the
                 // timeout (if the response shows the peer has synced), reset
                 // the timeout (if the peer syncs to the required work but not
@@ -6273,7 +6271,7 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
             m_connman.GetUseAddrmanOutgoing() && TipMayBeStale()) {
             LogPrintf("Potential stale tip detected, will try using extra "
                       "outbound peer (last tip update: %d seconds ago)\n",
-                      count_seconds(now) - count_seconds(m_last_tip_update));
+                      count_seconds(now - m_last_tip_update.load()));
             m_connman.SetTryNewOutboundPeer(true);
         } else if (m_connman.GetTryNewOutboundPeer()) {
             m_connman.SetTryNewOutboundPeer(false);
@@ -7079,7 +7077,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
         // Check that outbound peers have reasonable chains GetTime() is used by
         // this anti-DoS logic so we can test this using mocktime.
-        ConsiderEviction(*pto, GetTime());
+        ConsiderEviction(*pto, GetTime<std::chrono::seconds>());
     } // release cs_main
 
     std::vector<CInv> vGetData;
