@@ -23,22 +23,23 @@
 
 #include <univalue.h>
 
-static UniValue getavalanchekey(const Config &config,
-                                const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan getavalanchekey() {
+    return RPCHelpMan{
         "getavalanchekey",
         "Returns the key used to sign avalanche messages.\n",
         {},
         RPCResult{RPCResult::Type::STR_HEX, "", ""},
         RPCExamples{HelpExampleRpc("getavalanchekey", "")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
 
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
-
-    return HexStr(g_avalanche->getSessionPubKey());
+            return HexStr(g_avalanche->getSessionPubKey());
+        },
+    };
 }
 
 static CPubKey ParsePubKey(const UniValue &param) {
@@ -92,9 +93,8 @@ static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
     }
 }
 
-static UniValue addavalanchenode(const Config &config,
-                                 const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan addavalanchenode() {
+    return RPCHelpMan{
         "addavalanchenode",
         "Add a node in the set of peers to poll for avalanche.\n",
         {
@@ -111,79 +111,85 @@ static UniValue addavalanchenode(const Config &config,
                   "Whether the addition succeeded or not."},
         RPCExamples{
             HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params,
+                         {UniValue::VNUM, UniValue::VSTR, UniValue::VSTR});
 
-    RPCTypeCheck(request.params,
-                 {UniValue::VNUM, UniValue::VSTR, UniValue::VSTR});
-
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
-
-    const NodeId nodeid = request.params[0].get_int64();
-    CPubKey key = ParsePubKey(request.params[1]);
-
-    auto proof = std::make_shared<avalanche::Proof>();
-    NodeContext &node = EnsureNodeContext(request.context);
-    verifyProofOrThrow(node, *proof, request.params[2].get_str());
-
-    const avalanche::ProofId &proofid = proof->getId();
-    if (key != proof->getMaster()) {
-        if (request.params.size() < 4 || request.params[3].isNull()) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "The public key does not match the proof");
-        }
-
-        avalanche::Delegation dg;
-        CPubKey auth;
-        verifyDelegationOrThrow(dg, request.params[3].get_str(), auth);
-
-        if (dg.getProofId() != proofid) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "The delegation does not match the proof");
-        }
-
-        if (key != auth) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "The public key does not match the delegation");
-        }
-    }
-
-    if (!registerProofIfNeeded(proof)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           "The proof has conflicting utxos");
-    }
-
-    if (!node.connman->ForNode(nodeid, [&](CNode *pnode) {
-            // FIXME This is not thread safe, and might cause issues if the
-            // unlikely event the peer sends an avahello message at the same
-            // time.
-            if (!pnode->m_avalanche_state) {
-                pnode->m_avalanche_state =
-                    std::make_unique<CNode::AvalancheState>();
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
             }
-            pnode->m_avalanche_state->pubkey = std::move(key);
-            return true;
-        })) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           strprintf("The node does not exist: %d", nodeid));
-        ;
-    }
 
-    return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        if (!pm.addNode(nodeid, proofid)) {
-            return false;
-        }
+            const NodeId nodeid = request.params[0].get_int64();
+            CPubKey key = ParsePubKey(request.params[1]);
 
-        pm.addUnbroadcastProof(proofid);
-        return true;
-    });
+            auto proof = std::make_shared<avalanche::Proof>();
+            NodeContext &node = EnsureNodeContext(request.context);
+            verifyProofOrThrow(node, *proof, request.params[2].get_str());
+
+            const avalanche::ProofId &proofid = proof->getId();
+            if (key != proof->getMaster()) {
+                if (request.params.size() < 4 || request.params[3].isNull()) {
+                    throw JSONRPCError(
+                        RPC_INVALID_ADDRESS_OR_KEY,
+                        "The public key does not match the proof");
+                }
+
+                avalanche::Delegation dg;
+                CPubKey auth;
+                verifyDelegationOrThrow(dg, request.params[3].get_str(), auth);
+
+                if (dg.getProofId() != proofid) {
+                    throw JSONRPCError(
+                        RPC_INVALID_PARAMETER,
+                        "The delegation does not match the proof");
+                }
+
+                if (key != auth) {
+                    throw JSONRPCError(
+                        RPC_INVALID_ADDRESS_OR_KEY,
+                        "The public key does not match the delegation");
+                }
+            }
+
+            if (!registerProofIfNeeded(proof)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   "The proof has conflicting utxos");
+            }
+
+            if (!node.connman->ForNode(nodeid, [&](CNode *pnode) {
+                    // FIXME This is not thread safe, and might cause issues if
+                    // the unlikely event the peer sends an avahello message at
+                    // the same time.
+                    if (!pnode->m_avalanche_state) {
+                        pnode->m_avalanche_state =
+                            std::make_unique<CNode::AvalancheState>();
+                    }
+                    pnode->m_avalanche_state->pubkey = std::move(key);
+                    return true;
+                })) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    strprintf("The node does not exist: %d", nodeid));
+                ;
+            }
+
+            return g_avalanche->withPeerManager(
+                [&](avalanche::PeerManager &pm) {
+                    if (!pm.addNode(nodeid, proofid)) {
+                        return false;
+                    }
+
+                    pm.addUnbroadcastProof(proofid);
+                    return true;
+                });
+        },
+    };
 }
 
-static UniValue buildavalancheproof(const Config &config,
-                                    const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan buildavalancheproof() {
+    return RPCHelpMan{
         "buildavalancheproof",
         "Build a proof for avalanche's sybil resistance.\n",
         {
@@ -230,98 +236,104 @@ static UniValue buildavalancheproof(const Config &config,
                   "A string that is a serialized, hex-encoded proof data."},
         RPCExamples{HelpExampleRpc("buildavalancheproof",
                                    "0 1234567800 \"<master>\" []")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VNUM, UniValue::VNUM,
+                                          UniValue::VSTR, UniValue::VARR});
 
-    RPCTypeCheck(request.params, {UniValue::VNUM, UniValue::VNUM,
-                                  UniValue::VSTR, UniValue::VARR});
+            const uint64_t sequence = request.params[0].get_int64();
+            const int64_t expiration = request.params[1].get_int64();
 
-    const uint64_t sequence = request.params[0].get_int64();
-    const int64_t expiration = request.params[1].get_int64();
+            CKey masterKey = DecodeSecret(request.params[2].get_str());
+            if (!masterKey.IsValid()) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid master key");
+            }
 
-    CKey masterKey = DecodeSecret(request.params[2].get_str());
-    if (!masterKey.IsValid()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid master key");
-    }
+            CTxDestination payoutAddress = CNoDestination();
+            if (!avalanche::Proof::useLegacy(gArgs)) {
+                if (request.params[4].isNull()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "A payout address is required if "
+                                       "`-legacyavaproof` is false");
+                }
+                payoutAddress = DecodeDestination(request.params[4].get_str(),
+                                                  config.GetChainParams());
 
-    CTxDestination payoutAddress = CNoDestination();
-    if (!avalanche::Proof::useLegacy(gArgs)) {
-        if (request.params[4].isNull()) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                "A payout address is required if `-legacyavaproof` is false");
-        }
-        payoutAddress = DecodeDestination(request.params[4].get_str(),
-                                          config.GetChainParams());
+                if (!IsValidDestination(payoutAddress)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Invalid payout address");
+                }
+            }
 
-        if (!IsValidDestination(payoutAddress)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid payout address");
-        }
-    }
+            avalanche::ProofBuilder pb(sequence, expiration, masterKey,
+                                       GetScriptForDestination(payoutAddress));
 
-    avalanche::ProofBuilder pb(sequence, expiration, masterKey,
-                               GetScriptForDestination(payoutAddress));
+            const UniValue &stakes = request.params[3].get_array();
+            for (size_t i = 0; i < stakes.size(); i++) {
+                const UniValue &stake = stakes[i];
+                RPCTypeCheckObj(
+                    stake,
+                    {
+                        {"txid", UniValue::VSTR},
+                        {"vout", UniValue::VNUM},
+                        // "amount" is also required but check is done below
+                        // due to UniValue::VNUM erroneously not accepting
+                        // quoted numerics (which are valid JSON)
+                        {"height", UniValue::VNUM},
+                        {"privatekey", UniValue::VSTR},
+                    });
 
-    const UniValue &stakes = request.params[3].get_array();
-    for (size_t i = 0; i < stakes.size(); i++) {
-        const UniValue &stake = stakes[i];
-        RPCTypeCheckObj(stake,
-                        {
-                            {"txid", UniValue::VSTR},
-                            {"vout", UniValue::VNUM},
-                            // "amount" is also required but check is done below
-                            // due to UniValue::VNUM erroneously not accepting
-                            // quoted numerics (which are valid JSON)
-                            {"height", UniValue::VNUM},
-                            {"privatekey", UniValue::VSTR},
-                        });
+                int nOut = find_value(stake, "vout").get_int();
+                if (nOut < 0) {
+                    throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                                       "vout cannot be negative");
+                }
 
-        int nOut = find_value(stake, "vout").get_int();
-        if (nOut < 0) {
-            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
-                               "vout cannot be negative");
-        }
+                const int height = find_value(stake, "height").get_int();
+                if (height < 1) {
+                    throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                                       "height must be positive");
+                }
 
-        const int height = find_value(stake, "height").get_int();
-        if (height < 1) {
-            throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
-                               "height must be positive");
-        }
+                const TxId txid(ParseHashO(stake, "txid"));
+                const COutPoint utxo(txid, nOut);
 
-        const TxId txid(ParseHashO(stake, "txid"));
-        const COutPoint utxo(txid, nOut);
+                if (!stake.exists("amount")) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing amount");
+                }
 
-        if (!stake.exists("amount")) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing amount");
-        }
+                const Amount amount =
+                    AmountFromValue(find_value(stake, "amount"));
 
-        const Amount amount = AmountFromValue(find_value(stake, "amount"));
+                const UniValue &iscbparam = find_value(stake, "iscoinbase");
+                const bool iscoinbase =
+                    iscbparam.isNull() ? false : iscbparam.get_bool();
+                CKey key =
+                    DecodeSecret(find_value(stake, "privatekey").get_str());
 
-        const UniValue &iscbparam = find_value(stake, "iscoinbase");
-        const bool iscoinbase =
-            iscbparam.isNull() ? false : iscbparam.get_bool();
-        CKey key = DecodeSecret(find_value(stake, "privatekey").get_str());
+                if (!key.IsValid()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Invalid private key");
+                }
 
-        if (!key.IsValid()) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid private key");
-        }
+                if (!pb.addUTXO(utxo, amount, uint32_t(height), iscoinbase,
+                                std::move(key))) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Duplicated stake");
+                }
+            }
 
-        if (!pb.addUTXO(utxo, amount, uint32_t(height), iscoinbase,
-                        std::move(key))) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Duplicated stake");
-        }
-    }
+            const avalanche::ProofRef proof = pb.build();
 
-    const avalanche::ProofRef proof = pb.build();
-
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << *proof;
-    return HexStr(ss);
+            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            ss << *proof;
+            return HexStr(ss);
+        },
+    };
 }
 
-static UniValue decodeavalancheproof(const Config &config,
-                                     const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan decodeavalancheproof() {
+    return RPCHelpMan{
         "decodeavalancheproof",
         "Convert a serialized, hex-encoded proof, into JSON object. "
         "The validity of the proof is not verified.\n",
@@ -392,56 +404,58 @@ static UniValue decodeavalancheproof(const Config &config,
             }},
         RPCExamples{HelpExampleCli("decodeavalancheproof", "\"<hex proof>\"") +
                     HelpExampleRpc("decodeavalancheproof", "\"<hex proof>\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VSTR});
 
-    RPCTypeCheck(request.params, {UniValue::VSTR});
+            avalanche::Proof proof;
+            bilingual_str error;
+            if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(),
+                                           error)) {
+                throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+            }
 
-    avalanche::Proof proof;
-    bilingual_str error;
-    if (!avalanche::Proof::FromHex(proof, request.params[0].get_str(), error)) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
-    }
+            UniValue result(UniValue::VOBJ);
+            result.pushKV("sequence", proof.getSequence());
+            result.pushKV("expiration", proof.getExpirationTime());
+            result.pushKV("master", HexStr(proof.getMaster()));
 
-    UniValue result(UniValue::VOBJ);
-    result.pushKV("sequence", proof.getSequence());
-    result.pushKV("expiration", proof.getExpirationTime());
-    result.pushKV("master", HexStr(proof.getMaster()));
+            const auto signature = proof.getSignature();
+            if (signature) {
+                result.pushKV("signature", EncodeBase64(*signature));
+            }
 
-    const auto signature = proof.getSignature();
-    if (signature) {
-        result.pushKV("signature", EncodeBase64(*signature));
-    }
+            const auto payoutScript = proof.getPayoutScript();
+            UniValue payoutScriptObj(UniValue::VOBJ);
+            ScriptPubKeyToUniv(payoutScript, payoutScriptObj,
+                               /* fIncludeHex */ true);
+            result.pushKV("payoutscript", payoutScriptObj);
 
-    const auto payoutScript = proof.getPayoutScript();
-    UniValue payoutScriptObj(UniValue::VOBJ);
-    ScriptPubKeyToUniv(payoutScript, payoutScriptObj, /* fIncludeHex */ true);
-    result.pushKV("payoutscript", payoutScriptObj);
+            result.pushKV("limitedid", proof.getLimitedId().ToString());
+            result.pushKV("proofid", proof.getId().ToString());
 
-    result.pushKV("limitedid", proof.getLimitedId().ToString());
-    result.pushKV("proofid", proof.getId().ToString());
+            UniValue stakes(UniValue::VARR);
+            for (const avalanche::SignedStake &s : proof.getStakes()) {
+                const COutPoint &utxo = s.getStake().getUTXO();
+                UniValue stake(UniValue::VOBJ);
+                stake.pushKV("txid", utxo.GetTxId().ToString());
+                stake.pushKV("vout", uint64_t(utxo.GetN()));
+                stake.pushKV("amount", s.getStake().getAmount());
+                stake.pushKV("height", uint64_t(s.getStake().getHeight()));
+                stake.pushKV("iscoinbase", s.getStake().isCoinbase());
+                stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));
+                stake.pushKV("signature", EncodeBase64(s.getSignature()));
+                stakes.push_back(stake);
+            }
+            result.pushKV("stakes", stakes);
 
-    UniValue stakes(UniValue::VARR);
-    for (const avalanche::SignedStake &s : proof.getStakes()) {
-        const COutPoint &utxo = s.getStake().getUTXO();
-        UniValue stake(UniValue::VOBJ);
-        stake.pushKV("txid", utxo.GetTxId().ToString());
-        stake.pushKV("vout", uint64_t(utxo.GetN()));
-        stake.pushKV("amount", s.getStake().getAmount());
-        stake.pushKV("height", uint64_t(s.getStake().getHeight()));
-        stake.pushKV("iscoinbase", s.getStake().isCoinbase());
-        stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));
-        stake.pushKV("signature", EncodeBase64(s.getSignature()));
-        stakes.push_back(stake);
-    }
-    result.pushKV("stakes", stakes);
-
-    return result;
+            return result;
+        },
+    };
 }
 
-static UniValue delegateavalancheproof(const Config &config,
-                                       const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan delegateavalancheproof() {
+    return RPCHelpMan{
         "delegateavalancheproof",
         "Delegate the avalanche proof to another public key.\n",
         {
@@ -462,62 +476,66 @@ static UniValue delegateavalancheproof(const Config &config,
         RPCExamples{
             HelpExampleRpc("delegateavalancheproof",
                            "\"<limitedproofid>\" \"<privkey>\" \"<pubkey>\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params,
+                         {UniValue::VSTR, UniValue::VSTR, UniValue::VSTR});
 
-    RPCTypeCheck(request.params,
-                 {UniValue::VSTR, UniValue::VSTR, UniValue::VSTR});
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
 
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
+            avalanche::LimitedProofId limitedProofId{
+                ParseHashV(request.params[0], "limitedproofid")};
 
-    avalanche::LimitedProofId limitedProofId{
-        ParseHashV(request.params[0], "limitedproofid")};
+            const CKey privkey = DecodeSecret(request.params[1].get_str());
+            if (!privkey.IsValid()) {
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                                   "The private key is invalid");
+            }
 
-    const CKey privkey = DecodeSecret(request.params[1].get_str());
-    if (!privkey.IsValid()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           "The private key is invalid");
-    }
+            const CPubKey pubkey = ParsePubKey(request.params[2]);
 
-    const CPubKey pubkey = ParsePubKey(request.params[2]);
+            std::unique_ptr<avalanche::DelegationBuilder> dgb;
+            if (request.params.size() >= 4 && !request.params[3].isNull()) {
+                avalanche::Delegation dg;
+                CPubKey auth;
+                verifyDelegationOrThrow(dg, request.params[3].get_str(), auth);
 
-    std::unique_ptr<avalanche::DelegationBuilder> dgb;
-    if (request.params.size() >= 4 && !request.params[3].isNull()) {
-        avalanche::Delegation dg;
-        CPubKey auth;
-        verifyDelegationOrThrow(dg, request.params[3].get_str(), auth);
+                if (dg.getProofId() !=
+                    limitedProofId.computeProofId(dg.getProofMaster())) {
+                    throw JSONRPCError(
+                        RPC_INVALID_PARAMETER,
+                        "The delegation does not match the proof");
+                }
 
-        if (dg.getProofId() !=
-            limitedProofId.computeProofId(dg.getProofMaster())) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "The delegation does not match the proof");
-        }
+                if (privkey.GetPubKey() != auth) {
+                    throw JSONRPCError(
+                        RPC_INVALID_ADDRESS_OR_KEY,
+                        "The private key does not match the delegation");
+                }
 
-        if (privkey.GetPubKey() != auth) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                               "The private key does not match the delegation");
-        }
+                dgb = std::make_unique<avalanche::DelegationBuilder>(dg);
+            } else {
+                dgb = std::make_unique<avalanche::DelegationBuilder>(
+                    limitedProofId, privkey.GetPubKey());
+            }
 
-        dgb = std::make_unique<avalanche::DelegationBuilder>(dg);
-    } else {
-        dgb = std::make_unique<avalanche::DelegationBuilder>(
-            limitedProofId, privkey.GetPubKey());
-    }
+            if (!dgb->addLevel(privkey, pubkey)) {
+                throw JSONRPCError(RPC_MISC_ERROR,
+                                   "Unable to build the delegation");
+            }
 
-    if (!dgb->addLevel(privkey, pubkey)) {
-        throw JSONRPCError(RPC_MISC_ERROR, "Unable to build the delegation");
-    }
-
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << dgb->build();
-    return HexStr(ss);
+            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            ss << dgb->build();
+            return HexStr(ss);
+        },
+    };
 }
 
-static UniValue getavalanchepeerinfo(const Config &config,
-                                     const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan getavalanchepeerinfo() {
+    return RPCHelpMan{
         "getavalanchepeerinfo",
         "Returns data about each connected avalanche peer as a json array of "
         "objects.\n",
@@ -548,43 +566,44 @@ static UniValue getavalanchepeerinfo(const Config &config,
         },
         RPCExamples{HelpExampleCli("getavalanchepeerinfo", "") +
                     HelpExampleRpc("getavalanchepeerinfo", "")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
 
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
+            UniValue ret(UniValue::VARR);
 
-    UniValue ret(UniValue::VARR);
+            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+                pm.forEachPeer([&](const avalanche::Peer &peer) {
+                    UniValue obj(UniValue::VOBJ);
 
-    g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
-        pm.forEachPeer([&](const avalanche::Peer &peer) {
-            UniValue obj(UniValue::VOBJ);
+                    CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
+                    serproof << *peer.proof;
 
-            CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
-            serproof << *peer.proof;
+                    obj.pushKV("peerid", uint64_t(peer.peerid));
+                    obj.pushKV("proof", HexStr(serproof));
 
-            obj.pushKV("peerid", uint64_t(peer.peerid));
-            obj.pushKV("proof", HexStr(serproof));
+                    UniValue nodes(UniValue::VARR);
+                    pm.forEachNode(peer, [&](const avalanche::Node &n) {
+                        nodes.push_back(n.nodeid);
+                    });
 
-            UniValue nodes(UniValue::VARR);
-            pm.forEachNode(peer, [&](const avalanche::Node &n) {
-                nodes.push_back(n.nodeid);
+                    obj.pushKV("nodecount", uint64_t(peer.node_count));
+                    obj.pushKV("nodes", nodes);
+
+                    ret.push_back(obj);
+                });
             });
 
-            obj.pushKV("nodecount", uint64_t(peer.node_count));
-            obj.pushKV("nodes", nodes);
-
-            ret.push_back(obj);
-        });
-    });
-
-    return ret;
+            return ret;
+        },
+    };
 }
 
-static UniValue getrawavalancheproof(const Config &config,
-                                     const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan getrawavalancheproof() {
+    return RPCHelpMan{
         "getrawavalancheproof",
         "Lookup for a known avalanche proof by id.\n",
         {
@@ -603,39 +622,41 @@ static UniValue getrawavalancheproof(const Config &config,
             }},
         },
         RPCExamples{HelpExampleRpc("getrawavalancheproof", "<proofid>")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
 
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
+            const avalanche::ProofId proofid =
+                avalanche::ProofId::fromHex(request.params[0].get_str());
 
-    const avalanche::ProofId proofid =
-        avalanche::ProofId::fromHex(request.params[0].get_str());
+            bool isOrphan = false;
+            auto proof =
+                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                    isOrphan = pm.isOrphan(proofid);
+                    return pm.getProof(proofid);
+                });
 
-    bool isOrphan = false;
-    auto proof = g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-        isOrphan = pm.isOrphan(proofid);
-        return pm.getProof(proofid);
-    });
+            if (!proof) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Proof not found");
+            }
 
-    if (!proof) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Proof not found");
-    }
+            UniValue ret(UniValue::VOBJ);
 
-    UniValue ret(UniValue::VOBJ);
+            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            ss << *proof;
+            ret.pushKV("proof", HexStr(ss));
+            ret.pushKV("orphan", isOrphan);
 
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << *proof;
-    ret.pushKV("proof", HexStr(ss));
-    ret.pushKV("orphan", isOrphan);
-
-    return ret;
+            return ret;
+        },
+    };
 }
 
-static UniValue sendavalancheproof(const Config &config,
-                                   const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan sendavalancheproof() {
+    return RPCHelpMan{
         "sendavalancheproof",
         "Broadcast an avalanche proof.\n",
         {
@@ -645,42 +666,44 @@ static UniValue sendavalancheproof(const Config &config,
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the proof was sent successfully or not."},
         RPCExamples{HelpExampleRpc("sendavalancheproof", "<proof>")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
 
-    if (!g_avalanche) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Avalanche is not initialized");
-    }
+            auto proof = std::make_shared<avalanche::Proof>();
+            NodeContext &node = EnsureNodeContext(request.context);
 
-    auto proof = std::make_shared<avalanche::Proof>();
-    NodeContext &node = EnsureNodeContext(request.context);
+            // Verify the proof. Note that this is redundant with the
+            // verification done when adding the proof to the pool, but we get a
+            // chance to give a better error message.
+            verifyProofOrThrow(node, *proof, request.params[0].get_str());
 
-    // Verify the proof. Note that this is redundant with the verification done
-    // when adding the proof to the pool, but we get a chance to give a better
-    // error message.
-    verifyProofOrThrow(node, *proof, request.params[0].get_str());
+            // Add the proof to the pool if we don't have it already. Since the
+            // proof verification has already been done, a failure likely
+            // indicates that there already is a proof with conflicting utxos.
+            const avalanche::ProofId &proofid = proof->getId();
+            if (!registerProofIfNeeded(proof)) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    "The proof has conflicting utxo with an existing proof");
+            }
 
-    // Add the proof to the pool if we don't have it already. Since the proof
-    // verification has already been done, a failure likely indicates that there
-    // already is a proof with conflicting utxos.
-    const avalanche::ProofId &proofid = proof->getId();
-    if (!registerProofIfNeeded(proof)) {
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            "The proof has conflicting utxo with an existing proof");
-    }
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                pm.addUnbroadcastProof(proofid);
+            });
 
-    g_avalanche->withPeerManager(
-        [&](avalanche::PeerManager &pm) { pm.addUnbroadcastProof(proofid); });
+            RelayProof(proofid, *node.connman);
 
-    RelayProof(proofid, *node.connman);
-
-    return true;
+            return true;
+        },
+    };
 }
 
-static UniValue verifyavalancheproof(const Config &config,
-                                     const JSONRPCRequest &request) {
-    RPCHelpMan{
+static RPCHelpMan verifyavalancheproof() {
+    return RPCHelpMan{
         "verifyavalancheproof",
         "Verify an avalanche proof is valid and return the error otherwise.\n",
         {
@@ -690,16 +713,17 @@ static UniValue verifyavalancheproof(const Config &config,
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the proof is valid or not."},
         RPCExamples{HelpExampleRpc("verifyavalancheproof", "\"<proof>\"")},
-    }
-        .Check(request);
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VSTR});
 
-    RPCTypeCheck(request.params, {UniValue::VSTR});
+            avalanche::Proof proof;
+            verifyProofOrThrow(EnsureNodeContext(request.context), proof,
+                               request.params[0].get_str());
 
-    avalanche::Proof proof;
-    verifyProofOrThrow(EnsureNodeContext(request.context), proof,
-                       request.params[0].get_str());
-
-    return true;
+            return true;
+        },
+    };
 }
 
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
