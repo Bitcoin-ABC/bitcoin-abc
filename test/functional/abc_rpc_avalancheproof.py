@@ -409,6 +409,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['orphan'], False)
+        assert_equal(raw_proof['isBoundToPeer'], True)
 
         assert_raises_rpc_error(-8, "Proof not found",
                                 node.getrawavalancheproof, '0' * 64)
@@ -427,6 +428,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['orphan'], True)
+        assert_equal(raw_proof['isBoundToPeer'], False)
 
         self.log.info("Bad proof should be rejected at startup")
 

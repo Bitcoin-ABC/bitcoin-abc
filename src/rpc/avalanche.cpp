@@ -619,6 +619,8 @@ static RPCHelpMan getrawavalancheproof() {
                  "The hex encoded proof matching the identifier."},
                 {RPCResult::Type::BOOL, "orphan",
                  "Whether the proof is an orphan."},
+                {RPCResult::Type::BOOL, "isBoundToPeer",
+                 "Whether the proof is bound to an avalanche peer."},
             }},
         },
         RPCExamples{HelpExampleRpc("getrawavalancheproof", "<proofid>")},
@@ -633,9 +635,11 @@ static RPCHelpMan getrawavalancheproof() {
                 avalanche::ProofId::fromHex(request.params[0].get_str());
 
             bool isOrphan = false;
+            bool isBoundToPeer = false;
             auto proof =
                 g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                     isOrphan = pm.isOrphan(proofid);
+                    isBoundToPeer = pm.isBoundToPeer(proofid);
                     return pm.getProof(proofid);
                 });
 
@@ -649,6 +653,7 @@ static RPCHelpMan getrawavalancheproof() {
             ss << *proof;
             ret.pushKV("proof", HexStr(ss));
             ret.pushKV("orphan", isOrphan);
+            ret.pushKV("isBoundToPeer", isBoundToPeer);
 
             return ret;
         },
