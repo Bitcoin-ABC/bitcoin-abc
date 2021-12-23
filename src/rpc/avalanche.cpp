@@ -326,7 +326,7 @@ static UniValue decodeavalancheproof(const Config &config,
         "Convert a serialized, hex-encoded proof, into JSON object. "
         "The validity of the proof is not verified.\n",
         {
-            {"hexstring", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The proof hex string"},
         },
         RPCResult{
@@ -708,10 +708,10 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         //  category            name                      actor (function)        argNames
         //  ------------------- ------------------------  ----------------------  ----------
         { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
-        { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid"}},
+        { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid", "publickey", "proof", "delegation"}},
         { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes", "payoutAddress"}},
         { "avalanche",          "decodeavalancheproof",   decodeavalancheproof,   {"proof"}},
-        { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"proof", "privatekey", "publickey", "delegation"}},
+        { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"limitedproofid", "privatekey", "publickey", "delegation"}},
         { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
         { "avalanche",          "getrawavalancheproof",   getrawavalancheproof,   {"proofid"}},
         { "avalanche",          "sendavalancheproof",     sendavalancheproof,     {"proof"}},
