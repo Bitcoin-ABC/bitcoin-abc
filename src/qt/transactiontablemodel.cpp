@@ -49,6 +49,34 @@ struct TxLessThan {
     }
 };
 
+// queue notifications to show a non freezing progress dialog e.g. for rescan
+struct TransactionNotification {
+public:
+    TransactionNotification() {}
+    TransactionNotification(TxId _txid, ChangeType _status,
+                            bool _showTransaction)
+        : txid(_txid), status(_status), showTransaction(_showTransaction) {}
+
+    void invoke(QObject *ttm) {
+        QString strHash = QString::fromStdString(txid.GetHex());
+        qDebug() << "NotifyTransactionChanged: " + strHash +
+                        " status= " + QString::number(status);
+        bool invoked = QMetaObject::invokeMethod(
+            ttm, "updateTransaction", Qt::QueuedConnection,
+            Q_ARG(QString, strHash), Q_ARG(int, status),
+            Q_ARG(bool, showTransaction));
+        assert(invoked);
+    }
+
+private:
+    TxId txid;
+    ChangeType status;
+    bool showTransaction;
+};
+
+static bool fQueueNotifications = false;
+static std::vector<TransactionNotification> vQueueNotifications;
+
 // Private implementation
 class TransactionTablePriv {
 public:
@@ -684,34 +712,6 @@ void TransactionTableModel::updateDisplayUnit() {
     updateAmountColumnTitle();
     Q_EMIT dataChanged(index(0, Amount), index(priv->size() - 1, Amount));
 }
-
-// queue notifications to show a non freezing progress dialog e.g. for rescan
-struct TransactionNotification {
-public:
-    TransactionNotification() {}
-    TransactionNotification(TxId _txid, ChangeType _status,
-                            bool _showTransaction)
-        : txid(_txid), status(_status), showTransaction(_showTransaction) {}
-
-    void invoke(QObject *ttm) {
-        QString strHash = QString::fromStdString(txid.GetHex());
-        qDebug() << "NotifyTransactionChanged: " + strHash +
-                        " status= " + QString::number(status);
-        bool invoked = QMetaObject::invokeMethod(
-            ttm, "updateTransaction", Qt::QueuedConnection,
-            Q_ARG(QString, strHash), Q_ARG(int, status),
-            Q_ARG(bool, showTransaction));
-        assert(invoked);
-    }
-
-private:
-    TxId txid;
-    ChangeType status;
-    bool showTransaction;
-};
-
-static bool fQueueNotifications = false;
-static std::vector<TransactionNotification> vQueueNotifications;
 
 static void NotifyTransactionChanged(TransactionTableModel *ttm,
                                      const TxId &txid, ChangeType status) {
