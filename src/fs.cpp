@@ -19,6 +19,9 @@
 #include <windows.h>
 #endif
 
+#include <cassert>
+#include <string>
+
 namespace fsbridge {
 
 FILE *fopen(const fs::path &p, const char *mode) {

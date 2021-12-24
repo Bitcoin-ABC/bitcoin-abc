@@ -466,8 +466,9 @@ void SendCoinsDialog::on_sendButton_clicked() {
                 if (filename.isEmpty()) {
                     return;
                 }
-                std::ofstream out(filename.toLocal8Bit().data(),
-                                  std::ofstream::out | std::ofstream::binary);
+                fsbridge::ofstream out{filename.toLocal8Bit().data(),
+                                       fsbridge::ofstream::out |
+                                           fsbridge::ofstream::binary};
                 out << ssTx.str();
                 out.close();
                 Q_EMIT message(tr("PSBT saved"), "PSBT saved to disk",

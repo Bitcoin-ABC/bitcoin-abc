@@ -5,6 +5,7 @@
 #include <bench/bench.h>
 
 #include <chainparams.h>
+#include <fs.h>
 #include <validation.h>
 
 #include <test/util/setup_common.h>
@@ -20,7 +21,7 @@ void GenerateTemplateResults(
         // nothing to write, bail out
         return;
     }
-    std::ofstream fout(filename);
+    fsbridge::ofstream fout{fs::PathFromString(filename)};
     if (fout.is_open()) {
         ankerl::nanobench::render(tpl, benchmarkResults, fout);
     } else {

@@ -253,7 +253,7 @@ void WalletView::gotoLoadPSBT() {
                        CClientUIInterface::MSG_ERROR);
         return;
     }
-    std::ifstream in(filename.toLocal8Bit().data(), std::ios::binary);
+    fsbridge::ifstream in{filename.toLocal8Bit().data(), std::ios::binary};
     std::string dataStr(std::istreambuf_iterator<char>{in}, {});
 
     std::string error;
