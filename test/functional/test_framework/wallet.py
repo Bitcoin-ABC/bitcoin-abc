@@ -11,6 +11,8 @@ from typing import Optional
 from test_framework.address import (
     ADDRESS_ECREG_P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
+    base58_to_byte,
+    key_to_p2pkh,
 )
 from test_framework.key import ECKey
 from test_framework.messages import (
@@ -25,6 +27,7 @@ from test_framework.messages import (
 from test_framework.script import (
     OP_CHECKSIG,
     OP_DUP,
+    OP_EQUAL,
     OP_EQUALVERIFY,
     OP_HASH160,
     CScript,
@@ -155,13 +158,30 @@ class MiniWallet:
         return txid
 
 
-def random_p2pkh():
-    """Generate a random P2PKH scriptPubKey. Can be used when a random destination is needed,
-    but no compiled wallet is available (e.g. as replacement to the getnewaddress RPC)."""
+def getnewdestination():
+    """Generate a random destination and return the corresponding public key,
+       scriptPubKey and address. Can be used when a random destination is
+       needed, but no compiled wallet is available (e.g. as replacement to the
+       getnewaddress/getaddressinfo RPCs)."""
     key = ECKey()
     key.generate()
-    return CScript([OP_DUP, OP_HASH160, hash160(
-        key.get_pubkey().get_bytes()), OP_EQUALVERIFY, OP_CHECKSIG])
+    pubkey = key.get_pubkey().get_bytes()
+    scriptpubkey = CScript(
+        [OP_DUP, OP_HASH160, hash160(pubkey), OP_EQUALVERIFY, OP_CHECKSIG])
+    return pubkey, scriptpubkey, key_to_p2pkh(pubkey)
+
+
+def address_to_scriptpubkey(address):
+    """Converts a given address to the corresponding output script (scriptPubKey)."""
+    payload, version = base58_to_byte(address)
+    if version == 111:  # testnet pubkey hash
+        return CScript([OP_DUP, OP_HASH160, payload,
+                       OP_EQUALVERIFY, OP_CHECKSIG])
+    elif version == 196:  # testnet script hash
+        return CScript([OP_HASH160, payload, OP_EQUAL])
+    # TODO: also support other address formats
+    else:
+        assert False
 
 
 def make_chain(node, address, privkeys, parent_txid, parent_value, n=0,

@@ -29,7 +29,7 @@ from test_framework.p2p import (
 )
 from test_framework.script import MAX_SCRIPT_ELEMENT_SIZE
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.wallet import MiniWallet, random_p2pkh
+from test_framework.wallet import MiniWallet, getnewdestination
 
 
 class P2PBloomFilter(P2PInterface):
@@ -198,7 +198,7 @@ class FilterTest(BitcoinTestFramework):
         self.log.info(
             'Check that we only receive a merkleblock if the filter does not match a tx in a block')
         filter_peer.tx_received = False
-        block_hash = self.generatetoscriptpubkey(random_p2pkh())
+        block_hash = self.generatetoscriptpubkey(getnewdestination()[1])
         filter_peer.wait_for_merkleblock(block_hash)
         assert not filter_peer.tx_received
 
@@ -208,7 +208,7 @@ class FilterTest(BitcoinTestFramework):
         filter_peer.tx_received = False
         self.wallet.send_to(
             from_node=self.nodes[0],
-            scriptPubKey=random_p2pkh(),
+            scriptPubKey=getnewdestination()[1],
             amount=7 * COIN)
         filter_peer.sync_send_with_ping()
         assert not filter_peer.merkleblock_received
@@ -228,7 +228,7 @@ class FilterTest(BitcoinTestFramework):
 
         for _ in range(5):
             txid, _ = self.wallet.send_to(
-                from_node=self.nodes[0], scriptPubKey=random_p2pkh(), amount=7 * COIN)
+                from_node=self.nodes[0], scriptPubKey=getnewdestination()[1], amount=7 * COIN)
             filter_peer.wait_for_tx(txid)
 
         self.log.info(
@@ -237,7 +237,7 @@ class FilterTest(BitcoinTestFramework):
         filter_peer.merkleblock_received = False
         filter_peer.tx_received = False
         with self.nodes[0].assert_debug_log(expected_msgs=['received getdata']):
-            block_hash = self.generatetoscriptpubkey(random_p2pkh())
+            block_hash = self.generatetoscriptpubkey(getnewdestination()[1])
             filter_peer.wait_for_inv([CInv(MSG_BLOCK, int(block_hash, 16))])
             filter_peer.sync_with_ping()
             assert not filter_peer.merkleblock_received

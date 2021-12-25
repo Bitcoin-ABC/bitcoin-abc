@@ -3,12 +3,16 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the scantxoutset rpc call."""
-import os
-import shutil
 from decimal import Decimal
 
+from test_framework.messages import XEC
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.wallet import (
+    MiniWallet,
+    address_to_scriptpubkey,
+    getnewdestination,
+)
 
 
 def descriptors(out):
@@ -18,65 +22,64 @@ def descriptors(out):
 class ScantxoutsetTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.setup_clean_chain = True
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
+    def sendtodestination(self, destination, amount):
+        # interpret strings as addresses, assume scriptPubKey otherwise
+        if isinstance(destination, str):
+            destination = address_to_scriptpubkey(destination)
+        self.wallet.send_to(
+            from_node=self.nodes[0],
+            scriptPubKey=destination,
+            amount=int(
+                XEC * amount))
 
     def run_test(self):
-        self.log.info("Mining blocks...")
-        self.generate(self.nodes[0], 110)
+        self.wallet = MiniWallet(self.nodes[0])
+        self.wallet.rescan_utxos()
 
-        addr = self.nodes[0].getnewaddress("")
-        pubkey = self.nodes[0].getaddressinfo(addr)['pubkey']
-        self.nodes[0].sendtoaddress(addr, 2000)
+        self.log.info("Create UTXOs...")
+        pubk, spk, addr = getnewdestination()
+        self.sendtodestination(spk, 2000)
 
         # send to child keys of tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK
         # (m/0'/0'/0')
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mkHV1C6JLheLoUSSZYk7x3FH5tnx9bu7yc", 8000)
         # (m/0'/0'/1')
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mipUSRmJAj2KrjSvsPQtnP8ynUon7FhpCR", 16000)
         # (m/0'/0'/1500')
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "n37dAGe6Mq1HGM9t4b6rFEEsDGq7Fcgfqg", 32000)
         # (m/0'/0'/0)
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mqS9Rpg8nNLAzxFExsgFLCnzHBsoQ3PRM6", 64000)
         # (m/0'/0'/1)
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mnTg5gVWr3rbhHaKjJv7EEEc76ZqHgSj4S", 128000)
         # (m/0'/0'/1500)
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mketCd6B9U9Uee1iCsppDJJBHfvi6U6ukC", 256000)
         # (m/1/1/0')
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mj8zFzrbBcdaWXowCQ1oPZ4qioBVzLzAp7", 512000)
         # (m/1/1/1')
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mfnKpKQEftniaoE1iXuMMePQU3PUpcNisA", 1024000)
         # (m/1/1/1500')
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mou6cB1kaP1nNJM1sryW6YRwnd4shTbXYQ", 2048000)
         # (m/1/1/0)
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mtfUoUax9L4tzXARpw1oTGxWyoogp52KhJ", 4096000)
         # (m/1/1/1)
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mxp7w7j8S1Aq6L8StS2PqVvtt4HGxXEvdy", 8192000)
         # (m/1/1/1500)
-        self.nodes[0].sendtoaddress(
+        self.sendtodestination(
             "mpQ8rokAhp1TAtJQR6F6TaUmjAWkAWYYBq", 16384000)
 
         self.generate(self.nodes[0], 1)
-
-        self.log.info("Stop node, remove wallet, mine again some blocks...")
-        self.stop_node(0)
-        shutil.rmtree(os.path.join(
-            self.nodes[0].datadir, self.chain, 'wallets'))
-        self.start_node(0)
-        self.generate(self.nodes[0], 110)
 
         scan = self.nodes[0].scantxoutset("start", [])
         info = self.nodes[0].gettxoutsetinfo()
@@ -85,12 +88,11 @@ class ScantxoutsetTest(BitcoinTestFramework):
         assert_equal(scan['txouts'], info['txouts'])
         assert_equal(scan['bestblock'], info['bestblock'])
 
-        self.restart_node(0, ['-nowallet'])
         self.log.info("Test if we have found the non HD unspent outputs.")
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["pkh(" + pubkey + ")"])['total_amount'], Decimal("2000"))
+            "start", ["pkh(" + pubk.hex() + ")"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
-            "start", ["combo(" + pubkey + ")"])['total_amount'], Decimal("2000"))
+            "start", ["combo(" + pubk.hex() + ")"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
             "start", ["addr(" + addr + ")"])['total_amount'], Decimal("2000"))
         assert_equal(self.nodes[0].scantxoutset(
