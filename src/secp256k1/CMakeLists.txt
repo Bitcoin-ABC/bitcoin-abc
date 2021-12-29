@@ -322,17 +322,26 @@ endfunction(gen_precomputed_tables)
 
 gen_precomputed_tables(precompute_ecmult precomputed_ecmult)
 
-set(SECP256K1_ECMULT_GEN_PRECISION 4 CACHE STRING "Precision bits to tune the precomputed table size for signing.")
-set(VALID_PRECISIONS 2 4 8)
-if(NOT ${SECP256K1_ECMULT_GEN_PRECISION} IN_LIST VALID_PRECISIONS)
-	message(FATAL_ERROR "SECP256K1_ECMULT_GEN_PRECISION not 2, 4, 8")
+set(SECP256K1_ECMULT_GEN_KB 22 CACHE STRING "The size of the precomputed table for signing in multiples of 1024 bytes (on typical platforms).")
+set(VALID_SIZES_KB 2 22 86)
+if(NOT ${SECP256K1_ECMULT_GEN_KB} IN_LIST VALID_SIZES_KB)
+	message(FATAL_ERROR "SECP256K1_ECMULT_GEN_KB not ${VALID_SIZES_KB}")
 endif()
-add_compile_definitions(ECMULT_GEN_PREC_BITS=${SECP256K1_ECMULT_GEN_PRECISION})
+if(SECP256K1_ECMULT_GEN_KB EQUAL 2)
+	add_compile_definitions(COMB_BLOCKS=2)
+	add_compile_definitions(COMB_TEETH=5)
+elseif(SECP256K1_ECMULT_GEN_KB EQUAL 22)
+	add_compile_definitions(COMB_BLOCKS=11)
+	add_compile_definitions(COMB_TEETH=6)
+elseif(SECP256K1_ECMULT_GEN_KB EQUAL 86)
+	add_compile_definitions(COMB_BLOCKS=43)
+	add_compile_definitions(COMB_TEETH=6)
+endif()
 
 # Static precomputation for elliptic curve multiplication
 native_add_cmake_flags(
 	"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
-	"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
+	"-DSECP256K1_ECMULT_GEN_KB=${SECP256K1_ECMULT_GEN_KB}"
 	"-DSECP256K1_ENABLE_ASM=OFF"
 	"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
 )

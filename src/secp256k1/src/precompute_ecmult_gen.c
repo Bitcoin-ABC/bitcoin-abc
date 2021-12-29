@@ -17,8 +17,10 @@
 #include "ecmult_gen.h"
 #include "ecmult_gen_compute_table_impl.h"
 
-static const int CONFIGS[1][2] = {
-    {11, 6}
+static const int CONFIGS[][2] = {
+    {2, 5},
+    {11, 6},
+    {43, 6}
 };
 
 static void print_table(FILE* fp, int blocks, int teeth) {
@@ -53,6 +55,7 @@ int main(int argc, char **argv) {
     const char outfile[] = "src/precomputed_ecmult_gen.c";
     FILE* fp;
     size_t config;
+    int did_current_config = 0;
 
     (void)argc;
     (void)argv;
@@ -77,6 +80,12 @@ int main(int argc, char **argv) {
     fprintf(fp, "#if 0\n");
     for (config = 0; config < sizeof(CONFIGS) / sizeof(*CONFIGS); ++config) {
         print_table(fp, CONFIGS[config][0], CONFIGS[config][1]);
+        if (CONFIGS[config][0] == COMB_BLOCKS && CONFIGS[config][1] == COMB_TEETH) {
+            did_current_config = 1;
+        }
+    }
+    if (!did_current_config) {
+        print_table(fp, COMB_BLOCKS, COMB_TEETH);
     }
     fprintf(fp, "#else\n");
     fprintf(fp, "#    error Configuration mismatch, invalid COMB_* parameters. Try deleting precomputed_ecmult_gen.c before the build.\n");

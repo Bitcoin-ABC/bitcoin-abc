@@ -21,13 +21,13 @@ if [ "$WITH_VALGRIND" = "yes" ]; then
   CMAKE_EXTRA_FLAGS+=("-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}")
 fi
 
-# "auto" is not a valid value for SECP256K1_ECMULT_GEN_PRECISION and
+# "auto" is not a valid value for SECP256K1_ECMULT_GEN_KB and
 # SECP256K1_ECMULT_WINDOW_SIZE with cmake.
 # In this case we use the default value instead by not setting the cache
 # variable on the cmake command line.
-ECMULT_GEN_PRECISION_ARG=""
-if [ "x$ECMULTGENPRECISION" != "xauto" ]; then
-  ECMULT_GEN_PRECISION_ARG="-DSECP256K1_ECMULT_GEN_PRECISION=$ECMULTGENPRECISION"
+ECMULT_GEN_KB_ARG=""
+if [ "x$ECMULTGENKB" != "xauto" ]; then
+  ECMULT_GEN_KB_ARG="-DSECP256K1_ECMULT_GEN_KB=$ECMULTGENKB"
 fi
 ECMULT_WINDOW_SIZE_ARG=""
 if [ "x$ECMULTWINDOW" != "xauto" ]; then
@@ -60,7 +60,7 @@ ${CMAKE_COMMAND} -GNinja .. \
   -DSECP256K1_ENABLE_ASM=$ASM \
   -DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=$WIDEMUL \
   $ECMULT_WINDOW_SIZE_ARG \
-  $ECMULT_GEN_PRECISION_ARG \
+  $ECMULT_GEN_KB_ARG \
   "${CMAKE_EXTRA_FLAGS[@]}"
 
 ninja $CMAKE_TARGET
