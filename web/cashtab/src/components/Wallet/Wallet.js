@@ -171,13 +171,13 @@ const WalletInfo = () => {
     const walletState = getWalletState(wallet);
     const { balances, parsedTxHistory, tokens } = walletState;
 
-    const [address, setAddress] = React.useState('cashAddress');
+    const [isCashAddress, setIsCashAddress] = React.useState(true);
     const [activeTab, setActiveTab] = React.useState('txHistory');
 
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     const handleChangeAddress = () => {
-        setAddress(address === 'cashAddress' ? 'slpAddress' : 'cashAddress');
+        setIsCashAddress(!isCashAddress);
     };
 
     return (
@@ -222,10 +222,11 @@ const WalletInfo = () => {
                             <QRCode
                                 id="borderedQRCode"
                                 address={
-                                    address === 'slpAddress'
-                                        ? wallet.Path1899.slpAddress
-                                        : wallet.Path1899.cashAddress
+                                    isCashAddress
+                                        ? wallet.Path1899.cashAddress
+                                        : wallet.Path1899.slpAddress
                                 }
+                                isCashAddress={isCashAddress}
                             />
                         </>
                     ) : (
@@ -233,10 +234,11 @@ const WalletInfo = () => {
                             <QRCode
                                 id="borderedQRCode"
                                 address={
-                                    address === 'slpAddress'
-                                        ? wallet.Path245.slpAddress
-                                        : wallet.Path145.cashAddress
+                                    isCashAddress
+                                        ? wallet.Path245.cashAddress
+                                        : wallet.Path245.slpAddress
                                 }
+                                isCashAddress={isCashAddress}
                             />
                         </>
                     )}
@@ -246,17 +248,13 @@ const WalletInfo = () => {
             <SwitchBtnCtn>
                 <SwitchBtn
                     onClick={() => handleChangeAddress()}
-                    className={
-                        address !== 'cashAddress' ? 'nonactiveBtn' : null
-                    }
+                    className={isCashAddress ? null : 'nonactiveBtn'}
                 >
                     {currency.ticker}
                 </SwitchBtn>
                 <SwitchBtn
                     onClick={() => handleChangeAddress()}
-                    className={
-                        address === 'cashAddress' ? 'nonactiveBtn' : 'slpActive'
-                    }
+                    className={isCashAddress ? 'nonactiveBtn' : 'slpActive'}
                 >
                     {currency.tokenTicker}
                 </SwitchBtn>

@@ -162,39 +162,6 @@ export function parseOpReturn(hexStr) {
     return resultArray;
 }
 
-export function isValidCashPrefix(addressString) {
-    // Note that this function validates prefix only
-    // Check for prefix included in currency.prefixes array
-    // For now, validation is handled by converting to bitcoincash: prefix and checksum
-    // and relying on legacy validation methods of bitcoincash: prefix addresses
-
-    // Also accept an address with no prefix, as some exchanges provide these
-    for (let i = 0; i < currency.prefixes.length; i += 1) {
-        // If the addressString being tested starts with an accepted prefix or no prefix at all
-        if (
-            addressString.startsWith(currency.prefixes[i] + ':') ||
-            !addressString.includes(':')
-        ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-export function isValidTokenPrefix(addressString) {
-    // Check for prefix included in currency.tokenPrefixes array
-    // For now, validation is handled by converting to simpleledger: prefix and checksum
-    // and relying on legacy validation methods of simpleledger: prefix addresses
-
-    // For token addresses, do not accept an address with no prefix
-    for (let i = 0; i < currency.tokenPrefixes.length; i += 1) {
-        if (addressString.startsWith(currency.tokenPrefixes[i] + ':')) {
-            return true;
-        }
-    }
-    return false;
-}
-
 export function parseAddressForParams(addressString) {
     // Build return obj
     const addressInfo = {

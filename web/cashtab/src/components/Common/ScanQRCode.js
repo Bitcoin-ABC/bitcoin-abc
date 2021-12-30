@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, Modal } from 'antd';
 import { ThemedQrcodeOutlined } from '@components/Common/CustomIcons';
+import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import {
-    currency,
-    isValidCashPrefix,
-    isValidTokenPrefix,
-} from '@components/Common/Ticker.js';
+import { currency } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
+import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
 
 const StyledScanQRCode = styled.span`
     display: block;
@@ -57,8 +55,8 @@ const ScanQRCode = ({
         let type = 'unknown';
         let values = {};
 
-        // If what scanner reads from QR code begins with 'bitcoincash:' or 'simpleledger:' or their successor prefixes
-        if (isValidCashPrefix(content) || isValidTokenPrefix(content)) {
+        // If what scanner reads from QR code is a valid eCash or eToken address
+        if (isValidXecAddress(content) || isValidEtokenAddress(content)) {
             type = 'address';
             values = { address: content };
             // Event("Category", "Action", "Label")
@@ -91,29 +89,35 @@ const ScanQRCode = ({
 
             //const previewElem = document.querySelector("#test-area-qr-code-webcam");
 
-            const content = await codeReader.decodeFromInputVideoDevice(
-                undefined,
-                'test-area-qr-code-webcam',
-            );
-            const result = parseContent(content.text);
+            let result = { type: 'unknown', values: {} };
 
-            // stop scanning and fill form if it's an address
-            if (result.type === 'address') {
-                // Hide the scanner
-                setVisible(false);
-                onScan(result.values.address);
-                return teardownCodeReader(codeReader);
+            while (result.type !== 'address') {
+                const content = await codeReader.decodeFromInputVideoDevice(
+                    undefined,
+                    'test-area-qr-code-webcam',
+                );
+                result = parseContent(content.text);
+                if (result.type !== 'address') {
+                    errorNotification(
+                        content.text,
+                        `${content.text} is not a valid eCash address`,
+                        `${content.text} is not a valid eCash address`,
+                    );
+                }
             }
+            // When you scan a valid address, stop scanning and fill form
+            // Hide the scanner
+            setVisible(false);
+            onScan(result.values.address);
+            return teardownCodeReader(codeReader);
         } catch (err) {
             console.log(`Error in QR scanner:`);
             console.log(err);
             console.log(JSON.stringify(err.message));
             //setMobileErrorMsg(JSON.stringify(err.message));
             setError(err);
-            teardownCodeReader(codeReader);
+            return teardownCodeReader(codeReader);
         }
-
-        // stop scanning after 20s no matter what
     };
 
     React.useEffect(() => {
