@@ -22,7 +22,7 @@ export const currency = {
     tokenLogo: tokenLogo,
     tokenPrefixes: ['etoken'],
     tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
-    txHistoryCount: 5,
+    txHistoryCount: 10,
     xecApiBatchSize: 20,
     defaultSettings: { fiatCurrency: 'usd' },
     notificationDurationShort: 3,
