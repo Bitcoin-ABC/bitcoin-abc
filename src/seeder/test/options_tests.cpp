@@ -7,6 +7,10 @@
 
 #include <boost/test/unit_test.hpp>
 
+static const char *TEST_HOST = "-host=seeder.bitcoinabc.org";
+static const char *TEST_NAMESERVER = "-ns=localhost";
+static const char *TEST_EMAIL = "-mbox=email@bitcoinabc.org";
+
 class ArgsTestingSetup {
 public:
     ArgsManager argsManager;
@@ -28,14 +32,79 @@ BOOST_FIXTURE_TEST_CASE(options_defaults_test, ArgsTestingSetup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(options_basic_test, ArgsTestingSetup) {
-    const char *argv[] = {"ignored", "-host=seeder.bitcoinabc.org",
-                          "-ns=localhost", "-mbox=email@bitcoinabc.org",
+    const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
                           "-port=5555"};
     BOOST_CHECK(opts.ParseCommandLine(5, argv) == seeder::CONTINUE_EXECUTION);
     BOOST_CHECK(opts.host == "seeder.bitcoinabc.org");
     BOOST_CHECK(opts.ns == "localhost");
     BOOST_CHECK(opts.mbox == "email@bitcoinabc.org");
     BOOST_CHECK(opts.nPort == 5555);
+}
+
+BOOST_FIXTURE_TEST_CASE(options_threads_test, ArgsTestingSetup) {
+    const std::map<int, int> expectedResults = {
+        {-9999, EXIT_FAILURE},
+        {-1, EXIT_FAILURE},
+        {0, EXIT_FAILURE},
+        {1, seeder::CONTINUE_EXECUTION},
+        {seeder::DEFAULT_NUM_THREADS, seeder::CONTINUE_EXECUTION},
+        {9999, seeder::CONTINUE_EXECUTION}};
+
+    for (const auto entry : expectedResults) {
+        const std::string testArg = "-threads=" + ToString(entry.first);
+        const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
+                              testArg.c_str()};
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
+        if (entry.second == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.nThreads == entry.first);
+        }
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(options_dns_threads_test, ArgsTestingSetup) {
+    const std::map<int, int> expectedResults = {
+        {-9999, EXIT_FAILURE},
+        {-1, EXIT_FAILURE},
+        {0, EXIT_FAILURE},
+        {1, seeder::CONTINUE_EXECUTION},
+        {seeder::DEFAULT_NUM_DNS_THREADS, seeder::CONTINUE_EXECUTION},
+        {9999, seeder::CONTINUE_EXECUTION}};
+
+    for (const auto entry : expectedResults) {
+        const std::string testArg = "-dnsthreads=" + ToString(entry.first);
+        const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
+                              testArg.c_str()};
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
+        if (entry.second == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.nDnsThreads == entry.first);
+        }
+    }
+}
+
+BOOST_FIXTURE_TEST_CASE(options_port_test, ArgsTestingSetup) {
+    const std::map<int, int> expectedResults = {
+        {-9999, EXIT_FAILURE},
+        {-1, EXIT_FAILURE},
+        // Note: port 0 indicates to the kernel that a random unused port should
+        // be assigned
+        {0, seeder::CONTINUE_EXECUTION},
+        {1, seeder::CONTINUE_EXECUTION},
+        {seeder::DEFAULT_PORT, seeder::CONTINUE_EXECUTION},
+        {53, seeder::CONTINUE_EXECUTION},
+        {15353, seeder::CONTINUE_EXECUTION},
+        {65535, seeder::CONTINUE_EXECUTION},
+        {65536, EXIT_FAILURE},
+        {999999, EXIT_FAILURE}};
+
+    for (const auto entry : expectedResults) {
+        const std::string testArg = "-port=" + ToString(entry.first);
+        const char *argv[] = {"ignored", TEST_HOST, TEST_NAMESERVER, TEST_EMAIL,
+                              testArg.c_str()};
+        BOOST_CHECK(opts.ParseCommandLine(5, argv) == entry.second);
+        if (entry.second == seeder::CONTINUE_EXECUTION) {
+            BOOST_CHECK(opts.nPort == entry.first);
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

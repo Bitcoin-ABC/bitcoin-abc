@@ -36,8 +36,28 @@ int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
     }
 
     nThreads = argsManager->GetArg("-threads", DEFAULT_NUM_THREADS);
+    if (nThreads <= 0) {
+        tfm::format(
+            std::cerr,
+            "Error: -threads argument expects only positive integers\n");
+        return EXIT_FAILURE;
+    }
+
     nPort = argsManager->GetArg("-port", DEFAULT_PORT);
+    if (nPort < 0 || nPort > 65535) {
+        tfm::format(std::cerr, "Error: -port argument expects only positive "
+                               "integers in the range 0 - 65535\n");
+        return EXIT_FAILURE;
+    }
+
     nDnsThreads = argsManager->GetArg("-dnsthreads", DEFAULT_NUM_DNS_THREADS);
+    if (nDnsThreads <= 0) {
+        tfm::format(
+            std::cerr,
+            "Error: -dnsthreads argument expects only positive integers\n");
+        return EXIT_FAILURE;
+    }
+
     fWipeBan = argsManager->GetBoolArg("-wipeban", DEFAULT_WIPE_BAN);
     fWipeIgnore = argsManager->GetBoolArg("-wipeignore", DEFAULT_WIPE_IGNORE);
     mbox = argsManager->GetArg("-mbox", DEFAULT_EMAIL);
