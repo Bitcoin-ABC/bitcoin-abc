@@ -1337,6 +1337,7 @@ RPCHelpMan getblockchaininfo() {
             const JSONRPCRequest &request) -> UniValue {
             const CChainParams &chainparams = config.GetChainParams();
 
+            const ArgsManager &args{EnsureAnyArgsman(request.context)};
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
             Chainstate &active_chainstate = chainman.ActiveChainstate();
@@ -1370,7 +1371,7 @@ RPCHelpMan getblockchaininfo() {
                            node::GetFirstStoredBlock(&tip)->nHeight);
 
                 // if 0, execution bypasses the whole if block.
-                bool automatic_pruning = (gArgs.GetIntArg("-prune", 0) != 1);
+                bool automatic_pruning{args.GetIntArg("-prune", 0) != 1};
                 obj.pushKV("automatic_pruning", automatic_pruning);
                 if (automatic_pruning) {
                     obj.pushKV("prune_target_size",
@@ -2604,12 +2605,13 @@ static RPCHelpMan dumptxoutset() {
         RPCExamples{HelpExampleCli("dumptxoutset", "utxo.dat")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            const ArgsManager &args{EnsureAnyArgsman(request.context)};
             const fs::path path = fsbridge::AbsPathJoin(
-                gArgs.GetDataDirNet(), fs::u8path(request.params[0].get_str()));
+                args.GetDataDirNet(), fs::u8path(request.params[0].get_str()));
             // Write to a temporary path and then move into `path` on completion
             // to avoid confusion due to an interruption.
             const fs::path temppath = fsbridge::AbsPathJoin(
-                gArgs.GetDataDirNet(),
+                args.GetDataDirNet(),
                 fs::u8path(request.params[0].get_str() + ".incomplete"));
 
             if (fs::exists(path)) {

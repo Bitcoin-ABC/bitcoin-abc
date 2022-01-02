@@ -453,9 +453,8 @@ RPCHelpMan savemempool() {
                     HelpExampleRpc("savemempool", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            const ArgsManager &args{EnsureAnyArgsman(request.context)};
             const CTxMemPool &mempool = EnsureAnyMemPool(request.context);
-
-            const NodeContext &node = EnsureAnyNodeContext(request.context);
 
             if (!mempool.IsLoaded()) {
                 throw JSONRPCError(RPC_MISC_ERROR,
@@ -468,9 +467,9 @@ RPCHelpMan savemempool() {
             }
 
             UniValue ret(UniValue::VOBJ);
-            ret.pushKV("filename",
-                       fs::path((node.args->GetDataDirNet() / "mempool.dat"))
-                           .u8string());
+            ret.pushKV(
+                "filename",
+                fs::path((args.GetDataDirNet() / "mempool.dat")).u8string());
 
             return ret;
         },

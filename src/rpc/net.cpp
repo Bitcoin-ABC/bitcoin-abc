@@ -432,6 +432,9 @@ static RPCHelpMan addconnection() {
                                          "testing (-regtest mode) only.");
             }
 
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            const ArgsManager &args{EnsureArgsman(node)};
+
             RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VSTR});
             const std::string address = request.params[0].get_str();
             const std::string conn_type_in{
@@ -446,7 +449,7 @@ static RPCHelpMan addconnection() {
             } else if (conn_type_in == "feeler") {
                 conn_type = ConnectionType::FEELER;
             } else if (conn_type_in == "avalanche") {
-                if (!g_avalanche || !isAvalancheEnabled(gArgs)) {
+                if (!g_avalanche || !isAvalancheEnabled(args)) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
                                        "Error: avalanche outbound requested "
                                        "but avalanche is not enabled.");
@@ -456,7 +459,6 @@ static RPCHelpMan addconnection() {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, self.ToString());
             }
 
-            NodeContext &node = EnsureAnyNodeContext(request.context);
             CConnman &connman = EnsureConnman(node);
 
             const bool success = connman.AddConnection(address, conn_type);

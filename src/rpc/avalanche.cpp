@@ -767,7 +767,8 @@ static RPCHelpMan getavalancheinfo() {
                                                 : "pending inbound connections")
                                      : state.GetRejectReason());
                 }
-                if (IsDeprecatedRPCEnabled(gArgs, "getavalancheinfo_sharing")) {
+                const ArgsManager &args{EnsureAnyArgsman(request.context)};
+                if (IsDeprecatedRPCEnabled(args, "getavalancheinfo_sharing")) {
                     local.pushKV("sharing", sharing);
                 }
                 local.pushKV("proofid", localProof->getId().ToString());

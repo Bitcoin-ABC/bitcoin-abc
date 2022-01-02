@@ -7,17 +7,20 @@
 
 #include <any>
 
+class ArgsManager;
 class CConnman;
-class ChainstateManager;
 class CTxMemPool;
+class ChainstateManager;
+class PeerManager;
 namespace node {
 struct NodeContext;
 } // namespace node
-class PeerManager;
 
 node::NodeContext &EnsureAnyNodeContext(const std::any &context);
 CTxMemPool &EnsureMemPool(const node::NodeContext &node);
 CTxMemPool &EnsureAnyMemPool(const std::any &context);
+ArgsManager &EnsureArgsman(const node::NodeContext &node);
+ArgsManager &EnsureAnyArgsman(const std::any &context);
 ChainstateManager &EnsureChainman(const node::NodeContext &node);
 ChainstateManager &EnsureAnyChainman(const std::any &context);
 CConnman &EnsureConnman(const node::NodeContext &node);

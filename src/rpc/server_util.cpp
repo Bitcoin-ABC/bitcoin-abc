@@ -36,6 +36,17 @@ CTxMemPool &EnsureAnyMemPool(const std::any &context) {
     return EnsureMemPool(EnsureAnyNodeContext(context));
 }
 
+ArgsManager &EnsureArgsman(const NodeContext &node) {
+    if (!node.args) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Node args not found");
+    }
+    return *node.args;
+}
+
+ArgsManager &EnsureAnyArgsman(const std::any &context) {
+    return EnsureArgsman(EnsureAnyNodeContext(context));
+}
+
 ChainstateManager &EnsureChainman(const NodeContext &node) {
     if (!node.chainman) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Node chainman not found");

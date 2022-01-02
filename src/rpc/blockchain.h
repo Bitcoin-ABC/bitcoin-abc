@@ -17,7 +17,6 @@
 class CBlock;
 class CBlockIndex;
 class Chainstate;
-class ChainstateManager;
 class RPCHelpMan;
 namespace node {
 struct NodeContext;
