@@ -489,8 +489,6 @@ void WriteToStream(FuzzedDataProvider &fuzzed_data_provider,
                 fuzzed_data_provider,
                 WRITE_TO_STREAM_CASE(bool, fuzzed_data_provider.ConsumeBool()),
                 WRITE_TO_STREAM_CASE(
-                    char, fuzzed_data_provider.ConsumeIntegral<char>()),
-                WRITE_TO_STREAM_CASE(
                     int8_t, fuzzed_data_provider.ConsumeIntegral<int8_t>()),
                 WRITE_TO_STREAM_CASE(
                     uint8_t, fuzzed_data_provider.ConsumeIntegral<uint8_t>()),
@@ -514,8 +512,8 @@ void WriteToStream(FuzzedDataProvider &fuzzed_data_provider,
                 WRITE_TO_STREAM_CASE(
                     std::string,
                     fuzzed_data_provider.ConsumeRandomLengthString(32)),
-                WRITE_TO_STREAM_CASE(std::vector<char>,
-                                     ConsumeRandomLengthIntegralVector<char>(
+                WRITE_TO_STREAM_CASE(std::vector<uint8_t>,
+                                     ConsumeRandomLengthIntegralVector<uint8_t>(
                                          fuzzed_data_provider)));
         } catch (const std::ios_base::failure &) {
             break;
@@ -537,7 +535,6 @@ void ReadFromStream(FuzzedDataProvider &fuzzed_data_provider,
             CallOneOf(
                 fuzzed_data_provider,
                 READ_FROM_STREAM_CASE(bool),
-                READ_FROM_STREAM_CASE(char),
                 READ_FROM_STREAM_CASE(int8_t),
                 READ_FROM_STREAM_CASE(uint8_t),
                 READ_FROM_STREAM_CASE(int16_t),
@@ -549,7 +546,7 @@ void ReadFromStream(FuzzedDataProvider &fuzzed_data_provider,
                 READ_FROM_STREAM_CASE(float),
                 READ_FROM_STREAM_CASE(double),
                 READ_FROM_STREAM_CASE(std::string),
-                READ_FROM_STREAM_CASE(std::vector<char>)
+                READ_FROM_STREAM_CASE(std::vector<uint8_t>)
             );
             // clang-format on
         } catch (const std::ios_base::failure &) {

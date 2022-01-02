@@ -224,10 +224,8 @@ template <typename X> const X &ReadWriteAsHelper(const X &x) {
     FORMATTER_METHODS(cls, obj)
 
 #ifndef CHAR_EQUALS_INT8
-// TODO Get rid of bare char
-template <typename Stream> inline void Serialize(Stream &s, char a) {
-    ser_writedata8(s, a);
-}
+// char serialization forbidden. Use uint8_t or int8_t
+template <typename Stream> void Serialize(Stream &, char) = delete;
 #endif
 template <typename Stream> inline void Serialize(Stream &s, int8_t a) {
     ser_writedata8(s, a);
@@ -276,10 +274,8 @@ inline void Serialize(Stream &s, const std::array<uint8_t, N> &a) {
     s.write(MakeByteSpan(a));
 }
 #ifndef CHAR_EQUALS_INT8
-// TODO Get rid of bare char
-template <typename Stream> inline void Unserialize(Stream &s, char &a) {
-    a = ser_readdata8(s);
-}
+// char serialization forbidden. Use uint8_t or int8_t
+template <typename Stream> void Unserialize(Stream &, char) = delete;
 template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const char (&a)[N]) {
     s.write(MakeByteSpan(a));
