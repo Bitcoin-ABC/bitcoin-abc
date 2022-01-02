@@ -178,18 +178,18 @@ static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(),
                                     txCredit.vout[0].nValue / SATOSHI,
-                                    stream.data(), stream.size(), 0,
+                                    UCharCast(stream.data()), stream.size(), 0,
                                     libconsensus_flags, nullptr) == expect,
                                 message);
         } else {
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
                                     scriptPubKey.data(), scriptPubKey.size(), 0,
-                                    stream.data(), stream.size(), 0,
+                                    UCharCast(stream.data()), stream.size(), 0,
                                     libconsensus_flags, nullptr) == expect,
                                 message);
             BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script(
                                     scriptPubKey.data(), scriptPubKey.size(),
-                                    stream.data(), stream.size(), 0,
+                                    UCharCast(stream.data()), stream.size(), 0,
                                     libconsensus_flags, nullptr) == expect,
                                 message);
         }
@@ -3227,8 +3227,8 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_returns_true) {
 
     bitcoinconsensus_error err;
     int result = bitcoinconsensus_verify_script(
-        scriptPubKey.data(), scriptPubKey.size(), stream.data(), stream.size(),
-        nIn, libconsensus_flags, &err);
+        scriptPubKey.data(), scriptPubKey.size(), UCharCast(stream.data()),
+        stream.size(), nIn, libconsensus_flags, &err);
     BOOST_CHECK_EQUAL(result, 1);
     BOOST_CHECK_EQUAL(err, bitcoinconsensus_ERR_OK);
 }
@@ -3251,8 +3251,8 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_tx_index_err) {
 
     bitcoinconsensus_error err;
     int result = bitcoinconsensus_verify_script(
-        scriptPubKey.data(), scriptPubKey.size(), stream.data(), stream.size(),
-        nIn, libconsensus_flags, &err);
+        scriptPubKey.data(), scriptPubKey.size(), UCharCast(stream.data()),
+        stream.size(), nIn, libconsensus_flags, &err);
     BOOST_CHECK_EQUAL(result, 0);
     BOOST_CHECK_EQUAL(err, bitcoinconsensus_ERR_TX_INDEX);
 }
@@ -3275,7 +3275,7 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_tx_size) {
 
     bitcoinconsensus_error err;
     int result = bitcoinconsensus_verify_script(
-        scriptPubKey.data(), scriptPubKey.size(), stream.data(),
+        scriptPubKey.data(), scriptPubKey.size(), UCharCast(stream.data()),
         stream.size() * 2, nIn, libconsensus_flags, &err);
     BOOST_CHECK_EQUAL(result, 0);
     BOOST_CHECK_EQUAL(err, bitcoinconsensus_ERR_TX_SIZE_MISMATCH);
@@ -3299,8 +3299,8 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_tx_serialization) {
 
     bitcoinconsensus_error err;
     int result = bitcoinconsensus_verify_script(
-        scriptPubKey.data(), scriptPubKey.size(), stream.data(), stream.size(),
-        nIn, libconsensus_flags, &err);
+        scriptPubKey.data(), scriptPubKey.size(), UCharCast(stream.data()),
+        stream.size(), nIn, libconsensus_flags, &err);
     BOOST_CHECK_EQUAL(result, 0);
     BOOST_CHECK_EQUAL(err, bitcoinconsensus_ERR_TX_DESERIALIZE);
 }
@@ -3324,8 +3324,8 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_amount_required_err) {
 
     bitcoinconsensus_error err;
     int result = bitcoinconsensus_verify_script(
-        scriptPubKey.data(), scriptPubKey.size(), stream.data(), stream.size(),
-        nIn, libconsensus_flags, &err);
+        scriptPubKey.data(), scriptPubKey.size(), UCharCast(stream.data()),
+        stream.size(), nIn, libconsensus_flags, &err);
     BOOST_CHECK_EQUAL(result, 0);
     BOOST_CHECK_EQUAL(err, bitcoinconsensus_ERR_AMOUNT_REQUIRED);
 }
@@ -3347,8 +3347,8 @@ BOOST_AUTO_TEST_CASE(bitcoinconsensus_verify_script_invalid_flags) {
 
     bitcoinconsensus_error err;
     int result = bitcoinconsensus_verify_script(
-        scriptPubKey.data(), scriptPubKey.size(), stream.data(), stream.size(),
-        nIn, libconsensus_flags, &err);
+        scriptPubKey.data(), scriptPubKey.size(), UCharCast(stream.data()),
+        stream.size(), nIn, libconsensus_flags, &err);
     BOOST_CHECK_EQUAL(result, 0);
     BOOST_CHECK_EQUAL(err, bitcoinconsensus_ERR_INVALID_FLAGS);
 }

@@ -16,7 +16,6 @@ static void WriteMessage(CDataStream &stream, std::string command,
                          Args &&...args) {
     CSerializedNetMsg payload = CNetMsgMaker(stream.GetVersion())
                                     .Make(command, std::forward<Args>(args)...);
-    size_t nMessageSize = payload.data.size();
 
     // Serialize header
     std::vector<uint8_t> serializedHeader;
@@ -24,11 +23,9 @@ static void WriteMessage(CDataStream &stream, std::string command,
     serializer.prepareForTransport(GetConfig(), payload, serializedHeader);
 
     // Write message header + payload to outgoing stream
-    stream.write(reinterpret_cast<const char *>(serializedHeader.data()),
-                 serializedHeader.size());
-    if (nMessageSize) {
-        stream.write(reinterpret_cast<const char *>(payload.data.data()),
-                     nMessageSize);
+    stream.write(MakeByteSpan(serializedHeader));
+    if (payload.data.size()) {
+        stream.write(MakeByteSpan(payload.data));
     }
 }
 

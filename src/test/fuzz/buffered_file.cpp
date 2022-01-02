@@ -38,12 +38,12 @@ FUZZ_TARGET(buffered_file) {
             CallOneOf(
                 fuzzed_data_provider,
                 [&] {
-                    std::array<uint8_t, 4096> arr{};
+                    std::array<std::byte, 4096> arr{};
                     try {
                         opt_buffered_file->read(
-                            (char *)arr.data(),
-                            fuzzed_data_provider.ConsumeIntegralInRange<size_t>(
-                                0, 4096));
+                            {arr.data(),
+                             fuzzed_data_provider
+                                 .ConsumeIntegralInRange<size_t>(0, 4096)});
                     } catch (const std::ios_base::failure &) {
                     }
                 },
@@ -67,7 +67,7 @@ FUZZ_TARGET(buffered_file) {
                     }
                     try {
                         opt_buffered_file->FindByte(
-                            fuzzed_data_provider.ConsumeIntegral<char>());
+                            fuzzed_data_provider.ConsumeIntegral<uint8_t>());
                     } catch (const std::ios_base::failure &) {
                     }
                 },

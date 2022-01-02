@@ -142,8 +142,8 @@ bool CSeederNode::ProcessMessages() {
             break;
         }
         vRecv.erase(vRecv.begin(), pstart);
-        std::vector<uint8_t> vHeaderSave(vRecv.begin(),
-                                         vRecv.begin() + nHeaderSize);
+        std::vector<std::byte> vHeaderSave(vRecv.begin(),
+                                           vRecv.begin() + nHeaderSize);
         CMessageHeader hdr(netMagic);
         vRecv >> hdr;
         if (!hdr.IsValidWithoutConfig(netMagic)) {
@@ -171,7 +171,7 @@ bool CSeederNode::ProcessMessages() {
                 continue;
             }
         }
-        std::vector<uint8_t> vec{vRecv.begin(), vRecv.begin() + nMessageSize};
+        std::vector<std::byte> vec{vRecv.begin(), vRecv.begin() + nMessageSize};
         CDataStream vMsg(MakeUCharSpan(vec), vRecv.GetType(),
                          vRecv.GetVersion());
         vRecv.ignore(nMessageSize);

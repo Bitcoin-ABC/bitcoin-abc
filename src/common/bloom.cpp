@@ -66,7 +66,7 @@ void CBloomFilter::insert(Span<const uint8_t> vKey) {
 void CBloomFilter::insert(const COutPoint &outpoint) {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << outpoint;
-    insert(stream);
+    insert(MakeUCharSpan(stream));
 }
 
 bool CBloomFilter::contains(Span<const uint8_t> vKey) const {
@@ -87,7 +87,7 @@ bool CBloomFilter::contains(Span<const uint8_t> vKey) const {
 bool CBloomFilter::contains(const COutPoint &outpoint) const {
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
     stream << outpoint;
-    return contains(stream);
+    return contains(MakeUCharSpan(stream));
 }
 
 bool CBloomFilter::IsWithinSizeConstraints() const {

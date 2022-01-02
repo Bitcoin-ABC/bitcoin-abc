@@ -5,7 +5,9 @@
 #ifndef BITCOIN_SEEDER_UTIL_H
 #define BITCOIN_SEEDER_UTIL_H
 
-#define BEGIN(a) ((uint8_t *)&(a))
-#define END(a) ((uint8_t *)&((&(a))[1]))
+#include <span.h>
+
+#define BEGIN(a) BytePtr(&(a))
+#define END(a) BytePtr(&((&(a))[1]))
 
 #endif // BITCOIN_SEEDER_UTIL_H

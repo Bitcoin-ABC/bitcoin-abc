@@ -110,8 +110,8 @@ public:
     int GetType() const { return nType; }
     int GetVersion() const { return nVersion; }
 
-    void write(const char *pch, size_t size) {
-        ctx.Write((const uint8_t *)pch, size);
+    void write(Span<const std::byte> src) {
+        ctx.Write(UCharCast(src.data()), src.size());
     }
 
     /**
@@ -166,16 +166,16 @@ public:
         : CHashWriter(source_->GetType(), source_->GetVersion()),
           source(source_) {}
 
-    void read(char *pch, size_t nSize) {
-        source->read(pch, nSize);
-        this->write(pch, nSize);
+    void read(Span<std::byte> dst) {
+        source->read(dst);
+        this->write(dst);
     }
 
     void ignore(size_t nSize) {
-        char data[1024];
+        std::byte data[1024];
         while (nSize > 0) {
             size_t now = std::min<size_t>(nSize, 1024);
-            read(data, now);
+            read({data, now});
             nSize -= now;
         }
     }

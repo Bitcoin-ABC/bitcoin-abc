@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(bitstream_reader_writer) {
 }
 
 BOOST_AUTO_TEST_CASE(streams_serializedata_xor) {
-    std::vector<uint8_t> in;
+    std::vector<std::byte> in;
     std::vector<char> expected_xor;
     std::vector<uint8_t> key;
     CDataStream ds(in, 0, 0);
@@ -165,8 +165,8 @@ BOOST_AUTO_TEST_CASE(streams_serializedata_xor) {
     BOOST_CHECK_EQUAL(std::string(expected_xor.begin(), expected_xor.end()),
                       ds.str());
 
-    in.push_back('\x0f');
-    in.push_back('\xf0');
+    in.push_back(std::byte{0x0f});
+    in.push_back(std::byte{0xf0});
     expected_xor.push_back('\xf0');
     expected_xor.push_back('\x0f');
 
@@ -185,8 +185,8 @@ BOOST_AUTO_TEST_CASE(streams_serializedata_xor) {
 
     in.clear();
     expected_xor.clear();
-    in.push_back('\xf0');
-    in.push_back('\x0f');
+    in.push_back(std::byte{0xf0});
+    in.push_back(std::byte{0x0f});
     expected_xor.push_back('\x0f');
     expected_xor.push_back('\x00');
 
@@ -207,15 +207,18 @@ BOOST_AUTO_TEST_CASE(streams_empty_vector) {
     CDataStream ds(in, 0, 0);
 
     // read 0 bytes used to cause a segfault on some older systems.
-    BOOST_CHECK_NO_THROW(ds.read(nullptr, 0));
+    BOOST_CHECK_NO_THROW(ds.read({}));
 
     // Same goes for writing 0 bytes from a vector ...
-    const std::vector<uint8_t> vdata{'f', 'o', 'o', 'b', 'a', 'r'};
+    const std::vector<std::byte> vdata{std::byte{'f'}, std::byte{'o'},
+                                       std::byte{'o'}, std::byte{'b'},
+                                       std::byte{'a'}, std::byte{'r'}};
     BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), vdata.begin(), vdata.begin()));
     BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), vdata.begin(), vdata.end()));
 
     // ... or an array.
-    const char adata[6] = {'f', 'o', 'o', 'b', 'a', 'r'};
+    const std::byte adata[6] = {std::byte{'f'}, std::byte{'o'}, std::byte{'o'},
+                                std::byte{'b'}, std::byte{'a'}, std::byte{'r'}};
     BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), &adata[0], &adata[0]));
     BOOST_CHECK_NO_THROW(ds.insert(ds.begin(), &adata[0], &adata[6]));
 }

@@ -49,80 +49,65 @@ static const unsigned int MAX_VECTOR_ALLOCATE = 5000000;
 struct deserialize_type {};
 constexpr deserialize_type deserialize{};
 
-//! Safely convert odd char pointer types to standard ones.
-inline char *CharCast(char *c) {
-    return c;
-}
-inline char *CharCast(uint8_t *c) {
-    return (char *)c;
-}
-inline const char *CharCast(const char *c) {
-    return c;
-}
-inline const char *CharCast(const uint8_t *c) {
-    return (const char *)c;
-}
-
 /**
  * Lowest-level serialization and conversion.
- * @note Sizes of these types are verified in the tests
  */
 template <typename Stream> inline void ser_writedata8(Stream &s, uint8_t obj) {
-    s.write((char *)&obj, 1);
+    s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata16(Stream &s, uint16_t obj) {
     obj = htole16(obj);
-    s.write((char *)&obj, 2);
+    s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata16be(Stream &s, uint16_t obj) {
     obj = htobe16(obj);
-    s.write((char *)&obj, 2);
+    s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata32(Stream &s, uint32_t obj) {
     obj = htole32(obj);
-    s.write((char *)&obj, 4);
+    s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata32be(Stream &s, uint32_t obj) {
     obj = htobe32(obj);
-    s.write((char *)&obj, 4);
+    s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata64(Stream &s, uint64_t obj) {
     obj = htole64(obj);
-    s.write((char *)&obj, 8);
+    s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream> inline uint8_t ser_readdata8(Stream &s) {
     uint8_t obj;
-    s.read((char *)&obj, 1);
+    s.read(AsWritableBytes(Span{&obj, 1}));
     return obj;
 }
 template <typename Stream> inline uint16_t ser_readdata16(Stream &s) {
     uint16_t obj;
-    s.read((char *)&obj, 2);
+    s.read(AsWritableBytes(Span{&obj, 1}));
     return le16toh(obj);
 }
 template <typename Stream> inline uint16_t ser_readdata16be(Stream &s) {
     uint16_t obj;
-    s.read((char *)&obj, 2);
+    s.read(AsWritableBytes(Span{&obj, 1}));
     return be16toh(obj);
 }
 template <typename Stream> inline uint32_t ser_readdata32(Stream &s) {
     uint32_t obj;
-    s.read((char *)&obj, 4);
+    s.read(AsWritableBytes(Span{&obj, 1}));
     return le32toh(obj);
 }
 template <typename Stream> inline uint32_t ser_readdata32be(Stream &s) {
     uint32_t obj;
-    s.read((char *)&obj, 4);
+    s.read(AsWritableBytes(Span{&obj, 1}));
     return be32toh(obj);
 }
 template <typename Stream> inline uint64_t ser_readdata64(Stream &s) {
     uint64_t obj;
-    s.read((char *)&obj, 8);
+    s.read(AsWritableBytes(Span{&obj, 1}));
     return le64toh(obj);
 }
 inline uint64_t ser_double_to_uint64(double x) {
@@ -157,7 +142,8 @@ inline float ser_uint32_to_float(uint32_t y) {
 /////////////////////////////////////////////////////////////////
 //
 // Templates for serializing to anything that looks like a stream,
-// i.e. anything that supports .read(char*, size_t) and .write(char*, size_t)
+// i.e. anything that supports .read(Span<std::byte>) and .write(Span<const
+// std::byte>)
 //
 class CSizeComputer;
 
@@ -279,7 +265,7 @@ inline void Serialize(Stream &s, const int8_t (&a)[N]) {
 }
 template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const uint8_t (&a)[N]) {
-    s.write(CharCast(a), N);
+    s.write(MakeByteSpan(a));
 }
 template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const std::array<int8_t, N> &a) {
@@ -287,7 +273,7 @@ inline void Serialize(Stream &s, const std::array<int8_t, N> &a) {
 }
 template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const std::array<uint8_t, N> &a) {
-    s.write(CharCast(a.data()), N);
+    s.write(MakeByteSpan(a));
 }
 #ifndef CHAR_EQUALS_INT8
 // TODO Get rid of bare char
@@ -296,20 +282,20 @@ template <typename Stream> inline void Unserialize(Stream &s, char &a) {
 }
 template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const char (&a)[N]) {
-    s.write(a, N);
+    s.write(MakeByteSpan(a));
 }
 template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const std::array<char, N> &a) {
-    s.write(a.data(), N);
+    s.write(MakeByteSpan(a));
 }
 #endif
 template <typename Stream>
 inline void Serialize(Stream &s, const Span<const uint8_t> &span) {
-    s.write(CharCast(span.data()), span.size());
+    s.write(AsBytes(span));
 }
 template <typename Stream>
 inline void Serialize(Stream &s, const Span<uint8_t> &span) {
-    s.write(CharCast(span.data()), span.size());
+    s.write(AsBytes(span));
 }
 template <typename Stream> inline void Unserialize(Stream &s, int8_t &a) {
     a = ser_readdata8(s);
@@ -343,11 +329,11 @@ template <typename Stream> inline void Unserialize(Stream &s, double &a) {
 }
 template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, int8_t (&a)[N]) {
-    s.read(a, N);
+    s.read(MakeWritableByteSpan(a));
 }
 template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, uint8_t (&a)[N]) {
-    s.read(CharCast(a), N);
+    s.read(MakeWritableByteSpan(a));
 }
 template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, std::array<int8_t, N> &a) {
@@ -355,16 +341,16 @@ inline void Unserialize(Stream &s, std::array<int8_t, N> &a) {
 }
 template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, std::array<uint8_t, N> &a) {
-    s.read(CharCast(a.data()), N);
+    s.read(MakeWritableByteSpan(a));
 }
 #ifndef CHAR_EQUALS_INT8
 template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, char (&a)[N]) {
-    s.read(CharCast(a), N);
+    s.read(MakeWritableByteSpan(a));
 }
 template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, std::array<char, N> &a) {
-    s.read(CharCast(a.data()), N);
+    s.read(MakeWritableByteSpan(a));
 }
 #endif
 
@@ -378,7 +364,7 @@ template <typename Stream> inline void Unserialize(Stream &s, bool &a) {
 }
 template <typename Stream>
 inline void Unserialize(Stream &s, Span<uint8_t> &span) {
-    s.read(CharCast(span.data()), span.size());
+    s.read(AsWritableBytes(span));
 }
 
 /**
@@ -633,10 +619,10 @@ template <int Bytes, bool BigEndian = false> struct CustomUintFormatter {
         }
         if (BigEndian) {
             uint64_t raw = htobe64(v);
-            s.write(((const char *)&raw) + 8 - Bytes, Bytes);
+            s.write({BytePtr(&raw) + 8 - Bytes, Bytes});
         } else {
             uint64_t raw = htole64(v);
-            s.write((const char *)&raw, Bytes);
+            s.write({BytePtr(&raw), Bytes});
         }
     }
 
@@ -649,10 +635,10 @@ template <int Bytes, bool BigEndian = false> struct CustomUintFormatter {
                       "Assigned type too small");
         uint64_t raw = 0;
         if (BigEndian) {
-            s.read(((char *)&raw) + 8 - Bytes, Bytes);
+            s.read({BytePtr(&raw) + 8 - Bytes, Bytes});
             v = static_cast<I>(be64toh(raw));
         } else {
-            s.read((char *)&raw, Bytes);
+            s.read({BytePtr(&raw), Bytes});
             v = static_cast<I>(le64toh(raw));
         }
     }
@@ -708,7 +694,7 @@ template <size_t Limit> struct LimitedStringFormatter {
         }
         v.resize(size);
         if (size != 0) {
-            s.read((char *)v.data(), size);
+            s.read(MakeWritableByteSpan(v));
         }
     }
 
@@ -957,7 +943,7 @@ template <typename Stream, typename C>
 void Serialize(Stream &os, const std::basic_string<C> &str) {
     WriteCompactSize(os, str.size());
     if (!str.empty()) {
-        os.write((char *)str.data(), str.size() * sizeof(C));
+        os.write(MakeByteSpan(str));
     }
 }
 
@@ -966,7 +952,7 @@ void Unserialize(Stream &is, std::basic_string<C> &str) {
     size_t nSize = ReadCompactSize(is);
     str.resize(nSize);
     if (nSize != 0) {
-        is.read((char *)str.data(), nSize * sizeof(C));
+        is.read(MakeWritableByteSpan(str));
     }
 }
 
@@ -977,7 +963,7 @@ template <typename Stream, unsigned int N, typename T>
 void Serialize_impl(Stream &os, const prevector<N, T> &v, const uint8_t &) {
     WriteCompactSize(os, v.size());
     if (!v.empty()) {
-        os.write((char *)v.data(), v.size() * sizeof(T));
+        os.write(MakeByteSpan(v));
     }
 }
 
@@ -1000,7 +986,7 @@ void Unserialize_impl(Stream &is, prevector<N, T> &v, const uint8_t &) {
     while (i < nSize) {
         size_t blk = std::min(nSize - i, size_t(1 + 4999999 / sizeof(T)));
         v.resize_uninitialized(i + blk);
-        is.read((char *)&v[i], blk * sizeof(T));
+        is.read(AsWritableBytes(Span{&v[i], blk}));
         i += blk;
     }
 }
@@ -1022,7 +1008,7 @@ template <typename Stream, typename T, typename A>
 void Serialize_impl(Stream &os, const std::vector<T, A> &v, const uint8_t &) {
     WriteCompactSize(os, v.size());
     if (!v.empty()) {
-        os.write((char *)v.data(), v.size() * sizeof(T));
+        os.write(MakeByteSpan(v));
     }
 }
 
@@ -1056,7 +1042,7 @@ void Unserialize_impl(Stream &is, std::vector<T, A> &v, const uint8_t &) {
     while (i < nSize) {
         size_t blk = std::min(nSize - i, size_t(1 + 4999999 / sizeof(T)));
         v.resize(i + blk);
-        is.read((char *)&v[i], blk * sizeof(T));
+        is.read(AsWritableBytes(Span{&v[i], blk}));
         i += blk;
     }
 }
@@ -1202,7 +1188,7 @@ protected:
 public:
     explicit CSizeComputer(int nVersionIn) : nSize(0), nVersion(nVersionIn) {}
 
-    void write(const char *psz, size_t _nSize) { this->nSize += _nSize; }
+    void write(Span<const std::byte> src) { this->nSize += src.size(); }
 
     /** Pretend _nSize bytes are written, without specifying them. */
     void seek(size_t _nSize) { this->nSize += _nSize; }

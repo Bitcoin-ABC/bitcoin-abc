@@ -203,19 +203,21 @@ BOOST_AUTO_TEST_CASE(hashverifier_tests) {
 
 BOOST_AUTO_TEST_CASE(sh256_tests) {
     CHashWriter h0(SER_DISK, CLIENT_VERSION);
-    h0.write("abc", 3);
+    h0.write(MakeByteSpan("abc").first(3));
     BOOST_CHECK_EQUAL(
         h0.GetSHA256().GetHex(),
         "ad1500f261ff10b49c7a1796a36103b02322ae5dde404141eacf018fbf1678ba");
 
     CHashWriter h1(SER_DISK, CLIENT_VERSION);
-    h1.write("", 0);
+    h1.write(MakeByteSpan("").first(0));
     BOOST_CHECK_EQUAL(
         h1.GetSHA256().GetHex(),
         "55b852781b9995a44c939b64e441ae2724b96f99c8f4fb9a141cfc9842c4b0e3");
 
     CHashWriter h2(SER_DISK, CLIENT_VERSION);
-    h2.write("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", 56);
+    h2.write(
+        MakeByteSpan("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
+            .first(56));
     BOOST_CHECK_EQUAL(
         h2.GetSHA256().GetHex(),
         "c106db19d4edecf66721ff6459e43ca339603e0c9326c0e5b83806d2616a8d24");

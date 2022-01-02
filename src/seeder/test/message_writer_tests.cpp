@@ -23,7 +23,7 @@ static void CheckMessage(CDataStream &expectedMessage, std::string command,
     MessageWriter::WriteMessage(message, command, std::forward<Args>(args)...);
     BOOST_CHECK_EQUAL(message.size(), expectedMessage.size());
     for (size_t i = 0; i < message.size(); i++) {
-        BOOST_CHECK_EQUAL(message[i], expectedMessage[i]);
+        BOOST_CHECK_EQUAL(uint8_t(message[i]), uint8_t(expectedMessage[i]));
     }
 }
 
