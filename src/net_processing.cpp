@@ -4504,8 +4504,8 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
             }
         }
 
-        // addProof should not be called while cs_proofrequest because it holds
-        // cs_main and that creates a potential deadlock during shutdown
+        // registerProof should not be called while cs_proofrequest because it
+        // holds cs_main and that creates a potential deadlock during shutdown
 
         if (g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                 return pm.registerProof(proof);
