@@ -2002,7 +2002,7 @@ static void TestOtherProcess(fs::path dirname, std::string lockname, int fd) {
 #endif
 
 BOOST_AUTO_TEST_CASE(test_LockDirectory) {
-    fs::path dirname = GetDataDir() / "lock_dir";
+    fs::path dirname = m_args.GetDataDirPath() / "lock_dir";
     const std::string lockname = ".lock";
 #ifndef WIN32
     // Revert SIGCHLD to default, otherwise boost.test will catch and fail on
@@ -2093,7 +2093,7 @@ BOOST_AUTO_TEST_CASE(test_LockDirectory) {
 
 BOOST_AUTO_TEST_CASE(test_DirIsWritable) {
     // Should be able to write to the data dir.
-    fs::path tmpdirname = GetDataDir();
+    fs::path tmpdirname = m_args.GetDataDirPath();
     BOOST_CHECK_EQUAL(DirIsWritable(tmpdirname), true);
 
     // Should not be able to write to a non-existent dir.

@@ -45,7 +45,7 @@ inline void WriteText(const fs::path &path, const std::string &text) {
 BOOST_FIXTURE_TEST_SUITE(settings_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(ReadWrite) {
-    fs::path path = GetDataDir() / "settings.json";
+    fs::path path = m_args.GetDataDirPath() / "settings.json";
 
     WriteText(path, R"({
         "string": "string",
