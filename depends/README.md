@@ -100,7 +100,10 @@ The following can be set when running make: `make FOO=bar`
 - `JOBS`: Number of jobs to use for each package build
 - `FORCE_USE_SYSTEM_CLANG`: (EXPERTS ONLY) When cross-compiling for macOS, use Clang found in the
   system's `$PATH` rather than the default prebuilt release of Clang
-  from llvm.org. Clang 8 or later is required.
+  from llvm.org. Clang 8 or later is required
+- `LOG`: Use file-based logging for individual packages. During a package build its log file
+  resides in the `depends` directory, and the log file is printed out automatically in case
+  of build error. After successful build log files are moved along with package archives
 
 If some packages are not built, for example by building the depends with
 `make NO_WALLET=1`, the appropriate options should be set when building Bitcoin
