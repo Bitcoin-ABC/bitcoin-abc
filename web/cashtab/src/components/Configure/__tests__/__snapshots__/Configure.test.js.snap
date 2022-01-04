@@ -5,7 +5,7 @@ exports[`Configure with a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-iRbamj iLHUMS"
+    className="sc-jlyJG dGBbfI"
   >
     <h2>
       <span
@@ -75,7 +75,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kGXeez iwFpHC"
+      className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX ksHMRx"
       role={null}
     >
       <div
@@ -113,7 +113,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     <h2>
       <span
@@ -138,7 +138,7 @@ exports[`Configure with a wallet 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-hSdWYo eFTHFJ"
+      className="sc-eHgmQL bqOmSo"
       onClick={[Function]}
     >
       <span
@@ -166,7 +166,7 @@ exports[`Configure with a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-eHgmQL hjwBux"
+      className="sc-cvbbAY dvozVe"
       onClick={[Function]}
     >
       <span
@@ -191,7 +191,7 @@ exports[`Configure with a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     <h2>
       <span
@@ -216,7 +216,7 @@ exports[`Configure with a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-kEYyzF gVORrF"
+      className="sc-kkGfuU eZVPPF"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -308,7 +308,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     <h2>
       <span
@@ -333,7 +333,7 @@ exports[`Configure with a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-gipzik fOiixB"
+      className="sc-csuQGl bYiikN"
     >
       <div
         className="title"
@@ -396,7 +396,7 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-gipzik fOiixB"
+      className="sc-csuQGl bYiikN"
     >
       <div
         className="SendConfirm"
@@ -459,11 +459,11 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     [
     <a
-      className="sc-jWBwVP kAmQdZ"
+      className="sc-brqgnP dPRIWg"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -481,7 +481,7 @@ exports[`Configure without a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-iRbamj iLHUMS"
+    className="sc-jlyJG dGBbfI"
   >
     <h2>
       <span
@@ -551,7 +551,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     <h2>
       <span
@@ -576,7 +576,7 @@ exports[`Configure without a wallet 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-hSdWYo eFTHFJ"
+      className="sc-eHgmQL bqOmSo"
       onClick={[Function]}
     >
       <span
@@ -604,7 +604,7 @@ exports[`Configure without a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-eHgmQL hjwBux"
+      className="sc-cvbbAY dvozVe"
       onClick={[Function]}
     >
       <span
@@ -629,7 +629,7 @@ exports[`Configure without a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     <h2>
       <span
@@ -654,7 +654,7 @@ exports[`Configure without a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-kEYyzF gVORrF"
+      className="sc-kkGfuU eZVPPF"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -746,7 +746,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     <h2>
       <span
@@ -771,7 +771,7 @@ exports[`Configure without a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-gipzik fOiixB"
+      className="sc-csuQGl bYiikN"
     >
       <div
         className="title"
@@ -834,7 +834,7 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-gipzik fOiixB"
+      className="sc-csuQGl bYiikN"
     >
       <div
         className="SendConfirm"
@@ -897,11 +897,11 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-jlyJG fPAUMB"
+      className="sc-gipzik oErko"
     />
     [
     <a
-      className="sc-jWBwVP kAmQdZ"
+      className="sc-brqgnP dPRIWg"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"

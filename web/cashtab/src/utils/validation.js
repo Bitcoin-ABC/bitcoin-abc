@@ -316,3 +316,52 @@ export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
         new BigNumber(tokenBurnAmount).lte(maxAmount)
     );
 };
+
+// XEC airdrop field validations
+export const isValidTokenId = tokenId => {
+    const format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+    const specialCharCheck = format.test(tokenId);
+
+    return (
+        typeof tokenId === 'string' &&
+        tokenId.length === 64 &&
+        tokenId.trim() != '' &&
+        !specialCharCheck
+    );
+};
+
+export const isValidXecAirdrop = xecAirdrop => {
+    return (
+        typeof xecAirdrop === 'string' &&
+        xecAirdrop.length > 0 &&
+        xecAirdrop.trim() != '' &&
+        new BigNumber(xecAirdrop).gt(0)
+    );
+};
+
+export const isValidAirdropOutputsArray = airdropOutputsArray => {
+    if (!airdropOutputsArray) {
+        return false;
+    }
+
+    let isValid = true;
+
+    // split by individual rows
+    const addressStringArray = airdropOutputsArray.split('\n');
+
+    for (let i = 0; i < addressStringArray.length; i++) {
+        const substring = addressStringArray[i].split(',');
+        let valueString = substring[1];
+        // if the XEC being sent is less than dust sats or contains extra values per line
+        if (
+            new BigNumber(valueString).lt(
+                fromSmallestDenomination(currency.dustSats),
+            ) ||
+            substring.length !== 2
+        ) {
+            isValid = false;
+        }
+    }
+
+    return isValid;
+};

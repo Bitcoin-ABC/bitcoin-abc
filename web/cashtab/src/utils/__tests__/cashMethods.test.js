@@ -13,6 +13,7 @@ import {
     toLegacyCash,
     toLegacyToken,
     toLegacyCashArray,
+    convertEtokenToEcashAddr,
     parseOpReturn,
     isExcludedUtxo,
     whichUtxosWereAdded,
@@ -713,5 +714,60 @@ describe('Correctly executes cash utility functions', () => {
                 incrementallyHydratedUtxosAfterProcessing,
             ),
         ).toBe(false);
+    });
+    test('convertEtokenToEcashAddr successfully converts a valid eToken address to eCash', async () => {
+        const result = convertEtokenToEcashAddr(
+            'etoken:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gcldpffcs',
+        );
+        expect(result).toStrictEqual(
+            'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+        );
+    });
+
+    test('convertEtokenToEcashAddr successfully converts prefixless eToken address as input', async () => {
+        const result = convertEtokenToEcashAddr(
+            'qpatql05s9jfavnu0tv6lkjjk25n6tmj9gcldpffcs',
+        );
+        expect(result).toStrictEqual(
+            'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+        );
+    });
+
+    test('convertEtokenToEcashAddr throws error with an invalid eToken address as input', async () => {
+        const result = convertEtokenToEcashAddr('etoken:qpj9gcldpffcs');
+        expect(result).toStrictEqual(
+            new Error(
+                'cashMethods.convertToEcashAddr() error: etoken:qpj9gcldpffcs is not a valid etoken address',
+            ),
+        );
+    });
+
+    test('convertEtokenToEcashAddr throws error with an ecash address as input', async () => {
+        const result = convertEtokenToEcashAddr(
+            'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8',
+        );
+        expect(result).toStrictEqual(
+            new Error(
+                'cashMethods.convertToEcashAddr() error: ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8 is not a valid etoken address',
+            ),
+        );
+    });
+
+    test('convertEtokenToEcashAddr throws error with null input', async () => {
+        const result = convertEtokenToEcashAddr(null);
+        expect(result).toStrictEqual(
+            new Error(
+                'cashMethods.convertToEcashAddr() error: No etoken address provided',
+            ),
+        );
+    });
+
+    test('convertEtokenToEcashAddr throws error with empty string input', async () => {
+        const result = convertEtokenToEcashAddr('');
+        expect(result).toStrictEqual(
+            new Error(
+                'cashMethods.convertToEcashAddr() error: No etoken address provided',
+            ),
+        );
     });
 });

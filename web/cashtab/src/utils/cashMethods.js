@@ -234,6 +234,40 @@ export const getWalletState = wallet => {
     return wallet.state;
 };
 
+export function convertEtokenToEcashAddr(eTokenAddress) {
+    if (!eTokenAddress) {
+        return new Error(
+            `cashMethods.convertToEcashAddr() error: No etoken address provided`,
+        );
+    }
+
+    // Confirm input is a valid eToken address
+    const isValidInput = isValidEtokenAddress(eTokenAddress);
+    if (!isValidInput) {
+        return new Error(
+            `cashMethods.convertToEcashAddr() error: ${eTokenAddress} is not a valid etoken address`,
+        );
+    }
+
+    // Check for etoken: prefix
+    const isPrefixedEtokenAddress = eTokenAddress.slice(0, 7) === 'etoken:';
+
+    // If no prefix, assume it is checksummed for an etoken: prefix
+    const testedEtokenAddr = isPrefixedEtokenAddress
+        ? eTokenAddress
+        : `etoken:${eTokenAddress}`;
+
+    let ecashAddress;
+    try {
+        const { type, hash } = cashaddr.decode(testedEtokenAddr);
+        ecashAddress = cashaddr.encode('ecash', type, hash);
+    } catch (err) {
+        return err;
+    }
+
+    return ecashAddress;
+}
+
 export function convertToEcashPrefix(bitcoincashPrefixedAddress) {
     // Prefix-less addresses may be valid, but the cashaddr.decode function used below
     // will throw an error without a prefix. Hence, must ensure prefix to use that function.

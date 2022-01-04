@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 export const WarningFont = styled.div`
     color: ${props => props.theme.wallet.text.primary};
@@ -85,4 +86,13 @@ export const ConvertAmount = styled.div`
     @media (max-width: 768px) {
         font-size: 12px;
     }
+`;
+
+export const StyledLink = styled(Link)`
+    color: ${props => props.theme.buttons.styledLink};
+    text-decoration: none;
+    padding: 8px;
+    position: relative;
+    border: solid 1px silver;
+    border-radius: 10px;
 `;

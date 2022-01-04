@@ -2,7 +2,7 @@
 
 exports[`Wallet with BCH balances 1`] = `
 <div
-  className="sc-jDwBTQ hNLNlN"
+  className="sc-gPEVay bbSJoW"
 >
   <h2>
     Receive 
@@ -92,16 +92,16 @@ exports[`Wallet with BCH balances 1`] = `
     </div>
   </div>
   <div
-    className="sc-gPEVay kBKxVA"
+    className="sc-iRbamj foQCcl"
   >
     <div
-      className="sc-iRbamj kypBeM"
+      className="sc-jlyJG gkrAXP"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-iRbamj kypBeM nonactiveBtn"
+      className="sc-jlyJG gkrAXP nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -112,7 +112,7 @@ exports[`Wallet with BCH balances 1`] = `
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-jDwBTQ hNLNlN"
+  className="sc-gPEVay bbSJoW"
 >
   <h2>
     Receive 
@@ -202,16 +202,16 @@ exports[`Wallet with BCH balances and tokens 1`] = `
     </div>
   </div>
   <div
-    className="sc-gPEVay kBKxVA"
+    className="sc-iRbamj foQCcl"
   >
     <div
-      className="sc-iRbamj kypBeM"
+      className="sc-jlyJG gkrAXP"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-iRbamj kypBeM nonactiveBtn"
+      className="sc-jlyJG gkrAXP nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -222,7 +222,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-jDwBTQ hNLNlN"
+  className="sc-gPEVay bbSJoW"
 >
   <h2>
     Receive 
@@ -312,16 +312,16 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </div>
   </div>
   <div
-    className="sc-gPEVay kBKxVA"
+    className="sc-iRbamj foQCcl"
   >
     <div
-      className="sc-iRbamj kypBeM"
+      className="sc-jlyJG gkrAXP"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-iRbamj kypBeM nonactiveBtn"
+      className="sc-jlyJG gkrAXP nonactiveBtn"
       onClick={[Function]}
     >
       eToken
@@ -332,7 +332,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
 
 exports[`Wallet without BCH balance 1`] = `
 <div
-  className="sc-jDwBTQ hNLNlN"
+  className="sc-gPEVay bbSJoW"
 >
   <h2>
     Receive 
@@ -422,16 +422,16 @@ exports[`Wallet without BCH balance 1`] = `
     </div>
   </div>
   <div
-    className="sc-gPEVay kBKxVA"
+    className="sc-iRbamj foQCcl"
   >
     <div
-      className="sc-iRbamj kypBeM"
+      className="sc-jlyJG gkrAXP"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-iRbamj kypBeM nonactiveBtn"
+      className="sc-jlyJG gkrAXP nonactiveBtn"
       onClick={[Function]}
     >
       eToken

@@ -15,6 +15,9 @@ import {
     isValidUtxo,
     isValidBchApiUtxoObject,
     isValidEtokenBurnAmount,
+    isValidTokenId,
+    isValidXecAirdrop,
+    isValidAirdropOutputsArray,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -24,6 +27,12 @@ import {
     noCovidStatsInvalid,
     cGenStatsValid,
 } from '../__mocks__/mockTokenStats';
+import {
+    validXecAirdropList,
+    invalidXecAirdropList,
+    invalidXecAirdropListMultipleInvalidValues,
+    invalidXecAirdropListMultipleValidValues,
+} from '../__mocks__/mockXecAirdropRecipients';
 
 import {
     validUtxo,
@@ -473,5 +482,115 @@ describe('Validation utils', () => {
     it(`isValidEtokenBurnAmount accepts a valid burn amount that is the same as the maxAmount`, () => {
         const testEtokenBurnAmount = 100;
         expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
+    });
+    it(`isValidTokenId accepts valid token ID that is 64 chars in length`, () => {
+        const testValidTokenId =
+            '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
+        expect(isValidTokenId(testValidTokenId)).toBe(true);
+    });
+    it(`isValidTokenId rejects a token ID that is less than 64 chars in length`, () => {
+        const testValidTokenId = '111111thisisaninvalidtokenid';
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects a token ID that is more than 64 chars in length`, () => {
+        const testValidTokenId =
+            '111111111c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects a token ID number that is 64 digits in length`, () => {
+        const testValidTokenId = 8912345678912345678912345678912345678912345678912345678912345679;
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects null`, () => {
+        const testValidTokenId = null;
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects undefined`, () => {
+        const testValidTokenId = undefined;
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects empty string`, () => {
+        const testValidTokenId = '';
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects special character input`, () => {
+        const testValidTokenId = '^&$%@&^$@&%$!';
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidTokenId rejects non-alphanumeric input`, () => {
+        const testValidTokenId = 99999999999;
+        expect(isValidTokenId(testValidTokenId)).toBe(false);
+    });
+    it(`isValidXecAirdrop accepts valid Total Airdrop Amount`, () => {
+        const testAirdropTotal = '1000000';
+        expect(isValidXecAirdrop(testAirdropTotal)).toBe(true);
+    });
+    it(`isValidXecAirdrop rejects null`, () => {
+        const testAirdropTotal = null;
+        expect(isValidXecAirdrop(testAirdropTotal)).toBe(false);
+    });
+    it(`isValidXecAirdrop rejects undefined`, () => {
+        const testAirdropTotal = undefined;
+        expect(isValidXecAirdrop(testAirdropTotal)).toBe(false);
+    });
+    it(`isValidXecAirdrop rejects empty string`, () => {
+        const testAirdropTotal = '';
+        expect(isValidXecAirdrop(testAirdropTotal)).toBe(false);
+    });
+    it(`isValidTokenId rejects an alphanumeric input`, () => {
+        const testAirdropTotal = 'a73hsyujs3737';
+        expect(isValidXecAirdrop(testAirdropTotal)).toBe(false);
+    });
+    it(`isValidTokenId rejects a number !> 0 in string format`, () => {
+        const testAirdropTotal = '0';
+        expect(isValidXecAirdrop(testAirdropTotal)).toBe(false);
+    });
+    it(`isValidAirdropOutputsArray accepts an airdrop list with valid XEC values`, () => {
+        // Tools.js logic removes the EOF newline before validation
+        const outputArray = validXecAirdropList.substring(
+            0,
+            validXecAirdropList.length - 1,
+        );
+        expect(isValidAirdropOutputsArray(outputArray)).toBe(true);
+    });
+    it(`isValidAirdropOutputsArray rejects an airdrop list with invalid XEC values`, () => {
+        // Tools.js logic removes the EOF newline before validation
+        const outputArray = invalidXecAirdropList.substring(
+            0,
+            invalidXecAirdropList.length - 1,
+        );
+        expect(isValidAirdropOutputsArray(outputArray)).toBe(false);
+    });
+    it(`isValidAirdropOutputsArray rejects null`, () => {
+        const testAirdropListValues = null;
+        expect(isValidAirdropOutputsArray(testAirdropListValues)).toBe(false);
+    });
+    it(`isValidAirdropOutputsArray rejects undefined`, () => {
+        const testAirdropListValues = undefined;
+        expect(isValidAirdropOutputsArray(testAirdropListValues)).toBe(false);
+    });
+    it(`isValidAirdropOutputsArray rejects empty string`, () => {
+        const testAirdropListValues = '';
+        expect(isValidAirdropOutputsArray(testAirdropListValues)).toBe(false);
+    });
+    it(`isValidAirdropOutputsArray rejects an airdrop list with multiple invalid XEC values per row`, () => {
+        // Tools.js logic removes the EOF newline before validation
+        const addressStringArray =
+            invalidXecAirdropListMultipleInvalidValues.substring(
+                0,
+                invalidXecAirdropListMultipleInvalidValues.length - 1,
+            );
+
+        expect(isValidAirdropOutputsArray(addressStringArray)).toBe(false);
+    });
+    it(`isValidAirdropOutputsArray rejects an airdrop list with multiple valid XEC values per row`, () => {
+        // Tools.js logic removes the EOF newline before validation
+        const addressStringArray =
+            invalidXecAirdropListMultipleValidValues.substring(
+                0,
+                invalidXecAirdropListMultipleValidValues.length - 1,
+            );
+
+        expect(isValidAirdropOutputsArray(addressStringArray)).toBe(false);
     });
 });

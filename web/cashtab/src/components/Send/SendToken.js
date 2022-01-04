@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
 import {
@@ -57,6 +58,34 @@ const AntdDescriptionsCss = css`
 `;
 const AntdDescriptionsWrapper = styled.div`
     ${AntdDescriptionsCss}
+`;
+const AirdropButton = styled.div`
+    text-align: center;
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background: ${props => props.theme.sentMessage};
+    a {
+        color: ${props => props.theme.darkBlue};
+        margin: 0;
+        font-size: 11px;
+        border: 1px solid ${props => props.theme.darkBlue};
+        border-radius: 5px;
+        padding: 2px 10px;
+        opacity: 0.6;
+    }
+    a:hover {
+        opacity: 1;
+        border-color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.contrast};
+        background: ${props => props.theme.eCashBlue};
+    }
+    ${({ received, ...props }) =>
+        received &&
+        `
+        text-align: left;    
+        background: ${props.theme.receivedMessage};
+    `}
 `;
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
@@ -575,6 +604,20 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                         </Descriptions.Item>
                                         <Descriptions.Item label="Token ID">
                                             {token.tokenId}
+                                            <br />
+                                            <AirdropButton>
+                                                <Link
+                                                    to={{
+                                                        pathname: `/airdrop`,
+                                                        state: {
+                                                            airdropEtokenId:
+                                                                token.tokenId,
+                                                        },
+                                                    }}
+                                                >
+                                                    Airdrop XEC to holders
+                                                </Link>
+                                            </AirdropButton>
                                         </Descriptions.Item>
                                         {tokenStats && (
                                             <>

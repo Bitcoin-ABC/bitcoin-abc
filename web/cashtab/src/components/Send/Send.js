@@ -184,6 +184,22 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             });
         }
 
+        // if this was routed from the Airdrop screen's Airdrop Calculator then
+        // switch to multiple recipient mode and prepopulate the recipients field
+        if (location && location.state && location.state.airdropRecipients) {
+            setIsOneToManyXECSend(true);
+            setFormData({
+                address: location.state.airdropRecipients,
+            });
+
+            // validate the airdrop outputs from the calculator
+            handleMultiAddressChange({
+                target: {
+                    value: location.state.airdropRecipients,
+                },
+            });
+        }
+
         // Do not set txInfo in state if query strings are not present
         if (
             !window.location ||

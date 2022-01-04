@@ -55,6 +55,7 @@ export const theme = {
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
             disabledOverlay: 'rgba(255, 255, 255, 0.5)',
         },
+        styledLink: '#ffffff',
     },
     collapses: {
         background: '#255173',

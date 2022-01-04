@@ -19,6 +19,7 @@ import { ReactComponent as Home } from '@assets/home.svg';
 import { ReactComponent as Settings } from '@assets/cog.svg';
 import { ReactComponent as CopySolid } from '@assets/copy.svg';
 import { ReactComponent as LinkSolid } from '@assets/external-link-square-alt.svg';
+import { ReactComponent as Airdrop } from '@assets/airdrop-icon.svg';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
@@ -100,6 +101,10 @@ export const GenesisIcon = () => <Genesis />;
 export const UnparsedIcon = () => <Unparsed />;
 export const HomeIcon = () => <Home />;
 export const SettingsIcon = () => <Settings />;
+
+export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;
+
 export const SendIcon = styled(Send)`
     transform: rotate(-35deg);
 `;
+export const CustomSpinner = <LoadingOutlined style={{ fontSize: 24 }} spin />;

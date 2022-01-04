@@ -7,6 +7,7 @@ import {
     SendIcon,
     ReceiveIcon,
     SettingsIcon,
+    AirdropIcon,
 } from '@components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
@@ -16,6 +17,7 @@ import Receive from '@components/Receive/Receive';
 import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
+import Airdrop from '@components/Airdrop/Airdrop';
 import Configure from '@components/Configure/Configure';
 import NotFound from '@components/NotFound';
 import CashTab from '@assets/cashtab_xec.png';
@@ -312,6 +314,13 @@ const App = () => {
                                             />
                                         )}
                                     />
+                                    <Route path="/airdrop">
+                                        <Airdrop
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    </Route>
                                     <Route path="/configure">
                                         <Configure />
                                     </Route>
@@ -344,6 +353,12 @@ const App = () => {
                                     onClick={() => history.push('receive')}
                                 >
                                     <ReceiveIcon />
+                                </NavButton>
+                                <NavButton
+                                    active={selectedKey === 'airdrop'}
+                                    onClick={() => history.push('/airdrop')}
+                                >
+                                    <AirdropIcon />
                                 </NavButton>
                                 <NavButton
                                     active={selectedKey === 'configure'}
