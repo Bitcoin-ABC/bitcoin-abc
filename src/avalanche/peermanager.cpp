@@ -150,7 +150,9 @@ static bool isOrphanState(const ProofValidationState &state) {
 bool PeerManager::registerProof(const ProofRef &proof) {
     assert(proof);
 
-    if (exists(proof->getId())) {
+    const ProofId &proofid = proof->getId();
+
+    if (exists(proofid)) {
         // The proof is already registered, or orphaned.
         return false;
     }
@@ -185,7 +187,7 @@ bool PeerManager::registerProof(const ProofRef &proof) {
             // No default case, so the compiler can warn about missing cases
     }
 
-    conflictingProofPool.removeProof(proof->getId());
+    conflictingProofPool.removeProof(proofid);
 
     // New peer means new peerid!
     const PeerId peerid = nextPeerId++;
@@ -196,7 +198,7 @@ bool PeerManager::registerProof(const ProofRef &proof) {
 
     // If there are nodes waiting for this proof, add them
     auto &pendingNodesView = pendingNodes.get<by_proofid>();
-    auto range = pendingNodesView.equal_range(proof->getId());
+    auto range = pendingNodesView.equal_range(proofid);
 
     // We want to update the nodes then remove them from the pending set. That
     // will invalidate the range iterators, so we need to save the node ids
