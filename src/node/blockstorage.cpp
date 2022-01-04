@@ -518,7 +518,7 @@ std::string CBlockFileInfo::ToString() const {
         FormatISO8601DateTime(nTimeFirst), FormatISO8601DateTime(nTimeLast));
 }
 
-CBlockFileInfo *GetBlockFileInfo(size_t n) {
+CBlockFileInfo *BlockManager::GetBlockFileInfo(size_t n) {
     LOCK(cs_LastBlockFile);
 
     return &vinfoBlockFile.at(n);
@@ -586,7 +586,7 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex) {
     return true;
 }
 
-static void FlushUndoFile(int block_file, bool finalize = false) {
+void BlockManager::FlushUndoFile(int block_file, bool finalize) {
     FlatFilePos undo_pos_old(block_file, vinfoBlockFile[block_file].nUndoSize);
     if (!UndoFileSeq().Flush(undo_pos_old, finalize)) {
         AbortNode("Flushing undo file to disk failed. This is likely the "
@@ -594,7 +594,7 @@ static void FlushUndoFile(int block_file, bool finalize = false) {
     }
 }
 
-void FlushBlockFile(bool fFinalize = false, bool finalize_undo = false) {
+void BlockManager::FlushBlockFile(bool fFinalize, bool finalize_undo) {
     LOCK(cs_LastBlockFile);
     FlatFilePos block_pos_old(nLastBlockFile,
                               vinfoBlockFile[nLastBlockFile].nSize);
@@ -610,7 +610,7 @@ void FlushBlockFile(bool fFinalize = false, bool finalize_undo = false) {
     }
 }
 
-uint64_t CalculateCurrentUsage() {
+uint64_t BlockManager::CalculateCurrentUsage() {
     LOCK(cs_LastBlockFile);
 
     uint64_t retval = 0;
@@ -655,8 +655,9 @@ fs::path GetBlockPosFilename(const FlatFilePos &pos) {
     return BlockFileSeq().FileName(pos);
 }
 
-bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int nHeight,
-                  CChain &active_chain, uint64_t nTime, bool fKnown = false) {
+bool BlockManager::FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
+                                unsigned int nHeight, CChain &active_chain,
+                                uint64_t nTime, bool fKnown) {
     LOCK(cs_LastBlockFile);
 
     unsigned int nFile = fKnown ? pos.nFile : nLastBlockFile;
@@ -718,8 +719,8 @@ bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize, unsigned int nHeight,
     return true;
 }
 
-static bool FindUndoPos(BlockValidationState &state, int nFile,
-                        FlatFilePos &pos, unsigned int nAddSize) {
+bool BlockManager::FindUndoPos(BlockValidationState &state, int nFile,
+                               FlatFilePos &pos, unsigned int nAddSize) {
     pos.nFile = nFile;
 
     LOCK(cs_LastBlockFile);
@@ -766,9 +767,10 @@ static bool WriteBlockToDisk(const CBlock &block, FlatFilePos &pos,
     return true;
 }
 
-bool WriteUndoDataForBlock(const CBlockUndo &blockundo,
-                           BlockValidationState &state, CBlockIndex *pindex,
-                           const CChainParams &chainparams) {
+bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
+                                         BlockValidationState &state,
+                                         CBlockIndex *pindex,
+                                         const CChainParams &chainparams) {
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull()) {
         FlatFilePos _pos;
@@ -855,10 +857,10 @@ bool ReadBlockFromDisk(CBlock &block, const CBlockIndex *pindex,
  * Store block on disk. If dbp is non-nullptr, the file is known to already
  * reside on disk.
  */
-FlatFilePos SaveBlockToDisk(const CBlock &block, int nHeight,
-                            CChain &active_chain,
-                            const CChainParams &chainparams,
-                            const FlatFilePos *dbp) {
+FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight,
+                                          CChain &active_chain,
+                                          const CChainParams &chainparams,
+                                          const FlatFilePos *dbp) {
     unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
     FlatFilePos blockPos;
     if (dbp != nullptr) {

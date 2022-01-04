@@ -2166,7 +2166,7 @@ MinerFundSuccess:
         return true;
     }
 
-    if (!WriteUndoDataForBlock(blockundo, state, pindex, m_params)) {
+    if (!m_blockman.WriteUndoDataForBlock(blockundo, state, pindex, m_params)) {
         return false;
     }
 
@@ -2314,7 +2314,7 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
 
                     // First make sure all block and undo data is flushed to
                     // disk.
-                    FlushBlockFile();
+                    m_blockman.FlushBlockFile();
                 }
                 // Then update all block file information (which may refer to
                 // block and undo files).
@@ -4421,8 +4421,8 @@ bool CChainState::AcceptBlock(const Config &config,
         *fNewBlock = true;
     }
     try {
-        FlatFilePos blockPos =
-            SaveBlockToDisk(block, pindex->nHeight, m_chain, m_params, dbp);
+        FlatFilePos blockPos{m_blockman.SaveBlockToDisk(
+            block, pindex->nHeight, m_chain, m_params, dbp)};
         if (blockPos.IsNull()) {
             state.Error(strprintf(
                 "%s: Failed to find position to write new block to disk",
@@ -4973,8 +4973,8 @@ bool CChainState::LoadGenesisBlock() {
 
     try {
         const CBlock &block = m_params.GenesisBlock();
-        FlatFilePos blockPos =
-            SaveBlockToDisk(block, 0, m_chain, m_params, nullptr);
+        FlatFilePos blockPos{
+            m_blockman.SaveBlockToDisk(block, 0, m_chain, m_params, nullptr)};
         if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }

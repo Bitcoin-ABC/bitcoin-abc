@@ -78,7 +78,9 @@ static void AddKey(CWallet &wallet, const CKey &key) {
 BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex *oldTip = m_node.chainman->ActiveTip();
-    GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
+    WITH_LOCK(::cs_main, m_node.chainman->m_blockman
+                             .GetBlockFileInfo(oldTip->GetBlockPos().nFile)
+                             ->nSize = MAX_BLOCKFILE_SIZE);
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = m_node.chainman->ActiveTip();
 
@@ -192,7 +194,9 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
     // Cap last block file size, and mine new block in a new block file.
     CBlockIndex *oldTip = m_node.chainman->ActiveTip();
-    GetBlockFileInfo(oldTip->GetBlockPos().nFile)->nSize = MAX_BLOCKFILE_SIZE;
+    WITH_LOCK(::cs_main, m_node.chainman->m_blockman
+                             .GetBlockFileInfo(oldTip->GetBlockPos().nFile)
+                             ->nSize = MAX_BLOCKFILE_SIZE);
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
     CBlockIndex *newTip = m_node.chainman->ActiveTip();
 
