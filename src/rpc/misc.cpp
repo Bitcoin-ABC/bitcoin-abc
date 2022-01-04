@@ -888,24 +888,24 @@ static RPCHelpMan getindexinfo() {
 void RegisterMiscRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
-        //  category            name                      actor (function)        argNames
-        //  ------------------- ------------------------  ----------------------  ----------
-        { "control",            "getmemoryinfo",          getmemoryinfo,          {"mode"} },
-        { "control",            "logging",                logging,                {"include", "exclude"} },
-        { "util",               "validateaddress",        validateaddress,        {"address"} },
-        { "util",               "createmultisig",         createmultisig,         {"nrequired","keys"} },
-        { "util",               "deriveaddresses",        deriveaddresses,        {"descriptor", "range"} },
-        { "util",               "getdescriptorinfo",      getdescriptorinfo,      {"descriptor"} },
-        { "util",               "verifymessage",          verifymessage,          {"address","signature","message"} },
-        { "util",               "signmessagewithprivkey", signmessagewithprivkey, {"privkey","message"} },
-        { "util",               "getcurrencyinfo",        getcurrencyinfo,        {} },
-        { "util",               "getindexinfo",           getindexinfo,           {"index_name"} },
+        //  category            actor (function)
+        //  ------------------  ----------------------
+        { "control",            getmemoryinfo,           },
+        { "control",            logging,                 },
+        { "util",               validateaddress,         },
+        { "util",               createmultisig,          },
+        { "util",               deriveaddresses,         },
+        { "util",               getdescriptorinfo,       },
+        { "util",               verifymessage,           },
+        { "util",               signmessagewithprivkey,  },
+        { "util",               getcurrencyinfo,         },
+        { "util",               getindexinfo,            },
 
         /* Not shown in help */
-        { "hidden",             "setmocktime",            setmocktime,            {"timestamp"}},
-        { "hidden",             "mockscheduler",          mockscheduler,          {"delta_time"}},
-        { "hidden",             "echo",                   echo,                   {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-        { "hidden",             "echojson",               echojson,               {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
+        { "hidden",             setmocktime,             },
+        { "hidden",             mockscheduler,           },
+        { "hidden",             echo,                    },
+        { "hidden",             echojson,                },
     };
     // clang-format on
     for (const auto &c : commands) {

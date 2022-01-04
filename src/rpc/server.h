@@ -161,8 +161,7 @@ public:
           unique_id(_unique_id) {}
 
     //! Simplified constructor taking plain RpcMethodFnType function pointer.
-    CRPCCommand(std::string _category, std::string name_in, RpcMethodFnType _fn,
-                std::vector<std::string> args_in)
+    CRPCCommand(std::string _category, RpcMethodFnType _fn)
         : CRPCCommand(
               _category, _fn().m_name,
               [_fn](const Config &config, const JSONRPCRequest &request,
@@ -170,10 +169,7 @@ public:
                   result = _fn().HandleRequest(config, request);
                   return true;
               },
-              _fn().GetArgNames(), intptr_t(_fn)) {
-        CHECK_NONFATAL(_fn().m_name == name_in);
-        CHECK_NONFATAL(_fn().GetArgNames() == args_in);
-    }
+              _fn().GetArgNames(), intptr_t(_fn)) {}
 
     std::string category;
     std::string name;

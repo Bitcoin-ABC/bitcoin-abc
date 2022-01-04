@@ -57,9 +57,9 @@ static RPCHelpMan getzmqnotifications() {
 
 // clang-format off
 static const CRPCCommand commands[] = {
-    //  category          name                     actor (function)        argNames
-    //  ----------------- ------------------------ ----------------------- ----------
-    { "zmq",            "getzmqnotifications",   getzmqnotifications,    {} },
+    //  category           actor (function)
+    //  -----------------  -----------------------
+    { "zmq",               getzmqnotifications,     },
 };
 // clang-format on
 

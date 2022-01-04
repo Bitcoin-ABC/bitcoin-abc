@@ -1085,22 +1085,22 @@ static RPCHelpMan addpeeraddress() {
 void RegisterNetRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
-        //  category            name                      actor (function)        argNames
-        //  ------------------- ------------------------  ----------------------  ----------
-        { "network",            "getconnectioncount",     getconnectioncount,     {} },
-        { "network",            "ping",                   ping,                   {} },
-        { "network",            "getpeerinfo",            getpeerinfo,            {} },
-        { "network",            "addnode",                addnode,                {"node","command"} },
-        { "network",            "disconnectnode",         disconnectnode,         {"address", "nodeid"} },
-        { "network",            "getaddednodeinfo",       getaddednodeinfo,       {"node"} },
-        { "network",            "getnettotals",           getnettotals,           {} },
-        { "network",            "getnetworkinfo",         getnetworkinfo,         {} },
-        { "network",            "setban",                 setban,                 {"subnet", "command", "bantime", "absolute"} },
-        { "network",            "listbanned",             listbanned,             {} },
-        { "network",            "clearbanned",            clearbanned,            {} },
-        { "network",            "setnetworkactive",       setnetworkactive,       {"state"} },
-        { "network",            "getnodeaddresses",       getnodeaddresses,       {"count"} },
-        { "hidden",             "addpeeraddress",         addpeeraddress,         {"address", "port"} },
+        //  category            actor (function)
+        //  ------------------  ----------------------
+        { "network",            getconnectioncount,      },
+        { "network",            ping,                    },
+        { "network",            getpeerinfo,             },
+        { "network",            addnode,                 },
+        { "network",            disconnectnode,          },
+        { "network",            getaddednodeinfo,        },
+        { "network",            getnettotals,            },
+        { "network",            getnetworkinfo,          },
+        { "network",            setban,                  },
+        { "network",            listbanned,              },
+        { "network",            clearbanned,             },
+        { "network",            setnetworkactive,        },
+        { "network",            getnodeaddresses,        },
+        { "hidden",             addpeeraddress,          },
     };
     // clang-format on
     for (const auto &c : commands) {

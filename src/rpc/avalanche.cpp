@@ -729,17 +729,17 @@ static RPCHelpMan verifyavalancheproof() {
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
-        //  category            name                      actor (function)        argNames
-        //  ------------------- ------------------------  ----------------------  ----------
-        { "avalanche",          "getavalanchekey",        getavalanchekey,        {}},
-        { "avalanche",          "addavalanchenode",       addavalanchenode,       {"nodeid", "publickey", "proof", "delegation"}},
-        { "avalanche",          "buildavalancheproof",    buildavalancheproof,    {"sequence", "expiration", "master", "stakes", "payoutAddress"}},
-        { "avalanche",          "decodeavalancheproof",   decodeavalancheproof,   {"proof"}},
-        { "avalanche",          "delegateavalancheproof", delegateavalancheproof, {"limitedproofid", "privatekey", "publickey", "delegation"}},
-        { "avalanche",          "getavalanchepeerinfo",   getavalanchepeerinfo,   {}},
-        { "avalanche",          "getrawavalancheproof",   getrawavalancheproof,   {"proofid"}},
-        { "avalanche",          "sendavalancheproof",     sendavalancheproof,     {"proof"}},
-        { "avalanche",          "verifyavalancheproof",   verifyavalancheproof,   {"proof"}},
+        //  category           actor (function)
+        //  -----------------  --------------------
+        { "avalanche",         getavalanchekey,        },
+        { "avalanche",         addavalanchenode,       },
+        { "avalanche",         buildavalancheproof,    },
+        { "avalanche",         decodeavalancheproof,   },
+        { "avalanche",         delegateavalancheproof, },
+        { "avalanche",         getavalanchepeerinfo,   },
+        { "avalanche",         getrawavalancheproof,   },
+        { "avalanche",         sendavalancheproof,     },
+        { "avalanche",         verifyavalancheproof,   },
     };
     // clang-format on
 

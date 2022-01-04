@@ -33,9 +33,9 @@ static RPCHelpMan getexcessiveblock() {
 void RegisterABCRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
-        //  category            name                      actor (function)        argNames
-        //  ------------------- ------------------------  ----------------------  ----------
-        { "network",            "getexcessiveblock",      getexcessiveblock,      {}},
+        //  category            actor (function)
+        //  ------------------  ----------------------
+        { "network",            getexcessiveblock,    },
     };
     // clang-format on
 

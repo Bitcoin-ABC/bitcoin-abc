@@ -2361,20 +2361,20 @@ RPCHelpMan importdescriptors() {
 Span<const CRPCCommand> GetWalletDumpRPCCommands() {
     // clang-format off
     static const CRPCCommand commands[] = {
-        //  category            name                        actor (function)          argNames
-        //  ------------------- ------------------------    ----------------------    ----------
-        { "wallet",             "abortrescan",              abortrescan,              {} },
-        { "wallet",             "dumpprivkey",              dumpprivkey,              {"address"}  },
-        { "wallet",             "dumpwallet",               dumpwallet,               {"filename"} },
-        { "wallet",             "dumpcoins",                dumpcoins,                {} },
-        { "wallet",             "importdescriptors",        importdescriptors,        {"requests"} },
-        { "wallet",             "importmulti",              importmulti,              {"requests","options"} },
-        { "wallet",             "importprivkey",            importprivkey,            {"privkey","label","rescan"} },
-        { "wallet",             "importwallet",             importwallet,             {"filename"} },
-        { "wallet",             "importaddress",            importaddress,            {"address","label","rescan","p2sh"} },
-        { "wallet",             "importprunedfunds",        importprunedfunds,        {"rawtransaction","txoutproof"} },
-        { "wallet",             "importpubkey",             importpubkey,             {"pubkey","label","rescan"} },
-        { "wallet",             "removeprunedfunds",        removeprunedfunds,        {"txid"} },
+        //  category            actor (function)
+        //  ------------------  ----------------------
+        { "wallet",             abortrescan,              },
+        { "wallet",             dumpprivkey,              },
+        { "wallet",             dumpwallet,               },
+        { "wallet",             dumpcoins,                },
+        { "wallet",             importdescriptors,        },
+        { "wallet",             importmulti,              },
+        { "wallet",             importprivkey,            },
+        { "wallet",             importwallet,             },
+        { "wallet",             importaddress,            },
+        { "wallet",             importprunedfunds,        },
+        { "wallet",             importpubkey,             },
+        { "wallet",             removeprunedfunds,        },
     };
     // clang-format on
 
