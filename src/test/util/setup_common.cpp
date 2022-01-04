@@ -110,7 +110,7 @@ BasicTestingSetup::BasicTestingSetup(
     fs::create_directories(m_path_root);
     m_args.ForceSetArg("-datadir", m_path_root.string());
     gArgs.ForceSetArg("-datadir", m_path_root.string());
-    ClearDatadirCache();
+    gArgs.ClearPathCache();
     {
         SetupServerArgs(m_node);
         std::string error;
