@@ -60,6 +60,7 @@ typedef std::unordered_map<BlockHash, CBlockIndex *, BlockHasher> BlockMap;
  */
 class BlockManager {
     friend CChainState;
+    friend ChainstateManager;
 
 private:
     void FlushBlockFile(bool fFinalize = false, bool finalize_undo = false);
@@ -85,7 +86,7 @@ private:
      * staying below the target. Changing back to unpruned requires a reindex
      * (which in this case means the blockchain must be re-downloaded.)
      *
-     * Pruning functions are called from FlushStateToDisk when the global
+     * Pruning functions are called from FlushStateToDisk when the
      * fCheckForPruning flag has been set. Block and undo files are deleted in
      * lock-step (when blk00003.dat is deleted, so is rev00003.dat.) Pruning
      * cannot take place until the longest chain is at least a certain length
@@ -101,6 +102,22 @@ private:
     void FindFilesToPrune(std::set<int> &setFilesToPrune,
                           uint64_t nPruneAfterHeight, int chain_tip_height,
                           int prune_height, bool is_ibd);
+
+    RecursiveMutex cs_LastBlockFile;
+    std::vector<CBlockFileInfo> vinfoBlockFile;
+    int nLastBlockFile = 0;
+    /**
+     * Global flag to indicate we should check to see if there are
+     * block/undo files that should be deleted.  Set on startup
+     * or if we allocate more file space when we're in prune mode
+     */
+    bool fCheckForPruning = false;
+
+    /** Dirty block index entries. */
+    std::set<CBlockIndex *> setDirtyBlockIndex;
+
+    /** Dirty block file entries. */
+    std::set<int> setDirtyFileInfo;
 
 public:
     BlockMap m_block_index GUARDED_BY(cs_main);
