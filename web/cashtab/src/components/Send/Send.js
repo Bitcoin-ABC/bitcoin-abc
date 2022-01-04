@@ -249,7 +249,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             Event('Send.js', 'SendToMany', selectedCurrency);
 
             passLoadingStatus(true);
-            const { address, value } = formData;
+            const { address } = formData;
 
             //convert each line from TextArea input
             let addressAndValueArray = address.split('\n');
