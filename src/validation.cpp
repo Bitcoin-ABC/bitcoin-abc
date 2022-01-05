@@ -4912,10 +4912,6 @@ void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
     if (mempool) {
         mempool->clear();
     }
-    vinfoBlockFile.clear();
-    nLastBlockFile = 0;
-    setDirtyBlockIndex.clear();
-    setDirtyFileInfo.clear();
     fHavePruned = false;
 }
 
