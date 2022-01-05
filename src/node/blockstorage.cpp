@@ -394,6 +394,29 @@ void BlockManager::Unload() {
     m_block_index.clear();
 }
 
+bool BlockManager::WriteBlockIndexDB() {
+    std::vector<std::pair<int, const CBlockFileInfo *>> vFiles;
+    vFiles.reserve(setDirtyFileInfo.size());
+    for (int i : setDirtyFileInfo) {
+        vFiles.push_back(std::make_pair(i, &vinfoBlockFile[i]));
+    }
+
+    setDirtyFileInfo.clear();
+
+    std::vector<const CBlockIndex *> vBlocks;
+    vBlocks.reserve(setDirtyBlockIndex.size());
+    for (const CBlockIndex *cbi : setDirtyBlockIndex) {
+        vBlocks.push_back(cbi);
+    }
+
+    setDirtyBlockIndex.clear();
+
+    if (!m_block_tree_db->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
+        return false;
+    }
+    return true;
+}
+
 bool BlockManager::LoadBlockIndexDB(ChainstateManager &chainman) {
     if (!LoadBlockIndex(::Params().GetConsensus(), chainman)) {
         return false;

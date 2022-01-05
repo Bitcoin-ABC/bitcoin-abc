@@ -2322,24 +2322,7 @@ bool CChainState::FlushStateToDisk(BlockValidationState &state,
                     LOG_TIME_MILLIS_WITH_CATEGORY("write block index to disk",
                                                   BCLog::BENCH);
 
-                    std::vector<std::pair<int, const CBlockFileInfo *>> vFiles;
-                    vFiles.reserve(setDirtyFileInfo.size());
-                    for (int i : setDirtyFileInfo) {
-                        vFiles.push_back(std::make_pair(i, &vinfoBlockFile[i]));
-                    }
-
-                    setDirtyFileInfo.clear();
-
-                    std::vector<const CBlockIndex *> vBlocks;
-                    vBlocks.reserve(setDirtyBlockIndex.size());
-                    for (const CBlockIndex *cbi : setDirtyBlockIndex) {
-                        vBlocks.push_back(cbi);
-                    }
-
-                    setDirtyBlockIndex.clear();
-
-                    if (!m_blockman.m_block_tree_db->WriteBatchSync(
-                            vFiles, nLastBlockFile, vBlocks)) {
+                    if (!m_blockman.WriteBlockIndexDB()) {
                         return AbortNode(
                             state, "Failed to write to block index database");
                     }
