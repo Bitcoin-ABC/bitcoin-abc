@@ -49,7 +49,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
 
     const [formData, setFormData] = useState({
-        dirty: true,
         value: '',
         address: '',
     });
@@ -73,7 +72,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     // Clears address and amount fields following sendTokenNotification
     const clearInputForms = () => {
         setFormData({
-            dirty: true,
             value: '',
             address: '',
         });
@@ -82,7 +80,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     async function submit() {
         setFormData({
             ...formData,
-            dirty: false,
         });
 
         if (
