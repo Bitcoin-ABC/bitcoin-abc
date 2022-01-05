@@ -23,6 +23,7 @@
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
 #include <event2/event.h>
+#include <event2/http.h>
 #include <event2/keyvalq_struct.h>
 #include <event2/thread.h>
 #include <event2/util.h>
@@ -758,6 +759,41 @@ HTTPRequest::RequestMethod HTTPRequest::GetRequestMethod() const {
     }
 }
 
+std::optional<std::string>
+HTTPRequest::GetQueryParameter(const std::string &key) const {
+    const char *uri{evhttp_request_get_uri(req)};
+
+    return GetQueryParameterFromUri(uri, key);
+}
+
+std::optional<std::string> GetQueryParameterFromUri(const char *uri,
+                                                    const std::string &key) {
+    evhttp_uri *uri_parsed{evhttp_uri_parse(uri)};
+    if (!uri_parsed) {
+        throw std::runtime_error("URI parsing failed, it likely contained RFC "
+                                 "3986 invalid characters");
+    }
+    const char *query{evhttp_uri_get_query(uri_parsed)};
+    std::optional<std::string> result;
+
+    if (query) {
+        // Parse the query string into a key-value queue and iterate over it
+        struct evkeyvalq params_q;
+        evhttp_parse_query_str(query, &params_q);
+
+        for (struct evkeyval *param{params_q.tqh_first}; param != nullptr;
+             param = param->next.tqe_next) {
+            if (param->key == key) {
+                result = param->value;
+                break;
+            }
+        }
+        evhttp_clear_headers(&params_q);
+    }
+    evhttp_uri_free(uri_parsed);
+
+    return result;
+}
 void RegisterHTTPHandler(const std::string &prefix, bool exactMatch,
                          const HTTPRequestHandler &handler) {
     LogDebug(BCLog::HTTP, "Registering HTTP handler for %s (exactmatch %d)\n",

@@ -662,6 +662,7 @@ static bool rest_mempool_info(Config &config, const std::any &context,
 static bool rest_mempool_contents(Config &config, const std::any &context,
                                   HTTPRequest *req,
                                   const std::string &strURIPart) {
+    // TODO: when backporting core#25760 & core#26207, apply bugfix core#27468
     if (!CheckWarmup(req)) {
         return false;
     }
