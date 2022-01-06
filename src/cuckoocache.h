@@ -5,6 +5,8 @@
 #ifndef BITCOIN_CUCKOOCACHE_H
 #define BITCOIN_CUCKOOCACHE_H
 
+#include <util/fastrange.h>
+
 #include <algorithm> // std::find
 #include <array>
 #include <atomic>
@@ -239,15 +241,8 @@ private:
      * compute the constants for exact division based on the size, as described
      * in "{N}-bit Unsigned Division via {N}-bit Multiply-Add" by Arch D.
      * Robison in 2005. But that code is somewhat complicated and the result is
-     * still slower than other options:
-     *
-     * Instead we treat the 32-bit random number as a Q32 fixed-point number in
-     * the range [0, 1) and simply multiply it by the size. Then we just shift
-     * the result down by 32-bits to get our bucket number. The result has
-     * non-uniformity the same as a mod, but it is much faster to compute. More
-     * about this technique can be found at
-     *  http://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
-     * .
+     * still slower than an even simpler option: see the FastRange32 function in
+     * util/fastrange.h.
      *
      * The resulting non-uniformity is also more equally distributed which would
      * be advantageous for something like linear probing, though it shouldn't
@@ -263,30 +258,14 @@ private:
      * range [0, size)
      */
     inline std::array<uint32_t, 8> compute_hashes(const Key &k) const {
-        return {{uint32_t(uint64_t(hash_function.template operator()<0>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<1>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<2>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<3>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<4>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<5>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<6>(k)) *
-                              uint64_t(size) >>
-                          32),
-                 uint32_t(uint64_t(hash_function.template operator()<7>(k)) *
-                              uint64_t(size) >>
-                          32)}};
+        return {{FastRange32(hash_function.template operator()<0>(k), size),
+                 FastRange32(hash_function.template operator()<1>(k), size),
+                 FastRange32(hash_function.template operator()<2>(k), size),
+                 FastRange32(hash_function.template operator()<3>(k), size),
+                 FastRange32(hash_function.template operator()<4>(k), size),
+                 FastRange32(hash_function.template operator()<5>(k), size),
+                 FastRange32(hash_function.template operator()<6>(k), size),
+                 FastRange32(hash_function.template operator()<7>(k), size)}};
     }
 
     /**
