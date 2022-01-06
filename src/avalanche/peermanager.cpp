@@ -164,10 +164,18 @@ bool PeerManager::updateNextPossibleConflictTime(
     return it->nextPossibleConflictTime == nextTime;
 }
 
-bool PeerManager::registerProof(const ProofRef &proof, RegistrationMode mode) {
+bool PeerManager::registerProof(const ProofRef &proof,
+                                ProofRegistrationState &registrationState,
+                                RegistrationMode mode) {
     assert(proof);
 
     const ProofId &proofid = proof->getId();
+
+    auto invalidate = [&](ProofRegistrationResult result,
+                          const std::string &message) {
+        return registrationState.Invalid(
+            result, message, strprintf("proofid: %s", proofid.ToString()));
+    };
 
     if ((mode != RegistrationMode::FORCE_ACCEPT ||
          !isInConflictingPool(proofid)) &&
@@ -175,22 +183,25 @@ bool PeerManager::registerProof(const ProofRef &proof, RegistrationMode mode) {
         // In default mode, we expect the proof to be unknown, i.e. in none of
         // the pools.
         // In forced accept mode, the proof can be in the conflicting pool.
-        return false;
+        return invalidate(ProofRegistrationResult::ALREADY_REGISTERED,
+                          "proof-already-registered");
     }
 
     // Check the proof's validity.
-    ProofValidationState state;
+    ProofValidationState validationState;
     // Using WITH_LOCK directly inside the if statement will trigger a cppcheck
     // false positive syntax error
     const bool valid = WITH_LOCK(
-        cs_main, return proof->verify(state, ::ChainstateActive().CoinsTip()));
+        cs_main,
+        return proof->verify(validationState, ::ChainstateActive().CoinsTip()));
     if (!valid) {
-        if (isOrphanState(state)) {
+        if (isOrphanState(validationState)) {
             orphanProofPool.addProofIfPreferred(proof);
+            return invalidate(ProofRegistrationResult::ORPHAN, "orphan-proof");
         }
 
         // Reject invalid proof.
-        return false;
+        return invalidate(ProofRegistrationResult::INVALID, "invalid-proof");
     }
 
     ProofPool::ConflictingProofSet conflictingProofs;
@@ -200,8 +211,12 @@ bool PeerManager::registerProof(const ProofRef &proof, RegistrationMode mode) {
                 // The proof has conflicts, move it to the conflicting proof
                 // pool so it can be pulled back if the conflicting ones are
                 // invalidated.
-                conflictingProofPool.addProofIfPreferred(proof);
-                return false;
+                return conflictingProofPool.addProofIfPreferred(proof) ==
+                               ProofPool::AddProofStatus::REJECTED
+                           ? invalidate(ProofRegistrationResult::REJECTED,
+                                        "rejected-proof")
+                           : invalidate(ProofRegistrationResult::CONFLICTING,
+                                        "conflicting-utxos");
             }
 
             conflictingProofPool.removeProof(proofid);
@@ -225,7 +240,8 @@ bool PeerManager::registerProof(const ProofRef &proof, RegistrationMode mode) {
         }
         case ProofPool::AddProofStatus::DUPLICATED:
             // If the proof was already in the pool, don't duplicate the peer.
-            return false;
+            return invalidate(ProofRegistrationResult::ALREADY_REGISTERED,
+                              "proof-already-registered");
         case ProofPool::AddProofStatus::SUCCEED:
             break;
 

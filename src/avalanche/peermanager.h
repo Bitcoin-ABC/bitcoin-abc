@@ -9,6 +9,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
 #include <coins.h>
+#include <consensus/validation.h>
 #include <pubkey.h>
 #include <salteduint256hasher.h>
 #include <util/time.h>
@@ -103,6 +104,18 @@ struct PendingNode {
 
 struct by_proofid;
 struct by_nodeid;
+
+enum class ProofRegistrationResult {
+    NONE = 0,
+    ALREADY_REGISTERED,
+    ORPHAN,
+    INVALID,
+    CONFLICTING,
+    REJECTED,
+};
+
+class ProofRegistrationState : public ValidationState<ProofRegistrationResult> {
+};
 
 namespace bmi = boost::multi_index;
 
@@ -218,7 +231,14 @@ public:
     };
 
     bool registerProof(const ProofRef &proof,
+                       ProofRegistrationState &registrationState,
                        RegistrationMode mode = RegistrationMode::DEFAULT);
+    bool registerProof(const ProofRef &proof,
+                       RegistrationMode mode = RegistrationMode::DEFAULT) {
+        ProofRegistrationState dummy;
+        return registerProof(proof, dummy, mode);
+    }
+
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;
     }

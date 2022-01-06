@@ -642,8 +642,15 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
 
     // Add the proofs
     BOOST_CHECK(pm.registerProof(proof1));
-    BOOST_CHECK(!pm.registerProof(proof2));
-    BOOST_CHECK(!pm.registerProof(proof3));
+
+    auto registerOrphan = [&](const ProofRef &proof) {
+        ProofRegistrationState state;
+        BOOST_CHECK(!pm.registerProof(proof, state));
+        BOOST_CHECK(state.GetResult() == ProofRegistrationResult::ORPHAN);
+    };
+
+    registerOrphan(proof2);
+    registerOrphan(proof3);
 
     auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
         const ProofId &proofid = proof->getId();
@@ -771,8 +778,14 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
 
     for (int i = 0; i < numProofs; i++) {
         BOOST_CHECK(pm.registerProof(proofs[i]));
-        // Fail to add an existing proof
-        BOOST_CHECK(!pm.registerProof(proofs[i]));
+
+        {
+            ProofRegistrationState state;
+            // Fail to add an existing proof
+            BOOST_CHECK(!pm.registerProof(proofs[i], state));
+            BOOST_CHECK(state.GetResult() ==
+                        ProofRegistrationResult::ALREADY_REGISTERED);
+        }
 
         for (int added = 0; added <= i; added++) {
             auto proof = pm.getProof(proofs[added]->getId());
@@ -790,8 +803,11 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
     bilingual_str error;
     Proof badProof;
     BOOST_CHECK(Proof::FromHex(badProof, badProofHex, error));
+
+    ProofRegistrationState state;
     BOOST_CHECK(
-        !pm.registerProof(std::make_shared<Proof>(std::move(badProof))));
+        !pm.registerProof(std::make_shared<Proof>(std::move(badProof)), state));
+    BOOST_CHECK(state.GetResult() == ProofRegistrationResult::INVALID);
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
@@ -839,7 +855,9 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
         conflictingProof = pb.build();
     }
 
-    BOOST_CHECK(!pm.registerProof(conflictingProof));
+    ProofRegistrationState state;
+    BOOST_CHECK(!pm.registerProof(conflictingProof, state));
+    BOOST_CHECK(state.GetResult() == ProofRegistrationResult::CONFLICTING);
     BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
 
     {
@@ -1175,6 +1193,54 @@ BOOST_AUTO_TEST_CASE(register_force_accept) {
 
         BOOST_CHECK(pm.isBoundToPeer(proofSeq10->getId()));
         BOOST_CHECK(pm.isInConflictingPool(proofSeq30->getId()));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(evicted_proof) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(conflictingOutpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+        return pb.build();
+    };
+
+    auto proofSeq10 = buildProofWithSequence(10);
+    auto proofSeq20 = buildProofWithSequence(20);
+    auto proofSeq30 = buildProofWithSequence(30);
+
+    {
+        ProofRegistrationState state;
+        BOOST_CHECK(pm.registerProof(proofSeq30, state));
+        BOOST_CHECK(state.IsValid());
+    }
+
+    {
+        ProofRegistrationState state;
+        BOOST_CHECK(!pm.registerProof(proofSeq20, state));
+        BOOST_CHECK(state.GetResult() == ProofRegistrationResult::CONFLICTING);
+    }
+
+    {
+        ProofRegistrationState state;
+        BOOST_CHECK(!pm.registerProof(proofSeq10, state));
+        BOOST_CHECK(state.GetResult() == ProofRegistrationResult::REJECTED);
     }
 }
 
