@@ -17,6 +17,7 @@
 #include <qt/guiutil.h>
 #include <qt/peertablemodel.h>
 #include <util/threadnames.h>
+#include <util/time.h>
 #include <validation.h>
 
 #include <QDebug>
@@ -26,8 +27,8 @@
 
 #include <cstdint>
 
-static int64_t nLastHeaderTipUpdateNotification = 0;
-static int64_t nLastBlockTipUpdateNotification = 0;
+static SteadyClock::time_point g_last_header_tip_update_notification{};
+static SteadyClock::time_point g_last_block_tip_update_notification{};
 
 ClientModel::ClientModel(interfaces::Node &node, OptionsModel *_optionsModel,
                          QObject *parent)
@@ -207,10 +208,10 @@ void ClientModel::TipChanged(SynchronizationState sync_state,
     const bool throttle = (sync_state != SynchronizationState::POST_INIT &&
                            synctype == SyncType::BLOCK_SYNC) ||
                           sync_state == SynchronizationState::INIT_REINDEX;
-    const int64_t now = throttle ? GetTimeMillis() : 0;
-    int64_t &nLastUpdateNotification = synctype != SyncType::BLOCK_SYNC
-                                           ? nLastHeaderTipUpdateNotification
-                                           : nLastBlockTipUpdateNotification;
+    const auto now{throttle ? SteadyClock::now() : SteadyClock::time_point{}};
+    auto &nLastUpdateNotification = synctype != SyncType::BLOCK_SYNC
+                                        ? g_last_header_tip_update_notification
+                                        : g_last_block_tip_update_notification;
     if (throttle && now < nLastUpdateNotification + MODEL_UPDATE_DELAY) {
         return;
     }

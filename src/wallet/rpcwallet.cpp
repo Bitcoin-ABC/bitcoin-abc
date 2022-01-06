@@ -2568,7 +2568,8 @@ static RPCHelpMan getwalletinfo() {
                 !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
             if (pwallet->IsScanning()) {
                 UniValue scanning(UniValue::VOBJ);
-                scanning.pushKV("duration", pwallet->ScanningDuration() / 1000);
+                scanning.pushKV("duration", Ticks<std::chrono::seconds>(
+                                                pwallet->ScanningDuration()));
                 scanning.pushKV("progress", pwallet->ScanningProgress());
                 obj.pushKV("scanning", scanning);
             } else {

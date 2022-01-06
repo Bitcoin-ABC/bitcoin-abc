@@ -12,11 +12,11 @@
 #include <string>
 #include <vector>
 
-namespace {
-int default_socks5_recv_timeout;
-};
+extern std::chrono::milliseconds g_socks5_recv_timeout;
 
-extern int g_socks5_recv_timeout;
+namespace {
+decltype(g_socks5_recv_timeout) default_socks5_recv_timeout;
+};
 
 void initialize_socks5() {
     static const auto testing_setup =
@@ -37,7 +37,7 @@ FUZZ_TARGET_INIT(socks5, initialize_socks5) {
     g_socks5_recv_timeout =
         (fuzzed_data_provider.ConsumeBool() &&
          std::getenv("FUZZED_SOCKET_FAKE_LATENCY") != nullptr)
-            ? 1
+            ? 1ms
             : default_socks5_recv_timeout;
     FuzzedSock fuzzed_sock = ConsumeSock(fuzzed_data_provider);
     // This Socks5(...) fuzzing harness would have caught CVE-2017-18350 within
