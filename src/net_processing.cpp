@@ -4940,8 +4940,9 @@ void PeerManagerImpl::ProcessMessage(
         // registerProof should not be called while cs_proofrequest because it
         // holds cs_main and that creates a potential deadlock during shutdown
 
+        avalanche::ProofRegistrationState state;
         if (g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                return pm.registerProof(proof);
+                return pm.registerProof(proof, state);
             })) {
             WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
             RelayProof(proofid, m_connman);
@@ -4950,17 +4951,13 @@ void PeerManagerImpl::ProcessMessage(
 
             LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
                      nodeid, proofid.ToString());
-        } else {
-            // If the proof couldn't be added, it can be either orphan or
-            // invalid. In the latter case we should increase the ban score.
-            // TODO improve the ban reason by printing the validation state
-            if (!g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                    return pm.isOrphan(proofid);
-                })) {
-                WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
-                Misbehaving(nodeid, 100, "invalid-avaproof");
-            }
         }
+
+        if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
+            WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
+            Misbehaving(nodeid, 100, state.GetRejectReason());
+        }
+
         return;
     }
 

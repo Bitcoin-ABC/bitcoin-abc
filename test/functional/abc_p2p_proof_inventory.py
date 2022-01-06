@@ -134,7 +134,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         msg.proof = bad_proof
         with node.assert_debug_log([
             'Misbehaving',
-            'invalid-avaproof',
+            'invalid-proof',
         ]):
             peer.send_message(msg)
             peer.wait_for_disconnect()
