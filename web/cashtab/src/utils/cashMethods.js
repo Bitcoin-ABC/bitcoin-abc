@@ -48,23 +48,6 @@ export const toSmallestDenomination = (
     return sendAmountSmallestDenomination;
 };
 
-export const formatBalance = (unformattedBalance, optionalLocale) => {
-    try {
-        if (optionalLocale === undefined) {
-            return new Number(unformattedBalance).toLocaleString({
-                maximumFractionDigits: currency.cashDecimals,
-            });
-        }
-        return new Number(unformattedBalance).toLocaleString(optionalLocale, {
-            maximumFractionDigits: currency.cashDecimals,
-        });
-    } catch (err) {
-        console.log(`Error in formatBalance for ${unformattedBalance}`);
-        console.log(err);
-        return unformattedBalance;
-    }
-};
-
 export const batchArray = (inputArray, batchSize) => {
     // take an array of n elements, return an array of arrays each of length batchSize
 

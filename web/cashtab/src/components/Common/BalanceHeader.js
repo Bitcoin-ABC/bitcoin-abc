@@ -1,6 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { formatBalance } from '@utils/cashMethods';
+import { formatBalance } from '@utils/formatting';
 import { BalanceHeaderWrap } from '@components/Common/Atoms';
 
 const BalanceHeader = ({ balance, ticker }) => {

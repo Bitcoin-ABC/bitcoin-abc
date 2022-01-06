@@ -11,8 +11,8 @@ import {
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
-import { formatBalance, fromLegacyDecimals } from '@utils/cashMethods';
-import { formatDate } from '@utils/validation';
+import { fromLegacyDecimals } from '@utils/cashMethods';
+import { formatBalance, formatDate } from '@utils/formatting';
 const SentTx = styled(ArrowUpOutlined)`
     color: ${props => props.theme.secondary} !important;
 `;

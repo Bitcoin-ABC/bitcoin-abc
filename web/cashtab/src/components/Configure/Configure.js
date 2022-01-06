@@ -32,7 +32,7 @@ import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
 import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
 import ApiError from '@components/Common/ApiError';
-import { formatSavedBalance } from '@utils/validation';
+import { formatSavedBalance } from '@utils/formatting';
 
 const { Panel } = Collapse;
 

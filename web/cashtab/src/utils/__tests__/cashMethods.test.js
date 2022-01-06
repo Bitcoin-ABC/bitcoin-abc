@@ -1,7 +1,6 @@
 import { ValidationError } from 'ecashaddrjs';
 import {
     fromSmallestDenomination,
-    formatBalance,
     batchArray,
     flattenBatchedHydratedUtxos,
     loadStoredWallet,
@@ -129,44 +128,6 @@ describe('Correctly executes cash utility functions', () => {
             toLegacyToken('qz2708636snqhsxu8wnlka78h6fdp77ar5tv2tzg4r'),
         ).toBe('simpleledger:qz2708636snqhsxu8wnlka78h6fdp77ar5syue64fa');
     });
-    it(`test formatBalance with an input of 0`, () => {
-        expect(formatBalance('0')).toBe('0');
-    });
-    it(`test formatBalance with zero XEC balance input`, () => {
-        expect(formatBalance('0', 'en-US')).toBe('0');
-    });
-    it(`test formatBalance with a small XEC balance input with 2+ decimal figures`, () => {
-        expect(formatBalance('1574.5445', 'en-US')).toBe('1,574.54');
-    });
-    it(`test formatBalance with 1 Million XEC balance input`, () => {
-        expect(formatBalance('1000000', 'en-US')).toBe('1,000,000');
-    });
-    it(`test formatBalance with 1 Billion XEC balance input`, () => {
-        expect(formatBalance('1000000000', 'en-US')).toBe('1,000,000,000');
-    });
-    it(`test formatBalance with total supply as XEC balance input`, () => {
-        expect(formatBalance('21000000000000', 'en-US')).toBe(
-            '21,000,000,000,000',
-        );
-    });
-    it(`test formatBalance with > total supply as XEC balance input`, () => {
-        expect(formatBalance('31000000000000', 'en-US')).toBe(
-            '31,000,000,000,000',
-        );
-    });
-    it(`test formatBalance with no balance`, () => {
-        expect(formatBalance('', 'en-US')).toBe('0');
-    });
-    it(`test formatBalance with null input`, () => {
-        expect(formatBalance(null, 'en-US')).toBe('0');
-    });
-    it(`test formatBalance with undefined as input`, () => {
-        expect(formatBalance(undefined, 'en-US')).toBe('NaN');
-    });
-    it(`test formatBalance with non-numeric input`, () => {
-        expect(formatBalance('CainBCHA', 'en-US')).toBe('NaN');
-    });
-
     it(`Correctly parses utxo vout tx data to confirm the transactions are not eToken txs`, () => {
         expect(checkNullUtxosForTokenStatus(mockTxDataResults)).toStrictEqual(
             mockNonEtokenUtxos,

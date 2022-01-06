@@ -26,12 +26,8 @@ import {
     sendTokenNotification,
     errorNotification,
 } from '@components/Common/Notifications';
-import {
-    isValidXecAddress,
-    isValidEtokenAddress,
-    formatDate,
-} from '@utils/validation';
-
+import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
+import { formatDate } from '@utils/formatting';
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);

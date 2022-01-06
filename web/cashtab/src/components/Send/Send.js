@@ -49,7 +49,7 @@ import {
     fromSmallestDenomination,
 } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
-import { formatFiatBalance } from '@utils/validation';
+import { formatFiatBalance } from '@utils/formatting';
 import { TokenParamLabel } from '@components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
