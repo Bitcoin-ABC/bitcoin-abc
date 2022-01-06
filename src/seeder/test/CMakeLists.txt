@@ -13,6 +13,7 @@ add_boost_unit_tests_to_suite(seeder test-seeder
 
 	TESTS
 		message_writer_tests.cpp
+		options_tests.cpp
 		p2p_messaging_tests.cpp
 		parse_name_tests.cpp
 		write_name_tests.cpp

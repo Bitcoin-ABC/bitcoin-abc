@@ -8,6 +8,7 @@ add_library(seeder-base
 	bitcoin.cpp
 	db.cpp
 	dns.cpp
+	options.cpp
 )
 target_link_libraries(seeder-base server)
 
