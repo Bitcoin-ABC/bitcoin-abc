@@ -383,30 +383,34 @@ export default function useBCH() {
         let flatTxs = flattenTransactions(txHistory);
 
         // Build array of promises to get tx data for all 10 transactions
-        let txDataPromises = [];
+        let getTxDataWithPassThroughPromises = [];
         for (let i = 0; i < flatTxs.length; i += 1) {
-            const txDataPromise = await getTxDataWithPassThrough(
-                BCH,
-                flatTxs[i],
+            const getTxDataWithPassThroughPromise =
+                returnGetTxDataWithPassThroughPromise(BCH, flatTxs[i]);
+            getTxDataWithPassThroughPromises.push(
+                getTxDataWithPassThroughPromise,
             );
-            txDataPromises.push(txDataPromise);
         }
 
         // Get txData for the 10 most recent transactions
-        let txDataPromiseResponse;
+        let getTxDataWithPassThroughPromisesResponse;
         try {
-            txDataPromiseResponse = await Promise.all(txDataPromises);
+            getTxDataWithPassThroughPromisesResponse = await Promise.all(
+                getTxDataWithPassThroughPromises,
+            );
 
             const parsed = parseTxData(
                 BCH,
-                txDataPromiseResponse,
+                getTxDataWithPassThroughPromisesResponse,
                 publicKeys,
                 wallet,
             );
 
             return parsed;
         } catch (err) {
-            console.log(`Error in Promise.all(txDataPromises):`);
+            console.log(
+                `Error in Promise.all(getTxDataWithPassThroughPromises):`,
+            );
             console.log(err);
             return err;
         }
@@ -506,21 +510,24 @@ export default function useBCH() {
         // Get txData for the 10 most recent transactions
 
         // Build array of promises to get tx data for all 10 transactions
-        let tokenTxDataPromises = [];
+        let addTokenTxDataToSingleTxPromises = [];
         for (let i = 0; i < parsedTxs.length; i += 1) {
-            const txDataPromise = await addTokenTxDataToSingleTx(
-                BCH,
-                parsedTxs[i],
+            const addTokenTxDataToSingleTxPromise =
+                returnAddTokenTxDataToSingleTxPromise(BCH, parsedTxs[i]);
+            addTokenTxDataToSingleTxPromises.push(
+                addTokenTxDataToSingleTxPromise,
             );
-            tokenTxDataPromises.push(txDataPromise);
         }
-        let tokenTxDataPromiseResponse;
+        let addTokenTxDataToSingleTxPromisesResponse;
         try {
-            tokenTxDataPromiseResponse = await Promise.all(tokenTxDataPromises);
-
-            return tokenTxDataPromiseResponse;
+            addTokenTxDataToSingleTxPromisesResponse = await Promise.all(
+                addTokenTxDataToSingleTxPromises,
+            );
+            return addTokenTxDataToSingleTxPromisesResponse;
         } catch (err) {
-            console.log(`Error in Promise.all(tokenTxDataPromises):`);
+            console.log(
+                `Error in Promise.all(addTokenTxDataToSingleTxPromises):`,
+            );
             console.log(err);
             return err;
         }
@@ -559,18 +566,21 @@ export default function useBCH() {
                 const utxoSetForThisPromise = [
                     { utxos: batchedUtxos[j], address: thisAddress },
                 ];
-                const thisPromise = BCH.SLP.Utils.hydrateUtxos(
+                const hydrateUtxosPromise = returnHydrateUtxosPromise(
+                    BCH,
                     utxoSetForThisPromise,
                 );
-                hydrateUtxosPromises.push(thisPromise);
+                hydrateUtxosPromises.push(hydrateUtxosPromise);
             }
         }
-        let hydratedUtxoDetails;
-
+        let hydrateUtxosPromisesResponse;
         try {
-            hydratedUtxoDetails = await Promise.all(hydrateUtxosPromises);
-            const flattenedBatchedHydratedUtxos =
-                flattenBatchedHydratedUtxos(hydratedUtxoDetails);
+            hydrateUtxosPromisesResponse = await Promise.all(
+                hydrateUtxosPromises,
+            );
+            const flattenedBatchedHydratedUtxos = flattenBatchedHydratedUtxos(
+                hydrateUtxosPromisesResponse,
+            );
             return flattenedBatchedHydratedUtxos;
         } catch (err) {
             console.log(`Error in Promise.all(hydrateUtxosPromises)`);
@@ -579,9 +589,48 @@ export default function useBCH() {
         }
     };
 
-    const fetchTxDataPromise = (BCH, txidBatch) => {
+    const returnTxDataPromise = (BCH, txidBatch) => {
         return new Promise((resolve, reject) => {
             BCH.Electrumx.txData(txidBatch).then(
+                result => {
+                    resolve(result);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
+    const returnGetTxDataWithPassThroughPromise = (BCH, flatTx) => {
+        return new Promise((resolve, reject) => {
+            getTxDataWithPassThrough(BCH, flatTx).then(
+                result => {
+                    resolve(result);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
+    const returnAddTokenTxDataToSingleTxPromise = (BCH, parsedTx) => {
+        return new Promise((resolve, reject) => {
+            addTokenTxDataToSingleTx(BCH, parsedTx).then(
+                result => {
+                    resolve(result);
+                },
+                err => {
+                    reject(err);
+                },
+            );
+        });
+    };
+
+    const returnHydrateUtxosPromise = (BCH, utxoSetForThisPromise) => {
+        return new Promise((resolve, reject) => {
+            BCH.SLP.Utils.hydrateUtxos(utxoSetForThisPromise).then(
                 result => {
                     resolve(result);
                 },
@@ -612,20 +661,17 @@ export default function useBCH() {
         for (let j = 0; j < batchedTxids.length; j += 1) {
             const txidsForThisPromise = batchedTxids[j];
             // build the promise for the api call with the 20 txids in current batch
-            const thisTxDataPromise = fetchTxDataPromise(
-                BCH,
-                txidsForThisPromise,
-            );
-            txDataPromises.push(thisTxDataPromise);
+            const txDataPromise = returnTxDataPromise(BCH, txidsForThisPromise);
+            txDataPromises.push(txDataPromise);
         }
 
         try {
-            const nullUtxoTxData = await Promise.all(txDataPromises);
+            const txDataPromisesResponse = await Promise.all(txDataPromises);
             // Scan tx data for each utxo to confirm they are not eToken txs
             let thisTxDataResult;
             let nonEtokenUtxos = [];
-            for (let k = 0; k < nullUtxoTxData.length; k += 1) {
-                thisTxDataResult = nullUtxoTxData[k].transactions;
+            for (let k = 0; k < txDataPromisesResponse.length; k += 1) {
+                thisTxDataResult = txDataPromisesResponse[k].transactions;
                 nonEtokenUtxos = nonEtokenUtxos.concat(
                     checkNullUtxosForTokenStatus(thisTxDataResult),
                 );
