@@ -49,7 +49,7 @@ import {
     fromSmallestDenomination,
 } from '@utils/cashMethods';
 import ApiError from '@components/Common/ApiError';
-import { formatFiatBalance } from '@utils/formatting';
+import { formatFiatBalance, formatBalance } from '@utils/formatting';
 import { TokenParamLabel } from '@components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
@@ -73,6 +73,10 @@ const TextAreaLabel = styled.div`
     text-align: left;
     color: #0074c2;
     padding-left: 1px;
+`;
+
+const LocaleFormattedValue = styled.h3`
+    color: ${props => props.theme.forms.text};
 `;
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -119,7 +123,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
     const [messageSignature, setMessageSignature] = useState('');
     const [sigCopySuccess, setSigCopySuccess] = useState('');
-
+    const userLocale = navigator.language;
     const clearInputForms = () => {
         setFormData({
             value: '',
@@ -574,7 +578,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             )}`;
 
             // formats to fiat locale style
-            fiatPriceString = formatFiatBalance(Number(fiatPriceString));
+            fiatPriceString = formatFiatBalance(
+                Number(fiatPriceString),
+                userLocale,
+            );
 
             // insert symbol and currency before/after the locale formatted fiat balance
             fiatPriceString = `${
@@ -594,8 +601,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 formData.value
                     ? formatFiatBalance(
                           Number(fiatToCrypto(formData.value, fiatPrice)),
+                          userLocale,
                       )
-                    : formatFiatBalance(0)
+                    : formatFiatBalance(0, userLocale)
             } ${currency.ticker}`;
         }
     }
@@ -723,6 +731,10 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                         disabled
                                     </AlertMsg>
                                 )}
+                                <LocaleFormattedValue>
+                                    {formatBalance(formData.value, userLocale)}{' '}
+                                    {selectedCurrency}
+                                </LocaleFormattedValue>
                                 <ConvertAmount>
                                     {fiatPriceString !== '' && '='}{' '}
                                     {fiatPriceString}
