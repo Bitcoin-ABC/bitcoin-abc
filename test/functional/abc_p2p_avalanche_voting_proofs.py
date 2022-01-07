@@ -26,7 +26,13 @@ class AvalancheTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [
-            ['-enableavalanche=1', '-avacooldown=0', '-whitelist=noban@127.0.0.1']]
+            [
+                '-enableavalanche=1',
+                '-avacooldown=0',
+                '-avalancheconflictingproofcooldown=0',
+                '-whitelist=noban@127.0.0.1',
+            ],
+        ]
         self.supports_cli = False
 
     def run_test(self):

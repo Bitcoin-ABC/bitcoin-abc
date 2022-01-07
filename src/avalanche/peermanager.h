@@ -78,10 +78,11 @@ struct Peer {
     std::chrono::seconds registration_time;
     std::chrono::seconds nextPossibleConflictTime;
 
-    Peer(PeerId peerid_, ProofRef proof_)
+    Peer(PeerId peerid_, ProofRef proof_,
+         std::chrono::seconds nextPossibleConflictTime_)
         : peerid(peerid_), proof(std::move(proof_)),
           registration_time(GetTime<std::chrono::seconds>()),
-          nextPossibleConflictTime(registration_time) {}
+          nextPossibleConflictTime(std::move(nextPossibleConflictTime_)) {}
 
     const ProofId &getProofId() const { return proof->getId(); }
     uint32_t getScore() const { return proof->getScore(); }
@@ -112,6 +113,7 @@ enum class ProofRegistrationResult {
     INVALID,
     CONFLICTING,
     REJECTED,
+    COOLDOWN_NOT_ELAPSED,
 };
 
 class ProofRegistrationState : public ValidationState<ProofRegistrationResult> {

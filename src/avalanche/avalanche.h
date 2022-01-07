@@ -25,6 +25,12 @@ static constexpr bool AVALANCHE_DEFAULT_ENABLED = false;
 static constexpr bool AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED = false;
 
 /**
+ * Conflicting proofs cooldown time default value in seconds.
+ * Minimal delay between two proofs with at least a common UTXO.
+ */
+static constexpr size_t AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN = 60;
+
+/**
  * Avalanche default cooldown in milliseconds.
  */
 static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;

@@ -1278,6 +1278,12 @@ void SetupServerArgs(NodeContext &node) {
                    strprintf("Enable avalanche peer discovery (default: %u)",
                              AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED),
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avalancheconflictingproofcooldown",
+                   strprintf("Mandatory cooldown before a proof conflicting "
+                             "with an already registered one can be considered "
+                             "in seconds (default: %u)",
+                             AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN),
+                   ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-avacooldown",
         strprintf("Mandatory cooldown between two avapoll (default: %u)",

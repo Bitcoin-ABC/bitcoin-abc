@@ -8,6 +8,7 @@
 #include <avalanche/proofcomparator.h>
 #include <avalanche/test/util.h>
 #include <script/standard.h>
+#include <util/time.h>
 #include <util/translation.h>
 #include <validation.h>
 
@@ -43,6 +44,17 @@ namespace {
     };
 } // namespace
 } // namespace avalanche
+
+namespace {
+struct NoCoolDownFixture : public TestingSetup {
+    NoCoolDownFixture() {
+        gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
+    }
+    ~NoCoolDownFixture() {
+        gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
+    }
+};
+} // namespace
 
 BOOST_FIXTURE_TEST_SUITE(peermanager_tests, TestingSetup)
 
@@ -810,7 +822,7 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::INVALID);
 }
 
-BOOST_AUTO_TEST_CASE(conflicting_proof_rescan) {
+BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
@@ -1029,7 +1041,7 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(!pm.exists(orphan20->getId()));
 }
 
-BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {
+BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
@@ -1080,7 +1092,7 @@ BOOST_AUTO_TEST_CASE(preferred_conflicting_proof) {
     BOOST_CHECK(!pm.exists(proofSeq10->getId()));
 }
 
-BOOST_AUTO_TEST_CASE(update_next_conflict_time) {
+BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
     avalanche::PeerManager pm;
 
     auto now = GetTime<std::chrono::seconds>();
@@ -1113,7 +1125,7 @@ BOOST_AUTO_TEST_CASE(update_next_conflict_time) {
     checkNextPossibleConflictTime(now + std::chrono::seconds{1});
 }
 
-BOOST_AUTO_TEST_CASE(register_force_accept) {
+BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
@@ -1196,7 +1208,7 @@ BOOST_AUTO_TEST_CASE(register_force_accept) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(evicted_proof) {
+BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
@@ -1242,6 +1254,92 @@ BOOST_AUTO_TEST_CASE(evicted_proof) {
         BOOST_CHECK(!pm.registerProof(proofSeq10, state));
         BOOST_CHECK(state.GetResult() == ProofRegistrationResult::REJECTED);
     }
+}
+
+BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount(10 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(conflictingOutpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    auto buildProofWithSequence = [&](uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key);
+        BOOST_CHECK(
+            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
+        return pb.build();
+    };
+
+    auto proofSeq20 = buildProofWithSequence(20);
+    auto proofSeq30 = buildProofWithSequence(30);
+    auto proofSeq40 = buildProofWithSequence(40);
+
+    int64_t conflictingProofCooldown = 100;
+    gArgs.ForceSetArg("-avalancheconflictingproofcooldown",
+                      strprintf("%d", conflictingProofCooldown));
+
+    int64_t now = GetTime();
+
+    auto increaseMockTime = [&](int64_t s) {
+        now += s;
+        SetMockTime(now);
+    };
+    increaseMockTime(0);
+
+    BOOST_CHECK(pm.registerProof(proofSeq30));
+    BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
+
+    auto checkRegistrationFailure = [&](const ProofRef &proof,
+                                        ProofRegistrationResult reason) {
+        ProofRegistrationState state;
+        BOOST_CHECK(!pm.registerProof(proof, state));
+        BOOST_CHECK(state.GetResult() == reason);
+    };
+
+    // Registering a conflicting proof will fail due to the conflicting proof
+    // cooldown
+    checkRegistrationFailure(proofSeq20,
+                             ProofRegistrationResult::COOLDOWN_NOT_ELAPSED);
+    BOOST_CHECK(!pm.exists(proofSeq20->getId()));
+
+    // The cooldown applies as well if the proof is the favorite
+    checkRegistrationFailure(proofSeq40,
+                             ProofRegistrationResult::COOLDOWN_NOT_ELAPSED);
+    BOOST_CHECK(!pm.exists(proofSeq40->getId()));
+
+    // Elapse the cooldown
+    increaseMockTime(conflictingProofCooldown);
+
+    // The proof will now be added to conflicting pool
+    checkRegistrationFailure(proofSeq20, ProofRegistrationResult::CONFLICTING);
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq20->getId()));
+
+    // But no other
+    checkRegistrationFailure(proofSeq40,
+                             ProofRegistrationResult::COOLDOWN_NOT_ELAPSED);
+    BOOST_CHECK(!pm.exists(proofSeq40->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq20->getId()));
+
+    // Elapse the cooldown
+    increaseMockTime(conflictingProofCooldown);
+
+    // The proof will now be added to conflicting pool
+    checkRegistrationFailure(proofSeq40, ProofRegistrationResult::CONFLICTING);
+    BOOST_CHECK(pm.isInConflictingPool(proofSeq40->getId()));
+    BOOST_CHECK(!pm.exists(proofSeq20->getId()));
+
+    gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

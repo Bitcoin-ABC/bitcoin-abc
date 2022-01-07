@@ -4,6 +4,7 @@
 
 #include <avalanche/peermanager.h>
 
+#include <avalanche/avalanche.h>
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
 #include <random.h>
@@ -204,10 +205,37 @@ bool PeerManager::registerProof(const ProofRef &proof,
         return invalidate(ProofRegistrationResult::INVALID, "invalid-proof");
     }
 
+    auto now = GetTime<std::chrono::seconds>();
+    auto nextCooldownTimePoint =
+        now + std::chrono::seconds(
+                  gArgs.GetArg("-avalancheconflictingproofcooldown",
+                               AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN));
+
     ProofPool::ConflictingProofSet conflictingProofs;
     switch (validProofPool.addProofIfNoConflict(proof, conflictingProofs)) {
         case ProofPool::AddProofStatus::REJECTED: {
             if (mode != RegistrationMode::FORCE_ACCEPT) {
+                auto bestPossibleConflictTime = std::chrono::seconds();
+                auto &pview = peers.get<by_proofid>();
+                for (auto &conflictingProof : conflictingProofs) {
+                    auto it = pview.find(conflictingProof->getId());
+                    assert(it != pview.end());
+
+                    // Search the most recent time over the peers
+                    bestPossibleConflictTime = std::max(
+                        bestPossibleConflictTime, it->nextPossibleConflictTime);
+
+                    updateNextPossibleConflictTime(it->peerid,
+                                                   nextCooldownTimePoint);
+                }
+
+                if (bestPossibleConflictTime > now) {
+                    // Cooldown not elapsed, reject the proof.
+                    return invalidate(
+                        ProofRegistrationResult::COOLDOWN_NOT_ELAPSED,
+                        "cooldown-not-elapsed");
+                }
+
                 // The proof has conflicts, move it to the conflicting proof
                 // pool so it can be pulled back if the conflicting ones are
                 // invalidated.
@@ -256,7 +284,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
     const PeerId peerid = nextPeerId++;
 
     // We have no peer for this proof, time to create it.
-    auto inserted = peers.emplace(peerid, proof);
+    auto inserted = peers.emplace(peerid, proof, nextCooldownTimePoint);
     assert(inserted.second);
 
     // If there are nodes waiting for this proof, add them
