@@ -3,6 +3,7 @@
 // Do this as the first thing so that any code reading it knows the right env.
 process.env.BABEL_ENV = 'test';
 process.env.NODE_ENV = 'test';
+process.env.LANG = 'en_US.UTF-8';
 process.env.PUBLIC_URL = '';
 
 // Makes the script crash on unhandled rejections instead of silently
