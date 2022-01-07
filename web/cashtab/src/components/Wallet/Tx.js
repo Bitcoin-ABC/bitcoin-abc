@@ -197,7 +197,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
     const txDate =
         typeof data.blocktime === 'undefined'
             ? formatDate()
-            : formatDate(data.blocktime);
+            : formatDate(data.blocktime, navigator.language);
     // if data only includes height and txid, then the tx could not be parsed by cashtab
     // render as such but keep link to block explorer
     let unparsedTx = false;

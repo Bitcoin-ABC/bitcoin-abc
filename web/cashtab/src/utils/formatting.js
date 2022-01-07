@@ -1,10 +1,9 @@
 import { currency } from '@components/Common/Ticker.js';
 
-export const formatDate = dateString => {
+export const formatDate = (dateString, userLocale = 'en') => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     const dateFormattingError = 'Unable to format date.';
     try {
-        const userLocale = navigator.language;
         if (dateString) {
             return new Date(dateString * 1000).toLocaleDateString(
                 userLocale,

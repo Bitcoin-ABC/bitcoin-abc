@@ -424,6 +424,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                                 null
                                                     ? formatDate(
                                                           tokenStats.timestampUnix,
+                                                          navigator.language,
                                                       )
                                                     : 'Just now (Genesis tx confirming)'}
                                             </Descriptions.Item>

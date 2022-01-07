@@ -44,12 +44,12 @@ describe('Correctly executes formatting functions', () => {
         expect(formatBalance('CainBCHA', 'en-US')).toBe('NaN');
     });
     it(`Accepts a valid unix timestamp`, () => {
-        expect(formatDate('1639679649')).toBe('Dec 16, 2021');
+        expect(formatDate('1639679649', 'fr')).toBe('16 déc. 2021');
     });
 
     it(`Accepts an empty string and generates a new timestamp`, () => {
-        expect(formatDate('')).toBe(
-            new Date().toLocaleDateString(undefined, {
+        expect(formatDate('', 'en-US')).toBe(
+            new Date().toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
@@ -58,8 +58,8 @@ describe('Correctly executes formatting functions', () => {
     });
 
     it(`Accepts no parameter and generates a new timestamp`, () => {
-        expect(formatDate()).toBe(
-            new Date().toLocaleDateString(undefined, {
+        expect(formatDate(null, 'en-US')).toBe(
+            new Date().toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
@@ -68,8 +68,8 @@ describe('Correctly executes formatting functions', () => {
     });
 
     it(`Accepts 'undefined' as a parameter and generates a new date`, () => {
-        expect(formatDate(undefined)).toBe(
-            new Date().toLocaleDateString(undefined, {
+        expect(formatDate(undefined, 'en-US')).toBe(
+            new Date().toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
@@ -77,10 +77,10 @@ describe('Correctly executes formatting functions', () => {
         );
     });
     it(`Rejects an invalid string containing letters.`, () => {
-        expect(formatDate('f')).toBe('Invalid Date');
+        expect(formatDate('f', 'en-US')).toBe('Invalid Date');
     });
     it(`Rejects an invalid string containing numbers.`, () => {
-        expect(formatDate('10000000000000000')).toBe('Invalid Date');
+        expect(formatDate('10000000000000000', 'en-US')).toBe('Invalid Date');
     });
 
     it(`test formatSavedBalance with zero XEC balance input`, () => {
