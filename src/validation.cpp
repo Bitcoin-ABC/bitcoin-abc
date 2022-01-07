@@ -477,10 +477,9 @@ private:
     // The package may end up partially-submitted after size limiting;
     // returns true if all transactions are successfully added to the mempool,
     // false otherwise.
-    bool
-    FinalizePackage(const ATMPArgs &args, std::vector<Workspace> &workspaces,
-                    PackageValidationState &package_state,
-                    std::map<const TxId, const MempoolAcceptResult> &results)
+    bool SubmitPackage(const ATMPArgs &args, std::vector<Workspace> &workspaces,
+                       PackageValidationState &package_state,
+                       std::map<const TxId, const MempoolAcceptResult> &results)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
 
 private:
@@ -796,12 +795,17 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     return true;
 }
 
-bool MemPoolAccept::FinalizePackage(
+bool MemPoolAccept::SubmitPackage(
     const ATMPArgs &args, std::vector<Workspace> &workspaces,
     PackageValidationState &package_state,
     std::map<const TxId, const MempoolAcceptResult> &results) {
     AssertLockHeld(cs_main);
     AssertLockHeld(m_pool.cs);
+    // Sanity check: none of the transactions should be in the mempool.
+    assert(std::all_of(
+        workspaces.cbegin(), workspaces.cend(),
+        [this](const auto &ws) { return !m_pool.exists(ws.m_ptx->GetId()); }));
+
     bool all_submitted = true;
     // ConsensusScriptChecks adds to the script cache and is therefore
     // consensus-critical; CheckInputsFromMempoolAndCache asserts that
@@ -820,11 +824,11 @@ bool MemPoolAccept::FinalizePackage(
         // Re-calculate mempool ancestors to call addUnchecked(). They may have
         // changed since the last calculation done in PreChecks, since package
         // ancestors have already been submitted.
-        std::string err_string;
+        std::string unused_err_string;
         if (!m_pool.CalculateMemPoolAncestors(
                 *ws.m_entry, ws.m_ancestors, m_limit_ancestors,
                 m_limit_ancestor_size, m_limit_descendants,
-                m_limit_descendant_size, err_string)) {
+                m_limit_descendant_size, unused_err_string)) {
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Failure(ws.m_state));
             // Since PreChecks() and PackageMempoolChecks() both enforce limits,
@@ -978,7 +982,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         return PackageMempoolAcceptResult(package_state, std::move(results));
     }
 
-    if (!FinalizePackage(args, workspaces, package_state, results)) {
+    if (!SubmitPackage(args, workspaces, package_state, results)) {
         package_state.Invalid(PackageValidationResult::PCKG_TX,
                               "submission failed");
         return PackageMempoolAcceptResult(package_state, std::move(results));
@@ -1010,12 +1014,14 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
         return PackageMempoolAcceptResult(package_state, {});
     }
 
-    const auto &child = package[package.size() - 1];
+    // IsChildWithParents() guarantees the package is > 1 transactions.
+    assert(package.size() > 1);
     // The package must be 1 child with all of its unconfirmed parents. The
     // package is expected to be sorted, so the last transaction is the child.
+    const auto &child = package.back();
     std::unordered_set<TxId, SaltedTxIdHasher> unconfirmed_parent_txids;
     std::transform(
-        package.cbegin(), package.end() - 1,
+        package.cbegin(), package.cend() - 1,
         std::inserter(unconfirmed_parent_txids, unconfirmed_parent_txids.end()),
         [](const auto &tx) { return tx->GetId(); });
 
