@@ -20,6 +20,9 @@ const jest = require('jest');
 const execSync = require('child_process').execSync;
 let argv = process.argv.slice(2);
 
+// Update snapshots for CI and interactive
+argv.push('-u');
+
 function isInGitRepository() {
     try {
         execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
