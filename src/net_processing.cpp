@@ -42,6 +42,7 @@
 #include <validation.h>
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <typeinfo>
 
@@ -5011,6 +5012,51 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         pfrom.m_avalanche_state->invsVoted(response.GetVotes().size());
+
+        for (avalanche::ProofUpdate &u : proofUpdates) {
+            avalanche::ProofRef proof = u.getVoteItem();
+            const avalanche::ProofId &proofid = proof->getId();
+
+            auto rejectionMode = avalanche::PeerManager::RejectionMode::DEFAULT;
+            switch (u.getStatus()) {
+                case avalanche::VoteStatus::Invalid:
+                    rejectionMode =
+                        avalanche::PeerManager::RejectionMode::INVALIDATE;
+                    WITH_LOCK(cs_rejectedProofs,
+                              rejectedProofs->insert(proofid));
+                case avalanche::VoteStatus::Rejected:
+                    LogPrint(BCLog::AVALANCHE,
+                             "Avalanche rejected proof %s, status %d\n",
+                             proofid.GetHex(), uint8_t(u.getStatus()));
+                    if (g_avalanche->withPeerManager(
+                            [&](avalanche::PeerManager &pm) {
+                                pm.rejectProof(proofid, rejectionMode);
+                                return pm.exists(proofid);
+                            })) {
+                        LogPrint(BCLog::AVALANCHE,
+                                 "ERROR: Failed to reject proof: %s\n",
+                                 proofid.GetHex());
+                    }
+                    break;
+                case avalanche::VoteStatus::Accepted:
+                case avalanche::VoteStatus::Finalized:
+                    LogPrint(BCLog::AVALANCHE,
+                             "Avalanche accepted proof %s, status %d\n",
+                             proofid.GetHex(), uint8_t(u.getStatus()));
+                    if (!g_avalanche->withPeerManager(
+                            [&](avalanche::PeerManager &pm) {
+                                pm.registerProof(
+                                    proof, avalanche::PeerManager::
+                                               RegistrationMode::FORCE_ACCEPT);
+                                return pm.isBoundToPeer(proofid);
+                            })) {
+                        LogPrint(BCLog::AVALANCHE,
+                                 "ERROR: Failed to accept proof: %s\n",
+                                 proofid.GetHex());
+                    }
+                    break;
+            }
+        }
 
         if (blockUpdates.size()) {
             for (avalanche::BlockUpdate &u : blockUpdates) {
