@@ -29,9 +29,10 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.conflicting_proof_cooldown = 100
+        self.peer_replacement_cooldown = 2000
         self.extra_args = [
             ['-enableavalanche=1', '-enableavalancheproofreplacement=1',
-                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', '-avacooldown=0'],
+                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}', '-avacooldown=0'],
         ]
         self.supports_cli = False
 
@@ -216,12 +217,28 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.wait_until(lambda: accept_proof(proofid_seq30))
         assert proofid_seq40 not in get_proof_ids(node)
 
-        self.log.info("Test proof rejection")
+        self.log.info("Test the peer replacement rate limit")
 
+        # Wait until proof_seq30 is finalized
+        with node.assert_debug_log([f"Avalanche accepted proof {proofid_seq30:0{64}x}, status 3"]):
+            self.wait_until(lambda: not can_find_proof_in_poll(
+                proofid_seq30, response=AvalancheVoteError.ACCEPTED))
+
+        # Not enough
+        assert self.conflicting_proof_cooldown < self.peer_replacement_cooldown
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
 
         peer = get_ava_p2p_interface(node)
+
+        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+            send_proof(peer, proof_seq50)
+
+        mock_time += self.peer_replacement_cooldown
+        node.setmocktime(mock_time)
+
+        self.log.info("Test proof rejection")
+
         send_proof(peer, proof_seq50)
         self.wait_until(lambda: proofid_seq50 in get_proof_ids(node))
         assert proofid_seq40 not in get_proof_ids(node)

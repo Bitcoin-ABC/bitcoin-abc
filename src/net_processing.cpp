@@ -5018,6 +5018,7 @@ void PeerManagerImpl::ProcessMessage(
             const avalanche::ProofId &proofid = proof->getId();
 
             auto rejectionMode = avalanche::PeerManager::RejectionMode::DEFAULT;
+            auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
             switch (u.getStatus()) {
                 case avalanche::VoteStatus::Invalid:
                     rejectionMode =
@@ -5038,8 +5039,11 @@ void PeerManagerImpl::ProcessMessage(
                                  proofid.GetHex());
                     }
                     break;
-                case avalanche::VoteStatus::Accepted:
                 case avalanche::VoteStatus::Finalized:
+                    nextCooldownTimePoint += std::chrono::seconds(gArgs.GetArg(
+                        "-avalanchepeerreplacementcooldown",
+                        AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
+                case avalanche::VoteStatus::Accepted:
                     LogPrint(BCLog::AVALANCHE,
                              "Avalanche accepted proof %s, status %d\n",
                              proofid.GetHex(), uint8_t(u.getStatus()));
@@ -5048,7 +5052,14 @@ void PeerManagerImpl::ProcessMessage(
                                 pm.registerProof(
                                     proof, avalanche::PeerManager::
                                                RegistrationMode::FORCE_ACCEPT);
-                                return pm.isBoundToPeer(proofid);
+                                return pm.forPeer(
+                                    proofid, [&](const avalanche::Peer &peer) {
+                                        pm.updateNextPossibleConflictTime(
+                                            peer.peerid, nextCooldownTimePoint);
+                                        // Only fail if the peer was not
+                                        // created
+                                        return true;
+                                    });
                             })) {
                         LogPrint(BCLog::AVALANCHE,
                                  "ERROR: Failed to accept proof: %s\n",

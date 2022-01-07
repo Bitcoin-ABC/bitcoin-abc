@@ -1284,6 +1284,11 @@ void SetupServerArgs(NodeContext &node) {
                              "in seconds (default: %u)",
                              AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN),
                    ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avalanchepeerreplacementcooldown",
+                   strprintf("Mandatory cooldown before a peer can be replaced "
+                             "in seconds (default: %u)",
+                             AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN),
+                   ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
     argsman.AddArg("-enableavalancheproofreplacement",
                    strprintf("Enable avalanche proof replacement (default: %u)",
                              AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED),
