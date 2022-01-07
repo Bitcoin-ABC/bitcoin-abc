@@ -352,9 +352,6 @@ public:
     // would be re-bucketed accordingly.
     std::vector<bool> m_asmap;
 
-    // Read asmap from provided binary file
-    static std::vector<bool> DecodeAsmap(fs::path path);
-
     /**
      * Serialized format.
      * * format version byte (@see `Format`)

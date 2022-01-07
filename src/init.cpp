@@ -2500,7 +2500,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             InitError(strprintf(_("Could not find asmap file %s"), asmap_path));
             return false;
         }
-        std::vector<bool> asmap = CAddrMan::DecodeAsmap(asmap_path);
+        std::vector<bool> asmap = DecodeAsmap(asmap_path);
         if (asmap.size() == 0) {
             InitError(
                 strprintf(_("Could not parse asmap file %s"), asmap_path));
