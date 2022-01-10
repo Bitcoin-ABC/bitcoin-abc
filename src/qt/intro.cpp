@@ -251,8 +251,8 @@ bool Intro::showIfNeeded(bool &did_show_intro, bool &prune) {
      */
     if (dataDir != GUIUtil::getDefaultDataDirectory()) {
         // use OS locale for path setting
-        gArgs.SoftSetArg("-datadir",
-                         GUIUtil::qstringToBoostPath(dataDir).string());
+        gArgs.SoftSetArg(
+            "-datadir", fs::PathToString(GUIUtil::qstringToBoostPath(dataDir)));
     }
     return true;
 }

@@ -526,11 +526,13 @@ namespace {
                                          true /* load_on_start */, options,
                                          status, error, warnings));
         }
-        std::string getWalletDir() override { return GetWalletDir().string(); }
+        std::string getWalletDir() override {
+            return fs::PathToString(GetWalletDir());
+        }
         std::vector<std::string> listWalletDir() override {
             std::vector<std::string> paths;
             for (auto &path : ListWalletDir()) {
-                paths.push_back(path.string());
+                paths.push_back(fs::PathToString(path));
             }
             return paths;
         }

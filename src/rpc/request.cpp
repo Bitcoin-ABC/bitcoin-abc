@@ -70,7 +70,7 @@ static fs::path GetAuthCookieFile(bool temp = false) {
     if (temp) {
         arg += ".tmp";
     }
-    return AbsPathForConfigVal(fs::path(arg));
+    return AbsPathForConfigVal(fs::PathFromString(arg));
 }
 
 bool GenerateAuthCookie(std::string *cookie_out) {
@@ -88,7 +88,7 @@ bool GenerateAuthCookie(std::string *cookie_out) {
     file.open(filepath_tmp);
     if (!file.is_open()) {
         LogPrintf("Unable to open cookie authentication file %s for writing\n",
-                  filepath_tmp.string());
+                  fs::PathToString(filepath_tmp));
         return false;
     }
     file << cookie;
@@ -97,10 +97,11 @@ bool GenerateAuthCookie(std::string *cookie_out) {
     fs::path filepath = GetAuthCookieFile(false);
     if (!RenameOver(filepath_tmp, filepath)) {
         LogPrintf("Unable to rename cookie authentication file %s to %s\n",
-                  filepath_tmp.string(), filepath.string());
+                  fs::PathToString(filepath_tmp), fs::PathToString(filepath));
         return false;
     }
-    LogPrintf("Generated RPC authentication cookie %s\n", filepath.string());
+    LogPrintf("Generated RPC authentication cookie %s\n",
+              fs::PathToString(filepath));
 
     if (cookie_out) {
         *cookie_out = cookie;
