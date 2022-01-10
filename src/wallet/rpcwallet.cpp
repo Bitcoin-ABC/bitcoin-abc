@@ -3163,7 +3163,7 @@ static RPCHelpMan listwalletdir() {
             UniValue wallets(UniValue::VARR);
             for (const auto &path : ListWalletDir()) {
                 UniValue wallet(UniValue::VOBJ);
-                wallet.pushKV("name", path.string());
+                wallet.pushKV("name", path.u8string());
                 wallets.push_back(wallet);
             }
 

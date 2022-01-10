@@ -78,11 +78,10 @@ GetWalletEnv(const fs::path &wallet_path, std::string &database_filename) {
     fs::path env_directory;
     SplitWalletPath(wallet_path, env_directory, database_filename);
     LOCK(cs_db);
-    auto inserted = g_dbenvs.emplace(env_directory.string(),
+    auto inserted = g_dbenvs.emplace(fs::PathToString(env_directory),
                                      std::weak_ptr<BerkeleyEnvironment>());
     if (inserted.second) {
-        auto env =
-            std::make_shared<BerkeleyEnvironment>(env_directory.string());
+        auto env = std::make_shared<BerkeleyEnvironment>(env_directory);
         inserted.first->second = env;
         return env;
     }
@@ -126,7 +125,7 @@ void BerkeleyEnvironment::Close() {
         fclose(error_file);
     }
 
-    UnlockDirectory(strPath, ".walletlock");
+    UnlockDirectory(fs::PathFromString(strPath), ".walletlock");
 }
 
 void BerkeleyEnvironment::Reset() {
@@ -136,7 +135,7 @@ void BerkeleyEnvironment::Reset() {
 }
 
 BerkeleyEnvironment::BerkeleyEnvironment(const fs::path &dir_path)
-    : strPath(dir_path.string()) {
+    : strPath(fs::PathToString(dir_path)) {
     Reset();
 }
 
@@ -151,14 +150,14 @@ bool BerkeleyEnvironment::Open(bilingual_str &err) {
         return true;
     }
 
-    fs::path pathIn = strPath;
+    fs::path pathIn = fs::PathFromString(strPath);
     TryCreateDirectories(pathIn);
     if (!LockDirectory(pathIn, ".walletlock")) {
         LogPrintf("Cannot obtain a lock on wallet directory %s. Another "
                   "instance of bitcoin may be using it.\n",
                   strPath);
         err = strprintf(_("Error initializing wallet database environment %s!"),
-                        Directory());
+                        fs::quoted(fs::PathToString(Directory())));
         return false;
     }
 
@@ -166,14 +165,14 @@ bool BerkeleyEnvironment::Open(bilingual_str &err) {
     TryCreateDirectories(pathLogDir);
     fs::path pathErrorFile = pathIn / "db.log";
     LogPrintf("BerkeleyEnvironment::Open: LogDir=%s ErrorFile=%s\n",
-              pathLogDir.string(), pathErrorFile.string());
+              fs::PathToString(pathLogDir), fs::PathToString(pathErrorFile));
 
     unsigned int nEnvFlags = 0;
     if (gArgs.GetBoolArg("-privdb", DEFAULT_WALLET_PRIVDB)) {
         nEnvFlags |= DB_PRIVATE;
     }
 
-    dbenv->set_lg_dir(pathLogDir.string().c_str());
+    dbenv->set_lg_dir(fs::PathToString(pathLogDir).c_str());
     // 1 MiB should be enough for just the wallet
     dbenv->set_cachesize(0, 0x100000, 1);
     dbenv->set_lg_bsize(0x10000);
@@ -202,7 +201,7 @@ bool BerkeleyEnvironment::Open(bilingual_str &err) {
         }
         Reset();
         err = strprintf(_("Error initializing wallet database environment %s!"),
-                        Directory());
+                        fs::quoted(fs::PathToString(Directory())));
         if (ret == DB_RUNRECOVERY) {
             err += Untranslated(" ") +
                    _("This error could occur if this wallet was not shutdown "
@@ -283,7 +282,7 @@ bool BerkeleyDatabase::Verify(bilingual_str &errorStr) {
     fs::path file_path = walletDir / strFile;
 
     LogPrintf("Using BerkeleyDB version %s\n", BerkeleyDatabaseVersion());
-    LogPrintf("Using wallet %s\n", file_path.string());
+    LogPrintf("Using wallet %s\n", fs::PathToString(file_path));
 
     if (!env->Open(errorStr)) {
         return false;
@@ -298,7 +297,7 @@ bool BerkeleyDatabase::Verify(bilingual_str &errorStr) {
             errorStr =
                 strprintf(_("%s corrupt. Try using the wallet tool "
                             "bitcoin-wallet to salvage or restoring a backup."),
-                          file_path);
+                          fs::quoted(fs::PathToString(file_path)));
             return false;
         }
     }
@@ -636,7 +635,7 @@ void BerkeleyEnvironment::Flush(bool fShutdown) {
                 dbenv->log_archive(&listp, DB_ARCH_REMOVE);
                 Close();
                 if (!fMockDb) {
-                    fs::remove_all(fs::path(strPath) / "database");
+                    fs::remove_all(fs::PathFromString(strPath) / "database");
                 }
             }
         }
@@ -687,25 +686,26 @@ bool BerkeleyDatabase::Backup(const std::string &strDest) const {
 
                 // Copy wallet file.
                 fs::path pathSrc = env->Directory() / strFile;
-                fs::path pathDest(strDest);
+                fs::path pathDest(fs::PathFromString(strDest));
                 if (fs::is_directory(pathDest)) {
-                    pathDest /= strFile;
+                    pathDest /= fs::PathFromString(strFile);
                 }
 
                 try {
                     if (fs::equivalent(pathSrc, pathDest)) {
                         LogPrintf("cannot backup to wallet source file %s\n",
-                                  pathDest.string());
+                                  fs::PathToString(pathDest));
                         return false;
                     }
 
                     fs::copy_file(pathSrc, pathDest,
                                   fs::copy_option::overwrite_if_exists);
-                    LogPrintf("copied %s to %s\n", strFile, pathDest.string());
+                    LogPrintf("copied %s to %s\n", strFile,
+                              fs::PathToString(pathDest));
                     return true;
                 } catch (const fs::filesystem_error &e) {
                     LogPrintf("error copying %s to %s - %s\n", strFile,
-                              pathDest.string(),
+                              fs::PathToString(pathDest),
                               fsbridge::get_filesystem_error_message(e));
                     return false;
                 }
@@ -909,7 +909,7 @@ MakeBerkeleyDatabase(const fs::path &path, const DatabaseOptions &options,
         if (env->m_databases.count(data_filename)) {
             error = Untranslated(strprintf(
                 "Refusing to load database. Data file '%s' is already loaded.",
-                (env->Directory() / data_filename).string()));
+                fs::PathToString(env->Directory() / data_filename)));
             status = DatabaseStatus::FAILED_ALREADY_LOADED;
             return nullptr;
         }

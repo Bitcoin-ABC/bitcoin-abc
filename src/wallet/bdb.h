@@ -57,7 +57,7 @@ public:
     void MakeMock();
     bool IsMock() const { return fMockDb; }
     bool IsInitialized() const { return fDbEnvInit; }
-    fs::path Directory() const { return strPath; }
+    fs::path Directory() const { return fs::PathFromString(strPath); }
 
     bool Open(bilingual_str &error);
     void Close();
@@ -155,7 +155,7 @@ public:
 
     /** Return path to main database filename */
     std::string Filename() override {
-        return (env->Directory() / strFile).string();
+        return fs::PathToString(env->Directory() / strFile);
     }
 
     /**

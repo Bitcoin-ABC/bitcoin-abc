@@ -1119,9 +1119,9 @@ std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
     try {
         exists = fs::symlink_status(path).type() != fs::file_not_found;
     } catch (const fs::filesystem_error &e) {
-        error = Untranslated(
-            strprintf("Failed to access database path '%s': %s", path.string(),
-                      fsbridge::get_filesystem_error_message(e)));
+        error = Untranslated(strprintf(
+            "Failed to access database path '%s': %s", fs::PathToString(path),
+            fsbridge::get_filesystem_error_message(e)));
         status = DatabaseStatus::FAILED_BAD_PATH;
         return nullptr;
     }
@@ -1134,7 +1134,7 @@ std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
     } else if (options.require_existing) {
         error = Untranslated(
             strprintf("Failed to load database path '%s'. Path does not exist.",
-                      path.string()));
+                      fs::PathToString(path)));
         status = DatabaseStatus::FAILED_NOT_FOUND;
         return nullptr;
     }
@@ -1142,7 +1142,7 @@ std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
     if (!format && options.require_existing) {
         error = Untranslated(strprintf("Failed to load database path '%s'. "
                                        "Data is not in recognized format.",
-                                       path.string()));
+                                       fs::PathToString(path)));
         status = DatabaseStatus::FAILED_BAD_FORMAT;
         return nullptr;
     }
@@ -1150,7 +1150,7 @@ std::unique_ptr<WalletDatabase> MakeDatabase(const fs::path &path,
     if (format && options.require_create) {
         error = Untranslated(strprintf(
             "Failed to create database path '%s'. Database already exists.",
-            path.string()));
+            fs::PathToString(path)));
         status = DatabaseStatus::FAILED_ALREADY_EXISTS;
         return nullptr;
     }

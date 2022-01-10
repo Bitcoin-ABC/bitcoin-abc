@@ -680,7 +680,7 @@ RPCHelpMan importwallet() {
                 EnsureWalletIsUnlocked(pwallet);
 
                 fsbridge::ifstream file;
-                file.open(request.params[0].get_str(),
+                file.open(fs::u8path(request.params[0].get_str()),
                           std::ios::in | std::ios::ate);
                 if (!file.is_open()) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -940,7 +940,7 @@ RPCHelpMan dumpwallet() {
 
             EnsureWalletIsUnlocked(&wallet);
 
-            fs::path filepath = request.params[0].get_str();
+            fs::path filepath = fs::u8path(request.params[0].get_str());
             filepath = fs::absolute(filepath);
 
             /**
@@ -951,7 +951,7 @@ RPCHelpMan dumpwallet() {
              */
             if (fs::exists(filepath)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
-                                   filepath.string() +
+                                   filepath.u8string() +
                                        " already exists. If you are "
                                        "sure this is what you want, "
                                        "move it out of the way first");
@@ -1059,7 +1059,7 @@ RPCHelpMan dumpwallet() {
             file.close();
 
             UniValue reply(UniValue::VOBJ);
-            reply.pushKV("filename", filepath.string());
+            reply.pushKV("filename", filepath.u8string());
 
             return reply;
         },

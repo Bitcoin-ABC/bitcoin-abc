@@ -4227,12 +4227,13 @@ MakeWalletDatabase(const std::string &name, const DatabaseOptions &options,
     // 2. Path to an existing directory.
     // 3. Path to a symlink to a directory.
     // 4. For backwards compatibility, the name of a data file in -walletdir.
-    const fs::path &wallet_path = fs::absolute(name, GetWalletDir());
+    const fs::path &wallet_path =
+        fs::absolute(fs::PathFromString(name), GetWalletDir());
     fs::file_type path_type = fs::symlink_status(wallet_path).type();
     if (!(path_type == fs::file_not_found || path_type == fs::directory_file ||
           (path_type == fs::symlink_file && fs::is_directory(wallet_path)) ||
           (path_type == fs::regular_file &&
-           fs::path(name).filename() == name))) {
+           fs::PathFromString(name).filename() == fs::PathFromString(name)))) {
         error_string = Untranslated(
             strprintf("Invalid -wallet path '%s'. -wallet path should point to "
                       "a directory where wallet.dat and "
@@ -4240,7 +4241,7 @@ MakeWalletDatabase(const std::string &name, const DatabaseOptions &options,
                       "where such a directory could be created, "
                       "or (for backwards compatibility) the name of an "
                       "existing data file in -walletdir (%s)",
-                      name, GetWalletDir()));
+                      name, fs::quoted(fs::PathToString(GetWalletDir()))));
         status = DatabaseStatus::FAILED_BAD_PATH;
         return nullptr;
     }

@@ -11,7 +11,7 @@ fs::path GetWalletDir() {
     fs::path path;
 
     if (gArgs.IsArgSet("-walletdir")) {
-        path = gArgs.GetArg("-walletdir", "");
+        path = fs::PathFromString(gArgs.GetArg("-walletdir", ""));
         if (!fs::is_directory(path)) {
             // If the path specified doesn't exist, we return the deliberately
             // invalid empty string.
@@ -39,7 +39,8 @@ bool IsBerkeleyBtree(const fs::path &path) {
     boost::system::error_code ec;
     auto size = fs::file_size(path, ec);
     if (ec) {
-        LogPrintf("%s: %s %s\n", __func__, ec.message(), path.string());
+        LogPrintf("%s: %s %s\n", __func__, ec.message(),
+                  fs::PathToString(path));
     }
     if (size < 4096) {
         return false;
@@ -65,7 +66,7 @@ bool IsBerkeleyBtree(const fs::path &path) {
 
 std::vector<fs::path> ListWalletDir() {
     const fs::path wallet_dir = GetWalletDir();
-    const size_t offset = wallet_dir.string().size() + 1;
+    const size_t offset = fs::PathToString(wallet_dir).size() + 1;
     std::vector<fs::path> paths;
     boost::system::error_code ec;
 
@@ -73,14 +74,15 @@ std::vector<fs::path> ListWalletDir() {
          it != fs::recursive_directory_iterator(); it.increment(ec)) {
         if (ec) {
             LogPrintf("%s: %s %s\n", __func__, ec.message(),
-                      it->path().string());
+                      fs::PathToString(it->path()));
             continue;
         }
 
         // Get wallet path relative to walletdir by removing walletdir from the
         // wallet path. This can be replaced by
         // boost::filesystem::lexically_relative once boost is bumped to 1.60.
-        const fs::path path = it->path().string().substr(offset);
+        const auto path_str = it->path().native().substr(offset);
+        const fs::path path{path_str.begin(), path_str.end()};
 
         if (it->status().type() == fs::directory_file &&
             IsBerkeleyBtree(it->path() / "wallet.dat")) {
