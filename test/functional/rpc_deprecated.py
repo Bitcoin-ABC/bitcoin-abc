@@ -9,8 +9,10 @@ from test_framework.test_framework import BitcoinTestFramework
 class DeprecatedRpcTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.setup_clean_chain = True
-        self.extra_args = [[], ["-deprecatedrpc=banscore"]]
+        self.extra_args = [[],
+                           ["-deprecatedrpc=banscore",
+                            "-deprecatedrpc=getpeerinfo_addnode",
+                            "-deprecatedrpc=whitelisted"]]
 
     def run_test(self):
         # This test should be used to verify correct behaviour of deprecated
@@ -24,9 +26,10 @@ class DeprecatedRpcTest(BitcoinTestFramework):
         # assert_raises_rpc_error(-32, 'The wallet generate rpc method is deprecated', self.nodes[0].rpc.generate, 1)
         # self.nodes[1].generate(1)
 
-        self.log.info("Test deprecated banscore")
-        assert 'banscore' not in self.nodes[0].getpeerinfo()[0]
-        assert 'banscore' in self.nodes[1].getpeerinfo()[0]
+        self.log.info("Test deprecated fields from getpeerinfo")
+        for key in ['banscore', 'addnode', 'whitelisted']:
+            assert key not in self.nodes[0].getpeerinfo()[0]
+            assert key in self.nodes[1].getpeerinfo()[0]
 
 
 if __name__ == '__main__':
