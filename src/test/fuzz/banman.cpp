@@ -91,5 +91,5 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
             }
         }
     }
-    fs::remove(banlist_file);
+    fs::remove(fs::PathToString(banlist_file));
 }

@@ -287,7 +287,7 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
     NodeContext node;
     auto chain = interfaces::MakeChain(node, Params());
 
-    std::string backup_file = (GetDataDir() / "wallet.backup").string();
+    std::string backup_file = fs::PathToString(GetDataDir() / "wallet.backup");
 
     // Import key into wallet and call dumpwallet to create backup file.
     {
