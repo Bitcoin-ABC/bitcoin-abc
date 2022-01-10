@@ -162,9 +162,6 @@ static RPCHelpMan getpeerinfo() {
                          Join(CONNECTION_TYPE_DOC, ",\n") + "."},
                     {RPCResult::Type::NUM, "startingheight",
                      "The starting height (block) of the peer"},
-                    {RPCResult::Type::NUM, "banscore",
-                     "The ban score (DEPRECATED, returned only if config "
-                     "option -deprecatedrpc=banscore is passed)"},
                     {RPCResult::Type::NUM, "synced_headers",
                      "The last header we have in common with this peer"},
                     {RPCResult::Type::NUM, "synced_blocks",
@@ -275,11 +272,6 @@ static RPCHelpMan getpeerinfo() {
                 }
                 obj.pushKV("startingheight", stats.nStartingHeight);
                 if (fStateStats) {
-                    if (IsDeprecatedRPCEnabled(gArgs, "banscore")) {
-                        // banscore is deprecated in v0.22.11 for removal in
-                        // v0.23
-                        obj.pushKV("banscore", statestats.m_misbehavior_score);
-                    }
                     obj.pushKV("synced_headers", statestats.nSyncHeight);
                     obj.pushKV("synced_blocks", statestats.nCommonHeight);
                     UniValue heights(UniValue::VARR);

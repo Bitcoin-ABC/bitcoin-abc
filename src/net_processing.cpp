@@ -1247,14 +1247,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
         }
     }
 
-    PeerRef peer = GetPeerRef(nodeid);
-    if (peer == nullptr) {
-        return false;
-    }
-    stats.m_misbehavior_score =
-        WITH_LOCK(peer->m_misbehavior_mutex, return peer->m_misbehavior_score);
-
-    return true;
+    return GetPeerRef(nodeid) != nullptr;
 }
 
 //////////////////////////////////////////////////////////////////////////////
