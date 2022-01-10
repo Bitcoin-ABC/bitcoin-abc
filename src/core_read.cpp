@@ -18,6 +18,7 @@
 #include <univalue.h>
 
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 
 #include <algorithm>
@@ -41,9 +42,8 @@ CScript ParseScript(const std::string &s) {
 
             mapOpNames[strName] = static_cast<opcodetype>(op);
             // Convenience: OP_ADD and just ADD are both recognized:
-            if (strName.compare(0, 3, "OP_") == 0) {
-                mapOpNames[strName.substr(3)] = static_cast<opcodetype>(op);
-            }
+            boost::algorithm::replace_first(strName, "OP_", "");
+            mapOpNames[strName] = static_cast<opcodetype>(op);
         }
     }
 
