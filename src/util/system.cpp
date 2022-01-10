@@ -92,7 +92,7 @@ bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
 
     // If a lock for this directory already exists in the map, don't try to
     // re-lock it
-    if (dir_locks.count(pathLockFile.string())) {
+    if (dir_locks.count(fs::PathToString(pathLockFile))) {
         return true;
     }
 
@@ -104,11 +104,11 @@ bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
     auto lock = std::make_unique<fsbridge::FileLock>(pathLockFile);
     if (!lock->TryLock()) {
         return error("Error while attempting to lock directory %s: %s",
-                     directory.string(), lock->GetReason());
+                     fs::PathToString(directory), lock->GetReason());
     }
     if (!probe_only) {
         // Lock successful and we're not just probing, put it into the map
-        dir_locks.emplace(pathLockFile.string(), std::move(lock));
+        dir_locks.emplace(fs::PathToString(pathLockFile), std::move(lock));
     }
     return true;
 }
@@ -116,7 +116,7 @@ bool LockDirectory(const fs::path &directory, const std::string lockfile_name,
 void UnlockDirectory(const fs::path &directory,
                      const std::string &lockfile_name) {
     LOCK(cs_dir_locks);
-    dir_locks.erase((directory / lockfile_name).string());
+    dir_locks.erase(fs::PathToString(directory / lockfile_name));
 }
 
 void ReleaseDirectoryLocks() {
@@ -244,7 +244,7 @@ static bool CheckValid(const std::string &key, const util::SettingsValue &val,
 namespace {
 fs::path StripRedundantLastElementsOfPath(const fs::path &path) {
     auto result = path;
-    while (result.filename().string() == ".") {
+    while (fs::PathToString(result.filename()) == ".") {
         result = result.parent_path();
     }
 
@@ -412,7 +412,8 @@ const fs::path &ArgsManager::GetBlocksDirPath() {
     }
 
     if (IsArgSet("-blocksdir")) {
-        path = fs::system_complete(GetArg("-blocksdir", ""));
+        path =
+            fs::system_complete(fs::PathFromString(GetArg("-blocksdir", "")));
         if (!fs::is_directory(path)) {
             path = "";
             return path;
@@ -421,7 +422,7 @@ const fs::path &ArgsManager::GetBlocksDirPath() {
         path = GetDataDirPath(false);
     }
 
-    path /= BaseParams().DataDir();
+    path /= fs::PathFromString(BaseParams().DataDir());
     path /= "blocks";
     fs::create_directories(path);
     path = StripRedundantLastElementsOfPath(path);
@@ -440,7 +441,7 @@ const fs::path &ArgsManager::GetDataDirPath(bool net_specific) const {
     }
     std::string datadir = GetArg("-datadir", "");
     if (!datadir.empty()) {
-        path = fs::system_complete(datadir);
+        path = fs::system_complete(fs::PathFromString(datadir));
         if (!fs::is_directory(path)) {
             path = "";
             return path;
@@ -449,7 +450,7 @@ const fs::path &ArgsManager::GetDataDirPath(bool net_specific) const {
         path = GetDefaultDataDir();
     }
     if (net_specific) {
-        path /= BaseParams().DataDir();
+        path /= fs::PathFromString(BaseParams().DataDir());
     }
 
     if (fs::create_directories(path)) {
@@ -507,8 +508,9 @@ bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp) const {
     }
     if (filepath) {
         std::string settings = GetArg("-settings", BITCOIN_SETTINGS_FILENAME);
-        *filepath = fs::absolute(temp ? settings + ".tmp" : settings,
-                                 GetDataDirPath(/* net_specific= */ true));
+        *filepath = fs::absolute(
+            fs::PathFromString(temp ? settings + ".tmp" : settings),
+            GetDataDirPath(/* net_specific= */ true));
     }
     return true;
 }
@@ -564,9 +566,10 @@ bool ArgsManager::WriteSettingsFile(std::vector<std::string> *errors) const {
         return false;
     }
     if (!RenameOver(path_tmp, path)) {
-        SaveErrors({strprintf("Failed renaming settings file %s to %s\n",
-                              path_tmp.string(), path.string())},
-                   errors);
+        SaveErrors(
+            {strprintf("Failed renaming settings file %s to %s\n",
+                       fs::PathToString(path_tmp), fs::PathToString(path))},
+            errors);
         return false;
     }
     return true;
@@ -831,11 +834,12 @@ const fs::path &GetDataDir(bool fNetSpecific) {
 
 bool CheckDataDirOption() {
     std::string datadir = gArgs.GetArg("-datadir", "");
-    return datadir.empty() || fs::is_directory(fs::system_complete(datadir));
+    return datadir.empty() ||
+           fs::is_directory(fs::system_complete(fs::PathFromString(datadir)));
 }
 
 fs::path GetConfigFile(const std::string &confPath) {
-    return AbsPathForConfigVal(fs::path(confPath), false);
+    return AbsPathForConfigVal(fs::PathFromString(confPath), false);
 }
 
 static bool
@@ -1118,7 +1122,7 @@ bool RenameOver(fs::path src, fs::path dest) {
     return MoveFileExA(src.string().c_str(), dest.string().c_str(),
                        MOVEFILE_REPLACE_EXISTING) != 0;
 #else
-    int rc = std::rename(src.string().c_str(), dest.string().c_str());
+    int rc = std::rename(src.c_str(), dest.c_str());
     return (rc == 0);
 #endif /* WIN32 */
 }
