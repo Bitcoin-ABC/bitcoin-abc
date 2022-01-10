@@ -534,7 +534,7 @@ TorController::TorController(struct event_base *_base,
     std::pair<bool, std::string> pkf = ReadBinaryFile(GetPrivateKeyFile());
     if (pkf.first) {
         LogPrint(BCLog::TOR, "tor: Reading cached private key from %s\n",
-                 GetPrivateKeyFile());
+                 fs::PathToString(GetPrivateKeyFile()));
         private_key = pkf.second;
     }
 }
@@ -576,10 +576,10 @@ void TorController::add_onion_cb(TorControlConnection &_conn,
                   service_id, service.ToString());
         if (WriteBinaryFile(GetPrivateKeyFile(), private_key)) {
             LogPrint(BCLog::TOR, "tor: Cached service private key to %s\n",
-                     GetPrivateKeyFile());
+                     fs::PathToString(GetPrivateKeyFile()));
         } else {
             LogPrintf("tor: Error writing service private key to %s\n",
-                      GetPrivateKeyFile());
+                      fs::PathToString(GetPrivateKeyFile()));
         }
         AddLocal(service, LOCAL_MANUAL);
         // ... onion requested - keep connection open
@@ -772,7 +772,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
                      "reading cookie authentication from %s\n",
                      cookiefile);
             std::pair<bool, std::string> status_cookie =
-                ReadBinaryFile(cookiefile, TOR_COOKIE_SIZE);
+                ReadBinaryFile(fs::PathFromString(cookiefile), TOR_COOKIE_SIZE);
             if (status_cookie.first &&
                 status_cookie.second.size() == TOR_COOKIE_SIZE) {
                 // _conn.Command("AUTHENTICATE " + HexStr(status_cookie.second),

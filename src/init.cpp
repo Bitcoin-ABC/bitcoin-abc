@@ -112,7 +112,7 @@ static const char *BITCOIN_PID_FILENAME = "bitcoind.pid";
 
 static fs::path GetPidFile(const ArgsManager &args) {
     return AbsPathForConfigVal(
-        fs::path(args.GetArg("-pid", BITCOIN_PID_FILENAME)));
+        fs::PathFromString(args.GetArg("-pid", BITCOIN_PID_FILENAME)));
 }
 
 NODISCARD static bool CreatePidFile(const ArgsManager &args) {
@@ -126,7 +126,7 @@ NODISCARD static bool CreatePidFile(const ArgsManager &args) {
         return true;
     } else {
         return InitError(strprintf(_("Unable to create the PID file '%s': %s"),
-                                   GetPidFile(args).string(),
+                                   fs::PathToString(GetPidFile(args)),
                                    std::strerror(errno)));
     }
 }
@@ -1373,12 +1373,12 @@ static void CleanupBlockRevFiles() {
     LogPrintf("Removing unusable blk?????.dat and rev?????.dat files for "
               "-reindex with -prune\n");
     for (const auto &file : fs::directory_iterator{gArgs.GetBlocksDirPath()}) {
-        const auto fileName = file.path().filename().string();
-        if (fs::is_regular_file(file) && fileName.length() == 12 &&
-            fileName.substr(8, 4) == ".dat") {
-            if (fileName.substr(0, 3) == "blk") {
-                mapBlockFiles[fileName.substr(3, 5)] = file.path();
-            } else if (fileName.substr(0, 3) == "rev") {
+        const std::string path = fs::PathToString(file.path().filename());
+        if (fs::is_regular_file(file) && path.length() == 12 &&
+            path.substr(8, 4) == ".dat") {
+            if (path.substr(0, 3) == "blk") {
+                mapBlockFiles[path.substr(3, 5)] = file.path();
+            } else if (path.substr(0, 3) == "rev") {
                 remove(file.path());
             }
         }
@@ -1454,7 +1454,8 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
         for (const fs::path &path : vImportFiles) {
             FILE *file = fsbridge::fopen(path, "rb");
             if (file) {
-                LogPrintf("Importing blocks file %s...\n", path.string());
+                LogPrintf("Importing blocks file %s...\n",
+                          fs::PathToString(path));
                 LoadExternalBlockFile(config, file);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
@@ -1462,7 +1463,7 @@ static void ThreadImport(const Config &config, ChainstateManager &chainman,
                 }
             } else {
                 LogPrintf("Warning: Could not open blocks file %s\n",
-                          path.string());
+                          fs::PathToString(path));
             }
         }
 
@@ -1672,8 +1673,8 @@ void InitParameterInteraction(ArgsManager &args) {
  */
 void InitLogging(const ArgsManager &args) {
     LogInstance().m_print_to_file = !args.IsArgNegated("-debuglogfile");
-    LogInstance().m_file_path =
-        AbsPathForConfigVal(args.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
+    LogInstance().m_file_path = AbsPathForConfigVal(
+        fs::PathFromString(args.GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE)));
 
     LogInstance().m_print_to_console =
         args.GetBoolArg("-printtoconsole", !args.GetBoolArg("-daemon", false));
@@ -2117,12 +2118,12 @@ static bool LockDataDirectory(bool probeOnly) {
     if (!DirIsWritable(datadir)) {
         return InitError(strprintf(
             _("Cannot write to data directory '%s'; check permissions."),
-            datadir.string()));
+            fs::PathToString(datadir)));
     }
     if (!LockDirectory(datadir, ".lock", probeOnly)) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory "
                                      "%s. %s is probably already running."),
-                                   datadir.string(), PACKAGE_NAME));
+                                   fs::PathToString(datadir), PACKAGE_NAME));
     }
     return true;
 }
@@ -2199,29 +2200,30 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (!logger.StartLogging()) {
         return InitError(
             strprintf(Untranslated("Could not open debug log file %s"),
-                      logger.m_file_path.string()));
+                      fs::PathToString(logger.m_file_path)));
     }
 
     if (!logger.m_log_timestamps) {
         LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
     }
-    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
-    LogPrintf("Using data directory %s\n", GetDataDir().string());
+    LogPrintf("Default data directory %s\n",
+              fs::PathToString(GetDefaultDataDir()));
+    LogPrintf("Using data directory %s\n", fs::PathToString(GetDataDir()));
 
     // Only log conf file usage message if conf file actually exists.
     fs::path config_file_path =
         GetConfigFile(args.GetArg("-conf", BITCOIN_CONF_FILENAME));
     if (fs::exists(config_file_path)) {
-        LogPrintf("Config file: %s\n", config_file_path.string());
+        LogPrintf("Config file: %s\n", fs::PathToString(config_file_path));
     } else if (args.IsArgSet("-conf")) {
         // Warn if no conf file exists at path provided by user
         InitWarning(
             strprintf(_("The specified config file %s does not exist\n"),
-                      config_file_path.string()));
+                      fs::PathToString(config_file_path)));
     } else {
         // Not categorizing as "Warning" because it's the default behavior
         LogPrintf("Config file: %s (not found, skipping)\n",
-                  config_file_path.string());
+                  fs::PathToString(config_file_path));
     }
 
     // Log the config arguments to debug.log
@@ -2233,7 +2235,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Warn about relative -datadir path.
     if (args.IsArgSet("-datadir") &&
-        !fs::path(args.GetArg("-datadir", "")).is_absolute()) {
+        !fs::PathFromString(args.GetArg("-datadir", "")).is_absolute()) {
         LogPrintf("Warning: relative datadir option '%s' specified, which will "
                   "be interpreted relative to the current working directory "
                   "'%s'. This is fragile, because if bitcoin is started in the "
@@ -2241,7 +2243,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                   "locate the current data files. There could also be data "
                   "loss if bitcoin is started while in a temporary "
                   "directory.\n",
-                  args.GetArg("-datadir", ""), fs::current_path().string());
+                  args.GetArg("-datadir", ""),
+                  fs::PathToString(fs::current_path()));
     }
 
     InitSignatureCache();
@@ -2489,21 +2492,22 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Read asmap file if configured
     if (args.IsArgSet("-asmap")) {
-        fs::path asmap_path = fs::path(args.GetArg("-asmap", ""));
+        fs::path asmap_path = fs::PathFromString(args.GetArg("-asmap", ""));
         if (asmap_path.empty()) {
-            asmap_path = DEFAULT_ASMAP_FILENAME;
+            asmap_path = fs::PathFromString(DEFAULT_ASMAP_FILENAME);
         }
         if (!asmap_path.is_absolute()) {
             asmap_path = GetDataDir() / asmap_path;
         }
         if (!fs::exists(asmap_path)) {
-            InitError(strprintf(_("Could not find asmap file %s"), asmap_path));
+            InitError(strprintf(_("Could not find asmap file %s"),
+                                fs::quoted(fs::PathToString(asmap_path))));
             return false;
         }
         std::vector<bool> asmap = DecodeAsmap(asmap_path);
         if (asmap.size() == 0) {
-            InitError(
-                strprintf(_("Could not parse asmap file %s"), asmap_path));
+            InitError(strprintf(_("Could not parse asmap file %s"),
+                                fs::quoted(fs::PathToString(asmap_path))));
             return false;
         }
         const uint256 asmap_version = SerializeHash(asmap);
@@ -2890,13 +2894,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 11: import blocks
     if (!CheckDiskSpace(GetDataDir())) {
-        InitError(
-            strprintf(_("Error: Disk space is low for %s"), GetDataDir()));
+        InitError(strprintf(_("Error: Disk space is low for %s"),
+                            fs::quoted(fs::PathToString(GetDataDir()))));
         return false;
     }
     if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {
-        InitError(strprintf(_("Error: Disk space is low for %s"),
-                            gArgs.GetBlocksDirPath()));
+        InitError(
+            strprintf(_("Error: Disk space is low for %s"),
+                      fs::quoted(fs::PathToString(gArgs.GetBlocksDirPath()))));
         return false;
     }
 
@@ -2933,7 +2938,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     std::vector<fs::path> vImportFiles;
     for (const std::string &strFile : args.GetArgs("-loadblock")) {
-        vImportFiles.push_back(strFile);
+        vImportFiles.push_back(fs::PathFromString(strFile));
     }
 
     g_load_block =
