@@ -23,8 +23,8 @@ using namespace boost::filesystem;
  * Path class wrapper to prepare application code for transition from
  * boost::filesystem library to std::filesystem implementation. The main
  * purpose of the class is to define fs::path::u8string() and fs::u8path()
- * functions not present in boost. In the next git commit, it also blocks calls
- * to the fs::path(std::string) implicit constructor and the fs::path::string()
+ * functions not present in boost. It also blocks calls to the
+ * fs::path(std::string) implicit constructor and the fs::path::string()
  * method, which worked well in the boost::filesystem implementation, but have
  * unsafe and unpredictable behavior on Windows in the std::filesystem
  * implementation (see implementation note in \ref PathToString for details).
@@ -44,6 +44,17 @@ public:
 // present in std::filesystem.
 static inline path u8path(const std::string &string) {
     return boost::filesystem::path(string);
+}
+
+// Allow explicit quoted stream I/O.
+static inline auto quoted(const std::string &s) {
+    return boost::io::quoted(s, '&');
+}
+
+// Allow safe path append operations.
+static inline path operator+(path p1, path p2) {
+    p1 += std::move(p2);
+    return p1;
 }
 
 /**
