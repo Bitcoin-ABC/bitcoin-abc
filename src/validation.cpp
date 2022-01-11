@@ -152,14 +152,14 @@ CChainState::FindForkInGlobalIndex(const CBlockLocator &locator) const {
 static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
                                         const CBlockIndex *pindex);
 
-bool CheckSequenceLocks(CBlockIndex *tip, const CCoinsView &coins_view,
-                        const CTransaction &tx, int flags, LockPoints *lp,
-                        bool useExistingLockPoints) {
+bool CheckSequenceLocksAtTip(CBlockIndex *tip, const CCoinsView &coins_view,
+                             const CTransaction &tx, LockPoints *lp,
+                             bool useExistingLockPoints) {
     assert(tip != nullptr);
 
     CBlockIndex index;
     index.pprev = tip;
-    // CheckSequenceLocks() uses active_chainstate.m_chain.Height()+1 to
+    // CheckSequenceLocksAtTip() uses active_chainstate.m_chain.Height()+1 to
     // evaluate height based locks because when SequenceLocks() is called within
     // ConnectBlock(), the height of the block *being* evaluated is what is
     // used. Thus if we want to know if a transaction can be part of the *next*
@@ -187,7 +187,8 @@ bool CheckSequenceLocks(CBlockIndex *tip, const CCoinsView &coins_view,
                 prevheights[txinIndex] = coin.GetHeight();
             }
         }
-        lockPair = CalculateSequenceLocks(tx, flags, prevheights, index);
+        lockPair = CalculateSequenceLocks(tx, STANDARD_LOCKTIME_VERIFY_FLAGS,
+                                          prevheights, index);
         if (lp) {
             lp->height = lockPair.first;
             lp->time = lockPair.second;
@@ -203,7 +204,7 @@ bool CheckSequenceLocks(CBlockIndex *tip, const CCoinsView &coins_view,
             // from CalculateSequenceLocks against tip+1. We know
             // EvaluateSequenceLocks will fail if there was a non-zero sequence
             // lock on a mempool input, so we can use the return value of
-            // CheckSequenceLocks to indicate the LockPoints validity.
+            // CheckSequenceLocksAtTip to indicate the LockPoints validity.
             int maxInputHeight = 0;
             for (const int height : prevheights) {
                 // Can ignore mempool inputs since we'll fail if they had
@@ -532,8 +533,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     TxValidationState ctxState;
     if (!ContextualCheckTransactionForCurrentBlock(
             m_active_chainstate.m_chain.Tip(),
-            args.m_config.GetChainParams().GetConsensus(), tx, ctxState,
-            STANDARD_LOCKTIME_VERIFY_FLAGS)) {
+            args.m_config.GetChainParams().GetConsensus(), tx, ctxState)) {
         // We copy the state from a dummy to ensure we don't increase the
         // ban score of peer for transaction that could be valid in the future.
         return state.Invalid(TxValidationResult::TX_PREMATURE_SPEND,
@@ -612,8 +612,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // Pass in m_view which has all of the relevant inputs cached. Note that,
     // since m_view's backend was removed, it no longer pulls coins from the
     // mempool.
-    if (!CheckSequenceLocks(m_active_chainstate.m_chain.Tip(), m_view, tx,
-                            STANDARD_LOCKTIME_VERIFY_FLAGS, &lp)) {
+    if (!CheckSequenceLocksAtTip(m_active_chainstate.m_chain.Tip(), m_view, tx,
+                                 &lp)) {
         return state.Invalid(TxValidationResult::TX_PREMATURE_SPEND,
                              "non-BIP68-final");
     }
@@ -4044,17 +4044,10 @@ ContextualCheckBlockHeader(const CChainParams &params,
 
 bool ContextualCheckTransactionForCurrentBlock(
     const CBlockIndex *active_chain_tip, const Consensus::Params &params,
-    const CTransaction &tx, TxValidationState &state, int flags) {
+    const CTransaction &tx, TxValidationState &state) {
     AssertLockHeld(cs_main);
     // TODO: Make active_chain_tip a reference
     assert(active_chain_tip);
-
-    // By convention a negative value for flags indicates that the current
-    // network-enforced consensus rules should be used. In a future soft-fork
-    // scenario that would mean checking which rules would be enforced for the
-    // next block and setting the appropriate flags. At the present time no
-    // soft-forks are scheduled, so no flags are set.
-    flags = std::max(flags, 0);
 
     // ContextualCheckTransactionForCurrentBlock() uses
     // active_chain_tip.Height()+1 to evaluate nLockTime because when
@@ -4069,10 +4062,8 @@ bool ContextualCheckTransactionForCurrentBlock(
     // less than the median time of the previous block they're contained in.
     // When the next block is created its previous block will be the current
     // chain tip, so we use that to calculate the median time passed to
-    // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
-    const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
-                                        ? active_chain_tip->GetMedianTimePast()
-                                        : GetAdjustedTime();
+    // ContextualCheckTransaction().
+    const int64_t nLockTimeCutoff{active_chain_tip->GetMedianTimePast()};
 
     return ContextualCheckTransaction(params, tx, state, nBlockHeight,
                                       nLockTimeCutoff);

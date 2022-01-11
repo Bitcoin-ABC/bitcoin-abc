@@ -40,12 +40,12 @@ struct MinerTestingSetup : public TestingSetup {
                               const CScript &scriptPubKey,
                               const std::vector<CTransactionRef> &txFirst)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs);
-    bool TestSequenceLocks(const CTransaction &tx, int flags)
+    bool TestSequenceLocks(const CTransaction &tx)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs) {
         CCoinsViewMemPool view_mempool(
             &m_node.chainman->ActiveChainstate().CoinsTip(), *m_node.mempool);
-        return CheckSequenceLocks(m_node.chainman->ActiveChain().Tip(),
-                                  view_mempool, tx, flags);
+        return CheckSequenceLocksAtTip(m_node.chainman->ActiveChain().Tip(),
+                                       view_mempool, tx);
     }
     BlockAssembler AssemblerForTest(const CChainParams &params);
 };
@@ -503,7 +503,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     // non-final txs in mempool
     SetMockTime(m_node.chainman->ActiveTip()->GetMedianTimePast() + 1);
-    uint32_t flags = LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
+    const uint32_t flags{LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST};
     // height map
     std::vector<int> prevheights;
 
@@ -531,16 +531,15 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
-            flags));
+            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
     }
 
     // Sequence locks fail.
-    BOOST_CHECK(!TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}));
 
     // Sequence locks pass on 2nd block.
     BOOST_CHECK(
-        SequenceLocks(CTransaction(tx), flags, prevheights,
+        SequenceLocks(CTransaction{tx}, flags, prevheights,
                       CreateBlockIndex(m_node.chainman->ActiveHeight() + 2,
                                        m_node.chainman->ActiveTip())));
 
@@ -561,12 +560,11 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
-            flags));
+            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
     }
 
     // Sequence locks fail.
-    BOOST_CHECK(!TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}));
 
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
         // Trick the MedianTimePast.
@@ -601,13 +599,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
-            flags));
+            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
     // Sequence locks pass.
-    BOOST_CHECK(TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(TestSequenceLocks(CTransaction{tx}));
 
     {
         // Locktime passes on 2nd block.
@@ -615,7 +612,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         int64_t nMedianTimePast =
             m_node.chainman->ActiveTip()->GetMedianTimePast();
         BOOST_CHECK(ContextualCheckTransaction(
-            params, CTransaction(tx), state,
+            params, CTransaction{tx}, state,
             m_node.chainman->ActiveHeight() + 2, nMedianTimePast));
     }
 
@@ -631,13 +628,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
-            flags));
+            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
     // Sequence locks pass.
-    BOOST_CHECK(TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(TestSequenceLocks(CTransaction{tx}));
 
     {
         // Locktime passes 1 second later.
@@ -645,7 +641,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         int64_t nMedianTimePast =
             m_node.chainman->ActiveTip()->GetMedianTimePast() + 1;
         BOOST_CHECK(ContextualCheckTransaction(
-            params, CTransaction(tx), state,
+            params, CTransaction{tx}, state,
             m_node.chainman->ActiveHeight() + 1, nMedianTimePast));
     }
 
@@ -659,21 +655,20 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
-            flags));
+            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
     }
 
     // Sequence locks pass.
-    BOOST_CHECK(TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(TestSequenceLocks(CTransaction{tx}));
     tx.vin[0].nSequence = 1;
     // Sequence locks fail.
-    BOOST_CHECK(!TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}));
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG;
     // Sequence locks pass.
-    BOOST_CHECK(TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(TestSequenceLocks(CTransaction{tx}));
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | 1;
     // Sequence locks fail.
-    BOOST_CHECK(!TestSequenceLocks(CTransaction(tx), flags));
+    BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}));
 
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate);

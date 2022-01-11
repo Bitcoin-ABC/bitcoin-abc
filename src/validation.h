@@ -485,14 +485,11 @@ void UpdateCoins(CCoinsViewCache &view, const CTransaction &tx, CTxUndo &txundo,
  * Optionally stores in LockPoints the resulting height and time
  * calculated and the hash of the block needed for calculation or skips the
  * calculation and uses the LockPoints passed in for evaluation. The LockPoints
- * should not be considered valid if CheckSequenceLocks returns false.
- *
- * See consensus/consensus.h for flag definitions.
+ * should not be considered valid if CheckSequenceLocksAtTip returns false.
  */
-bool CheckSequenceLocks(CBlockIndex *tip, const CCoinsView &coins_view,
-                        const CTransaction &tx, int flags,
-                        LockPoints *lp = nullptr,
-                        bool useExistingLockPoints = false);
+bool CheckSequenceLocksAtTip(CBlockIndex *tip, const CCoinsView &coins_view,
+                             const CTransaction &tx, LockPoints *lp = nullptr,
+                             bool useExistingLockPoints = false);
 
 /**
  * Closure representing one script verification.
@@ -570,8 +567,8 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
  */
 bool ContextualCheckTransactionForCurrentBlock(
     const CBlockIndex *active_chain_tip, const Consensus::Params &params,
-    const CTransaction &tx, TxValidationState &state, int flags = -1)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    const CTransaction &tx, TxValidationState &state)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
 /**
  * Check a block is completely valid from start to finish (only works on top of

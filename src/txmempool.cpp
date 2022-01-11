@@ -1525,7 +1525,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
     // If true, the tx would be invalid in the next block; remove this entry
     // and all of its descendants.
     const auto filter_final_and_mature =
-        [&pool, &active_chainstate, flags = STANDARD_LOCKTIME_VERIFY_FLAGS,
+        [&pool, &active_chainstate,
          &config](CTxMemPool::txiter it) EXCLUSIVE_LOCKS_REQUIRED(pool.cs,
                                                                   ::cs_main) {
             AssertLockHeld(pool.cs);
@@ -1536,7 +1536,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
             TxValidationState state;
             if (!ContextualCheckTransactionForCurrentBlock(
                     active_chainstate.m_chain.Tip(),
-                    config.GetChainParams().GetConsensus(), tx, state, flags)) {
+                    config.GetChainParams().GetConsensus(), tx, state)) {
                 return true;
             }
             LockPoints lp = it->GetLockPoints();
@@ -1544,20 +1544,20 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
                 TestLockPointValidity(active_chainstate.m_chain, lp)};
             CCoinsViewMemPool view_mempool(&active_chainstate.CoinsTip(), pool);
 
-            // CheckSequenceLocks checks if the transaction will be final in
-            // the next block to be created on top of the new chain. We use
+            // CheckSequenceLocksAtTip checks if the transaction will be final
+            // in the next block to be created on top of the new chain. We use
             // useExistingLockPoints=false so that, instead of using the
             // information in lp (which might now refer to a block that no
             // longer exists in the chain), it will update lp to contain
             // LockPoints relevant to the new chain.
-            if (!CheckSequenceLocks(active_chainstate.m_chain.Tip(),
-                                    view_mempool, tx, flags, &lp, validLP)) {
-                // If CheckSequenceLocks fails, remove the tx and don't depend
-                // on the LockPoints.
+            if (!CheckSequenceLocksAtTip(active_chainstate.m_chain.Tip(),
+                                         view_mempool, tx, &lp, validLP)) {
+                // If CheckSequenceLocksAtTip fails, remove the tx and don't
+                // depend on the LockPoints.
                 return true;
             }
             if (!validLP) {
-                // If CheckSequenceLocks succeeded, it also updated the
+                // If CheckSequenceLocksAtTip succeeded, it also updated the
                 // LockPoints. Now update the mempool entry lockpoints as well.
                 pool.mapTx.modify(
                     it, [&lp](CTxMemPoolEntry &e) { e.UpdateLockPoints(lp); });
