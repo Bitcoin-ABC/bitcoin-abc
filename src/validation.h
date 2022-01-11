@@ -189,7 +189,7 @@ public:
 /**
  * Unload database information.
  */
-void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman)
+void UnloadBlockIndex(ChainstateManager &chainman)
     EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
 /**
@@ -1276,10 +1276,7 @@ public:
     //! ResizeCoinsCaches() as needed.
     void MaybeRebalanceCaches() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
-    ~ChainstateManager() {
-        LOCK(::cs_main);
-        UnloadBlockIndex(/*mempool=*/nullptr, *this);
-    }
+    ~ChainstateManager();
 };
 
 /** Dump the mempool to disk. */

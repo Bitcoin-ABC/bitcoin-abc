@@ -4814,14 +4814,11 @@ void CChainState::UnloadBlockIndex() {
 // May NOT be used after any connections are up as much
 // of the peer-processing logic assumes a consistent
 // block index state
-void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
+void UnloadBlockIndex(ChainstateManager &chainman) {
     AssertLockHeld(::cs_main);
     chainman.Unload();
     pindexBestForkTip = nullptr;
     pindexBestForkBase = nullptr;
-    if (mempool) {
-        mempool->clear();
-    }
 }
 
 bool ChainstateManager::LoadBlockIndex() {
@@ -6127,4 +6124,9 @@ void ChainstateManager::MaybeRebalanceCaches() {
                                                 m_total_coinsdb_cache * 0.95);
         }
     }
+}
+
+ChainstateManager::~ChainstateManager() {
+    LOCK(::cs_main);
+    UnloadBlockIndex(*this);
 }
