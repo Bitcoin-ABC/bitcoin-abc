@@ -97,7 +97,7 @@ class InitStressTest(BitcoinTestFramework):
             self.log.debug(
                 f"Starting node and will exit after {additional_lines} lines")
             node.start(extra_args=['-txindex=1'])
-            logfile = open(node.debug_log_path, 'r', encoding='utf8')
+            logfile = open(node.debug_log_path, 'rb')
 
             MAX_SECS_TO_WAIT = 10
             start = time.time()
