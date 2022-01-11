@@ -4308,13 +4308,14 @@ bool ChainstateManager::ProcessNewBlockHeaders(
     if (NotifyHeaderTip(ActiveChainstate())) {
         if (ActiveChainstate().IsInitialBlockDownload() && ppindex &&
             *ppindex) {
+            const CBlockIndex &last_accepted{**ppindex};
+            const int64_t blocks_left{
+                (GetTime() - last_accepted.GetBlockTime()) /
+                config.GetChainParams().GetConsensus().nPowTargetSpacing};
+            const double progress{100.0 * last_accepted.nHeight /
+                                  (last_accepted.nHeight + blocks_left)};
             LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n",
-                      (*ppindex)->nHeight,
-                      100.0 /
-                          ((*ppindex)->nHeight +
-                           (GetAdjustedTime() - (*ppindex)->GetBlockTime()) /
-                               Params().GetConsensus().nPowTargetSpacing) *
-                          (*ppindex)->nHeight);
+                      last_accepted.nHeight, progress);
         }
     }
     return true;
