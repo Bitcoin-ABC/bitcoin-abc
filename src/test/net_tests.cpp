@@ -1076,6 +1076,21 @@ BOOST_AUTO_TEST_CASE(avalanche_statistics) {
 
     // After 3 more tau we should be under 5%
     BOOST_CHECK_LT(previousScore, .05);
+
+    for (size_t i = 1; i <= 100; i++) {
+        avastats.invsPolled(10);
+
+        // Completely stop responding to the polls.
+        avastats.invsVoted(0);
+
+        avastats.updateAvailabilityScore();
+
+        // It's still a monotonic fall, and the score should turn negative.
+        double currentScore = avastats.getAvailabilityScore();
+        BOOST_CHECK_LE(currentScore, previousScore);
+        BOOST_CHECK_LE(currentScore, 0.);
+        previousScore = currentScore;
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

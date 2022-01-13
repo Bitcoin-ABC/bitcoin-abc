@@ -3271,8 +3271,8 @@ void CNode::AvalancheState::updateAvailabilityScore() {
     uint64_t windowInvCounters = invCounters.exchange(0);
     double previousScore = availabilityScore;
 
-    uint32_t polls = windowInvCounters & std::numeric_limits<uint32_t>::max();
-    uint32_t votes = windowInvCounters >> 32;
+    int64_t polls = windowInvCounters & std::numeric_limits<uint32_t>::max();
+    int64_t votes = windowInvCounters >> 32;
 
     availabilityScore =
         AVALANCHE_STATISTICS_DECAY_FACTOR * (2 * votes - polls) +
