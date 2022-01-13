@@ -692,6 +692,9 @@ public:
     // m_avalanche_state == nullptr if we're not using avalanche with this peer
     std::unique_ptr<AvalancheState> m_avalanche_state;
 
+    // Store the next time we will consider a getavaaddr message from this peer
+    std::chrono::seconds m_nextGetAvaAddr{0};
+
     /**
      * UNIX epoch time of the last block received from this peer that we had
      * not yet seen (e.g. not already received from another peer), that passed

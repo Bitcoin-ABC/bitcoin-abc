@@ -298,6 +298,12 @@ extern const char *AVARESPONSE;
 extern const char *AVAPROOF;
 
 /**
+ * The getavaaddr message requests an addr message from the receiving node,
+ * containing IP addresses of the most active avalanche nodes.
+ */
+extern const char *GETAVAADDR;
+
+/**
  * Indicate if the message is used to transmit the content of a block.
  * These messages can be significantly larger than usual messages and therefore
  * may need to be processed differently.

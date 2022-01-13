@@ -2095,6 +2095,23 @@ class msg_avahello():
         return "msg_avahello(response={})".format(repr(self.hello))
 
 
+class msg_getavaaddr:
+    __slots__ = ()
+    msgtype = b"getavaaddr"
+
+    def __init__(self):
+        pass
+
+    def deserialize(self, f):
+        pass
+
+    def serialize(self):
+        return b""
+
+    def __repr__(self):
+        return "msg_getavaaddr()"
+
+
 class TestFrameworkMessages(unittest.TestCase):
     def test_legacy_avalanche_proof_serialization_round_trip(self):
         """Verify that a LegacyAvalancheProof object is unchanged after a

@@ -105,6 +105,9 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
               "Max protocol message length must be greater than largest "
               "possible INV message");
 
+/** Minimum time between 2 successives getavaaddr messages from the same peer */
+static constexpr std::chrono::minutes GETAVAADDR_INTERVAL{10};
+
 struct DataRequestParameters {
     /**
      * Maximum number of in-flight data requests from a peer. It is not a hard
@@ -3295,7 +3298,8 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
     return msg_type == NetMsgType::AVAHELLO ||
            msg_type == NetMsgType::AVAPOLL ||
            msg_type == NetMsgType::AVARESPONSE ||
-           msg_type == NetMsgType::AVAPROOF;
+           msg_type == NetMsgType::AVAPROOF ||
+           msg_type == NetMsgType::GETAVAADDR;
 }
 
 /**
@@ -5111,6 +5115,55 @@ void PeerManagerImpl::ProcessMessage(
         for (const CAddress &addr : vAddr) {
             PushAddress(*peer, addr, insecure_rand);
         }
+        return;
+    }
+
+    if (msg_type == NetMsgType::GETAVAADDR) {
+        auto now = GetTime<std::chrono::seconds>();
+        if (now < pfrom.m_nextGetAvaAddr) {
+            // Prevent a peer from exhausting our resources by spamming
+            // getavaaddr messages.
+            LogPrint(BCLog::AVALANCHE,
+                     "Ignoring repeated getavaaddr from peer %d\n",
+                     pfrom.GetId());
+            return;
+        }
+
+        // Only accept a getavaaddr every GETAVAADDR_INTERVAL at most
+        pfrom.m_nextGetAvaAddr = now + GETAVAADDR_INTERVAL;
+
+        auto availabilityScoreComparator = [](const CNode *lhs,
+                                              const CNode *rhs) {
+            double scoreLhs = lhs->m_avalanche_state->getAvailabilityScore();
+            double scoreRhs = rhs->m_avalanche_state->getAvailabilityScore();
+
+            if (scoreLhs != scoreRhs) {
+                return scoreLhs > scoreRhs;
+            }
+
+            return lhs < rhs;
+        };
+
+        // Get up to MAX_ADDR_TO_SEND addresses of the nodes which are the
+        // most active in the avalanche network.
+        std::set<const CNode *, decltype(availabilityScoreComparator)> avaNodes(
+            availabilityScoreComparator);
+        m_connman.ForEachNode([&](const CNode *pnode) {
+            if (pnode && pnode->m_avalanche_state &&
+                pnode->m_avalanche_state->getAvailabilityScore() > 0.) {
+                avaNodes.insert(pnode);
+                if (avaNodes.size() > GetMaxAddrToSend()) {
+                    avaNodes.erase(std::prev(avaNodes.end()));
+                }
+            }
+        });
+
+        peer->m_addrs_to_send.clear();
+        FastRandomContext insecure_rand;
+        for (const CNode *pnode : avaNodes) {
+            PushAddress(*peer, pnode->addr, insecure_rand);
+        }
+
         return;
     }
 
