@@ -145,6 +145,10 @@ export const isValidXecAddress = addr => {
     An eToken address is not considered a valid XEC address
     */
 
+    if (!addr) {
+        return false;
+    }
+
     let isValidXecAddress;
     let isPrefixedXecAddress;
 
@@ -175,7 +179,6 @@ export const isValidXecAddress = addr => {
     return isValidXecAddress;
 };
 
-
 export const isValidEtokenAddress = addr => {
     /* 
     Returns true for a valid eToken address
@@ -186,6 +189,10 @@ export const isValidEtokenAddress = addr => {
     
     An XEC address is not considered a valid eToken address
     */
+
+    if (!addr) {
+        return false;
+    }
 
     let isValidEtokenAddress;
     let isPrefixedEtokenAddress;

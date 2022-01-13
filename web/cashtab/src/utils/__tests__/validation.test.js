@@ -283,6 +283,14 @@ describe('Validation utils', () => {
         const addr = 'wtf is this definitely not an address';
         expect(isValidXecAddress(addr)).toBe(false);
     });
+    it(`isValidXecAddress rejects a null input`, () => {
+        const addr = null;
+        expect(isValidXecAddress(addr)).toBe(false);
+    });
+    it(`isValidXecAddress rejects an empty string input`, () => {
+        const addr = '';
+        expect(isValidXecAddress(addr)).toBe(false);
+    });
     it(`isValidEtokenAddress rejects a valid XEC address with ecash: prefix`, () => {
         const addr = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
         expect(isValidEtokenAddress(addr)).toBe(false);
@@ -317,6 +325,14 @@ describe('Validation utils', () => {
     });
     it(`isValidEtokenAddress rejects an invalid address`, () => {
         const addr = 'wtf is this definitely not an address';
+        expect(isValidEtokenAddress(addr)).toBe(false);
+    });
+    it(`isValidEtokenAddress rejects a null input`, () => {
+        const addr = null;
+        expect(isValidEtokenAddress(addr)).toBe(false);
+    });
+    it(`isValidEtokenAddress rejects an empty string input`, () => {
+        const addr = '';
         expect(isValidEtokenAddress(addr)).toBe(false);
     });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
