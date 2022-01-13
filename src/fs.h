@@ -100,11 +100,17 @@ static inline auto quoted(const std::string &s) {
     return boost::io::quoted(s, '&');
 }
 
+// FIXME The below method is failing with Boost 1.78 (see
+// https://github.com/bitcoin/bitcoin/issues/23846) and is currently unused due
+// to out-of-order backports. Since boost::filesystem is expected to be removed
+// completely by https://github.com/bitcoin/bitcoin/pull/20744, it's fine to
+// keep it commented out and make sure it's fixed before being in use.
+//
 // Allow safe path append operations.
-static inline path operator+(path p1, path p2) {
-    p1 += std::move(p2);
-    return p1;
-}
+// static inline path operator+(path p1, path p2) {
+//     p1 += std::move(p2);
+//     return p1;
+// }
 
 /**
  * Convert path object to byte string. On POSIX, paths natively are byte
