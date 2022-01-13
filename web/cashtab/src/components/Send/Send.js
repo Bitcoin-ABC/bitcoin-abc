@@ -64,14 +64,14 @@ const StyledSpacer = styled.div`
 
 const SignMessageLabel = styled.div`
     text-align: left;
-    color: #0074c2;
+    color: ${props => props.theme.forms.darkLabel};
 `;
 const RecipientModeLabel = styled.div`
-    color: silver;
+    color: ${props => props.theme.forms.lightLabel};
 `;
 const TextAreaLabel = styled.div`
     text-align: left;
-    color: #0074c2;
+    color: ${props => props.theme.forms.darkLabel};
     padding-left: 1px;
 `;
 

@@ -8,6 +8,7 @@ export const theme = {
     },
     wallet: {
         background: '#fff',
+        encryption: '#DC143C',
         text: {
             primary: '#273498',
             secondary: '#273498',
@@ -46,12 +47,17 @@ export const theme = {
         addonBackground: '#f4f4f4',
         addonForeground: '#3e3f42',
         selectionBackground: '#fff',
+        darkLabel: '#0074c2',
+        lightLabel: '#c0c0c0',
     },
     icons: { outlined: '#273498' },
     modals: {
         buttons: { background: '#fff' },
     },
-    settings: { delete: '#CD0BC3' },
+    settings: {
+        delete: '#CD0BC3',
+        background: '#eee',
+    },
     qr: {
         copyBorderCash: '#00ABE7',
         copyBorderToken: '#FF21D0',

@@ -90,7 +90,7 @@ const SWName = styled.div`
         text-overflow: ellipsis;
     }
     h3.overflow:hover {
-        background-color: #eee;
+        background-color: ${props => props.theme.settings.background};
         overflow: visible;
         inline-size: 100px;
         white-space: normal;
@@ -124,7 +124,7 @@ const SWBalance = styled.div`
         text-overflow: ellipsis;
     }
     div.overflow:hover {
-        background-color: #eee;
+        background-color: ${props => props.theme.settings.background};
         overflow: visible;
         inline-size: 150px;
         white-space: normal;

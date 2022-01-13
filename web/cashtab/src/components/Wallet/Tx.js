@@ -68,12 +68,12 @@ const CashtabMessageLabel = styled.span`
 const EncryptionMessageLabel = styled.span`
     text-align: left;
     font-weight: bold;
-    color: red;
+    color: ${props => props.theme.wallet.encryption};
     white-space: nowrap;
 `;
 const UnauthorizedDecryptionMessage = styled.span`
     text-align: left;
-    color: red;
+    color: ${props => props.theme.wallet.encryption};
     white-space: nowrap;
     font-style: italic;
 `;
