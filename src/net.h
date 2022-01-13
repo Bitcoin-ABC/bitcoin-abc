@@ -927,6 +927,10 @@ public:
                              std::vector<uint8_t> &header) override;
 };
 
+inline size_t GetMaxAddrToSend() {
+    return gArgs.GetArg("-maxaddrtosend", MAX_ADDR_TO_SEND);
+}
+
 /** Information about a peer */
 class CNode {
     friend class CConnman;
@@ -1344,7 +1348,7 @@ public:
         assert(m_addr_known);
         if (_addr.IsValid() && !m_addr_known->contains(_addr.GetKey()) &&
             addr_format_supported) {
-            if (vAddrToSend.size() >= MAX_ADDR_TO_SEND) {
+            if (vAddrToSend.size() >= GetMaxAddrToSend()) {
                 vAddrToSend[insecure_rand.randrange(vAddrToSend.size())] =
                     _addr;
             } else {

@@ -411,7 +411,7 @@ void SetupServerArgs(NodeContext &node) {
 
     // Hidden Options
     std::vector<std::string> hidden_args = {
-        "-dbcrashratio", "-forcecompactdb", "-parkdeepreorg",
+        "-dbcrashratio", "-forcecompactdb", "-maxaddrtosend", "-parkdeepreorg",
         "-automaticunparking", "-replayprotectionactivationtime",
         "-enableminerfund",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI

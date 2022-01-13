@@ -48,6 +48,7 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set([
     '-dbcrashratio',
     '-enableminerfund',
     '-forcecompactdb',
+    '-maxaddrtosend',
     '-parkdeepreorg',
     '-automaticunparking',
     # Removed arguments that now just print a helpful error message

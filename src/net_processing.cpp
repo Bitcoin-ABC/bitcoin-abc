@@ -3243,7 +3243,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
         if (!pfrom.RelayAddrsWithConn()) {
             return;
         }
-        if (vAddr.size() > MAX_ADDR_TO_SEND) {
+        if (vAddr.size() > GetMaxAddrToSend()) {
             Misbehaving(
                 pfrom, 20,
                 strprintf("%s message size = %u", msg_type, vAddr.size()));
@@ -4558,11 +4558,11 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
 
         pfrom.vAddrToSend.clear();
         std::vector<CAddress> vAddr;
+        const size_t maxAddrToSend = GetMaxAddrToSend();
         if (pfrom.HasPermission(PF_ADDR)) {
-            vAddr =
-                m_connman.GetAddresses(MAX_ADDR_TO_SEND, MAX_PCT_ADDR_TO_SEND);
+            vAddr = m_connman.GetAddresses(maxAddrToSend, MAX_PCT_ADDR_TO_SEND);
         } else {
-            vAddr = m_connman.GetAddresses(pfrom, MAX_ADDR_TO_SEND,
+            vAddr = m_connman.GetAddresses(pfrom, maxAddrToSend,
                                            MAX_PCT_ADDR_TO_SEND);
         }
         FastRandomContext insecure_rand;
@@ -5310,7 +5310,7 @@ bool PeerManager::SendMessages(const Config &config, CNode *pto,
                     vAddr.push_back(addr);
                     // receiver rejects addr messages larger than
                     // MAX_ADDR_TO_SEND
-                    if (vAddr.size() >= MAX_ADDR_TO_SEND) {
+                    if (vAddr.size() >= GetMaxAddrToSend()) {
                         m_connman.PushMessage(
                             pto, msgMaker.Make(make_flags, msg_type, vAddr));
                         vAddr.clear();
