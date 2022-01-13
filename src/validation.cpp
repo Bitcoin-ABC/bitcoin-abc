@@ -3552,13 +3552,12 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
         // it up here, this should be an essentially unobservable error.
         // Loop back over all block index entries and add any missing entries
         // to setBlockIndexCandidates.
-        for (std::pair<const BlockHash, CBlockIndex> &it :
-             m_blockman.m_block_index) {
-            CBlockIndex &i = it.second;
-            if (i.IsValid(BlockValidity::TRANSACTIONS) &&
-                i.HaveTxsDownloaded() &&
-                !setBlockIndexCandidates.value_comp()(&i, m_chain.Tip())) {
-                setBlockIndexCandidates.insert(&i);
+        for (auto &[_, block_index] : m_blockman.m_block_index) {
+            if (block_index.IsValid(BlockValidity::TRANSACTIONS) &&
+                block_index.HaveTxsDownloaded() &&
+                !setBlockIndexCandidates.value_comp()(&block_index,
+                                                      m_chain.Tip())) {
+                setBlockIndexCandidates.insert(&block_index);
             }
         }
 
@@ -3687,12 +3686,10 @@ void CChainState::UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset,
     }
 
     // Update all blocks under modified blocks.
-    BlockMap::iterator it = m_blockman.m_block_index.begin();
-    while (it != m_blockman.m_block_index.end()) {
-        UpdateFlagsForBlock(pindex, &it->second, fChild);
-        UpdateFlagsForBlock(pindexDeepestChanged, &it->second,
+    for (auto &[_, block_index] : m_blockman.m_block_index) {
+        UpdateFlagsForBlock(pindex, &block_index, fChild);
+        UpdateFlagsForBlock(pindexDeepestChanged, &block_index,
                             fAncestorWasChanged);
-        it++;
     }
 }
 
@@ -5223,8 +5220,8 @@ void CChainState::CheckBlockIndex() {
 
     // Build forward-pointing map of the entire block tree.
     std::multimap<CBlockIndex *, CBlockIndex *> forward;
-    for (auto &entry : m_blockman.m_block_index) {
-        forward.emplace(entry.second.pprev, &entry.second);
+    for (auto &[_, block_index] : m_blockman.m_block_index) {
+        forward.emplace(block_index.pprev, &block_index);
     }
 
     assert(forward.size() == m_blockman.m_block_index.size());

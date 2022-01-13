@@ -242,9 +242,8 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex *>> vSortedByHeight;
     vSortedByHeight.reserve(m_block_index.size());
-    for (std::pair<const BlockHash, CBlockIndex> &item : m_block_index) {
-        CBlockIndex *pindex = &item.second;
-        vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
+    for (auto &[_, block_index] : m_block_index) {
+        vSortedByHeight.emplace_back(block_index.nHeight, &block_index);
     }
 
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
@@ -424,10 +423,9 @@ bool BlockManager::LoadBlockIndexDB(ChainstateManager &chainman) {
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
-    for (const std::pair<const BlockHash, CBlockIndex> &item : m_block_index) {
-        const CBlockIndex *pindex = &item.second;
-        if (pindex->nStatus.hasData()) {
-            setBlkDataFiles.insert(pindex->nFile);
+    for (const auto &[_, block_index] : m_block_index) {
+        if (block_index.nStatus.hasData()) {
+            setBlkDataFiles.insert(block_index.nFile);
         }
     }
 
