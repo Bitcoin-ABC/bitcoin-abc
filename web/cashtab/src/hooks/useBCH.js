@@ -326,7 +326,7 @@ export default function useBCH() {
             parsedTx.outgoingTx = outgoingTx;
             parsedTx.replyAddress = senderAddress;
             parsedTx.destinationAddress = destinationAddress;
-            parsedTx.opReturnMessage = opReturnMessage;
+            parsedTx.opReturnMessage = Buffer.from(opReturnMessage).toString();
             parsedTx.isCashtabMessage = isCashtabMessage;
             parsedTx.isEncryptedMessage = isEncryptedMessage;
             parsedTx.decryptionSuccess = decryptionSuccess;
