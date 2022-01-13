@@ -5,6 +5,7 @@
 #include <index/txindex.h>
 
 #include <chainparams.h>
+#include <interfaces/chain.h>
 #include <script/standard.h>
 #include <util/time.h>
 #include <validation.h>
@@ -16,7 +17,7 @@
 BOOST_AUTO_TEST_SUITE(txindex_tests)
 
 BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup) {
-    TxIndex txindex(1 << 20, true);
+    TxIndex txindex(interfaces::MakeChain(m_node, Params()), 1 << 20, true);
 
     CTransactionRef tx_disk;
     BlockHash block_hash;
@@ -30,7 +31,7 @@ BOOST_FIXTURE_TEST_CASE(txindex_initial_sync, TestChain100Setup) {
     // started.
     BOOST_CHECK(!txindex.BlockUntilSyncedToCurrentChain());
 
-    BOOST_REQUIRE(txindex.Start(m_node.chainman->ActiveChainstate()));
+    BOOST_REQUIRE(txindex.Start());
 
     // Allow tx index to catch up with the block index.
     constexpr int64_t timeout_ms = 10 * 1000;

@@ -7,8 +7,10 @@
 #include <common/args.h>
 #include <config.h>
 #include <index/base.h>
+#include <interfaces/chain.h>
 #include <logging.h>
 #include <node/blockstorage.h>
+#include <node/context.h>
 #include <node/database_args.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
@@ -59,6 +61,9 @@ void BaseIndex::DB::WriteBestBlock(CDBBatch &batch,
                                    const CBlockLocator &locator) {
     batch.Write(DB_BEST_BLOCK, locator);
 }
+
+BaseIndex::BaseIndex(std::unique_ptr<interfaces::Chain> chain)
+    : m_chain{std::move(chain)} {}
 
 BaseIndex::~BaseIndex() {
     Interrupt();
@@ -380,8 +385,10 @@ void BaseIndex::Interrupt() {
     m_interrupt();
 }
 
-bool BaseIndex::Start(Chainstate &active_chainstate) {
-    m_chainstate = &active_chainstate;
+bool BaseIndex::Start() {
+    // m_chainstate member gives indexing code access to node internals. It is
+    // removed in a followup
+    m_chainstate = &m_chain->context()->chainman->ActiveChainstate();
     // Need to register this ValidationInterface before running Init(), so that
     // callbacks are not missed if Init sets m_synced to true.
     RegisterValidationInterface(this);

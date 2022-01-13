@@ -785,6 +785,7 @@ namespace {
             return Assert(m_node.chainman)->IsSnapshotActive();
         }
         const CChainParams &params() const override { return m_params; }
+        NodeContext *context() override { return &m_node; }
         NodeContext &m_node;
         const CChainParams &m_params;
     };
