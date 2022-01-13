@@ -47,23 +47,18 @@ const CBlockIndex *BlockManager::LookupBlockIndex(const BlockHash &hash) const {
 CBlockIndex *BlockManager::AddToBlockIndex(const CBlockHeader &block) {
     AssertLockHeld(cs_main);
 
-    // Check for duplicate
-    BlockHash hash = block.GetHash();
-    BlockMap::iterator it = m_block_index.find(hash);
-    if (it != m_block_index.end()) {
-        return &it->second;
+    const auto [mi, inserted] =
+        m_block_index.try_emplace(block.GetHash(), block);
+    if (!inserted) {
+        return &mi->second;
     }
+    CBlockIndex *pindexNew = &(*mi).second;
 
-    // Construct new block index object
-    CBlockIndex new_index{block};
     // We assign the sequence id to blocks only when the full data is available,
     // to avoid miners withholding blocks but broadcasting headers, to get a
     // competitive advantage.
-    new_index.nSequenceId = 0;
-    BlockMap::iterator mi =
-        m_block_index.insert(std::make_pair(hash, std::move(new_index))).first;
+    pindexNew->nSequenceId = 0;
 
-    CBlockIndex *pindexNew = &(*mi).second;
     pindexNew->phashBlock = &((*mi).first);
     BlockMap::iterator miPrev = m_block_index.find(block.hashPrevBlock);
     if (miPrev != m_block_index.end()) {
@@ -226,19 +221,13 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
         return nullptr;
     }
 
-    // Return existing
-    BlockMap::iterator mi = m_block_index.find(hash);
-    if (mi != m_block_index.end()) {
-        return &(*mi).second;
+    // Return existing or create new
+    const auto [mi, inserted] = m_block_index.try_emplace(hash);
+    CBlockIndex *pindex = &(*mi).second;
+    if (inserted) {
+        pindex->phashBlock = &((*mi).first);
     }
-
-    // Create new
-    CBlockIndex new_index{};
-    mi = m_block_index.insert(std::make_pair(hash, std::move(new_index))).first;
-    CBlockIndex *pindexNew = &(*mi).second;
-    pindexNew->phashBlock = &((*mi).first);
-
-    return pindexNew;
+    return pindex;
 }
 
 bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
