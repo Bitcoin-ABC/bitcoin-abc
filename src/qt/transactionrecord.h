@@ -35,10 +35,6 @@ public:
          */
         Confirmed,
         /// Normal (sent/received) transactions
-        /** Transaction not yet final, waiting for date */
-        OpenUntilDate,
-        /** Transaction not yet final, waiting for block */
-        OpenUntilBlock,
         /** Not yet mined into a block **/
         Unconfirmed,
         /**

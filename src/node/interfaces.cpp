@@ -493,13 +493,6 @@ namespace {
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
             return active.GetLocator();
         }
-        bool contextualCheckTransactionForCurrentBlock(
-            const CTransaction &tx, TxValidationState &state) override {
-            LOCK(cs_main);
-            const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            return ContextualCheckTransactionForCurrentBlock(
-                active.Tip(), m_params.GetConsensus(), tx, state);
-        }
         std::optional<int>
         findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);

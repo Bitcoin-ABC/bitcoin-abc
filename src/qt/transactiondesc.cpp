@@ -19,7 +19,6 @@
 #include <qt/guiutil.h>
 #include <qt/paymentserver.h>
 #include <qt/transactionrecord.h>
-#include <script/script.h>
 #include <util/system.h>
 #include <validation.h>
 #include <wallet/ismine.h>
@@ -31,29 +30,19 @@ QString
 TransactionDesc::FormatTxStatus(const interfaces::WalletTx &wtx,
                                 const interfaces::WalletTxStatus &status,
                                 bool inMempool, int numBlocks) {
-    if (!status.is_final) {
-        if (wtx.tx->nLockTime < LOCKTIME_THRESHOLD) {
-            return tr("Open for %n more block(s)", "",
-                      wtx.tx->nLockTime - numBlocks);
-        } else {
-            return tr("Open until %1")
-                .arg(GUIUtil::dateTimeStr(wtx.tx->nLockTime));
-        }
+    int nDepth = status.depth_in_main_chain;
+    if (nDepth < 0) {
+        return tr("conflicted with a transaction with %1 confirmations")
+            .arg(-nDepth);
+    } else if (nDepth == 0) {
+        return tr("0/unconfirmed, %1")
+                   .arg((inMempool ? tr("in memory pool")
+                                   : tr("not in memory pool"))) +
+               (status.is_abandoned ? ", " + tr("abandoned") : "");
+    } else if (nDepth < 6) {
+        return tr("%1/unconfirmed").arg(nDepth);
     } else {
-        int nDepth = status.depth_in_main_chain;
-        if (nDepth < 0) {
-            return tr("conflicted with a transaction with %1 confirmations")
-                .arg(-nDepth);
-        } else if (nDepth == 0) {
-            return tr("0/unconfirmed, %1")
-                       .arg((inMempool ? tr("in memory pool")
-                                       : tr("not in memory pool"))) +
-                   (status.is_abandoned ? ", " + tr("abandoned") : "");
-        } else if (nDepth < 6) {
-            return tr("%1/unconfirmed").arg(nDepth);
-        } else {
-            return tr("%1 confirmations").arg(nDepth);
-        }
+        return tr("%1 confirmations").arg(nDepth);
     }
 }
 

@@ -172,18 +172,7 @@ void TransactionRecord::updateStatus(const interfaces::WalletTxStatus &wtx,
     status.depth = wtx.depth_in_main_chain;
     status.m_cur_block_hash = block_hash;
 
-    const bool up_to_date =
-        (int64_t(QDateTime::currentMSecsSinceEpoch()) / 1000 - block_time <
-         MAX_BLOCK_TIME_GAP);
-    if (up_to_date && !wtx.is_final) {
-        if (wtx.lock_time < LOCKTIME_THRESHOLD) {
-            status.status = TransactionStatus::OpenUntilBlock;
-            status.open_for = wtx.lock_time - numBlocks;
-        } else {
-            status.status = TransactionStatus::OpenUntilDate;
-            status.open_for = wtx.lock_time;
-        }
-    } else if (type == TransactionRecord::Generated) {
+    if (type == TransactionRecord::Generated) {
         // For generated transactions, determine maturity
         if (wtx.blocks_to_maturity > 0) {
             status.status = TransactionStatus::Immature;

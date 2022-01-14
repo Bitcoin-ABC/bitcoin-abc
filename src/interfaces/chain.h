@@ -145,11 +145,6 @@ public:
     virtual std::optional<int>
     findLocatorFork(const CBlockLocator &locator) = 0;
 
-    //! Check if transaction will be final given chain height current time.
-    virtual bool
-    contextualCheckTransactionForCurrentBlock(const CTransaction &tx,
-                                              TxValidationState &state) = 0;
-
     //! Return whether node has the block and optionally return block metadata
     //! or contents.
     virtual bool findBlock(const BlockHash &hash,

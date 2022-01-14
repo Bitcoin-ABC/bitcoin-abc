@@ -89,10 +89,6 @@ namespace {
         result.depth_in_main_chain = wallet.GetTxDepthInMainChain(wtx);
         result.time_received = wtx.nTimeReceived;
         result.lock_time = wtx.tx->nLockTime;
-        TxValidationState state;
-        result.is_final =
-            wallet.chain().contextualCheckTransactionForCurrentBlock(*wtx.tx,
-                                                                     state);
         result.is_trusted = CachedTxIsTrusted(wallet, wtx);
         result.is_abandoned = wtx.isAbandoned();
         result.is_coinbase = wtx.IsCoinBase();

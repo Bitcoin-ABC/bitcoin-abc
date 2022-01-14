@@ -326,12 +326,6 @@ bool CachedTxIsFromMe(const CWallet &wallet, const CWalletTx &wtx,
 bool CachedTxIsTrusted(const CWallet &wallet, const CWalletTx &wtx,
                        std::set<TxId> &trusted_parents) {
     AssertLockHeld(wallet.cs_wallet);
-    // Quick answer in most cases
-    TxValidationState state;
-    if (!wallet.chain().contextualCheckTransactionForCurrentBlock(*wtx.tx,
-                                                                  state)) {
-        return false;
-    }
 
     int nDepth = wallet.GetTxDepthInMainChain(wtx);
     if (nDepth >= 1) {

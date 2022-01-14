@@ -520,11 +520,7 @@ static Amount GetReceived(const CWallet &wallet, const UniValue &params,
     Amount amount = Amount::zero();
     for (const std::pair<const TxId, CWalletTx> &wtx_pair : wallet.mapWallet) {
         const CWalletTx &wtx = wtx_pair.second;
-        TxValidationState txState;
-        if (wtx.IsCoinBase() ||
-            !wallet.chain().contextualCheckTransactionForCurrentBlock(
-                *wtx.tx, txState) ||
-            wallet.GetTxDepthInMainChain(wtx) < min_depth) {
+        if (wtx.IsCoinBase() || wallet.GetTxDepthInMainChain(wtx) < min_depth) {
             continue;
         }
 
@@ -1020,10 +1016,7 @@ static UniValue ListReceived(const Config &config, const CWallet *const pwallet,
     for (const std::pair<const TxId, CWalletTx> &pairWtx : pwallet->mapWallet) {
         const CWalletTx &wtx = pairWtx.second;
 
-        TxValidationState state;
-        if (wtx.IsCoinBase() ||
-            !pwallet->chain().contextualCheckTransactionForCurrentBlock(
-                *wtx.tx, state)) {
+        if (wtx.IsCoinBase()) {
             continue;
         }
 

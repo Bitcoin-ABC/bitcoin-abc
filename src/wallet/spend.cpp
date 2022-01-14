@@ -93,12 +93,6 @@ void AvailableCoins(const CWallet &wallet, std::vector<COutput> &vCoins,
         const TxId &wtxid = entry.first;
         const CWalletTx &wtx = entry.second;
 
-        TxValidationState state;
-        if (!wallet.chain().contextualCheckTransactionForCurrentBlock(*wtx.tx,
-                                                                      state)) {
-            continue;
-        }
-
         if (wallet.IsTxImmatureCoinBase(wtx)) {
             continue;
         }
