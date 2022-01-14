@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { currency, parseOpReturn } from '@components/Common/Ticker';
+import { currency } from '@components/Common/Ticker';
 import { isValidTokenStats } from '@utils/validation';
 import SlpWallet from 'minimal-slp-wallet';
 import {
@@ -12,6 +12,7 @@ import {
     confirmNonEtokenUtxos,
     convertToEncryptStruct,
     getPublicKey,
+    parseOpReturn,
 } from '@utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import ecies from 'ecies-lite';
