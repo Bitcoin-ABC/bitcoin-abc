@@ -27,6 +27,7 @@ class ArgsManager;
 
 class CDnsSeedOpts {
 public:
+    ArgsManager *argsManager{nullptr};
     int nThreads;
     int nPort;
     int nDnsThreads;
@@ -41,18 +42,17 @@ public:
     std::string ipv6_proxy;
     std::set<uint64_t> filter_whitelist;
 
-    CDnsSeedOpts()
-        : nThreads(DEFAULT_NUM_THREADS), nPort(DEFAULT_PORT),
-          nDnsThreads(DEFAULT_NUM_DNS_THREADS), fWipeBan(DEFAULT_WIPE_BAN),
-          fWipeIgnore(DEFAULT_WIPE_IGNORE), mbox(DEFAULT_EMAIL),
-          ns(DEFAULT_NAMESERVER), host(DEFAULT_HOST), tor(DEFAULT_TOR_PROXY),
-          ip_addr(DEFAULT_LISTEN_ADDRESS), ipv4_proxy(DEFAULT_IPV4_PROXY),
-          ipv6_proxy(DEFAULT_IPV6_PROXY) {}
+    CDnsSeedOpts(ArgsManager *argsMan)
+        : argsManager(argsMan), nThreads(DEFAULT_NUM_THREADS),
+          nPort(DEFAULT_PORT), nDnsThreads(DEFAULT_NUM_DNS_THREADS),
+          fWipeBan(DEFAULT_WIPE_BAN), fWipeIgnore(DEFAULT_WIPE_IGNORE),
+          mbox(DEFAULT_EMAIL), ns(DEFAULT_NAMESERVER), host(DEFAULT_HOST),
+          tor(DEFAULT_TOR_PROXY), ip_addr(DEFAULT_LISTEN_ADDRESS),
+          ipv4_proxy(DEFAULT_IPV4_PROXY), ipv6_proxy(DEFAULT_IPV6_PROXY) {}
 
     int ParseCommandLine(int argc, const char **argv);
 
-private:
-    void SetupSeederArgs(ArgsManager &argsman);
+    void SetupSeederArgs();
 };
 
 #endif // BITCOIN_SEEDER_OPTIONS_H

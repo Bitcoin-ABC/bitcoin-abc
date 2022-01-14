@@ -347,7 +347,8 @@ int main(int argc, char **argv) {
 
     signal(SIGPIPE, SIG_IGN);
     setbuf(stdout, nullptr);
-    CDnsSeedOpts opts;
+    CDnsSeedOpts opts(&gArgs);
+    opts.SetupSeederArgs();
     int parseResults =
         opts.ParseCommandLine(argc, const_cast<const char **>(argv));
     if (parseResults != CONTINUE_EXECUTION) {
