@@ -10,6 +10,8 @@
 
 #include <string>
 
+namespace seeder {
+
 int CDnsSeedOpts::ParseCommandLine(int argc, const char **argv) {
     assert(argsManager);
 
@@ -130,3 +132,5 @@ void CDnsSeedOpts::SetupSeederArgs() {
     argsManager->AddArg("-wipeignore", "Wipe list of ignored nodes",
                         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 }
+
+} // namespace seeder

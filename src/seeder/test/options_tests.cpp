@@ -10,7 +10,7 @@
 class ArgsTestingSetup {
 public:
     ArgsManager argsManager;
-    CDnsSeedOpts opts = CDnsSeedOpts(&argsManager);
+    seeder::CDnsSeedOpts opts = seeder::CDnsSeedOpts(&argsManager);
 
     ArgsTestingSetup() { opts.SetupSeederArgs(); }
 };
@@ -19,19 +19,19 @@ BOOST_AUTO_TEST_SUITE(options_tests)
 
 BOOST_FIXTURE_TEST_CASE(options_defaults_test, ArgsTestingSetup) {
     const char *argv[] = {"ignored"};
-    BOOST_CHECK(opts.ParseCommandLine(1, argv) == CONTINUE_EXECUTION);
-    BOOST_CHECK(opts.nPort == DEFAULT_PORT);
-    BOOST_CHECK(opts.nThreads == DEFAULT_NUM_THREADS);
-    BOOST_CHECK(opts.nDnsThreads == DEFAULT_NUM_DNS_THREADS);
-    BOOST_CHECK(opts.fWipeBan == DEFAULT_WIPE_BAN);
-    BOOST_CHECK(opts.fWipeIgnore == DEFAULT_WIPE_IGNORE);
+    BOOST_CHECK(opts.ParseCommandLine(1, argv) == seeder::CONTINUE_EXECUTION);
+    BOOST_CHECK(opts.nPort == seeder::DEFAULT_PORT);
+    BOOST_CHECK(opts.nThreads == seeder::DEFAULT_NUM_THREADS);
+    BOOST_CHECK(opts.nDnsThreads == seeder::DEFAULT_NUM_DNS_THREADS);
+    BOOST_CHECK(opts.fWipeBan == seeder::DEFAULT_WIPE_BAN);
+    BOOST_CHECK(opts.fWipeIgnore == seeder::DEFAULT_WIPE_IGNORE);
 }
 
 BOOST_FIXTURE_TEST_CASE(options_basic_test, ArgsTestingSetup) {
     const char *argv[] = {"ignored", "-host=seeder.bitcoinabc.org",
                           "-ns=localhost", "-mbox=email@bitcoinabc.org",
                           "-port=5555"};
-    BOOST_CHECK(opts.ParseCommandLine(5, argv) == CONTINUE_EXECUTION);
+    BOOST_CHECK(opts.ParseCommandLine(5, argv) == seeder::CONTINUE_EXECUTION);
     BOOST_CHECK(opts.host == "seeder.bitcoinabc.org");
     BOOST_CHECK(opts.ns == "localhost");
     BOOST_CHECK(opts.mbox == "email@bitcoinabc.org");

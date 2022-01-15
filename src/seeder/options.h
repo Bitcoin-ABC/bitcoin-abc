@@ -8,6 +8,10 @@
 #include <set>
 #include <string>
 
+class ArgsManager;
+
+namespace seeder {
+
 static const int CONTINUE_EXECUTION = -1;
 
 static const int DEFAULT_NUM_THREADS = 96;
@@ -22,8 +26,6 @@ static const std::string DEFAULT_TOR_PROXY = "";
 static const std::string DEFAULT_LISTEN_ADDRESS = "::";
 static const std::string DEFAULT_IPV4_PROXY = "";
 static const std::string DEFAULT_IPV6_PROXY = "";
-
-class ArgsManager;
 
 class CDnsSeedOpts {
 public:
@@ -54,5 +56,7 @@ public:
 
     void SetupSeederArgs();
 };
+
+} // namespace seeder
 
 #endif // BITCOIN_SEEDER_OPTIONS_H

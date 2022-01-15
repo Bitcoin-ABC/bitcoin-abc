@@ -147,7 +147,7 @@ public:
         }
     }
 
-    CDnsThread(CDnsSeedOpts *opts, int idIn) : id(idIn) {
+    CDnsThread(seeder::CDnsSeedOpts *opts, int idIn) : id(idIn) {
         dns_opt.host = opts->host.c_str();
         dns_opt.ns = opts->ns.c_str();
         dns_opt.mbox = opts->mbox.c_str();
@@ -347,11 +347,11 @@ int main(int argc, char **argv) {
 
     signal(SIGPIPE, SIG_IGN);
     setbuf(stdout, nullptr);
-    CDnsSeedOpts opts(&gArgs);
+    seeder::CDnsSeedOpts opts(&gArgs);
     opts.SetupSeederArgs();
     int parseResults =
         opts.ParseCommandLine(argc, const_cast<const char **>(argv));
-    if (parseResults != CONTINUE_EXECUTION) {
+    if (parseResults != seeder::CONTINUE_EXECUTION) {
         return parseResults;
     }
 
