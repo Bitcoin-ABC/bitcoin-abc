@@ -5,6 +5,7 @@
 #ifndef BITCOIN_INTERFACES_CHAIN_H
 #define BITCOIN_INTERFACES_CHAIN_H
 
+#include <primitives/blockhash.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
 #include <util/settings.h> // For util::SettingsValue
@@ -28,7 +29,6 @@ class TxValidationState;
 
 enum class MemPoolRemovalReason;
 
-struct BlockHash;
 struct bilingual_str;
 struct CBlockLocator;
 namespace node {
@@ -43,6 +43,12 @@ namespace interfaces {
 
 class Handler;
 class Wallet;
+
+//! Hash/height pair to help track and identify blocks.
+struct BlockKey {
+    BlockHash hash;
+    int height = -1;
+};
 
 //! Helper for findBlock to selectively return pieces of block data.
 class FoundBlock {
