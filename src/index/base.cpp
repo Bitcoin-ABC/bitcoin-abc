@@ -98,17 +98,13 @@ bool BaseIndex::Init() {
         SetBestBlockIndex(locator_index);
     }
 
-    // Note: this will latch to true immediately if the user starts up with an
-    // empty datadir and an index enabled. If this is the case, indexation will
-    // happen solely via `BlockConnected` signals until, possibly, the next
-    // restart.
-    m_synced = m_best_block_index.load() == active_chain.Tip();
-
     // Skip pruning check if indexes are not ready to sync (because
     // reindex-chainstate has wiped the chain).
-    if (!m_synced && g_indexes_ready_to_sync) {
+    const CBlockIndex *start_block = m_best_block_index.load();
+    bool synced = start_block == active_chain.Tip();
+    if (!synced && g_indexes_ready_to_sync) {
         bool prune_violation = false;
-        if (!m_best_block_index) {
+        if (!start_block) {
             // index is not built yet
             // make sure we have all block data back to the genesis
             prune_violation =
@@ -118,7 +114,7 @@ bool BaseIndex::Init() {
         // in case the index has a best block set and is not fully synced
         // check if we have the required blocks to continue building the index
         else {
-            const CBlockIndex *block_to_test = m_best_block_index.load();
+            const CBlockIndex *block_to_test = start_block;
             if (!active_chain.Contains(block_to_test)) {
                 // if the bestblock is not part of the mainchain, find the fork
                 // and make sure we have all data down to the fork
@@ -148,6 +144,20 @@ bool BaseIndex::Init() {
                 GetName()));
         }
     }
+
+    // Child init
+    if (!CustomInit(start_block ? std::make_optional(interfaces::BlockKey{
+                                      start_block->GetBlockHash(),
+                                      start_block->nHeight})
+                                : std::nullopt)) {
+        return false;
+    }
+
+    // Note: this will latch to true immediately if the user starts up with an
+    // empty datadir and an index enabled. If this is the case, indexation will
+    // happen solely via `BlockConnected` signals until, possibly, the next
+    // restart.
+    m_synced = synced;
     return true;
 }
 

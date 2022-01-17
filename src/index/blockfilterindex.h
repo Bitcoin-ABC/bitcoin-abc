@@ -46,7 +46,7 @@ private:
     bool AllowPrune() const override { return true; }
 
 protected:
-    bool Init() override;
+    bool CustomInit(const std::optional<interfaces::BlockKey> &block) override;
 
     bool CommitInternal(CDBBatch &batch) override;
 
@@ -56,6 +56,7 @@ protected:
                 const CBlockIndex *new_tip) override;
 
     BaseIndex::DB &GetDB() const override { return *m_db; }
+
 public:
     /** Constructs the index, which becomes available to be queried. */
     explicit BlockFilterIndex(std::unique_ptr<interfaces::Chain> chain,
