@@ -1551,7 +1551,8 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
             if (!validLP) {
                 // If CheckSequenceLocks succeeded, it also updated the
                 // LockPoints. Now update the mempool entry lockpoints as well.
-                pool.mapTx.modify(it, update_lock_points(lp));
+                pool.mapTx.modify(
+                    it, [&lp](CTxMemPoolEntry &e) { e.UpdateLockPoints(lp); });
             }
 
             // If the transaction spends any coinbase outputs, it must be
