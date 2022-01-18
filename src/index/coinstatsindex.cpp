@@ -421,11 +421,11 @@ bool CoinStatsIndex::CustomInit(
     return true;
 }
 
-bool CoinStatsIndex::CommitInternal(CDBBatch &batch) {
+bool CoinStatsIndex::CustomCommit(CDBBatch &batch) {
     // DB_MUHASH should always be committed in a batch together with
     // DB_BEST_BLOCK to prevent an inconsistent state of the DB.
     batch.Write(DB_MUHASH, m_muhash);
-    return BaseIndex::CommitInternal(batch);
+    return true;
 }
 
 // Reverse a single block as part of a reorg

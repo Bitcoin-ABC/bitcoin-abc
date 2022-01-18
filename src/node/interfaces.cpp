@@ -410,7 +410,9 @@ namespace {
         if (block.m_in_active_chain) {
             *block.m_in_active_chain = active[index->nHeight] == index;
         }
-        // TODO backport core#25494 with change from core#25717
+        if (block.m_locator) {
+            *block.m_locator = GetLocator(index);
+        }
         if (block.m_next_block) {
             FillBlock(active[index->nHeight] == index
                           ? active[index->nHeight + 1]

@@ -144,7 +144,7 @@ bool BlockFilterIndex::CustomInit(
     return true;
 }
 
-bool BlockFilterIndex::CommitInternal(CDBBatch &batch) {
+bool BlockFilterIndex::CustomCommit(CDBBatch &batch) {
     const FlatFilePos &pos = m_next_filter_pos;
 
     // Flush current filter file to disk.
@@ -158,7 +158,7 @@ bool BlockFilterIndex::CommitInternal(CDBBatch &batch) {
     }
 
     batch.Write(DB_FILTER_POS, pos);
-    return BaseIndex::CommitInternal(batch);
+    return true;
 }
 
 bool BlockFilterIndex::ReadFilterFromDisk(const FlatFilePos &pos,
