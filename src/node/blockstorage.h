@@ -197,7 +197,8 @@ public:
 };
 
 //! Check whether the block associated with this index entry is pruned or not.
-bool IsBlockPruned(const CBlockIndex *pblockindex);
+bool IsBlockPruned(const CBlockIndex *pblockindex)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
 void CleanupBlockRevFiles();
 

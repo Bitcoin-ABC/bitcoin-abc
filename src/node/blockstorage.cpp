@@ -398,6 +398,7 @@ BlockManager::GetLastCheckpoint(const CCheckpointData &data) {
 }
 
 bool IsBlockPruned(const CBlockIndex *pblockindex) {
+    AssertLockHeld(::cs_main);
     return (fHavePruned && !pblockindex->nStatus.hasData() &&
             pblockindex->nTx > 0);
 }
