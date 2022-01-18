@@ -170,6 +170,8 @@ BasicTestingSetup::~BasicTestingSetup() {
 ChainTestingSetup::ChainTestingSetup(
     const std::string &chainName, const std::vector<const char *> &extra_args)
     : BasicTestingSetup(chainName, extra_args) {
+    const Config &config = GetConfig();
+
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.
     m_node.scheduler = std::make_unique<CScheduler>();
@@ -182,13 +184,13 @@ ChainTestingSetup::ChainTestingSetup(
 
     m_cache_sizes = CalculateCacheSizes(m_args);
 
-    m_node.chainman = std::make_unique<ChainstateManager>();
+    m_node.chainman = std::make_unique<ChainstateManager>(config);
     m_node.chainman->m_blockman.m_block_tree_db =
         std::make_unique<CBlockTreeDB>(m_cache_sizes.block_tree_db, true);
     // Call Upgrade on the block database so that the version field is set,
     // else LoadBlockIndexGuts will fail (see D8319).
     m_node.chainman->m_blockman.m_block_tree_db->Upgrade(
-        GetConfig().GetChainParams().GetConsensus());
+        config.GetChainParams().GetConsensus());
 
     constexpr int script_check_threads = 2;
     StartScriptCheckWorkerThreads(script_check_threads);

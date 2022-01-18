@@ -17,6 +17,8 @@
 #include <blockindexcomparators.h>
 #include <bloom.h>
 #include <chain.h>
+#include <chainparams.h>
+#include <config.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <disconnectresult.h>
@@ -48,7 +50,6 @@ class BlockPolicyValidationState;
 class CChainParams;
 class Chainstate;
 class ChainstateManager;
-class Config;
 class CScriptCheck;
 class CTxMemPool;
 class CTxUndo;
@@ -62,6 +63,9 @@ struct AssumeutxoData;
 namespace node {
 class SnapshotMetadata;
 } // namespace node
+namespace Consensus {
+struct Params;
+} // namespace Consensus
 
 namespace Consensus {
 struct Params;
@@ -1107,6 +1111,8 @@ private:
     CBlockIndex *m_best_invalid GUARDED_BY(::cs_main){nullptr};
     CBlockIndex *m_best_parked GUARDED_BY(::cs_main){nullptr};
 
+    const Config &m_config;
+
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
     PopulateAndValidateSnapshot(Chainstate &snapshot_chainstate,
@@ -1123,6 +1129,13 @@ private:
     friend Chainstate;
 
 public:
+    explicit ChainstateManager(const Config &config) : m_config{config} {}
+
+    const CChainParams &GetParams() const { return m_config.GetChainParams(); }
+    const Consensus::Params &GetConsensus() const {
+        return m_config.GetChainParams().GetConsensus();
+    }
+
     std::thread m_load_block;
     //! A single BlockManager instance is shared across each constructed
     //! chainstate to avoid duplicating block metadata.

@@ -2420,7 +2420,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(mempool_check_ratio);
 
-        node.chainman = std::make_unique<ChainstateManager>();
+        node.chainman = std::make_unique<ChainstateManager>(config);
         ChainstateManager &chainman = *node.chainman;
 
         const bool fReset = fReindex;
