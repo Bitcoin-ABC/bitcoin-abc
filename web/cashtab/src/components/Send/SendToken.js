@@ -28,6 +28,20 @@ import {
 } from '@components/Common/Notifications';
 import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
 import { formatDate } from '@utils/formatting';
+import styled, { css } from 'styled-components';
+
+const AntdDescriptionsCss = css`
+    .ant-descriptions-item-label,
+    .ant-descriptions-item-content {
+        background-color: ${props =>
+            props.theme.tokenListItem.background} !important;
+        color: ${props => props.theme.tokenListItem.color};
+    }
+`;
+const AntdDescriptionsWrapper = styled.div`
+    ${AntdDescriptionsCss}
+`;
+
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
@@ -357,97 +371,99 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                 {apiError && <ApiError />}
                             </Form>
                             {tokenStats !== null && (
-                                <Descriptions
-                                    column={1}
-                                    bordered
-                                    title={`Token info for "${token.info.tokenName}"`}
-                                >
-                                    <Descriptions.Item label="Icon">
-                                        {currency.tokenIconsUrl !== '' ? (
-                                            <Popover
-                                                style={{ width: 256 }}
-                                                content={
-                                                    <Img
-                                                        src={`${currency.tokenIconsUrl}/256/${tokenId}.png`}
-                                                    />
-                                                }
-                                                trigger="click"
-                                                color="transparent"
-                                            >
-                                                <Img
-                                                    src={`${currency.tokenIconsUrl}/32/${tokenId}.png`}
-                                                    width={32}
-                                                    height={32}
-                                                    unloader={
-                                                        <img
-                                                            alt={`identicon of tokenId ${tokenId} `}
-                                                            height="32"
-                                                            width="32"
-                                                            style={{
-                                                                borderRadius:
-                                                                    '50%',
-                                                            }}
-                                                            key={`identicon-${tokenId}`}
-                                                            src={makeBlockie(
-                                                                tokenId,
-                                                            )}
+                                <AntdDescriptionsWrapper>
+                                    <Descriptions
+                                        column={1}
+                                        bordered
+                                        title={`Token info for "${token.info.tokenName}"`}
+                                    >
+                                        <Descriptions.Item label="Icon">
+                                            {currency.tokenIconsUrl !== '' ? (
+                                                <Popover
+                                                    style={{ width: 256 }}
+                                                    content={
+                                                        <Img
+                                                            src={`${currency.tokenIconsUrl}/256/${tokenId}.png`}
                                                         />
                                                     }
+                                                    trigger="click"
+                                                    color="transparent"
+                                                >
+                                                    <Img
+                                                        src={`${currency.tokenIconsUrl}/32/${tokenId}.png`}
+                                                        width={32}
+                                                        height={32}
+                                                        unloader={
+                                                            <img
+                                                                alt={`identicon of tokenId ${tokenId} `}
+                                                                height="32"
+                                                                width="32"
+                                                                style={{
+                                                                    borderRadius:
+                                                                        '50%',
+                                                                }}
+                                                                key={`identicon-${tokenId}`}
+                                                                src={makeBlockie(
+                                                                    tokenId,
+                                                                )}
+                                                            />
+                                                        }
+                                                    />
+                                                </Popover>
+                                            ) : (
+                                                <img
+                                                    alt={`identicon of tokenId ${tokenId} `}
+                                                    height="32"
+                                                    width="32"
+                                                    style={{
+                                                        borderRadius: '50%',
+                                                    }}
+                                                    key={`identicon-${tokenId}`}
+                                                    src={makeBlockie(tokenId)}
                                                 />
-                                            </Popover>
-                                        ) : (
-                                            <img
-                                                alt={`identicon of tokenId ${tokenId} `}
-                                                height="32"
-                                                width="32"
-                                                style={{
-                                                    borderRadius: '50%',
-                                                }}
-                                                key={`identicon-${tokenId}`}
-                                                src={makeBlockie(tokenId)}
-                                            />
+                                            )}
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Decimals">
+                                            {token.info.decimals}
+                                        </Descriptions.Item>
+                                        <Descriptions.Item label="Token ID">
+                                            {token.tokenId}
+                                        </Descriptions.Item>
+                                        {tokenStats && (
+                                            <>
+                                                <Descriptions.Item label="Document URI">
+                                                    {tokenStats.documentUri}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label="Genesis Date">
+                                                    {tokenStats.timestampUnix !==
+                                                    null
+                                                        ? formatDate(
+                                                              tokenStats.timestampUnix,
+                                                              navigator.language,
+                                                          )
+                                                        : 'Just now (Genesis tx confirming)'}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label="Fixed Supply?">
+                                                    {tokenStats.containsBaton
+                                                        ? 'No'
+                                                        : 'Yes'}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label="Initial Quantity">
+                                                    {tokenStats.initialTokenQty.toLocaleString()}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label="Total Burned">
+                                                    {tokenStats.totalBurned.toLocaleString()}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label="Total Minted">
+                                                    {tokenStats.totalMinted.toLocaleString()}
+                                                </Descriptions.Item>
+                                                <Descriptions.Item label="Circulating Supply">
+                                                    {tokenStats.circulatingSupply.toLocaleString()}
+                                                </Descriptions.Item>
+                                            </>
                                         )}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Decimals">
-                                        {token.info.decimals}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Token ID">
-                                        {token.tokenId}
-                                    </Descriptions.Item>
-                                    {tokenStats && (
-                                        <>
-                                            <Descriptions.Item label="Document URI">
-                                                {tokenStats.documentUri}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Genesis Date">
-                                                {tokenStats.timestampUnix !==
-                                                null
-                                                    ? formatDate(
-                                                          tokenStats.timestampUnix,
-                                                          navigator.language,
-                                                      )
-                                                    : 'Just now (Genesis tx confirming)'}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Fixed Supply?">
-                                                {tokenStats.containsBaton
-                                                    ? 'No'
-                                                    : 'Yes'}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Initial Quantity">
-                                                {tokenStats.initialTokenQty.toLocaleString()}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Total Burned">
-                                                {tokenStats.totalBurned.toLocaleString()}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Total Minted">
-                                                {tokenStats.totalMinted.toLocaleString()}
-                                            </Descriptions.Item>
-                                            <Descriptions.Item label="Circulating Supply">
-                                                {tokenStats.circulatingSupply.toLocaleString()}
-                                            </Descriptions.Item>
-                                        </>
-                                    )}
-                                </Descriptions>
+                                    </Descriptions>
+                                </AntdDescriptionsWrapper>
                             )}
                         </Col>
                     </Row>
