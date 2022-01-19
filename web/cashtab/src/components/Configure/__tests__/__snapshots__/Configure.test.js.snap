@@ -213,7 +213,7 @@ exports[`Configure with a wallet 1`] = `
      Fiat Currency
   </h2>
   <div
-    className="sc-VigVT ktfrOp"
+    className="sc-VigVT hchaxg"
   >
     <div
       className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -584,7 +584,7 @@ exports[`Configure without a wallet 1`] = `
      Fiat Currency
   </h2>
   <div
-    className="sc-VigVT ktfrOp"
+    className="sc-VigVT hchaxg"
   >
     <div
       className="ant-select select-after ant-select-single ant-select-show-arrow"
