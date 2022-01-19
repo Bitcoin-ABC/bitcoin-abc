@@ -807,11 +807,10 @@ enum class CoinsCacheSizeState {
 class CChainState {
 private:
     /**
-     * the ChainState CriticalSection
-     * A lock that must be held when modifying this ChainState - held in
-     * ActivateBestChain()
+     * The ChainState Mutex.
+     * A lock that must be held when modifying this ChainState.
      */
-    RecursiveMutex m_cs_chainstate;
+    Mutex m_chainstate_mutex;
 
     /**
      * Every received block is assigned a unique and increasing identifier, so
@@ -938,7 +937,8 @@ public:
 
     /** Import blocks from an external file */
     void LoadExternalBlockFile(const Config &config, FILE *fileIn,
-                               FlatFilePos *dbp = nullptr);
+                               FlatFilePos *dbp = nullptr)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex);
 
     /**
      * Update the on-disk chain state.
@@ -978,7 +978,7 @@ public:
      */
     bool ActivateBestChain(const Config &config, BlockValidationState &state,
                            std::shared_ptr<const CBlock> pblock = nullptr)
-        LOCKS_EXCLUDED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex) LOCKS_EXCLUDED(cs_main);
 
     bool AcceptBlock(const Config &config,
                      const std::shared_ptr<const CBlock> &pblock,
@@ -1007,15 +1007,16 @@ public:
      * May not be called in a validationinterface callback.
      */
     bool PreciousBlock(const Config &config, BlockValidationState &state,
-                       CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main);
+                       CBlockIndex *pindex)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex) LOCKS_EXCLUDED(cs_main);
     /** Mark a block as invalid. */
     bool InvalidateBlock(const Config &config, BlockValidationState &state,
                          CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex);
     /** Park a block. */
     bool ParkBlock(const Config &config, BlockValidationState &state,
                    CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex);
 
     /**
      * Finalize a block.
@@ -1023,7 +1024,7 @@ public:
      */
     bool FinalizeBlock(const Config &config, BlockValidationState &state,
                        CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex);
     /** Return the currently finalized block index. */
     const CBlockIndex *GetFinalizedBlock() const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1139,7 +1140,7 @@ private:
 
     bool UnwindBlock(const Config &config, BlockValidationState &state,
                      CBlockIndex *pindex, bool invalidate)
-        EXCLUSIVE_LOCKS_REQUIRED(m_cs_chainstate);
+        EXCLUSIVE_LOCKS_REQUIRED(m_chainstate_mutex);
 
     void CheckForkWarningConditions() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip)

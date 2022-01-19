@@ -2898,6 +2898,8 @@ static void LimitValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main) {
 bool CChainState::ActivateBestChain(const Config &config,
                                     BlockValidationState &state,
                                     std::shared_ptr<const CBlock> pblock) {
+    AssertLockNotHeld(m_chainstate_mutex);
+
     // Note that while we're often called here from ProcessNewBlock, this is
     // far from a guarantee. Things in the P2P/RPC will often end up calling
     // us in the middle of ProcessNewBlock - do not assume pblock is set
@@ -2907,10 +2909,10 @@ bool CChainState::ActivateBestChain(const Config &config,
     // ABC maintains a fair degree of expensive-to-calculate internal state
     // because this function periodically releases cs_main so that it does not
     // lock up other threads for too long during large connects - and to allow
-    // for e.g. the callback queue to drain we use m_cs_chainstate to enforce
+    // for e.g. the callback queue to drain we use m_chainstate_mutex to enforce
     // mutual exclusion so that only one caller may execute this function at a
     // time
-    LOCK(m_cs_chainstate);
+    LOCK(m_chainstate_mutex);
 
     CBlockIndex *pindexMostWork = nullptr;
     CBlockIndex *pindexNewTip = nullptr;
@@ -3078,9 +3080,9 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
     // We do not allow ActivateBestChain() to run while UnwindBlock() is
     // running, as that could cause the tip to change while we disconnect
     // blocks. (Note for backport of Core PR16849: we acquire
-    // LOCK(m_cs_chainstate) in the Park, Invalidate and FinalizeBlock functions
-    // due to differences in our code)
-    AssertLockHeld(m_cs_chainstate);
+    // LOCK(m_chainstate_mutex) in the Park, Invalidate and FinalizeBlock
+    // functions due to differences in our code)
+    AssertLockHeld(m_chainstate_mutex);
 
     // We'll be acquiring and releasing cs_main below, to allow the validation
     // callbacks to run. However, we should keep the block index in a
@@ -3256,18 +3258,18 @@ bool CChainState::UnwindBlock(const Config &config, BlockValidationState &state,
 bool CChainState::InvalidateBlock(const Config &config,
                                   BlockValidationState &state,
                                   CBlockIndex *pindex) {
-    AssertLockNotHeld(m_cs_chainstate);
+    AssertLockNotHeld(m_chainstate_mutex);
     // See 'Note for backport of Core PR16849' in CChainState::UnwindBlock
-    LOCK(m_cs_chainstate);
+    LOCK(m_chainstate_mutex);
 
     return UnwindBlock(config, state, pindex, true);
 }
 
 bool CChainState::ParkBlock(const Config &config, BlockValidationState &state,
                             CBlockIndex *pindex) {
-    AssertLockNotHeld(m_cs_chainstate);
+    AssertLockNotHeld(m_chainstate_mutex);
     // See 'Note for backport of Core PR16849' in CChainState::UnwindBlock
-    LOCK(m_cs_chainstate);
+    LOCK(m_chainstate_mutex);
 
     return UnwindBlock(config, state, pindex, false);
 }
@@ -3275,9 +3277,9 @@ bool CChainState::ParkBlock(const Config &config, BlockValidationState &state,
 bool CChainState::FinalizeBlock(const Config &config,
                                 BlockValidationState &state,
                                 CBlockIndex *pindex) {
-    AssertLockNotHeld(m_cs_chainstate);
+    AssertLockNotHeld(m_chainstate_mutex);
     // See 'Note for backport of Core PR16849' in CChainState::UnwindBlock
-    LOCK(m_cs_chainstate);
+    LOCK(m_chainstate_mutex);
 
     AssertLockNotHeld(cs_main);
     CBlockIndex *pindexToInvalidate = nullptr;
