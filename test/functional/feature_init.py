@@ -64,6 +64,8 @@ class InitStressTest(BitcoinTestFramework):
             'addcon thread start',
             'loadblk thread start',
             'txindex thread start',
+            'block filter index thread start',
+            'coinstatsindex thread start',
             'msghand thread start',
             'net thread start',
             'addcon thread start',
@@ -75,7 +77,12 @@ class InitStressTest(BitcoinTestFramework):
             self.log.info(
                 f"Starting node and will exit after line '{terminate_line}'")
             with node.wait_for_debug_log([terminate_line], ignore_case=True):
-                node.start(extra_args=['-txindex=1'])
+                node.start(
+                    extra_args=[
+                        '-txindex=1',
+                        '-blockfilterindex=1',
+                        '-coinstatsindex=1',
+                    ])
             self.log.debug("Terminating node after terminate line was found")
             sigterm_node()
 
@@ -111,7 +118,11 @@ class InitStressTest(BitcoinTestFramework):
             # successfully?) so investigate doing this later.
 
             node.assert_start_raises_init_error(
-                extra_args=['-txindex=1'],
+                extra_args=[
+                    '-txindex=1',
+                    '-blockfilterindex=1',
+                    '-coinstatsindex=1',
+                ],
                 expected_msg=err_fragment,
                 match=ErrorMatch.PARTIAL_REGEX,
             )
