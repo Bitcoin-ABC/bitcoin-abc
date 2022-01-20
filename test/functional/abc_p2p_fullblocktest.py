@@ -241,7 +241,7 @@ class FullBlockTest(BitcoinTestFramework):
         # Reject oversized blocks with bad-blk-length error
         block(18, spend=out[17], block_size=self.excessive_block_size + 1)
         peer.send_blocks_and_test(
-            [self.tip], node, success=False, reject_reason='bad-blk-length')
+            [self.tip], node, success=False, reject_reason='bad-blk-length', timeout=360)
 
         # Rewind bad block.
         self.tip = self.blocks[17]
