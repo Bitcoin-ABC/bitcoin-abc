@@ -25,7 +25,6 @@ from .authproxy import JSONRPCException
 from .descriptors import descsum_create
 from .messages import MY_SUBVERSION, XEC, CTransaction, FromHex
 from .util import (
-    MAX_NODES,
     EncodeDecimal,
     append_config,
     delete_cookie_file,
@@ -196,7 +195,8 @@ class TestNode():
 
     def get_deterministic_priv_key(self):
         """Return a deterministic priv key in base58, that only depends on the node's index"""
-        assert len(self.PRIV_KEYS) == MAX_NODES
+        num_keys = len(self.PRIV_KEYS)
+        assert self.index < num_keys, f"Only {num_keys} keys are defined, please extend TestNode.PRIV_KEYS if more are needed."
         return self.PRIV_KEYS[self.index]
 
     def _node_msg(self, msg: str) -> str:
