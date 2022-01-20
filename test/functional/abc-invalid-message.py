@@ -49,7 +49,6 @@ class BadVersionP2PInterface(P2PInterface):
 
 class InvalidMessageTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = False
         self.num_nodes = 2
 
     def run_test(self):

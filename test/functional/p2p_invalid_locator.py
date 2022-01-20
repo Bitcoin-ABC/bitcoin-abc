@@ -17,7 +17,6 @@ from test_framework.test_framework import BitcoinTestFramework
 class InvalidLocatorTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.setup_clean_chain = False
 
     def run_test(self):
         # Convenience reference to the node

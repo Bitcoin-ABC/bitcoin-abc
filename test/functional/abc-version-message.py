@@ -36,7 +36,6 @@ class ModifiedVersionTimestampP2PInterface(P2PInterface):
 class VersionMessageTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.setup_clean_chain = False
 
     def run_test(self):
         # Check some invalid timestamps in the version message

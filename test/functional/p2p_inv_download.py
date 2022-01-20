@@ -121,7 +121,6 @@ def skip(context):
 
 class InventoryDownloadTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = False
         self.num_nodes = 2
         self.extra_args = [['-enableavalanche=1',
                             '-avacooldown=0']] * self.num_nodes

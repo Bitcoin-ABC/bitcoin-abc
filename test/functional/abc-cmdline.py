@@ -40,7 +40,6 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
 
     def set_test_params(self):
         self.num_nodes = 1
-        self.setup_clean_chain = False
 
     def maxaddrtosend_test(self, max_addr_to_send):
         node = self.nodes[0]

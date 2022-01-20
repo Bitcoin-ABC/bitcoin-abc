@@ -47,7 +47,6 @@ from test_framework.util import assert_equal, hex_str_to_bytes
 class ChainstateWriteCrashTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 4
-        self.setup_clean_chain = False
         self.rpc_timeout = 480
         self.supports_cli = False
 
