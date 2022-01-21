@@ -312,6 +312,12 @@ public:
          * enforced at the end to ensure the package is not partially submitted.
          */
         const bool m_package_submission;
+        /**
+         * When true, use package feerates instead of individual transaction
+         * feerates for fee-based policies such as mempool min fee and min relay
+         * fee.
+         */
+        const bool m_package_feerates;
 
         /** Parameters for single transaction mempool validation. */
         static ATMPArgs SingleAccept(const Config &config, int64_t accept_time,
@@ -319,13 +325,16 @@ public:
                                      std::vector<COutPoint> &coins_to_uncache,
                                      bool test_accept,
                                      unsigned int heightOverride) {
-            return ATMPArgs{config,
-                            accept_time,
-                            bypass_limits,
-                            coins_to_uncache,
-                            test_accept,
-                            heightOverride,
-                            /*package_submission=*/false};
+            return ATMPArgs{
+                config,
+                accept_time,
+                bypass_limits,
+                coins_to_uncache,
+                test_accept,
+                heightOverride,
+                /*package_submission=*/false,
+                /*package_feerates=*/false,
+            };
         }
 
         /**
@@ -335,25 +344,47 @@ public:
         static ATMPArgs
         PackageTestAccept(const Config &config, int64_t accept_time,
                           std::vector<COutPoint> &coins_to_uncache) {
-            return ATMPArgs{config, accept_time,
-                            /*bypass_limits=*/false, coins_to_uncache,
-                            /*test_accept=*/true,
-                            /*height_override=*/0,
-                            // not submitting to mempool
-                            /*package_submission=*/false};
+            return ATMPArgs{
+                config,
+                accept_time,
+                /*bypass_limits=*/false,
+                coins_to_uncache,
+                /*test_accept=*/true,
+                /*height_override=*/0,
+                // not submitting to mempool
+                /*package_submission=*/false,
+                /*package_feerates=*/false,
+            };
         }
 
         /** Parameters for child-with-unconfirmed-parents package validation. */
         static ATMPArgs
         PackageChildWithParents(const Config &config, int64_t accept_time,
                                 std::vector<COutPoint> &coins_to_uncache) {
-            return ATMPArgs{config,
-                            accept_time,
-                            /*bypass_limits=*/false,
-                            coins_to_uncache,
-                            /*test_accept=*/false,
-                            /*height_override=*/0,
-                            /*package_submission=*/true};
+            return ATMPArgs{
+                config,
+                accept_time,
+                /*bypass_limits=*/false,
+                coins_to_uncache,
+                /*test_accept=*/false,
+                /*height_override=*/0,
+                /*package_submission=*/true,
+                /*package_feerates=*/true,
+            };
+        }
+
+        /** Parameters for a single transaction within a package. */
+        static ATMPArgs SingleInPackageAccept(const ATMPArgs &package_args) {
+            return ATMPArgs{
+                /*config=*/package_args.m_config,
+                /*accept_time=*/package_args.m_accept_time,
+                /*bypass_limits=*/false,
+                /*coins_to_uncache=*/package_args.m_coins_to_uncache,
+                /*test_accept=*/package_args.m_test_accept,
+                /*height_override=*/package_args.m_heightOverride,
+                /*package_submission=*/false,
+                /*package_feerates=*/false, // only 1 transaction
+            };
         }
 
     private:
@@ -362,12 +393,14 @@ public:
         // functions above instead.
         ATMPArgs(const Config &config, int64_t accept_time, bool bypass_limits,
                  std::vector<COutPoint> &coins_to_uncache, bool test_accept,
-                 unsigned int height_override, bool package_submission)
+                 unsigned int height_override, bool package_submission,
+                 bool package_feerates)
             : m_config{config}, m_accept_time{accept_time},
               m_bypass_limits{bypass_limits},
               m_coins_to_uncache{coins_to_uncache}, m_test_accept{test_accept},
-              m_heightOverride{height_override}, m_package_submission{
-                                                     package_submission} {}
+              m_heightOverride{height_override},
+              m_package_submission{package_submission},
+              m_package_feerates(package_feerates) {}
     };
 
     // Single transaction acceptance
@@ -493,8 +526,6 @@ private:
                 strprintf("%d < %d", package_fee, mempoolRejectFee));
         }
 
-        // No transactions are allowed below the min relay feerate except from
-        // disconnected blocks.
         // Do not change this to use virtualsize without coordinating a network
         // policy upgrade.
         if (package_fee < m_pool.m_min_relay_feerate.GetFee(package_size)) {
@@ -678,7 +709,10 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     ws.m_vsize = ws.m_entry->GetTxVirtualSize();
 
-    if (!bypass_limits &&
+    // No individual transactions are allowed below minRelayTxFee and mempool
+    // min fee except from disconnected blocks and transactions in a package.
+    // Package transactions will be checked using package feerate later.
+    if (!bypass_limits && !args.m_package_feerates &&
         !CheckFeeRate(nSize, ws.m_vsize, ws.m_modified_fees, state)) {
         return false;
     }
@@ -953,17 +987,43 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         }
     }
 
+    // Transactions must meet two minimum feerates: the mempool minimum fee and
+    // min relay fee. For transactions consisting of exactly one child and its
+    // parents, it suffices to use the package feerate
+    // (total modified fees / total size or vsize) to check this requirement.
+    const auto m_total_size = std::accumulate(
+        workspaces.cbegin(), workspaces.cend(), int64_t{0},
+        [](int64_t sum, auto &ws) { return sum + ws.m_ptx->GetTotalSize(); });
+    const auto m_total_vsize =
+        std::accumulate(workspaces.cbegin(), workspaces.cend(), int64_t{0},
+                        [](int64_t sum, auto &ws) { return sum + ws.m_vsize; });
+    const auto m_total_modified_fees = std::accumulate(
+        workspaces.cbegin(), workspaces.cend(), Amount::zero(),
+        [](Amount sum, auto &ws) { return sum + ws.m_modified_fees; });
+    const CFeeRate package_feerate(m_total_modified_fees, m_total_vsize);
+    TxValidationState placeholder_state;
+    if (args.m_package_feerates &&
+        !CheckFeeRate(m_total_size, m_total_vsize, m_total_modified_fees,
+                      placeholder_state)) {
+        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
+                              "package-fee-too-low");
+        return PackageMempoolAcceptResult(package_state, package_feerate, {});
+    }
+
     if (args.m_test_accept) {
-        return PackageMempoolAcceptResult(package_state, std::move(results));
+        return PackageMempoolAcceptResult(package_state, package_feerate,
+                                          std::move(results));
     }
 
     if (!SubmitPackage(args, workspaces, package_state, results)) {
         package_state.Invalid(PackageValidationResult::PCKG_TX,
                               "submission failed");
-        return PackageMempoolAcceptResult(package_state, std::move(results));
+        return PackageMempoolAcceptResult(package_state, package_feerate,
+                                          std::move(results));
     }
 
-    return PackageMempoolAcceptResult(package_state, std::move(results));
+    return PackageMempoolAcceptResult(package_state, package_feerate,
+                                      std::move(results));
 }
 
 PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
@@ -1047,6 +1107,8 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     // This ensures we don't double-count transaction counts and sizes when
     // checking ancestor/descendant limits, or double-count transaction fees for
     // fee-related policy.
+    ATMPArgs single_args = ATMPArgs::SingleInPackageAccept(args);
+    bool quit_early{false};
     std::vector<CTransactionRef> txns_new;
     for (const auto &tx : package) {
         const auto &txid = tx->GetId();
@@ -1061,12 +1123,41 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
                                       (*iter.value())->GetFee()));
         } else {
             // Transaction does not already exist in the mempool.
-            txns_new.push_back(tx);
+            // Try submitting the transaction on its own.
+            const auto single_res = AcceptSingleTransaction(tx, single_args);
+            if (single_res.m_result_type ==
+                MempoolAcceptResult::ResultType::VALID) {
+                // The transaction succeeded on its own and is now in the
+                // mempool. Don't include it in package validation, because its
+                // fees should only be "used" once.
+                assert(m_pool.exists(txid));
+                results.emplace(txid, single_res);
+            } else if (single_res.m_state.GetResult() !=
+                           TxValidationResult::TX_MEMPOOL_POLICY &&
+                       single_res.m_state.GetResult() !=
+                           TxValidationResult::TX_MISSING_INPUTS) {
+                // Package validation policy only differs from individual policy
+                // in its evaluation of feerate. For example, if a transaction
+                // fails here due to violation of a consensus rule, the result
+                // will not change when it is submitted as part of a package. To
+                // minimize the amount of repeated work, unless the transaction
+                // fails due to feerate or missing inputs (its parent is a
+                // previous transaction in the package that failed due to
+                // feerate), don't run package validation. Note that this
+                // decision might not make sense if different types of packages
+                // are allowed in the future.  Continue individually validating
+                // the rest of the transactions, because some of them may still
+                // be valid.
+                quit_early = true;
+            } else {
+                txns_new.push_back(tx);
+            }
         }
     }
 
     // Nothing to do if the entire package has already been submitted.
-    if (txns_new.empty()) {
+    if (quit_early || txns_new.empty()) {
+        // No package feerate when no package validation was done.
         return PackageMempoolAcceptResult(package_state, std::move(results));
     }
     // Validate the (deduplicated) transactions as a package.
@@ -1074,6 +1165,9 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
     // Include already-in-mempool transaction results in the final result.
     for (const auto &[txid, mempoolaccept_res] : results) {
         submission_result.m_tx_results.emplace(txid, mempoolaccept_res);
+    }
+    if (submission_result.m_state.IsValid()) {
+        assert(submission_result.m_package_feerate.has_value());
     }
     return submission_result;
 }
