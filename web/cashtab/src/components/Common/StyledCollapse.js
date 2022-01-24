@@ -8,6 +8,8 @@ export const StyledCollapse = styled(Collapse)`
     .ant-collapse-content {
         border: 1px solid ${props => props.theme.collapses.border};
         border-top: none;
+        background-color: ${props =>
+            props.theme.collapses.expandedBackground} !important;
     }
 
     .ant-collapse-item {

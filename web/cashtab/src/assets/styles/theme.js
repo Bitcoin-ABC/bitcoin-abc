@@ -82,6 +82,7 @@ export const theme = {
     },
     collapses: {
         background: '#fbfcfd',
+        expandedBackground: '#fff',
         border: '#eaedf3',
         color: '#3e3f42',
     },
