@@ -191,6 +191,7 @@ protected:
     virtual void BlockFinalized(const CBlockIndex *pindex){};
 
     friend class CMainSignals;
+    friend class ValidationInterfaceTest;
 };
 
 class MainSignalsImpl;

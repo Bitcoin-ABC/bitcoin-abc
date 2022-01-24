@@ -248,10 +248,10 @@ bool CoinStatsIndex::WriteBlock(const CBlock &block,
     m_muhash.Finalize(out);
     value.second.muhash = out;
 
-    CDBBatch batch(*m_db);
-    batch.Write(DBHeightKey(pindex->nHeight), value);
-    batch.Write(DB_MUHASH, m_muhash);
-    return m_db->WriteBatch(batch);
+    // Intentionally do not update DB_MUHASH here so it stays in sync with
+    // DB_BEST_BLOCK, and the index is not corrupted if there is an unclean
+    // shutdown.
+    return m_db->Write(DBHeightKey(pindex->nHeight), value);
 }
 
 static bool CopyHeightIndexToHashIndex(CDBIterator &db_it, CDBBatch &batch,
@@ -421,6 +421,13 @@ bool CoinStatsIndex::Init() {
     return true;
 }
 
+bool CoinStatsIndex::CommitInternal(CDBBatch &batch) {
+    // DB_MUHASH should always be committed in a batch together with
+    // DB_BEST_BLOCK to prevent an inconsistent state of the DB.
+    batch.Write(DB_MUHASH, m_muhash);
+    return BaseIndex::CommitInternal(batch);
+}
+
 // Reverse a single block as part of a reorg
 bool CoinStatsIndex::ReverseBlock(const CBlock &block,
                                   const CBlockIndex *pindex) {
@@ -540,5 +547,5 @@ bool CoinStatsIndex::ReverseBlock(const CBlock &block,
     Assert(m_total_unspendables_unclaimed_rewards ==
            read_out.second.total_unspendables_unclaimed_rewards);
 
-    return m_db->Write(DB_MUHASH, m_muhash);
+    return true;
 }
