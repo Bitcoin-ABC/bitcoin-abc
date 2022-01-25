@@ -1050,7 +1050,7 @@ private:
 
     // All of the following cache a recent block, and are protected by
     // m_most_recent_block_mutex
-    RecursiveMutex m_most_recent_block_mutex;
+    Mutex m_most_recent_block_mutex;
     std::shared_ptr<const CBlock>
         m_most_recent_block GUARDED_BY(m_most_recent_block_mutex);
     std::shared_ptr<const CBlockHeaderAndShortTxIDs>
@@ -7022,19 +7022,20 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                              __func__, vHeaders.front().GetHash().ToString(),
                              pto->GetId());
 
-                    bool fGotBlockFromCache = false;
+                    std::optional<CSerializedNetMsg> cached_cmpctblock_msg;
                     {
                         LOCK(m_most_recent_block_mutex);
                         if (m_most_recent_block_hash ==
                             pBestIndex->GetBlockHash()) {
-                            m_connman.PushMessage(
-                                pto,
+                            cached_cmpctblock_msg =
                                 msgMaker.Make(NetMsgType::CMPCTBLOCK,
-                                              *m_most_recent_compact_block));
-                            fGotBlockFromCache = true;
+                                              *m_most_recent_compact_block);
                         }
                     }
-                    if (!fGotBlockFromCache) {
+                    if (cached_cmpctblock_msg.has_value()) {
+                        m_connman.PushMessage(
+                            pto, std::move(cached_cmpctblock_msg.value()));
+                    } else {
                         CBlock block;
                         bool ret = ReadBlockFromDisk(block, pBestIndex,
                                                      consensusParams);
