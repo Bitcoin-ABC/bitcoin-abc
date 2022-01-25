@@ -189,7 +189,7 @@ public:
      * Return the maximal height in the chain. Is equal to chain.Tip() ?
      * chain.Tip()->nHeight : -1.
      */
-    int Height() const { return vChain.size() - 1; }
+    int Height() const { return int(vChain.size()) - 1; }
 
     /** Set/initialize a chain with a given tip. */
     void SetTip(CBlockIndex *pindex);
