@@ -2356,10 +2356,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     ChainstateManager &chainman = *Assert(node.chainman);
 
     assert(!node.peerman);
-    node.peerman = std::make_unique<PeerManager>(
-        chainparams, *node.connman, node.banman.get(), *node.scheduler,
-        chainman, *node.mempool,
-        args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+    node.peerman =
+        PeerManager::make(chainparams, *node.connman, node.banman.get(),
+                          *node.scheduler, chainman, *node.mempool,
+                          args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
     RegisterValidationInterface(node.peerman.get());
 
     // sanitize comments per BIP-0014, format user agent and check total size

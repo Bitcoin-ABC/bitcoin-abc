@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     const Config &config = GetConfig();
 
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerManager>(
+    auto peerLogic = PeerManager::make(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
         *m_node.chainman, *m_node.mempool, false);
 
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
     const Config &config = GetConfig();
 
     auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerManager>(
+    auto peerLogic = PeerManager::make(
         config.GetChainParams(), *connman, nullptr, *m_node.scheduler,
         *m_node.chainman, *m_node.mempool, false);
 
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
         m_args.GetDataDirPath() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerManager>(
+    auto peerLogic = PeerManager::make(
         config.GetChainParams(), *connman, banman.get(), *m_node.scheduler,
         *m_node.chainman, *m_node.mempool, false);
 
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
         m_args.GetDataDirPath() / "banlist.dat", config.GetChainParams(),
         nullptr, DEFAULT_MISBEHAVING_BANTIME);
     auto connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    auto peerLogic = std::make_unique<PeerManager>(
+    auto peerLogic = PeerManager::make(
         config.GetChainParams(), *connman, banman.get(), *m_node.scheduler,
         *m_node.chainman, *m_node.mempool, false);
 

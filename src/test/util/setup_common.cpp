@@ -209,7 +209,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
         DEFAULT_MISBEHAVING_BANTIME);
     // Deterministic randomness for tests.
     m_node.connman = std::make_unique<CConnman>(config, 0x1337, 0x1337);
-    m_node.peerman = std::make_unique<PeerManager>(
+    m_node.peerman = PeerManager::make(
         chainparams, *m_node.connman, m_node.banman.get(), *m_node.scheduler,
         *m_node.chainman, *m_node.mempool, false);
     {

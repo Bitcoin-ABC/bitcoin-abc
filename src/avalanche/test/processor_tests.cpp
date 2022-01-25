@@ -83,7 +83,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         auto connman = std::make_unique<CConnmanTest>(config, 0x1337, 0x1337);
         m_connman = connman.get();
         m_node.connman = std::move(connman);
-        m_node.peerman = std::make_unique<::PeerManager>(
+        m_node.peerman = ::PeerManager::make(
             config.GetChainParams(), *m_connman, m_node.banman.get(),
             *m_node.scheduler, *m_node.chainman, *m_node.mempool, false);
         m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());

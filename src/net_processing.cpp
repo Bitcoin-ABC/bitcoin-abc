@@ -959,8 +959,8 @@ ComputeRequestTime(const CNode &node,
     return current_time + delay;
 }
 
-void PeerManager::PushNodeVersion(const Config &config, CNode &pnode,
-                                  int64_t nTime) {
+void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
+                                      int64_t nTime) {
     // Note that pnode.GetLocalServices() is a reflection of the local
     // services we were offering when the CNode object was created for this
     // peer.
@@ -1000,8 +1000,9 @@ void PeerManager::PushNodeVersion(const Config &config, CNode &pnode,
     LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
 
-void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
-                                    std::chrono::microseconds current_time) {
+void PeerManagerImpl::AddTxAnnouncement(
+    const CNode &node, const TxId &txid,
+    std::chrono::microseconds current_time) {
     // For m_txrequest and state
     AssertLockHeld(::cs_main);
 
@@ -1016,10 +1017,9 @@ void PeerManager::AddTxAnnouncement(const CNode &node, const TxId &txid,
     m_txrequest.ReceivedInv(node.GetId(), txid, preferred, reqtime);
 }
 
-void PeerManager::AddProofAnnouncement(const CNode &node,
-                                       const avalanche::ProofId &proofid,
-                                       std::chrono::microseconds current_time,
-                                       bool preferred) {
+void PeerManagerImpl::AddProofAnnouncement(
+    const CNode &node, const avalanche::ProofId &proofid,
+    std::chrono::microseconds current_time, bool preferred) {
     // For m_proofrequest
     AssertLockHeld(cs_proofrequest);
 
@@ -1043,7 +1043,7 @@ void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
     }
 }
 
-void PeerManager::InitializeNode(const Config &config, CNode *pnode) {
+void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
     CAddress addr = pnode->addr;
     std::string addrName = pnode->GetAddrName();
     NodeId nodeid = pnode->GetId();
@@ -1066,7 +1066,7 @@ void PeerManager::InitializeNode(const Config &config, CNode *pnode) {
     }
 }
 
-void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
+void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) const {
     std::set<TxId> unbroadcast_txids = m_mempool.GetUnbroadcastTxs();
 
     for (const TxId &txid : unbroadcast_txids) {
@@ -1103,7 +1103,7 @@ void PeerManager::ReattemptInitialBroadcast(CScheduler &scheduler) const {
                               delta);
 }
 
-void PeerManager::UpdateAvalancheStatistics() const {
+void PeerManagerImpl::UpdateAvalancheStatistics() const {
     m_connman.ForEachNode([](CNode *pnode) {
         if (pnode->m_avalanche_state) {
             pnode->m_avalanche_state->updateAvailabilityScore();
@@ -1111,8 +1111,8 @@ void PeerManager::UpdateAvalancheStatistics() const {
     });
 }
 
-void PeerManager::FinalizeNode(const Config &config, const CNode &node,
-                               bool &fUpdateConnectionTime) {
+void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
+                                   bool &fUpdateConnectionTime) {
     NodeId nodeid = node.GetId();
     fUpdateConnectionTime = false;
     {
@@ -1174,13 +1174,13 @@ void PeerManager::FinalizeNode(const Config &config, const CNode &node,
     LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
 
-PeerRef PeerManager::GetPeerRef(NodeId id) const {
+PeerRef PeerManagerImpl::GetPeerRef(NodeId id) const {
     LOCK(m_peer_mutex);
     auto it = m_peer_map.find(id);
     return it != m_peer_map.end() ? it->second : nullptr;
 }
 
-PeerRef PeerManager::RemovePeer(NodeId id) {
+PeerRef PeerManagerImpl::RemovePeer(NodeId id) {
     PeerRef ret;
     LOCK(m_peer_mutex);
     auto it = m_peer_map.find(id);
@@ -1191,7 +1191,7 @@ PeerRef PeerManager::RemovePeer(NodeId id) {
     return ret;
 }
 
-bool PeerManager::GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
+bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     {
         LOCK(cs_main);
         CNodeState *state = State(nodeid);
@@ -1367,8 +1367,8 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
     return nEvicted;
 }
 
-void PeerManager::Misbehaving(const NodeId pnode, const int howmuch,
-                              const std::string &message) {
+void PeerManagerImpl::Misbehaving(const NodeId pnode, const int howmuch,
+                                  const std::string &message) {
     assert(howmuch > 0);
 
     PeerRef peer = GetPeerRef(pnode);
@@ -1395,10 +1395,10 @@ void PeerManager::Misbehaving(const NodeId pnode, const int howmuch,
     }
 }
 
-bool PeerManager::MaybePunishNodeForBlock(NodeId nodeid,
-                                          const BlockValidationState &state,
-                                          bool via_compact_block,
-                                          const std::string &message) {
+bool PeerManagerImpl::MaybePunishNodeForBlock(NodeId nodeid,
+                                              const BlockValidationState &state,
+                                              bool via_compact_block,
+                                              const std::string &message) {
     switch (state.GetResult()) {
         case BlockValidationResult::BLOCK_RESULT_UNSET:
             break;
@@ -1453,9 +1453,9 @@ bool PeerManager::MaybePunishNodeForBlock(NodeId nodeid,
     return false;
 }
 
-bool PeerManager::MaybePunishNodeForTx(NodeId nodeid,
-                                       const TxValidationState &state,
-                                       const std::string &message) {
+bool PeerManagerImpl::MaybePunishNodeForTx(NodeId nodeid,
+                                           const TxValidationState &state,
+                                           const std::string &message) {
     switch (state.GetResult()) {
         case TxValidationResult::TX_RESULT_UNSET:
             break;
@@ -1504,10 +1504,21 @@ static bool BlockRequestAllowed(const CBlockIndex *pindex,
             STALE_RELAY_AGE_LIMIT);
 }
 
-PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
-                         BanMan *banman, CScheduler &scheduler,
-                         ChainstateManager &chainman, CTxMemPool &pool,
-                         bool ignore_incoming_txs)
+std::unique_ptr<PeerManager>
+PeerManager::make(const CChainParams &chainparams, CConnman &connman,
+                  BanMan *banman, CScheduler &scheduler,
+                  ChainstateManager &chainman, CTxMemPool &pool,
+                  bool ignore_incoming_txs) {
+    return std::make_unique<PeerManagerImpl>(chainparams, connman, banman,
+                                             scheduler, chainman, pool,
+                                             ignore_incoming_txs);
+}
+
+PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
+                                 CConnman &connman, BanMan *banman,
+                                 CScheduler &scheduler,
+                                 ChainstateManager &chainman, CTxMemPool &pool,
+                                 bool ignore_incoming_txs)
     : m_chainparams(chainparams), m_connman(connman), m_banman(banman),
       m_chainman(chainman), m_mempool(pool), m_stale_tip_check_time(0),
       m_ignore_incoming_txs(ignore_incoming_txs) {
@@ -1565,8 +1576,8 @@ PeerManager::PeerManager(const CChainParams &chainparams, CConnman &connman,
  * block, remember the recently confirmed transactions, and delete tracked
  * announcements for them. Also save the time of the last tip update.
  */
-void PeerManager::BlockConnected(const std::shared_ptr<const CBlock> &pblock,
-                                 const CBlockIndex *pindex) {
+void PeerManagerImpl::BlockConnected(
+    const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
     {
         LOCK(g_cs_orphans);
 
@@ -1618,8 +1629,8 @@ void PeerManager::BlockConnected(const std::shared_ptr<const CBlock> &pblock,
     }
 }
 
-void PeerManager::BlockDisconnected(const std::shared_ptr<const CBlock> &block,
-                                    const CBlockIndex *pindex) {
+void PeerManagerImpl::BlockDisconnected(
+    const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) {
     // To avoid relay problems with transactions that were previously
     // confirmed, clear our filter of recently confirmed transactions whenever
     // there's a reorg.
@@ -1645,7 +1656,7 @@ static uint256 most_recent_block_hash GUARDED_BY(cs_most_recent_block);
  * Maintain state about the best-seen block and fast-announce a compact block
  * to compatible peers.
  */
-void PeerManager::NewPoWValidBlock(
+void PeerManagerImpl::NewPoWValidBlock(
     const CBlockIndex *pindex, const std::shared_ptr<const CBlock> &pblock) {
     std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock =
         std::make_shared<const CBlockHeaderAndShortTxIDs>(*pblock);
@@ -1700,10 +1711,10 @@ void PeerManager::NewPoWValidBlock(
  * Update our best height and announce any block hashes which weren't previously
  * in ::ChainActive() to our peers.
  */
-void PeerManager::UpdatedBlockTip(const CBlockIndex *pindexNew,
-                                  const CBlockIndex *pindexFork,
-                                  bool fInitialDownload) {
-    m_best_height = pindexNew->nHeight;
+void PeerManagerImpl::UpdatedBlockTip(const CBlockIndex *pindexNew,
+                                      const CBlockIndex *pindexFork,
+                                      bool fInitialDownload) {
+    SetBestHeight(pindexNew->nHeight);
     SetServiceFlagsIBDCache(!fInitialDownload);
 
     // Don't relay inventory during initial block download.
@@ -1742,8 +1753,8 @@ void PeerManager::UpdatedBlockTip(const CBlockIndex *pindexNew,
  * Handle invalid block rejection and consequent peer banning, maintain which
  * peers announce compact blocks.
  */
-void PeerManager::BlockChecked(const CBlock &block,
-                               const BlockValidationState &state) {
+void PeerManagerImpl::BlockChecked(const CBlock &block,
+                                   const BlockValidationState &state) {
     LOCK(cs_main);
 
     const BlockHash hash = block.GetHash();
@@ -2288,8 +2299,8 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
     }
 }
 
-void PeerManager::SendBlockTransactions(CNode &pfrom, const CBlock &block,
-                                        const BlockTransactionsRequest &req) {
+void PeerManagerImpl::SendBlockTransactions(
+    CNode &pfrom, const CBlock &block, const BlockTransactionsRequest &req) {
     BlockTransactions resp(req);
     for (size_t i = 0; i < req.indices.size(); i++) {
         if (req.indices[i] >= block.vtx.size()) {
@@ -2306,7 +2317,7 @@ void PeerManager::SendBlockTransactions(CNode &pfrom, const CBlock &block,
         &pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCKTXN, resp));
 }
 
-void PeerManager::ProcessHeadersMessage(
+void PeerManagerImpl::ProcessHeadersMessage(
     const Config &config, CNode &pfrom, const Peer &peer,
     const std::vector<CBlockHeader> &headers, bool via_compact_block) {
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
@@ -2546,8 +2557,8 @@ void PeerManager::ProcessHeadersMessage(
  *    this function. This set may be added to if accepting an orphan causes its
  *    children to be reconsidered.
  */
-void PeerManager::ProcessOrphanTx(const Config &config,
-                                  std::set<TxId> &orphan_work_set)
+void PeerManagerImpl::ProcessOrphanTx(const Config &config,
+                                      std::set<TxId> &orphan_work_set)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
@@ -2901,11 +2912,10 @@ static uint32_t getAvalancheVoteForBlock(const BlockHash &hash)
     return -3;
 };
 
-void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
-                                 const std::string &msg_type,
-                                 CDataStream &vRecv,
-                                 const std::chrono::microseconds time_received,
-                                 const std::atomic<bool> &interruptMsgProc) {
+void PeerManagerImpl::ProcessMessage(
+    const Config &config, CNode &pfrom, const std::string &msg_type,
+    CDataStream &vRecv, const std::chrono::microseconds time_received,
+    const std::atomic<bool> &interruptMsgProc) {
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n",
              SanitizeString(msg_type), vRecv.size(), pfrom.GetId());
     if (gArgs.IsArgSet("-dropmessagestest") &&
@@ -4808,7 +4818,7 @@ void PeerManager::ProcessMessage(const Config &config, CNode &pfrom,
     return;
 }
 
-bool PeerManager::MaybeDiscourageAndDisconnect(CNode &pnode) {
+bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode &pnode) {
     const NodeId peer_id{pnode.GetId()};
     PeerRef peer = GetPeerRef(peer_id);
     if (peer == nullptr) {
@@ -4859,8 +4869,8 @@ bool PeerManager::MaybeDiscourageAndDisconnect(CNode &pnode) {
     return true;
 }
 
-bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
-                                  std::atomic<bool> &interruptMsgProc) {
+bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
+                                      std::atomic<bool> &interruptMsgProc) {
     //
     // Message format
     //  (4) message start
@@ -4999,7 +5009,7 @@ bool PeerManager::ProcessMessages(const Config &config, CNode *pfrom,
     return fMoreWork;
 }
 
-void PeerManager::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
+void PeerManagerImpl::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
     AssertLockHeld(cs_main);
 
     CNodeState &state = *State(pto.GetId());
@@ -5084,7 +5094,7 @@ void PeerManager::ConsiderEviction(CNode &pto, int64_t time_in_seconds) {
     }
 }
 
-void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
+void PeerManagerImpl::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     // Check whether we have too many outbound peers
     int extra_peers = m_connman.GetExtraOutboundCount();
     if (extra_peers <= 0) {
@@ -5169,7 +5179,7 @@ void PeerManager::EvictExtraOutboundPeers(int64_t time_in_seconds) {
     }
 }
 
-void PeerManager::CheckForStaleTipAndEvictPeers() {
+void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
     LOCK(cs_main);
 
     int64_t time_in_seconds = GetTime();
@@ -5212,7 +5222,7 @@ public:
 };
 } // namespace
 
-bool PeerManager::SendMessages(const Config &config, CNode *pto) {
+bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     PeerRef peer = GetPeerRef(pto->GetId());
     const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
 
