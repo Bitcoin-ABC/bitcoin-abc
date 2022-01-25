@@ -257,7 +257,6 @@ struct RPCResult {
         STR_AMOUNT, //!< Special string to represent a floating point amount
         STR_HEX,    //!< Special string with only hex chars
         OBJ_DYN,    //!< Special dictionary with keys that are not literals
-        OBJ_EMPTY,  //!< Special type to allow empty OBJ
         ARR_FIXED,  //!< Special array that has a fixed number of entries
         NUM_TIME,   //!< Special numeric to denote unix epoch time
         ELISION,    //!< Special type to denote elision (...)
@@ -278,9 +277,7 @@ struct RPCResult {
           m_inner{std::move(inner)}, m_optional{optional},
           m_description{std::move(description)}, m_cond{std::move(cond)} {
         CHECK_NONFATAL(!m_cond.empty());
-        const bool inner_needed{type == Type::ARR || type == Type::ARR_FIXED ||
-                                type == Type::OBJ || type == Type::OBJ_DYN};
-        CHECK_NONFATAL(inner_needed != inner.empty());
+        CheckInnerDoc();
     }
 
     RPCResult(const std::string cond, const Type type,
@@ -294,9 +291,7 @@ struct RPCResult {
         : m_type{std::move(type)}, m_key_name{std::move(key_name)},
           m_inner{std::move(inner)}, m_optional{optional},
           m_description{std::move(description)}, m_cond{} {
-        const bool inner_needed{type == Type::ARR || type == Type::ARR_FIXED ||
-                                type == Type::OBJ || type == Type::OBJ_DYN};
-        CHECK_NONFATAL(inner_needed != inner.empty());
+        CheckInnerDoc();
     }
 
     RPCResult(const Type type, const std::string key_name,
@@ -313,6 +308,9 @@ struct RPCResult {
     std::string ToDescriptionString() const;
     /** Check whether the result JSON type matches. */
     bool MatchesType(const UniValue &result) const;
+
+private:
+    void CheckInnerDoc() const;
 };
 
 struct RPCResults {

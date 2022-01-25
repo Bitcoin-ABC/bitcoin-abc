@@ -459,7 +459,7 @@ static RPCHelpMan getdifficulty() {
 static RPCHelpMan getblockfrompeer() {
     return RPCHelpMan{
         "getblockfrompeer",
-        "\nAttempt to fetch block from a given peer.\n"
+        "Attempt to fetch block from a given peer.\n"
         "\nWe must have the header for this block, e.g. using submitheader.\n"
         "Subsequent calls for the same block and a new peer will cause the "
         "response from the previous peer to be ignored.\n"
@@ -471,7 +471,7 @@ static RPCHelpMan getblockfrompeer() {
             {"peer_id", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The peer to fetch it from (see getpeerinfo for peer IDs)"},
         },
-        RPCResult{RPCResult::Type::OBJ_EMPTY, "", /*optional=*/false, "", {}},
+        RPCResult{RPCResult::Type::OBJ, "", /*optional=*/false, "", {}},
         RPCExamples{HelpExampleCli("getblockfrompeer",
                                    "\"00000000c937983704a73af28acdec37b049d214a"
                                    "dbda81d7e2a3dd146f6ed09\" 0") +
