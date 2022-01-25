@@ -213,6 +213,11 @@ class NetTest(BitcoinTestFramework):
         assert_equal(peer_info[1][0]['connection_type'], 'manual')
         assert_equal(peer_info[1][1]['connection_type'], 'inbound')
 
+        # Node state fields
+        for node, peer, field in product(range(self.num_nodes), range(2),
+                                         ['startingheight', 'synced_headers', 'synced_blocks', 'inflight']):
+            assert field in peer_info[node][peer].keys()
+
     def test_service_flags(self):
         self.log.info("Test service flags")
         self.nodes[0].add_p2p_connection(

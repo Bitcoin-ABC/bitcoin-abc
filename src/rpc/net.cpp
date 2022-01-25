@@ -224,7 +224,7 @@ static RPCHelpMan getpeerinfo() {
                 UniValue obj(UniValue::VOBJ);
                 CNodeStateStats statestats;
                 bool fStateStats =
-                    !node.peerman->GetNodeStateStats(stats.nodeid, statestats);
+                    node.peerman->GetNodeStateStats(stats.nodeid, statestats);
                 obj.pushKV("id", stats.nodeid);
                 obj.pushKV("addr", stats.addrName);
                 if (stats.addrBind.IsValid()) {
