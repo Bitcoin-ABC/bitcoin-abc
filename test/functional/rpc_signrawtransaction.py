@@ -137,6 +137,20 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         assert_equal(rawTxSigned['errors'][1]['txid'], inputs[2]['txid'])
         assert_equal(rawTxSigned['errors'][1]['vout'], inputs[2]['vout'])
 
+    def test_fully_signed_tx(self):
+        self.log.info("Test signing a fully signed transaction does nothing")
+        self.nodes[0].walletpassphrase("password", 9999)
+        self.nodes[0].generate(101)
+        rawtx = self.nodes[0].createrawtransaction(
+            [], [{self.nodes[0].getnewaddress(): 10}])
+        fundedtx = self.nodes[0].fundrawtransaction(rawtx)
+        signedtx = self.nodes[0].signrawtransactionwithwallet(fundedtx["hex"])
+        assert_equal(signedtx["complete"], True)
+        signedtx2 = self.nodes[0].signrawtransactionwithwallet(signedtx["hex"])
+        assert_equal(signedtx2["complete"], True)
+        assert_equal(signedtx["hex"], signedtx2["hex"])
+        self.nodes[0].walletlock()
+
     def test_sighashes(self):
         """Creates and signs a raw transaction with various sighashes.
 
@@ -251,6 +265,7 @@ class SignRawTransactionsTest(BitcoinTestFramework):
         self.script_verification_error_test()
         self.test_sighashes()
         self.test_with_lock_outputs()
+        self.test_fully_signed_tx()
 
         # The multiwalet require the node to use different flags, so we run it
         # last.
