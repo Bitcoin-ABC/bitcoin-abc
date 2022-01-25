@@ -2539,7 +2539,7 @@ void CConnman::ThreadMessageHandler() {
             // Send messages
             {
                 LOCK(pnode->cs_sendProcessing);
-                m_msgproc->SendMessages(*config, pnode, flagInterruptMsgProc);
+                m_msgproc->SendMessages(*config, pnode);
             }
 
             if (flagInterruptMsgProc) {

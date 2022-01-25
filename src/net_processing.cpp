@@ -1895,8 +1895,7 @@ static void RelayAddress(const CNode &originator, const CAddress &addr,
 }
 
 static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
-                                const CInv &inv, CConnman &connman,
-                                const std::atomic<bool> &interruptMsgProc) {
+                                const CInv &inv, CConnman &connman) {
     const Consensus::Params &consensusParams =
         config.GetChainParams().GetConsensus();
 
@@ -2261,8 +2260,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
     if (it != peer.m_getdata_requests.end() && !pfrom.fPauseSend) {
         const CInv &inv = *it++;
         if (inv.IsGenBlkMsg()) {
-            ProcessGetBlockData(config, pfrom, peer, inv, connman,
-                                interruptMsgProc);
+            ProcessGetBlockData(config, pfrom, peer, inv, connman);
         }
         // else: If the first item on the queue is an unknown type, we erase it
         // and continue processing the queue on the next call.
@@ -5210,8 +5208,7 @@ public:
 };
 } // namespace
 
-bool PeerManager::SendMessages(const Config &config, CNode *pto,
-                               std::atomic<bool> &interruptMsgProc) {
+bool PeerManager::SendMessages(const Config &config, CNode *pto) {
     PeerRef peer = GetPeerRef(pto->GetId());
     const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
 

@@ -700,8 +700,7 @@ class NetEventsInterface {
 public:
     virtual bool ProcessMessages(const Config &config, CNode *pnode,
                                  std::atomic<bool> &interrupt) = 0;
-    virtual bool SendMessages(const Config &config, CNode *pnode,
-                              std::atomic<bool> &interrupt) = 0;
+    virtual bool SendMessages(const Config &config, CNode *pnode) = 0;
     virtual void InitializeNode(const Config &config, CNode *pnode) = 0;
     virtual void FinalizeNode(const Config &config, const CNode &node,
                               bool &update_connection_time) = 0;
