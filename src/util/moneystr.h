@@ -23,6 +23,6 @@ std::string FormatMoney(const Amount n);
  * Parse an amount denoted in full coins. E.g. "0.0034" supplied on the command
  * line.
  **/
-NODISCARD bool ParseMoney(const std::string &str, Amount &nRet);
+[[nodiscard]] bool ParseMoney(const std::string &str, Amount &nRet);
 
 #endif // BITCOIN_UTIL_MONEYSTR_H

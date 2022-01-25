@@ -18,7 +18,8 @@ enum class OutputType { LEGACY };
 
 extern const std::array<OutputType, 1> OUTPUT_TYPES;
 
-NODISCARD bool ParseOutputType(const std::string &str, OutputType &output_type);
+[[nodiscard]] bool ParseOutputType(const std::string &str,
+                                   OutputType &output_type);
 const std::string &FormatOutputType(OutputType type);
 
 /**

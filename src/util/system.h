@@ -97,7 +97,7 @@ std::string ShellEscape(const std::string &arg);
 void runCommand(const std::string &strCommand);
 #endif
 
-NODISCARD bool ParseKeyValue(std::string &key, std::string &val);
+[[nodiscard]] bool ParseKeyValue(std::string &key, std::string &val);
 
 /**
  * Most paths passed as configuration arguments are treated as relative to
@@ -182,10 +182,10 @@ protected:
     mutable fs::path m_cached_datadir_path GUARDED_BY(cs_args);
     mutable fs::path m_cached_network_datadir_path GUARDED_BY(cs_args);
 
-    NODISCARD bool ReadConfigStream(std::istream &stream,
-                                    const std::string &filepath,
-                                    std::string &error,
-                                    bool ignore_invalid_keys = false);
+    [[nodiscard]] bool ReadConfigStream(std::istream &stream,
+                                        const std::string &filepath,
+                                        std::string &error,
+                                        bool ignore_invalid_keys = false);
 
     /**
      * Returns true if settings values from the default section should be used,
@@ -219,10 +219,10 @@ public:
      */
     void SelectConfigNetwork(const std::string &network);
 
-    NODISCARD bool ParseParameters(int argc, const char *const argv[],
-                                   std::string &error);
-    NODISCARD bool ReadConfigFiles(std::string &error,
-                                   bool ignore_invalid_keys = false);
+    [[nodiscard]] bool ParseParameters(int argc, const char *const argv[],
+                                       std::string &error);
+    [[nodiscard]] bool ReadConfigFiles(std::string &error,
+                                       bool ignore_invalid_keys = false);
 
     /**
      * Log warnings for options in m_section_only_args when they are specified

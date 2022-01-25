@@ -13,8 +13,8 @@
 /**
  * Parse an HD keypaths like "m/7/0'/2000".
  */
-NODISCARD bool ParseHDKeypath(const std::string &keypath_str,
-                              std::vector<uint32_t> &keypath);
+[[nodiscard]] bool ParseHDKeypath(const std::string &keypath_str,
+                                  std::vector<uint32_t> &keypath);
 
 /**
  * Write HD keypaths as strings
