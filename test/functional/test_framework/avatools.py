@@ -24,6 +24,7 @@ from .messages import (
     hash256,
     msg_avahello,
     msg_avapoll,
+    msg_avaproof,
     msg_tcpavaresponse,
 )
 from .p2p import P2PInterface, p2p_lock
@@ -214,6 +215,11 @@ class AvaP2PInterface(P2PInterface):
         self.round += 1
         for h in hashes:
             msg.poll.invs.append(CInv(type, h))
+        self.send_message(msg)
+
+    def send_proof(self, proof):
+        msg = msg_avaproof()
+        msg.proof = proof
         self.send_message(msg)
 
     def get_avapoll_if_available(self):
