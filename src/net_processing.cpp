@@ -3348,6 +3348,48 @@ static uint32_t getAvalancheVoteForBlock(const BlockHash &hash)
     return -3;
 };
 
+/**
+ * Decide a response for an Avalanche poll about the given proof.
+ *
+ * @param[in]   avalanche::ProofId     The id of the proof being polled for
+ * @param[out]  uint32_t               Our current vote for the proof
+ */
+static uint32_t getAvalancheVoteForProof(const avalanche::ProofId &id) {
+    assert(g_avalanche);
+
+    // Rejected proof
+    if (WITH_LOCK(cs_rejectedProofs, return rejectedProofs->contains(id))) {
+        return 1;
+    }
+
+    return g_avalanche->withPeerManager([&id](avalanche::PeerManager &pm) {
+        // The proof is actively bound to a peer
+        if (pm.isBoundToPeer(id)) {
+            return 0;
+        }
+
+        // Unknown proof
+        if (!pm.exists(id)) {
+            return -1;
+        }
+
+        // Orphan proof
+        if (pm.isOrphan(id)) {
+            return 2;
+        }
+
+        // Not an orphan, but in conflict with an actively bound proof
+        if (pm.isInConflictingPool(id)) {
+            return 3;
+        }
+
+        // The proof is known, not rejected, not an orphan, not a conflict, but
+        // for some reason unbound. This should not happen if the above pools
+        // are managed correctly, but added for robustness.
+        return -2;
+    });
+};
+
 void PeerManagerImpl::ProcessMessage(
     const Config &config, CNode &pfrom, const std::string &msg_type,
     CDataStream &vRecv, const std::chrono::microseconds time_received,
@@ -4890,30 +4932,30 @@ void PeerManagerImpl::ProcessMessage(
         LogPrint(BCLog::AVALANCHE, "received avalanche poll from peer=%d\n",
                  pfrom.GetId());
 
-        {
-            LOCK(cs_main);
+        for (unsigned int n = 0; n < nCount; n++) {
+            CInv inv;
+            vRecv >> inv;
 
-            for (unsigned int n = 0; n < nCount; n++) {
-                CInv inv;
-                vRecv >> inv;
+            // Default vote for unknown inv type
+            uint32_t vote = -1;
 
-                // Default vote for unknown inv type
-                uint32_t vote = -1;
-
-                // If inv's type is known, get a vote for its hash
-                switch (inv.type) {
-                    case MSG_BLOCK: {
-                        vote = getAvalancheVoteForBlock(BlockHash(inv.hash));
-                    } break;
-                    default: {
-                        LogPrint(BCLog::AVALANCHE,
-                                 "poll inv type unknown from peer=%d\n",
-                                 inv.type);
-                    }
+            // If inv's type is known, get a vote for its hash
+            switch (inv.type) {
+                case MSG_BLOCK: {
+                    vote = WITH_LOCK(cs_main, return getAvalancheVoteForBlock(
+                                                  BlockHash(inv.hash)));
+                } break;
+                case MSG_AVA_PROOF: {
+                    vote =
+                        getAvalancheVoteForProof(avalanche::ProofId(inv.hash));
+                } break;
+                default: {
+                    LogPrint(BCLog::AVALANCHE,
+                             "poll inv type unknown from peer=%d\n", inv.type);
                 }
-
-                votes.emplace_back(vote, inv.hash);
             }
+
+            votes.emplace_back(vote, inv.hash);
         }
 
         // Send the query to the node.

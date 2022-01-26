@@ -1031,6 +1031,14 @@ class AvalancheVoteError(IntEnum):
     PENDING = -3
 
 
+class AvalancheProofVoteResponse(IntEnum):
+    ACTIVE = 0
+    REJECTED = 1
+    ORPHAN = 2
+    CONFLICT = 3
+    UNKNOWN = -1
+
+
 class AvalancheVote():
     __slots__ = ("error", "hash")
 
