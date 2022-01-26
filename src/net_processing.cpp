@@ -50,6 +50,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <future>
 #include <memory>
 #include <typeinfo>
 
@@ -2425,6 +2426,10 @@ void PeerManagerImpl::NewPoWValidBlock(
     nHighestFastAnnounce = pindex->nHeight;
 
     uint256 hashBlock(pblock->GetHash());
+    const std::shared_future<CSerializedNetMsg> lazy_ser{
+        std::async(std::launch::deferred, [&] {
+            return msgMaker.Make(NetMsgType::CMPCTBLOCK, *pcmpctblock);
+        })};
 
     {
         LOCK(cs_most_recent_block);
@@ -2434,11 +2439,10 @@ void PeerManagerImpl::NewPoWValidBlock(
     }
 
     m_connman.ForEachNode(
-        [this, &pcmpctblock, pindex, &msgMaker,
+        [this, pindex, &lazy_ser,
          &hashBlock](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             AssertLockHeld(::cs_main);
 
-            // TODO: Avoid the repeated-serialization here
             if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
                 pnode->fDisconnect) {
                 return;
@@ -2454,8 +2458,11 @@ void PeerManagerImpl::NewPoWValidBlock(
                          "%s sending header-and-ids %s to peer=%d\n",
                          "PeerManager::NewPoWValidBlock", hashBlock.ToString(),
                          pnode->GetId());
-                m_connman.PushMessage(
-                    pnode, msgMaker.Make(NetMsgType::CMPCTBLOCK, *pcmpctblock));
+
+                const CSerializedNetMsg &ser_cmpctblock{lazy_ser.get()};
+                m_connman.PushMessage(pnode,
+                                      CSerializedNetMsg{ser_cmpctblock.data,
+                                                        ser_cmpctblock.m_type});
                 state.pindexBestHeaderSent = pindex;
             }
         });
