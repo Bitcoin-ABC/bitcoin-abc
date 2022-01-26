@@ -18,6 +18,8 @@
 #include <QString>
 #include <QTableView>
 
+#include <chrono>
+
 class QValidatedLineEdit;
 class SendCoinsRecipient;
 class CChainParams;
@@ -267,10 +269,10 @@ QString formatDurationStr(int secs);
 QString formatServicesStr(quint64 mask);
 
 /*
- * Format a CNodeStats.m_ping_usec into a user-readable string or display N/A,
- * if 0.
+ * Format a CNodeStats.m_last_ping_time into a user-readable string or display
+ * N/A, if 0.
  */
-QString formatPingTime(int64_t ping_usec);
+QString formatPingTime(std::chrono::microseconds ping_time);
 
 /* Format a CNodeCombinedStats.nTimeOffset into a user-readable string. */
 QString formatTimeOffset(int64_t nTimeOffset);

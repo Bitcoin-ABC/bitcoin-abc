@@ -1279,9 +1279,9 @@ void RPCConsole::updateDetailWidget() {
     ui->peerConnTime->setText(GUIUtil::formatDurationStr(
         GetSystemTimeInSeconds() - stats->nodeStats.nTimeConnected));
     ui->peerPingTime->setText(
-        GUIUtil::formatPingTime(stats->nodeStats.m_ping_usec));
+        GUIUtil::formatPingTime(stats->nodeStats.m_last_ping_time));
     ui->peerMinPing->setText(
-        GUIUtil::formatPingTime(stats->nodeStats.m_min_ping_usec));
+        GUIUtil::formatPingTime(stats->nodeStats.m_min_ping_time));
     ui->timeoffset->setText(
         GUIUtil::formatTimeOffset(stats->nodeStats.nTimeOffset));
     ui->peerVersion->setText(QString::number(stats->nodeStats.nVersion));
@@ -1326,7 +1326,7 @@ void RPCConsole::updateDetailWidget() {
         ui->peerHeight->setText(
             QString::number(stats->nodeStateStats.m_starting_height));
         ui->peerPingWait->setText(
-            GUIUtil::formatPingTime(stats->nodeStateStats.m_ping_wait_usec));
+            GUIUtil::formatPingTime(stats->nodeStateStats.m_ping_wait));
     }
 
     ui->detailWidget->show();

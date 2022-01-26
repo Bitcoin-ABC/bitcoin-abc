@@ -633,8 +633,8 @@ void CNode::copyStats(CNodeStats &stats) {
         stats.minFeeFilter = Amount::zero();
     }
 
-    stats.m_ping_usec = m_last_ping_time;
-    stats.m_min_ping_usec = m_min_ping_time;
+    stats.m_last_ping_time = m_last_ping_time;
+    stats.m_min_ping_time = m_min_ping_time;
 
     // Leave string empty if addrLocal invalid (not filled in yet)
     CService addrLocalUnlocked = GetAddrLocal();
