@@ -62,6 +62,7 @@ final class CppCheckLinter extends ArcanistExternalLinter {
     ),
     "src/net_processing.cpp" => array(
       "Same iterator is used with different containers 'mapOrphanTransactions' and 'itPrev.second'.",
+      "Analysis failed. If the code is valid then please report this failure.",
     ),
     "src/policy/feerate.h" => array(
       "Class 'CFeeRate' has a constructor with 1 argument that is not explicit.",
