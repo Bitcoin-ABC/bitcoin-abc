@@ -222,17 +222,16 @@ static const unsigned int NODE_NETWORK_LIMITED_MIN_BLOCKS = 288;
 /**
  * Average delay between local address broadcasts.
  */
-static constexpr std::chrono::hours AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL{24};
+static constexpr auto AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL = 24h;
 /**
  * Average delay between peer address broadcasts.
  */
-static const std::chrono::seconds AVG_ADDRESS_BROADCAST_INTERVAL{30};
+static constexpr auto AVG_ADDRESS_BROADCAST_INTERVAL = 30s;
 /**
- * Average delay between trickled inventory transmissions in seconds.
- * Blocks and peers with noban permission bypass this, outbound peers
- * get half this delay.
+ * Average delay between trickled inventory transmissions for inbound peers.
+ * Blocks and peers with noban permission bypass this.
  */
-static const unsigned int INVENTORY_BROADCAST_INTERVAL = 5;
+static constexpr auto INBOUND_INVENTORY_BROADCAST_INTERVAL = 5s;
 /**
  * Maximum rate of inventory items to send per second.
  * Limits the impact of low-fee transaction floods.
@@ -240,7 +239,8 @@ static const unsigned int INVENTORY_BROADCAST_INTERVAL = 5;
 static constexpr unsigned int INVENTORY_BROADCAST_PER_SECOND = 7;
 /** Maximum number of inventory items to send per transmission. */
 static constexpr unsigned int INVENTORY_BROADCAST_MAX_PER_MB =
-    INVENTORY_BROADCAST_PER_SECOND * INVENTORY_BROADCAST_INTERVAL;
+    INVENTORY_BROADCAST_PER_SECOND *
+    count_seconds(INBOUND_INVENTORY_BROADCAST_INTERVAL);
 /** The number of most recently announced transactions a peer can request. */
 static constexpr unsigned int INVENTORY_MAX_RECENT_RELAY = 3500;
 /**
@@ -257,11 +257,11 @@ static_assert(INVENTORY_MAX_RECENT_RELAY >= INVENTORY_BROADCAST_PER_SECOND *
 /**
  * Average delay between feefilter broadcasts in seconds.
  */
-static constexpr unsigned int AVG_FEEFILTER_BROADCAST_INTERVAL = 10 * 60;
+static constexpr auto AVG_FEEFILTER_BROADCAST_INTERVAL = 10min;
 /**
  * Maximum feefilter broadcast delay after significant change.
  */
-static constexpr unsigned int MAX_FEEFILTER_CHANGE_DELAY = 5 * 60;
+static constexpr auto MAX_FEEFILTER_CHANGE_DELAY = 5min;
 /**
  * Maximum number of compact filters that may be requested with one
  * getcfilters. See BIP 157.
@@ -5976,10 +5976,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             if (next < current_time) {
                 fSendTrickle = true;
                 if (pto->IsInboundConn()) {
-                    next = std::chrono::microseconds{
-                        m_connman.PoissonNextSendInbound(
-                            count_microseconds(current_time),
-                            INVENTORY_BROADCAST_INTERVAL)};
+                    next = m_connman.PoissonNextSendInbound(
+                        current_time, INBOUND_INVENTORY_BROADCAST_INTERVAL);
                 } else {
                     // Skip delay for outbound peers, as there is less privacy
                     // concern for them.
@@ -6381,12 +6379,10 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 if (pto->m_tx_relay->lastSentFeeFilter == MAX_FILTER) {
                     // Send the current filter if we sent MAX_FILTER previously
                     // and made it out of IBD.
-                    pto->m_tx_relay->nextSendTimeFeeFilter =
-                        count_microseconds(current_time) - 1;
+                    pto->m_tx_relay->m_next_send_feefilter = 0us;
                 }
             }
-            if (count_microseconds(current_time) >
-                pto->m_tx_relay->nextSendTimeFeeFilter) {
+            if (current_time > pto->m_tx_relay->m_next_send_feefilter) {
                 Amount filterToSend = g_filter_rounder.round(currentFilter);
                 filterToSend =
                     std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
@@ -6397,23 +6393,21 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         msgMaker.Make(NetMsgType::FEEFILTER, filterToSend));
                     pto->m_tx_relay->lastSentFeeFilter = filterToSend;
                 }
-                pto->m_tx_relay->nextSendTimeFeeFilter =
-                    PoissonNextSend(count_microseconds(current_time),
-                                    AVG_FEEFILTER_BROADCAST_INTERVAL);
+                pto->m_tx_relay->m_next_send_feefilter = PoissonNextSend(
+                    current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
             }
             // If the fee filter has changed substantially and it's still more
             // than MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then
             // move the broadcast to within MAX_FEEFILTER_CHANGE_DELAY.
-            else if (count_microseconds(current_time) +
-                             MAX_FEEFILTER_CHANGE_DELAY * 1000000 <
-                         pto->m_tx_relay->nextSendTimeFeeFilter &&
+            else if (current_time + MAX_FEEFILTER_CHANGE_DELAY <
+                         pto->m_tx_relay->m_next_send_feefilter &&
                      (currentFilter <
                           3 * pto->m_tx_relay->lastSentFeeFilter / 4 ||
                       currentFilter >
                           4 * pto->m_tx_relay->lastSentFeeFilter / 3)) {
-                pto->m_tx_relay->nextSendTimeFeeFilter =
-                    count_microseconds(current_time) +
-                    GetRandInt(MAX_FEEFILTER_CHANGE_DELAY) * 1000000;
+                pto->m_tx_relay->m_next_send_feefilter =
+                    current_time + GetRandomDuration<std::chrono::microseconds>(
+                                       MAX_FEEFILTER_CHANGE_DELAY);
             }
         }
     } // release cs_main
