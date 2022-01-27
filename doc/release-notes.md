@@ -14,3 +14,11 @@ Bitcoin ABC version 0.34.1 is now available from:
   `-walletnotify` was configured, by crafting a wallet name with regex
   replacement characters. Wallet notification placeholder replacement now
   treats wallet names literally.
+- Add new endpoints to the REST API: `blockfilter` and `blockfilterheaders`. See
+  doc/REST-interface.md for details.
+- The `/headers/` endpoint of the REST API has been updated to use a query parameter
+  instead of path parameter to specify the result count. The count parameter is
+  now optional, and defaults to 5. Use
+  `GET /rest/headers/<BLOCK-HASH>.<bin|hex|json>?count=<COUNT=5>`
+  instead of
+  `GET /rest/headers/<COUNT>/<BLOCK-HASH>.<bin|hex|json>` (deprecated)

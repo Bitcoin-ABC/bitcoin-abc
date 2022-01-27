@@ -5,6 +5,7 @@
 
 import http.client
 import json
+import typing
 import urllib.parse
 from decimal import Decimal
 from enum import Enum
@@ -52,20 +53,19 @@ class RESTTest(BitcoinTestFramework):
 
     def test_rest_request(
         self,
-        uri,
-        http_method="GET",
-        req_type=ReqType.JSON,
-        body="",
-        status=200,
-        ret_type=RetType.JSON,
-    ):
+        uri: str,
+        http_method: str = "GET",
+        req_type: ReqType = ReqType.JSON,
+        body: str = "",
+        status: int = 200,
+        ret_type: RetType = RetType.JSON,
+        query_params: dict[str, typing.Any] | None = None,
+    ) -> typing.Union[http.client.HTTPResponse, bytes, str, None]:
         rest_uri = f"/rest{uri}"
-        if req_type == ReqType.JSON:
-            rest_uri += ".json"
-        elif req_type == ReqType.BIN:
-            rest_uri += ".bin"
-        elif req_type == ReqType.HEX:
-            rest_uri += ".hex"
+        if req_type in ReqType:
+            rest_uri += f".{req_type.name.lower()}"
+        if query_params:
+            rest_uri += f"?{urllib.parse.urlencode(query_params)}"
 
         conn = http.client.HTTPConnection(self.url.hostname, self.url.port)
         self.log.debug(f"{http_method} {rest_uri} {body}")
@@ -83,6 +83,8 @@ class RESTTest(BitcoinTestFramework):
             return resp.read()
         elif ret_type == RetType.JSON:
             return json.loads(resp.read().decode("utf-8"), parse_float=Decimal)
+
+        return None
 
     def run_test(self):
         self.url = urllib.parse.urlparse(self.nodes[0].url)
@@ -268,7 +270,8 @@ class RESTTest(BitcoinTestFramework):
         # Check result if block does not exists
         assert_equal(
             self.test_rest_request(
-                "/headers/1/0000000000000000000000000000000000000000000000000000000000000000"
+                "/headers/0000000000000000000000000000000000000000000000000000000000000000",
+                query_params={"count": 1},
             ),
             [],
         )
@@ -280,7 +283,9 @@ class RESTTest(BitcoinTestFramework):
 
         # Check result if block is not in the active chain
         self.nodes[0].invalidateblock(bb_hash)
-        assert_equal(self.test_rest_request(f"/headers/1/{bb_hash}"), [])
+        assert_equal(
+            self.test_rest_request(f"/headers/{bb_hash}", query_params={"count": 1}), []
+        )
         self.test_rest_request(f"/block/{bb_hash}")
         self.nodes[0].reconsiderblock(bb_hash)
 
@@ -295,7 +300,10 @@ class RESTTest(BitcoinTestFramework):
 
         # Compare with block header
         response_header = self.test_rest_request(
-            f"/headers/1/{bb_hash}", req_type=ReqType.BIN, ret_type=RetType.OBJ
+            f"/headers/{bb_hash}",
+            req_type=ReqType.BIN,
+            ret_type=RetType.OBJ,
+            query_params={"count": 1},
         )
         assert_equal(
             int(response_header.getheader("content-length")), BLOCK_HEADER_SIZE
@@ -315,7 +323,10 @@ class RESTTest(BitcoinTestFramework):
 
         # Compare with hex block header
         response_header_hex = self.test_rest_request(
-            f"/headers/1/{bb_hash}", req_type=ReqType.HEX, ret_type=RetType.OBJ
+            f"/headers/{bb_hash}",
+            req_type=ReqType.HEX,
+            ret_type=RetType.OBJ,
+            query_params={"count": 1},
         )
         assert_greater_than(
             int(response_header_hex.getheader("content-length")), BLOCK_HEADER_SIZE * 2
@@ -366,11 +377,22 @@ class RESTTest(BitcoinTestFramework):
         self.test_rest_request("/blockhashbyheight/", ret_type=RetType.OBJ, status=400)
 
         # Compare with json block header
-        json_obj = self.test_rest_request(f"/headers/1/{bb_hash}")
+        json_obj = self.test_rest_request(
+            f"/headers/{bb_hash}", query_params={"count": 1}
+        )
         # Ensure that there is one header in the json response
         assert_equal(len(json_obj), 1)
         # Request/response hash should be the same
         assert_equal(json_obj[0]["hash"], bb_hash)
+
+        # Check invalid uri (% symbol at the end of the request)
+        resp = self.test_rest_request(
+            f"/headers/{bb_hash}%", ret_type=RetType.OBJ, status=400
+        )
+        assert_equal(
+            resp.read().decode("utf-8").rstrip(),
+            "URI parsing failed, it likely contained RFC 3986 invalid characters",
+        )
 
         # Compare with normal RPC block response
         rpc_block_json = self.nodes[0].getblock(bb_hash)
@@ -391,10 +413,14 @@ class RESTTest(BitcoinTestFramework):
 
         # See if we can get 5 headers in one response
         self.generate(self.nodes[1], 5)
-        json_obj = self.test_rest_request(f"/headers/5/{bb_hash}")
+        json_obj = self.test_rest_request(
+            f"/headers/{bb_hash}", query_params={"count": 5}
+        )
         # Now we should have 5 header objects
         assert_equal(len(json_obj), 5)
-        json_obj = self.test_rest_request(f"/blockfilterheaders/basic/5/{bb_hash}")
+        json_obj = self.test_rest_request(
+            f"/blockfilterheaders/basic/{bb_hash}", query_params={"count": 5}
+        )
         first_filter_header = json_obj[0]
         # now we should have 5 filter header objects
         assert_equal(len(json_obj), 5)
@@ -413,7 +439,10 @@ class RESTTest(BitcoinTestFramework):
                     "ascii",
                 ),
                 self.test_rest_request(
-                    f"/headers/{num}/{bb_hash}", ret_type=RetType.BYTES, status=400
+                    f"/headers/{bb_hash}",
+                    ret_type=RetType.BYTES,
+                    status=400,
+                    query_params={"count": num},
                 ),
             )
 
@@ -470,6 +499,19 @@ class RESTTest(BitcoinTestFramework):
 
         json_obj = self.test_rest_request("/chaininfo")
         assert_equal(json_obj["bestblockhash"], bb_hash)
+
+        # Test compatibility of deprecated and newer endpoints
+        self.log.info("Test compatibility of deprecated and newer endpoints")
+        assert_equal(
+            self.test_rest_request(f"/headers/{bb_hash}", query_params={"count": 1}),
+            self.test_rest_request(f"/headers/1/{bb_hash}"),
+        )
+        assert_equal(
+            self.test_rest_request(
+                f"/blockfilterheaders/basic/{bb_hash}", query_params={"count": 1}
+            ),
+            self.test_rest_request(f"/blockfilterheaders/basic/1/{bb_hash}"),
+        )
 
 
 if __name__ == "__main__":
