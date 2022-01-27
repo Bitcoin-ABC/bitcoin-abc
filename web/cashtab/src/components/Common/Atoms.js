@@ -1,5 +1,9 @@
 import styled from 'styled-components';
 
+export const WarningFont = styled.div`
+    color: ${props => props.theme.wallet.text.primary};
+`;
+
 export const LoadingCtn = styled.div`
     width: 100%;
     display: flex;

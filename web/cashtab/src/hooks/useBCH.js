@@ -1152,6 +1152,162 @@ export default function useBCH() {
         return link;
     };
 
+    const burnEtoken = async (
+        BCH,
+        wallet,
+        slpBalancesAndUtxos,
+        { tokenId, amount },
+    ) => {
+        // Handle error of user having no XEC
+        if (slpBalancesAndUtxos.nonSlpUtxos.length === 0) {
+            throw new Error(`You need some ${currency.ticker} to burn eTokens`);
+        }
+        const largestBchUtxo = slpBalancesAndUtxos.nonSlpUtxos.reduce(
+            (previous, current) =>
+                previous.value > current.value ? previous : current,
+        );
+
+        const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
+        const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
+            if (
+                utxo && // UTXO is associated with a token.
+                utxo.tokenId === tokenId && // UTXO matches the token ID.
+                utxo.utxoType === 'token' // UTXO is not a minting baton.
+            ) {
+                return true;
+            }
+            return false;
+        });
+
+        if (tokenUtxos.length === 0) {
+            throw new Error(
+                'No token UTXOs for the specified token could be found.',
+            );
+        }
+
+        // BEGIN transaction construction.
+
+        // instance of transaction builder
+        let transactionBuilder;
+        if (process.env.REACT_APP_NETWORK === 'mainnet') {
+            transactionBuilder = new BCH.TransactionBuilder();
+        } else transactionBuilder = new BCH.TransactionBuilder('testnet');
+
+        const originalAmount = largestBchUtxo.value;
+        transactionBuilder.addInput(
+            largestBchUtxo.tx_hash,
+            largestBchUtxo.tx_pos,
+        );
+
+        let finalTokenAmountBurnt = new BigNumber(0);
+        let tokenAmountBeingBurnt = new BigNumber(amount);
+
+        let tokenUtxosBeingBurnt = [];
+        for (let i = 0; i < tokenUtxos.length; i++) {
+            finalTokenAmountBurnt = finalTokenAmountBurnt.plus(
+                new BigNumber(tokenUtxos[i].tokenQty),
+            );
+            transactionBuilder.addInput(
+                tokenUtxos[i].tx_hash,
+                tokenUtxos[i].tx_pos,
+            );
+            tokenUtxosBeingBurnt.push(tokenUtxos[i]);
+            if (tokenAmountBeingBurnt.lte(finalTokenAmountBurnt)) {
+                break;
+            }
+        }
+
+        const slpBurnObj = BCH.SLP.TokenType1.generateBurnOpReturn(
+            tokenUtxosBeingBurnt,
+            tokenAmountBeingBurnt,
+        );
+
+        if (!slpBurnObj) {
+            throw new Error(`Invalid eToken burn transaction.`);
+        }
+
+        // Add OP_RETURN as first output.
+        transactionBuilder.addOutput(slpBurnObj, 0);
+
+        // Send dust transaction representing tokens being burnt.
+        transactionBuilder.addOutput(
+            BCH.SLP.Address.toLegacyAddress(largestBchUtxo.address),
+            currency.etokenSats,
+        );
+
+        // get byte count to calculate fee. paying 1 sat
+        const txFee = calcFee(
+            BCH,
+            tokenUtxosBeingBurnt,
+            3,
+            currency.defaultFee,
+        );
+
+        // amount to send back to the address requesting the burn. It's the original amount - 1 sat/byte for tx size
+        const remainder = originalAmount - txFee - currency.etokenSats * 2;
+        if (remainder < 1) {
+            throw new Error('Selected UTXO does not have enough satoshis');
+        }
+
+        // Send it back from whence it came
+        transactionBuilder.addOutput(
+            BCH.Address.toLegacyAddress(largestBchUtxo.address),
+            remainder,
+        );
+
+        // Sign the transaction with the private key for the XEC UTXO paying the fees.
+        let redeemScript;
+        transactionBuilder.sign(
+            0,
+            bchECPair,
+            redeemScript,
+            transactionBuilder.hashTypes.SIGHASH_ALL,
+            originalAmount,
+        );
+
+        // Sign each token UTXO being consumed.
+        for (let i = 0; i < tokenUtxosBeingBurnt.length; i++) {
+            const thisUtxo = tokenUtxosBeingBurnt[i];
+            const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
+            const utxoEcPair = BCH.ECPair.fromWIF(
+                accounts
+                    .filter(acc => acc.cashAddress === thisUtxo.address)
+                    .pop().fundingWif,
+            );
+
+            transactionBuilder.sign(
+                1 + i,
+                utxoEcPair,
+                redeemScript,
+                transactionBuilder.hashTypes.SIGHASH_ALL,
+                thisUtxo.value,
+            );
+        }
+
+        // build tx
+        const tx = transactionBuilder.build();
+
+        // output rawhex
+        const hex = tx.toHex();
+        // console.log(`Transaction raw hex: `, hex);
+
+        // END transaction construction.
+
+        const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
+        if (txidStr && txidStr[0]) {
+            console.log(`${currency.tokenTicker} txid`, txidStr[0]);
+        }
+
+        let link;
+        if (process.env.REACT_APP_NETWORK === `mainnet`) {
+            link = `${currency.tokenExplorerUrl}/tx/${txidStr}`;
+        } else {
+            link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
+        }
+
+        return link;
+    };
+
     const signPkMessage = async (BCH, pk, message) => {
         try {
             let signature = await BCH.BitcoinCash.signMessageWithPrivKey(
@@ -1514,5 +1670,6 @@ export default function useBCH() {
         getTokenStats,
         handleEncryptedOpReturn,
         getRecipientPublicKey,
+        burnEtoken,
     };
 }

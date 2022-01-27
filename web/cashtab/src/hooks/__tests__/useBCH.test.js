@@ -27,6 +27,7 @@ import {
     mockReceivedTokenTx,
     mockSentOpReturnMessageTx,
     mockReceivedOpReturnMessageTx,
+    mockBurnEtokenTx,
 } from '../__mocks__/mockParsedTxs';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
@@ -293,6 +294,27 @@ describe('useBCH hook', () => {
         expect(nullValuesSendBch).toBe(null);
     });
 
+    it("throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
+        const { burnEtoken } = useBCH();
+        const BCH = new BCHJS();
+        const { wallet } = sendBCHMock;
+        const burnAmount = 10;
+        const eTokenId = '0203c768a66eba24affNOTVALID103b772de4d9f8f63ba79e';
+        const expectedError =
+            'No token UTXOs for the specified token could be found.';
+
+        let thrownError;
+        try {
+            await burnEtoken(BCH, wallet, mockReturnGetSlpBalancesAndUtxos, {
+                eTokenId,
+                burnAmount,
+            });
+        } catch (err) {
+            thrownError = err;
+        }
+        expect(thrownError).toStrictEqual(new Error(expectedError));
+    });
+
     it('receives errors from the network and parses it', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
@@ -456,6 +478,18 @@ describe('useBCH hook', () => {
                 mockPublicKeys,
             ),
         ).toStrictEqual(mockSentTokenTx);
+    });
+
+    it(`Correctly parses a "burn ${currency.tokenTicker}" transaction`, async () => {
+        const { parseTxData } = useBCH();
+        const BCH = new BCHJS();
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[13]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockBurnEtokenTx);
     });
 
     it(`Correctly parses a "receive ${currency.tokenTicker}" transaction`, async () => {

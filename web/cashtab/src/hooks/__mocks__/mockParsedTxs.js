@@ -113,3 +113,21 @@ export const mockReceivedOpReturnMessageTx = [
         txid: '5adc33b5c0509b31c6da359177b19467c443bdc4dd37c283c0f87244c0ad63af',
     },
 ];
+export const mockBurnEtokenTx = [
+    {
+        amountReceived: 0,
+        amountSent: 0,
+        blocktime: 1643286535,
+        confirmations: 3,
+        destinationAddress: undefined,
+        decryptionSuccess: false,
+        height: undefined,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: '',
+        outgoingTx: false,
+        replyAddress: null,
+        tokenTx: true,
+        txid: '8b569d64a7e51d1d3cf1cf2b99d8b34451bbebc7df6b67232e5b770418b0428c',
+    },
+];

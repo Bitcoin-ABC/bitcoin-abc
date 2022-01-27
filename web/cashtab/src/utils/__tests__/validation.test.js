@@ -14,6 +14,7 @@ import {
     isValidSendToMany,
     isValidUtxo,
     isValidBchApiUtxoObject,
+    isValidEtokenBurnAmount,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -440,5 +441,37 @@ describe('Validation utils', () => {
     });
     it(`isValidBchApiUtxoObject returns true for valid bch-api utxos object`, () => {
         expect(isValidBchApiUtxoObject(utxosAfterSentTxIncremental)).toBe(true);
+    });
+    it(`isValidEtokenBurnAmount rejects null`, () => {
+        const testEtokenBurnAmount = null;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount)).toBe(false);
+    });
+    it(`isValidEtokenBurnAmount rejects undefined`, () => {
+        const testEtokenBurnAmount = undefined;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount)).toBe(false);
+    });
+    it(`isValidEtokenBurnAmount rejects a burn amount that is 0`, () => {
+        const testEtokenBurnAmount = 0;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(false);
+    });
+    it(`isValidEtokenBurnAmount rejects a burn amount that is negative`, () => {
+        const testEtokenBurnAmount = -50;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(false);
+    });
+    it(`isValidEtokenBurnAmount rejects a burn amount that is more than the maxAmount param`, () => {
+        const testEtokenBurnAmount = 1000;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(false);
+    });
+    it(`isValidEtokenBurnAmount accepts a valid burn amount`, () => {
+        const testEtokenBurnAmount = 50;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
+    });
+    it(`isValidEtokenBurnAmount accepts a valid burn amount with decimal points`, () => {
+        const testEtokenBurnAmount = 10.545454;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
+    });
+    it(`isValidEtokenBurnAmount accepts a valid burn amount that is the same as the maxAmount`, () => {
+        const testEtokenBurnAmount = 100;
+        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
     });
 });

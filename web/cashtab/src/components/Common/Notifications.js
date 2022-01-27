@@ -88,6 +88,23 @@ const sendTokenNotification = link => {
     });
 };
 
+const burnTokenNotification = link => {
+    const notificationStyle = getDeviceNotificationStyle();
+    notification.success({
+        message: 'Success',
+        description: (
+            <a href={link} target="_blank" rel="noopener noreferrer">
+                <Paragraph>
+                    eToken burn successful. Click to view in block explorer.
+                </Paragraph>
+            </a>
+        ),
+        duration: currency.notificationDurationLong,
+        icon: <TokenReceivedNotificationIcon />,
+        style: notificationStyle,
+    });
+};
+
 const xecReceivedNotification = (
     balances,
     previousBalances,
@@ -189,4 +206,5 @@ export {
     errorNotification,
     messageSignedNotification,
     generalNotification,
+    burnTokenNotification,
 };

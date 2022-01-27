@@ -8,15 +8,18 @@ import {
     Col,
     Alert,
     Descriptions,
-    Popover,
     Modal,
+    Button,
+    Input,
 } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
 } from '@components/Common/PrimaryButton';
+import { FireTwoTone } from '@ant-design/icons';
 import {
     DestinationAmount,
     DestinationAddressSingle,
+    AntdFormWrapper,
 } from '@components/Common/EnhancedInputs';
 import useBCH from '@hooks/useBCH';
 import { SidePaddingCtn } from '@components/Common/Atoms';
@@ -34,13 +37,19 @@ import ApiError from '@components/Common/ApiError';
 import {
     sendTokenNotification,
     errorNotification,
+    burnTokenNotification,
 } from '@components/Common/Notifications';
-import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
+import {
+    isValidXecAddress,
+    isValidEtokenAddress,
+    isValidEtokenBurnAmount,
+} from '@utils/validation';
 import { formatDate } from '@utils/formatting';
 import styled, { css } from 'styled-components';
 import TokenIcon from '@components/Tokens/TokenIcon';
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
+    .ant-input-number,
     .ant-descriptions-item-content {
         background-color: ${props => props.theme.contrast} !important;
         color: ${props => props.theme.dropdownText};
@@ -61,6 +70,13 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
+    const [eTokenBurnAmount, setETokenBurnAmount] = useState(new BigNumber(1));
+    const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
+    const [burnTokenAmountError, setBurnTokenAmountError] = useState(false);
+    const [burnConfirmationValid, setBurnConfirmationValid] = useState(null);
+    const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
+        useState('');
+
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
@@ -73,7 +89,8 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         address: '',
     });
 
-    const { getBCH, getRestUrl, sendToken, getTokenStats } = useBCH();
+    const { getBCH, getRestUrl, sendToken, getTokenStats, burnEtoken } =
+        useBCH();
 
     // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
     const BCH = jestBCH ? jestBCH : getBCH();
@@ -197,7 +214,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         const addressInfo = parseAddressForParams(addressString);
         /*
         Model
-
         addressInfo = 
         {
             address: '',
@@ -265,6 +281,94 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         setIsModalVisible(false);
     };
 
+    const handleEtokenBurnAmountChange = e => {
+        const { value } = e.target;
+        const burnAmount = new BigNumber(value);
+        setETokenBurnAmount(burnAmount);
+
+        let error = false;
+        if (!isValidEtokenBurnAmount(burnAmount, token.balance)) {
+            error = 'Burn amount must be between 1 and ' + token.balance;
+        }
+
+        setBurnTokenAmountError(error);
+    };
+
+    const onMaxBurn = () => {
+        setETokenBurnAmount(token.balance);
+
+        // trigger validation on the inserted max value
+        handleEtokenBurnAmountChange({
+            target: {
+                value: token.balance,
+            },
+        });
+    };
+
+    async function burn() {
+        if (
+            !burnConfirmationValid ||
+            burnConfirmationValid === null ||
+            !eTokenBurnAmount
+        ) {
+            return;
+        }
+
+        // Event("Category", "Action", "Label")
+        Event('SendToken.js', 'Burn eToken', tokenId);
+
+        passLoadingStatus(true);
+
+        try {
+            const link = await burnEtoken(BCH, wallet, slpBalancesAndUtxos, {
+                tokenId: tokenId,
+                amount: eTokenBurnAmount,
+            });
+            burnTokenNotification(link);
+            clearInputForms();
+            setShowConfirmBurnEtoken(false);
+            passLoadingStatus(false);
+            setConfirmationOfEtokenToBeBurnt('');
+        } catch (e) {
+            setShowConfirmBurnEtoken(false);
+            passLoadingStatus(false);
+            setConfirmationOfEtokenToBeBurnt('');
+            let message;
+
+            if (!e.error && !e.message) {
+                message = `Transaction failed: no response from ${getRestUrl()}.`;
+            } else if (/dust/.test(e.error)) {
+                message = 'Unable to burn due to insufficient eToken utxos.';
+            } else if (
+                /Could not communicate with full node or other external service/.test(
+                    e.error,
+                )
+            ) {
+                message = 'Could not communicate with API. Please try again.';
+            } else {
+                message = e.message || e.error || JSON.stringify(e);
+            }
+            errorNotification(e, message, 'Burning eToken');
+        }
+    }
+
+    const handleBurnConfirmationInput = e => {
+        const { value } = e.target;
+
+        if (value && value === `burn ${token.info.tokenTicker}`) {
+            setBurnConfirmationValid(true);
+        } else {
+            setBurnConfirmationValid(false);
+        }
+        setConfirmationOfEtokenToBeBurnt(value);
+    };
+
+    const handleBurnAmountInput = () => {
+        if (!burnTokenAmountError) {
+            setShowConfirmBurnEtoken(true);
+        }
+    };
+
     useEffect(() => {
         // If the balance has changed, unlock the UI
         // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
@@ -290,6 +394,45 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
             {!token && <Redirect to="/" />}
             {token && (
                 <SidePaddingCtn>
+                    {/* eToken burn modal */}
+                    <Modal
+                        title={`Are you sure you want to burn ${eTokenBurnAmount.toString()} x ${
+                            token.info.tokenTicker
+                        } eTokens?`}
+                        visible={showConfirmBurnEtoken}
+                        onOk={burn}
+                        okText={'Confirm'}
+                        onCancel={() => setShowConfirmBurnEtoken(false)}
+                    >
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <Form.Item
+                                    validateStatus={
+                                        burnConfirmationValid === null ||
+                                        burnConfirmationValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        burnConfirmationValid === null ||
+                                        burnConfirmationValid
+                                            ? ''
+                                            : 'Your confirmation phrase must match exactly'
+                                    }
+                                >
+                                    <Input
+                                        prefix={<FireTwoTone />}
+                                        placeholder={`Type "burn ${token.info.tokenTicker}" to confirm`}
+                                        name="etokenToBeBurnt"
+                                        value={confirmationOfEtokenToBeBurnt}
+                                        onChange={e =>
+                                            handleBurnConfirmationInput(e)
+                                        }
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </AntdFormWrapper>
+                    </Modal>
                     <BalanceHeader
                         balance={token.balance}
                         ticker={token.info.tokenTicker}
@@ -464,6 +607,51 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                                 <Descriptions.Item label="Circulating Supply">
                                                     {tokenStats.circulatingSupply.toLocaleString()}
                                                 </Descriptions.Item>
+                                                <Descriptions.Item label="Burn eToken">
+                                                    <DestinationAmount
+                                                        validateStatus={
+                                                            burnTokenAmountError
+                                                                ? 'error'
+                                                                : ''
+                                                        }
+                                                        help={
+                                                            burnTokenAmountError
+                                                                ? burnTokenAmountError
+                                                                : ''
+                                                        }
+                                                        onMax={onMaxBurn}
+                                                        inputProps={{
+                                                            placeholder:
+                                                                'Amount',
+                                                            suffix: token.info
+                                                                .tokenTicker,
+                                                            onChange: e =>
+                                                                handleEtokenBurnAmountChange(
+                                                                    e,
+                                                                ),
+                                                            initialvalue: 1,
+                                                            value: eTokenBurnAmount,
+                                                            prefix: (
+                                                                <TokenIcon
+                                                                    size={32}
+                                                                    tokenId={
+                                                                        tokenId
+                                                                    }
+                                                                />
+                                                            ),
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        type="primary"
+                                                        onClick={
+                                                            handleBurnAmountInput
+                                                        }
+                                                        danger
+                                                    >
+                                                        Burn&nbsp;
+                                                        {token.info.tokenTicker}
+                                                    </Button>
+                                                </Descriptions.Item>
                                             </>
                                         )}
                                     </Descriptions>
@@ -480,7 +668,6 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 /*
 passLoadingStatus must receive a default prop that is a function
 in order to pass the rendering unit test in SendToken.test.js
-
 status => {console.log(status)} is an arbitrary stub function
 */
 

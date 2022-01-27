@@ -304,3 +304,15 @@ export const isValidBchApiUtxoObject = bchApiUtxoObject => {
 
     return isValidBchApiUtxoObject;
 };
+
+export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
+    // A valid eToken burn amount must be between 1 and the wallet's token balance
+    return (
+        tokenBurnAmount !== null &&
+        maxAmount !== null &&
+        typeof tokenBurnAmount !== 'undefined' &&
+        typeof maxAmount !== 'undefined' &&
+        new BigNumber(tokenBurnAmount).gt(0) &&
+        new BigNumber(tokenBurnAmount).lte(maxAmount)
+    );
+};

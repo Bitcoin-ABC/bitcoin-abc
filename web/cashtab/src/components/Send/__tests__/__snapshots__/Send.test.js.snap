@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ bPMOWW"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jWBwVP fTCVMO"
+      className="sc-brqgnP leSzSb"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-kkGfuU ihmkkm"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -20,7 +20,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ jBULtA"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -43,10 +43,10 @@ Array [
           }
         >
           <div
-            className="sc-jDwBTQ jNUfeO"
+            className="sc-gPEVay jXcfMx"
           >
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Send to
             </label>
@@ -165,7 +165,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Amount
             </label>
@@ -346,17 +346,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jAaTju kplAPX"
+            className="sc-jDwBTQ bSLSig"
           >
             <h3
-              className="sc-gPEVay kbHIAs"
+              className="sc-iRbamj fwDCLP"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-eHgmQL bSQRhv"
+              className="sc-cvbbAY cLZxXS"
             >
               =
                
@@ -474,15 +474,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ bPMOWW"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jWBwVP fTCVMO"
+      className="sc-brqgnP leSzSb"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-kkGfuU ihmkkm"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -491,7 +491,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ jBULtA"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -514,10 +514,10 @@ Array [
           }
         >
           <div
-            className="sc-jDwBTQ jNUfeO"
+            className="sc-gPEVay jXcfMx"
           >
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Send to
             </label>
@@ -636,7 +636,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Amount
             </label>
@@ -817,17 +817,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jAaTju kplAPX"
+            className="sc-jDwBTQ bSLSig"
           >
             <h3
-              className="sc-gPEVay kbHIAs"
+              className="sc-iRbamj fwDCLP"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-eHgmQL bSQRhv"
+              className="sc-cvbbAY cLZxXS"
             >
               =
                
@@ -945,15 +945,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ bPMOWW"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jWBwVP fTCVMO"
+      className="sc-brqgnP leSzSb"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-kEYyzF eqAzMl"
+      className="sc-kkGfuU fwBSar"
     >
       0.06
        
@@ -961,7 +961,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ jBULtA"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -984,10 +984,10 @@ Array [
           }
         >
           <div
-            className="sc-jDwBTQ jNUfeO"
+            className="sc-gPEVay jXcfMx"
           >
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Send to
             </label>
@@ -1106,7 +1106,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Amount
             </label>
@@ -1287,17 +1287,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jAaTju kplAPX"
+            className="sc-jDwBTQ bSLSig"
           >
             <h3
-              className="sc-gPEVay kbHIAs"
+              className="sc-iRbamj fwDCLP"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-eHgmQL bSQRhv"
+              className="sc-cvbbAY cLZxXS"
             >
               =
                
@@ -1416,15 +1416,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ bPMOWW"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jWBwVP fTCVMO"
+      className="sc-brqgnP leSzSb"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-kkGfuU ihmkkm"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -1433,7 +1433,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ jBULtA"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -1456,10 +1456,10 @@ Array [
           }
         >
           <div
-            className="sc-jDwBTQ jNUfeO"
+            className="sc-gPEVay jXcfMx"
           >
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Send to
             </label>
@@ -1578,7 +1578,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Amount
             </label>
@@ -1759,17 +1759,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jAaTju kplAPX"
+            className="sc-jDwBTQ bSLSig"
           >
             <h3
-              className="sc-gPEVay kbHIAs"
+              className="sc-iRbamj fwDCLP"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-eHgmQL bSQRhv"
+              className="sc-cvbbAY cLZxXS"
             >
               =
                
@@ -1887,10 +1887,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-eNQAEJ bPMOWW"
+    className="sc-hMqMXs kpJXFt"
   >
     <div
-      className="sc-kkGfuU ihmkkm"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -1899,7 +1899,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-ckVGcZ jBULtA"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -1922,10 +1922,10 @@ Array [
           }
         >
           <div
-            className="sc-jDwBTQ jNUfeO"
+            className="sc-gPEVay jXcfMx"
           >
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Send to
             </label>
@@ -2044,7 +2044,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-jKJlTe biUgjm"
+              className="sc-eNQAEJ kESMRD"
             >
               Amount
             </label>
@@ -2225,17 +2225,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-jAaTju kplAPX"
+            className="sc-jDwBTQ bSLSig"
           >
             <h3
-              className="sc-gPEVay kbHIAs"
+              className="sc-iRbamj fwDCLP"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-eHgmQL bSQRhv"
+              className="sc-cvbbAY cLZxXS"
             >
               =
                
