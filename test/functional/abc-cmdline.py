@@ -50,7 +50,7 @@ class ABC_CmdLine_Test (BitcoinTestFramework):
         # Fill addrman with enough entries
         for i in range(10000):
             addr = f"{(i >> 8) % 256}.{i % 256}.1.1"
-            node.addpeeraddress(addr, 8333)["success"]
+            node.addpeeraddress(addr, 8333)
 
         assert_greater_than(len(node.getnodeaddresses(0)),
                             int(max_addr_to_send / (MAX_PCT_ADDR_TO_SEND / 100)))
