@@ -688,8 +688,8 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
             // decompose a transport agnostic CNetMessage from the deserializer
             CNetMessage msg = m_deserializer->GetMessage(config, time);
 
-            // Store received bytes per message command to prevent a memory DOS,
-            // only allow valid commands.
+            // Store received bytes per message type.
+            // To prevent a memory DOS, only allow known message types.
             mapMsgTypeSize::iterator i =
                 mapRecvBytesPerMsgType.find(msg.m_type);
             if (i == mapRecvBytesPerMsgType.end()) {
@@ -783,7 +783,7 @@ V1TransportDeserializer::GetMessage(const Config &config,
                 CMessageHeader::MESSAGE_START_SIZE) == 0);
     uint256 hash = GetMessageHash();
 
-    // store command string, payload size
+    // store message type string, payload size
     msg.m_type = hdr.GetCommand();
     msg.m_message_size = hdr.nMessageSize;
     msg.m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
