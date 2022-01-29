@@ -268,7 +268,7 @@ template <typename Stream> void AddrManImpl::Unserialize(Stream &s_) {
     s >> compat;
     const uint8_t lowest_compatible = compat - INCOMPATIBILITY_BASE;
     if (lowest_compatible > FILE_FORMAT) {
-        throw std::ios_base::failure(strprintf(
+        throw InvalidAddrManVersionError(strprintf(
             "Unsupported format of addrman database: %u. It is compatible with "
             "formats >=%u, but the maximum supported by this version of %s is "
             "%u.",
