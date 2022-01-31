@@ -831,7 +831,7 @@ static bool CreateTransactionInternal(
                 } else {
                     if (nChangePosInOut == -1) {
                         // Insert change txn at random position:
-                        nChangePosInOut = GetRandInt(txNew.vout.size() + 1);
+                        nChangePosInOut = GetRand<int>(txNew.vout.size() + 1);
                     } else if ((unsigned int)nChangePosInOut >
                                txNew.vout.size()) {
                         error = _("Change index out of range");

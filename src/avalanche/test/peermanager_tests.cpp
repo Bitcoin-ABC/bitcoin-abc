@@ -1190,8 +1190,8 @@ BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
 
     // Updating the time of an unknown peer should fail
     for (size_t i = 0; i < 10; i++) {
-        BOOST_CHECK(
-            !pm.updateNextPossibleConflictTime(PeerId(GetRandInt(1000)), now));
+        BOOST_CHECK(!pm.updateNextPossibleConflictTime(
+            PeerId(GetRand<int>(1000)), now));
     }
 
     auto proof =

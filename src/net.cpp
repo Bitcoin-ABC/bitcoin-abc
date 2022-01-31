@@ -2436,7 +2436,7 @@ void CConnman::ThreadOpenConnections(
             if (fFeeler) {
                 // Add small amount of random noise before connection to avoid
                 // synchronization.
-                int randsleep = GetRandInt(FEELER_SLEEP_WINDOW * 1000);
+                int randsleep = GetRand<int>(FEELER_SLEEP_WINDOW * 1000);
                 if (!interruptNet.sleep_for(
                         std::chrono::milliseconds(randsleep))) {
                     return;

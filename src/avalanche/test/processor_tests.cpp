@@ -170,7 +170,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
     CNode *ConnectNode(ServiceFlags nServices) {
         static NodeId id = 0;
 
-        CAddress addr(ip(GetRandInt(0xffffffff)), NODE_NONE);
+        CAddress addr(ip(GetRand<uint32_t>()), NODE_NONE);
         auto node =
             new CNode(id++, INVALID_SOCKET, addr,
                       /* nKeyedNetGroupIn */ 0,

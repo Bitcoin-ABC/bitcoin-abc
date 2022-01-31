@@ -61,8 +61,8 @@ public:
     static constexpr int SHORTPROOFIDS_LENGTH = 6;
 
     CompactProofs()
-        : shortproofidk0(GetRand(std::numeric_limits<uint64_t>::max())),
-          shortproofidk1(GetRand(std::numeric_limits<uint64_t>::max())) {}
+        : shortproofidk0(GetRand<uint64_t>()),
+          shortproofidk1(GetRand<uint64_t>()) {}
     CompactProofs(const RadixTree<const Proof, ProofRadixTreeAdapter> &proofs);
 
     uint64_t getShortID(const ProofId &proofid) const;

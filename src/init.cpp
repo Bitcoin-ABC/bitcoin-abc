@@ -2239,8 +2239,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         &uiInterface, args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
-        config, GetRand(std::numeric_limits<uint64_t>::max()),
-        GetRand(std::numeric_limits<uint64_t>::max()), *node.addrman,
+        config, GetRand<uint64_t>(), GetRand<uint64_t>(), *node.addrman,
         args.GetBoolArg("-networkactive", true));
 
     // sanitize comments per BIP-0014, format user agent and check total size

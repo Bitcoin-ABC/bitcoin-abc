@@ -579,8 +579,7 @@ public:
 class CServiceHash {
 public:
     CServiceHash()
-        : m_salt_k0{GetRand(std::numeric_limits<uint64_t>::max())},
-          m_salt_k1{GetRand(std::numeric_limits<uint64_t>::max())} {}
+        : m_salt_k0{GetRand<uint64_t>()}, m_salt_k1{GetRand<uint64_t>()} {}
 
     CServiceHash(uint64_t salt_k0, uint64_t salt_k1)
         : m_salt_k0{salt_k0}, m_salt_k1{salt_k1} {}

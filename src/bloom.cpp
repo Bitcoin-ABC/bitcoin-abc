@@ -285,7 +285,7 @@ bool CRollingBloomFilter::contains(const uint256 &hash) const {
 }
 
 void CRollingBloomFilter::reset() {
-    nTweak = GetRand(std::numeric_limits<unsigned int>::max());
+    nTweak = GetRand<unsigned int>();
     nEntriesThisGeneration = 0;
     nGeneration = 1;
     std::fill(data.begin(), data.end(), 0);

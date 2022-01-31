@@ -62,7 +62,7 @@ struct CConnmanTest : public CConnman {
 
     void AddNode(ConnectionType type) {
         CAddress addr(
-            CService(ip(GetRandInt(0xffffffff)), Params().GetDefaultPort()),
+            CService(ip(GetRand<uint32_t>()), Params().GetDefaultPort()),
             NODE_NONE);
 
         return AddNode(addr, type);
