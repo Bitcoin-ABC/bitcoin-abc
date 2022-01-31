@@ -260,10 +260,10 @@ void CRollingBloomFilter::insert(const std::vector<uint8_t> &vKey) {
         uint32_t pos = FastMod(h, data.size());
         /* The lowest bit of pos is ignored, and set to zero for the first bit,
          * and to one for the second. */
-        data[pos & ~1] = (data[pos & ~1] & ~(uint64_t(1) << bit)) |
-                         uint64_t(nGeneration & 1) << bit;
-        data[pos | 1] = (data[pos | 1] & ~(uint64_t(1) << bit)) |
-                        uint64_t(nGeneration >> 1) << bit;
+        data[pos & ~1U] = (data[pos & ~1U] & ~(uint64_t(1) << bit)) |
+                          uint64_t(nGeneration & 1) << bit;
+        data[pos | 1U] = (data[pos | 1] & ~(uint64_t(1) << bit)) |
+                         uint64_t(nGeneration >> 1) << bit;
     }
 }
 
