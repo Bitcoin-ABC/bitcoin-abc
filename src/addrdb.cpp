@@ -46,7 +46,7 @@ bool SerializeFileDB(const CChainParams &chainParams, const std::string &prefix,
                      const fs::path &path, const Data &data, int version) {
     // Generate random temporary filename
     uint16_t randv = 0;
-    GetRandBytes((uint8_t *)&randv, sizeof(randv));
+    GetRandBytes({(uint8_t *)&randv, sizeof(randv)});
     std::string tmpfn = strprintf("%s.%04x", prefix, randv);
 
     // open temp output file, and associate with CAutoFile

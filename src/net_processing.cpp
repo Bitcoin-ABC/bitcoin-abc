@@ -6577,7 +6577,7 @@ void PeerManagerImpl::MaybeSendPing(CNode &node_to, Peer &peer,
     if (pingSend) {
         uint64_t nonce = 0;
         while (nonce == 0) {
-            GetRandBytes((uint8_t *)&nonce, sizeof(nonce));
+            GetRandBytes({(uint8_t *)&nonce, sizeof(nonce)});
         }
         peer.m_ping_queued = false;
         peer.m_ping_start = now;

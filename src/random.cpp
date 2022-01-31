@@ -14,6 +14,7 @@
 #include <crypto/sha512.h>
 #include <logging.h> // for LogPrintf()
 #include <randomenv.h>
+#include <span.h>
 #include <support/allocators/secure.h>
 #include <support/cleanse.h>
 #include <sync.h>      // for Mutex
@@ -632,11 +633,11 @@ static void ProcRand(uint8_t *out, int num, RNGLevel level) noexcept {
     }
 }
 
-void GetRandBytes(uint8_t *buf, int num) noexcept {
-    ProcRand(buf, num, RNGLevel::FAST);
+void GetRandBytes(Span<uint8_t> bytes) noexcept {
+    ProcRand(bytes.data(), bytes.size(), RNGLevel::FAST);
 }
-void GetStrongRandBytes(uint8_t *buf, int num) noexcept {
-    ProcRand(buf, num, RNGLevel::SLOW);
+void GetStrongRandBytes(Span<uint8_t> bytes) noexcept {
+    ProcRand(bytes.data(), bytes.size(), RNGLevel::SLOW);
 }
 void RandAddPeriodic() noexcept {
     ProcRand(nullptr, 0, RNGLevel::PERIODIC);
@@ -658,7 +659,7 @@ int GetRandInt(int nMax) noexcept {
 
 uint256 GetRandHash() noexcept {
     uint256 hash;
-    GetRandBytes((uint8_t *)&hash, sizeof(hash));
+    GetRandBytes(hash);
     return hash;
 }
 

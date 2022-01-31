@@ -7,8 +7,8 @@
 #include <util/bytevectorhash.h>
 
 ByteVectorHash::ByteVectorHash() {
-    GetRandBytes(reinterpret_cast<uint8_t *>(&m_k0), sizeof(m_k0));
-    GetRandBytes(reinterpret_cast<uint8_t *>(&m_k1), sizeof(m_k1));
+    GetRandBytes({reinterpret_cast<uint8_t *>(&m_k0), sizeof(m_k0)});
+    GetRandBytes({reinterpret_cast<uint8_t *>(&m_k1), sizeof(m_k1)});
 }
 
 size_t ByteVectorHash::operator()(const std::vector<uint8_t> &input) const {

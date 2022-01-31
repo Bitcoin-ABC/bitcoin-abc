@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE(key_key_negation) {
     // create a dummy hash for signature comparison
     uint8_t rnd[8];
     std::string str = "Bitcoin key verification\n";
-    GetRandBytes(rnd, sizeof(rnd));
+    GetRandBytes(rnd);
     uint256 hash;
     CHash256().Write(MakeUCharSpan(str)).Write(rnd).Finalize(hash);
 

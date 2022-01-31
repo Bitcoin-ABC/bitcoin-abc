@@ -81,7 +81,7 @@ static fs::path GetAuthCookieFile(bool temp = false) {
 bool GenerateAuthCookie(std::string *cookie_out) {
     const size_t COOKIE_SIZE = 32;
     uint8_t rand_pwd[COOKIE_SIZE];
-    GetRandBytes(rand_pwd, COOKIE_SIZE);
+    GetRandBytes(rand_pwd);
     std::string cookie = COOKIEAUTH_USER + ":" + HexStr(rand_pwd);
 
     /**
