@@ -21,7 +21,8 @@ const auto NoMalleation = [](AutoFile &file, node::SnapshotMetadata &meta) {};
 template <typename F = decltype(NoMalleation)>
 static bool CreateAndActivateUTXOSnapshot(node::NodeContext &node,
                                           const fs::path root,
-                                          F malleation = NoMalleation) {
+                                          F malleation = NoMalleation,
+                                          bool in_memory_chainstate = false) {
     // Write out a snapshot to the test's tempdir.
     //
     int height;
@@ -46,7 +47,7 @@ static bool CreateAndActivateUTXOSnapshot(node::NodeContext &node,
     malleation(auto_infile, metadata);
 
     return node.chainman->ActivateSnapshot(auto_infile, metadata,
-                                           /*in_memory*/ true);
+                                           in_memory_chainstate);
 }
 
 #endif // BITCOIN_TEST_UTIL_CHAINSTATE_H

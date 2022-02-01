@@ -212,8 +212,8 @@ ChainTestingSetup::~ChainTestingSetup() {
 void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
     node::ChainstateLoadOptions options;
     options.mempool = Assert(m_node.mempool.get());
-    options.block_tree_db_in_memory = true;
-    options.coins_db_in_memory = true;
+    options.block_tree_db_in_memory = m_block_tree_db_in_memory;
+    options.coins_db_in_memory = m_coins_db_in_memory;
     options.reindex = node::fReindex;
     options.reindex_chainstate =
         m_args.GetBoolArg("-reindex-chainstate", false);
@@ -238,8 +238,12 @@ void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
 }
 
 TestingSetup::TestingSetup(const std::string &chainName,
-                           const std::vector<const char *> &extra_args)
-    : ChainTestingSetup(chainName, extra_args) {
+                           const std::vector<const char *> &extra_args,
+                           const bool coins_db_in_memory,
+                           const bool block_tree_db_in_memory)
+    : ChainTestingSetup(chainName, extra_args),
+      m_coins_db_in_memory(coins_db_in_memory),
+      m_block_tree_db_in_memory(block_tree_db_in_memory) {
     const Config &config = GetConfig();
 
     // Ideally we'd move all the RPC tests to the functional testing framework
@@ -277,7 +281,11 @@ TestingSetup::TestingSetup(const std::string &chainName,
     }
 }
 
-TestChain100Setup::TestChain100Setup() {
+TestChain100Setup::TestChain100Setup(
+    const std::string &chain_name, const std::vector<const char *> &extra_args,
+    const bool coins_db_in_memory, const bool block_tree_db_in_memory)
+    : TestingSetup{CBaseChainParams::REGTEST, extra_args, coins_db_in_memory,
+                   block_tree_db_in_memory} {
     SetMockTime(1598887952);
     constexpr std::array<uint8_t, 32> vchKey = {
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

@@ -1188,7 +1188,7 @@ Chainstate::Chainstate(CTxMemPool *mempool, BlockManager &blockman,
 void Chainstate::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
                              bool should_wipe, std::string leveldb_name) {
     if (m_from_snapshot_blockhash) {
-        leveldb_name += "_" + m_from_snapshot_blockhash->ToString();
+        leveldb_name += node::SNAPSHOT_CHAINSTATE_SUFFIX;
     }
     m_coins_views = std::make_unique<CoinsViews>(leveldb_name, cache_size_bytes,
                                                  in_memory, should_wipe);
@@ -5878,9 +5878,17 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
             current_coinstip_cache_size * SNAPSHOT_CACHE_PERC));
     }
 
-    const bool snapshot_ok = this->PopulateAndValidateSnapshot(
-        *snapshot_chainstate, coins_file, metadata);
+    bool snapshot_ok = this->PopulateAndValidateSnapshot(*snapshot_chainstate,
+                                                         coins_file, metadata);
 
+    // If not in-memory, persist the base blockhash for use during subsequent
+    // initialization.
+    if (!in_memory) {
+        LOCK(::cs_main);
+        if (!node::WriteSnapshotBaseBlockhash(*snapshot_chainstate)) {
+            snapshot_ok = false;
+        }
+    }
     if (!snapshot_ok) {
         WITH_LOCK(::cs_main, this->MaybeRebalanceCaches());
         return false;

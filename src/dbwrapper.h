@@ -15,6 +15,8 @@
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 
+#include <optional>
+
 static const size_t DBWRAPPER_PREALLOC_KEY_SIZE = 64;
 static const size_t DBWRAPPER_PREALLOC_VALUE_SIZE = 1024;
 
@@ -26,6 +28,9 @@ public:
 
 class CDBWrapper;
 
+namespace dbwrapper {
+using leveldb::DestroyDB;
+}
 /**
  * These should be considered an implementation detail of the specific database.
  */
@@ -209,6 +214,12 @@ private:
 
     std::vector<uint8_t> CreateObfuscateKey() const;
 
+    //! path to filesystem storage
+    const fs::path m_path;
+
+    //! whether or not the database resides in memory
+    bool m_is_memory;
+
 public:
     /**
      * @param[in] path        Location in the filesystem where leveldb data will
@@ -257,6 +268,14 @@ public:
         CDBBatch batch(*this);
         batch.Write(key, value);
         return WriteBatch(batch, fSync);
+    }
+
+    //! @returns filesystem path to the on-disk data.
+    std::optional<fs::path> StoragePath() {
+        if (m_is_memory) {
+            return {};
+        }
+        return m_path;
     }
 
     template <typename K> bool Exists(const K &key) const {

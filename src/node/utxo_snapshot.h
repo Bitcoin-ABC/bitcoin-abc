@@ -6,8 +6,16 @@
 #ifndef BITCOIN_NODE_UTXO_SNAPSHOT_H
 #define BITCOIN_NODE_UTXO_SNAPSHOT_H
 
+#include <fs.h>
 #include <primitives/blockhash.h>
 #include <serialize.h>
+#include <validation.h>
+
+#include <optional>
+
+struct BlockHash;
+
+extern RecursiveMutex cs_main;
 
 namespace node {
 //! Metadata describing a serialized version of a UTXO set from which an
@@ -31,6 +39,27 @@ public:
         READWRITE(obj.m_base_blockhash, obj.m_coins_count);
     }
 };
+
+//! The file in the snapshot chainstate dir which stores the base blockhash.
+//! This is needed to reconstruct snapshot chainstates on init.
+//!
+//! Because we only allow loading a single snapshot at a time, there will only
+//! be one chainstate directory with this filename present within it.
+const fs::path SNAPSHOT_BLOCKHASH_FILENAME{"base_blockhash"};
+
+//! Write out the blockhash of the snapshot base block that was used to
+//! construct this chainstate. This value is read in during subsequent
+//! initializations and used to reconstruct snapshot-based chainstates.
+bool WriteSnapshotBaseBlockhash(Chainstate &snapshot_chainstate)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+//! Read the blockhash of the snapshot base block that was used to construct the
+//! chainstate.
+std::optional<BlockHash> ReadSnapshotBaseBlockhash(const fs::path &chaindir)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+constexpr std::string_view SNAPSHOT_CHAINSTATE_SUFFIX = "_snapshot";
+
 } // namespace node
 
 #endif // BITCOIN_NODE_UTXO_SNAPSHOT_H

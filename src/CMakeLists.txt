@@ -650,6 +650,7 @@ add_library(server
 	node/psbt.cpp
 	node/transaction.cpp
 	node/ui_interface.cpp
+	node/utxo_snapshot.cpp
 	noui.cpp
 	policy/block/minerfund.cpp
 	policy/block/stakingrewards.cpp
