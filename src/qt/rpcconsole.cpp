@@ -1263,14 +1263,14 @@ void RPCConsole::updateDetailWidget() {
     ui->peerServices->setText(
         GUIUtil::formatServicesStr(stats->nodeStats.nServices));
     ui->peerLastSend->setText(
-        stats->nodeStats.nLastSend
+        stats->nodeStats.m_last_send
             ? GUIUtil::formatDurationStr(GetSystemTimeInSeconds() -
-                                         stats->nodeStats.nLastSend)
+                                         stats->nodeStats.m_last_send)
             : tr("never"));
     ui->peerLastRecv->setText(
-        stats->nodeStats.nLastRecv
+        stats->nodeStats.m_last_recv
             ? GUIUtil::formatDurationStr(GetSystemTimeInSeconds() -
-                                         stats->nodeStats.nLastRecv)
+                                         stats->nodeStats.m_last_recv)
             : tr("never"));
     ui->peerBytesSent->setText(
         GUIUtil::formatBytes(stats->nodeStats.nSendBytes));

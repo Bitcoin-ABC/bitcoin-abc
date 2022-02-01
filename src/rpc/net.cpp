@@ -249,8 +249,8 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("services", strprintf("%016x", stats.nServices));
                 obj.pushKV("servicesnames", GetServicesNames(stats.nServices));
                 obj.pushKV("relaytxes", stats.fRelayTxes);
-                obj.pushKV("lastsend", stats.nLastSend);
-                obj.pushKV("lastrecv", stats.nLastRecv);
+                obj.pushKV("lastsend", stats.m_last_send);
+                obj.pushKV("lastrecv", stats.m_last_recv);
                 obj.pushKV("last_transaction", stats.nLastTXTime);
                 if (g_avalanche) {
                     obj.pushKV("last_proof", stats.nLastProofTime);
