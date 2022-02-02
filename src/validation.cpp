@@ -5770,12 +5770,11 @@ std::vector<Chainstate *> ChainstateManager::GetAll() {
     LOCK(::cs_main);
     std::vector<Chainstate *> out;
 
-    if (!IsSnapshotValidated() && m_ibd_chainstate) {
-        out.push_back(m_ibd_chainstate.get());
-    }
-
-    if (m_snapshot_chainstate) {
-        out.push_back(m_snapshot_chainstate.get());
+    for (Chainstate *pchainstate :
+         {m_ibd_chainstate.get(), m_snapshot_chainstate.get()}) {
+        if (this->IsUsable(pchainstate)) {
+            out.push_back(pchainstate);
+        }
     }
 
     return out;
@@ -6194,18 +6193,24 @@ bool ChainstateManager::IsSnapshotActive() const {
 }
 void ChainstateManager::MaybeRebalanceCaches() {
     AssertLockHeld(::cs_main);
-    if (m_ibd_chainstate && !m_snapshot_chainstate) {
+    bool ibd_usable = this->IsUsable(m_ibd_chainstate.get());
+    bool snapshot_usable = this->IsUsable(m_snapshot_chainstate.get());
+    assert(ibd_usable || snapshot_usable);
+
+    if (ibd_usable && !snapshot_usable) {
         LogPrintf("[snapshot] allocating all cache to the IBD chainstate\n");
         // Allocate everything to the IBD chainstate.
         m_ibd_chainstate->ResizeCoinsCaches(m_total_coinstip_cache,
                                             m_total_coinsdb_cache);
-    } else if (m_snapshot_chainstate && !m_ibd_chainstate) {
+    } else if (snapshot_usable && !ibd_usable) {
+        // If background validation has completed and snapshot is our active
+        // chain...
         LogPrintf(
             "[snapshot] allocating all cache to the snapshot chainstate\n");
         // Allocate everything to the snapshot chainstate.
         m_snapshot_chainstate->ResizeCoinsCaches(m_total_coinstip_cache,
                                                  m_total_coinsdb_cache);
-    } else if (m_ibd_chainstate && m_snapshot_chainstate) {
+    } else if (ibd_usable && snapshot_usable) {
         // If both chainstates exist, determine who needs more cache based on
         // IBD status.
         //
