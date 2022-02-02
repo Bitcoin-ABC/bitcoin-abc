@@ -8,7 +8,6 @@
 #include <chain.h>
 #include <common/system.h>
 #include <logging.h>
-#include <node/ui_interface.h>
 #include <pow/pow.h>
 #include <random.h>
 #include <shutdown.h>
@@ -20,7 +19,6 @@
 #include <memory>
 
 static constexpr uint8_t DB_COIN{'C'};
-static constexpr uint8_t DB_COINS{'c'};
 static constexpr uint8_t DB_BLOCK_FILES{'f'};
 static constexpr uint8_t DB_BLOCK_INDEX{'b'};
 
@@ -31,6 +29,7 @@ static constexpr uint8_t DB_REINDEX_FLAG{'R'};
 static constexpr uint8_t DB_LAST_BLOCK{'l'};
 
 // Keys used in previous version that might still be found in the DB:
+static constexpr uint8_t DB_COINS{'c'};
 static constexpr uint8_t DB_TXINDEX_BLOCK{'T'};
 //               uint8_t DB_TXINDEX{'t'}
 
@@ -56,6 +55,13 @@ util::Result<void> CheckLegacyTxindex(CBlockTreeDB &block_tree_db) {
               "this error. This error message will not be displayed again.")};
     }
     return {};
+}
+
+bool CCoinsViewDB::NeedsUpgrade() {
+    std::unique_ptr<CDBIterator> cursor{m_db->NewIterator()};
+    // DB_COINS was deprecated in v0.15.0 (D512)
+    cursor->Seek(std::make_pair(DB_COINS, uint256{}));
+    return cursor->Valid();
 }
 
 namespace {
@@ -352,136 +358,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts(
     }
 
     return true;
-}
-
-namespace {
-//! Legacy class to deserialize pre-pertxout database entries without reindex.
-class CCoins {
-public:
-    //! whether transaction is a coinbase
-    bool fCoinBase{false};
-
-    //! unspent transaction outputs; spent outputs are .IsNull(); spent outputs
-    //! at the end of the array are dropped
-    std::vector<CTxOut> vout;
-
-    //! at which height this transaction was included in the active block chain
-    int nHeight{0};
-
-    //! empty constructor
-    CCoins() : vout(0) {}
-
-    template <typename Stream> void Unserialize(Stream &s) {
-        uint32_t nCode = 0;
-        // version
-        unsigned int nVersionDummy = 0;
-        ::Unserialize(s, VARINT(nVersionDummy));
-        // header code
-        ::Unserialize(s, VARINT(nCode));
-        fCoinBase = nCode & 1;
-        std::vector<bool> vAvail(2, false);
-        vAvail[0] = (nCode & 2) != 0;
-        vAvail[1] = (nCode & 4) != 0;
-        uint32_t nMaskCode = (nCode / 8) + ((nCode & 6) != 0 ? 0 : 1);
-        // spentness bitmask
-        while (nMaskCode > 0) {
-            uint8_t chAvail = 0;
-            ::Unserialize(s, chAvail);
-            for (unsigned int p = 0; p < 8; p++) {
-                bool f = (chAvail & (1 << p)) != 0;
-                vAvail.push_back(f);
-            }
-            if (chAvail != 0) {
-                nMaskCode--;
-            }
-        }
-        // txouts themself
-        vout.assign(vAvail.size(), CTxOut());
-        for (size_t i = 0; i < vAvail.size(); i++) {
-            if (vAvail[i]) {
-                ::Unserialize(s, Using<TxOutCompression>(vout[i]));
-            }
-        }
-        // coinbase height
-        ::Unserialize(s, VARINT_MODE(nHeight, VarIntMode::NONNEGATIVE_SIGNED));
-    }
-};
-} // namespace
-
-/**
- * Upgrade the database from older formats.
- *
- * Currently implemented: from the per-tx utxo model (0.8..0.14.x) to per-txout.
- */
-bool CCoinsViewDB::Upgrade() {
-    std::unique_ptr<CDBIterator> pcursor(m_db->NewIterator());
-    pcursor->Seek(std::make_pair(DB_COINS, uint256()));
-    if (!pcursor->Valid()) {
-        return true;
-    }
-
-    int64_t count = 0;
-    LogPrintf("Upgrading utxo-set database...\n");
-    size_t batch_size = 1 << 24;
-    CDBBatch batch(*m_db);
-    int reportDone = -1;
-    std::pair<uint8_t, uint256> key;
-    std::pair<uint8_t, uint256> prev_key = {DB_COINS, uint256()};
-    while (pcursor->Valid()) {
-        if (ShutdownRequested()) {
-            break;
-        }
-
-        if (!pcursor->GetKey(key) || key.first != DB_COINS) {
-            break;
-        }
-
-        if (count++ % 256 == 0) {
-            uint32_t high =
-                0x100 * *key.second.begin() + *(key.second.begin() + 1);
-            int percentageDone = (int)(high * 100.0 / 65536.0 + 0.5);
-            uiInterface.ShowProgress(_("Upgrading UTXO database").translated,
-                                     percentageDone, true);
-            if (reportDone < percentageDone / 10) {
-                // report max. every 10% step
-                LogPrintfToBeContinued("[%d%%]...", percentageDone);
-                reportDone = percentageDone / 10;
-            }
-        }
-
-        CCoins old_coins;
-        if (!pcursor->GetValue(old_coins)) {
-            return error("%s: cannot parse CCoins record", __func__);
-        }
-
-        const TxId id(key.second);
-        for (size_t i = 0; i < old_coins.vout.size(); ++i) {
-            if (!old_coins.vout[i].IsNull() &&
-                !old_coins.vout[i].scriptPubKey.IsUnspendable()) {
-                Coin newcoin(std::move(old_coins.vout[i]), old_coins.nHeight,
-                             old_coins.fCoinBase);
-                COutPoint outpoint(id, i);
-                CoinEntry entry(&outpoint);
-                batch.Write(entry, newcoin);
-            }
-        }
-
-        batch.Erase(key);
-        if (batch.SizeEstimate() > batch_size) {
-            m_db->WriteBatch(batch);
-            batch.Clear();
-            m_db->CompactRange(prev_key, key);
-            prev_key = key;
-        }
-
-        pcursor->Next();
-    }
-
-    m_db->WriteBatch(batch);
-    m_db->CompactRange({DB_COINS, uint256()}, key);
-    uiInterface.ShowProgress("", 100, false);
-    LogPrintf("[%s].\n", ShutdownRequested() ? "CANCELLED" : "DONE");
-    return !ShutdownRequested();
 }
 
 bool CBlockTreeDB::Upgrade() {
