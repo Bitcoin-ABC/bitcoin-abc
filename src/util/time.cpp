@@ -72,7 +72,7 @@ int64_t GetTimeMicros() {
     return now;
 }
 
-int64_t GetSystemTimeInSeconds() {
+int64_t GetTimeSeconds() {
     return GetTimeMicros() / 1000000;
 }
 

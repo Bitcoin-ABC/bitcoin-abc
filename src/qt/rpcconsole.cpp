@@ -1264,12 +1264,12 @@ void RPCConsole::updateDetailWidget() {
         GUIUtil::formatServicesStr(stats->nodeStats.nServices));
     ui->peerLastSend->setText(
         stats->nodeStats.m_last_send
-            ? GUIUtil::formatDurationStr(GetSystemTimeInSeconds() -
+            ? GUIUtil::formatDurationStr(GetTimeSeconds() -
                                          stats->nodeStats.m_last_send)
             : tr("never"));
     ui->peerLastRecv->setText(
         stats->nodeStats.m_last_recv
-            ? GUIUtil::formatDurationStr(GetSystemTimeInSeconds() -
+            ? GUIUtil::formatDurationStr(GetTimeSeconds() -
                                          stats->nodeStats.m_last_recv)
             : tr("never"));
     ui->peerBytesSent->setText(
@@ -1277,7 +1277,7 @@ void RPCConsole::updateDetailWidget() {
     ui->peerBytesRecv->setText(
         GUIUtil::formatBytes(stats->nodeStats.nRecvBytes));
     ui->peerConnTime->setText(GUIUtil::formatDurationStr(
-        GetSystemTimeInSeconds() - stats->nodeStats.nTimeConnected));
+        GetTimeSeconds() - stats->nodeStats.nTimeConnected));
     ui->peerPingTime->setText(
         GUIUtil::formatPingTime(stats->nodeStats.m_last_ping_time));
     ui->peerMinPing->setText(

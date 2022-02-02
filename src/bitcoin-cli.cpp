@@ -468,7 +468,7 @@ private:
         const double milliseconds{round(1000 * seconds)};
         return milliseconds > 999999 ? "-" : ToString(milliseconds);
     }
-    const int64_t m_time_now{GetSystemTimeInSeconds()};
+    const int64_t m_time_now{GetTimeSeconds()};
 
 public:
     static constexpr int ID_PEERINFO = 0;

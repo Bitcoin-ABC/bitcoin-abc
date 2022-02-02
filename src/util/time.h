@@ -46,7 +46,7 @@ inline double CountSecondsDouble(SecondsDouble t) {
 
 /**
  * DEPRECATED
- * Use either GetSystemTimeInSeconds (not mockable) or GetTime<T> (mockable)
+ * Use either GetTimeSeconds (not mockable) or GetTime<T> (mockable)
  */
 int64_t GetTime();
 
@@ -56,7 +56,7 @@ int64_t GetTimeMillis();
 int64_t GetTimeMicros();
 /** Returns the system time (not mockable) */
 // Like GetTime(), but not mockable
-int64_t GetSystemTimeInSeconds();
+int64_t GetTimeSeconds();
 
 /** For testing. Set e.g. with the setmocktime rpc, or -mocktime argument */
 void SetMockTime(int64_t nMockTimeIn);

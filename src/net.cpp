@@ -840,7 +840,7 @@ size_t CConnman::SocketSendData(CNode &node) const {
         }
 
         assert(nBytes > 0);
-        node.m_last_send = GetSystemTimeInSeconds();
+        node.m_last_send = GetTimeSeconds();
         node.nSendBytes += nBytes;
         node.nSendOffset += nBytes;
         nSentSize += nBytes;
@@ -1429,7 +1429,7 @@ bool CConnman::ShouldRunInactivityChecks(const CNode &node, int64_t now) const {
 bool CConnman::InactivityCheck(const CNode &node) const {
     // Use non-mockable system time (otherwise these timers will pop when we use
     // setmocktime in the tests).
-    int64_t now = GetSystemTimeInSeconds();
+    int64_t now = GetTimeSeconds();
 
     if (!ShouldRunInactivityChecks(node, now)) {
         return false;
@@ -3386,8 +3386,8 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
              uint64_t nLocalHostNonceIn, uint64_t nLocalExtraEntropyIn,
              const CAddress &addrBindIn, const std::string &addrNameIn,
              ConnectionType conn_type_in, bool inbound_onion)
-    : nTimeConnected(GetSystemTimeInSeconds()), addr(addrIn),
-      addrBind(addrBindIn), nKeyedNetGroup(nKeyedNetGroupIn),
+    : nTimeConnected(GetTimeSeconds()), addr(addrIn), addrBind(addrBindIn),
+      nKeyedNetGroup(nKeyedNetGroupIn),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
