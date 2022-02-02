@@ -347,7 +347,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             tx.vout[0].nValue = i * SATOSHI;
             // Random sizes so we can test memory usage accounting
             tx.vout[0].scriptPubKey.assign(InsecureRand32() & 0x3F, 0);
-            unsigned int height = InsecureRand32();
+            const int height{int(InsecureRand32()) >> 1};
             Coin old_coin;
 
             // 2/20 times create a new coinbase
@@ -421,11 +421,11 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test) {
             assert(tx.vout.size() == 1);
             const COutPoint outpoint(tx.GetId(), 0);
             result[outpoint] =
-                Coin(tx.vout[0], height, CTransaction(tx).IsCoinBase());
+                Coin(tx.vout[0], height, CTransaction{tx}.IsCoinBase());
 
             // Call UpdateCoins on the top cache
             CTxUndo undo;
-            UpdateCoins(*(stack.back()), CTransaction(tx), undo, height);
+            UpdateCoins(*(stack.back()), CTransaction{tx}, undo, height);
 
             // Update the utxo set for future spends
             utxoset.insert(outpoint);
