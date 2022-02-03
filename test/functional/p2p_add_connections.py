@@ -8,6 +8,11 @@ from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, check_node_connections
 
+MAX_OUTBOUND_FULL_RELAY_CONNECTIONS = 16
+MAX_BLOCK_RELAY_ONLY_CONNECTIONS = 2
+MAX_OUTBOUND_CONNECTIONS = MAX_OUTBOUND_FULL_RELAY_CONNECTIONS + \
+    MAX_BLOCK_RELAY_ONLY_CONNECTIONS
+
 
 class P2PFeelerReceiver(P2PInterface):
     def on_version(self, message):
@@ -41,53 +46,102 @@ class P2PAddConnections(BitcoinTestFramework):
                 )
                 self.p2p_idx[node.index] += 1
 
-        self.log.info("Add 8 outbounds to node 0")
-        add_outbounds(self.nodes[0], 8, "outbound-full-relay")
+        self.log.info(
+            f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
+        add_outbounds(
+            self.nodes[0],
+            MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
+            "outbound-full-relay")
 
-        self.log.info("Add 2 block-relay-only connections to node 0")
-        add_outbounds(self.nodes[0], 2, "block-relay-only")
+        self.log.info(
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 0")
+        add_outbounds(
+            self.nodes[0],
+            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+            "block-relay-only")
 
-        self.log.info("Add 2 block-relay-only connections to node 1")
-        add_outbounds(self.nodes[1], 2, "block-relay-only")
+        self.log.info(
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 1")
+        add_outbounds(
+            self.nodes[1],
+            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+            "block-relay-only")
 
         self.log.info("Add 5 inbound connections to node 1")
         for i in range(5):
             self.log.info(f"inbound: {i}")
             self.nodes[1].add_p2p_connection(P2PInterface())
 
-        self.log.info("Add 8 outbounds to node 1")
-        add_outbounds(self.nodes[1], 8, "outbound-full-relay")
+        self.log.info("Add 4 outbounds to node 1")
+        add_outbounds(self.nodes[1], 4, "outbound-full-relay")
 
         self.log.info("Check the connections opened as expected")
-        check_node_connections(node=self.nodes[0], num_in=0, num_out=10)
-        check_node_connections(node=self.nodes[1], num_in=5, num_out=10)
+        check_node_connections(
+            node=self.nodes[0],
+            num_in=0,
+            num_out=MAX_OUTBOUND_CONNECTIONS)
+        check_node_connections(
+            node=self.nodes[1],
+            num_in=5,
+            num_out=4 + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
 
         self.log.info("Disconnect p2p connections & try to re-open")
         self.nodes[0].disconnect_p2ps()
         self.p2p_idx[0] = 0
         check_node_connections(node=self.nodes[0], num_in=0, num_out=0)
 
-        self.log.info("Add 8 outbounds to node 0")
-        add_outbounds(self.nodes[0], 8, "outbound-full-relay")
-        check_node_connections(node=self.nodes[0], num_in=0, num_out=8)
+        self.log.info(
+            f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
+        add_outbounds(
+            self.nodes[0],
+            MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
+            "outbound-full-relay")
+        check_node_connections(
+            node=self.nodes[0],
+            num_in=0,
+            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS)
 
-        self.log.info("Add 2 block-relay-only connections to node 0")
-        add_outbounds(self.nodes[0], 2, "block-relay-only")
-        check_node_connections(node=self.nodes[0], num_in=0, num_out=10)
+        self.log.info(
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 0")
+        add_outbounds(
+            self.nodes[0],
+            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+            "block-relay-only")
+        check_node_connections(
+            node=self.nodes[0],
+            num_in=0,
+            num_out=MAX_OUTBOUND_CONNECTIONS)
 
         self.log.info("Restart node 0 and try to reconnect to p2ps")
         self.restart_node(0)
         self.p2p_idx[0] = 0
 
-        self.log.info("Add 4 outbounds to node 0")
-        add_outbounds(self.nodes[0], 4, "outbound-full-relay")
-        check_node_connections(node=self.nodes[0], num_in=0, num_out=4)
+        self.log.info(
+            f"Add {MAX_OUTBOUND_FULL_RELAY_CONNECTIONS} outbounds to node 0")
+        add_outbounds(
+            self.nodes[0],
+            MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
+            "outbound-full-relay")
+        check_node_connections(
+            node=self.nodes[0],
+            num_in=0,
+            num_out=MAX_OUTBOUND_FULL_RELAY_CONNECTIONS)
 
-        self.log.info("Add 2 block-relay-only connections to node 0")
-        add_outbounds(self.nodes[0], 2, "block-relay-only")
-        check_node_connections(node=self.nodes[0], num_in=0, num_out=6)
+        self.log.info(
+            f"Add {MAX_BLOCK_RELAY_ONLY_CONNECTIONS} block-relay-only connections to node 0")
+        add_outbounds(
+            self.nodes[0],
+            MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
+            "block-relay-only")
+        check_node_connections(
+            node=self.nodes[0],
+            num_in=0,
+            num_out=MAX_OUTBOUND_CONNECTIONS)
 
-        check_node_connections(node=self.nodes[1], num_in=5, num_out=10)
+        check_node_connections(
+            node=self.nodes[1],
+            num_in=5,
+            num_out=4 + MAX_BLOCK_RELAY_ONLY_CONNECTIONS)
 
         self.log.info("Add 1 feeler connection to node 0")
         feeler_conn = self.nodes[0].add_outbound_p2p_connection(
