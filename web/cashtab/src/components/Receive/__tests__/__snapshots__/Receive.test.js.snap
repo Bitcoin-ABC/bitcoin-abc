@@ -1,40 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Wallet with BCH balances 1`] = `
-Array [
-  <div
-    className="sc-eqIVtm gpHdyi"
-  >
-    <span
-      aria-label="party emoji"
-      role="img"
-    >
-      🎉
-    </span>
-    Congratulations on your new wallet!
-     
-    <span
-      aria-label="party emoji"
-      role="img"
-    >
-      🎉
-    </span>
-    <br />
-     Start using the wallet immediately to receive
-     
+<div
+  className="sc-brqgnP ioFbAu"
+>
+  <h2>
+    Receive 
     XEC
-     payments, or load it up with
-     
-    XEC
-     to send to others
-  </div>,
-  <div
-    className="sc-fMiknA fUPKHz"
-  >
-    0
-     
-    XEC
-  </div>,
+  </h2>
   <div
     onClick={[Function]}
     style={
@@ -46,7 +19,7 @@ Array [
     }
   >
     <div
-      className="sc-chPdSV iDFVZe"
+      className="sc-kGXeez iOmsvt"
       style={
         Object {
           "display": "none",
@@ -66,7 +39,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-kAzzGY lanDwf"
+      className="sc-kgoBCf gZCERc"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -92,7 +65,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kpOJdX eicPsf notranslate"
+      className="sc-ckVGcZ lpOQJ notranslate"
     >
       <input
         readOnly={true}
@@ -101,77 +74,50 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kgoBCf bHwLKM"
+        className="sc-kpOJdX erKnES"
       >
         ecash:
       </span>
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         cxkrr6zd
       </span>
     </div>
-  </div>,
+  </div>
   <div
-    className="sc-cJSrbW grtjkC"
+    className="sc-cMljjf uxbzo"
   >
     <div
-      className="sc-ksYbfQ hhXWxr"
+      className="sc-jAaTju jTRMNk"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-ksYbfQ hhXWxr nonactiveBtn"
+      className="sc-jAaTju jTRMNk nonactiveBtn"
       onClick={[Function]}
     >
       eToken
     </div>
-  </div>,
-]
+  </div>
+</div>
 `;
 
 exports[`Wallet with BCH balances and tokens 1`] = `
-Array [
-  <div
-    className="sc-eqIVtm gpHdyi"
-  >
-    <span
-      aria-label="party emoji"
-      role="img"
-    >
-      🎉
-    </span>
-    Congratulations on your new wallet!
-     
-    <span
-      aria-label="party emoji"
-      role="img"
-    >
-      🎉
-    </span>
-    <br />
-     Start using the wallet immediately to receive
-     
+<div
+  className="sc-brqgnP ioFbAu"
+>
+  <h2>
+    Receive 
     XEC
-     payments, or load it up with
-     
-    XEC
-     to send to others
-  </div>,
-  <div
-    className="sc-fMiknA fUPKHz"
-  >
-    0
-     
-    XEC
-  </div>,
+  </h2>
   <div
     onClick={[Function]}
     style={
@@ -183,7 +129,7 @@ Array [
     }
   >
     <div
-      className="sc-chPdSV iDFVZe"
+      className="sc-kGXeez iOmsvt"
       style={
         Object {
           "display": "none",
@@ -203,7 +149,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-kAzzGY lanDwf"
+      className="sc-kgoBCf gZCERc"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -229,7 +175,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kpOJdX eicPsf notranslate"
+      className="sc-ckVGcZ lpOQJ notranslate"
     >
       <input
         readOnly={true}
@@ -238,59 +184,50 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kgoBCf bHwLKM"
+        className="sc-kpOJdX erKnES"
       >
         ecash:
       </span>
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         cxkrr6zd
       </span>
     </div>
-  </div>,
+  </div>
   <div
-    className="sc-cJSrbW grtjkC"
+    className="sc-cMljjf uxbzo"
   >
     <div
-      className="sc-ksYbfQ hhXWxr"
+      className="sc-jAaTju jTRMNk"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-ksYbfQ hhXWxr nonactiveBtn"
+      className="sc-jAaTju jTRMNk nonactiveBtn"
       onClick={[Function]}
     >
       eToken
     </div>
-  </div>,
-]
+  </div>
+</div>
 `;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
-Array [
-  <div
-    className="sc-fMiknA fUPKHz"
-  >
-    0.06
-     
+<div
+  className="sc-brqgnP ioFbAu"
+>
+  <h2>
+    Receive 
     XEC
-  </div>,
-  <div
-    className="sc-dVhcbM eDJCmc"
-  >
-    $ 
-    NaN
-     
-    USD
-  </div>,
+  </h2>
   <div
     onClick={[Function]}
     style={
@@ -302,7 +239,7 @@ Array [
     }
   >
     <div
-      className="sc-chPdSV iDFVZe"
+      className="sc-kGXeez iOmsvt"
       style={
         Object {
           "display": "none",
@@ -322,7 +259,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-kAzzGY lanDwf"
+      className="sc-kgoBCf gZCERc"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -348,7 +285,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kpOJdX eicPsf notranslate"
+      className="sc-ckVGcZ lpOQJ notranslate"
     >
       <input
         readOnly={true}
@@ -357,77 +294,50 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kgoBCf bHwLKM"
+        className="sc-kpOJdX erKnES"
       >
         ecash:
       </span>
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         cxkrr6zd
       </span>
     </div>
-  </div>,
+  </div>
   <div
-    className="sc-cJSrbW grtjkC"
+    className="sc-cMljjf uxbzo"
   >
     <div
-      className="sc-ksYbfQ hhXWxr"
+      className="sc-jAaTju jTRMNk"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-ksYbfQ hhXWxr nonactiveBtn"
+      className="sc-jAaTju jTRMNk nonactiveBtn"
       onClick={[Function]}
     >
       eToken
     </div>
-  </div>,
-]
+  </div>
+</div>
 `;
 
 exports[`Wallet without BCH balance 1`] = `
-Array [
-  <div
-    className="sc-eqIVtm gpHdyi"
-  >
-    <span
-      aria-label="party emoji"
-      role="img"
-    >
-      🎉
-    </span>
-    Congratulations on your new wallet!
-     
-    <span
-      aria-label="party emoji"
-      role="img"
-    >
-      🎉
-    </span>
-    <br />
-     Start using the wallet immediately to receive
-     
+<div
+  className="sc-brqgnP ioFbAu"
+>
+  <h2>
+    Receive 
     XEC
-     payments, or load it up with
-     
-    XEC
-     to send to others
-  </div>,
-  <div
-    className="sc-fMiknA fUPKHz"
-  >
-    0
-     
-    XEC
-  </div>,
+  </h2>
   <div
     onClick={[Function]}
     style={
@@ -439,7 +349,7 @@ Array [
     }
   >
     <div
-      className="sc-chPdSV iDFVZe"
+      className="sc-kGXeez iOmsvt"
       style={
         Object {
           "display": "none",
@@ -459,7 +369,7 @@ Array [
       </span>
     </div>
     <svg
-      className="sc-kAzzGY lanDwf"
+      className="sc-kgoBCf gZCERc"
       height={210}
       id="borderedQRCode"
       shapeRendering="crispEdges"
@@ -485,7 +395,7 @@ Array [
       />
     </svg>
     <div
-      className="sc-kpOJdX eicPsf notranslate"
+      className="sc-ckVGcZ lpOQJ notranslate"
     >
       <input
         readOnly={true}
@@ -494,54 +404,56 @@ Array [
         value="ecash:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7ccxkrr6zd"
       />
       <span
-        className="sc-kgoBCf bHwLKM"
+        className="sc-kpOJdX erKnES"
       >
         ecash:
       </span>
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         qzagy47m
       </span>
       vh6qxkvcn3acjnz73rkhkc6y7c
       <span
-        className="sc-kGXeez jNbIFN"
+        className="sc-dxgOiQ eSXaSR"
       >
         cxkrr6zd
       </span>
     </div>
-  </div>,
+  </div>
   <div
-    className="sc-cJSrbW grtjkC"
+    className="sc-cMljjf uxbzo"
   >
     <div
-      className="sc-ksYbfQ hhXWxr"
+      className="sc-jAaTju jTRMNk"
       onClick={[Function]}
     >
       XEC
     </div>
     <div
-      className="sc-ksYbfQ hhXWxr nonactiveBtn"
+      className="sc-jAaTju jTRMNk nonactiveBtn"
       onClick={[Function]}
     >
       eToken
     </div>
-  </div>,
-]
+  </div>
+</div>
 `;
 
 exports[`Without wallet defined 1`] = `
-Array [
+<div
+  className="sc-cSHVUG gjzzd"
+>
   <h2>
     Welcome to Cashtab!
-  </h2>,
+  </h2>
   <p
-    className="sc-jzJRlG leTPdT"
+    className="sc-kAzzGY dVhLLg"
   >
     Cashtab is an
      
     <a
-      className="sc-cSHVUG dlQkwn"
+      className="sc-chPdSV pPsPE"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -557,16 +469,16 @@ Array [
     Want to learn more?
      
     <a
-      className="sc-cSHVUG dlQkwn"
+      className="sc-chPdSV pPsPE"
       href="https://docs.cashtabapp.com/docs/"
       rel="noreferrer"
       target="_blank"
     >
       Check out the Cashtab documentation.
     </a>
-  </p>,
+  </p>
   <button
-    className="sc-VigVT RpRhe"
+    className="sc-jTzLTM jrQWOh"
     onClick={[Function]}
   >
     <span
@@ -592,9 +504,9 @@ Array [
       </svg>
     </span>
      New Wallet
-  </button>,
+  </button>
   <button
-    className="sc-jTzLTM bLkbAy"
+    className="sc-fjdhpX Ezkpu"
     onClick={[Function]}
   >
     <span
@@ -617,6 +529,6 @@ Array [
       </svg>
     </span>
      Import Wallet
-  </button>,
-]
+  </button>
+</div>
 `;

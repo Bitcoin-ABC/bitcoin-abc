@@ -5,7 +5,7 @@ import { theme } from '@assets/styles/theme';
 import CreateTokenForm from '@components/Tokens/CreateTokenForm';
 import BCHJS from '@psf/bch-js';
 import useBCH from '@hooks/useBCH';
-import { walletWithBalancesAndTokensWithCorrectState } from '../../Wallet/__mocks__/walletAndBalancesMock';
+import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 
 let useContextMock;
 let realUseContext;

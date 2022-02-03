@@ -13,6 +13,7 @@ import {
     ExclamationCircleFilled,
 } from '@ant-design/icons';
 import { WalletContext, AuthenticationContext } from '@utils/context';
+import { SidePaddingCtn } from '@components/Common/Atoms';
 import { StyledCollapse } from '@components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -38,13 +39,13 @@ const { Panel } = Collapse;
 
 const SettingsLink = styled.a`
     text-decoration: underline;
-    color: ${props => props.theme.primary};
+    color: ${props => props.theme.eCashBlue};
     :visited {
         text-decoration: underline;
-        color: ${props => props.theme.primary};
+        color: ${props => props.theme.eCashBlue};
     }
     :hover {
-        color: ${props => props.theme.brandSecondary};
+        color: ${props => props.theme.eCashPurple};
     }
 `;
 
@@ -77,7 +78,7 @@ const SWName = styled.div`
 
     h3 {
         font-size: 16px;
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.darkBlue};
         margin: 0;
         text-align: center;
         white-space: nowrap;
@@ -111,7 +112,7 @@ const SWBalance = styled.div`
     }
     div {
         font-size: 13px;
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.darkBlue};
         margin: 0;
         text-align: center;
         white-space: nowrap;
@@ -143,6 +144,19 @@ const SWButtonCtn = styled.div`
 
     button {
         cursor: pointer;
+        background: transparent;
+        border: 1px solid #fff;
+        box-shadow: none;
+        color: #fff;
+        border-radius: 3px;
+        opacity: 0.6;
+        transition: all 200ms ease-in-out;
+
+        :hover {
+            opacity: 1;
+            background: ${props => props.theme.eCashBlue};
+            border-color: ${props => props.theme.eCashBlue};
+        }
 
         @media (max-width: 768px) {
             font-size: 14px;
@@ -150,16 +164,16 @@ const SWButtonCtn = styled.div`
     }
 
     svg {
-        stroke: ${props => props.theme.wallet.text.secondary};
-        fill: ${props => props.theme.wallet.text.secondary};
+        stroke: ${props => props.theme.eCashBlue};
+        fill: ${props => props.theme.eCashBlue};
         width: 25px;
         height: 25px;
         margin-right: 20px;
         cursor: pointer;
 
         :first-child:hover {
-            stroke: ${props => props.theme.primary};
-            fill: ${props => props.theme.primary};
+            stroke: ${props => props.theme.eCashBlue};
+            fill: ${props => props.theme.eCashBlue};
         }
         :hover {
             stroke: ${props => props.theme.settings.delete};
@@ -177,7 +191,7 @@ const AWRow = styled.div`
     h3 {
         font-size: 16px;
         display: inline-block;
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.darkBlue};
         margin: 0;
         text-align: left;
         font-weight: bold;
@@ -188,7 +202,7 @@ const AWRow = styled.div`
     h4 {
         font-size: 16px;
         display: inline-block;
-        color: ${props => props.theme.primary} !important;
+        color: ${props => props.theme.eCashBlue} !important;
         margin: 0;
         text-align: right;
     }
@@ -200,18 +214,21 @@ const AWRow = styled.div`
 
 const StyledConfigure = styled.div`
     h2 {
-        color: ${props => props.theme.wallet.text.primary};
+        color: ${props => props.theme.contrast};
         font-size: 25px;
     }
+    svg {
+        fill: ${props => props.theme.eCashBlue};
+    }
     p {
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.darkBlue};
     }
 `;
 
 const StyledSpacer = styled.div`
     height: 1px;
     width: 100%;
-    background-color: ${props => props.theme.wallet.borders.color};
+    background-color: ${props => props.theme.lightWhite};
     margin: 60px 0 50px;
 `;
 
@@ -219,20 +236,23 @@ const GeneralSettingsItem = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
+    .ant-switch svg {
+        fill: #717171;
+    }
     .title {
-        color: ${props => props.theme.generalSettings.item.title};
+        color: ${props => props.theme.contrast};
     }
     .anticon {
-        color: ${props => props.theme.generalSettings.item.icon};
+        color: ${props => props.theme.contrast};
     }
     .ant-switch {
-        background-color: ${props => props.theme.generalSettings.item.icon};
-        .anticon {
-            color: ${props => props.theme.generalSettings.background};
-        }
+        background-color: #bdbdbd;
     }
     .ant-switch-checked {
-        background-color: ${props => props.theme.primary};
+        background-color: ${props => props.theme.eCashBlue};
+        svg {
+            fill: ${props => props.theme.contrast};
+        }
     }
 `;
 
@@ -477,274 +497,291 @@ const Configure = () => {
     };
 
     return (
-        <StyledConfigure>
-            {walletToBeRenamed !== null && (
-                <Modal
-                    title={`Rename Wallet ${walletToBeRenamed.name}`}
-                    visible={showRenameWalletModal}
-                    onOk={changeWalletName}
-                    onCancel={() => cancelRenameWallet()}
-                >
-                    <AntdFormWrapper>
-                        <Form style={{ width: 'auto' }}>
-                            <Form.Item
-                                validateStatus={
-                                    newWalletNameIsValid === null ||
-                                    newWalletNameIsValid
-                                        ? ''
-                                        : 'error'
-                                }
-                                help={
-                                    newWalletNameIsValid === null ||
-                                    newWalletNameIsValid
-                                        ? ''
-                                        : 'Wallet name must be a string between 1 and 24 characters long'
-                                }
-                            >
-                                <Input
-                                    prefix={<WalletFilled />}
-                                    placeholder="Enter new wallet name"
-                                    name="newName"
-                                    value={newWalletName}
-                                    onChange={e => handleWalletNameInput(e)}
-                                />
-                            </Form.Item>
-                        </Form>
-                    </AntdFormWrapper>
-                </Modal>
-            )}
-            {walletToBeDeleted !== null && (
-                <Modal
-                    title={`Are you sure you want to delete wallet "${walletToBeDeleted.name}"?`}
-                    visible={showDeleteWalletModal}
-                    onOk={deleteSelectedWallet}
-                    onCancel={() => cancelDeleteWallet()}
-                >
-                    <AntdFormWrapper>
-                        <Form style={{ width: 'auto' }}>
-                            <Form.Item
-                                validateStatus={
-                                    walletDeleteValid === null ||
-                                    walletDeleteValid
-                                        ? ''
-                                        : 'error'
-                                }
-                                help={
-                                    walletDeleteValid === null ||
-                                    walletDeleteValid
-                                        ? ''
-                                        : 'Your confirmation phrase must match exactly'
-                                }
-                            >
-                                <Input
-                                    prefix={<WalletFilled />}
-                                    placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
-                                    name="walletToBeDeletedInput"
-                                    value={confirmationOfWalletToBeDeleted}
-                                    onChange={e => handleWalletToDeleteInput(e)}
-                                />
-                            </Form.Item>
-                        </Form>
-                    </AntdFormWrapper>
-                </Modal>
-            )}
-            <h2>
-                <ThemedCopyOutlined /> Backup your wallet
-            </h2>
-            <Alert
-                style={{ marginBottom: '12px' }}
-                description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
-                type="warning"
-                showIcon
-            />
-            {showTranslationWarning && (
+        <SidePaddingCtn>
+            <StyledConfigure>
+                {walletToBeRenamed !== null && (
+                    <Modal
+                        title={`Rename Wallet ${walletToBeRenamed.name}`}
+                        visible={showRenameWalletModal}
+                        onOk={changeWalletName}
+                        onCancel={() => cancelRenameWallet()}
+                    >
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <Form.Item
+                                    validateStatus={
+                                        newWalletNameIsValid === null ||
+                                        newWalletNameIsValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        newWalletNameIsValid === null ||
+                                        newWalletNameIsValid
+                                            ? ''
+                                            : 'Wallet name must be a string between 1 and 24 characters long'
+                                    }
+                                >
+                                    <Input
+                                        prefix={<WalletFilled />}
+                                        placeholder="Enter new wallet name"
+                                        name="newName"
+                                        value={newWalletName}
+                                        onChange={e => handleWalletNameInput(e)}
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </AntdFormWrapper>
+                    </Modal>
+                )}
+                {walletToBeDeleted !== null && (
+                    <Modal
+                        title={`Are you sure you want to delete wallet "${walletToBeDeleted.name}"?`}
+                        visible={showDeleteWalletModal}
+                        onOk={deleteSelectedWallet}
+                        onCancel={() => cancelDeleteWallet()}
+                    >
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <Form.Item
+                                    validateStatus={
+                                        walletDeleteValid === null ||
+                                        walletDeleteValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        walletDeleteValid === null ||
+                                        walletDeleteValid
+                                            ? ''
+                                            : 'Your confirmation phrase must match exactly'
+                                    }
+                                >
+                                    <Input
+                                        prefix={<WalletFilled />}
+                                        placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
+                                        name="walletToBeDeletedInput"
+                                        value={confirmationOfWalletToBeDeleted}
+                                        onChange={e =>
+                                            handleWalletToDeleteInput(e)
+                                        }
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </AntdFormWrapper>
+                    </Modal>
+                )}
+                <h2>
+                    <ThemedCopyOutlined /> Backup your wallet
+                </h2>
                 <Alert
                     style={{ marginBottom: '12px' }}
-                    description="Please do not translate your seed phrase. Store your seed phrase in English. You must re-enter these exact English words to restore your wallet from seed."
+                    description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
                     type="warning"
                     showIcon
                 />
-            )}
-            {wallet && wallet.mnemonic && (
-                <StyledCollapse>
-                    <Panel header="Click to reveal seed phrase" key="1">
-                        <p className="notranslate">
-                            {wallet && wallet.mnemonic ? wallet.mnemonic : ''}
-                        </p>
-                    </Panel>
-                </StyledCollapse>
-            )}
-            <StyledSpacer />
-            <h2>
-                <ThemedWalletOutlined /> Manage Wallets
-            </h2>
-            {apiError ? (
-                <ApiError />
-            ) : (
-                <>
-                    <PrimaryButton onClick={() => updateSavedWalletsOnCreate()}>
-                        <PlusSquareOutlined /> New Wallet
-                    </PrimaryButton>
-                    <SecondaryButton onClick={() => openSeedInput(!seedInput)}>
-                        <ImportOutlined /> Import Wallet
-                    </SecondaryButton>
-                    {seedInput && (
-                        <>
-                            <p>
-                                Copy and paste your mnemonic seed phrase below
-                                to import an existing wallet
-                            </p>
-                            <AntdFormWrapper>
-                                <Form style={{ width: 'auto' }}>
-                                    <Form.Item
-                                        validateStatus={
-                                            isValidMnemonic === null ||
-                                            isValidMnemonic
-                                                ? ''
-                                                : 'error'
-                                        }
-                                        help={
-                                            isValidMnemonic === null ||
-                                            isValidMnemonic
-                                                ? ''
-                                                : 'Valid mnemonic seed phrase required'
-                                        }
-                                    >
-                                        <Input
-                                            prefix={<LockOutlined />}
-                                            type="email"
-                                            placeholder="mnemonic (seed phrase)"
-                                            name="mnemonic"
-                                            autoComplete="off"
-                                            onChange={e => handleChange(e)}
-                                            required
-                                        />
-                                    </Form.Item>
-                                    <SmartButton
-                                        disabled={!isValidMnemonic}
-                                        onClick={() => submit()}
-                                    >
-                                        Import
-                                    </SmartButton>
-                                </Form>
-                            </AntdFormWrapper>
-                        </>
-                    )}
-                </>
-            )}
-            {savedWallets && savedWallets.length > 0 && (
-                <>
+                {showTranslationWarning && (
+                    <Alert
+                        style={{ marginBottom: '12px' }}
+                        description="Please do not translate your seed phrase. Store your seed phrase in English. You must re-enter these exact English words to restore your wallet from seed."
+                        type="warning"
+                        showIcon
+                    />
+                )}
+                {wallet && wallet.mnemonic && (
                     <StyledCollapse>
-                        <Panel header="Saved wallets" key="2">
-                            <AWRow>
-                                <h3 className="notranslate">{wallet.name}</h3>
-                                <h4>Currently active</h4>
-                            </AWRow>
-                            <div>
-                                {savedWallets.map(sw => (
-                                    <SWRow key={sw.name}>
-                                        <SWName>
-                                            <h3 className="overflow notranslate">
-                                                {sw.name}
-                                            </h3>
-                                        </SWName>
-                                        <SWBalance>
-                                            <div className="overflow">
-                                                [
-                                                {sw && sw.state
-                                                    ? formatSavedBalance(
-                                                          sw.state.balances
-                                                              .totalBalance,
-                                                      )
-                                                    : 'N/A'}{' '}
-                                                XEC]
-                                            </div>
-                                        </SWBalance>
-                                        <SWButtonCtn>
-                                            <Edit
-                                                onClick={() =>
-                                                    showPopulatedRenameWalletModal(
-                                                        sw,
-                                                    )
-                                                }
-                                            />
-                                            <Trashcan
-                                                onClick={() =>
-                                                    showPopulatedDeleteWalletModal(
-                                                        sw,
-                                                    )
-                                                }
-                                            />
-                                            <button
-                                                onClick={() =>
-                                                    updateSavedWalletsOnLoad(sw)
-                                                }
-                                            >
-                                                Activate
-                                            </button>
-                                        </SWButtonCtn>
-                                    </SWRow>
-                                ))}
-                            </div>
+                        <Panel header="Click to reveal seed phrase" key="1">
+                            <p
+                                className="notranslate"
+                                style={{ userSelect: 'text' }}
+                            >
+                                {wallet && wallet.mnemonic
+                                    ? wallet.mnemonic
+                                    : ''}
+                            </p>
                         </Panel>
                     </StyledCollapse>
-                </>
-            )}
-            <StyledSpacer />
-            <h2>
-                <ThemedDollarOutlined /> Fiat Currency
-            </h2>
-            <AntdFormWrapper>
-                <CurrencySelectDropdown
-                    defaultValue={
-                        cashtabSettings && cashtabSettings.fiatCurrency
-                            ? cashtabSettings.fiatCurrency
-                            : 'usd'
-                    }
-                    onChange={fiatCode =>
-                        changeCashtabSettings('fiatCurrency', fiatCode)
-                    }
-                />
-            </AntdFormWrapper>
-            <StyledSpacer />
-            <h2>
-                <ThemedSettingOutlined /> General Settings
-            </h2>
-            <GeneralSettingsItem>
-                <div className="title">
-                    <LockFilled /> Lock App
-                </div>
-                {authentication ? (
-                    <Switch
-                        size="small"
-                        checkedChildren={<CheckOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        checked={
-                            authentication.isAuthenticationRequired &&
-                            authentication.credentialId
-                                ? true
-                                : false
-                        }
-                        // checked={false}
-                        onChange={handleAppLockToggle}
-                    />
-                ) : (
-                    <Tag color="warning" icon={<ExclamationCircleFilled />}>
-                        Not Supported
-                    </Tag>
                 )}
-            </GeneralSettingsItem>
-            <StyledSpacer />[
-            <SettingsLink
-                type="link"
-                href="https://docs.cashtab.com/docs/"
-                target="_blank"
-                rel="noreferrer"
-            >
-                Documentation
-            </SettingsLink>
-            ]
-        </StyledConfigure>
+                <StyledSpacer />
+                <h2>
+                    <ThemedWalletOutlined /> Manage Wallets
+                </h2>
+                {apiError ? (
+                    <ApiError />
+                ) : (
+                    <>
+                        <PrimaryButton
+                            onClick={() => updateSavedWalletsOnCreate()}
+                        >
+                            <PlusSquareOutlined /> New Wallet
+                        </PrimaryButton>
+                        <SecondaryButton
+                            onClick={() => openSeedInput(!seedInput)}
+                        >
+                            <ImportOutlined /> Import Wallet
+                        </SecondaryButton>
+                        {seedInput && (
+                            <>
+                                <p style={{ color: '#fff' }}>
+                                    Copy and paste your mnemonic seed phrase
+                                    below to import an existing wallet
+                                </p>
+                                <AntdFormWrapper>
+                                    <Form style={{ width: 'auto' }}>
+                                        <Form.Item
+                                            validateStatus={
+                                                isValidMnemonic === null ||
+                                                isValidMnemonic
+                                                    ? ''
+                                                    : 'error'
+                                            }
+                                            help={
+                                                isValidMnemonic === null ||
+                                                isValidMnemonic
+                                                    ? ''
+                                                    : 'Valid mnemonic seed phrase required'
+                                            }
+                                        >
+                                            <Input
+                                                prefix={<LockOutlined />}
+                                                type="email"
+                                                placeholder="mnemonic (seed phrase)"
+                                                name="mnemonic"
+                                                autoComplete="off"
+                                                onChange={e => handleChange(e)}
+                                                required
+                                            />
+                                        </Form.Item>
+                                        <SmartButton
+                                            disabled={!isValidMnemonic}
+                                            onClick={() => submit()}
+                                        >
+                                            Import
+                                        </SmartButton>
+                                    </Form>
+                                </AntdFormWrapper>
+                            </>
+                        )}
+                    </>
+                )}
+                {savedWallets && savedWallets.length > 0 && (
+                    <>
+                        <StyledCollapse>
+                            <Panel header="Saved wallets" key="2">
+                                <AWRow>
+                                    <h3 className="notranslate">
+                                        {wallet.name}
+                                    </h3>
+                                    <h4>Currently active</h4>
+                                </AWRow>
+                                <div>
+                                    {savedWallets.map(sw => (
+                                        <SWRow key={sw.name}>
+                                            <SWName>
+                                                <h3 className="overflow notranslate">
+                                                    {sw.name}
+                                                </h3>
+                                            </SWName>
+                                            <SWBalance>
+                                                <div className="overflow">
+                                                    [
+                                                    {sw && sw.state
+                                                        ? formatSavedBalance(
+                                                              sw.state.balances
+                                                                  .totalBalance,
+                                                          )
+                                                        : 'N/A'}{' '}
+                                                    XEC]
+                                                </div>
+                                            </SWBalance>
+                                            <SWButtonCtn>
+                                                <Edit
+                                                    onClick={() =>
+                                                        showPopulatedRenameWalletModal(
+                                                            sw,
+                                                        )
+                                                    }
+                                                />
+                                                <Trashcan
+                                                    onClick={() =>
+                                                        showPopulatedDeleteWalletModal(
+                                                            sw,
+                                                        )
+                                                    }
+                                                />
+                                                <button
+                                                    onClick={() =>
+                                                        updateSavedWalletsOnLoad(
+                                                            sw,
+                                                        )
+                                                    }
+                                                >
+                                                    Activate
+                                                </button>
+                                            </SWButtonCtn>
+                                        </SWRow>
+                                    ))}
+                                </div>
+                            </Panel>
+                        </StyledCollapse>
+                    </>
+                )}
+                <StyledSpacer />
+                <h2>
+                    <ThemedDollarOutlined /> Fiat Currency
+                </h2>
+                <AntdFormWrapper>
+                    <CurrencySelectDropdown
+                        defaultValue={
+                            cashtabSettings && cashtabSettings.fiatCurrency
+                                ? cashtabSettings.fiatCurrency
+                                : 'usd'
+                        }
+                        onChange={fiatCode =>
+                            changeCashtabSettings('fiatCurrency', fiatCode)
+                        }
+                    />
+                </AntdFormWrapper>
+                <StyledSpacer />
+                <h2>
+                    <ThemedSettingOutlined /> General Settings
+                </h2>
+                <GeneralSettingsItem>
+                    <div className="title">
+                        <LockFilled /> Lock App
+                    </div>
+                    {authentication ? (
+                        <Switch
+                            size="small"
+                            checkedChildren={<CheckOutlined />}
+                            unCheckedChildren={<CloseOutlined />}
+                            checked={
+                                authentication.isAuthenticationRequired &&
+                                authentication.credentialId
+                                    ? true
+                                    : false
+                            }
+                            // checked={false}
+                            onChange={handleAppLockToggle}
+                        />
+                    ) : (
+                        <Tag color="warning" icon={<ExclamationCircleFilled />}>
+                            Not Supported
+                        </Tag>
+                    )}
+                </GeneralSettingsItem>
+                <StyledSpacer />[
+                <SettingsLink
+                    type="link"
+                    href="https://docs.cashtab.com/docs/"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    Documentation
+                </SettingsLink>
+                ]
+            </StyledConfigure>
+        </SidePaddingCtn>
     );
 };
 

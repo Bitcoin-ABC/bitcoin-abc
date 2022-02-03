@@ -9,7 +9,7 @@ import {
     walletWithBalancesMock,
     walletWithoutBalancesMock,
     walletWithBalancesAndTokensWithCorrectState,
-} from '../../Wallet/__mocks__/walletAndBalancesMock';
+} from '../../Home/__mocks__/walletAndBalancesMock';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 let realUseContext;

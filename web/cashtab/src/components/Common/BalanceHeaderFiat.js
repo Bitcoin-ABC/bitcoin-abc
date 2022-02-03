@@ -7,8 +7,8 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
     return (
         <BalanceHeaderFiatWrap>
             {settings
-                ? `${currency.fiatCurrencies[settings.fiatCurrency].symbol} `
-                : '$ '}
+                ? `${currency.fiatCurrencies[settings.fiatCurrency].symbol}`
+                : '$'}
             {parseFloat((balance * fiatPrice).toFixed(2)).toLocaleString()}{' '}
             {settings
                 ? `${currency.fiatCurrencies[

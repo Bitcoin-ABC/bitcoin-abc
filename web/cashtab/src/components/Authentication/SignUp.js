@@ -8,12 +8,14 @@ import PrimaryButton, {
 } from '@components/Common/PrimaryButton';
 
 const StyledSignUp = styled.div`
+    padding: 0px 30px;
+    margin-top: 20px;
     h2 {
-        color: ${props => props.theme.wallet.text.primary};
+        color: ${props => props.theme.contrast};
         font-size: 25px;
     }
     p {
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.contrast};
     }
 `;
 

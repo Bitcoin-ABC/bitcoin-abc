@@ -8,11 +8,11 @@ import { ReactComponent as FingerprintSVG } from '@assets/fingerprint-solid.svg'
 
 const StyledSignIn = styled.div`
     h2 {
-        color: ${props => props.theme.wallet.text.primary};
+        color: ${props => props.theme.contrast};
         font-size: 25px;
     }
     p {
-        color: ${props => props.theme.wallet.text.secondary};
+        color: ${props => props.theme.darkBlue};
     }
 `;
 

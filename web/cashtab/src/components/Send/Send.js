@@ -40,6 +40,9 @@ import {
     ZeroBalanceHeader,
     ConvertAmount,
     AlertMsg,
+    WalletInfoCtn,
+    SidePaddingCtn,
+    FormLabel,
 } from '@components/Common/Atoms';
 import {
     getWalletState,
@@ -54,29 +57,33 @@ import { TokenParamLabel } from '@components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-
-const StyledSpacer = styled.div`
-    height: 1px;
-    width: 100%;
-    background-color: ${props => props.theme.wallet.borders.color};
-    margin: 60px 0 50px;
-`;
+import WalletLabel from '@components/Common/WalletLabel.js';
 
 const SignMessageLabel = styled.div`
     text-align: left;
-    color: ${props => props.theme.forms.darkLabel};
+    color: ${props => props.theme.forms.text};
 `;
-const RecipientModeLabel = styled.div`
-    color: ${props => props.theme.forms.lightLabel};
-`;
+
 const TextAreaLabel = styled.div`
     text-align: left;
-    color: ${props => props.theme.forms.darkLabel};
+    color: ${props => props.theme.forms.text};
     padding-left: 1px;
 `;
 
+const AmountPreviewCtn = styled.div`
+    margin-top: -30px;
+`;
+
+const SendInputCtn = styled.div`
+    .ant-form-item-with-help {
+        margin-bottom: 32px;
+    }
+`;
+
 const LocaleFormattedValue = styled.h3`
-    color: ${props => props.theme.forms.text};
+    color: ${props => props.theme.contrast};
+    font-weight: bold;
+    margin-bottom: 0;
 `;
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
@@ -623,380 +630,408 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     {currency.ticker} to {formData.address}?
                 </p>
             </Modal>
-            {!balances.totalBalance ? (
-                <ZeroBalanceHeader>
-                    You currently have 0 {currency.ticker}
-                    <br />
-                    Deposit some funds to use this feature
-                </ZeroBalanceHeader>
-            ) : (
-                <>
-                    <BalanceHeader
-                        balance={balances.totalBalance}
-                        ticker={currency.ticker}
-                    />
-                    {fiatPrice !== null && (
-                        <BalanceHeaderFiat
+            <WalletInfoCtn>
+                <WalletLabel name={wallet.name}></WalletLabel>
+                {!balances.totalBalance ? (
+                    <ZeroBalanceHeader>
+                        You currently have 0 {currency.ticker}
+                        <br />
+                        Deposit some funds to use this feature
+                    </ZeroBalanceHeader>
+                ) : (
+                    <>
+                        <BalanceHeader
                             balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
+                            ticker={currency.ticker}
                         />
-                    )}
-                </>
-            )}
-
-            <Row type="flex">
-                <Col span={24}>
-                    <Form
-                        style={{
-                            width: 'auto',
-                        }}
-                    >
-                        {!isOneToManyXECSend ? (
-                            <>
-                                <Button
-                                    type="text"
-                                    block
-                                    onClick={() => setIsOneToManyXECSend(true)}
-                                >
-                                    <RecipientModeLabel>
-                                        Switch to multiple recipients
-                                    </RecipientModeLabel>
-                                </Button>
-                                <DestinationAddressSingle
-                                    loadWithCameraOpen={scannerSupported}
-                                    validateStatus={
-                                        sendBchAddressError ? 'error' : ''
-                                    }
-                                    help={
-                                        sendBchAddressError
-                                            ? sendBchAddressError
-                                            : ''
-                                    }
-                                    onScan={result =>
-                                        handleAddressChange({
-                                            target: {
-                                                name: 'address',
-                                                value: result,
-                                            },
-                                        })
-                                    }
-                                    inputProps={{
-                                        placeholder: `${currency.ticker} Address`,
-                                        name: 'address',
-                                        onChange: e => handleAddressChange(e),
-                                        required: true,
-                                        value: formData.address,
-                                    }}
-                                ></DestinationAddressSingle>
-                                <SendBchInput
-                                    activeFiatCode={
-                                        cashtabSettings &&
-                                        cashtabSettings.fiatCurrency
-                                            ? cashtabSettings.fiatCurrency.toUpperCase()
-                                            : 'USD'
-                                    }
-                                    validateStatus={
-                                        sendBchAmountError ? 'error' : ''
-                                    }
-                                    help={
-                                        sendBchAmountError
-                                            ? sendBchAmountError
-                                            : ''
-                                    }
-                                    onMax={onMax}
-                                    inputProps={{
-                                        name: 'value',
-                                        dollar:
-                                            selectedCurrency === 'USD' ? 1 : 0,
-                                        placeholder: 'Amount',
-                                        onChange: e => handleBchAmountChange(e),
-                                        required: true,
-                                        value: formData.value,
-                                    }}
-                                    selectProps={{
-                                        value: selectedCurrency,
-                                        disabled: queryStringText !== null,
-                                        onChange: e =>
-                                            handleSelectedCurrencyChange(e),
-                                    }}
-                                ></SendBchInput>
-                                {priceApiError && (
-                                    <AlertMsg>
-                                        Error fetching fiat price. Setting send
-                                        by{' '}
-                                        {currency.fiatCurrencies[
-                                            cashtabSettings.fiatCurrency
-                                        ].slug.toUpperCase()}{' '}
-                                        disabled
-                                    </AlertMsg>
-                                )}
-                                <LocaleFormattedValue>
-                                    {formatBalance(formData.value, userLocale)}{' '}
-                                    {selectedCurrency}
-                                </LocaleFormattedValue>
-                                <ConvertAmount>
-                                    {fiatPriceString !== '' && '='}{' '}
-                                    {fiatPriceString}
-                                </ConvertAmount>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    type="text"
-                                    block
-                                    onClick={() => setIsOneToManyXECSend(false)}
-                                >
-                                    <RecipientModeLabel>
-                                        Switch to a single recipient
-                                    </RecipientModeLabel>
-                                </Button>
-                                <DestinationAddressMulti
-                                    validateStatus={
-                                        sendBchAddressError ? 'error' : ''
-                                    }
-                                    help={
-                                        sendBchAddressError
-                                            ? sendBchAddressError
-                                            : ''
-                                    }
-                                    inputProps={{
-                                        placeholder: `One XEC address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
-                                        name: 'address',
-                                        onChange: e =>
-                                            handleMultiAddressChange(e),
-                                        required: true,
-                                        value: formData.address,
-                                    }}
-                                ></DestinationAddressMulti>
-                            </>
+                        {fiatPrice !== null && (
+                            <BalanceHeaderFiat
+                                balance={balances.totalBalance}
+                                settings={cashtabSettings}
+                                fiatPrice={fiatPrice}
+                            />
                         )}
-                        <div
+                    </>
+                )}
+            </WalletInfoCtn>
+            <SidePaddingCtn>
+                <Row type="flex">
+                    <Col span={24}>
+                        <Form
                             style={{
-                                paddingTop: '32px',
+                                width: 'auto',
+                                marginTop: '40px',
                             }}
                         >
-                            <AdvancedCollapse
-                                style={{
-                                    marginBottom: '24px',
-                                }}
-                                defaultActiveKey={
-                                    location &&
-                                    location.state &&
-                                    location.state.replyAddress
-                                        ? ['1']
-                                        : ['0']
-                                }
-                            >
-                                <Panel header="Advanced" key="1">
-                                    <AntdFormWrapper
-                                        style={{
-                                            marginBottom: '20px',
+                            {!isOneToManyXECSend ? (
+                                <SendInputCtn>
+                                    <FormLabel>Send to</FormLabel>
+                                    <DestinationAddressSingle
+                                        style={{ marginBottom: '0px' }}
+                                        loadWithCameraOpen={scannerSupported}
+                                        validateStatus={
+                                            sendBchAddressError ? 'error' : ''
+                                        }
+                                        help={
+                                            sendBchAddressError
+                                                ? sendBchAddressError
+                                                : ''
+                                        }
+                                        onScan={result =>
+                                            handleAddressChange({
+                                                target: {
+                                                    name: 'address',
+                                                    value: result,
+                                                },
+                                            })
+                                        }
+                                        inputProps={{
+                                            placeholder: `${currency.ticker} Address`,
+                                            name: 'address',
+                                            onChange: e =>
+                                                handleAddressChange(e),
+                                            required: true,
+                                            value: formData.address,
                                         }}
-                                    >
-                                        <TextAreaLabel>
-                                            Message:&nbsp;&nbsp;
-                                            {!isOneToManyXECSend ? (
+                                    ></DestinationAddressSingle>
+                                    <FormLabel>Amount</FormLabel>
+                                    <SendBchInput
+                                        activeFiatCode={
+                                            cashtabSettings &&
+                                            cashtabSettings.fiatCurrency
+                                                ? cashtabSettings.fiatCurrency.toUpperCase()
+                                                : 'USD'
+                                        }
+                                        validateStatus={
+                                            sendBchAmountError ? 'error' : ''
+                                        }
+                                        help={
+                                            sendBchAmountError
+                                                ? sendBchAmountError
+                                                : ''
+                                        }
+                                        onMax={onMax}
+                                        inputProps={{
+                                            name: 'value',
+                                            dollar:
+                                                selectedCurrency === 'USD'
+                                                    ? 1
+                                                    : 0,
+                                            placeholder: 'Amount',
+                                            onChange: e =>
+                                                handleBchAmountChange(e),
+                                            required: true,
+                                            value: formData.value,
+                                        }}
+                                        selectProps={{
+                                            value: selectedCurrency,
+                                            disabled: queryStringText !== null,
+                                            onChange: e =>
+                                                handleSelectedCurrencyChange(e),
+                                        }}
+                                    ></SendBchInput>
+                                    {priceApiError && (
+                                        <AlertMsg>
+                                            Error fetching fiat price. Setting
+                                            send by{' '}
+                                            {currency.fiatCurrencies[
+                                                cashtabSettings.fiatCurrency
+                                            ].slug.toUpperCase()}{' '}
+                                            disabled
+                                        </AlertMsg>
+                                    )}
+                                </SendInputCtn>
+                            ) : (
+                                <>
+                                    <FormLabel>Send to</FormLabel>
+                                    <DestinationAddressMulti
+                                        validateStatus={
+                                            sendBchAddressError ? 'error' : ''
+                                        }
+                                        help={
+                                            sendBchAddressError
+                                                ? sendBchAddressError
+                                                : ''
+                                        }
+                                        inputProps={{
+                                            placeholder: `One XEC address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
+                                            name: 'address',
+                                            onChange: e =>
+                                                handleMultiAddressChange(e),
+                                            required: true,
+                                            value: formData.address,
+                                        }}
+                                    ></DestinationAddressMulti>
+                                </>
+                            )}
+                            {!isOneToManyXECSend && (
+                                <AmountPreviewCtn>
+                                    <LocaleFormattedValue>
+                                        {formatBalance(
+                                            formData.value,
+                                            userLocale,
+                                        )}{' '}
+                                        {selectedCurrency}
+                                    </LocaleFormattedValue>
+                                    <ConvertAmount>
+                                        {fiatPriceString !== '' && '='}{' '}
+                                        {fiatPriceString}
+                                    </ConvertAmount>
+                                </AmountPreviewCtn>
+                            )}
+                            <div
+                                style={{
+                                    paddingTop: '12px',
+                                }}
+                            >
+                                {!balances.totalBalance ||
+                                apiError ||
+                                sendBchAmountError ||
+                                sendBchAddressError ? (
+                                    <SecondaryButton>Send</SecondaryButton>
+                                ) : (
+                                    <>
+                                        {txInfoFromUrl ? (
+                                            <PrimaryButton
+                                                onClick={() => showModal()}
+                                            >
+                                                Send
+                                            </PrimaryButton>
+                                        ) : (
+                                            <PrimaryButton
+                                                onClick={() => {
+                                                    send();
+                                                }}
+                                            >
+                                                Send
+                                            </PrimaryButton>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            <div>
+                                <AdvancedCollapse
+                                    style={{
+                                        marginBottom: '12px',
+                                    }}
+                                    defaultActiveKey={
+                                        location &&
+                                        location.state &&
+                                        location.state.replyAddress
+                                            ? ['1']
+                                            : ['0']
+                                    }
+                                >
+                                    <Panel header="Advanced" key="1">
+                                        <AntdFormWrapper
+                                            style={{
+                                                marginBottom: '20px',
+                                            }}
+                                        >
+                                            <TextAreaLabel>
+                                                Multiple Recipients:&nbsp;&nbsp;
                                                 <Switch
+                                                    defaultunchecked="true"
+                                                    checked={isOneToManyXECSend}
+                                                    onChange={() => {
+                                                        setIsOneToManyXECSend(
+                                                            !isOneToManyXECSend,
+                                                        );
+                                                        setIsEncryptedOptionalOpReturnMsg(
+                                                            false,
+                                                        );
+                                                    }}
+                                                    style={{
+                                                        marginBottom: '7px',
+                                                    }}
+                                                />
+                                            </TextAreaLabel>
+                                            <TextAreaLabel>
+                                                Message:&nbsp;&nbsp;
+                                                <Switch
+                                                    disabled={
+                                                        isOneToManyXECSend
+                                                    }
+                                                    style={{
+                                                        marginBottom: '7px',
+                                                    }}
                                                     checkedChildren="Private"
                                                     unCheckedChildren="Public"
                                                     defaultunchecked="true"
                                                     checked={
                                                         isEncryptedOptionalOpReturnMsg
                                                     }
-                                                    onChange={() =>
+                                                    onChange={() => {
                                                         setIsEncryptedOptionalOpReturnMsg(
                                                             prev => !prev,
-                                                        )
-                                                    }
-                                                    style={{
-                                                        marginBottom: '7px',
+                                                        );
+                                                        setIsOneToManyXECSend(
+                                                            false,
+                                                        );
                                                     }}
                                                 />
+                                            </TextAreaLabel>
+                                            {isEncryptedOptionalOpReturnMsg ? (
+                                                <Alert
+                                                    style={{
+                                                        marginBottom: '10px',
+                                                    }}
+                                                    description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
+                                                    type="warning"
+                                                    showIcon
+                                                />
                                             ) : (
-                                                ''
+                                                <Alert
+                                                    style={{
+                                                        marginBottom: '10px',
+                                                    }}
+                                                    description="Please note this message will be public."
+                                                    type="warning"
+                                                    showIcon
+                                                />
                                             )}
-                                        </TextAreaLabel>
-                                        {isEncryptedOptionalOpReturnMsg ? (
-                                            <Alert
-                                                style={{
-                                                    marginBottom: '10px',
-                                                }}
-                                                description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
-                                                type="warning"
-                                                showIcon
+                                            <TextArea
+                                                name="opReturnMsg"
+                                                placeholder={
+                                                    isEncryptedOptionalOpReturnMsg
+                                                        ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                                        : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
+                                                }
+                                                value={
+                                                    opReturnMsg
+                                                        ? isEncryptedOptionalOpReturnMsg
+                                                            ? opReturnMsg.substring(
+                                                                  0,
+                                                                  currency
+                                                                      .opReturn
+                                                                      .encryptedMsgCharLimit +
+                                                                      1,
+                                                              )
+                                                            : opReturnMsg
+                                                        : ''
+                                                }
+                                                onChange={e =>
+                                                    setOpReturnMsg(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                showCount
+                                                maxLength={
+                                                    isEncryptedOptionalOpReturnMsg
+                                                        ? currency.opReturn
+                                                              .encryptedMsgCharLimit
+                                                        : currency.opReturn
+                                                              .unencryptedMsgCharLimit
+                                                }
+                                                onKeyDown={e =>
+                                                    e.keyCode == 13
+                                                        ? e.preventDefault()
+                                                        : ''
+                                                }
                                             />
-                                        ) : (
-                                            <Alert
-                                                style={{
-                                                    marginBottom: '10px',
-                                                }}
-                                                description="Please note this message will be public."
-                                                type="warning"
-                                                showIcon
-                                            />
-                                        )}
-                                        <TextArea
-                                            name="opReturnMsg"
-                                            placeholder={
-                                                isEncryptedOptionalOpReturnMsg
-                                                    ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
-                                                    : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
-                                            }
-                                            value={
-                                                opReturnMsg
-                                                    ? isEncryptedOptionalOpReturnMsg
-                                                        ? opReturnMsg.substring(
-                                                              0,
-                                                              currency.opReturn
-                                                                  .encryptedMsgCharLimit +
-                                                                  1,
-                                                          )
-                                                        : opReturnMsg
-                                                    : ''
-                                            }
-                                            onChange={e =>
-                                                setOpReturnMsg(e.target.value)
-                                            }
-                                            showCount
-                                            maxLength={
-                                                isEncryptedOptionalOpReturnMsg
-                                                    ? currency.opReturn
-                                                          .encryptedMsgCharLimit
-                                                    : currency.opReturn
-                                                          .unencryptedMsgCharLimit
-                                            }
-                                            onKeyDown={e =>
-                                                e.keyCode == 13
-                                                    ? e.preventDefault()
-                                                    : ''
-                                            }
-                                        />
-                                    </AntdFormWrapper>
-                                </Panel>
-                            </AdvancedCollapse>
-                        </div>
-                        <div
-                            style={{
-                                paddingTop: '12px',
-                            }}
-                        >
-                            {!balances.totalBalance ||
-                            apiError ||
-                            sendBchAmountError ||
-                            sendBchAddressError ? (
-                                <SecondaryButton>Send</SecondaryButton>
-                            ) : (
-                                <>
-                                    {txInfoFromUrl ? (
-                                        <PrimaryButton
-                                            onClick={() => showModal()}
-                                        >
-                                            Send
-                                        </PrimaryButton>
-                                    ) : (
-                                        <PrimaryButton
-                                            onClick={() => {
-                                                send();
-                                            }}
-                                        >
-                                            Send
-                                        </PrimaryButton>
-                                    )}
-                                </>
+                                        </AntdFormWrapper>
+                                    </Panel>
+                                </AdvancedCollapse>
+                            </div>
+                            {queryStringText && (
+                                <Alert
+                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
+                                    type="warning"
+                                />
                             )}
-                        </div>
-                        {queryStringText && (
-                            <Alert
-                                message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
-                                type="warning"
-                            />
-                        )}
-                        {apiError && <ApiError />}
-                    </Form>
-                </Col>
-            </Row>
-            <StyledSpacer>Signatures</StyledSpacer>
-            <Modal
-                title={`Please review and confirm your message to be signed using this wallet.`}
-                visible={showConfirmMsgToSign}
-                onOk={signMessageByPk}
-                onCancel={() => setShowConfirmMsgToSign(false)}
-            >
-                <TokenParamLabel>Message:</TokenParamLabel> {msgToSign}
-                <br />
-            </Modal>
-            <AdvancedCollapse
-                style={{
-                    marginBottom: '24px',
-                }}
-            >
-                <Panel header="Sign Message" key="1">
-                    <AntdFormWrapper>
-                        <Form
-                            size="small"
-                            style={{
-                                width: 'auto',
-                            }}
-                        >
-                            <Form.Item>
-                                <SignMessageLabel>Message:</SignMessageLabel>
-                                <TextArea
-                                    name="signMessage"
-                                    onChange={e => handleSignMsgChange(e)}
-                                    showCount
-                                    maxLength={150}
-                                />
-                            </Form.Item>
-                            <Form.Item>
-                                <SignMessageLabel>Address:</SignMessageLabel>
-                                <Input
-                                    name="signMessageAddress"
-                                    disabled={true}
-                                    value={
-                                        wallet &&
-                                        wallet.Path1899 &&
-                                        wallet.Path1899.cashAddress
-                                            ? convertToEcashPrefix(
-                                                  wallet.Path1899.cashAddress,
-                                              )
-                                            : ''
-                                    }
-                                />
-                            </Form.Item>
-                            <SmartButton
-                                onClick={() => setShowConfirmMsgToSign(true)}
-                                disabled={!signMessageIsValid}
-                            >
-                                <PlusSquareOutlined />
-                                &nbsp;Sign Message
-                            </SmartButton>
-                            <CopyToClipboard
+                            {apiError && <ApiError />}
+                        </Form>
+                    </Col>
+                </Row>
+
+                <Modal
+                    title={`Please review and confirm your message to be signed using this wallet.`}
+                    visible={showConfirmMsgToSign}
+                    onOk={signMessageByPk}
+                    onCancel={() => setShowConfirmMsgToSign(false)}
+                >
+                    <TokenParamLabel>Message:</TokenParamLabel> {msgToSign}
+                    <br />
+                </Modal>
+                <AdvancedCollapse
+                    style={{
+                        marginBottom: '24px',
+                    }}
+                >
+                    <Panel header="Sign Message" key="1">
+                        <AntdFormWrapper>
+                            <Form
+                                size="small"
                                 style={{
-                                    display: 'inline-block',
-                                    width: '100%',
-                                    position: 'relative',
+                                    width: 'auto',
                                 }}
-                                text={messageSignature}
                             >
                                 <Form.Item>
                                     <SignMessageLabel>
-                                        Signature:
+                                        Message:
                                     </SignMessageLabel>
                                     <TextArea
-                                        name="signMessageSignature"
-                                        placeholder="The signature will be generated upon signing of the message"
-                                        readOnly={true}
-                                        value={messageSignature}
-                                        onClick={() => handleOnSigCopy()}
+                                        name="signMessage"
+                                        onChange={e => handleSignMsgChange(e)}
+                                        showCount
+                                        maxLength={150}
                                     />
                                 </Form.Item>
-                            </CopyToClipboard>
-                            {sigCopySuccess}
-                        </Form>
-                    </AntdFormWrapper>
-                </Panel>
-            </AdvancedCollapse>
+                                <Form.Item>
+                                    <SignMessageLabel>
+                                        Address:
+                                    </SignMessageLabel>
+                                    <Input
+                                        name="signMessageAddress"
+                                        disabled={true}
+                                        value={
+                                            wallet &&
+                                            wallet.Path1899 &&
+                                            wallet.Path1899.cashAddress
+                                                ? convertToEcashPrefix(
+                                                      wallet.Path1899
+                                                          .cashAddress,
+                                                  )
+                                                : ''
+                                        }
+                                    />
+                                </Form.Item>
+                                <SmartButton
+                                    onClick={() =>
+                                        setShowConfirmMsgToSign(true)
+                                    }
+                                    disabled={!signMessageIsValid}
+                                >
+                                    <PlusSquareOutlined />
+                                    &nbsp;Sign Message
+                                </SmartButton>
+                                <CopyToClipboard
+                                    style={{
+                                        display: 'inline-block',
+                                        width: '100%',
+                                        position: 'relative',
+                                    }}
+                                    text={messageSignature}
+                                >
+                                    <Form.Item>
+                                        <SignMessageLabel>
+                                            Signature:
+                                        </SignMessageLabel>
+                                        <TextArea
+                                            name="signMessageSignature"
+                                            placeholder="The signature will be generated upon signing of the message"
+                                            readOnly={true}
+                                            value={messageSignature}
+                                            onClick={() => handleOnSigCopy()}
+                                        />
+                                    </Form.Item>
+                                </CopyToClipboard>
+                                {sigCopySuccess}
+                            </Form>
+                        </AntdFormWrapper>
+                    </Panel>
+                </AdvancedCollapse>
+            </SidePaddingCtn>
         </>
     );
 };

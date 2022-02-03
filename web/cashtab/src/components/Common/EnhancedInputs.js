@@ -27,7 +27,7 @@ export const AntdFormCss = css`
         font-weight: bold;
         color: ${props => props.theme.forms.text};
         opacity: 1;
-        height: 50px;
+        height: 45px;
     }
     textarea.ant-input,
     .ant-select-selection {
@@ -43,11 +43,18 @@ export const AntdFormCss = css`
     }
     .ant-input-affix-wrapper {
         background-color: ${props => props.theme.forms.selectionBackground};
-        border: 1px solid ${props => props.theme.wallet.borders.color} !important;
+        border: 1px solid ${props => props.theme.forms.border} !important;
+    }
+    .ant-input-wrapper .anticon-qrcode {
+        color: ${props => props.theme.forms.addonForeground} !important;
+    }
+    input.ant-input::placeholder,
+    .ant-select-selection::placeholder {
+        color: ${props => props.theme.forms.placeholder} !important;
     }
     .ant-select-selector {
-        height: 60px !important;
-        border: 1px solid ${props => props.theme.wallet.borders.color} !important;
+        height: 55px !important;
+        border: 1px solid ${props => props.theme.forms.border} !important;
         background-color: ${props =>
             props.theme.forms.selectionBackground}!important;
     }
@@ -60,6 +67,10 @@ export const AntdFormCss = css`
         > span.ant-input-affix-wrapper {
         background-color: ${props => props.theme.forms.selectionBackground};
         border-color: ${props => props.theme.forms.error} !important;
+    }
+
+    .ant-input:hover {
+        border-color: ${props => props.theme.forms.highlightBox};
     }
 
     .ant-form-item-has-error .ant-input,
@@ -78,7 +89,7 @@ export const AntdFormCss = css`
     }
     .ant-select-single .ant-select-selector .ant-select-selection-item,
     .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
-        line-height: 60px;
+        line-height: 55px;
         text-align: left;
         color: ${props => props.theme.forms.text};
         font-weight: bold;
@@ -197,8 +208,8 @@ export const SendBchInput = ({
                     <InputNumberAddonText
                         style={{
                             width: '10%',
-                            height: '60px',
-                            lineHeight: '60px',
+                            height: '55px',
+                            lineHeight: '55px',
                         }}
                         disabled={!!(inputProps || {}).disabled}
                         onClick={!(inputProps || {}).disabled && onMax}
@@ -289,6 +300,7 @@ export const DestinationAddressMulti = ({ inputProps, ...otherProps }) => {
         <AntdFormWrapper>
             <Form.Item {...otherProps}>
                 <TextArea
+                    style={{ height: '189px' }}
                     prefix={<ThemedWalletOutlined />}
                     autoComplete="off"
                     {...inputProps}

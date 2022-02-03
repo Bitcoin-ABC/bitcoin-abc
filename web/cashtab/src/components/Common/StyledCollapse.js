@@ -6,7 +6,6 @@ export const StyledCollapse = styled(Collapse)`
     border: 1px solid ${props => props.theme.collapses.border} !important;
 
     .ant-collapse-content {
-        border: 1px solid ${props => props.theme.collapses.border};
         border-top: none;
         background-color: ${props =>
             props.theme.collapses.expandedBackground} !important;
@@ -39,7 +38,7 @@ export const TokenCollapse = styled(Collapse)`
            }
             `
             : `
-                background: ${props.theme.primary} !important;
+                background: ${props.theme.eCashBlue} !important;
            .ant-collapse-header {
                font-size: 18px;
                font-weight: bold;
@@ -55,6 +54,10 @@ export const TokenCollapse = styled(Collapse)`
 `;
 
 export const AdvancedCollapse = styled(Collapse)`
+    .ant-collapse-content {
+        background-color: ${props =>
+            props.theme.advancedCollapse.expandedBackground} !important;
+    }
     ${({ disabled = false, ...props }) =>
         disabled === true
             ? `
@@ -72,17 +75,18 @@ export const AdvancedCollapse = styled(Collapse)`
            }
             `
             : `
-                background: ${props.theme.primary} !important;
+                background: ${props.theme.advancedCollapse.background} !important;
            .ant-collapse-header {
                font-size: 18px;
                font-weight: bold;
-               color: ${props.theme.contrast} !important;
+               color: ${props.theme.advancedCollapse.color} !important;
                svg {
-                   color: ${props.theme.contrast} !important;
+                   color: ${props.theme.advancedCollapse.icon} !important;
                }
            }
            .ant-collapse-arrow {
                font-size: 18px;
            }
+        
             `}
 `;

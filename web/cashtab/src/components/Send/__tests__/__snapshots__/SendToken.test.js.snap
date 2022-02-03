@@ -3,61 +3,16 @@
 exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
-Array [
+<div
+  className="sc-kAzzGY fEGWQF"
+>
   <div
-    className="sc-cSHVUG lalYdv"
+    className="sc-kpOJdX gdszRG"
   >
     6.001
      
     TBS
-  </div>,
-  <div>
-    <div
-      className="ant-alert ant-alert-warning ant-alert-with-description"
-      data-show={true}
-      role="alert"
-      style={
-        Object {
-          "marginBottom": "12px",
-        }
-      }
-    >
-      <span
-        aria-label="exclamation-circle"
-        className="anticon anticon-exclamation-circle ant-alert-icon"
-        role="img"
-      >
-        <svg
-          aria-hidden="true"
-          data-icon="exclamation-circle"
-          fill="currentColor"
-          focusable="false"
-          height="1em"
-          viewBox="64 64 896 896"
-          width="1em"
-        >
-          <path
-            d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"
-          />
-          <path
-            d="M464 688a48 48 0 1096 0 48 48 0 10-96 0zm24-112h48c4.4 0 8-3.6 8-8V296c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8z"
-          />
-        </svg>
-      </span>
-      <div
-        className="ant-alert-content"
-      >
-        <div
-          className="ant-alert-message"
-        />
-        <div
-          className="ant-alert-description"
-        >
-          If you would like to request an icon for an eToken that has already been created, please email icons@e.cash.
-        </div>
-      </div>
-    </div>
-  </div>,
+  </div>
   <div
     className="ant-row"
     style={Object {}}
@@ -78,7 +33,7 @@ Array [
         }
       >
         <div
-          className="sc-VigVT hchaxg"
+          className="sc-jTzLTM kkbCRG"
         >
           <div
             className="ant-row ant-form-item"
@@ -110,7 +65,7 @@ Array [
                         >
                           <span
                             aria-label="wallet"
-                            className="anticon anticon-wallet sc-htpNat fLtATP"
+                            className="anticon anticon-wallet sc-htpNat lgbLiL"
                             role="img"
                           >
                             <svg
@@ -147,12 +102,12 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-iwsKbI cVxKUE"
+                          className="sc-gZMcBi kJTcOr"
                           onClick={[Function]}
                         >
                           <span
                             aria-label="qrcode"
-                            className="anticon anticon-qrcode sc-bxivhb ctLIog"
+                            className="anticon anticon-qrcode sc-bxivhb dlJbAr"
                             role="img"
                           >
                             <svg
@@ -188,7 +143,7 @@ Array [
           </div>
         </div>
         <div
-          className="sc-VigVT hchaxg"
+          className="sc-jTzLTM kkbCRG"
         >
           <div
             className="ant-row ant-form-item"
@@ -242,7 +197,7 @@ Array [
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-jTzLTM PEluH"
+                          className="sc-fjdhpX bknjZP"
                           disabled={false}
                           onClick={[Function]}
                         >
@@ -273,7 +228,7 @@ Array [
           }
         >
           <button
-            className="sc-gzVnrw wXhZP"
+            className="sc-htoDjs YWbja"
             onClick={[Function]}
           >
             Send 
@@ -282,8 +237,8 @@ Array [
         </div>
       </form>
     </div>
-  </div>,
-]
+  </div>
+</div>
 `;
 
 exports[`Without wallet defined 1`] = `null`;

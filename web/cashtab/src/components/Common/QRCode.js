@@ -8,16 +8,15 @@ import { convertToEcashPrefix } from '@utils/cashMethods';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
-    border-radius: 26px;
+    border-radius: 10px;
     background: ${props => props.theme.qr.background};
-    box-shadow: ${props => props.theme.qr.shadow};
     margin-bottom: 10px;
     path:first-child {
         fill: ${props => props.theme.qr.background};
     }
     :hover {
         border-color: ${({ xec = 0, ...props }) =>
-            xec === 1 ? props.theme.primary : props.theme.qr.token};
+            xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
     }
     @media (max-width: 768px) {
         border-radius: 18px;
@@ -32,12 +31,10 @@ const Copied = styled.div`
     width: 100%;
     text-align: center;
     background-color: ${({ xec = 0, ...props }) =>
-        xec === 1 ? props.theme.primary : props.theme.qr.token};
+        xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
     border: 1px solid;
     border-color: ${({ xec = 0, ...props }) =>
-        xec === 1
-            ? props.theme.qr.copyBorderCash
-            : props.theme.qr.copyBorderToken};
+        xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
     color: ${props => props.theme.contrast};
     position: absolute;
     top: 65px;
@@ -49,8 +46,9 @@ const Copied = styled.div`
 `;
 const PrefixLabel = styled.span`
     text-align: right;
-    font-size: 14px;
     font-weight: bold;
+    color: ${({ xec = 0, ...props }) =>
+        xec === 1 ? props.theme.eCashBlue : props.theme.eCashPurple};
     @media (max-width: 768px) {
         font-size: 12px;
     }
@@ -66,7 +64,7 @@ const PrefixLabel = styled.span`
 `;
 const AddressHighlightTrim = styled.span`
     font-weight: bold;
-    font-size: 14px;
+    color: ${props => props.theme.contrast};
     @media (max-width: 768px) {
         font-size: 12px;
     }
@@ -82,14 +80,11 @@ const AddressHighlightTrim = styled.span`
 `;
 
 const CustomInput = styled.div`
-    font-size: 12px;
-    color: ${({ xec = 0, ...props }) =>
-        xec === 1
-            ? props.theme.wallet.text.secondary
-            : props.theme.brandSecondary};
+    font-size: 14px;
+    color: ${props => props.theme.lightWhite};
     text-align: center;
     cursor: pointer;
-    margin-bottom: 0px;
+    margin-bottom: 10px;
     padding: 6px 0;
     font-family: 'Roboto Mono', monospace;
     border-radius: 5px;
@@ -109,7 +104,7 @@ const CustomInput = styled.div`
         -ms-user-select: none;
         user-select: none;
         cursor: pointer;
-        color: ${props => props.theme.wallet.text.primary};
+        color: ${props => props.theme.contrast};
         padding: 10px 0;
         background: transparent;
         margin-bottom: 15px;
@@ -120,7 +115,7 @@ const CustomInput = styled.div`
     }
     input::selection {
         background: transparent;
-        color: ${props => props.theme.wallet.text.primary};
+        color: ${props => props.theme.contrast};
     }
     @media (max-width: 768px) {
         font-size: 10px;
@@ -220,10 +215,7 @@ export const QRCode = ({
                 />
 
                 {address && (
-                    <CustomInput
-                        className="notranslate"
-                        xec={address && isCashAddress ? 1 : 0}
-                    >
+                    <CustomInput className="notranslate">
                         <input
                             ref={txtRef}
                             readOnly
@@ -231,7 +223,7 @@ export const QRCode = ({
                             spellCheck="false"
                             type="text"
                         />
-                        <PrefixLabel>
+                        <PrefixLabel xec={address && isCashAddress ? 1 : 0}>
                             {address.slice(0, prefixLength)}
                         </PrefixLabel>
                         <AddressHighlightTrim>

@@ -3,27 +3,51 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {
-    ArrowUpOutlined,
-    ArrowDownOutlined,
-    ExperimentOutlined,
-    ExclamationOutlined,
-} from '@ant-design/icons';
+    SendIcon,
+    ReceiveIcon,
+    GenesisIcon,
+    UnparsedIcon,
+} from '@components/Common/CustomIcons';
 import { currency } from '@components/Common/Ticker';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { fromLegacyDecimals } from '@utils/cashMethods';
 import { formatBalance, formatDate } from '@utils/formatting';
-const SentTx = styled(ArrowUpOutlined)`
-    color: ${props => props.theme.secondary} !important;
+
+const TxIcon = styled.div`
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+    height: 40px;
+    width: 40px;
+    border: 1px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
 `;
-const ReceivedTx = styled(ArrowDownOutlined)`
-    color: ${props => props.theme.primary} !important;
+
+const SentTx = styled(TxIcon)`
+    svg {
+        margin-right: -3px;
+    }
+    fill: ${props => props.theme.contrast};
 `;
-const GenesisTx = styled(ExperimentOutlined)`
-    color: ${props => props.theme.primary} !important;
+const ReceivedTx = styled(TxIcon)`
+    svg {
+        fill: ${props => props.theme.eCashBlue};
+    }
+    border-color: ${props => props.theme.eCashBlue};
 `;
-const UnparsedTx = styled(ExclamationOutlined)`
-    color: ${props => props.theme.primary} !important;
+const GenesisTx = styled(TxIcon)`
+    border-color: ${props => props.theme.genesisGreen};
+    svg {
+        fill: ${props => props.theme.genesisGreen};
+    }
+`;
+const UnparsedTx = styled(TxIcon)`
+    color: ${props => props.theme.eCashBlue} !important;
 `;
 const DateType = styled.div`
     text-align: left;
@@ -32,24 +56,97 @@ const DateType = styled.div`
         font-size: 0.8rem;
     }
 `;
-const OpReturnType = styled.span`
+
+const LeftTextCtn = styled.div`
     text-align: left;
-    width: 300%;
-    max-height: 200px;
-    padding: 3px;
-    margin: auto;
-    word-break: break-word;
-    padding-left: 13px;
-    padding-right: 30px;
-    /* invisible scrollbar */
-    overflow: hidden;
-    height: 100%;
-    margin-right: -50px; /* Maximum width of scrollbar */
-    padding-right: 50px; /* Maximum width of scrollbar */
-    overflow-y: scroll;
-    ::-webkit-scrollbar {
-        display: none;
+    display: flex;
+    align-items: left;
+    flex-direction: column;
+    margin-left: 10px;
+    h3 {
+        color: ${props => props.theme.contrast};
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0;
     }
+    .genesis {
+        color: ${props => props.theme.genesisGreen};
+    }
+    .received {
+        color: ${props => props.theme.eCashBlue};
+    }
+    h4 {
+        font-size: 12px;
+        color: ${props => props.theme.lightWhite};
+        margin: 0;
+    }
+`;
+
+const RightTextCtn = styled.div`
+    text-align: right;
+    display: flex;
+    align-items: left;
+    flex-direction: column;
+    margin-left: 10px;
+    h3 {
+        color: ${props => props.theme.contrast};
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0;
+    }
+    .genesis {
+        color: ${props => props.theme.genesisGreen};
+    }
+    .received {
+        color: ${props => props.theme.eCashBlue};
+    }
+    h4 {
+        font-size: 12px;
+        color: ${props => props.theme.lightWhite};
+        margin: 0;
+    }
+`;
+const OpReturnType = styled.div`
+    text-align: right;
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background: ${props => props.theme.sentMessage};
+    margin-top: 15px;
+    h4 {
+        color: ${props => props.theme.lightWhite};
+        margin: 0;
+        font-size: 12px;
+        display: inline-block;
+    }
+    p {
+        color: ${props => props.theme.contrast};
+        margin: 0;
+        font-size: 14px;
+        margin-bottom: 10px;
+        overflow-wrap: break-word;
+    }
+    a {
+        color: ${props => props.theme.contrast};
+        margin: 0;
+        font-size: 10px;
+        border: 1px solid ${props => props.theme.contrast};
+        border-radius: 5px;
+        padding: 2px 10px;
+        opacity: 0.6;
+    }
+    a:hover {
+        opacity: 1;
+        border-color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.contrast};
+        background: ${props => props.theme.eCashBlue};
+    }
+    ${({ received, ...props }) =>
+        received &&
+        `
+        text-align: left;    
+        background: ${props.theme.receivedMessage};
+  `}
 `;
 const SentLabel = styled.span`
     font-weight: bold;
@@ -57,23 +154,27 @@ const SentLabel = styled.span`
 `;
 const ReceivedLabel = styled.span`
     font-weight: bold;
-    color: ${props => props.theme.primary} !important;
+    color: ${props => props.theme.eCashBlue} !important;
+`;
+const GenesisLabel = styled.span`
+    font-weight: bold;
+    color: ${props => props.theme.genesisGreen} !important;
 `;
 const CashtabMessageLabel = styled.span`
     text-align: left;
     font-weight: bold;
-    color: ${props => props.theme.primary} !important;
+    color: ${props => props.theme.eCashBlue} !important;
     white-space: nowrap;
 `;
 const EncryptionMessageLabel = styled.span`
-    text-align: left;
     font-weight: bold;
-    color: ${props => props.theme.wallet.encryption};
+    font-size: 12px;
+    color: ${props => props.theme.encryptionRed};
     white-space: nowrap;
 `;
 const UnauthorizedDecryptionMessage = styled.span`
     text-align: left;
-    color: ${props => props.theme.wallet.encryption};
+    color: ${props => props.theme.encryptionRed};
     white-space: nowrap;
     font-style: italic;
 `;
@@ -84,49 +185,46 @@ const MessageLabel = styled.span`
     white-space: nowrap;
 `;
 const ReplyMessageLabel = styled.span`
-    color: ${props => props.theme.primary} !important;
-`;
-const TxIcon = styled.div`
-    svg {
-        width: 32px;
-        height: 32px;
-    }
-    height: 32px;
-    width: 32px;
-    @media screen and (max-width: 500px) {
-        svg {
-            width: 24px;
-            height: 24px;
-        }
-        height: 24px;
-        width: 24px;
-    }
+    color: ${props => props.theme.eCashBlue} !important;
 `;
 
 const TxInfo = styled.div`
-    padding: 12px;
-    font-size: 1rem;
     text-align: right;
-
-    color: ${props =>
-        props.outgoing ? props.theme.secondary : props.theme.primary};
+    display: flex;
+    align-items: left;
+    flex-direction: column;
+    margin-left: 10px;
+    flex-grow: 2;
+    h3 {
+        color: ${props => props.theme.contrast};
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0;
+    }
+    .genesis {
+        color: ${props => props.theme.genesisGreen};
+    }
+    .received {
+        color: ${props => props.theme.eCashBlue};
+    }
+    h4 {
+        font-size: 12px;
+        color: ${props => props.theme.lightWhite};
+        margin: 0;
+    }
 
     @media screen and (max-width: 500px) {
         font-size: 0.8rem;
     }
 `;
-const TxFiatPrice = styled.span`
-    font-size: 0.8rem;
-`;
+
 const TokenInfo = styled.div`
-    display: grid;
-    grid-template-rows: 50%;
-    grid-template-columns: 24px auto;
-    padding: 12px;
-    font-size: 1rem;
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-end;
 
     color: ${props =>
-        props.outgoing ? props.theme.secondary : props.theme.primary};
+        props.outgoing ? props.theme.secondary : props.theme.eCashBlue};
 
     @media screen and (max-width: 500px) {
         font-size: 0.8rem;
@@ -150,19 +248,13 @@ const TxTokenIcon = styled.div`
     grid-row-end: span 2;
     align-self: center;
 `;
-const TokenTxAmt = styled.div`
-    padding-left: 12px;
+const TokenTxAmt = styled.h3`
     text-align: right;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 `;
-const TokenName = styled.div`
-    padding-left: 12px;
-    font-size: 0.8rem;
-    @media screen and (max-width: 500px) {
-        font-size: 0.6rem;
-    }
+const TokenName = styled.h4`
     text-align: right;
     white-space: nowrap;
     overflow: hidden;
@@ -170,27 +262,12 @@ const TokenName = styled.div`
 `;
 
 const TxWrapper = styled.div`
-    display: grid;
-    grid-template-columns: 36px 30% 50%;
-
-    justify-content: space-between;
+    display: flex;
     align-items: center;
-    padding: 15px 25px;
-    border-radius: 16px;
-    background: ${props => props.theme.tokenListItem.background};
-    margin-bottom: 12px;
-    box-shadow: ${props => props.theme.tokenListItem.boxShadow};
-
-    :hover {
-        transform: translateY(-2px);
-        box-shadow: rgb(136 172 243 / 25%) 0px 10px 30px,
-            rgb(0 0 0 / 3%) 0px 1px 1px, rgb(0 51 167 / 10%) 0px 10px 20px;
-        transition: all 0.8s cubic-bezier(0.075, 0.82, 0.165, 1) 0s;
-    }
-    @media screen and (max-width: 500px) {
-        grid-template-columns: 24px 30% 50%;
-        padding: 12px 12px;
-    }
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    color: ${props => props.theme.contrast};
+    padding: 10px 0;
+    flex-wrap: wrap;
 `;
 
 const Tx = ({ data, fiatPrice, fiatCurrency }) => {
@@ -208,9 +285,10 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
         <>
             {unparsedTx ? (
                 <TxWrapper>
-                    <TxIcon>
-                        <UnparsedTx />
-                    </TxIcon>
+                    <UnparsedTx>
+                        <UnparsedIcon />
+                    </UnparsedTx>
+
                     <DateType>
                         <ReceivedLabel>Unparsed</ReceivedLabel>
                         <br />
@@ -220,36 +298,40 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                 </TxWrapper>
             ) : (
                 <TxWrapper>
-                    <TxIcon>
+                    {data.outgoingTx ? (
+                        <>
+                            {data.tokenTx &&
+                            data.tokenInfo.transactionType === 'GENESIS' ? (
+                                <GenesisTx>
+                                    <GenesisIcon />
+                                </GenesisTx>
+                            ) : (
+                                <SentTx>
+                                    <SendIcon />
+                                </SentTx>
+                            )}
+                        </>
+                    ) : (
+                        <ReceivedTx>
+                            <ReceiveIcon />
+                        </ReceivedTx>
+                    )}
+
+                    <LeftTextCtn>
                         {data.outgoingTx ? (
                             <>
                                 {data.tokenTx &&
                                 data.tokenInfo.transactionType === 'GENESIS' ? (
-                                    <GenesisTx />
+                                    <h3 className="genesis">Genesis</h3>
                                 ) : (
-                                    <SentTx />
+                                    <h3 className="sent">Sent</h3>
                                 )}
                             </>
                         ) : (
-                            <ReceivedTx />
+                            <h3 className="received">Received</h3>
                         )}
-                    </TxIcon>
-                    <DateType>
-                        {data.outgoingTx ? (
-                            <>
-                                {data.tokenTx &&
-                                data.tokenInfo.transactionType === 'GENESIS' ? (
-                                    <ReceivedLabel>Genesis</ReceivedLabel>
-                                ) : (
-                                    <SentLabel>Sent</SentLabel>
-                                )}
-                            </>
-                        ) : (
-                            <ReceivedLabel>Received</ReceivedLabel>
-                        )}
-                        <br />
-                        {txDate}
-                    </DateType>
+                        <h4>{txDate}</h4>
+                    </LeftTextCtn>
                     {data.tokenTx ? (
                         <TokenInfo outgoing={data.outgoingTx}>
                             {data.tokenTx && data.tokenInfo ? (
@@ -286,11 +368,11 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                         )}
                                     </TxTokenIcon>
                                     {data.outgoingTx ? (
-                                        <>
+                                        <RightTextCtn>
                                             {data.tokenInfo.transactionType ===
                                             'GENESIS' ? (
                                                 <>
-                                                    <TokenTxAmt>
+                                                    <TokenTxAmt className="genesis">
                                                         +{' '}
                                                         {data.tokenInfo.qtyReceived.toString()}
                                                         &nbsp;
@@ -325,10 +407,10 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                     </TokenName>
                                                 </>
                                             )}
-                                        </>
+                                        </RightTextCtn>
                                     ) : (
-                                        <>
-                                            <TokenTxAmt>
+                                        <RightTextCtn>
+                                            <TokenTxAmt className="received">
                                                 +{' '}
                                                 {data.tokenInfo.qtyReceived.toString()}
                                                 &nbsp;
@@ -337,7 +419,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             <TokenName>
                                                 {data.tokenInfo.tokenName}
                                             </TokenName>
-                                        </>
+                                        </RightTextCtn>
                                     )}
                                 </>
                             ) : (
@@ -349,16 +431,19 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             <TxInfo outgoing={data.outgoingTx}>
                                 {data.outgoingTx ? (
                                     <>
-                                        -{' '}
-                                        {formatBalance(
-                                            fromLegacyDecimals(data.amountSent),
-                                        )}{' '}
-                                        {currency.ticker}
-                                        <br />
+                                        <h3>
+                                            -
+                                            {formatBalance(
+                                                fromLegacyDecimals(
+                                                    data.amountSent,
+                                                ),
+                                            )}{' '}
+                                            {currency.ticker}
+                                        </h3>
                                         {fiatPrice !== null &&
                                             !isNaN(data.amountSent) && (
-                                                <TxFiatPrice>
-                                                    -{' '}
+                                                <h4>
+                                                    -
                                                     {
                                                         currency.fiatCurrencies[
                                                             fiatCurrency
@@ -373,23 +458,24 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                         currency.fiatCurrencies
                                                             .fiatCurrency
                                                     }
-                                                </TxFiatPrice>
+                                                </h4>
                                             )}
                                     </>
                                 ) : (
                                     <>
-                                        +{' '}
-                                        {formatBalance(
-                                            fromLegacyDecimals(
-                                                data.amountReceived,
-                                            ),
-                                        )}{' '}
-                                        {currency.ticker}
-                                        <br />
+                                        <h3 className="received">
+                                            +
+                                            {formatBalance(
+                                                fromLegacyDecimals(
+                                                    data.amountReceived,
+                                                ),
+                                            )}{' '}
+                                            {currency.ticker}
+                                        </h3>
                                         {fiatPrice !== null &&
                                             !isNaN(data.amountReceived) && (
-                                                <TxFiatPrice>
-                                                    +{' '}
+                                                <h4>
+                                                    +
                                                     {
                                                         currency.fiatCurrencies[
                                                             fiatCurrency
@@ -404,7 +490,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                         currency.fiatCurrencies
                                                             .fiatCurrency
                                                     }
-                                                </TxFiatPrice>
+                                                </h4>
                                             )}
                                     </>
                                 )}
@@ -413,16 +499,11 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     )}
                     {data.opReturnMessage && (
                         <>
-                            <br />
-                            <OpReturnType>
+                            <OpReturnType received={!data.outgoingTx}>
                                 {data.isCashtabMessage ? (
-                                    <CashtabMessageLabel>
-                                        Cashtab Message
-                                    </CashtabMessageLabel>
+                                    <h4>Cashtab Message</h4>
                                 ) : (
-                                    <MessageLabel>
-                                        External Message
-                                    </MessageLabel>
+                                    <h4>External Message</h4>
                                 )}
                                 {data.isEncryptedMessage ? (
                                     <EncryptionMessageLabel>
@@ -434,15 +515,19 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                 <br />
                                 {/*unencrypted OP_RETURN Message*/}
                                 {data.opReturnMessage &&
-                                !data.isEncryptedMessage
-                                    ? data.opReturnMessage
-                                    : ''}
+                                !data.isEncryptedMessage ? (
+                                    <p>{data.opReturnMessage}</p>
+                                ) : (
+                                    ''
+                                )}
                                 {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
                                 {data.opReturnMessage &&
                                 data.isEncryptedMessage &&
-                                data.decryptionSuccess
-                                    ? data.opReturnMessage
-                                    : ''}
+                                data.decryptionSuccess ? (
+                                    <p>{data.opReturnMessage}</p>
+                                ) : (
+                                    ''
+                                )}
                                 {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
                                 {data.opReturnMessage &&
                                 data.isEncryptedMessage &&
@@ -462,11 +547,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                             },
                                         }}
                                     >
-                                        <br />
-                                        <br />
-                                        <ReplyMessageLabel>
-                                            Reply To Message
-                                        </ReplyMessageLabel>
+                                        Reply To Message
                                     </Link>
                                 ) : (
                                     ''

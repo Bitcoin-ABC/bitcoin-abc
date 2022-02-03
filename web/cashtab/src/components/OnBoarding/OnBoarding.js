@@ -16,8 +16,16 @@ import PrimaryButton, {
 import { currency } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 
+export const WelcomeCtn = styled.div`
+    margin-top: 20px;
+    padding: 0px 30px;
+    color: ${props => props.theme.contrast};
+    h2 {
+        color: ${props => props.theme.contrast};
+    }
+`;
+
 export const WelcomeText = styled.p`
-    color: ${props => props.theme.wallet.text.secondary};
     width: 100%;
     font-size: 16px;
     margin-bottom: 60px;
@@ -26,7 +34,11 @@ export const WelcomeText = styled.p`
 
 export const WelcomeLink = styled.a`
     text-decoration: underline;
-    color: ${props => props.theme.primary};
+    color: ${props => props.theme.eCashBlue};
+    :hover {
+        color: ${props => props.theme.eCashPurple} !important;
+        text-decoration: underline !important;
+    }
 `;
 
 const OnBoarding = () => {
@@ -70,6 +82,7 @@ const OnBoarding = () => {
         confirm({
             title: "Don't forget to back up your wallet",
             icon: <ExclamationCircleOutlined />,
+            cancelButtonProps: { style: { display: 'none' } },
             content: `Once your wallet is created you can back it up by writing down your 12-word seed. You can find your seed on the Settings page. If you are browsing in Incognito mode or if you clear your browser history, you will lose any funds that are not backed up!`,
             okText: 'Okay, make me a wallet!',
             onOk() {
@@ -82,7 +95,7 @@ const OnBoarding = () => {
     }
 
     return (
-        <>
+        <WelcomeCtn>
             <h2>Welcome to Cashtab!</h2>
             <WelcomeText>
                 Cashtab is an{' '}
@@ -148,7 +161,7 @@ const OnBoarding = () => {
                     </Form>
                 </AntdFormWrapper>
             )}
-        </>
+        </WelcomeCtn>
     );
 };
 

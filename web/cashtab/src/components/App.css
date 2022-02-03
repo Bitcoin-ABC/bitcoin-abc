@@ -2,6 +2,20 @@
 @import '~@fortawesome/fontawesome-free/css/all.css';
 @import url('https://fonts.googleapis.com/css?family=Khula&display=swap&.css');
 
+@font-face {
+    font-family: 'Poppins';
+    src: local('Poppins'),
+        url(../assets/fonts/Poppins-Regular.ttf) format('truetype');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Poppins';
+    src: local('Poppins'),
+        url(../assets/fonts/Poppins-Bold.ttf) format('truetype');
+    font-weight: 700;
+}
+
 /* Hide scrollbars but keep functionality*/
 /* Hide scrollbar for Chrome, Safari and Opera */
 body::-webkit-scrollbar {

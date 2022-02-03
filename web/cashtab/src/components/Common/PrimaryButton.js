@@ -1,15 +1,17 @@
 import styled from 'styled-components';
 
 const PrimaryButton = styled.button`
-    border: none;
+    border: 2px solid ${props => props.theme.eCashBlue};
     color: ${props => props.theme.buttons.primary.color};
-    background-image: ${props => props.theme.buttons.primary.backgroundImage};
+    background: none;
+    font-weight: bold;
+    background-color: ${props => props.theme.eCashBlue};
     transition: all 0.5s ease;
     background-size: 200% auto;
     font-size: 18px;
     width: 100%;
     padding: 20px 0;
-    border-radius: 4px;
+    border-radius: 0px;
     margin-bottom: 20px;
     cursor: pointer;
     :hover {
@@ -61,26 +63,18 @@ const SmartButton = styled.button`
                 background-image: 'none';
                 color: ${props.theme.buttons.secondary.color};
                 background: ${props.theme.buttons.secondary.background};
-                :hover {
-                    -webkit-box-shadow: 0px 3px 10px -5px rgba(0, 0, 0, 0.75);
-                    -moz-box-shadow: 0px 3px 10px -5px rgba(0, 0, 0, 0.75);
-                    box-shadow: 0px 3px 10px -5px rgba(0, 0, 0, 0.75);
-                }
+                opacity: 0.3;
                 svg {
                     fill: ${props.theme.buttons.secondary.color};
                 }
             `
             : `
-                background-image: ${props.theme.buttons.primary.backgroundImage};
-                color: ${props.theme.buttons.primary.color};
-                :hover {
-                    background-position: right center;
-                    -webkit-box-shadow: ${props.theme.buttons.primary.hoverShadow};
-                    -moz-box-shadow: ${props.theme.buttons.primary.hoverShadow};
-                    box-shadow: ${props.theme.buttons.primary.hoverShadow};
-                }
+                opacity: 1;
+                background-image: 'none';
+                color: ${props.theme.buttons.secondary.color};
+                background: ${props.theme.buttons.secondary.background};
                 svg {
-                    fill: ${props.theme.buttons.primary.color};
+                    fill: ${props.theme.buttons.secondary.color};
                 }
             `}
 
