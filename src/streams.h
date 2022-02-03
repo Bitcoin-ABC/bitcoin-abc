@@ -234,12 +234,6 @@ public:
         vch.clear();
         nReadPos = 0;
     }
-    iterator insert(iterator it, const value_type x) {
-        return vch.insert(it, x);
-    }
-    void insert(iterator it, size_type n, const value_type x) {
-        vch.insert(it, n, x);
-    }
     value_type *data() { return vch.data() + nReadPos; }
     const value_type *data() const { return vch.data() + nReadPos; }
 
