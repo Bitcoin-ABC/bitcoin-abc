@@ -27,25 +27,28 @@ class P2PAddConnections(BitcoinTestFramework):
         # Don't connect the nodes
 
     def run_test(self):
+        self.p2p_idx = [0] * self.num_nodes
+
+        def add_outbounds(node, quantity, conn_type, **kwargs):
+            for _ in range(quantity):
+                self.log.debug(
+                    f"Node {node.index}, {conn_type}: {self.p2p_idx[node.index]}")
+                node.add_outbound_p2p_connection(
+                    P2PInterface(),
+                    p2p_idx=self.p2p_idx[node.index],
+                    connection_type=conn_type,
+                    **kwargs,
+                )
+                self.p2p_idx[node.index] += 1
+
         self.log.info("Add 8 outbounds to node 0")
-        for i in range(8):
-            self.log.info(f"outbound: {i}")
-            self.nodes[0].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i, connection_type="outbound-full-relay")
+        add_outbounds(self.nodes[0], 8, "outbound-full-relay")
 
         self.log.info("Add 2 block-relay-only connections to node 0")
-        for i in range(2):
-            self.log.info(f"block-relay-only: {i}")
-            # set p2p_idx based on the outbound connections already open to the
-            # node, so add 8 to account for the previous full-relay connections
-            self.nodes[0].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i + 8, connection_type="block-relay-only")
+        add_outbounds(self.nodes[0], 2, "block-relay-only")
 
         self.log.info("Add 2 block-relay-only connections to node 1")
-        for i in range(2):
-            self.log.info(f"block-relay-only: {i}")
-            self.nodes[1].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i, connection_type="block-relay-only")
+        add_outbounds(self.nodes[1], 2, "block-relay-only")
 
         self.log.info("Add 5 inbound connections to node 1")
         for i in range(5):
@@ -53,11 +56,7 @@ class P2PAddConnections(BitcoinTestFramework):
             self.nodes[1].add_p2p_connection(P2PInterface())
 
         self.log.info("Add 8 outbounds to node 1")
-        for i in range(8):
-            self.log.info(f"outbound: {i}")
-            # bump p2p_idx to account for the 2 existing outbounds on node 1
-            self.nodes[1].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i + 2)
+        add_outbounds(self.nodes[1], 8, "outbound-full-relay")
 
         self.log.info("Check the connections opened as expected")
         check_node_connections(node=self.nodes[0], num_in=0, num_out=10)
@@ -65,46 +64,34 @@ class P2PAddConnections(BitcoinTestFramework):
 
         self.log.info("Disconnect p2p connections & try to re-open")
         self.nodes[0].disconnect_p2ps()
+        self.p2p_idx[0] = 0
         check_node_connections(node=self.nodes[0], num_in=0, num_out=0)
 
         self.log.info("Add 8 outbounds to node 0")
-        for i in range(8):
-            self.log.info(f"outbound: {i}")
-            self.nodes[0].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i)
+        add_outbounds(self.nodes[0], 8, "outbound-full-relay")
         check_node_connections(node=self.nodes[0], num_in=0, num_out=8)
 
         self.log.info("Add 2 block-relay-only connections to node 0")
-        for i in range(2):
-            self.log.info(f"block-relay-only: {i}")
-            # bump p2p_idx to account for the 8 existing outbounds on node 0
-            self.nodes[0].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i + 8, connection_type="block-relay-only")
+        add_outbounds(self.nodes[0], 2, "block-relay-only")
         check_node_connections(node=self.nodes[0], num_in=0, num_out=10)
 
         self.log.info("Restart node 0 and try to reconnect to p2ps")
         self.restart_node(0)
+        self.p2p_idx[0] = 0
 
         self.log.info("Add 4 outbounds to node 0")
-        for i in range(4):
-            self.log.info(f"outbound: {i}")
-            self.nodes[0].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i)
+        add_outbounds(self.nodes[0], 4, "outbound-full-relay")
         check_node_connections(node=self.nodes[0], num_in=0, num_out=4)
 
         self.log.info("Add 2 block-relay-only connections to node 0")
-        for i in range(2):
-            self.log.info(f"block-relay-only: {i}")
-            # bump p2p_idx to account for the 4 existing outbounds on node 0
-            self.nodes[0].add_outbound_p2p_connection(
-                P2PInterface(), p2p_idx=i + 4, connection_type="block-relay-only")
+        add_outbounds(self.nodes[0], 2, "block-relay-only")
         check_node_connections(node=self.nodes[0], num_in=0, num_out=6)
 
         check_node_connections(node=self.nodes[1], num_in=5, num_out=10)
 
         self.log.info("Add 1 feeler connection to node 0")
         feeler_conn = self.nodes[0].add_outbound_p2p_connection(
-            P2PFeelerReceiver(), p2p_idx=6, connection_type="feeler")
+            P2PFeelerReceiver(), p2p_idx=self.p2p_idx[0], connection_type="feeler")
 
         # Feeler connection is closed
         assert not feeler_conn.is_connected
