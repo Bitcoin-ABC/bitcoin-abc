@@ -22,19 +22,18 @@ namespace {
 
 void GenerateTemplateResults(
     const std::vector<ankerl::nanobench::Result> &benchmarkResults,
-    const std::string &filename, const char *tpl) {
-    if (benchmarkResults.empty() || filename.empty()) {
+    const fs::path &file, const char *tpl) {
+    if (benchmarkResults.empty() || file.empty()) {
         // nothing to write, bail out
         return;
     }
-    std::ofstream fout{fs::PathFromString(filename)};
+    std::ofstream fout{file};
     if (fout.is_open()) {
         ankerl::nanobench::render(tpl, benchmarkResults, fout);
+        std::cout << "Created " << file << std::endl;
     } else {
-        std::cout << "Could write to file '" << filename << "'" << std::endl;
+        std::cout << "Could not write to file " << file << std::endl;
     }
-
-    std::cout << "Created '" << filename << "'" << std::endl;
 }
 
 } // namespace
