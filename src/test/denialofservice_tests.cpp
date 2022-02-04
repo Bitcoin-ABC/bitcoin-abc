@@ -151,7 +151,8 @@ static void AddRandomOutboundPeer(const Config &config,
                   /* nKeyedNetGroupIn */ 0,
                   /* nLocalHostNonceIn */ 0,
                   /* nLocalExtraEntropyIn */ 0, CAddress(),
-                  /* pszDest */ "", ConnectionType::OUTBOUND_FULL_RELAY));
+                  /* pszDest */ "", ConnectionType::OUTBOUND_FULL_RELAY,
+                  /* inbound_onion */ false));
     CNode &node = *vNodes.back();
     node.SetCommonVersion(PROTOCOL_VERSION);
 
