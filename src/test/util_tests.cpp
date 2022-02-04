@@ -28,6 +28,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <optional>
