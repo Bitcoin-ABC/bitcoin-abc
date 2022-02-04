@@ -378,8 +378,8 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                     candidate.availabilityScore =
                         double(number_of_nodes - candidate.id);
                 },
-                std::unordered_set(protectedNodes.begin(),
-                                   protectedNodes.end()),
+                std::unordered_set<NodeId>(protectedNodes.begin(),
+                                           protectedNodes.end()),
                 random_context));
 
             // An eviction is expected given >= 161 random eviction candidates.
