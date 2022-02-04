@@ -182,7 +182,7 @@ class ConfArgsTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(expected_msgs=[
                 "Loaded 0 addresses from peers.dat",
                 "0 addresses found from DNS seeds",
-        ]):
+        ], timeout=10):
             self.start_node(
                 0,
                 extra_args=[
@@ -203,7 +203,7 @@ class ConfArgsTest(BitcoinTestFramework):
                 "Loaded 0 addresses from peers.dat",
                 "DNS seeding disabled",
                 "Adding fixed seeds as -dnsseed=0, -addnode is not provided and all -seednode(s) attempted\n",
-        ]):
+        ], timeout=10):
             self.start_node(0, extra_args=['-dnsseed=0', '-fixedseeds=1'])
         assert time.time() - start < 60
         self.stop_node(0)
@@ -216,7 +216,7 @@ class ConfArgsTest(BitcoinTestFramework):
                 "Loaded 0 addresses from peers.dat",
                 "DNS seeding disabled",
                 "Fixed seeds are disabled",
-        ]):
+        ], timeout=10):
             self.start_node(0, extra_args=['-dnsseed=0', '-fixedseeds=0'])
         assert time.time() - start < 60
         self.stop_node(0)
@@ -228,7 +228,7 @@ class ConfArgsTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(expected_msgs=[
                 "Loaded 0 addresses from peers.dat",
                 "DNS seeding disabled",
-        ]):
+        ], timeout=10):
             self.start_node(
                 0,
                 extra_args=[
