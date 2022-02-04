@@ -241,7 +241,17 @@ class ProxyTest(BitcoinTestFramework):
             return r
 
         self.log.info("Test RPC getnetworkinfo")
-        n0 = networks_dict(self.nodes[0].getnetworkinfo())
+        nodes_network_info = []
+
+        self.log.debug(
+            "Test that setting -proxy disables local address discovery, i.e. -discover=0"
+        )
+        for node in self.nodes:
+            network_info = node.getnetworkinfo()
+            assert_equal(network_info["localaddresses"], [])
+            nodes_network_info.append(network_info)
+
+        n0 = networks_dict(nodes_network_info[0])
         assert_equal(NETWORKS, n0.keys())
         ip1, port1 = self.conf1.addr
         ip2, port2 = self.conf2.addr
@@ -257,7 +267,7 @@ class ProxyTest(BitcoinTestFramework):
         assert_equal(n0["onion"]["reachable"], True)
         assert_equal(n0["i2p"]["reachable"], False)
 
-        n1 = networks_dict(self.nodes[1].getnetworkinfo())
+        n1 = networks_dict(nodes_network_info[1])
         assert_equal(NETWORKS, n1.keys())
         for net in ["ipv4", "ipv6"]:
             assert_equal(n1[net]["proxy"], f"{ip1}:{port1}")
@@ -269,7 +279,7 @@ class ProxyTest(BitcoinTestFramework):
         assert_equal(n1["i2p"]["proxy_randomize_credentials"], False)
         assert_equal(n1["i2p"]["reachable"], True)
 
-        n2 = networks_dict(self.nodes[2].getnetworkinfo())
+        n2 = networks_dict(nodes_network_info[2])
         assert_equal(NETWORKS, n2.keys())
         for net in NETWORKS:
             if net == NET_I2P:
@@ -284,7 +294,7 @@ class ProxyTest(BitcoinTestFramework):
         assert_equal(n2["i2p"]["reachable"], False)
 
         if self.have_ipv6:
-            n3 = networks_dict(self.nodes[3].getnetworkinfo())
+            n3 = networks_dict(nodes_network_info[3])
             assert_equal(NETWORKS, n3.keys())
             ip3, port3 = self.conf3.addr
             for net in NETWORKS:
