@@ -13,6 +13,7 @@
 #include <seeder/messagewriter.h>
 #include <serialize.h>
 #include <uint256.h>
+#include <util/sock.h>
 #include <util/time.h>
 
 #include <algorithm>

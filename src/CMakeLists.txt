@@ -383,6 +383,7 @@ add_library(util
 	util/message.cpp
 	util/moneystr.cpp
 	util/settings.cpp
+	util/sock.cpp
 	util/spanparsing.cpp
 	util/strencodings.cpp
 	util/string.cpp
