@@ -193,6 +193,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		net_tests.cpp
 		netbase_tests.cpp
 		op_reversebytes_tests.cpp
+		orphanage_tests.cpp
 		pmt_tests.cpp
 		policy_block_tests.cpp
 		policy_fee_tests.cpp
