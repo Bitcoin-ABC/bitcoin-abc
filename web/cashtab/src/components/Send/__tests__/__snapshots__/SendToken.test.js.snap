@@ -48,6 +48,9 @@ Array [
         className="ant-alert-content"
       >
         <div
+          className="ant-alert-message"
+        />
+        <div
           className="ant-alert-description"
         >
           If you would like to request an icon for an eToken that has already been created, please email icons@e.cash.
@@ -78,7 +81,7 @@ Array [
           className="sc-VigVT hchaxg"
         >
           <div
-            className="ant-row ant-form-item ant-form-item-with-help"
+            className="ant-row ant-form-item"
             style={Object {}}
           >
             <div
@@ -173,10 +176,9 @@ Array [
                 </div>
               </div>
               <div
-                className="ant-form-item-explain ant-form-item-explain-connected"
+                className="ant-form-item-explain"
               >
                 <div
-                  className=""
                   role="alert"
                 >
                   
@@ -189,7 +191,7 @@ Array [
           className="sc-VigVT hchaxg"
         >
           <div
-            className="ant-row ant-form-item ant-form-item-with-help"
+            className="ant-row ant-form-item"
             style={Object {}}
           >
             <div
@@ -252,10 +254,9 @@ Array [
                 </div>
               </div>
               <div
-                className="ant-form-item-explain ant-form-item-explain-connected"
+                className="ant-form-item-explain"
               >
                 <div
-                  className=""
                   role="alert"
                 >
                   
