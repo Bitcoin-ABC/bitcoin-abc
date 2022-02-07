@@ -71,7 +71,8 @@ class AvaAddrTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = False
         self.num_nodes = 1
-        self.extra_args = [['-enableavalanche=1']]
+        self.extra_args = [['-enableavalanche=1',
+                            '-avacooldown=0', '-whitelist=noban@127.0.0.1']]
 
     def getavaaddr_interval_test(self):
         node = self.nodes[0]
@@ -159,7 +160,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         responding_addresses = [
             avanode.addr for avanode in avanodes if avanode.is_responding]
-        assert_equal(len(responding_addresses), num_proof * num_avanode / 2)
+        assert_equal(len(responding_addresses), num_proof * num_avanode // 2)
 
         # Check we have what we expect
         avapeers = node.getavalanchepeerinfo()
@@ -180,7 +181,7 @@ class AvaAddrTest(BitcoinTestFramework):
         node.mockscheduler(10 * 60)
 
         requester = node.add_p2p_connection(AddrReceiver())
-        requester.send_message(msg_getavaaddr())
+        requester.send_and_ping(msg_getavaaddr())
 
         mock_time += 5 * 60
         node.setmocktime(mock_time)
@@ -197,9 +198,9 @@ class AvaAddrTest(BitcoinTestFramework):
         self.getavaaddr_interval_test()
 
         # Limited by maxaddrtosend
-        self.address_test(maxaddrtosend=20, num_proof=5, num_avanode=10)
+        self.address_test(maxaddrtosend=3, num_proof=2, num_avanode=8)
         # Limited by the number of good nodes
-        self.address_test(maxaddrtosend=100, num_proof=5, num_avanode=10)
+        self.address_test(maxaddrtosend=100, num_proof=2, num_avanode=8)
 
 
 if __name__ == '__main__':
