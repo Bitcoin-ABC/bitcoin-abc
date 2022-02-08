@@ -1503,19 +1503,34 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) const {
     }
 
     if (g_avalanche && isAvalancheEnabled(gArgs)) {
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-            auto unbroadcasted_proofids = pm.getUnbroadcastProofs();
+        // Get and sanitize the list of proofids to broadcast. The RelayProof
+        // call is done in a second loop to avoid locking cs_vNodes while
+        // cs_peerManager is locked which would cause a potential deadlock due
+        // to reversed lock order.
+        auto unbroadcasted_proofids =
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                auto unbroadcasted_proofids = pm.getUnbroadcastProofs();
 
-            for (const auto &proofid : unbroadcasted_proofids) {
-                // Sanity check: all unbroadcast proofs should be bound to a
-                // peer in the peermanager
-                if (pm.isBoundToPeer(proofid)) {
-                    RelayProof(proofid, m_connman);
-                } else {
-                    pm.removeUnbroadcastProof(proofid);
+                auto it = unbroadcasted_proofids.begin();
+                while (it != unbroadcasted_proofids.end()) {
+                    // Sanity check: all unbroadcast proofs should be bound to a
+                    // peer in the peermanager
+                    if (!pm.isBoundToPeer(*it)) {
+                        pm.removeUnbroadcastProof(*it);
+                        it = unbroadcasted_proofids.erase(it);
+                        continue;
+                    }
+
+                    ++it;
                 }
-            }
-        });
+
+                return unbroadcasted_proofids;
+            });
+
+        // Remaining proofids are the ones to broadcast
+        for (const auto &proofid : unbroadcasted_proofids) {
+            RelayProof(proofid, m_connman);
+        }
     }
 
     // Schedule next run for 10-15 minutes in the future.
