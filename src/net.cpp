@@ -554,6 +554,8 @@ std::string CNode::ConnectionTypeAsString() const {
             return "block-relay-only";
         case ConnectionType::ADDR_FETCH:
             return "addr-fetch";
+        case ConnectionType::AVALANCHE_OUTBOUND:
+            return "avalanche";
     } // no default case, so the compiler can warn about missing cases
 
     assert(false);
@@ -1369,6 +1371,9 @@ bool CConnman::AddConnection(const std::string &address,
             break;
         // no limit for FEELER connections since they're short-lived
         case ConnectionType::FEELER:
+            break;
+        case ConnectionType::AVALANCHE_OUTBOUND:
+            max_connections = m_max_avalanche_outbound;
             break;
     } // no default case, so the compiler can warn about missing cases
 
@@ -2258,18 +2263,12 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
         // Only connect out to one peer per network group (/16 for IPv4).
         int nOutboundFullRelay = 0;
         int nOutboundBlockRelay = 0;
+        int nOutboundAvalanche = 0;
         std::set<std::vector<uint8_t>> setConnected;
 
         {
             LOCK(cs_vNodes);
             for (const CNode *pnode : vNodes) {
-                if (pnode->IsFullOutboundConn()) {
-                    nOutboundFullRelay++;
-                }
-                if (pnode->IsBlockOnlyConn()) {
-                    nOutboundBlockRelay++;
-                }
-
                 // Netgroups for inbound and manual peers are not excluded
                 // because our goal here is to not use multiple of our
                 // limited outbound slots on a single netgroup but inbound
@@ -2281,8 +2280,12 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
                     case ConnectionType::INBOUND:
                     case ConnectionType::MANUAL:
                         break;
+                    case ConnectionType::AVALANCHE_OUTBOUND:
+                        nOutboundAvalanche++;
                     case ConnectionType::OUTBOUND_FULL_RELAY:
+                        nOutboundFullRelay++;
                     case ConnectionType::BLOCK_RELAY:
+                        nOutboundBlockRelay++;
                     case ConnectionType::ADDR_FETCH:
                     case ConnectionType::FEELER:
                         setConnected.insert(
@@ -2299,9 +2302,11 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
 
         // Determine what type of connection to open. Opening
         // BLOCK_RELAY connections to addresses from anchors.dat gets the
-        // highest priority. Then we open OUTBOUND_FULL_RELAY priority until we
-        // meet our full-relay capacity. Then we open BLOCK_RELAY connection
-        // until we hit our block-relay-only peer limit.
+        // highest priority. Then we open AVALANCHE_OUTBOUND connection until we
+        // hit our avalanche outbound peer limit, which is 0 if avalanche is not
+        // enabled. We fallback to OUTBOUND_FULL_RELAY if the peer is not
+        // avalanche capable until we meet our full-relay capacity. Then we open
+        // BLOCK_RELAY connection until we hit our block-relay-only peer limit.
         // GetTryNewOutboundPeer() gets set when a stale tip is detected, so we
         // try opening an additional OUTBOUND_FULL_RELAY connection. If none of
         // these conditions are met, check to see if it's time to try an extra
@@ -2312,6 +2317,9 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
             (nOutboundBlockRelay < m_max_outbound_block_relay)) {
             conn_type = ConnectionType::BLOCK_RELAY;
             anchor = true;
+        } else if (g_avalanche &&
+                   (nOutboundAvalanche < m_max_avalanche_outbound)) {
+            conn_type = ConnectionType::AVALANCHE_OUTBOUND;
         } else if (nOutboundFullRelay < m_max_outbound_full_relay) {
             // OUTBOUND_FULL_RELAY
         } else if (nOutboundBlockRelay < m_max_outbound_block_relay) {
@@ -2447,6 +2455,21 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
             if (addr.GetPort() != config->GetChainParams().GetDefaultPort() &&
                 nTries < 50) {
                 continue;
+            }
+
+            // For avalanche peers, check they have the avalanche service bit
+            // set.
+            if (conn_type == ConnectionType::AVALANCHE_OUTBOUND &&
+                !(addr.nServices & NODE_AVALANCHE)) {
+                // If this peer is not suitable as an avalanche one, see if we
+                // can fallback to a non avalanche full outbound.
+                if (nOutboundFullRelay >= m_max_outbound_full_relay) {
+                    // Fallback is not possible, try another one
+                    continue;
+                }
+
+                // Fallback is possible, update the connection type accordingly
+                conn_type = ConnectionType::OUTBOUND_FULL_RELAY;
             }
 
             addrConnect = addr;

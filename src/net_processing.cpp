@@ -3469,6 +3469,16 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
+        if (pfrom.IsAvalancheOutboundConnection() &&
+            !(nServices & NODE_AVALANCHE)) {
+            LogPrint(
+                BCLog::AVALANCHE,
+                "peer=%d does not offer the avalanche service; disconnecting\n",
+                pfrom.GetId());
+            pfrom.fDisconnect = true;
+            return;
+        }
+
         if (nVersion < MIN_PEER_PROTO_VERSION) {
             // disconnect from peers older than this proto version
             LogPrint(BCLog::NET,

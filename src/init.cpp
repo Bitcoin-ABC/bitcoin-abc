@@ -3029,11 +3029,18 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;
     connOptions.nMaxConnections = nMaxConnections;
+    connOptions.m_max_avalanche_outbound =
+        std::min(g_avalanche && isAvalancheEnabled(args)
+                     ? MAX_AVALANCHE_OUTBOUND_CONNECTIONS
+                     : 0,
+                 connOptions.nMaxConnections);
     connOptions.m_max_outbound_full_relay = std::min(
-        MAX_OUTBOUND_FULL_RELAY_CONNECTIONS, connOptions.nMaxConnections);
+        MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
+        connOptions.nMaxConnections - connOptions.m_max_avalanche_outbound);
     connOptions.m_max_outbound_block_relay = std::min(
         MAX_BLOCK_RELAY_ONLY_CONNECTIONS,
-        connOptions.nMaxConnections - connOptions.m_max_outbound_full_relay);
+        connOptions.nMaxConnections - connOptions.m_max_avalanche_outbound -
+            connOptions.m_max_outbound_full_relay);
     connOptions.nMaxAddnode = MAX_ADDNODE_CONNECTIONS;
     connOptions.nMaxFeeler = MAX_FEELER_CONNECTIONS;
     connOptions.uiInterface = &uiInterface;

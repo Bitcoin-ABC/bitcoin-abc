@@ -69,6 +69,8 @@ static const int MAX_OUTBOUND_FULL_RELAY_CONNECTIONS = 16;
 static const int MAX_ADDNODE_CONNECTIONS = 8;
 /** Maximum number of block-relay-only outgoing connections */
 static const int MAX_BLOCK_RELAY_ONLY_CONNECTIONS = 2;
+/** Maximum number of avalanche enabled outgoing connections */
+static const int MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 16;
 /** Maximum number of feeler connections */
 static const int MAX_FEELER_CONNECTIONS = 1;
 /** -listen default */
@@ -205,6 +207,12 @@ enum class ConnectionType {
      * AddrMan is empty.
      */
     ADDR_FETCH,
+
+    /**
+     * Special case of connection to a full relay outbound with avalanche
+     * service enabled.
+     */
+    AVALANCHE_OUTBOUND,
 };
 
 void Discover();
@@ -521,6 +529,7 @@ public:
         switch (m_conn_type) {
             case ConnectionType::OUTBOUND_FULL_RELAY:
             case ConnectionType::BLOCK_RELAY:
+            case ConnectionType::AVALANCHE_OUTBOUND:
                 return true;
             case ConnectionType::INBOUND:
             case ConnectionType::MANUAL:
@@ -533,7 +542,8 @@ public:
     }
 
     bool IsFullOutboundConn() const {
-        return m_conn_type == ConnectionType::OUTBOUND_FULL_RELAY;
+        return m_conn_type == ConnectionType::OUTBOUND_FULL_RELAY ||
+               m_conn_type == ConnectionType::AVALANCHE_OUTBOUND;
     }
 
     bool IsManualConn() const { return m_conn_type == ConnectionType::MANUAL; }
@@ -552,6 +562,10 @@ public:
         return m_conn_type == ConnectionType::INBOUND;
     }
 
+    bool IsAvalancheOutboundConnection() const {
+        return m_conn_type == ConnectionType::AVALANCHE_OUTBOUND;
+    }
+
     bool ExpectServicesFromConn() const {
         switch (m_conn_type) {
             case ConnectionType::INBOUND:
@@ -561,6 +575,7 @@ public:
             case ConnectionType::OUTBOUND_FULL_RELAY:
             case ConnectionType::BLOCK_RELAY:
             case ConnectionType::ADDR_FETCH:
+            case ConnectionType::AVALANCHE_OUTBOUND:
                 return true;
         } // no default case, so the compiler can warn about missing cases
 
@@ -930,6 +945,7 @@ public:
         int nMaxConnections = 0;
         int m_max_outbound_full_relay = 0;
         int m_max_outbound_block_relay = 0;
+        int m_max_avalanche_outbound = 0;
         int nMaxAddnode = 0;
         int nMaxFeeler = 0;
         CClientUIInterface *uiInterface = nullptr;
@@ -963,9 +979,11 @@ public:
             m_max_outbound_full_relay =
                 std::min(connOptions.m_max_outbound_full_relay,
                          connOptions.nMaxConnections);
+            m_max_avalanche_outbound = connOptions.m_max_avalanche_outbound;
             m_max_outbound_block_relay = connOptions.m_max_outbound_block_relay;
             m_max_outbound = m_max_outbound_full_relay +
-                             m_max_outbound_block_relay + nMaxFeeler;
+                             m_max_outbound_block_relay + nMaxFeeler +
+                             m_max_avalanche_outbound;
         }
         clientInterface = connOptions.uiInterface;
         m_banman = connOptions.m_banman;
@@ -1331,6 +1349,9 @@ private:
     // How many block-relay only outbound peers we want
     // We do not relay tx or addr messages with these peers
     int m_max_outbound_block_relay;
+
+    // How many avalanche enabled outbound peers we want
+    int m_max_avalanche_outbound;
 
     int nMaxAddnode;
     int nMaxFeeler;

@@ -418,7 +418,8 @@ static RPCHelpMan addconnection() {
              "The IP address and port to attempt connecting to."},
             {"connection_type", RPCArg::Type::STR, RPCArg::Optional::NO,
              "Type of connection to open (\"outbound-full-relay\", "
-             "\"block-relay-only\", \"addr-fetch\" or \"feeler\")."},
+             "\"block-relay-only\", \"addr-fetch\", \"feeler\" or "
+             "\"avalanche\")."},
         },
         RPCResult{RPCResult::Type::OBJ,
                   "",
@@ -455,6 +456,13 @@ static RPCHelpMan addconnection() {
                 conn_type = ConnectionType::ADDR_FETCH;
             } else if (conn_type_in == "feeler") {
                 conn_type = ConnectionType::FEELER;
+            } else if (conn_type_in == "avalanche") {
+                if (!g_avalanche || !isAvalancheEnabled(gArgs)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Error: avalanche outbound requested "
+                                       "but avalanche is not enabled.");
+                }
+                conn_type = ConnectionType::AVALANCHE_OUTBOUND;
             } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, self.ToString());
             }

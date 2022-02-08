@@ -54,13 +54,13 @@ class P2PEvict(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        # The choice of maxconnections=172 results in a maximum of 153 inbound
-        # connections (172 - 18 outbound - 1 feeler). 152 inbound peers are
+        # The choice of maxconnections=188 results in a maximum of 153 inbound
+        # connections (188 - 34 outbound - 1 feeler). 152 inbound peers are
         # protected from eviction:
         # 4 by netgroup, 4 that sent us blocks, 4 that sent us proofs, 4 that
         # sent us transactions, 8 via lowest ping time, 128 with the best
         # avalanche availability score
-        self.extra_args = [['-maxconnections=172', "-enableavalanche=1"]]
+        self.extra_args = [['-maxconnections=188', "-enableavalanche=1"]]
 
     def run_test(self):
         # peers that we expect to be protected from eviction
