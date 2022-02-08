@@ -3728,6 +3728,13 @@ void PeerManagerImpl::ProcessMessage(
                 State(pfrom.GetId())
                     ->m_recently_announced_proofs.insert(localProof->getId());
             }
+
+            // Send getavaaddr to our avalanche outbound connections
+            if (pfrom.IsAvalancheOutboundConnection()) {
+                m_connman.PushMessage(&pfrom,
+                                      msgMaker.Make(NetMsgType::GETAVAADDR));
+                peer->m_addr_token_bucket += GetMaxAddrToSend();
+            }
         }
 
         pfrom.fSuccessfullyConnected = true;

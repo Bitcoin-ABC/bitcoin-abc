@@ -7,6 +7,8 @@ import time
 
 from test_framework.avatools import AvaP2PInterface, gen_proof
 from test_framework.messages import (
+    NODE_AVALANCHE,
+    NODE_NETWORK,
     AvalancheVote,
     AvalancheVoteError,
     msg_getavaaddr,
@@ -194,6 +196,25 @@ class AvaAddrTest(BitcoinTestFramework):
         # Check all the addresses belong to responding peer
         assert all([address in responding_addresses for address in addresses])
 
+    def getavaaddr_outbound_test(self):
+        self.log.info(
+            "Check we send a getavaaddr message to our avalanche outbound peers")
+        node = self.nodes[0]
+
+        avapeers = []
+        for i in range(16):
+            avapeer = P2PInterface()
+            node.add_outbound_p2p_connection(
+                avapeer,
+                p2p_idx=i,
+                connection_type="avalanche",
+                services=NODE_NETWORK | NODE_AVALANCHE,
+            )
+            avapeers.append(avapeer)
+
+        self.wait_until(
+            lambda: all([p.last_message.get("getavaaddr") for p in avapeers]))
+
     def run_test(self):
         self.getavaaddr_interval_test()
 
@@ -201,6 +222,8 @@ class AvaAddrTest(BitcoinTestFramework):
         self.address_test(maxaddrtosend=3, num_proof=2, num_avanode=8)
         # Limited by the number of good nodes
         self.address_test(maxaddrtosend=100, num_proof=2, num_avanode=8)
+
+        self.getavaaddr_outbound_test()
 
 
 if __name__ == '__main__':
