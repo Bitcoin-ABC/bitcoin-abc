@@ -888,6 +888,11 @@ private:
     /** Request further headers from this peer from a given block header */
     void FetchMoreHeaders(CNode &pfrom, const CBlockIndex *pindexLast,
                           const Peer &peer) EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+    /**
+     * Potentially fetch blocks from this peer upon receipt of new headers tip
+     */
+    void HeadersDirectFetchBlocks(const Config &config, CNode &pfrom,
+                                  const CBlockIndex *pindexLast);
 
     void SendBlockTransactions(CNode &pfrom, Peer &peer, const CBlock &block,
                                const BlockTransactionsRequest &req);
@@ -3273,6 +3278,80 @@ void PeerManagerImpl::FetchMoreHeaders(CNode &pfrom,
                               uint256()));
 }
 
+/**
+ * Given a new headers tip ending in pindexLast, potentially request blocks
+ * towards that tip. We require that the given tip have at least as much work as
+ * our tip, and for our current tip to be "close to synced" (see
+ * CanDirectFetch()).
+ */
+void PeerManagerImpl::HeadersDirectFetchBlocks(const Config &config,
+                                               CNode &pfrom,
+                                               const CBlockIndex *pindexLast) {
+    const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
+
+    LOCK(cs_main);
+    CNodeState *nodestate = State(pfrom.GetId());
+
+    if (CanDirectFetch() && pindexLast->IsValid(BlockValidity::TREE) &&
+        m_chainman.ActiveChain().Tip()->nChainWork <= pindexLast->nChainWork) {
+        std::vector<const CBlockIndex *> vToFetch;
+        const CBlockIndex *pindexWalk = pindexLast;
+        // Calculate all the blocks we'd need to switch to pindexLast, up to
+        // a limit.
+        while (pindexWalk && !m_chainman.ActiveChain().Contains(pindexWalk) &&
+               vToFetch.size() <= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+            if (!pindexWalk->nStatus.hasData() &&
+                !IsBlockRequested(pindexWalk->GetBlockHash())) {
+                // We don't have this block, and it's not yet in flight.
+                vToFetch.push_back(pindexWalk);
+            }
+            pindexWalk = pindexWalk->pprev;
+        }
+        // If pindexWalk still isn't on our main chain, we're looking at a
+        // very large reorg at a time we think we're close to caught up to
+        // the main chain -- this shouldn't really happen. Bail out on the
+        // direct fetch and rely on parallel download instead.
+        if (!m_chainman.ActiveChain().Contains(pindexWalk)) {
+            LogPrint(BCLog::NET, "Large reorg, won't direct fetch to %s (%d)\n",
+                     pindexLast->GetBlockHash().ToString(),
+                     pindexLast->nHeight);
+        } else {
+            std::vector<CInv> vGetData;
+            // Download as much as possible, from earliest to latest.
+            for (const CBlockIndex *pindex : reverse_iterate(vToFetch)) {
+                if (nodestate->nBlocksInFlight >=
+                    MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+                    // Can't download any more from this peer
+                    break;
+                }
+                vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
+                BlockRequested(config, pfrom.GetId(), *pindex);
+                LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
+                         pindex->GetBlockHash().ToString(), pfrom.GetId());
+            }
+            if (vGetData.size() > 1) {
+                LogPrint(BCLog::NET,
+                         "Downloading blocks toward %s (%d) via headers "
+                         "direct fetch\n",
+                         pindexLast->GetBlockHash().ToString(),
+                         pindexLast->nHeight);
+            }
+            if (vGetData.size() > 0) {
+                if (!m_ignore_incoming_txs &&
+                    nodestate->m_provides_cmpctblocks && vGetData.size() == 1 &&
+                    mapBlocksInFlight.size() == 1 &&
+                    pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
+                    // In any case, we want to download using a compact
+                    // block, not a regular one.
+                    vGetData[0] = CInv(MSG_CMPCT_BLOCK, vGetData[0].hash);
+                }
+                m_connman.PushMessage(
+                    &pfrom, msgMaker.Make(NetMsgType::GETDATA, vGetData));
+            }
+        }
+    }
+}
+
 void PeerManagerImpl::ProcessHeadersMessage(
     const Config &config, CNode &pfrom, Peer &peer,
     const std::vector<CBlockHeader> &headers, bool via_compact_block) {
@@ -3361,68 +3440,6 @@ void PeerManagerImpl::ProcessHeadersMessage(
             nodestate->m_last_block_announcement = GetTime();
         }
 
-        // If this set of headers is valid and ends in a block with at least as
-        // much work as our tip, download as much as possible.
-        if (CanDirectFetch() && pindexLast->IsValid(BlockValidity::TREE) &&
-            m_chainman.ActiveChain().Tip()->nChainWork <=
-                pindexLast->nChainWork) {
-            std::vector<const CBlockIndex *> vToFetch;
-            const CBlockIndex *pindexWalk = pindexLast;
-            // Calculate all the blocks we'd need to switch to pindexLast, up to
-            // a limit.
-            while (pindexWalk &&
-                   !m_chainman.ActiveChain().Contains(pindexWalk) &&
-                   vToFetch.size() <= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
-                if (!pindexWalk->nStatus.hasData() &&
-                    !IsBlockRequested(pindexWalk->GetBlockHash())) {
-                    // We don't have this block, and it's not yet in flight.
-                    vToFetch.push_back(pindexWalk);
-                }
-                pindexWalk = pindexWalk->pprev;
-            }
-            // If pindexWalk still isn't on our main chain, we're looking at a
-            // very large reorg at a time we think we're close to caught up to
-            // the main chain -- this shouldn't really happen. Bail out on the
-            // direct fetch and rely on parallel download instead.
-            if (!m_chainman.ActiveChain().Contains(pindexWalk)) {
-                LogPrint(
-                    BCLog::NET, "Large reorg, won't direct fetch to %s (%d)\n",
-                    pindexLast->GetBlockHash().ToString(), pindexLast->nHeight);
-            } else {
-                std::vector<CInv> vGetData;
-                // Download as much as possible, from earliest to latest.
-                for (const CBlockIndex *pindex : reverse_iterate(vToFetch)) {
-                    if (nodestate->nBlocksInFlight >=
-                        MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
-                        // Can't download any more from this peer
-                        break;
-                    }
-                    vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    BlockRequested(config, pfrom.GetId(), *pindex);
-                    LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
-                             pindex->GetBlockHash().ToString(), pfrom.GetId());
-                }
-                if (vGetData.size() > 1) {
-                    LogPrint(BCLog::NET,
-                             "Downloading blocks toward %s (%d) via headers "
-                             "direct fetch\n",
-                             pindexLast->GetBlockHash().ToString(),
-                             pindexLast->nHeight);
-                }
-                if (vGetData.size() > 0) {
-                    if (!m_ignore_incoming_txs &&
-                        nodestate->m_provides_cmpctblocks &&
-                        vGetData.size() == 1 && mapBlocksInFlight.size() == 1 &&
-                        pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
-                        // In any case, we want to download using a compact
-                        // block, not a regular one.
-                        vGetData[0] = CInv(MSG_CMPCT_BLOCK, vGetData[0].hash);
-                    }
-                    m_connman.PushMessage(
-                        &pfrom, msgMaker.Make(NetMsgType::GETDATA, vGetData));
-                }
-            }
-        }
         // If we're in IBD, we want outbound peers that will serve us a useful
         // chain. Disconnect peers that are on chains with insufficient work.
         if (m_chainman.ActiveChainstate().IsInitialBlockDownload() &&
@@ -3470,6 +3487,9 @@ void PeerManagerImpl::ProcessHeadersMessage(
             }
         }
     }
+
+    // Consider immediately downloading blocks.
+    HeadersDirectFetchBlocks(config, pfrom, pindexLast);
 }
 
 /**
