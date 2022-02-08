@@ -882,6 +882,9 @@ private:
      */
     void HandleFewUnconnectingHeaders(CNode &pfrom, Peer &peer,
                                       const std::vector<CBlockHeader> &headers);
+    /** Return true if the headers connect to each other, false otherwise */
+    bool
+    CheckHeadersAreContinuous(const std::vector<CBlockHeader> &headers) const;
 
     void SendBlockTransactions(CNode &pfrom, Peer &peer, const CBlock &block,
                                const BlockTransactionsRequest &req);
@@ -3230,6 +3233,18 @@ void PeerManagerImpl::HandleFewUnconnectingHeaders(
     }
 }
 
+bool PeerManagerImpl::CheckHeadersAreContinuous(
+    const std::vector<CBlockHeader> &headers) const {
+    BlockHash hashLastBlock;
+    for (const CBlockHeader &header : headers) {
+        if (!hashLastBlock.IsNull() && header.hashPrevBlock != hashLastBlock) {
+            return false;
+        }
+        hashLastBlock = header.GetHash();
+    }
+    return true;
+}
+
 void PeerManagerImpl::ProcessHeadersMessage(
     const Config &config, CNode &pfrom, Peer &peer,
     const std::vector<CBlockHeader> &headers, bool via_compact_block) {
@@ -3261,22 +3276,18 @@ void PeerManagerImpl::ProcessHeadersMessage(
         return;
     }
 
+    // At this point, the headers connect to something in our block index.
+    if (!CheckHeadersAreContinuous(headers)) {
+        Misbehaving(peer, 20, "non-continuous headers sequence");
+        return;
+    }
+
     {
         LOCK(cs_main);
 
-        BlockHash hashLastBlock;
-        for (const CBlockHeader &header : headers) {
-            if (!hashLastBlock.IsNull() &&
-                header.hashPrevBlock != hashLastBlock) {
-                Misbehaving(peer, 20, "non-continuous headers sequence");
-                return;
-            }
-            hashLastBlock = header.GetHash();
-        }
-
         // If we don't have the last header, then they'll have given us
         // something new (if these headers are valid).
-        if (!m_chainman.m_blockman.LookupBlockIndex(hashLastBlock)) {
+        if (!m_chainman.m_blockman.LookupBlockIndex(headers.back().GetHash())) {
             received_new_header = true;
         }
     }
