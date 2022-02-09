@@ -203,7 +203,8 @@ public:
 /**
  * Unload database information.
  */
-void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman);
+void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman)
+    EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
 /**
  * Run instances of script checking worker threads

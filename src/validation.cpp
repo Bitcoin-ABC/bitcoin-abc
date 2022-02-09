@@ -4984,7 +4984,7 @@ void CChainState::UnloadBlockIndex() {
 // of the peer-processing logic assumes a consistent
 // block index state
 void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
-    LOCK(cs_main);
+    AssertLockHeld(::cs_main);
     chainman.Unload();
     pindexBestHeader = nullptr;
     pindexBestForkTip = nullptr;
