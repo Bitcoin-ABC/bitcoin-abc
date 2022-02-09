@@ -365,7 +365,7 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
     }
 
     // If there was conflicting proofs, attempt to pull them back
-    for (const SignedStake &ss : it->proof->getStakes()) {
+    for (const SignedStake &ss : proof->getStakes()) {
         const ProofRef conflictingProof =
             conflictingProofPool.getProof(ss.getStake().getUTXO());
         if (!conflictingProof) {
