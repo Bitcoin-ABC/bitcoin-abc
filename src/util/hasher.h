@@ -31,6 +31,15 @@ public:
     size_t operator()(const TxId &txid) const { return hash(txid); }
 };
 
+class SaltedBlockHashHasher : private SaltedUint256Hasher {
+public:
+    SaltedBlockHashHasher() : SaltedUint256Hasher() {}
+
+    size_t operator()(const BlockHash &block_hash) const {
+        return hash(block_hash);
+    }
+};
+
 class SaltedOutpointHasher {
 private:
     /** Salt */

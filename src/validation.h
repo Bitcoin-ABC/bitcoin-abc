@@ -563,6 +563,15 @@ bool TestBlockValidity(
     const std::function<NodeClock::time_point()> &adjusted_time_callback,
     BlockValidationOptions validationOptions) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+/**
+ * Check with the proof of work on each blockheader matches the value in nBits
+ */
+bool HasValidProofOfWork(const std::vector<CBlockHeader> &headers,
+                         const Consensus::Params &consensusParams);
+
+/** Return the sum of the work on a given set of headers */
+arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader> &headers);
+
 enum class VerifyDBResult {
     SUCCESS,
     CORRUPTED_BLOCK_DB,

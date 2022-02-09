@@ -630,6 +630,7 @@ add_library(server
 	deploymentstatus.cpp
 	dnsseeds.cpp
 	flatfile.cpp
+	headerssync.cpp
 	httprpc.cpp
 	httpserver.cpp
 	i2p.cpp
