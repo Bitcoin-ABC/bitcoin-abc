@@ -400,6 +400,9 @@ NodeId PeerManager::selectNode() {
         }
     }
 
+    // We failed to find a node to query, flag this so we can request more
+    needMoreNodes = true;
+
     return NO_NODE;
 }
 

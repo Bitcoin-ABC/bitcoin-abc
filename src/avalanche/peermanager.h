@@ -21,6 +21,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <memory>
@@ -159,6 +160,12 @@ class PeerManager {
 
     NodeSet nodes;
 
+    /**
+     * Flag indicating that we failed to select a node and need to expand our
+     * node set.
+     */
+    std::atomic<bool> needMoreNodes{false};
+
     using PendingNodeSet = boost::multi_index_container<
         PendingNode,
         bmi::indexed_by<
@@ -193,6 +200,11 @@ public:
 
     // Randomly select a node to poll.
     NodeId selectNode();
+
+    /**
+     * Returns true if we encountered a lack of node since the last call.
+     */
+    bool shouldRequestMoreNodes() { return needMoreNodes.exchange(false); }
 
     template <typename Callable>
     bool forNode(NodeId nodeid, Callable &&func) const {

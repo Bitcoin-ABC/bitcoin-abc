@@ -1462,4 +1462,52 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
     BOOST_CHECK(pm.isBoundToPeer(proofSeq20->getId()));
 }
 
+BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
+    avalanche::PeerManager pm;
+
+    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proof));
+
+    // We have no nodes, so select node will fail and flag that we need more
+    // nodes
+    BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
+    BOOST_CHECK(pm.shouldRequestMoreNodes());
+
+    for (size_t i = 0; i < 10; i++) {
+        // The flag will not trigger again until we fail to select nodes again
+        BOOST_CHECK(!pm.shouldRequestMoreNodes());
+    }
+
+    // Add a few nodes.
+    const ProofId &proofid = proof->getId();
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.addNode(i, proofid));
+    }
+
+    auto cooldownTimepoint = std::chrono::steady_clock::now() + 10s;
+
+    // All the nodes can be selected once
+    for (size_t i = 0; i < 10; i++) {
+        NodeId selectedId = pm.selectNode();
+        BOOST_CHECK_NE(selectedId, NO_NODE);
+        BOOST_CHECK(pm.updateNextRequestTime(selectedId, cooldownTimepoint));
+        BOOST_CHECK(!pm.shouldRequestMoreNodes());
+    }
+
+    // All the nodes have been requested, next select will fail and the flag
+    // should trigger
+    BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
+    BOOST_CHECK(pm.shouldRequestMoreNodes());
+
+    for (size_t i = 0; i < 10; i++) {
+        // The flag will not trigger again until we fail to select nodes again
+        BOOST_CHECK(!pm.shouldRequestMoreNodes());
+    }
+
+    // Make it possible to request a node again
+    BOOST_CHECK(pm.updateNextRequestTime(0, std::chrono::steady_clock::now()));
+    BOOST_CHECK_NE(pm.selectNode(), NO_NODE);
+    BOOST_CHECK(!pm.shouldRequestMoreNodes());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
