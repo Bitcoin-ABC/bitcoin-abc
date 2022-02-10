@@ -66,6 +66,7 @@ export const currency = {
             'sar',
             'aud',
             'nzd',
+            'chf',
         ],
     },
     fiatCurrencies: {
@@ -91,6 +92,7 @@ export const currency = {
         twd: { name: 'New Taiwan Dollar', symbol: 'NT$', slug: 'twd' },
         sar: { name: 'Saudi Riyal', symbol: 'SAR', slug: 'sar' },
         zar: { name: 'South African Rand', symbol: 'R', slug: 'zar' },
+        chf: { name: 'Swiss Franc', symbol: 'Fr.', slug: 'chf' },
         try: { name: 'Turkish Lira', symbol: '₺', slug: 'try' },
         vnd: { name: 'Vietnamese đồng', symbol: 'đ', slug: 'vnd' },
     },
