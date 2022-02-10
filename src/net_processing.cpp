@@ -1537,10 +1537,9 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) const {
     // Schedule next run for 10-15 minutes in the future.
     // We add randomness on every cycle to avoid the possibility of P2P
     // fingerprinting.
-    const std::chrono::milliseconds delta =
-        std::chrono::minutes{10} + GetRandMillis(std::chrono::minutes{5});
+    const auto reattemptBroadcastInterval = 10min + GetRandMillis(5min);
     scheduler.scheduleFromNow([&] { ReattemptInitialBroadcast(scheduler); },
-                              delta);
+                              reattemptBroadcastInterval);
 }
 
 void PeerManagerImpl::UpdateAvalancheStatistics() const {
@@ -2015,10 +2014,9 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
         std::chrono::seconds{EXTRA_PEER_CHECK_INTERVAL});
 
     // schedule next run for 10-15 minutes in the future
-    const std::chrono::milliseconds delta =
-        std::chrono::minutes{10} + GetRandMillis(std::chrono::minutes{5});
+    const auto reattemptBroadcastInterval = 10min + GetRandMillis(5min);
     scheduler.scheduleFromNow([&] { ReattemptInitialBroadcast(scheduler); },
-                              delta);
+                              reattemptBroadcastInterval);
 
     // Update the avalanche statistics on a schedule
     scheduler.scheduleEvery(
