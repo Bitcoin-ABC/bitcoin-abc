@@ -21,6 +21,7 @@
 #include <util/system.h>
 
 #include <chrono>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -114,7 +115,8 @@ namespace sam {
     Session::Session(const fs::path &private_key_file,
                      const CService &control_host, CThreadInterrupt *interrupt)
         : m_private_key_file(private_key_file), m_control_host(control_host),
-          m_interrupt(interrupt) {}
+          m_interrupt(interrupt),
+          m_control_sock(std::make_unique<Sock>(INVALID_SOCKET)) {}
 
     Session::~Session() {
         LOCK(m_mutex);
@@ -139,14 +141,14 @@ namespace sam {
         try {
             while (!*m_interrupt) {
                 Sock::Event occurred;
-                conn.sock.Wait(MAX_WAIT_FOR_IO, Sock::RECV, &occurred);
+                conn.sock->Wait(MAX_WAIT_FOR_IO, Sock::RECV, &occurred);
 
                 if ((occurred & Sock::RECV) == 0) {
                     // Timeout, no incoming connections within MAX_WAIT_FOR_IO.
                     continue;
                 }
 
-                const std::string &peer_dest = conn.sock.RecvUntilTerminator(
+                const std::string &peer_dest = conn.sock->RecvUntilTerminator(
                     '\n', MAX_WAIT_FOR_IO, *m_interrupt, MAX_MSG_SIZE);
 
                 conn.peer = CService(DestB64ToAddr(peer_dest),
@@ -166,7 +168,7 @@ namespace sam {
         proxy_error = true;
 
         std::string session_id;
-        Sock sock;
+        std::unique_ptr<Sock> sock;
         conn.peer = to;
 
         try {
@@ -179,12 +181,12 @@ namespace sam {
             }
 
             const Reply &lookup_reply = SendRequestAndGetReply(
-                sock, strprintf("NAMING LOOKUP NAME=%s", to.ToStringIP()));
+                *sock, strprintf("NAMING LOOKUP NAME=%s", to.ToStringIP()));
 
             const std::string &dest = lookup_reply.Get("VALUE");
 
             const Reply &connect_reply = SendRequestAndGetReply(
-                sock,
+                *sock,
                 strprintf("STREAM CONNECT ID=%s DESTINATION=%s SILENT=false",
                           session_id, dest),
                 false);
@@ -272,14 +274,14 @@ namespace sam {
         return reply;
     }
 
-    Sock Session::Hello() const {
+    std::unique_ptr<Sock> Session::Hello() const {
         auto sock = CreateSock(m_control_host);
 
         if (!sock) {
             throw std::runtime_error("Cannot create socket");
         }
 
-        if (!ConnectSocketDirectly(m_control_host, sock->Get(), nConnectTimeout,
+        if (!ConnectSocketDirectly(m_control_host, *sock, nConnectTimeout,
                                    true)) {
             throw std::runtime_error(
                 strprintf("Cannot connect to %s", m_control_host.ToString()));
@@ -287,14 +289,14 @@ namespace sam {
 
         SendRequestAndGetReply(*sock, "HELLO VERSION MIN=3.1 MAX=3.1");
 
-        return std::move(*sock);
+        return sock;
     }
 
     void Session::CheckControlSock() {
         LOCK(m_mutex);
 
         std::string errmsg;
-        if (!m_control_sock.IsConnected(errmsg)) {
+        if (!m_control_sock->IsConnected(errmsg)) {
             Log("Control socket error: %s", errmsg);
             Disconnect();
         }
@@ -343,19 +345,19 @@ namespace sam {
 
     void Session::CreateIfNotCreatedAlready() {
         std::string errmsg;
-        if (m_control_sock.IsConnected(errmsg)) {
+        if (m_control_sock->IsConnected(errmsg)) {
             return;
         }
 
         Log("Creating SAM session with %s", m_control_host.ToString());
 
-        Sock sock = Hello();
+        auto sock = Hello();
 
         const auto &[read_ok, data] = ReadBinaryFile(m_private_key_file);
         if (read_ok) {
             m_private_key.assign(data.begin(), data.end());
         } else {
-            GenerateAndSavePrivateKey(sock);
+            GenerateAndSavePrivateKey(*sock);
         }
 
         const std::string &session_id = GetRandHash().GetHex().substr(
@@ -364,8 +366,8 @@ namespace sam {
             SwapBase64(EncodeBase64(m_private_key));
 
         SendRequestAndGetReply(
-            sock, strprintf("SESSION CREATE STYLE=STREAM ID=%s DESTINATION=%s",
-                            session_id, private_key_b64));
+            *sock, strprintf("SESSION CREATE STYLE=STREAM ID=%s DESTINATION=%s",
+                             session_id, private_key_b64));
 
         m_my_addr =
             CService(DestBinToAddr(MyDestination()), Params().GetDefaultPort());
@@ -376,11 +378,11 @@ namespace sam {
                   m_session_id, m_my_addr.ToString());
     }
 
-    Sock Session::StreamAccept() {
-        Sock sock = Hello();
+    std::unique_ptr<Sock> Session::StreamAccept() {
+        auto sock = Hello();
 
         const Reply &reply = SendRequestAndGetReply(
-            sock, strprintf("STREAM ACCEPT ID=%s SILENT=false", m_session_id),
+            *sock, strprintf("STREAM ACCEPT ID=%s SILENT=false", m_session_id),
             false);
 
         const std::string &result = reply.Get("RESULT");
@@ -399,14 +401,14 @@ namespace sam {
     }
 
     void Session::Disconnect() {
-        if (m_control_sock.Get() != INVALID_SOCKET) {
+        if (m_control_sock->Get() != INVALID_SOCKET) {
             if (m_session_id.empty()) {
                 Log("Destroying incomplete session");
             } else {
                 Log("Destroying session %s", m_session_id);
             }
         }
-        m_control_sock.Reset();
+        m_control_sock->Reset();
         m_session_id.clear();
     }
 } // namespace sam

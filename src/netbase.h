@@ -79,9 +79,8 @@ std::unique_ptr<Sock> CreateSockTCP(const CService &address_family);
  */
 extern std::function<std::unique_ptr<Sock>(const CService &)> CreateSock;
 
-bool ConnectSocketDirectly(const CService &addrConnect,
-                           const SOCKET &hSocketRet, int nTimeout,
-                           bool manual_connection);
+bool ConnectSocketDirectly(const CService &addrConnect, const Sock &sock,
+                           int nTimeout, bool manual_connection);
 bool ConnectThroughProxy(const proxyType &proxy, const std::string &strDest,
                          int port, const Sock &sock, int nTimeout,
                          bool &outProxyConnectionFailed);

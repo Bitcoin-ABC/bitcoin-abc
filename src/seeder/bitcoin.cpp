@@ -208,7 +208,7 @@ bool CSeederNode::Run() {
             }
             // no proxy needed (none set for target network)
             connected =
-                ConnectSocketDirectly(you, sock->Get(), nConnectTimeout, false);
+                ConnectSocketDirectly(you, *sock, nConnectTimeout, false);
         }
     }
 
