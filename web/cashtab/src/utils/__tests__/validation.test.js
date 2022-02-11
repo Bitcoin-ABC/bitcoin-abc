@@ -12,6 +12,7 @@ import {
     isValidEtokenAddress,
     isValidXecSendAmount,
     isValidSendToMany,
+    isValidUtxo,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -21,6 +22,12 @@ import {
     noCovidStatsInvalid,
     cGenStatsValid,
 } from '../__mocks__/mockTokenStats';
+
+import {
+    validUtxo,
+    invalidUtxoMissingHeight,
+    invalidUtxoTxidUndefined,
+} from '../__mocks__/incrementalUtxoMocks';
 
 describe('Validation utils', () => {
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
@@ -365,5 +372,23 @@ describe('Validation utils', () => {
     it(`isValidXecSendAmount rejects undefined`, () => {
         const testXecSendAmount = undefined;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
+    });
+    it(`isValidUtxo returns true for a valid utxo`, () => {
+        expect(isValidUtxo(validUtxo)).toBe(true);
+    });
+    it(`isValidUtxo returns false for missing height`, () => {
+        expect(isValidUtxo(invalidUtxoMissingHeight)).toBe(false);
+    });
+    it(`isValidUtxo returns false for undefined tx_hash`, () => {
+        expect(isValidUtxo(invalidUtxoTxidUndefined)).toBe(false);
+    });
+    it(`isValidUtxo returns false for null`, () => {
+        expect(isValidUtxo(null)).toBe(false);
+    });
+    it(`isValidUtxo returns false for undefined`, () => {
+        expect(isValidUtxo()).toBe(false);
+    });
+    it(`isValidUtxo returns false for empty object`, () => {
+        expect(isValidUtxo({})).toBe(false);
     });
 });

@@ -233,3 +233,21 @@ export const isValidXecSendAmount = xecSendAmount => {
         parseFloat(xecSendAmount) >= fromSmallestDenomination(currency.dustSats)
     );
 };
+
+export const isValidUtxo = utxo => {
+    let isValidUtxo = false;
+    try {
+        isValidUtxo =
+            'height' in utxo &&
+            typeof utxo.height === 'number' &&
+            'tx_hash' in utxo &&
+            typeof utxo.tx_hash === 'string' &&
+            'tx_pos' in utxo &&
+            typeof utxo.tx_pos === 'number' &&
+            'value' in utxo &&
+            typeof utxo.value === 'number';
+    } catch (err) {
+        return false;
+    }
+    return isValidUtxo;
+};

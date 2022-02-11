@@ -1,5 +1,9 @@
 import { currency } from '@components/Common/Ticker';
-import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
+import {
+    isValidXecAddress,
+    isValidEtokenAddress,
+    isValidUtxo,
+} from '@utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 
@@ -486,4 +490,40 @@ export const isLegacyMigrationRequired = wallet => {
     }
 
     return false;
+};
+
+export const isExcludedUtxo = (utxo, utxoArray) => {
+    /*
+    utxo is a single utxo of model
+    {
+        height: 724992
+        tx_hash: "8d4bdedb7c4443412e0c2f316a330863aef54d9ba73560ca60cca6408527b247"
+        tx_pos: 0
+        value: 10200
+    }
+
+    utxoArray is an array of utxos
+    */
+    let isExcludedUtxo = true;
+    const { tx_hash, tx_pos, value } = utxo;
+    for (let i = 0; i < utxoArray.length; i += 1) {
+        const thisUtxo = utxoArray[i];
+        // NOTE
+        // You can't match height, as this changes from 0 to blockheight after confirmation
+        //const thisUtxoHeight = thisUtxo.height;
+        const thisUtxoTxid = thisUtxo.tx_hash;
+        const thisUtxoTxPos = thisUtxo.tx_pos;
+        const thisUtxoValue = thisUtxo.value;
+        // If you find a utxo such that each object key is identical
+        if (
+            tx_hash === thisUtxoTxid &&
+            tx_pos === thisUtxoTxPos &&
+            value === thisUtxoValue
+        ) {
+            // Then this utxo is not excluded from the array
+            isExcludedUtxo = false;
+        }
+    }
+
+    return isExcludedUtxo;
 };

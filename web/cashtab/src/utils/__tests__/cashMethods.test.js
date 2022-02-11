@@ -14,6 +14,7 @@ import {
     toLegacyToken,
     toLegacyCashArray,
     parseOpReturn,
+    isExcludedUtxo,
 } from '@utils/cashMethods';
 
 import {
@@ -76,6 +77,14 @@ import {
     eTokenInputHex,
     mockParsedETokenOutputArray,
 } from '../__mocks__/mockOpReturnParsedArray';
+
+import {
+    excludedUtxoAlpha,
+    excludedUtxoBeta,
+    includedUtxoAlpha,
+    includedUtxoBeta,
+    previousUtxosObjUtxoArray,
+} from '../__mocks__/incrementalUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -344,5 +353,26 @@ describe('Correctly executes cash utility functions', () => {
     test('parseOpReturn() successfully parses an eToken output', async () => {
         const result = parseOpReturn(eTokenInputHex);
         expect(result).toStrictEqual(mockParsedETokenOutputArray);
+    });
+
+    test('isExcludedUtxo returns true for a utxo with different tx_pos and same txid as an existing utxo in the set', async () => {
+        expect(
+            isExcludedUtxo(excludedUtxoAlpha, previousUtxosObjUtxoArray),
+        ).toBe(true);
+    });
+    test('isExcludedUtxo returns true for a utxo with different value and same txid as an existing utxo in the set', async () => {
+        expect(
+            isExcludedUtxo(excludedUtxoBeta, previousUtxosObjUtxoArray),
+        ).toBe(true);
+    });
+    test('isExcludedUtxo returns false for a utxo with different tx_pos and same txid', async () => {
+        expect(
+            isExcludedUtxo(includedUtxoAlpha, previousUtxosObjUtxoArray),
+        ).toBe(false);
+    });
+    test('isExcludedUtxo returns false for a utxo with different value and same txid', async () => {
+        expect(
+            isExcludedUtxo(includedUtxoBeta, previousUtxosObjUtxoArray),
+        ).toBe(false);
     });
 });
