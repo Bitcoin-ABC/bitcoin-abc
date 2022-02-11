@@ -89,40 +89,45 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proofid = self.send_proof(peer, proof_hex)
         self.wait_until(lambda: self.can_find_proof_in_poll(proofid, response))
 
+    def build_conflicting_proof(self, node, sequence):
+        return node.buildavalancheproof(
+            sequence, 0, self.privkey_wif, self.conflicting_stakes)
+
     def run_test(self):
         node = self.nodes[0]
+
         self.privkey, self.quorum_proof = gen_proof(node)
+        self.privkey_wif = bytes_to_wif(self.privkey.get_bytes())
+
         self.quorum = self.get_quorum(node)
 
         addrkey0 = node.get_deterministic_priv_key()
         blockhash = node.generatetoaddress(10, addrkey0.address)
-        conflicting_stakes = create_coinbase_stakes(
+        self.conflicting_stakes = create_coinbase_stakes(
             node, blockhash[5:], addrkey0.key)
-        privkey_wif = bytes_to_wif(self.privkey.get_bytes())
 
-        def build_conflicting_proof(sequence):
-            return node.buildavalancheproof(
-                sequence, 0, privkey_wif, conflicting_stakes)
+        self.poll_tests(node)
+        self.update_tests(node)
 
-        proof_seq10 = build_conflicting_proof(10)
-        proof_seq20 = build_conflicting_proof(20)
-        proof_seq30 = build_conflicting_proof(30)
-        proof_seq40 = build_conflicting_proof(40)
-        proof_seq50 = build_conflicting_proof(50)
+    def poll_tests(self, node):
+        proof_seq10 = self.build_conflicting_proof(node, 10)
+        proof_seq20 = self.build_conflicting_proof(node, 20)
+        proof_seq30 = self.build_conflicting_proof(node, 30)
+        proof_seq40 = self.build_conflicting_proof(node, 40)
 
         orphan = node.buildavalancheproof(
-            100, 2000000000, privkey_wif, [{
+            100, 2000000000, self.privkey_wif, [{
                 'txid': '0' * 64,
                 'vout': 0,
                 'amount': 10e6,
                 'height': 42,
                 'iscoinbase': False,
-                'privatekey': privkey_wif,
+                'privatekey': self.privkey_wif,
             }]
         )
 
         no_stake = node.buildavalancheproof(
-            200, 2000000000, privkey_wif, []
+            200, 2000000000, self.privkey_wif, []
         )
 
         # Get the key so we can verify signatures.
@@ -178,6 +183,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             peer.send_avaproof(FromHex(LegacyAvalancheProof(), no_stake))
         peer.wait_for_disconnect()
 
+    def update_tests(self, node):
         # Restart the node to get rid og in-flight requests
         self.restart_node(0)
 
@@ -187,6 +193,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.quorum = self.get_quorum(node)
         peer = get_ava_p2p_interface(node)
 
+        proof_seq30 = self.build_conflicting_proof(node, 30)
+        proof_seq40 = self.build_conflicting_proof(node, 40)
+        proof_seq50 = self.build_conflicting_proof(node, 50)
         proofid_seq30 = FromHex(LegacyAvalancheProof(), proof_seq30).proofid
         proofid_seq40 = FromHex(LegacyAvalancheProof(), proof_seq40).proofid
         proofid_seq50 = FromHex(LegacyAvalancheProof(), proof_seq50).proofid
