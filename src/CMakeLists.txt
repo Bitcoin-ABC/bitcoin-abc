@@ -823,12 +823,12 @@ endif()
 
 # bitcoin-chainstate
 if(BUILD_BITCOIN_CHAINSTATE)
-	add_executable(bitcoin-chainstate
-		bitcoin-chainstate.cpp
-
-		# bitcoin-chainstate dependencies
-		# The goal is for this list to grow shorter as more and more modules
-		# of the codebase are decoupled from the consensus engine.
+	# TODO: libbitcoinkernel is a work in progress consensus engine library, as more
+	#       and more modules are decoupled from the consensus engine, this list will
+	#       shrink to only those which are absolutely necessary. For example, things
+	#       like index/*.cpp will be removed.
+	add_library(bitcoinkernel
+		kernel/bitcoinkernel.cpp
 		arith_uint256.cpp
 		blockfileinfo.cpp
 		blockfilter.cpp
@@ -952,19 +952,23 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		util/sock.cpp           # via net.cpp
 	)
 
-	target_include_directories(bitcoin-chainstate
-		PRIVATE
+	target_include_directories(bitcoinkernel
+		PUBLIC
 			.
 			leveldb/helpers/memenv
 			# To access the config/ and obj/ directories
 			${CMAKE_CURRENT_BINARY_DIR}
 	)
-	target_link_libraries(bitcoin-chainstate crypto univalue secp256k1 leveldb memenv)
-	link_boost_headers_only(bitcoin-chainstate headers)
+	target_link_libraries(bitcoinkernel crypto univalue secp256k1 leveldb memenv)
+	link_boost_headers_only(bitcoinkernel headers)
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		link_windows_dependencies(bitcoin-chainstate)
+		link_windows_dependencies(bitcoinkernel)
 	endif()
+
+	add_executable(bitcoin-chainstate bitcoin-chainstate.cpp)
+
+	target_link_libraries(bitcoin-chainstate bitcoinkernel)
 
 	generate_windows_version_info(bitcoin-chainstate
 		DESCRIPTION "CLI Datadir information utility (experimental)"
