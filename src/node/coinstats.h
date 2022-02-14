@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 class CCoinsView;
 namespace node {
@@ -29,7 +30,6 @@ enum class CoinStatsHashType {
 };
 
 struct CCoinsStats {
-    CoinStatsHashType m_hash_type;
     int nHeight{0};
     BlockHash hashBlock{};
     uint64_t nTransactions{0};
@@ -42,8 +42,6 @@ struct CCoinsStats {
     //! The number of coins contained.
     uint64_t coins_count{0};
 
-    //! Signals if the coinstatsindex should be used (when available).
-    bool index_requested{true};
     //! Signals if the coinstatsindex was used to retrieve the statistics.
     bool index_used{false};
 
@@ -73,15 +71,19 @@ struct CCoinsStats {
     //! Total cumulative amount of coins lost due to unclaimed miner rewards up
     //! to and including this block
     Amount total_unspendables_unclaimed_rewards{Amount::zero()};
-
-    CCoinsStats(CoinStatsHashType hash_type) : m_hash_type(hash_type) {}
 };
 
-//! Calculate statistics about the unspent transaction output set
-bool GetUTXOStats(CCoinsView *view, node::BlockManager &blockman,
-                  CCoinsStats &stats,
-                  const std::function<void()> &interruption_point = {},
-                  const CBlockIndex *pindex = nullptr);
+/**
+ * Calculate statistics about the unspent transaction output set
+ *
+ * @param[in] index_requested Signals if the coinstatsindex should be used (when
+ * available).
+ */
+std::optional<CCoinsStats>
+GetUTXOStats(CCoinsView *view, node::BlockManager &blockman,
+             CoinStatsHashType hash_type,
+             const std::function<void()> &interruption_point = {},
+             const CBlockIndex *pindex = nullptr, bool index_requested = true);
 
 uint64_t GetBogoSize(const CScript &script_pub_key);
 

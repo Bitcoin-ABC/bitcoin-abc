@@ -9,6 +9,7 @@
 #include <crypto/muhash.h>
 #include <hash.h>
 #include <index/coinstatsindex.h>
+#include <optional>
 #include <primitives/txid.h>
 #include <serialize.h>
 #include <util/check.h>
@@ -91,7 +92,8 @@ template <typename T>
 static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
                          CCoinsStats &stats, T hash_obj,
                          const std::function<void()> &interruption_point,
-                         const CBlockIndex *pindex) {
+                         const CBlockIndex *pindex,
+                         CoinStatsHashType &hash_type, bool index_requested) {
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
     assert(pcursor);
 
@@ -104,9 +106,9 @@ static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
 
     // Use CoinStatsIndex if it is requested and available and a hash_type of
     // Muhash or None was requested
-    if ((stats.m_hash_type == CoinStatsHashType::MUHASH ||
-         stats.m_hash_type == CoinStatsHashType::NONE) &&
-        g_coin_stats_index && stats.index_requested) {
+    if ((hash_type == CoinStatsHashType::MUHASH ||
+         hash_type == CoinStatsHashType::NONE) &&
+        g_coin_stats_index && index_requested) {
         stats.index_used = true;
         return g_coin_stats_index->LookUpStats(pindex, stats);
     }
@@ -144,26 +146,40 @@ static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
     return true;
 }
 
-bool GetUTXOStats(CCoinsView *view, BlockManager &blockman, CCoinsStats &stats,
-                  const std::function<void()> &interruption_point,
-                  const CBlockIndex *pindex) {
-    switch (stats.m_hash_type) {
-        case (CoinStatsHashType::HASH_SERIALIZED): {
-            CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-            return GetUTXOStats(view, blockman, stats, ss, interruption_point,
-                                pindex);
-        }
-        case (CoinStatsHashType::MUHASH): {
-            MuHash3072 muhash;
-            return GetUTXOStats(view, blockman, stats, muhash,
-                                interruption_point, pindex);
-        }
-        case (CoinStatsHashType::NONE): {
-            return GetUTXOStats(view, blockman, stats, nullptr,
-                                interruption_point, pindex);
-        }
-    } // no default case, so the compiler can warn about missing cases
-    assert(false);
+std::optional<CCoinsStats>
+GetUTXOStats(CCoinsView *view, BlockManager &blockman,
+             CoinStatsHashType hash_type,
+             const std::function<void()> &interruption_point,
+             const CBlockIndex *pindex, bool index_requested) {
+    CCoinsStats stats{};
+
+    bool success = [&]() -> bool {
+        switch (hash_type) {
+            case (CoinStatsHashType::HASH_SERIALIZED): {
+                CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+                return GetUTXOStats(view, blockman, stats, ss,
+                                    interruption_point, pindex, hash_type,
+                                    index_requested);
+            }
+            case (CoinStatsHashType::MUHASH): {
+                MuHash3072 muhash;
+                return GetUTXOStats(view, blockman, stats, muhash,
+                                    interruption_point, pindex, hash_type,
+                                    index_requested);
+            }
+            case (CoinStatsHashType::NONE): {
+                return GetUTXOStats(view, blockman, stats, nullptr,
+                                    interruption_point, pindex, hash_type,
+                                    index_requested);
+            }
+        } // no default case, so the compiler can warn about missing cases
+        assert(false);
+    }();
+
+    if (!success) {
+        return std::nullopt;
+    }
+    return stats;
 }
 
 // The legacy hash serializes the hashBlock

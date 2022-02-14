@@ -1369,8 +1369,7 @@ static RPCHelpMan gettxoutsetinfo() {
                 request.params[0].isNull()
                     ? CoinStatsHashType::HASH_SERIALIZED
                     : ParseHashType(request.params[0].get_str())};
-            CCoinsStats stats{hash_type};
-            stats.index_requested =
+            bool index_requested =
                 request.params[2].isNull() || request.params[2].get_bool();
 
             NodeContext &node = EnsureAnyNodeContext(request.context);
@@ -1394,7 +1393,7 @@ static RPCHelpMan gettxoutsetinfo() {
                                        "requires coinstatsindex");
                 }
 
-                if (stats.m_hash_type == CoinStatsHashType::HASH_SERIALIZED) {
+                if (hash_type == CoinStatsHashType::HASH_SERIALIZED) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
                                        "hash_serialized hash type cannot be "
                                        "queried for a specific block");
@@ -1403,7 +1402,7 @@ static RPCHelpMan gettxoutsetinfo() {
                 pindex = ParseHashOrHeight(request.params[1], chainman);
             }
 
-            if (stats.index_requested && g_coin_stats_index) {
+            if (index_requested && g_coin_stats_index) {
                 if (!g_coin_stats_index->BlockUntilSyncedToCurrentChain()) {
                     const IndexSummary summary{
                         g_coin_stats_index->GetSummary()};
@@ -1422,8 +1421,11 @@ static RPCHelpMan gettxoutsetinfo() {
                 }
             }
 
-            if (GetUTXOStats(coins_view, *blockman, stats,
-                             node.rpc_interruption_point, pindex)) {
+            const std::optional<CCoinsStats> maybe_stats = GetUTXOStats(
+                coins_view, *blockman, hash_type, node.rpc_interruption_point,
+                pindex, index_requested);
+            if (maybe_stats.has_value()) {
+                const CCoinsStats &stats = maybe_stats.value();
                 ret.pushKV("height", int64_t(stats.nHeight));
                 ret.pushKV("bestblock", stats.hashBlock.GetHex());
                 ret.pushKV("txouts", int64_t(stats.nTransactionOutputs));
@@ -1444,12 +1446,17 @@ static RPCHelpMan gettxoutsetinfo() {
                     ret.pushKV("total_unspendable_amount",
                                stats.total_unspendable_amount);
 
-                    CCoinsStats prev_stats{hash_type};
-
+                    CCoinsStats prev_stats{};
                     if (pindex->nHeight > 0) {
-                        GetUTXOStats(coins_view, *blockman, prev_stats,
-                                     node.rpc_interruption_point,
-                                     pindex->pprev);
+                        const std::optional<CCoinsStats> maybe_prev_stats =
+                            GetUTXOStats(coins_view, *blockman, hash_type,
+                                         node.rpc_interruption_point,
+                                         pindex->pprev, index_requested);
+                        if (!maybe_prev_stats) {
+                            throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                               "Unable to read UTXO set");
+                        }
+                        prev_stats = maybe_prev_stats.value();
                     }
 
                     UniValue block_info(UniValue::VOBJ);
@@ -3091,7 +3098,7 @@ UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
                             AutoFile &afile, const fs::path &path,
                             const fs::path &temppath) {
     std::unique_ptr<CCoinsViewCursor> pcursor;
-    CCoinsStats stats{CoinStatsHashType::HASH_SERIALIZED};
+    std::optional<CCoinsStats> maybe_stats;
     const CBlockIndex *tip;
 
     {
@@ -3112,15 +3119,17 @@ UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
 
         chainstate.ForceFlushStateToDisk();
 
-        if (!GetUTXOStats(&chainstate.CoinsDB(), chainstate.m_blockman, stats,
-                          node.rpc_interruption_point)) {
+        maybe_stats = GetUTXOStats(&chainstate.CoinsDB(), chainstate.m_blockman,
+                                   CoinStatsHashType::HASH_SERIALIZED,
+                                   node.rpc_interruption_point);
+        if (!maybe_stats) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to read UTXO set");
         }
 
         pcursor =
             std::unique_ptr<CCoinsViewCursor>(chainstate.CoinsDB().Cursor());
         tip = CHECK_NONFATAL(
-            chainstate.m_blockman.LookupBlockIndex(stats.hashBlock));
+            chainstate.m_blockman.LookupBlockIndex(maybe_stats->hashBlock));
     }
 
     LOG_TIME_SECONDS(
@@ -3128,7 +3137,7 @@ UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
                   tip->nHeight, tip->GetBlockHash().ToString(),
                   fs::PathToString(path), fs::PathToString(temppath)));
 
-    SnapshotMetadata metadata{tip->GetBlockHash(), stats.coins_count,
+    SnapshotMetadata metadata{tip->GetBlockHash(), maybe_stats->coins_count,
                               uint64_t(tip->GetChainTxCount())};
 
     afile << metadata;
@@ -3153,11 +3162,11 @@ UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
     afile.fclose();
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("coins_written", stats.coins_count);
+    result.pushKV("coins_written", maybe_stats->coins_count);
     result.pushKV("base_hash", tip->GetBlockHash().ToString());
     result.pushKV("base_height", tip->nHeight);
     result.pushKV("path", path.u8string());
-    result.pushKV("txoutset_hash", stats.hashSerialized.ToString());
+    result.pushKV("txoutset_hash", maybe_stats->hashSerialized.ToString());
     // Cast required because univalue doesn't have serialization specified for
     // `unsigned int`, nChainTx's type.
     result.pushKV("nchaintx", uint64_t{tip->nChainTx});
