@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(dbwrapper_iterator) {
 BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate) {
     // We're going to share this fs::path between two wrappers
     fs::path ph = m_args.GetDataDirBase() / "existing_data_no_obfuscate";
-    create_directories(ph);
+    fs::create_directories(ph);
 
     // Set up a non-obfuscated wrapper to write some initial data.
     std::unique_ptr<CDBWrapper> dbw =
@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate) {
 BOOST_AUTO_TEST_CASE(existing_data_reindex) {
     // We're going to share this fs::path between two wrappers
     fs::path ph = m_args.GetDataDirBase() / "existing_data_reindex";
-    create_directories(ph);
+    fs::create_directories(ph);
 
     // Set up a non-obfuscated wrapper to write some initial data.
     std::unique_ptr<CDBWrapper> dbw =
@@ -426,7 +426,8 @@ BOOST_AUTO_TEST_CASE(unicodepath) {
     // On Windows this test will fail if the directory is created using
     // the ANSI CreateDirectoryA call and the code page isn't UTF8.
     // It will succeed if created with CreateDirectoryW.
-    fs::path ph = m_args.GetDataDirBase() / "test_runner_₿_🏃_20191128_104644";
+    fs::path ph =
+        m_args.GetDataDirBase() / "test_runner_₿_🏃_20191128_104644";
     CDBWrapper dbw(ph, (1 << 20));
 
     fs::path lockPath = ph / "LOCK";
