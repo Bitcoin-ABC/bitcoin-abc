@@ -15,7 +15,7 @@ NSEEDS = 512
 
 MAX_SEEDS_PER_ASN = 2
 
-MIN_BLOCKS = 540000
+MIN_BLOCKS = 700000
 
 # These are hosts that have been observed to be behaving strangely (e.g.
 # aggressively connecting to every node).
@@ -36,7 +36,7 @@ PATTERN_ONION = re.compile(
 
 # Used to only select nodes with a user agent string compatible with the
 # eCash network.
-PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0.(23|24).(\d+)\(.+\)/)")
+PATTERN_AGENT = re.compile(r"^(/Bitcoin ABC:0.(24|25).(\d+)\(.+\)/)")
 
 
 def parseline(line):
