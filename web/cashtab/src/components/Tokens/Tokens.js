@@ -90,7 +90,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                     {cashtabSettings
                         ? `${currency.fiatCurrencies[
                               cashtabSettings.fiatCurrency
-                          ].slug.toUpperCase()} `
+                          ].slug.toUpperCase()}`
                         : 'USD'}
                     ) to create a token
                 </AlertMsg>
