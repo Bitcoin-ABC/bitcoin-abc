@@ -15,6 +15,7 @@ import {
     toLegacyCashArray,
     parseOpReturn,
     isExcludedUtxo,
+    whichUtxosWereAdded,
 } from '@utils/cashMethods';
 
 import {
@@ -84,6 +85,36 @@ import {
     includedUtxoAlpha,
     includedUtxoBeta,
     previousUtxosObjUtxoArray,
+    previousUtxosTemplate,
+    currentUtxosAfterSingleXecReceiveTxTemplate,
+    utxosAddedBySingleXecReceiveTxTemplate,
+    previousUtxosBeforeSingleXecReceiveTx,
+    currentUtxosAfterSingleXecReceiveTx,
+    utxosAddedBySingleXecReceiveTx,
+    currentUtxosAfterMultiXecReceiveTxTemplate,
+    utxosAddedByMultiXecReceiveTxTemplate,
+    previousUtxosBeforeMultiXecReceiveTx,
+    currentUtxosAfterMultiXecReceiveTx,
+    utxosAddedByMultiXecReceiveTx,
+    currentUtxosAfterEtokenReceiveTxTemplate,
+    utxosAddedByEtokenReceiveTxTemplate,
+    previousUtxosBeforeEtokenReceiveTx,
+    currentUtxosAfterEtokenReceiveTx,
+    utxosAddedByEtokenReceiveTx,
+    previousUtxosBeforeSendAllTxTemplate,
+    currentUtxosAfterSendAllTxTemplate,
+    previousUtxosBeforeSendAllTx,
+    currentUtxosAfterSendAllTx,
+    previousUtxosBeforeSingleXecSendTx,
+    currentUtxosAfterSingleXecSendTx,
+    utxosAddedBySingleXecSendTx,
+    currentUtxosAfterSingleXecSendTxTemplate,
+    utxosAddedBySingleXecSendTxTemplate,
+    currentUtxosAfterEtokenSendTxTemplate,
+    utxosAddedByEtokenSendTxTemplate,
+    previousUtxosBeforeEtokenSendTx,
+    currentUtxosAfterEtokenSendTx,
+    utxosAddedByEtokenSendTx,
 } from '../__mocks__/incrementalUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
@@ -374,5 +405,101 @@ describe('Correctly executes cash utility functions', () => {
         expect(
             isExcludedUtxo(includedUtxoBeta, previousUtxosObjUtxoArray),
         ).toBe(false);
+    });
+    test('whichUtxosWereAdded correctly identifies a single added utxo after a received XEC tx [template]', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosTemplate,
+                currentUtxosAfterSingleXecReceiveTxTemplate,
+            ),
+        ).toStrictEqual(utxosAddedBySingleXecReceiveTxTemplate);
+    });
+    test('whichUtxosWereAdded correctly identifies a single added utxo after a received XEC tx', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeSingleXecReceiveTx,
+                currentUtxosAfterSingleXecReceiveTx,
+            ),
+        ).toStrictEqual(utxosAddedBySingleXecReceiveTx);
+    });
+    test('whichUtxosWereAdded correctly identifies multiple added utxos with the same txid [template]', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosTemplate,
+                currentUtxosAfterMultiXecReceiveTxTemplate,
+            ),
+        ).toStrictEqual(utxosAddedByMultiXecReceiveTxTemplate);
+    });
+    test('whichUtxosWereAdded correctly identifies multiple added utxos with the same txid', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeMultiXecReceiveTx,
+                currentUtxosAfterMultiXecReceiveTx,
+            ),
+        ).toStrictEqual(utxosAddedByMultiXecReceiveTx);
+    });
+    test('whichUtxosWereAdded correctly identifies an added utxos from received eToken tx [template]', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosTemplate,
+                currentUtxosAfterEtokenReceiveTxTemplate,
+            ),
+        ).toStrictEqual(utxosAddedByEtokenReceiveTxTemplate);
+    });
+    test('whichUtxosWereAdded correctly identifies an added utxos from received eToken tx', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeEtokenReceiveTx,
+                currentUtxosAfterEtokenReceiveTx,
+            ),
+        ).toStrictEqual(utxosAddedByEtokenReceiveTx);
+    });
+    test('whichUtxosWereAdded correctly identifies no utxos were added in a send all XEC tx (no change) [template]', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeSendAllTxTemplate,
+                currentUtxosAfterSendAllTxTemplate,
+            ),
+        ).toStrictEqual(false);
+    });
+    test('whichUtxosWereAdded correctly identifies no utxos were added in a send all XEC tx (no change)', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeSendAllTx,
+                currentUtxosAfterSendAllTx,
+            ),
+        ).toStrictEqual(false);
+    });
+    test('whichUtxosWereAdded correctly identifies an added utxo from a single send XEC tx', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeSingleXecSendTx,
+                currentUtxosAfterSingleXecSendTx,
+            ),
+        ).toStrictEqual(utxosAddedBySingleXecSendTx);
+    });
+    test('whichUtxosWereAdded correctly identifies an added utxo from a single send XEC tx [template]', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosTemplate,
+                currentUtxosAfterSingleXecSendTxTemplate,
+            ),
+        ).toStrictEqual(utxosAddedBySingleXecSendTxTemplate);
+    });
+    test('whichUtxosWereAdded correctly identifies added change utxos from a send eToken tx [template]', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosTemplate,
+                currentUtxosAfterEtokenSendTxTemplate,
+            ),
+        ).toStrictEqual(utxosAddedByEtokenSendTxTemplate);
+    });
+    test('whichUtxosWereAdded correctly identifies added change utxos from a send eToken tx', async () => {
+        expect(
+            whichUtxosWereAdded(
+                previousUtxosBeforeEtokenSendTx,
+                currentUtxosAfterEtokenSendTx,
+            ),
+        ).toStrictEqual(utxosAddedByEtokenSendTx);
     });
 });

@@ -527,3 +527,69 @@ export const isExcludedUtxo = (utxo, utxoArray) => {
 
     return isExcludedUtxo;
 };
+
+export const whichUtxosWereAdded = (previousUtxos, currentUtxos) => {
+    let utxosAddedFlag = false;
+    const utxosAdded = [];
+
+    // Iterate over currentUtxos
+    // For each currentUtxo -- does it exist in previousUtxos?
+    // If no, it's added
+
+    // Note that the inputs are arrays of arrays, model
+    /*
+    previousUtxos = [{address: 'string', utxos: []}, ...]
+    */
+
+    // Iterate over the currentUtxos array of {address: 'string', utxos: []} objects
+    for (let i = 0; i < currentUtxos.length; i += 1) {
+        // Take the first object
+        const thisCurrentUtxoObject = currentUtxos[i];
+        const thisCurrentUtxoObjectAddress = thisCurrentUtxoObject.address;
+        const thisCurrentUtxoObjectUtxos = thisCurrentUtxoObject.utxos;
+        // Iterate over the previousUtxos array of {address: 'string', utxos: []} objects
+        for (let j = 0; j < previousUtxos.length; j += 1) {
+            const thisPreviousUtxoObject = previousUtxos[j];
+            const thisPreviousUtxoObjectAddress =
+                thisPreviousUtxoObject.address;
+            // When you find the utxos object at the same address
+            if (
+                thisCurrentUtxoObjectAddress === thisPreviousUtxoObjectAddress
+            ) {
+                // Create a utxosAddedObject with the address
+                const utxosAddedObject = {
+                    address: thisCurrentUtxoObjectAddress,
+                    utxos: [],
+                };
+                utxosAdded.push(utxosAddedObject);
+
+                // Grab the previousUtxoObject utxos array. thisCurrentUtxoObjectUtxos has changed compared to thisPreviousUtxoObjectUtxos
+                const thisPreviousUtxoObjectUtxos =
+                    thisPreviousUtxoObject.utxos;
+                // To see if any utxos exist in thisCurrentUtxoObjectUtxos that do not exist in thisPreviousUtxoObjectUtxos
+                // iterate over thisPreviousUtxoObjectUtxos for each utxo in thisCurrentUtxoObjectUtxos
+                for (let k = 0; k < thisCurrentUtxoObjectUtxos.length; k += 1) {
+                    const thisCurrentUtxo = thisCurrentUtxoObjectUtxos[k];
+
+                    if (
+                        isExcludedUtxo(
+                            thisCurrentUtxo,
+                            thisPreviousUtxoObjectUtxos,
+                        )
+                    ) {
+                        // If thisCurrentUtxo was not in the corresponding previous utxos
+                        // Then it was added
+                        utxosAdded[j].utxos.push(thisCurrentUtxo);
+                        utxosAddedFlag = true;
+                    }
+                }
+            }
+        }
+    }
+    // If utxos were added, return them
+    if (utxosAddedFlag) {
+        return utxosAdded;
+    }
+    // Else return false
+    return utxosAddedFlag;
+};
