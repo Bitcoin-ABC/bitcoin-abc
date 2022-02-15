@@ -228,9 +228,10 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.log.info("Test the peer replacement rate limit")
 
         # Wait until proof_seq30 is finalized
-        with node.assert_debug_log([f"Avalanche accepted proof {proofid_seq30:0{64}x}, status 3"]):
+        finalization_timeout = 10
+        with node.assert_debug_log([f"Avalanche accepted proof {proofid_seq30:0{64}x}, status 3"], timeout=finalization_timeout):
             self.wait_until(lambda: not self.can_find_proof_in_poll(
-                proofid_seq30, response=AvalancheVoteError.ACCEPTED))
+                proofid_seq30, response=AvalancheVoteError.ACCEPTED), timeout=finalization_timeout)
 
         # Not enough
         assert self.conflicting_proof_cooldown < self.peer_replacement_cooldown
