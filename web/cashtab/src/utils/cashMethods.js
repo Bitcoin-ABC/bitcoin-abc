@@ -593,3 +593,69 @@ export const whichUtxosWereAdded = (previousUtxos, currentUtxos) => {
     // Else return false
     return utxosAddedFlag;
 };
+
+export const whichUtxosWereConsumed = (previousUtxos, currentUtxos) => {
+    let utxosConsumedFlag = false;
+    const utxosConsumed = [];
+    // Iterate over previousUtxos
+    // For each previousUtxo -- does it exist in currentUtxos?
+    // If no, it's consumed
+
+    // Note that the inputs are arrays of arrays, model
+    /*
+    previousUtxos = [{address: 'string', utxos: []}, ...]
+    */
+
+    // Iterate over the previousUtxos array of {address: 'string', utxos: []} objects
+    for (let i = 0; i < previousUtxos.length; i += 1) {
+        // Take the first object
+        const thisPreviousUtxoObject = previousUtxos[i];
+        const thisPreviousUtxoObjectAddress = thisPreviousUtxoObject.address;
+        const thisPreviousUtxoObjectUtxos = thisPreviousUtxoObject.utxos;
+        // Iterate over the currentUtxos array of {address: 'string', utxos: []} objects
+        for (let j = 0; j < currentUtxos.length; j += 1) {
+            const thisCurrentUtxoObject = currentUtxos[j];
+            const thisCurrentUtxoObjectAddress = thisCurrentUtxoObject.address;
+            // When you find the utxos object at the same address
+            if (
+                thisCurrentUtxoObjectAddress === thisPreviousUtxoObjectAddress
+            ) {
+                // Create a utxosConsumedObject with the address
+                const utxosConsumedObject = {
+                    address: thisCurrentUtxoObjectAddress,
+                    utxos: [],
+                };
+                utxosConsumed.push(utxosConsumedObject);
+                // Grab the currentUtxoObject utxos array. thisCurrentUtxoObjectUtxos has changed compared to thisPreviousUtxoObjectUtxos
+                const thisCurrentUtxoObjectUtxos = thisCurrentUtxoObject.utxos;
+                // To see if any utxos exist in thisPreviousUtxoObjectUtxos that do not exist in thisCurrentUtxoObjectUtxos
+                // iterate over thisCurrentUtxoObjectUtxos for each utxo in thisPreviousUtxoObjectUtxos
+                for (
+                    let k = 0;
+                    k < thisPreviousUtxoObjectUtxos.length;
+                    k += 1
+                ) {
+                    const thisPreviousUtxo = thisPreviousUtxoObjectUtxos[k];
+                    // If thisPreviousUtxo was not in the corresponding current utxos
+
+                    if (
+                        isExcludedUtxo(
+                            thisPreviousUtxo,
+                            thisCurrentUtxoObjectUtxos,
+                        )
+                    ) {
+                        // Then it was consumed
+                        utxosConsumed[j].utxos.push(thisPreviousUtxo);
+                        utxosConsumedFlag = true;
+                    }
+                }
+            }
+        }
+    }
+    // If utxos were consumed, return them
+    if (utxosConsumedFlag) {
+        return utxosConsumed;
+    }
+    // Else return false
+    return utxosConsumedFlag;
+};

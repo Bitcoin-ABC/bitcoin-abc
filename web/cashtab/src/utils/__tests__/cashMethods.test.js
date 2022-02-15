@@ -16,6 +16,7 @@ import {
     parseOpReturn,
     isExcludedUtxo,
     whichUtxosWereAdded,
+    whichUtxosWereConsumed,
 } from '@utils/cashMethods';
 
 import {
@@ -115,6 +116,12 @@ import {
     previousUtxosBeforeEtokenSendTx,
     currentUtxosAfterEtokenSendTx,
     utxosAddedByEtokenSendTx,
+    utxosConsumedByEtokenSendTx,
+    utxosConsumedByEtokenSendTxTemplate,
+    utxosConsumedBySingleXecSendTx,
+    utxosConsumedBySingleXecSendTxTemplate,
+    utxosConsumedBySendAllTx,
+    utxosConsumedBySendAllTxTemplate,
 } from '../__mocks__/incrementalUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
@@ -501,5 +508,85 @@ describe('Correctly executes cash utility functions', () => {
                 currentUtxosAfterEtokenSendTx,
             ),
         ).toStrictEqual(utxosAddedByEtokenSendTx);
+    });
+    test('whichUtxosWereConsumed correctly identifies no utxos consumed after a received XEC tx [template]', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosTemplate,
+                currentUtxosAfterSingleXecReceiveTxTemplate,
+            ),
+        ).toStrictEqual(false);
+    });
+    test('whichUtxosWereConsumed correctly identifies no utxos consumed a received XEC tx', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosBeforeSingleXecReceiveTx,
+                currentUtxosAfterSingleXecReceiveTx,
+            ),
+        ).toStrictEqual(false);
+    });
+    test('whichUtxosWereConsumed correctly identifies no consumed utxos after receiving an XEC multi-send tx [template]', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosTemplate,
+                currentUtxosAfterMultiXecReceiveTxTemplate,
+            ),
+        ).toStrictEqual(false);
+    });
+    test('whichUtxosWereConsumed correctly identifies no consumed utxos after receiving an XEC multi-send tx', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosBeforeMultiXecReceiveTx,
+                currentUtxosAfterMultiXecReceiveTx,
+            ),
+        ).toStrictEqual(false);
+    });
+    test('whichUtxosWereConsumed correctly identifies consumed utxos from a single send XEC tx', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosBeforeSingleXecSendTx,
+                currentUtxosAfterSingleXecSendTx,
+            ),
+        ).toStrictEqual(utxosConsumedBySingleXecSendTx);
+    });
+    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send all XEC tx [template]', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosBeforeSendAllTxTemplate,
+                currentUtxosAfterSendAllTxTemplate,
+            ),
+        ).toStrictEqual(utxosConsumedBySendAllTxTemplate);
+    });
+    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send all XEC tx', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosBeforeSendAllTx,
+                currentUtxosAfterSendAllTx,
+            ),
+        ).toStrictEqual(utxosConsumedBySendAllTx);
+    });
+    test('whichUtxosWereConsumed correctly identifies consumed utxos from a single send XEC tx [template]', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosTemplate,
+                currentUtxosAfterSingleXecSendTxTemplate,
+            ),
+        ).toStrictEqual(utxosConsumedBySingleXecSendTxTemplate);
+    });
+    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send eToken tx [template]', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosTemplate,
+                currentUtxosAfterEtokenSendTxTemplate,
+            ),
+        ).toStrictEqual(utxosConsumedByEtokenSendTxTemplate);
+    });
+    test('whichUtxosWereConsumed correctly identifies consumed utxos from a send eToken tx', async () => {
+        expect(
+            whichUtxosWereConsumed(
+                previousUtxosBeforeEtokenSendTx,
+                currentUtxosAfterEtokenSendTx,
+            ),
+        ).toStrictEqual(utxosConsumedByEtokenSendTx);
     });
 });

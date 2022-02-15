@@ -3513,3 +3513,140 @@ export const utxosAddedByEtokenSendTx = [
         ],
     },
 ];
+
+export const utxosConsumedByEtokenSendTx = [
+    {
+        address: 'bitcoincash:qq0mw6nah9huwaxt45qw3fegjpszkjlrqsvttwy36p',
+        utxos: [],
+    },
+    {
+        address: 'bitcoincash:qz5lf9pxde9neq3hzte8mmwts03sktl9nuz6m3dynu',
+        utxos: [],
+    },
+    {
+        address: 'bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr',
+        utxos: [
+            {
+                height: 711088,
+                tx_hash:
+                    '982ca55c84510e4184ff5a6e7fc310a1de7833e8c617b46014f962ed89bf0f57',
+                tx_pos: 2,
+                value: 546,
+            },
+            {
+                height: 726009,
+                tx_hash:
+                    '9a0ba92af0aaaf16ec6a8bf0fc12d919078cd4c3f556a27dc792689803337ef9',
+                tx_pos: 1,
+                value: 95202647,
+            },
+        ],
+    },
+];
+export const utxosConsumedByEtokenSendTxTemplate = [
+    {
+        utxos: [],
+        address: 'Cashtab 145 address probably with no utxos',
+    },
+    {
+        utxos: [],
+        address: 'Cashtab 245 address probably with no utxos',
+    },
+    {
+        utxos: [
+            {
+                tx_hash: 'Consumed utxo from sending an eToken tx (XEC utxo)',
+                tx_pos: 0,
+                value: 10546,
+            },
+            {
+                tx_hash:
+                    'Consumed utxo from sending an eToken tx (eToken utxo)',
+                tx_pos: 1,
+                value: 546,
+            },
+        ],
+        address: 'Cashtab 1899 address probably with all the utxos',
+    },
+];
+export const utxosConsumedBySingleXecSendTxTemplate = [
+    {
+        utxos: [],
+        address: 'Cashtab 145 address probably with no utxos',
+    },
+    {
+        utxos: [],
+        address: 'Cashtab 245 address probably with no utxos',
+    },
+    {
+        utxos: [
+            {
+                tx_hash: 'Consumed utxo from a tx sending 100,000 XEC',
+                tx_pos: 0,
+                value: 7500000,
+            },
+            {
+                tx_hash:
+                    'Consumed utxo from a tx sending 100,000 XEC, not necessarily the same txid',
+                tx_pos: 1,
+                value: 5000000,
+            },
+        ],
+        address: 'Cashtab 1899 address probably with all the utxos',
+    },
+];
+export const utxosConsumedBySendAllTxTemplate =
+    previousUtxosBeforeSendAllTxTemplate;
+
+export const utxosConsumedBySingleXecSendTx = [
+    {
+        address: 'bitcoincash:qpv9fx6mjdpgltygudnpw3tvmxdyzx7savhphtzswu',
+        utxos: [],
+    },
+    {
+        address: 'bitcoincash:qppc593r2hhksvrz5l77n5yd6usrj74waqnqemgjgf',
+        utxos: [],
+    },
+    {
+        address: 'bitcoincash:qpmytrdsakt0axrrlswvaj069nat3p9s7ct4lsf8k9',
+        utxos: [
+            {
+                height: 725144,
+                tx_hash:
+                    '69fdd3dc4914c33f980aee4dcc04e65706e43498acf92f48bf70c159cb708111',
+                tx_pos: 1,
+                value: 1254435,
+            },
+            {
+                height: 725144,
+                tx_hash:
+                    'ef67e7785c2a991c4f5fc20f88b2649dd2fb2c637b6861a9586d4449ea1b06b3',
+                tx_pos: 1,
+                value: 463186023,
+            },
+        ],
+    },
+];
+
+export const utxosConsumedBySendAllTx = [
+    {
+        address: 'bitcoincash:qq3q2vr3qkawa3m2lhg5wurzgpxjqvek6crvxgpsrf',
+        utxos: [],
+    },
+    {
+        address: 'bitcoincash:qzv8arsknrmda2n4xg02rvtp2yzh072c6s5ms7jhfq',
+        utxos: [],
+    },
+    {
+        address: 'bitcoincash:qq3af2r4n5ndek40cq3lq8y5qjq8v0aq4sc0faj07q',
+        utxos: [
+            {
+                height: 726153,
+                tx_hash:
+                    'a40216751b8c9c5ade1dd2962afcdc657e4e2c92416fb0b2dd956bce75425afb',
+                tx_pos: 0,
+                value: 4206900,
+            },
+        ],
+    },
+];
