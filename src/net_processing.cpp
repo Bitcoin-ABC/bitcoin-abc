@@ -428,11 +428,13 @@ struct Peer {
     std::atomic_bool m_wants_addrv2{false};
     /** Whether this peer has already sent us a getaddr message. */
     bool m_getaddr_recvd{false};
+    /** Guards m_addr_token_bucket */
+    mutable Mutex m_addr_token_bucket_mutex;
     /**
      * Number of addresses that can be processed from this peer. Start at 1
      * to permit self-announcement.
      */
-    double m_addr_token_bucket{1.0};
+    double m_addr_token_bucket GUARDED_BY(m_addr_token_bucket_mutex){1.0};
     /** When m_addr_token_bucket was last updated */
     std::chrono::microseconds m_addr_token_timestamp{
         GetTime<std::chrono::microseconds>()};
@@ -526,6 +528,12 @@ private:
      * Update the avalanche statistics for all the nodes
      */
     void UpdateAvalancheStatistics() const;
+
+    /**
+     * Send a getavaaddr message to one of our avalanche outbounds if we are
+     * missing good nodes.
+     */
+    void MaybeRequestAvalancheNodes(CScheduler &scheduler) const;
 
     /**
      * Get a shared pointer to the Peer object.
@@ -1550,6 +1558,48 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
     });
 }
 
+void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
+    if (g_avalanche &&
+        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            return pm.shouldRequestMoreNodes();
+        })) {
+        std::vector<NodeId> avanode_outbound_ids;
+        m_connman.ForEachNode([&](CNode *pnode) {
+            if (pnode->IsAvalancheOutboundConnection()) {
+                avanode_outbound_ids.push_back(pnode->GetId());
+            }
+        });
+
+        // Randomly select an avalanche outbound peer to send the getavaaddr
+        // message to
+        if (!avanode_outbound_ids.empty()) {
+            Shuffle(avanode_outbound_ids.begin(), avanode_outbound_ids.end(),
+                    FastRandomContext());
+            const NodeId avanodeId = avanode_outbound_ids.front();
+
+            m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
+                LogPrint(BCLog::AVALANCHE,
+                         "Requesting more avalanche addresses to peer %d\n",
+                         avanodeId);
+                m_connman.PushMessage(pavanode,
+                                      CNetMsgMaker(pavanode->GetCommonVersion())
+                                          .Make(NetMsgType::GETAVAADDR));
+                PeerRef peer = GetPeerRef(avanodeId);
+                WITH_LOCK(peer->m_addr_token_bucket_mutex,
+                          peer->m_addr_token_bucket += GetMaxAddrToSend());
+                return true;
+            });
+        }
+    }
+
+    // Schedule next run for 5-10 minutes in the future.
+    // We add randomness on every cycle to avoid the possibility of P2P
+    // fingerprinting.
+    const auto requestAvalancheNodesInteval = 5min + GetRandMillis(5min);
+    scheduler.scheduleFromNow([&] { MaybeRequestAvalancheNodes(scheduler); },
+                              requestAvalancheNodesInteval);
+}
+
 void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
                                    bool &fUpdateConnectionTime) {
     NodeId nodeid = node.GetId();
@@ -2025,6 +2075,11 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
             return true;
         },
         AVALANCHE_STATISTICS_REFRESH_PERIOD);
+
+    // schedule next run for 5-10 minutes in the future
+    const auto requestAvalancheNodesInteval = 5min + GetRandMillis(5min);
+    scheduler.scheduleFromNow([&] { MaybeRequestAvalancheNodes(scheduler); },
+                              requestAvalancheNodesInteval);
 }
 
 /**
@@ -3607,7 +3662,8 @@ void PeerManagerImpl::ProcessMessage(
             // When requesting a getaddr, accept an additional MAX_ADDR_TO_SEND
             // addresses in response (bypassing the
             // MAX_ADDR_PROCESSING_TOKEN_BUCKET limit).
-            peer->m_addr_token_bucket += GetMaxAddrToSend();
+            WITH_LOCK(peer->m_addr_token_bucket_mutex,
+                      peer->m_addr_token_bucket += GetMaxAddrToSend());
         }
 
         if (!pfrom.IsInboundConn()) {
@@ -3733,7 +3789,8 @@ void PeerManagerImpl::ProcessMessage(
             if (pfrom.IsAvalancheOutboundConnection()) {
                 m_connman.PushMessage(&pfrom,
                                       msgMaker.Make(NetMsgType::GETAVAADDR));
-                peer->m_addr_token_bucket += GetMaxAddrToSend();
+                WITH_LOCK(peer->m_addr_token_bucket_mutex,
+                          peer->m_addr_token_bucket += GetMaxAddrToSend());
             }
         }
 
@@ -3781,15 +3838,18 @@ void PeerManagerImpl::ProcessMessage(
 
         // Update/increment addr rate limiting bucket.
         const auto current_time = GetTime<std::chrono::microseconds>();
-        if (peer->m_addr_token_bucket < MAX_ADDR_PROCESSING_TOKEN_BUCKET) {
-            // Don't increment bucket if it's already full
-            const auto time_diff =
-                std::max(current_time - peer->m_addr_token_timestamp, 0us);
-            const double increment =
-                CountSecondsDouble(time_diff) * MAX_ADDR_RATE_PER_SECOND;
-            peer->m_addr_token_bucket =
-                std::min<double>(peer->m_addr_token_bucket + increment,
-                                 MAX_ADDR_PROCESSING_TOKEN_BUCKET);
+        {
+            LOCK(peer->m_addr_token_bucket_mutex);
+            if (peer->m_addr_token_bucket < MAX_ADDR_PROCESSING_TOKEN_BUCKET) {
+                // Don't increment bucket if it's already full
+                const auto time_diff =
+                    std::max(current_time - peer->m_addr_token_timestamp, 0us);
+                const double increment =
+                    CountSecondsDouble(time_diff) * MAX_ADDR_RATE_PER_SECOND;
+                peer->m_addr_token_bucket =
+                    std::min<double>(peer->m_addr_token_bucket + increment,
+                                     MAX_ADDR_PROCESSING_TOKEN_BUCKET);
+            }
         }
         peer->m_addr_token_timestamp = current_time;
 
@@ -3803,14 +3863,17 @@ void PeerManagerImpl::ProcessMessage(
                 return;
             }
 
-            // Apply rate limiting.
-            if (peer->m_addr_token_bucket < 1.0) {
-                if (rate_limited) {
-                    ++num_rate_limit;
-                    continue;
+            {
+                LOCK(peer->m_addr_token_bucket_mutex);
+                // Apply rate limiting.
+                if (peer->m_addr_token_bucket < 1.0) {
+                    if (rate_limited) {
+                        ++num_rate_limit;
+                        continue;
+                    }
+                } else {
+                    peer->m_addr_token_bucket -= 1.0;
                 }
-            } else {
-                peer->m_addr_token_bucket -= 1.0;
             }
 
             // We only bother storing full nodes, though this may include things

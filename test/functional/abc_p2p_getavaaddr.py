@@ -201,6 +201,9 @@ class AvaAddrTest(BitcoinTestFramework):
             "Check we send a getavaaddr message to our avalanche outbound peers")
         node = self.nodes[0]
 
+        # Get rid of previously connected nodes
+        node.disconnect_p2ps()
+
         avapeers = []
         for i in range(16):
             avapeer = P2PInterface()
@@ -214,6 +217,18 @@ class AvaAddrTest(BitcoinTestFramework):
 
         self.wait_until(
             lambda: all([p.last_message.get("getavaaddr") for p in avapeers]))
+        assert all([p.message_count.get(
+            "getavaaddr", 0) == 1 for p in avapeers])
+
+        # Generate some block to poll for
+        node.generate(1)
+
+        # Because none of the avalanche peers is responding, our node should
+        # fail out of option shortly and send a getavaaddr message to one of its
+        # outbound avalanche peers.
+        node.mockscheduler(10 * 60)
+        self.wait_until(
+            lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
 
     def run_test(self):
         self.getavaaddr_interval_test()
