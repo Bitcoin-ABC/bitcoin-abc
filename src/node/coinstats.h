@@ -71,6 +71,9 @@ struct CCoinsStats {
     //! Total cumulative amount of coins lost due to unclaimed miner rewards up
     //! to and including this block
     Amount total_unspendables_unclaimed_rewards{Amount::zero()};
+
+    CCoinsStats() = default;
+    CCoinsStats(int block_height, const BlockHash &block_hash);
 };
 
 /**
@@ -88,6 +91,11 @@ GetUTXOStats(CCoinsView *view, node::BlockManager &blockman,
 uint64_t GetBogoSize(const CScript &script_pub_key);
 
 CDataStream TxOutSer(const COutPoint &outpoint, const Coin &coin);
+
+std::optional<CCoinsStats>
+ComputeUTXOStats(CoinStatsHashType hash_type, CCoinsView *view,
+                 BlockManager &blockman,
+                 const std::function<void()> &interruption_point = {});
 } // namespace node
 
 #endif // BITCOIN_NODE_COINSTATS_H

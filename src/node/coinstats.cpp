@@ -19,6 +19,9 @@
 #include <map>
 
 namespace node {
+CCoinsStats::CCoinsStats(int block_height, const BlockHash &block_hash)
+    : nHeight(block_height), hashBlock(block_hash) {}
+
 uint64_t GetBogoSize(const CScript &script_pub_key) {
     return 32 /* txid */ + 4 /* vout index */ + 4 /* height + coinbase */ +
            8 /* amount */ + 2 /* scriptPubKey len */ +
@@ -89,29 +92,10 @@ static void ApplyStats(CCoinsStats &stats, const TxId &txid,
 
 //! Calculate statistics about the unspent transaction output set
 template <typename T>
-static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
-                         CCoinsStats &stats, T hash_obj,
-                         const std::function<void()> &interruption_point,
-                         const CBlockIndex *pindex,
-                         CoinStatsHashType &hash_type, bool index_requested) {
+static bool ComputeUTXOStats(CCoinsView *view, CCoinsStats &stats, T hash_obj,
+                             const std::function<void()> &interruption_point) {
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
     assert(pcursor);
-
-    if (!pindex) {
-        LOCK(cs_main);
-        pindex = blockman.LookupBlockIndex(view->GetBestBlock());
-    }
-    stats.nHeight = Assert(pindex)->nHeight;
-    stats.hashBlock = pindex->GetBlockHash();
-
-    // Use CoinStatsIndex if it is requested and available and a hash_type of
-    // Muhash or None was requested
-    if ((hash_type == CoinStatsHashType::MUHASH ||
-         hash_type == CoinStatsHashType::NONE) &&
-        g_coin_stats_index && index_requested) {
-        stats.index_used = true;
-        return g_coin_stats_index->LookUpStats(pindex, stats);
-    }
 
     PrepareHash(hash_obj, stats);
 
@@ -143,34 +127,32 @@ static bool GetUTXOStats(CCoinsView *view, BlockManager &blockman,
     FinalizeHash(hash_obj, stats);
 
     stats.nDiskSize = view->EstimateSize();
+
     return true;
 }
 
 std::optional<CCoinsStats>
-GetUTXOStats(CCoinsView *view, BlockManager &blockman,
-             CoinStatsHashType hash_type,
-             const std::function<void()> &interruption_point,
-             const CBlockIndex *pindex, bool index_requested) {
-    CCoinsStats stats{};
+ComputeUTXOStats(CoinStatsHashType hash_type, CCoinsView *view,
+                 BlockManager &blockman,
+                 const std::function<void()> &interruption_point) {
+    CBlockIndex *pindex = WITH_LOCK(
+        ::cs_main, return blockman.LookupBlockIndex(view->GetBestBlock()));
+    CCoinsStats stats{Assert(pindex)->nHeight, pindex->GetBlockHash()};
 
     bool success = [&]() -> bool {
         switch (hash_type) {
             case (CoinStatsHashType::HASH_SERIALIZED): {
                 CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-                return GetUTXOStats(view, blockman, stats, ss,
-                                    interruption_point, pindex, hash_type,
-                                    index_requested);
+                return ComputeUTXOStats(view, stats, ss, interruption_point);
             }
             case (CoinStatsHashType::MUHASH): {
                 MuHash3072 muhash;
-                return GetUTXOStats(view, blockman, stats, muhash,
-                                    interruption_point, pindex, hash_type,
-                                    index_requested);
+                return ComputeUTXOStats(view, stats, muhash,
+                                        interruption_point);
             }
             case (CoinStatsHashType::NONE): {
-                return GetUTXOStats(view, blockman, stats, nullptr,
-                                    interruption_point, pindex, hash_type,
-                                    index_requested);
+                return ComputeUTXOStats(view, stats, nullptr,
+                                        interruption_point);
             }
         } // no default case, so the compiler can warn about missing cases
         assert(false);
@@ -199,4 +181,33 @@ static void FinalizeHash(MuHash3072 &muhash, CCoinsStats &stats) {
     stats.hashSerialized = out;
 }
 static void FinalizeHash(std::nullptr_t, CCoinsStats &stats) {}
+
+std::optional<CCoinsStats>
+GetUTXOStats(CCoinsView *view, BlockManager &blockman,
+             CoinStatsHashType hash_type,
+             const std::function<void()> &interruption_point,
+             const CBlockIndex *pindex, bool index_requested) {
+    // Use CoinStatsIndex if it is requested and available and a hash_type of
+    // Muhash or None was requested
+    if ((hash_type == CoinStatsHashType::MUHASH ||
+         hash_type == CoinStatsHashType::NONE) &&
+        g_coin_stats_index && index_requested) {
+        if (pindex) {
+            return g_coin_stats_index->LookUpStats(pindex);
+        } else {
+            CBlockIndex *block_index = WITH_LOCK(
+                ::cs_main,
+                return blockman.LookupBlockIndex(view->GetBestBlock()));
+            return g_coin_stats_index->LookUpStats(block_index);
+        }
+    }
+
+    // If the coinstats index isn't requested or is otherwise not usable, the
+    // pindex should either be null or equal to the view's best block. This is
+    // because without the coinstats index we can only get coinstats about the
+    // best block.
+    assert(!pindex || pindex->GetBlockHash() == view->GetBestBlock());
+
+    return ComputeUTXOStats(hash_type, view, blockman, interruption_point);
+}
 } // namespace node

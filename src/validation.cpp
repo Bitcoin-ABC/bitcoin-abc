@@ -70,10 +70,10 @@ using node::BlockManager;
 using node::BlockMap;
 using node::CCoinsStats;
 using node::CoinStatsHashType;
+using node::ComputeUTXOStats;
 using node::fImporting;
 using node::fPruneMode;
 using node::fReindex;
-using node::GetUTXOStats;
 using node::nPruneTarget;
 using node::OpenBlockFile;
 using node::ReadBlockFromDisk;
@@ -5987,7 +5987,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
         ::cs_main, return m_blockman.LookupBlockIndex(base_blockhash));
 
     if (!snapshot_start_block) {
-        // Needed for GetUTXOStats and ExpectedAssumeutxo to determine the
+        // Needed for ComputeUTXOStats and ExpectedAssumeutxo to determine the
         // height and to avoid a crash when base_blockhash.IsNull()
         LogPrintf("[snapshot] Did not find snapshot start blockheader %s\n",
                   base_blockhash.ToString());
@@ -6112,8 +6112,8 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
         WITH_LOCK(::cs_main, return &snapshot_chainstate.CoinsDB());
 
     const std::optional<CCoinsStats> maybe_stats =
-        GetUTXOStats(snapshot_coinsdb, m_blockman,
-                     CoinStatsHashType::HASH_SERIALIZED, breakpoint_fnc);
+        ComputeUTXOStats(CoinStatsHashType::HASH_SERIALIZED, snapshot_coinsdb,
+                         m_blockman, breakpoint_fnc);
     if (!maybe_stats.has_value()) {
         LogPrintf("[snapshot] failed to generate coins stats\n");
         return false;
