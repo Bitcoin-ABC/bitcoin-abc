@@ -7,6 +7,7 @@
 #define BITCOIN_UTIL_EPOCHGUARD_H
 
 #include <threadsafety.h>
+#include <util/macros.h>
 
 #include <cassert>
 
@@ -94,6 +95,6 @@ public:
 };
 
 #define WITH_FRESH_EPOCH(epoch)                                                \
-    const Epoch::Guard PASTE2(epoch_guard_, __COUNTER__)(epoch)
+    const Epoch::Guard UNIQUE_NAME(epoch_guard_)(epoch)
 
 #endif // BITCOIN_UTIL_EPOCHGUARD_H
