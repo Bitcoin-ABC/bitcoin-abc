@@ -148,14 +148,17 @@ describe('useBCH hook', () => {
     it('sends XEC correctly with an encrypted OP_RETURN message', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            destinationAddress,
-            sendAmount,
-        } = sendBCHMock;
+        const { expectedTxId, utxos, wallet, destinationAddress, sendAmount } =
+            sendBCHMock;
+        const expectedPubKeyResponse = {
+            success: true,
+            publicKey:
+                '03451a3e61ae8eb76b8d4cd6057e4ebaf3ef63ae3fe5f441b72c743b5810b6a389',
+        };
+
+        BCH.encryption.getPubKey = jest
+            .fn()
+            .mockResolvedValue(expectedPubKeyResponse);
 
         BCH.RawTransactions.sendRawTransaction = jest
             .fn()
@@ -593,6 +596,16 @@ describe('useBCH hook', () => {
         const message =
             'This message is encrypted by ecies-lite with default parameters';
 
+        const expectedPubKeyResponse = {
+            success: true,
+            publicKey:
+                '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac',
+        };
+
+        BCH.encryption.getPubKey = jest
+            .fn()
+            .mockResolvedValue(expectedPubKeyResponse);
+
         const result = await handleEncryptedOpReturn(
             BCH,
             destinationAddress,
@@ -630,100 +643,23 @@ describe('useBCH hook', () => {
         }
     });
 
-    it(`handleEncryptedOpReturn() correctly throws error when attempting to encrypt a message based on an invalid cash address`, async () => {
-        const { handleEncryptedOpReturn } = useBCH();
-        const BCH = new BCHJS();
-        const destinationAddress = 'bitcoincash:qqvINVALIDADDRESSSSSSru';
-        const message =
-            'This message is encrypted by ecies-lite with default parameters';
-
-        const expectedError = {
-            error: `Unsupported address format : ${destinationAddress}`,
-            success: false,
-        };
-
-        let thrownError;
-        try {
-            await handleEncryptedOpReturn(
-                BCH,
-                destinationAddress,
-                Buffer.from(message),
-            );
-        } catch (err) {
-            thrownError = err;
-        }
-
-        expect(thrownError).toStrictEqual(expectedError);
-    });
-
-    it(`handleEncryptedOpReturn() correctly throws error when attempting to encrypt a message based on null cash address input`, async () => {
-        const { handleEncryptedOpReturn } = useBCH();
-        const BCH = new BCHJS();
-        const destinationAddress = null;
-        const message =
-            'This message is encrypted by ecies-lite with default parameters';
-        const expectedError = 'Input must be a valid Bitcoin Cash address.';
-
-        let thrownError;
-        try {
-            await handleEncryptedOpReturn(
-                BCH,
-                destinationAddress,
-                Buffer.from(message),
-            );
-        } catch (err) {
-            thrownError = err;
-        }
-
-        expect(thrownError).toStrictEqual(new Error(expectedError));
-    });
-
     it(`getRecipientPublicKey() correctly retrieves the public key of a cash address`, async () => {
         const { getRecipientPublicKey } = useBCH();
         const BCH = new BCHJS();
-        expect(
-            await getRecipientPublicKey(
-                BCH,
-                'bitcoincash:qqvuj09f80sw9j7qru84ptxf0hyqffc38gstxfs5ru',
-            ),
-        ).toStrictEqual(
-            '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac',
-        );
-    });
-
-    it(`getRecipientPublicKey() correctly throws error for an invalid cash address`, async () => {
-        const { getRecipientPublicKey } = useBCH();
-        const BCH = new BCHJS();
-        const destinationAddress = 'bitcoincash:qqvuj0INVALIDDDDDDDDDDs5ru';
-
-        const expectedError = {
-            error: `Unsupported address format : ${destinationAddress}`,
-            success: false,
+        const expectedPubKeyResponse = {
+            success: true,
+            publicKey:
+                '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac',
         };
-
-        let thrownError;
-        try {
-            await getRecipientPublicKey(BCH, destinationAddress);
-        } catch (err) {
-            thrownError = err;
-        }
-
-        expect(thrownError).toStrictEqual(expectedError);
-    });
-
-    it(`getRecipientPublicKey() correctly throws error for a null cash address input`, async () => {
-        const { getRecipientPublicKey } = useBCH();
-        const BCH = new BCHJS();
-        const destinationAddress = null;
-        const expectedError = 'Input must be a valid Bitcoin Cash address.';
-
-        let thrownError;
-        try {
-            await getRecipientPublicKey(BCH, destinationAddress);
-        } catch (err) {
-            thrownError = err;
-        }
-
-        expect(thrownError).toStrictEqual(new Error(expectedError));
+        const expectedPubKey =
+            '03208c4f52229e021ddec5fc6e07a59fd66388ac52bc2a2c1e0f1afb24b0e275ac';
+        const destinationAddress =
+            'bitcoincash:qqvuj09f80sw9j7qru84ptxf0hyqffc38gstxfs5ru';
+        BCH.encryption.getPubKey = jest
+            .fn()
+            .mockResolvedValue(expectedPubKeyResponse);
+        expect(await getRecipientPublicKey(BCH, destinationAddress)).toBe(
+            expectedPubKey,
+        );
     });
 });
