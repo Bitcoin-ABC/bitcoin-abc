@@ -14,7 +14,6 @@ PACKAGES=(
   bsdmainutils
   build-essential
   ccache
-  cppcheck
   curl
   default-jdk
   devscripts

@@ -200,12 +200,9 @@ bool PeerManager::registerProof(const ProofRef &proof,
 
     // Check the proof's validity.
     ProofValidationState validationState;
-    // Using WITH_LOCK directly inside the if statement will trigger a cppcheck
-    // false positive syntax error
-    const bool valid = WITH_LOCK(
-        cs_main,
-        return proof->verify(validationState, ::ChainstateActive().CoinsTip()));
-    if (!valid) {
+    if (!WITH_LOCK(cs_main,
+                   return proof->verify(validationState,
+                                        ::ChainstateActive().CoinsTip()))) {
         if (isOrphanState(validationState)) {
             orphanProofPool.addProofIfPreferred(proof);
             return invalidate(ProofRegistrationResult::ORPHAN, "orphan-proof");

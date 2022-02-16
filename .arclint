@@ -239,14 +239,6 @@
                 "(^src/bench/nanobench.h$)"
             ]
         },
-        "lint-cppcheck": {
-            "type": "lint-cppcheck",
-            "include": "(^src/.*\\.(h|c|cpp)$)",
-            "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
-                "(^src/bench/nanobench.h$)"
-            ]
-        },
         "yamllint": {
             "type": "yamllint",
             "include": "(\\.(yml|yaml)$)",

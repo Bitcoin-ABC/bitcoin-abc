@@ -135,7 +135,7 @@ will have to install the following:
 
 On Ubuntu 20.04:
 ```
-sudo apt-get install clang-format clang-tidy clang-tools cppcheck python3-isort python3-autopep8 flake8 php-codesniffer yamllint
+sudo apt-get install clang-format clang-tidy clang-tools python3-isort python3-autopep8 flake8 php-codesniffer yamllint
 ```
 
 If not available in the distribution, `clang-format-10` and `clang-tidy` can be
