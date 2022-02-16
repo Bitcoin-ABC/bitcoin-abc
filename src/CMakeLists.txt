@@ -642,6 +642,7 @@ add_library(server
 	init.cpp
 	init/common.cpp
 	invrequest.cpp
+	kernel/coinstats.cpp
 	kernel/cs_main.cpp
 	kernel/disconnected_transactions.cpp
 	kernel/mempool_persist.cpp
@@ -841,6 +842,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 	#       like index/*.cpp will be removed.
 	add_library(bitcoinkernel
 		kernel/bitcoinkernel.cpp
+		kernel/coinstats.cpp
 		kernel/cs_main.cpp
 		kernel/disconnected_transactions.cpp
 		kernel/mempool_persist.cpp
