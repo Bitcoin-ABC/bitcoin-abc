@@ -15,7 +15,6 @@ set -euo pipefail
 EXPECTED_CIRCULAR_DEPENDENCIES=(
     "node/blockstorage -> validation -> node/blockstorage"
     "node/utxo_snapshot -> validation -> node/utxo_snapshot"
-    "index/coinstatsindex -> node/coinstats -> index/coinstatsindex"
     "qt/addresstablemodel -> qt/walletmodel -> qt/addresstablemodel"
     "qt/bitcoingui -> qt/walletframe -> qt/bitcoingui"
     "qt/recentrequeststablemodel -> qt/walletmodel -> qt/recentrequeststablemodel"
@@ -31,7 +30,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
-    "node/coinstats -> validation -> node/coinstats"
+    "kernel/coinstats -> validation -> kernel/coinstats"
     "kernel/mempool_persist -> validation -> kernel/mempool_persist"
     "kernel/disconnected_transactions -> validation -> kernel/disconnected_transactions"
 )

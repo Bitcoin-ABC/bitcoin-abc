@@ -9,7 +9,7 @@
 #include <crypto/muhash.h>
 #include <flatfile.h>
 #include <index/base.h>
-#include <node/coinstats.h>
+#include <kernel/coinstats.h>
 
 struct Amount;
 
@@ -61,7 +61,7 @@ public:
                             bool f_wipe = false);
 
     // Look up stats for a specific block using CBlockIndex
-    std::optional<node::CCoinsStats>
+    std::optional<kernel::CCoinsStats>
     LookUpStats(const CBlockIndex *block_index) const;
 };
 

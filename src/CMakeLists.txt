@@ -872,8 +872,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		flatfile.cpp
 		fs.cpp
 		hash.cpp
-		index/base.cpp
-		index/coinstatsindex.cpp
 		init/common.cpp
 		key.cpp
 		logging.cpp
@@ -881,7 +879,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		networks/abc/checkpoints.cpp
 		node/blockstorage.cpp
 		node/chainstate.cpp
-		node/coinstats.cpp
 		node/ui_interface.cpp
 		node/utxo_snapshot.cpp
 		policy/fees.cpp

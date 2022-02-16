@@ -6,6 +6,7 @@
 
 #include <validation.h>
 
+#include <kernel/coinstats.h>
 #include <kernel/disconnected_transactions.h>
 #include <kernel/mempool_entry.h>
 #include <kernel/mempool_persist.h>
@@ -30,7 +31,6 @@
 #include <logging/timer.h>
 #include <minerfund.h>
 #include <node/blockstorage.h>
-#include <node/coinstats.h>
 #include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
@@ -71,15 +71,15 @@
 #include <string>
 #include <thread>
 
+using kernel::CCoinsStats;
+using kernel::CoinStatsHashType;
+using kernel::ComputeUTXOStats;
 using kernel::LoadMempool;
 
 using fsbridge::FopenFn;
 using node::BLOCKFILE_CHUNK_SIZE;
 using node::BlockManager;
 using node::BlockMap;
-using node::CCoinsStats;
-using node::CoinStatsHashType;
-using node::ComputeUTXOStats;
 using node::fReindex;
 using node::OpenBlockFile;
 using node::ReadBlockFromDisk;
