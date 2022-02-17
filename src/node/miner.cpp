@@ -335,13 +335,9 @@ int BlockAssembler::UpdatePackagesForAdded(
             modtxiter mit = mapModifiedTx.find(desc);
             if (mit == mapModifiedTx.end()) {
                 CTxMemPoolModifiedEntry modEntry(desc);
-                modEntry.nSizeWithAncestors -= it->GetTxSize();
-                modEntry.nModFeesWithAncestors -= it->GetModifiedFee();
-                modEntry.nSigChecksWithAncestors -= it->GetSigChecks();
-                mapModifiedTx.insert(modEntry);
-            } else {
-                mapModifiedTx.modify(mit, update_for_parent_inclusion(it));
+                mit = mapModifiedTx.insert(modEntry).first;
             }
+            mapModifiedTx.modify(mit, update_for_parent_inclusion(it));
         }
     }
 
