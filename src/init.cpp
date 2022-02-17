@@ -774,8 +774,10 @@ void SetupServerArgs(NodeContext &node) {
                              DEFAULT_PERMIT_BAREMULTISIG),
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg("-port=<port>",
-                   strprintf("Listen for connections on <port> (default: %u, "
-                             "testnet: %u, regtest: %u)",
+                   strprintf("Listen for connections on <port>. Nodes not "
+                             "using the default ports (default: %u, "
+                             "testnet: %u, regtest: %u) are unlikely to get "
+                             "incoming connections.",
                              defaultChainParams->GetDefaultPort(),
                              testnetChainParams->GetDefaultPort(),
                              regtestChainParams->GetDefaultPort()),
