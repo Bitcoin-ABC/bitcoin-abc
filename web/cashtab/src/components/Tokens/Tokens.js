@@ -16,20 +16,6 @@ import ApiError from '@components/Common/ApiError';
 import WalletLabel from '@components/Common/WalletLabel.js';
 
 const Tokens = ({ jestBCH, passLoadingStatus }) => {
-    /*
-    Dev note
-
-    This is the first new page created after the wallet migration to include state in storage
-
-    As such, it will only load this type of wallet
-
-    If any user is still migrating at this point, this page will display a loading spinner until
-    their wallet has updated (ETA within 10 seconds)
-
-    Going forward, this approach will be the model for Wallet, Send, and SendToken, as the legacy
-    wallet state parameters not stored in the wallet object are deprecated
-    */
-
     const { wallet, apiError, fiatPrice, cashtabSettings } =
         React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
