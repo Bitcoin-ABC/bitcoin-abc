@@ -25,15 +25,25 @@ static CTxDestination BuildDestination(const std::string &dest) {
     return DecodeDestination(dest, *mainNetParams);
 }
 
-static const CTxDestination &GetMinerFundDestination() {
-    static const std::string ecashMinerFund =
+static const CTxDestination &
+GetMinerFundDestination(const bool useAxionDestination) {
+    static const std::string ecashMinerFundAxion =
         "ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j";
-    static const std::string bitcoinCashMinerFund =
+    static const std::string bitcoinCashMinerFundAxion =
         "bitcoincash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgnlxww9j9";
+    static CTxDestination destAxion = BuildDestination(
+        gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFundAxion
+                                                  : bitcoinCashMinerFundAxion);
+
+    static const std::string ecashMinerFund =
+        "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07";
+    static const std::string bitcoinCashMinerFund =
+        "bitcoincash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq5zsvycff";
     static CTxDestination dest = BuildDestination(
         gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? ecashMinerFund
                                                   : bitcoinCashMinerFund);
-    return dest;
+
+    return useAxionDestination ? destAxion : dest;
 }
 
 std::vector<CTxDestination>
@@ -47,5 +57,5 @@ GetMinerFundWhitelist(const Consensus::Params &params,
         return {};
     }
 
-    return {GetMinerFundDestination()};
+    return {GetMinerFundDestination(!IsGluonEnabled(params, pindexPrev))};
 }

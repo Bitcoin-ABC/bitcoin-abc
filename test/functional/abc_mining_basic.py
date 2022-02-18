@@ -18,30 +18,36 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
 AXION_ACTIVATION_TIME = 2000000600
-MINER_FUND_ADDR = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
-MINER_FUND_LEGACY_ADDR = '2MviGxxFciGeWTgkUgYgjqehWt18c4ZsShd'
+GLUON_ACTIVATION_TIME = 2100000600
+
+MINER_FUND_ADDR_AXION = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
+MINER_FUND_LEGACY_ADDR_AXION = '2MviGxxFciGeWTgkUgYgjqehWt18c4ZsShd'
+
+MINER_FUND_ADDR_GLUON = 'ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn'
+MINER_FUND_LEGACY_ADDR_GLUON = '2NCXTUCFd1Q3EteVpVVDTrBBoKqvMPAoeEn'
 
 
 class AbcMiningRPCTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 2
+        self.num_nodes = 4
         self.extra_args = [
             [
                 '-enableminerfund',
                 '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
-            ],
-            [
+                '-gluonactivationtime={}'.format(GLUON_ACTIVATION_TIME),
+            ], [
                 '-enableminerfund',
                 '-usecashaddr=0',
                 '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
+                '-gluonactivationtime={}'.format(GLUON_ACTIVATION_TIME),
             ],
-        ]
+        ] * 2
 
     def setup_network(self):
         self.setup_nodes()
         # Don't connect the nodes
 
-    def run_for_node(self, node, expectedMinerFundAddress):
+    def run_for_node(self, node, activation_time, expectedMinerFundAddress):
         # Connect to a peer so getblocktemplate will return results
         # (getblocktemplate has a sanity check that ensures it's connected to a
         # network).
@@ -62,7 +68,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 assert_equal(blockTemplate[key], value)
 
         # Move block time to just before axion activation
-        node.setmocktime(AXION_ACTIVATION_TIME)
+        node.setmocktime(activation_time)
         node.generatetoaddress(5, address)
 
         # Before axion activation, the miner fund list is empty
@@ -79,7 +85,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         node.generatetoaddress(1, address)
         assert_equal(
             node.getblockchaininfo()['mediantime'],
-            AXION_ACTIVATION_TIME)
+            activation_time)
 
         def get_best_coinbase():
             return node.getblock(node.getbestblockhash(), 2)['tx'][0]
@@ -105,7 +111,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             # since we are not crossing a halving boundary and there are no
             # transactions in the mempool.
             'coinbasevalue': block_reward * XEC,
-            'mintime': AXION_ACTIVATION_TIME + 1,
+            'mintime': activation_time + 1,
         })
 
         # First block with the new rules
@@ -128,11 +134,11 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             },
             # Again, we assume the coinbase value is the same as prior blocks.
             'coinbasevalue': block_reward * XEC,
-            'mintime': AXION_ACTIVATION_TIME + 1,
+            'mintime': activation_time + 1,
         })
 
         # Move MTP forward
-        node.setmocktime(AXION_ACTIVATION_TIME + 1)
+        node.setmocktime(activation_time + 1)
         node.generatetoaddress(6, address)
         assert_getblocktemplate({
             'coinbasetxn': {
@@ -142,12 +148,26 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 },
             },
             'coinbasevalue': block_reward * XEC,
-            'mintime': AXION_ACTIVATION_TIME + 2,
+            'mintime': activation_time + 2,
         })
 
     def run_test(self):
-        self.run_for_node(self.nodes[0], MINER_FUND_ADDR)
-        self.run_for_node(self.nodes[1], MINER_FUND_LEGACY_ADDR)
+        self.run_for_node(
+            self.nodes[0],
+            AXION_ACTIVATION_TIME,
+            MINER_FUND_ADDR_AXION)
+        self.run_for_node(
+            self.nodes[1],
+            AXION_ACTIVATION_TIME,
+            MINER_FUND_LEGACY_ADDR_AXION)
+        self.run_for_node(
+            self.nodes[2],
+            GLUON_ACTIVATION_TIME,
+            MINER_FUND_ADDR_GLUON)
+        self.run_for_node(
+            self.nodes[3],
+            GLUON_ACTIVATION_TIME,
+            MINER_FUND_LEGACY_ADDR_GLUON)
 
 
 if __name__ == '__main__':
