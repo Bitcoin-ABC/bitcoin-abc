@@ -144,12 +144,6 @@ public:
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionActivationTime = 1605441600;
 
-        // May 15, 2021 12:00:00 UTC protocol upgrade
-        consensus.tachyonActivationTime = 1621080000;
-
-        // Nov 15, 2021 12:00:00 UTC protocol upgrade
-        consensus.selectronActivationTime = 1636977600;
-
         // May 15, 2022 12:00:00 UTC protocol upgrade
         consensus.gluonActivationTime = 1652616000;
 
@@ -312,12 +306,6 @@ public:
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionActivationTime = 1605441600;
 
-        // May 15, 2021 12:00:00 UTC protocol upgrade
-        consensus.tachyonActivationTime = 1621080000;
-
-        // Nov 15, 2021 12:00:00 UTC protocol upgrade
-        consensus.selectronActivationTime = 1636977600;
-
         // May 15, 2022 12:00:00 UTC protocol upgrade
         consensus.gluonActivationTime = 1652616000;
 
@@ -453,12 +441,6 @@ public:
 
         // Nov 15, 2020 12:00:00 UTC protocol upgrade
         consensus.axionActivationTime = 1605441600;
-
-        // May 15, 2021 12:00:00 UTC protocol upgrade
-        consensus.tachyonActivationTime = 1621080000;
-
-        // Nov 15, 2021 12:00:00 UTC protocol upgrade
-        consensus.selectronActivationTime = 1636977600;
 
         // May 15, 2022 12:00:00 UTC protocol upgrade
         consensus.gluonActivationTime = 1652616000;
