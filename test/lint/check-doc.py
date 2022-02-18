@@ -55,6 +55,8 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set([
     '-zapwallettxes',
     # Remove after November 2020 upgrade
     '-axionactivationtime',
+    # Remove after May 2022 upgrade
+    '-gluonactivationtime',
     '-replayprotectionactivationtime',
 ])
 

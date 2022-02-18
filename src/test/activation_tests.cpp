@@ -73,4 +73,28 @@ BOOST_AUTO_TEST_CASE(isaxionenabled) {
     BOOST_CHECK(IsAxionEnabled(params, &blocks.back()));
 }
 
+BOOST_AUTO_TEST_CASE(isgluonenabled) {
+    const Consensus::Params &params = Params().GetConsensus();
+    const auto activation =
+        gArgs.GetArg("-gluonactivationtime", params.gluonActivationTime);
+    SetMockTime(activation - 1000000);
+
+    BOOST_CHECK(!IsGluonEnabled(params, nullptr));
+
+    std::array<CBlockIndex, 12> blocks;
+    for (size_t i = 1; i < blocks.size(); ++i) {
+        blocks[i].pprev = &blocks[i - 1];
+    }
+    BOOST_CHECK(!IsGluonEnabled(params, &blocks.back()));
+
+    SetMTP(blocks, activation - 1);
+    BOOST_CHECK(!IsGluonEnabled(params, &blocks.back()));
+
+    SetMTP(blocks, activation);
+    BOOST_CHECK(IsGluonEnabled(params, &blocks.back()));
+
+    SetMTP(blocks, activation + 1);
+    BOOST_CHECK(IsGluonEnabled(params, &blocks.back()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
