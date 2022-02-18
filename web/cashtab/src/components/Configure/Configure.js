@@ -496,6 +496,10 @@ const Configure = () => {
         }
     };
 
+    const handleSendModalToggle = checkedState => {
+        changeCashtabSettings('sendModal', checkedState);
+    };
+
     return (
         <SidePaddingCtn>
             <StyledConfigure>
@@ -769,6 +773,20 @@ const Configure = () => {
                             Not Supported
                         </Tag>
                     )}
+                </GeneralSettingsItem>
+                <GeneralSettingsItem>
+                    <div className="SendConfirm">
+                        <LockFilled /> Send Confirmations
+                    </div>
+                    <Switch
+                        size="small"
+                        checkedChildren={<CheckOutlined />}
+                        unCheckedChildren={<CloseOutlined />}
+                        checked={
+                            cashtabSettings ? cashtabSettings.sendModal : false
+                        }
+                        onChange={handleSendModalToggle}
+                    />
                 </GeneralSettingsItem>
                 <StyledSpacer />[
                 <SettingsLink

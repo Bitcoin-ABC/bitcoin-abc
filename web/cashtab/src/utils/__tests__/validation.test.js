@@ -247,15 +247,33 @@ describe('Validation utils', () => {
         expect(isValidTokenStats(noCovidStatsInvalid)).toBe(false);
     });
     it(`Recognizes a valid cashtab settings object`, () => {
-        expect(isValidCashtabSettings({ fiatCurrency: 'usd' })).toBe(true);
+        expect(
+            isValidCashtabSettings({ fiatCurrency: 'usd', sendModal: false }),
+        ).toBe(true);
     });
     it(`Rejects a cashtab settings object for an unsupported currency`, () => {
-        expect(isValidCashtabSettings({ fiatCurrency: 'xau' })).toBe(false);
+        expect(
+            isValidCashtabSettings({ fiatCurrency: 'xau', sendModal: false }),
+        ).toBe(false);
     });
     it(`Rejects a corrupted cashtab settings object for an unsupported currency`, () => {
-        expect(isValidCashtabSettings({ fiatCurrencyWrongLabel: 'usd' })).toBe(
-            false,
-        );
+        expect(
+            isValidCashtabSettings({
+                fiatCurrencyWrongLabel: 'usd',
+                sendModal: false,
+            }),
+        ).toBe(false);
+    });
+    it(`Rejects a valid fiatCurrency setting but undefined sendModal setting`, () => {
+        expect(isValidCashtabSettings({ fiatCurrency: 'usd' })).toBe(false);
+    });
+    it(`Rejects a valid fiatCurrency setting but invalid sendModal setting`, () => {
+        expect(
+            isValidCashtabSettings({
+                fiatCurrency: 'usd',
+                sendModal: 'NOTVALID',
+            }),
+        ).toBe(false);
     });
     it(`isValidXecAddress correctly validates a valid XEC address with ecash: prefix`, () => {
         const addr = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';

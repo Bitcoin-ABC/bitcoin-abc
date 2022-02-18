@@ -122,12 +122,18 @@ export const isValidTokenStats = tokenStats => {
 
 export const isValidCashtabSettings = settings => {
     try {
-        const isValid =
-            typeof settings === 'object' &&
-            Object.prototype.hasOwnProperty.call(settings, 'fiatCurrency') &&
-            currency.settingsValidation.fiatCurrency.includes(
-                settings.fiatCurrency,
-            );
+        let isValidSettingParams = true;
+        for (let param in currency.defaultSettings) {
+            if (
+                !Object.prototype.hasOwnProperty.call(settings, param) ||
+                !currency.settingsValidation[param].includes(settings[param])
+            ) {
+                isValidSettingParams = false;
+                break;
+            }
+        }
+        const isValid = typeof settings === 'object' && isValidSettingParams;
+
         return isValid;
     } catch (err) {
         return false;

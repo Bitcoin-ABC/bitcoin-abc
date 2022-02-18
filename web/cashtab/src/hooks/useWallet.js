@@ -960,14 +960,18 @@ const useWallet = () => {
             setLoading(false);
             return;
         }
+
         // Make sure function was called with valid params
-        if (
-            Object.keys(currentSettings).includes(key) &&
-            currency.settingsValidation[key].includes(newValue)
-        ) {
+        if (currency.settingsValidation[key].includes(newValue)) {
             // Update settings
             newSettings = currentSettings;
             newSettings[key] = newValue;
+        } else {
+            // Set fiat price to null, which disables fiat sends throughout the app
+            setFiatPrice(null);
+            // Unlock the UI
+            setLoading(false);
+            return;
         }
         // Set new settings in state so they are available in context throughout the app
         setCashtabSettings(newSettings);

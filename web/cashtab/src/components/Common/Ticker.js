@@ -24,7 +24,7 @@ export const currency = {
     tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
     txHistoryCount: 10,
     xecApiBatchSize: 20,
-    defaultSettings: { fiatCurrency: 'usd' },
+    defaultSettings: { fiatCurrency: 'usd', sendModal: false },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     newTokenDefaultUrl: 'https://cashtab.com/',
@@ -68,6 +68,7 @@ export const currency = {
             'nzd',
             'chf',
         ],
+        sendModal: [true, false],
     },
     fiatCurrencies: {
         usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },

@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from '@utils/context';
-import { Form, message, Row, Col, Alert, Descriptions } from 'antd';
+import {
+    Form,
+    message,
+    Row,
+    Col,
+    Alert,
+    Descriptions,
+    Popover,
+    Modal,
+} from 'antd';
 import PrimaryButton, {
     SecondaryButton,
 } from '@components/Common/PrimaryButton';
@@ -42,7 +51,8 @@ const AntdDescriptionsWrapper = styled.div`
 `;
 
 const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
-    const { wallet, apiError } = React.useContext(WalletContext);
+    const { wallet, apiError, cashtabSettings } =
+        React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens, slpBalancesAndUtxos } = walletState;
     const token = tokens.find(token => token.tokenId === tokenId);
@@ -56,6 +66,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { width } = useWindowDimensions();
     // Load with QR code open if device is mobile and NOT iOS + anything but safari
     const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({
         value: '',
@@ -236,6 +247,24 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         }
     };
 
+    const checkForConfirmationBeforeSendEtoken = () => {
+        if (cashtabSettings.sendModal) {
+            setIsModalVisible(cashtabSettings.sendModal);
+        } else {
+            // if the user does not have the send confirmation enabled in settings then send directly
+            submit();
+        }
+    };
+
+    const handleOk = () => {
+        setIsModalVisible(false);
+        submit();
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
+
     useEffect(() => {
         // If the balance has changed, unlock the UI
         // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
@@ -245,6 +274,19 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
 
     return (
         <>
+            <Modal
+                title="Confirm Send"
+                visible={isModalVisible}
+                onOk={handleOk}
+                onCancel={handleCancel}
+            >
+                <p>
+                    {token && token.info && formData
+                        ? `Are you sure you want to send ${formData.value}${' '}
+                        ${token.info.tokenTicker} to ${formData.address}?`
+                        : ''}
+                </p>
+            </Modal>
             {!token && <Redirect to="/" />}
             {token && (
                 <SidePaddingCtn>
@@ -354,7 +396,11 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
                                             </SecondaryButton>
                                         </>
                                     ) : (
-                                        <PrimaryButton onClick={() => submit()}>
+                                        <PrimaryButton
+                                            onClick={() =>
+                                                checkForConfirmationBeforeSendEtoken()
+                                            }
+                                        >
                                             Send {token.info.tokenName}
                                         </PrimaryButton>
                                     )}

@@ -139,8 +139,15 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         setOpReturnMsg(''); // OP_RETURN message has its own state field
     };
 
-    const showModal = () => {
-        setIsModalVisible(true);
+    const checkForConfirmationBeforeSendXec = () => {
+        if (txInfoFromUrl) {
+            setIsModalVisible(true);
+        } else if (cashtabSettings.sendModal) {
+            setIsModalVisible(cashtabSettings.sendModal);
+        } else {
+            // if the user does not have the send confirmation enabled in settings then send directly
+            send();
+        }
     };
 
     const handleOk = () => {
@@ -626,8 +633,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 onCancel={handleCancel}
             >
                 <p>
-                    Are you sure you want to send {formData.value}{' '}
-                    {currency.ticker} to {formData.address}?
+                    {isOneToManyXECSend
+                        ? `are you sure you want to send the following One to Many transaction?
+                    ${formData.address}`
+                        : `Are you sure you want to send ${formData.value}${' '}
+                  ${currency.ticker} to ${formData.address}?`}
                 </p>
             </Modal>
             <WalletInfoCtn>
@@ -798,14 +808,16 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     <>
                                         {txInfoFromUrl ? (
                                             <PrimaryButton
-                                                onClick={() => showModal()}
+                                                onClick={() =>
+                                                    checkForConfirmationBeforeSendXec()
+                                                }
                                             >
                                                 Send
                                             </PrimaryButton>
                                         ) : (
                                             <PrimaryButton
                                                 onClick={() => {
-                                                    send();
+                                                    checkForConfirmationBeforeSendXec();
                                                 }}
                                             >
                                                 Send
