@@ -13,6 +13,7 @@ from test_framework.cdefs import (
     DEFAULT_MAX_BLOCK_SIZE,
 )
 from test_framework.messages import XEC
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
@@ -23,27 +24,29 @@ MINER_FUND_LEGACY_ADDR = '2MviGxxFciGeWTgkUgYgjqehWt18c4ZsShd'
 
 class AbcMiningRPCTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 3
-        self.extra_args = [[], [
-            '-enableminerfund',
-            '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
-        ], [
-            '-enableminerfund',
-            '-usecashaddr=0',
-            '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
-        ]]
+        self.num_nodes = 2
+        self.extra_args = [
+            [
+                '-enableminerfund',
+                '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
+            ],
+            [
+                '-enableminerfund',
+                '-usecashaddr=0',
+                '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
+            ],
+        ]
 
     def setup_network(self):
         self.setup_nodes()
-
-        # Connect node0 to all other nodes so getblocktemplate will return results
-        # (getblocktemplate has a sanity check that ensures it's connected to a network)
-        # Since the other nodes are mining blocks "in the future" compared to node0,
-        # node0 will not broadcast blocks between the other nodes.
-        for n in range(1, len(self.nodes)):
-            self.connect_nodes(0, n)
+        # Don't connect the nodes
 
     def run_for_node(self, node, expectedMinerFundAddress):
+        # Connect to a peer so getblocktemplate will return results
+        # (getblocktemplate has a sanity check that ensures it's connected to a
+        # network).
+        node.add_p2p_connection(P2PInterface())
+
         address = node.get_deterministic_priv_key().address
 
         # Assert the results of getblocktemplate have expected values. Keys not
@@ -143,10 +146,8 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         })
 
     def run_test(self):
-        # node0 is for connectivity only and is not mined on (see
-        # setup_network)
-        self.run_for_node(self.nodes[1], MINER_FUND_ADDR)
-        self.run_for_node(self.nodes[2], MINER_FUND_LEGACY_ADDR)
+        self.run_for_node(self.nodes[0], MINER_FUND_ADDR)
+        self.run_for_node(self.nodes[1], MINER_FUND_LEGACY_ADDR)
 
 
 if __name__ == '__main__':
