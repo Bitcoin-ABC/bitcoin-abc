@@ -757,6 +757,8 @@ public:
                         const std::string &msg_type, CDataStream &vRecv,
                         const std::chrono::microseconds time_received,
                         const std::atomic<bool> &interruptMsgProc) override;
+    void UpdateLastBlockAnnounceTime(NodeId node,
+                                     int64_t time_in_seconds) override;
 
 private:
     /**
@@ -947,6 +949,18 @@ private:
      * their own locks.
      */
     std::map<NodeId, PeerRef> m_peer_map GUARDED_BY(m_peer_mutex);
+
+    /** Map maintaining per-node state. */
+    std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
+
+    /**
+     * Get a pointer to a const CNodeState, used when not mutating the
+     * CNodeState object.
+     */
+    const CNodeState *State(NodeId pnode) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    /** Get a pointer to a mutable CNodeState. */
+    CNodeState *State(NodeId pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     std::atomic<std::chrono::microseconds> m_next_inv_to_inbounds{0us};
 
@@ -1231,6 +1245,12 @@ private:
      */
     bool ReceivedAvalancheProof(CNode &node, Peer &peer,
                                 const avalanche::ProofRef &proof);
+
+    avalanche::ProofRef FindProofForGetData(const CNode &peer,
+                                            const avalanche::ProofId &proofid,
+                                            const std::chrono::seconds now);
+
+    bool isPreferredDownloadPeer(const CNode &pfrom);
 };
 } // namespace
 
@@ -1240,16 +1260,19 @@ int nPreferredDownload GUARDED_BY(cs_main) = 0;
 } // namespace
 
 namespace {
-/** Map maintaining per-node state. */
-static std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
-
-static CNodeState *State(NodeId pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
+const CNodeState *PeerManagerImpl::State(NodeId pnode) const
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    std::map<NodeId, CNodeState>::const_iterator it = mapNodeState.find(pnode);
     if (it == mapNodeState.end()) {
         return nullptr;
     }
 
     return &it->second;
+}
+
+CNodeState *PeerManagerImpl::State(NodeId pnode)
+    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    return const_cast<CNodeState *>(std::as_const(*this).State(pnode));
 }
 
 /**
@@ -1300,7 +1323,7 @@ static void AddKnownProof(Peer &peer, const avalanche::ProofId &proofid) {
     }
 }
 
-static bool isPreferredDownloadPeer(const CNode &pfrom) {
+bool PeerManagerImpl::isPreferredDownloadPeer(const CNode &pfrom) {
     LOCK(cs_main);
     const CNodeState *state = State(pfrom.GetId());
     return state && state->fPreferredDownload;
@@ -1780,9 +1803,8 @@ void PeerManagerImpl::AddProofAnnouncement(
     m_proofrequest.ReceivedInv(node.GetId(), proofid, preferred, reqtime);
 }
 
-// This function is used for testing the stale tip eviction logic, see
-// denialofservice_tests.cpp
-void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds) {
+void PeerManagerImpl::UpdateLastBlockAnnounceTime(NodeId node,
+                                                  int64_t time_in_seconds) {
     LOCK(cs_main);
     CNodeState *state = State(node);
     if (state) {
@@ -2073,7 +2095,7 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
                                         CNodeStateStats &stats) const {
     {
         LOCK(cs_main);
-        CNodeState *state = State(nodeid);
+        const CNodeState *state = State(nodeid);
         if (state == nullptr) {
             return false;
         }
@@ -2904,9 +2926,10 @@ PeerManagerImpl::FindTxForGetData(const CNode &peer, const TxId &txid,
 
 //! Determine whether or not a peer can request a proof, and return it (or
 //! nullptr if not found or not allowed).
-static avalanche::ProofRef
-FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
-                    const std::chrono::seconds now) {
+avalanche::ProofRef
+PeerManagerImpl::FindProofForGetData(const CNode &peer,
+                                     const avalanche::ProofId &proofid,
+                                     const std::chrono::seconds now) {
     avalanche::ProofRef proof;
 
     bool send_unconditionally =

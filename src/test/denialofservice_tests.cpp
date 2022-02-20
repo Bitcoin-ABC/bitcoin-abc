@@ -52,8 +52,6 @@ static CService ip(uint32_t i) {
 
 static NodeId id = 0;
 
-void UpdateLastBlockAnnounceTime(NodeId node, int64_t time_in_seconds);
-
 BOOST_FIXTURE_TEST_SUITE(denialofservice_tests, TestingSetup)
 
 // Test eviction of an outbound peer whose chain never advances
@@ -221,7 +219,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
 
     // Update the last announced block time for the last
     // peer, and check that the next newest node gets evicted.
-    UpdateLastBlockAnnounceTime(vNodes.back()->GetId(), GetTime());
+    peerLogic->UpdateLastBlockAnnounceTime(vNodes.back()->GetId(), GetTime());
 
     peerLogic->CheckForStaleTipAndEvictPeers();
     for (int i = 0; i < max_outbound_full_relay - 1; ++i) {
