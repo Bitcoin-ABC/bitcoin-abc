@@ -329,7 +329,7 @@ public:
                             coins_to_uncache,
                             test_accept,
                             heightOverride,
-                            /*m_package_submission=*/false};
+                            /*package_submission=*/false};
         }
 
         /**
@@ -340,11 +340,11 @@ public:
         PackageTestAccept(const Config &config, int64_t accept_time,
                           std::vector<COutPoint> &coins_to_uncache) {
             return ATMPArgs{config, accept_time,
-                            /*m_bypass_limits=*/false, coins_to_uncache,
-                            /*m_test_accept=*/true,
-                            /*m_heightOverride=*/0,
+                            /*bypass_limits=*/false, coins_to_uncache,
+                            /*test_accept=*/true,
+                            /*height_override=*/0,
                             // not submitting to mempool
-                            /*m_package_submission=*/false};
+                            /*package_submission=*/false};
         }
 
         /** Parameters for child-with-unconfirmed-parents package validation. */
@@ -353,16 +353,25 @@ public:
                                 std::vector<COutPoint> &coins_to_uncache) {
             return ATMPArgs{config,
                             accept_time,
-                            /*m_bypass_limits=*/false,
+                            /*bypass_limits=*/false,
                             coins_to_uncache,
-                            /*m_test_accept=*/false,
-                            /*m_heightOverride=*/0,
-                            /*m_package_submission=*/true};
+                            /*test_accept=*/false,
+                            /*height_override=*/0,
+                            /*package_submission=*/true};
         }
-        // No default ctor to avoid exposing details to clients and allowing the
+
+    private:
+        // Private ctor to avoid exposing details to clients and allowing the
         // possibility of mixing up the order of the arguments. Use static
         // functions above instead.
-        ATMPArgs() = delete;
+        ATMPArgs(const Config &config, int64_t accept_time, bool bypass_limits,
+                 std::vector<COutPoint> &coins_to_uncache, bool test_accept,
+                 unsigned int height_override, bool package_submission)
+            : m_config{config}, m_accept_time{accept_time},
+              m_bypass_limits{bypass_limits},
+              m_coins_to_uncache{coins_to_uncache}, m_test_accept{test_accept},
+              m_heightOverride{height_override}, m_package_submission{
+                                                     package_submission} {}
     };
 
     // Single transaction acceptance
