@@ -25,6 +25,8 @@ static void SetupWalletToolArgs(ArgsManager &argsman) {
     SetupChainParamsBaseOptions(argsman);
     SetupCurrencyUnitOptions(argsman);
 
+    argsman.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY,
+                   OptionsCategory::OPTIONS);
     argsman.AddArg("-datadir=<dir>", "Specify data directory",
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-wallet=<wallet-name>", "Specify wallet name",
@@ -56,19 +58,26 @@ static bool WalletAppInit(int argc, char *argv[]) {
                     error_message);
         return false;
     }
-    if (argc < 2 || HelpRequested(gArgs)) {
+    if (argc < 2 || HelpRequested(gArgs) || gArgs.IsArgSet("-version")) {
         std::string usage =
             strprintf("%s bitcoin-wallet version", PACKAGE_NAME) + " " +
-            FormatFullVersion() + "\n\n" +
-            "bitcoin-wallet is an offline tool for creating and interacting "
-            "with " PACKAGE_NAME " wallet files.\n" +
-            "By default bitcoin-wallet will act on wallets in the default "
-            "mainnet wallet directory in the datadir.\n" +
-            "To change the target wallet, use the -datadir, -wallet and "
-            "-testnet/-regtest arguments.\n\n" +
-            "Usage:\n" + "  bitcoin-wallet [options] <command>\n\n" +
-            gArgs.GetHelpMessage();
+            FormatFullVersion() + "\n";
 
+        if (gArgs.IsArgSet("-version")) {
+            usage += FormatParagraph(LicenseInfo());
+        } else {
+            usage +=
+                "\n"
+                "bitcoin-wallet is an offline tool for creating and "
+                "interacting with " PACKAGE_NAME " wallet files.\n"
+                "By default bitcoin-wallet will act on wallets in the default "
+                "mainnet wallet directory in the datadir.\n"
+                "To change the target wallet, use the -datadir, -wallet and "
+                "-testnet/-regtest arguments.\n\n"
+                "Usage:\n"
+                "  bitcoin-wallet [options] <command>\n";
+            usage += "\n" + gArgs.GetHelpMessage();
+        }
         tfm::format(std::cout, "%s", usage);
         return false;
     }
