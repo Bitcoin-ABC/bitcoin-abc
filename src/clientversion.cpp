@@ -3,8 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <clientversion.h>
+#include <util/translation.h>
 
 #include <tinyformat.h>
+
+#include <sstream>
+#include <string>
+#include <vector>
 
 /**
  * Name of client reported in the 'version' message. Report the same name
@@ -78,4 +83,40 @@ std::string FormatUserAgent(const std::string &name, const std::string &version,
     }
     ss << "/";
     return ss.str();
+}
+
+std::string CopyrightHolders(const std::string &strPrefix) {
+    return strPrefix + strprintf(_(COPYRIGHT_HOLDERS).translated,
+                                 COPYRIGHT_HOLDERS_SUBSTITUTION);
+}
+
+std::string LicenseInfo() {
+    const std::string URL_SOURCE_CODE =
+        "<https://github.com/Bitcoin-ABC/bitcoin-abc>";
+    const std::string URL_WEBSITE = "<https://www.bitcoinabc.org>";
+
+    return CopyrightHolders(strprintf(_("Copyright (C) %i-%i").translated, 2009,
+                                      COPYRIGHT_YEAR) +
+                            " ") +
+           "\n" + "\n" +
+           strprintf(_("Please contribute if you find %s useful. "
+                       "Visit %s for further information about the software.")
+                         .translated,
+                     PACKAGE_NAME, URL_WEBSITE) +
+           "\n" +
+           strprintf(_("The source code is available from %s.").translated,
+                     URL_SOURCE_CODE) +
+           "\n" + "\n" + _("This is experimental software.").translated + "\n" +
+           strprintf(_("Distributed under the MIT software license, see the "
+                       "accompanying file %s or %s")
+                         .translated,
+                     "COPYING", "<https://opensource.org/licenses/MIT>") +
+           "\n" + "\n" +
+           strprintf(_("This product includes software developed by the "
+                       "OpenSSL Project for use in the OpenSSL Toolkit %s and "
+                       "cryptographic software written by Eric Young and UPnP "
+                       "software written by Thomas Bernard.")
+                         .translated,
+                     "<https://www.openssl.org>") +
+           "\n";
 }

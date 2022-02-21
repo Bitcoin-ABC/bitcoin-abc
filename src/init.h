@@ -90,7 +90,4 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
  */
 void SetupServerArgs(node::NodeContext &node);
 
-/** Returns licensing information (for -version) */
-std::string LicenseInfo();
-
 #endif // BITCOIN_INIT_H

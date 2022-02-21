@@ -36,6 +36,4 @@ void runCommand(const std::string &strCommand);
  */
 int GetNumCores();
 
-std::string CopyrightHolders(const std::string &strPrefix);
-
 #endif // BITCOIN_UTIL_SYSTEM_H
