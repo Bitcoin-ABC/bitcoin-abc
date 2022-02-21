@@ -7,6 +7,7 @@
 
 #include <consensus/amount.h>
 #include <random.h>
+#include <sync.h>
 #include <uint256.h>
 
 #include <map>
@@ -28,17 +29,18 @@ static const double FEE_SPACING = 1.1;
 class FeeFilterRounder {
 public:
     /** Create new FeeFilterRounder */
-    explicit FeeFilterRounder(const CFeeRate &minIncrementalFee);
+    explicit FeeFilterRounder(const CFeeRate &min_incremental_fee);
 
     /**
      * Quantize a minimum fee for privacy purpose before broadcast.
-     * Not thread-safe due to use of FastRandomContext
      **/
-    Amount round(const Amount currentMinFee);
+    Amount round(const Amount currentMinFee)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_insecure_rand_mutex);
 
 private:
-    std::set<Amount> feeset;
-    FastRandomContext insecure_rand;
+    const std::set<Amount> m_fee_set;
+    Mutex m_insecure_rand_mutex;
+    FastRandomContext insecure_rand GUARDED_BY(m_insecure_rand_mutex);
 };
 
 #endif // BITCOIN_POLICY_FEES_H
