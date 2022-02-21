@@ -17,6 +17,7 @@ import {
     isExcludedUtxo,
     whichUtxosWereAdded,
     whichUtxosWereConsumed,
+    addNewHydratedUtxos,
 } from '@utils/cashMethods';
 
 import {
@@ -122,6 +123,12 @@ import {
     utxosConsumedBySingleXecSendTxTemplate,
     utxosConsumedBySendAllTx,
     utxosConsumedBySendAllTxTemplate,
+    hydratedUtxoDetailsBeforeAddingTemplate,
+    hydratedUtxoDetailsAfterAddingSingleUtxoTemplate,
+    newHydratedUtxosSingleTemplate,
+    addedHydratedUtxosOverTwenty,
+    existingHydratedUtxoDetails,
+    existingHydratedUtxoDetailsAfterAdd,
 } from '../__mocks__/incrementalUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
@@ -588,5 +595,21 @@ describe('Correctly executes cash utility functions', () => {
                 currentUtxosAfterEtokenSendTx,
             ),
         ).toStrictEqual(utxosConsumedByEtokenSendTx);
+    });
+    test('addNewHydratedUtxos correctly adds new utxos object to existing hydratedUtxoDetails object', async () => {
+        expect(
+            addNewHydratedUtxos(
+                newHydratedUtxosSingleTemplate,
+                hydratedUtxoDetailsBeforeAddingTemplate,
+            ),
+        ).toStrictEqual(hydratedUtxoDetailsAfterAddingSingleUtxoTemplate);
+    });
+    test('addNewHydratedUtxos correctly adds more than 20 new hydrated utxos to existing hydratedUtxoDetails object', async () => {
+        expect(
+            addNewHydratedUtxos(
+                addedHydratedUtxosOverTwenty,
+                existingHydratedUtxoDetails,
+            ),
+        ).toStrictEqual(existingHydratedUtxoDetailsAfterAdd);
     });
 });

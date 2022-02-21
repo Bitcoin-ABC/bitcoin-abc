@@ -659,3 +659,78 @@ export const whichUtxosWereConsumed = (previousUtxos, currentUtxos) => {
     // Else return false
     return utxosConsumedFlag;
 };
+
+export const addNewHydratedUtxos = (
+    addedHydratedUtxos,
+    hydratedUtxoDetails,
+) => {
+    const theseAdditionalHydratedUtxos = addedHydratedUtxos.slpUtxos;
+    for (let i = 0; i < theseAdditionalHydratedUtxos.length; i += 1) {
+        const thisHydratedUtxoObj = theseAdditionalHydratedUtxos[i];
+        hydratedUtxoDetails.slpUtxos.push(thisHydratedUtxoObj);
+    }
+    return hydratedUtxoDetails;
+    // Add hydrateUtxos(addedUtxos) to hydratedUtxoDetails
+    /*
+    e.g. add this
+    {
+    "slpUtxos": 
+        [
+            {
+                "utxos": [
+                    {
+                        "height": 725886,
+                        "tx_hash": "29985c01444bf80ade764e5d40d7ec2c12317e03301243170139c75f20c51f78",
+                        "tx_pos": 0,
+                        "value": 3300,
+                        "txid": "29985c01444bf80ade764e5d40d7ec2c12317e03301243170139c75f20c51f78",
+                        "vout": 0,
+                        "isValid": false
+                    }
+                ],
+                "address": "bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr"
+            }
+        ]
+    }
+
+to this
+
+{
+    "slpUtxos": 
+        [
+            {
+                "utxos": [
+                    {
+                        "height": 725886,
+                        "tx_hash": "29985c01444bf80ade764e5d40d7ec2c12317e03301243170139c75f20c51f78",
+                        "tx_pos": 0,
+                        "value": 3300,
+                        "txid": "29985c01444bf80ade764e5d40d7ec2c12317e03301243170139c75f20c51f78",
+                        "vout": 0,
+                        "isValid": false
+                    }
+                    ... up to 20
+                ],
+                "address": "bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr"
+            },
+            {
+                "utxos": [
+                    {
+                        "height": 725886,
+                        "tx_hash": "29985c01444bf80ade764e5d40d7ec2c12317e03301243170139c75f20c51f78",
+                        "tx_pos": 0,
+                        "value": 3300,
+                        "txid": "29985c01444bf80ade764e5d40d7ec2c12317e03301243170139c75f20c51f78",
+                        "vout": 0,
+                        "isValid": false
+                    }
+                    ... up to 20
+                ],
+                "address": "bitcoincash:qz2708636snqhsxu8wnlka78h6fdp77ar5ulhz04hr"
+            }
+            ,
+            ... a bunch of these in batches of 20
+        ]
+    }
+    */
+};
