@@ -5,7 +5,7 @@ exports[`Configure with a wallet 1`] = `
   className="sc-dnqmqq hItOJq"
 >
   <div
-    className="sc-cMljjf fUkzDG"
+    className="sc-jAaTju diIIPg"
   >
     <h2>
       <span
@@ -113,7 +113,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     <h2>
       <span
@@ -191,7 +191,7 @@ exports[`Configure with a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     <h2>
       <span
@@ -308,7 +308,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     <h2>
       <span
@@ -333,7 +333,7 @@ exports[`Configure with a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-jDwBTQ fkhNYa"
+      className="sc-gPEVay GEyOr"
     >
       <div
         className="title"
@@ -396,7 +396,7 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     [
     <a
@@ -409,13 +409,13 @@ exports[`Configure with a wallet 1`] = `
       Documentation
     </a>
     |
-    <a
-      className="sc-iAyFgw blXbEO"
-      href="/#/privacy"
+    <button
+      className="sc-hSdWYo dDepCt"
+      onClick={[Function]}
       type="link"
     >
       Privacy Policy
-    </a>
+    </button>
     ]
   </div>
 </div>
@@ -426,7 +426,7 @@ exports[`Configure without a wallet 1`] = `
   className="sc-dnqmqq hItOJq"
 >
   <div
-    className="sc-cMljjf fUkzDG"
+    className="sc-jAaTju diIIPg"
   >
     <h2>
       <span
@@ -496,7 +496,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     <h2>
       <span
@@ -574,7 +574,7 @@ exports[`Configure without a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     <h2>
       <span
@@ -691,7 +691,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     <h2>
       <span
@@ -716,7 +716,7 @@ exports[`Configure without a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-jDwBTQ fkhNYa"
+      className="sc-gPEVay GEyOr"
     >
       <div
         className="title"
@@ -779,7 +779,7 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-jAaTju gLeerB"
+      className="sc-jDwBTQ iVkEDa"
     />
     [
     <a
@@ -792,13 +792,13 @@ exports[`Configure without a wallet 1`] = `
       Documentation
     </a>
     |
-    <a
-      className="sc-iAyFgw blXbEO"
-      href="/#/privacy"
+    <button
+      className="sc-hSdWYo dDepCt"
+      onClick={[Function]}
       type="link"
     >
       Privacy Policy
-    </a>
+    </button>
     ]
   </div>
 </div>
