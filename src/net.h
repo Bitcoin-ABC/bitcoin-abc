@@ -286,10 +286,10 @@ struct CNodeStats {
     bool fRelayTxes;
     std::chrono::seconds m_last_send;
     std::chrono::seconds m_last_recv;
-    std::chrono::seconds nLastTXTime;
-    std::chrono::seconds nLastProofTime;
-    std::chrono::seconds nLastBlockTime;
-    std::chrono::seconds nTimeConnected;
+    std::chrono::seconds m_last_tx_time;
+    std::chrono::seconds m_last_proof_time;
+    std::chrono::seconds m_last_block_time;
+    std::chrono::seconds m_connected;
     int64_t nTimeOffset;
     std::string addrName;
     int nVersion;
@@ -482,7 +482,7 @@ public:
     std::atomic<std::chrono::seconds> m_last_send{0s};
     std::atomic<std::chrono::seconds> m_last_recv{0s};
     //! Unix epoch time at peer connection
-    const std::chrono::seconds nTimeConnected;
+    const std::chrono::seconds m_connected;
     std::atomic<int64_t> nTimeOffset{0};
     // Address of this peer
     const CAddress addr;
@@ -714,7 +714,7 @@ public:
      * connect the block or it eventually fails connection. Used as an inbound
      * peer eviction criterium in CConnman::AttemptToEvictConnection.
      */
-    std::atomic<std::chrono::seconds> nLastBlockTime{0s};
+    std::atomic<std::chrono::seconds> m_last_block_time{0s};
 
     /**
      * UNIX epoch time of the last transaction received from this peer that we
@@ -722,7 +722,7 @@ public:
      * was accepted into our mempool. Used as an inbound peer eviction criterium
      * in CConnman::AttemptToEvictConnection.
      */
-    std::atomic<std::chrono::seconds> nLastTXTime{0s};
+    std::atomic<std::chrono::seconds> m_last_tx_time{0s};
 
     /**
      * UNIX epoch time of the last proof received from this peer that we
@@ -730,7 +730,7 @@ public:
      * was accepted into our proof pool. Used as an inbound peer eviction
      * criterium in CConnman::AttemptToEvictConnection.
      */
-    std::atomic<std::chrono::seconds> nLastProofTime{0s};
+    std::atomic<std::chrono::seconds> m_last_proof_time{0s};
 
     /** Last measured round-trip time. Used only for RPC/GUI stats/debugging.*/
     std::atomic<std::chrono::microseconds> m_last_ping_time{0us};
@@ -1440,11 +1440,11 @@ std::string userAgent(const Config &config);
 
 struct NodeEvictionCandidate {
     NodeId id;
-    std::chrono::seconds nTimeConnected;
+    std::chrono::seconds m_connected;
     std::chrono::microseconds m_min_ping_time;
-    std::chrono::seconds nLastBlockTime;
-    std::chrono::seconds nLastProofTime;
-    std::chrono::seconds nLastTXTime;
+    std::chrono::seconds m_last_block_time;
+    std::chrono::seconds m_last_proof_time;
+    std::chrono::seconds m_last_tx_time;
     bool fRelevantServices;
     bool fRelayTxes;
     bool fBloomFilter;

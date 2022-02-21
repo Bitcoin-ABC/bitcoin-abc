@@ -260,15 +260,16 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("lastsend", count_seconds(stats.m_last_send));
                 obj.pushKV("lastrecv", count_seconds(stats.m_last_recv));
                 obj.pushKV("last_transaction",
-                           count_seconds(stats.nLastTXTime));
+                           count_seconds(stats.m_last_tx_time));
                 if (g_avalanche) {
                     obj.pushKV("last_proof",
-                               count_seconds(stats.nLastProofTime));
+                               count_seconds(stats.m_last_proof_time));
                 }
-                obj.pushKV("last_block", count_seconds(stats.nLastBlockTime));
+                obj.pushKV("last_block",
+                           count_seconds(stats.m_last_block_time));
                 obj.pushKV("bytessent", stats.nSendBytes);
                 obj.pushKV("bytesrecv", stats.nRecvBytes);
-                obj.pushKV("conntime", count_seconds(stats.nTimeConnected));
+                obj.pushKV("conntime", count_seconds(stats.m_connected));
                 obj.pushKV("timeoffset", stats.nTimeOffset);
                 if (stats.m_last_ping_time > 0us) {
                     obj.pushKV("pingtime",

@@ -56,15 +56,15 @@ GetRandomNodeEvictionCandidates(const int n_candidates,
     for (int id = 0; id < n_candidates; ++id) {
         candidates.push_back({
             /* id */ id,
-            /* nTimeConnected */
+            /* m_connected */
             std::chrono::seconds{random_context.randrange(100)},
             /* m_min_ping_time */
             std::chrono::microseconds{random_context.randrange(100)},
-            /* nLastBlockTime */
+            /* m_last_block_time */
             std::chrono::seconds{random_context.randrange(100)},
-            /* nLastProofTime */
+            /* m_last_proof_time */
             std::chrono::seconds{random_context.randrange(100)},
-            /* nLastTXTime */
+            /* m_last_tx_time */
             std::chrono::seconds{random_context.randrange(100)},
             /* fRelevantServices */ random_context.randbool(),
             /* fRelayTxes */ random_context.randbool(),

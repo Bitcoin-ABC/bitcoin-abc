@@ -4392,7 +4392,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
-            pfrom.nLastTXTime = GetTime<std::chrono::seconds>();
+            pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
 
             LogPrint(BCLog::MEMPOOL,
                      "AcceptToMemoryPool: peer=%d: accepted %s "
@@ -4750,7 +4750,7 @@ void PeerManagerImpl::ProcessMessage(
             m_chainman.ProcessNewBlock(config, pblock,
                                        /*fForceProcessing=*/true, &fNewBlock);
             if (fNewBlock) {
-                pfrom.nLastBlockTime = GetTime<std::chrono::seconds>();
+                pfrom.m_last_block_time = GetTime<std::chrono::seconds>();
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
@@ -4860,7 +4860,7 @@ void PeerManagerImpl::ProcessMessage(
             m_chainman.ProcessNewBlock(config, pblock,
                                        /*fForceProcessing=*/true, &fNewBlock);
             if (fNewBlock) {
-                pfrom.nLastBlockTime = GetTime<std::chrono::seconds>();
+                pfrom.m_last_block_time = GetTime<std::chrono::seconds>();
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
@@ -4935,7 +4935,7 @@ void PeerManagerImpl::ProcessMessage(
         bool fNewBlock = false;
         m_chainman.ProcessNewBlock(config, pblock, forceProcessing, &fNewBlock);
         if (fNewBlock) {
-            pfrom.nLastBlockTime = GetTime<std::chrono::seconds>();
+            pfrom.m_last_block_time = GetTime<std::chrono::seconds>();
         } else {
             LOCK(cs_main);
             mapBlockSource.erase(hash);
@@ -5211,7 +5211,7 @@ void PeerManagerImpl::ProcessMessage(
             WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
             RelayProof(proofid, m_connman);
 
-            pfrom.nLastProofTime = GetTime<std::chrono::seconds>();
+            pfrom.m_last_proof_time = GetTime<std::chrono::seconds>();
 
             LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
                      nodeid, proofid.ToString());
@@ -5874,7 +5874,7 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
             if (pnode->GetId() > youngest_peer.first) {
                 next_youngest_peer = youngest_peer;
                 youngest_peer.first = pnode->GetId();
-                youngest_peer.second = pnode->nLastBlockTime;
+                youngest_peer.second = pnode->m_last_block_time;
             }
         });
 
@@ -5896,21 +5896,21 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
                 // tip.
                 CNodeState *node_state = State(pnode->GetId());
                 if (node_state == nullptr ||
-                    (now - pnode->nTimeConnected >= MINIMUM_CONNECT_TIME &&
+                    (now - pnode->m_connected >= MINIMUM_CONNECT_TIME &&
                      node_state->nBlocksInFlight == 0)) {
                     pnode->fDisconnect = true;
                     LogPrint(BCLog::NET,
                              "disconnecting extra block-relay-only peer=%d "
                              "(last block received at time %d)\n",
                              pnode->GetId(),
-                             count_seconds(pnode->nLastBlockTime));
+                             count_seconds(pnode->m_last_block_time));
                     return true;
                 } else {
                     LogPrint(
                         BCLog::NET,
                         "keeping block-relay-only peer=%d chosen for eviction "
                         "(connect time: %d, blocks_in_flight: %d)\n",
-                        pnode->GetId(), count_seconds(pnode->nTimeConnected),
+                        pnode->GetId(), count_seconds(pnode->m_connected),
                         node_state->nBlocksInFlight);
                 }
                 return false;
@@ -5968,7 +5968,7 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
             // new information to have arrived. Also don't disconnect any peer
             // we're trying to download a block from.
             CNodeState &state = *State(pnode->GetId());
-            if (now - pnode->nTimeConnected > MINIMUM_CONNECT_TIME &&
+            if (now - pnode->m_connected > MINIMUM_CONNECT_TIME &&
                 state.nBlocksInFlight == 0) {
                 LogPrint(BCLog::NET,
                          "disconnecting extra outbound peer=%d (last block "
@@ -5980,7 +5980,7 @@ void PeerManagerImpl::EvictExtraOutboundPeers(std::chrono::seconds now) {
                 LogPrint(BCLog::NET,
                          "keeping outbound peer=%d chosen for eviction "
                          "(connect time: %d, blocks_in_flight: %d)\n",
-                         pnode->GetId(), count_seconds(pnode->nTimeConnected),
+                         pnode->GetId(), count_seconds(pnode->m_connected),
                          state.nBlocksInFlight);
                 return false;
             }
@@ -6215,8 +6215,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
     const auto current_time = GetTime<std::chrono::microseconds>();
 
-    if (pto->IsAddrFetchConn() && current_time - pto->nTimeConnected >
-                                      10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
+    if (pto->IsAddrFetchConn() &&
+        current_time - pto->m_connected > 10 * AVG_ADDRESS_BROADCAST_INTERVAL) {
         LogPrint(BCLog::NET,
                  "addrfetch connection timeout; disconnecting peer=%d\n",
                  pto->GetId());
