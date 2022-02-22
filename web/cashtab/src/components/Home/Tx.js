@@ -9,10 +9,9 @@ import {
     UnparsedIcon,
 } from '@components/Common/CustomIcons';
 import { currency } from '@components/Common/Ticker';
-import makeBlockie from 'ethereum-blockies-base64';
-import { Img } from 'react-image';
 import { fromLegacyDecimals } from '@utils/cashMethods';
 import { formatBalance, formatDate } from '@utils/formatting';
+import TokenIcon from '@components/Tokens/TokenIcon';
 
 const TxIcon = styled.div`
     svg {
@@ -337,35 +336,10 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                             {data.tokenTx && data.tokenInfo ? (
                                 <>
                                     <TxTokenIcon>
-                                        {currency.tokenIconsUrl !== '' ? (
-                                            <Img
-                                                src={`${currency.tokenIconsUrl}/32/${data.tokenInfo.tokenId}.png`}
-                                                unloader={
-                                                    <img
-                                                        alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
-                                                        style={{
-                                                            borderRadius: '50%',
-                                                        }}
-                                                        key={`identicon-${data.tokenInfo.tokenId}`}
-                                                        src={makeBlockie(
-                                                            data.tokenInfo
-                                                                .tokenId,
-                                                        )}
-                                                    />
-                                                }
-                                            />
-                                        ) : (
-                                            <img
-                                                alt={`identicon of tokenId ${data.tokenInfo.tokenId} `}
-                                                style={{
-                                                    borderRadius: '50%',
-                                                }}
-                                                key={`identicon-${data.tokenInfo.tokenId}`}
-                                                src={makeBlockie(
-                                                    data.tokenInfo.tokenId,
-                                                )}
-                                            />
-                                        )}
+                                        <TokenIcon
+                                            size={32}
+                                            tokenId={data.tokenInfo.tokenId}
+                                        />
                                     </TxTokenIcon>
                                     {data.outgoingTx ? (
                                         <RightTextCtn>

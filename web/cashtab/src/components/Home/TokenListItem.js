@@ -1,13 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import makeBlockie from 'ethereum-blockies-base64';
-import { Img } from 'react-image';
-import { currency } from '@components/Common/Ticker';
+import TokenIcon from '@components/Tokens/TokenIcon';
 
-const TokenIcon = styled.div`
-    height: 32px;
-    width: 32px;
+const TokenIconWrapper = styled.div`
     margin-right: 10px;
 `;
 
@@ -40,38 +36,9 @@ const TokenListItem = ({ ticker, balance, tokenId }) => {
     return (
         <Wrapper>
             <TokenNameCtn>
-                <TokenIcon>
-                    {currency.tokenIconsUrl !== '' ? (
-                        <Img
-                            src={`${currency.tokenIconsUrl}/32/${tokenId}.png`}
-                            width={32}
-                            height={32}
-                            unloader={
-                                <img
-                                    alt={`identicon of tokenId ${tokenId} `}
-                                    height="32"
-                                    width="32"
-                                    style={{
-                                        borderRadius: '50%',
-                                    }}
-                                    key={`identicon-${tokenId}`}
-                                    src={makeBlockie(tokenId)}
-                                />
-                            }
-                        />
-                    ) : (
-                        <img
-                            alt={`identicon of tokenId ${tokenId} `}
-                            height="32"
-                            width="32"
-                            style={{
-                                borderRadius: '50%',
-                            }}
-                            key={`identicon-${tokenId}`}
-                            src={makeBlockie(tokenId)}
-                        />
-                    )}
-                </TokenIcon>
+                <TokenIconWrapper>
+                    <TokenIcon size={32} tokenId={tokenId} />
+                </TokenIconWrapper>
                 <h4>{ticker}</h4>
             </TokenNameCtn>
 
