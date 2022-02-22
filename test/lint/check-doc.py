@@ -53,8 +53,6 @@ SET_FALSE_POSITIVE_UNDOCUMENTED = set([
     '-automaticunparking',
     # Removed arguments that now just print a helpful error message
     '-zapwallettxes',
-    # Remove after November 2020 upgrade
-    '-axionactivationtime',
     # Remove after May 2022 upgrade
     '-gluonactivationtime',
     '-replayprotectionactivationtime',

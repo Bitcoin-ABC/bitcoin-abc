@@ -532,11 +532,14 @@ BOOST_AUTO_TEST_CASE(calculate_asert_test) {
     }
 }
 
-class ChainParamsWithDAAActivation : public CChainParams {
+class ChainParamsWithCustomActivation : public CChainParams {
 public:
-    ChainParamsWithDAAActivation(const CChainParams &chainParams, int daaHeight)
+    ChainParamsWithCustomActivation(const CChainParams &chainParams,
+                                    int daaHeight, int axionHeight)
         : CChainParams(chainParams) {
+        BOOST_REQUIRE_GT(axionHeight, daaHeight);
         consensus.daaHeight = daaHeight;
+        consensus.axionHeight = axionHeight;
     }
 };
 
@@ -549,11 +552,11 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     // at a lower height than usual, so we don't need to waste time making a
     // 504000-long chain.
     const auto mainChainParams = CreateChainParams(CBaseChainParams::MAIN);
-    const ChainParamsWithDAAActivation chainParams(*mainChainParams, 2016);
+    const int asertActivationHeight = 4000;
+    const ChainParamsWithCustomActivation chainParams(*mainChainParams, 2016,
+                                                      asertActivationHeight);
     const Consensus::Params &params = chainParams.GetConsensus();
 
-    const int64_t activationTime =
-        gArgs.GetArg("-axionactivationtime", params.axionActivationTime);
     CBlockHeader blkHeaderDummy;
 
     // an arbitrary compact target for our chain (based on BCH chain ~ Aug 10
@@ -573,32 +576,21 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
 
     // Pile up a random number of blocks to establish some history of random
     // height. cw144 DAA requires us to have height at least 2016, dunno why
-    // that much.
-    const int initialBlockCount = 2000 + int(InsecureRandRange(1000));
-    for (int i = 1; i < initialBlockCount; i++) {
-        blocks[bidx] = GetBlockIndex(&blocks[bidx - 1], 600, initialBits);
-        bidx++;
+    // that much. Keep going up to 145 blocks prior to ASERT activation.
+    for (int i = 1; i < asertActivationHeight - 145; i++) {
         BOOST_REQUIRE(bidx < int(blocks.size()));
-    }
-
-    // Start making blocks prior to activation. First, make a block about 1 day
-    // before activation. Then put down 145 more blocks with 500 second
-    // solvetime each, such that the MTP on the final block is 1 second short of
-    // activationTime.
-    {
         blocks[bidx] = GetBlockIndex(&blocks[bidx - 1], 600, initialBits);
-        blocks[bidx].nTime = activationTime - 140 * 500 - 1;
         bidx++;
     }
+    // Then put down 145 more blocks with 500 second solvetime each, such that
+    // the final block is the one prior to activation.
     for (int i = 0; i < 145; i++) {
         BOOST_REQUIRE(bidx < int(blocks.size()));
         blocks[bidx] = GetBlockIndex(&blocks[bidx - 1], 500, initialBits);
         bidx++;
     }
     CBlockIndex *pindexPreActivation = &blocks[bidx - 1];
-    BOOST_CHECK_EQUAL(pindexPreActivation->nTime, activationTime + 5 * 500 - 1);
-    BOOST_CHECK_EQUAL(pindexPreActivation->GetMedianTimePast(),
-                      activationTime - 1);
+    BOOST_CHECK_EQUAL(pindexPreActivation->nHeight, asertActivationHeight - 1);
     BOOST_CHECK(IsDAAEnabled(params, pindexPreActivation));
 
     // If we consult DAA, then it uses cw144 which returns a significantly lower
@@ -693,8 +685,7 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     // timestamp jump so the resulting target is 1.2% lower.
     CBlockIndex indexActivation4 =
         GetBlockIndex(pindexPreActivation, 0, 0x18011111);
-    indexActivation4.nTime = activationTime;
-    BOOST_CHECK_EQUAL(indexActivation4.GetMedianTimePast(), activationTime);
+    indexActivation4.nTime = pindexPreActivation->GetMedianTimePast();
     BOOST_CHECK(IsAxionEnabled(params, &indexActivation4));
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation4, &blkHeaderDummy, chainParams),

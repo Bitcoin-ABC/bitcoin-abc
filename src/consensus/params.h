@@ -80,8 +80,8 @@ struct Params {
     int gravitonHeight;
     /** Block height at which the phonon activation becomes active */
     int phononHeight;
-    /** Unix time used for MTP activation of 15 Nov 2020 12:00:00 UTC upgrade */
-    int axionActivationTime;
+    /** Block height at which the axion activation becomes active */
+    int axionHeight;
     /** Unix time used for MTP activation of 15 May 2022 12:00:00 UTC upgrade */
     int gluonActivationTime;
     /** Unix time used for MTP activation of 15 Nov 2022 12:00:00 UTC upgrade */

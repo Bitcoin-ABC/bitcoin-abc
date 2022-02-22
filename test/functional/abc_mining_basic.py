@@ -17,7 +17,6 @@ from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
-AXION_ACTIVATION_TIME = 2000000600
 GLUON_ACTIVATION_TIME = 2100000600
 
 MINER_FUND_ADDR_AXION = 'ecregtest:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdgz0wv9ltl'
@@ -33,12 +32,10 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         self.extra_args = [
             [
                 '-enableminerfund',
-                '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
                 '-gluonactivationtime={}'.format(GLUON_ACTIVATION_TIME),
             ], [
                 '-enableminerfund',
                 '-usecashaddr=0',
-                '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
                 '-gluonactivationtime={}'.format(GLUON_ACTIVATION_TIME),
             ],
         ] * 2
@@ -47,7 +44,8 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         self.setup_nodes()
         # Don't connect the nodes
 
-    def run_for_node(self, node, activation_time, expectedMinerFundAddress):
+    def run_for_node(self, node, beforedMinerFundAddress,
+                     afterMinerFundAddress):
         # Connect to a peer so getblocktemplate will return results
         # (getblocktemplate has a sanity check that ensures it's connected to a
         # network).
@@ -68,31 +66,30 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 assert_equal(blockTemplate[key], value)
 
         # Move block time to just before axion activation
-        node.setmocktime(activation_time)
+        node.setmocktime(GLUON_ACTIVATION_TIME)
         node.generatetoaddress(5, address)
-
-        # Before axion activation, the miner fund list is empty
-        assert_getblocktemplate({
-            'coinbasetxn': {
-                'minerfund': {
-                    'addresses': [],
-                    'minimumvalue': 0,
-                },
-            },
-        })
-
-        # Move MTP forward to axion activation
-        node.generatetoaddress(1, address)
-        assert_equal(
-            node.getblockchaininfo()['mediantime'],
-            activation_time)
 
         def get_best_coinbase():
             return node.getblock(node.getbestblockhash(), 2)['tx'][0]
 
         coinbase = get_best_coinbase()
-        assert_equal(len(coinbase['vout']), 1)
-        block_reward = coinbase['vout'][0]['value']
+        assert_greater_than_or_equal(len(coinbase['vout']), 2)
+        block_reward = sum([vout['value'] for vout in coinbase['vout']])
+
+        assert_getblocktemplate({
+            'coinbasetxn': {
+                'minerfund': {
+                    'addresses': [beforedMinerFundAddress],
+                    'minimumvalue': block_reward * 8 // 100 * XEC,
+                },
+            },
+        })
+
+        # Move MTP forward to activation
+        node.generatetoaddress(1, address)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            GLUON_ACTIVATION_TIME)
 
         # We don't need to test all fields in getblocktemplate since many of
         # them are covered in mining_basic.py
@@ -102,7 +99,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
                 # We expect to start seeing the miner fund addresses since the
                 # next block will start enforcing them.
                 'minerfund': {
-                    'addresses': [expectedMinerFundAddress],
+                    'addresses': [afterMinerFundAddress],
                     'minimumvalue': block_reward * 8 // 100 * XEC,
                 },
             },
@@ -111,7 +108,7 @@ class AbcMiningRPCTest(BitcoinTestFramework):
             # since we are not crossing a halving boundary and there are no
             # transactions in the mempool.
             'coinbasevalue': block_reward * XEC,
-            'mintime': activation_time + 1,
+            'mintime': GLUON_ACTIVATION_TIME + 1,
         })
 
         # First block with the new rules
@@ -128,45 +125,37 @@ class AbcMiningRPCTest(BitcoinTestFramework):
         assert_getblocktemplate({
             'coinbasetxn': {
                 'minerfund': {
-                    'addresses': [expectedMinerFundAddress],
+                    'addresses': [afterMinerFundAddress],
                     'minimumvalue': block_reward * 8 // 100 * XEC,
                 },
             },
             # Again, we assume the coinbase value is the same as prior blocks.
             'coinbasevalue': block_reward * XEC,
-            'mintime': activation_time + 1,
+            'mintime': GLUON_ACTIVATION_TIME + 1,
         })
 
         # Move MTP forward
-        node.setmocktime(activation_time + 1)
+        node.setmocktime(GLUON_ACTIVATION_TIME + 1)
         node.generatetoaddress(6, address)
         assert_getblocktemplate({
             'coinbasetxn': {
                 'minerfund': {
-                    'addresses': [expectedMinerFundAddress],
+                    'addresses': [afterMinerFundAddress],
                     'minimumvalue': block_reward * 8 // 100 * XEC,
                 },
             },
             'coinbasevalue': block_reward * XEC,
-            'mintime': activation_time + 2,
+            'mintime': GLUON_ACTIVATION_TIME + 2,
         })
 
     def run_test(self):
         self.run_for_node(
             self.nodes[0],
-            AXION_ACTIVATION_TIME,
-            MINER_FUND_ADDR_AXION)
-        self.run_for_node(
-            self.nodes[1],
-            AXION_ACTIVATION_TIME,
-            MINER_FUND_LEGACY_ADDR_AXION)
-        self.run_for_node(
-            self.nodes[2],
-            GLUON_ACTIVATION_TIME,
+            MINER_FUND_ADDR_AXION,
             MINER_FUND_ADDR_GLUON)
         self.run_for_node(
-            self.nodes[3],
-            GLUON_ACTIVATION_TIME,
+            self.nodes[1],
+            MINER_FUND_LEGACY_ADDR_AXION,
             MINER_FUND_LEGACY_ADDR_GLUON)
 
 

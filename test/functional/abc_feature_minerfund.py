@@ -13,7 +13,6 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, assert_greater_than_or_equal
 
-AXION_ACTIVATION_TIME = 2000000600
 GLUON_ACTIVATION_TIME = 2100000600
 
 MINER_FUND_RATIO = 8
@@ -28,7 +27,6 @@ class MinerFundTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [[
             '-enableminerfund',
-            '-axionactivationtime={}'.format(AXION_ACTIVATION_TIME),
             '-gluonactivationtime={}'.format(GLUON_ACTIVATION_TIME),
         ]]
 
@@ -44,25 +42,23 @@ class MinerFundTest(BitcoinTestFramework):
 
         address = node.get_deterministic_priv_key().address
 
-        # Move MTP forward to axion activation
-        node.setmocktime(AXION_ACTIVATION_TIME)
-        node.generatetoaddress(6, address)
-        assert_equal(
-            node.getblockchaininfo()['mediantime'],
-            AXION_ACTIVATION_TIME)
-
-        # Let's remember the hash of this block for later use.
-        axion_fork_block_hash = int(node.getbestblockhash(), 16)
-
         def get_best_coinbase():
             return node.getblock(node.getbestblockhash(), 2)['tx'][0]
 
-        # No money goes to the fund.
         coinbase = get_best_coinbase()
-        assert_equal(len(coinbase['vout']), 1)
-        block_reward = coinbase['vout'][0]['value']
+        assert_greater_than_or_equal(len(coinbase['vout']), 2)
+        block_reward = sum([vout['value'] for vout in coinbase['vout']])
 
-        # Now we send part of the coinbase to the fund.
+        # Move MTP forward to gluon activation
+        node.setmocktime(GLUON_ACTIVATION_TIME)
+        node.generatetoaddress(6, address)
+        assert_equal(
+            node.getblockchaininfo()['mediantime'],
+            GLUON_ACTIVATION_TIME)
+
+        # Let's remember the hash of this block for later use.
+        gluon_fork_block_hash = int(node.getbestblockhash(), 16)
+
         def check_miner_fund_output(expected_address):
             coinbase = get_best_coinbase()
             assert_equal(len(coinbase['vout']), 2)
@@ -79,35 +75,6 @@ class MinerFundTest(BitcoinTestFramework):
                 coinbase['vout'][1]['value'],
                 (MINER_FUND_RATIO * total) / 100)
 
-        # First block with the new rules.
-        node.generatetoaddress(1, address)
-        check_miner_fund_output(MINER_FUND_ADDR_AXION)
-
-        # Invalidate top block, submit a custom block that do not send anything
-        # to the fund and check it is rejected.
-        node.invalidateblock(node.getbestblockhash())
-
-        def check_bad_miner_fund(prev_hash, time, coinbase=None):
-            if coinbase is None:
-                coinbase = create_coinbase(node.getblockcount() + 1)
-
-            block = create_block(prev_hash, coinbase, time, version=4)
-            block.solve()
-
-            assert_equal(node.submitblock(ToHex(block)), 'bad-cb-minerfund')
-
-        check_bad_miner_fund(axion_fork_block_hash, AXION_ACTIVATION_TIME + 1)
-
-        # Move MTP forward to gluon activation
-        node.setmocktime(GLUON_ACTIVATION_TIME)
-        node.generatetoaddress(6, address)
-        assert_equal(
-            node.getblockchaininfo()['mediantime'],
-            GLUON_ACTIVATION_TIME)
-
-        # Let's remember the hash of this block for later use.
-        gluon_fork_block_hash = int(node.getbestblockhash(), 16)
-
         # The coinbase has an output to the legacy miner fund address
         # Now we send part of the coinbase to the fund.
         check_miner_fund_output(MINER_FUND_ADDR_AXION)
@@ -118,6 +85,15 @@ class MinerFundTest(BitcoinTestFramework):
 
         # Invalidate top block.
         node.invalidateblock(node.getbestblockhash())
+
+        def check_bad_miner_fund(prev_hash, time, coinbase=None):
+            if coinbase is None:
+                coinbase = create_coinbase(node.getblockcount() + 1)
+
+            block = create_block(prev_hash, coinbase, time, version=4)
+            block.solve()
+
+            assert_equal(node.submitblock(ToHex(block)), 'bad-cb-minerfund')
 
         # A block with no miner fund coinbase should be rejected.
         check_bad_miner_fund(gluon_fork_block_hash, GLUON_ACTIVATION_TIME + 1)

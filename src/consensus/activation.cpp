@@ -75,14 +75,17 @@ bool IsPhononEnabled(const Consensus::Params &params,
     return IsPhononEnabled(params, pindexPrev->nHeight);
 }
 
+static bool IsAxionEnabled(const Consensus::Params &params, int32_t nHeight) {
+    return nHeight >= params.axionHeight;
+}
+
 bool IsAxionEnabled(const Consensus::Params &params,
                     const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return pindexPrev->GetMedianTimePast() >=
-           gArgs.GetArg("-axionactivationtime", params.axionActivationTime);
+    return IsAxionEnabled(params, pindexPrev->nHeight);
 }
 
 bool IsGluonEnabled(const Consensus::Params &params,
