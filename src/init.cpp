@@ -93,6 +93,7 @@
 #include <csignal>
 #include <sys/stat.h>
 #endif
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
@@ -2434,15 +2435,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     assert(!node.mempool);
     assert(!node.chainman);
-    int check_ratio = std::min<int>(
-        std::max<int>(
-            args.GetIntArg("-checkmempool",
-                           chainparams.DefaultConsistencyChecks() ? 1 : 0),
-            0),
-        1000000);
+    const int mempool_check_ratio = std::clamp<int>(
+        args.GetIntArg("-checkmempool",
+                       chainparams.DefaultConsistencyChecks() ? 1 : 0),
+        0, 1000000);
 
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
-        node.mempool = std::make_unique<CTxMemPool>(check_ratio);
+        node.mempool = std::make_unique<CTxMemPool>(mempool_check_ratio);
 
         node.chainman = std::make_unique<ChainstateManager>();
         ChainstateManager &chainman = *node.chainman;
