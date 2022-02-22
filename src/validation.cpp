@@ -30,7 +30,6 @@
 #include <policy/mempool.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
-#include <pow/aserti32d.h> // For ResetASERTAnchorBlockCache
 #include <pow/pow.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
@@ -5177,7 +5176,6 @@ void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
     pindexBestHeader = nullptr;
     pindexBestForkTip = nullptr;
     pindexBestForkBase = nullptr;
-    ResetASERTAnchorBlockCache();
     if (mempool) {
         mempool->clear();
     }

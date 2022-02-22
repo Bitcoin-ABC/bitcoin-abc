@@ -4,94 +4,14 @@
 #include <pow/aserti32d.h>
 
 #include <chain.h>
-#include <consensus/activation.h>
 #include <consensus/params.h>
-#include <validation.h> // ::ChainActive()
-
-#include <atomic>
-
-static std::atomic<const CBlockIndex *> cachedAnchor{nullptr};
-
-void ResetASERTAnchorBlockCache() noexcept {
-    cachedAnchor = nullptr;
-}
-
-const CBlockIndex *GetASERTAnchorBlockCache() noexcept {
-    return cachedAnchor.load();
-}
-
-/**
- * Returns a pointer to the anchor block used for ASERT.
- * As anchor we use the first block for which IsAxionEnabled() returns true.
- * This block happens to be the last block which was mined under the old DAA
- * rules.
- *
- * This function is meant to be removed some time after the upgrade, once
- * the anchor block is deeply buried, and behind a hard-coded checkpoint.
- *
- * Preconditions: - pindex must not be nullptr
- *                - pindex must satisfy: IsAxionEnabled(params, pindex) == true
- * Postcondition: Returns a pointer to the first (lowest) block for which
- *                IsAxionEnabled is true, and for which IsAxionEnabled(pprev)
- *                is false (or for which pprev is nullptr). The return value may
- *                be pindex itself.
- */
-static const CBlockIndex *GetASERTAnchorBlock(const CBlockIndex *const pindex,
-                                              const Consensus::Params &params) {
-    assert(pindex);
-
-    // - We check if we have a cached result, and if we do and it is really the
-    //   ancestor of pindex, then we return it.
-    //
-    // - If we do not or if the cached result is not the ancestor of pindex,
-    //   then we proceed with the more expensive walk back to find the ASERT
-    //   anchor block.
-    //
-    // CBlockIndex::GetAncestor() is reasonably efficient; it uses
-    // CBlockIndex::pskip Note that if pindex == cachedAnchor, GetAncestor()
-    // here will return cachedAnchor, which is what we want.
-    const CBlockIndex *lastCached = cachedAnchor.load();
-    if (lastCached && pindex->GetAncestor(lastCached->nHeight) == lastCached) {
-        return lastCached;
-    }
-
-    // Slow path: walk back until we find the first ancestor for which
-    // IsAxionEnabled() == true.
-    const CBlockIndex *anchor = pindex;
-
-    while (anchor->pprev) {
-        // first, skip backwards testing IsAxionEnabled
-        // The below code leverages CBlockIndex::pskip to walk back efficiently.
-        if (anchor->pskip && IsAxionEnabled(params, anchor->pskip)) {
-            // skip backward
-            anchor = anchor->pskip;
-            // continue skipping
-            continue;
-        }
-        // cannot skip here, walk back by 1
-        if (!IsAxionEnabled(params, anchor->pprev)) {
-            // found it -- highest block where Axion is not enabled is
-            // anchor->pprev, and anchor points to the first block for which
-            // IsAxionEnabled() == true
-            break;
-        }
-        anchor = anchor->pprev;
-    }
-
-    // Overwrite the cache with the anchor we found. More likely than not, the
-    // next time we are asked to validate a header it will be part of same /
-    // similar chain, not some other unrelated chain with a totally different
-    // anchor.
-    cachedAnchor = anchor;
-
-    return anchor;
-}
 
 uint32_t GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
                                   const CBlockHeader *pblock,
                                   const Consensus::Params &params) noexcept {
-    return GetNextASERTWorkRequired(pindexPrev, pblock, params,
-                                    GetASERTAnchorBlock(pindexPrev, params));
+    return GetNextASERTWorkRequired(
+        pindexPrev, pblock, params,
+        pindexPrev->GetAncestor(params.axionHeight));
 }
 
 /**

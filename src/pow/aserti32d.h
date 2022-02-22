@@ -31,14 +31,4 @@ GetNextASERTWorkRequired(const CBlockIndex *pindexPrev,
                          const Consensus::Params &params,
                          const CBlockIndex *pindexAnchorBlock) noexcept;
 
-/**
- * ASERT caches a special block index for efficiency. If block indices are
- * freed then this needs to be called to ensure no dangling pointer when a new
- * block tree is created.
- * (this is temporary and will be removed after the ASERT constants are fixed)
- */
-void ResetASERTAnchorBlockCache() noexcept;
-
-const CBlockIndex *GetASERTAnchorBlockCache() noexcept;
-
 #endif // BITCOIN_POW_ASERTI32D_H

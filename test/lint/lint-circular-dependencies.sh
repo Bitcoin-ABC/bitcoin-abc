@@ -30,8 +30,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "seeder/bitcoin -> seeder/db -> seeder/bitcoin"
     "chainparams -> protocol -> config -> chainparams"
     "checkpoints -> validation -> checkpoints"
-    "pow/aserti32d -> validation -> pow/aserti32d"
-    "pow/aserti32d -> validation -> pow/pow -> pow/aserti32d"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
 )
 

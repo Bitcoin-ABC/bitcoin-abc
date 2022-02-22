@@ -601,9 +601,6 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
         GetNextWorkRequired(pindexPreActivation, &blkHeaderDummy, chainParams),
         0x180236e1);
 
-    // ASERT has never run yet, so cache is unpopulated.
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), nullptr);
-
     /**
      * Now we'll try adding on blocks to activate ASERT. The activation block
      * is going to be our anchor block. We will make several distinct anchor
@@ -619,8 +616,6 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation0, &blkHeaderDummy, chainParams),
         0x180236e1);
-    // second call will have used anchor cache, shouldn't change anything
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation0);
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation0, &blkHeaderDummy, chainParams),
         0x180236e1);
@@ -638,17 +633,12 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation1, &blkHeaderDummy, chainParams),
         0x180232fd);
-    // second call will have used anchor cache, shouldn't change anything
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation1);
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation1, &blkHeaderDummy, chainParams),
         0x180232fd);
-    // for good measure, try again with wiped cache
-    ResetASERTAnchorBlockCache();
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation1, &blkHeaderDummy, chainParams),
         0x180232fd);
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation1);
 
     // Try activation with expected solvetime, which will keep target the same.
     uint32_t anchorBits2 = 0x180210fe;
@@ -658,7 +648,6 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation2, &blkHeaderDummy, chainParams),
         anchorBits2);
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation2);
 
     // Try a three-month solvetime which will cause us to hit powLimit.
     uint32_t anchorBits3 = 0x18034567;
@@ -679,7 +668,6 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     BOOST_CHECK_EQUAL(GetNextWorkRequired(&indexActivation3_return,
                                           &blkHeaderDummy, chainParams),
                       anchorBits3);
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation3);
 
     // Make an activation with MTP == activation exactly. This is a backwards
     // timestamp jump so the resulting target is 1.2% lower.
@@ -690,7 +678,6 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     BOOST_CHECK_EQUAL(
         GetNextWorkRequired(&indexActivation4, &blkHeaderDummy, chainParams),
         0x18010db3);
-    BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation4);
 
     // Finally create a random chain on top of our second activation, using
     // ASERT targets all the way. Erase cache so that this will do a fresh
@@ -699,10 +686,8 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     CBlockIndex *pindexChain2 = &indexActivation2;
     for (int i = 1; i < 1000; i++) {
         BOOST_REQUIRE(bidx < int(blocks.size()));
-        ResetASERTAnchorBlockCache();
         uint32_t nextBits =
             GetNextWorkRequired(pindexChain2, &blkHeaderDummy, chainParams);
-        BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation2);
         blocks[bidx] =
             GetBlockIndex(pindexChain2, InsecureRandRange(1200), nextBits);
         pindexChain2 = &blocks[bidx++];
@@ -714,7 +699,6 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
         uint32_t nextBits =
             GetNextWorkRequired(pindex->pprev, &blkHeaderDummy, chainParams);
         BOOST_CHECK_EQUAL(nextBits, pindex->nBits);
-        BOOST_CHECK_EQUAL(GetASERTAnchorBlockCache(), &indexActivation2);
     }
 }
 
