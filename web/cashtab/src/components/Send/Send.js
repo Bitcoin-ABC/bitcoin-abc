@@ -668,7 +668,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     <FormLabel>Send to</FormLabel>
                                     <DestinationAddressSingle
                                         style={{ marginBottom: '0px' }}
-                                        loadWithCameraOpen={scannerSupported}
+                                        loadWithCameraOpen={
+                                            location &&
+                                            location.state &&
+                                            location.state.replyAddress
+                                                ? false
+                                                : scannerSupported
+                                        }
                                         validateStatus={
                                             sendBchAddressError ? 'error' : ''
                                         }
