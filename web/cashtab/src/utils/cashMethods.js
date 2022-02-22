@@ -734,3 +734,62 @@ to this
     }
     */
 };
+
+export const removeConsumedUtxos = (consumedUtxos, hydratedUtxoDetails) => {
+    let hydratedUtxoDetailsWithConsumedUtxosRemoved = hydratedUtxoDetails;
+    const slpUtxosArray = hydratedUtxoDetails.slpUtxos;
+    // Iterate over consumedUtxos
+    // Every utxo in consumedUtxos must be removed from hydratedUtxoDetails
+    for (let i = 0; i < consumedUtxos.length; i += 1) {
+        const thisConsumedUtxoObject = consumedUtxos[i]; // {address: 'string', utxos: [{},{},...{}]}
+        const thisConsumedUtxoObjectAddr = thisConsumedUtxoObject.address;
+        const thisConsumedUtxoObjectUtxoArray = thisConsumedUtxoObject.utxos;
+        for (let j = 0; j < thisConsumedUtxoObjectUtxoArray.length; j += 1) {
+            const thisConsumedUtxo = thisConsumedUtxoObjectUtxoArray[j];
+            // Iterate through slpUtxosArray to find thisConsumedUtxo
+            slpUtxosArrayLoop: for (
+                let k = 0;
+                k < slpUtxosArray.length;
+                k += 1
+            ) {
+                const thisSlpUtxosArrayUtxoObject = slpUtxosArray[k]; // {address: 'string', utxos: [{},{},...{}]}
+                const thisSlpUtxosArrayUtxoObjectAddr =
+                    thisSlpUtxosArrayUtxoObject.address;
+                // If this address matches the address of the consumed utxo, check for a consumedUtxo match
+                // Note, slpUtxos may have many utxo objects with the same address, need to check them all until you find and remove this consumed utxo
+                if (
+                    thisConsumedUtxoObjectAddr ===
+                    thisSlpUtxosArrayUtxoObjectAddr
+                ) {
+                    const thisSlpUtxosArrayUtxoObjectUtxoArray =
+                        thisSlpUtxosArrayUtxoObject.utxos;
+
+                    // Iterate to find it and remove it
+                    for (
+                        let m = 0;
+                        m < thisSlpUtxosArrayUtxoObjectUtxoArray.length;
+                        m += 1
+                    ) {
+                        const thisHydratedUtxo =
+                            thisSlpUtxosArrayUtxoObjectUtxoArray[m];
+                        if (
+                            thisConsumedUtxo.tx_hash ===
+                                thisHydratedUtxo.tx_hash &&
+                            thisConsumedUtxo.tx_pos ===
+                                thisHydratedUtxo.tx_pos &&
+                            thisConsumedUtxo.value === thisHydratedUtxo.value
+                        ) {
+                            // remove it
+                            hydratedUtxoDetailsWithConsumedUtxosRemoved.slpUtxos[
+                                k
+                            ].utxos.splice(m, 1);
+                            // go to the next consumedUtxo
+                            break slpUtxosArrayLoop;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return hydratedUtxoDetailsWithConsumedUtxosRemoved;
+};

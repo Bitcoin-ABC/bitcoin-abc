@@ -18,6 +18,7 @@ import {
     whichUtxosWereAdded,
     whichUtxosWereConsumed,
     addNewHydratedUtxos,
+    removeConsumedUtxos,
 } from '@utils/cashMethods';
 
 import {
@@ -129,6 +130,15 @@ import {
     addedHydratedUtxosOverTwenty,
     existingHydratedUtxoDetails,
     existingHydratedUtxoDetailsAfterAdd,
+    hydratedUtxoDetailsBeforeConsumedTemplate,
+    consumedUtxoTemplate,
+    hydratedUtxoDetailsAfterRemovingConsumedUtxoTemplate,
+    consumedUtxos,
+    hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
+    hydratedUtxoDetailsAfterRemovingConsumedUtxos,
+    consumedUtxosMoreThanTwenty,
+    hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
+    consumedUtxosMoreThanTwentyInRandomObjects,
 } from '../__mocks__/incrementalUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
@@ -611,5 +621,41 @@ describe('Correctly executes cash utility functions', () => {
                 existingHydratedUtxoDetails,
             ),
         ).toStrictEqual(existingHydratedUtxoDetailsAfterAdd);
+    });
+    test('removeConsumedUtxos correctly removes a single utxo from hydratedUtxoDetails - template', async () => {
+        expect(
+            removeConsumedUtxos(
+                consumedUtxoTemplate,
+                hydratedUtxoDetailsBeforeConsumedTemplate,
+            ),
+        ).toStrictEqual(hydratedUtxoDetailsAfterRemovingConsumedUtxoTemplate);
+    });
+    test('removeConsumedUtxos correctly removes a single utxo from hydratedUtxoDetails', async () => {
+        expect(
+            removeConsumedUtxos(
+                consumedUtxos,
+                hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
+            ),
+        ).toStrictEqual(hydratedUtxoDetailsAfterRemovingConsumedUtxos);
+    });
+    test('removeConsumedUtxos correctly removes more than twenty utxos from hydratedUtxoDetails', async () => {
+        expect(
+            removeConsumedUtxos(
+                consumedUtxosMoreThanTwenty,
+                hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
+            ),
+        ).toStrictEqual(
+            hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
+        );
+    });
+    test('removeConsumedUtxos correctly removes more than twenty utxos from multiple utxo objects from hydratedUtxoDetails', async () => {
+        expect(
+            removeConsumedUtxos(
+                consumedUtxosMoreThanTwentyInRandomObjects,
+                hydratedUtxoDetailsBeforeRemovingConsumedUtxos,
+            ),
+        ).toStrictEqual(
+            hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
+        );
     });
 });
