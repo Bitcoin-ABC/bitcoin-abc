@@ -2441,8 +2441,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             0),
         1000000);
 
-    bool fLoaded = false;
-    while (!fLoaded && !ShutdownRequested()) {
+    for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(check_ratio);
 
         node.chainman = std::make_unique<ChainstateManager>();
