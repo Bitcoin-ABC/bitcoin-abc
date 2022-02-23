@@ -4985,7 +4985,6 @@ void CChainState::UnloadBlockIndex() {
 void UnloadBlockIndex(CTxMemPool *mempool, ChainstateManager &chainman) {
     AssertLockHeld(::cs_main);
     chainman.Unload();
-    chainman.pindexBestHeader = nullptr;
     pindexBestForkTip = nullptr;
     pindexBestForkBase = nullptr;
     if (mempool) {
@@ -6261,6 +6260,7 @@ void ChainstateManager::Unload() {
 
     m_failed_blocks.clear();
     m_blockman.Unload();
+    pindexBestHeader = nullptr;
     m_best_invalid = nullptr;
     m_best_parked = nullptr;
 }
