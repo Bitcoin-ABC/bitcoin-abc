@@ -171,15 +171,17 @@ function(add_secp256k1_bench NAME)
 	)
 endfunction(add_secp256k1_bench)
 
+option(SECP256K1_ENABLE_DEV_MODE "Build all modules" OFF)
+
 # ECDH module
-option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" OFF)
+option(SECP256K1_ENABLE_MODULE_ECDH "Build libsecp256k1's ECDH module" ${SECP256K1_ENABLE_DEV_MODE})
 if(SECP256K1_ENABLE_MODULE_ECDH)
 	set(ENABLE_MODULE_ECDH 1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_ecdh.h)
 endif()
 
 # MultiSet module
-option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" OFF)
+option(SECP256K1_ENABLE_MODULE_MULTISET "Build libsecp256k1's MULTISET module" ${SECP256K1_ENABLE_DEV_MODE})
 if(SECP256K1_ENABLE_MODULE_MULTISET)
     set(ENABLE_MODULE_MULTISET 1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_multiset.h)
@@ -200,14 +202,14 @@ if(SECP256K1_ENABLE_MODULE_SCHNORR)
 endif()
 
 # Extrakeys module
-option(SECP256K1_ENABLE_MODULE_EXTRAKEYS "Build libsecp256k1's Extrakeys module" OFF)
+option(SECP256K1_ENABLE_MODULE_EXTRAKEYS "Build libsecp256k1's Extrakeys module" ${SECP256K1_ENABLE_DEV_MODE})
 if(SECP256K1_ENABLE_MODULE_EXTRAKEYS)
 	set(ENABLE_MODULE_EXTRAKEYS 1)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_extrakeys.h)
 endif()
 
 # Schnorrsig module
-option(SECP256K1_ENABLE_MODULE_SCHNORRSIG "Build libsecp256k1's Schnorrsig module" OFF)
+option(SECP256K1_ENABLE_MODULE_SCHNORRSIG "Build libsecp256k1's Schnorrsig module" ${SECP256K1_ENABLE_DEV_MODE})
 if(SECP256K1_ENABLE_MODULE_SCHNORRSIG)
 	if(NOT SECP256K1_ENABLE_MODULE_EXTRAKEYS)
 		message(FATAL_ERROR "The module Schnorrsig require Extrakeys. Try running cmake using -DSECP256K1_ENABLE_MODULE_EXTRAKEYS=On")
