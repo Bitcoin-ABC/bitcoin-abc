@@ -13,6 +13,7 @@
 #include <test/util/logging.h>
 #include <test/util/str.h>
 #include <uint256.h>
+#include <util/bitdeque.h>
 #include <util/check.h>
 #include <util/getuniquepath.h>
 #include <util/message.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC

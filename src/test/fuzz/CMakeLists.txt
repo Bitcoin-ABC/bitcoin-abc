@@ -17,6 +17,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	autofile.cpp
 	banman.cpp
 	base_encode_decode.cpp
+	bitdeque.cpp
 	block.cpp
 	block_header.cpp
 	blockfilter.cpp
