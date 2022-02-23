@@ -13,6 +13,7 @@ import {
     isValidXecSendAmount,
     isValidSendToMany,
     isValidUtxo,
+    isValidBchApiUtxoObject,
 } from '../validation';
 import { currency } from '@components/Common/Ticker.js';
 import { fromSmallestDenomination } from '@utils/cashMethods';
@@ -27,6 +28,8 @@ import {
     validUtxo,
     invalidUtxoMissingHeight,
     invalidUtxoTxidUndefined,
+    hydratedUtxoDetailsAfterRemovingConsumedUtxos,
+    utxosAfterSentTxIncremental,
 } from '../__mocks__/incrementalUtxoMocks';
 
 describe('Validation utils', () => {
@@ -390,5 +393,34 @@ describe('Validation utils', () => {
     });
     it(`isValidUtxo returns false for empty object`, () => {
         expect(isValidUtxo({})).toBe(false);
+    });
+    it(`isValidBchApiUtxoObject returns false for object`, () => {
+        expect(isValidBchApiUtxoObject({})).toBe(false);
+    });
+    it(`isValidBchApiUtxoObject returns false for empty array`, () => {
+        expect(isValidBchApiUtxoObject([])).toBe(false);
+    });
+    it(`isValidBchApiUtxoObject returns false for null`, () => {
+        expect(isValidBchApiUtxoObject(null)).toBe(false);
+    });
+    it(`isValidBchApiUtxoObject returns false for undefined`, () => {
+        expect(isValidBchApiUtxoObject(undefined)).toBe(false);
+    });
+    it(`isValidBchApiUtxoObject returns false for hydratedUtxoDetails type object`, () => {
+        expect(
+            isValidBchApiUtxoObject(
+                hydratedUtxoDetailsAfterRemovingConsumedUtxos,
+            ),
+        ).toBe(false);
+    });
+    it(`isValidBchApiUtxoObject returns true for hydratedUtxoDetails.slpUtxos`, () => {
+        expect(
+            isValidBchApiUtxoObject(
+                hydratedUtxoDetailsAfterRemovingConsumedUtxos.slpUtxos,
+            ),
+        ).toBe(true);
+    });
+    it(`isValidBchApiUtxoObject returns true for valid bch-api utxos object`, () => {
+        expect(isValidBchApiUtxoObject(utxosAfterSentTxIncremental)).toBe(true);
     });
 });

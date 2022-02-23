@@ -19,6 +19,8 @@ import {
     whichUtxosWereConsumed,
     addNewHydratedUtxos,
     removeConsumedUtxos,
+    getUtxoCount,
+    areAllUtxosIncludedInIncrementallyHydratedUtxos,
 } from '@utils/cashMethods';
 
 import {
@@ -139,6 +141,14 @@ import {
     consumedUtxosMoreThanTwenty,
     hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
     consumedUtxosMoreThanTwentyInRandomObjects,
+    utxoCountMultiTemplate,
+    utxoCountSingleTemplate,
+    incrementalUtxosTemplate,
+    incrementallyHydratedUtxosTemplate,
+    incrementallyHydratedUtxosTemplateMissing,
+    utxosAfterSentTxIncremental,
+    incrementallyHydratedUtxosAfterProcessing,
+    incrementallyHydratedUtxosAfterProcessingOneMissing,
 } from '../__mocks__/incrementalUtxoMocks';
 
 describe('Correctly executes cash utility functions', () => {
@@ -657,5 +667,51 @@ describe('Correctly executes cash utility functions', () => {
         ).toStrictEqual(
             hydratedUtxoDetailsAfterRemovingMoreThanTwentyConsumedUtxos,
         );
+    });
+    test('getUtxoCount correctly calculates the total for a utxo object with empty addresses [template]', async () => {
+        expect(getUtxoCount(utxoCountSingleTemplate)).toStrictEqual(1);
+    });
+    test('getUtxoCount correctly calculates the total for multiple utxos [template]', async () => {
+        expect(getUtxoCount(utxoCountMultiTemplate)).toStrictEqual(12);
+    });
+    test('areAllUtxosIncludedInIncrementallyHydratedUtxos correctly identifies all utxos are in incrementally hydrated utxos [template]', async () => {
+        expect(
+            areAllUtxosIncludedInIncrementallyHydratedUtxos(
+                incrementalUtxosTemplate,
+                incrementallyHydratedUtxosTemplate,
+            ),
+        ).toBe(true);
+    });
+    test('areAllUtxosIncludedInIncrementallyHydratedUtxos returns false if a utxo in the utxo set is not in incrementally hydrated utxos [template]', async () => {
+        expect(
+            areAllUtxosIncludedInIncrementallyHydratedUtxos(
+                incrementalUtxosTemplate,
+                incrementallyHydratedUtxosTemplateMissing,
+            ),
+        ).toBe(false);
+    });
+    test('areAllUtxosIncludedInIncrementallyHydratedUtxos correctly identifies all utxos are in incrementally hydrated utxos', async () => {
+        expect(
+            areAllUtxosIncludedInIncrementallyHydratedUtxos(
+                utxosAfterSentTxIncremental,
+                incrementallyHydratedUtxosAfterProcessing,
+            ),
+        ).toBe(true);
+    });
+    test('areAllUtxosIncludedInIncrementallyHydratedUtxos returns false if a utxo in the utxo set is not in incrementally hydrated utxos', async () => {
+        expect(
+            areAllUtxosIncludedInIncrementallyHydratedUtxos(
+                utxosAfterSentTxIncremental,
+                incrementallyHydratedUtxosAfterProcessingOneMissing,
+            ),
+        ).toBe(false);
+    });
+    test('areAllUtxosIncludedInIncrementallyHydratedUtxos returns false if utxo set is invalid', async () => {
+        expect(
+            areAllUtxosIncludedInIncrementallyHydratedUtxos(
+                {},
+                incrementallyHydratedUtxosAfterProcessing,
+            ),
+        ).toBe(false);
     });
 });

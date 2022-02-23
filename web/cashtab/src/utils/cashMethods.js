@@ -3,6 +3,7 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidUtxo,
+    isValidBchApiUtxoObject,
 } from '@utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
@@ -792,4 +793,104 @@ export const removeConsumedUtxos = (consumedUtxos, hydratedUtxoDetails) => {
         }
     }
     return hydratedUtxoDetailsWithConsumedUtxosRemoved;
+};
+
+export const getUtxoCount = utxos => {
+    // return how many utxos
+    // return false if input is invalid
+    /*
+    Both utxos and hydratedUtxoDetails.slpUtxos are build like so
+    [
+        {
+            address: 'string',
+            utxos: [{}, {}, {}...{}]
+        },
+        {
+            address: 'string',
+            utxos: [{}, {}, {}...{}]
+        },
+        {
+            address: 'string',
+            utxos: [{}, {}, {}...{}]
+        },
+    ]
+
+    We want a function that quickly determines how many utxos are here
+    */
+
+    // First, validate that you are getting a valid bch-api utxo set
+    // if you are not, then return false -- which would cause areAllUtxosIncludedInIncrementallyHydratedUtxos to return false and calculate utxo set the legacy way
+    const isValidUtxoObject = isValidBchApiUtxoObject(utxos);
+    if (!isValidUtxoObject) {
+        return false;
+    }
+
+    let utxoCount = 0;
+    for (let i = 0; i < utxos.length; i += 1) {
+        const thisUtxoArrLength = utxos[i].utxos.length;
+        utxoCount += thisUtxoArrLength;
+    }
+    return utxoCount;
+};
+
+export const areAllUtxosIncludedInIncrementallyHydratedUtxos = (
+    utxos,
+    incrementallyHydratedUtxos,
+) => {
+    let incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch = false;
+    // check
+    const { slpUtxos } = incrementallyHydratedUtxos;
+
+    // Iterate over utxos array
+    for (let i = 0; i < utxos.length; i += 1) {
+        const thisUtxoObject = utxos[i];
+        const thisUtxoObjectAddr = thisUtxoObject.address;
+        const thisUtxoObjectUtxos = thisUtxoObject.utxos;
+        let utxoFound;
+        for (let j = 0; j < thisUtxoObjectUtxos.length; j += 1) {
+            const thisUtxo = thisUtxoObjectUtxos[j];
+            utxoFound = false;
+            // Now iterate over slpUtxos to find it
+            slpUtxosLoop: for (let k = 0; k < slpUtxos.length; k += 1) {
+                const thisSlpUtxosObject = slpUtxos[k];
+                const thisSlpUtxosObjectAddr = thisSlpUtxosObject.address;
+                if (thisUtxoObjectAddr === thisSlpUtxosObjectAddr) {
+                    const thisSlpUtxosObjectUtxos = thisSlpUtxosObject.utxos;
+                    for (
+                        let m = 0;
+                        m < thisSlpUtxosObjectUtxos.length;
+                        m += 1
+                    ) {
+                        const thisSlpUtxo = thisSlpUtxosObjectUtxos[m];
+                        if (
+                            thisUtxo.tx_hash === thisSlpUtxo.tx_hash &&
+                            thisUtxo.tx_pos === thisSlpUtxo.tx_pos &&
+                            thisUtxo.value === thisSlpUtxo.value
+                        ) {
+                            utxoFound = true;
+                            // goto next utxo
+                            break slpUtxosLoop;
+                        }
+                    }
+                }
+                if (k === slpUtxos.length - 1 && !utxoFound) {
+                    // return false
+                    return incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch;
+                }
+            }
+        }
+    }
+    // It's possible that hydratedUtxoDetails includes every utxo from the utxos array, but for some reason also includes additional utxos
+    const utxosInUtxos = getUtxoCount(utxos);
+    const utxosInIncrementallyHydratedUtxos = getUtxoCount(slpUtxos);
+    if (
+        !utxosInUtxos ||
+        !utxosInIncrementallyHydratedUtxos ||
+        utxosInUtxos !== utxosInIncrementallyHydratedUtxos
+    ) {
+        return incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch;
+    }
+    // If you make it here, good to go
+    incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch = true;
+    return incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch;
 };

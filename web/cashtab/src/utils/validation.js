@@ -251,3 +251,50 @@ export const isValidUtxo = utxo => {
     }
     return isValidUtxo;
 };
+
+export const isValidBchApiUtxoObject = bchApiUtxoObject => {
+    /*
+    [
+        {
+            address: 'string',
+            utxos: [{}, {}, {}...{}]
+        },
+        {
+            address: 'string',
+            utxos: [{}, {}, {}...{}]
+        },
+        {
+            address: 'string',
+            utxos: [{}, {}, {}...{}]
+        },
+    ]
+    */
+    let isValidBchApiUtxoObject = false;
+    // Must be an array
+    if (!Array.isArray(bchApiUtxoObject)) {
+        return isValidBchApiUtxoObject;
+    }
+    // Do not accept an empty array
+    if (bchApiUtxoObject.length < 1) {
+        return isValidBchApiUtxoObject;
+    }
+
+    for (let i = 0; i < bchApiUtxoObject.length; i += 1) {
+        let thisUtxoObject = bchApiUtxoObject[i];
+        if ('address' in thisUtxoObject && 'utxos' in thisUtxoObject) {
+            const thisUtxoArray = thisUtxoObject.utxos;
+            if (Array.isArray(thisUtxoArray)) {
+                // do not validate each individual utxo in the array
+                // we are only validating the object structure here
+                continue;
+            } else {
+                return isValidBchApiUtxoObject;
+            }
+        } else {
+            return isValidBchApiUtxoObject;
+        }
+    }
+    isValidBchApiUtxoObject = true;
+
+    return isValidBchApiUtxoObject;
+};
