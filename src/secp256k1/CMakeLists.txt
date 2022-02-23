@@ -97,13 +97,13 @@ endif()
 
 # Enable ASM by default only if we are building for a compatible target.
 # The user can still enable/disable it manually if needed.
-option(SECP256K1_USE_ASM "Use assembly" ${SECP256K1_DEFAULT_USE_ASM})
+option(SECP256K1_ENABLE_ASM "Use assembly" ${SECP256K1_DEFAULT_USE_ASM})
 
-if(SECP256K1_USE_ASM)
+if(SECP256K1_ENABLE_ASM)
 	macro(unsupported_asm_error)
 		message(FATAL_ERROR
 			"Assembly is enabled, but not supported for your target architecture."
-			"Re-run cmake with -DSECP256K1_USE_ASM=OFF to disable ASM support."
+			"Re-run cmake with -DSECP256K1_ENABLE_ASM=OFF to disable ASM support."
 		)
 	endmacro()
 
@@ -276,7 +276,7 @@ endif()
 native_add_cmake_flags(
 	"-DSECP256K1_ECMULT_WINDOW_SIZE=${SECP256K1_ECMULT_WINDOW_SIZE}"
 	"-DSECP256K1_ECMULT_GEN_PRECISION=${SECP256K1_ECMULT_GEN_PRECISION}"
-	"-DSECP256K1_USE_ASM=OFF"
+	"-DSECP256K1_ENABLE_ASM=OFF"
 	"-DSECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY=${SECP256K1_TEST_OVERRIDE_WIDE_MULTIPLY}"
 )
 gen_precomputed_tables(precompute_ecmult_gen precomputed_ecmult_gen)
