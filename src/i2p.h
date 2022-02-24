@@ -155,7 +155,7 @@ namespace sam {
          * @param[in] args printf(3)-like arguments that correspond to `fmt`.
          */
         template <typename... Args>
-        void Log(const std::string &fmt, const Args &... args) const;
+        void Log(const std::string &fmt, const Args &...args) const;
 
         /**
          * Send request and get a reply from the SAM proxy.

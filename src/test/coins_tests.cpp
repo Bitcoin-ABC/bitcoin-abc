@@ -803,7 +803,7 @@ static void CheckAddCoinBase(Amount base_value, Amount cache_value,
 // This wrapper lets the coin_add test below be shorter and less repetitive,
 // while still verifying that the CoinsViewCache::AddCoin implementation ignores
 // base values.
-template <typename... Args> static void CheckAddCoin(Args &&... args) {
+template <typename... Args> static void CheckAddCoin(Args &&...args) {
     for (const Amount &base_value : {ABSENT, SPENT, VALUE1}) {
         CheckAddCoinBase(base_value, std::forward<Args>(args)...);
     }

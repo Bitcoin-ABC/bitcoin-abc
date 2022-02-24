@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_SUITE(message_writer_tests)
 
 template <typename... Args>
 static void CheckMessage(CDataStream &expectedMessage, std::string command,
-                         Args &&... args) {
+                         Args &&...args) {
     CDataStream message(SER_NETWORK, PROTOCOL_VERSION);
     MessageWriter::WriteMessage(message, command, std::forward<Args>(args)...);
     BOOST_CHECK_EQUAL(message.size(), expectedMessage.size());

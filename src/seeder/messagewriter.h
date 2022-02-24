@@ -13,7 +13,7 @@ namespace MessageWriter {
 
 template <typename... Args>
 static void WriteMessage(CDataStream &stream, std::string command,
-                         Args &&... args) {
+                         Args &&...args) {
     CSerializedNetMsg payload = CNetMsgMaker(stream.GetVersion())
                                     .Make(command, std::forward<Args>(args)...);
     size_t nMessageSize = payload.data.size();

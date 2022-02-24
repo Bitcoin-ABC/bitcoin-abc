@@ -18,7 +18,7 @@
  */
 template <typename... Args>
 inline std::vector<typename std::common_type<Args...>::type>
-Vector(Args &&... args) {
+Vector(Args &&...args) {
     std::vector<typename std::common_type<Args...>::type> ret;
     ret.reserve(sizeof...(args));
     // The line below uses the trick from

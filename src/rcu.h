@@ -103,7 +103,7 @@ public:
     /**
      * Construct a new object that is owned by the pointer.
      */
-    template <typename... Args> static RCUPtr make(Args &&... args) {
+    template <typename... Args> static RCUPtr make(Args &&...args) {
         return RCUPtr(new T(std::forward<Args>(args)...));
     }
 

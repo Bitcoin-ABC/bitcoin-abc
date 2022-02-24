@@ -91,19 +91,17 @@ static void CheckSignatureEncodingWithSigHashType(const valtype &vchSig,
             CheckTransactionECDSASignatureEncoding(invalidSig, flags, &err),
             !(hasStrictEnc || is64));
         if (is64 || hasStrictEnc) {
-            BOOST_CHECK(err == (is64
-                                    ? ScriptError::SIG_BADLENGTH
-                                    : hasForkId ? ScriptError::MUST_USE_FORKID
-                                                : ScriptError::ILLEGAL_FORKID));
+            BOOST_CHECK(err == (is64        ? ScriptError::SIG_BADLENGTH
+                                : hasForkId ? ScriptError::MUST_USE_FORKID
+                                            : ScriptError::ILLEGAL_FORKID));
         }
         BOOST_CHECK_EQUAL(
             CheckTransactionSchnorrSignatureEncoding(invalidSig, flags, &err),
             !(hasStrictEnc || !is64));
         if (!is64 || hasStrictEnc) {
-            BOOST_CHECK(err == (!is64
-                                    ? ScriptError::SIG_NONSCHNORR
-                                    : hasForkId ? ScriptError::MUST_USE_FORKID
-                                                : ScriptError::ILLEGAL_FORKID));
+            BOOST_CHECK(err == (!is64       ? ScriptError::SIG_NONSCHNORR
+                                : hasForkId ? ScriptError::MUST_USE_FORKID
+                                            : ScriptError::ILLEGAL_FORKID));
         }
     }
 }

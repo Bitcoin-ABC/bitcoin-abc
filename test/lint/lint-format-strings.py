@@ -15,13 +15,13 @@ import sys
 
 FALSE_POSITIVES = [
     ("src/dbwrapper.cpp", "vsnprintf(p, limit - p, format, backup_ap)"),
-    ("src/index/base.cpp", "FatalError(const char *fmt, const Args &... args)"),
-    ("src/netbase.cpp", "LogConnectFailure(bool manual_connection, const char *fmt, const Args &... args)"),
+    ("src/index/base.cpp", "FatalError(const char *fmt, const Args &...args)"),
+    ("src/netbase.cpp", "LogConnectFailure(bool manual_connection, const char *fmt, const Args &...args)"),
     ("src/util/system.cpp",
      "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)"),
     ("src/validationinterface.cpp",
      "LogPrint(BCLog::VALIDATION, fmt \"\\n\", __VA_ARGS__)"),
-    ("src/tinyformat.h", "printf(const char *fmt, const Args &... args)"),
+    ("src/tinyformat.h", "printf(const char *fmt, const Args &...args)"),
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
     ("src/wallet/wallet.h",
      "LogPrintf((\"%s \" + fmt).c_str(), GetDisplayName(), parameters...)"),

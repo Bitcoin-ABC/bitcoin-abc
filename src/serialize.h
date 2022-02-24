@@ -1126,7 +1126,7 @@ public:
 template <typename Stream> void SerializeMany(Stream &s) {}
 
 template <typename Stream, typename Arg, typename... Args>
-void SerializeMany(Stream &s, const Arg &arg, const Args &... args) {
+void SerializeMany(Stream &s, const Arg &arg, const Args &...args) {
     ::Serialize(s, arg);
     ::SerializeMany(s, args...);
 }
@@ -1134,20 +1134,20 @@ void SerializeMany(Stream &s, const Arg &arg, const Args &... args) {
 template <typename Stream> inline void UnserializeMany(Stream &s) {}
 
 template <typename Stream, typename Arg, typename... Args>
-inline void UnserializeMany(Stream &s, Arg &&arg, Args &&... args) {
+inline void UnserializeMany(Stream &s, Arg &&arg, Args &&...args) {
     ::Unserialize(s, arg);
     ::UnserializeMany(s, args...);
 }
 
 template <typename Stream, typename... Args>
 inline void SerReadWriteMany(Stream &s, CSerActionSerialize ser_action,
-                             const Args &... args) {
+                             const Args &...args) {
     ::SerializeMany(s, args...);
 }
 
 template <typename Stream, typename... Args>
 inline void SerReadWriteMany(Stream &s, CSerActionUnserialize ser_action,
-                             Args &&... args) {
+                             Args &&...args) {
     ::UnserializeMany(s, args...);
 }
 
@@ -1184,7 +1184,7 @@ template <typename T> size_t GetSerializeSize(const T &t, int nVersion = 0) {
 }
 
 template <typename... T>
-size_t GetSerializeSizeMany(int nVersion, const T &... t) {
+size_t GetSerializeSizeMany(int nVersion, const T &...t) {
     CSizeComputer sc(nVersion);
     SerializeMany(sc, t...);
     return sc.size();

@@ -473,8 +473,9 @@ void ArgsManager::ClearPathCache() {
 std::vector<std::string> ArgsManager::GetArgs(const std::string &strArg) const {
     std::vector<std::string> result;
     for (const util::SettingsValue &value : GetSettingsList(strArg)) {
-        result.push_back(
-            value.isFalse() ? "0" : value.isTrue() ? "1" : value.get_str());
+        result.push_back(value.isFalse()  ? "0"
+                         : value.isTrue() ? "1"
+                                          : value.get_str());
     }
     return result;
 }
@@ -582,27 +583,26 @@ bool ArgsManager::IsArgNegated(const std::string &strArg) const {
 std::string ArgsManager::GetArg(const std::string &strArg,
                                 const std::string &strDefault) const {
     const util::SettingsValue value = GetSetting(strArg);
-    return value.isNull()
-               ? strDefault
-               : value.isFalse() ? "0" : value.isTrue() ? "1" : value.get_str();
+    return value.isNull()    ? strDefault
+           : value.isFalse() ? "0"
+           : value.isTrue()  ? "1"
+                             : value.get_str();
 }
 
 int64_t ArgsManager::GetArg(const std::string &strArg, int64_t nDefault) const {
     const util::SettingsValue value = GetSetting(strArg);
-    return value.isNull()
-               ? nDefault
-               : value.isFalse()
-                     ? 0
-                     : value.isTrue() ? 1
-                                      : value.isNum() ? value.get_int64()
-                                                      : atoi64(value.get_str());
+    return value.isNull()    ? nDefault
+           : value.isFalse() ? 0
+           : value.isTrue()  ? 1
+           : value.isNum()   ? value.get_int64()
+                             : atoi64(value.get_str());
 }
 
 bool ArgsManager::GetBoolArg(const std::string &strArg, bool fDefault) const {
     const util::SettingsValue value = GetSetting(strArg);
-    return value.isNull() ? fDefault
-                          : value.isBool() ? value.get_bool()
-                                           : InterpretBool(value.get_str());
+    return value.isNull()   ? fDefault
+           : value.isBool() ? value.get_bool()
+                            : InterpretBool(value.get_str());
 }
 
 bool ArgsManager::SoftSetArg(const std::string &strArg,
@@ -1047,9 +1047,9 @@ std::string ArgsManager::GetChainName() const {
             util::GetSetting(m_settings, /* section= */ "", SettingName(arg),
                              /* ignore_default_section_config= */ false,
                              /* get_chain_name= */ true);
-        return value.isNull() ? false
-                              : value.isBool() ? value.get_bool()
-                                               : InterpretBool(value.get_str());
+        return value.isNull()   ? false
+               : value.isBool() ? value.get_bool()
+                                : InterpretBool(value.get_str());
     };
 
     const bool fRegTest = get_net("-regtest");

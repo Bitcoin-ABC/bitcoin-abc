@@ -5,8 +5,8 @@
         },
         "clang-format": {
             "type": "clang-format",
-            "version": ">=10.0",
-            "bin": ["clang-format-10", "clang-format"],
+            "version": ">=11.0",
+            "bin": ["clang-format-11", "clang-format"],
             "include": "(^src/.*\\.(h|c|cpp|mm)$)",
             "exclude": [
                 "(^src/(secp256k1|univalue|leveldb)/)",

@@ -1381,15 +1381,13 @@ bool BitcoinGUI::handlePaymentRequest(const SendCoinsRecipient &recipient) {
 void BitcoinGUI::setHDStatus(bool privkeyDisabled, int hdEnabled) {
     labelWalletHDStatusIcon->setPixmap(
         platformStyle
-            ->SingleColorIcon(privkeyDisabled
-                                  ? ":/icons/eye"
-                                  : hdEnabled ? ":/icons/hd_enabled"
+            ->SingleColorIcon(privkeyDisabled ? ":/icons/eye"
+                              : hdEnabled     ? ":/icons/hd_enabled"
                                               : ":/icons/hd_disabled")
             .pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
     labelWalletHDStatusIcon->setToolTip(
-        privkeyDisabled
-            ? tr("Private key <b>disabled</b>")
-            : hdEnabled ? tr("HD key generation is <b>enabled</b>")
+        privkeyDisabled ? tr("Private key <b>disabled</b>")
+        : hdEnabled     ? tr("HD key generation is <b>enabled</b>")
                         : tr("HD key generation is <b>disabled</b>"));
     labelWalletHDStatusIcon->show();
     // eventually disable the QLabel to set its opacity to 50%

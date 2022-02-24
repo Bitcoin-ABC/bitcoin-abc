@@ -92,7 +92,7 @@ struct SignatureData {
 // the stream has the total serialized length of all of the objects followed by
 // all objects concatenated with each other.
 template <typename Stream, typename... X>
-void SerializeToVector(Stream &s, const X &... args) {
+void SerializeToVector(Stream &s, const X &...args) {
     WriteCompactSize(s, GetSerializeSizeMany(s.GetVersion(), args...));
     SerializeMany(s, args...);
 }
@@ -100,7 +100,7 @@ void SerializeToVector(Stream &s, const X &... args) {
 // Takes a stream and multiple arguments and unserializes them first as a vector
 // then each object individually in the order provided in the arguments.
 template <typename Stream, typename... X>
-void UnserializeFromVector(Stream &s, X &... args) {
+void UnserializeFromVector(Stream &s, X &...args) {
     size_t expected_size = ReadCompactSize(s);
     size_t remaining_before = s.size();
     UnserializeMany(s, args...);

@@ -519,7 +519,7 @@ public:
         return first;
     }
 
-    template <typename... Args> void emplace_back(Args &&... args) {
+    template <typename... Args> void emplace_back(Args &&...args) {
         size_type new_size = size() + 1;
         if (capacity() < new_size) {
             change_capacity(new_size + (new_size >> 1));

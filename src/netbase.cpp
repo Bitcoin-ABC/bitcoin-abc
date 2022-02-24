@@ -622,7 +622,7 @@ std::function<std::unique_ptr<Sock>(const CService &)> CreateSock =
 
 template <typename... Args>
 static void LogConnectFailure(bool manual_connection, const char *fmt,
-                              const Args &... args) {
+                              const Args &...args) {
     std::string error_message = tfm::format(fmt, args...);
     if (manual_connection) {
         LogPrintf("%s\n", error_message);

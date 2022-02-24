@@ -179,7 +179,7 @@ bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str);
 template <typename... Args>
 static inline void
 LogPrintf_(const std::string &logging_function, const std::string &source_file,
-           const int source_line, const char *fmt, const Args &... args) {
+           const int source_line, const char *fmt, const Args &...args) {
     if (LogInstance().Enabled()) {
         std::string log_msg;
         try {

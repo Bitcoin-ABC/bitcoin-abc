@@ -39,7 +39,7 @@ inline bilingual_str Untranslated(std::string original) {
 
 namespace tinyformat {
 template <typename... Args>
-bilingual_str format(const bilingual_str &fmt, const Args &... args) {
+bilingual_str format(const bilingual_str &fmt, const Args &...args) {
     return bilingual_str{format(fmt.original, args...),
                          format(fmt.translated, args...)};
 }

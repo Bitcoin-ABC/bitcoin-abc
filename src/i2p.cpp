@@ -236,7 +236,7 @@ namespace sam {
     }
 
     template <typename... Args>
-    void Session::Log(const std::string &fmt, const Args &... args) const {
+    void Session::Log(const std::string &fmt, const Args &...args) const {
         LogPrint(BCLog::I2P, "I2P: %s\n", tfm::format(fmt, args...));
     }
 

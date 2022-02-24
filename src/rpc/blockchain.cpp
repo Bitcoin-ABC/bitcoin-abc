@@ -2233,7 +2233,7 @@ template <typename T> static inline bool SetHasKeys(const std::set<T> &set) {
 }
 template <typename T, typename Tk, typename... Args>
 static inline bool SetHasKeys(const std::set<T> &set, const Tk &key,
-                              const Args &... args) {
+                              const Args &...args) {
     return (set.count(key) != 0) || SetHasKeys(set, args...);
 }
 

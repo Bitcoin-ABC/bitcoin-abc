@@ -84,7 +84,7 @@ public:
      */
     template <typename... Args>
     CVectorWriter(int nTypeIn, int nVersionIn, std::vector<uint8_t> &vchDataIn,
-                  size_t nPosIn, Args &&... args)
+                  size_t nPosIn, Args &&...args)
         : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn) {
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
@@ -155,7 +155,7 @@ public:
      */
     template <typename... Args>
     VectorReader(int type, int version, const std::vector<uint8_t> &data,
-                 size_t pos, Args &&... args)
+                 size_t pos, Args &&...args)
         : VectorReader(type, version, data, pos) {
         ::UnserializeMany(*this, std::forward<Args>(args)...);
     }
@@ -246,7 +246,7 @@ public:
     }
 
     template <typename... Args>
-    CDataStream(int nTypeIn, int nVersionIn, Args &&... args) {
+    CDataStream(int nTypeIn, int nVersionIn, Args &&...args) {
         Init(nTypeIn, nVersionIn);
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
