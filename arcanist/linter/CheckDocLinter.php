@@ -3,7 +3,7 @@
 /**
  * Uses the check-doc.py script to enfore command line arguments documentation
  */
-final class CheckDocLinter extends GlobalExternalLinter {
+final class CheckDocLinter extends AbstractGlobalExternalLinter {
 
   public function getInfoName() {
     return 'check-doc';

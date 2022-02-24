@@ -15,9 +15,9 @@ final class ExtendedConfigurationDrivenLintEngine extends ArcanistLintEngine {
       $paths = $linter->getPaths();
 
       /*
-       * If the linter implements `ILintOnce` this is a global linter.
+       * If the linter implements `LintOnceInterface` this is a global linter.
        */
-      if ($linter instanceof ILintOnce && !empty($paths)) {
+      if ($linter instanceof LintOnceInterface && !empty($paths)) {
         /*
          * Even if global linters have no use of the path, at least one should
          * be set in order to run the linter.

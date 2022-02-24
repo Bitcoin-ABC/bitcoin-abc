@@ -5,8 +5,8 @@
  * number of files being modified.
  * This kind of linter doesn't take a path argument.
  */
-abstract class GlobalExternalLinter extends ArcanistExternalLinter
-implements ILintOnce {
+abstract class AbstractGlobalExternalLinter extends ArcanistExternalLinter
+implements LintOnceInterface {
   /* A global linter does not require a path as an argument. */
   final protected function getPathArgumentForLinterFuture($path) {
     return '';

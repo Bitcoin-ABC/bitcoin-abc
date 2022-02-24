@@ -4,7 +4,7 @@
  * Uses the lint-boost-dependencies.sh script to check that no new boost
  * dependency is introduced in the codebase.
  */
-final class BoostDependenciesLinter extends GlobalExternalLinter {
+final class BoostDependenciesLinter extends AbstractGlobalExternalLinter {
 
   public function getInfoName() {
     return 'lint-boost-dependencies';
