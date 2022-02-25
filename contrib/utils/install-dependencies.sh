@@ -99,7 +99,7 @@ apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -t buster-backports install -y $(join_by ' ' "${BACKPORTS[@]}")
 
 
-# Install llvm-8 and clang-10
+# Install llvm and clang
 apt-key add "$(dirname "$0")"/llvm.pub
 add-apt-repository "deb https://apt.llvm.org/buster/   llvm-toolchain-buster-8  main"
 add-apt-repository "deb https://apt.llvm.org/buster/   llvm-toolchain-buster-11  main"
