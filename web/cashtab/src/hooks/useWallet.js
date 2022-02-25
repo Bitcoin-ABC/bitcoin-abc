@@ -10,6 +10,11 @@ import {
     loadStoredWallet,
     isValidStoredWallet,
     isLegacyMigrationRequired,
+    whichUtxosWereAdded,
+    whichUtxosWereConsumed,
+    addNewHydratedUtxos,
+    removeConsumedUtxos,
+    areAllUtxosIncludedInIncrementallyHydratedUtxos,
 } from '@utils/cashMethods';
 import { isValidCashtabSettings } from '@utils/validation';
 import localforage from 'localforage';
@@ -235,15 +240,80 @@ const useWallet = () => {
                 return;
             }
 
-            const hydratedUtxoDetails = await getHydratedUtxoDetails(
-                BCH,
-                utxos,
-            );
+            let incrementalHydratedUtxosValid;
+            let incrementallyAdjustedHydratedUtxoDetails;
+            try {
+                // Make sure you have all the required inputs to use this approach
+                if (
+                    !wallet ||
+                    !wallet.state ||
+                    !wallet.state.utxos ||
+                    !wallet.state.hydratedUtxoDetails ||
+                    !utxos
+                ) {
+                    throw new Error(
+                        'Wallet does not have required state for incremental approach, hydrating full utxo set',
+                    );
+                }
+                const utxosAdded = whichUtxosWereAdded(
+                    wallet.state.utxos,
+                    utxos,
+                );
+                const utxosConsumed = whichUtxosWereConsumed(
+                    wallet.state.utxos,
+                    utxos,
+                );
+
+                incrementallyAdjustedHydratedUtxoDetails =
+                    wallet.state.hydratedUtxoDetails;
+
+                if (utxosConsumed) {
+                    incrementallyAdjustedHydratedUtxoDetails =
+                        removeConsumedUtxos(
+                            utxosConsumed,
+                            incrementallyAdjustedHydratedUtxoDetails,
+                        );
+                }
+
+                if (utxosAdded) {
+                    const addedHydratedUtxos = await getHydratedUtxoDetails(
+                        BCH,
+                        utxosAdded,
+                    );
+
+                    incrementallyAdjustedHydratedUtxoDetails =
+                        addNewHydratedUtxos(
+                            addedHydratedUtxos,
+                            incrementallyAdjustedHydratedUtxoDetails,
+                        );
+                }
+
+                incrementalHydratedUtxosValid =
+                    areAllUtxosIncludedInIncrementallyHydratedUtxos(
+                        utxos,
+                        incrementallyAdjustedHydratedUtxoDetails,
+                    );
+            } catch (err) {
+                console.log(
+                    `Error in incremental determination of hydratedUtxoDetails`,
+                );
+                console.log(err);
+                incrementalHydratedUtxosValid = false;
+            }
+
+            if (!incrementalHydratedUtxosValid) {
+                console.log(
+                    `Incremental approach invalid, hydrating all utxos`,
+                );
+                incrementallyAdjustedHydratedUtxoDetails =
+                    await getHydratedUtxoDetails(BCH, utxos);
+            }
 
             const slpBalancesAndUtxos = await getSlpBalancesAndUtxos(
                 BCH,
-                hydratedUtxoDetails,
+                incrementallyAdjustedHydratedUtxoDetails,
             );
+            console.log(`slpBalancesAndUtxos`, slpBalancesAndUtxos);
             const txHistory = await getTxHistory(BCH, cashAddresses);
 
             // public keys are used to determined if a tx is incoming outgoing
@@ -256,7 +326,6 @@ const useWallet = () => {
 
             const parsedWithTokens = await addTokenTxData(BCH, parsedTxHistory);
 
-            console.log(`slpBalancesAndUtxos`, slpBalancesAndUtxos);
             if (typeof slpBalancesAndUtxos === 'undefined') {
                 console.log(`slpBalancesAndUtxos is undefined`);
                 throw new Error('slpBalancesAndUtxos is undefined');
@@ -282,7 +351,8 @@ const useWallet = () => {
 
             newState.utxos = utxos;
 
-            newState.hydratedUtxoDetails = hydratedUtxoDetails;
+            newState.hydratedUtxoDetails =
+                incrementallyAdjustedHydratedUtxoDetails;
 
             // Set wallet with new state field
             wallet.state = newState;
