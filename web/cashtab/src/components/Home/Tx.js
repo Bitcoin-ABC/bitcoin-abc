@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import {
     SendIcon,
     ReceiveIcon,
@@ -12,7 +12,14 @@ import { currency } from '@components/Common/Ticker';
 import { fromLegacyDecimals } from '@utils/cashMethods';
 import { formatBalance, formatDate } from '@utils/formatting';
 import TokenIcon from '@components/Tokens/TokenIcon';
-
+import { Collapse } from 'antd';
+import { AntdContextCollapseWrapper } from '@components/Common/StyledCollapse';
+import { generalNotification } from '@components/Common/Notifications';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import {
+    ThemedCopySolid,
+    ThemedLinkSolid,
+} from '@components/Common/CustomIcons';
 const TxIcon = styled.div`
     svg {
         width: 20px;
@@ -269,6 +276,46 @@ const TxWrapper = styled.div`
     flex-wrap: wrap;
 `;
 
+const Panel = Collapse.Panel;
+
+const DropdownIconWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+`;
+
+const TextLayer = styled.div`
+    font-size: 12px;
+    color: ${props => props.theme.contrast};
+`;
+
+const DropdownButton = styled.button`
+    display: flex;
+    justify-content: flex-end;
+    background-color: ${props => props.theme.walletBackground};
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    &:hover {
+        div {
+            color: ${props => props.theme.eCashBlue}!important;
+        }
+        svg {
+            fill: ${props => props.theme.eCashBlue}!important;
+        }
+    }
+`;
+const PanelCtn = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    right: 0;
+    gap: 8px;
+`;
+
+export const TxLink = styled.a`
+    color: ${props => props.theme.primary};
+`;
+
 const Tx = ({ data, fiatPrice, fiatCurrency }) => {
     const txDate =
         typeof data.blocktime === 'undefined'
@@ -296,240 +343,356 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                     <TxInfo>Open in Explorer</TxInfo>
                 </TxWrapper>
             ) : (
-                <TxWrapper>
-                    {data.outgoingTx ? (
-                        <>
-                            {data.tokenTx &&
-                            data.tokenInfo.transactionType === 'GENESIS' ? (
-                                <GenesisTx>
-                                    <GenesisIcon />
-                                </GenesisTx>
-                            ) : (
-                                <SentTx>
-                                    <SendIcon />
-                                </SentTx>
-                            )}
-                        </>
-                    ) : (
-                        <ReceivedTx>
-                            <ReceiveIcon />
-                        </ReceivedTx>
-                    )}
-
-                    <LeftTextCtn>
-                        {data.outgoingTx ? (
-                            <>
-                                {data.tokenTx &&
-                                data.tokenInfo.transactionType === 'GENESIS' ? (
-                                    <h3 className="genesis">Genesis</h3>
-                                ) : (
-                                    <h3 className="sent">Sent</h3>
-                                )}
-                            </>
-                        ) : (
-                            <h3 className="received">Received</h3>
-                        )}
-                        <h4>{txDate}</h4>
-                    </LeftTextCtn>
-                    {data.tokenTx ? (
-                        <TokenInfo outgoing={data.outgoingTx}>
-                            {data.tokenTx && data.tokenInfo ? (
+                <AntdContextCollapseWrapper className="antd-collapse">
+                    <Collapse bordered={false}>
+                        <Panel
+                            showArrow={false}
+                            header={
                                 <>
-                                    <TxTokenIcon>
-                                        <TokenIcon
-                                            size={32}
-                                            tokenId={data.tokenInfo.tokenId}
-                                        />
-                                    </TxTokenIcon>
-                                    {data.outgoingTx ? (
-                                        <RightTextCtn>
-                                            {data.tokenInfo.transactionType ===
-                                            'GENESIS' ? (
+                                    <TxWrapper>
+                                        {data.outgoingTx ? (
+                                            <>
+                                                {data.tokenTx &&
+                                                data.tokenInfo
+                                                    .transactionType ===
+                                                    'GENESIS' ? (
+                                                    <GenesisTx>
+                                                        <GenesisIcon />
+                                                    </GenesisTx>
+                                                ) : (
+                                                    <SentTx>
+                                                        <SendIcon />
+                                                    </SentTx>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <ReceivedTx>
+                                                <ReceiveIcon />
+                                            </ReceivedTx>
+                                        )}
+
+                                        <LeftTextCtn>
+                                            {data.outgoingTx ? (
                                                 <>
-                                                    <TokenTxAmt className="genesis">
-                                                        +{' '}
-                                                        {data.tokenInfo.qtyReceived.toString()}
-                                                        &nbsp;
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenTicker
-                                                        }
-                                                    </TokenTxAmt>
-                                                    <TokenName>
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenName
-                                                        }
-                                                    </TokenName>
+                                                    {data.tokenTx &&
+                                                    data.tokenInfo
+                                                        .transactionType ===
+                                                        'GENESIS' ? (
+                                                        <h3 className="genesis">
+                                                            Genesis
+                                                        </h3>
+                                                    ) : (
+                                                        <h3 className="sent">
+                                                            Sent
+                                                        </h3>
+                                                    )}
                                                 </>
                                             ) : (
-                                                <>
-                                                    <TokenTxAmt>
-                                                        -{' '}
-                                                        {data.tokenInfo.qtySent.toString()}
-                                                        &nbsp;
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenTicker
-                                                        }
-                                                    </TokenTxAmt>
-                                                    <TokenName>
-                                                        {
-                                                            data.tokenInfo
-                                                                .tokenName
-                                                        }
-                                                    </TokenName>
-                                                </>
+                                                <h3 className="received">
+                                                    Received
+                                                </h3>
                                             )}
-                                        </RightTextCtn>
-                                    ) : (
-                                        <RightTextCtn>
-                                            <TokenTxAmt className="received">
-                                                +{' '}
-                                                {data.tokenInfo.qtyReceived.toString()}
-                                                &nbsp;
-                                                {data.tokenInfo.tokenTicker}
-                                            </TokenTxAmt>
-                                            <TokenName>
-                                                {data.tokenInfo.tokenName}
-                                            </TokenName>
-                                        </RightTextCtn>
-                                    )}
+                                            <h4>{txDate}</h4>
+                                        </LeftTextCtn>
+                                        {data.tokenTx ? (
+                                            <TokenInfo
+                                                outgoing={data.outgoingTx}
+                                            >
+                                                {data.tokenTx &&
+                                                data.tokenInfo ? (
+                                                    <>
+                                                        <TxTokenIcon>
+                                                            <TokenIcon
+                                                                size={32}
+                                                                tokenId={
+                                                                    data
+                                                                        .tokenInfo
+                                                                        .tokenId
+                                                                }
+                                                            />
+                                                        </TxTokenIcon>
+                                                        {data.outgoingTx ? (
+                                                            <RightTextCtn>
+                                                                {data.tokenInfo
+                                                                    .transactionType ===
+                                                                'GENESIS' ? (
+                                                                    <>
+                                                                        <TokenTxAmt className="genesis">
+                                                                            +{' '}
+                                                                            {data.tokenInfo.qtyReceived.toString()}
+                                                                            &nbsp;
+                                                                            {
+                                                                                data
+                                                                                    .tokenInfo
+                                                                                    .tokenTicker
+                                                                            }
+                                                                        </TokenTxAmt>
+                                                                        <TokenName>
+                                                                            {
+                                                                                data
+                                                                                    .tokenInfo
+                                                                                    .tokenName
+                                                                            }
+                                                                        </TokenName>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <TokenTxAmt>
+                                                                            -{' '}
+                                                                            {data.tokenInfo.qtySent.toString()}
+                                                                            &nbsp;
+                                                                            {
+                                                                                data
+                                                                                    .tokenInfo
+                                                                                    .tokenTicker
+                                                                            }
+                                                                        </TokenTxAmt>
+                                                                        <TokenName>
+                                                                            {
+                                                                                data
+                                                                                    .tokenInfo
+                                                                                    .tokenName
+                                                                            }
+                                                                        </TokenName>
+                                                                    </>
+                                                                )}
+                                                            </RightTextCtn>
+                                                        ) : (
+                                                            <RightTextCtn>
+                                                                <TokenTxAmt className="received">
+                                                                    +{' '}
+                                                                    {data.tokenInfo.qtyReceived.toString()}
+                                                                    &nbsp;
+                                                                    {
+                                                                        data
+                                                                            .tokenInfo
+                                                                            .tokenTicker
+                                                                    }
+                                                                </TokenTxAmt>
+                                                                <TokenName>
+                                                                    {
+                                                                        data
+                                                                            .tokenInfo
+                                                                            .tokenName
+                                                                    }
+                                                                </TokenName>
+                                                            </RightTextCtn>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <span>Token Tx</span>
+                                                )}
+                                            </TokenInfo>
+                                        ) : (
+                                            <>
+                                                <TxInfo
+                                                    outgoing={data.outgoingTx}
+                                                >
+                                                    {data.outgoingTx ? (
+                                                        <>
+                                                            <h3>
+                                                                -
+                                                                {formatBalance(
+                                                                    fromLegacyDecimals(
+                                                                        data.amountSent,
+                                                                    ),
+                                                                )}{' '}
+                                                                {
+                                                                    currency.ticker
+                                                                }
+                                                            </h3>
+                                                            {fiatPrice !==
+                                                                null &&
+                                                                !isNaN(
+                                                                    data.amountSent,
+                                                                ) && (
+                                                                    <h4>
+                                                                        -
+                                                                        {
+                                                                            currency
+                                                                                .fiatCurrencies[
+                                                                                fiatCurrency
+                                                                            ]
+                                                                                .symbol
+                                                                        }
+                                                                        {(
+                                                                            fromLegacyDecimals(
+                                                                                data.amountSent,
+                                                                            ) *
+                                                                            fiatPrice
+                                                                        ).toFixed(
+                                                                            2,
+                                                                        )}{' '}
+                                                                        {
+                                                                            currency
+                                                                                .fiatCurrencies
+                                                                                .fiatCurrency
+                                                                        }
+                                                                    </h4>
+                                                                )}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <h3 className="received">
+                                                                +
+                                                                {formatBalance(
+                                                                    fromLegacyDecimals(
+                                                                        data.amountReceived,
+                                                                    ),
+                                                                )}{' '}
+                                                                {
+                                                                    currency.ticker
+                                                                }
+                                                            </h3>
+                                                            {fiatPrice !==
+                                                                null &&
+                                                                !isNaN(
+                                                                    data.amountReceived,
+                                                                ) && (
+                                                                    <h4>
+                                                                        +
+                                                                        {
+                                                                            currency
+                                                                                .fiatCurrencies[
+                                                                                fiatCurrency
+                                                                            ]
+                                                                                .symbol
+                                                                        }
+                                                                        {(
+                                                                            fromLegacyDecimals(
+                                                                                data.amountReceived,
+                                                                            ) *
+                                                                            fiatPrice
+                                                                        ).toFixed(
+                                                                            2,
+                                                                        )}{' '}
+                                                                        {
+                                                                            currency
+                                                                                .fiatCurrencies
+                                                                                .fiatCurrency
+                                                                        }
+                                                                    </h4>
+                                                                )}
+                                                        </>
+                                                    )}
+                                                </TxInfo>
+                                            </>
+                                        )}
+                                        {data.opReturnMessage && (
+                                            <>
+                                                <OpReturnType
+                                                    received={!data.outgoingTx}
+                                                >
+                                                    {data.isCashtabMessage ? (
+                                                        <h4>Cashtab Message</h4>
+                                                    ) : (
+                                                        <h4>
+                                                            External Message
+                                                        </h4>
+                                                    )}
+                                                    {data.isEncryptedMessage ? (
+                                                        <EncryptionMessageLabel>
+                                                            &nbsp;-&nbsp;Encrypted
+                                                        </EncryptionMessageLabel>
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                    <br />
+                                                    {/*unencrypted OP_RETURN Message*/}
+                                                    {data.opReturnMessage &&
+                                                    !data.isEncryptedMessage ? (
+                                                        <p>
+                                                            {
+                                                                data.opReturnMessage
+                                                            }
+                                                        </p>
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                    {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
+                                                    {data.opReturnMessage &&
+                                                    data.isEncryptedMessage &&
+                                                    data.decryptionSuccess ? (
+                                                        <p>
+                                                            {
+                                                                data.opReturnMessage
+                                                            }
+                                                        </p>
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                    {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
+                                                    {data.opReturnMessage &&
+                                                    data.isEncryptedMessage &&
+                                                    !data.decryptionSuccess ? (
+                                                        <UnauthorizedDecryptionMessage>
+                                                            {
+                                                                data.opReturnMessage
+                                                            }
+                                                        </UnauthorizedDecryptionMessage>
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                    {!data.outgoingTx &&
+                                                    data.replyAddress ? (
+                                                        <Link
+                                                            to={{
+                                                                pathname: `/send`,
+                                                                state: {
+                                                                    replyAddress:
+                                                                        data.replyAddress,
+                                                                },
+                                                            }}
+                                                        >
+                                                            Reply To Message
+                                                        </Link>
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                </OpReturnType>
+                                            </>
+                                        )}
+                                    </TxWrapper>
                                 </>
-                            ) : (
-                                <span>Token Tx</span>
-                            )}
-                        </TokenInfo>
-                    ) : (
-                        <>
-                            <TxInfo outgoing={data.outgoingTx}>
-                                {data.outgoingTx ? (
-                                    <>
-                                        <h3>
-                                            -
-                                            {formatBalance(
-                                                fromLegacyDecimals(
-                                                    data.amountSent,
-                                                ),
-                                            )}{' '}
-                                            {currency.ticker}
-                                        </h3>
-                                        {fiatPrice !== null &&
-                                            !isNaN(data.amountSent) && (
-                                                <h4>
-                                                    -
-                                                    {
-                                                        currency.fiatCurrencies[
-                                                            fiatCurrency
-                                                        ].symbol
-                                                    }
-                                                    {(
-                                                        fromLegacyDecimals(
-                                                            data.amountSent,
-                                                        ) * fiatPrice
-                                                    ).toFixed(2)}{' '}
-                                                    {
-                                                        currency.fiatCurrencies
-                                                            .fiatCurrency
-                                                    }
-                                                </h4>
-                                            )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <h3 className="received">
-                                            +
-                                            {formatBalance(
-                                                fromLegacyDecimals(
-                                                    data.amountReceived,
-                                                ),
-                                            )}{' '}
-                                            {currency.ticker}
-                                        </h3>
-                                        {fiatPrice !== null &&
-                                            !isNaN(data.amountReceived) && (
-                                                <h4>
-                                                    +
-                                                    {
-                                                        currency.fiatCurrencies[
-                                                            fiatCurrency
-                                                        ].symbol
-                                                    }
-                                                    {(
-                                                        fromLegacyDecimals(
-                                                            data.amountReceived,
-                                                        ) * fiatPrice
-                                                    ).toFixed(2)}{' '}
-                                                    {
-                                                        currency.fiatCurrencies
-                                                            .fiatCurrency
-                                                    }
-                                                </h4>
-                                            )}
-                                    </>
-                                )}
-                            </TxInfo>
-                        </>
-                    )}
-                    {data.opReturnMessage && (
-                        <>
-                            <OpReturnType received={!data.outgoingTx}>
-                                {data.isCashtabMessage ? (
-                                    <h4>Cashtab Message</h4>
-                                ) : (
-                                    <h4>External Message</h4>
-                                )}
-                                {data.isEncryptedMessage ? (
-                                    <EncryptionMessageLabel>
-                                        &nbsp;-&nbsp;Encrypted
-                                    </EncryptionMessageLabel>
-                                ) : (
-                                    ''
-                                )}
-                                <br />
-                                {/*unencrypted OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                !data.isEncryptedMessage ? (
-                                    <p>{data.opReturnMessage}</p>
-                                ) : (
-                                    ''
-                                )}
-                                {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                data.isEncryptedMessage &&
-                                data.decryptionSuccess ? (
-                                    <p>{data.opReturnMessage}</p>
-                                ) : (
-                                    ''
-                                )}
-                                {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                {data.opReturnMessage &&
-                                data.isEncryptedMessage &&
-                                !data.decryptionSuccess ? (
-                                    <UnauthorizedDecryptionMessage>
-                                        {data.opReturnMessage}
-                                    </UnauthorizedDecryptionMessage>
-                                ) : (
-                                    ''
-                                )}
-                                {!data.outgoingTx && data.replyAddress ? (
-                                    <Link
-                                        to={{
-                                            pathname: `/send`,
-                                            state: {
-                                                replyAddress: data.replyAddress,
-                                            },
+                            }
+                        >
+                            <PanelCtn>
+                                <CopyToClipboard text={data.txid}>
+                                    <DropdownButton
+                                        onClick={() => {
+                                            generalNotification(
+                                                data.txid,
+                                                'Tx ID copied to clipboard',
+                                            );
                                         }}
                                     >
-                                        Reply To Message
-                                    </Link>
-                                ) : (
-                                    ''
-                                )}
-                            </OpReturnType>
-                        </>
-                    )}
-                </TxWrapper>
+                                        <DropdownIconWrapper>
+                                            <TextLayer>Copy Tx ID</TextLayer>
+
+                                            <ThemedCopySolid />
+                                        </DropdownIconWrapper>
+                                    </DropdownButton>
+                                </CopyToClipboard>
+                                <TxLink
+                                    key={data.txid}
+                                    href={`${currency.tokenExplorerUrl}/tx/${data.txid}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <DropdownButton>
+                                        <DropdownIconWrapper>
+                                            <TextLayer>
+                                                View on be.cash
+                                            </TextLayer>
+
+                                            <ThemedLinkSolid />
+                                        </DropdownIconWrapper>
+                                    </DropdownButton>
+                                </TxLink>
+                            </PanelCtn>
+                        </Panel>
+                    </Collapse>
+                </AntdContextCollapseWrapper>
             )}
         </>
     );

@@ -2,10 +2,10 @@
 
 exports[`Configure with a wallet 1`] = `
 <div
-  className="sc-dnqmqq hItOJq"
+  className="sc-gZMcBi iCoKwX"
 >
   <div
-    className="sc-jAaTju diIIPg"
+    className="sc-iRbamj iLHUMS"
   >
     <h2>
       <span
@@ -75,7 +75,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY dgSQWI"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf bSSwhO"
       role={null}
     >
       <div
@@ -113,7 +113,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     <h2>
       <span
@@ -138,7 +138,7 @@ exports[`Configure with a wallet 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-hMqMXs jjgrrY"
+      className="sc-iAyFgw fHBaAb"
       onClick={[Function]}
     >
       <span
@@ -166,7 +166,7 @@ exports[`Configure with a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-kEYyzF flSOwg"
+      className="sc-hSdWYo iYTbMn"
       onClick={[Function]}
     >
       <span
@@ -191,7 +191,7 @@ exports[`Configure with a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     <h2>
       <span
@@ -216,7 +216,7 @@ exports[`Configure with a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-ckVGcZ kjECLI"
+      className="sc-hMqMXs EtsmJ"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -308,7 +308,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     <h2>
       <span
@@ -333,7 +333,7 @@ exports[`Configure with a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-gPEVay GEyOr"
+      className="sc-gipzik fOiixB"
     >
       <div
         className="title"
@@ -396,11 +396,11 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     [
     <a
-      className="sc-iAyFgw blXbEO"
+      className="sc-cvbbAY jGCCOB"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -410,7 +410,7 @@ exports[`Configure with a wallet 1`] = `
     </a>
     |
     <button
-      className="sc-hSdWYo dDepCt"
+      className="sc-jWBwVP eWeWsV"
       onClick={[Function]}
       type="link"
     >
@@ -423,10 +423,10 @@ exports[`Configure with a wallet 1`] = `
 
 exports[`Configure without a wallet 1`] = `
 <div
-  className="sc-dnqmqq hItOJq"
+  className="sc-gZMcBi iCoKwX"
 >
   <div
-    className="sc-jAaTju diIIPg"
+    className="sc-iRbamj iLHUMS"
   >
     <h2>
       <span
@@ -496,7 +496,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     <h2>
       <span
@@ -521,7 +521,7 @@ exports[`Configure without a wallet 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-hMqMXs jjgrrY"
+      className="sc-iAyFgw fHBaAb"
       onClick={[Function]}
     >
       <span
@@ -549,7 +549,7 @@ exports[`Configure without a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-kEYyzF flSOwg"
+      className="sc-hSdWYo iYTbMn"
       onClick={[Function]}
     >
       <span
@@ -574,7 +574,7 @@ exports[`Configure without a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     <h2>
       <span
@@ -599,7 +599,7 @@ exports[`Configure without a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-ckVGcZ kjECLI"
+      className="sc-hMqMXs EtsmJ"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -691,7 +691,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     <h2>
       <span
@@ -716,7 +716,7 @@ exports[`Configure without a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-gPEVay GEyOr"
+      className="sc-gipzik fOiixB"
     >
       <div
         className="title"
@@ -779,11 +779,11 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-jDwBTQ iVkEDa"
+      className="sc-jlyJG fPAUMB"
     />
     [
     <a
-      className="sc-iAyFgw blXbEO"
+      className="sc-cvbbAY jGCCOB"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -793,7 +793,7 @@ exports[`Configure without a wallet 1`] = `
     </a>
     |
     <button
-      className="sc-hSdWYo dDepCt"
+      className="sc-jWBwVP eWeWsV"
       onClick={[Function]}
       type="link"
     >

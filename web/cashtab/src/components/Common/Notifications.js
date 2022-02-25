@@ -170,6 +170,15 @@ const messageSignedNotification = msgSignature => {
     });
 };
 
+const generalNotification = (data, msgStr) => {
+    const notificationStyle = getDeviceNotificationStyle();
+    notification.success({
+        message: msgStr,
+        description: data,
+        style: notificationStyle,
+    });
+};
+
 export {
     sendXecNotification,
     createTokenNotification,
@@ -179,4 +188,5 @@ export {
     eTokenReceivedNotification,
     errorNotification,
     messageSignedNotification,
+    generalNotification,
 };

@@ -17,6 +17,8 @@ import { ReactComponent as Genesis } from '@assets/flask.svg';
 import { ReactComponent as Unparsed } from '@assets/alert-circle.svg';
 import { ReactComponent as Home } from '@assets/home.svg';
 import { ReactComponent as Settings } from '@assets/cog.svg';
+import { ReactComponent as CopySolid } from '@assets/copy.svg';
+import { ReactComponent as LinkSolid } from '@assets/external-link-square-alt.svg';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
@@ -57,6 +59,20 @@ export const ThemedSettingOutlined = styled(SettingOutlined)`
 `;
 export const ThemedLockOutlined = styled(LockOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
+`;
+
+export const ThemedCopySolid = styled(CopySolid)`
+    fill: ${props => props.theme.contrast};
+    padding: 0rem 0rem 0.27rem 0rem;
+    height: 1.3em;
+    width: 1.3em;
+`;
+
+export const ThemedLinkSolid = styled(LinkSolid)`
+    fill: ${props => props.theme.contrast};
+    padding: 0.15rem 0rem 0.18rem 0rem;
+    height: 1.3em;
+    width: 1.3em;
 `;
 
 export const LoadingBlock = styled.div`

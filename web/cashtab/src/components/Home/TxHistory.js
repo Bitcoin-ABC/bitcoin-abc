@@ -3,26 +3,16 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Tx from './Tx';
 
-export const TxLink = styled.a`
-    color: ${props => props.theme.forms.text};
-`;
-
 const TxHistory = ({ txs, fiatPrice, fiatCurrency }) => {
     return (
         <div>
             {txs.map(tx => (
-                <TxLink
+                <Tx
                     key={tx.txid}
-                    href={`https://explorer.be.cash/tx/${tx.txid}`}
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    <Tx
-                        data={tx}
-                        fiatPrice={fiatPrice}
-                        fiatCurrency={fiatCurrency}
-                    />
-                </TxLink>
+                    data={tx}
+                    fiatPrice={fiatPrice}
+                    fiatCurrency={fiatCurrency}
+                />
             ))}
         </div>
     );
