@@ -13,6 +13,7 @@ import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from '@assets/styles/theme';
 import Home from '@components/Home/Home';
 import Receive from '@components/Receive/Receive';
+import Privacy from '@components/Privacy/Privacy';
 import Tokens from '@components/Tokens/Tokens';
 import Send from '@components/Send/Send';
 import SendToken from '@components/Send/SendToken';
@@ -314,6 +315,9 @@ const App = () => {
                                     />
                                     <Route path="/configure">
                                         <Configure />
+                                    </Route>
+                                    <Route path="/privacy">
+                                        <Privacy />
                                     </Route>
                                     <Redirect exact from="/" to="/wallet" />
                                     <Route component={NotFound} />

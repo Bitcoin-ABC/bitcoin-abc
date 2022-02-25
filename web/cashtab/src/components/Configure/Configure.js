@@ -779,6 +779,10 @@ const Configure = () => {
                 >
                     Documentation
                 </SettingsLink>
+                |
+                <SettingsLink type="link" href="/#/privacy">
+                    Privacy Policy
+                </SettingsLink>
                 ]
             </StyledConfigure>
         </SidePaddingCtn>

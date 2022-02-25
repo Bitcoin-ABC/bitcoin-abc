@@ -408,6 +408,14 @@ exports[`Configure with a wallet 1`] = `
     >
       Documentation
     </a>
+    |
+    <a
+      className="sc-iAyFgw blXbEO"
+      href="/#/privacy"
+      type="link"
+    >
+      Privacy Policy
+    </a>
     ]
   </div>
 </div>
@@ -782,6 +790,14 @@ exports[`Configure without a wallet 1`] = `
       type="link"
     >
       Documentation
+    </a>
+    |
+    <a
+      className="sc-iAyFgw blXbEO"
+      href="/#/privacy"
+      type="link"
+    >
+      Privacy Policy
     </a>
     ]
   </div>
