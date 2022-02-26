@@ -43,7 +43,7 @@ extern "C" void *ThreadCrawler(void *data) {
         if (ips.empty()) {
             wait *= 1000;
             wait += rand() % (500 * *nThreads);
-            Sleep(wait);
+            UninterruptibleSleep(std::chrono::milliseconds(wait));
             continue;
         }
 
@@ -242,7 +242,7 @@ extern "C" void *ThreadDumper(void *) {
     int count = 0;
     do {
         // First 100s, than 200s, 400s, 800s, 1600s, and then 3200s forever
-        Sleep(100000 << count);
+        UninterruptibleSleep(std::chrono::seconds(100 << count));
         if (count < 5) {
             count++;
         }
@@ -319,7 +319,7 @@ extern "C" void *ThreadStats(void *) {
             stats.nNew, stats.nAvail - stats.nTracked - stats.nNew,
             stats.nBanned, (unsigned long long)requests,
             (unsigned long long)queries);
-        Sleep(1000);
+        UninterruptibleSleep(1s);
     } while (1);
     return nullptr;
 }
@@ -336,7 +336,7 @@ extern "C" void *ThreadSeeder(void *) {
                        true);
             }
         }
-        Sleep(1800000);
+        UninterruptibleSleep(30min);
     } while (1);
     return nullptr;
 }
@@ -427,7 +427,7 @@ int main(int argc, char **argv) {
             dnsThread.push_back(new CDnsThread(&opts, i));
             pthread_create(&threadDns, nullptr, ThreadDNS, dnsThread[i]);
             tfm::format(std::cout, ".");
-            Sleep(20);
+            UninterruptibleSleep(20ms);
         }
         tfm::format(std::cout, "done\n");
     }
