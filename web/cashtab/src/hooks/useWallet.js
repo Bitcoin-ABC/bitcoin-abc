@@ -386,19 +386,6 @@ const useWallet = () => {
         return wallet;
     };
 
-    /*
-    const getSavedWalletsFromLocalForage = async () => {
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(`Error in getSavedWalletsFromLocalForage`, err);
-            savedWallets = null;
-        }
-        return savedWallets;
-    };
-    */
-
     const getWallet = async () => {
         let wallet;
         let existingWallet;
