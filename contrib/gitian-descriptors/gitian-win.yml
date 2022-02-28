@@ -3,7 +3,7 @@ name: "bitcoin-abc-win"
 enable_cache: true
 distro: "debian"
 suites:
-- "buster"
+- "bullseye"
 architectures:
 - "amd64"
 packages:
@@ -11,6 +11,7 @@ packages:
 - "automake"
 - "bsdmainutils"
 - "ca-certificates"
+- "cmake"
 - "curl"
 - "faketime"
 - "g++"
@@ -23,11 +24,6 @@ packages:
 - "pkg-config"
 - "python3"
 - "zip"
-repositories:
-- "distribution": "buster-backports"
-  "source": "deb http://deb.debian.org/debian/ buster-backports main"
-  packages:
-  - "cmake"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"

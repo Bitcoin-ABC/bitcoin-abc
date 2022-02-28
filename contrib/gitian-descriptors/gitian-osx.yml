@@ -3,7 +3,7 @@ name: "bitcoin-abc-osx"
 enable_cache: true
 distro: "debian"
 suites:
-- "buster"
+- "bullseye"
 architectures:
 - "amd64"
 packages:
@@ -11,6 +11,7 @@ packages:
 - "automake"
 - "bsdmainutils"
 - "ca-certificates"
+- "cmake"
 - "curl"
 - "faketime"
 - "fonts-tuffy"
@@ -29,11 +30,6 @@ packages:
 - "python3"
 - "python3-dev"
 - "python3-setuptools"
-repositories:
-- "distribution": "buster-backports"
-  "source": "deb http://deb.debian.org/debian/ buster-backports main"
-  packages:
-  - "cmake"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"

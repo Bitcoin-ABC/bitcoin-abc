@@ -14,7 +14,7 @@ export USE_DOCKER=1
 
 cd "${TOPLEVEL}/contrib/gitian-builder"
 
-./bin/make-base-vm --docker --arch amd64 --distro debian --suite buster
+./bin/make-base-vm --docker --arch amd64 --distro debian --suite bullseye
 
 if [[ "${OS_NAME}" == "osx" ]]; then
   OSX_SDK_DIR=~/.abc-build-cache/osx-sdk

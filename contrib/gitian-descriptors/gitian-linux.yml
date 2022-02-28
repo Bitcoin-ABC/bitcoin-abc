@@ -3,7 +3,7 @@ name: "bitcoin-abc-linux"
 enable_cache: true
 distro: "debian"
 suites:
-- "buster"
+- "bullseye"
 architectures:
 - "amd64"
 packages:
@@ -13,25 +13,25 @@ packages:
 - "binutils-arm-linux-gnueabihf"
 - "binutils-gold"
 - "bsdmainutils"
-- "build-essential"
 - "ca-certificates"
+- "cmake"
 - "curl"
 - "faketime"
-- "g++-aarch64-linux-gnu"
-- "g++-arm-linux-gnueabihf"
-- "gcc-aarch64-linux-gnu"
-- "gcc-arm-linux-gnueabihf"
+# Use gcc/g++ 9 to avoid introducing the new pthread_cond_clockwait from glibc
+# 2.30, which would make our release binary incompatible with systems using an
+# older glibc version.
+- "g++-9"
+- "g++-9-aarch64-linux-gnu"
+- "g++-9-arm-linux-gnueabihf"
+- "gcc-9"
+- "gcc-9-aarch64-linux-gnu"
+- "gcc-9-arm-linux-gnueabihf"
 - "git"
 - "gperf"
 - "libtool"
 - "ninja-build"
 - "pkg-config"
 - "python3"
-repositories:
-- "distribution": "buster-backports"
-  "source": "deb http://deb.debian.org/debian/ buster-backports main"
-  packages:
-  - "cmake"
 remotes:
 - "url": "https://github.com/Bitcoin-ABC/bitcoin-abc.git"
   "dir": "bitcoin"
@@ -97,10 +97,38 @@ script: |
   done
   }
 
+  function create_per-host_compiler_wrapper {
+  for i in ${HOSTS[@]}; do
+    for prog in gcc g++; do
+        echo '#!/usr/bin/env bash' > ${WRAP_DIR}/${i}-${prog}
+        echo "REAL=\`which -a ${i}-${prog}-9 | head -1\`" >> ${WRAP_DIR}/${i}-${prog}
+        echo "\$REAL \"\$@\"" >> $WRAP_DIR/${i}-${prog}
+        chmod +x ${WRAP_DIR}/${i}-${prog}
+    done
+  done
+  }
+
+  function create_native_compiler_wrapper {
+  for prog in gcc g++; do
+      echo '#!/usr/bin/env bash' > ${WRAP_DIR}/${prog}
+      echo "REAL=\`which -a x86_64-linux-gnu-${prog}-9 | head -1\`" >> ${WRAP_DIR}/${prog}
+      echo "\$REAL \"\$@\"" >> $WRAP_DIR/${prog}
+      chmod +x ${WRAP_DIR}/${prog}
+  done
+  }
+
   # Faketime for depends so intermediate results are comparable
   export PATH_orig=${PATH}
   create_global_faketime_wrappers "2000-01-01 12:00:00"
   create_per-host_faketime_wrappers "2000-01-01 12:00:00"
+
+  # Wrap the compiler <host>-gcc-9 and <host>-g++-9 into <host>-gcc and
+  # <host>-g++
+  create_per-host_compiler_wrapper
+  # For the current host platform also wrap into regular gcc and g++, assume
+  # x86_64
+  create_native_compiler_wrapper
+
   export PATH=${WRAP_DIR}:${PATH}
 
   cd bitcoin

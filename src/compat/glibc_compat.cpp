@@ -93,3 +93,49 @@ extern "C" int __wrap_fcntl64(int fd, int cmd, ...) {
     return ret;
 }
 #endif
+
+/**
+ * Starting with GLIBC_2.29 there is an optimized version of the math functions.
+ * See https://lwn.net/Articles/778286/
+ */
+extern "C" float exp_old(float x);
+#ifdef __i386__
+__asm(".symver exp_old,exp@GLIBC_2.1");
+#elif defined(__amd64__)
+__asm(".symver exp_old,exp@GLIBC_2.2.5");
+#elif defined(__arm__)
+__asm(".symver exp_old,exp@GLIBC_2.4");
+#elif defined(__aarch64__)
+__asm(".symver exp_old,exp@GLIBC_2.17");
+#endif
+extern "C" float __wrap_exp(float x) {
+    return exp_old(x);
+}
+
+extern "C" float log_old(float x);
+#ifdef __i386__
+__asm(".symver log_old,log@GLIBC_2.1");
+#elif defined(__amd64__)
+__asm(".symver log_old,log@GLIBC_2.2.5");
+#elif defined(__arm__)
+__asm(".symver log_old,log@GLIBC_2.4");
+#elif defined(__aarch64__)
+__asm(".symver log_old,log@GLIBC_2.17");
+#endif
+extern "C" float __wrap_log(float x) {
+    return log_old(x);
+}
+
+extern "C" float pow_old(float x);
+#ifdef __i386__
+__asm(".symver pow_old,pow@GLIBC_2.1");
+#elif defined(__amd64__)
+__asm(".symver pow_old,pow@GLIBC_2.2.5");
+#elif defined(__arm__)
+__asm(".symver pow_old,pow@GLIBC_2.4");
+#elif defined(__aarch64__)
+__asm(".symver pow_old,pow@GLIBC_2.17");
+#endif
+extern "C" float __wrap_pow(float x) {
+    return pow_old(x);
+}
