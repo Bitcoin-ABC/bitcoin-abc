@@ -2004,11 +2004,17 @@ class msg_avaproof:
     msgtype = b"avaproof"
 
     def __init__(self):
-        # TODO Handle both legacy and regular proof format
-        self.proof = LegacyAvalancheProof()
+        self.proof = AvalancheProof()
 
     def deserialize(self, f):
-        self.proof.deserialize(f)
+        try:
+            self.proof.deserialize(f)
+        except struct.error:
+            # If the proof deserialization failed, fallback to the legacy
+            # format
+            self.proof = LegacyAvalancheProof()
+            f.seek(0)
+            self.proof.deserialize(f)
 
     def serialize(self):
         r = b""
