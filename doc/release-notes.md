@@ -6,4 +6,4 @@ Bitcoin ABC version 0.25.0 is now available from:
 
 This release includes the following features and fixes:
  - Added support for running Bitcoin ABC as an I2P (Invisible Internet Project) service and connect to such services.
-   See [i2p.md](i2p.md) for details.
+   See [i2p.md](/doc/i2p.md) for details.
