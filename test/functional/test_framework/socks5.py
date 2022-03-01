@@ -40,7 +40,7 @@ def recvall(s, n):
 # Implementation classes
 
 
-class Socks5Configuration():
+class Socks5Configuration:
     """Proxy configuration."""
 
     def __init__(self):
@@ -50,7 +50,7 @@ class Socks5Configuration():
         self.auth = False  # Support authentication
 
 
-class Socks5Command():
+class Socks5Command:
     """Information about an incoming socks5 command."""
 
     def __init__(self, cmd, atyp, addr, port, username, password):
@@ -66,7 +66,7 @@ class Socks5Command():
             self.cmd, self.atyp, self.addr, self.port, self.username, self.password)
 
 
-class Socks5Connection():
+class Socks5Connection:
     def __init__(self, serv, conn):
         self.serv = serv
         self.conn = conn
@@ -140,7 +140,7 @@ class Socks5Connection():
             self.conn.close()
 
 
-class Socks5Server():
+class Socks5Server:
     def __init__(self, conf):
         self.conf = conf
         self.s = socket.socket(conf.af)

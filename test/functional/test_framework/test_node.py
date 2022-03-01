@@ -50,7 +50,7 @@ class ErrorMatch(Enum):
     PARTIAL_REGEX = 3
 
 
-class TestNode():
+class TestNode:
     """A class for representing a bitcoind node under test.
 
     This class contains:
@@ -797,7 +797,7 @@ def arg_to_cli(arg):
         return str(arg)
 
 
-class TestNodeCLI():
+class TestNodeCLI:
     """Interface to bitcoin-cli for an individual node"""
 
     def __init__(self, binary, datadir, emulator=None):
@@ -862,7 +862,7 @@ class TestNodeCLI():
             return cli_stdout.rstrip("\n")
 
 
-class RPCOverloadWrapper():
+class RPCOverloadWrapper:
     def __init__(self, rpc, cli=False, descriptors=False):
         self.rpc = rpc
         self.is_cli = cli

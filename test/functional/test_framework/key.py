@@ -192,7 +192,7 @@ SECP256K1_ORDER = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD036
 SECP256K1_ORDER_HALF = SECP256K1_ORDER // 2
 
 
-class ECPubKey():
+class ECPubKey:
     """A secp256k1 public key"""
 
     def __init__(self):
@@ -312,7 +312,7 @@ class ECPubKey():
         return R[0] == int.from_bytes(Rx, 'big')
 
 
-class ECKey():
+class ECKey:
     """A secp256k1 private key"""
 
     def __init__(self):

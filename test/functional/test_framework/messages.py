@@ -999,7 +999,7 @@ class LegacyAvalancheProof(AvalancheProof):
                f"stakes={self.stakes})"
 
 
-class AvalanchePoll():
+class AvalanchePoll:
     __slots__ = ("round", "invs")
 
     def __init__(self, round=0, invs=None):
@@ -1039,7 +1039,7 @@ class AvalancheProofVoteResponse(IntEnum):
     UNKNOWN = -1
 
 
-class AvalancheVote():
+class AvalancheVote:
     __slots__ = ("error", "hash")
 
     def __init__(self, e=0, h=0):
@@ -1061,7 +1061,7 @@ class AvalancheVote():
             self.error, self.hash)
 
 
-class AvalancheResponse():
+class AvalancheResponse:
     __slots__ = ("round", "cooldown", "votes")
 
     def __init__(self, round=0, cooldown=0, votes=None):
@@ -1089,7 +1089,7 @@ class AvalancheResponse():
             self.round, self.cooldown, repr(self.votes))
 
 
-class TCPAvalancheResponse():
+class TCPAvalancheResponse:
     __slots__ = ("response", "sig")
 
     def __init__(self, response=AvalancheResponse(), sig=b"\0" * 64):
@@ -1173,7 +1173,7 @@ class AvalancheDelegation:
         return h
 
 
-class AvalancheHello():
+class AvalancheHello:
     __slots__ = ("delegation", "sig")
 
     def __init__(self, delegation=AvalancheDelegation(), sig=b"\0" * 64):
@@ -1999,7 +1999,7 @@ class msg_cfcheckpt:
             self.filter_type, self.stop_hash)
 
 
-class msg_avaproof():
+class msg_avaproof:
     __slots__ = ("proof",)
     msgtype = b"avaproof"
 
@@ -2019,7 +2019,7 @@ class msg_avaproof():
         return "msg_avaproof(proof={})".format(repr(self.proof))
 
 
-class msg_avapoll():
+class msg_avapoll:
     __slots__ = ("poll",)
     msgtype = b"avapoll"
 
@@ -2038,7 +2038,7 @@ class msg_avapoll():
         return "msg_avapoll(poll={})".format(repr(self.poll))
 
 
-class msg_avaresponse():
+class msg_avaresponse:
     __slots__ = ("response",)
     msgtype = b"avaresponse"
 
@@ -2057,7 +2057,7 @@ class msg_avaresponse():
         return "msg_avaresponse(response={})".format(repr(self.response))
 
 
-class msg_tcpavaresponse():
+class msg_tcpavaresponse:
     __slots__ = ("response",)
     msgtype = b"avaresponse"
 
@@ -2076,7 +2076,7 @@ class msg_tcpavaresponse():
         return "msg_tcpavaresponse(response={})".format(repr(self.response))
 
 
-class msg_avahello():
+class msg_avahello:
     __slots__ = ("hello",)
     msgtype = b"avahello"
 

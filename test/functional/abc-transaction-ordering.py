@@ -23,7 +23,7 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 
-class PreviousSpendableOutput():
+class PreviousSpendableOutput:
 
     def __init__(self, tx=CTransaction(), n=-1):
         self.tx = tx

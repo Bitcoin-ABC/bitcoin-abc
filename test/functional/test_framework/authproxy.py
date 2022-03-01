@@ -68,7 +68,7 @@ def EncodeDecimal(o):
     raise TypeError(repr(o) + " is not JSON serializable")
 
 
-class AuthServiceProxy():
+class AuthServiceProxy:
     __id_count = 0
 
     # ensure_ascii: escape unicode as \uXXXX, passed to json.dumps

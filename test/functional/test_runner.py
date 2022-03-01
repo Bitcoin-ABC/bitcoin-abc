@@ -137,7 +137,7 @@ DEFAULT_EXTENDED_CUTOFF = 40
 DEFAULT_JOBS = (multiprocessing.cpu_count() // 3) + 1
 
 
-class TestCase():
+class TestCase:
     """
     Data structure to hold and run information necessary to launch a test case.
     """
@@ -639,7 +639,7 @@ def print_results(test_results, tests_dir, max_len_name,
     print(results)
 
 
-class TestResult():
+class TestResult:
     """
     Simple data structure to store test result values and print them properly
     """
@@ -749,7 +749,7 @@ def get_tests_to_run(test_list, test_params, cutoff, src_timings):
     return result
 
 
-class RPCCoverage():
+class RPCCoverage:
     """
     Coverage reporting utilities for test_runner.
 
@@ -859,7 +859,7 @@ def save_results_as_junit(test_results, file_name, time, test_suite_name):
         file_name, "UTF-8", xml_declaration=True)
 
 
-class Timings():
+class Timings:
     """
     Takes care of loading, merging and saving tests execution times.
     """
