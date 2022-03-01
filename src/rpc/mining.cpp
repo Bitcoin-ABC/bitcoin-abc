@@ -33,6 +33,7 @@
 #include <script/descriptor.h>
 #include <script/script.h>
 #include <shutdown.h>
+#include <timedata.h>
 #include <txmempool.h>
 #include <univalue.h>
 #include <util/strencodings.h>
@@ -462,6 +463,7 @@ static RPCHelpMan generateblock() {
                                        chainman.ActiveChainstate(), block,
                                        chainman.m_blockman.LookupBlockIndex(
                                            block.hashPrevBlock),
+                                       GetAdjustedTime,
                                        BlockValidationOptions(config)
                                            .withCheckPoW(false)
                                            .withCheckMerkleRoot(false))) {
@@ -877,7 +879,7 @@ static RPCHelpMan getblocktemplate() {
                     }
                     BlockValidationState state;
                     TestBlockValidity(state, chainparams, active_chainstate,
-                                      block, pindexPrev,
+                                      block, pindexPrev, GetAdjustedTime,
                                       BlockValidationOptions(config)
                                           .withCheckPoW(false)
                                           .withCheckMerkleRoot(true));

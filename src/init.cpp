@@ -2435,7 +2435,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(mempool_check_ratio);
 
-        node.chainman = std::make_unique<ChainstateManager>(config);
+        const ChainstateManager::Options chainman_opts{
+            config,
+            GetAdjustedTime,
+        };
+        node.chainman = std::make_unique<ChainstateManager>(chainman_opts);
         ChainstateManager &chainman = *node.chainman;
 
         node::ChainstateLoadOptions options;

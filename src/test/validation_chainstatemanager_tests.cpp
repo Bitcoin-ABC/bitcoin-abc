@@ -395,10 +395,14 @@ struct SnapshotTestSetup : TestChain100Setup {
             LOCK(::cs_main);
             chainman.ResetChainstates();
             BOOST_CHECK_EQUAL(chainman.GetAll().size(), 0);
+            const ChainstateManager::Options chainman_opts{
+                .config = ::GetConfig(),
+                .adjusted_time_callback = GetAdjustedTime,
+            };
             // For robustness, ensure the old manager is destroyed before
             // creating a new one.
             m_node.chainman.reset();
-            m_node.chainman.reset(new ChainstateManager(::GetConfig()));
+            m_node.chainman.reset(new ChainstateManager(chainman_opts));
         }
         return *Assert(m_node.chainman);
     }

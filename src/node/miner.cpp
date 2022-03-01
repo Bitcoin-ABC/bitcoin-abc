@@ -235,7 +235,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
 
     BlockValidationState state;
     if (!TestBlockValidity(state, chainParams, m_chainstate, *pblock,
-                           pindexPrev,
+                           pindexPrev, GetAdjustedTime,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {

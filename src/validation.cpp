@@ -43,7 +43,6 @@
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 #include <shutdown.h>
-#include <timedata.h>
 #include <tinyformat.h>
 #include <txdb.h>
 #include <txmempool.h>
@@ -1764,7 +1763,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     // Also, currently the rule against blocks more than 2 hours in the future
     // is enforced in ContextualCheckBlockHeader(); we wouldn't want to
     // re-enforce that rule here (at least until we make it impossible for
-    // GetAdjustedTime() to go backward).
+    // m_adjusted_time_callback() to go backward).
     if (!CheckBlock(block, state, consensusParams,
                     options.withCheckPoW(!fJustCheck)
                         .withCheckMerkleRoot(!fJustCheck))) {
@@ -4155,7 +4154,8 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
         }
 
         if (!ContextualCheckBlockHeader(chainparams, block, state, m_blockman,
-                                        pindexPrev, GetAdjustedTime())) {
+                                        pindexPrev,
+                                        m_adjusted_time_callback())) {
             LogPrint(BCLog::VALIDATION,
                      "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n",
                      __func__, hash.ToString(), state.ToString());
@@ -4504,6 +4504,7 @@ ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                        Chainstate &chainstate, const CBlock &block,
                        CBlockIndex *pindexPrev,
+                       const std::function<int64_t()> &adjusted_time_callback,
                        BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainstate.m_chain.Tip());
@@ -4516,7 +4517,7 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
 
     // NOTE: CheckBlockHeader is called by CheckBlock
     if (!ContextualCheckBlockHeader(params, block, state, chainstate.m_blockman,
-                                    pindexPrev, GetAdjustedTime())) {
+                                    pindexPrev, adjusted_time_callback())) {
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      state.ToString());
     }

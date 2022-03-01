@@ -31,6 +31,7 @@
 #include <script/sigcache.h>
 #include <shutdown.h>
 #include <streams.h>
+#include <timedata.h>
 #include <txdb.h>
 #include <txmempool.h>
 #include <util/strencodings.h>
@@ -182,7 +183,11 @@ ChainTestingSetup::ChainTestingSetup(
 
     m_cache_sizes = CalculateCacheSizes(m_args);
 
-    m_node.chainman = std::make_unique<ChainstateManager>(config);
+    const ChainstateManager::Options chainman_opts{
+        config,
+        GetAdjustedTime,
+    };
+    m_node.chainman = std::make_unique<ChainstateManager>(chainman_opts);
     m_node.chainman->m_blockman.m_block_tree_db =
         std::make_unique<CBlockTreeDB>(m_cache_sizes.block_tree_db, true);
     // Call Upgrade on the block database so that the version field is set,

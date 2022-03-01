@@ -862,7 +862,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		init/common.cpp
 		key.cpp
 		logging.cpp
-		netaddress.cpp
 		networks/abc/chainparamsconstants.cpp
 		networks/abc/checkpoints.cpp
 		node/blockstorage.cpp
@@ -898,11 +897,9 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		support/lockedpool.cpp
 		sync.cpp
 		threadinterrupt.cpp
-		timedata.cpp
 		txdb.cpp
 		txmempool.cpp
 		uint256.cpp
-		util/asmap.cpp
 		util/bytevectorhash.cpp
 		util/check.cpp
 		util/getuniquepath.cpp
@@ -942,11 +939,14 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		key_io.cpp           # avalanche/processor.cpp uses DecodeSecret
 		minerfund.cpp        # via policy/block/minerfund.cpp
 		net.cpp              # avalanche uses CConnman
+		netaddress.cpp       # via net.cpp
 		netbase.cpp          # via net.cpp
 		net_permissions.cpp  # via net.cpp
 		policy/block/minerfund.cpp
 		policy/block/stakingrewards.cpp
 		protocol.cpp            # avalanche/processor.cpp uses NetMsgType
+		timedata.cpp            # via net.cpp
+		util/asmap.cpp          # via netaddress.cpp
 		util/error.cpp          # via net_permissions.cpp (ResolveErrMsg)
 		util/readwritefile.cpp  # via i2p.cpp
 		util/sock.cpp           # via net.cpp

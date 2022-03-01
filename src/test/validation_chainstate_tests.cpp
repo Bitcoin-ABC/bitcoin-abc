@@ -10,6 +10,7 @@
 #include <sync.h>
 #include <test/util/chainstate.h>
 #include <test/util/setup_common.h>
+#include <timedata.h>
 #include <uint256.h>
 #include <validation.h>
 
@@ -22,8 +23,11 @@ BOOST_FIXTURE_TEST_SUITE(validation_chainstate_tests, TestingSetup)
 //! Test resizing coins-related Chainstate caches during runtime.
 //!
 BOOST_AUTO_TEST_CASE(validation_chainstate_resize_caches) {
-    const Config &config = GetConfig();
-    ChainstateManager manager(config);
+    const ChainstateManager::Options chainman_opts{
+        GetConfig(),
+        GetAdjustedTime,
+    };
+    ChainstateManager manager{chainman_opts};
     WITH_LOCK(::cs_main, manager.m_blockman.m_block_tree_db =
                              std::make_unique<CBlockTreeDB>(1 << 20, true));
     CTxMemPool &mempool = *Assert(m_node.mempool);

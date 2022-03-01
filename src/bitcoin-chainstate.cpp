@@ -81,7 +81,11 @@ int main(int argc, char *argv[]) {
     GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
 
     // SETUP: Chainstate
-    ChainstateManager chainman{config};
+    const ChainstateManager::Options chainman_opts{
+        config,
+        static_cast<int64_t (*)()>(GetTime),
+    };
+    ChainstateManager chainman{chainman_opts};
 
     node::CacheSizes cache_sizes;
     cache_sizes.block_tree_db = 2 << 20;

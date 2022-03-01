@@ -24,6 +24,7 @@
 #include <disconnectresult.h>
 #include <flatfile.h>
 #include <fs.h>
+#include <kernel/chainstatemanager_opts.h>
 #include <node/blockstorage.h>
 #include <policy/packages.h>
 #include <script/script_error.h>
@@ -559,6 +560,7 @@ bool ContextualCheckTransactionForCurrentBlock(
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                        Chainstate &chainstate, const CBlock &block,
                        CBlockIndex *pindexPrev,
+                       const std::function<int64_t()> &adjusted_time_callback,
                        BlockValidationOptions validationOptions)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -1207,6 +1209,8 @@ private:
 
     const Config &m_config;
 
+    const std::function<int64_t()> m_adjusted_time_callback;
+
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
     PopulateAndValidateSnapshot(Chainstate &snapshot_chainstate,
@@ -1242,7 +1246,11 @@ private:
     }
 
 public:
-    explicit ChainstateManager(const Config &config) : m_config{config} {}
+    using Options = ChainstateManagerOpts;
+
+    explicit ChainstateManager(const Options &opts)
+        : m_config(opts.config), m_adjusted_time_callback{
+                                     Assert(opts.adjusted_time_callback)} {};
 
     const CChainParams &GetParams() const { return m_config.GetChainParams(); }
     const Consensus::Params &GetConsensus() const {
