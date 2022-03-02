@@ -185,7 +185,7 @@ public:
     uint64_t CalculateCurrentUsage();
 
     //! Returns last CBlockIndex* that is a checkpoint
-    CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
+    const CBlockIndex *GetLastCheckpoint(const CCheckpointData &data)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     ~BlockManager() { Unload(); }

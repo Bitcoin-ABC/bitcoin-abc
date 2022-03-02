@@ -297,7 +297,7 @@ bool CoinStatsIndex::Rewind(const CBlockIndex *current_tip,
 
     {
         LOCK(cs_main);
-        CBlockIndex *iter_tip{m_chainstate->m_blockman.LookupBlockIndex(
+        const CBlockIndex *iter_tip{m_chainstate->m_blockman.LookupBlockIndex(
             current_tip->GetBlockHash())};
         const auto &consensus_params{Params().GetConsensus()};
 

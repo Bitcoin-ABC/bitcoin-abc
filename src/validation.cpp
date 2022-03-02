@@ -129,14 +129,14 @@ BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
       checkMerkleRoot(true) {}
 
-CBlockIndex *
+const CBlockIndex *
 CChainState::FindForkInGlobalIndex(const CBlockLocator &locator) const {
     AssertLockHeld(cs_main);
 
     // Find the latest block common to locator and chain - we expect that
     // locator.vHave is sorted descending by height.
     for (const BlockHash &hash : locator.vHave) {
-        CBlockIndex *pindex{m_blockman.LookupBlockIndex(hash)};
+        const CBlockIndex *pindex{m_blockman.LookupBlockIndex(hash)};
         if (pindex) {
             if (m_chain.Contains(pindex)) {
                 return pindex;
@@ -4005,7 +4005,8 @@ ContextualCheckBlockHeader(const CChainParams &params,
         // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's
         // in our BlockIndex().
 
-        CBlockIndex *pcheckpoint = blockman.GetLastCheckpoint(checkpoints);
+        const CBlockIndex *pcheckpoint =
+            blockman.GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
             LogPrint(BCLog::VALIDATION,
                      "ERROR: %s: forked chain older than last checkpoint "
@@ -5123,7 +5124,8 @@ void CChainState::LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     }
 
                     // process in case the block isn't known yet
-                    CBlockIndex *pindex = m_blockman.LookupBlockIndex(hash);
+                    const CBlockIndex *pindex =
+                        m_blockman.LookupBlockIndex(hash);
                     if (!pindex || !pindex->nStatus.hasData()) {
                         BlockValidationState state;
                         if (AcceptBlock(config, pblock, state, true, dbp,

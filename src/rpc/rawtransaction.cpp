@@ -69,7 +69,7 @@ static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
         LOCK(cs_main);
 
         entry.pushKV("blockhash", hashBlock.GetHex());
-        CBlockIndex *pindex =
+        const CBlockIndex *pindex =
             active_chainstate.m_blockman.LookupBlockIndex(hashBlock);
         if (pindex) {
             if (active_chainstate.m_chain.Contains(pindex)) {
@@ -206,7 +206,7 @@ static RPCHelpMan getrawtransaction() {
 
             bool in_active_chain = true;
             TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
-            CBlockIndex *blockindex = nullptr;
+            const CBlockIndex *blockindex = nullptr;
 
             const CChainParams &params = config.GetChainParams();
             if (txid == params.GenesisBlock().hashMerkleRoot) {
@@ -336,7 +336,7 @@ static RPCHelpMan gettxoutproof() {
                 oneTxId = txid;
             }
 
-            CBlockIndex *pblockindex = nullptr;
+            const CBlockIndex *pblockindex = nullptr;
 
             BlockHash hashBlock;
             ChainstateManager &chainman = EnsureAnyChainman(request.context);

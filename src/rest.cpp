@@ -296,8 +296,8 @@ static bool rest_block(const Config &config, const std::any &context,
     const BlockHash hash(rawHash);
 
     CBlock block;
-    CBlockIndex *pblockindex = nullptr;
-    CBlockIndex *tip = nullptr;
+    const CBlockIndex *pblockindex = nullptr;
+    const CBlockIndex *tip = nullptr;
     {
         ChainstateManager *maybe_chainman = GetChainman(context, req);
         if (!maybe_chainman) {

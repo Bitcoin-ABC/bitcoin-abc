@@ -98,8 +98,8 @@ static int ComputeNextBlockAndDepth(const CBlockIndex *tip,
     return blockindex == tip ? 1 : -1;
 }
 
-static CBlockIndex *ParseHashOrHeight(const UniValue &param,
-                                      ChainstateManager &chainman) {
+static const CBlockIndex *ParseHashOrHeight(const UniValue &param,
+                                            ChainstateManager &chainman) {
     LOCK(::cs_main);
     CChain &active_chain = chainman.ActiveChain();
 
@@ -121,7 +121,7 @@ static CBlockIndex *ParseHashOrHeight(const UniValue &param,
         return active_chain[height];
     } else {
         const BlockHash hash{ParseHashV(param, "hash_or_height")};
-        CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(hash);
+        const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(hash);
 
         if (!pindex) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -962,7 +962,7 @@ static RPCHelpMan getblockhash() {
                                    "Block height out of range");
             }
 
-            CBlockIndex *pblockindex = active_chain[nHeight];
+            const CBlockIndex *pblockindex = active_chain[nHeight];
             return pblockindex->GetBlockHash().GetHex();
         },
     };
@@ -1275,7 +1275,7 @@ static RPCHelpMan pruneblockchain() {
             if (heightParam > 1000000000) {
                 // Add a 2 hour buffer to include blocks which might have had
                 // old timestamps
-                CBlockIndex *pindex = active_chain.FindEarliestAtLeast(
+                const CBlockIndex *pindex = active_chain.FindEarliestAtLeast(
                     heightParam - TIMESTAMP_WINDOW, 0);
                 if (!pindex) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -1419,7 +1419,7 @@ static RPCHelpMan gettxoutsetinfo() {
             const JSONRPCRequest &request) -> UniValue {
             UniValue ret(UniValue::VOBJ);
 
-            CBlockIndex *pindex{nullptr};
+            const CBlockIndex *pindex{nullptr};
             const CoinStatsHashType hash_type{
                 request.params[0].isNull()
                     ? CoinStatsHashType::HASH_SERIALIZED
@@ -2661,7 +2661,8 @@ static RPCHelpMan getblockstats() {
             const JSONRPCRequest &request) -> UniValue {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
-            CBlockIndex *pindex{ParseHashOrHeight(request.params[0], chainman)};
+            const CBlockIndex *pindex{
+                ParseHashOrHeight(request.params[0], chainman)};
             CHECK_NONFATAL(pindex != nullptr);
 
             std::set<std::string> stats;
@@ -3121,7 +3122,7 @@ static RPCHelpMan scantxoutset() {
                 g_scan_progress = 0;
                 int64_t count = 0;
                 std::unique_ptr<CCoinsViewCursor> pcursor;
-                CBlockIndex *tip;
+                const CBlockIndex *tip;
                 NodeContext &node = EnsureAnyNodeContext(request.context);
                 {
                     ChainstateManager &chainman = EnsureChainman(node);
@@ -3329,7 +3330,7 @@ UniValue CreateUTXOSnapshot(NodeContext &node, CChainState &chainstate,
                             CAutoFile &afile) {
     std::unique_ptr<CCoinsViewCursor> pcursor;
     CCoinsStats stats{CoinStatsHashType::NONE};
-    CBlockIndex *tip;
+    const CBlockIndex *tip;
 
     {
         // We need to lock cs_main to ensure that the coinsdb isn't

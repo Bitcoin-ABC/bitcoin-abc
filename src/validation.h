@@ -967,7 +967,7 @@ public:
     bool IsInitialBlockDownload() const;
 
     /** Find the last common block of this chain and a locator. */
-    CBlockIndex *FindForkInGlobalIndex(const CBlockLocator &locator) const
+    const CBlockIndex *FindForkInGlobalIndex(const CBlockLocator &locator) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
