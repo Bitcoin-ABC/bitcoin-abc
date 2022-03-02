@@ -108,6 +108,7 @@ class BuildAvalancheProofTest(BitcoinTestFramework):
                                 0,
                                 wif_privkey,
                                 [good_stake],
+                                payoutAddress=None,
                                 )
 
         assert_raises_rpc_error(-8,

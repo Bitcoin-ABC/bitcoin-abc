@@ -34,6 +34,15 @@ from .util import assert_equal, satoshi_round, wait_until_helper
 from .wallet_util import bytes_to_wif
 
 
+def avalanche_proof_from_hex(proof_hex: str) -> AvalancheProof:
+    try:
+        return FromHex(AvalancheProof(), proof_hex)
+    except struct.error:
+        # If the proof deserialization failed, fallback to the legacy
+        # format
+        return FromHex(LegacyAvalancheProof(), proof_hex)
+
+
 def create_coinbase_stakes(
         node: TestNode,
         blockhashes: List[str],
@@ -281,4 +290,4 @@ def gen_proof(node, coinbase_utxos=1):
     proof_hex = node.buildavalancheproof(
         42, 2000000000, bytes_to_wif(privkey.get_bytes()), stakes)
 
-    return privkey, FromHex(LegacyAvalancheProof(), proof_hex)
+    return privkey, avalanche_proof_from_hex(proof_hex)

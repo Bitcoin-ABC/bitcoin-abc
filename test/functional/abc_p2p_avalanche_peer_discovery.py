@@ -12,6 +12,7 @@ import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
+    avalanche_proof_from_hex,
     create_coinbase_stakes,
     get_ava_p2p_interface,
     get_proof_ids,
@@ -22,8 +23,6 @@ from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
     CInv,
-    FromHex,
-    LegacyAvalancheProof,
     msg_getdata,
 )
 from test_framework.p2p import p2p_lock
@@ -99,7 +98,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         master_key = ECKey()
         master_key.generate()
-        limited_id = FromHex(LegacyAvalancheProof(), proof).limited_proofid
+        limited_id = avalanche_proof_from_hex(proof).limited_proofid
         delegation = node.delegateavalancheproof(
             f"{limited_id:0{64}x}",
             bytes_to_wif(privkey.get_bytes()),
@@ -116,8 +115,7 @@ class AvalancheTest(BitcoinTestFramework):
         stakes = create_coinbase_stakes(node, [blockhashes[1]], addrkey0.key)
         interface_proof_hex = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, stakes)
-        limited_id = FromHex(
-            LegacyAvalancheProof(),
+        limited_id = avalanche_proof_from_hex(
             interface_proof_hex).limited_proofid
 
         # delegate
@@ -153,7 +151,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info('Check that we can download the proof from our peer')
 
-        node_proofid = FromHex(LegacyAvalancheProof(), proof).proofid
+        node_proofid = avalanche_proof_from_hex(proof).proofid
 
         def wait_for_proof_validation():
             # Connect some blocks to trigger the proof verification

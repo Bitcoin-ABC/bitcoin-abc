@@ -20,7 +20,9 @@ import tempfile
 import time
 import urllib.parse
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
+from .address import ADDRESS_ECREG_UNSPENDABLE
 from .authproxy import JSONRPCException
 from .descriptors import descsum_create
 from .messages import XEC, CTransaction, FromHex
@@ -401,6 +403,16 @@ class TestNode:
             "TestNode.generate() dispatches `generate` call to `generatetoaddress`")
         return self.generatetoaddress(
             nblocks=nblocks, address=self.get_deterministic_priv_key().address, maxtries=maxtries)
+
+    def buildavalancheproof(self, sequence: int, expiration: int, master: str,
+                            stakes: List[Dict[str, Any]], payoutAddress: Optional[str] = ADDRESS_ECREG_UNSPENDABLE) -> str:
+        return self.__getattr__('buildavalancheproof')(
+            sequence=sequence,
+            expiration=expiration,
+            master=master,
+            stakes=stakes,
+            payoutAddress=payoutAddress,
+        )
 
     def get_wallet_rpc(self, wallet_name):
         if self.use_cli:

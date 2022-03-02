@@ -122,6 +122,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # optionally, increase timeout by a factor
         self.rpc_timeout = int(self.rpc_timeout * self.options.timeout_factor)
 
+        # Reverse the legacy avaproof logic now so we don't have double negation
+        # all over the place.
+        self.legacy_avaproof = not self.options.nolegacyavaproof
+
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
         assert hasattr(
@@ -184,6 +188,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                             help="set a random seed for deterministically reproducing a previous test run")
         parser.add_argument("--descriptors", default=False, action="store_true",
                             help="Run test using a descriptor wallet")
+        parser.add_argument("--nolegacyavaproof", default=False, action="store_true",
+                            help="Run test without using the legacy proof format")
         parser.add_argument("--with-gluonactivation", dest="gluonactivation", default=False, action="store_true",
                             help="Activate gluon update on timestamp {}".format(TIMESTAMP_IN_THE_PAST))
         parser.add_argument(
@@ -726,7 +732,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 self.options.cachedir,
                 CACHE_NODE_ID,
                 self.chain,
-                self.disable_autoconnect)
+                self.disable_autoconnect,
+                self.legacy_avaproof,
+            )
             self.nodes.append(
                 TestNode(
                     CACHE_NODE_ID,
@@ -801,7 +809,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 self.options.tmpdir,
                 i,
                 self.chain,
-                self.disable_autoconnect)
+                self.disable_autoconnect,
+                self.legacy_avaproof,
+            )
 
     def _initialize_chain_clean(self):
         """Initialize empty blockchain for use by the test.
@@ -813,7 +823,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 self.options.tmpdir,
                 i,
                 self.chain,
-                self.disable_autoconnect)
+                self.disable_autoconnect,
+                self.legacy_avaproof,
+            )
 
     def skip_if_no_py3_zmq(self):
         """Attempt to import the zmq package and skip the test if the import fails."""
