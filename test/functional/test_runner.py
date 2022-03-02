@@ -130,6 +130,15 @@ TEST_PARAMS = {
 
     # Avalanche tests running with and without the legacy proof format
     "abc_p2p_avalanche_peer_discovery.py": [["--nolegacyavaproof"]],
+    "abc_p2p_avalanche_proof_voting.py": [["--nolegacyavaproof"]],
+    "abc_p2p_avalanche_voting.py": [["--nolegacyavaproof"]],
+    "abc_p2p_getavaaddr.py": [["--nolegacyavaproof"]],
+    "abc_p2p_proof_inventory.py": [["--nolegacyavaproof"]],
+    "abc_rpc_addavalanchenode.py": [["--nolegacyavaproof"]],
+    "abc_rpc_buildavalancheproof.py": [["--nolegacyavaproof"]],
+    "abc_rpc_getavalanchepeerinfo.py": [["--nolegacyavaproof"]],
+    "p2p_eviction.py": [["--nolegacyavaproof"]],
+    "p2p_inv_download.py": [["--nolegacyavaproof"]],
 }
 
 # Used to limit the number of tests, when list of tests is not provided on command line

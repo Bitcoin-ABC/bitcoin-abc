@@ -9,14 +9,17 @@ Test proof inventory relaying
 import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
-from test_framework.avatools import gen_proof, get_proof_ids, wait_for_proof
+from test_framework.avatools import (
+    avalanche_proof_from_hex,
+    gen_proof,
+    get_proof_ids,
+    wait_for_proof,
+)
 from test_framework.key import ECKey
 from test_framework.messages import (
     MSG_AVA_PROOF,
     MSG_TYPE_MASK,
     CInv,
-    FromHex,
-    LegacyAvalancheProof,
     msg_avaproof,
     msg_getdata,
 )
@@ -114,7 +117,7 @@ class ProofInventoryTest(BitcoinTestFramework):
             }]
         )
 
-        orphan = FromHex(LegacyAvalancheProof(), orphan_hex)
+        orphan = avalanche_proof_from_hex(orphan_hex)
         orphan_proofid = "{:064x}".format(orphan.proofid)
 
         msg = msg_avaproof()

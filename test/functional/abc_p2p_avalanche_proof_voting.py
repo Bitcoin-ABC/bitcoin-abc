@@ -6,6 +6,7 @@
 import time
 
 from test_framework.avatools import (
+    avalanche_proof_from_hex,
     create_coinbase_stakes,
     gen_proof,
     get_ava_p2p_interface,
@@ -17,8 +18,6 @@ from test_framework.messages import (
     AvalancheProofVoteResponse,
     AvalancheVote,
     AvalancheVoteError,
-    FromHex,
-    LegacyAvalancheProof,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -87,7 +86,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
     @staticmethod
     def send_proof(from_peer, proof_hex):
-        proof = FromHex(LegacyAvalancheProof(), proof_hex)
+        proof = avalanche_proof_from_hex(proof_hex)
         from_peer.send_avaproof(proof)
         return proof.proofid
 
@@ -155,12 +154,12 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.log.info(
             "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof not the favorite")
         with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
-            peer.send_avaproof(FromHex(LegacyAvalancheProof(), proof_seq20))
+            peer.send_avaproof(avalanche_proof_from_hex(proof_seq20))
 
         self.log.info(
             "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof is the favorite")
         with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
-            peer.send_avaproof(FromHex(LegacyAvalancheProof(), proof_seq40))
+            peer.send_avaproof(avalanche_proof_from_hex(proof_seq40))
 
         self.log.info(
             "Check we poll for conflicting proof if the proof is not the favorite")
@@ -180,15 +179,15 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("Check we don't poll for orphans")
         with node.assert_debug_log(["Not polling the avalanche proof (orphan-proof)"]):
-            peer.send_avaproof(FromHex(LegacyAvalancheProof(), orphan))
+            peer.send_avaproof(avalanche_proof_from_hex(orphan))
 
         self.log.info("Check we don't poll for proofs that get rejected")
         with node.assert_debug_log(["Not polling the avalanche proof (rejected-proof)"]):
-            peer.send_avaproof(FromHex(LegacyAvalancheProof(), proof_seq10))
+            peer.send_avaproof(avalanche_proof_from_hex(proof_seq10))
 
         self.log.info("Check we don't poll for invalid proofs and get banned")
         with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
-            peer.send_avaproof(FromHex(LegacyAvalancheProof(), no_stake))
+            peer.send_avaproof(avalanche_proof_from_hex(no_stake))
         peer.wait_for_disconnect()
 
     def update_tests(self, node):
@@ -204,9 +203,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_seq30 = self.build_conflicting_proof(node, 30)
         proof_seq40 = self.build_conflicting_proof(node, 40)
         proof_seq50 = self.build_conflicting_proof(node, 50)
-        proofid_seq30 = FromHex(LegacyAvalancheProof(), proof_seq30).proofid
-        proofid_seq40 = FromHex(LegacyAvalancheProof(), proof_seq40).proofid
-        proofid_seq50 = FromHex(LegacyAvalancheProof(), proof_seq50).proofid
+        proofid_seq30 = avalanche_proof_from_hex(proof_seq30).proofid
+        proofid_seq40 = avalanche_proof_from_hex(proof_seq40).proofid
+        proofid_seq50 = avalanche_proof_from_hex(proof_seq50).proofid
 
         node.sendavalancheproof(proof_seq40)
         self.wait_until(lambda: proofid_seq40 in get_proof_ids(node))
@@ -314,7 +313,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         def create_proof(stakes):
             proof = node.buildavalancheproof(11, 12, self.privkey_wif, stakes)
-            proof_id = FromHex(LegacyAvalancheProof(), proof).proofid
+            proof_id = avalanche_proof_from_hex(proof).proofid
             return proof, proof_id
 
         # proof_0 is valid right now
@@ -387,7 +386,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
 
         # The next proof should be rejected/put in the orphan pool
-        ava_node.send_proof(FromHex(LegacyAvalancheProof(), proof_2))
+        ava_node.send_proof(avalanche_proof_from_hex(proof_2))
         poll_assert_response([
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
@@ -408,7 +407,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         # The final proof should be permanently rejected for being completely
         # invalid
-        ava_node.send_proof(FromHex(LegacyAvalancheProof(), proof_4))
+        ava_node.send_proof(avalanche_proof_from_hex(proof_4))
         poll_assert_response([
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),

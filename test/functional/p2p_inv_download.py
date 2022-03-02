@@ -10,7 +10,7 @@ import functools
 import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
-from test_framework.avatools import wait_for_proof
+from test_framework.avatools import avalanche_proof_from_hex, wait_for_proof
 from test_framework.key import ECKey
 from test_framework.messages import (
     MSG_AVA_PROOF,
@@ -19,7 +19,6 @@ from test_framework.messages import (
     CInv,
     CTransaction,
     FromHex,
-    LegacyAvalancheProof,
     msg_avaproof,
     msg_inv,
     msg_notfound,
@@ -391,7 +390,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
                 'privatekey': privkey_wif,
             }]
         )
-        proofid = FromHex(LegacyAvalancheProof(), orphan).proofid
+        proofid = avalanche_proof_from_hex(orphan).proofid
         proofid_hex = "{:064x}".format(proofid)
 
         self.restart_node(0, extra_args=self.extra_args[0] + [
@@ -421,7 +420,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         no_stake_hex = node.buildavalancheproof(
             42, 2000000000, bytes_to_wif(privkey.get_bytes()), []
         )
-        no_stake = FromHex(LegacyAvalancheProof(), no_stake_hex)
+        no_stake = avalanche_proof_from_hex(no_stake_hex)
         assert_raises_rpc_error(-8,
                                 "The proof is invalid: no-stake",
                                 node.verifyavalancheproof,
