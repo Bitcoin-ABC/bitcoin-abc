@@ -11,8 +11,8 @@
 #include <util/threadnames.h>
 #include <util/time.h>
 
-#include <algorithm>
 #include <array>
+#include <map>
 
 bool fLogIPs = DEFAULT_LOGIPS;
 const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
@@ -96,81 +96,106 @@ void BCLog::Logger::DisconnectTestLogger() {
     m_print_callbacks.clear();
 }
 
-struct CLogCategoryDesc {
-    BCLog::LogFlags flag;
-    std::string category;
+static const std::map<std::string, BCLog::LogFlags> LOG_CATEGORIES_BY_STR{
+    {"0", BCLog::NONE},
+    {"none", BCLog::NONE},
+    {"net", BCLog::NET},
+    {"tor", BCLog::TOR},
+    {"mempool", BCLog::MEMPOOL},
+    {"http", BCLog::HTTP},
+    {"bench", BCLog::BENCH},
+    {"zmq", BCLog::ZMQ},
+    {"walletdb", BCLog::WALLETDB},
+    {"rpc", BCLog::RPC},
+    {"estimatefee", BCLog::ESTIMATEFEE},
+    {"addrman", BCLog::ADDRMAN},
+    {"selectcoins", BCLog::SELECTCOINS},
+    {"reindex", BCLog::REINDEX},
+    {"cmpctblock", BCLog::CMPCTBLOCK},
+    {"rand", BCLog::RAND},
+    {"prune", BCLog::PRUNE},
+    {"proxy", BCLog::PROXY},
+    {"mempoolrej", BCLog::MEMPOOLREJ},
+    {"libevent", BCLog::LIBEVENT},
+    {"coindb", BCLog::COINDB},
+    {"qt", BCLog::QT},
+    {"leveldb", BCLog::LEVELDB},
+    {"validation", BCLog::VALIDATION},
+    {"avalanche", BCLog::AVALANCHE},
+    {"i2p", BCLog::I2P},
+    {"chronik", BCLog::CHRONIK},
+#ifdef DEBUG_LOCKCONTENTION
+    {"lock", BCLog::LOCK},
+#endif
+    {"blockstorage", BCLog::BLOCKSTORE},
+    {"netdebug", BCLog::NETDEBUG},
+    {"txpackages", BCLog::TXPACKAGES},
+    {"1", BCLog::ALL},
+    {"all", BCLog::ALL},
 };
 
-const CLogCategoryDesc LogCategories[] = {
-    {BCLog::NONE, "0"},
-    {BCLog::NONE, "none"},
-    {BCLog::NET, "net"},
-    {BCLog::TOR, "tor"},
-    {BCLog::MEMPOOL, "mempool"},
-    {BCLog::HTTP, "http"},
-    {BCLog::BENCH, "bench"},
-    {BCLog::ZMQ, "zmq"},
-    {BCLog::WALLETDB, "walletdb"},
-    {BCLog::RPC, "rpc"},
-    {BCLog::ESTIMATEFEE, "estimatefee"},
-    {BCLog::ADDRMAN, "addrman"},
-    {BCLog::SELECTCOINS, "selectcoins"},
-    {BCLog::REINDEX, "reindex"},
-    {BCLog::CMPCTBLOCK, "cmpctblock"},
-    {BCLog::RAND, "rand"},
-    {BCLog::PRUNE, "prune"},
-    {BCLog::PROXY, "proxy"},
-    {BCLog::MEMPOOLREJ, "mempoolrej"},
-    {BCLog::LIBEVENT, "libevent"},
-    {BCLog::COINDB, "coindb"},
-    {BCLog::QT, "qt"},
-    {BCLog::LEVELDB, "leveldb"},
-    {BCLog::VALIDATION, "validation"},
-    {BCLog::AVALANCHE, "avalanche"},
-    {BCLog::I2P, "i2p"},
-    {BCLog::CHRONIK, "chronik"},
-#ifdef DEBUG_LOCKCONTENTION
-    {BCLog::LOCK, "lock"},
-#endif
-    {BCLog::BLOCKSTORE, "blockstorage"},
-    {BCLog::NETDEBUG, "netdebug"},
-    {BCLog::TXPACKAGES, "txpackages"},
-    {BCLog::ALL, "1"},
-    {BCLog::ALL, "all"},
-};
+static const std::unordered_map<BCLog::LogFlags, std::string>
+    LOG_CATEGORIES_BY_FLAG{
+        // Swap keys and values from LOG_CATEGORIES_BY_STR.
+        [](const std::map<std::string, BCLog::LogFlags> &in) {
+            std::unordered_map<BCLog::LogFlags, std::string> out;
+            for (const auto &[k, v] : in) {
+                switch (v) {
+                    case BCLog::NONE:
+                        out.emplace(BCLog::NONE, "");
+                        break;
+                    case BCLog::ALL:
+                        out.emplace(BCLog::ALL, "all");
+                        break;
+                    default:
+                        out.emplace(v, k);
+                }
+            }
+            return out;
+        }(LOG_CATEGORIES_BY_STR)};
 
 bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str) {
-    if (str == "") {
+    if (str.empty()) {
         flag = BCLog::ALL;
         return true;
     }
-    for (const CLogCategoryDesc &category_desc : LogCategories) {
-        if (category_desc.category == str) {
-            flag = category_desc.flag;
-            return true;
-        }
+    auto it = LOG_CATEGORIES_BY_STR.find(str);
+    if (it != LOG_CATEGORIES_BY_STR.end()) {
+        flag = it->second;
+        return true;
     }
     return false;
 }
 
-std::vector<LogCategory> BCLog::Logger::LogCategoriesList() const {
-    // Sort log categories by alphabetical order.
-    std::array<CLogCategoryDesc, std::size(LogCategories)> categories;
-    std::copy(std::begin(LogCategories), std::end(LogCategories),
-              categories.begin());
-    std::sort(categories.begin(), categories.end(),
-              [](auto a, auto b) { return a.category < b.category; });
+std::string LogLevelToStr(BCLog::Level level) {
+    switch (level) {
+        case BCLog::Level::None:
+            return "none";
+        case BCLog::Level::Debug:
+            return "debug";
+        case BCLog::Level::Info:
+            return "info";
+        case BCLog::Level::Warning:
+            return "warning";
+        case BCLog::Level::Error:
+            return "error";
+    }
+    assert(false);
+}
 
+std::string LogCategoryToStr(BCLog::LogFlags category) {
+    auto it = LOG_CATEGORIES_BY_FLAG.find(category);
+    assert(it != LOG_CATEGORIES_BY_FLAG.end());
+    return it->second;
+}
+
+std::vector<LogCategory> BCLog::Logger::LogCategoriesList() const {
     std::vector<LogCategory> ret;
-    for (const CLogCategoryDesc &category_desc : categories) {
-        if (category_desc.flag == BCLog::NONE ||
-            category_desc.flag == BCLog::ALL) {
-            continue;
+    for (const auto &[category, flag] : LOG_CATEGORIES_BY_STR) {
+        if (flag != BCLog::NONE && flag != BCLog::ALL) {
+            ret.push_back(LogCategory{.category = category,
+                                      .active = WillLogCategory(flag)});
         }
-        LogCategory catActive;
-        catActive.category = category_desc.category;
-        catActive.active = WillLogCategory(category_desc.flag);
-        ret.push_back(catActive);
     }
     return ret;
 }
@@ -233,9 +258,32 @@ std::string LogEscapeMessage(const std::string &str) {
 void BCLog::Logger::LogPrintStr(const std::string &str,
                                 const std::string &logging_function,
                                 const std::string &source_file,
-                                const int source_line) {
+                                const int source_line,
+                                const BCLog::LogFlags category,
+                                const BCLog::Level level) {
     StdLockGuard scoped_lock(m_cs);
     std::string str_prefixed = LogEscapeMessage(str);
+
+    if ((category != LogFlags::NONE || level != Level::None) &&
+        m_started_new_line) {
+        std::string s{"["};
+
+        if (category != LogFlags::NONE) {
+            s += LogCategoryToStr(category);
+        }
+
+        if (category != LogFlags::NONE && level != Level::None) {
+            // Only add separator if both flag and level are not NONE
+            s += ":";
+        }
+
+        if (level != Level::None) {
+            s += LogLevelToStr(level);
+        }
+
+        s += "] ";
+        str_prefixed.insert(0, s);
+    }
 
     if (m_log_sourcelocations && m_started_new_line) {
         str_prefixed.insert(0, "[" + RemovePrefix(source_file, "./") + ":" +

@@ -414,7 +414,8 @@ static CAddress GetBindAddress(SOCKET sock) {
                          &sockaddr_bind_len)) {
             addr_bind.SetSockAddr((const struct sockaddr *)&sockaddr_bind);
         } else {
-            LogPrint(BCLog::NET, "Warning: getsockname failed\n");
+            LogPrintLevel(BCLog::Level::Warning, BCLog::NET,
+                          "getsockname failed\n");
         }
     }
     return addr_bind;
@@ -437,10 +438,11 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         }
     }
 
-    LogPrint(BCLog::NET, "trying connection %s lastseen=%.1fhrs\n",
-             pszDest ? pszDest : addrConnect.ToString(),
-             Ticks<HoursDouble>(
-                 pszDest ? 0h : Now<NodeSeconds>() - addrConnect.nTime));
+    LogPrintLevel(BCLog::Level::Debug, BCLog::NET,
+                  "trying connection %s lastseen=%.1fhrs\n",
+                  pszDest ? pszDest : addrConnect.ToString(),
+                  Ticks<HoursDouble>(
+                      pszDest ? 0h : Now<NodeSeconds>() - addrConnect.nTime));
 
     // Resolve
     const uint16_t default_port{pszDest != nullptr
@@ -1297,7 +1299,8 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
     }
 
     if (!addr.SetSockAddr((const struct sockaddr *)&sockaddr)) {
-        LogPrintf("Warning: Unknown socket family\n");
+        LogPrintLevel(BCLog::Level::Warning, BCLog::NET,
+                      "Unknown socket family\n");
     }
 
     const CAddress addr_bind = GetBindAddress(sock->Get());
@@ -2564,20 +2567,22 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
     if (!addrBind.GetSockAddr((struct sockaddr *)&sockaddr, &len)) {
-        strError = strprintf(
-            Untranslated("Error: Bind address family for %s not supported"),
-            addrBind.ToString());
-        LogPrintf("%s\n", strError.original);
+        strError =
+            strprintf(Untranslated("Bind address family for %s not supported"),
+                      addrBind.ToString());
+        LogPrintLevel(BCLog::Level::Error, BCLog::NET, "%s\n",
+                      strError.original);
         return false;
     }
 
     std::unique_ptr<Sock> sock = CreateSock(addrBind);
     if (!sock) {
         strError =
-            strprintf(Untranslated("Error: Couldn't open socket for incoming "
+            strprintf(Untranslated("Couldn't open socket for incoming "
                                    "connections (socket returned error %s)"),
                       NetworkErrorString(WSAGetLastError()));
-        LogPrintf("%s\n", strError.original);
+        LogPrintLevel(BCLog::Level::Error, BCLog::NET, "%s\n",
+                      strError.original);
         return false;
     }
 
@@ -2613,17 +2618,20 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
                                    "(bind returned error %s)"),
                                  addrBind.ToString(), NetworkErrorString(nErr));
         }
-        LogPrintf("%s\n", strError.original);
+
+        LogPrintLevel(BCLog::Level::Error, BCLog::NET, "%s\n",
+                      strError.original);
         return false;
     }
     LogPrintf("Bound to %s\n", addrBind.ToString());
 
     // Listen for incoming connections
     if (listen(sock->Get(), SOMAXCONN) == SOCKET_ERROR) {
-        strError = strprintf(_("Error: Listening for incoming connections "
+        strError = strprintf(_("Listening for incoming connections "
                                "failed (listen returned error %s)"),
                              NetworkErrorString(WSAGetLastError()));
-        LogPrintf("%s\n", strError.original);
+        LogPrintLevel(BCLog::Level::Error, BCLog::NET, "%s\n",
+                      strError.original);
         return false;
     }
 
