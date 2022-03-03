@@ -21,7 +21,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
 
 BalanceHeaderFiat.propTypes = {
     balance: PropTypes.number,
-    settings: PropTypes.object,
+    settings: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
     fiatPrice: PropTypes.number,
 };
 
