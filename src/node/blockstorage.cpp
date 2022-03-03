@@ -221,7 +221,6 @@ CBlockIndex *BlockManager::InsertBlockIndex(const BlockHash &hash) {
         return nullptr;
     }
 
-    // Return existing or create new
     const auto [mi, inserted] = m_block_index.try_emplace(hash);
     CBlockIndex *pindex = &(*mi).second;
     if (inserted) {
@@ -240,18 +239,21 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
     }
 
     // Calculate nChainWork
-    std::vector<std::pair<int, CBlockIndex *>> vSortedByHeight;
+    std::vector<CBlockIndex *> vSortedByHeight;
     vSortedByHeight.reserve(m_block_index.size());
     for (auto &[_, block_index] : m_block_index) {
-        vSortedByHeight.emplace_back(block_index.nHeight, &block_index);
+        vSortedByHeight.push_back(&block_index);
     }
 
-    sort(vSortedByHeight.begin(), vSortedByHeight.end());
+    sort(vSortedByHeight.begin(), vSortedByHeight.end(),
+         [](const CBlockIndex *pa, const CBlockIndex *pb) {
+             return pa->nHeight < pb->nHeight;
+         });
 
     // Find start of assumed-valid region.
     int first_assumed_valid_height = std::numeric_limits<int>::max();
 
-    for (const auto &[height, block] : vSortedByHeight) {
+    for (const CBlockIndex *block : vSortedByHeight) {
         if (block->IsAssumedValid()) {
             auto chainstates = chainman.GetAll();
 
@@ -271,15 +273,14 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params,
                 return !chainstate->reliesOnAssumedValid();
             }));
 
-            first_assumed_valid_height = height;
+            first_assumed_valid_height = block->nHeight;
             break;
         }
     }
-    for (const std::pair<int, CBlockIndex *> &item : vSortedByHeight) {
+    for (CBlockIndex *pindex : vSortedByHeight) {
         if (ShutdownRequested()) {
             return false;
         }
-        CBlockIndex *pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) +
                              GetBlockProof(*pindex);
         pindex->nTimeMax =
