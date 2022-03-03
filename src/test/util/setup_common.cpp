@@ -17,6 +17,7 @@
 #include <consensus/validation.h>
 #include <crypto/sha256.h>
 #include <init.h>
+#include <init/common.h>
 #include <interfaces/chain.h>
 #include <logging.h>
 #include <mempool_args.h>
@@ -132,8 +133,7 @@ BasicTestingSetup::BasicTestingSetup(
     InitLogging(*m_node.args);
     AppInitParameterInteraction(config, *m_node.args);
     LogInstance().StartLogging();
-    SHA256AutoDetect();
-    ECC_Start();
+    m_node.kernel = std::make_unique<kernel::Context>();
     SetupEnvironment();
     SetupNetworking();
 
@@ -158,7 +158,6 @@ BasicTestingSetup::~BasicTestingSetup() {
     LogInstance().DisconnectTestLogger();
     fs::remove_all(m_path_root);
     gArgs.ClearArgs();
-    ECC_Stop();
 }
 CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
     CTxMemPool::Options mempool_opts{

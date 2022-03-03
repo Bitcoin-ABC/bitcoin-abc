@@ -46,7 +46,7 @@ extern std::vector<const char *> fixture_extra_args;
  * This just configures logging, data dir and chain parameters.
  */
 struct BasicTestingSetup {
-    ECCVerifyHandle globalVerifyHandle;
+    // keep as first member to be destructed last
     node::NodeContext m_node;
 
     explicit BasicTestingSetup(

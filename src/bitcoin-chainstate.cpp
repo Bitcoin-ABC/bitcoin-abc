@@ -13,6 +13,8 @@
 
 #include <kernel/chainparams.h>
 #include <kernel/chainstatemanager_opts.h>
+#include <kernel/checks.h>
+#include <kernel/context.h>
 #include <kernel/validation_cache_sizes.h>
 
 #include <chainparams.h>
@@ -20,7 +22,6 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <core_io.h>
-#include <init/common.h>
 #include <node/blockstorage.h>
 #include <node/caches.h>
 #include <node/chainstate.h>
@@ -32,6 +33,7 @@
 #include <validation.h>
 #include <validationinterface.h>
 
+#include <cassert>
 #include <cstdint>
 #include <filesystem>
 #include <functional>
@@ -66,7 +68,11 @@ int main(int argc, char *argv[]) {
     config.SetChainParams(*chainparams);
 
     // ECC_Start, etc.
-    init::SetGlobals();
+    kernel::Context kernel_context{};
+    // We can't use a goto here, but we can use an assert since none of the
+    // things instantiated so far requires running the epilogue to be torn down
+    // properly
+    assert(!kernel::SanityChecks(kernel_context).has_value());
 
     // Necessary for CheckInputScripts (eventually called by ProcessNewBlock),
     // which will try the script cache first and fall back to actually
@@ -327,6 +333,4 @@ epilogue:
         }
     }
     GetMainSignals().UnregisterBackgroundSignalScheduler();
-
-    init::UnsetGlobals();
 }

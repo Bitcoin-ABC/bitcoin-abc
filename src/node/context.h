@@ -5,6 +5,8 @@
 #ifndef BITCOIN_NODE_CONTEXT_H
 #define BITCOIN_NODE_CONTEXT_H
 
+#include <kernel/context.h>
+
 #include <cassert>
 #include <functional>
 #include <memory>
@@ -41,6 +43,8 @@ class KernelNotifications;
 //! any member functions. It should just be a collection of references that can
 //! be used without pulling in unwanted dependencies or functionality.
 struct NodeContext {
+    //! libbitcoin_kernel context
+    std::unique_ptr<kernel::Context> kernel;
     std::unique_ptr<AddrMan> addrman;
     std::unique_ptr<CConnman> connman;
     std::unique_ptr<CTxMemPool> mempool;

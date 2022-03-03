@@ -75,10 +75,26 @@ namespace {
         }
         bilingual_str getWarnings() override { return GetWarnings(true); }
         bool baseInitialize(Config &config) override {
-            return AppInitBasicSetup(gArgs) &&
-                   AppInitParameterInteraction(config, gArgs) &&
-                   AppInitSanityChecks() && AppInitLockDataDirectory() &&
-                   AppInitInterfaces(*m_context);
+            if (!AppInitBasicSetup(gArgs)) {
+                return false;
+            }
+            if (!AppInitParameterInteraction(config, gArgs)) {
+                return false;
+            }
+
+            m_context->kernel = std::make_unique<kernel::Context>();
+            if (!AppInitSanityChecks(*m_context->kernel)) {
+                return false;
+            }
+
+            if (!AppInitLockDataDirectory()) {
+                return false;
+            }
+            if (!AppInitInterfaces(*m_context)) {
+                return false;
+            }
+
+            return true;
         }
         bool appInitMain(Config &config, RPCServer &rpcServer,
                          HTTPRPCRequestProcessor &httpRPCRequestProcessor,

@@ -25,6 +25,9 @@ class HTTPRPCRequestProcessor;
 namespace interfaces {
 struct BlockAndHeaderTipInfo;
 }
+namespace kernel {
+struct Context;
+}
 namespace node {
 struct NodeContext;
 } // namespace node
@@ -60,7 +63,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args);
  * @pre Parameters should be parsed and config file should be read,
  * AppInitParameterInteraction should have been called.
  */
-bool AppInitSanityChecks();
+bool AppInitSanityChecks(const kernel::Context &kernel);
 /**
  * Lock bitcoin data directory.
  * @note This should only be done after daemonization.

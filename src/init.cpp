@@ -9,6 +9,7 @@
 
 #include <init.h>
 
+#include <kernel/checks.h>
 #include <kernel/mempool_persist.h>
 #include <kernel/validation_cache_sizes.h>
 
@@ -360,7 +361,7 @@ void Shutdown(NodeContext &node) {
     node.chain_clients.clear();
     UnregisterAllValidationInterfaces();
     GetMainSignals().UnregisterBackgroundSignalScheduler();
-    init::UnsetGlobals();
+    node.kernel.reset();
     node.mempool.reset();
     node.chainman.reset();
     node.scheduler.reset();
@@ -2079,13 +2080,25 @@ static bool LockDataDirectory(bool probeOnly) {
     return true;
 }
 
-bool AppInitSanityChecks() {
+bool AppInitSanityChecks(const kernel::Context &kernel) {
     // Step 4: sanity checks
+    auto maybe_error = kernel::SanityChecks(kernel);
 
-    init::SetGlobals();
+    if (maybe_error.has_value()) {
+        switch (maybe_error.value()) {
+            case kernel::SanityCheckError::ERROR_ECC:
+                InitError(Untranslated("Elliptic curve cryptography sanity "
+                                       "check failure. Aborting."));
+                break;
+            case kernel::SanityCheckError::ERROR_RANDOM:
+                InitError(Untranslated(
+                    "OS cryptographic RNG sanity check failure. Aborting."));
+                break;
+            case kernel::SanityCheckError::ERROR_CHRONO:
+                InitError(Untranslated("Clock epoch mismatch. Aborting."));
+                break;
+        } // no default case, so the compiler can warn about missing cases
 
-    // Sanity check
-    if (!init::SanityChecks()) {
         return InitError(strprintf(
             _("Initialization sanity check failed. %s is shutting down."),
             PACKAGE_NAME));
