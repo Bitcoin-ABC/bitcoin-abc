@@ -607,6 +607,9 @@ struct Peer {
         m_headers_sync PT_GUARDED_BY(m_headers_sync_mutex)
             GUARDED_BY(m_headers_sync_mutex){};
 
+    /** Whether we've sent our peer a sendheaders message. **/
+    std::atomic<bool> m_sent_sendheaders{false};
+
     explicit Peer(NodeId id, ServiceFlags our_services)
         : m_id(id), m_our_services{our_services},
           m_proof_relay(isAvalancheEnabled(gArgs)
@@ -1029,6 +1032,12 @@ private:
     /** Send `addr` messages on a regular schedule. */
     void MaybeSendAddr(CNode &node, Peer &peer,
                        std::chrono::microseconds current_time);
+
+    /**
+     * Send a single `sendheaders` message, after we have completed headers
+     * sync with a peer.
+     */
+    void MaybeSendSendHeaders(CNode &node, Peer &peer);
 
     /** Send `feefilter` message. */
     void MaybeSendFeefilter(CNode &node, Peer &peer,
@@ -4502,15 +4511,6 @@ void PeerManagerImpl::ProcessMessage(
                 pfrom.ConnectionTypeAsString());
         }
 
-        if (pfrom.GetCommonVersion() >= SENDHEADERS_VERSION) {
-            // Tell our peer we prefer to receive headers rather than inv's
-            // We send this to non-NODE NETWORK peers as well, because even
-            // non-NODE NETWORK peers can announce blocks (such as pruning
-            // nodes)
-            m_connman.PushMessage(&pfrom,
-                                  msgMaker.Make(NetMsgType::SENDHEADERS));
-        }
-
         if (pfrom.GetCommonVersion() >= SHORT_IDS_BLOCKS_VERSION) {
             // Tell our peer we are willing to provide version 1
             // cmpctblocks. However, we do not request new block announcements
@@ -7234,6 +7234,28 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
     }
 }
 
+void PeerManagerImpl::MaybeSendSendHeaders(CNode &node, Peer &peer) {
+    // Delay sending SENDHEADERS (BIP 130) until we're done with an
+    // initial-headers-sync with this peer. Receiving headers announcements for
+    // new blocks while trying to sync their headers chain is problematic,
+    // because of the state tracking done.
+    if (!peer.m_sent_sendheaders &&
+        node.GetCommonVersion() >= SENDHEADERS_VERSION) {
+        LOCK(cs_main);
+        CNodeState &state = *State(node.GetId());
+        if (state.pindexBestKnownBlock != nullptr &&
+            state.pindexBestKnownBlock->nChainWork > nMinimumChainWork) {
+            // Tell our peer we prefer to receive headers rather than inv's
+            // We send this to non-NODE NETWORK peers as well, because even
+            // non-NODE NETWORK peers can announce blocks (such as pruning
+            // nodes)
+            m_connman.PushMessage(&node, CNetMsgMaker(node.GetCommonVersion())
+                                             .Make(NetMsgType::SENDHEADERS));
+            peer.m_sent_sendheaders = true;
+        }
+    }
+}
+
 void PeerManagerImpl::MaybeSendFeefilter(
     CNode &pto, Peer &peer, std::chrono::microseconds current_time) {
     if (m_ignore_incoming_txs) {
@@ -7378,6 +7400,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
     bool sync_blocks_and_headers_from_peer = false;
 
     MaybeSendAddr(*pto, *peer, current_time);
+
+    MaybeSendSendHeaders(*pto, *peer);
 
     {
         LOCK(cs_main);
