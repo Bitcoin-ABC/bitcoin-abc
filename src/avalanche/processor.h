@@ -155,8 +155,9 @@ class Processor {
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
-    Processor(interfaces::Chain &chain, CConnman *connmanIn,
-              std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn);
+    Processor(const ArgsManager &argsman, interfaces::Chain &chain,
+              CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
+              CKey sessionKeyIn);
 
 public:
     ~Processor();

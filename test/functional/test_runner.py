@@ -136,6 +136,7 @@ TEST_PARAMS = {
     "abc_p2p_proof_inventory.py": [["--nolegacyavaproof"]],
     "abc_rpc_addavalanchenode.py": [["--nolegacyavaproof"]],
     "abc_rpc_buildavalancheproof.py": [["--nolegacyavaproof"]],
+    "abc_rpc_getavalancheinfo.py": [["--nolegacyavaproof"]],
     "abc_rpc_getavalanchepeerinfo.py": [["--nolegacyavaproof"]],
     "p2p_eviction.py": [["--nolegacyavaproof"]],
     "p2p_inv_download.py": [["--nolegacyavaproof"]],

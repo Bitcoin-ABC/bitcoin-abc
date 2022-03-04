@@ -545,6 +545,140 @@ static RPCHelpMan delegateavalancheproof() {
     };
 }
 
+static RPCHelpMan getavalancheinfo() {
+    return RPCHelpMan{
+        "getavalancheinfo",
+        "Returns an object containing various state info regarding avalanche "
+        "networking.\n",
+        {},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::OBJ,
+                 "local",
+                 "Only available if -avaproof has been supplied to the node",
+                 {
+                     {RPCResult::Type::STR_HEX, "proofid",
+                      "The node local proof id."},
+                     {RPCResult::Type::STR_HEX, "limited_proofid",
+                      "The node local limited proof id."},
+                     {RPCResult::Type::STR_HEX, "master",
+                      "The node local proof master public key."},
+                     {RPCResult::Type::STR, "payout_address",
+                      "The node local proof payout address. This might be "
+                      "omitted if the payout script is not one of P2PK, P2PKH "
+                      "or P2SH, in which case decodeavalancheproof can be used "
+                      "to get more details."},
+                     {RPCResult::Type::STR_AMOUNT, "stake_amount",
+                      "The node local proof staked amount."},
+                 }},
+                {RPCResult::Type::OBJ,
+                 "network",
+                 "",
+                 {
+                     {RPCResult::Type::NUM, "proof_count",
+                      "The number of valid avalanche proofs we know exist."},
+                     {RPCResult::Type::NUM, "connected_proof_count",
+                      "The number of avalanche proofs with at least one node "
+                      "we are connected to."},
+                     {RPCResult::Type::STR_AMOUNT, "total_stake_amount",
+                      "The total staked amount over all the valid proofs in " +
+                          Currency::get().ticker + "."},
+                     {RPCResult::Type::STR_AMOUNT, "connected_stake_amount",
+                      "The total staked amount over all the connected proofs "
+                      "in " +
+                          Currency::get().ticker + "."},
+                     {RPCResult::Type::NUM, "node_count",
+                      "The number of avalanche nodes we are connected to."},
+                     {RPCResult::Type::NUM, "connected_node_count",
+                      "The number of avalanche nodes associated with an "
+                      "avalanche proof."},
+                     {RPCResult::Type::NUM, "pending_node_count",
+                      "The number of avalanche nodes pending for a proof."},
+                 }},
+            },
+        },
+        RPCExamples{HelpExampleCli("getavalancheinfo", "") +
+                    HelpExampleRpc("getavalancheinfo", "")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            UniValue ret(UniValue::VOBJ);
+
+            auto localProof = g_avalanche->getLocalProof();
+            if (localProof != nullptr) {
+                UniValue local(UniValue::VOBJ);
+                local.pushKV("live", g_avalanche->withPeerManager(
+                                         [&](const avalanche::PeerManager &pm) {
+                                             return pm.isBoundToPeer(
+                                                 localProof->getId());
+                                         }));
+                local.pushKV("proofid", localProof->getId().ToString());
+                local.pushKV("limited_proofid",
+                             localProof->getLimitedId().ToString());
+                local.pushKV("master", HexStr(localProof->getMaster()));
+                CTxDestination destination;
+                if (ExtractDestination(localProof->getPayoutScript(),
+                                       destination)) {
+                    local.pushKV("payout_address",
+                                 EncodeDestination(destination, config));
+                }
+                local.pushKV("stake_amount", localProof->getStakedAmount());
+                ret.pushKV("local", local);
+            }
+
+            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+                UniValue network(UniValue::VOBJ);
+
+                uint64_t proofCount{0};
+                uint64_t connectedProofCount{0};
+                Amount totalStakes = Amount::zero();
+                Amount connectedStakes = Amount::zero();
+
+                pm.forEachPeer([&](const avalanche::Peer &peer) {
+                    CHECK_NONFATAL(peer.proof != nullptr);
+
+                    // Don't account for our local proof here
+                    if (peer.proof == localProof) {
+                        return;
+                    }
+
+                    const Amount proofStake = peer.proof->getStakedAmount();
+
+                    ++proofCount;
+                    totalStakes += proofStake;
+
+                    if (peer.node_count > 0) {
+                        ++connectedProofCount;
+                        connectedStakes += proofStake;
+                    }
+                });
+
+                network.pushKV("proof_count", proofCount);
+                network.pushKV("connected_proof_count", connectedProofCount);
+                network.pushKV("total_stake_amount", totalStakes);
+                network.pushKV("connected_stake_amount", connectedStakes);
+
+                const uint64_t connectedNodes = pm.getNodeCount();
+                const uint64_t pendingNodes = pm.getPendingNodeCount();
+                network.pushKV("node_count", connectedNodes + pendingNodes);
+                network.pushKV("connected_node_count", connectedNodes);
+                network.pushKV("pending_node_count", pendingNodes);
+
+                ret.pushKV("network", network);
+            });
+
+            return ret;
+        },
+    };
+}
+
 static RPCHelpMan getavalanchepeerinfo() {
     return RPCHelpMan{
         "getavalanchepeerinfo",
@@ -782,6 +916,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         buildavalancheproof,    },
         { "avalanche",         decodeavalancheproof,   },
         { "avalanche",         delegateavalancheproof, },
+        { "avalanche",         getavalancheinfo,       },
         { "avalanche",         getavalanchepeerinfo,   },
         { "avalanche",         getrawavalancheproof,   },
         { "avalanche",         sendavalancheproof,     },

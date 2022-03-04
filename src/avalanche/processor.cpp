@@ -129,9 +129,12 @@ public:
     }
 };
 
-Processor::Processor(interfaces::Chain &chain, CConnman *connmanIn,
-                     std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn)
-    : connman(connmanIn), queryTimeoutDuration(AVALANCHE_DEFAULT_QUERY_TIMEOUT),
+Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
+                     CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
+                     CKey sessionKeyIn)
+    : connman(connmanIn),
+      queryTimeoutDuration(argsman.GetArg(
+          "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
       round(0), peerManager(std::make_unique<PeerManager>()),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)) {
     // Make sure we get notified of chain state changes.
@@ -240,7 +243,7 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
-        chain, connman, std::move(peerData), std::move(sessionKey)));
+        argsman, chain, connman, std::move(peerData), std::move(sessionKey)));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
