@@ -160,6 +160,7 @@ public:
         return StakeCommitment(proofid, expirationTime, master);
     };
     uint32_t getScore() const { return score; }
+    Amount getStakedAmount() const;
 
     bool verify(ProofValidationState &state) const;
     bool verify(ProofValidationState &state, const CCoinsView &view) const;

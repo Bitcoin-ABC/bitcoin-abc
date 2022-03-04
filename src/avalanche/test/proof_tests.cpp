@@ -1055,4 +1055,24 @@ BOOST_AUTO_TEST_CASE(deterministic_proofid) {
     BOOST_CHECK_EQUAL(proofid, computeProofId());
 }
 
+BOOST_AUTO_TEST_CASE(get_staked_amount) {
+    auto key = CKey::MakeCompressedKey();
+    ProofBuilder pb(10, 11, key);
+
+    {
+        ProofRef p = pb.build();
+        BOOST_CHECK_EQUAL(p->getStakedAmount(), Amount::zero());
+    }
+
+    for (int i = 1; i <= 10; i++) {
+        BOOST_CHECK(pb.addUTXO(COutPoint(TxId(GetRandHash()), 0), i * COIN, 42,
+                               false, key));
+    }
+
+    {
+        ProofRef p = pb.build();
+        BOOST_CHECK_EQUAL(p->getStakedAmount(), 55 * COIN);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

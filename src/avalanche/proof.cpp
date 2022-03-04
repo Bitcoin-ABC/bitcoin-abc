@@ -16,6 +16,7 @@
 
 #include <tinyformat.h>
 
+#include <numeric>
 #include <unordered_set>
 
 namespace avalanche {
@@ -102,6 +103,13 @@ void Proof::computeScore() {
     }
 
     score = uint32_t((100 * total) / COIN);
+}
+
+Amount Proof::getStakedAmount() const {
+    return std::accumulate(stakes.begin(), stakes.end(), Amount::zero(),
+                           [](const Amount current, const SignedStake &ss) {
+                               return current + ss.getStake().getAmount();
+                           });
 }
 
 bool Proof::verify(ProofValidationState &state) const {
