@@ -203,6 +203,7 @@ public:
      */
     bool addNode(NodeId nodeid, const ProofId &proofid);
     bool removeNode(NodeId nodeid);
+    size_t getNodeCount() const { return nodes.size(); }
     size_t getPendingNodeCount() const { return pendingNodes.size(); }
 
     // Update when a node is to be polled next.

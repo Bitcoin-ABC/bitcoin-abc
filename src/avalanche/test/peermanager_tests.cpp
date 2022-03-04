@@ -420,12 +420,14 @@ BOOST_AUTO_TEST_CASE(node_binding) {
     auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
     const ProofId &proofid = proof->getId();
 
+    BOOST_CHECK_EQUAL(pm.getNodeCount(), 0);
     BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 0);
 
     // Add a bunch of nodes with no associated peer
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(!pm.addNode(i, proofid));
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 0);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), i + 1);
     }
 
@@ -435,6 +437,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 10);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 0);
     }
     BOOST_CHECK(pm.verify());
@@ -444,6 +447,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK(pm.removeNode(i));
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 10 - i - 1);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 0);
     }
 
@@ -452,6 +456,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK(pm.addNode(i, proofid));
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 5 + i + 1);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 0);
     }
 
@@ -463,6 +468,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK(!pm.addNode(i, alt_proofid));
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 10 - i - 1);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), i + 1);
     }
 
@@ -473,6 +479,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
     for (int i = 0; i < 5; i++) {
         BOOST_CHECK(!pm.addNode(i, alt2_proofid));
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 5);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 5);
     }
 
@@ -481,6 +488,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK(pm.addNode(i, proofid));
         BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 5 + i + 1);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 5 - i - 1);
     }
 
@@ -490,6 +498,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
         BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 0);
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 10);
     }
     BOOST_CHECK(pm.verify());
