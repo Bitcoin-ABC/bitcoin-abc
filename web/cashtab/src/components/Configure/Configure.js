@@ -34,7 +34,6 @@ import { ReactComponent as Edit } from '@assets/edit.svg';
 import { Event } from '@utils/GoogleAnalytics';
 import ApiError from '@components/Common/ApiError';
 import { formatSavedBalance } from '@utils/formatting';
-import { useHistory } from 'react-router-dom';
 
 const { Panel } = Collapse;
 
@@ -48,22 +47,6 @@ const SettingsLink = styled.a`
     :hover {
         color: ${props => props.theme.eCashPurple};
     }
-`;
-
-const PrivacyLink = styled.button`
-    text-decoration: underline;
-    color: ${props => props.theme.eCashBlue};
-    :visited {
-        text-decoration: underline;
-        color: ${props => props.theme.eCashBlue};
-    }
-    :hover {
-        color: ${props => props.theme.eCashPurple};
-    }
-    background: none !important;
-    border: none;
-    padding: 0 !important;
-    cursor: pointer;
 `;
 
 const SWRow = styled.div`
@@ -277,7 +260,6 @@ const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const authentication = React.useContext(AuthenticationContext);
     const { wallet, apiError } = ContextValue;
-    const history = useHistory();
 
     const {
         addNewSavedWallet,
@@ -797,13 +779,6 @@ const Configure = () => {
                 >
                     Documentation
                 </SettingsLink>
-                |
-                <PrivacyLink
-                    type="link"
-                    onClick={() => history.push('/privacy')}
-                >
-                    Privacy Policy
-                </PrivacyLink>
                 ]
             </StyledConfigure>
         </SidePaddingCtn>
