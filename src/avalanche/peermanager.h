@@ -203,6 +203,7 @@ public:
      */
     bool addNode(NodeId nodeid, const ProofId &proofid);
     bool removeNode(NodeId nodeid);
+    size_t getPendingNodeCount() const { return pendingNodes.size(); }
 
     // Update when a node is to be polled next.
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
