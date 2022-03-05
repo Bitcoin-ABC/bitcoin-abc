@@ -145,6 +145,8 @@ public:
     static bool FromHex(Proof &proof, const std::string &hexProof,
                         bilingual_str &errorOut);
 
+    static uint32_t amountToScore(Amount amount);
+
     uint64_t getSequence() const { return sequence; }
     int64_t getExpirationTime() const { return expirationTime; }
     const CPubKey &getMaster() const { return master; }

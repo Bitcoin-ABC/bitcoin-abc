@@ -102,7 +102,11 @@ void Proof::computeScore() {
         total += s.getStake().getAmount();
     }
 
-    score = uint32_t((100 * total) / COIN);
+    score = amountToScore(total);
+}
+
+uint32_t Proof::amountToScore(Amount amount) {
+    return (100 * amount) / COIN;
 }
 
 Amount Proof::getStakedAmount() const {
