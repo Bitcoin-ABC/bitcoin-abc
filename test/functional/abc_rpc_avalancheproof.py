@@ -103,6 +103,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert "signature" not in decodedproof.keys()
         assert_equal(decodedproof["proofid"], f"{proofobj.proofid:0{64}x}")
         assert_equal(decodedproof["limitedid"], limited_id_hex)
+        assert_equal(decodedproof["staked_amount"], Decimal('50000000.00'))
+        assert_equal(decodedproof["score"], 5000)
         assert_equal(decodedproof["stakes"][0]["txid"], stakes[0]["txid"])
         assert_equal(decodedproof["stakes"][0]["vout"], stakes[0]["vout"])
         assert_equal(decodedproof["stakes"][0]["height"], stakes[0]["height"])
@@ -156,7 +158,12 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_equal(
             decoded_regular_proof["limitedid"],
             f"{regular_proof_obj.limited_proofid:0{64}x}")
-
+        assert_equal(
+            decoded_regular_proof["staked_amount"],
+            decodedproof["staked_amount"])
+        assert_equal(
+            decoded_regular_proof["score"],
+            decodedproof["score"])
         assert_equal(
             decoded_regular_proof["stakes"][0]["txid"],
             decodedproof["stakes"][0]["txid"])

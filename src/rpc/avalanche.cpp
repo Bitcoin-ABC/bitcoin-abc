@@ -377,6 +377,10 @@ static RPCHelpMan decodeavalancheproof() {
                  "A hash of the proof data excluding the master key."},
                 {RPCResult::Type::STR_HEX, "proofid",
                  "A hash of the limitedid and master key."},
+                {RPCResult::Type::STR_AMOUNT, "staked_amount",
+                 "The total staked amount of this proof in " +
+                     Currency::get().ticker + "."},
+                {RPCResult::Type::NUM, "score", "The score of this proof."},
                 {RPCResult::Type::ARR,
                  "stakes",
                  "",
@@ -433,6 +437,9 @@ static RPCHelpMan decodeavalancheproof() {
 
             result.pushKV("limitedid", proof.getLimitedId().ToString());
             result.pushKV("proofid", proof.getId().ToString());
+
+            result.pushKV("staked_amount", proof.getStakedAmount());
+            result.pushKV("score", uint64_t(proof.getScore()));
 
             UniValue stakes(UniValue::VARR);
             for (const avalanche::SignedStake &s : proof.getStakes()) {
