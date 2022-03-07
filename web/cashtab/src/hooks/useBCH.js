@@ -1358,6 +1358,11 @@ export default function useBCH() {
 
             let originalAmount = new BigNumber(0);
             let txFee = 0;
+            // A normal tx will have 2 outputs, destination and change
+            // A one to many tx will have n outputs + 1 change output, where n is the number of recipients
+            const txOutputs = isOneToMany
+                ? destinationAddressAndValueArray.length + 1
+                : 2;
             for (let i = 0; i < utxos.length; i++) {
                 const utxo = utxos[i];
                 originalAmount = originalAmount.plus(utxo.value);
@@ -1367,7 +1372,7 @@ export default function useBCH() {
                 transactionBuilder.addInput(txid, vout);
 
                 inputUtxos.push(utxo);
-                txFee = calcFee(BCH, inputUtxos, 2, feeInSatsPerByte);
+                txFee = calcFee(BCH, inputUtxos, txOutputs, feeInSatsPerByte);
 
                 if (originalAmount.minus(satoshisToSend).minus(txFee).gte(0)) {
                     break;
