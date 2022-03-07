@@ -444,6 +444,10 @@ static RPCHelpMan decodeavalancheproof() {
                 stake.pushKV("height", uint64_t(s.getStake().getHeight()));
                 stake.pushKV("iscoinbase", s.getStake().isCoinbase());
                 stake.pushKV("pubkey", HexStr(s.getStake().getPubkey()));
+                // Only PKHash destination is supported, so this is safe
+                stake.pushKV("address",
+                             EncodeDestination(PKHash(s.getStake().getPubkey()),
+                                               config));
                 stake.pushKV("signature", EncodeBase64(s.getSignature()));
                 stakes.push_back(stake);
             }

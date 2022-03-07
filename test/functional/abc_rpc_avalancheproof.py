@@ -6,13 +6,14 @@
 import base64
 from decimal import Decimal
 
-from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, base58_to_byte
 from test_framework.avatools import (
     create_coinbase_stakes,
     create_stakes,
     get_proof_ids,
     wait_for_proof,
 )
+from test_framework.cashaddr import PUBKEY_TYPE, encode_full
 from test_framework.key import ECKey
 from test_framework.messages import (
     AvalancheDelegation,
@@ -63,8 +64,16 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         node = self.nodes[0]
 
+        # FIXME Remove after the hardcoded addresses have been converted in the
+        # LUT from test_node.py
+        def legacy_to_ecash_p2pkh(legacy):
+            payload, _ = base58_to_byte(legacy)
+            return encode_full('ecregtest', PUBKEY_TYPE, payload)
+
         addrkey0 = node.get_deterministic_priv_key()
-        blockhashes = node.generatetoaddress(100, addrkey0.address)
+        node_ecash_addr = legacy_to_ecash_p2pkh(addrkey0.address)
+
+        blockhashes = node.generatetoaddress(100, node_ecash_addr)
 
         self.log.info(
             "Make build a valid proof and restart the node to use it")
@@ -100,6 +109,9 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_equal(
             decodedproof["stakes"][0]["iscoinbase"],
             stakes[0]["iscoinbase"])
+        assert_equal(
+            decodedproof["stakes"][0]["address"],
+            node_ecash_addr)
         assert_equal(
             decodedproof["stakes"][0]["signature"],
             base64.b64encode(proofobj.stakes[0].sig).decode("ascii"))
@@ -157,6 +169,9 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_equal(
             decoded_regular_proof["stakes"][0]["iscoinbase"],
             decodedproof["stakes"][0]["iscoinbase"])
+        assert_equal(
+            decoded_regular_proof["stakes"][0]["address"],
+            decodedproof["stakes"][0]["address"])
         assert_equal(
             decoded_regular_proof["stakes"][0]["signature"],
             base64.b64encode(regular_proof_obj.stakes[0].sig).decode("ascii"))
