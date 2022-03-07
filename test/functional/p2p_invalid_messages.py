@@ -24,7 +24,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PDataStore, P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, hex_str_to_bytes
+from test_framework.util import assert_equal
 
 # Account for the 5-byte length prefix
 VALID_DATA_LIMIT = MAX_PROTOCOL_MESSAGE_LENGTH - 5
@@ -180,7 +180,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
                          [
                              'received: addrv2 (1 bytes)',
                          ],
-                         hex_str_to_bytes('00'))
+                         bytes.fromhex('00'))
 
     def test_addrv2_too_long_address(self):
         self.test_addrv2('too long address',
@@ -189,7 +189,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
                              'ProcessMessages(addrv2, 525 bytes): Exception',
                              'Address too long: 513 > 512',
                          ],
-                         hex_str_to_bytes(
+                         bytes.fromhex(
                              # number of entries
                              '01' +
                              # time, Fri Jan  9 02:54:25 UTC 2009
@@ -213,7 +213,7 @@ class InvalidMessagesTest(BitcoinTestFramework):
                              'IP 9.9.9.9 mapped',
                              'Added 1 addresses',
                          ],
-                         hex_str_to_bytes(
+                         bytes.fromhex(
                              # number of entries
                              '02' +
 

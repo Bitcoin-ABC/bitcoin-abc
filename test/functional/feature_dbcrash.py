@@ -41,7 +41,7 @@ from test_framework.messages import (
     ToHex,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, hex_str_to_bytes
+from test_framework.util import assert_equal
 
 
 class ChainstateWriteCrashTest(BitcoinTestFramework):
@@ -219,7 +219,7 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
 
             for _ in range(3):
                 tx.vout.append(
-                    CTxOut(output_amount, hex_str_to_bytes(utxo['scriptPubKey'])))
+                    CTxOut(output_amount, bytes.fromhex(utxo['scriptPubKey'])))
 
             # Sign and send the transaction to get into the mempool
             tx_signed_hex = node.signrawtransactionwithwallet(ToHex(tx))['hex']

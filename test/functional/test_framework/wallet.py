@@ -13,7 +13,7 @@ from test_framework.address import (
 )
 from test_framework.messages import XEC, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, hex_str_to_bytes, satoshi_round
+from test_framework.util import assert_equal, satoshi_round
 
 
 class MiniWallet:
@@ -21,7 +21,7 @@ class MiniWallet:
         self._test_node = test_node
         self._utxos = []
         self._address = ADDRESS_ECREG_P2SH_OP_TRUE
-        self._scriptPubKey = hex_str_to_bytes(
+        self._scriptPubKey = bytes.fromhex(
             self._test_node.validateaddress(
                 self._address)['scriptPubKey'])
 

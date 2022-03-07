@@ -7,7 +7,7 @@
 import unittest
 
 from .script import OP_TRUE, CScript, CScriptOp, hash160, hash256
-from .util import assert_equal, hex_str_to_bytes
+from .util import assert_equal
 
 ADDRESS_ECREG_UNSPENDABLE = 'ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt'
 ADDRESS_ECREG_UNSPENDABLE_DESCRIPTOR = 'addr(ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt)#u6xx93xc'
@@ -22,7 +22,7 @@ def byte_to_base58(b, version):
     result = ''
     str = b.hex()
     str = chr(version).encode('latin-1').hex() + str
-    checksum = hash256(hex_str_to_bytes(str)).hex()
+    checksum = hash256(bytes.fromhex(str)).hex()
     str += checksum[:8]
     value = int('0x' + str, 0)
     while value > 0:
@@ -88,7 +88,7 @@ def script_to_p2sh(script, main=False):
 
 def check_key(key):
     if (isinstance(key, str)):
-        key = hex_str_to_bytes(key)  # Assuming this is hex string
+        key = bytes.fromhex(key)  # Assuming this is hex string
     if (isinstance(key, bytes) and (len(key) == 33 or len(key) == 65)):
         return key
     assert False
@@ -96,7 +96,7 @@ def check_key(key):
 
 def check_script(script):
     if (isinstance(script, str)):
-        script = hex_str_to_bytes(script)  # Assuming this is hex string
+        script = bytes.fromhex(script)  # Assuming this is hex string
     if (isinstance(script, bytes) or isinstance(script, CScript)):
         return script
     assert False

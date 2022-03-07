@@ -31,7 +31,6 @@ from test_framework.util import (
     assert_greater_than,
     assert_raises_rpc_error,
     find_vout_for_address,
-    hex_str_to_bytes,
 )
 
 
@@ -183,7 +182,7 @@ class RawTransactionsTest(BitcoinTestFramework):
             'Check that createrawtransaction accepts an array and object as outputs')
         tx = CTransaction()
         # One output
-        tx.deserialize(BytesIO(hex_str_to_bytes(self.nodes[2].createrawtransaction(
+        tx.deserialize(BytesIO(bytes.fromhex(self.nodes[2].createrawtransaction(
             inputs=[{'txid': txid, 'vout': 9}], outputs={address: 99}))))
         assert_equal(len(tx.vout), 1)
         assert_equal(
@@ -192,7 +191,7 @@ class RawTransactionsTest(BitcoinTestFramework):
                 inputs=[{'txid': txid, 'vout': 9}], outputs=[{address: 99}]),
         )
         # Two outputs
-        tx.deserialize(BytesIO(hex_str_to_bytes(self.nodes[2].createrawtransaction(inputs=[
+        tx.deserialize(BytesIO(bytes.fromhex(self.nodes[2].createrawtransaction(inputs=[
                        {'txid': txid, 'vout': 9}], outputs=OrderedDict([(address, 99), (address2, 99)])))))
         assert_equal(len(tx.vout), 2)
         assert_equal(
@@ -201,7 +200,7 @@ class RawTransactionsTest(BitcoinTestFramework):
                                                {address: 99}, {address2: 99}]),
         )
         # Multiple mixed outputs
-        tx.deserialize(BytesIO(hex_str_to_bytes(self.nodes[2].createrawtransaction(inputs=[
+        tx.deserialize(BytesIO(bytes.fromhex(self.nodes[2].createrawtransaction(inputs=[
                        {'txid': txid, 'vout': 9}], outputs=multidict([(address, 99), (address2, 99), ('data', '99')])))))
         assert_equal(len(tx.vout), 3)
         assert_equal(

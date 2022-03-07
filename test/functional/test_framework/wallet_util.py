@@ -19,7 +19,6 @@ from test_framework.script import (
     CScript,
     hash160,
 )
-from test_framework.util import hex_str_to_bytes
 
 Key = namedtuple('Key', ['privkey',
                          'pubkey',
@@ -39,7 +38,7 @@ def get_key(node):
     Returns a named tuple of privkey, pubkey and all address and scripts."""
     addr = node.getnewaddress()
     pubkey = node.getaddressinfo(addr)['pubkey']
-    pkh = hash160(hex_str_to_bytes(pubkey))
+    pkh = hash160(bytes.fromhex(pubkey))
     return Key(privkey=node.dumpprivkey(addr),
                pubkey=pubkey,
                p2pkh_script=CScript(
@@ -55,7 +54,7 @@ def get_generate_key():
     eckey.generate()
     privkey = bytes_to_wif(eckey.get_bytes())
     pubkey = eckey.get_pubkey().get_bytes().hex()
-    pkh = hash160(hex_str_to_bytes(pubkey))
+    pkh = hash160(bytes.fromhex(pubkey))
     return Key(privkey=privkey,
                pubkey=pubkey,
                p2pkh_script=CScript(
@@ -73,7 +72,7 @@ def get_multisig(node):
         addr = node.getaddressinfo(node.getnewaddress())
         addrs.append(addr['address'])
         pubkeys.append(addr['pubkey'])
-    script_code = CScript([OP_2] + [hex_str_to_bytes(pubkey)
+    script_code = CScript([OP_2] + [bytes.fromhex(pubkey)
                                     for pubkey in pubkeys] + [OP_3, OP_CHECKMULTISIG])
     return Multisig(privkeys=[node.dumpprivkey(addr) for addr in addrs],
                     pubkeys=pubkeys,

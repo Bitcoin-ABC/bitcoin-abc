@@ -8,7 +8,7 @@ import os
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, keyhash_to_p2pkh
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, hex_str_to_bytes
+from test_framework.util import assert_equal
 
 FORK_WARNING_MESSAGE = "Warning: Large-work fork detected, forking after block {}"
 
@@ -113,7 +113,7 @@ class NotificationsTest(BitcoinTestFramework):
             self.nodes[0].sethdseed(
                 seed=self.nodes[1].dumpprivkey(
                     keyhash_to_p2pkh(
-                        hex_str_to_bytes(
+                        bytes.fromhex(
                             self.nodes[1].getwalletinfo()['hdseedid'])[::-1])))
             self.nodes[0].rescanblockchain()
             self.nodes[0].generatetoaddress(100, ADDRESS_ECREG_UNSPENDABLE)

@@ -6,7 +6,7 @@
 
 from test_framework.messages import CTransaction, FromHex, ToHex
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, hex_str_to_bytes
+from test_framework.util import assert_equal
 
 
 class DecodeScriptTest(BitcoinTestFramework):
@@ -178,20 +178,20 @@ class DecodeScriptTest(BitcoinTestFramework):
         signature_2_sighash_decoded = der_signature + '[NONE|ANYONECANPAY]'
 
         # 1) P2PK scriptSig
-        txSave.vin[0].scriptSig = hex_str_to_bytes(push_signature)
+        txSave.vin[0].scriptSig = bytes.fromhex(push_signature)
         rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal(signature_sighash_decoded,
                      rpc_result['vin'][0]['scriptSig']['asm'])
 
         # make sure that the sighash decodes come out correctly for a more
         # complex / lesser used case.
-        txSave.vin[0].scriptSig = hex_str_to_bytes(push_signature_2)
+        txSave.vin[0].scriptSig = bytes.fromhex(push_signature_2)
         rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal(signature_2_sighash_decoded,
                      rpc_result['vin'][0]['scriptSig']['asm'])
 
         # 2) multisig scriptSig
-        txSave.vin[0].scriptSig = hex_str_to_bytes(
+        txSave.vin[0].scriptSig = bytes.fromhex(
             '00' + push_signature + push_signature_2)
         rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal('0 ' + signature_sighash_decoded + ' ' +
@@ -200,7 +200,7 @@ class DecodeScriptTest(BitcoinTestFramework):
         # 3) test a scriptSig that contains more than push operations.
         # in fact, it contains an OP_RETURN with data specially crafted to
         # cause improper decode if the code does not catch it.
-        txSave.vin[0].scriptSig = hex_str_to_bytes(
+        txSave.vin[0].scriptSig = bytes.fromhex(
             '6a143011020701010101010101020601010101010101')
         rpc_result = self.nodes[0].decoderawtransaction(ToHex(txSave))
         assert_equal('OP_RETURN 3011020701010101010101020601010101010101',

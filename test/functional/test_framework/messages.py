@@ -32,7 +32,7 @@ from io import BytesIO
 from typing import List
 
 from test_framework.siphash import siphash256
-from test_framework.util import assert_equal, hex_str_to_bytes
+from test_framework.util import assert_equal
 
 MAX_LOCATOR_SZ = 101
 MAX_BLOCK_BASE_SIZE = 1000000
@@ -203,7 +203,7 @@ def ser_string_vector(v):
 
 def FromHex(obj, hex_string):
     """Deserialize from a hex string representation (eg from RPC)"""
-    obj.deserialize(BytesIO(hex_str_to_bytes(hex_string)))
+    obj.deserialize(BytesIO(bytes.fromhex(hex_string)))
     return obj
 
 

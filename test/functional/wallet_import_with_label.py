@@ -20,7 +20,6 @@ from test_framework.script import (
     hash160,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import hex_str_to_bytes
 from test_framework.wallet_util import test_address
 
 
@@ -128,7 +127,7 @@ class ImportWithLabel(BitcoinTestFramework):
         # Build a P2SH manually for this test.
         priv_key4 = self.nodes[0].dumpprivkey(address4)
         pubkey4 = self.nodes[0].getaddressinfo(address4)['pubkey']
-        pkh4 = hash160(hex_str_to_bytes(pubkey4))
+        pkh4 = hash160(bytes.fromhex(pubkey4))
         script4 = CScript(
             [OP_DUP, OP_HASH160, pkh4, OP_EQUALVERIFY, OP_CHECKSIG])
         p2shaddr4 = script_to_p2sh(script4)

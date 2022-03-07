@@ -12,7 +12,6 @@ import re
 import time
 import unittest
 from base64 import b64encode
-from binascii import unhexlify
 from decimal import ROUND_DOWN, Decimal
 from io import BytesIO
 from subprocess import CalledProcessError
@@ -237,10 +236,6 @@ def EncodeDecimal(o):
 
 def count_bytes(hex_string):
     return len(bytearray.fromhex(hex_string))
-
-
-def hex_str_to_bytes(hex_str):
-    return unhexlify(hex_str.encode('ascii'))
 
 
 def str_to_b64str(string):
@@ -481,7 +476,7 @@ def gen_return_txouts():
     from .messages import CTxOut
     txout = CTxOut()
     txout.nValue = 0
-    txout.scriptPubKey = hex_str_to_bytes(script_pubkey)
+    txout.scriptPubKey = bytes.fromhex(script_pubkey)
     for _ in range(128):
         txouts.append(txout)
     return txouts
@@ -502,7 +497,7 @@ def create_lots_of_big_transactions(node, txouts, utxos, num, fee):
         outputs[addr] = satoshi_round(change)
         rawtx = node.createrawtransaction(inputs, outputs)
         tx = CTransaction()
-        tx.deserialize(BytesIO(hex_str_to_bytes(rawtx)))
+        tx.deserialize(BytesIO(bytes.fromhex(rawtx)))
         for txout in txouts:
             tx.vout.append(txout)
         newtx = tx.serialize().hex()
