@@ -610,6 +610,7 @@ std::string SettingToString(const util::SettingsValue &value,
     return value.isNull()    ? strDefault
            : value.isFalse() ? "0"
            : value.isTrue()  ? "1"
+           : value.isNum()   ? value.getValStr()
                              : value.get_str();
 }
 

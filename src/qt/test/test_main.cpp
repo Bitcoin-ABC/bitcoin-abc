@@ -15,6 +15,7 @@
 #include <qt/test/bitcoinaddressvalidatortests.h>
 #include <qt/test/compattests.h>
 #include <qt/test/guiutiltests.h>
+#include <qt/test/optiontests.h>
 #include <qt/test/rpcnestedtests.h>
 #include <qt/test/uritests.h>
 #ifdef ENABLE_WALLET
@@ -79,6 +80,10 @@ int main(int argc, char *argv[]) {
 
     AppTests app_tests(app);
     if (QTest::qExec(&app_tests) != 0) {
+        fInvalid = true;
+    }
+    OptionTests options_tests(app.node());
+    if (QTest::qExec(&options_tests) != 0) {
         fInvalid = true;
     }
     URITests test1;

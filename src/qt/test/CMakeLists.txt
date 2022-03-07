@@ -11,6 +11,7 @@ add_test_to_suite(bitcoin-qt test_bitcoin-qt
 	bitcoinaddressvalidatortests.cpp
 	compattests.cpp
 	guiutiltests.cpp
+	optiontests.cpp
 	rpcnestedtests.cpp
 	test_main.cpp
 	uritests.cpp
