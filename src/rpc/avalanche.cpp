@@ -541,9 +541,12 @@ static RPCHelpMan delegateavalancheproof() {
 static RPCHelpMan getavalanchepeerinfo() {
     return RPCHelpMan{
         "getavalanchepeerinfo",
-        "Returns data about each connected avalanche peer as a json array of "
-        "objects.\n",
-        {},
+        "Returns data about an avalanche peer as a json array of objects. If "
+        "no proofid is provided, returns data about all the peers.\n",
+        {
+            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
+             "The hex encoded avalanche proof identifier."},
+        },
         RPCResult{
             RPCResult::Type::ARR,
             "",
@@ -569,35 +572,62 @@ static RPCHelpMan getavalanchepeerinfo() {
             }},
         },
         RPCExamples{HelpExampleCli("getavalanchepeerinfo", "") +
-                    HelpExampleRpc("getavalanchepeerinfo", "")},
+                    HelpExampleCli("getavalanchepeerinfo", "\"proofid\"") +
+                    HelpExampleRpc("getavalanchepeerinfo", "") +
+                    HelpExampleRpc("getavalanchepeerinfo", "\"proofid\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VSTR});
+
             if (!g_avalanche) {
                 throw JSONRPCError(RPC_INTERNAL_ERROR,
                                    "Avalanche is not initialized");
             }
 
+            auto peerToUniv = [](const avalanche::PeerManager &pm,
+                                 const avalanche::Peer &peer) {
+                UniValue obj(UniValue::VOBJ);
+
+                CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
+                serproof << *peer.proof;
+
+                obj.pushKV("peerid", uint64_t(peer.peerid));
+                obj.pushKV("proof", HexStr(serproof));
+
+                UniValue nodes(UniValue::VARR);
+                pm.forEachNode(peer, [&](const avalanche::Node &n) {
+                    nodes.push_back(n.nodeid);
+                });
+
+                obj.pushKV("nodecount", uint64_t(peer.node_count));
+                obj.pushKV("nodes", nodes);
+
+                return obj;
+            };
+
             UniValue ret(UniValue::VARR);
 
             g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
-                pm.forEachPeer([&](const avalanche::Peer &peer) {
-                    UniValue obj(UniValue::VOBJ);
+                // If a proofid is provided, only return the associated peer
+                if (!request.params[0].isNull()) {
+                    const avalanche::ProofId proofid =
+                        avalanche::ProofId::fromHex(
+                            request.params[0].get_str());
+                    if (!pm.isBoundToPeer(proofid)) {
+                        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                           "Proofid not found");
+                    }
 
-                    CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
-                    serproof << *peer.proof;
-
-                    obj.pushKV("peerid", uint64_t(peer.peerid));
-                    obj.pushKV("proof", HexStr(serproof));
-
-                    UniValue nodes(UniValue::VARR);
-                    pm.forEachNode(peer, [&](const avalanche::Node &n) {
-                        nodes.push_back(n.nodeid);
+                    pm.forPeer(proofid, [&](const avalanche::Peer &peer) {
+                        return ret.push_back(peerToUniv(pm, peer));
                     });
 
-                    obj.pushKV("nodecount", uint64_t(peer.node_count));
-                    obj.pushKV("nodes", nodes);
+                    return;
+                }
 
-                    ret.push_back(obj);
+                // If no proofid is provided, return all the peers
+                pm.forEachPeer([&](const avalanche::Peer &peer) {
+                    ret.push_back(peerToUniv(pm, peer));
                 });
             });
 

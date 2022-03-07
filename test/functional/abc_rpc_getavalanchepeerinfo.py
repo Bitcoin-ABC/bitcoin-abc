@@ -3,13 +3,16 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the getavalanchepeerinfo RPC."""
+from random import choice
+
 from test_framework.avatools import (
+    avalanche_proof_from_hex,
     create_coinbase_stakes,
     get_ava_p2p_interface,
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -66,6 +69,18 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             assert_equal(peer["proof"], proofs[i])
             assert_equal(peer["nodecount"], nodecount)
             assert_equal(set(peer["nodes"]), set([n.nodeid for n in nodes[i]]))
+
+        self.log.info("Testing with a specified proofid")
+
+        assert_raises_rpc_error(-8, "Proofid not found",
+                                node.getavalanchepeerinfo, proofid="0" * 64)
+
+        target_proof = choice(proofs)
+        target_proofid = avalanche_proof_from_hex(target_proof).proofid
+        avapeerinfo = node.getavalanchepeerinfo(
+            proofid=f"{target_proofid:0{64}x}")
+        assert_equal(len(avapeerinfo), 1)
+        assert_equal(avapeerinfo[0]["proof"], target_proof)
 
 
 if __name__ == '__main__':
