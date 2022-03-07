@@ -4,7 +4,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the REST API."""
 
-import binascii
 import http.client
 import json
 import urllib.parse
@@ -274,7 +273,7 @@ class RESTTest (BitcoinTestFramework):
         assert_greater_than(int(response_hex.getheader(
             'content-length')), BLOCK_HEADER_SIZE * 2)
         response_hex_bytes = response_hex.read().strip(b'\n')
-        assert_equal(binascii.hexlify(response_bytes), response_hex_bytes)
+        assert_equal(response_bytes.hex().encode(), response_hex_bytes)
 
         # Compare with hex block header
         response_header_hex = self.test_rest_request(
@@ -283,8 +282,8 @@ class RESTTest (BitcoinTestFramework):
             int(response_header_hex.getheader('content-length')), BLOCK_HEADER_SIZE * 2)
         response_header_hex_bytes = response_header_hex.read(
             BLOCK_HEADER_SIZE * 2)
-        assert_equal(binascii.hexlify(
-            response_bytes[:BLOCK_HEADER_SIZE]), response_header_hex_bytes)
+        assert_equal(response_bytes[:BLOCK_HEADER_SIZE].hex().encode(),
+                     response_header_hex_bytes)
 
         # Check json format
         block_json_obj = self.test_rest_request("/block/{}".format(bb_hash))
@@ -304,7 +303,7 @@ class RESTTest (BitcoinTestFramework):
                 block_json_obj['height']),
             req_type=ReqType.BIN,
             ret_type=RetType.BYTES)
-        blockhash = binascii.hexlify(resp_bytes[::-1]).decode('utf-8')
+        blockhash = resp_bytes[::-1].hex()
         assert_equal(blockhash, bb_hash)
 
         # Check invalid blockhashbyheight requests

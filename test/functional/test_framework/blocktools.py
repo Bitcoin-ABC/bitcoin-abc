@@ -7,7 +7,6 @@
 import struct
 import time
 import unittest
-from binascii import a2b_hex
 
 from .messages import (
     COIN,
@@ -49,7 +48,7 @@ def create_block(hashprev=None, coinbase=None, ntime=None,
     block.nTime = ntime or tmpl.get('curtime', int(time.time() + 600))
     block.hashPrevBlock = hashprev or int(tmpl['previousblockhash'], 0x10)
     if tmpl.get('bits') is not None:
-        block.nBits = struct.unpack('>I', a2b_hex(tmpl['bits']))[0]
+        block.nBits = struct.unpack('>I', bytes.fromhex(tmpl['bits']))[0]
     else:
         # difficulty retargeting is disabled in REGTEST chainparams
         block.nBits = 0x207fffff
