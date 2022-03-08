@@ -31,6 +31,7 @@ const useWallet = () => {
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
+    const [hasUpdated, setHasUpdated] = useState(false);
     const {
         getBCH,
         getUtxos,
@@ -576,6 +577,7 @@ const useWallet = () => {
     1 - check savedWallets for the previously active wallet
     2 - If not there, add it
     */
+        setHasUpdated(false);
         let currentlyActiveWallet;
         try {
             currentlyActiveWallet = await localforage.getItem('wallet');
@@ -989,6 +991,7 @@ const useWallet = () => {
     };
 
     // Parse for incoming XEC transactions
+    // hasUpdated is set to true in the useAsyncTimeout function, and re-sets to false during activateWallet
     if (
         previousBalances &&
         balances &&
@@ -996,7 +999,8 @@ const useWallet = () => {
         'totalBalance' in balances &&
         new BigNumber(balances.totalBalance)
             .minus(previousBalances.totalBalance)
-            .gt(0)
+            .gt(0) &&
+        hasUpdated
     ) {
         xecReceivedNotification(
             balances,
@@ -1013,7 +1017,8 @@ const useWallet = () => {
         tokens[0].balance &&
         previousTokens &&
         previousTokens[0] &&
-        previousTokens[0].balance
+        previousTokens[0].balance &&
+        hasUpdated === true
     ) {
         // If tokens length is greater than previousTokens length, a new token has been received
         // Note, a user could receive a new token, AND more of existing tokens in between app updates
@@ -1109,6 +1114,9 @@ const useWallet = () => {
             wallet,
         }).finally(() => {
             setLoading(false);
+            if (!hasUpdated) {
+                setHasUpdated(true);
+            }
         });
     }, 1000);
 
