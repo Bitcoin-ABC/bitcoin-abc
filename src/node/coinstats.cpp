@@ -7,6 +7,7 @@
 
 #include <coins.h>
 #include <hash.h>
+#include <primitives/txid.h>
 #include <serialize.h>
 #include <util/system.h>
 #include <validation.h>
@@ -19,11 +20,11 @@ static uint64_t GetBogoSize(const CScript &scriptPubKey) {
            scriptPubKey.size() /* scriptPubKey */;
 }
 
-static void ApplyHash(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
+static void ApplyHash(CCoinsStats &stats, CHashWriter &ss, const TxId &txid,
                       const std::map<uint32_t, Coin> &outputs,
                       std::map<uint32_t, Coin>::const_iterator it) {
     if (it == outputs.begin()) {
-        ss << hash;
+        ss << txid;
         ss << VARINT(it->second.GetHeight() * 2 + it->second.IsCoinBase());
     }
 
@@ -37,17 +38,17 @@ static void ApplyHash(CCoinsStats &stats, CHashWriter &ss, const uint256 &hash,
     }
 }
 
-static void ApplyHash(CCoinsStats &stats, std::nullptr_t, const uint256 &hash,
+static void ApplyHash(CCoinsStats &stats, std::nullptr_t, const TxId &txid,
                       const std::map<uint32_t, Coin> &outputs,
                       std::map<uint32_t, Coin>::const_iterator it) {}
 
 template <typename T>
-static void ApplyStats(CCoinsStats &stats, T &hash_obj, const uint256 &hash,
+static void ApplyStats(CCoinsStats &stats, T &hash_obj, const TxId &txid,
                        const std::map<uint32_t, Coin> &outputs) {
     assert(!outputs.empty());
     stats.nTransactions++;
     for (auto it = outputs.begin(); it != outputs.end(); ++it) {
-        ApplyHash(stats, hash_obj, hash, outputs, it);
+        ApplyHash(stats, hash_obj, txid, outputs, it);
 
         stats.nTransactionOutputs++;
         stats.nTotalAmount += it->second.GetTxOut().nValue;
@@ -71,7 +72,7 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats, T hash_obj,
 
     PrepareHash(hash_obj, stats);
 
-    uint256 prevkey;
+    TxId prevkey;
     std::map<uint32_t, Coin> outputs;
     while (pcursor->Valid()) {
         interruption_point();
