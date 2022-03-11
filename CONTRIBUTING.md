@@ -97,9 +97,9 @@ To install these packages on Debian or Ubuntu, type: `sudo apt-get install git a
 
 3. If you do not already have an SSH key set up, follow these steps:
 
-Type: `ssh-keygen -t rsa -b 4096 -C "your_email@example.com"`
+Type: `ssh-keygen -t ed25519 -C "your_email@example.com"`
 
-Enter a file in which to save the key (/home/*username*/.ssh/id_rsa): [Press enter]
+Enter a file in which to save the key (/home/*username*/.ssh/id_ed25519): [Press enter]
 
 4. Upload your SSH public key to <https://reviews.bitcoinabc.org>
 
@@ -107,7 +107,7 @@ Enter a file in which to save the key (/home/*username*/.ssh/id_rsa): [Press ent
 
   - Under "SSH Key Actions", Select "Upload Public Key"
 
-Paste contents from: `/home/*username*/.ssh/id_rsa.pub`
+Paste contents from: `/home/*username*/.ssh/id_ed25519.pub`
 
 5. Clone the repository and install Arcanist certificate:
 
