@@ -18,7 +18,6 @@ class CBlock;
 class CBlockIndex;
 class Chainstate;
 class ChainstateManager;
-class CTxMemPool;
 class RPCHelpMan;
 namespace node {
 struct NodeContext;
@@ -43,13 +42,6 @@ void RPCNotifyBlockChange(const CBlockIndex *pindex);
 UniValue blockToJSON(node::BlockManager &blockman, const CBlock &block,
                      const CBlockIndex *tip, const CBlockIndex *blockindex,
                      bool txDetails = false) LOCKS_EXCLUDED(cs_main);
-
-/** Mempool information to JSON */
-UniValue MempoolInfoToJSON(const CTxMemPool &pool);
-
-/** Mempool to JSON */
-UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose = false,
-                       bool include_mempool_sequence = false);
 
 /** Block header to JSON */
 UniValue blockheaderToJSON(const CBlockIndex *tip,

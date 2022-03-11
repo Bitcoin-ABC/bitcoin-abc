@@ -675,6 +675,7 @@ add_library(server
 	rpc/avalanche.cpp
 	rpc/blockchain.cpp
 	rpc/command.cpp
+	rpc/mempool.cpp
 	rpc/mining.cpp
 	rpc/misc.cpp
 	rpc/net.cpp

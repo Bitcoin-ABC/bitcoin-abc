@@ -13,7 +13,10 @@ class CRPCTable;
 class RPCServer;
 
 void RegisterBlockchainRPCCommands(CRPCTable &tableRPC);
+/** Register mempool RPC commands */
+void RegisterMempoolRPCCommands(CRPCTable &);
 void RegisterTxoutProofRPCCommands(CRPCTable &);
+/** Register P2P networking RPC commands */
 void RegisterNetRPCCommands(CRPCTable &tableRPC);
 void RegisterMiscRPCCommands(CRPCTable &tableRPC);
 void RegisterMiningRPCCommands(CRPCTable &tableRPC);
@@ -23,6 +26,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &tableRPC);
 
 static inline void RegisterAllCoreRPCCommands(CRPCTable &t) {
     RegisterBlockchainRPCCommands(t);
+    RegisterMempoolRPCCommands(t);
     RegisterTxoutProofRPCCommands(t);
     RegisterNetRPCCommands(t);
     RegisterMiscRPCCommands(t);
