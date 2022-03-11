@@ -68,6 +68,14 @@ public:
     // on windows.
     std::string string() const = delete;
 
+    std::string u8string() const {
+        const auto &utf8_str{std::filesystem::path::u8string()};
+        // utf8_str might either be std::string (C++17) or std::u8string
+        // (C++20). Convert both to std::string. This method can be removed
+        // after switching to C++20.
+        return std::string{utf8_str.begin(), utf8_str.end()};
+    }
+
     // Required for path overloads in <fstream>.
     // See
     // https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=96e0367ead5d8dcac3bec2865582e76e2fbab190
@@ -77,6 +85,10 @@ public:
     }
     path filename() const { return std::filesystem::path::filename(); }
 };
+
+static inline path u8path(const std::string &utf8_str) {
+    return std::filesystem::u8path(utf8_str);
+}
 
 // Disallow implicit std::string conversion for absolute to avoid
 // locale-dependent encoding on windows.
@@ -109,31 +121,34 @@ static inline bool copy_file(const path &from, const path &to,
 }
 
 /**
- * Convert path object to a byte string. On POSIX, paths natively are byte
- * strings so this is trivial. On Windows, paths natively are Unicode, so an
- * encoding step is necessary.
+ * Convert path object to byte string. On POSIX, paths natively are byte
+ * strings, so this is trivial. On Windows, paths natively are Unicode, so an
+ * encoding step is necessary. The inverse of \ref PathToString is \ref
+ * PathFromString. The strings returned and parsed by these functions can be
+ * used to call POSIX APIs, and for roundtrip conversion, logging, and
+ * debugging.
  *
- * The inverse of \ref PathToString is \ref PathFromString. The strings
- * returned and parsed by these functions can be used to call POSIX APIs, and
- * for roundtrip conversion, logging, and debugging. But they are not
- * guaranteed to be valid UTF-8, and are generally meant to be used internally,
- * not externally. When communicating with external programs and libraries that
- * require UTF-8, fs::path::u8string() and fs::u8path() methods can be used.
- * For other applications, if support for non UTF-8 paths is required, or if
- * higher-level JSON or XML or URI or C-style escapes are preferred, it may be
- * also be appropriate to use different path encoding functions.
- *
- * Implementation note: On Windows, the std::filesystem::path(string)
- * constructor and std::filesystem::path::string() method are not safe to use
- * here, because these methods encode the path using C++'s narrow multibyte
- * encoding, which on Windows corresponds to the current "code page", which is
- * unpredictable and typically not able to represent all valid paths. So
- * std::filesystem::path::u8string() and std::filesystem::u8path() functions
- * are used instead on Windows. On POSIX, u8string/u8path functions are not
- * safe to use because paths are not always valid UTF-8, so plain string
- * methods which do not transform the path there are used.
+ * Because \ref PathToString and \ref PathFromString functions don't specify an
+ * encoding, they are meant to be used internally, not externally. They are not
+ * appropriate to use in applications requiring UTF-8, where
+ * fs::path::u8string() and fs::u8path() methods should be used instead. Other
+ * applications could require still different encodings. For example, JSON, XML,
+ * or URI applications might prefer to use higher level escapes (\uXXXX or
+ * &XXXX; or %XX) instead of multibyte encoding. Rust, Python, Java applications
+ * may require encoding paths with their respective UTF-8 derivatives WTF-8,
+ * PEP-383, and CESU-8 (see https://en.wikipedia.org/wiki/UTF-8#Derivatives).
  */
 static inline std::string PathToString(const path &path) {
+    // Implementation note: On Windows, the std::filesystem::path(string)
+    // constructor and std::filesystem::path::string() method are not safe to
+    // use here, because these methods encode the path using C++'s narrow
+    // multibyte encoding, which on Windows corresponds to the current "code
+    // page", which is unpredictable and typically not able to represent all
+    // valid paths. So fs::path::u8string() and
+    // fs::u8path() functions are used instead on Windows. On
+    // POSIX, u8string/u8path functions are not safe to use because paths are
+    // not always valid UTF-8, so plain string methods which do not transform
+    // the path there are used.
 #ifdef WIN32
     return path.u8string();
 #else
