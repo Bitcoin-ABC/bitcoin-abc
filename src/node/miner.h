@@ -123,7 +123,7 @@ struct update_for_parent_inclusion {
     explicit update_for_parent_inclusion(CTxMemPool::txiter it) : iter(it) {}
 
     void operator()(CTxMemPoolModifiedEntry &e) {
-        e.nModFeesWithAncestors -= iter->GetFee();
+        e.nModFeesWithAncestors -= iter->GetModifiedFee();
         e.nSizeWithAncestors -= iter->GetTxSize();
         e.nSigChecksWithAncestors -= iter->GetSigChecks();
     }
