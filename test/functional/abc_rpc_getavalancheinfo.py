@@ -86,24 +86,26 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         # Mine a block to trigger proof validation
         node.generate(1)
-        assert_avalancheinfo({
-            "local": {
-                "live": True,
-                "proofid": f"{proof.proofid:0{64}x}",
-                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
-                "master": privkey.get_pubkey().get_bytes().hex(),
-                "stake_amount": coinbase_amount,
-            },
-            "network": {
-                "proof_count": 0,
-                "connected_proof_count": 0,
-                "total_stake_amount": Decimal('0.00'),
-                "connected_stake_amount": Decimal('0.00'),
-                "node_count": 0,
-                "connected_node_count": 0,
-                "pending_node_count": 0,
-            }
-        })
+        self.wait_until(
+            lambda: node.getavalancheinfo() == handle_legacy_format({
+                "local": {
+                    "live": True,
+                    "proofid": f"{proof.proofid:0{64}x}",
+                    "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                },
+                "network": {
+                    "proof_count": 0,
+                    "connected_proof_count": 0,
+                    "total_stake_amount": Decimal('0.00'),
+                    "connected_stake_amount": Decimal('0.00'),
+                    "node_count": 0,
+                    "connected_node_count": 0,
+                    "pending_node_count": 0,
+                }
+            })
+        )
 
         self.log.info("Connect a bunch of peers and nodes")
 
