@@ -150,11 +150,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     pblock->nTime = GetAdjustedTime();
-    nMedianTimePast = pindexPrev->GetMedianTimePast();
-    nLockTimeCutoff =
-        (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
-            ? nMedianTimePast
-            : pblock->GetBlockTime();
+    m_lock_time_cutoff = pindexPrev->GetMedianTimePast();
 
     addTxs();
 
@@ -284,7 +280,7 @@ void BlockAssembler::AddToBlock(const CTxMemPoolEntry &entry) {
 bool BlockAssembler::CheckTx(const CTransaction &tx) const {
     TxValidationState state;
     return ContextualCheckTransaction(chainParams.GetConsensus(), tx, state,
-                                      nHeight, nLockTimeCutoff);
+                                      nHeight, m_lock_time_cutoff);
 }
 
 /**

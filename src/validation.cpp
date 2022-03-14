@@ -4025,18 +4025,18 @@ static bool ContextualCheckBlock(const CBlock &block,
     const int nHeight = pindexPrev == nullptr ? 0 : pindexPrev->nHeight + 1;
 
     // Enforce BIP113 (Median Time Past).
-    int nLockTimeFlags = 0;
+    bool enforce_locktime_median_time_past{false};
     if (DeploymentActiveAfter(pindexPrev, params, Consensus::DEPLOYMENT_CSV)) {
         assert(pindexPrev != nullptr);
-        nLockTimeFlags |= LOCKTIME_MEDIAN_TIME_PAST;
+        enforce_locktime_median_time_past = true;
     }
 
     const int64_t nMedianTimePast =
         pindexPrev == nullptr ? 0 : pindexPrev->GetMedianTimePast();
 
-    const int64_t nLockTimeCutoff = (nLockTimeFlags & LOCKTIME_MEDIAN_TIME_PAST)
-                                        ? nMedianTimePast
-                                        : block.GetBlockTime();
+    const int64_t nLockTimeCutoff{enforce_locktime_median_time_past
+                                      ? nMedianTimePast
+                                      : block.GetBlockTime()};
 
     const bool fIsMagneticAnomalyEnabled =
         IsMagneticAnomalyEnabled(params, pindexPrev);
