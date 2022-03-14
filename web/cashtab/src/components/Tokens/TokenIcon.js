@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
 import { currency } from '@components/Common/Ticker';
