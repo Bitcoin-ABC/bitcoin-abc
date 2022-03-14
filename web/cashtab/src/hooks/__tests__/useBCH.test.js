@@ -179,49 +179,6 @@ describe('useBCH hook', () => {
         ).toBe(`${currency.blockExplorerUrl}/tx/${expectedTxId}`);
     });
 
-    it('sends XEC throws error attempting to encrypt a message with an invalid address', async () => {
-        const { sendXec } = useBCH();
-        const BCH = new BCHJS();
-        const {
-            expectedTxId,
-            expectedHex,
-            utxos,
-            wallet,
-            destinationAddress,
-            sendAmount,
-        } = sendBCHMock;
-
-        const expectedError = {
-            error: `Unsupported address format : INVALIDADDRESS`,
-            success: false,
-        };
-
-        BCH.RawTransactions.sendRawTransaction = jest
-            .fn()
-            .mockResolvedValue(expectedTxId);
-
-        let thrownError;
-
-        try {
-            await sendXec(
-                BCH,
-                wallet,
-                utxos,
-                currency.defaultFee,
-                'This is an encrypted opreturn message',
-                false,
-                null,
-                'INVALIDADDRESS',
-                sendAmount,
-                true, // encryption flag for the OP_RETURN message
-            );
-        } catch (err) {
-            thrownError = err;
-        }
-
-        expect(thrownError).toStrictEqual(expectedError);
-    });
-
     it('sends one to many XEC correctly', async () => {
         const { sendXec } = useBCH();
         const BCH = new BCHJS();
