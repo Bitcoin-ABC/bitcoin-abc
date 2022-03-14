@@ -185,6 +185,18 @@ class AvaAddrTest(BitcoinTestFramework):
         requester = node.add_p2p_connection(AddrReceiver())
         requester.send_and_ping(msg_getavaaddr())
 
+        # Sanity check that the availability score is set up as expected
+        peerinfo = node.getpeerinfo()
+        muted_addresses = [
+            avanode.addr for avanode in avanodes if not avanode.is_responding]
+        assert all([p['availability_score'] <
+                   0 for p in peerinfo if p["addr"] in muted_addresses])
+        assert all([p['availability_score'] >
+                   0 for p in peerinfo if p["addr"] in responding_addresses])
+        # Requester has no availability_score because it's not an avalanche
+        # peer
+        assert 'availability_score' not in peerinfo[-1].keys()
+
         mock_time += 5 * 60
         node.setmocktime(mock_time)
 

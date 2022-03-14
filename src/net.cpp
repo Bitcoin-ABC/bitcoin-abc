@@ -655,6 +655,11 @@ void CNode::copyStats(CNodeStats &stats) {
         addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
 
     stats.m_conn_type_string = ConnectionTypeAsString();
+
+    stats.m_availabilityScore =
+        m_avalanche_state
+            ? std::make_optional(m_avalanche_state->getAvailabilityScore())
+            : std::nullopt;
 }
 
 bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,

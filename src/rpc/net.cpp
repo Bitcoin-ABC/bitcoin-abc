@@ -218,6 +218,8 @@ static RPCHelpMan getpeerinfo() {
                        "object and all bytes received\n"
                        "of unknown message types are listed under '" +
                            NET_MESSAGE_COMMAND_OTHER + "'."}}},
+                    {RPCResult::Type::NUM, "activity_score",
+                     "Avalanche activity score of this node (if any)"},
                 }},
             }},
         },
@@ -338,6 +340,11 @@ static RPCHelpMan getpeerinfo() {
                 }
                 obj.pushKV("bytesrecv_per_msg", recvPerMsgCmd);
                 obj.pushKV("connection_type", stats.m_conn_type_string);
+
+                if (stats.m_availabilityScore) {
+                    obj.pushKV("availability_score",
+                               *stats.m_availabilityScore);
+                }
 
                 ret.push_back(obj);
             }

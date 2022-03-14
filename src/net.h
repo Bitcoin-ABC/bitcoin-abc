@@ -318,6 +318,7 @@ struct CNodeStats {
     Network m_network;
     uint32_t m_mapped_as;
     std::string m_conn_type_string;
+    std::optional<double> m_availabilityScore;
 };
 
 /**
