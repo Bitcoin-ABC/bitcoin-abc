@@ -1,8 +1,15 @@
 import * as React from 'react';
+import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { BalanceHeaderFiatWrap } from '@components/Common/Atoms';
 import { currency } from '@components/Common/Ticker.js';
-
+const FiatCurrencyToXEC = styled.p`
+    margin: 0 auto;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: ${props => props.theme.lightWhite};
+`;
 const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
     return (
         <BalanceHeaderFiatWrap>
@@ -15,6 +22,13 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                       settings.fiatCurrency
                   ].slug.toUpperCase()} `
                 : 'USD'}
+            {fiatPrice && (
+                <FiatCurrencyToXEC>
+                    1 {currency.ticker} ={' '}
+                    {fiatPrice.toFixed(9).toLocaleString()}{' '}
+                    {settings.fiatCurrency.toUpperCase()}
+                </FiatCurrencyToXEC>
+            )}
         </BalanceHeaderFiatWrap>
     );
 };
