@@ -2,11 +2,11 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <blockindexworkcomparator.h>
+#include <blockindexcomparators.h>
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(work_comparator_tests)
+BOOST_AUTO_TEST_SUITE(blockindex_comparator_tests)
 
 BOOST_AUTO_TEST_CASE(work_comparator) {
     CBlockIndex indexA, indexB;
@@ -53,6 +53,25 @@ BOOST_AUTO_TEST_CASE(work_comparator) {
 
     // Same block should return false
     BOOST_CHECK(!CBlockIndexWorkComparator()(pindexA.get(), pindexA.get()));
+}
+
+BOOST_AUTO_TEST_CASE(height_comparator) {
+    CBlockIndex indexA, indexB;
+
+    // Differing chain height
+    indexA.nHeight = 1;
+    indexB.nHeight = 2;
+    BOOST_CHECK(CBlockIndexHeightOnlyComparator()(&indexA, &indexB));
+    BOOST_CHECK(!CBlockIndexHeightOnlyComparator()(&indexB, &indexA));
+
+    // Same height should return false
+    indexA.nHeight = 3;
+    indexB.nHeight = 3;
+    BOOST_CHECK(!CBlockIndexHeightOnlyComparator()(&indexA, &indexB));
+    BOOST_CHECK(!CBlockIndexHeightOnlyComparator()(&indexB, &indexA));
+
+    // Same block should return false
+    BOOST_CHECK(!CBlockIndexHeightOnlyComparator()(&indexA, &indexA));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

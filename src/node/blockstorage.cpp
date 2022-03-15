@@ -4,7 +4,7 @@
 
 #include <node/blockstorage.h>
 
-#include <blockindexworkcomparator.h>
+#include <blockindexcomparators.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <clientversion.h>
@@ -29,6 +29,7 @@ bool fPruneMode = false;
 uint64_t nPruneTarget = 0;
 
 static FILE *OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
+
 static FlatFileSeq BlockFileSeq();
 static FlatFileSeq UndoFileSeq();
 
@@ -244,10 +245,8 @@ bool BlockManager::LoadBlockIndex(const Consensus::Params &params) {
         vSortedByHeight.push_back(&block_index);
     }
 
-    sort(vSortedByHeight.begin(), vSortedByHeight.end(),
-         [](const CBlockIndex *pa, const CBlockIndex *pb) {
-             return pa->nHeight < pb->nHeight;
-         });
+    std::sort(vSortedByHeight.begin(), vSortedByHeight.end(),
+              CBlockIndexHeightOnlyComparator());
 
     for (CBlockIndex *pindex : vSortedByHeight) {
         if (ShutdownRequested()) {

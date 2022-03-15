@@ -235,7 +235,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		validation_tests.cpp
 		validationinterface_tests.cpp
 		versionbits_tests.cpp
-		work_comparator_tests.cpp
+        blockindex_comparator_tests.cpp
 
 		# RPC Tests
 		../rpc/test/server_tests.cpp

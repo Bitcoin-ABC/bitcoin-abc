@@ -9,7 +9,7 @@
 #include <avalanche/node.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
-#include <blockindexworkcomparator.h>
+#include <blockindexcomparators.h>
 #include <eventloop.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>

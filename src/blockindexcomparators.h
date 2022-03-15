@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_BLOCKINDEXWORKCOMPARATOR_H
-#define BITCOIN_BLOCKINDEXWORKCOMPARATOR_H
+#ifndef BITCOIN_BLOCKINDEXCOMPARATORS_H
+#define BITCOIN_BLOCKINDEXCOMPARATORS_H
 
 #include <blockindex.h>
 
@@ -39,4 +39,13 @@ struct CBlockIndexWorkComparator {
     }
 };
 
-#endif // BITCOIN_BLOCKINDEXWORKCOMPARATOR_H
+struct CBlockIndexHeightOnlyComparator {
+    /**
+     * Only compares the height of two block indices, doesn't try to tie-break
+     */
+    bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
+        return pa->nHeight < pb->nHeight;
+    }
+};
+
+#endif // BITCOIN_BLOCKINDEXCOMPARATORS_H

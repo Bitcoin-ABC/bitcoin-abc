@@ -14,7 +14,7 @@
 #include <arith_uint256.h>
 #include <attributes.h>
 #include <blockfileinfo.h>
-#include <blockindexworkcomparator.h>
+#include <blockindexcomparators.h>
 #include <chain.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
