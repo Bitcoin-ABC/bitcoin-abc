@@ -623,6 +623,7 @@ add_library(server
 	rpc/rawtransaction.cpp
 	rpc/server.cpp
 	rpc/server_util.cpp
+	rpc/txoutproof.cpp
 	script/scriptcache.cpp
 	script/sigcache.cpp
 	shutdown.cpp
