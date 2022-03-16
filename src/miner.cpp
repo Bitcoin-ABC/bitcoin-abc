@@ -222,7 +222,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries[0].sigOpCount = 0;
 
     BlockValidationState state;
-    if (!TestBlockValidity(state, chainParams, *pblock, pindexPrev,
+    if (!TestBlockValidity(state, chainParams, ::ChainstateActive(), *pblock,
+                           pindexPrev,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {

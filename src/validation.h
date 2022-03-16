@@ -544,7 +544,8 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
  * our current best block)
  */
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
-                       const CBlock &block, CBlockIndex *pindexPrev,
+                       CChainState &chainstate, const CBlock &block,
+                       CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 

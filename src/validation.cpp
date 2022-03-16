@@ -4469,11 +4469,13 @@ bool ChainstateManager::ProcessNewBlock(
 }
 
 bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
-                       const CBlock &block, CBlockIndex *pindexPrev,
+                       CChainState &chainstate, const CBlock &block,
+                       CBlockIndex *pindexPrev,
                        BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
-    assert(pindexPrev && pindexPrev == ::ChainActive().Tip());
-    CCoinsViewCache viewNew(&::ChainstateActive().CoinsTip());
+    assert(std::addressof(::ChainstateActive()) == std::addressof(chainstate));
+    assert(pindexPrev && pindexPrev == chainstate.m_chain.Tip());
+    CCoinsViewCache viewNew(&chainstate.CoinsTip());
     BlockHash block_hash(block.GetHash());
     CBlockIndex indexDummy(block);
     indexDummy.pprev = pindexPrev;
@@ -4481,7 +4483,9 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
     indexDummy.phashBlock = &block_hash;
 
     // NOTE: CheckBlockHeader is called by CheckBlock
-    if (!ContextualCheckBlockHeader(params, block, state, g_chainman.m_blockman,
+    assert(std::addressof(g_chainman.m_blockman) ==
+           std::addressof(chainstate.m_blockman));
+    if (!ContextualCheckBlockHeader(params, block, state, chainstate.m_blockman,
                                     pindexPrev, GetAdjustedTime())) {
         return error("%s: Consensus::ContextualCheckBlockHeader: %s", __func__,
                      state.ToString());
@@ -4498,8 +4502,8 @@ bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
                      state.ToString());
     }
 
-    if (!::ChainstateActive().ConnectBlock(block, state, &indexDummy, viewNew,
-                                           params, validationOptions, true)) {
+    if (!chainstate.ConnectBlock(block, state, &indexDummy, viewNew, params,
+                                 validationOptions, true)) {
         return false;
     }
 

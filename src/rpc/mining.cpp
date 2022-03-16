@@ -456,7 +456,8 @@ static RPCHelpMan generateblock() {
                 LOCK(cs_main);
 
                 BlockValidationState state;
-                if (!TestBlockValidity(state, chainparams, block,
+                if (!TestBlockValidity(state, chainparams, ::ChainstateActive(),
+                                       block,
                                        g_chainman.m_blockman.LookupBlockIndex(
                                            block.hashPrevBlock),
                                        BlockValidationOptions(config)
@@ -817,7 +818,8 @@ static RPCHelpMan getblocktemplate() {
                         return "inconclusive-not-best-prevblk";
                     }
                     BlockValidationState state;
-                    TestBlockValidity(state, chainparams, block, pindexPrev,
+                    TestBlockValidity(state, chainparams, ::ChainstateActive(),
+                                      block, pindexPrev,
                                       BlockValidationOptions(config)
                                           .withCheckPoW(false)
                                           .withCheckMerkleRoot(true));
