@@ -789,11 +789,6 @@ private:
      */
     mutable std::atomic<bool> m_cached_finished_ibd{false};
 
-    //! Reference to a BlockManager instance which itself is shared across all
-    //! CChainState instances. Keeping a local reference allows us to test more
-    //! easily as opposed to referencing a global.
-    BlockManager &m_blockman;
-
     //! mempool that is kept in sync with the chain
     CTxMemPool &m_mempool;
 
@@ -808,6 +803,10 @@ private:
     const CBlockIndex *m_finalizedBlockIndex GUARDED_BY(cs_main) = nullptr;
 
 public:
+    //! Reference to a BlockManager instance which itself is shared across all
+    //! CChainState instances.
+    BlockManager &m_blockman;
+
     explicit CChainState(CTxMemPool &mempool, BlockManager &blockman,
                          BlockHash from_snapshot_blockhash = BlockHash());
 
