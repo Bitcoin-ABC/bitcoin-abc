@@ -397,9 +397,6 @@ BIP9Stats VersionBitsTipStatistics(const Consensus::Params &params,
 int VersionBitsTipStateSinceHeight(const Consensus::Params &params,
                                    Consensus::DeploymentPos pos);
 
-/** Apply the effects of this transaction on the UTXO set represented by view */
-void UpdateCoins(const CTransaction &tx, CCoinsViewCache &inputs, int nHeight);
-
 /**
  * Mark all the coins corresponding to a given transaction inputs as spent.
  */
