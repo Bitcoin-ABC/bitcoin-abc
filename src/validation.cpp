@@ -2958,7 +2958,7 @@ static SynchronizationState GetSynchronizationState(bool init) {
     return SynchronizationState::INIT_DOWNLOAD;
 }
 
-static bool NotifyHeaderTip() LOCKS_EXCLUDED(cs_main) {
+static bool NotifyHeaderTip(CChainState &chainstate) LOCKS_EXCLUDED(cs_main) {
     bool fNotify = false;
     bool fInitialBlockDownload = false;
     static CBlockIndex *pindexHeaderOld = nullptr;
@@ -2969,8 +2969,9 @@ static bool NotifyHeaderTip() LOCKS_EXCLUDED(cs_main) {
 
         if (pindexHeader != pindexHeaderOld) {
             fNotify = true;
-            fInitialBlockDownload =
-                ::ChainstateActive().IsInitialBlockDownload();
+            assert(std::addressof(::ChainstateActive()) ==
+                   std::addressof(chainstate));
+            fInitialBlockDownload = chainstate.IsInitialBlockDownload();
             pindexHeaderOld = pindexHeader;
         }
     }
@@ -4210,7 +4211,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
         }
     }
 
-    if (NotifyHeaderTip()) {
+    if (NotifyHeaderTip(::ChainstateActive())) {
         if (::ChainstateActive().IsInitialBlockDownload() && ppindex &&
             *ppindex) {
             LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n",
@@ -4456,7 +4457,7 @@ bool ChainstateManager::ProcessNewBlock(
         }
     }
 
-    NotifyHeaderTip();
+    NotifyHeaderTip(::ChainstateActive());
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
@@ -5381,7 +5382,7 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     }
                 }
 
-                NotifyHeaderTip();
+                NotifyHeaderTip(::ChainstateActive());
 
                 // Recursively process earlier encountered successors of this
                 // block
@@ -5416,7 +5417,7 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                         }
                         range.first++;
                         mapBlocksUnknownParent.erase(it);
-                        NotifyHeaderTip();
+                        NotifyHeaderTip(::ChainstateActive());
                     }
                 }
             } catch (const std::exception &e) {
