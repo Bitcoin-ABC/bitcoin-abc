@@ -518,10 +518,9 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
  *
  * See consensus/consensus.h for flag definitions.
  */
-bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
-                                               const CTransaction &tx,
-                                               TxValidationState &state,
-                                               int flags = -1)
+bool ContextualCheckTransactionForCurrentBlock(
+    const CBlockIndex *active_chain_tip, const Consensus::Params &params,
+    const CTransaction &tx, TxValidationState &state, int flags = -1)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**

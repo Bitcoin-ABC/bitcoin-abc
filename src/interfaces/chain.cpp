@@ -216,7 +216,7 @@ namespace {
             const CTransaction &tx, TxValidationState &state) override {
             LOCK(cs_main);
             return ContextualCheckTransactionForCurrentBlock(
-                m_params.GetConsensus(), tx, state);
+                ::ChainActive().Tip(), m_params.GetConsensus(), tx, state);
         }
         std::optional<int>
         findLocatorFork(const CBlockLocator &locator) override {

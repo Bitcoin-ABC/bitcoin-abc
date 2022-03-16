@@ -469,6 +469,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // be mined yet.
     TxValidationState ctxState;
     if (!ContextualCheckTransactionForCurrentBlock(
+            ::ChainActive().Tip(),
             args.m_config.GetChainParams().GetConsensus(), tx, ctxState,
             STANDARD_LOCKTIME_VERIFY_FLAGS)) {
         // We copy the state from a dummy to ensure we don't increase the
@@ -3940,11 +3941,12 @@ ContextualCheckBlockHeader(const CChainParams &params,
     return true;
 }
 
-bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
-                                               const CTransaction &tx,
-                                               TxValidationState &state,
-                                               int flags) {
+bool ContextualCheckTransactionForCurrentBlock(
+    const CBlockIndex *active_chain_tip, const Consensus::Params &params,
+    const CTransaction &tx, TxValidationState &state, int flags) {
     AssertLockHeld(cs_main);
+    assert(std::addressof(*::ChainActive().Tip()) ==
+           std::addressof(*active_chain_tip));
 
     // By convention a negative value for flags indicates that the current
     // network-enforced consensus rules should be used. In a future soft-fork
@@ -3959,7 +3961,7 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
     // evaluated is what is used. Thus if we want to know if a transaction can
     // be part of the *next* block, we need to call ContextualCheckTransaction()
     // with one more than ::ChainActive().Height().
-    const int nBlockHeight = ::ChainActive().Height() + 1;
+    const int nBlockHeight = active_chain_tip->nHeight + 1;
 
     // BIP113 will require that time-locked transactions have nLockTime set to
     // less than the median time of the previous block they're contained in.
@@ -3967,9 +3969,7 @@ bool ContextualCheckTransactionForCurrentBlock(const Consensus::Params &params,
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction() if LOCKTIME_MEDIAN_TIME_PAST is set.
     const int64_t nMedianTimePast =
-        ::ChainActive().Tip() == nullptr
-            ? 0
-            : ::ChainActive().Tip()->GetMedianTimePast();
+        active_chain_tip == nullptr ? 0 : active_chain_tip->GetMedianTimePast();
     const int64_t nLockTimeCutoff = (flags & LOCKTIME_MEDIAN_TIME_PAST)
                                         ? nMedianTimePast
                                         : GetAdjustedTime();

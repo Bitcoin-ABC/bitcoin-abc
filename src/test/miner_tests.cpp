@@ -508,7 +508,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            params, CTransaction(tx), state, flags));
+            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
     }
 
     // Sequence locks fail.
@@ -534,7 +534,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            params, CTransaction(tx), state, flags));
+            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
     }
 
     // Sequence locks fail.
@@ -571,7 +571,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            params, CTransaction(tx), state, flags));
+            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -599,7 +599,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            params, CTransaction(tx), state, flags));
+            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -626,7 +626,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            params, CTransaction(tx), state, flags));
+            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
     }
 
     // Sequence locks pass.
