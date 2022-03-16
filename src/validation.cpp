@@ -3129,12 +3129,6 @@ bool CChainState::ActivateBestChain(const Config &config,
     return true;
 }
 
-bool ActivateBestChain(const Config &config, BlockValidationState &state,
-                       std::shared_ptr<const CBlock> pblock) {
-    return ::ChainstateActive().ActivateBestChain(config, state,
-                                                  std::move(pblock));
-}
-
 bool CChainState::PreciousBlock(const Config &config,
                                 BlockValidationState &state,
                                 CBlockIndex *pindex) {
@@ -5377,7 +5371,8 @@ void LoadExternalBlockFile(const Config &config, FILE *fileIn,
                 // continue
                 if (hash == chainparams.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
-                    if (!ActivateBestChain(config, state, nullptr)) {
+                    if (!::ChainstateActive().ActivateBestChain(config, state,
+                                                                nullptr)) {
                         break;
                     }
                 }

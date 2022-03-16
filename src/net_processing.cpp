@@ -2451,7 +2451,8 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
     } // release cs_main before calling ActivateBestChain
     if (need_activate_chain) {
         BlockValidationState state;
-        if (!ActivateBestChain(config, state, a_recent_block)) {
+        if (!::ChainstateActive().ActivateBestChain(config, state,
+                                                    a_recent_block)) {
             LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
                      state.ToString());
         }
@@ -4131,7 +4132,8 @@ void PeerManagerImpl::ProcessMessage(
                 a_recent_block = most_recent_block;
             }
             BlockValidationState state;
-            if (!ActivateBestChain(config, state, a_recent_block)) {
+            if (!::ChainstateActive().ActivateBestChain(config, state,
+                                                        a_recent_block)) {
                 LogPrint(BCLog::NET, "failed to activate chain (%s)\n",
                          state.ToString());
             }
@@ -5179,7 +5181,7 @@ void PeerManagerImpl::ProcessMessage(
             }
 
             BlockValidationState state;
-            if (!ActivateBestChain(config, state)) {
+            if (!::ChainstateActive().ActivateBestChain(config, state)) {
                 LogPrintf("failed to activate chain (%s)\n", state.ToString());
             }
         }

@@ -222,7 +222,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
     }
     {
         BlockValidationState state;
-        if (!ActivateBestChain(config, state)) {
+        if (!::ChainstateActive().ActivateBestChain(config, state)) {
             throw std::runtime_error(
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }

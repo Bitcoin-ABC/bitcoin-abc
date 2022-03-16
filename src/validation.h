@@ -258,15 +258,6 @@ CTransactionRef GetTransaction(const CBlockIndex *const block_index,
                                const TxId &txid,
                                const Consensus::Params &consensusParams,
                                BlockHash &hashBlock);
-/**
- * Find the best known block, and make it the tip of the block chain
- *
- * May not be called with cs_main held. May not be called in a
- * validationinterface callback.
- */
-bool ActivateBestChain(
-    const Config &config, BlockValidationState &state,
-    std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>());
 Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams);
 
 /**
@@ -905,6 +896,8 @@ public:
     void PruneAndFlush();
 
     /**
+     * Find the best known block, and make it the tip of the block chain
+     *
      * Make the best chain active, in multiple steps. The result is either
      * failure or an activated best chain. pblock is either nullptr or a pointer
      * to a block that is already loaded (to avoid loading it again from disk).
@@ -918,9 +911,8 @@ public:
      *
      * @returns true unless a system error occurred
      */
-    bool ActivateBestChain(
-        const Config &config, BlockValidationState &state,
-        std::shared_ptr<const CBlock> pblock = std::shared_ptr<const CBlock>())
+    bool ActivateBestChain(const Config &config, BlockValidationState &state,
+                           std::shared_ptr<const CBlock> pblock = nullptr)
         LOCKS_EXCLUDED(cs_main);
 
     bool AcceptBlock(const Config &config,

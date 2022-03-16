@@ -1949,7 +1949,7 @@ RPCHelpMan finalizeblock() {
             ::ChainstateActive().FinalizeBlock(config, state, pblockindex);
 
             if (state.IsValid()) {
-                ActivateBestChain(config, state);
+                ::ChainstateActive().ActivateBestChain(config, state);
             }
 
             if (!state.IsValid()) {
@@ -1990,7 +1990,7 @@ static RPCHelpMan invalidateblock() {
             ::ChainstateActive().InvalidateBlock(config, state, pblockindex);
 
             if (state.IsValid()) {
-                ActivateBestChain(config, state);
+                ::ChainstateActive().ActivateBestChain(config, state);
             }
 
             if (!state.IsValid()) {
@@ -2031,7 +2031,7 @@ RPCHelpMan parkblock() {
             ::ChainstateActive().ParkBlock(config, state, pblockindex);
 
             if (state.IsValid()) {
-                ActivateBestChain(config, state);
+                ::ChainstateActive().ActivateBestChain(config, state);
             }
 
             if (!state.IsValid()) {
@@ -2073,7 +2073,7 @@ static RPCHelpMan reconsiderblock() {
             }
 
             BlockValidationState state;
-            ActivateBestChain(config, state);
+            ::ChainstateActive().ActivateBestChain(config, state);
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
@@ -2116,7 +2116,7 @@ RPCHelpMan unparkblock() {
             }
 
             BlockValidationState state;
-            ActivateBestChain(config, state);
+            ::ChainstateActive().ActivateBestChain(config, state);
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
