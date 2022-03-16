@@ -12,24 +12,31 @@ const FiatCurrencyToXEC = styled.p`
 `;
 const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
     return (
-        <BalanceHeaderFiatWrap>
-            {settings
-                ? `${currency.fiatCurrencies[settings.fiatCurrency].symbol}`
-                : '$'}
-            {parseFloat((balance * fiatPrice).toFixed(2)).toLocaleString()}{' '}
-            {settings
-                ? `${currency.fiatCurrencies[
-                      settings.fiatCurrency
-                  ].slug.toUpperCase()} `
-                : 'USD'}
+        <>
             {fiatPrice && (
-                <FiatCurrencyToXEC>
-                    1 {currency.ticker} ={' '}
-                    {fiatPrice.toFixed(9).toLocaleString()}{' '}
-                    {settings.fiatCurrency.toUpperCase()}
-                </FiatCurrencyToXEC>
+                <BalanceHeaderFiatWrap>
+                    {settings
+                        ? `${
+                              currency.fiatCurrencies[settings.fiatCurrency]
+                                  .symbol
+                          }`
+                        : '$'}
+                    {parseFloat(
+                        (balance * fiatPrice).toFixed(2),
+                    ).toLocaleString()}{' '}
+                    {settings
+                        ? `${currency.fiatCurrencies[
+                              settings.fiatCurrency
+                          ].slug.toUpperCase()} `
+                        : 'USD'}
+                    <FiatCurrencyToXEC>
+                        1 {currency.ticker} ={' '}
+                        {fiatPrice.toFixed(9).toLocaleString()}{' '}
+                        {settings.fiatCurrency.toUpperCase()}
+                    </FiatCurrencyToXEC>
+                </BalanceHeaderFiatWrap>
             )}
-        </BalanceHeaderFiatWrap>
+        </>
     );
 };
 

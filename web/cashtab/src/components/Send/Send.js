@@ -644,13 +644,12 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             balance={balances.totalBalance}
                             ticker={currency.ticker}
                         />
-                        {fiatPrice !== null && (
-                            <BalanceHeaderFiat
-                                balance={balances.totalBalance}
-                                settings={cashtabSettings}
-                                fiatPrice={fiatPrice}
-                            />
-                        )}
+
+                        <BalanceHeaderFiat
+                            balance={balances.totalBalance}
+                            settings={cashtabSettings}
+                            fiatPrice={fiatPrice}
+                        />
                     </>
                 )}
             </WalletInfoCtn>
