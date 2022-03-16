@@ -33,13 +33,17 @@ namespace {
             return pendingNodesView.find(nodeid) != pendingNodesView.end();
         }
 
+        static PeerId getPeerIdForProofId(PeerManager &pm,
+                                          const ProofId &proofid) {
+            auto &pview = pm.peers.get<by_proofid>();
+            auto it = pview.find(proofid);
+            return it == pview.end() ? NO_PEER : it->peerid;
+        }
+
         static PeerId registerAndGetPeerId(PeerManager &pm,
                                            const ProofRef &proof) {
             pm.registerProof(proof);
-
-            auto &pview = pm.peers.get<by_proofid>();
-            auto it = pview.find(proof->getId());
-            return it == pview.end() ? NO_PEER : it->peerid;
+            return getPeerIdForProofId(pm, proof->getId());
         }
 
         static std::vector<uint32_t> getOrderedScores(const PeerManager &pm) {
@@ -1563,6 +1567,230 @@ BOOST_AUTO_TEST_CASE(score_ordering) {
     auto peersScores = TestPeerManager::getOrderedScores(pm);
     BOOST_CHECK_EQUAL_COLLECTIONS(peersScores.begin(), peersScores.end(),
                                   expectedScores.begin(), expectedScores.end());
+}
+
+BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
+    avalanche::PeerManager pm;
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const Amount amount10(10 * COIN);
+    const Amount amount20(20 * COIN);
+    const uint32_t height = 100;
+    const bool is_coinbase = false;
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+    const COutPoint peer1ConflictingOutput(TxId(GetRandHash()), 0);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(peer1ConflictingOutput,
+                      Coin(CTxOut(amount10, script), height, is_coinbase),
+                      false);
+    }
+
+    const COutPoint peer1SecondaryOutpoint(TxId(GetRandHash()), 1);
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(peer1SecondaryOutpoint,
+                      Coin(CTxOut(amount20, script), height, is_coinbase),
+                      false);
+    }
+
+    auto buildProofWithSequenceAndOutpoints =
+        [&](int64_t sequence,
+            const std::vector<std::tuple<COutPoint, Amount>> &outpoints) {
+            ProofBuilder pb(sequence, 0, key);
+            for (const auto &outpoint : outpoints) {
+                BOOST_CHECK(pb.addUTXO(std::get<0>(outpoint),
+                                       std::get<1>(outpoint), height,
+                                       is_coinbase, key));
+            }
+            return pb.build();
+        };
+
+    auto peer1Proof1 = buildProofWithSequenceAndOutpoints(
+        10, {{peer1ConflictingOutput, amount10},
+             {peer1SecondaryOutpoint, amount20}});
+    auto peer1Proof2 = buildProofWithSequenceAndOutpoints(
+        20, {{peer1ConflictingOutput, amount10}});
+    auto peer1Proof3 = buildProofWithSequenceAndOutpoints(
+        30, {{peer1ConflictingOutput, amount10},
+             {COutPoint{TxId(GetRandHash()), 0}, amount10}});
+
+    const uint32_t peer1Score1 = Proof::amountToScore(amount10 + amount20);
+    const uint32_t peer1Score2 = Proof::amountToScore(amount10);
+
+    // Add first peer and check that we have its score tracked
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
+    BOOST_CHECK(pm.registerProof(peer1Proof2));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+
+    // Ensure failing to add conflicting proofs doesn't affect the score, the
+    // first proof stays bound and counted
+    BOOST_CHECK(!pm.registerProof(peer1Proof1));
+    BOOST_CHECK(!pm.registerProof(peer1Proof3));
+
+    BOOST_CHECK(pm.isBoundToPeer(peer1Proof2->getId()));
+    BOOST_CHECK(pm.isInConflictingPool(peer1Proof1->getId()));
+    BOOST_CHECK(pm.isOrphan(peer1Proof3->getId()));
+
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+
+    auto checkRejectDefault = [&](const ProofId &proofid) {
+        BOOST_CHECK(pm.exists(proofid));
+        const bool isOrphan = pm.isOrphan(proofid);
+        BOOST_CHECK(pm.rejectProof(
+            proofid, avalanche::PeerManager::RejectionMode::DEFAULT));
+        BOOST_CHECK(!pm.isBoundToPeer(proofid));
+        BOOST_CHECK_EQUAL(pm.exists(proofid), !isOrphan);
+    };
+
+    auto checkRejectInvalidate = [&](const ProofId &proofid) {
+        BOOST_CHECK(pm.exists(proofid));
+        BOOST_CHECK(pm.rejectProof(
+            proofid, avalanche::PeerManager::RejectionMode::INVALIDATE));
+    };
+
+    // Reject from the orphan pool doesn't affect tracked score
+    checkRejectDefault(peer1Proof3->getId());
+    BOOST_CHECK(!pm.registerProof(peer1Proof3));
+    BOOST_CHECK(pm.isOrphan(peer1Proof3->getId()));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+    checkRejectInvalidate(peer1Proof3->getId());
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+
+    // Reject from the conflicting pool
+    checkRejectDefault(peer1Proof1->getId());
+    checkRejectInvalidate(peer1Proof1->getId());
+
+    // Add again a proof to the conflicting pool
+    BOOST_CHECK(!pm.registerProof(peer1Proof1));
+    BOOST_CHECK(pm.isInConflictingPool(peer1Proof1->getId()));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+
+    // Reject from the valid pool, default mode
+    // Now the score should change as the new peer is promoted
+    checkRejectDefault(peer1Proof2->getId());
+    BOOST_CHECK(!pm.isInConflictingPool(peer1Proof1->getId()));
+    BOOST_CHECK(pm.isBoundToPeer(peer1Proof1->getId()));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score1);
+
+    // Reject from the valid pool, invalidate mode
+    // Now the score should change as the old peer is re-promoted
+    checkRejectInvalidate(peer1Proof1->getId());
+
+    // The conflicting proof should also be promoted to a peer
+    BOOST_CHECK(!pm.isInConflictingPool(peer1Proof2->getId()));
+    BOOST_CHECK(pm.isBoundToPeer(peer1Proof2->getId()));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+
+    // Now add another peer and check that combined scores are correct
+    uint32_t peer2Score = 1 * MIN_VALID_PROOF_SCORE;
+    auto peer2Proof1 = buildRandomProof(peer2Score);
+    PeerId peerid2 = TestPeerManager::registerAndGetPeerId(pm, peer2Proof1);
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2 + peer2Score);
+
+    // Trying to remove non-existent peer doesn't affect score
+    BOOST_CHECK(!pm.removePeer(1234));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2 + peer2Score);
+
+    // Removing new peer removes its score
+    BOOST_CHECK(pm.removePeer(peerid2));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
+    PeerId peerid1 =
+        TestPeerManager::getPeerIdForProofId(pm, peer1Proof2->getId());
+    BOOST_CHECK(pm.removePeer(peerid1));
+    BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(connected_score_tracking) {
+    avalanche::PeerManager pm;
+
+    const auto checkScores = [&pm](uint32_t known, uint32_t connected) {
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), known);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), connected);
+    };
+
+    // Start out with 0s
+    checkScores(0, 0);
+
+    // Create one peer without a node. Its score should be registered but not
+    // connected
+    uint32_t score1 = 10000000 * MIN_VALID_PROOF_SCORE;
+    auto proof1 = buildRandomProof(score1);
+    PeerId peerid1 = TestPeerManager::registerAndGetPeerId(pm, proof1);
+    checkScores(score1, 0);
+
+    // Add nodes. We now have a connected score, but it doesn't matter how many
+    // nodes we add the score is the same
+    const ProofId &proofid1 = proof1->getId();
+    const uint8_t nodesToAdd = 10;
+    for (int i = 0; i < nodesToAdd; i++) {
+        BOOST_CHECK(pm.addNode(i, proofid1));
+        checkScores(score1, score1);
+    }
+
+    // Remove all but 1 node and ensure the score doesn't change
+    for (int i = 0; i < nodesToAdd - 1; i++) {
+        BOOST_CHECK(pm.removeNode(i));
+        checkScores(score1, score1);
+    }
+
+    // Removing the last node should remove the score from the connected count
+    BOOST_CHECK(pm.removeNode(nodesToAdd - 1));
+    checkScores(score1, 0);
+
+    // Add 2 nodes to peer and create peer2. Without a node peer2 has no
+    // connected score but after adding a node it does.
+    BOOST_CHECK(pm.addNode(0, proofid1));
+    BOOST_CHECK(pm.addNode(1, proofid1));
+    checkScores(score1, score1);
+
+    uint32_t score2 = 1 * MIN_VALID_PROOF_SCORE;
+    auto proof2 = buildRandomProof(score2);
+    PeerId peerid2 = TestPeerManager::registerAndGetPeerId(pm, proof2);
+    checkScores(score1 + score2, score1);
+    BOOST_CHECK(pm.addNode(2, proof2->getId()));
+    checkScores(score1 + score2, score1 + score2);
+
+    // The first peer has two nodes left. Remove one and nothing happens, remove
+    // the other and its score is no longer in the connected counter..
+    BOOST_CHECK(pm.removeNode(0));
+    checkScores(score1 + score2, score1 + score2);
+    BOOST_CHECK(pm.removeNode(1));
+    checkScores(score1 + score2, score2);
+
+    // Removing a peer with no allocated score has no affect.
+    BOOST_CHECK(pm.removePeer(peerid1));
+    checkScores(score2, score2);
+
+    // Remove the second peer's node removes its allocated score.
+    BOOST_CHECK(pm.removeNode(2));
+    checkScores(score2, 0);
+
+    // Removing the second peer takes us back to 0.
+    BOOST_CHECK(pm.removePeer(peerid2));
+    checkScores(0, 0);
+
+    // Add 2 peers with nodes and remove them without removing the nodes first.
+    // Both score counters should be reduced by each peer's score when it's
+    // removed.
+    peerid1 = TestPeerManager::registerAndGetPeerId(pm, proof1);
+    checkScores(score1, 0);
+    peerid2 = TestPeerManager::registerAndGetPeerId(pm, proof2);
+    checkScores(score1 + score2, 0);
+    BOOST_CHECK(pm.addNode(0, proof1->getId()));
+    checkScores(score1 + score2, score1);
+    BOOST_CHECK(pm.addNode(1, proof2->getId()));
+    checkScores(score1 + score2, score1 + score2);
+
+    BOOST_CHECK(pm.removePeer(peerid2));
+    checkScores(score1, score1);
+
+    BOOST_CHECK(pm.removePeer(peerid1));
+    checkScores(0, 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

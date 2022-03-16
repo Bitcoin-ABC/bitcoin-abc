@@ -74,6 +74,9 @@ bool PeerManager::addNodeToPeer(const PeerSet::iterator &it) {
         const uint64_t start = slotCount;
         slots.emplace_back(start, score, it->peerid);
         slotCount = start + score;
+
+        // Add to our allocated score when we allocate a new peer in the slots
+        connectedPeersScore += score;
     });
 }
 
@@ -120,9 +123,13 @@ bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
         return true;
     }
 
-    // There are no more node left, we need to cleanup.
+    // There are no more nodes left, we need to clean up. Subtract allocated
+    // score and remove from slots.
     const size_t i = it->index;
     assert(i < slots.size());
+    assert(connectedPeersScore >= slots[i].getScore());
+    connectedPeersScore -= slots[i].getScore();
+
     if (i + 1 == slots.size()) {
         slots.pop_back();
         slotCount = slots.empty() ? 0 : slots.back().getStop();
@@ -310,6 +317,9 @@ bool PeerManager::registerProof(const ProofRef &proof,
     // We have no peer for this proof, time to create it.
     auto inserted = peers.emplace(peerid, proof, nextCooldownTimePoint);
     assert(inserted.second);
+
+    // Add to our registered score when adding to the peer list
+    totalPeersScore += proof->getScore();
 
     // If there are nodes waiting for this proof, add them
     auto &pendingNodesView = pendingNodes.get<by_proofid>();
@@ -500,6 +510,10 @@ bool PeerManager::removePeer(const PeerId peerid) {
 
     m_unbroadcast_proofids.erase(it->getProofId());
 
+    // Remove the peer from the PeerSet and remove its score from the registered
+    // score total.
+    assert(totalPeersScore >= it->getScore());
+    totalPeersScore -= it->getScore();
     peers.erase(it);
     return true;
 }
@@ -554,6 +568,7 @@ uint64_t PeerManager::compact() {
 
 bool PeerManager::verify() const {
     uint64_t prevStop = 0;
+    uint32_t scoreFromSlots = 0;
     for (size_t i = 0; i < slots.size(); i++) {
         const Slot &s = slots[i];
 
@@ -574,10 +589,24 @@ bool PeerManager::verify() const {
         if (it == peers.end() || it->index != i) {
             return false;
         }
+
+        // Accumulate score across slots
+        scoreFromSlots += slots[i].getScore();
     }
+
+    // Score across slots must be the same as our allocated score
+    if (scoreFromSlots != connectedPeersScore) {
+        return false;
+    }
+
+    uint32_t scoreFromAllPeers = 0;
+    uint32_t scoreFromPeersWithNodes = 0;
 
     std::unordered_set<COutPoint, SaltedOutpointHasher> peersUtxos;
     for (const auto &p : peers) {
+        // Accumulate the score across peers to compare with total known score
+        scoreFromAllPeers += p.getScore();
+
         // A peer should have a proof attached
         if (!p.proof) {
             return false;
@@ -628,6 +657,7 @@ bool PeerManager::verify() const {
             continue;
         }
 
+        scoreFromPeersWithNodes += p.getScore();
         // The index must point to a slot refering to this peer.
         if (p.index >= slots.size() || slots[p.index].getPeerId() != p.peerid) {
             return false;
@@ -637,6 +667,14 @@ bool PeerManager::verify() const {
         if (slots[p.index].getScore() != p.getScore()) {
             return false;
         }
+    }
+
+    // Check our accumulated scores against our registred and allocated scores
+    if (scoreFromAllPeers != totalPeersScore) {
+        return false;
+    }
+    if (scoreFromPeersWithNodes != connectedPeersScore) {
+        return false;
     }
 
     // We checked the utxo consistency for all our peers utxos already, so if

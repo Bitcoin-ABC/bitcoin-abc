@@ -197,6 +197,12 @@ class PeerManager {
      */
     std::unordered_set<ProofId, SaltedProofIdHasher> m_unbroadcast_proofids;
 
+    /**
+     * Quorum management.
+     */
+    uint32_t totalPeersScore = 0;
+    uint32_t connectedPeersScore = 0;
+
 public:
     /**
      * Node API.
@@ -309,6 +315,12 @@ public:
     void addUnbroadcastProof(const ProofId &proofid);
     void removeUnbroadcastProof(const ProofId &proofid);
     auto getUnbroadcastProofs() const { return m_unbroadcast_proofids; }
+
+    /*
+     * Quorum management
+     */
+    uint32_t getTotalPeersScore() const { return totalPeersScore; }
+    uint32_t getConnectedPeersScore() const { return connectedPeersScore; }
 
     /****************************************************
      * Functions which are public for testing purposes. *
