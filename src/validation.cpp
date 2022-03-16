@@ -691,6 +691,7 @@ bool MemPoolAccept::Finalize(ATMPArgs &args, Workspace &ws) {
     // Trim mempool and check if tx was trimmed.
     if (!bypass_limits) {
         m_pool.LimitSize(
+            ::ChainstateActive().CoinsTip(),
             gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000,
             std::chrono::hours{
                 gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});

@@ -1121,7 +1121,8 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     return stage.size();
 }
 
-void CTxMemPool::LimitSize(size_t limit, std::chrono::seconds age) {
+void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
+                           std::chrono::seconds age) {
     int expired = Expire(GetTime<std::chrono::seconds>() - age);
     if (expired != 0) {
         LogPrint(BCLog::MEMPOOL,
@@ -1130,8 +1131,10 @@ void CTxMemPool::LimitSize(size_t limit, std::chrono::seconds age) {
 
     std::vector<COutPoint> vNoSpendsRemaining;
     TrimToSize(limit, &vNoSpendsRemaining);
+    assert(std::addressof(::ChainstateActive().CoinsTip()) ==
+           std::addressof(coins_cache));
     for (const COutPoint &removed : vNoSpendsRemaining) {
-        ::ChainstateActive().CoinsTip().Uncache(removed);
+        coins_cache.Uncache(removed);
     }
 }
 
@@ -1435,7 +1438,8 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(const Config &config,
                         STANDARD_LOCKTIME_VERIFY_FLAGS);
 
     // Re-limit mempool size, in case we added any transactions
-    pool.LimitSize(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
+    pool.LimitSize(::ChainstateActive().CoinsTip(),
+                   gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) *
                        1000000,
                    std::chrono::hours{
                        gArgs.GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY)});
