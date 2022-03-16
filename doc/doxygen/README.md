@@ -2,10 +2,9 @@
 
 \section intro_sec Introduction
 
-This is the developer documentation of Bitcoin ABC
-(https://www.bitcoinabc.org/). Bitcoin ABC is a client for the digital
-currency called Bitcoin Cash (https://www.bitcoincash.org/), which enables
-instant payments to anyone, anywhere in the world. Bitcoin Cash uses
+This is the developer documentation of [Bitcoin ABC](https://www.bitcoinabc.org/).
+Bitcoin ABC is a client for the digital currency called [eCash](https://e.cash/),
+which enables instant payments to anyone, anywhere in the world. eCash uses
 peer-to-peer technology to operate with no central authority: managing
 transactions and issuing money are carried out collectively by the network.
 
