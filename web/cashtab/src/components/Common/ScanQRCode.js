@@ -5,7 +5,7 @@ import { ThemedQrcodeOutlined } from '@components/Common/CustomIcons';
 import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { currency } from '@components/Common/Ticker.js';
+import { currency, parseAddressForParams } from '@components/Common/Ticker.js';
 import { Event } from '@utils/GoogleAnalytics';
 import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
 
@@ -54,11 +54,17 @@ const ScanQRCode = ({
     const parseContent = content => {
         let type = 'unknown';
         let values = {};
+        const addressInfo = parseAddressForParams(content);
 
         // If what scanner reads from QR code is a valid eCash or eToken address
-        if (isValidXecAddress(content) || isValidEtokenAddress(content)) {
+        if (
+            isValidXecAddress(addressInfo.address) ||
+            isValidEtokenAddress(content)
+        ) {
             type = 'address';
-            values = { address: content };
+            values = {
+                address: content,
+            };
             // Event("Category", "Action", "Label")
             // Track number of successful QR code scans
             // BCH or slp?

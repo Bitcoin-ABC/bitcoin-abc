@@ -359,12 +359,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         const { value, name } = e.target;
         let error = false;
         let addressString = value;
-
-        // validate address
-        const isValid = isValidXecAddress(addressString);
-
         // parse address for parameters
         const addressInfo = parseAddressForParams(addressString);
+        // validate address
+        const isValid = isValidXecAddress(addressInfo.address);
+
         /*
         Model
 
