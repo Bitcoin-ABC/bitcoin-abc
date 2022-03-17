@@ -113,7 +113,7 @@ static void Repeat(CScheduler &s, CScheduler::Predicate p,
 
 void CScheduler::scheduleEvery(CScheduler::Predicate p,
                                std::chrono::milliseconds delta) {
-    scheduleFromNow([=] { Repeat(*this, p, delta); }, delta);
+    scheduleFromNow([this, p, delta] { Repeat(*this, p, delta); }, delta);
 }
 
 size_t
