@@ -3546,12 +3546,12 @@ void CChainState::UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren) {
         });
 }
 
-void UnparkBlockAndChildren(CBlockIndex *pindex) {
-    return ::ChainstateActive().UnparkBlockImpl(pindex, true);
+void CChainState::UnparkBlockAndChildren(CBlockIndex *pindex) {
+    return UnparkBlockImpl(pindex, true);
 }
 
-void UnparkBlock(CBlockIndex *pindex) {
-    return ::ChainstateActive().UnparkBlockImpl(pindex, false);
+void CChainState::UnparkBlock(CBlockIndex *pindex) {
+    return UnparkBlockImpl(pindex, false);
 }
 
 bool CChainState::IsBlockFinalized(const CBlockIndex *pindex) const {

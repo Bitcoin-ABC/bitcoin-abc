@@ -2112,7 +2112,7 @@ RPCHelpMan unparkblock() {
                                        "Block not found");
                 }
 
-                UnparkBlockAndChildren(pblockindex);
+                ::ChainstateActive().UnparkBlockAndChildren(pblockindex);
             }
 
             BlockValidationState state;

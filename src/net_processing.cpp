@@ -5175,7 +5175,7 @@ void PeerManagerImpl::ProcessMessage(
                         LogPrintf("Avalanche accepted %s\n",
                                   pindex->GetBlockHash().GetHex());
                         LOCK(cs_main);
-                        UnparkBlock(pindex);
+                        ::ChainstateActive().UnparkBlock(pindex);
                     } break;
                 }
             }

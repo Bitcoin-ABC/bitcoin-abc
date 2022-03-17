@@ -970,9 +970,13 @@ public:
     void UpdateFlags(CBlockIndex *pindex, CBlockIndex *&pindexReset, F f,
                      C fChild, AC fAncestorWasChanged)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     /** Remove parked status from a block and its descendants. */
-    void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
+    void UnparkBlockAndChildren(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /** Remove parked status from a block. */
+    void UnparkBlock(CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** Replay blocks that aren't fully applied to the database. */
     bool ReplayBlocks(const Consensus::Params &params);
@@ -1050,19 +1054,16 @@ private:
     bool RollforwardBlock(const CBlockIndex *pindex, CCoinsViewCache &inputs,
                           const Consensus::Params &params)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     bool UnwindBlock(const Config &config, BlockValidationState &state,
                      CBlockIndex *pindex, bool invalidate)
         EXCLUSIVE_LOCKS_REQUIRED(m_cs_chainstate);
 
     friend ChainstateManager;
 };
-
-/** Remove parked status from a block and its descendants. */
-void UnparkBlockAndChildren(CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
-
-/** Remove parked status from a block. */
-void UnparkBlock(CBlockIndex *pindex) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
  * Provides an interface for creating and interacting with one or two
