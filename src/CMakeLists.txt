@@ -642,6 +642,7 @@ add_library(server
 	init/common.cpp
 	invrequest.cpp
 	mapport.cpp
+	mempool_args.cpp
 	minerfund.cpp
 	net.cpp
 	net_processing.cpp

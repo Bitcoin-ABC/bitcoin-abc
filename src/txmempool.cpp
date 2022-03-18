@@ -158,7 +158,7 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
     }
 }
 
-CTxMemPool::CTxMemPool(int check_ratio) : m_check_ratio(check_ratio) {
+CTxMemPool::CTxMemPool(const Options &opts) : m_check_ratio(opts.check_ratio) {
     // lock free clear
     _clear();
 }

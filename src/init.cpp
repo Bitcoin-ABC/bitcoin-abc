@@ -35,6 +35,7 @@
 #include <interfaces/chain.h>
 #include <interfaces/node.h>
 #include <mapport.h>
+#include <mempool_args.h>
 #include <net.h>
 #include <net_permissions.h>
 #include <net_processing.h>
@@ -2423,13 +2424,16 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     assert(!node.mempool);
     assert(!node.chainman);
-    const int mempool_check_ratio = std::clamp<int>(
-        args.GetIntArg("-checkmempool",
-                       chainparams.DefaultConsistencyChecks() ? 1 : 0),
-        0, 1000000);
+
+    CTxMemPool::Options mempool_opts{
+        .check_ratio = chainparams.DefaultConsistencyChecks() ? 1 : 0,
+    };
+    ApplyArgsManOptions(args, mempool_opts);
+    mempool_opts.check_ratio =
+        std::clamp<int>(mempool_opts.check_ratio, 0, 1'000'000);
 
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
-        node.mempool = std::make_unique<CTxMemPool>(mempool_check_ratio);
+        node.mempool = std::make_unique<CTxMemPool>(mempool_opts);
 
         const ChainstateManager::Options chainman_opts{
             config,

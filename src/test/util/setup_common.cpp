@@ -15,10 +15,12 @@
 #include <init.h>
 #include <interfaces/chain.h>
 #include <logging.h>
+#include <mempool_args.h>
 #include <net.h>
 #include <net_processing.h>
 #include <node/blockstorage.h>
 #include <node/chainstate.h>
+#include <node/context.h>
 #include <node/miner.h>
 #include <noui.h>
 #include <pow/pow.h>
@@ -52,7 +54,10 @@
 
 using node::BlockAssembler;
 using node::CalculateCacheSizes;
+using node::fPruneMode;
+using node::fReindex;
 using node::LoadChainstate;
+using node::NodeContext;
 using node::VerifyLoadedChainstate;
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
@@ -166,6 +171,15 @@ BasicTestingSetup::~BasicTestingSetup() {
     gArgs.ClearArgs();
     ECC_Stop();
 }
+CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
+    CTxMemPool::Options mempool_opts{
+        // Default to always checking mempool regardless of
+        // chainparams.DefaultConsistencyChecks for tests
+        .check_ratio = 1,
+    };
+    ApplyArgsManOptions(*node.args, mempool_opts);
+    return mempool_opts;
+}
 
 ChainTestingSetup::ChainTestingSetup(
     const std::string &chainName, const std::vector<const char *> &extra_args)
@@ -180,8 +194,8 @@ ChainTestingSetup::ChainTestingSetup(
                     [&] { m_node.scheduler->serviceQueue(); });
     GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
 
-    m_node.mempool = std::make_unique<CTxMemPool>(
-        m_node.args->GetIntArg("-checkmempool", 1));
+    m_node.mempool =
+        std::make_unique<CTxMemPool>(MemPoolOptionsForTest(m_node));
 
     m_cache_sizes = CalculateCacheSizes(m_args);
 

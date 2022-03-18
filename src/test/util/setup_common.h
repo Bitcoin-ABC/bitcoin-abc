@@ -108,6 +108,8 @@ struct BasicTestingSetup {
     ArgsManager m_args;
 };
 
+CTxMemPool::Options MemPoolOptionsForTest(const node::NodeContext &node);
+
 /**
  * Testing setup that performs all steps up until right before
  * ChainstateManager gets initialized. Meant for testing ChainstateManager

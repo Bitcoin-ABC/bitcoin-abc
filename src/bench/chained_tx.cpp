@@ -289,7 +289,10 @@ benchEviction(const Config &, benchmark::Bench &bench,
 
     for (uint64_t i = 0; i < bench.epochs() * bench.epochIterations() + 1;
          ++i) {
-        pools.emplace_back();
+        CTxMemPool::Options mempool_opts{
+            .check_ratio = 0,
+        };
+        pools.emplace_back(mempool_opts);
         CTxMemPool &pool = pools.back();
         TestMemPoolEntryHelper entry;
         // Fill mempool

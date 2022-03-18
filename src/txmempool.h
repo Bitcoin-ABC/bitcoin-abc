@@ -10,6 +10,7 @@
 #include <consensus/amount.h>
 #include <core_memusage.h>
 #include <indirectmap.h>
+#include <kernel/mempool_options.h>
 #include <policy/packages.h>
 #include <primitives/transaction.h>
 #include <radix.h>
@@ -472,16 +473,15 @@ public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx GUARDED_BY(cs);
     std::map<TxId, Amount> mapDeltas GUARDED_BY(cs);
 
+    using Options = kernel::MemPoolOptions;
+
     /**
      * Create a new CTxMemPool.
      * Sanity checks will be off by default for performance, because otherwise
      * accepting transactions becomes O(N^2) where N is the number of
      * transactions in the pool.
-     *
-     * @param[in] check_ratio is the ratio used to determine how often sanity
-     *     checks will run.
      */
-    CTxMemPool(int check_ratio = 0);
+    CTxMemPool(const Options &opts);
     ~CTxMemPool();
 
     /**
