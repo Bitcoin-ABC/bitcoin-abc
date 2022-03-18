@@ -118,7 +118,8 @@ std::optional<int64_t> BlockAssembler::m_last_block_num_txs{std::nullopt};
 std::optional<int64_t> BlockAssembler::m_last_block_size{std::nullopt};
 
 std::unique_ptr<CBlockTemplate>
-BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
+BlockAssembler::CreateNewBlock(CChainState &chainstate,
+                               const CScript &scriptPubKeyIn) {
     int64_t nTimeStart = GetTimeMicros();
 
     resetBlock();
@@ -135,7 +136,9 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
 
     LOCK2(cs_main, m_mempool.cs);
-    CBlockIndex *pindexPrev = ::ChainActive().Tip();
+    assert(std::addressof(*::ChainActive().Tip()) ==
+           std::addressof(*chainstate.m_chain.Tip()));
+    CBlockIndex *pindexPrev = chainstate.m_chain.Tip();
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
 
@@ -222,8 +225,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries[0].sigOpCount = 0;
 
     BlockValidationState state;
-    if (!TestBlockValidity(state, chainParams, ::ChainstateActive(), *pblock,
-                           pindexPrev,
+    assert(std::addressof(::ChainstateActive()) == std::addressof(chainstate));
+    if (!TestBlockValidity(state, chainParams, chainstate, *pblock, pindexPrev,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {

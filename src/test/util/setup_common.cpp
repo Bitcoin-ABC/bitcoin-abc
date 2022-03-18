@@ -259,8 +259,9 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     const std::vector<CMutableTransaction> &txns, const CScript &scriptPubKey) {
     const Config &config = GetConfig();
     CTxMemPool empty_pool;
-    CBlock block =
-        BlockAssembler(config, empty_pool).CreateNewBlock(scriptPubKey)->block;
+    CBlock block = BlockAssembler(config, empty_pool)
+                       .CreateNewBlock(::ChainstateActive(), scriptPubKey)
+                       ->block;
 
     Assert(block.vtx.size() == 1);
     for (const CMutableTransaction &tx : txns) {

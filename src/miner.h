@@ -169,7 +169,7 @@ public:
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
-    CreateNewBlock(const CScript &scriptPubKeyIn);
+    CreateNewBlock(CChainState &chainstate, const CScript &scriptPubKeyIn);
 
     uint64_t GetMaxGeneratedBlockSize() const { return nMaxGeneratedBlockSize; }
 

@@ -44,10 +44,10 @@ CTxIn MineBlock(const Config &config, const NodeContext &node,
 std::shared_ptr<CBlock> PrepareBlock(const Config &config,
                                      const NodeContext &node,
                                      const CScript &coinbase_scriptPubKey) {
-    auto block =
-        std::make_shared<CBlock>(BlockAssembler{config, *Assert(node.mempool)}
-                                     .CreateNewBlock(coinbase_scriptPubKey)
-                                     ->block);
+    auto block = std::make_shared<CBlock>(
+        BlockAssembler{config, *Assert(node.mempool)}
+            .CreateNewBlock(::ChainstateActive(), coinbase_scriptPubKey)
+            ->block);
 
     LOCK(cs_main);
     block->nTime = ::ChainActive().Tip()->GetMedianTimePast() + 1;
