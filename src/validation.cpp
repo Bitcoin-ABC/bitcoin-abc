@@ -5087,6 +5087,12 @@ bool ChainstateManager::LoadBlockIndex() {
                  pindex->nChainWork > m_best_parked->nChainWork)) {
                 m_best_parked = pindex;
             }
+
+            if (pindex->IsValid(BlockValidity::TREE) &&
+                (pindexBestHeader == nullptr ||
+                 CBlockIndexWorkComparator()(pindexBestHeader, pindex))) {
+                pindexBestHeader = pindex;
+            }
         }
 
         needs_init = m_blockman.m_block_index.empty();
