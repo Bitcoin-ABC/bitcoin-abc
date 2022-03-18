@@ -122,7 +122,7 @@ endfunction()
 # However since CMake 3.2 introduced the CMP0056 policy, the
 # CMAKE_EXE_LINKER_FLAGS variable is used by the try_compile function, so there
 # is a workaround that allow for testing the linker flags.
-function(check_linker_flag RESULT FLAG)
+function(_check_linker_flag RESULT FLAG)
 	sanitize_c_cxx_definition("have_linker_" ${FLAG} FLAG_IS_SUPPORTED)
 
 	# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
@@ -140,7 +140,7 @@ function(check_linker_flag RESULT FLAG)
 	set(SAVED_CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 
 	# Append the flag under test to the linker flags
-	string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG}")
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " ${FLAG} ${ARGN}")
 
 	# CHECK_CXX_COMPILER_FLAG calls CHECK_CXX_SOURCE_COMPILES which in turn
 	# calls try_compile, so it will check our flag
@@ -150,6 +150,29 @@ function(check_linker_flag RESULT FLAG)
 	set(CMAKE_EXE_LINKER_FLAGS ${SAVED_CMAKE_EXE_LINKER_FLAGS})
 
 	set(${RESULT} ${${FLAG_IS_SUPPORTED}} PARENT_SCOPE)
+endfunction()
+
+function(check_linker_flag RESULT FLAG)
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		# Include -Wl,--disable-reloc-section so work around a bug from ld.bfd,
+		# the MinGw linker used to cross compile for Windows.
+		# CMake will always attempt to create an import library, despite this
+		# try_compile is building an  executable and not a library, by adding a
+		# --out-implib linker flag. For executables with no exported symbols
+		# this causes ld to segfault when section relocations is enabled, which
+		# is the default for recent MinGw versions (and it is a good thing).
+		# But since here we're building for the sole purpose of detecting if a
+		# flag is supported or not it's totally fine to manually disable it.
+		# See https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5194
+		set(_LD_DISABLE_RELOC_SECTION "-Wl,--disable-reloc-section")
+		_check_linker_flag(_LD_DISABLE_RELOC_SECTION_SUPPORTED ${_LD_DISABLE_RELOC_SECTION})
+		if(_LD_DISABLE_RELOC_SECTION_SUPPORTED)
+			set(EXTRA_LD_FLAGS ${_LD_DISABLE_RELOC_SECTION})
+		endif()
+	endif()
+
+	_check_linker_flag(_RESULT ${FLAG} ${EXTRA_LD_FLAGS})
+	set(${RESULT} ${_RESULT} PARENT_SCOPE)
 endfunction()
 
 function(add_linker_flags)

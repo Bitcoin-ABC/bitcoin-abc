@@ -179,7 +179,7 @@ if(ENABLE_HARDENING)
 	add_compile_options($<$<NOT:$<CONFIG:Debug>>:-D_FORTIFY_SOURCE=2>)
 
 	# Enable ASLR (these flags are primarily targeting MinGw)
-	add_linker_flags(-Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
+	add_linker_flags(-Wl,--enable-reloc-section -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)
 
 	# Make the relocated sections read-only
 	add_linker_flags(-Wl,-z,relro -Wl,-z,now)
