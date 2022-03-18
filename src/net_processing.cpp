@@ -979,6 +979,9 @@ private:
     /** Number of outbound peers with m_chain_sync.m_protect. */
     int m_outbound_peers_with_protect_from_disconnect GUARDED_BY(cs_main) = 0;
 
+    /** Number of preferable block download peers. */
+    int nPreferredDownload GUARDED_BY(cs_main){0};
+
     bool AlreadyHaveTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /**
@@ -1252,14 +1255,7 @@ private:
 
     bool isPreferredDownloadPeer(const CNode &pfrom);
 };
-} // namespace
 
-namespace {
-/** Number of preferable block download peers. */
-int nPreferredDownload GUARDED_BY(cs_main) = 0;
-} // namespace
-
-namespace {
 const CNodeState *PeerManagerImpl::State(NodeId pnode) const
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<NodeId, CNodeState>::const_iterator it = mapNodeState.find(pnode);
