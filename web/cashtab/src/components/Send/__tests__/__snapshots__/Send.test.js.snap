@@ -211,6 +211,7 @@ Array [
                           </span>
                           <input
                             className="ant-input"
+                            disabled={false}
                             dollar={0}
                             name="value"
                             onBlur={[Function]}
@@ -681,6 +682,7 @@ Array [
                           </span>
                           <input
                             className="ant-input"
+                            disabled={false}
                             dollar={0}
                             name="value"
                             onBlur={[Function]}
@@ -1150,6 +1152,7 @@ Array [
                           </span>
                           <input
                             className="ant-input"
+                            disabled={false}
                             dollar={0}
                             name="value"
                             onBlur={[Function]}
@@ -1621,6 +1624,7 @@ Array [
                           </span>
                           <input
                             className="ant-input"
+                            disabled={false}
                             dollar={0}
                             name="value"
                             onBlur={[Function]}
@@ -2086,6 +2090,7 @@ Array [
                           </span>
                           <input
                             className="ant-input"
+                            disabled={false}
                             dollar={0}
                             name="value"
                             onBlur={[Function]}

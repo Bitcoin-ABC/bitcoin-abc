@@ -737,6 +737,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                                 handleBchAmountChange(e),
                                             required: true,
                                             value: formData.value,
+                                            disabled: priceApiError,
                                         }}
                                         selectProps={{
                                             value: selectedCurrency,
@@ -779,7 +780,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     ></DestinationAddressMulti>
                                 </>
                             )}
-                            {!isOneToManyXECSend && (
+                            {!priceApiError && !isOneToManyXECSend && (
                                 <AmountPreviewCtn>
                                     <LocaleFormattedValue>
                                         {formatBalance(
@@ -802,7 +803,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 {!balances.totalBalance ||
                                 apiError ||
                                 sendBchAmountError ||
-                                sendBchAddressError ? (
+                                sendBchAddressError ||
+                                priceApiError ? (
                                     <SecondaryButton>Send</SecondaryButton>
                                 ) : (
                                     <>
