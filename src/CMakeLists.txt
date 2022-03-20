@@ -95,7 +95,7 @@ include(AddCompilerFlags)
 
 if(USE_LINKER)
 	set(LINKER_FLAG "-fuse-ld=${USE_LINKER}")
-	check_linker_flag(IS_LINKER_SUPPORTED ${LINKER_FLAG})
+	custom_check_linker_flag(IS_LINKER_SUPPORTED ${LINKER_FLAG})
 	if(NOT IS_LINKER_SUPPORTED)
 		message(FATAL_ERROR "The ${USE_LINKER} linker is not supported, make sure ${USE_LINKER} is properly installed or use -DUSE_LINKER= to use the system's linker")
 	endif()

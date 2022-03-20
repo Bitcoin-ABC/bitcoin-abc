@@ -117,12 +117,16 @@ function(add_compile_definitions_to_configuration CONFIGURATION)
 	endforeach()
 endfunction()
 
-# Note that CMake does not provide any facility to check that a linker flag is
-# supported by the compiler.
-# However since CMake 3.2 introduced the CMP0056 policy, the
-# CMAKE_EXE_LINKER_FLAGS variable is used by the try_compile function, so there
-# is a workaround that allow for testing the linker flags.
-function(_check_linker_flag RESULT FLAG)
+# Note that CMake provides a facility to check that a linker flag is supported
+# by the compiler starting with 3.18 but we require 3.16 so we have our own
+# function.
+# ***WARNING***: it should not collide with any CMake name (including internal
+# names!), or it can cause infinite recursion, so we use some boring one here.
+#
+# Since CMake 3.2 introduced the CMP0056 policy, the CMAKE_EXE_LINKER_FLAGS
+# variable is used by the try_compile function, so there is a workaround that
+# allow for testing the linker flags from versions before 3.18.
+function(_internal_custom_check_linker_flag RESULT FLAG)
 	sanitize_c_cxx_definition("have_linker_" ${FLAG} FLAG_IS_SUPPORTED)
 
 	# Some linkers (e.g.: Clang) will issue a -Wunused-command-line-argument
@@ -152,7 +156,7 @@ function(_check_linker_flag RESULT FLAG)
 	set(${RESULT} ${${FLAG_IS_SUPPORTED}} PARENT_SCOPE)
 endfunction()
 
-function(check_linker_flag RESULT FLAG)
+function(custom_check_linker_flag RESULT FLAG)
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 		# Include -Wl,--disable-reloc-section so work around a bug from ld.bfd,
 		# the MinGw linker used to cross compile for Windows.
@@ -165,19 +169,19 @@ function(check_linker_flag RESULT FLAG)
 		# flag is supported or not it's totally fine to manually disable it.
 		# See https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5194
 		set(_LD_DISABLE_RELOC_SECTION "-Wl,--disable-reloc-section")
-		_check_linker_flag(_LD_DISABLE_RELOC_SECTION_SUPPORTED ${_LD_DISABLE_RELOC_SECTION})
+		_internal_custom_check_linker_flag(_LD_DISABLE_RELOC_SECTION_SUPPORTED ${_LD_DISABLE_RELOC_SECTION})
 		if(_LD_DISABLE_RELOC_SECTION_SUPPORTED)
 			set(EXTRA_LD_FLAGS ${_LD_DISABLE_RELOC_SECTION})
 		endif()
 	endif()
 
-	_check_linker_flag(_RESULT ${FLAG} ${EXTRA_LD_FLAGS})
+	_internal_custom_check_linker_flag(_RESULT ${FLAG} ${EXTRA_LD_FLAGS})
 	set(${RESULT} ${_RESULT} PARENT_SCOPE)
 endfunction()
 
 function(add_linker_flags)
 	foreach(f ${ARGN})
-		check_linker_flag(FLAG_IS_SUPPORTED ${f})
+		custom_check_linker_flag(FLAG_IS_SUPPORTED ${f})
 
 		if(${FLAG_IS_SUPPORTED})
 			add_link_options(${f})
