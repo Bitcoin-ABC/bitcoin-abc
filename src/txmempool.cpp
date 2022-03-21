@@ -64,15 +64,6 @@ private:
     int64_t modifySigOpCount;
 };
 
-struct update_fee_delta {
-    explicit update_fee_delta(Amount _feeDelta) : feeDelta(_feeDelta) {}
-
-    void operator()(CTxMemPoolEntry &e) { e.UpdateFeeDelta(feeDelta); }
-
-private:
-    Amount feeDelta;
-};
-
 bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp) {
     AssertLockHeld(cs_main);
     // If there are relative lock times then the maxInputBlock will be set
@@ -538,7 +529,9 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entry,
     Amount feeDelta = Amount::zero();
     ApplyDelta(entry.GetTx().GetId(), feeDelta);
     if (feeDelta != Amount::zero()) {
-        mapTx.modify(newit, update_fee_delta(feeDelta));
+        mapTx.modify(newit, [&feeDelta](CTxMemPoolEntry &e) {
+            e.UpdateFeeDelta(feeDelta);
+        });
     }
 
     // Update cachedInnerUsage to include contained transaction's usage.
@@ -1035,7 +1028,8 @@ void CTxMemPool::PrioritiseTransaction(const TxId &txid,
         delta += nFeeDelta;
         txiter it = mapTx.find(txid);
         if (it != mapTx.end()) {
-            mapTx.modify(it, update_fee_delta(delta));
+            mapTx.modify(
+                it, [&delta](CTxMemPoolEntry &e) { e.UpdateFeeDelta(delta); });
             // Now update all ancestors' modified fees with descendants
             setEntries setAncestors;
             uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
