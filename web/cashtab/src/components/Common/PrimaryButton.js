@@ -38,7 +38,7 @@ const SecondaryButton = styled.button`
     width: 100%;
     padding: 15px 0;
     border-radius: 4px;
-    cursor: pointer;
+    cursor: not-allowed;
     outline: none;
     margin-bottom: 20px;
     :hover {

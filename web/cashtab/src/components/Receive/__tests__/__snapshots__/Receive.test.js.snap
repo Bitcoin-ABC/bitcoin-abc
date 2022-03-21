@@ -506,7 +506,7 @@ exports[`Without wallet defined 1`] = `
      New Wallet
   </button>
   <button
-    className="sc-cSHVUG kUJUGX"
+    className="sc-cSHVUG fQByuZ"
     onClick={[Function]}
   >
     <span

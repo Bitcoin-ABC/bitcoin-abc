@@ -166,7 +166,7 @@ exports[`Configure with a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-hSdWYo iYTbMn"
+      className="sc-hSdWYo hVIBck"
       onClick={[Function]}
     >
       <span
@@ -604,7 +604,7 @@ exports[`Configure without a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-hSdWYo iYTbMn"
+      className="sc-hSdWYo hVIBck"
       onClick={[Function]}
     >
       <span
