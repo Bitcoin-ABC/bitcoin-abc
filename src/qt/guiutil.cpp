@@ -47,6 +47,7 @@
 #include <QFontMetrics>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QKeySequence>
 #include <QLineEdit>
 #include <QList>
 #include <QMenu>
@@ -406,7 +407,7 @@ void bringToFront(QWidget *w) {
 }
 
 void handleCloseWindowShortcut(QWidget *w) {
-    QObject::connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), w),
+    QObject::connect(new QShortcut(QKeySequence(QObject::tr("Ctrl+W")), w),
                      &QShortcut::activated, w, &QWidget::close);
 }
 
