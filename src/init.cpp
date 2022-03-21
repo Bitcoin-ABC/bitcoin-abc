@@ -1827,7 +1827,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_COMPACT_FILTERS);
     }
 
-    // if using block pruning, then disallow txindex, coinstatsindex and chronik
     if (args.GetIntArg("-prune", 0)) {
         if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
             return InitError(_("Prune mode is incompatible with -txindex."));
@@ -1835,6 +1834,11 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
             return InitError(
                 _("Prune mode is incompatible with -coinstatsindex."));
+        }
+        if (args.GetBoolArg("-reindex-chainstate", false)) {
+            return InitError(
+                _("Prune mode is incompatible with -reindex-chainstate. Use "
+                  "full -reindex instead."));
         }
         if (args.GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
             return InitError(_("Prune mode is incompatible with -chronik."));
