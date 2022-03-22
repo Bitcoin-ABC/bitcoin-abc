@@ -991,6 +991,32 @@ static RPCHelpMan verifyavalancheproof() {
     };
 }
 
+static RPCHelpMan verifyavalanchedelegation() {
+    return RPCHelpMan{
+        "verifyavalanchedelegation",
+        "Verify an avalanche delegation is valid and return the error "
+        "otherwise.\n",
+        {
+            {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The avalanche proof delegation to verify."},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the delegation is valid or not."},
+        RPCExamples{HelpExampleRpc("verifyavalanchedelegation", "\"<proof>\"")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VSTR});
+
+            avalanche::Delegation delegation;
+            CPubKey dummy;
+            verifyDelegationOrThrow(delegation, request.params[0].get_str(),
+                                    dummy);
+
+            return true;
+        },
+    };
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -1007,6 +1033,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         getrawavalancheproof,      },
         { "avalanche",         sendavalancheproof,        },
         { "avalanche",         verifyavalancheproof,      },
+        { "avalanche",         verifyavalanchedelegation, },
     };
     // clang-format on
 

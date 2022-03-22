@@ -214,7 +214,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.sync_all()
         wait_for_proof(self.nodes[1], proofid_hex, expect_orphan=False)
 
-        self.log.info("Generate delegations for the proof and decode them")
+        self.log.info(
+            "Generate delegations for the proof, verify and decode them")
 
         # Stack up a few delegation levels
         def gen_privkey():
@@ -233,6 +234,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                 delegated_pubkey,
                 delegation,
             )
+
+            assert node.verifyavalanchedelegation(delegation)
 
             dg_info = node.decodeavalanchedelegation(delegation)
             assert_equal(dg_info['pubkey'], delegated_pubkey)
