@@ -794,6 +794,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     </ConvertAmount>
                                 </AmountPreviewCtn>
                             )}
+
+                            {queryStringText && (
+                                <Alert
+                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
+                                    type="warning"
+                                />
+                            )}
                             <div
                                 style={{
                                     paddingTop: '12px',
@@ -951,12 +958,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     </Panel>
                                 </AdvancedCollapse>
                             </div>
-                            {queryStringText && (
-                                <Alert
-                                    message={`You are sending a transaction to an address including query parameters "${queryStringText}." Only the "amount" parameter, in units of ${currency.ticker} satoshis, is currently supported.`}
-                                    type="warning"
-                                />
-                            )}
                             {apiError && <ApiError />}
                         </Form>
                     </Col>
