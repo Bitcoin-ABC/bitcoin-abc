@@ -614,7 +614,7 @@ static RPCHelpMan decodeavalanchedelegation() {
             result.pushKV("proofid", delegation.getProofId().ToString());
 
             auto levels = delegation.getLevels();
-            result.pushKV("depth", levels.size());
+            result.pushKV("depth", uint64_t(levels.size()));
 
             UniValue levelsArray(UniValue::VARR);
             for (auto &level : levels) {
