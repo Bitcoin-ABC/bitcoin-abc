@@ -44,6 +44,14 @@ namespace {
         }
 
         static uint64_t getRound(const Processor &p) { return p.round; }
+
+        static uint32_t getMinQuorumScore(const Processor &p) {
+            return p.minQuorumScore;
+        }
+
+        static double getMinQuorumConnectedScoreRatio(const Processor &p) {
+            return p.minQuorumConnectedScoreRatio;
+        }
     };
 } // namespace
 } // namespace avalanche
@@ -1192,6 +1200,142 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK(m_processor->isAccepted(proofB));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), 0);
+}
+
+BOOST_AUTO_TEST_CASE(quorum_detection) {
+    // Set min quorum parameters for our test
+    int minStake = 2000000;
+    gArgs.ForceSetArg("-avaminquorumstake", ToString(minStake));
+    gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", "0.5");
+
+    // Create a new processor with our given quorum parameters
+    const auto currency = Currency::get();
+    uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
+
+    bilingual_str error;
+    std::unique_ptr<Processor> processor = Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(), error);
+
+    BOOST_CHECK(processor != nullptr);
+    BOOST_CHECK(!processor->isQuorumEstablished());
+    BOOST_CHECK_EQUAL(AvalancheTest::getMinQuorumScore(*processor), minScore);
+    BOOST_CHECK_EQUAL(
+        AvalancheTest::getMinQuorumConnectedScoreRatio(*processor), 0.5);
+
+    // Add part of the required stake and make sure we still report no quorum
+    auto proof1 = buildRandomProof(minScore / 2);
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.registerProof(proof1));
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 2);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(!processor->isQuorumEstablished());
+
+    // Add the rest of the stake, but we still have no connected stake
+    auto proof2 = buildRandomProof(minScore / 2);
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.registerProof(proof2));
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(!processor->isQuorumEstablished());
+
+    // Adding a node should cause the quorum to be detected and locked-in
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.addNode(0, proof1->getId());
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 2);
+    });
+    BOOST_CHECK(processor->isQuorumEstablished());
+
+    // Go back to not having enough connected nodes, but we've already latched
+    // the quorum as established
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.removeNode(0);
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(processor->isQuorumEstablished());
+
+    // Remove peers one at a time by orphaning their proofs, and ensure the
+    // quorum stays established
+    auto orphanProof = [&processor](ProofRef proof) {
+        {
+            LOCK(cs_main);
+            CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+            coins.SpendCoin(proof->getStakes()[0].getStake().getUTXO());
+        }
+        processor->withPeerManager([&proof](avalanche::PeerManager &pm) {
+            pm.updatedBlockTip();
+            BOOST_CHECK(pm.isOrphan(proof->getId()));
+            BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
+        });
+    };
+
+    orphanProof(proof2);
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 2);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(processor->isQuorumEstablished());
+
+    orphanProof(proof1);
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(processor->isQuorumEstablished());
+
+    gArgs.ClearForcedArg("-avaminquorumstake");
+    gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
+}
+
+BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
+    // Create vector of tuples of <min stake, min ratio, success bool>
+    std::vector<std::tuple<std::string, std::string, bool>> tests = {
+        // Both parameters are invalid
+        {"", "", false},
+        {"-1", "-1", false},
+
+        // Min stake is out of range
+        {"-1", "0", false},
+        {"21000000001", "0", false},
+
+        // Min connected ratio is out of range
+        {"0", "-1", false},
+        {"0", "1.1", false},
+
+        // Both parameters are valid
+        {"0", "0", true},
+        {"1", "0.1", true},
+        {"10", "0.5", true},
+        {"10", "1", true},
+        {ToString(MAX_MONEY / COIN), "0", true},
+    };
+
+    // For each case set the parameters and check that making the processor
+    // succeeds or fails as expected
+    for (auto it = tests.begin(); it != tests.end(); ++it) {
+        gArgs.ForceSetArg("-avaminquorumstake", std::get<0>(*it));
+        gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", std::get<1>(*it));
+
+        bilingual_str error;
+        std::unique_ptr<Processor> processor = Processor::MakeProcessor(
+            *m_node.args, *m_node.chain, m_node.connman.get(), error);
+
+        if (std::get<2>(*it)) {
+            BOOST_CHECK(processor != nullptr);
+            BOOST_CHECK(error.empty());
+            BOOST_CHECK_EQUAL(error.original, "");
+        } else {
+            BOOST_CHECK(processor == nullptr);
+            BOOST_CHECK(!error.empty());
+            BOOST_CHECK(error.original != "");
+        }
+    }
+
+    gArgs.ClearForcedArg("-avaminquorumstake");
+    gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

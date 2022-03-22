@@ -1325,6 +1325,18 @@ void SetupServerArgs(NodeContext &node) {
                              AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED),
                    ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
     argsman.AddArg(
+        "-avaminquorumstake",
+        strprintf(
+            "Minimum amount of known stake for a usable quorum (default: %s)",
+            FormatMoney(AVALANCHE_DEFAULT_MIN_QUORUM_STAKE)),
+        ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avaminquorumconnectedstakeratio",
+        strprintf("Minimum proportion of known stake we"
+                  " need nodes for to have a usable quorum (default: %s)",
+                  AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO),
+        ArgsManager::ALLOW_STRING, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
         "-avacooldown",
         strprintf("Mandatory cooldown between two avapoll (default: %u)",
                   AVALANCHE_DEFAULT_COOLDOWN),

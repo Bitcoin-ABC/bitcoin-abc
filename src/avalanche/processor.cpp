@@ -4,6 +4,7 @@
 
 #include <avalanche/processor.h>
 
+#include <avalanche/avalanche.h>
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/validation.h>
@@ -15,6 +16,7 @@
 #include <reverse_iterator.h>
 #include <scheduler.h>
 #include <util/bitmanip.h>
+#include <util/moneystr.h>
 #include <util/translation.h>
 #include <validation.h>
 
@@ -131,12 +133,15 @@ public:
 
 Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
                      CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
-                     CKey sessionKeyIn)
+                     CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
+                     double minQuorumConnectedScoreRatioIn)
     : connman(connmanIn),
       queryTimeoutDuration(argsman.GetArg(
           "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
       round(0), peerManager(std::make_unique<PeerManager>()),
-      peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)) {
+      peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
+      minQuorumScore(minQuorumTotalScoreIn),
+      minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
@@ -241,9 +246,38 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
         }
     }
 
+    // Determine quorum parameters
+    Amount minQuorumStake = AVALANCHE_DEFAULT_MIN_QUORUM_STAKE;
+    if (gArgs.IsArgSet("-avaminquorumstake") &&
+        !ParseMoney(gArgs.GetArg("-avaminquorumstake", ""), minQuorumStake)) {
+        error = _("The avalanche min quorum stake amount is invalid.");
+        return nullptr;
+    }
+
+    if (!MoneyRange(minQuorumStake)) {
+        error = _("The avalanche min quorum stake amount is out of range.");
+        return nullptr;
+    }
+
+    double minQuorumConnectedStakeRatio =
+        AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO;
+    if (gArgs.IsArgSet("-avaminquorumconnectedstakeratio") &&
+        !ParseDouble(gArgs.GetArg("-avaminquorumconnectedstakeratio", ""),
+                     &minQuorumConnectedStakeRatio)) {
+        error = _("The avalanche min quorum connected stake ratio is invalid.");
+        return nullptr;
+    }
+
+    if (minQuorumConnectedStakeRatio < 0 || minQuorumConnectedStakeRatio > 1) {
+        error = _(
+            "The avalanche min quorum connected stake ratio is out of range.");
+        return nullptr;
+    }
+
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
-        argsman, chain, connman, std::move(peerData), std::move(sessionKey)));
+        argsman, chain, connman, std::move(peerData), std::move(sessionKey),
+        Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
@@ -667,6 +701,11 @@ void Processor::runEventLoop() {
         return;
     }
 
+    // Don't poll if quorum hasn't been established yet
+    if (!isQuorumEstablished()) {
+        return;
+    }
+
     // First things first, check if we have requests that timed out and clear
     // them.
     clearTimedoutRequests();
@@ -727,6 +766,41 @@ void Processor::runEventLoop() {
         // Get next suitable node to try again
         nodeid = getSuitableNodeToQuery();
     } while (nodeid != NO_NODE);
+}
+
+/*
+ * Returns a bool indicating whether we have a usable Avalanche quorum enabling
+ * us to take decisions based on polls.
+ */
+bool Processor::isQuorumEstablished() {
+    if (quorumIsEstablished) {
+        return true;
+    }
+
+    // Get the registered proof score and registered score we have nodes for
+    uint32_t totalPeersScore;
+    uint32_t connectedPeersScore;
+
+    {
+        LOCK(cs_peerManager);
+        totalPeersScore = peerManager->getTotalPeersScore();
+        connectedPeersScore = peerManager->getConnectedPeersScore();
+    }
+
+    // Ensure enough is being staked overall
+    if (totalPeersScore < minQuorumScore) {
+        return false;
+    }
+
+    // Ensure we have connected score for enough of the overall score
+    uint32_t minConnectedScore =
+        std::round(double(totalPeersScore) * minQuorumConnectedScoreRatio);
+    if (connectedPeersScore < minConnectedScore) {
+        return false;
+    }
+
+    quorumIsEstablished = true;
+    return true;
 }
 
 } // namespace avalanche

@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <memory>
 
+#include <amount.h>
+
 namespace avalanche {
 class Processor;
 }
@@ -45,6 +47,25 @@ static constexpr bool AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED = false;
  * Avalanche default cooldown in milliseconds.
  */
 static constexpr size_t AVALANCHE_DEFAULT_COOLDOWN = 100;
+
+/**
+ * Default minimum cumulative stake of all known peers that constitutes a usable
+ * quorum.
+ *
+ * FIXME: The default is set to 0 to allow existing tests to pass for now. We
+ * need to set a sane default and update tests later.
+ */
+static constexpr const Amount AVALANCHE_DEFAULT_MIN_QUORUM_STAKE =
+    Amount::zero();
+
+/**
+ * Default minimum percentage of stake-weighted peers we must have a node for to
+ * constitute a usable quorum.
+ *
+ * FIXME: The default is set to 0 to allow existing tests to pass for now. We
+ * need to set a sane default and update tests later.
+ */
+static constexpr double AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO = 0;
 
 /**
  * Global avalanche instance.

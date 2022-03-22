@@ -151,13 +151,21 @@ class Processor {
     /** Event loop machinery. */
     EventLoop eventLoop;
 
+    /**
+     * Quorum management.
+     */
+    uint32_t minQuorumScore;
+    double minQuorumConnectedScoreRatio;
+    std::atomic<bool> quorumIsEstablished{false};
+
     /** Registered interfaces::Chain::Notifications handler. */
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
     Processor(const ArgsManager &argsman, interfaces::Chain &chain,
               CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
-              CKey sessionKeyIn);
+              CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
+              double minQuorumConnectedScoreRatioIn);
 
 public:
     ~Processor();
@@ -202,6 +210,8 @@ public:
 
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
+
+    bool isQuorumEstablished();
 
 private:
     void runEventLoop();

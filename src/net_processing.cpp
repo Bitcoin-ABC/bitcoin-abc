@@ -5020,6 +5020,9 @@ void PeerManagerImpl::ProcessMessage(
             node_state.last_poll = now;
         }
 
+        const bool quorum_established =
+            g_avalanche && g_avalanche->isQuorumEstablished();
+
         uint64_t round;
         Unserialize(vRecv, round);
 
@@ -5043,6 +5046,12 @@ void PeerManagerImpl::ProcessMessage(
 
             // Default vote for unknown inv type
             uint32_t vote = -1;
+
+            // We don't vote definitively until we have an established quorum
+            if (!quorum_established) {
+                votes.emplace_back(vote, inv.hash);
+                continue;
+            }
 
             // If inv's type is known, get a vote for its hash
             switch (inv.type) {
