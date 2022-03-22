@@ -96,12 +96,13 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         proofobj = FromHex(LegacyAvalancheProof(), proof)
         decodedproof = node.decodeavalancheproof(proof)
         limited_id_hex = f"{proofobj.limited_proofid:0{64}x}"
+        proofid_hex = f"{proofobj.proofid:0{64}x}"
         assert_equal(decodedproof["sequence"], proof_sequence)
         assert_equal(decodedproof["expiration"], proof_expiration)
         assert_equal(decodedproof["master"], proof_master)
         assert_equal(decodedproof["payoutscript"]["hex"], "")
         assert "signature" not in decodedproof.keys()
-        assert_equal(decodedproof["proofid"], f"{proofobj.proofid:0{64}x}")
+        assert_equal(decodedproof["proofid"], proofid_hex)
         assert_equal(decodedproof["limitedid"], limited_id_hex)
         assert_equal(decodedproof["staked_amount"], Decimal('50000000.00'))
         assert_equal(decodedproof["score"], 5000)
@@ -206,16 +207,14 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         ])
         # Mine a block to trigger an attempt at registering the proof
         self.nodes[1].generate(1)
-        wait_for_proof(self.nodes[1], f"{proofobj.proofid:0{64}x}",
-                       expect_orphan=True)
+        wait_for_proof(self.nodes[1], proofid_hex, expect_orphan=True)
 
         self.log.info("Connect to an up-to-date node to unorphan the proof")
         self.connect_nodes(1, node.index)
         self.sync_all()
-        wait_for_proof(self.nodes[1], f"{proofobj.proofid:0{64}x}",
-                       expect_orphan=False)
+        wait_for_proof(self.nodes[1], proofid_hex, expect_orphan=False)
 
-        self.log.info("Generate delegations for the proof")
+        self.log.info("Generate delegations for the proof and decode them")
 
         # Stack up a few delegation levels
         def gen_privkey():
@@ -225,14 +224,27 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         delegator_privkey = privkey
         delegation = None
-        for _ in range(10):
+        for i in range(10):
             delegated_privkey = gen_privkey()
+            delegated_pubkey = get_hex_pubkey(delegated_privkey)
             delegation = node.delegateavalancheproof(
                 limited_id_hex,
                 bytes_to_wif(delegator_privkey.get_bytes()),
-                get_hex_pubkey(delegated_privkey),
+                delegated_pubkey,
                 delegation,
             )
+
+            dg_info = node.decodeavalanchedelegation(delegation)
+            assert_equal(dg_info['pubkey'], delegated_pubkey)
+            assert_equal(dg_info['proofmaster'], proof_master)
+            assert 'delegationid' in dg_info.keys()
+            assert_equal(dg_info['limitedid'], limited_id_hex)
+            assert_equal(dg_info['proofid'], proofid_hex)
+            assert_equal(dg_info['depth'], i + 1)
+            assert_equal(len(dg_info['levels']), dg_info['depth'])
+            assert_equal(dg_info['levels'][-1]['pubkey'], delegated_pubkey)
+            assert 'signature' in dg_info['levels'][-1]
+
             delegator_privkey = delegated_privkey
 
         random_privkey = gen_privkey()

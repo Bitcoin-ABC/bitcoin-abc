@@ -545,6 +545,91 @@ static RPCHelpMan delegateavalancheproof() {
     };
 }
 
+static RPCHelpMan decodeavalanchedelegation() {
+    return RPCHelpMan{
+        "decodeavalanchedelegation",
+        "Convert a serialized, hex-encoded avalanche proof delegation, into "
+        "JSON object. \n"
+        "The validity of the delegation is not verified.\n",
+        {
+            {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The delegation hex string"},
+        },
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::STR_HEX, "pubkey",
+                 "The public key the proof is delegated to."},
+                {RPCResult::Type::STR_HEX, "proofmaster",
+                 "The delegated proof master public key."},
+                {RPCResult::Type::STR_HEX, "delegationid",
+                 "The identifier of this delegation."},
+                {RPCResult::Type::STR_HEX, "limitedid",
+                 "A delegated proof data hash excluding the master key."},
+                {RPCResult::Type::STR_HEX, "proofid",
+                 "A hash of the delegated proof limitedid and master key."},
+                {RPCResult::Type::NUM, "depth",
+                 "The number of delegation levels."},
+                {RPCResult::Type::ARR,
+                 "levels",
+                 "",
+                 {
+                     {RPCResult::Type::OBJ,
+                      "",
+                      "",
+                      {
+                          {RPCResult::Type::NUM, "index",
+                           "The index of this delegation level."},
+                          {RPCResult::Type::STR_HEX, "pubkey",
+                           "This delegated public key for this level"},
+                          {RPCResult::Type::STR, "signature",
+                           "Signature of this delegation level (base64 "
+                           "encoded)"},
+                      }},
+                 }},
+            }},
+        RPCExamples{HelpExampleCli("decodeavalanchedelegation",
+                                   "\"<hex delegation>\"") +
+                    HelpExampleRpc("decodeavalanchedelegation",
+                                   "\"<hex delegation>\"")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            RPCTypeCheck(request.params, {UniValue::VSTR});
+
+            avalanche::Delegation delegation;
+            bilingual_str error;
+            if (!avalanche::Delegation::FromHex(
+                    delegation, request.params[0].get_str(), error)) {
+                throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
+            }
+
+            UniValue result(UniValue::VOBJ);
+            result.pushKV("pubkey", HexStr(delegation.getDelegatedPubkey()));
+            result.pushKV("proofmaster", HexStr(delegation.getProofMaster()));
+            result.pushKV("delegationid", delegation.getId().ToString());
+            result.pushKV("limitedid",
+                          delegation.getLimitedProofId().ToString());
+            result.pushKV("proofid", delegation.getProofId().ToString());
+
+            auto levels = delegation.getLevels();
+            result.pushKV("depth", levels.size());
+
+            UniValue levelsArray(UniValue::VARR);
+            for (auto &level : levels) {
+                UniValue obj(UniValue::VOBJ);
+                obj.pushKV("pubkey", HexStr(level.pubkey));
+                obj.pushKV("signature", EncodeBase64(level.sig));
+                levelsArray.push_back(std::move(obj));
+            }
+            result.pushKV("levels", levelsArray);
+
+            return result;
+        },
+    };
+}
+
 static RPCHelpMan getavalancheinfo() {
     return RPCHelpMan{
         "getavalancheinfo",
@@ -911,16 +996,17 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
     static const CRPCCommand commands[] = {
         //  category           actor (function)
         //  -----------------  --------------------
-        { "avalanche",         getavalanchekey,        },
-        { "avalanche",         addavalanchenode,       },
-        { "avalanche",         buildavalancheproof,    },
-        { "avalanche",         decodeavalancheproof,   },
-        { "avalanche",         delegateavalancheproof, },
-        { "avalanche",         getavalancheinfo,       },
-        { "avalanche",         getavalanchepeerinfo,   },
-        { "avalanche",         getrawavalancheproof,   },
-        { "avalanche",         sendavalancheproof,     },
-        { "avalanche",         verifyavalancheproof,   },
+        { "avalanche",         getavalanchekey,           },
+        { "avalanche",         addavalanchenode,          },
+        { "avalanche",         buildavalancheproof,       },
+        { "avalanche",         decodeavalancheproof,      },
+        { "avalanche",         delegateavalancheproof,    },
+        { "avalanche",         decodeavalanchedelegation, },
+        { "avalanche",         getavalancheinfo,          },
+        { "avalanche",         getavalanchepeerinfo,      },
+        { "avalanche",         getrawavalancheproof,      },
+        { "avalanche",         sendavalancheproof,        },
+        { "avalanche",         verifyavalancheproof,      },
     };
     // clang-format on
 

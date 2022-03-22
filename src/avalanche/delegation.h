@@ -53,6 +53,7 @@ public:
     const LimitedProofId &getLimitedProofId() const { return limitedProofid; }
     const CPubKey &getProofMaster() const { return proofMaster; }
     const CPubKey &getDelegatedPubkey() const;
+    const std::vector<Level> &getLevels() const { return levels; }
 
     ProofId getProofId() const;
 
