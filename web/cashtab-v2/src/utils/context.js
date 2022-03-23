@@ -1,5 +1,7 @@
 import React from 'react';
 import useWallet from '../hooks/useWallet';
+import useWebAuthentication from '../hooks/useWebAuthentication';
+
 export const WalletContext = React.createContext();
 
 export const WalletProvider = ({ children }) => {
@@ -12,7 +14,7 @@ export const WalletProvider = ({ children }) => {
 };
 
 // Authentication Context
-import useWebAuthentication from '../hooks/useWebAuthentication';
+
 export const AuthenticationContext = React.createContext();
 export const AuthenticationProvider = ({ children }) => {
     // useWebAuthentication returns null if Web Authn is not supported

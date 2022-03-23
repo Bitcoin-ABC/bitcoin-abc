@@ -10,8 +10,6 @@ import {
 } from 'components/Common/EnhancedInputs';
 import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Collapse, Input, Button } from 'antd';
-const { Panel } = Collapse;
-const { TextArea } = Input;
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
@@ -58,6 +56,9 @@ import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import WalletLabel from 'components/Common/WalletLabel.js';
+
+const { Panel } = Collapse;
+const { TextArea } = Input;
 
 const SignMessageLabel = styled.div`
     text-align: left;

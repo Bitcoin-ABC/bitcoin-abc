@@ -36,7 +36,6 @@ import {
     Typography,
     Switch,
 } from 'antd';
-const { Panel } = Collapse;
 import { TokenParamLabel, FormLabel } from 'components/Common/Atoms';
 import {
     createTokenNotification,
@@ -47,6 +46,7 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from 'utils/icons/cropImage';
 import getRoundImg from 'utils/icons/roundImage';
 import getResizedImage from 'utils/icons/resizeImage';
+
 const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`
