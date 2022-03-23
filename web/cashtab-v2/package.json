@@ -85,7 +85,10 @@
     "scripts": {
         "start": "node scripts/start.js",
         "build": "node scripts/build.js",
-        "test": "node scripts/test.js"
+        "test": "node scripts/test.js",
+        "preextension": "npm  i -g browserify",
+        "extension": "./scripts/extension.sh",
+        "posttest": "./scripts/addGenerated.sh"
     },
     "eslintConfig": {
         "extends": [
