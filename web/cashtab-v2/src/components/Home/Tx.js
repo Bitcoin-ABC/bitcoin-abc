@@ -274,6 +274,7 @@ const TxWrapper = styled.div`
     color: ${props => props.theme.contrast};
     padding: 10px 0;
     flex-wrap: wrap;
+    width: 100%;
 `;
 
 const Panel = Collapse.Panel;
