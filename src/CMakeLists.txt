@@ -502,7 +502,7 @@ endif()
 target_link_libraries(util univalue crypto)
 
 macro(link_event TARGET)
-	non_native_target_link_libraries(${TARGET} Event 2.0.22 ${ARGN})
+	non_native_target_link_libraries(${TARGET} Event 2.1.8 ${ARGN})
 endmacro()
 
 link_event(util event)

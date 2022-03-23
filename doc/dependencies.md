@@ -14,7 +14,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | GCC |  | [8.3](https://gcc.gnu.org/) |  |  |  |
 | HarfBuzz-NG |  |  |  |  |  |
 | jemalloc | [5.2.1](https://github.com/jemalloc/jemalloc/releases) | 3.6.0 |  |  |  |
-| libevent | [2.1.12-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
+| libevent | [2.1.12-stable](https://github.com/libevent/libevent/releases) | 2.1.8 | No |  |  |
 | libnatpmp | commit [07004b9...](https://github.com/miniupnp/libnatpmp/commit/07004b97cf691774efebe70404cf22201e4d330d) |  | No |  |  |
 | libpng |  |  |  |  | Yes |
 | librsvg | |  |  |  |  |
