@@ -1,0 +1,449 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+
+exports[`Wallet with BCH balances 1`] = `
+Array [
+  <div
+    className="sc-hmzhuo cYAKWr"
+  >
+    <h4
+      className="sc-gGBfsJ ZgQrz"
+    >
+      MigrationTestAlpha
+    </h4>
+    <div
+      className="sc-kvZOFW cxOlCC"
+    >
+      0
+       
+      XEC
+    </div>
+  </div>,
+  <div
+    className="sc-cJSrbW hStxoF"
+  >
+    <div
+      className="sc-jnlKLf loFZIX"
+    >
+      <button
+        className="sc-fYxtnH gnEKHM"
+        onClick={[Function]}
+      >
+        Transactions
+      </button>
+      <button
+        className="sc-fYxtnH bYcRiT"
+        onClick={[Function]}
+      >
+        eTokens
+      </button>
+    </div>
+    <div
+      className="sc-tilXH gcpRYy"
+    >
+      <div />
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      Congratulations on your new wallet!
+       
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      <br />
+       Start using the wallet immediately to receive
+       
+      XEC
+       payments, or load it up with
+       
+      XEC
+       to send to others
+    </div>
+    <div
+      className="sc-tilXH boVOvg"
+    >
+      <a
+        className="sc-kafWEX ekuTxS"
+        href="/tokens"
+        onClick={[Function]}
+      >
+        Create eToken
+      </a>
+      <p>
+        Tokens sent to your 
+        eToken
+         address will appear here
+      </p>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens 1`] = `
+Array [
+  <div
+    className="sc-hmzhuo cYAKWr"
+  >
+    <h4
+      className="sc-gGBfsJ ZgQrz"
+    >
+      MigrationTestAlpha
+    </h4>
+    <div
+      className="sc-kvZOFW cxOlCC"
+    >
+      0
+       
+      XEC
+    </div>
+  </div>,
+  <div
+    className="sc-cJSrbW hStxoF"
+  >
+    <div
+      className="sc-jnlKLf loFZIX"
+    >
+      <button
+        className="sc-fYxtnH gnEKHM"
+        onClick={[Function]}
+      >
+        Transactions
+      </button>
+      <button
+        className="sc-fYxtnH bYcRiT"
+        onClick={[Function]}
+      >
+        eTokens
+      </button>
+    </div>
+    <div
+      className="sc-tilXH gcpRYy"
+    >
+      <div />
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      Congratulations on your new wallet!
+       
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      <br />
+       Start using the wallet immediately to receive
+       
+      XEC
+       payments, or load it up with
+       
+      XEC
+       to send to others
+    </div>
+    <div
+      className="sc-tilXH boVOvg"
+    >
+      <a
+        className="sc-kafWEX ekuTxS"
+        href="/tokens"
+        onClick={[Function]}
+      >
+        Create eToken
+      </a>
+      <p>
+        Tokens sent to your 
+        eToken
+         address will appear here
+      </p>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet with BCH balances and tokens and state field 1`] = `
+Array [
+  <div
+    className="sc-hmzhuo cYAKWr"
+  >
+    <h4
+      className="sc-gGBfsJ ZgQrz"
+    >
+      MigrationTestAlpha
+    </h4>
+    <div
+      className="sc-kvZOFW cxOlCC"
+    >
+      0.06
+       
+      XEC
+    </div>
+  </div>,
+  <div
+    className="sc-cJSrbW hStxoF"
+  >
+    <div
+      className="sc-jnlKLf loFZIX"
+    >
+      <button
+        className="sc-fYxtnH gnEKHM"
+        onClick={[Function]}
+      >
+        Transactions
+      </button>
+      <button
+        className="sc-fYxtnH bYcRiT"
+        onClick={[Function]}
+      >
+        eTokens
+      </button>
+    </div>
+    <div
+      className="sc-tilXH gcpRYy"
+    >
+      <div />
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      Congratulations on your new wallet!
+       
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      <br />
+       Start using the wallet immediately to receive
+       
+      XEC
+       payments, or load it up with
+       
+      XEC
+       to send to others
+    </div>
+    <div
+      className="sc-tilXH boVOvg"
+    >
+      <a
+        className="sc-kafWEX ekuTxS"
+        href="/tokens"
+        onClick={[Function]}
+      >
+        Create eToken
+      </a>
+      <div>
+        <a
+          href="/send-token/bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba"
+          onClick={[Function]}
+        >
+          <div
+            className="sc-ckVGcZ fPvBhX"
+          >
+            <div
+              className="sc-dxgOiQ CHiNn"
+            >
+              <div
+                className="sc-kpOJdX kKjisQ"
+              />
+              <h4>
+                TBS
+              </h4>
+            </div>
+            <h4>
+              6.001
+            </h4>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Wallet without BCH balance 1`] = `
+Array [
+  <div
+    className="sc-hmzhuo cYAKWr"
+  >
+    <h4
+      className="sc-gGBfsJ ZgQrz"
+    >
+      MigrationTestAlpha
+    </h4>
+    <div
+      className="sc-kvZOFW cxOlCC"
+    >
+      0
+       
+      XEC
+    </div>
+  </div>,
+  <div
+    className="sc-cJSrbW hStxoF"
+  >
+    <div
+      className="sc-jnlKLf loFZIX"
+    >
+      <button
+        className="sc-fYxtnH gnEKHM"
+        onClick={[Function]}
+      >
+        Transactions
+      </button>
+      <button
+        className="sc-fYxtnH bYcRiT"
+        onClick={[Function]}
+      >
+        eTokens
+      </button>
+    </div>
+    <div
+      className="sc-tilXH gcpRYy"
+    >
+      <div />
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      Congratulations on your new wallet!
+       
+      <span
+        aria-label="party emoji"
+        role="img"
+      >
+        🎉
+      </span>
+      <br />
+       Start using the wallet immediately to receive
+       
+      XEC
+       payments, or load it up with
+       
+      XEC
+       to send to others
+    </div>
+    <div
+      className="sc-tilXH boVOvg"
+    >
+      <a
+        className="sc-kafWEX ekuTxS"
+        href="/tokens"
+        onClick={[Function]}
+      >
+        Create eToken
+      </a>
+      <p>
+        Tokens sent to your 
+        eToken
+         address will appear here
+      </p>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Without wallet defined 1`] = `
+<div
+  className="sc-chPdSV cOYtDU"
+>
+  <h2>
+    Welcome to Cashtab!
+  </h2>
+  <p
+    className="sc-kgoBCf iXiIML"
+  >
+    Cashtab is an
+     
+    <a
+      className="sc-kGXeez dlhNKT"
+      href="https://github.com/bitcoin-abc/bitcoin-abc"
+      rel="noreferrer"
+      target="_blank"
+    >
+      open source,
+    </a>
+     
+    non-custodial web wallet for 
+    eCash
+    .
+    <br />
+    <br />
+    Want to learn more?
+     
+    <a
+      className="sc-kGXeez dlhNKT"
+      href="https://docs.cashtabapp.com/docs/"
+      rel="noreferrer"
+      target="_blank"
+    >
+      Check out the Cashtab documentation.
+    </a>
+  </p>
+  <button
+    className="sc-jzJRlG lltaza"
+    onClick={[Function]}
+  >
+    <span
+      aria-label="plus-square"
+      className="anticon anticon-plus-square"
+      role="img"
+    >
+      <svg
+        aria-hidden="true"
+        data-icon="plus-square"
+        fill="currentColor"
+        focusable="false"
+        height="1em"
+        viewBox="64 64 896 896"
+        width="1em"
+      >
+        <path
+          d="M328 544h152v152c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V544h152c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H544V328c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v152H328c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8z"
+        />
+        <path
+          d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z"
+        />
+      </svg>
+    </span>
+     New Wallet
+  </button>
+  <button
+    className="sc-cSHVUG fQByuZ"
+    onClick={[Function]}
+  >
+    <span
+      aria-label="import"
+      className="anticon anticon-import"
+      role="img"
+    >
+      <svg
+        aria-hidden="true"
+        data-icon="import"
+        fill="currentColor"
+        focusable="false"
+        height="1em"
+        viewBox="64 64 896 896"
+        width="1em"
+      >
+        <path
+          d="M888.3 757.4h-53.8c-4.2 0-7.7 3.5-7.7 7.7v61.8H197.1V197.1h629.8v61.8c0 4.2 3.5 7.7 7.7 7.7h53.8c4.2 0 7.7-3.4 7.7-7.7V158.7c0-17-13.7-30.7-30.7-30.7H158.7c-17 0-30.7 13.7-30.7 30.7v706.6c0 17 13.7 30.7 30.7 30.7h706.6c17 0 30.7-13.7 30.7-30.7V765.1c0-4.3-3.5-7.7-7.7-7.7zM902 476H588v-76c0-6.7-7.8-10.5-13-6.3l-141.9 112a8 8 0 000 12.6l141.9 112c5.3 4.2 13 .4 13-6.3v-76h314c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8z"
+        />
+      </svg>
+    </span>
+     Import Wallet
+  </button>
+</div>
+`;
