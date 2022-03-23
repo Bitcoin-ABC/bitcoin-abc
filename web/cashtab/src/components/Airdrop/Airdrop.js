@@ -9,7 +9,7 @@ import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, Alert, Collapse, Input, Modal, Spin, Progress } from 'antd';
 const { Panel } = Collapse;
 const { TextArea } = Input;
-import { Row, Col } from 'antd';
+import { Row, Col, Switch } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import useBCH from 'hooks/useBCH';
 import {
@@ -23,6 +23,7 @@ import {
     getWalletState,
     convertEtokenToEcashAddr,
     fromSmallestDenomination,
+    convertToEcashPrefix,
 } from 'utils/cashMethods';
 import {
     isValidTokenId,
@@ -76,6 +77,11 @@ const StyledPanel = styled(Panel)`
     }
 `;
 
+const AirdropOptions = styled.div`
+    text-align: left;
+    color: ${props => props.theme.contrast};
+`;
+
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
@@ -120,6 +126,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const [airdropOutputIsValid, setAirdropOutputIsValid] = useState(true);
     const [etokenHolders, setEtokenHolders] = useState(new BigNumber(0));
     const [showAirdropOutputs, setShowAirdropOutputs] = useState(false);
+    const [ignoreOwnAddress, setIgnoreOwnAddress] = useState(false);
 
     const { getBCH } = useBCH();
 
@@ -184,7 +191,15 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             return;
         }
 
-        if (!airdropList) {
+        // if Ignore Own Address option is checked, then filter out from recipients list
+        if (ignoreOwnAddress) {
+            const ownEtokenAddress = convertToEcashPrefix(
+                wallet.Path1899.slpAddress,
+            );
+            airdropList.delete(ownEtokenAddress);
+        }
+
+        if (!airdropList || airdropList.size === 0) {
             errorNotification(
                 null,
                 'No recipients found for tokenId ' + formData.tokenId,
@@ -251,6 +266,10 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const handleAirdropCalcModalCancel = () => {
         setIsAirdropCalcModalVisible(false);
         passLoadingStatus(false);
+    };
+
+    const handleIgnoreOwnAddress = e => {
+        setIgnoreOwnAddress(e);
     };
 
     let airdropCalcInputIsValid = tokenIdIsValid && totalAirdropIsValid;
@@ -369,6 +388,20 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                     handleTotalAirdropInput(e)
                                                 }
                                             />
+                                        </Form.Item>
+                                        <Form.Item>
+                                            <AirdropOptions>
+                                                <Switch
+                                                    onChange={() =>
+                                                        handleIgnoreOwnAddress(
+                                                            prev => !prev,
+                                                        )
+                                                    }
+                                                    defaultunchecked="true"
+                                                    checked={ignoreOwnAddress}
+                                                />
+                                                &ensp;Ignore my own address
+                                            </AirdropOptions>
                                         </Form.Item>
                                         <Form.Item>
                                             <SmartButton
