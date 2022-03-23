@@ -67,6 +67,7 @@ add_executable(bitcoin-bench
 	rpc_blockchain.cpp
 	rpc_mempool.cpp
 	streams_findbyte.cpp
+	strencodings.cpp
 	util_time.cpp
 	verify_script.cpp
 
