@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { WalletContext } from '@utils/context';
+import { WalletContext } from 'utils/context';
 import {
     AntdFormWrapper,
     SendBchInput,
     DestinationAddressSingle,
     DestinationAddressMulti,
-} from '@components/Common/EnhancedInputs';
-import { AdvancedCollapse } from '@components/Common/StyledCollapse';
+} from 'components/Common/EnhancedInputs';
+import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Collapse, Input, Button } from 'antd';
 const { Panel } = Collapse;
 const { TextArea } = Input;
@@ -16,26 +16,26 @@ import { Row, Col, Switch } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
-} from '@components/Common/PrimaryButton';
-import useBCH from '@hooks/useBCH';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+} from 'components/Common/PrimaryButton';
+import useBCH from 'hooks/useBCH';
+import useWindowDimensions from 'hooks/useWindowDimensions';
 import {
     sendXecNotification,
     errorNotification,
     messageSignedNotification,
-} from '@components/Common/Notifications';
+} from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { currency, parseAddressForParams } from '@components/Common/Ticker.js';
-import { Event } from '@utils/GoogleAnalytics';
+import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
+import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
     shouldRejectAmountInput,
     isValidXecAddress,
     isValidEtokenAddress,
     isValidXecSendAmount,
-} from '@utils/validation';
-import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
+} from 'utils/validation';
+import BalanceHeader from 'components/Common/BalanceHeader';
+import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
     ZeroBalanceHeader,
     ConvertAmount,
@@ -43,21 +43,21 @@ import {
     WalletInfoCtn,
     SidePaddingCtn,
     FormLabel,
-} from '@components/Common/Atoms';
+} from 'components/Common/Atoms';
 import {
     getWalletState,
     convertToEcashPrefix,
     toLegacyCash,
     toLegacyCashArray,
     fromSmallestDenomination,
-} from '@utils/cashMethods';
-import ApiError from '@components/Common/ApiError';
-import { formatFiatBalance, formatBalance } from '@utils/formatting';
-import { TokenParamLabel } from '@components/Common/Atoms';
+} from 'utils/cashMethods';
+import ApiError from 'components/Common/ApiError';
+import { formatFiatBalance, formatBalance } from 'utils/formatting';
+import { TokenParamLabel } from 'components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import WalletLabel from '@components/Common/WalletLabel.js';
+import WalletLabel from 'components/Common/WalletLabel.js';
 
 const SignMessageLabel = styled.div`
     text-align: left;

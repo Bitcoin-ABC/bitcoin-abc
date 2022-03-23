@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { WalletContext } from '@utils/context';
+import { WalletContext } from 'utils/context';
 import {
     Form,
     message,
@@ -15,39 +15,39 @@ import {
 } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
-} from '@components/Common/PrimaryButton';
+} from 'components/Common/PrimaryButton';
 import { FireTwoTone } from '@ant-design/icons';
 import {
     DestinationAmount,
     DestinationAddressSingle,
     AntdFormWrapper,
-} from '@components/Common/EnhancedInputs';
-import useBCH from '@hooks/useBCH';
-import { SidePaddingCtn } from '@components/Common/Atoms';
-import BalanceHeader from '@components/Common/BalanceHeader';
+} from 'components/Common/EnhancedInputs';
+import useBCH from 'hooks/useBCH';
+import { SidePaddingCtn } from 'components/Common/Atoms';
+import BalanceHeader from 'components/Common/BalanceHeader';
 import { Redirect } from 'react-router-dom';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useWindowDimensions from 'hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import BigNumber from 'bignumber.js';
-import { currency, parseAddressForParams } from '@components/Common/Ticker.js';
-import { Event } from '@utils/GoogleAnalytics';
-import { getWalletState, toLegacyToken } from '@utils/cashMethods';
-import ApiError from '@components/Common/ApiError';
+import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
+import { Event } from 'utils/GoogleAnalytics';
+import { getWalletState, toLegacyToken } from 'utils/cashMethods';
+import ApiError from 'components/Common/ApiError';
 import {
     sendTokenNotification,
     errorNotification,
     burnTokenNotification,
-} from '@components/Common/Notifications';
+} from 'components/Common/Notifications';
 import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
-} from '@utils/validation';
-import { formatDate } from '@utils/formatting';
+} from 'utils/validation';
+import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
-import TokenIcon from '@components/Tokens/TokenIcon';
+import TokenIcon from 'components/Tokens/TokenIcon';
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
     .ant-input-number,

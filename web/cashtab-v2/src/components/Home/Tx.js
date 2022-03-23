@@ -7,19 +7,19 @@ import {
     ReceiveIcon,
     GenesisIcon,
     UnparsedIcon,
-} from '@components/Common/CustomIcons';
-import { currency } from '@components/Common/Ticker';
-import { fromLegacyDecimals } from '@utils/cashMethods';
-import { formatBalance, formatDate } from '@utils/formatting';
-import TokenIcon from '@components/Tokens/TokenIcon';
+} from 'components/Common/CustomIcons';
+import { currency } from 'components/Common/Ticker';
+import { fromLegacyDecimals } from 'utils/cashMethods';
+import { formatBalance, formatDate } from 'utils/formatting';
+import TokenIcon from 'components/Tokens/TokenIcon';
 import { Collapse } from 'antd';
-import { AntdContextCollapseWrapper } from '@components/Common/StyledCollapse';
-import { generalNotification } from '@components/Common/Notifications';
+import { AntdContextCollapseWrapper } from 'components/Common/StyledCollapse';
+import { generalNotification } from 'components/Common/Notifications';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
     ThemedCopySolid,
     ThemedLinkSolid,
-} from '@components/Common/CustomIcons';
+} from 'components/Common/CustomIcons';
 const TxIcon = styled.div`
     svg {
         width: 20px;

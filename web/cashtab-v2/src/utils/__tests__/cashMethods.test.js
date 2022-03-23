@@ -22,7 +22,7 @@ import {
     removeConsumedUtxos,
     getUtxoCount,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
-} from '@utils/cashMethods';
+} from 'utils/cashMethods';
 
 import {
     unbatchedArray,

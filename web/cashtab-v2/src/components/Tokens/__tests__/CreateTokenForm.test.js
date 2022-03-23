@@ -1,10 +1,10 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
-import CreateTokenForm from '@components/Tokens/CreateTokenForm';
+import { theme } from 'assets/styles/theme';
+import CreateTokenForm from 'components/Tokens/CreateTokenForm';
 import BCHJS from '@psf/bch-js';
-import useBCH from '@hooks/useBCH';
+import useBCH from 'hooks/useBCH';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 
 let useContextMock;

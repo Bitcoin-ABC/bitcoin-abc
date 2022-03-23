@@ -1,10 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import { WalletContext } from '@utils/context';
-import OnBoarding from '@components/OnBoarding/OnBoarding';
-import { QRCode } from '@components/Common/QRCode';
-import { currency } from '@components/Common/Ticker.js';
-import { LoadingCtn } from '@components/Common/Atoms';
+import { WalletContext } from 'utils/context';
+import OnBoarding from 'components/OnBoarding/OnBoarding';
+import { QRCode } from 'components/Common/QRCode';
+import { currency } from 'components/Common/Ticker.js';
+import { LoadingCtn } from 'components/Common/Atoms';
 
 export const ReceiveCtn = styled.div`
     width: 100%;

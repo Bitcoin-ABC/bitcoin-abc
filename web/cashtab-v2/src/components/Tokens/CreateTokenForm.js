@@ -1,28 +1,28 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { AntdFormWrapper } from '@components/Common/EnhancedInputs';
-import { TokenCollapse } from '@components/Common/StyledCollapse';
-import { currency } from '@components/Common/Ticker.js';
+import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
+import { TokenCollapse } from 'components/Common/StyledCollapse';
+import { currency } from 'components/Common/Ticker.js';
 import {
     CropControlModal,
     CropperContainer,
     ControlsContainer,
 } from '../Common/CropControlModal';
-import { WalletContext } from '@utils/context';
+import { WalletContext } from 'utils/context';
 import {
     isValidTokenName,
     isValidTokenTicker,
     isValidTokenDecimals,
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
-} from '@utils/validation';
+} from 'utils/validation';
 import {
     PlusSquareOutlined,
     UploadOutlined,
     PaperClipOutlined,
 } from '@ant-design/icons';
-import { SmartButton } from '@components/Common/PrimaryButton';
+import { SmartButton } from 'components/Common/PrimaryButton';
 import {
     notification,
     Collapse,
@@ -37,16 +37,16 @@ import {
     Switch,
 } from 'antd';
 const { Panel } = Collapse;
-import { TokenParamLabel, FormLabel } from '@components/Common/Atoms';
+import { TokenParamLabel, FormLabel } from 'components/Common/Atoms';
 import {
     createTokenNotification,
     tokenIconSubmitSuccess,
     errorNotification,
-} from '@components/Common/Notifications';
+} from 'components/Common/Notifications';
 import Cropper from 'react-easy-crop';
-import getCroppedImg from '@utils/icons/cropImage';
-import getRoundImg from '@utils/icons/roundImage';
-import getResizedImage from '@utils/icons/resizeImage';
+import getCroppedImg from 'utils/icons/cropImage';
+import getRoundImg from 'utils/icons/roundImage';
+import getResizedImage from 'utils/icons/resizeImage';
 const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`

@@ -1,8 +1,8 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
-import Tokens from '@components/Tokens/Tokens';
+import { theme } from 'assets/styles/theme';
+import Tokens from 'components/Tokens/Tokens';
 import BCHJS from '@psf/bch-js';
 import {
     walletWithBalancesAndTokens,

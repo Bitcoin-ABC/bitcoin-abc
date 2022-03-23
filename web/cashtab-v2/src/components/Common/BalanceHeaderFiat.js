@@ -1,8 +1,8 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { BalanceHeaderFiatWrap } from '@components/Common/Atoms';
-import { currency } from '@components/Common/Ticker.js';
+import { BalanceHeaderFiatWrap } from 'components/Common/Atoms';
+import { currency } from 'components/Common/Ticker.js';
 const FiatCurrencyToXEC = styled.p`
     margin: 0 auto;
     padding: 0;

@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useState, useEffect } from 'react';
-import useAsyncTimeout from '@hooks/useAsyncTimeout';
-import usePrevious from '@hooks/usePrevious';
-import useBCH from '@hooks/useBCH';
+import useAsyncTimeout from 'hooks/useAsyncTimeout';
+import usePrevious from 'hooks/usePrevious';
+import useBCH from 'hooks/useBCH';
 import BigNumber from 'bignumber.js';
 import {
     fromSmallestDenomination,
@@ -15,16 +15,16 @@ import {
     addNewHydratedUtxos,
     removeConsumedUtxos,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
-} from '@utils/cashMethods';
-import { isValidCashtabSettings } from '@utils/validation';
+} from 'utils/cashMethods';
+import { isValidCashtabSettings } from 'utils/validation';
 import localforage from 'localforage';
-import { currency } from '@components/Common/Ticker';
+import { currency } from 'components/Common/Ticker';
 import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import {
     xecReceivedNotification,
     eTokenReceivedNotification,
-} from '@components/Common/Notifications';
+} from 'components/Common/Notifications';
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
     const [cashtabSettings, setCashtabSettings] = useState(false);

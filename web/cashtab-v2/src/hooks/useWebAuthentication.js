@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import localforage from 'localforage';
-import { currency } from '@components/Common/Ticker';
+import { currency } from 'components/Common/Ticker';
 import {
     convertBase64ToArrayBuffer,
     convertArrayBufferToBase64,
-} from '@utils/convertArrBuffBase64';
+} from 'utils/convertArrBuffBase64';
 
 // return an Authentication Object
 // OR null if user device does not support Web Authentication

@@ -19,8 +19,8 @@ import {
     isValidXecAirdrop,
     isValidAirdropOutputsArray,
 } from '../validation';
-import { currency } from '@components/Common/Ticker.js';
-import { fromSmallestDenomination } from '@utils/cashMethods';
+import { currency } from 'components/Common/Ticker.js';
+import { fromSmallestDenomination } from 'utils/cashMethods';
 import {
     stStatsValid,
     noCovidStatsValid,

@@ -5,11 +5,11 @@ const { TextArea } = Input;
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
-} from '@components/Common/CustomIcons';
+} from 'components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
-import useBCH from '@hooks/useBCH';
-import { currency } from '@components/Common/Ticker.js';
+import useBCH from 'hooks/useBCH';
+import { currency } from 'components/Common/Ticker.js';
 
 export const AntdFormCss = css`
     .ant-input-group-addon {

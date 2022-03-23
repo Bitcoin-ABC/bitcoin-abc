@@ -2,7 +2,7 @@ import React from 'react';
 import renderer from 'react-test-renderer';
 import Configure from '../Configure';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
+import { theme } from 'assets/styles/theme';
 let realUseContext;
 let useContextMock;
 beforeEach(() => {

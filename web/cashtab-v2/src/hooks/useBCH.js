@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
-import { currency } from '@components/Common/Ticker';
-import { isValidTokenStats } from '@utils/validation';
+import { currency } from 'components/Common/Ticker';
+import { isValidTokenStats } from 'utils/validation';
 import SlpWallet from 'minimal-slp-wallet';
 import {
     toSmallestDenomination,
@@ -13,7 +13,7 @@ import {
     convertToEncryptStruct,
     getPublicKey,
     parseOpReturn,
-} from '@utils/cashMethods';
+} from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import ecies from 'ecies-lite';
 import wif from 'wif';

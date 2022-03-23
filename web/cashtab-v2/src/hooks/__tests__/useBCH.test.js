@@ -32,7 +32,7 @@ import {
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
-import { fromSmallestDenomination } from '@utils/cashMethods';
+import { fromSmallestDenomination } from 'utils/cashMethods';
 
 describe('useBCH hook', () => {
     it('gets Rest Api Url on testnet', () => {

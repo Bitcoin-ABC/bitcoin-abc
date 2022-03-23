@@ -1,21 +1,21 @@
 import React from 'react';
 import styled from 'styled-components';
-import { WalletContext } from '@utils/context';
-import OnBoarding from '@components/OnBoarding/OnBoarding';
-import { currency } from '@components/Common/Ticker.js';
+import { WalletContext } from 'utils/context';
+import OnBoarding from 'components/OnBoarding/OnBoarding';
+import { currency } from 'components/Common/Ticker.js';
 import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
 import TxHistory from './TxHistory';
-import ApiError from '@components/Common/ApiError';
-import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
+import ApiError from 'components/Common/ApiError';
+import BalanceHeader from 'components/Common/BalanceHeader';
+import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
     LoadingCtn,
     WalletInfoCtn,
     SidePaddingCtn,
-} from '@components/Common/Atoms';
-import { getWalletState } from '@utils/cashMethods';
-import WalletLabel from '@components/Common/WalletLabel.js';
+} from 'components/Common/Atoms';
+import { getWalletState } from 'utils/cashMethods';
+import WalletLabel from 'components/Common/WalletLabel.js';
 
 export const Tabs = styled.div`
     margin: auto;

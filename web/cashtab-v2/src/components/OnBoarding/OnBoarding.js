@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from '@utils/context';
+import { WalletContext } from 'utils/context';
 import { Input, Form, Modal } from 'antd';
-import { AntdFormWrapper } from '@components/Common/EnhancedInputs';
+import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
 import {
     ExclamationCircleOutlined,
     PlusSquareOutlined,
@@ -12,9 +12,9 @@ import {
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
-} from '@components/Common/PrimaryButton';
-import { currency } from '@components/Common/Ticker.js';
-import { Event } from '@utils/GoogleAnalytics';
+} from 'components/Common/PrimaryButton';
+import { currency } from 'components/Common/Ticker.js';
+import { Event } from 'utils/GoogleAnalytics';
 
 export const WelcomeCtn = styled.div`
     margin-top: 20px;

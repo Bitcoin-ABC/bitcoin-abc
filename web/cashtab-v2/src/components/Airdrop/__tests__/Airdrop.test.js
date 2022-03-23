@@ -1,8 +1,8 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
-import Airdrop from '@components/Airdrop/Airdrop';
+import { theme } from 'assets/styles/theme';
+import Airdrop from 'components/Airdrop/Airdrop';
 import BCHJS from '@psf/bch-js';
 import {
     walletWithBalancesAndTokens,

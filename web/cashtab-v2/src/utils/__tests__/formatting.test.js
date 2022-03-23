@@ -3,7 +3,7 @@ import {
     formatFiatBalance,
     formatSavedBalance,
     formatBalance,
-} from '@utils/formatting';
+} from 'utils/formatting';
 
 describe('Correctly executes formatting functions', () => {
     it(`test formatBalance with an input of 0`, () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
+import { theme } from 'assets/styles/theme';
 import Home from '../Home';
 import {
     walletWithBalancesAndTokens,

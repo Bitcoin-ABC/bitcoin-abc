@@ -1,8 +1,8 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
-import Receive from '@components/Receive/Receive';
+import { theme } from 'assets/styles/theme';
+import Receive from 'components/Receive/Receive';
 import {
     walletWithBalancesAndTokens,
     walletWithBalancesMock,

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Img } from 'react-image';
-import { currency } from '@components/Common/Ticker';
+import { currency } from 'components/Common/Ticker';
 
 const TokenIcon = ({ size, tokenId }) => {
     return (

@@ -10,16 +10,16 @@ import {
     LockOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
-import { currency } from '@components/Common/Ticker';
-import { ReactComponent as Send } from '@assets/send.svg';
-import { ReactComponent as Receive } from '@assets/receive.svg';
-import { ReactComponent as Genesis } from '@assets/flask.svg';
-import { ReactComponent as Unparsed } from '@assets/alert-circle.svg';
-import { ReactComponent as Home } from '@assets/home.svg';
-import { ReactComponent as Settings } from '@assets/cog.svg';
-import { ReactComponent as CopySolid } from '@assets/copy.svg';
-import { ReactComponent as LinkSolid } from '@assets/external-link-square-alt.svg';
-import { ReactComponent as Airdrop } from '@assets/airdrop-icon.svg';
+import { currency } from 'components/Common/Ticker';
+import { ReactComponent as Send } from 'assets/send.svg';
+import { ReactComponent as Receive } from 'assets/receive.svg';
+import { ReactComponent as Genesis } from 'assets/flask.svg';
+import { ReactComponent as Unparsed } from 'assets/alert-circle.svg';
+import { ReactComponent as Home } from 'assets/home.svg';
+import { ReactComponent as Settings } from 'assets/cog.svg';
+import { ReactComponent as CopySolid } from 'assets/copy.svg';
+import { ReactComponent as LinkSolid } from 'assets/external-link-square-alt.svg';
+import { ReactComponent as Airdrop } from 'assets/airdrop-icon.svg';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
