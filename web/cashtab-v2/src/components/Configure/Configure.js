@@ -254,6 +254,9 @@ const GeneralSettingsItem = styled.div`
             fill: ${props => props.theme.contrast};
         }
     }
+    .SendConfirm {
+        color: ${props => props.theme.lightWhite};
+    }
 `;
 
 const Configure = () => {
