@@ -43,7 +43,8 @@ export const AntdFormCss = css`
         min-height: 100px;
     }
     .ant-input-affix-wrapper {
-        background-color: ${props => props.theme.forms.selectionBackground};
+        background-color: ${props =>
+            props.theme.forms.selectionBackground} !important;
         border: 1px solid ${props => props.theme.forms.border} !important;
     }
     .ant-input-wrapper .anticon-qrcode {
