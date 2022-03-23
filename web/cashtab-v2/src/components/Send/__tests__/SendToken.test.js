@@ -13,6 +13,17 @@ import { BrowserRouter as Router } from 'react-router-dom';
 let realUseContext;
 let useContextMock;
 
+// Mock antd as jest cannot process the Input component
+jest.mock('antd', () => {
+    const lib = jest.requireActual('antd');
+    return {
+        ...lib,
+        Form: () => {
+            return <div></div>;
+        },
+    };
+});
+
 beforeEach(() => {
     realUseContext = React.useContext;
     useContextMock = React.useContext = jest.fn();

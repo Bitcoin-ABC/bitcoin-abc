@@ -5,7 +5,7 @@ import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 
 describe('<QRCode />', () => {
-    jest.useFakeTimers();
+    jest.useFakeTimers('legacy');
 
     it('QRCode copying ecash address', async () => {
         const OnClick = jest.fn();

@@ -65,9 +65,6 @@ exports[`Configure with a wallet 1`] = `
         className="ant-alert-content"
       >
         <div
-          className="ant-alert-message"
-        />
-        <div
           className="ant-alert-description"
         >
           Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe.
@@ -89,25 +86,27 @@ exports[`Configure with a wallet 1`] = `
           role="button"
           tabIndex={0}
         >
-          <span
-            aria-label="right"
-            className="anticon anticon-right ant-collapse-arrow"
-            role="img"
-          >
-            <svg
-              aria-hidden="true"
-              data-icon="right"
-              fill="currentColor"
-              focusable="false"
-              height="1em"
-              viewBox="64 64 896 896"
-              width="1em"
+          <div>
+            <span
+              aria-label="right"
+              className="anticon anticon-right ant-collapse-arrow"
+              role="img"
             >
-              <path
-                d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-              />
-            </svg>
-          </span>
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
           Click to reveal seed phrase
         </div>
       </div>
@@ -216,7 +215,7 @@ exports[`Configure with a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-kkGfuU eZVPPF"
+      className="sc-kkGfuU kYOcLB"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -333,7 +332,7 @@ exports[`Configure with a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-csuQGl bYiikN"
+      className="sc-csuQGl bKEXij"
     >
       <div
         className="title"
@@ -396,7 +395,7 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-csuQGl bYiikN"
+      className="sc-csuQGl bKEXij"
     >
       <div
         className="SendConfirm"
@@ -541,9 +540,6 @@ exports[`Configure without a wallet 1`] = `
         className="ant-alert-content"
       >
         <div
-          className="ant-alert-message"
-        />
-        <div
           className="ant-alert-description"
         >
           Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe.
@@ -654,7 +650,7 @@ exports[`Configure without a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-kkGfuU eZVPPF"
+      className="sc-kkGfuU kYOcLB"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -771,7 +767,7 @@ exports[`Configure without a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-csuQGl bYiikN"
+      className="sc-csuQGl bKEXij"
     >
       <div
         className="title"
@@ -834,7 +830,7 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-csuQGl bYiikN"
+      className="sc-csuQGl bKEXij"
     >
       <div
         className="SendConfirm"

@@ -15,7 +15,7 @@ TOPLEVEL=$(git rev-parse --show-toplevel)
 # This can be solved by using a null char delimiter (-d '\0') for read in
 # combination with find's option -print0 to get a compatible output, but this is
 # not supported by all find variants so we'll do without it for now.
-find "${TOPLEVEL}/web/cashtab/src" -name "*.test.js.snap" | while read i; do
+find "${TOPLEVEL}/web/cashtab-v2/src" -name "*.test.js.snap" | while read i; do
   # It is possible to avoid the grep and have sed do it all, but:
   #  1. This is a more complex sed usage
   #  2. It will add the generated mark in files that have it already on another
