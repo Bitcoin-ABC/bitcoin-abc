@@ -124,6 +124,13 @@ struct CSerializedNetMsg {
     CSerializedNetMsg(const CSerializedNetMsg &msg) = delete;
     CSerializedNetMsg &operator=(const CSerializedNetMsg &) = delete;
 
+    CSerializedNetMsg Copy() const {
+        CSerializedNetMsg copy;
+        copy.data = data;
+        copy.m_type = m_type;
+        return copy;
+    }
+
     std::vector<uint8_t> data;
     std::string m_type;
 };

@@ -2747,9 +2747,7 @@ void PeerManagerImpl::NewPoWValidBlock(
                              hashBlock.ToString(), pnode->GetId());
 
                     const CSerializedNetMsg &ser_cmpctblock{lazy_ser.get()};
-                    m_connman.PushMessage(
-                        pnode, CSerializedNetMsg{ser_cmpctblock.data,
-                                                 ser_cmpctblock.m_type});
+                    m_connman.PushMessage(pnode, ser_cmpctblock.Copy());
                     state.pindexBestHeaderSent = pindex;
                 }
             });
