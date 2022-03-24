@@ -128,6 +128,9 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const [showAirdropOutputs, setShowAirdropOutputs] = useState(false);
     const [ignoreOwnAddress, setIgnoreOwnAddress] = useState(false);
 
+    const [ignoreRecipientsBelowDust, setIgnoreRecipientsBelowDust] =
+        useState(false);
+
     const { getBCH } = useBCH();
 
     const handleTokenIdInput = e => {
@@ -210,6 +213,54 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             return;
         }
 
+        // if the ignore minimum payment threshold option is enabled
+        if (ignoreRecipientsBelowDust) {
+            // minimum airdrop threshold
+            const minEligibleAirdrop = new BigNumber(
+                fromSmallestDenomination(currency.dustSats),
+            );
+
+            // first calculation on expected pro rata airdrops
+            let initialTotalTokenAmongstRecipients = new BigNumber(0);
+            let initialTotalHolders = new BigNumber(airdropList.size); // amount of addresses that hold this eToken
+            setEtokenHolders(initialTotalHolders);
+
+            // keep a cumulative total of each eToken holding in each address in airdropList
+            airdropList.forEach(
+                index =>
+                    (initialTotalTokenAmongstRecipients =
+                        initialTotalTokenAmongstRecipients.plus(
+                            new BigNumber(index),
+                        )),
+            );
+
+            let initialCircToAirdropRatio = new BigNumber(
+                formData.totalAirdrop,
+            ).div(initialTotalTokenAmongstRecipients);
+
+            // initial filtering of recipients with less than minimum payout amount
+            for (let [key, value] of airdropList) {
+                const proRataAirdrop = new BigNumber(value).multipliedBy(
+                    initialCircToAirdropRatio,
+                );
+                if (proRataAirdrop.isLessThan(minEligibleAirdrop)) {
+                    airdropList.delete(key);
+                }
+            }
+
+            // if the list becomes empty after initial filtering
+            if (!airdropList) {
+                errorNotification(
+                    null,
+                    'No recipients after filtering minimum payouts',
+                    'Airdrop Calculation Error',
+                );
+                setIsAirdropCalcModalVisible(false);
+                passLoadingStatus(false);
+                return;
+            }
+        }
+
         setAirdropCalcModalProgress(75);
 
         let totalTokenAmongstRecipients = new BigNumber(0);
@@ -242,6 +293,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         );
 
         resultString = resultString.substring(0, resultString.length - 1); // remove the final newline
+
         setAirdropRecipients(resultString);
 
         setAirdropCalcModalProgress(100);
@@ -252,6 +304,8 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                 'No holders found for eToken ID: ' + formData.tokenId,
                 'Airdrop Calculation Error',
             );
+            setIsAirdropCalcModalVisible(false);
+            passLoadingStatus(false);
             return;
         }
 
@@ -270,6 +324,10 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
 
     const handleIgnoreOwnAddress = e => {
         setIgnoreOwnAddress(e);
+    };
+
+    const handleIgnoreRecipientBelowDust = e => {
+        setIgnoreRecipientsBelowDust(e);
     };
 
     let airdropCalcInputIsValid = tokenIdIsValid && totalAirdropIsValid;
@@ -404,6 +462,27 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                             </AirdropOptions>
                                         </Form.Item>
                                         <Form.Item>
+                                            <AirdropOptions>
+                                                <Switch
+                                                    onChange={() =>
+                                                        handleIgnoreRecipientBelowDust(
+                                                            prev => !prev,
+                                                        )
+                                                    }
+                                                    defaultunchecked="true"
+                                                    checked={
+                                                        ignoreRecipientsBelowDust
+                                                    }
+                                                />
+                                                &ensp;Ignore airdrops below min.
+                                                payment (
+                                                {fromSmallestDenomination(
+                                                    currency.dustSats,
+                                                )}{' '}
+                                                XEC)
+                                            </AirdropOptions>
+                                        </Form.Item>
+                                        <Form.Item>
                                             <SmartButton
                                                 onClick={() =>
                                                     calculateXecAirdrop()
@@ -418,7 +497,8 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                         </Form.Item>
                                         {showAirdropOutputs && (
                                             <>
-                                                {!airdropOutputIsValid &&
+                                                {!ignoreRecipientsBelowDust &&
+                                                    !airdropOutputIsValid &&
                                                     etokenHolders > 0 && (
                                                         <>
                                                             <Alert
