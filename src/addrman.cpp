@@ -14,10 +14,10 @@
 #include <random.h>
 #include <serialize.h>
 #include <streams.h>
-#include <timedata.h>
 #include <tinyformat.h>
 #include <uint256.h>
 #include <util/check.h>
+#include <util/time.h>
 
 #include <cmath>
 #include <optional>
@@ -596,7 +596,7 @@ bool AddrManImpl::AddSingle(const CAddress &addr, const CNetAddr &source,
 
     if (pinfo) {
         // periodically update nTime
-        const bool currently_online{AdjustedTime() - addr.nTime < 24h};
+        const bool currently_online{NodeClock::now() - addr.nTime < 24h};
         const auto update_interval{currently_online ? 1h : 24h};
         if (pinfo->nTime < addr.nTime - update_interval - time_penalty) {
             pinfo->nTime = std::max(NodeSeconds{0s}, addr.nTime - time_penalty);
@@ -866,7 +866,7 @@ AddrManImpl::GetAddr_(size_t max_addresses, size_t max_pct,
     }
 
     // gather a list of random nodes, skipping those of low quality
-    const auto now{AdjustedTime()};
+    const auto now{Now<NodeSeconds>()};
     std::vector<CAddress> addresses;
     for (unsigned int n = 0; n < vRandom.size(); n++) {
         if (addresses.size() >= nNodes) {
@@ -935,7 +935,7 @@ void AddrManImpl::SetServices_(const CService &addr, ServiceFlags nServices) {
 void AddrManImpl::ResolveCollisions_() {
     AssertLockHeld(cs);
 
-    const auto current_time{AdjustedTime()};
+    const auto current_time{Now<NodeSeconds>()};
 
     for (std::set<int>::iterator it = m_tried_collisions.begin();
          it != m_tried_collisions.end();) {

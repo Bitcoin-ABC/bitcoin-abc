@@ -9,7 +9,6 @@
 #include <netaddress.h>
 #include <protocol.h>
 #include <streams.h>
-#include <timedata.h>
 #include <util/time.h>
 
 #include <cstdint>
@@ -97,11 +96,11 @@ public:
 
     //! Mark an entry as accessible, possibly moving it from "new" to "tried".
     void Good(const CService &addr, bool test_before_evict = true,
-              NodeSeconds time = AdjustedTime());
+              NodeSeconds time = Now<NodeSeconds>());
 
     //! Mark an entry as connection attempted to.
     void Attempt(const CService &addr, bool fCountFailure,
-                 NodeSeconds time = AdjustedTime());
+                 NodeSeconds time = Now<NodeSeconds>());
 
     //! See if any to-be-evicted tried table entries have been tested and if so
     //! resolve the collisions.
@@ -153,7 +152,7 @@ public:
      * @param[in]   addr     The address of the peer we were connected to
      * @param[in]   time     The time that we were last connected to this peer
      */
-    void Connected(const CService &addr, NodeSeconds time = AdjustedTime());
+    void Connected(const CService &addr, NodeSeconds time = Now<NodeSeconds>());
 
     //! Update an entry's service bits.
     void SetServices(const CService &addr, ServiceFlags nServices);

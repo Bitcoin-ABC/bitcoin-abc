@@ -437,10 +437,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         }
     }
 
-    LogPrint(
-        BCLog::NET, "trying connection %s lastseen=%.1fhrs\n",
-        pszDest ? pszDest : addrConnect.ToString(),
-        Ticks<HoursDouble>(pszDest ? 0h : AdjustedTime() - addrConnect.nTime));
+    LogPrint(BCLog::NET, "trying connection %s lastseen=%.1fhrs\n",
+             pszDest ? pszDest : addrConnect.ToString(),
+             Ticks<HoursDouble>(
+                 pszDest ? 0h : Now<NodeSeconds>() - addrConnect.nTime));
 
     // Resolve
     const uint16_t default_port{pszDest != nullptr
@@ -2314,7 +2314,7 @@ void CConnman::ThreadOpenConnections(
 
         addrman.ResolveCollisions();
 
-        const auto nANow{AdjustedTime()};
+        const auto current_time{NodeClock::now()};
         int nTries = 0;
         while (!interruptNet) {
             if (anchor && !m_anchors.empty()) {
@@ -2386,7 +2386,7 @@ void CConnman::ThreadOpenConnections(
             }
 
             // only consider very recently tried nodes after 30 failed attempts
-            if (nANow - addr_last_try < 10min && nTries < 30) {
+            if (current_time - addr_last_try < 10min && nTries < 30) {
                 continue;
             }
 
