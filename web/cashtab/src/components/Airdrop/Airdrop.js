@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
-import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
+import {
+    AntdFormWrapper,
+    DestinationAddressMulti,
+} from 'components/Common/EnhancedInputs';
 import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, Alert, Collapse, Input, Modal, Spin, Progress } from 'antd';
 const { Panel } = Collapse;
@@ -30,6 +33,7 @@ import {
     isValidTokenId,
     isValidXecAirdrop,
     isValidAirdropOutputsArray,
+    isValidAirdropExclusionArray,
 } from 'utils/validation';
 import { CustomSpinner } from 'components/Common/CustomIcons';
 import * as etokenList from 'etoken-list';
@@ -134,6 +138,18 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
 
     const [ignoreMintAddress, setIgnoreMintAddress] = useState(false);
 
+    // flag to reflect the exclusion list checkbox
+    const [ignoreCustomAddresses, setIgnoreCustomAddresses] = useState(false);
+    // the exclusion list values
+    const [ignoreCustomAddressesList, setIgnoreCustomAddressesList] =
+        useState(false);
+    const [
+        ignoreCustomAddressesListIsValid,
+        setIgnoreCustomAddressesListIsValid,
+    ] = useState(false);
+    const [ignoreCustomAddressListError, setIgnoreCustomAddressListError] =
+        useState(false);
+
     const { getBCH } = useBCH();
 
     const handleTokenIdInput = e => {
@@ -233,6 +249,16 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
 
             // remove the mint address from the recipients list
             airdropList.delete(mintEtokenAddress);
+        }
+
+        // filter out addresses from the exclusion list if the option is checked
+        if (ignoreCustomAddresses && ignoreCustomAddressesListIsValid) {
+            const addressStringArray = ignoreCustomAddressesList.split(',');
+            for (let i = 0; i < addressStringArray.length; i++) {
+                airdropList.delete(
+                    convertEcashtoEtokenAddr(addressStringArray[i]),
+                );
+            }
         }
 
         if (!airdropList) {
@@ -367,7 +393,47 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         setIgnoreMintAddress(e);
     };
 
+    const handleIgnoreCustomAddresses = e => {
+        setIgnoreCustomAddresses(e);
+    };
+
+    const handleIgnoreCustomAddressesList = e => {
+        // if the checkbox is not checked then skip the input validation
+        if (!ignoreCustomAddresses) {
+            return;
+        }
+
+        let customAddressList = e.target.value;
+
+        // remove all whitespaces via regex
+        customAddressList = customAddressList.replace(/ /g, '');
+
+        // validate the exclusion list input
+        const addressListIsValid =
+            isValidAirdropExclusionArray(customAddressList);
+        setIgnoreCustomAddressesListIsValid(addressListIsValid);
+
+        if (!addressListIsValid) {
+            setIgnoreCustomAddressListError(
+                'Invalid address detected in ignore list',
+            );
+        } else {
+            setIgnoreCustomAddressListError(false); // needs to be explicitly set in order to refresh the error state from prior invalidation
+        }
+
+        // commit the ignore list to state
+        setIgnoreCustomAddressesList(customAddressList);
+    };
+
     let airdropCalcInputIsValid = tokenIdIsValid && totalAirdropIsValid;
+
+    // if the exclusion list is in use, add the text area validation to the total pre-calculation validation
+    if (ignoreCustomAddresses) {
+        airdropCalcInputIsValid =
+            ignoreCustomAddressesListIsValid &&
+            tokenIdIsValid &&
+            totalAirdropIsValid;
+    }
 
     return (
         <>
@@ -532,6 +598,51 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                 />
                                                 &ensp;Ignore eToken minter
                                                 address
+                                            </AirdropOptions>
+                                        </Form.Item>
+                                        <Form.Item>
+                                            <AirdropOptions>
+                                                <Switch
+                                                    onChange={() =>
+                                                        handleIgnoreCustomAddresses(
+                                                            prev => !prev,
+                                                        )
+                                                    }
+                                                    defaultunchecked="true"
+                                                    checked={
+                                                        ignoreCustomAddresses
+                                                    }
+                                                    style={{
+                                                        marginBottom: '5px',
+                                                    }}
+                                                />
+                                                &ensp;Ignore custom addresses
+                                                {ignoreCustomAddresses && (
+                                                    <DestinationAddressMulti
+                                                        validateStatus={
+                                                            ignoreCustomAddressListError
+                                                                ? 'error'
+                                                                : ''
+                                                        }
+                                                        help={
+                                                            ignoreCustomAddressListError
+                                                                ? ignoreCustomAddressListError
+                                                                : ''
+                                                        }
+                                                        inputProps={{
+                                                            placeholder: `If more than one XEC address, separate them by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed`,
+                                                            name: 'address',
+                                                            onChange: e =>
+                                                                handleIgnoreCustomAddressesList(
+                                                                    e,
+                                                                ),
+                                                            required:
+                                                                ignoreCustomAddresses,
+                                                            disabled:
+                                                                !ignoreCustomAddresses,
+                                                        }}
+                                                    />
+                                                )}
                                             </AirdropOptions>
                                         </Form.Item>
                                         <Form.Item>

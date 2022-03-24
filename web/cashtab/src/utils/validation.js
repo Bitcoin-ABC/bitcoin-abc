@@ -367,3 +367,23 @@ export const isValidAirdropOutputsArray = airdropOutputsArray => {
 
     return isValid;
 };
+
+export const isValidAirdropExclusionArray = airdropExclusionArray => {
+    if (!airdropExclusionArray || airdropExclusionArray.length === 0) {
+        return false;
+    }
+
+    let isValid = true;
+
+    // split by comma as the delimiter
+    const addressStringArray = airdropExclusionArray.split(',');
+
+    // parse and validate each address in array
+    for (let i = 0; i < addressStringArray.length; i++) {
+        if (!isValidXecAddress(addressStringArray[i])) {
+            return false;
+        }
+    }
+
+    return isValid;
+};

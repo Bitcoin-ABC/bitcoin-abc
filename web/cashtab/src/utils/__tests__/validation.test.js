@@ -18,6 +18,7 @@ import {
     isValidTokenId,
     isValidXecAirdrop,
     isValidAirdropOutputsArray,
+    isValidAirdropExclusionArray,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSmallestDenomination } from 'utils/cashMethods';
@@ -33,7 +34,6 @@ import {
     invalidXecAirdropListMultipleInvalidValues,
     invalidXecAirdropListMultipleValidValues,
 } from '../__mocks__/mockXecAirdropRecipients';
-
 import {
     validUtxo,
     invalidUtxoMissingHeight,
@@ -41,6 +41,10 @@ import {
     hydratedUtxoDetailsAfterRemovingConsumedUtxos,
     utxosAfterSentTxIncremental,
 } from '../__mocks__/incrementalUtxoMocks';
+import {
+    validXecAirdropExclusionList,
+    invalidXecAirdropExclusionList,
+} from '../__mocks__/mockXecAirdropExclusionList';
 
 describe('Validation utils', () => {
     it(`Returns 'false' if ${currency.ticker} send amount is a valid send amount`, () => {
@@ -592,5 +596,21 @@ describe('Validation utils', () => {
             );
 
         expect(isValidAirdropOutputsArray(addressStringArray)).toBe(false);
+    });
+    it(`isValidAirdropExclusionArray accepts a valid airdrop exclusion list`, () => {
+        expect(isValidAirdropExclusionArray(validXecAirdropExclusionList)).toBe(
+            true,
+        );
+    });
+    it(`isValidAirdropExclusionArray rejects an invalid airdrop exclusion list`, () => {
+        expect(
+            isValidAirdropExclusionArray(invalidXecAirdropExclusionList),
+        ).toBe(false);
+    });
+    it(`isValidAirdropExclusionArray rejects an empty airdrop exclusion list`, () => {
+        expect(isValidAirdropExclusionArray([])).toBe(false);
+    });
+    it(`isValidAirdropExclusionArray rejects a null airdrop exclusion list`, () => {
+        expect(isValidAirdropExclusionArray(null)).toBe(false);
     });
 });

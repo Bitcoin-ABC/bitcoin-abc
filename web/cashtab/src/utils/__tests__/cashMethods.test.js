@@ -22,8 +22,8 @@ import {
     removeConsumedUtxos,
     getUtxoCount,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
+    convertEcashtoEtokenAddr,
 } from 'utils/cashMethods';
-
 import {
     unbatchedArray,
     arrayBatchedByThree,
@@ -768,6 +768,56 @@ describe('Correctly executes cash utility functions', () => {
             new Error(
                 'cashMethods.convertToEcashAddr() error: No etoken address provided',
             ),
+        );
+    });
+
+    test('convertEcashtoEtokenAddr successfully converts a valid ecash address into an etoken address', async () => {
+        const eCashAddress = 'ecash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8';
+        const eTokenAddress =
+            'etoken:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gcldpffcs';
+        const result = convertEcashtoEtokenAddr(eCashAddress);
+        expect(result).toStrictEqual(eTokenAddress);
+    });
+
+    test('convertEcashtoEtokenAddr successfully converts a valid prefix-less ecash address into an etoken address', async () => {
+        const eCashAddress = 'qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8';
+        const eTokenAddress =
+            'etoken:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gcldpffcs';
+        const result = convertEcashtoEtokenAddr(eCashAddress);
+        expect(result).toStrictEqual(eTokenAddress);
+    });
+
+    test('convertEcashtoEtokenAddr throws error with invalid ecash address input', async () => {
+        const eCashAddress = 'ecash:qpaNOTVALIDADDRESSwu8';
+        const result = convertEcashtoEtokenAddr(eCashAddress);
+        expect(result).toStrictEqual(
+            new Error(eCashAddress + ' is not a valid ecash address'),
+        );
+    });
+
+    test('convertEcashtoEtokenAddr throws error with a valid etoken address input', async () => {
+        const eTokenAddress =
+            'etoken:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gcldpffcs';
+        const result = convertEcashtoEtokenAddr(eTokenAddress);
+        expect(result).toStrictEqual(
+            new Error(eTokenAddress + ' is not a valid ecash address'),
+        );
+    });
+
+    test('convertEcashtoEtokenAddr throws error with a valid bitcoincash address input', async () => {
+        const bchAddress =
+            'bitcoincash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9g0vsgy56s';
+        const result = convertEcashtoEtokenAddr(bchAddress);
+        expect(result).toStrictEqual(
+            new Error(bchAddress + ' is not a valid ecash address'),
+        );
+    });
+
+    test('convertEcashtoEtokenPrefix throws error with null ecash address input', async () => {
+        const eCashAddress = null;
+        const result = convertEcashtoEtokenAddr(eCashAddress);
+        expect(result).toStrictEqual(
+            new Error(eCashAddress + ' is not a valid ecash address'),
         );
     });
 });
