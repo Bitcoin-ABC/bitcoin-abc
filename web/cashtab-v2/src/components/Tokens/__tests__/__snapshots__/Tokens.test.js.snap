@@ -124,7 +124,337 @@ Array [
       <div
         className="sc-VigVT hPTEEJ"
       >
-        <div />
+        <form
+          className="ant-form ant-form-horizontal ant-form-small"
+          onReset={[Function]}
+          onSubmit={[Function]}
+          style={
+            Object {
+              "width": "auto",
+            }
+          }
+        >
+          <label
+            className="sc-kkGfuU ekDVdV"
+          >
+            Token Name
+          </label>
+          <div
+            className="ant-row ant-form-item ant-form-item-with-help"
+            style={Object {}}
+          >
+            <div
+              className="ant-col ant-form-item-control"
+              style={Object {}}
+            >
+              <div
+                className="ant-form-item-control-input"
+              >
+                <div
+                  className="ant-form-item-control-input-content"
+                >
+                  <input
+                    className="ant-input ant-input-sm"
+                    name="newTokenName"
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    placeholder="Enter a name for your token"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                className="ant-form-item-explain ant-form-item-explain-connected"
+              >
+                <div
+                  className=""
+                  role="alert"
+                >
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          <label
+            className="sc-kkGfuU ekDVdV"
+          >
+            Ticker
+          </label>
+          <div
+            className="ant-row ant-form-item ant-form-item-with-help"
+            style={Object {}}
+          >
+            <div
+              className="ant-col ant-form-item-control"
+              style={Object {}}
+            >
+              <div
+                className="ant-form-item-control-input"
+              >
+                <div
+                  className="ant-form-item-control-input-content"
+                >
+                  <input
+                    className="ant-input ant-input-sm"
+                    name="newTokenTicker"
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    placeholder="Enter a ticker for your token"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                className="ant-form-item-explain ant-form-item-explain-connected"
+              >
+                <div
+                  className=""
+                  role="alert"
+                >
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          <label
+            className="sc-kkGfuU ekDVdV"
+          >
+            Decimals
+          </label>
+          <div
+            className="ant-row ant-form-item ant-form-item-with-help"
+            style={Object {}}
+          >
+            <div
+              className="ant-col ant-form-item-control"
+              style={Object {}}
+            >
+              <div
+                className="ant-form-item-control-input"
+              >
+                <div
+                  className="ant-form-item-control-input-content"
+                >
+                  <input
+                    className="ant-input ant-input-sm"
+                    name="newTokenDecimals"
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    placeholder="Enter number of decimal places"
+                    type="number"
+                    value="0"
+                  />
+                </div>
+              </div>
+              <div
+                className="ant-form-item-explain ant-form-item-explain-connected"
+              >
+                <div
+                  className=""
+                  role="alert"
+                >
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          <label
+            className="sc-kkGfuU ekDVdV"
+          >
+            Supply
+          </label>
+          <div
+            className="ant-row ant-form-item ant-form-item-with-help"
+            style={Object {}}
+          >
+            <div
+              className="ant-col ant-form-item-control"
+              style={Object {}}
+            >
+              <div
+                className="ant-form-item-control-input"
+              >
+                <div
+                  className="ant-form-item-control-input-content"
+                >
+                  <input
+                    className="ant-input ant-input-sm"
+                    name="newTokenInitialQty"
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    placeholder="Enter the fixed supply of your token"
+                    type="number"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                className="ant-form-item-explain ant-form-item-explain-connected"
+              >
+                <div
+                  className=""
+                  role="alert"
+                >
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          <label
+            className="sc-kkGfuU ekDVdV"
+          >
+            Document URL
+          </label>
+          <div
+            className="ant-row ant-form-item ant-form-item-with-help"
+            style={Object {}}
+          >
+            <div
+              className="ant-col ant-form-item-control"
+              style={Object {}}
+            >
+              <div
+                className="ant-form-item-control-input"
+              >
+                <div
+                  className="ant-form-item-control-input-content"
+                >
+                  <input
+                    className="ant-input ant-input-sm"
+                    name="newTokenDocumentUrl"
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    placeholder="Enter a website for your token"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                className="ant-form-item-explain ant-form-item-explain-connected"
+              >
+                <div
+                  className=""
+                  role="alert"
+                >
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+          <label
+            className="sc-kkGfuU ekDVdV"
+          >
+            Add Image
+          </label>
+          <div
+            className="ant-row ant-form-item"
+            style={Object {}}
+          >
+            <div
+              className="ant-col ant-form-item-control"
+              style={Object {}}
+            >
+              <div
+                className="ant-form-item-control-input"
+              >
+                <div
+                  className="ant-form-item-control-input-content"
+                >
+                  <span>
+                    <div
+                      className="ant-upload ant-upload-drag"
+                      onDragLeave={[Function]}
+                      onDragOver={[Function]}
+                      onDrop={[Function]}
+                      style={
+                        Object {
+                          "backgroundColor": "#f4f4f4",
+                          "height": undefined,
+                        }
+                      }
+                    >
+                      <span
+                        className="ant-upload ant-upload-btn"
+                        onClick={[Function]}
+                        onDragOver={[Function]}
+                        onDrop={[Function]}
+                        onKeyDown={[Function]}
+                        role="button"
+                        tabIndex="0"
+                      >
+                        <input
+                          accept=""
+                          multiple={false}
+                          onChange={[Function]}
+                          onClick={[Function]}
+                          style={
+                            Object {
+                              "display": "none",
+                            }
+                          }
+                          type="file"
+                        />
+                        <div
+                          className="ant-upload-drag-container"
+                        >
+                           
+                          <span
+                            aria-label="upload"
+                            className="anticon anticon-upload"
+                            role="img"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              data-icon="upload"
+                              fill="currentColor"
+                              focusable="false"
+                              height="1em"
+                              viewBox="64 64 896 896"
+                              width="1em"
+                            >
+                              <path
+                                d="M400 317.7h73.9V656c0 4.4 3.6 8 8 8h60c4.4 0 8-3.6 8-8V317.7H624c6.7 0 10.4-7.7 6.3-12.9L518.3 163a8 8 0 00-12.6 0l-112 141.7c-4.1 5.3-.4 13 6.3 13zM878 626h-60c-4.4 0-8 3.6-8 8v154H214V634c0-4.4-3.6-8-8-8h-60c-4.4 0-8 3.6-8 8v198c0 17.7 14.3 32 32 32h684c17.7 0 32-14.3 32-32V634c0-4.4-3.6-8-8-8z"
+                              />
+                            </svg>
+                          </span>
+                          <p>
+                            Click, or drag file to this area to upload
+                          </p>
+                          <p
+                            style={
+                              Object {
+                                "fontSize": "12px",
+                              }
+                            }
+                          >
+                            Only jpg or png accepted
+                          </p>
+                        </div>
+                      </span>
+                    </div>
+                    <div
+                      className="ant-upload-list ant-upload-list-text"
+                    />
+                  </span>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
       <button
         className="sc-jKJlTe cxrKVk"

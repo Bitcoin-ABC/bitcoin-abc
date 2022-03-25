@@ -10,14 +10,9 @@ import {
     walletWithBalancesAndTokensWithCorrectState,
 } from '../../Home/__mocks__/walletAndBalancesMock';
 import { BrowserRouter as Router } from 'react-router-dom';
-
-let realUseContext;
-let useContextMock;
+import { WalletContext } from 'utils/context';
 
 beforeEach(() => {
-    realUseContext = React.useContext;
-    useContextMock = React.useContext = jest.fn();
-
     // Mock method not implemented in JSDOM
     // See reference at https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
     Object.defineProperty(window, 'matchMedia', {
@@ -35,74 +30,78 @@ beforeEach(() => {
     });
 });
 
-afterEach(() => {
-    React.useContext = realUseContext;
-});
-
 test('Wallet without BCH balance', () => {
-    useContextMock.mockReturnValue(walletWithoutBalancesMock);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Receive />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithoutBalancesMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Receive />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Wallet with BCH balances', () => {
-    useContextMock.mockReturnValue(walletWithBalancesMock);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Receive />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithBalancesMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Receive />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Wallet with BCH balances and tokens', () => {
-    useContextMock.mockReturnValue(walletWithBalancesAndTokens);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Receive />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithBalancesAndTokens}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Receive />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    useContextMock.mockReturnValue(walletWithBalancesAndTokensWithCorrectState);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Receive />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider
+            value={walletWithBalancesAndTokensWithCorrectState}
+        >
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Receive />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Without wallet defined', () => {
-    useContextMock.mockReturnValue({
+    const withoutWalletDefinedMock = {
         wallet: {},
         balances: { totalBalance: 0 },
         loading: false,
-    });
+    };
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Receive />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={withoutWalletDefinedMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Receive />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();

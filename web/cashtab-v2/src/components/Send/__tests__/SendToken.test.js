@@ -8,26 +8,10 @@ import {
     walletWithBalancesAndTokens,
     walletWithBalancesAndTokensWithCorrectState,
 } from '../../Home/__mocks__/walletAndBalancesMock';
+import { WalletContext } from 'utils/context';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-let realUseContext;
-let useContextMock;
-
-// Mock antd as jest cannot process the Input component
-jest.mock('antd', () => {
-    const lib = jest.requireActual('antd');
-    return {
-        ...lib,
-        Form: () => {
-            return <div></div>;
-        },
-    };
-});
-
 beforeEach(() => {
-    realUseContext = React.useContext;
-    useContextMock = React.useContext = jest.fn();
-
     // Mock method not implemented in JSDOM
     // See reference at https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
     Object.defineProperty(window, 'matchMedia', {
@@ -45,24 +29,21 @@ beforeEach(() => {
     });
 });
 
-afterEach(() => {
-    React.useContext = realUseContext;
-});
-
 test('Wallet with BCH balances and tokens', () => {
     const testBCH = new BCHJS();
-    useContextMock.mockReturnValue(walletWithBalancesAndTokens);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <SendToken
-                    tokenId={
-                        'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
-                    }
-                    jestBCH={testBCH}
-                />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithBalancesAndTokens}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <SendToken
+                        tokenId={
+                            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
+                        }
+                        jestBCH={testBCH}
+                    />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
@@ -70,18 +51,21 @@ test('Wallet with BCH balances and tokens', () => {
 
 test('Wallet with BCH balances and tokens and state field', () => {
     const testBCH = new BCHJS();
-    useContextMock.mockReturnValue(walletWithBalancesAndTokensWithCorrectState);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <SendToken
-                    tokenId={
-                        'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
-                    }
-                    jestBCH={testBCH}
-                />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider
+            value={walletWithBalancesAndTokensWithCorrectState}
+        >
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <SendToken
+                        tokenId={
+                            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
+                        }
+                        jestBCH={testBCH}
+                    />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
@@ -89,22 +73,24 @@ test('Wallet with BCH balances and tokens and state field', () => {
 
 test('Without wallet defined', () => {
     const testBCH = new BCHJS();
-    useContextMock.mockReturnValue({
+    const withoutWalletDefinedMock = {
         wallet: {},
         balances: { totalBalance: 0 },
         loading: false,
-    });
+    };
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <SendToken
-                    tokenId={
-                        'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
-                    }
-                    jestBCH={testBCH}
-                />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={withoutWalletDefinedMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <SendToken
+                        tokenId={
+                            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
+                        }
+                        jestBCH={testBCH}
+                    />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();

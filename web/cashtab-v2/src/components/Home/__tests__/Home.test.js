@@ -10,82 +10,79 @@ import {
     walletWithBalancesAndTokensWithCorrectState,
 } from '../__mocks__/walletAndBalancesMock';
 import { BrowserRouter as Router } from 'react-router-dom';
-
-let realUseContext;
-let useContextMock;
-
-beforeEach(() => {
-    realUseContext = React.useContext;
-    useContextMock = React.useContext = jest.fn();
-});
-
-afterEach(() => {
-    React.useContext = realUseContext;
-});
+import { WalletContext } from 'utils/context';
 
 test('Wallet without BCH balance', () => {
-    useContextMock.mockReturnValue(walletWithoutBalancesMock);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Home />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithoutBalancesMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Home />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Wallet with BCH balances', () => {
-    useContextMock.mockReturnValue(walletWithBalancesMock);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Home />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithBalancesMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Home />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Wallet with BCH balances and tokens', () => {
-    useContextMock.mockReturnValue(walletWithBalancesAndTokens);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Home />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={walletWithBalancesAndTokens}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Home />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Wallet with BCH balances and tokens and state field', () => {
-    useContextMock.mockReturnValue(walletWithBalancesAndTokensWithCorrectState);
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Home />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider
+            value={walletWithBalancesAndTokensWithCorrectState}
+        >
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Home />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Without wallet defined', () => {
-    useContextMock.mockReturnValue({
+    const withoutWalletDefinedMock = {
         wallet: {},
         balances: { totalBalance: 0 },
-    });
+    };
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Router>
-                <Home />
-            </Router>
-        </ThemeProvider>,
+        <WalletContext.Provider value={withoutWalletDefinedMock}>
+            <ThemeProvider theme={theme}>
+                <Router>
+                    <Home />
+                </Router>
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
