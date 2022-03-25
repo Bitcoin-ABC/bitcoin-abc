@@ -436,8 +436,7 @@ bool ArgsManager::InitSettings(std::string &error) {
 
 bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp,
                                   bool backup) const {
-    fs::path settings =
-        GetPathArg("-settings", fs::path{BITCOIN_SETTINGS_FILENAME});
+    fs::path settings = GetPathArg("-settings", BITCOIN_SETTINGS_FILENAME);
     if (settings.empty()) {
         return false;
     }
