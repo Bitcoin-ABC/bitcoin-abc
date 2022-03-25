@@ -87,14 +87,17 @@ ninja check-secp256k1
 sudo ninja install  # optional
 ```
 
+To compile optional modules (such as taproot Schnorr signatures), you need to run `./configure` with additional flags (such as `--enable-module-schnorrsig`). Run `./configure --help` to see the full list of available flags.
+
 Usage examples
 -----------
   Usage examples can be found in the [examples](examples) directory. To compile them you need to configure with `--enable-examples`.
   For experimental modules, you will also need `--enable-experimental` as well as a flag for each individual module, e.g. `--enable-module-multiset`.
   If using CMake, a `secp256k1-examples` ninja target is available to build all examples whose modules are enabled.
   * [ECDSA example](examples/ecdsa.c)
-  * [Schnorr Signatures (taproot) example](examples/schnorr.c)
-  * [Deriving a shared secret(ECDH) example](examples/ecdh.c)
+  * [Schnorr signatures (taproot) example](examples/schnorr.c)
+  * [Deriving a shared secret (ECDH) example](examples/ecdh.c)
+  To compile the Schnorr signature and ECDH examples, you also need to configure with `--enable-module-schnorrsig` and `--enable-module-ecdh`.
 
 Test coverage
 -----------
