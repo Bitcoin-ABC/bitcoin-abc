@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import {
     SendIcon,
     ReceiveIcon,
@@ -154,24 +154,12 @@ const OpReturnType = styled.div`
         background: ${props.theme.receivedMessage};
   `}
 `;
-const SentLabel = styled.span`
-    font-weight: bold;
-    color: ${props => props.theme.secondary} !important;
-`;
+
 const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.eCashBlue} !important;
 `;
-const GenesisLabel = styled.span`
-    font-weight: bold;
-    color: ${props => props.theme.genesisGreen} !important;
-`;
-const CashtabMessageLabel = styled.span`
-    text-align: left;
-    font-weight: bold;
-    color: ${props => props.theme.eCashBlue} !important;
-    white-space: nowrap;
-`;
+
 const EncryptionMessageLabel = styled.span`
     font-weight: bold;
     font-size: 12px;
@@ -183,15 +171,6 @@ const UnauthorizedDecryptionMessage = styled.span`
     color: ${props => props.theme.encryptionRed};
     white-space: nowrap;
     font-style: italic;
-`;
-const MessageLabel = styled.span`
-    text-align: left;
-    font-weight: bold;
-    color: ${props => props.theme.secondary} !important;
-    white-space: nowrap;
-`;
-const ReplyMessageLabel = styled.span`
-    color: ${props => props.theme.eCashBlue} !important;
 `;
 
 const TxInfo = styled.div`

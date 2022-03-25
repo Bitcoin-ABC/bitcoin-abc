@@ -319,6 +319,8 @@ export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
 
 // XEC airdrop field validations
 export const isValidTokenId = tokenId => {
+    // disable no-useless-escape for regex
+    //eslint-disable-next-line
     const format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
     const specialCharCheck = format.test(tokenId);
 

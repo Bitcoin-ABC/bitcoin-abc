@@ -196,6 +196,7 @@ const useWebAuthentication = () => {
                     );
                 }
             } catch (err) {
+                console.log(err);
                 throw err;
             }
         },
@@ -217,6 +218,7 @@ const useWebAuthentication = () => {
                     );
                 }
             } catch (err) {
+                console.log(err);
                 throw err;
             }
         },

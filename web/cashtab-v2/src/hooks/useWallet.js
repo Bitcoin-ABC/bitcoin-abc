@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 import { useState, useEffect } from 'react';
 import useAsyncTimeout from 'hooks/useAsyncTimeout';
 import usePrevious from 'hooks/usePrevious';

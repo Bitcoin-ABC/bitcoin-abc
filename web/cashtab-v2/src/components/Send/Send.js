@@ -9,7 +9,7 @@ import {
     DestinationAddressMulti,
 } from 'components/Common/EnhancedInputs';
 import { AdvancedCollapse } from 'components/Common/StyledCollapse';
-import { Form, message, Modal, Alert, Collapse, Input, Button } from 'antd';
+import { Form, message, Modal, Alert, Collapse, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
@@ -506,12 +506,6 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             ...p,
             value: '',
         }));
-    };
-
-    // true: renders the multi recipient <TextArea>
-    // false: renders the single recipient <Input>
-    const handleOneToManyXECSend = sendXecMode => {
-        setIsOneToManyXECSend(sendXecMode);
     };
 
     const handleBchAmountChange = e => {

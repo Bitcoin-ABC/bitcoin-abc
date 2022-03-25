@@ -2,7 +2,6 @@ import { currency } from 'components/Common/Ticker';
 import {
     isValidXecAddress,
     isValidEtokenAddress,
-    isValidUtxo,
     isValidBchApiUtxoObject,
 } from 'utils/validation';
 import BigNumber from 'bignumber.js';

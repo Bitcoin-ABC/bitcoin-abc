@@ -454,6 +454,13 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     );
 };
 
+/*
+passLoadingStatus must receive a default prop that is a function
+in order to pass the rendering unit test in Airdrop.test.js
+
+status => {console.log(status)} is an arbitrary stub function
+*/
+
 Airdrop.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);

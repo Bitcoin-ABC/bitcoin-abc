@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
-import { TokenCollapse } from 'components/Common/StyledCollapse';
 import { currency } from 'components/Common/Ticker.js';
 import {
     CropControlModal,
@@ -24,8 +23,6 @@ import {
 } from '@ant-design/icons';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import {
-    notification,
-    Collapse,
     Form,
     Input,
     Modal,
@@ -216,8 +213,10 @@ const CreateTokenForm = ({
 
     const transformTokenIconFile = file => {
         return new Promise((resolve, reject) => {
+            // Dragger requires this function to work properly with file as an input;
+            // linter requires file param to be used in the function.
+            console.log(file);
             reject();
-            // setLoading(false);
         });
     };
 

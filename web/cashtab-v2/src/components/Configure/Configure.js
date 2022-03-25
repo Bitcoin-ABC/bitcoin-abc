@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Collapse, Form, Input, Modal, Alert, Switch, Tag } from 'antd';
@@ -483,7 +482,7 @@ const Configure = () => {
         setConfirmationOfWalletToBeDeleted(value);
     };
 
-    const handleAppLockToggle = (checked, e) => {
+    const handleAppLockToggle = checked => {
         if (checked) {
             // if there is an existing credential, that means user has registered
             // simply turn on the Authentication Required flag

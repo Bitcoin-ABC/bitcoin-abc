@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import 'antd/dist/antd.less';
+import PropTypes from 'prop-types';
 import { Spin } from 'antd';
 import {
     CashLoadingIcon,
@@ -353,6 +354,10 @@ const App = () => {
             </Spin>
         </ThemeProvider>
     );
+};
+
+App.propTypes = {
+    match: PropTypes.string,
 };
 
 export default App;
