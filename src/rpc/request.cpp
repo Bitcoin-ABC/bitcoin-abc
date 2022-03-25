@@ -68,15 +68,15 @@ UniValue JSONRPCError(int code, const std::string &message) {
  */
 static const std::string COOKIEAUTH_USER = "__cookie__";
 /** Default name for auth cookie file */
-static const std::string COOKIEAUTH_FILE = ".cookie";
+static const char *const COOKIEAUTH_FILE = ".cookie";
 
 /** Get name of RPC authentication cookie file */
 static fs::path GetAuthCookieFile(bool temp = false) {
-    std::string arg = gArgs.GetArg("-rpccookiefile", COOKIEAUTH_FILE);
+    fs::path arg = gArgs.GetPathArg("-rpccookiefile", COOKIEAUTH_FILE);
     if (temp) {
         arg += ".tmp";
     }
-    return AbsPathForConfigVal(gArgs, fs::PathFromString(arg));
+    return AbsPathForConfigVal(gArgs, arg);
 }
 
 bool GenerateAuthCookie(std::string *cookie_out) {
