@@ -45,7 +45,8 @@ bool SetupNetworking();
 // Return true if -datadir option points to a valid directory or is not
 // specified.
 bool CheckDataDirOption(const ArgsManager &args);
-fs::path GetConfigFile(const ArgsManager &args, const std::string &confPath);
+fs::path GetConfigFile(const ArgsManager &args,
+                       const fs::path &configuration_file_path);
 #ifndef WIN32
 std::string ShellEscape(const std::string &arg);
 #endif

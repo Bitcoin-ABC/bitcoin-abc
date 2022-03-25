@@ -819,8 +819,10 @@ bool CheckDataDirOption(const ArgsManager &args) {
     return datadir.empty() || fs::is_directory(fs::absolute(datadir));
 }
 
-fs::path GetConfigFile(const ArgsManager &args, const std::string &confPath) {
-    return AbsPathForConfigVal(args, fs::PathFromString(confPath), false);
+fs::path GetConfigFile(const ArgsManager &args,
+                       const fs::path &configuration_file_path) {
+    return AbsPathForConfigVal(args, configuration_file_path,
+                               /*net_specific=*/false);
 }
 
 static bool
@@ -930,12 +932,13 @@ bool ArgsManager::ReadConfigFiles(std::string &error,
         m_config_sections.clear();
     }
 
-    const auto confPath{GetConfigFilePath()};
-    std::ifstream stream{confPath};
+    const auto conf_path{GetConfigFilePath()};
+    std::ifstream stream{conf_path};
 
     // ok to not have a config file
     if (stream.good()) {
-        if (!ReadConfigStream(stream, confPath, error, ignore_invalid_keys)) {
+        if (!ReadConfigStream(stream, fs::PathToString(conf_path), error,
+                              ignore_invalid_keys)) {
             return false;
         }
         // `-includeconf` cannot be included in the command line arguments
@@ -981,7 +984,7 @@ bool ArgsManager::ReadConfigFiles(std::string &error,
 
             for (const std::string &conf_file_name : conf_file_names) {
                 std::ifstream conf_file_stream{
-                    GetConfigFile(*this, conf_file_name)};
+                    GetConfigFile(*this, fs::PathFromString(conf_file_name))};
                 if (conf_file_stream.good()) {
                     if (!ReadConfigStream(conf_file_stream, conf_file_name,
                                           error, ignore_invalid_keys)) {
