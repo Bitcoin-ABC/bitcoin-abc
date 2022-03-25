@@ -24,6 +24,7 @@ import {
     convertEtokenToEcashAddr,
     fromSmallestDenomination,
     convertToEcashPrefix,
+    convertEcashtoEtokenAddr,
 } from 'utils/cashMethods';
 import {
     isValidTokenId,
@@ -131,6 +132,8 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const [ignoreRecipientsBelowDust, setIgnoreRecipientsBelowDust] =
         useState(false);
 
+    const [ignoreMintAddress, setIgnoreMintAddress] = useState(false);
+
     const { getBCH } = useBCH();
 
     const handleTokenIdInput = e => {
@@ -202,7 +205,37 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             airdropList.delete(ownEtokenAddress);
         }
 
-        if (!airdropList || airdropList.size === 0) {
+        // if Ignore eToken Minter option is checked, then filter out from recipients list
+        if (ignoreMintAddress) {
+            // extract the eToken mint address
+            let genesisTx;
+            try {
+                genesisTx = await bchObj.RawTransactions.getRawTransaction(
+                    formData.tokenId,
+                    true,
+                );
+            } catch (err) {
+                errorNotification(
+                    null,
+                    'Unable to retrieve minting address for eToken ID: ' +
+                        formData.tokenId,
+                    'getRawTransaction Error',
+                );
+                setIsAirdropCalcModalVisible(false);
+                passLoadingStatus(false);
+                return;
+            }
+            const mintEcashAddress = convertToEcashPrefix(
+                genesisTx.vout[1].scriptPubKey.addresses[0],
+            ); //vout[0] is always the OP_RETURN output
+            const mintEtokenAddress =
+                convertEcashtoEtokenAddr(mintEcashAddress);
+
+            // remove the mint address from the recipients list
+            airdropList.delete(mintEtokenAddress);
+        }
+
+        if (!airdropList) {
             errorNotification(
                 null,
                 'No recipients found for tokenId ' + formData.tokenId,
@@ -328,6 +361,10 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
 
     const handleIgnoreRecipientBelowDust = e => {
         setIgnoreRecipientsBelowDust(e);
+    };
+
+    const handleIgnoreMintAddress = e => {
+        setIgnoreMintAddress(e);
     };
 
     let airdropCalcInputIsValid = tokenIdIsValid && totalAirdropIsValid;
@@ -480,6 +517,21 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                     currency.dustSats,
                                                 )}{' '}
                                                 XEC)
+                                            </AirdropOptions>
+                                        </Form.Item>
+                                        <Form.Item>
+                                            <AirdropOptions>
+                                                <Switch
+                                                    onChange={() =>
+                                                        handleIgnoreMintAddress(
+                                                            prev => !prev,
+                                                        )
+                                                    }
+                                                    defaultunchecked="true"
+                                                    checked={ignoreMintAddress}
+                                                />
+                                                &ensp;Ignore eToken minter
+                                                address
                                             </AirdropOptions>
                                         </Form.Item>
                                         <Form.Item>

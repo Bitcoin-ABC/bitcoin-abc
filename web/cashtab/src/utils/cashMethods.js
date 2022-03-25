@@ -294,6 +294,30 @@ export function convertToEcashPrefix(bitcoincashPrefixedAddress) {
     }
 }
 
+export function convertEcashtoEtokenAddr(eCashAddress) {
+    const isValidInput = isValidXecAddress(eCashAddress);
+    if (!isValidInput) {
+        return new Error(`${eCashAddress} is not a valid ecash address`);
+    }
+
+    // Check for ecash: prefix
+    const isPrefixedEcashAddress = eCashAddress.slice(0, 6) === 'ecash:';
+
+    // If no prefix, assume it is checksummed for an ecash: prefix
+    const testedEcashAddr = isPrefixedEcashAddress
+        ? eCashAddress
+        : `ecash:${eCashAddress}`;
+
+    let eTokenAddress;
+    try {
+        const { type, hash } = cashaddr.decode(testedEcashAddr);
+        eTokenAddress = cashaddr.encode('etoken', type, hash);
+    } catch (err) {
+        return new Error('eCash to eToken address conversion error');
+    }
+    return eTokenAddress;
+}
+
 export function toLegacyCash(addr) {
     // Confirm input is a valid ecash address
     const isValidInput = isValidXecAddress(addr);
