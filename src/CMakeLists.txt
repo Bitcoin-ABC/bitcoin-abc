@@ -424,6 +424,7 @@ add_library(util
 	util/asmap.cpp
 	util/bip32.cpp
 	util/bytevectorhash.cpp
+	util/check.cpp
 	util/hasher.cpp
 	util/error.cpp
 	util/getuniquepath.cpp
