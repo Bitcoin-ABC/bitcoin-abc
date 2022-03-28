@@ -30,7 +30,7 @@ const ProtectableComponentWrapper = ({ children }) => {
 };
 
 ProtectableComponentWrapper.propTypes = {
-    children: PropTypes.objectOf(PropTypes.node),
+    children: PropTypes.node,
 };
 
 export default ProtectableComponentWrapper;

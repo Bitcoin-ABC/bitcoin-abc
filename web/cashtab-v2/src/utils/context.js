@@ -28,9 +28,9 @@ export const AuthenticationProvider = ({ children }) => {
 };
 
 WalletProvider.propTypes = {
-    children: PropTypes.objectOf(PropTypes.node),
+    children: PropTypes.node,
 };
 
 AuthenticationProvider.propTypes = {
-    children: PropTypes.objectOf(PropTypes.node),
+    children: PropTypes.node,
 };
