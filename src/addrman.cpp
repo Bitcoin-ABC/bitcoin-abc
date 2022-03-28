@@ -939,7 +939,7 @@ void AddrManImpl::SetServices_(const CService &addr, ServiceFlags nServices) {
 void AddrManImpl::ResolveCollisions_() {
     AssertLockHeld(cs);
 
-    const int64_t adjustedTime = GetAdjustedTime();
+    const auto current_time{GetAdjustedTime()};
 
     for (std::set<int>::iterator it = m_tried_collisions.begin();
          it != m_tried_collisions.end();) {
@@ -970,26 +970,26 @@ void AddrManImpl::ResolveCollisions_() {
                 AddrInfo &info_old = mapInfo[id_old];
 
                 // Has successfully connected in last X hours
-                if (adjustedTime - info_old.nLastSuccess <
+                if (current_time - info_old.nLastSuccess <
                     ADDRMAN_REPLACEMENT_SECONDS) {
                     erase_collision = true;
-                } else if (adjustedTime - info_old.nLastTry <
+                } else if (current_time - info_old.nLastTry <
                            ADDRMAN_REPLACEMENT_SECONDS) {
                     // attempted to connect and failed in last X hours
 
                     // Give address at least 60 seconds to successfully
                     // connect
-                    if (GetAdjustedTime() - info_old.nLastTry > 60) {
+                    if (current_time - info_old.nLastTry > 60) {
                         LogPrint(BCLog::ADDRMAN,
                                  "Replacing %s with %s in tried table\n",
                                  info_old.ToString(), info_new.ToString());
 
                         // Replaces an existing address already in the
                         // tried table with the new address
-                        Good_(info_new, false, GetAdjustedTime());
+                        Good_(info_new, false, current_time);
                         erase_collision = true;
                     }
-                } else if (GetAdjustedTime() - info_new.nLastSuccess >
+                } else if (current_time - info_new.nLastSuccess >
                            ADDRMAN_TEST_WINDOW) {
                     // If the collision hasn't resolved in some
                     // reasonable amount of time, just evict the old
@@ -999,12 +999,12 @@ void AddrManImpl::ResolveCollisions_() {
                              "Unable to test; replacing %s with %s in tried "
                              "table anyway\n",
                              info_old.ToString(), info_new.ToString());
-                    Good_(info_new, false, GetAdjustedTime());
+                    Good_(info_new, false, current_time);
                     erase_collision = true;
                 }
             } else {
                 // Collision is not actually a collision anymore
-                Good_(info_new, false, adjustedTime);
+                Good_(info_new, false, current_time);
                 erase_collision = true;
             }
         }
