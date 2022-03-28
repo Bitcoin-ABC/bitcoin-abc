@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
-exports[`Configure with a wallet 1`] = `
+exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-gqjmRU dYraLr"
+  className="sc-jTzLTM jNRuZd"
 >
   <div
-    className="sc-gipzik kgsCNX"
+    className="sc-fBuWsC fBZAcf"
   >
     <h2>
       <span
@@ -72,51 +72,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-dxgOiQ bWjuun"
-      role={null}
-    >
-      <div
-        className="ant-collapse-item"
-      >
-        <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
-        >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
-              >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
-          </div>
-          <div
-            className="seedPhrase"
-          >
-            Click to reveal seed phrase
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      className="sc-csuQGl jFrAyw"
+      className="sc-fMiknA dAmXTv"
     />
     <h2>
       <span
@@ -141,7 +97,7 @@ exports[`Configure with a wallet 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-eHgmQL bqOmSo"
+      className="sc-jWBwVP kAXeLy"
       onClick={[Function]}
     >
       <span
@@ -169,7 +125,7 @@ exports[`Configure with a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-cvbbAY eOLbDk"
+      className="sc-brqgnP eubqWf"
       onClick={[Function]}
     >
       <span
@@ -194,7 +150,63 @@ exports[`Configure with a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="ant-row"
+      style={Object {}}
+      type="flex"
+    >
+      <div
+        className="ant-col ant-col-24"
+        style={Object {}}
+      >
+        <div
+          className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe cmJFO"
+          role={null}
+          style={
+            Object {
+              "marginBottom": "24px",
+            }
+          }
+        >
+          <div
+            className="ant-collapse-item"
+          >
+            <div
+              aria-expanded={false}
+              className="ant-collapse-header"
+              onClick={[Function]}
+              onKeyPress={[Function]}
+              role="button"
+              tabIndex={0}
+            >
+              <div>
+                <span
+                  aria-label="right"
+                  className="anticon anticon-right ant-collapse-arrow"
+                  role="img"
+                >
+                  <svg
+                    aria-hidden="true"
+                    data-icon="right"
+                    fill="currentColor"
+                    focusable="false"
+                    height="1em"
+                    viewBox="64 64 896 896"
+                    width="1em"
+                  >
+                    <path
+                      d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                    />
+                  </svg>
+                </span>
+              </div>
+              Contact List
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="sc-fMiknA dAmXTv"
     />
     <h2>
       <span
@@ -219,7 +231,7 @@ exports[`Configure with a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-kkGfuU kpUqYa"
+      className="sc-hSdWYo eVRCbc"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -311,7 +323,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="sc-fMiknA dAmXTv"
     />
     <h2>
       <span
@@ -336,7 +348,7 @@ exports[`Configure with a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-Rmtcm cjHbHg"
+      className="sc-dVhcbM gUNnbL"
     >
       <div
         className="title"
@@ -395,7 +407,7 @@ exports[`Configure with a wallet 1`] = `
       </span>
     </div>
     <div
-      className="sc-Rmtcm cjHbHg"
+      className="sc-dVhcbM gUNnbL"
     >
       <div
         className="SendConfirm"
@@ -458,11 +470,11 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="sc-fMiknA dAmXTv"
     />
     [
     <a
-      className="sc-cMljjf jgvvXt"
+      className="sc-jDwBTQ bmSzwl"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -475,12 +487,12 @@ exports[`Configure with a wallet 1`] = `
 </div>
 `;
 
-exports[`Configure without a wallet 1`] = `
+exports[`Without wallet defined 1`] = `
 <div
-  className="sc-gqjmRU dYraLr"
+  className="sc-jTzLTM jNRuZd"
 >
   <div
-    className="sc-gipzik kgsCNX"
+    className="sc-fBuWsC fBZAcf"
   >
     <h2>
       <span
@@ -547,7 +559,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="sc-fMiknA dAmXTv"
     />
     <h2>
       <span
@@ -572,7 +584,7 @@ exports[`Configure without a wallet 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-eHgmQL bqOmSo"
+      className="sc-jWBwVP kAXeLy"
       onClick={[Function]}
     >
       <span
@@ -600,7 +612,7 @@ exports[`Configure without a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-cvbbAY eOLbDk"
+      className="sc-brqgnP eubqWf"
       onClick={[Function]}
     >
       <span
@@ -625,7 +637,63 @@ exports[`Configure without a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="ant-row"
+      style={Object {}}
+      type="flex"
+    >
+      <div
+        className="ant-col ant-col-24"
+        style={Object {}}
+      >
+        <div
+          className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe cmJFO"
+          role={null}
+          style={
+            Object {
+              "marginBottom": "24px",
+            }
+          }
+        >
+          <div
+            className="ant-collapse-item"
+          >
+            <div
+              aria-expanded={false}
+              className="ant-collapse-header"
+              onClick={[Function]}
+              onKeyPress={[Function]}
+              role="button"
+              tabIndex={0}
+            >
+              <div>
+                <span
+                  aria-label="right"
+                  className="anticon anticon-right ant-collapse-arrow"
+                  role="img"
+                >
+                  <svg
+                    aria-hidden="true"
+                    data-icon="right"
+                    fill="currentColor"
+                    focusable="false"
+                    height="1em"
+                    viewBox="64 64 896 896"
+                    width="1em"
+                  >
+                    <path
+                      d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                    />
+                  </svg>
+                </span>
+              </div>
+              Contact List
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="sc-fMiknA dAmXTv"
     />
     <h2>
       <span
@@ -650,7 +718,7 @@ exports[`Configure without a wallet 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-kkGfuU kpUqYa"
+      className="sc-hSdWYo eVRCbc"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -742,7 +810,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="sc-fMiknA dAmXTv"
     />
     <h2>
       <span
@@ -767,7 +835,7 @@ exports[`Configure without a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-Rmtcm cjHbHg"
+      className="sc-dVhcbM gUNnbL"
     >
       <div
         className="title"
@@ -826,7 +894,7 @@ exports[`Configure without a wallet 1`] = `
       </span>
     </div>
     <div
-      className="sc-Rmtcm cjHbHg"
+      className="sc-dVhcbM gUNnbL"
     >
       <div
         className="SendConfirm"
@@ -889,11 +957,11 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-csuQGl jFrAyw"
+      className="sc-fMiknA dAmXTv"
     />
     [
     <a
-      className="sc-cMljjf jgvvXt"
+      className="sc-jDwBTQ bmSzwl"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"

@@ -8,6 +8,7 @@ import {
     QrcodeOutlined,
     SettingOutlined,
     LockOutlined,
+    ContactsOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { currency } from 'components/Common/Ticker';
@@ -61,7 +62,16 @@ export const ThemedSettingOutlined = styled(SettingOutlined)`
 export const ThemedLockOutlined = styled(LockOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;
-
+export const ThemedContactsOutlined = styled(ContactsOutlined)`
+    color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedContactSendOutlined = styled(Send)`
+    color: ${props => props.theme.icons.outlined} !important;
+    transform: rotate(-35deg);
+    padding: 0.15rem 0rem 0.18rem 0rem;
+    height: 1.3em;
+    width: 1.3em;
+`;
 export const ThemedCopySolid = styled(CopySolid)`
     fill: ${props => props.theme.contrast};
     padding: 0rem 0rem 0.27rem 0rem;

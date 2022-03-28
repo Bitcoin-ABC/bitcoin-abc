@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useLocation, Link } from 'react-router-dom';
+import {
+    generalNotification,
+    errorNotification,
+} from 'components/Common/Notifications';
 import { Collapse, Form, Input, Modal, Alert, Switch, Tag } from 'antd';
+import { Row, Col } from 'antd';
 import {
     PlusSquareOutlined,
     WalletFilled,
@@ -27,6 +33,7 @@ import {
     ThemedWalletOutlined,
     ThemedDollarOutlined,
     ThemedSettingOutlined,
+    ThemedContactSendOutlined,
 } from 'components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
@@ -181,6 +188,136 @@ const SWButtonCtn = styled.div`
     }
 `;
 
+const ContactListRow = styled.div`
+    border-radius: 3px;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+    @media (max-width: 500px) {
+        flex-direction: column;
+        margin-bottom: 12px;
+    }
+`;
+
+const ContactListAddress = styled.div`
+    width: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    word-wrap: break-word;
+    hyphens: auto;
+    @media (max-width: 500px) {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    div {
+        font-size: 13px;
+        color: ${props => props.theme.darkBlue};
+        margin: 12px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    div.overflow {
+        width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    div.overflow:hover {
+        background-color: ${props => props.theme.settings.background};
+        overflow: visible;
+        inline-size: 150px;
+        white-space: normal;
+    }
+`;
+
+const ContactListName = styled.div`
+    width: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    word-wrap: break-word;
+    hyphens: auto;
+    @media (max-width: 500px) {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    div {
+        font-size: 13px;
+        color: ${props => props.theme.darkBlue};
+        margin: 0px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    div.overflow {
+        width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    div.overflow:hover {
+        background-color: ${props => props.theme.settings.background};
+        overflow: visible;
+        inline-size: 150px;
+        white-space: normal;
+    }
+`;
+
+const ContactListCtn = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    @media (max-width: 500px) {
+        width: 100%;
+        justify-content: center;
+    }
+
+    button {
+        cursor: pointer;
+        background: transparent;
+        border: 1px solid #fff;
+        box-shadow: none;
+        color: #fff;
+        border-radius: 3px;
+        opacity: 0.6;
+        transition: all 200ms ease-in-out;
+
+        :hover {
+            opacity: 1;
+            background: ${props => props.theme.eCashBlue};
+            border-color: ${props => props.theme.eCashBlue};
+        }
+
+        @media (max-width: 768px) {
+            font-size: 14px;
+        }
+    }
+
+    svg {
+        stroke: ${props => props.theme.eCashBlue};
+        fill: ${props => props.theme.eCashBlue};
+        width: 25px;
+        height: 25px;
+        margin-right: 10px;
+        cursor: pointer;
+
+        :first-child:hover {
+            stroke: ${props => props.theme.eCashBlue};
+            fill: ${props => props.theme.eCashBlue};
+        }
+        :hover {
+            stroke: ${props => props.theme.settings.delete};
+            fill: ${props => props.theme.settings.delete};
+        }
+    }
+`;
+
 const AWRow = styled.div`
     padding: 10px 0;
     display: flex;
@@ -277,6 +414,7 @@ const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const authentication = React.useContext(AuthenticationContext);
     const { wallet, apiError } = ContextValue;
+    const location = useLocation();
 
     const {
         addNewSavedWallet,
@@ -287,6 +425,8 @@ const Configure = () => {
         getSavedWallets,
         cashtabSettings,
         changeCashtabSettings,
+        getContactListFromLocalForage,
+        updateContactListInLocalForage,
     } = ContextValue;
     const [savedWallets, setSavedWallets] = useState([]);
     const [formData, setFormData] = useState({
@@ -341,15 +481,106 @@ const Configure = () => {
 
     const [isValidMnemonic, setIsValidMnemonic] = useState(null);
 
+    const [contactListArray, setContactListArray] = useState([{}]);
+
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
         updateSavedWallets(wallet);
     }, [wallet]);
 
-    useEffect(() => {
+    useEffect(async () => {
         const detectedBrowserLang = navigator.language;
         if (!detectedBrowserLang.includes('en-')) {
             setShowTranslationWarning(true);
+        }
+
+        // if this was routed from Home screen's Add to Contact link
+        if (location && location.state && location.state.contactToAdd) {
+            let tempContactListArray;
+
+            try {
+                tempContactListArray = await getContactListFromLocalForage();
+            } catch (err) {
+                console.log('Error in getContactListFromLocalForage()');
+                console.log(err);
+            }
+
+            // set default name for contact and sender as address
+            let newContactObj = {
+                name: location.state.contactToAdd.substring(6, 11),
+                address: location.state.contactToAdd,
+            };
+
+            if (!tempContactListArray || tempContactListArray.length === 0) {
+                // no existing contact list in local storage
+
+                tempContactListArray = [{}]; // instantiates to mitigate null pointer issues
+                tempContactListArray.push(newContactObj);
+                tempContactListArray.shift(); // remove the initial entry from instantiation
+                generalNotification(
+                    location.state.contactToAdd + ' added to Contact List',
+                );
+            } else {
+                // contact list exists in local storage
+
+                // check if address already exists in contact list
+                let duplicateContact = false;
+                let tempContactListArrayLength = tempContactListArray.length;
+                for (let i = 0; i < tempContactListArrayLength; i++) {
+                    if (
+                        tempContactListArray[i].address ===
+                        location.state.contactToAdd
+                    ) {
+                        generalNotification(
+                            location.state.contactToAdd +
+                                ' already exists in the Contact List',
+                        );
+                        duplicateContact = true;
+                        break;
+                    }
+                }
+                // if address does not exist on the contact list, add it
+                if (!duplicateContact) {
+                    tempContactListArray.push(newContactObj);
+                    generalNotification(
+                        location.state.contactToAdd + ' added to Contact List',
+                    );
+                }
+            }
+
+            // update local storage
+            let updateContactListStatus;
+            try {
+                updateContactListStatus = await updateContactListInLocalForage(
+                    tempContactListArray,
+                );
+            } catch (err) {
+                console.log('Error in updateContactListInLocalForage()');
+                console.log(err);
+            }
+
+            if (!updateContactListStatus) {
+                errorNotification(
+                    null,
+                    'Error updating contact list in localforage',
+                    'Updating localforage with contact list',
+                );
+            }
+
+            // commit to state for local operations
+            setContactListArray(tempContactListArray);
+        } else {
+            // if this was just standard routing between cashtab components
+            // i.e. Not via the Add to contacts action
+
+            let loadContactListStatus;
+            try {
+                loadContactListStatus = await getContactListFromLocalForage();
+            } catch (err) {
+                console.log('Error in getContactListFromLocalForage()');
+                console.log(err);
+            }
+            setContactListArray(loadContactListStatus);
         }
     }, []);
 
@@ -753,6 +984,92 @@ const Configure = () => {
                         </StyledCollapse>
                     </>
                 )}
+                <Row type="flex">
+                    <Col span={24}>
+                        <StyledCollapse
+                            style={{
+                                marginBottom: '24px',
+                            }}
+                            defaultActiveKey={
+                                location &&
+                                location.state &&
+                                location.state.contactToAdd
+                                    ? ['1']
+                                    : ['0']
+                            }
+                        >
+                            <Panel header="Contact List" key="1">
+                                <AntdFormWrapper>
+                                    <Form
+                                        style={{
+                                            width: 'auto',
+                                        }}
+                                    >
+                                        {contactListArray &&
+                                        contactListArray.length > 0 ? (
+                                            contactListArray.map(
+                                                (element, index) => (
+                                                    <ContactListRow key={index}>
+                                                        <ContactListName>
+                                                            <div className="overflow">
+                                                                {element.name}
+                                                            </div>
+                                                        </ContactListName>
+                                                        <ContactListAddress>
+                                                            <div
+                                                                className="overflow notranslate"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(
+                                                                        element.address,
+                                                                    );
+                                                                    generalNotification(
+                                                                        element.address +
+                                                                            ' copied to clipboard',
+                                                                        'Copied',
+                                                                    );
+                                                                }}
+                                                            >
+                                                                {
+                                                                    element.address
+                                                                }
+                                                            </div>
+                                                        </ContactListAddress>
+                                                        <ContactListCtn>
+                                                            <Link
+                                                                to={{
+                                                                    pathname: `/send`,
+                                                                    state: {
+                                                                        contactSend:
+                                                                            element.address,
+                                                                    },
+                                                                }}
+                                                            >
+                                                                <ThemedContactSendOutlined />
+                                                            </Link>
+                                                        </ContactListCtn>
+                                                    </ContactListRow>
+                                                ),
+                                            )
+                                        ) : (
+                                            <div>
+                                                <p>
+                                                    {
+                                                        'Your contact list is empty.'
+                                                    }
+                                                </p>
+                                                <p>
+                                                    {
+                                                        'Contacts can be added by clicking on a received transaction and looking for the "Add to contacts" icon.'
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+                                    </Form>
+                                </AntdFormWrapper>
+                            </Panel>
+                        </StyledCollapse>
+                    </Col>
+                </Row>
                 <StyledSpacer />
                 <h2>
                     <ThemedDollarOutlined /> Fiat Currency

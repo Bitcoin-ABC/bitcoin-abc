@@ -1,15 +1,41 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import Configure from '../Configure';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
+import Configure from 'components/Configure/Configure';
+import BCHJS from '@psf/bch-js';
+import {
+    walletWithBalancesAndTokens,
+    walletWithBalancesMock,
+} from '../../Home/__mocks__/walletAndBalancesMock';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { WalletContext } from 'utils/context';
 
-test('Configure without a wallet', () => {
+beforeEach(() => {
+    // Mock method not implemented in JSDOM
+    // See reference at https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
+    Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        value: jest.fn().mockImplementation(query => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(), // Deprecated
+            removeListener: jest.fn(), // Deprecated
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        })),
+    });
+});
+
+test('Wallet with BCH balances and tokens', () => {
     const component = renderer.create(
-        <WalletContext.Provider value={{ wallet: undefined }}>
+        <WalletContext.Provider value={walletWithBalancesAndTokens}>
             <ThemeProvider theme={theme}>
-                <Configure />
+                <Router>
+                    <Configure />
+                </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
     );
@@ -17,13 +43,19 @@ test('Configure without a wallet', () => {
     expect(tree).toMatchSnapshot();
 });
 
-test('Configure with a wallet', () => {
+test('Without wallet defined', () => {
+    const withoutWalletDefinedMock = {
+        wallet: {},
+        balances: { totalBalance: 0 },
+        loading: false,
+    };
+    const testBCH = new BCHJS();
     const component = renderer.create(
-        <WalletContext.Provider
-            value={{ wallet: { mnemonic: 'test mnemonic' } }}
-        >
+        <WalletContext.Provider value={withoutWalletDefinedMock}>
             <ThemeProvider theme={theme}>
-                <Configure />
+                <Router>
+                    <Configure jestBCH={testBCH} />
+                </Router>
             </ThemeProvider>
         </WalletContext.Provider>,
     );

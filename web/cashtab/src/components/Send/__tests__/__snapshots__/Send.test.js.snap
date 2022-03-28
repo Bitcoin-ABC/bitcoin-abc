@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kkGfuU hVVqAi"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-gPEVay jiKoLH"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -20,7 +20,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-hMqMXs kjfrok"
   >
     <div
       className="ant-row"
@@ -43,15 +43,15 @@ Array [
           }
         >
           <div
-            className="sc-csuQGl dhfZpF"
+            className="sc-bRBYWo jxUyJK"
           >
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Send to
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -126,7 +126,7 @@ Array [
                             className="ant-input-group-addon"
                           >
                             <span
-                              className="sc-iwsKbI cVxKUE"
+                              className="sc-gqjmRU fgvpbA"
                               onClick={[Function]}
                             >
                               <span
@@ -168,12 +168,12 @@ Array [
               </div>
             </div>
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Amount
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -320,7 +320,7 @@ Array [
                           </span>
                         </div>
                         <span
-                          className="sc-fjdhpX iLNQZG"
+                          className="sc-cSHVUG jInwBG"
                           disabled={false}
                           onClick={[Function]}
                           style={
@@ -351,17 +351,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-gipzik fHgLvO"
+            className="sc-Rmtcm cJIGDJ"
           >
             <h3
-              className="sc-Rmtcm jIbeuN"
+              className="sc-hzDkRC kwCkjz"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-cMljjf cPMBna"
             >
               =
                
@@ -376,14 +376,14 @@ Array [
             }
           >
             <button
-              className="sc-kGXeez cXnCgq"
+              className="sc-dxgOiQ gQgqSJ"
             >
               Send
             </button>
           </div>
           <div>
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
               role={null}
               style={
                 Object {
@@ -432,7 +432,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -477,7 +477,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -528,15 +528,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kkGfuU hVVqAi"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-gPEVay jiKoLH"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -545,7 +545,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-hMqMXs kjfrok"
   >
     <div
       className="ant-row"
@@ -568,15 +568,15 @@ Array [
           }
         >
           <div
-            className="sc-csuQGl dhfZpF"
+            className="sc-bRBYWo jxUyJK"
           >
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Send to
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -651,7 +651,7 @@ Array [
                             className="ant-input-group-addon"
                           >
                             <span
-                              className="sc-iwsKbI cVxKUE"
+                              className="sc-gqjmRU fgvpbA"
                               onClick={[Function]}
                             >
                               <span
@@ -693,12 +693,12 @@ Array [
               </div>
             </div>
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Amount
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -845,7 +845,7 @@ Array [
                           </span>
                         </div>
                         <span
-                          className="sc-fjdhpX iLNQZG"
+                          className="sc-cSHVUG jInwBG"
                           disabled={false}
                           onClick={[Function]}
                           style={
@@ -876,17 +876,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-gipzik fHgLvO"
+            className="sc-Rmtcm cJIGDJ"
           >
             <h3
-              className="sc-Rmtcm jIbeuN"
+              className="sc-hzDkRC kwCkjz"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-cMljjf cPMBna"
             >
               =
                
@@ -901,14 +901,14 @@ Array [
             }
           >
             <button
-              className="sc-kGXeez cXnCgq"
+              className="sc-dxgOiQ gQgqSJ"
             >
               Send
             </button>
           </div>
           <div>
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
               role={null}
               style={
                 Object {
@@ -957,7 +957,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -1002,7 +1002,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -1053,15 +1053,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kkGfuU hVVqAi"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-gPEVay jiKoLH"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-kkGfuU fwBSar"
+      className="sc-hSdWYo bXDUps"
     >
       0.06
        
@@ -1069,7 +1069,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-hMqMXs kjfrok"
   >
     <div
       className="ant-row"
@@ -1092,15 +1092,15 @@ Array [
           }
         >
           <div
-            className="sc-csuQGl dhfZpF"
+            className="sc-bRBYWo jxUyJK"
           >
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Send to
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -1175,7 +1175,7 @@ Array [
                             className="ant-input-group-addon"
                           >
                             <span
-                              className="sc-iwsKbI cVxKUE"
+                              className="sc-gqjmRU fgvpbA"
                               onClick={[Function]}
                             >
                               <span
@@ -1217,12 +1217,12 @@ Array [
               </div>
             </div>
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Amount
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -1369,7 +1369,7 @@ Array [
                           </span>
                         </div>
                         <span
-                          className="sc-fjdhpX iLNQZG"
+                          className="sc-cSHVUG jInwBG"
                           disabled={false}
                           onClick={[Function]}
                           style={
@@ -1400,17 +1400,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-gipzik fHgLvO"
+            className="sc-Rmtcm cJIGDJ"
           >
             <h3
-              className="sc-Rmtcm jIbeuN"
+              className="sc-hzDkRC kwCkjz"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-cMljjf cPMBna"
             >
               =
                
@@ -1425,7 +1425,7 @@ Array [
             }
           >
             <button
-              className="sc-chPdSV bWFpkA"
+              className="sc-kGXeez fPsebQ"
               onClick={[Function]}
             >
               Send
@@ -1433,7 +1433,7 @@ Array [
           </div>
           <div>
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
               role={null}
               style={
                 Object {
@@ -1482,7 +1482,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -1527,7 +1527,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -1578,15 +1578,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kkGfuU hVVqAi"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-gPEVay jiKoLH"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -1595,7 +1595,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-hMqMXs kjfrok"
   >
     <div
       className="ant-row"
@@ -1618,15 +1618,15 @@ Array [
           }
         >
           <div
-            className="sc-csuQGl dhfZpF"
+            className="sc-bRBYWo jxUyJK"
           >
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Send to
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -1701,7 +1701,7 @@ Array [
                             className="ant-input-group-addon"
                           >
                             <span
-                              className="sc-iwsKbI cVxKUE"
+                              className="sc-gqjmRU fgvpbA"
                               onClick={[Function]}
                             >
                               <span
@@ -1743,12 +1743,12 @@ Array [
               </div>
             </div>
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Amount
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -1895,7 +1895,7 @@ Array [
                           </span>
                         </div>
                         <span
-                          className="sc-fjdhpX iLNQZG"
+                          className="sc-cSHVUG jInwBG"
                           disabled={false}
                           onClick={[Function]}
                           style={
@@ -1926,17 +1926,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-gipzik fHgLvO"
+            className="sc-Rmtcm cJIGDJ"
           >
             <h3
-              className="sc-Rmtcm jIbeuN"
+              className="sc-hzDkRC kwCkjz"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-cMljjf cPMBna"
             >
               =
                
@@ -1951,14 +1951,14 @@ Array [
             }
           >
             <button
-              className="sc-kGXeez cXnCgq"
+              className="sc-dxgOiQ gQgqSJ"
             >
               Send
             </button>
           </div>
           <div>
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
               role={null}
               style={
                 Object {
@@ -2007,7 +2007,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -2052,7 +2052,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -2103,10 +2103,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kkGfuU hVVqAi"
   >
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-eHgmQL jCioUo"
     >
       You currently have 0 
       XEC
@@ -2115,7 +2115,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-hMqMXs kjfrok"
   >
     <div
       className="ant-row"
@@ -2138,15 +2138,15 @@ Array [
           }
         >
           <div
-            className="sc-csuQGl dhfZpF"
+            className="sc-bRBYWo jxUyJK"
           >
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Send to
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -2221,7 +2221,7 @@ Array [
                             className="ant-input-group-addon"
                           >
                             <span
-                              className="sc-iwsKbI cVxKUE"
+                              className="sc-gqjmRU fgvpbA"
                               onClick={[Function]}
                             >
                               <span
@@ -2263,12 +2263,12 @@ Array [
               </div>
             </div>
             <label
-              className="sc-eNQAEJ kESMRD"
+              className="sc-kEYyzF gSQyNg"
             >
               Amount
             </label>
             <div
-              className="sc-VigVT jjiWJK"
+              className="sc-fjdhpX cHlxwR"
             >
               <div
                 className="ant-row ant-form-item ant-form-item-with-help"
@@ -2415,7 +2415,7 @@ Array [
                           </span>
                         </div>
                         <span
-                          className="sc-fjdhpX iLNQZG"
+                          className="sc-cSHVUG jInwBG"
                           disabled={false}
                           onClick={[Function]}
                           style={
@@ -2446,17 +2446,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-gipzik fHgLvO"
+            className="sc-Rmtcm cJIGDJ"
           >
             <h3
-              className="sc-Rmtcm jIbeuN"
+              className="sc-hzDkRC kwCkjz"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-cMljjf cPMBna"
             >
               =
                
@@ -2471,14 +2471,14 @@ Array [
             }
           >
             <button
-              className="sc-kGXeez cXnCgq"
+              className="sc-dxgOiQ gQgqSJ"
             >
               Send
             </button>
           </div>
           <div>
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
               role={null}
               style={
                 Object {
@@ -2527,7 +2527,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {
@@ -2572,7 +2572,7 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf gtgVdq"
       role={null}
       style={
         Object {

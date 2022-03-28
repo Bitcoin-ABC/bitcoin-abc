@@ -385,6 +385,28 @@ const useWallet = () => {
         return wallet;
     };
 
+    const getContactListFromLocalForage = async () => {
+        let contactListArray = [];
+        try {
+            contactListArray = await localforage.getItem('contactList');
+        } catch (err) {
+            console.log('Error in getContactListFromLocalForage', err);
+            contactListArray = null;
+        }
+        return contactListArray;
+    };
+
+    const updateContactListInLocalForage = async contactListArray => {
+        let updateSuccess = true;
+        try {
+            await localforage.setItem('contactList', contactListArray);
+        } catch (err) {
+            console.log('Error in updateContactListInLocalForage', err);
+            updateSuccess = false;
+        }
+        return updateSuccess;
+    };
+
     const getWallet = async () => {
         let wallet;
         let existingWallet;
@@ -1177,6 +1199,8 @@ const useWallet = () => {
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,
+        getContactListFromLocalForage,
+        updateContactListInLocalForage,
         createWallet: async importMnemonic => {
             setLoading(true);
             const newWallet = await createWallet(importMnemonic);

@@ -7,6 +7,7 @@ import {
     ReceiveIcon,
     GenesisIcon,
     UnparsedIcon,
+    ThemedContactsOutlined,
 } from 'components/Common/CustomIcons';
 import { currency } from 'components/Common/Ticker';
 import { fromLegacyDecimals } from 'utils/cashMethods';
@@ -31,6 +32,11 @@ const TxIcon = styled.div`
     align-items: center;
     justify-content: center;
     border-radius: 100px;
+`;
+
+const AddToContacts = styled.span`
+    max-height: 200px;
+    text-align: left;
 `;
 
 const SentTx = styled(TxIcon)`
@@ -708,6 +714,28 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </TxLink>
+                                {!data.outgoingTx && data.replyAddress && (
+                                    <AddToContacts>
+                                        <DropdownButton>
+                                            <Link
+                                                to={{
+                                                    pathname: `/configure`,
+                                                    state: {
+                                                        contactToAdd:
+                                                            data.replyAddress,
+                                                    },
+                                                }}
+                                            >
+                                                <DropdownIconWrapper>
+                                                    <TextLayer>
+                                                        Add to contacts
+                                                    </TextLayer>
+                                                    <ThemedContactsOutlined />
+                                                </DropdownIconWrapper>
+                                            </Link>
+                                        </DropdownButton>
+                                    </AddToContacts>
+                                )}
                             </PanelCtn>
                         </Panel>
                     </Collapse>

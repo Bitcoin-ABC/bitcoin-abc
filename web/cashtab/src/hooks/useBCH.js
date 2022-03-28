@@ -295,10 +295,10 @@ export default function useBCH() {
                 }
             }
 
-            // If the tx is incoming and have a message attached
-            // get the address of the sender for this tx and encode into eCash address
+            // If the tx is incoming get the address of the sender for this tx and encode into eCash address.
+            // This is used for both Reply To Message and Contact List functions.
             let senderAddress = null;
-            if (!outgoingTx && opReturnMessage !== '') {
+            if (!outgoingTx) {
                 const firstVin = tx.vin[0];
                 try {
                     // get the tx that generated the first vin of this tx

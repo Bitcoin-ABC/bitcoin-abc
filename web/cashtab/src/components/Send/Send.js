@@ -215,6 +215,13 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             });
         }
 
+        // if this was routed from the Contact List
+        if (location && location.state && location.state.contactSend) {
+            setFormData({
+                address: location.state.contactSend,
+            });
+        }
+
         // if this was routed from the Airdrop screen's Airdrop Calculator then
         // switch to multiple recipient mode and prepopulate the recipients field
         if (location && location.state && location.state.airdropRecipients) {
