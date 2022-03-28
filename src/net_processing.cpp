@@ -3750,9 +3750,11 @@ void PeerManagerImpl::ProcessMessage(
             (!(nServices & NODE_NETWORK) && (nServices & NODE_NETWORK_LIMITED));
 
         if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
-            // set to true after we get the first filter* message
-            peer->m_tx_relay->m_relay_txs = fRelay;
+            {
+                LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+                // set to true after we get the first filter* message
+                peer->m_tx_relay->m_relay_txs = fRelay;
+            }
             if (fRelay) {
                 pfrom.m_relays_txs = true;
             }
@@ -5861,10 +5863,13 @@ void PeerManagerImpl::ProcessMessage(
             // There is no excuse for sending a too-large filter
             Misbehaving(pfrom, 100, "too-large bloom filter");
         } else if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
-            peer->m_tx_relay->m_bloom_filter.reset(new CBloomFilter(filter));
+            {
+                LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+                peer->m_tx_relay->m_bloom_filter.reset(
+                    new CBloomFilter(filter));
+                peer->m_tx_relay->m_relay_txs = true;
+            }
             pfrom.m_bloom_filter_loaded = true;
-            peer->m_tx_relay->m_relay_txs = true;
             pfrom.m_relays_txs = true;
         }
         return;
@@ -5916,10 +5921,13 @@ void PeerManagerImpl::ProcessMessage(
         if (peer->m_tx_relay == nullptr) {
             return;
         }
-        LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
-        peer->m_tx_relay->m_bloom_filter = nullptr;
+
+        {
+            LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+            peer->m_tx_relay->m_bloom_filter = nullptr;
+            peer->m_tx_relay->m_relay_txs = true;
+        }
         pfrom.m_bloom_filter_loaded = false;
-        peer->m_tx_relay->m_relay_txs = true;
         pfrom.m_relays_txs = true;
         return;
     }
