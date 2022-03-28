@@ -83,3 +83,6 @@ contrib/devtools/split-debug.sh
 
 # Ignore node_modules at every level
 node_modules/
+
+# Local Netlify folder
+.netlify
