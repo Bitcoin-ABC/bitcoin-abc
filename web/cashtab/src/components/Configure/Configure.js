@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Collapse, Form, Input, Modal, Alert, Switch, Tag } from 'antd';
@@ -12,28 +11,28 @@ import {
     LockFilled,
     ExclamationCircleFilled,
 } from '@ant-design/icons';
-import { WalletContext, AuthenticationContext } from '@utils/context';
-import { SidePaddingCtn } from '@components/Common/Atoms';
-import { StyledCollapse } from '@components/Common/StyledCollapse';
+import { WalletContext, AuthenticationContext } from 'utils/context';
+import { SidePaddingCtn } from 'components/Common/Atoms';
+import { StyledCollapse } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
     CurrencySelectDropdown,
-} from '@components/Common/EnhancedInputs';
+} from 'components/Common/EnhancedInputs';
 import PrimaryButton, {
     SecondaryButton,
     SmartButton,
-} from '@components/Common/PrimaryButton';
+} from 'components/Common/PrimaryButton';
 import {
     ThemedCopyOutlined,
     ThemedWalletOutlined,
     ThemedDollarOutlined,
     ThemedSettingOutlined,
-} from '@components/Common/CustomIcons';
-import { ReactComponent as Trashcan } from '@assets/trashcan.svg';
-import { ReactComponent as Edit } from '@assets/edit.svg';
-import { Event } from '@utils/GoogleAnalytics';
-import ApiError from '@components/Common/ApiError';
-import { formatSavedBalance } from '@utils/formatting';
+} from 'components/Common/CustomIcons';
+import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
+import { ReactComponent as Edit } from 'assets/edit.svg';
+import { Event } from 'utils/GoogleAnalytics';
+import ApiError from 'components/Common/ApiError';
+import { formatSavedBalance } from 'utils/formatting';
 
 const { Panel } = Collapse;
 
@@ -253,6 +252,9 @@ const GeneralSettingsItem = styled.div`
         svg {
             fill: ${props => props.theme.contrast};
         }
+    }
+    .SendConfirm {
+        color: ${props => props.theme.lightWhite};
     }
 `;
 
@@ -480,7 +482,7 @@ const Configure = () => {
         setConfirmationOfWalletToBeDeleted(value);
     };
 
-    const handleAppLockToggle = (checked, e) => {
+    const handleAppLockToggle = checked => {
         if (checked) {
             // if there is an existing credential, that means user has registered
             // simply turn on the Authentication Required flag

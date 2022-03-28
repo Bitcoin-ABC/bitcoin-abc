@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, Modal } from 'antd';
-import { ThemedQrcodeOutlined } from '@components/Common/CustomIcons';
+import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
 import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { currency, parseAddressForParams } from '@components/Common/Ticker.js';
-import { Event } from '@utils/GoogleAnalytics';
-import { isValidXecAddress, isValidEtokenAddress } from '@utils/validation';
+import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
+import { Event } from 'utils/GoogleAnalytics';
+import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
 
 const StyledScanQRCode = styled.span`
     display: block;
@@ -136,7 +136,6 @@ const ScanQRCode = ({
         } else {
             scanForQrCode();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible]);
 
     return (

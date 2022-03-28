@@ -22,7 +22,7 @@ import {
     removeConsumedUtxos,
     getUtxoCount,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
-} from '@utils/cashMethods';
+} from 'utils/cashMethods';
 
 import {
     unbatchedArray,
@@ -64,7 +64,7 @@ import {
     missingPublicKeyInPath145Wallet,
     missingPublicKeyInPath245Wallet,
     notLegacyWallet,
-} from '../__mocks__/mockLegacyWallets';
+} from '../__mocks__/mockLegacyWalletsUtils';
 
 import {
     shortCashtabMessageInputHex,

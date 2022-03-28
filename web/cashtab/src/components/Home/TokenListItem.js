@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import TokenIcon from '@components/Tokens/TokenIcon';
+import TokenIcon from 'components/Tokens/TokenIcon';
 
 const TokenIconWrapper = styled.div`
     margin-right: 10px;

@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
-import { AuthenticationContext } from '@utils/context';
+import { AuthenticationContext } from 'utils/context';
+import PropTypes from 'prop-types';
 import SignUp from './SignUp';
 import SignIn from './SignIn';
 
 const ProtectableComponentWrapper = ({ children }) => {
     const authentication = useContext(AuthenticationContext);
-
     if (authentication) {
         const { loading, isAuthenticationRequired, isSignedIn } =
             authentication;
@@ -27,6 +27,10 @@ const ProtectableComponentWrapper = ({ children }) => {
 
     // authentication = null  => authentication is not supported
     return <>{children}</>;
+};
+
+ProtectableComponentWrapper.propTypes = {
+    children: PropTypes.node,
 };
 
 export default ProtectableComponentWrapper;

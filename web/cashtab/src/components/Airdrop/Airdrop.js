@@ -3,40 +3,40 @@ import { useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import styled from 'styled-components';
-import { WalletContext } from '@utils/context';
-import { AntdFormWrapper } from '@components/Common/EnhancedInputs';
-import { AdvancedCollapse } from '@components/Common/StyledCollapse';
+import { WalletContext } from 'utils/context';
+import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
+import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, Alert, Collapse, Input, Modal, Spin, Progress } from 'antd';
 const { Panel } = Collapse;
 const { TextArea } = Input;
 import { Row, Col } from 'antd';
-import { SmartButton } from '@components/Common/PrimaryButton';
-import useBCH from '@hooks/useBCH';
+import { SmartButton } from 'components/Common/PrimaryButton';
+import useBCH from 'hooks/useBCH';
 import {
     errorNotification,
     generalNotification,
-} from '@components/Common/Notifications';
-import { currency } from '@components/Common/Ticker.js';
-import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
+} from 'components/Common/Notifications';
+import { currency } from 'components/Common/Ticker.js';
+import BalanceHeader from 'components/Common/BalanceHeader';
+import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
     getWalletState,
     convertEtokenToEcashAddr,
     fromSmallestDenomination,
-} from '@utils/cashMethods';
+} from 'utils/cashMethods';
 import {
     isValidTokenId,
     isValidXecAirdrop,
     isValidAirdropOutputsArray,
-} from '@utils/validation';
-import { CustomSpinner } from '@components/Common/CustomIcons';
+} from 'utils/validation';
+import { CustomSpinner } from 'components/Common/CustomIcons';
 import * as etokenList from 'etoken-list';
 import {
     ZeroBalanceHeader,
     SidePaddingCtn,
     WalletInfoCtn,
-} from '@components/Common/Atoms';
-import WalletLabel from '@components/Common/WalletLabel.js';
+} from 'components/Common/Atoms';
+import WalletLabel from 'components/Common/WalletLabel.js';
 import { Link } from 'react-router-dom';
 
 const AirdropActions = styled.div`
@@ -453,6 +453,13 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         </>
     );
 };
+
+/*
+passLoadingStatus must receive a default prop that is a function
+in order to pass the rendering unit test in Airdrop.test.js
+
+status => {console.log(status)} is an arbitrary stub function
+*/
 
 Airdrop.defaultProps = {
     passLoadingStatus: status => {

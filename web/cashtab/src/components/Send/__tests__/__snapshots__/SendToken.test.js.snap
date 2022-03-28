@@ -33,10 +33,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-jzJRlG kWGBmG"
+          className="sc-jzJRlG fIkHqy"
         >
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -57,6 +57,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                     >
                       <span
                         className="ant-input-affix-wrapper"
+                        hidden={null}
                         onMouseUp={[Function]}
                         style={null}
                       >
@@ -86,6 +87,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                         <input
                           autoComplete="off"
                           className="ant-input"
+                          hidden={null}
                           name="address"
                           onBlur={[Function]}
                           onChange={[Function]}
@@ -131,9 +133,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   
@@ -143,10 +146,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-jzJRlG kWGBmG"
+          className="sc-jzJRlG fIkHqy"
         >
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -167,6 +170,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                     >
                       <span
                         className="ant-input-affix-wrapper"
+                        hidden={null}
                         onMouseUp={[Function]}
                         style={null}
                       >
@@ -175,6 +179,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                         />
                         <input
                           className="ant-input"
+                          hidden={null}
                           name="value"
                           onBlur={[Function]}
                           onChange={[Function]}
@@ -209,9 +214,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   

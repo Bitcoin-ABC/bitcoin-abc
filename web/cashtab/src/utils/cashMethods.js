@@ -1,10 +1,9 @@
-import { currency } from '@components/Common/Ticker';
+import { currency } from 'components/Common/Ticker';
 import {
     isValidXecAddress,
     isValidEtokenAddress,
-    isValidUtxo,
     isValidBchApiUtxoObject,
-} from '@utils/validation';
+} from 'utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 

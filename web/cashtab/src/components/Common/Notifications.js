@@ -3,10 +3,10 @@ import { notification } from 'antd';
 import {
     CashReceivedNotificationIcon,
     TokenReceivedNotificationIcon,
-} from '@components/Common/CustomIcons';
+} from 'components/Common/CustomIcons';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import { currency } from '@components/Common/Ticker';
-import { MessageSignedNotificationIcon } from '@components/Common/CustomIcons';
+import { currency } from 'components/Common/Ticker';
+import { MessageSignedNotificationIcon } from 'components/Common/CustomIcons';
 import { isMobile } from 'react-device-detect';
 
 const getDeviceNotificationStyle = () => {

@@ -1,19 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { WalletContext } from '@utils/context';
-import { fromSmallestDenomination, getWalletState } from '@utils/cashMethods';
-import CreateTokenForm from '@components/Tokens/CreateTokenForm';
-import { currency } from '@components/Common/Ticker.js';
-import useBCH from '@hooks/useBCH';
-import BalanceHeader from '@components/Common/BalanceHeader';
-import BalanceHeaderFiat from '@components/Common/BalanceHeaderFiat';
+import { WalletContext } from 'utils/context';
+import { fromSmallestDenomination, getWalletState } from 'utils/cashMethods';
+import CreateTokenForm from 'components/Tokens/CreateTokenForm';
+import { currency } from 'components/Common/Ticker.js';
+import useBCH from 'hooks/useBCH';
+import BalanceHeader from 'components/Common/BalanceHeader';
+import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
     AlertMsg,
     WalletInfoCtn,
     SidePaddingCtn,
-} from '@components/Common/Atoms';
-import ApiError from '@components/Common/ApiError';
-import WalletLabel from '@components/Common/WalletLabel.js';
+} from 'components/Common/Atoms';
+import ApiError from 'components/Common/ApiError';
+import WalletLabel from 'components/Common/WalletLabel.js';
 
 const Tokens = ({ jestBCH, passLoadingStatus }) => {
     const { wallet, apiError, fiatPrice, cashtabSettings } =

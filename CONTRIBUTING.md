@@ -184,7 +184,7 @@ sudo apt-get -t buster-backports install shellcheck
 Contributing to the web projects
 --------------------------------
 
-To contribute to web projects, you will need `nodejs` > 15 and `npm` > 6.14.8.
+To contribute to web projects, you will need `nodejs` > 16 and `npm` > 8.5.0.
 Follow these [installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating)
 to install `nodejs` with node version manager.
 
@@ -192,7 +192,7 @@ Then:
 
 ```
 cd bitcoin-abc
-[sudo] nvm install 15
+[sudo] nvm install 16
 [sudo] npm install -g npm@latest
 [sudo] npm install -g prettier
 ```

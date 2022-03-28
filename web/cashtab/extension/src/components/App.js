@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import 'antd/dist/antd.less';
+import PropTypes from 'prop-types';
 import { Spin } from 'antd';
 import {
     CashLoadingIcon,
@@ -8,22 +9,22 @@ import {
     ReceiveIcon,
     SettingsIcon,
     AirdropIcon,
-} from '@components/Common/CustomIcons';
+} from 'components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
-import { theme } from '@assets/styles/theme';
-import Home from '@components/Home/Home';
-import Receive from '@components/Receive/Receive';
-import Tokens from '@components/Tokens/Tokens';
-import Send from '@components/Send/Send';
-import SendToken from '@components/Send/SendToken';
-import Airdrop from '@components/Airdrop/Airdrop';
-import Configure from '@components/Configure/Configure';
-import NotFound from '@components/NotFound';
-import CashTab from '@assets/cashtab_xec.png';
+import { theme } from 'assets/styles/theme';
+import Home from 'components/Home/Home';
+import Receive from 'components/Receive/Receive';
+import Tokens from 'components/Tokens/Tokens';
+import Send from 'components/Send/Send';
+import SendToken from 'components/Send/SendToken';
+import Airdrop from 'components/Airdrop/Airdrop';
+import Configure from 'components/Configure/Configure';
+import NotFound from 'components/NotFound';
+import CashTab from 'assets/cashtab_xec.png';
 import './App.css';
-import { WalletContext } from '@utils/context';
-import { isValidStoredWallet } from '@utils/cashMethods';
+import { WalletContext } from 'utils/context';
+import { isValidStoredWallet } from 'utils/cashMethods';
 import {
     Route,
     Redirect,
@@ -32,7 +33,7 @@ import {
     useHistory,
 } from 'react-router-dom';
 // Extension-only import used for open in new tab link
-import PopOut from '@assets/popout.svg';
+import PopOut from 'assets/popout.svg';
 
 const GlobalStyle = createGlobalStyle`    
     *::placeholder {
@@ -353,6 +354,10 @@ const App = () => {
             </Spin>
         </ThemeProvider>
     );
+};
+
+App.propTypes = {
+    match: PropTypes.string,
 };
 
 export default App;

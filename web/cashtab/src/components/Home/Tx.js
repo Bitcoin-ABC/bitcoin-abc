@@ -1,25 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import {
     SendIcon,
     ReceiveIcon,
     GenesisIcon,
     UnparsedIcon,
-} from '@components/Common/CustomIcons';
-import { currency } from '@components/Common/Ticker';
-import { fromLegacyDecimals } from '@utils/cashMethods';
-import { formatBalance, formatDate } from '@utils/formatting';
-import TokenIcon from '@components/Tokens/TokenIcon';
+} from 'components/Common/CustomIcons';
+import { currency } from 'components/Common/Ticker';
+import { fromLegacyDecimals } from 'utils/cashMethods';
+import { formatBalance, formatDate } from 'utils/formatting';
+import TokenIcon from 'components/Tokens/TokenIcon';
 import { Collapse } from 'antd';
-import { AntdContextCollapseWrapper } from '@components/Common/StyledCollapse';
-import { generalNotification } from '@components/Common/Notifications';
+import { AntdContextCollapseWrapper } from 'components/Common/StyledCollapse';
+import { generalNotification } from 'components/Common/Notifications';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
     ThemedCopySolid,
     ThemedLinkSolid,
-} from '@components/Common/CustomIcons';
+} from 'components/Common/CustomIcons';
 const TxIcon = styled.div`
     svg {
         width: 20px;
@@ -154,24 +154,12 @@ const OpReturnType = styled.div`
         background: ${props.theme.receivedMessage};
   `}
 `;
-const SentLabel = styled.span`
-    font-weight: bold;
-    color: ${props => props.theme.secondary} !important;
-`;
+
 const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.eCashBlue} !important;
 `;
-const GenesisLabel = styled.span`
-    font-weight: bold;
-    color: ${props => props.theme.genesisGreen} !important;
-`;
-const CashtabMessageLabel = styled.span`
-    text-align: left;
-    font-weight: bold;
-    color: ${props => props.theme.eCashBlue} !important;
-    white-space: nowrap;
-`;
+
 const EncryptionMessageLabel = styled.span`
     font-weight: bold;
     font-size: 12px;
@@ -183,15 +171,6 @@ const UnauthorizedDecryptionMessage = styled.span`
     color: ${props => props.theme.encryptionRed};
     white-space: nowrap;
     font-style: italic;
-`;
-const MessageLabel = styled.span`
-    text-align: left;
-    font-weight: bold;
-    color: ${props => props.theme.secondary} !important;
-    white-space: nowrap;
-`;
-const ReplyMessageLabel = styled.span`
-    color: ${props => props.theme.eCashBlue} !important;
 `;
 
 const TxInfo = styled.div`
@@ -274,6 +253,7 @@ const TxWrapper = styled.div`
     color: ${props => props.theme.contrast};
     padding: 10px 0;
     flex-wrap: wrap;
+    width: 100%;
 `;
 
 const Panel = Collapse.Panel;

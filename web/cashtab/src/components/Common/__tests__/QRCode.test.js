@@ -2,10 +2,10 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { QRCode } from '../QRCode';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
+import { theme } from 'assets/styles/theme';
 
 describe('<QRCode />', () => {
-    jest.useFakeTimers();
+    jest.useFakeTimers('legacy');
 
     it('QRCode copying ecash address', async () => {
         const OnClick = jest.fn();

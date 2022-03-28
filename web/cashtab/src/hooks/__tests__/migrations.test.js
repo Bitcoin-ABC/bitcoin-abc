@@ -4,7 +4,7 @@ import BCHJS from '@psf/bch-js';
 import {
     fromSmallestDenomination,
     toSmallestDenomination,
-} from '@utils/cashMethods';
+} from 'utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
     it('Replacement currency.dustSats parameter parsing matches legacy DUST parameter', () => {

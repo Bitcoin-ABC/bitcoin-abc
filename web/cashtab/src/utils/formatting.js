@@ -1,4 +1,4 @@
-import { currency } from '@components/Common/Ticker.js';
+import { currency } from 'components/Common/Ticker.js';
 
 export const formatDate = (dateString, userLocale = 'en') => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };

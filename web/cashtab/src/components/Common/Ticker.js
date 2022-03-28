@@ -1,5 +1,5 @@
-import mainLogo from '@assets/logo_primary.png';
-import tokenLogo from '@assets/logo_secondary.png';
+import mainLogo from 'assets/logo_primary.png';
+import tokenLogo from 'assets/logo_secondary.png';
 import BigNumber from 'bignumber.js';
 
 export const currency = {

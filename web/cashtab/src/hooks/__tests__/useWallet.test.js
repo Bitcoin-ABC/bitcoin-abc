@@ -1,14 +1,20 @@
+/**
+ * @jest-environment ./config/jest/uint8array-environment
+ */
+
 import useWallet from '../useWallet';
-import useBCH from '../useBCH';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
 import BCHJS from '@psf/bch-js';
+import useBCH from '../useBCH';
 
 jest.mock('../useBCH');
-useBCH.mockReturnValue({ getBCH: () => new BCHJS() });
 
 test('Migrating legacy wallet on testnet', async () => {
+    useBCH.mockReturnValue({ getBCH: () => new BCHJS() });
+
     const { result } = renderHook(() => useWallet());
+
     process = {
         env: {
             REACT_APP_NETWORK: `testnet`,
@@ -21,15 +27,20 @@ test('Migrating legacy wallet on testnet', async () => {
     const BCH = new BCHJS();
     result.current.getWallet = false;
     let wallet;
-    wallet = await result.current.migrateLegacyWallet(
-        BCH,
-        mockLegacyWallets.legacyAlphaTestnet,
-    );
+    await act(async () => {
+        wallet = await result.current.migrateLegacyWallet(
+            BCH,
+            mockLegacyWallets.legacyAlphaTestnet,
+        );
+    });
+
     expect(wallet).toStrictEqual(mockLegacyWallets.migratedLegacyAlphaTestnet);
 });
 
 test('Migrating legacy wallet on mainnet', async () => {
+    useBCH.mockReturnValue({ getBCH: () => new BCHJS() });
     const { result } = renderHook(() => useWallet());
+
     process = {
         env: {
             REACT_APP_NETWORK: `mainnet`,
@@ -42,9 +53,11 @@ test('Migrating legacy wallet on mainnet', async () => {
     const BCH = new BCHJS();
     result.current.getWallet = false;
     let wallet;
-    wallet = await result.current.migrateLegacyWallet(
-        BCH,
-        mockLegacyWallets.legacyAlphaMainnet,
-    );
+    await act(async () => {
+        wallet = await result.current.migrateLegacyWallet(
+            BCH,
+            mockLegacyWallets.legacyAlphaMainnet,
+        );
+    });
     expect(wallet).toStrictEqual(mockLegacyWallets.migratedLegacyAlphaMainnet);
 });

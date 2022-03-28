@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
-import { currency } from '@components/Common/Ticker.js';
+import { currency } from 'components/Common/Ticker.js';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { Event } from '@utils/GoogleAnalytics';
-import { convertToEcashPrefix } from '@utils/cashMethods';
+import { Event } from 'utils/GoogleAnalytics';
+import { convertToEcashPrefix } from 'utils/cashMethods';
 
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
@@ -138,7 +139,6 @@ export const QRCode = ({
     isCashAddress,
     size = 210,
     onClick = () => null,
-    ...otherProps
 }) => {
     address = address ? convertToEcashPrefix(address) : '';
 
@@ -241,4 +241,11 @@ export const QRCode = ({
             </div>
         </CopyToClipboard>
     );
+};
+
+QRCode.propTypes = {
+    address: PropTypes.string,
+    isCashAddress: PropTypes.func,
+    size: PropTypes.number,
+    onClick: PropTypes.func,
 };

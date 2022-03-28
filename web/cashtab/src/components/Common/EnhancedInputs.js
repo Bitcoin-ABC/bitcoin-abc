@@ -1,15 +1,16 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { Form, Input, Select } from 'antd';
-const { TextArea } = Input;
 import {
     ThemedDollarOutlined,
     ThemedWalletOutlined,
-} from '@components/Common/CustomIcons';
+} from 'components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
 import ScanQRCode from './ScanQRCode';
-import useBCH from '@hooks/useBCH';
-import { currency } from '@components/Common/Ticker.js';
+import useBCH from 'hooks/useBCH';
+import { currency } from 'components/Common/Ticker.js';
+
+const { TextArea } = Input;
 
 export const AntdFormCss = css`
     .ant-input-group-addon {
@@ -42,7 +43,8 @@ export const AntdFormCss = css`
         min-height: 100px;
     }
     .ant-input-affix-wrapper {
-        background-color: ${props => props.theme.forms.selectionBackground};
+        background-color: ${props =>
+            props.theme.forms.selectionBackground} !important;
         border: 1px solid ${props => props.theme.forms.border} !important;
     }
     .ant-input-wrapper .anticon-qrcode {

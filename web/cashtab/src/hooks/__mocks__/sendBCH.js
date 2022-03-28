@@ -1,5 +1,5 @@
-import { fromSmallestDenomination } from '@utils/cashMethods';
-import { currency } from '@components/Common/Ticker';
+import { fromSmallestDenomination } from 'utils/cashMethods';
+import { currency } from 'components/Common/Ticker';
 
 export default {
     utxos: [

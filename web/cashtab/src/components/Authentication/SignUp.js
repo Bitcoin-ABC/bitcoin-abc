@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
 import { Modal } from 'antd';
 import styled from 'styled-components';
-import { AuthenticationContext } from '@utils/context';
-import { ThemedLockOutlined } from '@components/Common/CustomIcons';
+import { AuthenticationContext } from 'utils/context';
+import { ThemedLockOutlined } from 'components/Common/CustomIcons';
 import PrimaryButton, {
     SecondaryButton,
-} from '@components/Common/PrimaryButton';
+} from 'components/Common/PrimaryButton';
 
 const StyledSignUp = styled.div`
     padding: 0px 30px;

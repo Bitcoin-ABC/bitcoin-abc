@@ -2,13 +2,13 @@
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-jDwBTQ yQqNZ"
+  className="sc-jWBwVP cCPCvI"
 >
   <h3>
     Create a Token
   </h3>
   <div
-    className="sc-VigVT bZouWf"
+    className="sc-VigVT hPTEEJ"
   >
     <form
       className="ant-form ant-form-horizontal ant-form-small"
@@ -21,12 +21,12 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       }
     >
       <label
-        className="sc-kkGfuU ekDVdV"
+        className="sc-jKJlTe biUgjm"
       >
         Token Name
       </label>
       <div
-        className="ant-row ant-form-item"
+        className="ant-row ant-form-item ant-form-item-with-help"
         style={Object {}}
       >
         <div
@@ -53,9 +53,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             </div>
           </div>
           <div
-            className="ant-form-item-explain"
+            className="ant-form-item-explain ant-form-item-explain-connected"
           >
             <div
+              className=""
               role="alert"
             >
               
@@ -64,12 +65,12 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-kkGfuU ekDVdV"
+        className="sc-jKJlTe biUgjm"
       >
         Ticker
       </label>
       <div
-        className="ant-row ant-form-item"
+        className="ant-row ant-form-item ant-form-item-with-help"
         style={Object {}}
       >
         <div
@@ -96,9 +97,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             </div>
           </div>
           <div
-            className="ant-form-item-explain"
+            className="ant-form-item-explain ant-form-item-explain-connected"
           >
             <div
+              className=""
               role="alert"
             >
               
@@ -107,12 +109,12 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-kkGfuU ekDVdV"
+        className="sc-jKJlTe biUgjm"
       >
         Decimals
       </label>
       <div
-        className="ant-row ant-form-item"
+        className="ant-row ant-form-item ant-form-item-with-help"
         style={Object {}}
       >
         <div
@@ -134,14 +136,15 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                 onKeyDown={[Function]}
                 placeholder="Enter number of decimal places"
                 type="number"
-                value={0}
+                value="0"
               />
             </div>
           </div>
           <div
-            className="ant-form-item-explain"
+            className="ant-form-item-explain ant-form-item-explain-connected"
           >
             <div
+              className=""
               role="alert"
             >
               
@@ -150,12 +153,12 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-kkGfuU ekDVdV"
+        className="sc-jKJlTe biUgjm"
       >
         Supply
       </label>
       <div
-        className="ant-row ant-form-item"
+        className="ant-row ant-form-item ant-form-item-with-help"
         style={Object {}}
       >
         <div
@@ -182,9 +185,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             </div>
           </div>
           <div
-            className="ant-form-item-explain"
+            className="ant-form-item-explain ant-form-item-explain-connected"
           >
             <div
+              className=""
               role="alert"
             >
               
@@ -193,12 +197,12 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-kkGfuU ekDVdV"
+        className="sc-jKJlTe biUgjm"
       >
         Document URL
       </label>
       <div
-        className="ant-row ant-form-item"
+        className="ant-row ant-form-item ant-form-item-with-help"
         style={Object {}}
       >
         <div
@@ -225,9 +229,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
             </div>
           </div>
           <div
-            className="ant-form-item-explain"
+            className="ant-form-item-explain ant-form-item-explain-connected"
           >
             <div
+              className=""
               role="alert"
             >
               
@@ -236,7 +241,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-kkGfuU ekDVdV"
+        className="sc-jKJlTe biUgjm"
       >
         Add Image
       </label>
@@ -338,7 +343,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </form>
   </div>
   <button
-    className="sc-jKJlTe cxrKVk"
+    className="sc-kGXeez iklyQu"
     disabled={true}
     onClick={[Function]}
     style={

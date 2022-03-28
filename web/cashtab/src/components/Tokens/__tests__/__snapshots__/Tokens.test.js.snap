@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-iAyFgw chWhWK"
+    className="sc-eNQAEJ bPMOWW"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-cMljjf hTVzrw"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL znFwg"
+      className="sc-kEYyzF eqAzMl"
     >
       0
        
@@ -19,17 +19,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-ckVGcZ jBULtA"
   >
     <div
-      className="sc-jDwBTQ yQqNZ"
+      className="sc-jWBwVP cCPCvI"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-hSdWYo cGItMu"
     >
       You need at least
        
@@ -50,15 +50,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-iAyFgw chWhWK"
+    className="sc-eNQAEJ bPMOWW"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-cMljjf hTVzrw"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL znFwg"
+      className="sc-kEYyzF eqAzMl"
     >
       0
        
@@ -66,17 +66,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-ckVGcZ jBULtA"
   >
     <div
-      className="sc-jDwBTQ yQqNZ"
+      className="sc-jWBwVP cCPCvI"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-hSdWYo cGItMu"
     >
       You need at least
        
@@ -97,15 +97,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-iAyFgw chWhWK"
+    className="sc-eNQAEJ bPMOWW"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-cMljjf hTVzrw"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL znFwg"
+      className="sc-kEYyzF eqAzMl"
     >
       0.06
        
@@ -113,16 +113,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-ckVGcZ jBULtA"
   >
     <div
-      className="sc-jDwBTQ yQqNZ"
+      className="sc-jWBwVP cCPCvI"
     >
       <h3>
         Create a Token
       </h3>
       <div
-        className="sc-VigVT bZouWf"
+        className="sc-VigVT hPTEEJ"
       >
         <form
           className="ant-form ant-form-horizontal ant-form-small"
@@ -135,12 +135,12 @@ Array [
           }
         >
           <label
-            className="sc-kkGfuU ekDVdV"
+            className="sc-jKJlTe biUgjm"
           >
             Token Name
           </label>
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -167,9 +167,10 @@ Array [
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   
@@ -178,12 +179,12 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kkGfuU ekDVdV"
+            className="sc-jKJlTe biUgjm"
           >
             Ticker
           </label>
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -210,9 +211,10 @@ Array [
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   
@@ -221,12 +223,12 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kkGfuU ekDVdV"
+            className="sc-jKJlTe biUgjm"
           >
             Decimals
           </label>
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -248,14 +250,15 @@ Array [
                     onKeyDown={[Function]}
                     placeholder="Enter number of decimal places"
                     type="number"
-                    value={0}
+                    value="0"
                   />
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   
@@ -264,12 +267,12 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kkGfuU ekDVdV"
+            className="sc-jKJlTe biUgjm"
           >
             Supply
           </label>
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -296,9 +299,10 @@ Array [
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   
@@ -307,12 +311,12 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kkGfuU ekDVdV"
+            className="sc-jKJlTe biUgjm"
           >
             Document URL
           </label>
           <div
-            className="ant-row ant-form-item"
+            className="ant-row ant-form-item ant-form-item-with-help"
             style={Object {}}
           >
             <div
@@ -339,9 +343,10 @@ Array [
                 </div>
               </div>
               <div
-                className="ant-form-item-explain"
+                className="ant-form-item-explain ant-form-item-explain-connected"
               >
                 <div
+                  className=""
                   role="alert"
                 >
                   
@@ -350,7 +355,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kkGfuU ekDVdV"
+            className="sc-jKJlTe biUgjm"
           >
             Add Image
           </label>
@@ -452,7 +457,7 @@ Array [
         </form>
       </div>
       <button
-        className="sc-jKJlTe cxrKVk"
+        className="sc-kGXeez iklyQu"
         disabled={true}
         onClick={[Function]}
         style={
@@ -493,15 +498,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-iAyFgw chWhWK"
+    className="sc-eNQAEJ bPMOWW"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-cMljjf hTVzrw"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL znFwg"
+      className="sc-kEYyzF eqAzMl"
     >
       0
        
@@ -509,17 +514,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-ckVGcZ jBULtA"
   >
     <div
-      className="sc-jDwBTQ yQqNZ"
+      className="sc-jWBwVP cCPCvI"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-hSdWYo cGItMu"
     >
       You need at least
        
@@ -540,10 +545,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-iAyFgw chWhWK"
+    className="sc-eNQAEJ bPMOWW"
   >
     <div
-      className="sc-eHgmQL znFwg"
+      className="sc-kEYyzF eqAzMl"
     >
       0
        
@@ -551,17 +556,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-kEYyzF gZfJyA"
+    className="sc-ckVGcZ jBULtA"
   >
     <div
-      className="sc-jDwBTQ yQqNZ"
+      className="sc-jWBwVP cCPCvI"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-hSdWYo cGItMu"
     >
       You need at least
        

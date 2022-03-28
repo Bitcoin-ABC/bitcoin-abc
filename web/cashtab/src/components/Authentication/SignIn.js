@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Modal, Spin } from 'antd';
 import styled from 'styled-components';
-import { AuthenticationContext } from '@utils/context';
-import { ThemedLockOutlined } from '@components/Common/CustomIcons';
-import PrimaryButton from '@components/Common/PrimaryButton';
-import { ReactComponent as FingerprintSVG } from '@assets/fingerprint-solid.svg';
+import { AuthenticationContext } from 'utils/context';
+import { ThemedLockOutlined } from 'components/Common/CustomIcons';
+import PrimaryButton from 'components/Common/PrimaryButton';
+import { ReactComponent as FingerprintSVG } from 'assets/fingerprint-solid.svg';
 
 const StyledSignIn = styled.div`
     h2 {

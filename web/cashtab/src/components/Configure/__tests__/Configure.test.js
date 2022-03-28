@@ -2,34 +2,30 @@ import React from 'react';
 import renderer from 'react-test-renderer';
 import Configure from '../Configure';
 import { ThemeProvider } from 'styled-components';
-import { theme } from '@assets/styles/theme';
-let realUseContext;
-let useContextMock;
-beforeEach(() => {
-    realUseContext = React.useContext;
-    useContextMock = React.useContext = jest.fn();
-});
-afterEach(() => {
-    React.useContext = realUseContext;
-});
+import { theme } from 'assets/styles/theme';
+import { WalletContext } from 'utils/context';
 
 test('Configure without a wallet', () => {
-    useContextMock.mockReturnValue({ wallet: undefined });
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Configure />
-        </ThemeProvider>,
+        <WalletContext.Provider value={{ wallet: undefined }}>
+            <ThemeProvider theme={theme}>
+                <Configure />
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
 });
 
 test('Configure with a wallet', () => {
-    useContextMock.mockReturnValue({ wallet: { mnemonic: 'test mnemonic' } });
     const component = renderer.create(
-        <ThemeProvider theme={theme}>
-            <Configure />
-        </ThemeProvider>,
+        <WalletContext.Provider
+            value={{ wallet: { mnemonic: 'test mnemonic' } }}
+        >
+            <ThemeProvider theme={theme}>
+                <Configure />
+            </ThemeProvider>
+        </WalletContext.Provider>,
     );
     let tree = component.toJSON();
     expect(tree).toMatchSnapshot();
