@@ -103,6 +103,9 @@ export const AntdFormCss = css`
     .ant-form-item-explain.ant-form-item-explain-error {
         color: ${props => props.theme.forms.error} !important;
     }
+    .ant-input-suffix {
+        color: ${props => props.theme.lightWhite};
+    }
 `;
 
 export const AntdFormWrapper = styled.div`
