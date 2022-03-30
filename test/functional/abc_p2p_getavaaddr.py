@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test getavaaddr p2p message"""
 import time
+from decimal import Decimal
 
 from test_framework.avatools import AvaP2PInterface, gen_proof
 from test_framework.key import ECKey
@@ -17,6 +18,7 @@ from test_framework.messages import (
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet_util import bytes_to_wif
 
 # getavaaddr time interval in seconds, as defined in net_processing.cpp
 GETAVAADDR_INTERVAL = 10 * 60
@@ -253,8 +255,7 @@ class AvaAddrTest(BitcoinTestFramework):
             '-avaminquorumconnectedstakeratio=0.8',
         ])
 
-        privkey = ECKey()
-        privkey.generate()
+        privkey, proof = gen_proof(node)
 
         avapeers = []
         for i in range(16):
@@ -267,6 +268,9 @@ class AvaAddrTest(BitcoinTestFramework):
             )
             avapeers.append(avapeer)
 
+            peerinfo = node.getpeerinfo()[-1]
+            avapeer.set_addr(peerinfo["addr"])
+
         self.wait_until(
             lambda: all([p.last_message.get("getavaaddr") for p in avapeers]))
         assert all([p.message_count.get(
@@ -278,6 +282,41 @@ class AvaAddrTest(BitcoinTestFramework):
             node.mockscheduler(10 * 60)
             self.wait_until(
                 lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
+
+        # Connect the nodes via an avahello message
+        limitedproofid_hex = f"{proof.limited_proofid:0{64}x}"
+        for avapeer in avapeers:
+            avakey = ECKey()
+            avakey.generate()
+            delegation = node.delegateavalancheproof(
+                limitedproofid_hex,
+                bytes_to_wif(privkey.get_bytes()),
+                avakey.get_pubkey().get_bytes().hex(),
+            )
+            avapeer.send_avahello(delegation, avakey)
+
+        # Move the schedulter time forward to make seure we get statistics
+        # computed. But since we did not start polling yet it should remain all
+        # zero.
+        node.mockscheduler(10 * 60)
+
+        def wait_for_availability_score():
+            peerinfo = node.getpeerinfo()
+            return all([p.get('availability_score', None) == Decimal(0)
+                       for p in peerinfo])
+        self.wait_until(wait_for_availability_score)
+
+        requester = node.add_p2p_connection(AddrReceiver())
+        requester.send_and_ping(msg_getavaaddr())
+
+        node.setmocktime(int(time.time() + 5 * 60))
+
+        # Check all the peers addresses are returned.
+        requester.wait_until(requester.addr_received)
+        addresses = requester.get_received_addrs()
+        assert_equal(len(addresses), len(avapeers))
+        expected_addresses = [avapeer.addr for avapeer in avapeers]
+        assert all([address in expected_addresses for address in addresses])
 
     def run_test(self):
         self.getavaaddr_interval_test()

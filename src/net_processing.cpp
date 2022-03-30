@@ -5331,12 +5331,13 @@ void PeerManagerImpl::ProcessMessage(
         };
 
         // Get up to MAX_ADDR_TO_SEND addresses of the nodes which are the
-        // most active in the avalanche network.
+        // most active in the avalanche network. Account for 0 availability as
+        // well so we can send addresses even if we did not start polling yet.
         std::set<const CNode *, decltype(availabilityScoreComparator)> avaNodes(
             availabilityScoreComparator);
         m_connman.ForEachNode([&](const CNode *pnode) {
             if (pnode && pnode->m_avalanche_state &&
-                pnode->m_avalanche_state->getAvailabilityScore() > 0.) {
+                !(pnode->m_avalanche_state->getAvailabilityScore() < 0.)) {
                 avaNodes.insert(pnode);
                 if (avaNodes.size() > GetMaxAddrToSend()) {
                     avaNodes.erase(std::prev(avaNodes.end()));

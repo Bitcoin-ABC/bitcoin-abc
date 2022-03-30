@@ -187,6 +187,15 @@ class AvaP2PInterface(P2PInterface):
 
         return create_conn
 
+    def peer_accept_connection(self, *args, **kwargs):
+        create_conn = super().peer_accept_connection(*args, **kwargs)
+
+        # Save the nonce and extra entropy so they can be reused later.
+        self.local_nonce = self.on_connection_send_msg.nNonce
+        self.local_extra_entropy = self.on_connection_send_msg.nExtraEntropy
+
+        return create_conn
+
     def on_version(self, message):
         super().on_version(message)
 
