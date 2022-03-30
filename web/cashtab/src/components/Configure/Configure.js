@@ -222,6 +222,10 @@ const StyledConfigure = styled.div`
     p {
         color: ${props => props.theme.darkBlue};
     }
+    .ant-alert {
+        color: ${props => props.theme.lightGrey}
+        font-size: 14px;
+    }
 `;
 
 const StyledSpacer = styled.div`

@@ -5,7 +5,7 @@ exports[`Configure with a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-jlyJG dGBbfI"
+    className="sc-jlyJG duZduB"
   >
     <h2>
       <span
@@ -476,7 +476,7 @@ exports[`Configure without a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-jlyJG dGBbfI"
+    className="sc-jlyJG duZduB"
   >
     <h2>
       <span
