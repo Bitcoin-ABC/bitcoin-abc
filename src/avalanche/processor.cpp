@@ -122,9 +122,11 @@ public:
     void updatedBlockTip() override {
         LOCK(m_processor->cs_peerManager);
 
-        if (m_processor->peerData && m_processor->peerData->proof) {
+        if (m_processor->peerData && m_processor->peerData->proof &&
             m_processor->peerManager->registerProof(
-                m_processor->peerData->proof);
+                m_processor->peerData->proof)) {
+            m_processor->peerManager->addUnbroadcastProof(
+                m_processor->peerData->proof->getId());
         }
 
         m_processor->peerManager->updatedBlockTip();

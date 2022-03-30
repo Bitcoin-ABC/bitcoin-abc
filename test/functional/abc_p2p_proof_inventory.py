@@ -284,6 +284,38 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         assert not proof_inv_received(peers)
 
+    def test_local_proof_broadcast(self):
+        node = self.nodes[0]
+
+        privkey, proof = gen_proof(node)
+        proofid_hex = "{:064x}".format(proof.proofid)
+
+        [node.stop_node() for node in self.nodes[1:]]
+
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(proof.serialize().hex()),
+            "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes())),
+        ])
+
+        peers = []
+        for _ in range(10):
+            peers.append(node.add_p2p_connection(ProofInvStoreP2PInterface()))
+
+        with p2p_lock:
+            assert all([p.proof_invs_counter == 0 for p in peers])
+
+        # Mine a block so the proof gets validated
+        node.generate(1)
+        wait_for_proof(node, proofid_hex)
+
+        node.mockscheduler(MAX_INITIAL_BROADCAST_DELAY + 1)
+
+        def proof_inv_received():
+            with p2p_lock:
+                return all(p.last_message.get(
+                    "inv") and p.last_message["inv"].inv[-1].hash == proof.proofid for p in peers)
+        self.wait_until(proof_inv_received)
+
     def run_test(self):
         self.test_send_proof_inv()
         self.test_receive_proof()
@@ -293,6 +325,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         # Run these tests last because they need to disconnect the nodes
         self.test_unbroadcast()
         self.test_ban_invalid_proof()
+        self.test_local_proof_broadcast()
 
 
 if __name__ == '__main__':
