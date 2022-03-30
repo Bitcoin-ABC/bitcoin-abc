@@ -645,6 +645,8 @@ static RPCHelpMan getavalancheinfo() {
                  "local",
                  "Only available if -avaproof has been supplied to the node",
                  {
+                     {RPCResult::Type::BOOL, "live",
+                      "Whether the node local proof has been verified or not."},
                      {RPCResult::Type::STR_HEX, "proofid",
                       "The node local proof id."},
                      {RPCResult::Type::STR_HEX, "limited_proofid",
