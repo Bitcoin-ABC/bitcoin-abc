@@ -6,6 +6,7 @@
 import time
 
 from test_framework.avatools import AvaP2PInterface, gen_proof
+from test_framework.key import ECKey
 from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
@@ -242,6 +243,42 @@ class AvaAddrTest(BitcoinTestFramework):
         self.wait_until(
             lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
 
+    def getavaaddr_noquorum(self):
+        self.log.info(
+            "Check we send a getavaaddr message while our quorum is not established")
+        node = self.nodes[0]
+
+        self.restart_node(0, extra_args=self.extra_args[0] + [
+            '-avaminquorumstake=100000000',
+            '-avaminquorumconnectedstakeratio=0.8',
+        ])
+
+        privkey = ECKey()
+        privkey.generate()
+
+        avapeers = []
+        for i in range(16):
+            avapeer = AllYesAvaP2PInterface(privkey)
+            node.add_outbound_p2p_connection(
+                avapeer,
+                p2p_idx=i,
+                connection_type="avalanche",
+                services=NODE_NETWORK | NODE_AVALANCHE,
+            )
+            avapeers.append(avapeer)
+
+        self.wait_until(
+            lambda: all([p.last_message.get("getavaaddr") for p in avapeers]))
+        assert all([p.message_count.get(
+            "getavaaddr", 0) == 1 for p in avapeers])
+
+        # Because we have not enough stake to start polling, we keep requesting
+        # more addresses
+        for i in range(5):
+            node.mockscheduler(10 * 60)
+            self.wait_until(
+                lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
+
     def run_test(self):
         self.getavaaddr_interval_test()
 
@@ -251,6 +288,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.address_test(maxaddrtosend=100, num_proof=2, num_avanode=8)
 
         self.getavaaddr_outbound_test()
+        self.getavaaddr_noquorum()
 
 
 if __name__ == '__main__':

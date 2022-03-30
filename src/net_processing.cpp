@@ -1560,9 +1560,10 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
 
 void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
     if (g_avalanche &&
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-            return pm.shouldRequestMoreNodes();
-        })) {
+        (!g_avalanche->isQuorumEstablished() ||
+         g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+             return pm.shouldRequestMoreNodes();
+         }))) {
         std::vector<NodeId> avanode_outbound_ids;
         m_connman.ForEachNode([&](CNode *pnode) {
             if (pnode->IsAvalancheOutboundConnection()) {
