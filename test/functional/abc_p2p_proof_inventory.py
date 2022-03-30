@@ -48,8 +48,11 @@ class ProofInvStoreP2PInterface(P2PInterface):
 class ProofInventoryTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 5
-        self.extra_args = [['-enableavalanche=1',
-                            '-avacooldown=0']] * self.num_nodes
+        self.extra_args = [[
+            '-enableavalanche=1',
+            '-avacooldown=0',
+            '-whitelist=noban@127.0.0.1',
+        ]] * self.num_nodes
 
     def test_send_proof_inv(self):
         self.log.info("Test sending a proof to our peers")
@@ -130,6 +133,8 @@ class ProofInventoryTest(BitcoinTestFramework):
         node = self.nodes[0]
         _, bad_proof = gen_proof(node)
         bad_proof.stakes = []
+
+        self.restart_node(0, ['-enableavalanche=1'])
 
         peer = node.add_p2p_connection(P2PInterface())
 
@@ -282,12 +287,12 @@ class ProofInventoryTest(BitcoinTestFramework):
     def run_test(self):
         self.test_send_proof_inv()
         self.test_receive_proof()
-        self.test_ban_invalid_proof()
         self.test_proof_relay()
         self.test_manually_sent_proof()
 
-        # Run this test last because it needs to disconnect the nodes
+        # Run these tests last because they need to disconnect the nodes
         self.test_unbroadcast()
+        self.test_ban_invalid_proof()
 
 
 if __name__ == '__main__':
