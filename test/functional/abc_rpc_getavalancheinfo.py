@@ -17,10 +17,14 @@ from test_framework.wallet_util import bytes_to_wif
 class GetAvalancheInfoTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [['-enableavalanche=1',
-                            '-avacooldown=',
-                            '-avatimeout=100',
-                            '-enableavalanchepeerdiscovery=1']]
+        self.extra_args = [[
+            '-enableavalanche=1',
+            '-avacooldown=',
+            '-avatimeout=100',
+            '-enableavalanchepeerdiscovery=1',
+            '-avaminquorumstake=250000000',
+            '-avaminquorumconnectedstakeratio=0.9',
+        ]]
 
     def run_test(self):
         node = self.nodes[0]
@@ -47,6 +51,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.log.info("The test node has no proof")
 
         assert_avalancheinfo({
+            "active": False,
             "network": {
                 "proof_count": 0,
                 "connected_proof_count": 0,
@@ -66,6 +71,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes()))
         ])
         assert_avalancheinfo({
+            "active": False,
             "local": {
                 "live": False,
                 "proofid": f"{proof.proofid:0{64}x}",
@@ -88,6 +94,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node.generate(1)
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
+                "active": False,
                 "local": {
                     "live": True,
                     "proofid": f"{proof.proofid:0{64}x}",
@@ -118,6 +125,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             assert success is True
 
         assert_avalancheinfo({
+            "active": True,
             "local": {
                 "live": True,
                 "proofid": f"{proof.proofid:0{64}x}",
@@ -146,6 +154,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
+                "active": True,
                 "local": {
                     "live": True,
                     "proofid": f"{proof.proofid:0{64}x}",
@@ -188,6 +197,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             n.sync_with_ping()
 
         assert_avalancheinfo({
+            "active": True,
             "local": {
                 "live": True,
                 "proofid": f"{proof.proofid:0{64}x}",

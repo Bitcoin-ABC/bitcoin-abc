@@ -641,6 +641,8 @@ static RPCHelpMan getavalancheinfo() {
             "",
             "",
             {
+                {RPCResult::Type::BOOL, "active",
+                 "Whether the node is ready to start polling and voting."},
                 {RPCResult::Type::OBJ,
                  "local",
                  "Only available if -avaproof has been supplied to the node",
@@ -697,6 +699,7 @@ static RPCHelpMan getavalancheinfo() {
             }
 
             UniValue ret(UniValue::VOBJ);
+            ret.pushKV("active", g_avalanche->isQuorumEstablished());
 
             auto localProof = g_avalanche->getLocalProof();
             if (localProof != nullptr) {
