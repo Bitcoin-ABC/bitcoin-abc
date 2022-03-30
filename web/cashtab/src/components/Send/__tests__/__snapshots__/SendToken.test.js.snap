@@ -4,10 +4,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-kGXeez djtubK"
+  className="sc-kpOJdX gbyLKU"
 >
   <div
-    className="sc-jKJlTe hrFzvR"
+    className="sc-eNQAEJ jdIINS"
   >
     6.001
      
@@ -33,7 +33,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-jzJRlG kGXhCS"
+          className="sc-cSHVUG iNTIbE"
         >
           <div
             className="ant-row ant-form-item ant-form-item-with-help"
@@ -104,7 +104,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-VigVT jPrdqZ"
+                          className="sc-jTzLTM enCslU"
                           onClick={[Function]}
                         >
                           <span
@@ -146,7 +146,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-jzJRlG kGXhCS"
+          className="sc-cSHVUG iNTIbE"
         >
           <div
             className="ant-row ant-form-item ant-form-item-with-help"
@@ -202,7 +202,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                         className="ant-input-group-addon"
                       >
                         <span
-                          className="sc-cSHVUG goJbBD"
+                          className="sc-kAzzGY jrVUbj"
                           disabled={false}
                           onClick={[Function]}
                         >

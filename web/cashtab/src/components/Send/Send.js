@@ -12,7 +12,7 @@ import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Collapse, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, {
-    SecondaryButton,
+    DisabledButton,
     SmartButton,
 } from 'components/Common/PrimaryButton';
 import useBCH from 'hooks/useBCH';
@@ -822,7 +822,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 sendBchAmountError ||
                                 sendBchAddressError ||
                                 priceApiError ? (
-                                    <SecondaryButton>Send</SecondaryButton>
+                                    <DisabledButton>Send</DisabledButton>
                                 ) : (
                                     <>
                                         {txInfoFromUrl ? (

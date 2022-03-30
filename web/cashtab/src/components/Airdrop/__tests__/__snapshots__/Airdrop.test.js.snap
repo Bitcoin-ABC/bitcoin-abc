@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-cMljjf hTVzrw"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-hSdWYo kyjFNV"
     >
       You currently have 0 
       XEC
@@ -21,7 +21,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-eNQAEJ eAXuBE"
   >
     <div
       className="ant-row"
@@ -86,15 +86,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-cMljjf hTVzrw"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-hSdWYo kyjFNV"
     >
       You currently have 0 
       XEC
@@ -104,7 +104,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-eNQAEJ eAXuBE"
   >
     <div
       className="ant-row"
@@ -169,15 +169,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-cMljjf hTVzrw"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-kkGfuU fwBSar"
+      className="sc-iAyFgw sQyhO"
     >
       0.06
        
@@ -186,7 +186,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-eNQAEJ eAXuBE"
   >
     <div
       className="ant-row"
@@ -251,15 +251,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-cMljjf hTVzrw"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-hSdWYo kyjFNV"
     >
       You currently have 0 
       XEC
@@ -269,7 +269,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-eNQAEJ eAXuBE"
   >
     <div
       className="ant-row"
@@ -334,10 +334,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-hMqMXs kpJXFt"
+    className="sc-kEYyzF jJsgEo"
   >
     <div
-      className="sc-iAyFgw hxUtff"
+      className="sc-hSdWYo kyjFNV"
     >
       You currently have 0 
       XEC
@@ -347,7 +347,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-jKJlTe iSWneW"
+    className="sc-eNQAEJ eAXuBE"
   >
     <div
       className="ant-row"

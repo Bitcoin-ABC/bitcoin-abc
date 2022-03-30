@@ -2,7 +2,7 @@
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-jWBwVP cCPCvI"
+  className="sc-brqgnP cfruYJ"
 >
   <h3>
     Create a Token
@@ -21,7 +21,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       }
     >
       <label
-        className="sc-jKJlTe biUgjm"
+        className="sc-eNQAEJ kESMRD"
       >
         Token Name
       </label>
@@ -65,7 +65,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jKJlTe biUgjm"
+        className="sc-eNQAEJ kESMRD"
       >
         Ticker
       </label>
@@ -109,7 +109,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jKJlTe biUgjm"
+        className="sc-eNQAEJ kESMRD"
       >
         Decimals
       </label>
@@ -153,7 +153,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jKJlTe biUgjm"
+        className="sc-eNQAEJ kESMRD"
       >
         Supply
       </label>
@@ -197,7 +197,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jKJlTe biUgjm"
+        className="sc-eNQAEJ kESMRD"
       >
         Document URL
       </label>
@@ -241,7 +241,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-jKJlTe biUgjm"
+        className="sc-eNQAEJ kESMRD"
       >
         Add Image
       </label>
@@ -343,7 +343,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
     </form>
   </div>
   <button
-    className="sc-kGXeez iklyQu"
+    className="sc-kpOJdX cdbSWM"
     disabled={true}
     onClick={[Function]}
     style={

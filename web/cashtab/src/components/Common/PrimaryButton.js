@@ -38,6 +38,33 @@ const SecondaryButton = styled.button`
     width: 100%;
     padding: 15px 0;
     border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+    margin-bottom: 20px;
+    :hover {
+        -webkit-box-shadow: ${props =>
+            props.theme.buttons.secondary.hoverShadow};
+        -moz-box-shadow: ${props => props.theme.buttons.secondary.hoverShadow};
+        box-shadow: ${props => props.theme.buttons.secondary.hoverShadow};
+    }
+    svg {
+        fill: ${props => props.theme.buttons.secondary.color};
+    }
+    @media (max-width: 768px) {
+        font-size: 16px;
+        padding: 12px 0;
+    }
+`;
+
+const DisabledButton = styled.button`
+    border: none;
+    color: ${props => props.theme.buttons.secondary.color};
+    background: ${props => props.theme.buttons.secondary.background};
+    transition: all 0.5s ease;
+    font-size: 18px;
+    width: 100%;
+    padding: 15px 0;
+    border-radius: 4px;
     cursor: not-allowed;
     outline: none;
     margin-bottom: 20px;
@@ -95,4 +122,4 @@ const SmartButton = styled.button`
 `;
 
 export default PrimaryButton;
-export { SecondaryButton, SmartButton };
+export { SecondaryButton, SmartButton, DisabledButton };

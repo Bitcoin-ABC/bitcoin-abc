@@ -5,7 +5,7 @@ exports[`Configure with a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-jlyJG duZduB"
+    className="sc-gipzik kiYvZB"
   >
     <h2>
       <span
@@ -112,7 +112,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     <h2>
       <span
@@ -165,7 +165,7 @@ exports[`Configure with a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-cvbbAY dvozVe"
+      className="sc-cvbbAY eOLbDk"
       onClick={[Function]}
     >
       <span
@@ -190,7 +190,7 @@ exports[`Configure with a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     <h2>
       <span
@@ -307,7 +307,7 @@ exports[`Configure with a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     <h2>
       <span
@@ -332,7 +332,7 @@ exports[`Configure with a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-csuQGl bKEXij"
+      className="sc-Rmtcm cjHbHg"
     >
       <div
         className="title"
@@ -391,7 +391,7 @@ exports[`Configure with a wallet 1`] = `
       </span>
     </div>
     <div
-      className="sc-csuQGl bKEXij"
+      className="sc-Rmtcm cjHbHg"
     >
       <div
         className="SendConfirm"
@@ -454,11 +454,11 @@ exports[`Configure with a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     [
     <a
-      className="sc-brqgnP dPRIWg"
+      className="sc-cMljjf jgvvXt"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -476,7 +476,7 @@ exports[`Configure without a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-jlyJG duZduB"
+    className="sc-gipzik kiYvZB"
   >
     <h2>
       <span
@@ -543,7 +543,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     <h2>
       <span
@@ -596,7 +596,7 @@ exports[`Configure without a wallet 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-cvbbAY dvozVe"
+      className="sc-cvbbAY eOLbDk"
       onClick={[Function]}
     >
       <span
@@ -621,7 +621,7 @@ exports[`Configure without a wallet 1`] = `
        Import Wallet
     </button>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     <h2>
       <span
@@ -738,7 +738,7 @@ exports[`Configure without a wallet 1`] = `
       </div>
     </div>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     <h2>
       <span
@@ -763,7 +763,7 @@ exports[`Configure without a wallet 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-csuQGl bKEXij"
+      className="sc-Rmtcm cjHbHg"
     >
       <div
         className="title"
@@ -822,7 +822,7 @@ exports[`Configure without a wallet 1`] = `
       </span>
     </div>
     <div
-      className="sc-csuQGl bKEXij"
+      className="sc-Rmtcm cjHbHg"
     >
       <div
         className="SendConfirm"
@@ -885,11 +885,11 @@ exports[`Configure without a wallet 1`] = `
       </button>
     </div>
     <div
-      className="sc-gipzik oErko"
+      className="sc-csuQGl jFrAyw"
     />
     [
     <a
-      className="sc-brqgnP dPRIWg"
+      className="sc-cMljjf jgvvXt"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
