@@ -6,7 +6,7 @@ Array [
     className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-jDwBTQ fiRxiA"
     >
       MigrationTestAlpha
     </h4>
@@ -43,7 +43,7 @@ Array [
           }
         >
           <div
-            className="sc-jlyJG eAqKkj"
+            className="sc-Rmtcm dlZveL"
           >
             <label
               className="sc-hMqMXs cZKlBb"
@@ -351,17 +351,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-iRbamj eeKtGC"
+            className="sc-csuQGl ilVpJj"
           >
             <h3
-              className="sc-gipzik hJSGEg"
+              className="sc-bRBYWo geFgZg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-brqgnP hnAjV"
             >
               =
                
@@ -436,7 +436,7 @@ Array [
       role={null}
       style={
         Object {
-          "marginBottom": "24px",
+          "marginBottom": "12px",
         }
       }
     >
@@ -473,6 +473,51 @@ Array [
             </span>
           </div>
           Sign Message
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      role={null}
+      style={
+        Object {
+          "marginBottom": "24px",
+        }
+      }
+    >
+      <div
+        className="ant-collapse-item"
+      >
+        <div
+          aria-expanded={false}
+          className="ant-collapse-header"
+          onClick={[Function]}
+          onKeyPress={[Function]}
+          role="button"
+          tabIndex={0}
+        >
+          <div>
+            <span
+              aria-label="right"
+              className="anticon anticon-right ant-collapse-arrow"
+              role="img"
+            >
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
+          Verify Message
         </div>
       </div>
     </div>
@@ -486,7 +531,7 @@ Array [
     className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-jDwBTQ fiRxiA"
     >
       MigrationTestAlpha
     </h4>
@@ -523,7 +568,7 @@ Array [
           }
         >
           <div
-            className="sc-jlyJG eAqKkj"
+            className="sc-Rmtcm dlZveL"
           >
             <label
               className="sc-hMqMXs cZKlBb"
@@ -831,17 +876,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-iRbamj eeKtGC"
+            className="sc-csuQGl ilVpJj"
           >
             <h3
-              className="sc-gipzik hJSGEg"
+              className="sc-bRBYWo geFgZg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-brqgnP hnAjV"
             >
               =
                
@@ -916,7 +961,7 @@ Array [
       role={null}
       style={
         Object {
-          "marginBottom": "24px",
+          "marginBottom": "12px",
         }
       }
     >
@@ -956,6 +1001,51 @@ Array [
         </div>
       </div>
     </div>
+    <div
+      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      role={null}
+      style={
+        Object {
+          "marginBottom": "24px",
+        }
+      }
+    >
+      <div
+        className="ant-collapse-item"
+      >
+        <div
+          aria-expanded={false}
+          className="ant-collapse-header"
+          onClick={[Function]}
+          onKeyPress={[Function]}
+          role="button"
+          tabIndex={0}
+        >
+          <div>
+            <span
+              aria-label="right"
+              className="anticon anticon-right ant-collapse-arrow"
+              role="img"
+            >
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
+          Verify Message
+        </div>
+      </div>
+    </div>
   </div>,
 ]
 `;
@@ -966,7 +1056,7 @@ Array [
     className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-jDwBTQ fiRxiA"
     >
       MigrationTestAlpha
     </h4>
@@ -1002,7 +1092,7 @@ Array [
           }
         >
           <div
-            className="sc-jlyJG eAqKkj"
+            className="sc-Rmtcm dlZveL"
           >
             <label
               className="sc-hMqMXs cZKlBb"
@@ -1310,17 +1400,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-iRbamj eeKtGC"
+            className="sc-csuQGl ilVpJj"
           >
             <h3
-              className="sc-gipzik hJSGEg"
+              className="sc-bRBYWo geFgZg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-brqgnP hnAjV"
             >
               =
                
@@ -1396,7 +1486,7 @@ Array [
       role={null}
       style={
         Object {
-          "marginBottom": "24px",
+          "marginBottom": "12px",
         }
       }
     >
@@ -1436,6 +1526,51 @@ Array [
         </div>
       </div>
     </div>
+    <div
+      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      role={null}
+      style={
+        Object {
+          "marginBottom": "24px",
+        }
+      }
+    >
+      <div
+        className="ant-collapse-item"
+      >
+        <div
+          aria-expanded={false}
+          className="ant-collapse-header"
+          onClick={[Function]}
+          onKeyPress={[Function]}
+          role="button"
+          tabIndex={0}
+        >
+          <div>
+            <span
+              aria-label="right"
+              className="anticon anticon-right ant-collapse-arrow"
+              role="img"
+            >
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
+          Verify Message
+        </div>
+      </div>
+    </div>
   </div>,
 ]
 `;
@@ -1446,7 +1581,7 @@ Array [
     className="sc-kEYyzF jJsgEo"
   >
     <h4
-      className="sc-jAaTju iGBQkN"
+      className="sc-jDwBTQ fiRxiA"
     >
       MigrationTestAlpha
     </h4>
@@ -1483,7 +1618,7 @@ Array [
           }
         >
           <div
-            className="sc-jlyJG eAqKkj"
+            className="sc-Rmtcm dlZveL"
           >
             <label
               className="sc-hMqMXs cZKlBb"
@@ -1791,17 +1926,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-iRbamj eeKtGC"
+            className="sc-csuQGl ilVpJj"
           >
             <h3
-              className="sc-gipzik hJSGEg"
+              className="sc-bRBYWo geFgZg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-brqgnP hnAjV"
             >
               =
                
@@ -1876,7 +2011,7 @@ Array [
       role={null}
       style={
         Object {
-          "marginBottom": "24px",
+          "marginBottom": "12px",
         }
       }
     >
@@ -1913,6 +2048,51 @@ Array [
             </span>
           </div>
           Sign Message
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      role={null}
+      style={
+        Object {
+          "marginBottom": "24px",
+        }
+      }
+    >
+      <div
+        className="ant-collapse-item"
+      >
+        <div
+          aria-expanded={false}
+          className="ant-collapse-header"
+          onClick={[Function]}
+          onKeyPress={[Function]}
+          role="button"
+          tabIndex={0}
+        >
+          <div>
+            <span
+              aria-label="right"
+              className="anticon anticon-right ant-collapse-arrow"
+              role="img"
+            >
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
+          Verify Message
         </div>
       </div>
     </div>
@@ -1958,7 +2138,7 @@ Array [
           }
         >
           <div
-            className="sc-jlyJG eAqKkj"
+            className="sc-Rmtcm dlZveL"
           >
             <label
               className="sc-hMqMXs cZKlBb"
@@ -2266,17 +2446,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-iRbamj eeKtGC"
+            className="sc-csuQGl ilVpJj"
           >
             <h3
-              className="sc-gipzik hJSGEg"
+              className="sc-bRBYWo geFgZg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-jWBwVP cGFWak"
+              className="sc-brqgnP hnAjV"
             >
               =
                
@@ -2351,7 +2531,7 @@ Array [
       role={null}
       style={
         Object {
-          "marginBottom": "24px",
+          "marginBottom": "12px",
         }
       }
     >
@@ -2388,6 +2568,51 @@ Array [
             </span>
           </div>
           Sign Message
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-collapse ant-collapse-icon-position-left sc-kAzzGY itTQAx"
+      role={null}
+      style={
+        Object {
+          "marginBottom": "24px",
+        }
+      }
+    >
+      <div
+        className="ant-collapse-item"
+      >
+        <div
+          aria-expanded={false}
+          className="ant-collapse-header"
+          onClick={[Function]}
+          onKeyPress={[Function]}
+          role="button"
+          tabIndex={0}
+        >
+          <div>
+            <span
+              aria-label="right"
+              className="anticon anticon-right ant-collapse-arrow"
+              role="img"
+            >
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
+          Verify Message
         </div>
       </div>
     </div>

@@ -300,6 +300,27 @@ DestinationAddressSingle.propTypes = {
     inputProps: PropTypes.object,
 };
 
+export const DestinationAddressSingleWithoutQRScan = ({
+    inputProps,
+    ...otherProps
+}) => {
+    return (
+        <AntdFormWrapper>
+            <Form.Item {...otherProps}>
+                <Input
+                    prefix={<ThemedWalletOutlined />}
+                    autoComplete="off"
+                    {...inputProps}
+                />
+            </Form.Item>
+        </AntdFormWrapper>
+    );
+};
+
+DestinationAddressSingleWithoutQRScan.propTypes = {
+    inputProps: PropTypes.object,
+};
+
 export const DestinationAddressMulti = ({ inputProps, ...otherProps }) => {
     return (
         <AntdFormWrapper>
