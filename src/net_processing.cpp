@@ -2654,6 +2654,15 @@ FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
             });
         });
 
+    if (!proof) {
+        // Always send our local proof if it gets requested, assuming it's
+        // valid. This will make it easier to bind with peers upon startup where
+        // the status of our proof is unknown pending for a block. Note that it
+        // still needs to have been announced first (presumably via an avahello
+        // message).
+        proof = g_avalanche->getLocalProof();
+    }
+
     // We don't have this proof
     if (!proof) {
         return nullptr;

@@ -14,8 +14,10 @@ from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
     avalanche_proof_from_hex,
     create_coinbase_stakes,
+    gen_proof,
     get_ava_p2p_interface,
     get_proof_ids,
+    wait_for_proof,
 )
 from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
@@ -153,6 +155,28 @@ class AvalancheTest(BitcoinTestFramework):
 
         node_proofid = avalanche_proof_from_hex(proof).proofid
 
+        getdata = msg_getdata([CInv(MSG_AVA_PROOF, node_proofid)])
+
+        self.log.info(
+            "Proof has been inv'ed recently, check it can be requested")
+        good_interface.send_message(getdata)
+
+        # This is our local proof so if it was announced it can be requested
+        # without waiting for validation.
+        assert_equal(len(node.getavalanchepeerinfo()), 0)
+
+        def proof_received(peer, proofid):
+            with p2p_lock:
+                return peer.last_message.get(
+                    "avaproof") and peer.last_message["avaproof"].proof.proofid == proofid
+        self.wait_until(lambda: proof_received(good_interface, node_proofid))
+
+        # Restart the node
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(proof),
+            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
+        ])
+
         def wait_for_proof_validation():
             # Connect some blocks to trigger the proof verification
             node.generate(1)
@@ -160,41 +184,33 @@ class AvalancheTest(BitcoinTestFramework):
 
         wait_for_proof_validation()
 
-        getdata = msg_getdata([CInv(MSG_AVA_PROOF, node_proofid)])
-
-        self.log.info(
-            "Proof has been inv'ed recently, check it can be requested")
-        good_interface.send_message(getdata)
-
-        def proof_received(peer):
-            with p2p_lock:
-                return peer.last_message.get(
-                    "avaproof") and peer.last_message["avaproof"].proof.proofid == node_proofid
-        self.wait_until(lambda: proof_received(good_interface))
-
-        # Restart the node
-        self.restart_node(0, self.extra_args[0] + [
-            "-avaproof={}".format(proof),
-            "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
-        ])
-        wait_for_proof_validation()
-
         self.log.info(
             "The proof has not been announced, it cannot be requested")
         peer = get_ava_p2p_interface(node, services=NODE_NETWORK)
+
+        # Build a new proof and only announce this one
+        _, new_proof_obj = gen_proof(node)
+        new_proof = new_proof_obj.serialize().hex()
+        new_proofid = new_proof_obj.proofid
+
+        node.sendavalancheproof(new_proof)
+        wait_for_proof(node, f"{new_proofid:0{64}x}")
+
+        # Request both our local proof and the new proof
+        getdata = msg_getdata(
+            [CInv(MSG_AVA_PROOF, node_proofid), CInv(MSG_AVA_PROOF, new_proofid)])
         peer.send_message(getdata)
 
-        # Give enough time for the node to answer. Since we cannot check for a
-        # non-event this is the best we can do
-        time.sleep(2)
-        assert not proof_received(peer)
+        self.wait_until(lambda: proof_received(peer, new_proofid))
+        assert not proof_received(peer, node_proofid)
 
         self.log.info("The proof is known for long enough to be requested")
         current_time = int(time.time())
         node.setmocktime(current_time + UNCONDITIONAL_RELAY_DELAY)
 
+        getdata = msg_getdata([CInv(MSG_AVA_PROOF, node_proofid)])
         peer.send_message(getdata)
-        self.wait_until(lambda: proof_received(peer))
+        self.wait_until(lambda: proof_received(peer, node_proofid))
 
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
