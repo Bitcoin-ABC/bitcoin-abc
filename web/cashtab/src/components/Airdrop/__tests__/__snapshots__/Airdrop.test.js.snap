@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-kEYyzF jJsgEo"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jDwBTQ fiRxiA"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -21,7 +21,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -42,7 +42,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item sc-iRbamj dRzFJU"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -86,15 +86,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kEYyzF jJsgEo"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jDwBTQ fiRxiA"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -104,7 +104,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -125,7 +125,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item sc-iRbamj dRzFJU"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -169,15 +169,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kEYyzF jJsgEo"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jDwBTQ fiRxiA"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-iAyFgw sQyhO"
+      className="sc-kkGfuU fwBSar"
     >
       0.06
        
@@ -186,7 +186,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -207,7 +207,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item sc-iRbamj dRzFJU"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -251,15 +251,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-kEYyzF jJsgEo"
+    className="sc-hMqMXs kpJXFt"
   >
     <h4
-      className="sc-jDwBTQ fiRxiA"
+      className="sc-jAaTju iGBQkN"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -269,7 +269,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -290,7 +290,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item sc-iRbamj dRzFJU"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -334,10 +334,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-kEYyzF jJsgEo"
+    className="sc-hMqMXs kpJXFt"
   >
     <div
-      className="sc-hSdWYo kyjFNV"
+      className="sc-iAyFgw hxUtff"
     >
       You currently have 0 
       XEC
@@ -347,7 +347,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-eNQAEJ eAXuBE"
+    className="sc-jKJlTe iSWneW"
   >
     <div
       className="ant-row"
@@ -368,7 +368,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item sc-iRbamj dRzFJU"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}

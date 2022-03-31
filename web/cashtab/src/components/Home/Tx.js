@@ -13,7 +13,6 @@ import { fromLegacyDecimals } from 'utils/cashMethods';
 import { formatBalance, formatDate } from 'utils/formatting';
 import TokenIcon from 'components/Tokens/TokenIcon';
 import { Collapse } from 'antd';
-import { AntdContextCollapseWrapper } from 'components/Common/StyledCollapse';
 import { generalNotification } from 'components/Common/Notifications';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
@@ -256,6 +255,28 @@ const TxWrapper = styled.div`
     width: 100%;
 `;
 
+const AntdContextCollapseWrapper = styled.div`
+    .ant-collapse {
+        border: none !important;
+        background-color: transparent !important;
+    }
+    .ant-collapse-item {
+        border: none !important;
+    }
+    .ant-collapse-header {
+        padding: 0 !important;
+        color: ${props => props.theme.forms.text} !important;
+    }
+    border-radius: 16px;
+    .ant-collapse-content-box {
+        padding-right: 0 !important;
+    }
+
+    @media screen and (max-width: 500px) {
+        grid-template-columns: 24px 30% 50%;
+    }
+`;
+
 const Panel = Collapse.Panel;
 
 const DropdownIconWrapper = styled.div`
@@ -292,7 +313,7 @@ const PanelCtn = styled.div`
     gap: 8px;
 `;
 
-export const TxLink = styled.a`
+const TxLink = styled.a`
     color: ${props => props.theme.primary};
 `;
 

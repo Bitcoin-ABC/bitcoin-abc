@@ -91,24 +91,3 @@ export const AdvancedCollapse = styled(Collapse)`
             `}
 `;
 
-export const AntdContextCollapseWrapper = styled.div`
-    .ant-collapse {
-        border: none !important;
-        background-color: transparent !important;
-    }
-    .ant-collapse-item {
-        border: none !important;
-    }
-    .ant-collapse-header {
-        padding: 0 !important;
-        color: ${props => props.theme.forms.text} !important;
-    }
-    border-radius: 16px;
-    .ant-collapse-content-box {
-        padding-right: 0 !important;
-    }
-
-    @media screen and (max-width: 500px) {
-        grid-template-columns: 24px 30% 50%;
-    }
-`;
