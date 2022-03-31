@@ -245,7 +245,7 @@ export const QRCode = ({
 
 QRCode.propTypes = {
     address: PropTypes.string,
-    isCashAddress: PropTypes.func,
+    isCashAddress: PropTypes.bool,
     size: PropTypes.number,
     onClick: PropTypes.func,
 };
