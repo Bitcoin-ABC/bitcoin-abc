@@ -107,7 +107,7 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
               "possible INV message");
 
 /** Minimum time between 2 successives getavaaddr messages from the same peer */
-static constexpr std::chrono::minutes GETAVAADDR_INTERVAL{10};
+static constexpr std::chrono::minutes GETAVAADDR_INTERVAL{2};
 
 struct DataRequestParameters {
     /**
@@ -1593,10 +1593,10 @@ void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
         }
     }
 
-    // Schedule next run for 5-10 minutes in the future.
+    // Schedule next run for 2-5 minutes in the future.
     // We add randomness on every cycle to avoid the possibility of P2P
     // fingerprinting.
-    const auto requestAvalancheNodesInteval = 5min + GetRandMillis(5min);
+    const auto requestAvalancheNodesInteval = 2min + GetRandMillis(3min);
     scheduler.scheduleFromNow([&] { MaybeRequestAvalancheNodes(scheduler); },
                               requestAvalancheNodesInteval);
 }
@@ -2077,8 +2077,8 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
         },
         AVALANCHE_STATISTICS_REFRESH_PERIOD);
 
-    // schedule next run for 5-10 minutes in the future
-    const auto requestAvalancheNodesInteval = 5min + GetRandMillis(5min);
+    // schedule next run for 2-5 minutes in the future
+    const auto requestAvalancheNodesInteval = 2min + GetRandMillis(3min);
     scheduler.scheduleFromNow([&] { MaybeRequestAvalancheNodes(scheduler); },
                               requestAvalancheNodesInteval);
 }

@@ -22,7 +22,7 @@ from test_framework.wallet_util import bytes_to_wif
 
 # getavaaddr time interval in seconds, as defined in net_processing.cpp
 # A node will ignore repeated getavaaddr during this interval
-GETAVAADDR_INTERVAL = 10 * 60
+GETAVAADDR_INTERVAL = 2 * 60
 
 # Address are sent every 30s on average, with a Poisson filter. Use a large
 # enough delay so it's very unlikely we don't get the message within this time.
@@ -31,8 +31,8 @@ MAX_ADDR_SEND_DELAY = 5 * 60
 # The interval between avalanche statistics computation
 AVALANCHE_STATISTICS_INTERVAL = 10 * 60
 
-# The getavaaddr messages are sent every 5 to 10 minutes
-MAX_GETAVAADDR_DELAY = 10 * 60
+# The getavaaddr messages are sent every 2 to 5 minutes
+MAX_GETAVAADDR_DELAY = 5 * 60
 
 
 class AddrReceiver(P2PInterface):
@@ -126,11 +126,6 @@ class AvaAddrTest(BitcoinTestFramework):
         mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
         requester.wait_until(requester.addr_received)
-
-        # Spamming more get getavaaddr still has no effect
-        for i in range(10):
-            with node.assert_debug_log(["Ignoring repeated getavaaddr from peer"]):
-                requester.send_message(msg_getavaaddr())
 
         # Elapse the getavaaddr interval and check our message is now accepted
         # again
