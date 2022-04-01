@@ -268,6 +268,20 @@ DestinationAmount.propTypes = {
     inputProps: PropTypes.object,
 };
 
+export const InputAmountSingle = ({ inputProps, ...otherProps }) => {
+    return (
+        <AntdFormWrapper>
+            <Form.Item {...otherProps}>
+                <Input type="number" {...inputProps} />
+            </Form.Item>
+        </AntdFormWrapper>
+    );
+};
+
+InputAmountSingle.propTypes = {
+    inputProps: PropTypes.object,
+};
+
 // loadWithCameraOpen prop: if true, load page with camera scanning open
 export const DestinationAddressSingle = ({
     onScan,

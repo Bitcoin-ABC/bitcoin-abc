@@ -7,6 +7,7 @@ import { WalletContext } from 'utils/context';
 import {
     AntdFormWrapper,
     DestinationAddressMulti,
+    InputAmountSingle,
 } from 'components/Common/EnhancedInputs';
 import { AdvancedCollapse } from 'components/Common/StyledCollapse';
 import { Form, Alert, Collapse, Input, Modal, Spin, Progress } from 'antd';
@@ -150,6 +151,19 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const [ignoreCustomAddressListError, setIgnoreCustomAddressListError] =
         useState(false);
 
+    // flag to reflect the ignore minimum etoken balance switch
+    const [ignoreMinEtokenBalance, setIgnoreMinEtokenBalance] = useState(false);
+    const [ignoreMinEtokenBalanceAmount, setIgnoreMinEtokenBalanceAmount] =
+        useState(new BigNumber(0));
+    const [
+        ignoreMinEtokenBalanceAmountIsValid,
+        setIgnoreMinEtokenBalanceAmountIsValid,
+    ] = useState(false);
+    const [
+        ignoreMinEtokenBalanceAmountError,
+        setIgnoreMinEtokenBalanceAmountError,
+    ] = useState(false);
+
     const { getBCH } = useBCH();
 
     const handleTokenIdInput = e => {
@@ -168,6 +182,22 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             ...p,
             [name]: value,
         }));
+    };
+
+    const handleMinEtokenBalanceChange = e => {
+        const { value } = e.target;
+
+        if (new BigNumber(value).gt(new BigNumber(0))) {
+            setIgnoreMinEtokenBalanceAmountIsValid(true);
+            setIgnoreMinEtokenBalanceAmountError(false);
+        } else {
+            setIgnoreMinEtokenBalanceAmountError(
+                'Minimum eToken balance must be greater than 0',
+            );
+            setIgnoreMinEtokenBalanceAmountIsValid(false);
+        }
+
+        setIgnoreMinEtokenBalanceAmount(value);
     };
 
     const calculateXecAirdrop = async () => {
@@ -258,6 +288,17 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                 airdropList.delete(
                     convertEcashtoEtokenAddr(addressStringArray[i]),
                 );
+            }
+        }
+
+        // if the minimum etoken balance option is enabled
+        if (ignoreMinEtokenBalance) {
+            const minEligibleBalance = ignoreMinEtokenBalanceAmount;
+            // initial filtering of recipients with less than minimum eToken balance
+            for (let [key, value] of airdropList) {
+                if (new BigNumber(value).isLessThan(minEligibleBalance)) {
+                    airdropList.delete(key);
+                }
             }
         }
 
@@ -376,6 +417,10 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         passLoadingStatus(false);
     };
 
+    const handleIgnoreMinEtokenBalanceAmt = e => {
+        setIgnoreMinEtokenBalance(e);
+    };
+
     const handleAirdropCalcModalCancel = () => {
         setIsAirdropCalcModalVisible(false);
         passLoadingStatus(false);
@@ -427,12 +472,26 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
 
     let airdropCalcInputIsValid = tokenIdIsValid && totalAirdropIsValid;
 
-    // if the exclusion list is in use, add the text area validation to the total pre-calculation validation
-    if (ignoreCustomAddresses) {
+    // if the ignore min etoken balance and exclusion list options are in use, add the relevant validation to the total pre-calculation validation
+    if (ignoreMinEtokenBalance && ignoreCustomAddresses) {
+        // both enabled
         airdropCalcInputIsValid =
-            ignoreCustomAddressesListIsValid &&
+            ignoreMinEtokenBalanceAmountIsValid &&
+            tokenIdIsValid &&
+            totalAirdropIsValid &&
+            ignoreCustomAddressesListIsValid;
+    } else if (ignoreMinEtokenBalance && !ignoreCustomAddresses) {
+        // ignore minimum etoken balance option only
+        airdropCalcInputIsValid =
+            ignoreMinEtokenBalanceAmountIsValid &&
             tokenIdIsValid &&
             totalAirdropIsValid;
+    } else if (!ignoreMinEtokenBalance && ignoreCustomAddresses) {
+        // ignore custom addresses only
+        airdropCalcInputIsValid =
+            tokenIdIsValid &&
+            totalAirdropIsValid &&
+            ignoreCustomAddressesListIsValid;
     }
 
     return (
@@ -598,6 +657,49 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                 />
                                                 &ensp;Ignore eToken minter
                                                 address
+                                            </AirdropOptions>
+                                        </Form.Item>
+                                        <Form.Item>
+                                            <AirdropOptions>
+                                                <Switch
+                                                    onChange={() =>
+                                                        handleIgnoreMinEtokenBalanceAmt(
+                                                            prev => !prev,
+                                                        )
+                                                    }
+                                                    defaultunchecked="true"
+                                                    checked={
+                                                        ignoreMinEtokenBalance
+                                                    }
+                                                    style={{
+                                                        marginBottom: '5px',
+                                                    }}
+                                                />
+                                                &ensp;Minimum eToken holder
+                                                balance
+                                                {ignoreMinEtokenBalance && (
+                                                    <InputAmountSingle
+                                                        validateStatus={
+                                                            ignoreMinEtokenBalanceAmountError
+                                                                ? 'error'
+                                                                : ''
+                                                        }
+                                                        help={
+                                                            ignoreMinEtokenBalanceAmountError
+                                                                ? ignoreMinEtokenBalanceAmountError
+                                                                : ''
+                                                        }
+                                                        inputProps={{
+                                                            placeholder:
+                                                                'Minimum eToken balance',
+                                                            onChange: e =>
+                                                                handleMinEtokenBalanceChange(
+                                                                    e,
+                                                                ),
+                                                            value: ignoreMinEtokenBalanceAmount,
+                                                        }}
+                                                    />
+                                                )}
                                             </AirdropOptions>
                                         </Form.Item>
                                         <Form.Item>
