@@ -21,7 +21,18 @@ from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
 
 # getavaaddr time interval in seconds, as defined in net_processing.cpp
+# A node will ignore repeated getavaaddr during this interval
 GETAVAADDR_INTERVAL = 10 * 60
+
+# Address are sent every 30s on average, with a Poisson filter. Use a large
+# enough delay so it's very unlikely we don't get the message within this time.
+MAX_ADDR_SEND_DELAY = 5 * 60
+
+# The interval between avalanche statistics computation
+AVALANCHE_STATISTICS_INTERVAL = 10 * 60
+
+# The getavaaddr messages are sent every 5 to 10 minutes
+MAX_GETAVAADDR_DELAY = 10 * 60
 
 
 class AddrReceiver(P2PInterface):
@@ -99,7 +110,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Build some statistics to ensure some addresses will be returned
         self.wait_until(lambda: all(
             [avanode.poll_received > 0 for avanode in node.p2ps]))
-        node.mockscheduler(10 * 60)
+        node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         requester = node.add_p2p_connection(AddrReceiver())
         requester.send_message(msg_getavaaddr())
@@ -112,7 +123,7 @@ class AvaAddrTest(BitcoinTestFramework):
                 requester.send_message(msg_getavaaddr())
 
         # Move the time so we get an addr response
-        mock_time += 5 * 60
+        mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
         requester.wait_until(requester.addr_received)
 
@@ -129,7 +140,7 @@ class AvaAddrTest(BitcoinTestFramework):
         requester.send_message(msg_getavaaddr())
 
         # We can get an addr message again
-        mock_time += 5 * 60
+        mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
         requester.wait_until(requester.addr_received)
 
@@ -183,7 +194,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Move the scheduler time 10 minutes forward so that so that our peers
         # get an availability score computed.
-        node.mockscheduler(10 * 60)
+        node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         requester = node.add_p2p_connection(AddrReceiver())
         requester.send_and_ping(msg_getavaaddr())
@@ -200,7 +211,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # peer
         assert 'availability_score' not in peerinfo[-1].keys()
 
-        mock_time += 5 * 60
+        mock_time += MAX_ADDR_SEND_DELAY
         node.setmocktime(mock_time)
 
         requester.wait_until(requester.addr_received)
@@ -241,7 +252,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Because none of the avalanche peers is responding, our node should
         # fail out of option shortly and send a getavaaddr message to one of its
         # outbound avalanche peers.
-        node.mockscheduler(10 * 60)
+        node.mockscheduler(MAX_GETAVAADDR_DELAY)
         self.wait_until(
             lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
 
@@ -284,7 +295,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # more addresses
         total_getavaaddr = total_getavaaddr_msg()
         for i in range(5):
-            node.mockscheduler(10 * 60)
+            node.mockscheduler(MAX_GETAVAADDR_DELAY)
             self.wait_until(lambda: total_getavaaddr_msg() > total_getavaaddr)
             total_getavaaddr = total_getavaaddr_msg()
 
@@ -303,7 +314,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Move the schedulter time forward to make seure we get statistics
         # computed. But since we did not start polling yet it should remain all
         # zero.
-        node.mockscheduler(10 * 60)
+        node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         def wait_for_availability_score():
             peerinfo = node.getpeerinfo()
@@ -314,7 +325,7 @@ class AvaAddrTest(BitcoinTestFramework):
         requester = node.add_p2p_connection(AddrReceiver())
         requester.send_and_ping(msg_getavaaddr())
 
-        node.setmocktime(int(time.time() + 5 * 60))
+        node.setmocktime(int(time.time() + MAX_ADDR_SEND_DELAY))
 
         # Check all the peers addresses are returned.
         requester.wait_until(requester.addr_received)
