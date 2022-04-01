@@ -67,6 +67,12 @@ const AirdropActions = styled.div`
     `}
 `;
 
+const StyledPanel = styled(Panel)`
+    .ant-alert-message {
+        color: ${props => props.theme.lightGrey};
+    }
+`;
+
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
@@ -297,7 +303,10 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                     : ['0']
                             }
                         >
-                            <Panel header="XEC Airdrop Calculator" key="1">
+                            <StyledPanel
+                                header="XEC Airdrop Calculator"
+                                key="1"
+                            >
                                 <Alert
                                     message={`Please ensure the qualifying eToken transactions to airdrop recipients have at least one confirmation. The airdrop calculator will not detect unconfirmed token balances.`}
                                     type="warning"
@@ -445,7 +454,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                         )}
                                     </Form>
                                 </AntdFormWrapper>
-                            </Panel>
+                            </StyledPanel>
                         </AdvancedCollapse>
                     </Col>
                 </Row>

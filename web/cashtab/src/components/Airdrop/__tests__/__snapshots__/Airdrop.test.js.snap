@@ -42,7 +42,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -125,7 +125,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -207,7 +207,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -290,7 +290,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}
@@ -368,7 +368,7 @@ Array [
           }
         >
           <div
-            className="ant-collapse-item"
+            className="ant-collapse-item sc-gPEVay gLoTx"
           >
             <div
               aria-expanded={false}

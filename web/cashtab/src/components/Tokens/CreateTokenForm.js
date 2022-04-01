@@ -54,6 +54,15 @@ export const CreateTokenCtn = styled.div`
     .ant-form-item {
         margin-bottom: 0px;
     }
+    .ant-typography {
+        color: ${props => props.theme.lightGrey};
+    }
+    div.ant-upload-list.ant-upload-list-text {
+        color: ${props => props.theme.lightGrey};
+    }
+    svg {
+        color: ${props => props.theme.lightGrey};
+    }
 `;
 
 const CreateTokenForm = ({
