@@ -115,10 +115,6 @@ private:
     bool CheckTx(const CTransaction &tx) const;
 };
 
-/** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
-                         uint64_t nExcessiveBlockSize,
-                         unsigned int &nExtraNonce);
 int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
                    const CBlockIndex *pindexPrev);
 } // namespace node

@@ -9,6 +9,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/consensus.h>
+#include <consensus/merkle.h>
 #include <consensus/validation.h>
 #include <crypto/sha256.h>
 #include <init.h>
@@ -42,6 +43,8 @@
 #include <validationinterface.h>
 #include <walletinitinterface.h>
 
+#include <test/util/mining.h>
+
 #include <functional>
 #include <memory>
 
@@ -49,7 +52,6 @@ using node::BlockAssembler;
 using node::CalculateCacheSizes;
 using node::fPruneMode;
 using node::fReindex;
-using node::IncrementExtraNonce;
 using node::LoadChainstate;
 using node::VerifyLoadedChainstate;
 
@@ -275,7 +277,7 @@ TestChain100Setup::TestChain100Setup() {
         LOCK(::cs_main);
         assert(
             m_node.chainman->ActiveTip()->GetBlockHash().ToString() ==
-            "7487ae41496da318b430ad04cc5039507a9365bdb26275d79b3fc148c6eea1e9");
+            "5afde277a26b6f36aee8f61a1dbf755587e1c6be63e654a88abe2a1ff0fbfb05");
     }
 }
 
@@ -312,13 +314,8 @@ TestChain100Setup::CreateBlock(const std::vector<CMutableTransaction> &txns,
                   return txa->GetId() < txb->GetId();
               });
 
-    // IncrementExtraNonce creates a valid coinbase and merkleRoot
-    {
-        LOCK(cs_main);
-        unsigned int extraNonce = 0;
-        IncrementExtraNonce(&block, m_node.chainman->ActiveTip(),
-                            config.GetMaxBlockSize(), extraNonce);
-    }
+    createCoinbaseAndMerkleRoot(&block, m_node.chainman->ActiveTip(),
+                                config.GetMaxBlockSize());
 
     const Consensus::Params &params = config.GetChainParams().GetConsensus();
     while (!CheckProofOfWork(block.GetHash(), block.nBits, params)) {

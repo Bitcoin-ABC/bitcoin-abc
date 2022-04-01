@@ -11,6 +11,7 @@
 #include <consensus/activation.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
+#include <consensus/merkle.h>
 #include <consensus/params.h>
 #include <consensus/validation.h>
 #include <core_io.h>
@@ -43,7 +44,6 @@
 
 using node::BlockAssembler;
 using node::CBlockTemplate;
-using node::IncrementExtraNonce;
 using node::NodeContext;
 using node::UpdateTime;
 
@@ -131,15 +131,9 @@ static RPCHelpMan getnetworkhashps() {
 
 static bool GenerateBlock(const Config &config, ChainstateManager &chainman,
                           CBlock &block, uint64_t &max_tries,
-                          unsigned int &extra_nonce, BlockHash &block_hash) {
+                          BlockHash &block_hash) {
     block_hash.SetNull();
-    const uint64_t nExcessiveBlockSize = config.GetMaxBlockSize();
-
-    {
-        LOCK(cs_main);
-        IncrementExtraNonce(&block, chainman.ActiveTip(), nExcessiveBlockSize,
-                            extra_nonce);
-    }
+    block.hashMerkleRoot = BlockMerkleRoot(block);
 
     const Consensus::Params &params = config.GetChainParams().GetConsensus();
 
@@ -173,19 +167,8 @@ static UniValue generateBlocks(const Config &config,
                                const CTxMemPool &mempool,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
-    int nHeightEnd = 0;
-    int nHeight = 0;
-
-    {
-        // Don't keep cs_main locked.
-        LOCK(cs_main);
-        nHeight = chainman.ActiveHeight();
-        nHeightEnd = nHeight + nGenerate;
-    }
-
-    unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
-    while (nHeight < nHeightEnd && !ShutdownRequested()) {
+    while (nGenerate > 0 && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
             BlockAssembler(config, chainman.ActiveChainstate(), mempool)
                 .CreateNewBlock(coinbase_script));
@@ -197,13 +180,12 @@ static UniValue generateBlocks(const Config &config,
         CBlock *pblock = &pblocktemplate->block;
 
         BlockHash block_hash;
-        if (!GenerateBlock(config, chainman, *pblock, nMaxTries, nExtraNonce,
-                           block_hash)) {
+        if (!GenerateBlock(config, chainman, *pblock, nMaxTries, block_hash)) {
             break;
         }
 
         if (!block_hash.IsNull()) {
-            ++nHeight;
+            --nGenerate;
             blockHashes.push_back(block_hash.GetHex());
         }
     }
@@ -490,9 +472,8 @@ static RPCHelpMan generateblock() {
 
             BlockHash block_hash;
             uint64_t max_tries{DEFAULT_MAX_TRIES};
-            unsigned int extra_nonce{0};
 
-            if (!GenerateBlock(config, chainman, block, max_tries, extra_nonce,
+            if (!GenerateBlock(config, chainman, block, max_tries,
                                block_hash) ||
                 block_hash.IsNull()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Failed to make block.");

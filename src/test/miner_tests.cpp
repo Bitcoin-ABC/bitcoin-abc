@@ -23,6 +23,7 @@
 #include <util/time.h>
 #include <validation.h>
 
+#include <test/util/mining.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -32,7 +33,6 @@
 using node::BlockAssembler;
 using node::CBlockTemplate;
 using node::CBlockTemplateEntry;
-using node::IncrementExtraNonce;
 
 namespace miner_tests {
 struct MinerTestingSetup : public TestingSetup {
@@ -208,15 +208,14 @@ static void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
 
     CBlock *pblock = &pblocktemplate->block;
 
-    // IncrementExtraNonce creates a valid coinbase and merkleRoot
-    unsigned int extraNonce = 0;
     CBlockIndex *active_chain_tip = chainman.ActiveTip();
-    IncrementExtraNonce(pblock, active_chain_tip, config.GetMaxBlockSize(),
-                        extraNonce);
+    createCoinbaseAndMerkleRoot(pblock, active_chain_tip,
+                                config.GetMaxBlockSize());
+
     unsigned int nHeight = active_chain_tip->nHeight + 1;
     std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());
     BOOST_CHECK(pblock->vtx[0]->vin[0].scriptSig ==
-                (CScript() << nHeight << CScriptNum(extraNonce) << vec));
+                (CScript() << nHeight << vec));
 }
 
 // Coinbase scriptSig has to contains the correct EB value

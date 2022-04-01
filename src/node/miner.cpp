@@ -16,7 +16,6 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <minerfund.h>
-#include <net.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <pow/pow.h>
@@ -398,44 +397,5 @@ void BlockAssembler::addTxs() {
             }
         }
     }
-}
-
-static const std::vector<uint8_t>
-getExcessiveBlockSizeSig(uint64_t nExcessiveBlockSize) {
-    std::string cbmsg = "/EB" + getSubVersionEB(nExcessiveBlockSize) + "/";
-    std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());
-    return vec;
-}
-
-void IncrementExtraNonce(CBlock *pblock, const CBlockIndex *pindexPrev,
-                         uint64_t nExcessiveBlockSize,
-                         unsigned int &nExtraNonce) {
-    // Update nExtraNonce
-    static uint256 hashPrevBlock;
-    if (hashPrevBlock != pblock->hashPrevBlock) {
-        nExtraNonce = 0;
-        hashPrevBlock = pblock->hashPrevBlock;
-    }
-
-    ++nExtraNonce;
-    // Height first in coinbase required for block.version=2
-    unsigned int nHeight = pindexPrev->nHeight + 1;
-    CMutableTransaction txCoinbase(*pblock->vtx[0]);
-    txCoinbase.vin[0].scriptSig =
-        (CScript() << nHeight << CScriptNum(nExtraNonce)
-                   << getExcessiveBlockSizeSig(nExcessiveBlockSize));
-
-    // Make sure the coinbase is big enough.
-    uint64_t coinbaseSize = ::GetSerializeSize(txCoinbase, PROTOCOL_VERSION);
-    if (coinbaseSize < MIN_TX_SIZE) {
-        txCoinbase.vin[0].scriptSig
-            << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
-    }
-
-    assert(txCoinbase.vin[0].scriptSig.size() <= MAX_COINBASE_SCRIPTSIG_SIZE);
-    assert(::GetSerializeSize(txCoinbase, PROTOCOL_VERSION) >= MIN_TX_SIZE);
-
-    pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
-    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
 }
 } // namespace node

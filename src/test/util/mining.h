@@ -9,6 +9,7 @@
 #include <string>
 
 class CBlock;
+class CBlockIndex;
 class Config;
 class CScript;
 class CTxIn;
@@ -28,5 +29,8 @@ std::shared_ptr<CBlock> PrepareBlock(const Config &config,
 /** RPC-like helper function, returns the generated coin */
 CTxIn generatetoaddress(const Config &config, const node::NodeContext &,
                         const std::string &address);
+
+void createCoinbaseAndMerkleRoot(CBlock *pblock, const CBlockIndex *pindexPrev,
+                                 uint64_t nExcessiveBlockSize);
 
 #endif // BITCOIN_TEST_UTIL_MINING_H

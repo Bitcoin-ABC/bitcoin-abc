@@ -11,6 +11,7 @@
 #include <pow/pow.h>
 #include <script/standard.h>
 #include <test/util/blockfilter.h>
+#include <test/util/mining.h>
 #include <test/util/setup_common.h>
 #include <validation.h>
 
@@ -18,7 +19,6 @@
 
 using node::BlockAssembler;
 using node::CBlockTemplate;
-using node::IncrementExtraNonce;
 
 BOOST_AUTO_TEST_SUITE(blockfilter_index_tests)
 
@@ -85,9 +85,7 @@ CBlock BuildChainTestingSetup::CreateBlock(
     for (const CMutableTransaction &tx : txns) {
         block.vtx.push_back(MakeTransactionRef(tx));
     }
-    // IncrementExtraNonce creates a valid coinbase and merkleRoot
-    unsigned int extraNonce = 0;
-    IncrementExtraNonce(&block, prev, config.GetMaxBlockSize(), extraNonce);
+    createCoinbaseAndMerkleRoot(&block, prev, config.GetMaxBlockSize());
 
     while (!CheckProofOfWork(block.GetHash(), block.nBits,
                              config.GetChainParams().GetConsensus())) {
