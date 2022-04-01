@@ -276,12 +276,17 @@ class AvaAddrTest(BitcoinTestFramework):
         assert all([p.message_count.get(
             "getavaaddr", 0) == 1 for p in avapeers])
 
+        def total_getavaaddr_msg():
+            return sum([p.message_count.get("getavaaddr", 0)
+                       for p in avapeers])
+
         # Because we have not enough stake to start polling, we keep requesting
         # more addresses
+        total_getavaaddr = total_getavaaddr_msg()
         for i in range(5):
             node.mockscheduler(10 * 60)
-            self.wait_until(
-                lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
+            self.wait_until(lambda: total_getavaaddr_msg() > total_getavaaddr)
+            total_getavaaddr = total_getavaaddr_msg()
 
         # Connect the nodes via an avahello message
         limitedproofid_hex = f"{proof.limited_proofid:0{64}x}"
