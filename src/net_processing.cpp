@@ -1431,7 +1431,6 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
                  PROTOCOL_VERSION, nNodeStartingHeight, addrMe.ToString(),
                  tx_relay, nodeid);
     }
-    LogPrint(BCLog::NET, "Cleared nodestate for peer=%d\n", nodeid);
 }
 
 void PeerManagerImpl::AddTxAnnouncement(
