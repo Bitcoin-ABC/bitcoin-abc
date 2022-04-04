@@ -3066,7 +3066,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nMaxFeeler = MAX_FEELER_CONNECTIONS;
     connOptions.uiInterface = &uiInterface;
     connOptions.m_banman = node.banman.get();
-    connOptions.m_msgproc = node.peerman.get();
+    connOptions.m_msgproc.push_back(node.peerman.get());
+    if (g_avalanche) {
+        connOptions.m_msgproc.push_back(g_avalanche.get());
+    }
     connOptions.nSendBufferMaxSize =
         1000 * args.GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =

@@ -216,6 +216,32 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             }
         })
 
+        self.log.info("Disconnect all the nodes")
+
+        for n in node.p2ps:
+            n.peer_disconnect()
+            n.wait_for_disconnect()
+
+        assert_avalancheinfo({
+            "active": True,
+            "local": {
+                "live": True,
+                "proofid": f"{proof.proofid:0{64}x}",
+                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                "master": privkey.get_pubkey().get_bytes().hex(),
+                "stake_amount": coinbase_amount,
+            },
+            "network": {
+                "proof_count": N,
+                "connected_proof_count": 0,
+                "total_stake_amount": coinbase_amount * N,
+                "connected_stake_amount": 0,
+                "node_count": 0,
+                "connected_node_count": 0,
+                "pending_node_count": 0,
+            }
+        })
+
 
 if __name__ == '__main__':
     GetAvalancheInfoTest().main()

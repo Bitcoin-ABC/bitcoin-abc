@@ -1407,7 +1407,9 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     // it as whitelisted (backward compatibility)
     pnode->m_legacyWhitelisted = legacyWhitelisted;
     pnode->m_prefer_evict = discouraged;
-    m_msgproc->InitializeNode(*config, pnode);
+    for (auto interface : m_msgproc) {
+        interface->InitializeNode(*config, pnode);
+    }
 
     LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
 
@@ -2706,7 +2708,10 @@ void CConnman::OpenNetworkConnection(const CAddress &addrConnect,
         grantOutbound->MoveTo(pnode->grantOutbound);
     }
 
-    m_msgproc->InitializeNode(*config, pnode);
+    for (auto interface : m_msgproc) {
+        interface->InitializeNode(*config, pnode);
+    }
+
     {
         LOCK(cs_vNodes);
         vNodes.push_back(pnode);
@@ -2731,9 +2736,12 @@ void CConnman::ThreadMessageHandler() {
                 continue;
             }
 
+            bool fMoreNodeWork = false;
             // Receive messages
-            bool fMoreNodeWork = m_msgproc->ProcessMessages(
-                *config, pnode, flagInterruptMsgProc);
+            for (auto interface : m_msgproc) {
+                fMoreNodeWork |= interface->ProcessMessages(
+                    *config, pnode, flagInterruptMsgProc);
+            }
             fMoreWork |= (fMoreNodeWork && !pnode->fPauseSend);
             if (flagInterruptMsgProc) {
                 return;
@@ -2742,7 +2750,9 @@ void CConnman::ThreadMessageHandler() {
             // Send messages
             {
                 LOCK(pnode->cs_sendProcessing);
-                m_msgproc->SendMessages(*config, pnode);
+                for (auto interface : m_msgproc) {
+                    interface->SendMessages(*config, pnode);
+                }
             }
 
             if (flagInterruptMsgProc) {
@@ -3084,7 +3094,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
     //
     // Start threads
     //
-    assert(m_msgproc);
+    assert(m_msgproc.size() > 0);
     InterruptSocks5(false);
     interruptNet.reset();
     flagInterruptMsgProc = false;
@@ -3263,7 +3273,9 @@ void CConnman::StopNodes() {
 void CConnman::DeleteNode(CNode *pnode) {
     assert(pnode);
     bool fUpdateConnectionTime = false;
-    m_msgproc->FinalizeNode(*config, *pnode, fUpdateConnectionTime);
+    for (auto interface : m_msgproc) {
+        interface->FinalizeNode(*config, *pnode, fUpdateConnectionTime);
+    }
     if (fUpdateConnectionTime) {
         addrman.Connected(pnode->addr);
     }

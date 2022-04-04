@@ -13,6 +13,7 @@
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
 #include <key.h>
+#include <net.h>
 #include <rwcollection.h>
 
 #include <boost/multi_index/composite_key.hpp>
@@ -88,7 +89,9 @@ namespace {
     struct AvalancheTest;
 }
 
-class Processor {
+// FIXME Implement a proper notification handler for node disconnection instead
+// of implementing the whole NetEventsInterface for a single interesting event.
+class Processor final : public NetEventsInterface {
     CConnman *connman;
     std::chrono::milliseconds queryTimeoutDuration;
 
@@ -212,6 +215,20 @@ public:
     bool stopEventLoop();
 
     bool isQuorumEstablished();
+
+    // Implement NetEventInterface. Only FinalizeNode is of interest.
+    void InitializeNode(const Config &config, CNode *pnode) override {}
+    bool ProcessMessages(const Config &config, CNode *pnode,
+                         std::atomic<bool> &interrupt) override {
+        return false;
+    }
+    bool SendMessages(const Config &config, CNode *pnode) override {
+        return false;
+    }
+
+    /** Handle removal of a node */
+    void FinalizeNode(const Config &config, const CNode &node,
+                      bool &update_connection_time) override;
 
 private:
     void runEventLoop();

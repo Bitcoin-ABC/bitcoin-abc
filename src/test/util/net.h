@@ -35,7 +35,9 @@ struct ConnmanTestMsg : public CConnman {
     }
 
     void ProcessMessagesOnce(CNode &node) {
-        m_msgproc->ProcessMessages(*config, &node, flagInterruptMsgProc);
+        for (auto interface : m_msgproc) {
+            interface->ProcessMessages(*config, &node, flagInterruptMsgProc);
+        }
     }
 
     void NodeReceiveMsgBytes(CNode &node, Span<const uint8_t> msg_bytes,

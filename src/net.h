@@ -950,7 +950,7 @@ public:
         int nMaxAddnode = 0;
         int nMaxFeeler = 0;
         CClientUIInterface *uiInterface = nullptr;
-        NetEventsInterface *m_msgproc = nullptr;
+        std::vector<NetEventsInterface *> m_msgproc;
         BanMan *m_banman = nullptr;
         unsigned int nSendBufferMaxSize = 0;
         unsigned int nReceiveFloodSize = 0;
@@ -1370,7 +1370,8 @@ private:
     int m_max_outbound;
     bool m_use_addrman_outgoing;
     CClientUIInterface *clientInterface;
-    NetEventsInterface *m_msgproc;
+    // FIXME m_msgproc is a terrible name
+    std::vector<NetEventsInterface *> m_msgproc;
     /**
      * Pointer to this node's banman. May be nullptr - check existence before
      * dereferencing.

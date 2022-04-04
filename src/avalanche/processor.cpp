@@ -805,4 +805,9 @@ bool Processor::isQuorumEstablished() {
     return true;
 }
 
+void Processor::FinalizeNode(const Config &config, const CNode &node,
+                             bool &update_connection_time) {
+    WITH_LOCK(cs_peerManager, peerManager->removeNode(node.GetId()));
+}
+
 } // namespace avalanche

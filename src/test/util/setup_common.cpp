@@ -238,7 +238,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
         *m_node.chainman, *m_node.mempool, false);
     {
         CConnman::Options options;
-        options.m_msgproc = m_node.peerman.get();
+        options.m_msgproc.push_back(m_node.peerman.get());
         m_node.connman->Init(options);
     }
 }
