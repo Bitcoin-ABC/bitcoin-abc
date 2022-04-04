@@ -81,6 +81,11 @@ bool PeerManager::addNodeToPeer(const PeerSet::iterator &it) {
 }
 
 bool PeerManager::removeNode(NodeId nodeid) {
+    if (pendingNodes.get<by_nodeid>().erase(nodeid) > 0) {
+        // If this was a pending node, there is nothing else to do.
+        return true;
+    }
+
     auto it = nodes.find(nodeid);
     if (it == nodes.end()) {
         return false;
@@ -88,8 +93,6 @@ bool PeerManager::removeNode(NodeId nodeid) {
 
     const PeerId peerid = it->peerid;
     nodes.erase(it);
-
-    pendingNodes.get<by_nodeid>().erase(nodeid);
 
     // Keep the track of the reference count.
     bool success = removeNodeFromPeer(peers.find(peerid));

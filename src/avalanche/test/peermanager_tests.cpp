@@ -506,6 +506,15 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 10);
     }
     BOOST_CHECK(pm.verify());
+
+    // Remove the remaining pending nodes, check the count drops accordingly
+    for (int i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.removeNode(i));
+        BOOST_CHECK(!TestPeerManager::isNodePending(pm, i));
+        BOOST_CHECK(!TestPeerManager::nodeBelongToPeer(pm, i, peerid));
+        BOOST_CHECK_EQUAL(pm.getNodeCount(), 0);
+        BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 10 - i - 1);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(node_binding_reorg) {
