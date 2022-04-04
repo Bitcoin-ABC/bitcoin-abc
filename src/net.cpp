@@ -3233,11 +3233,15 @@ void CConnman::StopNodes() {
         }
     }
 
-    // Close sockets
-    LOCK(cs_vNodes);
-    for (CNode *pnode : vNodes) {
+    // Delete peer connections.
+    std::vector<CNode *> nodes;
+    WITH_LOCK(cs_vNodes, nodes.swap(vNodes));
+    for (CNode *pnode : nodes) {
         pnode->CloseSocketDisconnect();
+        DeleteNode(pnode);
     }
+
+    // Close listening sockets.
     for (ListenSocket &hListenSocket : vhListenSocket) {
         if (hListenSocket.socket != INVALID_SOCKET) {
             if (!CloseSocket(hListenSocket.socket)) {
@@ -3247,14 +3251,9 @@ void CConnman::StopNodes() {
         }
     }
 
-    // clean up some globals (to help leak detection)
-    for (CNode *pnode : vNodes) {
-        DeleteNode(pnode);
-    }
     for (CNode *pnode : vNodesDisconnected) {
         DeleteNode(pnode);
     }
-    vNodes.clear();
     vNodesDisconnected.clear();
     vhListenSocket.clear();
     semOutbound.reset();

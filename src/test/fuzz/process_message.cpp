@@ -92,7 +92,5 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     } catch (const std::ios_base::failure &) {
     }
     SyncWithValidationInterfaceQueue();
-    // See init.cpp for rationale for implicit locking order requirement
-    LOCK2(::cs_main, g_cs_orphans);
     g_setup->m_node.connman->StopNodes();
 }
