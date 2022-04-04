@@ -61,8 +61,10 @@ GetConfigOptions(std::istream &stream, const std::string &filepath,
                 return false;
             } else if ((pos = str.find('=')) != std::string::npos) {
                 std::string name =
-                    prefix + TrimString(str.substr(0, pos), pattern);
-                std::string value = TrimString(str.substr(pos + 1), pattern);
+                    prefix +
+                    TrimString(std::string_view{str}.substr(0, pos), pattern);
+                std::string_view value = TrimStringView(
+                    std::string_view{str}.substr(pos + 1), pattern);
                 if (used_hash &&
                     name.find("rpcpassword") != std::string::npos) {
                     error = strprintf(

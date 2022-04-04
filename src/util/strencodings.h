@@ -55,7 +55,7 @@ std::string EncodeBase64(Span<const uint8_t> input);
 inline std::string EncodeBase64(Span<const std::byte> input) {
     return EncodeBase64(MakeUCharSpan(input));
 }
-inline std::string EncodeBase64(const std::string &str) {
+inline std::string EncodeBase64(std::string_view str) {
     return EncodeBase64(MakeUCharSpan(str));
 }
 std::optional<std::vector<uint8_t>> DecodeBase32(std::string_view str);
@@ -72,9 +72,10 @@ std::string EncodeBase32(Span<const uint8_t> input, bool pad = true);
  * If `pad` is true, then the output will be padded with '=' so that its length
  * is a multiple of 8.
  */
-std::string EncodeBase32(const std::string &str, bool pad = true);
+std::string EncodeBase32(std::string_view str, bool pad = true);
 
-void SplitHostPort(std::string in, uint16_t &portOut, std::string &hostOut);
+void SplitHostPort(std::string_view in, uint16_t &portOut,
+                   std::string &hostOut);
 int64_t atoi64(const std::string &str);
 int atoi(const std::string &str);
 
@@ -112,7 +113,7 @@ constexpr inline bool IsSpace(char c) noexcept {
  * @returns std::nullopt if the entire string could not be parsed, or if the
  *   parsed value is not in the range representable by the type T.
  */
-template <typename T> std::optional<T> ToIntegral(const std::string &str) {
+template <typename T> std::optional<T> ToIntegral(std::string_view str) {
     static_assert(std::is_integral<T>::value);
     T result;
     const auto [first_nonmatching, error_condition] =
@@ -129,14 +130,14 @@ template <typename T> std::optional<T> ToIntegral(const std::string &str) {
  * @returns true if the entire string could be parsed as valid integer, false if
  * not the entire string could be parsed or when overflow or underflow occurred.
  */
-[[nodiscard]] bool ParseInt32(const std::string &str, int32_t *out);
+[[nodiscard]] bool ParseInt32(std::string_view str, int32_t *out);
 
 /**
  * Convert string to signed 64-bit integer with strict parse error feedback.
  * @returns true if the entire string could be parsed as valid integer, false if
  * not the entire string could be parsed or when overflow or underflow occurred.
  */
-[[nodiscard]] bool ParseInt64(const std::string &str, int64_t *out);
+[[nodiscard]] bool ParseInt64(std::string_view str, int64_t *out);
 
 /**
  * Convert decimal string to unsigned 8-bit integer with strict parse error
@@ -145,7 +146,7 @@ template <typename T> std::optional<T> ToIntegral(const std::string &str) {
  *   false if not the entire string could be parsed or when overflow or
  * underflow occurred.
  */
-[[nodiscard]] bool ParseUInt8(const std::string &str, uint8_t *out);
+[[nodiscard]] bool ParseUInt8(std::string_view str, uint8_t *out);
 
 /**
  * Convert decimal string to unsigned 16-bit integer with strict parse error
@@ -154,7 +155,7 @@ template <typename T> std::optional<T> ToIntegral(const std::string &str) {
  *   false if the entire string could not be parsed or if overflow or underflow
  *   occurred.
  */
-[[nodiscard]] bool ParseUInt16(const std::string &str, uint16_t *out);
+[[nodiscard]] bool ParseUInt16(std::string_view str, uint16_t *out);
 
 /**
  * Convert decimal string to unsigned 32-bit integer with strict parse error
@@ -162,7 +163,7 @@ template <typename T> std::optional<T> ToIntegral(const std::string &str) {
  * @returns true if the entire string could be parsed as valid integer, false if
  * not the entire string could be parsed or when overflow or underflow occurred.
  */
-[[nodiscard]] bool ParseUInt32(const std::string &str, uint32_t *out);
+[[nodiscard]] bool ParseUInt32(std::string_view str, uint32_t *out);
 
 /**
  * Convert decimal string to unsigned 64-bit integer with strict parse error
@@ -170,7 +171,7 @@ template <typename T> std::optional<T> ToIntegral(const std::string &str) {
  * @returns true if the entire string could be parsed as valid integer, false if
  * not the entire string could be parsed or when overflow or underflow occurred.
  */
-[[nodiscard]] bool ParseUInt64(const std::string &str, uint64_t *out);
+[[nodiscard]] bool ParseUInt64(std::string_view str, uint64_t *out);
 
 /**
  * Convert a span of bytes to a lower-case hexadecimal string.
@@ -187,7 +188,7 @@ inline std::string HexStr(const Span<const std::byte> s) {
  * Format a paragraph of text to a fixed width, adding spaces for indentation to
  * any added line.
  */
-std::string FormatParagraph(const std::string &in, size_t width = 79,
+std::string FormatParagraph(std::string_view in, size_t width = 79,
                             size_t indent = 0);
 
 /**
@@ -212,7 +213,7 @@ template <typename T> bool TimingResistantEqual(const T &a, const T &b) {
  * @note The result must be in the range (-10^18,10^18), otherwise an overflow
  * error will trigger.
  */
-[[nodiscard]] bool ParseFixedPoint(const std::string &val, int decimals,
+[[nodiscard]] bool ParseFixedPoint(std::string_view, int decimals,
                                    int64_t *amount_out);
 
 namespace {
@@ -287,7 +288,7 @@ constexpr char ToLower(char c) {
  * @param[in] str   the string to convert to lowercase.
  * @returns         lowercased equivalent of str
  */
-std::string ToLower(const std::string &str);
+std::string ToLower(std::string_view str);
 
 /**
  * Converts the given character to its uppercase equivalent.
@@ -312,7 +313,7 @@ constexpr char ToUpper(char c) {
  * @param[in] str   the string to convert to uppercase.
  * @returns         UPPERCASED EQUIVALENT OF str
  */
-std::string ToUpper(const std::string &str);
+std::string ToUpper(std::string_view str);
 
 /**
  * Capitalizes the first character of the given string.

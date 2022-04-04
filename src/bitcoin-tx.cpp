@@ -30,8 +30,6 @@
 
 #include <univalue.h>
 
-#include <boost/algorithm/string.hpp> // trim_right
-
 #include <cstdio>
 #include <functional>
 #include <memory>
@@ -801,9 +799,7 @@ static std::string readStdin() {
         throw std::runtime_error("error reading stdin");
     }
 
-    boost::algorithm::trim_right(ret);
-
-    return ret;
+    return TrimString(ret);
 }
 
 static int CommandLineRawTx(int argc, char *argv[],

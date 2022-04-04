@@ -100,7 +100,8 @@ std::vector<uint8_t> ParseHex(std::string_view str) {
     return vch;
 }
 
-void SplitHostPort(std::string in, uint16_t &portOut, std::string &hostOut) {
+void SplitHostPort(std::string_view in, uint16_t &portOut,
+                   std::string &hostOut) {
     size_t colon = in.find_last_of(':');
     // if a : is found, and it either follows a [...], or no other : is in the
     // string, treat it as port separator
@@ -194,7 +195,7 @@ std::string EncodeBase32(Span<const uint8_t> input, bool pad) {
     return str;
 }
 
-std::string EncodeBase32(const std::string &str, bool pad) {
+std::string EncodeBase32(std::string_view str, bool pad) {
     return EncodeBase32(MakeUCharSpan(str), pad);
 }
 
@@ -247,7 +248,7 @@ std::optional<std::vector<uint8_t>> DecodeBase32(std::string_view str) {
 }
 
 namespace {
-template <typename T> bool ParseIntegral(const std::string &str, T *out) {
+template <typename T> bool ParseIntegral(std::string_view str, T *out) {
     static_assert(std::is_integral<T>::value);
     // Replicate the exact behavior of strtol/strtoll/strtoul/strtoull when
     // handling leading +/- for backwards compatibility.
@@ -266,32 +267,31 @@ template <typename T> bool ParseIntegral(const std::string &str, T *out) {
 }
 }; // namespace
 
-bool ParseInt32(const std::string &str, int32_t *out) {
+bool ParseInt32(std::string_view str, int32_t *out) {
     return ParseIntegral<int32_t>(str, out);
 }
 
-bool ParseInt64(const std::string &str, int64_t *out) {
+bool ParseInt64(std::string_view str, int64_t *out) {
     return ParseIntegral<int64_t>(str, out);
 }
 
-bool ParseUInt8(const std::string &str, uint8_t *out) {
+bool ParseUInt8(std::string_view str, uint8_t *out) {
     return ParseIntegral<uint8_t>(str, out);
 }
 
-bool ParseUInt16(const std::string &str, uint16_t *out) {
+bool ParseUInt16(std::string_view str, uint16_t *out) {
     return ParseIntegral<uint16_t>(str, out);
 }
 
-bool ParseUInt32(const std::string &str, uint32_t *out) {
+bool ParseUInt32(std::string_view str, uint32_t *out) {
     return ParseIntegral<uint32_t>(str, out);
 }
 
-bool ParseUInt64(const std::string &str, uint64_t *out) {
+bool ParseUInt64(std::string_view str, uint64_t *out) {
     return ParseIntegral<uint64_t>(str, out);
 }
 
-std::string FormatParagraph(const std::string &in, size_t width,
-                            size_t indent) {
+std::string FormatParagraph(std::string_view in, size_t width, size_t indent) {
     std::stringstream out;
     size_t ptr = 0;
     size_t indented = 0;
@@ -372,8 +372,7 @@ static inline bool ProcessMantissaDigit(char ch, int64_t &mantissa,
     return true;
 }
 
-bool ParseFixedPoint(const std::string &val, int decimals,
-                     int64_t *amount_out) {
+bool ParseFixedPoint(std::string_view val, int decimals, int64_t *amount_out) {
     int64_t mantissa = 0;
     int64_t exponent = 0;
     int mantissa_tzeros = 0;
@@ -493,7 +492,7 @@ bool ParseFixedPoint(const std::string &val, int decimals,
     return true;
 }
 
-std::string ToLower(const std::string &str) {
+std::string ToLower(std::string_view str) {
     std::string r;
     for (auto ch : str) {
         r += ToLower(ch);
@@ -501,7 +500,7 @@ std::string ToLower(const std::string &str) {
     return r;
 }
 
-std::string ToUpper(const std::string &str) {
+std::string ToUpper(std::string_view str) {
     std::string r;
     for (auto ch : str) {
         r += ToUpper(ch);

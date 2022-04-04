@@ -11,10 +11,11 @@
 #include <logging.h>
 #include <rpc/protocol.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/translation.h>
 #include <walletinitinterface.h>
 
-#include <boost/algorithm/string.hpp> // boost::trim
+#include <boost/algorithm/string.hpp>
 
 #include <algorithm>
 #include <cstdio>
@@ -150,8 +151,8 @@ static bool RPCAuthorized(const std::string &strAuth,
         return false;
     }
 
-    std::string strUserPass64 = strAuth.substr(6);
-    boost::trim(strUserPass64);
+    std::string_view strUserPass64 =
+        TrimStringView(std::string_view{strAuth}.substr(6));
     auto userpass_data = DecodeBase64(strUserPass64);
     std::string strUserPass;
     if (!userpass_data) {

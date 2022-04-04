@@ -40,15 +40,11 @@
 final class LocaleDependenceLinter extends ArcanistLinter {
 
   const KNOWN_VIOLATIONS = array(
-    "src/bitcoin-tx.cpp" => [
-      "stoul",
-      "trim_right",
-    ],
+    "src/bitcoin-tx.cpp" => ["stoul"],
     "src/dbwrapper.cpp" => [
         "stoul",
         "vsnprintf"
     ],
-    "src/httprpc.cpp" => ["trim"],
     "src/node/blockstorage.cpp" => ["atoi"],
     "src/netbase.cpp" => ["to_lower"],
     "src/qt/rpcconsole.cpp" => [

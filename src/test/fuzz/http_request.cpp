@@ -61,7 +61,7 @@ FUZZ_TARGET(http_request) {
     // path. " http:// HTTP/1.1\n" was a crashing input prior to this
     // workaround.
     const std::string http_buffer_str =
-        ToLower({http_buffer.begin(), http_buffer.end()});
+        ToLower(std::string{http_buffer.begin(), http_buffer.end()});
     if (http_buffer_str.find(" http://") != std::string::npos ||
         http_buffer_str.find(" https://") != std::string::npos ||
         evhttp_parse_firstline_(evreq, evbuf) != 1 ||
