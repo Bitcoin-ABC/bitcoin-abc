@@ -138,7 +138,7 @@ std::string EncodeBase64(Span<const uint8_t> input) {
     return str;
 }
 
-std::optional<std::vector<uint8_t>> DecodeBase64(const char *p) {
+std::optional<std::vector<uint8_t>> DecodeBase64(std::string_view str) {
     static const int8_t decode64_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -156,44 +156,27 @@ std::optional<std::vector<uint8_t>> DecodeBase64(const char *p) {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1};
 
-    const char *e = p;
-    std::vector<uint8_t> val;
-    val.reserve(strlen(p));
-    while (*p != 0) {
-        int x = decode64_table[(uint8_t)*p];
-        if (x == -1) {
-            break;
-        }
-        val.push_back(uint8_t(x));
-        ++p;
+    if (str.size() % 4 != 0) {
+        return {};
+    }
+    /* One or two = characters at the end are permitted. */
+    if (str.size() >= 1 && str.back() == '=') {
+        str.remove_suffix(1);
+    }
+    if (str.size() >= 1 && str.back() == '=') {
+        str.remove_suffix(1);
     }
 
     std::vector<uint8_t> ret;
-    ret.reserve((val.size() * 3) / 4);
-    bool valid = ConvertBits<6, 8, false>([&](uint8_t c) { ret.push_back(c); },
-                                          val.begin(), val.end());
-
-    const char *q = p;
-    while (valid && *p != 0) {
-        if (*p != '=') {
-            valid = false;
-            break;
-        }
-        ++p;
-    }
-    valid = valid && (p - e) % 4 == 0 && p - q < 4;
+    ret.reserve((str.size() * 3) / 4);
+    bool valid = ConvertBits<6, 8, false>(
+        [&](uint8_t c) { ret.push_back(c); }, str.begin(), str.end(),
+        [](char c) { return decode64_table[uint8_t(c)]; });
     if (!valid) {
         return {};
     }
 
     return ret;
-}
-
-std::optional<std::vector<uint8_t>> DecodeBase64(const std::string &str) {
-    if (!ValidAsCString(str)) {
-        return {};
-    }
-    return DecodeBase64(str.c_str());
 }
 
 std::string EncodeBase32(Span<const uint8_t> input, bool pad) {
@@ -215,7 +198,7 @@ std::string EncodeBase32(const std::string &str, bool pad) {
     return EncodeBase32(MakeUCharSpan(str), pad);
 }
 
-std::optional<std::vector<uint8_t>> DecodeBase32(const char *p) {
+std::optional<std::vector<uint8_t>> DecodeBase32(std::string_view str) {
     static const int8_t decode32_table[256] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -233,44 +216,34 @@ std::optional<std::vector<uint8_t>> DecodeBase32(const char *p) {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1};
 
-    const char *e = p;
-    std::vector<uint8_t> val;
-    val.reserve(strlen(p));
-    while (*p != 0) {
-        int x = decode32_table[(uint8_t)*p];
-        if (x == -1) {
-            break;
-        }
-        val.push_back(uint8_t(x));
-        ++p;
+    if (str.size() % 8 != 0) {
+        return {};
+    }
+    /* 1, 3, 4, or 6 padding '=' suffix characters are permitted. */
+    if (str.size() >= 1 && str.back() == '=') {
+        str.remove_suffix(1);
+    }
+    if (str.size() >= 2 && str.substr(str.size() - 2) == "==") {
+        str.remove_suffix(2);
+    }
+    if (str.size() >= 1 && str.back() == '=') {
+        str.remove_suffix(1);
+    }
+    if (str.size() >= 2 && str.substr(str.size() - 2) == "==") {
+        str.remove_suffix(2);
     }
 
     std::vector<uint8_t> ret;
-    ret.reserve((val.size() * 5) / 8);
-    bool valid = ConvertBits<5, 8, false>([&](uint8_t c) { ret.push_back(c); },
-                                          val.begin(), val.end());
+    ret.reserve((str.size() * 5) / 8);
+    bool valid = ConvertBits<5, 8, false>(
+        [&](uint8_t c) { ret.push_back(c); }, str.begin(), str.end(),
+        [](char c) { return decode32_table[uint8_t(c)]; });
 
-    const char *q = p;
-    while (valid && *p != 0) {
-        if (*p != '=') {
-            valid = false;
-            break;
-        }
-        ++p;
-    }
-    valid = valid && (p - e) % 8 == 0 && p - q < 8;
     if (!valid) {
         return {};
     }
 
     return ret;
-}
-
-std::optional<std::vector<uint8_t>> DecodeBase32(const std::string &str) {
-    if (!ValidAsCString(str)) {
-        return {};
-    }
-    return DecodeBase32(str.c_str());
 }
 
 namespace {

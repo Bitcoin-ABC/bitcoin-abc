@@ -50,8 +50,7 @@ bool IsHex(std::string_view str);
  * Return true if the string is a hex number, optionally prefixed with "0x"
  */
 bool IsHexNumber(std::string_view str);
-std::optional<std::vector<uint8_t>> DecodeBase64(const char *p);
-std::optional<std::vector<uint8_t>> DecodeBase64(const std::string &str);
+std::optional<std::vector<uint8_t>> DecodeBase64(std::string_view str);
 std::string EncodeBase64(Span<const uint8_t> input);
 inline std::string EncodeBase64(Span<const std::byte> input) {
     return EncodeBase64(MakeUCharSpan(input));
@@ -59,8 +58,7 @@ inline std::string EncodeBase64(Span<const std::byte> input) {
 inline std::string EncodeBase64(const std::string &str) {
     return EncodeBase64(MakeUCharSpan(str));
 }
-std::optional<std::vector<uint8_t>> DecodeBase32(const char *p);
-std::optional<std::vector<uint8_t>> DecodeBase32(const std::string &str);
+std::optional<std::vector<uint8_t>> DecodeBase32(std::string_view str);
 
 /**
  * Base32 encode.
@@ -217,20 +215,36 @@ template <typename T> bool TimingResistantEqual(const T &a, const T &b) {
 [[nodiscard]] bool ParseFixedPoint(const std::string &val, int decimals,
                                    int64_t *amount_out);
 
+namespace {
+/**
+ * Helper class for the default infn argument to ConvertBits (just returns
+ *the input).
+ */
+struct IntIdentity {
+    [[maybe_unused]] int operator()(int x) const { return x; }
+};
+
+} // namespace
+
 /**
  * Convert from one power-of-2 number base to another.
  *
  * If padding is enabled, this always return true. If not, then it returns true
  * of all the bits of the input are encoded in the output.
  */
-template <int frombits, int tobits, bool pad, typename O, typename I>
-bool ConvertBits(const O &outfn, I it, I end) {
+template <int frombits, int tobits, bool pad, typename O, typename It,
+          typename I = IntIdentity>
+bool ConvertBits(O outfn, It it, It end, I infn = {}) {
     size_t acc = 0;
     size_t bits = 0;
     constexpr size_t maxv = (1 << tobits) - 1;
     constexpr size_t max_acc = (1 << (frombits + tobits - 1)) - 1;
     while (it != end) {
-        acc = ((acc << frombits) | *it) & max_acc;
+        int v = infn(*it);
+        if (v < 0) {
+            return false;
+        }
+        acc = ((acc << frombits) | v) & max_acc;
         bits += frombits;
         while (bits >= tobits) {
             bits -= tobits;
