@@ -564,7 +564,7 @@ private:
      */
     void FindFilesToPrune(std::set<int> &setFilesToPrune,
                           uint64_t nPruneAfterHeight, int chain_tip_height,
-                          bool is_ibd);
+                          int prune_height, bool is_ibd);
 
 public:
     BlockMap m_block_index GUARDED_BY(cs_main);

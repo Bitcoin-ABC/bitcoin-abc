@@ -67,6 +67,48 @@ bool BaseIndex::Init() {
             ::ChainActive(), locator);
     }
     m_synced = m_best_block_index.load() == ::ChainActive().Tip();
+    if (!m_synced) {
+        bool prune_violation = false;
+        if (!m_best_block_index) {
+            // index is not built yet
+            // make sure we have all block data back to the genesis
+            const CBlockIndex *block = ::ChainActive().Tip();
+            while (block->pprev && block->pprev->nStatus.hasData()) {
+                block = block->pprev;
+            }
+            prune_violation = block != ::ChainActive().Genesis();
+        }
+        // in case the index has a best block set and is not fully synced
+        // check if we have the required blocks to continue building the index
+        else {
+            const CBlockIndex *block_to_test = m_best_block_index.load();
+            if (!ChainActive().Contains(block_to_test)) {
+                // if the bestblock is not part of the mainchain, find the fork
+                // and make sure we have all data down to the fork
+                block_to_test = ::ChainActive().FindFork(block_to_test);
+            }
+            const CBlockIndex *block = ::ChainActive().Tip();
+            prune_violation = true;
+            // check backwards from the tip if we have all block data until we
+            // reach the indexes bestblock
+            while (block_to_test && block && block->nStatus.hasData()) {
+                if (block_to_test == block) {
+                    prune_violation = false;
+                    break;
+                }
+                assert(block->pprev);
+                block = block->pprev;
+            }
+        }
+        if (prune_violation) {
+            // throw error and graceful shutdown if we can't build the index
+            FatalError("%s: %s best block of the index goes beyond pruned "
+                       "data. Please disable the index or reindex (which will "
+                       "download the whole blockchain again)",
+                       __func__, GetName());
+            return false;
+        }
+    }
     return true;
 }
 
@@ -182,6 +224,10 @@ bool BaseIndex::Rewind(const CBlockIndex *current_tip,
     assert(current_tip->GetAncestor(new_tip->nHeight) == new_tip);
 
     // In the case of a reorg, ensure persisted block locator is not stale.
+    // Pruning has a minimum of 288 blocks-to-keep and getting the index
+    // out of sync may be possible but a users fault.
+    // In case we reorg beyond the pruned depth, ReadBlockFromDisk would
+    // throw and lead to a graceful shutdown
     m_best_block_index = new_tip;
     if (!Commit()) {
         // If commit fails, revert the best block index to avoid corruption.
@@ -334,6 +380,7 @@ IndexSummary BaseIndex::GetSummary() const {
     IndexSummary summary{};
     summary.name = GetName();
     summary.synced = m_synced;
-    summary.best_block_height = m_best_block_index.load()->nHeight;
+    summary.best_block_height =
+        m_best_block_index ? m_best_block_index.load()->nHeight : 0;
     return summary;
 }

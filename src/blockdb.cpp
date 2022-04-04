@@ -10,7 +10,10 @@
 extern RecursiveMutex cs_main;
 
 FlatFileSeq BlockFileSeq() {
-    return FlatFileSeq(gArgs.GetBlocksDirPath(), "blk", BLOCKFILE_CHUNK_SIZE);
+    return FlatFileSeq(gArgs.GetBlocksDirPath(), "blk",
+                       gArgs.GetBoolArg("-fastprune", false)
+                           ? 0x4000 /* 16kb */
+                           : BLOCKFILE_CHUNK_SIZE);
 }
 
 FlatFileSeq UndoFileSeq() {
