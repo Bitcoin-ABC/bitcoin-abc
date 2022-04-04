@@ -38,20 +38,18 @@ enum SafeChars {
  * restrictive)
  * @return           A new string without unsafe chars
  */
-std::string SanitizeString(const std::string &str,
-                           int rule = SAFE_CHARS_DEFAULT);
-std::vector<uint8_t> ParseHex(const char *psz);
-std::vector<uint8_t> ParseHex(const std::string &str);
+std::string SanitizeString(std::string_view str, int rule = SAFE_CHARS_DEFAULT);
+std::vector<uint8_t> ParseHex(std::string_view str);
 signed char HexDigit(char c);
 /**
  * Returns true if each character in str is a hex character, and has an even
  * number of hex digits.
  */
-bool IsHex(const std::string &str);
+bool IsHex(std::string_view str);
 /**
  * Return true if the string is a hex number, optionally prefixed with "0x"
  */
-bool IsHexNumber(const std::string &str);
+bool IsHexNumber(std::string_view str);
 std::vector<uint8_t> DecodeBase64(const char *p, bool *pf_invalid = nullptr);
 std::string DecodeBase64(const std::string &str, bool *pf_invalid = nullptr);
 std::string EncodeBase64(Span<const uint8_t> input);
