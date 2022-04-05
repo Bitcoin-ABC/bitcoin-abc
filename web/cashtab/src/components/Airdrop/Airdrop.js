@@ -71,6 +71,9 @@ const StyledPanel = styled(Panel)`
     .ant-alert-message {
         color: ${props => props.theme.lightGrey};
     }
+    .ant-form-item {
+        color: ${props => props.theme.lightWhite};
+    }
 `;
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
