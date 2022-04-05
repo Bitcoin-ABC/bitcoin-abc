@@ -669,11 +669,29 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                     >
                                         <DropdownIconWrapper>
                                             <TextLayer>Copy Tx ID</TextLayer>
-
                                             <ThemedCopySolid />
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </CopyToClipboard>
+                                {data.opReturnMessage && (
+                                    <CopyToClipboard
+                                        text={data.opReturnMessage}
+                                    >
+                                        <DropdownButton
+                                            onClick={() => {
+                                                generalNotification(
+                                                    data.opReturnMessage,
+                                                    'Cashtab message copied to clipboard',
+                                                );
+                                            }}
+                                        >
+                                            <DropdownIconWrapper>
+                                                <TextLayer>Copy Msg</TextLayer>
+                                                <ThemedCopySolid />
+                                            </DropdownIconWrapper>
+                                        </DropdownButton>
+                                    </CopyToClipboard>
+                                )}
                                 <TxLink
                                     key={data.txid}
                                     href={`${currency.tokenExplorerUrl}/tx/${data.txid}`}
