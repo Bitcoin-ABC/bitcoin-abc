@@ -61,13 +61,6 @@ deadalnix at gmail dot com
 629D7E5DDDA0512BD5860F2C5D7922BBD649C4A7
 ```
 
-#### Jason B. Cox
-```
-Bitcoin ABC Developer
-contact at jasonbcox dot com
-3BB16D00D9A6D281591BDC76E4486356E7A81D2C
-```
-
 ## Disclosure Relationships
 
 Neighboring projects that may be affected by bugs, potential exploits, or other security vulnerabilities that are disclosed to Bitcoin ABC will be passed along information regarding disclosures that we believe could impact them.  As per the standard referenced above, we are disclosing these relationships here:
