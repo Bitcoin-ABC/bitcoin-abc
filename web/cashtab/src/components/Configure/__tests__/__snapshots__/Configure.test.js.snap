@@ -5,7 +5,7 @@ exports[`Configure with a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-gipzik kiYvZB"
+    className="sc-gipzik kgsCNX"
   >
     <h2>
       <span
@@ -107,7 +107,11 @@ exports[`Configure with a wallet 1`] = `
               </svg>
             </span>
           </div>
-          Click to reveal seed phrase
+          <div
+            className="seedPhrase"
+          >
+            Click to reveal seed phrase
+          </div>
         </div>
       </div>
     </div>
@@ -476,7 +480,7 @@ exports[`Configure without a wallet 1`] = `
   className="sc-gqjmRU dYraLr"
 >
   <div
-    className="sc-gipzik kiYvZB"
+    className="sc-gipzik kgsCNX"
   >
     <h2>
       <span

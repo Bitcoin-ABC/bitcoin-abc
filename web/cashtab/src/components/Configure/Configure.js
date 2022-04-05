@@ -218,6 +218,7 @@ const StyledConfigure = styled.div`
     }
     svg {
         fill: ${props => props.theme.eCashBlue};
+        
     }
     p {
         color: ${props => props.theme.darkBlue};
@@ -226,6 +227,16 @@ const StyledConfigure = styled.div`
         color: ${props => props.theme.lightGrey}
         font-size: 14px;
     }
+    .ant-collapse-header{
+        .anticon{
+            flex: 1;
+        }
+        .seedPhrase{ 
+            flex: 2;
+        }
+    }
+  
+   
 `;
 
 const StyledSpacer = styled.div`
@@ -599,8 +610,15 @@ const Configure = () => {
                     />
                 )}
                 {wallet && wallet.mnemonic && (
-                    <StyledCollapse>
-                        <Panel header="Click to reveal seed phrase" key="1">
+                    <StyledCollapse expandIconPosition="left">
+                        <Panel
+                            header={
+                                <div className="seedPhrase">
+                                    Click to reveal seed phrase
+                                </div>
+                            }
+                            key="1"
+                        >
                             <p
                                 className="notranslate"
                                 style={{ userSelect: 'text' }}
