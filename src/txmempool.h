@@ -506,17 +506,17 @@ private:
     //! themselves)
     uint64_t cachedInnerUsage;
 
-    mutable int64_t lastRollingFeeUpdate;
-    mutable bool blockSinceLastRollingFeeBump;
+    mutable int64_t lastRollingFeeUpdate GUARDED_BY(cs);
+    mutable bool blockSinceLastRollingFeeBump GUARDED_BY(cs);
     //! minimum fee to get into the pool, decreases exponentially
-    mutable double rollingMinimumFeeRate;
+    mutable double rollingMinimumFeeRate GUARDED_BY(cs);
     mutable uint64_t m_epoch{0};
     mutable bool m_has_epoch_guard{false};
 
     // In-memory counter for external mempool tracking purposes.
     // This number is incremented once every time a transaction
     // is added or removed from the mempool for any reason.
-    mutable uint64_t m_sequence_number{1};
+    mutable uint64_t m_sequence_number GUARDED_BY(cs){1};
 
     void trackPackageRemoved(const CFeeRate &rate) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
@@ -606,7 +606,7 @@ private:
 
 public:
     indirectmap<COutPoint, const CTransaction *> mapNextTx GUARDED_BY(cs);
-    std::map<TxId, Amount> mapDeltas;
+    std::map<TxId, Amount> mapDeltas GUARDED_BY(cs);
 
     /**
      * Create a new CTxMemPool.
