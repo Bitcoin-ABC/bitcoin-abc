@@ -3433,6 +3433,20 @@ static uint32_t getAvalancheVoteForBlock(const BlockHash &hash)
 };
 
 /**
+ * Decide a response for an Avalanche poll about the given transaction.
+ *
+ * FIXME This function should be expanded to return different vote responses
+ * based on inspection of mempool.
+ *
+ * @param[in]   CTxMemPool The mempool to base our votes on
+ * @param[in]   TxId       The id of the transaction being polled for
+ * @param[out]  uint32_t   Our current vote for the proof
+ */
+static uint32_t getAvalancheVoteForTx(CTxMemPool &mempool, const TxId &id) {
+    return -1;
+};
+
+/**
  * Decide a response for an Avalanche poll about the given proof.
  *
  * @param[in]   avalanche::ProofId     The id of the proof being polled for
@@ -5064,6 +5078,9 @@ void PeerManagerImpl::ProcessMessage(
 
             // If inv's type is known, get a vote for its hash
             switch (inv.type) {
+                case MSG_TX: {
+                    vote = getAvalancheVoteForTx(m_mempool, TxId(inv.hash));
+                } break;
                 case MSG_BLOCK: {
                     vote = WITH_LOCK(cs_main, return getAvalancheVoteForBlock(
                                                   BlockHash(inv.hash)));
