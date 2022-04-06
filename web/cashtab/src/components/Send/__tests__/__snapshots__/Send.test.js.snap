@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-hSdWYo doHJuQ"
   >
     <h4
-      className="sc-gPEVay jiKoLH"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -20,7 +20,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -43,10 +43,10 @@ Array [
           }
         >
           <div
-            className="sc-bRBYWo jxUyJK"
+            className="sc-jhAzac cncvVz"
           >
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Send to
             </label>
@@ -168,7 +168,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Amount
             </label>
@@ -351,17 +351,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-Rmtcm cJIGDJ"
+            className="sc-hzDkRC hMJraf"
           >
             <h3
-              className="sc-hzDkRC kwCkjz"
+              className="sc-fBuWsC jyskGg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-cMljjf cPMBna"
+              className="sc-jDwBTQ hIpfRh"
             >
               =
                
@@ -376,18 +376,20 @@ Array [
             }
           >
             <button
-              className="sc-dxgOiQ gQgqSJ"
+              className="sc-jKJlTe erYLxq"
             >
               Send
             </button>
           </div>
-          <div>
+          <div
+            className="sc-kgoBCf ggQrcN"
+          >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
+              className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
               role={null}
               style={
                 Object {
-                  "marginBottom": "12px",
+                  "marginBottom": "24px",
                 }
               }
             >
@@ -423,7 +425,11 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  Advanced
+                  <div
+                    className="sc-chPdSV byfFmt"
+                  >
+                    Advanced
+                  </div>
                 </div>
               </div>
             </div>
@@ -432,92 +438,108 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "12px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Sign Message
+            </div>
           </div>
-          Sign Message
         </div>
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "24px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Verify Message
+            </div>
           </div>
-          Verify Message
         </div>
       </div>
     </div>
@@ -528,15 +550,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-hSdWYo doHJuQ"
   >
     <h4
-      className="sc-gPEVay jiKoLH"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -545,7 +567,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -568,10 +590,10 @@ Array [
           }
         >
           <div
-            className="sc-bRBYWo jxUyJK"
+            className="sc-jhAzac cncvVz"
           >
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Send to
             </label>
@@ -693,7 +715,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Amount
             </label>
@@ -876,17 +898,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-Rmtcm cJIGDJ"
+            className="sc-hzDkRC hMJraf"
           >
             <h3
-              className="sc-hzDkRC kwCkjz"
+              className="sc-fBuWsC jyskGg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-cMljjf cPMBna"
+              className="sc-jDwBTQ hIpfRh"
             >
               =
                
@@ -901,18 +923,20 @@ Array [
             }
           >
             <button
-              className="sc-dxgOiQ gQgqSJ"
+              className="sc-jKJlTe erYLxq"
             >
               Send
             </button>
           </div>
-          <div>
+          <div
+            className="sc-kgoBCf ggQrcN"
+          >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
+              className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
               role={null}
               style={
                 Object {
-                  "marginBottom": "12px",
+                  "marginBottom": "24px",
                 }
               }
             >
@@ -948,7 +972,11 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  Advanced
+                  <div
+                    className="sc-chPdSV byfFmt"
+                  >
+                    Advanced
+                  </div>
                 </div>
               </div>
             </div>
@@ -957,92 +985,108 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "12px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Sign Message
+            </div>
           </div>
-          Sign Message
         </div>
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "24px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Verify Message
+            </div>
           </div>
-          Verify Message
         </div>
       </div>
     </div>
@@ -1053,15 +1097,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-hSdWYo doHJuQ"
   >
     <h4
-      className="sc-gPEVay jiKoLH"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-cvbbAY bixHxt"
     >
       0.06
        
@@ -1069,7 +1113,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -1092,10 +1136,10 @@ Array [
           }
         >
           <div
-            className="sc-bRBYWo jxUyJK"
+            className="sc-jhAzac cncvVz"
           >
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Send to
             </label>
@@ -1217,7 +1261,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Amount
             </label>
@@ -1400,17 +1444,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-Rmtcm cJIGDJ"
+            className="sc-hzDkRC hMJraf"
           >
             <h3
-              className="sc-hzDkRC kwCkjz"
+              className="sc-fBuWsC jyskGg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-cMljjf cPMBna"
+              className="sc-jDwBTQ hIpfRh"
             >
               =
                
@@ -1425,19 +1469,21 @@ Array [
             }
           >
             <button
-              className="sc-kGXeez fPsebQ"
+              className="sc-dxgOiQ jOtciy"
               onClick={[Function]}
             >
               Send
             </button>
           </div>
-          <div>
+          <div
+            className="sc-kgoBCf ggQrcN"
+          >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
+              className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
               role={null}
               style={
                 Object {
-                  "marginBottom": "12px",
+                  "marginBottom": "24px",
                 }
               }
             >
@@ -1473,7 +1519,11 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  Advanced
+                  <div
+                    className="sc-chPdSV byfFmt"
+                  >
+                    Advanced
+                  </div>
                 </div>
               </div>
             </div>
@@ -1482,92 +1532,108 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "12px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Sign Message
+            </div>
           </div>
-          Sign Message
         </div>
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "24px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Verify Message
+            </div>
           </div>
-          Verify Message
         </div>
       </div>
     </div>
@@ -1578,15 +1644,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-hSdWYo doHJuQ"
   >
     <h4
-      className="sc-gPEVay jiKoLH"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -1595,7 +1661,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -1618,10 +1684,10 @@ Array [
           }
         >
           <div
-            className="sc-bRBYWo jxUyJK"
+            className="sc-jhAzac cncvVz"
           >
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Send to
             </label>
@@ -1743,7 +1809,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Amount
             </label>
@@ -1926,17 +1992,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-Rmtcm cJIGDJ"
+            className="sc-hzDkRC hMJraf"
           >
             <h3
-              className="sc-hzDkRC kwCkjz"
+              className="sc-fBuWsC jyskGg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-cMljjf cPMBna"
+              className="sc-jDwBTQ hIpfRh"
             >
               =
                
@@ -1951,18 +2017,20 @@ Array [
             }
           >
             <button
-              className="sc-dxgOiQ gQgqSJ"
+              className="sc-jKJlTe erYLxq"
             >
               Send
             </button>
           </div>
-          <div>
+          <div
+            className="sc-kgoBCf ggQrcN"
+          >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
+              className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
               role={null}
               style={
                 Object {
-                  "marginBottom": "12px",
+                  "marginBottom": "24px",
                 }
               }
             >
@@ -1998,7 +2066,11 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  Advanced
+                  <div
+                    className="sc-chPdSV byfFmt"
+                  >
+                    Advanced
+                  </div>
                 </div>
               </div>
             </div>
@@ -2007,92 +2079,108 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "12px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Sign Message
+            </div>
           </div>
-          Sign Message
         </div>
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "24px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Verify Message
+            </div>
           </div>
-          Verify Message
         </div>
       </div>
     </div>
@@ -2103,10 +2191,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-hSdWYo doHJuQ"
   >
     <div
-      className="sc-eHgmQL jCioUo"
+      className="sc-jWBwVP guDxFN"
     >
       You currently have 0 
       XEC
@@ -2115,7 +2203,7 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kkGfuU eBAFxM"
   >
     <div
       className="ant-row"
@@ -2138,10 +2226,10 @@ Array [
           }
         >
           <div
-            className="sc-bRBYWo jxUyJK"
+            className="sc-jhAzac cncvVz"
           >
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Send to
             </label>
@@ -2263,7 +2351,7 @@ Array [
               </div>
             </div>
             <label
-              className="sc-kEYyzF gSQyNg"
+              className="sc-iAyFgw jOmvoC"
             >
               Amount
             </label>
@@ -2446,17 +2534,17 @@ Array [
             </div>
           </div>
           <div
-            className="sc-Rmtcm cJIGDJ"
+            className="sc-hzDkRC hMJraf"
           >
             <h3
-              className="sc-hzDkRC kwCkjz"
+              className="sc-fBuWsC jyskGg"
             >
               0
                
               XEC
             </h3>
             <div
-              className="sc-cMljjf cPMBna"
+              className="sc-jDwBTQ hIpfRh"
             >
               =
                
@@ -2471,18 +2559,20 @@ Array [
             }
           >
             <button
-              className="sc-dxgOiQ gQgqSJ"
+              className="sc-jKJlTe erYLxq"
             >
               Send
             </button>
           </div>
-          <div>
+          <div
+            className="sc-kgoBCf ggQrcN"
+          >
             <div
-              className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
+              className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
               role={null}
               style={
                 Object {
-                  "marginBottom": "12px",
+                  "marginBottom": "24px",
                 }
               }
             >
@@ -2518,7 +2608,11 @@ Array [
                       </svg>
                     </span>
                   </div>
-                  Advanced
+                  <div
+                    className="sc-chPdSV byfFmt"
+                  >
+                    Advanced
+                  </div>
                 </div>
               </div>
             </div>
@@ -2527,92 +2621,108 @@ Array [
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "12px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Sign Message
+            </div>
           </div>
-          Sign Message
         </div>
       </div>
     </div>
     <div
-      className="ant-collapse ant-collapse-icon-position-left sc-kgoBCf igLJNK"
-      role={null}
-      style={
-        Object {
-          "marginBottom": "24px",
-        }
-      }
+      className="sc-kgoBCf ggQrcN"
     >
       <div
-        className="ant-collapse-item"
+        className="ant-collapse ant-collapse-icon-position-left sc-kpOJdX juWwfY"
+        role={null}
+        style={
+          Object {
+            "marginBottom": "24px",
+          }
+        }
       >
         <div
-          aria-expanded={false}
-          className="ant-collapse-header"
-          onClick={[Function]}
-          onKeyPress={[Function]}
-          role="button"
-          tabIndex={0}
+          className="ant-collapse-item"
         >
-          <div>
-            <span
-              aria-label="right"
-              className="anticon anticon-right ant-collapse-arrow"
-              role="img"
-            >
-              <svg
-                aria-hidden="true"
-                data-icon="right"
-                fill="currentColor"
-                focusable="false"
-                height="1em"
-                viewBox="64 64 896 896"
-                width="1em"
+          <div
+            aria-expanded={false}
+            className="ant-collapse-header"
+            onClick={[Function]}
+            onKeyPress={[Function]}
+            role="button"
+            tabIndex={0}
+          >
+            <div>
+              <span
+                aria-label="right"
+                className="anticon anticon-right ant-collapse-arrow"
+                role="img"
               >
-                <path
-                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
-                />
-              </svg>
-            </span>
+                <svg
+                  aria-hidden="true"
+                  data-icon="right"
+                  fill="currentColor"
+                  focusable="false"
+                  height="1em"
+                  viewBox="64 64 896 896"
+                  width="1em"
+                >
+                  <path
+                    d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div
+              className="sc-chPdSV byfFmt"
+            >
+              Verify Message
+            </div>
           </div>
-          Verify Message
         </div>
       </div>
     </div>

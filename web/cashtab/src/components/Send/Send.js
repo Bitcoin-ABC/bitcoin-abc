@@ -9,8 +9,8 @@ import {
     DestinationAddressMulti,
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
-import { AdvancedCollapse } from 'components/Common/StyledCollapse';
-import { Form, message, Modal, Alert, Collapse, Input } from 'antd';
+import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
+import { Form, message, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, {
     DisabledButton,
@@ -62,7 +62,6 @@ import styled from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import WalletLabel from 'components/Common/WalletLabel.js';
 
-const { Panel } = Collapse;
 const { TextArea } = Input;
 
 const SignMessageLabel = styled.div`
@@ -100,6 +99,7 @@ const LocaleFormattedValue = styled.h3`
     font-weight: bold;
     margin-bottom: 0;
 `;
+
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
@@ -972,130 +972,119 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                     </>
                                 )}
                             </div>
-                            <div>
-                                <AdvancedCollapse
+
+                            <CustomCollapseCtn
+                                panelHeader="Advanced"
+                                optionalDefaultActiveKey={
+                                    location &&
+                                    location.state &&
+                                    location.state.replyAddress
+                                        ? ['1']
+                                        : ['0']
+                                }
+                                optionalKey="1"
+                            >
+                                <AntdFormWrapper
                                     style={{
-                                        marginBottom: '12px',
+                                        marginBottom: '20px',
                                     }}
-                                    defaultActiveKey={
-                                        location &&
-                                        location.state &&
-                                        location.state.replyAddress
-                                            ? ['1']
-                                            : ['0']
-                                    }
                                 >
-                                    <Panel header="Advanced" key="1">
-                                        <AntdFormWrapper
-                                            style={{
-                                                marginBottom: '20px',
+                                    <TextAreaLabel>
+                                        Multiple Recipients:&nbsp;&nbsp;
+                                        <Switch
+                                            defaultunchecked="true"
+                                            checked={isOneToManyXECSend}
+                                            onChange={() => {
+                                                setIsOneToManyXECSend(
+                                                    !isOneToManyXECSend,
+                                                );
+                                                setIsEncryptedOptionalOpReturnMsg(
+                                                    false,
+                                                );
                                             }}
-                                        >
-                                            <TextAreaLabel>
-                                                Multiple Recipients:&nbsp;&nbsp;
-                                                <Switch
-                                                    defaultunchecked="true"
-                                                    checked={isOneToManyXECSend}
-                                                    onChange={() => {
-                                                        setIsOneToManyXECSend(
-                                                            !isOneToManyXECSend,
-                                                        );
-                                                        setIsEncryptedOptionalOpReturnMsg(
-                                                            false,
-                                                        );
-                                                    }}
-                                                    style={{
-                                                        marginBottom: '7px',
-                                                    }}
-                                                />
-                                            </TextAreaLabel>
-                                            <TextAreaLabel>
-                                                Message:&nbsp;&nbsp;
-                                                <Switch
-                                                    disabled={
-                                                        isOneToManyXECSend
-                                                    }
-                                                    style={{
-                                                        marginBottom: '7px',
-                                                    }}
-                                                    checkedChildren="Private"
-                                                    unCheckedChildren="Public"
-                                                    defaultunchecked="true"
-                                                    checked={
-                                                        isEncryptedOptionalOpReturnMsg
-                                                    }
-                                                    onChange={() => {
-                                                        setIsEncryptedOptionalOpReturnMsg(
-                                                            prev => !prev,
-                                                        );
-                                                        setIsOneToManyXECSend(
-                                                            false,
-                                                        );
-                                                    }}
-                                                />
-                                            </TextAreaLabel>
-                                            {isEncryptedOptionalOpReturnMsg ? (
-                                                <Alert
-                                                    style={{
-                                                        marginBottom: '10px',
-                                                    }}
-                                                    description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
-                                                    type="warning"
-                                                    showIcon
-                                                />
-                                            ) : (
-                                                <Alert
-                                                    style={{
-                                                        marginBottom: '10px',
-                                                    }}
-                                                    description="Please note this message will be public."
-                                                    type="warning"
-                                                    showIcon
-                                                />
-                                            )}
-                                            <TextArea
-                                                name="opReturnMsg"
-                                                placeholder={
-                                                    isEncryptedOptionalOpReturnMsg
-                                                        ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
-                                                        : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
-                                                }
-                                                value={
-                                                    opReturnMsg
-                                                        ? isEncryptedOptionalOpReturnMsg
-                                                            ? opReturnMsg.substring(
-                                                                  0,
-                                                                  currency
-                                                                      .opReturn
-                                                                      .encryptedMsgCharLimit +
-                                                                      1,
-                                                              )
-                                                            : opReturnMsg
-                                                        : ''
-                                                }
-                                                onChange={e =>
-                                                    setOpReturnMsg(
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                showCount
-                                                maxLength={
-                                                    isEncryptedOptionalOpReturnMsg
-                                                        ? currency.opReturn
-                                                              .encryptedMsgCharLimit
-                                                        : currency.opReturn
-                                                              .unencryptedMsgCharLimit
-                                                }
-                                                onKeyDown={e =>
-                                                    e.keyCode == 13
-                                                        ? e.preventDefault()
-                                                        : ''
-                                                }
-                                            />
-                                        </AntdFormWrapper>
-                                    </Panel>
-                                </AdvancedCollapse>
-                            </div>
+                                            style={{
+                                                marginBottom: '7px',
+                                            }}
+                                        />
+                                    </TextAreaLabel>
+                                    <TextAreaLabel>
+                                        Message:&nbsp;&nbsp;
+                                        <Switch
+                                            disabled={isOneToManyXECSend}
+                                            style={{
+                                                marginBottom: '7px',
+                                            }}
+                                            checkedChildren="Private"
+                                            unCheckedChildren="Public"
+                                            defaultunchecked="true"
+                                            checked={
+                                                isEncryptedOptionalOpReturnMsg
+                                            }
+                                            onChange={() => {
+                                                setIsEncryptedOptionalOpReturnMsg(
+                                                    prev => !prev,
+                                                );
+                                                setIsOneToManyXECSend(false);
+                                            }}
+                                        />
+                                    </TextAreaLabel>
+                                    {isEncryptedOptionalOpReturnMsg ? (
+                                        <Alert
+                                            style={{
+                                                marginBottom: '10px',
+                                            }}
+                                            description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
+                                            type="warning"
+                                            showIcon
+                                        />
+                                    ) : (
+                                        <Alert
+                                            style={{
+                                                marginBottom: '10px',
+                                            }}
+                                            description="Please note this message will be public."
+                                            type="warning"
+                                            showIcon
+                                        />
+                                    )}
+                                    <TextArea
+                                        name="opReturnMsg"
+                                        placeholder={
+                                            isEncryptedOptionalOpReturnMsg
+                                                ? `(max ${currency.opReturn.encryptedMsgCharLimit} characters)`
+                                                : `(max ${currency.opReturn.unencryptedMsgCharLimit} characters)`
+                                        }
+                                        value={
+                                            opReturnMsg
+                                                ? isEncryptedOptionalOpReturnMsg
+                                                    ? opReturnMsg.substring(
+                                                          0,
+                                                          currency.opReturn
+                                                              .encryptedMsgCharLimit +
+                                                              1,
+                                                      )
+                                                    : opReturnMsg
+                                                : ''
+                                        }
+                                        onChange={e =>
+                                            setOpReturnMsg(e.target.value)
+                                        }
+                                        showCount
+                                        maxLength={
+                                            isEncryptedOptionalOpReturnMsg
+                                                ? currency.opReturn
+                                                      .encryptedMsgCharLimit
+                                                : currency.opReturn
+                                                      .unencryptedMsgCharLimit
+                                        }
+                                        onKeyDown={e =>
+                                            e.keyCode == 13
+                                                ? e.preventDefault()
+                                                : ''
+                                        }
+                                    />
+                                </AntdFormWrapper>
+                            </CustomCollapseCtn>
                             {apiError && <ApiError />}
                         </Form>
                     </Col>
@@ -1110,85 +1099,71 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     <TokenParamLabel>Message:</TokenParamLabel> {msgToSign}
                     <br />
                 </Modal>
-                <AdvancedCollapse
-                    style={{
-                        marginBottom: '12px',
-                    }}
-                >
-                    <Panel header="Sign Message">
-                        <AntdFormWrapper>
-                            <Form
-                                size="small"
+                <CustomCollapseCtn panelHeader="Sign Message">
+                    <AntdFormWrapper>
+                        <Form
+                            size="small"
+                            style={{
+                                width: 'auto',
+                            }}
+                        >
+                            <Form.Item>
+                                <SignMessageLabel>Message:</SignMessageLabel>
+                                <TextArea
+                                    name="signMessage"
+                                    onChange={e => handleSignMsgChange(e)}
+                                    showCount
+                                    maxLength={150}
+                                />
+                            </Form.Item>
+                            <Form.Item>
+                                <SignMessageLabel>Address:</SignMessageLabel>
+                                <Input
+                                    name="signMessageAddress"
+                                    disabled={true}
+                                    value={
+                                        wallet &&
+                                        wallet.Path1899 &&
+                                        wallet.Path1899.cashAddress
+                                            ? convertToEcashPrefix(
+                                                  wallet.Path1899.cashAddress,
+                                              )
+                                            : ''
+                                    }
+                                />
+                            </Form.Item>
+                            <SmartButton
+                                onClick={() => setShowConfirmMsgToSign(true)}
+                                disabled={!signMessageIsValid}
+                            >
+                                <PlusSquareOutlined />
+                                &nbsp;Sign Message
+                            </SmartButton>
+                            <CopyToClipboard
                                 style={{
-                                    width: 'auto',
+                                    display: 'inline-block',
+                                    width: '100%',
+                                    position: 'relative',
                                 }}
+                                text={messageSignature}
                             >
                                 <Form.Item>
                                     <SignMessageLabel>
-                                        Message:
+                                        Signature:
                                     </SignMessageLabel>
                                     <TextArea
-                                        name="signMessage"
-                                        onChange={e => handleSignMsgChange(e)}
-                                        showCount
-                                        maxLength={150}
+                                        name="signMessageSignature"
+                                        placeholder="The signature will be generated upon signing of the message"
+                                        readOnly={true}
+                                        value={messageSignature}
+                                        onClick={() => handleOnSigCopy()}
                                     />
                                 </Form.Item>
-                                <Form.Item>
-                                    <SignMessageLabel>
-                                        Address:
-                                    </SignMessageLabel>
-                                    <Input
-                                        name="signMessageAddress"
-                                        disabled={true}
-                                        value={
-                                            wallet &&
-                                            wallet.Path1899 &&
-                                            wallet.Path1899.cashAddress
-                                                ? convertToEcashPrefix(
-                                                      wallet.Path1899
-                                                          .cashAddress,
-                                                  )
-                                                : ''
-                                        }
-                                    />
-                                </Form.Item>
-                                <SmartButton
-                                    onClick={() =>
-                                        setShowConfirmMsgToSign(true)
-                                    }
-                                    disabled={!signMessageIsValid}
-                                >
-                                    <PlusSquareOutlined />
-                                    &nbsp;Sign Message
-                                </SmartButton>
-                                <CopyToClipboard
-                                    style={{
-                                        display: 'inline-block',
-                                        width: '100%',
-                                        position: 'relative',
-                                    }}
-                                    text={messageSignature}
-                                >
-                                    <Form.Item>
-                                        <SignMessageLabel>
-                                            Signature:
-                                        </SignMessageLabel>
-                                        <TextArea
-                                            name="signMessageSignature"
-                                            placeholder="The signature will be generated upon signing of the message"
-                                            readOnly={true}
-                                            value={messageSignature}
-                                            onClick={() => handleOnSigCopy()}
-                                        />
-                                    </Form.Item>
-                                </CopyToClipboard>
-                                {sigCopySuccess}
-                            </Form>
-                        </AntdFormWrapper>
-                    </Panel>
-                </AdvancedCollapse>
-
+                            </CopyToClipboard>
+                            {sigCopySuccess}
+                        </Form>
+                    </AntdFormWrapper>
+                </CustomCollapseCtn>
                 <Modal
                     title={`Please review and confirm your message, signature and address to be verified.`}
                     visible={showConfirmMsgToVerify}
@@ -1211,86 +1186,78 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     {messageVerificationSig}
                     <br />
                 </Modal>
-                <AdvancedCollapse
-                    style={{
-                        marginBottom: '24px',
-                    }}
-                >
-                    <Panel header="Verify Message">
-                        <AntdFormWrapper>
-                            <Form
-                                size="small"
-                                style={{
-                                    width: 'auto',
-                                }}
+                <CustomCollapseCtn panelHeader="Verify Message">
+                    <AntdFormWrapper>
+                        <Form
+                            size="small"
+                            style={{
+                                width: 'auto',
+                            }}
+                        >
+                            <Form.Item>
+                                <VerifyMessageLabel>
+                                    Message:
+                                </VerifyMessageLabel>
+                                <TextArea
+                                    name="verifyMessage"
+                                    onChange={e => handleVerifyMsgChange(e)}
+                                    showCount
+                                    maxLength={150}
+                                />
+                            </Form.Item>
+                            <Form.Item>
+                                <VerifyMessageLabel>
+                                    Address:
+                                </VerifyMessageLabel>
+                                <DestinationAddressSingleWithoutQRScan
+                                    validateStatus={
+                                        messageVerificationAddrError
+                                            ? 'error'
+                                            : ''
+                                    }
+                                    help={
+                                        messageVerificationAddrError
+                                            ? messageVerificationAddrError
+                                            : ''
+                                    }
+                                    inputProps={{
+                                        placeholder: `${currency.ticker} Address`,
+                                        name: 'address',
+                                        onChange: e =>
+                                            handleMessageVerificationAddrChange(
+                                                e,
+                                            ),
+                                        required: true,
+                                    }}
+                                ></DestinationAddressSingleWithoutQRScan>
+                            </Form.Item>
+                            <Form.Item>
+                                <VerifyMessageLabel>
+                                    Signature:
+                                </VerifyMessageLabel>
+                                <TextArea
+                                    name="verifySignature"
+                                    onChange={e => handleVerifySigChange(e)}
+                                    showCount
+                                />
+                                <SignatureValidation>
+                                    {messageVerificationSigError}
+                                </SignatureValidation>
+                            </Form.Item>
+                            <SmartButton
+                                onClick={() => setShowConfirmMsgToVerify(true)}
+                                disabled={
+                                    !messageVerificationAddrIsValid ||
+                                    !messageVerificationSigIsValid ||
+                                    !messageVerificationMsgIsValid
+                                }
                             >
-                                <Form.Item>
-                                    <VerifyMessageLabel>
-                                        Message:
-                                    </VerifyMessageLabel>
-                                    <TextArea
-                                        name="verifyMessage"
-                                        onChange={e => handleVerifyMsgChange(e)}
-                                        showCount
-                                        maxLength={150}
-                                    />
-                                </Form.Item>
-                                <Form.Item>
-                                    <VerifyMessageLabel>
-                                        Address:
-                                    </VerifyMessageLabel>
-                                    <DestinationAddressSingleWithoutQRScan
-                                        validateStatus={
-                                            messageVerificationAddrError
-                                                ? 'error'
-                                                : ''
-                                        }
-                                        help={
-                                            messageVerificationAddrError
-                                                ? messageVerificationAddrError
-                                                : ''
-                                        }
-                                        inputProps={{
-                                            placeholder: `${currency.ticker} Address`,
-                                            name: 'address',
-                                            onChange: e =>
-                                                handleMessageVerificationAddrChange(
-                                                    e,
-                                                ),
-                                            required: true,
-                                        }}
-                                    ></DestinationAddressSingleWithoutQRScan>
-                                </Form.Item>
-                                <Form.Item>
-                                    <VerifyMessageLabel>
-                                        Signature:
-                                    </VerifyMessageLabel>
-                                    <TextArea
-                                        name="verifySignature"
-                                        onChange={e => handleVerifySigChange(e)}
-                                        showCount
-                                    />
-                                    <SignatureValidation>
-                                        {messageVerificationSigError}
-                                    </SignatureValidation>
-                                </Form.Item>
-                                <SmartButton
-                                    onClick={() =>
-                                        setShowConfirmMsgToVerify(true)
-                                    }
-                                    disabled={
-                                        !messageVerificationAddrIsValid ||
-                                        !messageVerificationSigIsValid ||
-                                        !messageVerificationMsgIsValid
-                                    }
-                                >
-                                    <PlusSquareOutlined />
-                                    &nbsp;Verify Message
-                                </SmartButton>
-                            </Form>
-                        </AntdFormWrapper>
-                    </Panel>
-                </AdvancedCollapse>
+                                <PlusSquareOutlined />
+                                &nbsp;Verify Message
+                            </SmartButton>
+                        </Form>
+                    </AntdFormWrapper>
+                </CustomCollapseCtn>
             </SidePaddingCtn>
         </>
     );

@@ -1,5 +1,9 @@
+import React from 'react';
 import styled from 'styled-components';
 import { Collapse } from 'antd';
+import PropTypes from 'prop-types';
+
+const { Panel } = Collapse;
 
 export const StyledCollapse = styled(Collapse)`
     background: ${props => props.theme.collapses.background} !important;
@@ -17,6 +21,18 @@ export const StyledCollapse = styled(Collapse)`
 
     *:not(button) {
         color: ${props => props.theme.collapses.color} !important;
+    }
+`;
+const CenteredTitleCollapse = styled.div``;
+
+const CollapseCtn = styled.div`
+    .ant-collapse-header {
+        .anticon {
+            flex: 1;
+        }
+        ${CenteredTitleCollapse} {
+            flex: 2;
+        }
     }
 `;
 
@@ -93,3 +109,39 @@ export const AdvancedCollapse = styled(Collapse)`
         
             `}
 `;
+
+export const CustomCollapseCtn = ({
+    panelHeader,
+    children,
+    optionalDefaultActiveKey,
+    optionalKey,
+}) => {
+    return (
+        <CollapseCtn>
+            <AdvancedCollapse
+                style={{
+                    marginBottom: '24px',
+                }}
+                defaultActiveKey={optionalDefaultActiveKey}
+            >
+                <Panel
+                    header={
+                        <CenteredTitleCollapse>
+                            {panelHeader}
+                        </CenteredTitleCollapse>
+                    }
+                    key={optionalKey}
+                >
+                    {children}
+                </Panel>
+            </AdvancedCollapse>
+        </CollapseCtn>
+    );
+};
+
+CustomCollapseCtn.propTypes = {
+    optionalDefaultActiveKey: PropTypes.bool,
+    panelHeader: PropTypes.string,
+    children: PropTypes.node,
+    optionalKey: PropTypes.string,
+};
