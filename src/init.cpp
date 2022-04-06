@@ -124,6 +124,7 @@ using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::fReindex;
+using node::g_indexes_ready_to_sync;
 using node::KernelNotifications;
 using node::LoadChainstate;
 using node::MempoolPath;
@@ -629,7 +630,8 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-reindex",
-        "Rebuild chain state and block index from the blk*.dat files on disk",
+        "Rebuild chain state and block index from the blk*.dat files on disk."
+        " This will also rebuild active optional indexes.",
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-settings=<file>",
@@ -2633,6 +2635,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     config.SetCashAddrEncoding(args.GetBoolArg("-usecashaddr", true));
 
     // Step 8: load indexers
+
+    // If reindex-chainstate was specified, delay syncing indexes until
+    // ThreadImport has reindexed the chain
+    if (!fReindexChainState) {
+        g_indexes_ready_to_sync = true;
+    }
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
         auto result{
             WITH_LOCK(cs_main, return CheckLegacyTxindex(*Assert(
