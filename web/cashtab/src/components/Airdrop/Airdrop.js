@@ -130,7 +130,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const [totalAirdropIsValid, setTotalAirdropIsValid] = useState(null);
     const [airdropRecipients, setAirdropRecipients] = useState('');
     const [airdropOutputIsValid, setAirdropOutputIsValid] = useState(true);
-    const [etokenHolders, setEtokenHolders] = useState(new BigNumber(0));
+    const [etokenHolders, setEtokenHolders] = useState(parseInt(0));
     const [showAirdropOutputs, setShowAirdropOutputs] = useState(false);
     const [ignoreOwnAddress, setIgnoreOwnAddress] = useState(false);
 
@@ -364,7 +364,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         setAirdropCalcModalProgress(75);
 
         let totalTokenAmongstRecipients = new BigNumber(0);
-        let totalHolders = new BigNumber(airdropList.size); // amount of addresses that hold this eToken
+        let totalHolders = parseInt(airdropList.size); // amount of addresses that hold this eToken
         setEtokenHolders(totalHolders);
 
         // keep a cumulative total of each eToken holding in each address in airdropList
