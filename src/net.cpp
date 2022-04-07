@@ -2373,9 +2373,10 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
         // BLOCK_RELAY connections to addresses from anchors.dat gets the
         // highest priority. Then we open AVALANCHE_OUTBOUND connection until we
         // hit our avalanche outbound peer limit, which is 0 if avalanche is not
-        // enabled. We fallback to OUTBOUND_FULL_RELAY if the peer is not
-        // avalanche capable until we meet our full-relay capacity. Then we open
-        // BLOCK_RELAY connection until we hit our block-relay-only peer limit.
+        // enabled. We fallback after 50 retries to OUTBOUND_FULL_RELAY if the
+        // peer is not avalanche capable until we meet our full-relay capacity.
+        // Then we open BLOCK_RELAY connection until we hit our block-relay-only
+        // peer limit.
         // GetTryNewOutboundPeer() gets set when a stale tip is detected, so we
         // try opening an additional OUTBOUND_FULL_RELAY connection. If none of
         // these conditions are met, check to see if it's time to try an extra
@@ -2534,10 +2535,12 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
             // set.
             if (conn_type == ConnectionType::AVALANCHE_OUTBOUND &&
                 !(addr.nServices & NODE_AVALANCHE)) {
-                // If this peer is not suitable as an avalanche one, see if we
-                // can fallback to a non avalanche full outbound.
-                if (nOutboundFullRelay >= m_max_outbound_full_relay) {
-                    // Fallback is not possible, try another one
+                // If this peer is not suitable as an avalanche one and we tried
+                // over 50 addresses already, see if we can fallback to a non
+                // avalanche full outbound.
+                if (nTries < 50 ||
+                    nOutboundFullRelay >= m_max_outbound_full_relay) {
+                    // Fallback is not desirable or possible, try another one
                     continue;
                 }
 
