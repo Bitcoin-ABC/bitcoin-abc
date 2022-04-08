@@ -75,9 +75,9 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
                 1, Params().Checkpoints().mapCheckpoints.rbegin()->second);
             MessageWriter::WriteMessage(vSend, NetMsgType::GETHEADERS,
                                         CBlockLocator(locatorHash), uint256());
-            doneAfter = GetTime() + GetTimeout();
+            doneAfter = Now<NodeSeconds>() + GetTimeout();
         } else {
-            doneAfter = GetTime() + 1;
+            doneAfter = Now<NodeSeconds>() + 1s;
         }
         return PeerMessagingState::AwaitingMessages;
     }
@@ -88,11 +88,12 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // tfm::format(std::cout, "%s: got %i addresses\n",
         // ToString(you),
         //        (int)vAddrNew.size());
-        int64_t now = GetTime();
+        auto now = Now<NodeSeconds>();
         std::vector<CAddress>::iterator it = vAddrNew.begin();
         if (vAddrNew.size() > 1) {
-            if (doneAfter == 0 || doneAfter > now + 1) {
-                doneAfter = now + 1;
+            if (TicksSinceEpoch<std::chrono::seconds>(doneAfter) == 0 ||
+                doneAfter > now + 1s) {
+                doneAfter = now + 1s;
             }
         }
         while (it != vAddrNew.end()) {
@@ -101,17 +102,18 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
             // ToString(you),
             //        addr.ToString(), (int)(vAddr->size()));
             it++;
-            if (addr.nTime <= 100000000 || addr.nTime > now + 600) {
-                addr.nTime = now - 5 * 86400;
+            if (addr.nTime <= NodeSeconds{100000000s} ||
+                addr.nTime > now + 10min) {
+                addr.nTime = now - 5 * 24h;
             }
-            if (addr.nTime > now - 604800) {
+            if (addr.nTime > now - 7 * 24h) {
                 vAddr->push_back(addr);
             }
             // tfm::format(std::cout, "%s: added address %s (#%i)\n",
             // ToString(you),
             //        addr.ToString(), (int)(vAddr->size()));
             if (vAddr->size() > ADDR_SOFT_CAP) {
-                doneAfter = 1;
+                doneAfter = NodeSeconds{1s};
                 return PeerMessagingState::Finished;
             }
         }
@@ -185,8 +187,9 @@ bool CSeederNode::ProcessMessages() {
 
 CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
     : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
-      nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
-      you(ip), yourServices(ServiceFlags(NODE_NETWORK)) {
+      nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0),
+      doneAfter(NodeSeconds{0s}), you(ip),
+      yourServices(ServiceFlags(NODE_NETWORK)) {
     if (GetTime() > 1329696000) {
         vSend.SetVersion(209);
         vRecv.SetVersion(209);
@@ -250,9 +253,12 @@ bool CSeederNode::Run() {
     Send();
 
     bool res = true;
-    int64_t now;
-    while (now = GetTime(),
-           ban == 0 && (doneAfter == 0 || doneAfter > now) && sock) {
+    NodeSeconds now;
+    while (now = Now<NodeSeconds>(),
+           ban == 0 &&
+               (TicksSinceEpoch<std::chrono::seconds>(doneAfter) == 0 ||
+                doneAfter > now) &&
+               sock) {
         char pchBuf[0x10000];
         fd_set fdsetRecv;
         fd_set fdsetError;
@@ -261,17 +267,17 @@ bool CSeederNode::Run() {
         FD_SET(sock->Get(), &fdsetRecv);
         FD_SET(sock->Get(), &fdsetError);
         struct timeval wa;
-        if (doneAfter) {
-            wa.tv_sec = doneAfter - now;
+        if (TicksSinceEpoch<std::chrono::seconds>(doneAfter) != 0) {
+            wa.tv_sec = (doneAfter - now).count();
             wa.tv_usec = 0;
         } else {
-            wa.tv_sec = GetTimeout();
+            wa.tv_sec = GetTimeout().count();
             wa.tv_usec = 0;
         }
         int ret =
             select(sock->Get() + 1, &fdsetRecv, nullptr, &fdsetError, &wa);
         if (ret != 1) {
-            if (!doneAfter) {
+            if (TicksSinceEpoch<std::chrono::seconds>(doneAfter) == 0) {
                 res = false;
             }
             break;

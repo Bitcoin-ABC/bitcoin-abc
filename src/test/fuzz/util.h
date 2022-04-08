@@ -266,7 +266,8 @@ CAddress ConsumeAddress(FuzzedDataProvider &fuzzed_data_provider) noexcept {
     return {ConsumeService(fuzzed_data_provider),
             static_cast<ServiceFlags>(
                 fuzzed_data_provider.ConsumeIntegral<uint64_t>()),
-            fuzzed_data_provider.ConsumeIntegral<uint32_t>()};
+            NodeSeconds{std::chrono::seconds{
+                fuzzed_data_provider.ConsumeIntegral<uint32_t>()}}};
 }
 
 CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {

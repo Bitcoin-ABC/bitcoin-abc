@@ -8,7 +8,9 @@
 #include <chainparams.h>
 #include <protocol.h>
 #include <streams.h>
+#include <util/time.h>
 
+#include <chrono>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -46,11 +48,11 @@ private:
     int nStartingHeight;
     std::vector<CAddress> *vAddr;
     int ban;
-    int64_t doneAfter;
+    NodeSeconds doneAfter;
     CService you;
     ServiceFlags yourServices;
 
-    int GetTimeout() { return you.IsTor() ? 120 : 30; }
+    std::chrono::seconds GetTimeout() { return you.IsTor() ? 120s : 30s; }
 
     void BeginMessage(const char *pszCommand);
 

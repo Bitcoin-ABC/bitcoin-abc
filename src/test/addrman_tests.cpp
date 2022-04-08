@@ -113,12 +113,12 @@ public:
     // Simulates connection failure so that we can test eviction of offline
     // nodes
     void SimConnFail(const CService &addr) {
-        int64_t last_success = 1;
+        auto last_success{NodeSeconds{1s}};
         // Set last good connection in the deep past.
         Good(addr, true, last_success);
 
         bool count_failure = false;
-        int64_t last_try = GetAdjustedTime() - 61;
+        auto last_try = AdjustedTime() - 61s;
         Attempt(addr, count_failure, last_try);
     }
 };
@@ -428,15 +428,15 @@ BOOST_AUTO_TEST_CASE(addrman_getaddr) {
     BOOST_CHECK_EQUAL(vAddr1.size(), 0U);
 
     CAddress addr1 = CAddress(ResolveService("250.250.2.1", 8333), NODE_NONE);
-    addr1.nTime = GetAdjustedTime(); // Set time so isTerrible = false
+    addr1.nTime = AdjustedTime(); // Set time so isTerrible = false
     CAddress addr2 = CAddress(ResolveService("250.251.2.2", 9999), NODE_NONE);
-    addr2.nTime = GetAdjustedTime();
+    addr2.nTime = AdjustedTime();
     CAddress addr3 = CAddress(ResolveService("251.252.2.3", 8333), NODE_NONE);
-    addr3.nTime = GetAdjustedTime();
+    addr3.nTime = AdjustedTime();
     CAddress addr4 = CAddress(ResolveService("252.253.3.4", 8333), NODE_NONE);
-    addr4.nTime = GetAdjustedTime();
+    addr4.nTime = AdjustedTime();
     CAddress addr5 = CAddress(ResolveService("252.254.4.5", 8333), NODE_NONE);
-    addr5.nTime = GetAdjustedTime();
+    addr5.nTime = AdjustedTime();
     CNetAddr source1 = ResolveIP("250.1.2.1");
     CNetAddr source2 = ResolveIP("250.2.3.3");
 
@@ -479,7 +479,7 @@ BOOST_AUTO_TEST_CASE(addrman_getaddr) {
         CAddress addr = CAddress(ResolveService(strAddr), NODE_NONE);
 
         // Ensure that for all addrs in addrman, isTerrible == false.
-        addr.nTime = GetAdjustedTime();
+        addr.nTime = AdjustedTime();
         addrman.Add({addr}, ResolveIP(strAddr));
         if (i % 8 == 0) {
             addrman.Good(addr);

@@ -198,7 +198,7 @@ convertSeed6(const std::vector<SeedSpec6> &vSeedsIn) {
     // It'll only connect to one or two seed nodes because once it connects,
     // it'll get a pile of addresses with newer timestamps. Seed nodes are given
     // a random 'last seen time' of between one and two weeks ago.
-    const int64_t nOneWeek = 7 * 24 * 60 * 60;
+    const auto one_week{7 * 24h};
     std::vector<CAddress> vSeedsOut;
     vSeedsOut.reserve(vSeedsIn.size());
     FastRandomContext rng;
@@ -207,7 +207,8 @@ convertSeed6(const std::vector<SeedSpec6> &vSeedsIn) {
         memcpy(&ip, seed_in.addr, sizeof(ip));
         CAddress addr(CService(ip, seed_in.port),
                       GetDesirableServiceFlags(NODE_NONE));
-        addr.nTime = GetTime() - rng.randrange(nOneWeek) - nOneWeek;
+        addr.nTime =
+            rng.rand_uniform_delay(Now<NodeSeconds>() - one_week, -one_week);
         vSeedsOut.push_back(addr);
     }
     return vSeedsOut;
@@ -435,12 +436,10 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         }
     }
 
-    /// debug print
-    LogPrint(BCLog::NET, "trying connection %s lastseen=%.1fhrs\n",
-             pszDest ? pszDest : addrConnect.ToString(),
-             pszDest
-                 ? 0.0
-                 : (double)(GetAdjustedTime() - addrConnect.nTime) / 3600.0);
+    LogPrint(
+        BCLog::NET, "trying connection %s lastseen=%.1fhrs\n",
+        pszDest ? pszDest : addrConnect.ToString(),
+        Ticks<HoursDouble>(pszDest ? 0h : AdjustedTime() - addrConnect.nTime));
 
     // Resolve
     const uint16_t default_port{pszDest != nullptr
@@ -2018,13 +2017,12 @@ void CConnman::ThreadDNSAddressSeed() {
             unsigned int nMaxIPs = 256;
             if (LookupHost(host, vIPs, nMaxIPs, true)) {
                 for (const CNetAddr &ip : vIPs) {
-                    int nOneDay = 24 * 3600;
                     CAddress addr = CAddress(
                         CService(ip, config->GetChainParams().GetDefaultPort()),
                         requiredServiceBits);
                     // Use a random age between 3 and 7 days old.
-                    addr.nTime =
-                        GetTime() - 3 * nOneDay - rng.randrange(4 * nOneDay);
+                    addr.nTime = rng.rand_uniform_delay(
+                        Now<NodeSeconds>() - 3 * 24h, -4 * 24h);
                     vAdd.push_back(addr);
                     found++;
                 }
@@ -2316,7 +2314,7 @@ void CConnman::ThreadOpenConnections(
 
         addrman.ResolveCollisions();
 
-        int64_t nANow = GetAdjustedTime();
+        const auto nANow{AdjustedTime()};
         int nTries = 0;
         while (!interruptNet) {
             if (anchor && !m_anchors.empty()) {
@@ -2344,7 +2342,7 @@ void CConnman::ThreadOpenConnections(
             }
 
             CAddress addr;
-            int64_t addr_last_try{0};
+            NodeSeconds addr_last_try{0s};
 
             if (fFeeler) {
                 // First, try to get a tried table collision address. This
@@ -2388,7 +2386,7 @@ void CConnman::ThreadOpenConnections(
             }
 
             // only consider very recently tried nodes after 30 failed attempts
-            if (nANow - addr_last_try < 600 && nTries < 30) {
+            if (nANow - addr_last_try < 10min && nTries < 30) {
                 continue;
             }
 

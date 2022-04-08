@@ -5,8 +5,11 @@
 #ifndef BITCOIN_TIMEDATA_H
 #define BITCOIN_TIMEDATA_H
 
+#include <util/time.h>
+
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <vector>
 
@@ -64,6 +67,9 @@ public:
 /** Functions to keep track of adjusted P2P time */
 int64_t GetTimeOffset();
 int64_t GetAdjustedTime();
+inline NodeSeconds AdjustedTime() {
+    return Now<NodeSeconds>() + std::chrono::seconds{GetTimeOffset()};
+}
 void AddTimeData(const CNetAddr &ip, int64_t nTime);
 
 /**

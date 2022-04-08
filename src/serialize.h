@@ -683,6 +683,23 @@ template <bool RangeCheck> struct CompactSizeFormatter {
     }
 };
 
+template <typename U, bool LOSSY = false> struct ChronoFormatter {
+    template <typename Stream, typename Tp> void Unser(Stream &s, Tp &tp) {
+        U u;
+        s >> u;
+        // Lossy deserialization does not make sense, so force Wnarrowing
+        tp = Tp{typename Tp::duration{typename Tp::duration::rep{u}}};
+    }
+    template <typename Stream, typename Tp> void Ser(Stream &s, Tp tp) {
+        if constexpr (LOSSY) {
+            s << U(tp.time_since_epoch().count());
+        } else {
+            s << U{tp.time_since_epoch().count()};
+        }
+    }
+};
+template <typename U> using LossyChronoFormatter = ChronoFormatter<U, true>;
+
 template <size_t Limit> struct LimitedStringFormatter {
     template <typename Stream> void Unser(Stream &s, std::string &v) {
         size_t size = ReadCompactSize(s);

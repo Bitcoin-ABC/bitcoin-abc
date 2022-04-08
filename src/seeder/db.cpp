@@ -150,7 +150,9 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     CService ipp(addr);
     if (banned.count(ipp)) {
         time_t bantime = banned[ipp];
-        if (force || (bantime < time(nullptr) && addr.nTime > bantime)) {
+        if (force ||
+            (bantime < time(nullptr) &&
+             addr.nTime > NodeSeconds{std::chrono::seconds{bantime}})) {
             banned.erase(ipp);
         } else {
             return;
@@ -158,8 +160,9 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     }
     if (ipToId.count(ipp)) {
         SeederAddrInfo &ai = idToInfo[ipToId[ipp]];
-        if (addr.nTime > ai.lastTry || ai.services != addr.nServices) {
-            ai.lastTry = addr.nTime;
+        if (addr.nTime > NodeSeconds{std::chrono::seconds{ai.lastTry}} ||
+            ai.services != addr.nServices) {
+            ai.lastTry = TicksSinceEpoch<std::chrono::seconds>(addr.nTime);
             ai.services |= addr.nServices;
             //      tfm::format(std::cout, "%s: updated\n",
             //      ToString(addr));
@@ -173,7 +176,7 @@ void CAddrDb::Add_(const CAddress &addr, bool force) {
     SeederAddrInfo ai;
     ai.ip = ipp;
     ai.services = addr.nServices;
-    ai.lastTry = addr.nTime;
+    ai.lastTry = TicksSinceEpoch<std::chrono::seconds>(addr.nTime);
     ai.ourLastTry = 0;
     ai.total = 0;
     ai.success = 0;

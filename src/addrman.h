@@ -10,6 +10,7 @@
 #include <protocol.h>
 #include <streams.h>
 #include <timedata.h>
+#include <util/time.h>
 
 #include <cstdint>
 #include <memory>
@@ -92,15 +93,15 @@ public:
      * @return    true if at least one address is successfully added.
      */
     bool Add(const std::vector<CAddress> &vAddr, const CNetAddr &source,
-             int64_t time_penalty = 0);
+             std::chrono::seconds time_penalty = 0s);
 
     //! Mark an entry as accessible, possibly moving it from "new" to "tried".
     void Good(const CService &addr, bool test_before_evict = true,
-              int64_t nTime = GetAdjustedTime());
+              NodeSeconds time = AdjustedTime());
 
     //! Mark an entry as connection attempted to.
     void Attempt(const CService &addr, bool fCountFailure,
-                 int64_t nTime = GetAdjustedTime());
+                 NodeSeconds time = AdjustedTime());
 
     //! See if any to-be-evicted tried table entries have been tested and if so
     //! resolve the collisions.
@@ -111,18 +112,18 @@ public:
      * attempting to evict.
      *
      * @return CAddress The record for the selected tried peer.
-     *         int64_t  The last time we attempted to connect to that peer.
+     *         seconds  The last time we attempted to connect to that peer.
      */
-    std::pair<CAddress, int64_t> SelectTriedCollision();
+    std::pair<CAddress, NodeSeconds> SelectTriedCollision();
 
     /**
      * Choose an address to connect to.
      *
      * @param[in] newOnly  Whether to only select addresses from the new table.
      * @return    CAddress The record for the selected peer.
-     *            int64_t  The last time we attempted to connect to that peer.
+     *            seconds  The last time we attempted to connect to that peer.
      */
-    std::pair<CAddress, int64_t> Select(bool newOnly = false) const;
+    std::pair<CAddress, NodeSeconds> Select(bool newOnly = false) const;
 
     /**
      * Return all or many randomly selected addresses, optionally by network.
@@ -150,9 +151,9 @@ public:
      * not leak information about currently connected peers.
      *
      * @param[in]   addr     The address of the peer we were connected to
-     * @param[in]   nTime    The time that we were last connected to this peer
+     * @param[in]   time     The time that we were last connected to this peer
      */
-    void Connected(const CService &addr, int64_t nTime = GetAdjustedTime());
+    void Connected(const CService &addr, NodeSeconds time = AdjustedTime());
 
     //! Update an entry's service bits.
     void SetServices(const CService &addr, ServiceFlags nServices);

@@ -61,6 +61,7 @@ constexpr int64_t count_microseconds(std::chrono::microseconds t) {
     return t.count();
 }
 
+using HoursDouble = std::chrono::duration<double, std::chrono::hours::period>;
 using SecondsDouble =
     std::chrono::duration<double, std::chrono::seconds::period>;
 
