@@ -39,7 +39,6 @@
 // trivial to get the mocked time from the server, nor is it needed for now, so
 // just use a plain system_clock.
 using CliClock = std::chrono::system_clock;
-using CliSeconds = std::chrono::time_point<CliClock, std::chrono::seconds>;
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
@@ -476,7 +475,8 @@ private:
         const double milliseconds{round(1000 * seconds)};
         return milliseconds > 999999 ? "-" : ToString(milliseconds);
     }
-    const int64_t m_time_now{count_seconds(Now<CliSeconds>())};
+    const int64_t m_time_now{
+        TicksSinceEpoch<std::chrono::seconds>(CliClock::now())};
 
 public:
     static constexpr int ID_PEERINFO = 0;
