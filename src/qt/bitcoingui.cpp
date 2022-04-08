@@ -40,6 +40,7 @@
 #include <memory>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QComboBox>
 #include <QDateTime>
@@ -410,7 +411,7 @@ void BitcoinGUI::createActions() {
 
     m_mask_values_action = new QAction(tr("&Mask values"), this);
     m_mask_values_action->setShortcut(
-        QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M));
+        QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M));
     m_mask_values_action->setStatusTip(
         tr("Mask the values in the Overview tab"));
     m_mask_values_action->setCheckable(true);
@@ -509,10 +510,10 @@ void BitcoinGUI::createActions() {
     }
 #endif // ENABLE_WALLET
 
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C), this),
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C), this),
             &QShortcut::activated, this,
             &BitcoinGUI::showDebugWindowActivateConsole);
-    connect(new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D), this),
+    connect(new QShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D), this),
             &QShortcut::activated, this, &BitcoinGUI::showDebugWindow);
 }
 
