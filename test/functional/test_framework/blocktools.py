@@ -7,6 +7,7 @@
 import struct
 import time
 import unittest
+from typing import Optional
 
 from .messages import (
     COIN,
@@ -38,8 +39,13 @@ from .util import assert_equal, satoshi_round
 TIME_GENESIS_BLOCK = 1296688602
 
 
-def create_block(hashprev=None, coinbase=None, ntime=None,
-                 *, version=None, tmpl=None):
+def create_block(
+        hashprev: Optional[int] = None,
+        coinbase: Optional[CTransaction] = None,
+        ntime: Optional[int] = None,
+        *,
+        version: Optional[int] = None,
+        tmpl: Optional[dict] = None) -> CBlock:
     """Create a block (with regtest difficulty)."""
     block = CBlock()
     if tmpl is None:
@@ -58,14 +64,14 @@ def create_block(hashprev=None, coinbase=None, ntime=None,
     return block
 
 
-def make_conform_to_ctor(block):
+def make_conform_to_ctor(block: CBlock):
     for tx in block.vtx:
         tx.rehash()
     block.vtx = [block.vtx[0]] + \
         sorted(block.vtx[1:], key=lambda tx: tx.get_id())
 
 
-def script_BIP34_coinbase_height(height):
+def script_BIP34_coinbase_height(height: int) -> CScript:
     if height <= 16:
         res = CScriptOp.encode_op_n(height)
         # Append dummy to increase scriptSig size above 2
@@ -74,7 +80,8 @@ def script_BIP34_coinbase_height(height):
     return CScript([CScriptNum(height)])
 
 
-def create_coinbase(height, pubkey=None):
+def create_coinbase(
+        height: int, pubkey: Optional[bytes] = None) -> CTransaction:
     """Create a coinbase transaction, assuming no miner fees.
 
     If pubkey is passed in, the coinbase output will be a P2PK output;
@@ -87,7 +94,7 @@ def create_coinbase(height, pubkey=None):
     coinbaseoutput.nValue = 50 * COIN
     halvings = int(height / 150)  # regtest
     coinbaseoutput.nValue >>= halvings
-    if (pubkey is not None):
+    if pubkey is not None:
         coinbaseoutput.scriptPubKey = CScript([pubkey, OP_CHECKSIG])
     else:
         coinbaseoutput.scriptPubKey = CScript([OP_TRUE])

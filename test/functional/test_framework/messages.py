@@ -575,7 +575,7 @@ class CBlock(CBlockHeader):
 
     def __init__(self, header=None):
         super().__init__(header)
-        self.vtx = []
+        self.vtx: List[CTransaction] = []
 
     def deserialize(self, f):
         super().deserialize(f)
