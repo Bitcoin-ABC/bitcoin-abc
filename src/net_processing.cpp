@@ -1557,6 +1557,11 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
     });
 }
 
+static bool shouldSendGetAvaAddr(const CNode *pnode) {
+    return pnode->IsAvalancheOutboundConnection() ||
+           (pnode->IsManualConn() && (pnode->nServices & NODE_AVALANCHE));
+}
+
 void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
     if (g_avalanche &&
         (!g_avalanche->isQuorumEstablished() ||
@@ -1565,7 +1570,7 @@ void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
          }))) {
         std::vector<NodeId> avanode_outbound_ids;
         m_connman.ForEachNode([&](CNode *pnode) {
-            if (pnode->IsAvalancheOutboundConnection()) {
+            if (shouldSendGetAvaAddr(pnode)) {
                 avanode_outbound_ids.push_back(pnode->GetId());
             }
         });
@@ -3811,7 +3816,7 @@ void PeerManagerImpl::ProcessMessage(
             }
 
             // Send getavaaddr to our avalanche outbound connections
-            if (pfrom.IsAvalancheOutboundConnection()) {
+            if (shouldSendGetAvaAddr(&pfrom)) {
                 m_connman.PushMessage(&pfrom,
                                       msgMaker.Make(NetMsgType::GETAVAADDR));
                 WITH_LOCK(peer->m_addr_token_bucket_mutex,

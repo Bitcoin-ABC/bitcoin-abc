@@ -17,7 +17,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import MAX_NODES, assert_equal, p2p_port
 from test_framework.wallet_util import bytes_to_wif
 
 # getavaaddr time interval in seconds, as defined in net_processing.cpp
@@ -251,6 +251,51 @@ class AvaAddrTest(BitcoinTestFramework):
         self.wait_until(
             lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
 
+    def getavaaddr_manual_test(self):
+        self.log.info(
+            "Check we send a getavaaddr message to our manually connected peers that support avalanche")
+        node = self.nodes[0]
+
+        # Get rid of previously connected nodes
+        node.disconnect_p2ps()
+
+        def added_node_connected(ip_port):
+            added_node_info = node.getaddednodeinfo(ip_port)
+            return len(
+                added_node_info) == 1 and added_node_info[0]['connected']
+
+        def connect_callback(address, port):
+            self.log.debug("Connecting to {}:{}".format(address, port))
+
+        p = AvaP2PInterface()
+        p2p_idx = 1
+        p.peer_accept_connection(
+            connect_cb=connect_callback,
+            connect_id=p2p_idx,
+            net=node.chain,
+            timeout_factor=node.timeout_factor,
+            services=NODE_NETWORK | NODE_AVALANCHE,
+        )()
+        ip_port = f"127.0.01:{p2p_port(MAX_NODES - p2p_idx)}"
+
+        node.addnode(node=ip_port, command="add")
+        self.wait_until(lambda: added_node_connected(ip_port), timeout=3)
+
+        assert_equal(node.getpeerinfo()[-1]['addr'], ip_port)
+        assert_equal(node.getpeerinfo()[-1]['connection_type'], 'manual')
+
+        self.wait_until(lambda: p.last_message.get("getavaaddr"), timeout=5)
+
+        # Generate some block to poll for
+        node.generate(1)
+
+        # Because our avalanche peers is not responding, our node should fail
+        # out of option shortly and send another getavaaddr message.
+        node.mockscheduler(MAX_GETAVAADDR_DELAY)
+        self.wait_until(
+            lambda: p.message_count.get(
+                "getavaaddr", 0) > 1, timeout=5)
+
     def getavaaddr_noquorum(self):
         self.log.info(
             "Check we send a getavaaddr message while our quorum is not established")
@@ -338,6 +383,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.address_test(maxaddrtosend=100, num_proof=2, num_avanode=8)
 
         self.getavaaddr_outbound_test()
+        self.getavaaddr_manual_test()
         self.getavaaddr_noquorum()
 
 
