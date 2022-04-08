@@ -608,16 +608,15 @@ bool SelectCoins(const CWallet &wallet,
     return res;
 }
 
-static std::optional<CreatedTransactionResult> CreateTransactionInternal(
+static util::Result<CreatedTransactionResult> CreateTransactionInternal(
     CWallet &wallet, const std::vector<CRecipient> &vecSend, int change_pos,
-    bilingual_str &error, const CCoinControl &coin_control, bool sign) {
+    const CCoinControl &coin_control, bool sign) {
     // TODO: remember to add the lock annotation when adding AssertLockHeld.
     //       The lock annotation was added by core in PR22100, but due to
     //       other missing backports it was not possible to add it during that
     //       backport.
 
     // out variables, to be packed into returned result structure
-    CTransactionRef tx;
     Amount nFeeRet;
     int nChangePosInOut = change_pos;
 
@@ -631,8 +630,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
     unsigned int nSubtractFeeFromAmount = 0;
     for (const auto &recipient : vecSend) {
         if (nValue < Amount::zero() || recipient.nAmount < Amount::zero()) {
-            error = _("Transaction amounts must not be negative");
-            return std::nullopt;
+            return util::Error{_("Transaction amounts must not be negative")};
         }
 
         nValue += recipient.nAmount;
@@ -643,13 +641,12 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
     }
 
     if (vecSend.empty()) {
-        error = _("Transaction must have at least one recipient");
-        return std::nullopt;
+        return util::Error{_("Transaction must have at least one recipient")};
     }
 
-    CMutableTransaction txNew;
-
+    CTransactionRef tx;
     {
+        CMutableTransaction txNew;
         std::set<CInputCoin> setCoins;
         LOCK(wallet.cs_wallet);
         // Previously the locktime was set to the current block height, to
@@ -670,6 +667,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
         // TODO: pass in scriptChange instead of reservedest so
         // change transaction isn't always pay-to-bitcoin-address
         CScript scriptChange;
+        bilingual_str error; // possible error str
 
         // coin control: send change to custom address
         if (!std::get_if<CNoDestination>(&coin_control.destChange)) {
@@ -710,11 +708,10 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
         // user has explicitly provided one
         if (coin_control.m_feerate &&
             nFeeRateNeeded > *coin_control.m_feerate) {
-            error = strprintf(_("Fee rate (%s) is lower than the minimum fee "
-                                "rate setting (%s)"),
-                              coin_control.m_feerate->ToString(),
-                              nFeeRateNeeded.ToString());
-            return std::nullopt;
+            return util::Error{strprintf(
+                _("Fee rate (%s) is lower than the minimum fee "
+                  "rate setting (%s)"),
+                coin_control.m_feerate->ToString(), nFeeRateNeeded.ToString())};
         }
 
         nFeeRet = Amount::zero();
@@ -784,7 +781,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
                         error = _("Transaction amount too small");
                     }
 
-                    return std::nullopt;
+                    return util::Error{error};
                 }
 
                 txNew.vout.push_back(txout);
@@ -816,8 +813,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
                         coin_selection_params.use_bnb = false;
                         continue;
                     } else {
-                        error = _("Insufficient funds");
-                        return std::nullopt;
+                        return util::Error{_("Insufficient funds")};
                     }
                 }
             } else {
@@ -842,8 +838,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
                         nChangePosInOut = GetRand<int>(txNew.vout.size() + 1);
                     } else if ((unsigned int)nChangePosInOut >
                                txNew.vout.size()) {
-                        error = _("Change index out of range");
-                        return std::nullopt;
+                        return util::Error{_("Change index out of range")};
                     }
 
                     std::vector<CTxOut>::iterator position =
@@ -864,8 +859,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
             int nBytes = CalculateMaximumSignedTxSize(
                 txNewConst, &wallet, coin_control.fAllowWatchOnly);
             if (nBytes < 0) {
-                error = _("Signing transaction failed");
-                return std::nullopt;
+                return util::Error{_("Signing transaction failed")};
             }
 
             Amount nFeeNeeded = GetMinimumFee(wallet, nBytes, coin_control);
@@ -916,8 +910,8 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
                 // to pay for the new output and still meet nFeeNeeded.
                 // Or we should have just subtracted fee from recipients and
                 // nFeeNeeded should not have changed.
-                error = _("Transaction fee and change calculation failed");
-                return std::nullopt;
+                return util::Error{
+                    _("Transaction fee and change calculation failed")};
             }
 
             // Try to reduce change to include necessary fee.
@@ -950,7 +944,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
 
         // Give up if change keypool ran out and change is required
         if (scriptChange.empty() && nChangePosInOut != -1) {
-            return std::nullopt;
+            return util::Error{error};
         }
 
         // Shuffle selected coins and fill in final vin
@@ -969,8 +963,7 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
         }
 
         if (sign && !wallet.SignTransaction(txNew)) {
-            error = _("Signing transaction failed");
-            return std::nullopt;
+            return util::Error{_("Signing transaction failed")};
         }
 
         // Return the constructed transaction data.
@@ -978,14 +971,13 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
 
         // Limit size.
         if (tx->GetTotalSize() > MAX_STANDARD_TX_SIZE) {
-            error = _("Transaction too large");
-            return std::nullopt;
+            return util::Error{_("Transaction too large")};
         }
     }
 
     if (nFeeRet > wallet.m_default_max_tx_fee) {
-        error = TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED);
-        return std::nullopt;
+        return util::Error{
+            TransactionErrorString(TransactionError::MAX_FEE_EXCEEDED)};
     }
 
     // Before we return success, we assume any change key will be used to
@@ -995,43 +987,41 @@ static std::optional<CreatedTransactionResult> CreateTransactionInternal(
     return CreatedTransactionResult(tx, nFeeRet, nChangePosInOut);
 }
 
-std::optional<CreatedTransactionResult>
+util::Result<CreatedTransactionResult>
 CreateTransaction(CWallet &wallet, const std::vector<CRecipient> &vecSend,
-                  int change_pos, bilingual_str &error,
-                  const CCoinControl &coin_control, bool sign) {
-    std::optional<CreatedTransactionResult> txr_ungrouped =
-        CreateTransactionInternal(wallet, vecSend, change_pos, error,
-                                  coin_control, sign);
-    if (!txr_ungrouped) {
-        return std::nullopt;
+                  int change_pos, const CCoinControl &coin_control, bool sign) {
+    auto res = CreateTransactionInternal(wallet, vecSend, change_pos,
+                                         coin_control, sign);
+    if (!res) {
+        return res;
     }
+    const auto &txr_ungrouped = *res;
     // try with avoidpartialspends unless it's enabled already
     // 0 as fee means non-functional fee rate estimation
-    if (txr_ungrouped->fee > Amount::zero() &&
+    if (txr_ungrouped.fee > Amount::zero() &&
         wallet.m_max_aps_fee > (-1 * SATOSHI) &&
         !coin_control.m_avoid_partial_spends) {
         CCoinControl tmp_cc = coin_control;
         tmp_cc.m_avoid_partial_spends = true;
         // fired and forgotten; if an error occurs, we discard the results
         bilingual_str error2;
-        std::optional<CreatedTransactionResult> txr_grouped =
-            CreateTransactionInternal(wallet, vecSend, change_pos, error2,
-                                      tmp_cc, sign);
+        auto txr_grouped = CreateTransactionInternal(wallet, vecSend,
+                                                     change_pos, tmp_cc, sign);
         if (txr_grouped) {
             // if fee of this alternative one is within the range of the max
             // fee, we use this one
             const bool use_aps =
-                txr_grouped->fee <= txr_ungrouped->fee + wallet.m_max_aps_fee;
+                txr_grouped->fee <= txr_ungrouped.fee + wallet.m_max_aps_fee;
             wallet.WalletLogPrintf(
                 "Fee non-grouped = %lld, grouped = %lld, using %s\n",
-                txr_ungrouped->fee, txr_grouped->fee,
+                txr_ungrouped.fee, txr_grouped->fee,
                 use_aps ? "grouped" : "non-grouped");
             if (use_aps) {
                 return txr_grouped;
             }
         }
     }
-    return txr_ungrouped;
+    return res;
 }
 
 bool FundTransaction(CWallet &wallet, CMutableTransaction &tx, Amount &nFeeRet,
@@ -1059,14 +1049,16 @@ bool FundTransaction(CWallet &wallet, CMutableTransaction &tx, Amount &nFeeRet,
     // CreateTransaction call and LockCoin calls (when lockUnspents is true).
     LOCK(wallet.cs_wallet);
 
-    std::optional<CreatedTransactionResult> txr = CreateTransaction(
-        wallet, vecSend, nChangePosInOut, error, coinControl, false);
-    if (!txr) {
+    auto res =
+        CreateTransaction(wallet, vecSend, nChangePosInOut, coinControl, false);
+    if (!res) {
+        error = util::ErrorString(res);
         return false;
     }
-    CTransactionRef tx_new = txr->tx;
-    nFeeRet = txr->fee;
-    nChangePosInOut = txr->change_pos;
+    const auto &txr = *res;
+    CTransactionRef tx_new = txr.tx;
+    nFeeRet = txr.fee;
+    nChangePosInOut = txr.change_pos;
 
     if (nChangePosInOut != -1) {
         tx.vout.insert(tx.vout.begin() + nChangePosInOut,

@@ -240,22 +240,21 @@ namespace {
             LOCK(m_wallet->cs_wallet);
             return m_wallet->ListLockedCoins(outputs);
         }
-        CTransactionRef
+        util::Result<CTransactionRef>
         createTransaction(const std::vector<CRecipient> &recipients,
                           const CCoinControl &coin_control, bool sign,
-                          int &change_pos, Amount &fee,
-                          bilingual_str &fail_reason) override {
+                          int &change_pos, Amount &fee) override {
             LOCK(m_wallet->cs_wallet);
-            std::optional<CreatedTransactionResult> txr =
-                CreateTransaction(*m_wallet, recipients, change_pos,
-                                  fail_reason, coin_control, sign);
-            if (!txr) {
-                return {};
+            auto res = CreateTransaction(*m_wallet, recipients, change_pos,
+                                         coin_control, sign);
+            if (!res) {
+                return util::Error{util::ErrorString(res)};
             }
-            fee = txr->fee;
-            change_pos = txr->change_pos;
+            const auto &txr = *res;
+            fee = txr.fee;
+            change_pos = txr.change_pos;
 
-            return txr->tx;
+            return txr.tx;
         }
         void commitTransaction(CTransactionRef tx, WalletValueMap value_map,
                                WalletOrderForm order_form) override {

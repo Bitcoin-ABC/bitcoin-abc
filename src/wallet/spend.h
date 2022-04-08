@@ -5,6 +5,7 @@
 #ifndef BITCOIN_WALLET_SPEND_H
 #define BITCOIN_WALLET_SPEND_H
 
+#include <util/result.h>
 #include <wallet/coinselection.h>
 #include <wallet/transaction.h>
 #include <wallet/wallet.h>
@@ -177,10 +178,10 @@ struct CreatedTransactionResult {
  * selected by SelectCoins(); Also create the change output, when needed
  * @note passing change_pos as -1 will result in setting a random position
  */
-std::optional<CreatedTransactionResult>
+util::Result<CreatedTransactionResult>
 CreateTransaction(CWallet &wallet, const std::vector<CRecipient> &vecSend,
-                  int change_pos, bilingual_str &error,
-                  const CCoinControl &coin_control, bool sign = true);
+                  int change_pos, const CCoinControl &coin_control,
+                  bool sign = true);
 
 /**
  * Insert additional inputs into the transaction by

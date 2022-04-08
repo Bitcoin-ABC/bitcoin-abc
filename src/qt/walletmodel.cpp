@@ -217,9 +217,10 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
     bilingual_str error;
 
     auto &newTx = transaction.getWtx();
-    newTx = m_wallet->createTransaction(
-        vecSend, coinControl, !wallet().privateKeysDisabled() /* sign */,
-        nChangePosRet, nFeeRequired, error);
+    const auto &res = m_wallet->createTransaction(
+        vecSend, coinControl, /*sign=*/!wallet().privateKeysDisabled(),
+        nChangePosRet, nFeeRequired);
+    newTx = res ? *res : nullptr;
     transaction.setTransactionFee(nFeeRequired);
     if (fSubtractFeeFromAmount && newTx) {
         transaction.reassignAmounts(nChangePosRet);
@@ -229,9 +230,10 @@ WalletModel::prepareTransaction(WalletModelTransaction &transaction,
         if (!fSubtractFeeFromAmount && (total + nFeeRequired) > nBalance) {
             return SendCoinsReturn(AmountWithFeeExceedsBalance);
         }
-        Q_EMIT message(tr("Send Coins"),
-                       QString::fromStdString(error.translated),
-                       CClientUIInterface::MSG_ERROR);
+        Q_EMIT message(
+            tr("Send Coins"),
+            QString::fromStdString(util::ErrorString(res).translated),
+            CClientUIInterface::MSG_ERROR);
         return TransactionCreationFailed;
     }
 

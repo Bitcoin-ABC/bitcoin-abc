@@ -14,6 +14,7 @@
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
 #include <util/message.h>
+#include <util/result.h>
 #include <util/ui_change_type.h>
 
 #include <cstdint>
@@ -152,11 +153,10 @@ public:
     virtual void listLockedCoins(std::vector<COutPoint> &outputs) = 0;
 
     //! Create transaction.
-    virtual CTransactionRef
+    virtual util::Result<CTransactionRef>
     createTransaction(const std::vector<CRecipient> &recipients,
                       const CCoinControl &coin_control, bool sign,
-                      int &change_pos, Amount &fee,
-                      bilingual_str &fail_reason) = 0;
+                      int &change_pos, Amount &fee) = 0;
 
     //! Commit transaction.
     virtual void commitTransaction(CTransactionRef tx, WalletValueMap value_map,

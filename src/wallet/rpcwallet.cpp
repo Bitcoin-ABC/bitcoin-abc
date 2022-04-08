@@ -23,6 +23,7 @@
 #include <util/bip32.h>
 #include <util/error.h>
 #include <util/moneystr.h>
+#include <util/result.h>
 #include <util/string.h>
 #include <util/translation.h>
 #include <util/url.h>
@@ -286,15 +287,15 @@ UniValue SendMoney(CWallet *const pwallet, const CCoinControl &coin_control,
 
     // Send
     constexpr int RANDOM_CHANGE_POSITION = -1;
-    bilingual_str error;
-    std::optional<CreatedTransactionResult> txr = CreateTransaction(
-        *pwallet, recipients, RANDOM_CHANGE_POSITION, error, coin_control,
+    auto res = CreateTransaction(
+        *pwallet, recipients, RANDOM_CHANGE_POSITION, coin_control,
         !pwallet->IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS));
-    if (!txr) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, error.original);
+    if (!res) {
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
+                           util::ErrorString(res).original);
     }
-    CTransactionRef tx = txr->tx;
-    pwallet->CommitTransaction(tx, std::move(map_value), {} /* orderForm */,
+    const CTransactionRef &tx = res->tx;
+    pwallet->CommitTransaction(tx, std::move(map_value), /*orderForm=*/{},
                                broadcast);
     return tx->GetId().GetHex();
 }
