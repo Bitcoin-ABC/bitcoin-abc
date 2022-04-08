@@ -54,7 +54,6 @@ class TransactionOrderingTest(BitcoinTestFramework):
         # First create the coinbase
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
-        coinbase.rehash()
         if spend is None:
             # We need to have something to spend to fill the block.
             block = create_block(base_block_hash, coinbase, block_time)

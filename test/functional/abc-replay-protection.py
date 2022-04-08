@@ -75,7 +75,6 @@ class ReplayProtectionTest(BitcoinTestFramework):
         # First create the coinbase
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
-        coinbase.rehash()
         block = create_block(base_block_hash, coinbase, block_time)
 
         # Do PoW, which is cheap on regnet

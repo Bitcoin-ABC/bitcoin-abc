@@ -118,7 +118,6 @@ class FullBlockTest(BitcoinTestFramework):
         # First create the coinbase
         height = self.block_heights[base_block_hash] + 1
         coinbase = create_coinbase(height)
-        coinbase.rehash()
         if spend is None:
             # We need to have something to spend to fill the block.
             assert_equal(block_size, 0)
