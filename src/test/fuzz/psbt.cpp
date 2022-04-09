@@ -28,7 +28,7 @@ FUZZ_TARGET_INIT(psbt, initialize_psbt) {
     PartiallySignedTransaction psbt_mut;
     const std::string raw_psbt{buffer.begin(), buffer.end()};
     std::string error;
-    if (!DecodeRawPSBT(psbt_mut, raw_psbt, error)) {
+    if (!DecodeRawPSBT(psbt_mut, MakeByteSpan(raw_psbt), error)) {
         return;
     }
     const PartiallySignedTransaction psbt = psbt_mut;

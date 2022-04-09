@@ -34,15 +34,13 @@ MessageVerificationResult MessageVerify(const CChainParams &params,
         return MessageVerificationResult::ERR_ADDRESS_NO_KEY;
     }
 
-    bool invalid = false;
-    std::vector<uint8_t> signature_bytes =
-        DecodeBase64(signature.c_str(), &invalid);
-    if (invalid) {
+    auto signature_bytes = DecodeBase64(signature);
+    if (!signature_bytes) {
         return MessageVerificationResult::ERR_MALFORMED_SIGNATURE;
     }
 
     CPubKey pubkey;
-    if (!pubkey.RecoverCompact(MessageHash(message), signature_bytes)) {
+    if (!pubkey.RecoverCompact(MessageHash(message), *signature_bytes)) {
         return MessageVerificationResult::ERR_PUBKEY_NOT_RECOVERED;
     }
 

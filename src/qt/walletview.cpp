@@ -261,11 +261,12 @@ void WalletView::gotoLoadPSBT() {
         return;
     }
     std::ifstream in{filename.toLocal8Bit().data(), std::ios::binary};
-    std::string dataStr(std::istreambuf_iterator<char>{in}, {});
+    std::vector<uint8_t> data;
+    data.assign(std::istream_iterator<uint8_t>{in}, {});
 
     std::string error;
     PartiallySignedTransaction psbtx;
-    if (!DecodeRawPSBT(psbtx, dataStr, error)) {
+    if (!DecodeRawPSBT(psbtx, MakeByteSpan(data), error)) {
         Q_EMIT message(tr("Error"),
                        tr("Unable to decode PSBT file") + "\n" +
                            QString::fromStdString(error),

@@ -249,24 +249,22 @@ bool CNetAddr::SetTor(const std::string &addr) {
         return false;
     }
 
-    bool invalid;
-    const auto &input = DecodeBase32(
-        addr.substr(0, addr.size() - suffix_len).c_str(), &invalid);
+    auto input = DecodeBase32(addr.substr(0, addr.size() - suffix_len));
 
-    if (invalid) {
+    if (!input) {
         return false;
     }
 
-    switch (input.size()) {
+    switch (input->size()) {
         case ADDR_TORV2_SIZE:
             m_net = NET_ONION;
-            m_addr.assign(input.begin(), input.end());
+            m_addr.assign(input->begin(), input->end());
             return true;
         case torv3::TOTAL_LEN: {
-            Span<const uint8_t> input_pubkey{input.data(), ADDR_TORV3_SIZE};
-            Span<const uint8_t> input_checksum{input.data() + ADDR_TORV3_SIZE,
+            Span<const uint8_t> input_pubkey{input->data(), ADDR_TORV3_SIZE};
+            Span<const uint8_t> input_checksum{input->data() + ADDR_TORV3_SIZE,
                                                torv3::CHECKSUM_LEN};
-            Span<const uint8_t> input_version{input.data() + ADDR_TORV3_SIZE +
+            Span<const uint8_t> input_version{input->data() + ADDR_TORV3_SIZE +
                                                   torv3::CHECKSUM_LEN,
                                               sizeof(torv3::VERSION)};
 
@@ -306,15 +304,14 @@ bool CNetAddr::SetI2P(const std::string &addr) {
     // DecodeBase32() can decode it.
     const std::string b32_padded = addr.substr(0, b32_len) + "====";
 
-    bool invalid;
-    const auto &address_bytes = DecodeBase32(b32_padded.c_str(), &invalid);
+    auto address_bytes = DecodeBase32(b32_padded);
 
-    if (invalid || address_bytes.size() != ADDR_I2P_SIZE) {
+    if (!address_bytes || address_bytes->size() != ADDR_I2P_SIZE) {
         return false;
     }
 
     m_net = NET_I2P;
-    m_addr.assign(address_bytes.begin(), address_bytes.end());
+    m_addr.assign(address_bytes->begin(), address_bytes->end());
 
     return true;
 }
