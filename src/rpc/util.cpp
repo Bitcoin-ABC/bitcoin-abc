@@ -9,6 +9,7 @@
 #include <script/descriptor.h>
 #include <script/signingprovider.h>
 #include <tinyformat.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/translation.h>
@@ -791,7 +792,7 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
         }
         case Type::ANY: {
             // Only for testing
-            CHECK_NONFATAL(false);
+            NONFATAL_UNREACHABLE();
         }
         case Type::NONE: {
             sections.PushSection(
@@ -874,7 +875,7 @@ void RPCResult::ToSections(Sections &sections, const OuterType outer_type,
             return;
         } // no default case, so the compiler can warn about missing cases
     }
-    CHECK_NONFATAL(false);
+    NONFATAL_UNREACHABLE();
 }
 
 bool RPCResult::MatchesType(const UniValue &result) const {
@@ -910,7 +911,7 @@ bool RPCResult::MatchesType(const UniValue &result) const {
             return UniValue::VOBJ == result.getType();
         }
     } // no default case, so the compiler can warn about missing cases
-    CHECK_NONFATAL(false);
+    NONFATAL_UNREACHABLE();
 }
 
 std::string RPCArg::ToStringObj(const bool oneline) const {
@@ -944,11 +945,11 @@ std::string RPCArg::ToStringObj(const bool oneline) const {
         case Type::OBJ:
         case Type::OBJ_USER_KEYS:
             // Currently unused, so avoid writing dead code
-            CHECK_NONFATAL(false);
+            NONFATAL_UNREACHABLE();
 
             // no default case, so the compiler can warn about missing cases
     }
-    CHECK_NONFATAL(false);
+    NONFATAL_UNREACHABLE();
     return res + "unknown";
 }
 
@@ -987,7 +988,7 @@ std::string RPCArg::ToString(const bool oneline) const {
             return "[" + res + "...]";
         } // no default case, so the compiler can warn about missing cases
     }
-    CHECK_NONFATAL(false);
+    NONFATAL_UNREACHABLE();
 }
 
 static std::pair<int64_t, int64_t> ParseRange(const UniValue &value) {

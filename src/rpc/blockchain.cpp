@@ -35,6 +35,7 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <undo.h>
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -1291,8 +1292,7 @@ static RPCHelpMan pruneblockchain() {
             }
 
             PruneBlockFilesManual(active_chainstate, height);
-            const CBlockIndex *block = active_chain.Tip();
-            CHECK_NONFATAL(block);
+            const CBlockIndex *block = CHECK_NONFATAL(active_chain.Tip());
             while (block->pprev && (block->pprev->nStatus.hasData())) {
                 block = block->pprev;
             }
@@ -1882,8 +1882,8 @@ RPCHelpMan getblockchaininfo() {
             LOCK(cs_main);
             CChainState &active_chainstate = chainman.ActiveChainstate();
 
-            const CBlockIndex *tip = active_chainstate.m_chain.Tip();
-            CHECK_NONFATAL(tip);
+            const CBlockIndex *tip =
+                CHECK_NONFATAL(active_chainstate.m_chain.Tip());
             const int height = tip->nHeight;
 
             UniValue obj(UniValue::VOBJ);
@@ -1906,8 +1906,7 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("pruned", node::fPruneMode);
 
             if (node::fPruneMode) {
-                const CBlockIndex *block = tip;
-                CHECK_NONFATAL(block);
+                const CBlockIndex *block = CHECK_NONFATAL(tip);
                 while (block->pprev && (block->pprev->nStatus.hasData())) {
                     block = block->pprev;
                 }
@@ -3074,11 +3073,9 @@ static RPCHelpMan scantxoutset() {
                     CChainState &active_chainstate =
                         chainman.ActiveChainstate();
                     active_chainstate.ForceFlushStateToDisk();
-                    pcursor = std::unique_ptr<CCoinsViewCursor>(
-                        active_chainstate.CoinsDB().Cursor());
-                    CHECK_NONFATAL(pcursor);
-                    tip = active_chainstate.m_chain.Tip();
-                    CHECK_NONFATAL(tip);
+                    pcursor = CHECK_NONFATAL(std::unique_ptr<CCoinsViewCursor>(
+                        active_chainstate.CoinsDB().Cursor()));
+                    tip = CHECK_NONFATAL(active_chainstate.m_chain.Tip());
                 }
                 bool res = FindScriptPubKey(
                     g_scan_progress, g_should_abort_scan, count, pcursor.get(),
@@ -3301,8 +3298,8 @@ UniValue CreateUTXOSnapshot(NodeContext &node, CChainState &chainstate,
 
         pcursor =
             std::unique_ptr<CCoinsViewCursor>(chainstate.CoinsDB().Cursor());
-        tip = chainstate.m_blockman.LookupBlockIndex(stats.hashBlock);
-        CHECK_NONFATAL(tip);
+        tip = CHECK_NONFATAL(
+            chainstate.m_blockman.LookupBlockIndex(stats.hashBlock));
     }
 
     SnapshotMetadata metadata{tip->GetBlockHash(), stats.coins_count,

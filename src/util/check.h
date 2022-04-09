@@ -17,8 +17,26 @@ class NonFatalCheckError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
+#define format_internal_error(msg, file, line, func, report)                   \
+    strprintf("Internal bug detected: \"%s\"\n%s:%d (%s)\nPlease report this " \
+              "issue here: %s\n",                                              \
+              msg, file, line, func, report)
+
+/** Helper for CHECK_NONFATAL() */
+template <typename T>
+T &&inline_check_non_fatal(T &&val, const char *file, int line,
+                           const char *func, const char *assertion) {
+    if (!(val)) {
+        throw NonFatalCheckError(format_internal_error(
+            assertion, file, line, func, PACKAGE_BUGREPORT));
+    }
+
+    return std::forward<T>(val);
+}
+
 /**
- * Throw a NonFatalCheckError when the condition evaluates to false
+ * Identity function. Throw a NonFatalCheckError when the condition evaluates
+ * to false
  *
  * This should only be used
  * - where the condition is assumed to be true, not for error handling or
@@ -32,16 +50,7 @@ class NonFatalCheckError : public std::runtime_error {
  * caller, which can then report the issue to the developers.
  */
 #define CHECK_NONFATAL(condition)                                              \
-    do {                                                                       \
-        if (!(condition)) {                                                    \
-            throw NonFatalCheckError(                                          \
-                strprintf("%s:%d (%s)\n"                                       \
-                          "Internal bug detected: '%s'\n"                      \
-                          "You may report this issue here: %s\n",              \
-                          __FILE__, __LINE__, __func__, (#condition),          \
-                          PACKAGE_BUGREPORT));                                 \
-        }                                                                      \
-    } while (false)
+    inline_check_non_fatal(condition, __FILE__, __LINE__, __func__, #condition)
 
 #if defined(NDEBUG)
 #error "Cannot compile without assertions!"
@@ -79,5 +88,16 @@ template <typename T> T get_pure_r_value(T &&val) {
         return std::forward<decltype(get_pure_r_value(val))>(check);           \
     }())
 #endif
+
+/**
+ * NONFATAL_UNREACHABLE() is a macro that is used to mark unreachable code.
+ * It throws a NonFatalCheckError.
+ * This is used to mark code that is not yet implemented or is not yet
+ * reachable.
+ */
+#define NONFATAL_UNREACHABLE()                                                 \
+    throw NonFatalCheckError(format_internal_error(                            \
+        "Unreachable code reached (non-fatal)", __FILE__, __LINE__, __func__,  \
+        PACKAGE_BUGREPORT))
 
 #endif // BITCOIN_UTIL_CHECK_H

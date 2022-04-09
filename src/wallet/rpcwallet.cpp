@@ -4117,8 +4117,7 @@ RPCHelpMan getaddressesbylabel() {
                     // CWallet::m_address_book is not expected to contain
                     // duplicate address strings, but build a separate set as a
                     // precaution just in case it does.
-                    bool unique = addresses.emplace(address).second;
-                    CHECK_NONFATAL(unique);
+                    CHECK_NONFATAL(addresses.emplace(address).second);
                     // UniValue::pushKV checks if the key exists in O(N)
                     // and since duplicate addresses are unexpected (checked
                     // with std::set in O(log(N))), UniValue::__pushKV is used

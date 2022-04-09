@@ -34,6 +34,7 @@
 #include <txmempool.h>
 #include <uint256.h>
 #include <util/bip32.h>
+#include <util/check.h>
 #include <util/error.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
