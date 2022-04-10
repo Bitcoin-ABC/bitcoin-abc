@@ -111,7 +111,7 @@ const OnBoarding = () => {
                 <br />
                 Want to learn more?{' '}
                 <WelcomeLink
-                    href="https://docs.cashtabapp.com/docs/"
+                    href="https://docs.cashtab.com/docs/"
                     target="_blank"
                     rel="noreferrer"
                 >
