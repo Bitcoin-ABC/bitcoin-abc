@@ -24,6 +24,7 @@ enum class SynchronizationState;
 namespace interfaces {
 class Handler;
 class Node;
+struct BlockTip;
 } // namespace interfaces
 
 QT_BEGIN_NAMESPACE
@@ -100,6 +101,8 @@ private:
     //! A thread to interact with m_node asynchronously
     QThread *const m_thread;
 
+    void TipChanged(SynchronizationState sync_state, interfaces::BlockTip tip,
+                    double verification_progress, bool header);
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 
@@ -119,12 +122,6 @@ Q_SIGNALS:
 
     // Show progress dialog e.g. for verifychain
     void showProgress(const QString &title, int nProgress);
-
-public Q_SLOTS:
-    void updateNumConnections(int numConnections);
-    void updateNetworkActive(bool networkActive);
-    void updateAlert();
-    void updateBanlist();
 };
 
 #endif // BITCOIN_QT_CLIENTMODEL_H
