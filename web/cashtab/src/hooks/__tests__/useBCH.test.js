@@ -555,6 +555,9 @@ describe('useBCH hook', () => {
     it(`Correctly parses a "send ${currency.ticker}" transaction with an OP_RETURN message`, async () => {
         const { parseTxData } = useBCH();
         const BCH = new BCHJS();
+        BCH.RawTransactions.getRawTransaction = jest
+            .fn()
+            .mockResolvedValue(mockTxDataWithPassthrough[14]);
         expect(
             await parseTxData(
                 BCH,
