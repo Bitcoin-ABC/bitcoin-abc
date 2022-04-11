@@ -617,7 +617,6 @@ const Configure = () => {
                                     Click to reveal seed phrase
                                 </div>
                             }
-                            key="1"
                         >
                             <p
                                 className="notranslate"
@@ -695,7 +694,7 @@ const Configure = () => {
                 {savedWallets && savedWallets.length > 0 && (
                     <>
                         <StyledCollapse>
-                            <Panel header="Saved wallets" key="2">
+                            <Panel header="Saved wallets">
                                 <AWRow>
                                     <h3 className="notranslate">
                                         {wallet.name}

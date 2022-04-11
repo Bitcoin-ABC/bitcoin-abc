@@ -1099,7 +1099,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         marginBottom: '12px',
                     }}
                 >
-                    <Panel header="Sign Message" key="1">
+                    <Panel header="Sign Message">
                         <AntdFormWrapper>
                             <Form
                                 size="small"
@@ -1200,7 +1200,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         marginBottom: '24px',
                     }}
                 >
-                    <Panel header="Verify Message" key="1">
+                    <Panel header="Verify Message">
                         <AntdFormWrapper>
                             <Form
                                 size="small"
