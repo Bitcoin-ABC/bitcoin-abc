@@ -9,8 +9,8 @@
 #include <avalanche/validation.h>
 #include <coins.h>
 #include <script/standard.h>
-#include <streams.h>
 #include <util/strencodings.h>
+#include <util/translation.h>
 
 #include <test/util/setup_common.h>
 
@@ -861,9 +861,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
 
     auto checkCases = [&](const std::vector<TestVector> &testcases) {
         for (auto &c : testcases) {
-            CDataStream stream(ParseHex(c.hex), SER_NETWORK, 0);
             Proof p;
-            stream >> p;
+            bilingual_str error;
+            BOOST_CHECK(Proof::FromHex(p, c.hex, error));
             BOOST_CHECK_EQUAL(p.getId(), c.proofid);
             BOOST_CHECK_EQUAL(p.getScore(), c.score);
 

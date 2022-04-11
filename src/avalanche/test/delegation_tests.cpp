@@ -6,14 +6,12 @@
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/test/util.h>
 #include <avalanche/validation.h>
-#include <streams.h>
+#include <util/strencodings.h>
+#include <util/translation.h>
 
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
-
-#include <streams.h>
-#include <util/strencodings.h>
 
 using namespace avalanche;
 
@@ -75,16 +73,16 @@ BOOST_AUTO_TEST_CASE(verify_random) {
 
 static Proof getProof() {
     Proof p;
-    CDataStream stream(
-        ParseHex(
-            "0000000000000000ffffffff0000000021023beefdde700a6bc02036335b4df141"
-            "c8bc67bb05a971f5ac2745fd683797dde301bee72758084395310b5a7ccc98a836"
-            "11dff786f0a469d1d66626ba286b0423870000000000108dbe1c000000a4090000"
-            "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
-            "8069c539018ac799848811fb44a4b987faa71a634970d35976c5e766fb98502432"
-            "aaec53034bd7df23767e7e695203599cf4a6a71569bdf03e90f0f91c8760faae"),
-        SER_NETWORK, 0);
-    stream >> p;
+    bilingual_str error;
+    BOOST_CHECK(Proof::FromHex(
+        p,
+        "0000000000000000ffffffff0000000021023beefdde700a6bc02036335b4df141"
+        "c8bc67bb05a971f5ac2745fd683797dde301bee72758084395310b5a7ccc98a836"
+        "11dff786f0a469d1d66626ba286b0423870000000000108dbe1c000000a4090000"
+        "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
+        "8069c539018ac799848811fb44a4b987faa71a634970d35976c5e766fb98502432"
+        "aaec53034bd7df23767e7e695203599cf4a6a71569bdf03e90f0f91c8760faae",
+        error));
     BOOST_CHECK_EQUAL(p.getId(),
                       ProofId::fromHex("afc74900c1f28b69e466461fb1e0663352da615"
                                        "3be0fcd59280e27f2446391d5"));
@@ -181,9 +179,9 @@ BOOST_AUTO_TEST_CASE(deserialization) {
     };
 
     for (auto &c : testcases) {
-        CDataStream stream(ParseHex(c.hex), SER_NETWORK, 0);
         Delegation dg;
-        stream >> dg;
+        bilingual_str error;
+        BOOST_CHECK(Delegation::FromHex(dg, c.hex, error));
         BOOST_CHECK_EQUAL(dg.getId(), DelegationId::fromHex(c.dgid));
 
         DelegationState state;
