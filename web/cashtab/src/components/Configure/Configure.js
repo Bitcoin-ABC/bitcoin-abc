@@ -52,6 +52,7 @@ import ApiError from 'components/Common/ApiError';
 import { formatSavedBalance } from 'utils/formatting';
 import { isValidXecAddress } from 'utils/validation';
 
+import { currency } from 'components/Common/Ticker.js';
 const { Panel } = Collapse;
 
 const SettingsLink = styled.a`
@@ -694,7 +695,10 @@ const Configure = () => {
     };
 
     const changeWalletName = async () => {
-        if (newWalletName === '' || newWalletName.length > 24) {
+        if (
+            newWalletName === '' ||
+            newWalletName.length > currency.localStorageMaxCharacters
+        ) {
             setNewWalletNameIsValid(false);
             return;
         }
@@ -758,7 +762,11 @@ const Configure = () => {
     const handleWalletNameInput = e => {
         const { value } = e.target;
         // validation
-        if (value && value.length && value.length < 24) {
+        if (
+            value &&
+            value.length &&
+            value.length <= currency.localStorageMaxCharacters
+        ) {
             setNewWalletNameIsValid(true);
         } else {
             setNewWalletNameIsValid(false);
@@ -797,7 +805,11 @@ const Configure = () => {
     const handleContactNameInput = e => {
         const { value } = e.target;
 
-        if (value && value.length && value.length < 24) {
+        if (
+            value &&
+            value.length &&
+            value.length < currency.localStorageMaxCharacters
+        ) {
             setNewContactNameIsValid(true);
         } else {
             setNewContactNameIsValid(false);

@@ -28,6 +28,7 @@ export const currency = {
     defaultSettings: { fiatCurrency: 'usd', sendModal: false },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
+    localStorageMaxCharacters: 24,
     newTokenDefaultUrl: 'https://cashtab.com/',
     opReturn: {
         opReturnPrefixHex: '6a',
