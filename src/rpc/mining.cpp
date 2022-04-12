@@ -658,111 +658,124 @@ static RPCHelpMan getblocktemplate() {
              },
              "\"template_request\""},
         },
-        RPCResult{
-            RPCResult::Type::OBJ,
-            "",
-            "",
-            {
-                {RPCResult::Type::NUM, "version",
-                 "The preferred block version"},
-                {RPCResult::Type::STR, "previousblockhash",
-                 "The hash of current highest block"},
-                {RPCResult::Type::ARR,
-                 "transactions",
-                 "contents of non-coinbase transactions that should be "
-                 "included in the next block",
-                 {
-                     {RPCResult::Type::OBJ,
-                      "",
-                      "",
-                      {
-                          {RPCResult::Type::STR_HEX, "data",
-                           "transaction data encoded in hexadecimal "
-                           "(byte-for-byte)"},
-                          {RPCResult::Type::STR_HEX, "txid",
-                           "transaction id encoded in little-endian "
-                           "hexadecimal"},
-                          {RPCResult::Type::STR_HEX, "hash",
-                           "hash encoded in little-endian hexadecimal"},
-                          {RPCResult::Type::ARR,
-                           "depends",
-                           "array of numbers",
-                           {
-                               {RPCResult::Type::NUM, "",
-                                "transactions before this one (by 1-based "
-                                "index in 'transactions' list) that must be "
-                                "present in the final block if this one is"},
-                           }},
-                          {RPCResult::Type::NUM, "fee",
-                           "difference in value between transaction inputs and "
-                           "outputs (in satoshis); for coinbase transactions, "
-                           "this is a negative Number of the total collected "
-                           "block fees (ie, not including the block subsidy); "
-                           "if key is not present, fee is unknown and clients "
-                           "MUST NOT assume there isn't one"},
-                          {RPCResult::Type::NUM, "sigops",
-                           "total SigOps cost, as counted for purposes of "
-                           "block limits; if key is not present, sigop cost is "
-                           "unknown and clients MUST NOT assume it is zero"},
-                      }},
-                 }},
-                {RPCResult::Type::OBJ,
-                 "coinbaseaux",
-                 "data that should be included in the coinbase's scriptSig "
-                 "content",
-                 {
-                     {RPCResult::Type::ELISION, "", ""},
-                 }},
-                {RPCResult::Type::NUM, "coinbasevalue",
-                 "maximum allowable input to coinbase transaction, including "
-                 "the generation award and transaction fees (in satoshis)"},
-                {RPCResult::Type::OBJ,
-                 "coinbasetxn",
-                 "information for coinbase transaction",
-                 {
-                     {RPCResult::Type::OBJ,
-                      "minerfund",
-                      "information related to the coinbase miner fund",
-                      {
+        {
+            RPCResult{"If the proposal was accepted with mode=='proposal'",
+                      RPCResult::Type::NONE, "", ""},
+            RPCResult{"If the proposal was not accepted with mode=='proposal'",
+                      RPCResult::Type::STR, "", "According to BIP22"},
+            RPCResult{
+                "Otherwise",
+                RPCResult::Type::OBJ,
+                "",
+                "",
+                {
+                    {RPCResult::Type::NUM, "version",
+                     "The preferred block version"},
+                    {RPCResult::Type::STR, "previousblockhash",
+                     "The hash of current highest block"},
+                    {RPCResult::Type::ARR,
+                     "transactions",
+                     "contents of non-coinbase transactions that should be "
+                     "included in the next block",
+                     {
+                         {RPCResult::Type::OBJ,
+                          "",
+                          "",
+                          {
+                              {RPCResult::Type::STR_HEX, "data",
+                               "transaction data encoded in hexadecimal "
+                               "(byte-for-byte)"},
+                              {RPCResult::Type::STR_HEX, "txid",
+                               "transaction id encoded in little-endian "
+                               "hexadecimal"},
+                              {RPCResult::Type::STR_HEX, "hash",
+                               "hash encoded in little-endian hexadecimal"},
+                              {RPCResult::Type::ARR,
+                               "depends",
+                               "array of numbers",
+                               {
+                                   {RPCResult::Type::NUM, "",
+                                    "transactions before this one (by 1-based "
+                                    "index in 'transactions' list) that must "
+                                    "be present in the final block if this one "
+                                    "is"},
+                               }},
+                              {RPCResult::Type::NUM, "fee",
+                               "difference in value between transaction inputs "
+                               "and outputs (in satoshis); for coinbase "
+                               "transactions, this is a negative Number of the "
+                               "total collected block fees (ie, not including "
+                               "the block subsidy); "
+                               "if key is not present, fee is unknown and "
+                               "clients MUST NOT assume there isn't one"},
+                              {RPCResult::Type::NUM, "sigops",
+                               "total SigOps cost, as counted for purposes of "
+                               "block limits; if key is not present, sigop "
+                               "cost is unknown and clients MUST NOT assume it "
+                               "is zero"},
+                          }},
+                     }},
+                    {RPCResult::Type::OBJ,
+                     "coinbaseaux",
+                     "data that should be included in the coinbase's scriptSig "
+                     "content",
+                     {
+                         {RPCResult::Type::ELISION, "", ""},
+                     }},
+                    {RPCResult::Type::NUM, "coinbasevalue",
+                     "maximum allowable input to coinbase transaction, "
+                     "including the generation award and transaction fees (in "
+                     "satoshis)"},
+                    {RPCResult::Type::OBJ,
+                     "coinbasetxn",
+                     "information for coinbase transaction",
+                     {
+                         {RPCResult::Type::OBJ,
+                          "minerfund",
+                          "information related to the coinbase miner fund",
+                          {
 
-                          {RPCResult::Type::ARR,
-                           "addresses",
-                           "List of valid addresses for the miner fund output",
-                           {
-                               {RPCResult::Type::ELISION, "", ""},
-                           }},
+                              {RPCResult::Type::ARR,
+                               "addresses",
+                               "List of valid addresses for the miner fund "
+                               "output",
+                               {
+                                   {RPCResult::Type::ELISION, "", ""},
+                               }},
 
-                          {RPCResult::Type::STR_AMOUNT, "minimumvalue",
-                           "The minimum value the miner fund output must pay"},
+                              {RPCResult::Type::STR_AMOUNT, "minimumvalue",
+                               "The minimum value the miner fund output must "
+                               "pay"},
 
-                      }},
-                     {RPCResult::Type::ELISION, "", ""},
-                 }},
-                {RPCResult::Type::STR, "target", "The hash target"},
-                {RPCResult::Type::NUM_TIME, "mintime",
-                 "The minimum timestamp appropriate for the next block time, "
-                 "expressed in " +
-                     UNIX_EPOCH_TIME},
-                {RPCResult::Type::ARR,
-                 "mutable",
-                 "list of ways the block template may be changed",
-                 {
-                     {RPCResult::Type::STR, "value",
-                      "A way the block template may be changed, e.g. 'time', "
-                      "'transactions', 'prevblock'"},
-                 }},
-                {RPCResult::Type::STR_HEX, "noncerange",
-                 "A range of valid nonces"},
-                {RPCResult::Type::NUM, "sigoplimit",
-                 "limit of sigops in blocks"},
-                {RPCResult::Type::NUM, "sizelimit", "limit of block size"},
-                {RPCResult::Type::NUM_TIME, "curtime",
-                 "current timestamp in " + UNIX_EPOCH_TIME},
-                {RPCResult::Type::STR, "bits",
-                 "compressed target of next block"},
-                {RPCResult::Type::NUM, "height",
-                 "The height of the next block"},
-            }},
+                          }},
+                         {RPCResult::Type::ELISION, "", ""},
+                     }},
+                    {RPCResult::Type::STR, "target", "The hash target"},
+                    {RPCResult::Type::NUM_TIME, "mintime",
+                     "The minimum timestamp appropriate for the next block "
+                     "time, expressed in " +
+                         UNIX_EPOCH_TIME},
+                    {RPCResult::Type::ARR,
+                     "mutable",
+                     "list of ways the block template may be changed",
+                     {
+                         {RPCResult::Type::STR, "value",
+                          "A way the block template may be changed, e.g. "
+                          "'time', 'transactions', 'prevblock'"},
+                     }},
+                    {RPCResult::Type::STR_HEX, "noncerange",
+                     "A range of valid nonces"},
+                    {RPCResult::Type::NUM, "sigoplimit",
+                     "limit of sigops in blocks"},
+                    {RPCResult::Type::NUM, "sizelimit", "limit of block size"},
+                    {RPCResult::Type::NUM_TIME, "curtime",
+                     "current timestamp in " + UNIX_EPOCH_TIME},
+                    {RPCResult::Type::STR, "bits",
+                     "compressed target of next block"},
+                    {RPCResult::Type::NUM, "height",
+                     "The height of the next block"},
+                }},
+        },
         RPCExamples{HelpExampleCli("getblocktemplate", "") +
                     HelpExampleRpc("getblocktemplate", "")},
         [&](const RPCHelpMan &self, const Config &config,
@@ -1077,9 +1090,12 @@ static RPCHelpMan submitblock() {
              "dummy value, for compatibility with BIP22. This value is "
              "ignored."},
         },
-        RPCResult{RPCResult::Type::NONE, "",
-                  "Returns JSON Null when valid, a string according to BIP22 "
-                  "otherwise"},
+        {
+            RPCResult{"If the block was accepted", RPCResult::Type::NONE, "",
+                      ""},
+            RPCResult{"Otherwise", RPCResult::Type::STR, "",
+                      "According to BIP22"},
+        },
         RPCExamples{HelpExampleCli("submitblock", "\"mydata\"") +
                     HelpExampleRpc("submitblock", "\"mydata\"")},
         [&](const RPCHelpMan &self, const Config &config,
