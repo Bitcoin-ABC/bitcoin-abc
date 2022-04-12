@@ -963,7 +963,8 @@ void SetupServerArgs(NodeContext &node) {
                    ArgsManager::ALLOW_ANY | ArgsManager::NETWORK_ONLY,
                    OptionsCategory::CONNECTION);
     argsman.AddArg("-proxy=<ip:port>", "Connect through SOCKS5 proxy",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
+                   ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_ELISION,
+                   OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-proxyrandomize",
         strprintf("Randomize credentials for every proxy connection. "
@@ -2010,11 +2011,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     if (args.GetBoolArg("-peerbloomfilters", DEFAULT_PEERBLOOMFILTERS)) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_BLOOM);
-    }
-
-    if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
-        return InitError(_(
-            "No proxy server specified. Use -proxy=<ip> or -proxy=<ip:port>."));
     }
 
     // Avalanche parameters

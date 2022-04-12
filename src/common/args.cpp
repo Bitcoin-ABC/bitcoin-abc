@@ -103,10 +103,9 @@ KeyInfo InterpretKey(std::string key) {
  * @return parsed settings value if it is valid, otherwise nullopt accompanied
  * by a descriptive error string
  */
-std::optional<util::SettingsValue> InterpretValue(const KeyInfo &key,
-                                                  const std::string &value,
-                                                  unsigned int flags,
-                                                  std::string &error) {
+std::optional<util::SettingsValue>
+InterpretValue(const KeyInfo &key, const std::optional<std::string> &value,
+               unsigned int flags, std::string &error) {
     // Return negated settings as false values.
     if (key.negated) {
         if (flags & ArgsManager::DISALLOW_NEGATION) {
@@ -116,15 +115,21 @@ std::optional<util::SettingsValue> InterpretValue(const KeyInfo &key,
             return std::nullopt;
         }
         // Double negatives like -nofoo=0 are supported (but discouraged)
-        if (!InterpretBool(value)) {
+        if (value && !InterpretBool(*value)) {
             LogPrintf("Warning: parsed potentially confusing double-negative "
                       "-%s=%s\n",
-                      key.name, value);
+                      key.name, *value);
             return true;
         }
         return false;
     }
-    return value;
+    if (!value && (flags & ArgsManager::DISALLOW_ELISION)) {
+        error = strprintf("Can not set -%s with no value. Please specify value "
+                          "with -%s=value.",
+                          key.name, key.name);
+        return std::nullopt;
+    }
+    return value.value_or("");
 }
 
 // Define default constructor and destructor that are not inline, so code
@@ -179,7 +184,7 @@ void ArgsManager::SelectConfigNetwork(const std::string &network) {
     m_network = network;
 }
 
-bool ParseKeyValue(std::string &key, std::string &val) {
+bool ParseKeyValue(std::string &key, std::optional<std::string> &val) {
     size_t is_index = key.find('=');
     if (is_index != std::string::npos) {
         val = key.substr(is_index + 1);
@@ -225,7 +230,7 @@ bool ArgsManager::ParseParameters(int argc, const char *const argv[],
             // bitcoin-tx using stdin
             break;
         }
-        std::string val;
+        std::optional<std::string> val;
         if (!ParseKeyValue(key, val)) {
             break;
         }

@@ -576,41 +576,41 @@ BOOST_AUTO_TEST_CASE(util_ParseParameters) {
 BOOST_AUTO_TEST_CASE(util_ParseKeyValue) {
     {
         std::string key = "badarg";
-        std::string value;
+        std::optional<std::string> value{std::nullopt};
         BOOST_CHECK(!ParseKeyValue(key, value));
     }
     {
         std::string key = "badarg=v";
-        std::string value;
+        std::optional<std::string> value{std::nullopt};
         BOOST_CHECK(!ParseKeyValue(key, value));
     }
     {
         std::string key = "-a";
-        std::string value;
+        std::optional<std::string> value{std::nullopt};
         BOOST_CHECK(ParseKeyValue(key, value));
         BOOST_CHECK_EQUAL(key, "-a");
-        BOOST_CHECK_EQUAL(value, "");
+        BOOST_CHECK(!value.has_value());
     }
     {
         std::string key = "-a=1";
-        std::string value;
+        std::optional<std::string> value{std::nullopt};
         BOOST_CHECK(ParseKeyValue(key, value));
         BOOST_CHECK_EQUAL(key, "-a");
-        BOOST_CHECK_EQUAL(value, "1");
+        BOOST_CHECK_EQUAL(value.value(), "1");
     }
     {
         std::string key = "--b";
-        std::string value;
+        std::optional<std::string> value{std::nullopt};
         BOOST_CHECK(ParseKeyValue(key, value));
         BOOST_CHECK_EQUAL(key, "-b");
-        BOOST_CHECK_EQUAL(value, "");
+        BOOST_CHECK(!value.has_value());
     }
     {
         std::string key = "--b=abc";
-        std::string value;
+        std::optional<std::string> value{std::nullopt};
         BOOST_CHECK(ParseKeyValue(key, value));
         BOOST_CHECK_EQUAL(key, "-b");
-        BOOST_CHECK_EQUAL(value, "abc");
+        BOOST_CHECK_EQUAL(value.value(), "abc");
     }
 }
 

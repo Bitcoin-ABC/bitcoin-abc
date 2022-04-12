@@ -14,6 +14,9 @@
 
 #include <boost/test/included/unit_test.hpp>
 
+#include <optional>
+#include <string>
+
 namespace utf = boost::unit_test::framework;
 
 /**
@@ -26,14 +29,14 @@ struct CustomArgumentsFixture {
 
         for (int i = 1; i < master_test_suite.argc; i++) {
             std::string key(master_test_suite.argv[i]);
-            std::string val;
+            std::optional<std::string> val;
 
-            if (!ParseKeyValue(key, val)) {
+            if (!ParseKeyValue(key, val) || !val.has_value()) {
                 break;
             }
 
             if (key == "-testsuitename") {
-                master_test_suite.p_name.value = val;
+                master_test_suite.p_name.value = *val;
                 continue;
             }
 

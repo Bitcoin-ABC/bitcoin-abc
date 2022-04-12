@@ -32,7 +32,8 @@ bool CheckDataDirOption(const ArgsManager &args);
 fs::path GetConfigFile(const ArgsManager &args,
                        const fs::path &configuration_file_path);
 
-[[nodiscard]] bool ParseKeyValue(std::string &key, std::string &val);
+[[nodiscard]] bool ParseKeyValue(std::string &key,
+                                 std::optional<std::string> &val);
 
 /**
  * Most paths passed as configuration arguments are treated as relative to
@@ -83,10 +84,9 @@ struct KeyInfo {
 
 KeyInfo InterpretKey(std::string key);
 
-std::optional<util::SettingsValue> InterpretValue(const KeyInfo &key,
-                                                  const std::string &value,
-                                                  unsigned int flags,
-                                                  std::string &error);
+std::optional<util::SettingsValue>
+InterpretValue(const KeyInfo &key, const std::optional<std::string> &value,
+               unsigned int flags, std::string &error);
 
 struct SectionInfo {
     std::string m_name;
@@ -122,6 +122,8 @@ public:
         // ALLOW_LIST = 0x10,
         //! disallow -nofoo syntax
         DISALLOW_NEGATION = 0x20,
+        //! disallow -foo syntax that doesn't assign any value
+        DISALLOW_ELISION = 0x40,
 
         DEBUG_ONLY = 0x100,
         /* Some options would cause cross-contamination if values for
