@@ -26,6 +26,9 @@ from test_framework.util import (
 TIMESTAMP_WINDOW = 2 * 60 * 60
 
 
+# Developer note: when moving to MiniWallet, the changes from
+# https://github.com/bitcoin/bitcoin/pull/24839/commits/b167e536d0f5ae4c86d0c3da4a63337f9f0448ba#diff-e20e1f68486e5c096fdc11bca1cda063aacef524411f011d9c3497eb650c5eaf
+# need to be included
 def mine_large_blocks(node, n):
     # Make a large scriptPubKey for the coinbase transaction. This is OP_RETURN
     # followed by 950k of OP_NOP. This would be non-standard in a non-coinbase

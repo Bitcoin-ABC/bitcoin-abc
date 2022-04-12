@@ -6,36 +6,30 @@
 import time
 from decimal import Decimal
 
-from test_framework.blocktools import (
-    COINBASE_MATURITY,
-    create_confirmed_utxos,
-    send_big_transactions,
-)
-
 # FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.messages import COIN, XEC
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    create_lots_of_big_transactions,
+    gen_return_txouts,
+)
 from test_framework.wallet import MiniWallet
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.setup_clean_chain = True
         self.num_nodes = 1
         # TODO: remove -txindex. Currently required for getrawtransaction call
         # (called by calculate_fee_from_txid)
         self.extra_args = [["-printpriority=1", "-acceptnonstdtxn=1", "-txindex"]]
         self.supports_cli = False
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def test_diamond(self):
         self.log.info("Test diamond-shape package with priority")
-        self.generate(self.wallet, COINBASE_MATURITY + 1)
         mock_time = int(time.time())
         self.nodes[0].setmocktime(mock_time)
 
@@ -155,6 +149,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
 
     def run_test(self):
         self.wallet = MiniWallet(self.nodes[0])
+        self.wallet.rescan_utxos()
 
         # Test `prioritisetransaction` required parameters
         assert_raises_rpc_error(
@@ -226,10 +221,18 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
 
         self.test_diamond()
 
+        self.txouts = gen_return_txouts()
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
 
         utxo_count = 90
-        utxos = create_confirmed_utxos(self, self.nodes[0], utxo_count)
+        utxos = self.wallet.send_self_transfer_multi(
+            from_node=self.nodes[0], num_outputs=utxo_count
+        )["new_utxos"]
+        self.generate(self.wallet, 1)
+        assert_equal(len(self.nodes[0].getrawmempool()), 0)
+
+        # our transactions are smaller than 100kb
+        base_fee = self.relayfee * 100
         txids = []
 
         # Create 3 batches of transactions at 3 different fee rate levels
@@ -238,11 +241,13 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             txids.append([])
             start_range = i * range_size
             end_range = start_range + range_size
-            txids[i] = send_big_transactions(
+            txids[i] = create_lots_of_big_transactions(
+                self.wallet,
                 self.nodes[0],
-                utxos[start_range:end_range],
+                (i + 1) * base_fee,
                 end_range - start_range,
-                10 * (i + 1),
+                self.txouts,
+                utxos[start_range:end_range],
             )
 
         # Make sure that the size of each group of transactions exceeds
@@ -283,16 +288,9 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
 
         # Add a prioritisation before a tx is in the mempool (de-prioritising a
         # high-fee transaction so that it's now low fee).
-        #
-        # NOTE WELL: gettransaction returns the fee as a negative number and
-        # as fractional coins. However, the prioritisetransaction expects a
-        # number of satoshi to add or subtract from the actual fee.
-        # Thus the conversation here is simply int(tx_fee*COIN) to remove all fees, and then
-        # we add the minimum fee back.
-        tx_fee = self.nodes[0].gettransaction(high_fee_tx)["fee"]
         self.nodes[0].prioritisetransaction(
             txid=high_fee_tx,
-            fee_delta=int(tx_fee * COIN)
+            fee_delta=-int(2 * base_fee * COIN)
             + self.nodes[0].calculate_fee_from_txid(high_fee_tx),
         )
 
@@ -318,18 +316,10 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             if x != high_fee_tx:
                 assert x not in mempool
 
-        # Create a free transaction.  Should be rejected.
-        utxo_list = self.nodes[0].listunspent()
-        assert len(utxo_list) > 0
-        utxo = utxo_list[0]
-
-        inputs = []
-        outputs = {}
-        inputs.append({"txid": utxo["txid"], "vout": utxo["vout"]})
-        outputs[self.nodes[0].getnewaddress()] = utxo["amount"]
-        raw_tx = self.nodes[0].createrawtransaction(inputs, outputs)
-        tx_hex = self.nodes[0].signrawtransactionwithwallet(raw_tx)["hex"]
-        tx_id = self.nodes[0].decoderawtransaction(tx_hex)["txid"]
+        # Create a free transaction. Should be rejected.
+        tx_res = self.wallet.create_self_transfer(fee_rate=0)
+        tx_hex = tx_res["hex"]
+        tx_id = tx_res["txid"]
 
         # This will raise an exception due to min relay fee not being met
         assert_raises_rpc_error(
