@@ -11,6 +11,7 @@ $(package)_patches=fix_qt_pkgconfig.patch mac-qmake.conf fix_configure_mac.patch
 $(package)_patches+= fix_rcc_determinism.patch xkb-default.patch no-xlib.patch dont_hardcode_pwd.patch
 $(package)_patches+= drop_lrelease_dependency.patch
 $(package)_patches+= fix_mingw_cross_compile.patch
+$(package)_patches+= fix_numeric_limits_compile_error.patch
 
 # Update OSX_QT_TRANSLATIONS when this is updated
 $(package)_qttranslations_file_name=qttranslations-$($(package)_suffix)
@@ -179,6 +180,7 @@ endef
 # 8. Adjust a regex in toolchain.prf, to accomodate Guix's usage of
 # CROSS_LIBRARY_PATH. See core#15277.
 define $(package)_preprocess_cmds
+  patch -p1 -i $($(package)_patch_dir)/fix_numeric_limits_compile_error.patch && \
   patch -p1 -i $($(package)_patch_dir)/drop_lrelease_dependency.patch && \
   patch -p1 -i $($(package)_patch_dir)/dont_hardcode_pwd.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_qt_pkgconfig.patch && \

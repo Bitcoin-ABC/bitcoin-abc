@@ -1,0 +1,21 @@
+Author: Calin A. Culianu <calin.culianu@gmail.com>
+Date:   Mon Apr 11 19:41:54 CDT 2022
+
+    This patch fixes a compile error encountered on newer Ubuntu when building the
+    (now ancient) Qt 5.9.7.  The issue was observed on Ubuntu 21.10 and 22.04,
+    where a missing include caused compile errors.
+
+    This patch just fixes the error by including <limits>.
+
+    See BCHN issue #417
+diff -urN a/qtbase/src/corelib/tools/qbytearraymatcher.h b/qtbase/src/corelib/tools/qbytearraymatcher.h
+--- a/qtbase/src/corelib/tools/qbytearraymatcher.h	2018-10-16 08:37:05.000000000 +0000
++++ b/qtbase/src/corelib/tools/qbytearraymatcher.h	2022-04-12 00:57:54.919426527 +0000
+@@ -41,6 +41,7 @@
+ #define QBYTEARRAYMATCHER_H
+ 
+ #include <QtCore/qbytearray.h>
++#include <limits>
+ 
+ QT_BEGIN_NAMESPACE
+ 
