@@ -45,6 +45,7 @@ SET_FALSE_POSITIVE_UNKNOWNS = set([
 SET_FALSE_POSITIVE_UNDOCUMENTED = set([
     '-help',
     '-h',
+    '-bypassnetgrouplimit',
     '-dbcrashratio',
     '-enableminerfund',
     '-forcecompactdb',

@@ -2436,6 +2436,8 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
 
         int64_t nANow = GetAdjustedTime();
         int nTries = 0;
+        const bool fBypassNetGroupLimit =
+            gArgs.GetBoolArg("-bypassnetgrouplimit", false);
         while (!interruptNet) {
             if (anchor && !m_anchors.empty()) {
                 const CAddress addr = m_anchors.back();
@@ -2490,7 +2492,7 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
 
             // Require outbound connections, other than feelers, to be to
             // distinct network groups
-            if (!fFeeler &&
+            if (!fFeeler && !fBypassNetGroupLimit &&
                 setConnected.count(addr.GetGroup(addrman.m_asmap))) {
                 break;
             }
