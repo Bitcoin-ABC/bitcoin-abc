@@ -57,6 +57,26 @@ namespace {
             return scores;
         }
     };
+
+    static void addCoin(const COutPoint &outpoint, const CKey &key,
+                        const Amount amount = 10 * COIN, uint32_t height = 100,
+                        bool is_coinbase = false) {
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(amount, script), height, is_coinbase), false);
+    }
+
+    static COutPoint createUtxo(const CKey &key,
+                                const Amount amount = 10 * COIN,
+                                uint32_t height = 100,
+                                bool is_coinbase = false) {
+        COutPoint outpoint(TxId(GetRandHash()), 0);
+        addCoin(outpoint, key, amount, height, is_coinbase);
+        return outpoint;
+    }
 } // namespace
 } // namespace avalanche
 
@@ -520,21 +540,17 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     avalanche::PeerManager pm;
 
-    ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
     auto key = CKey::MakeCompressedKey();
-    const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
-    COutPoint utxo(TxId(GetRandHash()), 0);
-    Amount amount = 1 * COIN;
-    const int height = 1234;
+
+    Amount amount = 10 * COIN;
+    const int height = 100;
+
+    COutPoint utxo = createUtxo(key);
+
+    ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
     BOOST_CHECK(pb.addUTXO(utxo, amount, height, false, key));
     auto proof = pb.build();
     const ProofId &proofid = proof->getId();
-
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(utxo, Coin(CTxOut(amount, script), height, false), false);
-    }
 
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
@@ -564,11 +580,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     BOOST_CHECK(pm.verify());
 
     // Make the proof great again
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(utxo, Coin(CTxOut(amount, script), height, false), false);
-    }
+    addCoin(utxo, key);
 
     pm.updatedBlockTip();
     BOOST_CHECK(!pm.isOrphan(proofid));
@@ -585,25 +597,17 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
 BOOST_AUTO_TEST_CASE(proof_conflict) {
     auto key = CKey::MakeCompressedKey();
-    const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
     TxId txid1(GetRandHash());
     TxId txid2(GetRandHash());
     BOOST_CHECK(txid1 != txid2);
 
-    const Amount v = 5 * COIN;
-    const int height = 1234;
+    const Amount v = 10 * COIN;
+    const int height = 100;
 
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-
-        for (int i = 0; i < 10; i++) {
-            coins.AddCoin(COutPoint(txid1, i),
-                          Coin(CTxOut(v, script), height, false), false);
-            coins.AddCoin(COutPoint(txid2, i),
-                          Coin(CTxOut(v, script), height, false), false);
-        }
+    for (uint32_t i = 0; i < 10; i++) {
+        addCoin({txid1, i}, key);
+        addCoin({txid2, i}, key);
     }
 
     avalanche::PeerManager pm;
@@ -665,7 +669,6 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     avalanche::PeerManager pm;
 
     auto key = CKey::MakeCompressedKey();
-    const CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
     COutPoint outpoint1 = COutPoint(TxId(GetRandHash()), 0);
     COutPoint outpoint2 = COutPoint(TxId(GetRandHash()), 0);
@@ -685,15 +688,9 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     auto proof2 = makeProof(outpoint2, height);
     auto proof3 = makeProof(outpoint3, wrongHeight);
 
-    const Coin coin = Coin(CTxOut(v, script), height, false);
-
     // Add outpoints 1 and 3, not 2
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(outpoint1, coin, false);
-        coins.AddCoin(outpoint3, coin, false);
-    }
+    addCoin(outpoint1, key, v, height);
+    addCoin(outpoint3, key, v, height);
 
     // Add the proofs
     BOOST_CHECK(pm.registerProof(proof1));
@@ -731,11 +728,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     checkOrphan(proof3, true);
 
     // Add outpoint2, proof2 is no longer considered orphan
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(outpoint2, coin, false);
-    }
+    addCoin(outpoint2, key, v, height);
 
     pm.updatedBlockTip();
     checkOrphan(proof2, false);
@@ -763,9 +756,8 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         LOCK(cs_main);
         CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
         coins.SpendCoin(outpoint3);
-        coins.AddCoin(outpoint3, Coin(CTxOut(v, script), wrongHeight, false),
-                      false);
     }
+    addCoin(outpoint3, key, v, wrongHeight);
 
     pm.updatedBlockTip();
     checkOrphan(proof3, false);
@@ -874,20 +866,8 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     const uint32_t height = 100;
     const bool is_coinbase = false;
 
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
-
-    auto addCoin = [&]() {
-        LOCK(cs_main);
-        COutPoint outpoint(TxId(GetRandHash()), 0);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(outpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-
-        return outpoint;
-    };
-
-    const COutPoint conflictingOutpoint = addCoin();
-    const COutPoint outpointToSend = addCoin();
+    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint outpointToSend = createUtxo(key);
 
     ProofRef proofToInvalidate;
     {
@@ -906,7 +886,8 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
         ProofBuilder pb(0, 0, key);
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        BOOST_CHECK(pb.addUTXO(addCoin(), amount, height, is_coinbase, key));
+        BOOST_CHECK(
+            pb.addUTXO(createUtxo(key), amount, height, is_coinbase, key));
         conflictingProof = pb.build();
     }
 
@@ -937,19 +918,8 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     const uint32_t height = 100;
     const bool is_coinbase = false;
 
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
-
-    auto addCoin = [&](const Amount &amount) {
-        LOCK(cs_main);
-        const COutPoint outpoint(TxId(GetRandHash()), 0);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(outpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-        return outpoint;
-    };
-
     // This will be the conflicting UTXO for all the following proofs
-    auto conflictingOutpoint = addCoin(amount);
+    auto conflictingOutpoint = createUtxo(key, amount);
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
         ProofBuilder pb(sequence, GetRandInt(std::numeric_limits<int>::max()),
@@ -1002,7 +972,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
         BOOST_CHECK(
             pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
         for (const Amount &v : amounts) {
-            auto outpoint = addCoin(v);
+            auto outpoint = createUtxo(key, v);
             BOOST_CHECK(
                 pb.addUTXO(std::move(outpoint), v, height, is_coinbase, key));
         }
@@ -1044,7 +1014,6 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
     auto buildProofWithSequence = [&](uint64_t sequence,
                                       const std::vector<COutPoint> &outpoints) {
@@ -1071,18 +1040,11 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(pm.isOrphan(orphan20->getId()));
     BOOST_CHECK(!pm.exists(orphan10->getId()));
 
-    auto addCoin = [&](const COutPoint &outpoint) {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(outpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    };
-
     const COutPoint outpointToSend(TxId(GetRandHash()), 0);
     // Add both randomOutpoint1 and outpointToSend to the UTXO set. The orphan20
     // proof is still an orphan because the conflictingOutpoint is unknown.
-    addCoin(randomOutpoint1);
-    addCoin(outpointToSend);
+    addCoin(randomOutpoint1, key);
+    addCoin(outpointToSend, key);
 
     // Build and register proof valid proof that will conflict with the orphan
     auto proof30 =
@@ -1114,15 +1076,8 @@ BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(conflictingOutpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    }
+    const COutPoint conflictingOutpoint = createUtxo(key);
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
         ProofBuilder pb(sequence, 0, key);
@@ -1198,15 +1153,8 @@ BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(conflictingOutpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    }
+    const COutPoint conflictingOutpoint = createUtxo(key);
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
         ProofBuilder pb(sequence, 0, key);
@@ -1281,15 +1229,8 @@ BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(conflictingOutpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    }
+    const COutPoint conflictingOutpoint = createUtxo(key);
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
         ProofBuilder pb(sequence, 0, key);
@@ -1329,15 +1270,8 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(conflictingOutpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    }
+    const COutPoint conflictingOutpoint = createUtxo(key);
 
     auto buildProofWithSequence = [&](uint64_t sequence) {
         ProofBuilder pb(sequence, 0, key);
@@ -1415,15 +1349,8 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
     const Amount amount(10 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(conflictingOutpoint,
-                      Coin(CTxOut(amount, script), height, is_coinbase), false);
-    }
+    const COutPoint conflictingOutpoint = createUtxo(key);
 
     auto buildProofWithSequenceAndOutpoints =
         [&](uint64_t sequence, const std::vector<COutPoint> &outpoints) {
@@ -1587,25 +1514,9 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
     const Amount amount20(20 * COIN);
     const uint32_t height = 100;
     const bool is_coinbase = false;
-    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    const COutPoint peer1ConflictingOutput(TxId(GetRandHash()), 0);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(peer1ConflictingOutput,
-                      Coin(CTxOut(amount10, script), height, is_coinbase),
-                      false);
-    }
-
-    const COutPoint peer1SecondaryOutpoint(TxId(GetRandHash()), 1);
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.AddCoin(peer1SecondaryOutpoint,
-                      Coin(CTxOut(amount20, script), height, is_coinbase),
-                      false);
-    }
+    const COutPoint peer1ConflictingOutput = createUtxo(key, amount10);
+    const COutPoint peer1SecondaryOutpoint = createUtxo(key, amount20);
 
     auto buildProofWithSequenceAndOutpoints =
         [&](int64_t sequence,
