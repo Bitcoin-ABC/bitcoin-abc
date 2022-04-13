@@ -27,7 +27,7 @@ import {
     ExclamationCircleFilled,
 } from '@ant-design/icons';
 import { WalletContext, AuthenticationContext } from 'utils/context';
-import { SidePaddingCtn } from 'components/Common/Atoms';
+import { SidePaddingCtn, FormLabel } from 'components/Common/Atoms';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -50,6 +50,7 @@ import { ReactComponent as Edit } from 'assets/edit.svg';
 import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import { formatSavedBalance } from 'utils/formatting';
+import { isValidXecAddress } from 'utils/validation';
 
 const { Panel } = Collapse;
 
@@ -519,6 +520,15 @@ const Configure = () => {
         setConfirmationOfContactToBeDeleted,
     ] = useState('');
 
+    const [showManualAddContactModal, setShowManualAddContactModal] =
+        useState(false);
+    const [manualContactName, setManualContactName] = useState('');
+    const [manualContactAddress, setManualContactAddress] = useState('');
+    const [manualContactNameIsValid, setManualContactNameIsValid] =
+        useState(null);
+    const [manualContactAddressIsValid, setManualContactAddressIsValid] =
+        useState(null);
+
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
         updateSavedWallets(wallet);
@@ -555,6 +565,7 @@ const Configure = () => {
                 tempContactListArray.shift(); // remove the initial entry from instantiation
                 generalNotification(
                     location.state.contactToAdd + ' added to Contact List',
+                    'Success',
                 );
             } else {
                 // contact list exists in local storage
@@ -567,9 +578,11 @@ const Configure = () => {
                         tempContactListArray[i].address ===
                         location.state.contactToAdd
                     ) {
-                        generalNotification(
+                        errorNotification(
+                            null,
                             location.state.contactToAdd +
                                 ' already exists in the Contact List',
+                            'handleManualAddContactModalOk() error',
                         );
                         duplicateContact = true;
                         break;
@@ -580,6 +593,7 @@ const Configure = () => {
                     tempContactListArray.push(newContactObj);
                     generalNotification(
                         location.state.contactToAdd + ' added to Contact List',
+                        'Success',
                     );
                 }
             }
@@ -906,6 +920,7 @@ const Configure = () => {
         if (updateContactListStatus) {
             generalNotification(
                 contactAddressToDelete + ' removed from Contact List',
+                'Success',
             );
         } else {
             errorNotification(
@@ -983,9 +998,152 @@ const Configure = () => {
         csvLink.click();
     };
 
+    const handleManualAddContactModalOk = async () => {
+        // if either inputs are invalid then go no further
+        if (!manualContactNameIsValid || !manualContactAddressIsValid) {
+            return;
+        }
+
+        let duplicateContact = false;
+        let tempContactListArray = contactListArray;
+        let newContactObj = {
+            name: manualContactName,
+            address: manualContactAddress,
+        };
+
+        if (!tempContactListArray || tempContactListArray.length === 0) {
+            // no existing contact list in local storage
+            tempContactListArray = [{}]; // instantiates to mitigate null pointer issues
+            tempContactListArray.push(newContactObj);
+            tempContactListArray.shift(); // remove the initial entry from instantiation
+        } else {
+            // contact list exists in local storage
+            // check if address already exists in contact list
+            let tempContactListArrayLength = tempContactListArray.length;
+            for (let i = 0; i < tempContactListArrayLength; i++) {
+                if (tempContactListArray[i].address === manualContactAddress) {
+                    errorNotification(
+                        null,
+                        manualContactAddress +
+                            ' already exists in the Contact List',
+                        'handleManualAddContactModalOk() error',
+                    );
+                    duplicateContact = true;
+                    break;
+                }
+            }
+            // if address does not exist on the contact list, add it
+            if (!duplicateContact) {
+                tempContactListArray.push(newContactObj);
+                generalNotification(
+                    manualContactAddress + ' added to Contact List',
+                    'Success',
+                );
+            }
+        }
+        // update local state array
+        setContactListArray(tempContactListArray);
+
+        // update localforage
+        try {
+            await updateContactListInLocalForage(tempContactListArray);
+        } catch (err) {
+            console.log('Error in handleManualAddContactModalOk()');
+            console.log(err);
+        }
+
+        setShowManualAddContactModal(false);
+        setManualContactName('');
+        setManualContactAddress('');
+    };
+
+    const handleManualAddContactModalCancel = () => {
+        setShowManualAddContactModal(false);
+        setManualContactName('');
+        setManualContactAddress('');
+    };
+
+    const handleManualContactNameInput = e => {
+        const { value } = e.target;
+
+        if (value && value.length && value.length < 24) {
+            setManualContactNameIsValid(true);
+        } else {
+            setManualContactNameIsValid(false);
+        }
+        setManualContactName(value);
+    };
+
+    const handleManualContactAddressInput = e => {
+        const { value } = e.target;
+        setManualContactAddressIsValid(isValidXecAddress(value));
+        setManualContactAddress(value);
+    };
+
     return (
         <SidePaddingCtn>
             <StyledConfigure>
+                {showManualAddContactModal && (
+                    <Modal
+                        title={`Add new contact to contact list`}
+                        visible={showManualAddContactModal}
+                        onOk={() => handleManualAddContactModalOk()}
+                        onCancel={() => handleManualAddContactModalCancel()}
+                    >
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <FormLabel>Name:</FormLabel>
+                                <Form.Item
+                                    validateStatus={
+                                        manualContactNameIsValid === null ||
+                                        manualContactNameIsValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        manualContactNameIsValid === null ||
+                                        manualContactNameIsValid
+                                            ? ''
+                                            : 'Contact name must be a string between 1 and 24 characters long'
+                                    }
+                                >
+                                    <Input
+                                        placeholder="Enter new contact name"
+                                        name="manualContactName"
+                                        value={manualContactName}
+                                        onChange={e =>
+                                            handleManualContactNameInput(e)
+                                        }
+                                    />
+                                </Form.Item>
+                                <FormLabel>eCash Address:</FormLabel>
+                                <Form.Item
+                                    validateStatus={
+                                        manualContactAddressIsValid === null ||
+                                        manualContactAddressIsValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        manualContactAddressIsValid === null ||
+                                        manualContactAddressIsValid
+                                            ? ''
+                                            : 'Invalid eCash address'
+                                    }
+                                >
+                                    <Input
+                                        placeholder="Enter new eCash address"
+                                        name="manualContactAddress"
+                                        value={manualContactAddress}
+                                        onChange={e =>
+                                            handleManualContactAddressInput(e)
+                                        }
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </AntdFormWrapper>
+                    </Modal>
+                )}
                 {showDeleteContactModal && (
                     <>
                         <Modal
@@ -1366,6 +1524,7 @@ const Configure = () => {
                                                                             element.address +
                                                                                 ' copied to clipboard',
                                                                             'Copied',
+                                                                            'Success',
                                                                         );
                                                                     }}
                                                                 >
@@ -1414,7 +1573,7 @@ const Configure = () => {
                                                 </p>
                                                 <p>
                                                     {
-                                                        'Contacts can be added by clicking on a received transaction and looking for the "Add to contacts" icon.'
+                                                        'Contacts can be added by clicking on a received transaction and looking for the "Add to contacts" icon or via the "New Contact" button below.'
                                                     }
                                                 </p>
                                             </div>
@@ -1432,6 +1591,17 @@ const Configure = () => {
                                                     Export contacts
                                                 </ContactListBtn>
                                             )}
+                                        <br />
+                                        <br />
+                                        <ContactListBtn
+                                            onClick={() =>
+                                                setShowManualAddContactModal(
+                                                    true,
+                                                )
+                                            }
+                                        >
+                                            New Contact
+                                        </ContactListBtn>
                                     </Form>
                                 </AntdFormWrapper>
                             </Panel>
