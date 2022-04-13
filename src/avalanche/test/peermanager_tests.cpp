@@ -77,6 +77,42 @@ namespace {
         addCoin(outpoint, key, amount, height, is_coinbase);
         return outpoint;
     }
+
+    static ProofRef
+    buildProof(const CKey &key,
+               const std::vector<std::tuple<COutPoint, Amount>> &outpoints,
+               const CKey &master = CKey::MakeCompressedKey(),
+               int64_t sequence = 1, uint32_t height = 100,
+               bool is_coinbase = false, int64_t expirationTime = 0) {
+        ProofBuilder pb(sequence, expirationTime, master);
+        for (const auto &outpoint : outpoints) {
+            BOOST_CHECK(pb.addUTXO(std::get<0>(outpoint), std::get<1>(outpoint),
+                                   height, is_coinbase, key));
+        }
+        return pb.build();
+    }
+
+    template <typename... Args>
+    static ProofRef
+    buildProofWithOutpoints(const CKey &key,
+                            const std::vector<COutPoint> &outpoints,
+                            Amount amount = 10 * COIN, Args &&...args) {
+        std::vector<std::tuple<COutPoint, Amount>> outpointsWithAmount;
+        std::transform(
+            outpoints.begin(), outpoints.end(),
+            std::back_inserter(outpointsWithAmount),
+            [amount](const auto &o) { return std::make_tuple(o, amount); });
+        return buildProof(key, outpointsWithAmount,
+                          std::forward<Args>(args)...);
+    }
+
+    static ProofRef
+    buildProofWithSequence(const CKey &key,
+                           const std::vector<COutPoint> &outpoints,
+                           int64_t sequence) {
+        return buildProofWithOutpoints(key, outpoints, 10 * COIN, key,
+                                       sequence);
+    }
 } // namespace
 } // namespace avalanche
 
@@ -542,14 +578,9 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     auto key = CKey::MakeCompressedKey();
 
-    Amount amount = 10 * COIN;
-    const int height = 100;
-
     COutPoint utxo = createUtxo(key);
 
-    ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
-    BOOST_CHECK(pb.addUTXO(utxo, amount, height, false, key));
-    auto proof = pb.build();
+    auto proof = buildProofWithOutpoints(key, {utxo});
     const ProofId &proofid = proof->getId();
 
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
@@ -613,12 +644,9 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     avalanche::PeerManager pm;
     CKey masterKey = CKey::MakeCompressedKey();
     const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
-        ProofBuilder pb(0, 0, masterKey);
-        for (const auto &o : outpoints) {
-            BOOST_CHECK(pb.addUTXO(o, v, height, false, key));
-        }
-
-        return TestPeerManager::registerAndGetPeerId(pm, pb.build());
+        return TestPeerManager::registerAndGetPeerId(
+            pm, buildProofWithOutpoints(key, outpoints, v, masterKey, 0, height,
+                                        false, 0));
     };
 
     // Add one peer.
@@ -679,9 +707,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     const int wrongHeight = 12345;
 
     const auto makeProof = [&](const COutPoint &outpoint, const int h) {
-        ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
-        BOOST_CHECK(pb.addUTXO(outpoint, v, h, false, key));
-        return pb.build();
+        return buildProofWithOutpoints(key, {outpoint}, v, key, 0, h);
     };
 
     auto proof1 = makeProof(outpoint1, height);
@@ -862,35 +888,15 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount = 10 * COIN;
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
     const COutPoint conflictingOutpoint = createUtxo(key);
     const COutPoint outpointToSend = createUtxo(key);
 
-    ProofRef proofToInvalidate;
-    {
-        ProofBuilder pb(0, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        BOOST_CHECK(
-            pb.addUTXO(outpointToSend, amount, height, is_coinbase, key));
-        proofToInvalidate = pb.build();
-    }
-
+    ProofRef proofToInvalidate =
+        buildProofWithOutpoints(key, {conflictingOutpoint, outpointToSend});
     BOOST_CHECK(pm.registerProof(proofToInvalidate));
 
-    ProofRef conflictingProof;
-    {
-        ProofBuilder pb(0, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        BOOST_CHECK(
-            pb.addUTXO(createUtxo(key), amount, height, is_coinbase, key));
-        conflictingProof = pb.build();
-    }
-
+    ProofRef conflictingProof =
+        buildProofWithOutpoints(key, {conflictingOutpoint, createUtxo(key)});
     ProofRegistrationState state;
     BOOST_CHECK(!pm.registerProof(conflictingProof, state));
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::CONFLICTING);
@@ -921,16 +927,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     // This will be the conflicting UTXO for all the following proofs
     auto conflictingOutpoint = createUtxo(key, amount);
 
-    auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, GetRandInt(std::numeric_limits<int>::max()),
-                        key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-
-        return pb.build();
-    };
-
-    auto proof_base = buildProofWithSequence(10);
+    auto proof_base = buildProofWithSequence(key, {conflictingOutpoint}, 10);
 
     gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
@@ -962,21 +959,24 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     };
 
     // Same master key, lower sequence number
-    checkPreferred(buildProofWithSequence(9), proof_base, false);
+    checkPreferred(buildProofWithSequence(key, {conflictingOutpoint}, 9),
+                   proof_base, false);
     // Same master key, higher sequence number
-    checkPreferred(buildProofWithSequence(11), proof_base, true);
+    checkPreferred(buildProofWithSequence(key, {conflictingOutpoint}, 11),
+                   proof_base, true);
 
     auto buildProofFromAmounts = [&](const CKey &master,
                                      std::vector<Amount> &&amounts) {
-        ProofBuilder pb(0, 0, master);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        for (const Amount &v : amounts) {
-            auto outpoint = createUtxo(key, v);
-            BOOST_CHECK(
-                pb.addUTXO(std::move(outpoint), v, height, is_coinbase, key));
-        }
-        return pb.build();
+        std::vector<std::tuple<COutPoint, Amount>> outpointsWithAmount{
+            {conflictingOutpoint, amount}};
+        std::transform(amounts.begin(), amounts.end(),
+                       std::back_inserter(outpointsWithAmount),
+                       [&key](const Amount amount) {
+                           return std::make_tuple(createUtxo(key, amount),
+                                                  amount);
+                       });
+        return buildProof(key, outpointsWithAmount, master, 0, height,
+                          is_coinbase, 0);
     };
 
     auto proof_multiUtxo = buildProofFromAmounts(key, {10 * COIN, 10 * COIN});
@@ -1011,27 +1011,12 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
-    auto buildProofWithSequence = [&](uint64_t sequence,
-                                      const std::vector<COutPoint> &outpoints) {
-        ProofBuilder pb(sequence, 0, key);
-
-        for (const COutPoint &outpoint : outpoints) {
-            BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
-        }
-
-        return pb.build();
-    };
-
     const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
     const COutPoint randomOutpoint1(TxId(GetRandHash()), 0);
 
-    auto orphan10 = buildProofWithSequence(10, {conflictingOutpoint});
+    auto orphan10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto orphan20 =
-        buildProofWithSequence(20, {conflictingOutpoint, randomOutpoint1});
+        buildProofWithSequence(key, {conflictingOutpoint, randomOutpoint1}, 20);
 
     BOOST_CHECK(!pm.registerProof(orphan10));
     BOOST_CHECK(pm.isOrphan(orphan10->getId()));
@@ -1048,7 +1033,7 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
 
     // Build and register proof valid proof that will conflict with the orphan
     auto proof30 =
-        buildProofWithSequence(30, {randomOutpoint1, outpointToSend});
+        buildProofWithSequence(key, {randomOutpoint1, outpointToSend}, 30);
     BOOST_CHECK(pm.registerProof(proof30));
     BOOST_CHECK(pm.isBoundToPeer(proof30->getId()));
 
@@ -1072,24 +1057,11 @@ BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
-
-    const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
     const COutPoint conflictingOutpoint = createUtxo(key);
 
-    auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-
-        return pb.build();
-    };
-
-    auto proofSeq10 = buildProofWithSequence(10);
-    auto proofSeq20 = buildProofWithSequence(20);
-    auto proofSeq30 = buildProofWithSequence(30);
+    auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
+    auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
+    auto proofSeq30 = buildProofWithSequence(key, {conflictingOutpoint}, 30);
 
     BOOST_CHECK(pm.registerProof(proofSeq30));
     BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
@@ -1150,23 +1122,11 @@ BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
     const COutPoint conflictingOutpoint = createUtxo(key);
 
-    auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-
-        return pb.build();
-    };
-
-    auto proofSeq10 = buildProofWithSequence(10);
-    auto proofSeq20 = buildProofWithSequence(20);
-    auto proofSeq30 = buildProofWithSequence(30);
+    auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
+    auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
+    auto proofSeq30 = buildProofWithSequence(key, {conflictingOutpoint}, 30);
 
     BOOST_CHECK(pm.registerProof(proofSeq30));
     BOOST_CHECK(pm.isBoundToPeer(proofSeq30->getId()));
@@ -1226,22 +1186,11 @@ BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
     const COutPoint conflictingOutpoint = createUtxo(key);
 
-    auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        return pb.build();
-    };
-
-    auto proofSeq10 = buildProofWithSequence(10);
-    auto proofSeq20 = buildProofWithSequence(20);
-    auto proofSeq30 = buildProofWithSequence(30);
+    auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
+    auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
+    auto proofSeq30 = buildProofWithSequence(key, {conflictingOutpoint}, 30);
 
     {
         ProofRegistrationState state;
@@ -1267,22 +1216,11 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
     const COutPoint conflictingOutpoint = createUtxo(key);
 
-    auto buildProofWithSequence = [&](uint64_t sequence) {
-        ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(conflictingOutpoint, amount, height, is_coinbase, key));
-        return pb.build();
-    };
-
-    auto proofSeq20 = buildProofWithSequence(20);
-    auto proofSeq30 = buildProofWithSequence(30);
-    auto proofSeq40 = buildProofWithSequence(40);
+    auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
+    auto proofSeq30 = buildProofWithSequence(key, {conflictingOutpoint}, 30);
+    auto proofSeq40 = buildProofWithSequence(key, {conflictingOutpoint}, 40);
 
     int64_t conflictingProofCooldown = 100;
     gArgs.ForceSetArg("-avalancheconflictingproofcooldown",
@@ -1346,29 +1284,13 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount(10 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
-
     const COutPoint conflictingOutpoint = createUtxo(key);
 
-    auto buildProofWithSequenceAndOutpoints =
-        [&](uint64_t sequence, const std::vector<COutPoint> &outpoints) {
-            ProofBuilder pb(sequence, 0, key);
-            for (const COutPoint &outpoint : outpoints) {
-                BOOST_CHECK(
-                    pb.addUTXO(outpoint, amount, height, is_coinbase, key));
-            }
-            return pb.build();
-        };
-
     // The good, the bad and the ugly
-    auto proofSeq10 =
-        buildProofWithSequenceAndOutpoints(10, {conflictingOutpoint});
-    auto proofSeq20 =
-        buildProofWithSequenceAndOutpoints(20, {conflictingOutpoint});
-    auto orphan30 = buildProofWithSequenceAndOutpoints(
-        30, {conflictingOutpoint, {TxId(GetRandHash()), 0}});
+    auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
+    auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
+    auto orphan30 = buildProofWithSequence(
+        key, {conflictingOutpoint, {TxId(GetRandHash()), 0}}, 30);
 
     BOOST_CHECK(pm.registerProof(proofSeq20));
     BOOST_CHECK(!pm.registerProof(proofSeq10));
@@ -1512,32 +1434,21 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 
     const Amount amount10(10 * COIN);
     const Amount amount20(20 * COIN);
-    const uint32_t height = 100;
-    const bool is_coinbase = false;
 
     const COutPoint peer1ConflictingOutput = createUtxo(key, amount10);
     const COutPoint peer1SecondaryOutpoint = createUtxo(key, amount20);
 
-    auto buildProofWithSequenceAndOutpoints =
-        [&](int64_t sequence,
-            const std::vector<std::tuple<COutPoint, Amount>> &outpoints) {
-            ProofBuilder pb(sequence, 0, key);
-            for (const auto &outpoint : outpoints) {
-                BOOST_CHECK(pb.addUTXO(std::get<0>(outpoint),
-                                       std::get<1>(outpoint), height,
-                                       is_coinbase, key));
-            }
-            return pb.build();
-        };
-
-    auto peer1Proof1 = buildProofWithSequenceAndOutpoints(
-        10, {{peer1ConflictingOutput, amount10},
-             {peer1SecondaryOutpoint, amount20}});
-    auto peer1Proof2 = buildProofWithSequenceAndOutpoints(
-        20, {{peer1ConflictingOutput, amount10}});
-    auto peer1Proof3 = buildProofWithSequenceAndOutpoints(
-        30, {{peer1ConflictingOutput, amount10},
-             {COutPoint{TxId(GetRandHash()), 0}, amount10}});
+    auto peer1Proof1 = buildProof(key,
+                                  {{peer1ConflictingOutput, amount10},
+                                   {peer1SecondaryOutpoint, amount20}},
+                                  key, 10);
+    auto peer1Proof2 =
+        buildProof(key, {{peer1ConflictingOutput, amount10}}, key, 20);
+    auto peer1Proof3 =
+        buildProof(key,
+                   {{peer1ConflictingOutput, amount10},
+                    {COutPoint{TxId(GetRandHash()), 0}, amount10}},
+                   key, 30);
 
     const uint32_t peer1Score1 = Proof::amountToScore(amount10 + amount20);
     const uint32_t peer1Score2 = Proof::amountToScore(amount10);
