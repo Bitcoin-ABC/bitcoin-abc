@@ -5,7 +5,16 @@ import {
     generalNotification,
     errorNotification,
 } from 'components/Common/Notifications';
-import { Collapse, Form, Input, Modal, Alert, Switch, Tag } from 'antd';
+import {
+    Collapse,
+    Form,
+    Input,
+    Modal,
+    Alert,
+    Switch,
+    Tag,
+    Tooltip,
+} from 'antd';
 import { Row, Col } from 'antd';
 import {
     PlusSquareOutlined,
@@ -96,12 +105,6 @@ const SWName = styled.div`
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    h3.overflow:hover {
-        background-color: ${props => props.theme.settings.background};
-        overflow: visible;
-        inline-size: 100px;
-        white-space: normal;
-    }
 `;
 
 const SWBalance = styled.div`
@@ -132,7 +135,6 @@ const SWBalance = styled.div`
     }
     div.overflow:hover {
         background-color: ${props => props.theme.settings.background};
-        overflow: visible;
         inline-size: 150px;
         white-space: normal;
     }
@@ -229,9 +231,6 @@ const ContactListAddress = styled.div`
     }
     div.overflow:hover {
         background-color: ${props => props.theme.settings.background};
-        overflow: visible;
-        inline-size: 150px;
-        white-space: normal;
     }
 `;
 
@@ -263,7 +262,6 @@ const ContactListName = styled.div`
     }
     div.overflow:hover {
         background-color: ${props => props.theme.settings.background};
-        overflow: visible;
         inline-size: 150px;
         white-space: normal;
     }
@@ -1050,19 +1048,26 @@ const Configure = () => {
                         <StyledCollapse>
                             <Panel header="Saved wallets">
                                 <AWRow>
-                                    <h3 className="notranslate">
-                                        {wallet.name}
-                                    </h3>
+                                    <Tooltip title={wallet.name}>
+                                        <h3 className="notranslate">
+                                            {wallet.name}
+                                        </h3>
+                                    </Tooltip>
                                     <h4>Currently active</h4>
                                 </AWRow>
                                 <div>
                                     {savedWallets.map(sw => (
                                         <SWRow key={sw.name}>
-                                            <SWName>
-                                                <h3 className="overflow notranslate">
-                                                    {sw.name}
-                                                </h3>
-                                            </SWName>
+                                            <Tooltip
+                                                title={sw.name}
+                                                autoAdjustOverflow={true}
+                                            >
+                                                <SWName>
+                                                    <h3 className="overflow notranslate">
+                                                        {sw.name}
+                                                    </h3>
+                                                </SWName>
+                                            </Tooltip>
                                             <SWBalance>
                                                 <div className="overflow">
                                                     [
@@ -1133,30 +1138,42 @@ const Configure = () => {
                                             contactListArray.map(
                                                 (element, index) => (
                                                     <ContactListRow key={index}>
-                                                        <ContactListName>
-                                                            <div className="overflow">
-                                                                {element.name}
-                                                            </div>
-                                                        </ContactListName>
-                                                        <ContactListAddress>
-                                                            <div
-                                                                className="overflow notranslate"
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(
-                                                                        element.address,
-                                                                    );
-                                                                    generalNotification(
-                                                                        element.address +
-                                                                            ' copied to clipboard',
-                                                                        'Copied',
-                                                                    );
-                                                                }}
-                                                            >
-                                                                {
-                                                                    element.address
-                                                                }
-                                                            </div>
-                                                        </ContactListAddress>
+                                                        <Tooltip
+                                                            title={element.name}
+                                                        >
+                                                            <ContactListName>
+                                                                <div className="overflow">
+                                                                    {
+                                                                        element.name
+                                                                    }
+                                                                </div>
+                                                            </ContactListName>
+                                                        </Tooltip>
+                                                        <Tooltip
+                                                            title={
+                                                                element.address
+                                                            }
+                                                        >
+                                                            <ContactListAddress>
+                                                                <div
+                                                                    className="overflow notranslate"
+                                                                    onClick={() => {
+                                                                        navigator.clipboard.writeText(
+                                                                            element.address,
+                                                                        );
+                                                                        generalNotification(
+                                                                            element.address +
+                                                                                ' copied to clipboard',
+                                                                            'Copied',
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        element.address
+                                                                    }
+                                                                </div>
+                                                            </ContactListAddress>
+                                                        </Tooltip>
                                                         <ContactListCtn>
                                                             <Edit
                                                                 onClick={() =>
