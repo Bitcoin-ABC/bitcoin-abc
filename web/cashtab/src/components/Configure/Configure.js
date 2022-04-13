@@ -483,6 +483,14 @@ const Configure = () => {
 
     const [contactListArray, setContactListArray] = useState([{}]);
 
+    const [showRenameContactModal, setShowRenameContactModal] = useState(false);
+    const [contactToBeRenamed, setContactToBeRenamed] = useState(null); //object
+    const [newContactNameIsValid, setNewContactNameIsValid] = useState(null);
+    const [
+        confirmationOfContactToBeRenamed,
+        setConfirmationOfContactToBeRenamed,
+    ] = useState('');
+
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
         updateSavedWallets(wallet);
@@ -744,6 +752,84 @@ const Configure = () => {
         }
     };
 
+    const handleContactNameInput = e => {
+        const { value } = e.target;
+
+        if (value && value.length && value.length < 24) {
+            setNewContactNameIsValid(true);
+        } else {
+            setNewContactNameIsValid(false);
+        }
+        setConfirmationOfContactToBeRenamed(value);
+    };
+
+    const handleRenameContact = contactObj => {
+        if (!contactObj) {
+            console.log(
+                'handleRenameContact() error: Invalid contact object for update',
+            );
+            return;
+        }
+        setContactToBeRenamed(contactObj);
+        setShowRenameContactModal(true);
+    };
+
+    const handleRenameContactCancel = () => {
+        setShowRenameContactModal(false);
+    };
+
+    const handleRenameContactModalOk = () => {
+        if (
+            !newContactNameIsValid ||
+            newContactNameIsValid === null ||
+            !contactToBeRenamed
+        ) {
+            return;
+        }
+        renameContactByName(contactToBeRenamed);
+        setShowRenameContactModal(false);
+    };
+
+    const renameContactByName = async contactObj => {
+        // obtain reference to the contact object in the array
+        let contactObjToUpdate = contactListArray.find(
+            element => element.address === contactObj.address,
+        );
+
+        // if a match was found
+        if (contactObjToUpdate) {
+            // update the contact name
+            contactObjToUpdate.name = confirmationOfContactToBeRenamed;
+
+            // update local object array and local storage
+            setContactListArray(contactListArray);
+
+            let updateContactListStatus;
+            try {
+                updateContactListStatus = await updateContactListInLocalForage(
+                    contactListArray,
+                );
+            } catch (err) {
+                console.log('Error in updateContactListInLocalForage()');
+                console.log(err);
+            }
+
+            if (!updateContactListStatus) {
+                errorNotification(
+                    null,
+                    'Unable to update localforage with updated contact list',
+                    'Updating localforage with contact list',
+                );
+            }
+        } else {
+            errorNotification(
+                null,
+                'Unable to find contact in array',
+                'Updating localforage with contact list',
+            );
+        }
+    };
+
     const handleSendModalToggle = checkedState => {
         changeCashtabSettings('sendModal', checkedState);
     };
@@ -751,6 +837,43 @@ const Configure = () => {
     return (
         <SidePaddingCtn>
             <StyledConfigure>
+                {showRenameContactModal && (
+                    <Modal
+                        title={`Set contact name for ${contactToBeRenamed.address}`}
+                        visible={showRenameContactModal}
+                        onOk={() => handleRenameContactModalOk()}
+                        onCancel={() => handleRenameContactCancel()}
+                    >
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <Form.Item
+                                    validateStatus={
+                                        newContactNameIsValid === null ||
+                                        newContactNameIsValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        newContactNameIsValid === null ||
+                                        newContactNameIsValid
+                                            ? ''
+                                            : 'Contact name must be a string between 1 and 24 characters long'
+                                    }
+                                >
+                                    <Input
+                                        prefix={<WalletFilled />}
+                                        placeholder="Enter new contact name"
+                                        name="newContactName"
+                                        value={confirmationOfContactToBeRenamed}
+                                        onChange={e =>
+                                            handleContactNameInput(e)
+                                        }
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </AntdFormWrapper>
+                    </Modal>
+                )}
                 {walletToBeRenamed !== null && (
                     <Modal
                         title={`Rename Wallet ${walletToBeRenamed.name}`}
@@ -1035,6 +1158,13 @@ const Configure = () => {
                                                             </div>
                                                         </ContactListAddress>
                                                         <ContactListCtn>
+                                                            <Edit
+                                                                onClick={() =>
+                                                                    handleRenameContact(
+                                                                        element,
+                                                                    )
+                                                                }
+                                                            />
                                                             <Link
                                                                 to={{
                                                                     pathname: `/send`,
