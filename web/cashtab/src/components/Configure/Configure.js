@@ -42,6 +42,7 @@ import {
     ThemedWalletOutlined,
     ThemedDollarOutlined,
     ThemedSettingOutlined,
+    ThemedContactsOutlined,
     ThemedContactSendOutlined,
 } from 'components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
@@ -489,6 +490,14 @@ const Configure = () => {
         setConfirmationOfContactToBeRenamed,
     ] = useState('');
 
+    const [showDeleteContactModal, setShowDeleteContactModal] = useState(false);
+    const [contactAddressToDelete, setContactAddressToDelete] = useState(null);
+    const [contactDeleteValid, setContactDeleteValid] = useState(null);
+    const [
+        confirmationOfContactToBeDeleted,
+        setConfirmationOfContactToBeDeleted,
+    ] = useState('');
+
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
         updateSavedWallets(wallet);
@@ -832,9 +841,153 @@ const Configure = () => {
         changeCashtabSettings('sendModal', checkedState);
     };
 
+    const getContactNameByAddress = contactAddress => {
+        if (!contactAddress) {
+            return;
+        }
+
+        // filter contact from local contact list array
+        const filteredContactList = contactListArray.filter(
+            element => element.address === contactAddress,
+        );
+
+        if (!filteredContactList) {
+            return;
+        }
+
+        return filteredContactList[0].name;
+    };
+
+    const deleteContactByAddress = async contactAddress => {
+        if (!contactAddress) {
+            return;
+        }
+
+        // filter contact from local contact list array
+        const updatedContactList = contactListArray.filter(
+            element => element.address !== contactAddress,
+        );
+
+        // update local list
+        setContactListArray(updatedContactList);
+
+        // commit updated list to local storage
+        let updateContactListStatus;
+        try {
+            updateContactListStatus = await updateContactListInLocalForage(
+                updatedContactList,
+            );
+        } catch (err) {
+            console.log('Error in updateContactListInLocalForage()');
+            console.log(err);
+        }
+
+        if (updateContactListStatus) {
+            generalNotification(
+                contactAddressToDelete + ' removed from Contact List',
+            );
+        } else {
+            errorNotification(
+                null,
+                'Error removing ' +
+                    contactAddressToDelete +
+                    ' from Contact List',
+                'Updating localforage with contact list',
+            );
+        }
+    };
+
+    const handleDeleteContact = contactAddress => {
+        if (!contactAddress) {
+            console.log(
+                'handleDeleteContact() error: Invalid contact address for deletion',
+            );
+            return;
+        }
+        setContactAddressToDelete(contactAddress);
+        setShowDeleteContactModal(true);
+    };
+
+    const handleDeleteContactModalCancel = () => {
+        setShowDeleteContactModal(false);
+    };
+
+    const handleDeleteContactModalOk = () => {
+        if (
+            !contactDeleteValid ||
+            contactDeleteValid === null ||
+            !contactAddressToDelete
+        ) {
+            return;
+        }
+        setShowDeleteContactModal(false);
+        deleteContactByAddress(contactAddressToDelete);
+    };
+
+    const handleContactToDeleteInput = e => {
+        const { value } = e.target;
+        const contactName = getContactNameByAddress(contactAddressToDelete);
+        if (value && value === 'delete ' + contactName) {
+            setContactDeleteValid(true);
+        } else {
+            setContactDeleteValid(false);
+        }
+        setConfirmationOfContactToBeDeleted(value);
+    };
+
     return (
         <SidePaddingCtn>
             <StyledConfigure>
+                {showDeleteContactModal && (
+                    <>
+                        <Modal
+                            title="Confirm Delete Contact"
+                            visible={showDeleteContactModal}
+                            onOk={() => handleDeleteContactModalOk()}
+                            onCancel={() => handleDeleteContactModalCancel()}
+                        >
+                            <p>
+                                are you sure you want to delete{' '}
+                                {getContactNameByAddress(
+                                    contactAddressToDelete,
+                                )}{' '}
+                                from contact list?
+                            </p>
+                            <AntdFormWrapper>
+                                <Form style={{ width: 'auto' }}>
+                                    <Form.Item
+                                        validateStatus={
+                                            contactDeleteValid === null ||
+                                            contactDeleteValid
+                                                ? ''
+                                                : 'error'
+                                        }
+                                        help={
+                                            contactDeleteValid === null ||
+                                            contactDeleteValid
+                                                ? ''
+                                                : 'Your confirmation phrase must match exactly'
+                                        }
+                                    >
+                                        <Input
+                                            prefix={<ThemedContactsOutlined />}
+                                            placeholder={`Type "delete ${getContactNameByAddress(
+                                                contactAddressToDelete,
+                                            )}" to confirm`}
+                                            name="contactToBeDeletedInput"
+                                            value={
+                                                confirmationOfContactToBeDeleted
+                                            }
+                                            onChange={e =>
+                                                handleContactToDeleteInput(e)
+                                            }
+                                        />
+                                    </Form.Item>
+                                </Form>
+                            </AntdFormWrapper>
+                        </Modal>
+                    </>
+                )}
                 {showRenameContactModal && (
                     <Modal
                         title={`Set contact name for ${contactToBeRenamed.address}`}
@@ -1193,6 +1346,13 @@ const Configure = () => {
                                                             >
                                                                 <ThemedContactSendOutlined />
                                                             </Link>
+                                                            <Trashcan
+                                                                onClick={() =>
+                                                                    handleDeleteContact(
+                                                                        element.address,
+                                                                    )
+                                                                }
+                                                            />
                                                         </ContactListCtn>
                                                     </ContactListRow>
                                                 ),
