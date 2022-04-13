@@ -5,7 +5,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
   className="sc-jTzLTM jNRuZd"
 >
   <div
-    className="sc-fBuWsC fBZAcf"
+    className="sc-fMiknA jTBVkt"
   >
     <h2>
       <span
@@ -72,7 +72,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     <h2>
       <span
@@ -206,7 +206,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     <h2>
       <span
@@ -323,7 +323,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     <h2>
       <span
@@ -348,7 +348,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-dVhcbM gUNnbL"
+      className="sc-eqIVtm deRgFO"
     >
       <div
         className="title"
@@ -407,7 +407,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </span>
     </div>
     <div
-      className="sc-dVhcbM gUNnbL"
+      className="sc-eqIVtm deRgFO"
     >
       <div
         className="SendConfirm"
@@ -470,7 +470,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </button>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     [
     <a
@@ -492,7 +492,7 @@ exports[`Without wallet defined 1`] = `
   className="sc-jTzLTM jNRuZd"
 >
   <div
-    className="sc-fBuWsC fBZAcf"
+    className="sc-fMiknA jTBVkt"
   >
     <h2>
       <span
@@ -559,7 +559,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     <h2>
       <span
@@ -693,7 +693,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     <h2>
       <span
@@ -810,7 +810,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     <h2>
       <span
@@ -835,7 +835,7 @@ exports[`Without wallet defined 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-dVhcbM gUNnbL"
+      className="sc-eqIVtm deRgFO"
     >
       <div
         className="title"
@@ -894,7 +894,7 @@ exports[`Without wallet defined 1`] = `
       </span>
     </div>
     <div
-      className="sc-dVhcbM gUNnbL"
+      className="sc-eqIVtm deRgFO"
     >
       <div
         className="SendConfirm"
@@ -957,7 +957,7 @@ exports[`Without wallet defined 1`] = `
       </button>
     </div>
     <div
-      className="sc-fMiknA dAmXTv"
+      className="sc-dVhcbM jYXbgp"
     />
     [
     <a

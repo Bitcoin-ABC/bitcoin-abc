@@ -317,6 +317,27 @@ const ContactListCtn = styled.div`
     }
 `;
 
+const ContactListBtn = styled.button`
+    align-items: center;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #fff;
+    box-shadow: none;
+    color: #fff;
+    border-radius: 3px;
+    opacity: 0.6;
+    transition: all 200ms ease-in-out;
+    @media (max-width: 500px) {
+        width: 100%;
+        justify-content: center;
+    }
+    :hover {
+        opacity: 1;
+        background: ${props => props.theme.eCashBlue};
+        border-color: ${props => props.theme.eCashBlue};
+    }
+`;
+
 const AWRow = styled.div`
     padding: 10px 0;
     display: flex;
@@ -935,6 +956,33 @@ const Configure = () => {
         setConfirmationOfContactToBeDeleted(value);
     };
 
+    const exportContactList = contactListArray => {
+        if (!contactListArray) {
+            errorNotification('Unable to export contact list');
+            return;
+        }
+
+        // convert object array into csv data
+        let csvContent =
+            'data:text/csv;charset=utf-8,' +
+            contactListArray.map(
+                element => '\n' + element.name + '|' + element.address,
+            );
+
+        // encode csv
+        var encodedUri = encodeURI(csvContent);
+
+        // hidden DOM node to set the default file name
+        var csvLink = document.createElement('a');
+        csvLink.setAttribute('href', encodedUri);
+        csvLink.setAttribute(
+            'download',
+            'Cashtab_Contacts_' + wallet.name + '.csv',
+        );
+        document.body.appendChild(csvLink);
+        csvLink.click();
+    };
+
     return (
         <SidePaddingCtn>
             <StyledConfigure>
@@ -1371,6 +1419,19 @@ const Configure = () => {
                                                 </p>
                                             </div>
                                         )}
+                                        {/* Export button will only show when there are contacts */}
+                                        {contactListArray &&
+                                            contactListArray.length > 0 && (
+                                                <ContactListBtn
+                                                    onClick={() =>
+                                                        exportContactList(
+                                                            contactListArray,
+                                                        )
+                                                    }
+                                                >
+                                                    Export contacts
+                                                </ContactListBtn>
+                                            )}
                                     </Form>
                                 </AntdFormWrapper>
                             </Panel>
