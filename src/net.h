@@ -73,7 +73,7 @@ static const int MAX_BLOCK_RELAY_ONLY_CONNECTIONS = 2;
  * Maximum number of avalanche enabled outgoing connections by default.
  * Can be overridden with the -maxavalancheoutbound option.
  */
-static const int DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 16;
+static const int DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 300;
 /** Maximum number of feeler connections */
 static const int MAX_FEELER_CONNECTIONS = 1;
 /** -listen default */
