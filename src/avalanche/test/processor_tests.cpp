@@ -1299,7 +1299,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
 
         // Min stake is out of range
         {"-1", "0", false},
-        {"21000000001", "0", false},
+        {"-0.01", "0", false},
+        {"21000000000000.01", "0", false},
 
         // Min connected ratio is out of range
         {"0", "-1", false},
@@ -1307,10 +1308,12 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
 
         // Both parameters are valid
         {"0", "0", true},
+        {"0.00", "0", true},
+        {"0.01", "0", true},
         {"1", "0.1", true},
         {"10", "0.5", true},
         {"10", "1", true},
-        {ToString(MAX_MONEY / COIN), "0", true},
+        {"21000000000000.00", "0", true},
     };
 
     // For each case set the parameters and check that making the processor

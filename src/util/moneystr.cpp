@@ -42,7 +42,7 @@ bool ParseMoney(const std::string &money_string, Amount &nRet) {
         return false;
     }
 
-    const auto currency = Currency::get();
+    const auto &currency = Currency::get();
     std::string strWhole;
     Amount nUnits = Amount::zero();
     const char *p = str.c_str();
@@ -67,8 +67,14 @@ bool ParseMoney(const std::string &money_string, Amount &nRet) {
     if (*p) {
         return false;
     }
+
+    // Make sure the following overflow check is meaningful. It's fine to assert
+    // because it's on no critical path, and it's very unlikely to support a 19
+    // decimal (or more) currency anyway.
+    assert(currency.decimals <= 18);
+
     // guard against 63 bit overflow
-    if (strWhole.size() > 10) {
+    if (strWhole.size() > (size_t(18) - currency.decimals)) {
         return false;
     }
     if (nUnits < Amount::zero() || nUnits > currency.baseunit) {
