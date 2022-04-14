@@ -1296,10 +1296,16 @@ void SetupServerArgs(NodeContext &node) {
 #endif
 
     // Avalanche options.
-    argsman.AddArg(
-        "-enableavalanche",
-        strprintf("Enable avalanche (default: %u)", AVALANCHE_DEFAULT_ENABLED),
-        ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-avalanche",
+                   strprintf("Enable all the avalanche features (default: %u)",
+                             AVALANCHE_DEFAULT_ENABLED),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg("-enableavalanche",
+                   strprintf("Enable the core avalanche features only. You "
+                             "need to manually configure the individual "
+                             "features with dedicated flags (default: %u)",
+                             AVALANCHE_DEFAULT_ENABLED),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-enableavalanchepeerdiscovery",
                    strprintf("Enable avalanche peer discovery (default: %u)",
                              AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED),
@@ -1739,6 +1745,28 @@ void InitParameterInteraction(ArgsManager &args) {
                       "setting -whitelistrelay=1\n",
                       __func__);
         }
+    }
+
+    // If avalanche is set, soft set all the feature flags accordingly.
+    if (args.IsArgSet("-avalanche")) {
+        const bool fAvalanche =
+            args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);
+        args.SoftSetBoolArg("-enableavalanche", fAvalanche);
+        args.SoftSetBoolArg("-legacyavaproof",
+                            fAvalanche ? false
+                                       : AVALANCHE_DEFAULT_LEGACY_PROOF);
+        args.SoftSetBoolArg("-enableavalanchepeerdiscovery", fAvalanche);
+        args.SoftSetBoolArg("-enableavalancheproofreplacement", fAvalanche);
+        args.SoftSetBoolArg("-automaticunparking", !fAvalanche);
+        args.SoftSetArg(
+            "-avaminquorumstake",
+            fAvalanche ? FormatMoney(1'000'000'000'000 * SATOSHI) // 10B XEC
+                       : FormatMoney(AVALANCHE_DEFAULT_MIN_QUORUM_STAKE));
+        args.SoftSetArg(
+            "-avaminquorumconnectedstakeratio",
+            fAvalanche
+                ? "0.8"
+                : ToString(AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO));
     }
 }
 
