@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager) {
     WITH_LOCK(::cs_main, c1.InitCoinsCache(1 << 23));
 
     BOOST_CHECK(!manager.IsSnapshotActive());
-    BOOST_CHECK(!manager.IsSnapshotValidated());
+    BOOST_CHECK(WITH_LOCK(::cs_main, return !manager.IsSnapshotValidated()));
     auto all = manager.GetAll();
     BOOST_CHECK_EQUAL_COLLECTIONS(all.begin(), all.end(), chainstates.begin(),
                                   chainstates.end());
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager) {
     BOOST_CHECK(c2.ActivateBestChain(GetConfig(), _, nullptr));
 
     BOOST_CHECK(manager.IsSnapshotActive());
-    BOOST_CHECK(!manager.IsSnapshotValidated());
+    BOOST_CHECK(WITH_LOCK(::cs_main, return !manager.IsSnapshotValidated()));
     BOOST_CHECK_EQUAL(&c2, &manager.ActiveChainstate());
     BOOST_CHECK(&c1 != &manager.ActiveChainstate());
     auto all2 = manager.GetAll();

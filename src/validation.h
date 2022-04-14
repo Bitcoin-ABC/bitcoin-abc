@@ -1089,10 +1089,10 @@ private:
 
     //! If true, the assumed-valid chainstate has been fully validated
     //! by the background validation chainstate.
-    bool m_snapshot_validated{false};
+    bool m_snapshot_validated GUARDED_BY(::cs_main){false};
 
-    CBlockIndex *m_best_invalid;
-    CBlockIndex *m_best_parked;
+    CBlockIndex *m_best_invalid GUARDED_BY(::cs_main){nullptr};
+    CBlockIndex *m_best_parked GUARDED_BY(::cs_main){nullptr};
 
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
@@ -1201,7 +1201,9 @@ public:
     std::optional<BlockHash> SnapshotBlockhash() const;
 
     //! Is there a snapshot in use and has it been fully validated?
-    bool IsSnapshotValidated() const { return m_snapshot_validated; }
+    bool IsSnapshotValidated() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+        return m_snapshot_validated;
+    }
 
     /**
      * Process an incoming block. This only returns after the best known valid
