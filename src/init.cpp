@@ -1361,6 +1361,11 @@ void SetupServerArgs(NodeContext &node) {
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avasessionkey", "Avalanche session key (default: random)",
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-maxavalancheoutbound",
+        "Set the maximum number of avalanche outbound peers to connect to. "
+        "Note that the -maxconnections option takes precedence.",
+        ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
 
     // Add the hidden options
     argsman.AddHiddenArgs(hidden_args);
@@ -3048,11 +3053,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;
     connOptions.nMaxConnections = nMaxConnections;
-    connOptions.m_max_avalanche_outbound =
-        std::min(g_avalanche && isAvalancheEnabled(args)
-                     ? MAX_AVALANCHE_OUTBOUND_CONNECTIONS
-                     : 0,
-                 connOptions.nMaxConnections);
+    connOptions.m_max_avalanche_outbound = std::min<int64_t>(
+        g_avalanche && isAvalancheEnabled(args)
+            ? args.GetArg("-maxavalancheoutbound",
+                          DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
+            : 0,
+        connOptions.nMaxConnections);
     connOptions.m_max_outbound_full_relay = std::min(
         MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
         connOptions.nMaxConnections - connOptions.m_max_avalanche_outbound);

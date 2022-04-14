@@ -13,8 +13,11 @@ from test_framework.util import assert_equal, check_node_connections
 
 # From net.h
 MAX_OUTBOUND_FULL_RELAY_CONNECTIONS = 16
-MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 16
 MAX_BLOCK_RELAY_ONLY_CONNECTIONS = 2
+
+# Override DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS with
+# -maxavalancheoutbound
+MAX_AVALANCHE_OUTBOUND_CONNECTIONS = 12
 
 
 class P2PFeelerReceiver(P2PInterface):
@@ -29,7 +32,13 @@ class P2PFeelerReceiver(P2PInterface):
 class P2PAddConnections(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
-        self.extra_args = [["-enableavalanche=1"], []]
+        self.extra_args = [
+            [
+                "-enableavalanche=1",
+                f"-maxavalancheoutbound={MAX_AVALANCHE_OUTBOUND_CONNECTIONS}"
+            ],
+            []
+        ]
 
     def setup_network(self):
         self.setup_nodes()
