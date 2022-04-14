@@ -5231,8 +5231,29 @@ void Chainstate::LoadExternalBlockFile(const Config &config, FILE *fileIn,
                     }
                 }
             } catch (const std::exception &e) {
-                LogPrintf("%s: Deserialize or I/O error - %s\n", __func__,
-                          e.what());
+                // Historical bugs added extra data to the block files that does
+                // not deserialize cleanly. Commonly this data is between
+                // readable blocks, but it does not really matter. Such data is
+                // not fatal to the import process. The code that reads the
+                // block files deals with invalid data by simply ignoring it. It
+                // continues to search for the next {4 byte magic message start
+                // bytes + 4 byte length + block} that does deserialize cleanly
+                // and passes all of the other block validation checks dealing
+                // with POW and the merkle root, etc... We merely note with this
+                // informational log message when unexpected data is
+                // encountered. We could also be experiencing a storage system
+                // read error, or a read of a previous bad write. These are
+                // possible, but less likely scenarios. We don't have enough
+                // information to tell a difference here. The reindex process is
+                // not the place to attempt to clean and/or compact the block
+                // files. If so desired, a studious node operator may use
+                // knowledge of the fact that the block files are not entirely
+                // pristine in order to prepare a set of pristine, and perhaps
+                // ordered, block files for later reindexing.
+                LogPrint(BCLog::REINDEX,
+                         "%s: unexpected data at file offset 0x%x - %s. "
+                         "continuing\n",
+                         __func__, (nRewind - 1), e.what());
             }
         }
     } catch (const std::runtime_error &e) {
