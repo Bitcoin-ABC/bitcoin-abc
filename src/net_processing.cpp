@@ -4979,9 +4979,15 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAHELLO) {
-        if (!pfrom.m_avalanche_state) {
-            pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
+        if (pfrom.m_avalanche_state) {
+            LogPrint(
+                BCLog::AVALANCHE,
+                "Ignoring avahello from peer %d: already in our node set\n",
+                pfrom.GetId());
+            return;
         }
+
+        pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
 
         CHashVerifier<CDataStream> verifier(&vRecv);
         avalanche::Delegation delegation;
