@@ -13,9 +13,6 @@ from test_framework.messages import (
     MSG_TX,
     CBlockHeader,
     CInv,
-    msg_avahello,
-    msg_avapoll,
-    msg_avaresponse,
     msg_getdata,
     msg_headers,
     msg_inv,
@@ -69,7 +66,6 @@ class InvalidMessagesTest(BitcoinTestFramework):
         self.test_oversized_inv_msg()
         self.test_oversized_getdata_msg()
         self.test_oversized_headers_msg()
-        self.test_unsolicited_ava_messages()
         self.test_resource_exhaustion()
 
     def test_buffer(self):
@@ -268,26 +264,6 @@ class InvalidMessagesTest(BitcoinTestFramework):
     def test_oversized_headers_msg(self):
         size = MAX_HEADERS_RESULTS + 1
         self.test_oversized_msg(msg_headers([CBlockHeader()] * size), size)
-
-    def test_unsolicited_ava_messages(self):
-        """Node 0 has avalanche disabled by default. If a node does not
-        advertise the avalanche service flag, it does not expect to receive
-        any avalanche related message and should consider it as spam.
-        """
-        conn = self.nodes[0].add_p2p_connection(P2PInterface())
-        with self.nodes[0].assert_debug_log(
-                ['Misbehaving', '(0 -> 20): unsolicited-avahello']):
-            msg = msg_avahello()
-            conn.send_and_ping(msg)
-        with self.nodes[0].assert_debug_log(
-                ['Misbehaving', '(20 -> 40): unsolicited-avapoll']):
-            msg = msg_avapoll()
-            conn.send_and_ping(msg)
-        with self.nodes[0].assert_debug_log(
-                ['Misbehaving', '(40 -> 60): unsolicited-avaresponse']):
-            msg = msg_avaresponse()
-            conn.send_and_ping(msg)
-        self.nodes[0].disconnect_p2ps()
 
     def test_resource_exhaustion(self):
         self.log.info("Test node stays up despite many large junk messages")

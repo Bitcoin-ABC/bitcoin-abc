@@ -3514,7 +3514,7 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         if (!isAvalancheEnabled(gArgs)) {
-            Misbehaving(pfrom, 20, "unsolicited-" + msg_type);
+            // If avalanche is not enabled, ignore avalanche messages
             return;
         }
     }
