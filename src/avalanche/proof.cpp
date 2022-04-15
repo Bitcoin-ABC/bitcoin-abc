@@ -79,6 +79,12 @@ bool Proof::FromHex(Proof &proof, const std::string &hexProof,
     return true;
 }
 
+std::string Proof::ToHex() const {
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << *this;
+    return HexStr(ss);
+}
+
 void Proof::computeProofId() {
     CHashWriter ss(SER_GETHASH, 0);
     ss << sequence;

@@ -144,6 +144,7 @@ public:
 
     static bool FromHex(Proof &proof, const std::string &hexProof,
                         bilingual_str &errorOut);
+    std::string ToHex() const;
 
     static uint32_t amountToScore(Amount amount);
 

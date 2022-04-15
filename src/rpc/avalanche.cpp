@@ -325,9 +325,7 @@ static RPCHelpMan buildavalancheproof() {
 
             const avalanche::ProofRef proof = pb.build();
 
-            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-            ss << *proof;
-            return HexStr(ss);
+            return proof->ToHex();
         },
     };
 }
@@ -819,11 +817,8 @@ static RPCHelpMan getavalanchepeerinfo() {
                                  const avalanche::Peer &peer) {
                 UniValue obj(UniValue::VOBJ);
 
-                CDataStream serproof(SER_NETWORK, PROTOCOL_VERSION);
-                serproof << *peer.proof;
-
                 obj.pushKV("peerid", uint64_t(peer.peerid));
-                obj.pushKV("proof", HexStr(serproof));
+                obj.pushKV("proof", peer.proof->ToHex());
 
                 UniValue nodes(UniValue::VARR);
                 pm.forEachNode(peer, [&](const avalanche::Node &n) {
