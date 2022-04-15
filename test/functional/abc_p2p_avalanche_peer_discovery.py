@@ -274,6 +274,12 @@ class AvalancheTest(BitcoinTestFramework):
         node.reconsiderblock(tip)
         self.wait_until(lambda: has_node_count(2), timeout=2)
 
+        self.log.info(
+            "Check the node sends an avahello message to all peers even if the avalanche service bit is not advertised")
+        for _ in range(3):
+            nonavapeer = get_ava_p2p_interface(node, services=NODE_NETWORK)
+            nonavapeer.wait_for_avahello()
+
 
 if __name__ == '__main__':
     AvalancheTest().main()

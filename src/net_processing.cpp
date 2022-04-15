@@ -3797,8 +3797,7 @@ void PeerManagerImpl::ProcessMessage(
                                                 nCMPCTBLOCKVersion));
         }
 
-        if ((pfrom.nServices & NODE_AVALANCHE) && g_avalanche &&
-            isAvalancheEnabled(gArgs)) {
+        if (g_avalanche && isAvalancheEnabled(gArgs)) {
             if (g_avalanche->sendHello(&pfrom)) {
                 LogPrint(BCLog::AVALANCHE, "Send avahello to peer %d\n",
                          pfrom.GetId());
