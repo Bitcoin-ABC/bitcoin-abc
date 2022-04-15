@@ -777,14 +777,24 @@ bool Processor::isQuorumEstablished() {
         return true;
     }
 
+    auto localProof = getLocalProof();
+
     // Get the registered proof score and registered score we have nodes for
     uint32_t totalPeersScore;
     uint32_t connectedPeersScore;
-
     {
         LOCK(cs_peerManager);
         totalPeersScore = peerManager->getTotalPeersScore();
         connectedPeersScore = peerManager->getConnectedPeersScore();
+
+        // Consider that we are always connected to our proof, even if we are
+        // the single node using that proof.
+        if (localProof &&
+            peerManager->forPeer(localProof->getId(), [](const Peer &peer) {
+                return peer.node_count == 0;
+            })) {
+            connectedPeersScore += localProof->getScore();
+        }
     }
 
     // Ensure enough is being staked overall

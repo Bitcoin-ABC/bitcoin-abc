@@ -10,6 +10,7 @@
 #include <avalanche/voterecord.h>
 #include <chain.h>
 #include <config.h>
+#include <key_io.h>
 #include <net_processing.h> // For ::PeerManager
 #include <reverse_iterator.h>
 #include <scheduler.h>
@@ -1204,7 +1205,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
 
 BOOST_AUTO_TEST_CASE(quorum_detection) {
     // Set min quorum parameters for our test
-    int minStake = 2000000;
+    int minStake = 4'000'000;
     gArgs.ForceSetArg("-avaminquorumstake", ToString(minStake));
     gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", "0.5");
 
@@ -1212,27 +1213,51 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     const auto currency = Currency::get();
     uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
 
+    const CKey key = CKey::MakeCompressedKey();
+    auto localProof = buildRandomProof(minScore / 4, key);
+    gArgs.ForceSetArg("-avamasterkey", EncodeSecret(key));
+    gArgs.ForceSetArg("-avaproof", localProof->ToHex());
+
     bilingual_str error;
     std::unique_ptr<Processor> processor = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(), error);
 
     BOOST_CHECK(processor != nullptr);
-    BOOST_CHECK(!processor->isQuorumEstablished());
+    BOOST_CHECK(processor->getLocalProof() != nullptr);
+    BOOST_CHECK_EQUAL(processor->getLocalProof()->getId(), localProof->getId());
     BOOST_CHECK_EQUAL(AvalancheTest::getMinQuorumScore(*processor), minScore);
     BOOST_CHECK_EQUAL(
         AvalancheTest::getMinQuorumConnectedScoreRatio(*processor), 0.5);
+
+    // The local proof has not been validated yet
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(!processor->isQuorumEstablished());
+
+    // Register the local proof. This is normally done when the chain tip is
+    // updated. The local proof should be accounted for in the min quorum
+    // computation but the peer manager doesn't know about that.
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.registerProof(processor->getLocalProof()));
+        BOOST_CHECK(pm.isBoundToPeer(processor->getLocalProof()->getId()));
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 4);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(!processor->isQuorumEstablished());
 
     // Add part of the required stake and make sure we still report no quorum
     auto proof1 = buildRandomProof(minScore / 2);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof1));
-        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 2);
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
     });
     BOOST_CHECK(!processor->isQuorumEstablished());
 
-    // Add the rest of the stake, but we still have no connected stake
-    auto proof2 = buildRandomProof(minScore / 2);
+    // Add the rest of the stake, but we are still lacking connected stake
+    auto proof2 = buildRandomProof(minScore / 4);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof2));
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
@@ -1242,10 +1267,12 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 
     // Adding a node should cause the quorum to be detected and locked-in
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.addNode(0, proof1->getId());
+        pm.addNode(0, proof2->getId());
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 2);
+        // The peer manager knows that proof2 has a node attached ...
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
     });
+    // ... but the processor also account for the local proof, so we reached 50%
     BOOST_CHECK(processor->isQuorumEstablished());
 
     // Go back to not having enough connected nodes, but we've already latched
@@ -1274,18 +1301,27 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 
     orphanProof(proof2);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
-        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 2);
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
     orphanProof(proof1);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 4);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+    });
+    BOOST_CHECK(processor->isQuorumEstablished());
+
+    orphanProof(processor->getLocalProof());
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
+    gArgs.ClearForcedArg("-avamasterkey");
+    gArgs.ClearForcedArg("-avaproof");
     gArgs.ClearForcedArg("-avaminquorumstake");
     gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
 }
