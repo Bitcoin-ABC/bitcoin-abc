@@ -96,7 +96,7 @@ namespace {
     static ProofRef
     buildProofWithOutpoints(const CKey &key,
                             const std::vector<COutPoint> &outpoints,
-                            Amount amount = 10 * COIN, Args &&...args) {
+                            Amount amount, Args &&...args) {
         std::vector<std::tuple<COutPoint, Amount>> outpointsWithAmount;
         std::transform(
             outpoints.begin(), outpoints.end(),
@@ -580,7 +580,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     COutPoint utxo = createUtxo(key);
 
-    auto proof = buildProofWithOutpoints(key, {utxo});
+    auto proof = buildProofWithOutpoints(key, {utxo}, 10 * COIN);
     const ProofId &proofid = proof->getId();
 
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
@@ -891,12 +891,14 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     const COutPoint conflictingOutpoint = createUtxo(key);
     const COutPoint outpointToSend = createUtxo(key);
 
-    ProofRef proofToInvalidate =
-        buildProofWithOutpoints(key, {conflictingOutpoint, outpointToSend});
+    const Amount amount = 10 * COIN;
+
+    ProofRef proofToInvalidate = buildProofWithOutpoints(
+        key, {conflictingOutpoint, outpointToSend}, amount);
     BOOST_CHECK(pm.registerProof(proofToInvalidate));
 
-    ProofRef conflictingProof =
-        buildProofWithOutpoints(key, {conflictingOutpoint, createUtxo(key)});
+    ProofRef conflictingProof = buildProofWithOutpoints(
+        key, {conflictingOutpoint, createUtxo(key)}, amount);
     ProofRegistrationState state;
     BOOST_CHECK(!pm.registerProof(conflictingProof, state));
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::CONFLICTING);
