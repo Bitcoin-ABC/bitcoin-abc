@@ -389,7 +389,7 @@ void BitcoinApplication::startThread() {
     connect(executor, &BitcoinABC::initializeResult, this,
             &BitcoinApplication::initializeResult);
     connect(executor, &BitcoinABC::shutdownResult, this,
-            &QCoreApplication::quit);
+            [] { QCoreApplication::exit(0); });
     connect(executor, &BitcoinABC::runawayException, this,
             &BitcoinApplication::handleRunawayException);
 
