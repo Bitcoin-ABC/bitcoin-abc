@@ -27,12 +27,19 @@
 #include <univalue.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
+
+// The server returns time values from a mockable system clock, but it is not
+// trivial to get the mocked time from the server, nor is it needed for now, so
+// just use a plain system_clock.
+using CliClock = std::chrono::system_clock;
+using CliSeconds = std::chrono::time_point<CliClock, std::chrono::seconds>;
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
@@ -469,7 +476,7 @@ private:
         const double milliseconds{round(1000 * seconds)};
         return milliseconds > 999999 ? "-" : ToString(milliseconds);
     }
-    const int64_t m_time_now{GetTimeSeconds()};
+    const int64_t m_time_now{count_seconds(Now<CliSeconds>())};
 
 public:
     static constexpr int ID_PEERINFO = 0;

@@ -205,9 +205,6 @@ BOOST_AUTO_TEST_CASE(util_FormatParseISO8601DateTime) {
     BOOST_CHECK_EQUAL(ParseISO8601DateTime("1970-01-01T00:00:00Z"), 0);
     BOOST_CHECK_EQUAL(ParseISO8601DateTime("1960-01-01T00:00:00Z"), 0);
     BOOST_CHECK_EQUAL(ParseISO8601DateTime("2011-09-30T23:36:17Z"), 1317425777);
-
-    auto time = GetTimeSeconds();
-    BOOST_CHECK_EQUAL(ParseISO8601DateTime(FormatISO8601DateTime(time)), time);
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatISO8601Date) {
@@ -1645,8 +1642,8 @@ BOOST_AUTO_TEST_CASE(gettime) {
 BOOST_AUTO_TEST_CASE(util_time_GetTime) {
     SetMockTime(111);
     // Check that mock time does not change after a sleep
-    for (const auto &num_sleep : {0, 1}) {
-        UninterruptibleSleep(std::chrono::milliseconds{num_sleep});
+    for (const auto &num_sleep : {0ms, 1ms}) {
+        UninterruptibleSleep(num_sleep);
         BOOST_CHECK_EQUAL(111, GetTime()); // Deprecated time getter
         BOOST_CHECK_EQUAL(111, GetTime<std::chrono::seconds>().count());
         BOOST_CHECK_EQUAL(111000, GetTime<std::chrono::milliseconds>().count());
@@ -1655,10 +1652,14 @@ BOOST_AUTO_TEST_CASE(util_time_GetTime) {
     }
 
     SetMockTime(0);
-    // Check that system time changes after a sleep
+    // Check that steady time and system time changes after a sleep
+    const auto steady_ms_0 = Now<SteadyMilliseconds>();
+    const auto steady_0 = std::chrono::steady_clock::now();
     const auto ms_0 = GetTime<std::chrono::milliseconds>();
     const auto us_0 = GetTime<std::chrono::microseconds>();
-    UninterruptibleSleep(std::chrono::milliseconds{1});
+    UninterruptibleSleep(1ms);
+    BOOST_CHECK(steady_ms_0 < Now<SteadyMilliseconds>());
+    BOOST_CHECK(steady_0 + 1ms <= std::chrono::steady_clock::now());
     BOOST_CHECK(ms_0 < GetTime<std::chrono::milliseconds>());
     BOOST_CHECK(us_0 < GetTime<std::chrono::microseconds>());
 }
