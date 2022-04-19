@@ -69,6 +69,13 @@ class BlockManager {
     friend ChainstateManager;
 
 private:
+    /**
+     * Load the blocktree off disk and into memory. Populate certain metadata
+     * per index entry (nStatus, nChainWork, nTimeMax, etc.) as well as
+     * peripheral collections like m_dirty_blockindex.
+     */
+    bool LoadBlockIndex(const Consensus::Params &consensus_params)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     void FlushBlockFile(bool fFinalize = false, bool finalize_undo = false);
     void FlushUndoFile(int block_file, bool finalize = false);
     bool FindBlockPos(FlatFilePos &pos, unsigned int nAddSize,
@@ -142,14 +149,6 @@ public:
 
     bool WriteBlockIndexDB() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
     bool LoadBlockIndexDB() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
-
-    /**
-     * Load the blocktree off disk and into memory. Populate certain metadata
-     * per index entry (nStatus, nChainWork, nTimeMax, etc.) as well as
-     * peripheral collections like m_dirty_blockindex.
-     */
-    bool LoadBlockIndex(const Consensus::Params &consensus_params)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
     /** Clear all data members. */
     void Unload() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
