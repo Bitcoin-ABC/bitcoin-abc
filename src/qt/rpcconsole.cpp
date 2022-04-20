@@ -1067,9 +1067,9 @@ void RPCConsole::on_lineEdit_returnPressed() {
 
         cmdBeforeBrowsing = QString();
 
+        WalletModel *wallet_model{nullptr};
 #ifdef ENABLE_WALLET
-        WalletModel *wallet_model =
-            ui->WalletSelector->currentData().value<WalletModel *>();
+        wallet_model = ui->WalletSelector->currentData().value<WalletModel *>();
 
         if (m_last_wallet_model != wallet_model) {
             if (wallet_model) {
@@ -1084,7 +1084,11 @@ void RPCConsole::on_lineEdit_returnPressed() {
 #endif
 
         message(CMD_REQUEST, QString::fromStdString(strFilteredCmd));
-        Q_EMIT cmdRequest(cmd, m_last_wallet_model);
+
+        assert(m_executor);
+        QMetaObject::invokeMethod(m_executor, [this, cmd, wallet_model] {
+            m_executor->request(cmd, wallet_model);
+        });
 
         cmd = QString::fromStdString(strFilteredCmd);
 
@@ -1127,24 +1131,21 @@ void RPCConsole::browseHistory(int offset) {
 }
 
 void RPCConsole::startExecutor() {
-    RPCExecutor *executor = new RPCExecutor(m_node);
-    executor->moveToThread(&thread);
+    m_executor = new RPCExecutor(m_node);
+    m_executor->moveToThread(&thread);
 
     // Replies from executor object must go to this object
-    connect(executor, &RPCExecutor::reply, this,
+    connect(m_executor, &RPCExecutor::reply, this,
             static_cast<void (RPCConsole::*)(int, const QString &)>(
                 &RPCConsole::message));
 
-    // Requests from this object must go to executor
-    connect(this, &RPCConsole::cmdRequest, executor, &RPCExecutor::request);
-
     // Make sure executor object is deleted in its own thread
-    connect(&thread, &QThread::finished, executor, &RPCExecutor::deleteLater);
+    connect(&thread, &QThread::finished, m_executor, &RPCExecutor::deleteLater);
 
     // Default implementation of QThread::run() simply spins up an event loop in
     // the thread, which is what we want.
     thread.start();
-    QTimer::singleShot(0, executor,
+    QTimer::singleShot(0, m_executor,
                        []() { util::ThreadRename("qt-rpcconsole"); });
 }
 

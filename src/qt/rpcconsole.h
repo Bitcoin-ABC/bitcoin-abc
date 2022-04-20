@@ -5,6 +5,10 @@
 #ifndef BITCOIN_QT_RPCCONSOLE_H
 #define BITCOIN_QT_RPCCONSOLE_H
 
+#if defined(HAVE_CONFIG_H)
+#include <config/bitcoin-config.h>
+#endif
+
 #include <qt/clientmodel.h>
 #include <qt/guiutil.h>
 #include <qt/peertablemodel.h>
@@ -16,6 +20,7 @@
 #include <QWidget>
 
 class PlatformStyle;
+class RPCExecutor;
 class RPCTimerInterface;
 class WalletModel;
 
@@ -58,8 +63,11 @@ public:
     void setClientModel(ClientModel *model = nullptr, int bestblock_height = 0,
                         int64_t bestblock_date = 0,
                         double verification_progress = 0.0);
+
+#ifdef ENABLE_WALLET
     void addWallet(WalletModel *const walletModel);
     void removeWallet(WalletModel *const walletModel);
+#endif // ENABLE_WALLET
 
     enum MessageClass { MC_ERROR, MC_DEBUG, CMD_REQUEST, CMD_REPLY, CMD_ERROR };
 
@@ -137,10 +145,6 @@ public Q_SLOTS:
     /** set which tab has the focus (is visible) */
     void setTabFocus(enum TabTypes tabType);
 
-Q_SIGNALS:
-    // For RPC command executor
-    void cmdRequest(const QString &command, const WalletModel *wallet_model);
-
 private:
     void startExecutor();
     void setTrafficGraphRange(int mins);
@@ -168,6 +172,7 @@ private:
     int consoleFontSize = 0;
     QCompleter *autoCompleter = nullptr;
     QThread thread;
+    RPCExecutor *m_executor{nullptr};
     WalletModel *m_last_wallet_model{nullptr};
 
     /** Update UI with latest network info from model. */
