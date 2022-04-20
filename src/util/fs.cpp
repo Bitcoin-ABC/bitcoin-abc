@@ -5,6 +5,8 @@
 
 #include <util/fs.h>
 
+#include <util/syserror.h>
+
 #ifndef WIN32
 #include <cstring>
 #include <fcntl.h>
@@ -42,7 +44,7 @@ fs::path AbsPathJoin(const fs::path &base, const fs::path &path) {
 #ifndef WIN32
 
 static std::string GetErrorReason() {
-    return std::strerror(errno);
+    return SysErrorString(errno);
 }
 
 FileLock::FileLock(const fs::path &file) {

@@ -22,6 +22,7 @@
 #include <util/check.h>
 #include <util/exception.h>
 #include <util/strencodings.h>
+#include <util/syserror.h>
 #include <util/system.h>
 #include <util/threadnames.h>
 #include <util/tokenpipe.h>
@@ -264,7 +265,7 @@ static bool AppInit(int argc, char *argv[]) {
                 case -1:
                     // Error happened.
                     return InitError(Untranslated(strprintf(
-                        "fork_daemon() failed: %s\n", strerror(errno))));
+                        "fork_daemon() failed: %s\n", SysErrorString(errno))));
                 default: {
                     // Parent: wait and exit.
                     int token = daemon_ep.TokenRead();

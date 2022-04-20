@@ -442,6 +442,7 @@ add_library(util
 	util/spanparsing.cpp
 	util/strencodings.cpp
 	util/string.cpp
+	util/syserror.cpp
 	util/system.cpp
 	util/thread.cpp
 	util/threadnames.cpp
@@ -935,6 +936,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		util/settings.cpp
 		util/strencodings.cpp
 		util/string.cpp
+		util/syserror.cpp
 		util/thread.cpp
 		util/threadnames.cpp
 		util/time.cpp

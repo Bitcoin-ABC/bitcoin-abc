@@ -8,6 +8,7 @@
 #include <logging.h>
 #include <threadinterrupt.h>
 #include <tinyformat.h>
+#include <util/syserror.h>
 #include <util/system.h>
 #include <util/time.h>
 
@@ -329,24 +330,9 @@ std::string NetworkErrorString(int err) {
 }
 #else
 std::string NetworkErrorString(int err) {
-    char buf[256];
-    buf[0] = 0;
-    /**
-     * Too bad there are two incompatible implementations of the
-     * thread-safe strerror.
-     */
-    const char *s;
-#ifdef STRERROR_R_CHAR_P
-    /* GNU variant can return a pointer outside the passed buffer */
-    s = strerror_r(err, buf, sizeof(buf));
-#else
-    s = buf;
-    /* POSIX variant always returns message in buffer */
-    if (strerror_r(err, buf, sizeof(buf))) {
-        buf[0] = 0;
-    }
-#endif
-    return strprintf("%s (%d)", s, err);
+    // On BSD sockets implementations, NetworkErrorString is the same as
+    // SysErrorString.
+    return SysErrorString(err);
 }
 #endif
 

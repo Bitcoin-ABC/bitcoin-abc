@@ -77,6 +77,7 @@
 #include <util/fs_helpers.h>
 #include <util/moneystr.h>
 #include <util/string.h>
+#include <util/syserror.h>
 #include <util/thread.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
@@ -166,7 +167,7 @@ static fs::path GetPidFile(const ArgsManager &args) {
     } else {
         return InitError(strprintf(_("Unable to create the PID file '%s': %s"),
                                    fs::PathToString(GetPidFile(args)),
-                                   std::strerror(errno)));
+                                   SysErrorString(errno)));
     }
 }
 
