@@ -724,7 +724,7 @@ public:
      *          False if the peer should be disconnected from.
      */
     bool ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
-                         bool &complete);
+                         bool &complete) EXCLUSIVE_LOCKS_REQUIRED(!cs_vRecv);
 
     void SetCommonVersion(int greatest_common_version) {
         Assume(m_greatest_common_version == INIT_PROTO_VERSION);
@@ -732,10 +732,10 @@ public:
     }
     int GetCommonVersion() const { return m_greatest_common_version; }
 
-    CService GetAddrLocal() const LOCKS_EXCLUDED(m_addr_local_mutex);
+    CService GetAddrLocal() const EXCLUSIVE_LOCKS_REQUIRED(!m_addr_local_mutex);
     //! May not be called more than once
     void SetAddrLocal(const CService &addrLocalIn)
-        LOCKS_EXCLUDED(m_addr_local_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_addr_local_mutex);
 
     CNode *AddRef() {
         nRefCount++;
@@ -744,9 +744,11 @@ public:
 
     void Release() { nRefCount--; }
 
-    void CloseSocketDisconnect();
+    void CloseSocketDisconnect() EXCLUSIVE_LOCKS_REQUIRED(!cs_hSocket);
 
-    void copyStats(CNodeStats &stats);
+    void copyStats(CNodeStats &stats)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_subver_mutex, !m_addr_local_mutex,
+                                 !cs_vSend, !cs_vRecv);
 
     std::string ConnectionTypeAsString() const {
         return ::ConnectionTypeAsString(m_conn_type);
@@ -867,7 +869,8 @@ public:
         bool m_i2p_accept_incoming = true;
     };
 
-    void Init(const Options &connOptions) {
+    void Init(const Options &connOptions)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex) {
         nLocalServices = connOptions.nLocalServices;
         nMaxConnections = connOptions.nMaxConnections;
         m_use_addrman_outgoing = connOptions.m_use_addrman_outgoing;
@@ -909,7 +912,9 @@ public:
              AddrMan &addrmanIn, bool network_active = true);
     ~CConnman();
 
-    bool Start(CScheduler &scheduler, const Options &options);
+    bool Start(CScheduler &scheduler, const Options &options)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex, !m_addr_fetches_mutex,
+                                 !mutexMsgProc);
 
     void StopThreads();
     void StopNodes();
@@ -918,7 +923,7 @@ public:
         StopNodes();
     };
 
-    void Interrupt();
+    void Interrupt() EXCLUSIVE_LOCKS_REQUIRED(!mutexMsgProc);
     bool GetNetworkActive() const { return fNetworkActive; };
     bool GetUseAddrmanOutgoing() const { return m_use_addrman_outgoing; };
     void SetNetworkActive(bool active);
@@ -992,9 +997,12 @@ public:
     // Count the number of block-relay-only peers we have over our limit.
     int GetExtraBlockRelayCount() const;
 
-    bool AddNode(const std::string &node);
-    bool RemoveAddedNode(const std::string &node);
-    std::vector<AddedNodeInfo> GetAddedNodeInfo() const;
+    bool AddNode(const std::string &node)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex);
+    bool RemoveAddedNode(const std::string &node)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex);
+    std::vector<AddedNodeInfo> GetAddedNodeInfo() const
+        EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex);
 
     /**
      * Attempts to open a connection. Currently only used from tests.
@@ -1051,7 +1059,7 @@ public:
 
     unsigned int GetReceiveFloodSize() const;
 
-    void WakeMessageHandler();
+    void WakeMessageHandler() EXCLUSIVE_LOCKS_REQUIRED(!mutexMsgProc);
 
     /**
      * Return true if we should disconnect the peer for failing an inactivity
@@ -1080,14 +1088,18 @@ private:
               NetPermissionFlags permissions);
     bool InitBinds(const Options &options);
 
-    void ThreadOpenAddedConnections();
-    void AddAddrFetch(const std::string &strDest);
-    void ProcessAddrFetch();
+    void ThreadOpenAddedConnections()
+        EXCLUSIVE_LOCKS_REQUIRED(!m_added_nodes_mutex);
+    void AddAddrFetch(const std::string &strDest)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_addr_fetches_mutex);
+    void ProcessAddrFetch() EXCLUSIVE_LOCKS_REQUIRED(!m_addr_fetches_mutex);
     void
     ThreadOpenConnections(std::vector<std::string> connect,
                           std::function<void(const CAddress &, ConnectionType)>
-                              mockOpenConnection);
-    void ThreadMessageHandler();
+                              mockOpenConnection)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_addr_fetches_mutex, !m_added_nodes_mutex,
+                                 !m_nodes_mutex);
+    void ThreadMessageHandler() EXCLUSIVE_LOCKS_REQUIRED(!mutexMsgProc);
     void ThreadI2PAcceptIncoming();
     void AcceptConnection(const ListenSocket &hListenSocket);
 
@@ -1113,9 +1125,10 @@ private:
                            std::set<SOCKET> &error_set);
     void SocketEvents(std::set<SOCKET> &recv_set, std::set<SOCKET> &send_set,
                       std::set<SOCKET> &error_set);
-    void SocketHandler();
-    void ThreadSocketHandler();
-    void ThreadDNSAddressSeed();
+    void SocketHandler() EXCLUSIVE_LOCKS_REQUIRED(!mutexMsgProc);
+    void ThreadSocketHandler() EXCLUSIVE_LOCKS_REQUIRED(!mutexMsgProc);
+    void ThreadDNSAddressSeed()
+        EXCLUSIVE_LOCKS_REQUIRED(!m_addr_fetches_mutex, !m_nodes_mutex);
 
     uint64_t CalculateKeyedNetGroup(const CAddress &ad) const;
 

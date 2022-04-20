@@ -51,7 +51,8 @@ public:
     explicit MainSignalsImpl(CScheduler &scheduler LIFETIMEBOUND)
         : m_schedulerClient(scheduler) {}
 
-    void Register(std::shared_ptr<CValidationInterface> callbacks) {
+    void Register(std::shared_ptr<CValidationInterface> callbacks)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
         auto inserted = m_map.emplace(callbacks.get(), m_list.end());
         if (inserted.second) {
@@ -60,7 +61,8 @@ public:
         inserted.first->second->callbacks = std::move(callbacks);
     }
 
-    void Unregister(CValidationInterface *callbacks) {
+    void Unregister(CValidationInterface *callbacks)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
         auto it = m_map.find(callbacks);
         if (it != m_map.end()) {
@@ -75,7 +77,7 @@ public:
     //! map entry. After this call, the list may still contain callbacks that
     //! are currently executing, but it will be cleared when they are done
     //! executing.
-    void Clear() {
+    void Clear() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
         for (const auto &entry : m_map) {
             if (!--entry.second->count) {
@@ -85,7 +87,8 @@ public:
         m_map.clear();
     }
 
-    template <typename F> void Iterate(F &&f) {
+    template <typename F>
+    void Iterate(F &&f) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         WAIT_LOCK(m_mutex, lock);
         for (auto it = m_list.begin(); it != m_list.end();) {
             ++it->count;

@@ -421,7 +421,8 @@ public:
 
     ~RNGState() {}
 
-    void AddEvent(uint32_t event_info) noexcept {
+    void AddEvent(uint32_t event_info) noexcept
+        EXCLUSIVE_LOCKS_REQUIRED(!m_events_mutex) {
         LOCK(m_events_mutex);
 
         m_events_hasher.Write((const uint8_t *)&event_info, sizeof(event_info));
@@ -435,7 +436,8 @@ public:
     /**
      * Feed (the hash of) all events added through AddEvent() to hasher.
      */
-    void SeedEvents(CSHA512 &hasher) noexcept {
+    void SeedEvents(CSHA512 &hasher) noexcept
+        EXCLUSIVE_LOCKS_REQUIRED(!m_events_mutex) {
         // We use only SHA256 for the events hashing to get the ASM speedups we
         // have for SHA256, since we want it to be fast as network peers may be
         // able to trigger it repeatedly.
@@ -458,7 +460,8 @@ public:
      * returned.
      */
     bool MixExtract(uint8_t *out, size_t num, CSHA512 &&hasher,
-                    bool strong_seed) noexcept {
+                    bool strong_seed) noexcept
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         assert(num <= 32);
         uint8_t buf[64];
         static_assert(sizeof(buf) == CSHA512::OUTPUT_SIZE,
