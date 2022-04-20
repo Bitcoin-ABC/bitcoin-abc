@@ -1036,6 +1036,11 @@ private:
         most_recent_compact_block GUARDED_BY(cs_most_recent_block);
     BlockHash most_recent_block_hash GUARDED_BY(cs_most_recent_block);
 
+    /**
+     * Height of the highest block announced using BIP 152 high-bandwidth mode.
+     */
+    int nHighestFastAnnounce{0};
+
     /** Have we requested this block from a peer */
     bool IsBlockRequested(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -2439,7 +2444,6 @@ void PeerManagerImpl::NewPoWValidBlock(
 
     LOCK(cs_main);
 
-    static int nHighestFastAnnounce = 0;
     if (pindex->nHeight <= nHighestFastAnnounce) {
         return;
     }
