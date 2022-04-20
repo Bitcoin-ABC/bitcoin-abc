@@ -75,7 +75,7 @@ Bitcoin ABC cannot commit to bounty payments ahead of time.  However, we will us
 
 ## Deviations from the Standard
 
-While Bitcoin ABC believes that strong cohesion among neighboring projects and ethical behavior can be standardized to reduce poorly handled disclosure incidents, we also believe that it's in the best interest of Bitcoin Cash for us to deviate from the standard in the following ways:
+While Bitcoin ABC believes that strong cohesion among neighboring projects and ethical behavior can be standardized to reduce poorly handled disclosure incidents, we also believe that it's in the best interest of eCash for us to deviate from the standard in the following ways:
 
 * The standard calls for coordinated releases. While Bitcoin ABC will make attempts to coordinate releases when possible, it's not always feasible to coordinate urgent fixes for catastrophic exploits (ie. chain splitting events).  For critical fixes, Bitcoin ABC will release them in the next release when possible.
 
