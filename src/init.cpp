@@ -1428,7 +1428,7 @@ std::string LicenseInfo() {
 }
 
 static bool fHaveGenesis = false;
-static Mutex g_genesis_wait_mutex;
+static GlobalMutex g_genesis_wait_mutex;
 static std::condition_variable g_genesis_wait_cv;
 
 static void BlockNotifyGenesisWait(const CBlockIndex *pBlockIndex) {

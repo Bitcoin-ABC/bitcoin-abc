@@ -31,7 +31,7 @@
 #endif
 
 // Settings
-static Mutex g_proxyinfo_mutex;
+static GlobalMutex g_proxyinfo_mutex;
 static proxyType proxyInfo[NET_MAX] GUARDED_BY(g_proxyinfo_mutex);
 static proxyType nameProxy GUARDED_BY(g_proxyinfo_mutex);
 int nConnectTimeout = DEFAULT_CONNECT_TIMEOUT;

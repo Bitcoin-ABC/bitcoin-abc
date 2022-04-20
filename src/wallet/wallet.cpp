@@ -172,8 +172,8 @@ HandleLoadWallet(LoadWalletFn load_wallet) {
     });
 }
 
-static Mutex g_loading_wallet_mutex;
-static Mutex g_wallet_release_mutex;
+static GlobalMutex g_loading_wallet_mutex;
+static GlobalMutex g_wallet_release_mutex;
 static std::condition_variable g_wallet_release_cv;
 static std::set<std::string>
     g_loading_wallet_set GUARDED_BY(g_loading_wallet_mutex);

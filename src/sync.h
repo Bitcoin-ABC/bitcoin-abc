@@ -131,6 +131,18 @@ using RecursiveMutex = AnnotatedMixin<std::recursive_mutex>;
 /** Wrapped mutex: supports waiting but not recursive locking */
 using Mutex = AnnotatedMixin<std::mutex>;
 
+/**
+ * Different type to mark Mutex at global scope
+ *
+ * Thread safety analysis can't handle negative assertions about mutexes
+ * with global scope well, so mark them with a separate type, and
+ * eventually move all the mutexes into classes so they are not globally
+ * visible.
+ *
+ * See: https://github.com/bitcoin/bitcoin/pull/20272#issuecomment-720755781
+ */
+class GlobalMutex : public Mutex {};
+
 #define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
 
 inline void AssertLockNotHeldInline(const char *name, const char *file,
@@ -140,6 +152,11 @@ inline void AssertLockNotHeldInline(const char *name, const char *file,
 }
 inline void AssertLockNotHeldInline(const char *name, const char *file,
                                     int line, RecursiveMutex *cs)
+    LOCKS_EXCLUDED(cs) {
+    AssertLockNotHeldInternal(name, file, line, cs);
+}
+inline void AssertLockNotHeldInline(const char *name, const char *file,
+                                    int line, GlobalMutex *cs)
     LOCKS_EXCLUDED(cs) {
     AssertLockNotHeldInternal(name, file, line, cs);
 }
