@@ -19,7 +19,8 @@ BOOST_FIXTURE_TEST_SUITE(init_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
     gArgs.ForceSetArg("-ecash", "1");
-    const Amount tenBillion = 10'000'000'000 * Currency::get().baseunit;
+    const Amount tenBillion =
+        int64_t(10'000'000'000) * Currency::get().baseunit;
 
     auto getAvaMinQuorumStakeAmount = [](const ArgsManager &args,
                                          const Amount defaultAmount) {
