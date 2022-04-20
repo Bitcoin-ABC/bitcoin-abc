@@ -8,6 +8,7 @@
 #include <logging.h>
 #include <primitives/blockhash.h>
 #include <streams.h>
+#include <util/system.h>
 #include <validation.h>
 
 #include <cstdio>
@@ -80,6 +81,17 @@ std::optional<BlockHash> ReadSnapshotBaseBlockhash(const fs::path &chaindir) {
         LogPrintf("[snapshot] warning: i/o error reading %s\n", read_from_str);
     }
     return base_blockhash;
+}
+
+std::optional<fs::path> FindSnapshotChainstateDir() {
+    fs::path possible_dir =
+        gArgs.GetDataDirNet() /
+        fs::u8path(strprintf("chainstate%s", SNAPSHOT_CHAINSTATE_SUFFIX));
+
+    if (fs::exists(possible_dir)) {
+        return possible_dir;
+    }
+    return std::nullopt;
 }
 
 } // namespace node

@@ -67,8 +67,9 @@ BOOST_AUTO_TEST_CASE(chainstatemanager) {
     // Create a snapshot-based chainstate.
     //
     const BlockHash snapshot_blockhash{GetRandHash()};
-    Chainstate &c2 = WITH_LOCK(::cs_main, return manager.InitializeChainstate(
-                                              &mempool, snapshot_blockhash));
+    Chainstate &c2 = WITH_LOCK(
+        ::cs_main,
+        return manager.ActivateExistingSnapshot(&mempool, snapshot_blockhash));
     chainstates.push_back(&c2);
 
     BOOST_CHECK_EQUAL(manager.SnapshotBlockhash().value(), snapshot_blockhash);
@@ -145,7 +146,7 @@ BOOST_AUTO_TEST_CASE(chainstatemanager_rebalance_caches) {
     // Create a snapshot-based chainstate.
     //
     Chainstate &c2 =
-        WITH_LOCK(cs_main, return manager.InitializeChainstate(
+        WITH_LOCK(cs_main, return manager.ActivateExistingSnapshot(
                                &mempool, BlockHash{GetRandHash()}));
     chainstates.push_back(&c2);
     c2.InitCoinsDB(
@@ -407,7 +408,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup) {
     BOOST_CHECK_EQUAL(expected_assumed_valid, num_assumed_valid);
 
     Chainstate &cs2 =
-        *WITH_LOCK(::cs_main, return &chainman.InitializeChainstate(
+        *WITH_LOCK(::cs_main, return &chainman.ActivateExistingSnapshot(
                                   &*m_node.mempool, BlockHash{GetRandHash()}));
 
     reload_all_block_indexes();
