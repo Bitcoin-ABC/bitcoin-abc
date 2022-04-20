@@ -221,7 +221,7 @@ namespace {
             return m_context->connman && m_context->connman->GetNetworkActive();
         }
         CFeeRate getDustRelayFee() override { return ::dustRelayFee; }
-        UniValue executeRpc(Config &config, const std::string &command,
+        UniValue executeRpc(const Config &config, const std::string &command,
                             const UniValue &params,
                             const std::string &uri) override {
             JSONRPCRequest req(m_context_ref);

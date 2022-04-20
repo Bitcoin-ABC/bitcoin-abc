@@ -158,7 +158,8 @@ public:
     virtual CFeeRate getDustRelayFee() = 0;
 
     //! Execute rpc command.
-    virtual UniValue executeRpc(Config &config, const std::string &command,
+    virtual UniValue executeRpc(const Config &config,
+                                const std::string &command,
                                 const UniValue &params,
                                 const std::string &uri) = 0;
 

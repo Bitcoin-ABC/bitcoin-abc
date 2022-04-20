@@ -343,10 +343,9 @@ bool RPCConsole::RPCParseCommandLine(interfaces::Node *node,
                                 }
 #endif
 
-                                GlobalConfig config;
                                 assert(node);
-                                lastResult = node->executeRpc(config, method,
-                                                              params, uri);
+                                lastResult = node->executeRpc(
+                                    GetConfig(), method, params, uri);
                             }
 
                             state = STATE_COMMAND_EXECUTED;
