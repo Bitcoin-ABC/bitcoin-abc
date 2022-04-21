@@ -14,7 +14,7 @@ import {
     removeConsumedUtxos,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
 } from 'utils/cashMethods';
-import { isValidCashtabSettings } from 'utils/validation';
+import { isValidCashtabSettings, isValidContactList } from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
 import isEmpty from 'lodash.isempty';
@@ -25,6 +25,7 @@ import {
 } from 'components/Common/Notifications';
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
+    const [contactList, setContactList] = useState(false);
     const [cashtabSettings, setCashtabSettings] = useState(false);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
@@ -943,6 +944,33 @@ const useWallet = () => {
         return currency.defaultSettings;
     };
 
+    const loadContactList = async () => {
+        // get contactList object from localforage
+        let localContactList;
+        try {
+            localContactList = await localforage.getItem('contactList');
+            // If there is no keyvalue pair in localforage with key 'settings'
+            if (localContactList === null) {
+                // Use an array containing a single empty object
+                localforage.setItem('contactList', [{}]);
+                setContactList([{}]);
+                return [{}];
+            }
+        } catch (err) {
+            console.log(`Error getting contactList`, err);
+            setContactList([{}]);
+            return [{}];
+        }
+        // If you found an object in localforage at the settings key, make sure it's valid
+        if (isValidContactList(localContactList)) {
+            setContactList(localContactList);
+            return localContactList;
+        }
+        // if not valid, also set to default
+        setContactList([{}]);
+        return [{}];
+    };
+
     // With different currency selections possible, need unique intervals for price checks
     // Must be able to end them and set new ones with new currencies
     const initializeFiatPriceApi = async selectedFiatCurrency => {
@@ -1181,6 +1209,7 @@ const useWallet = () => {
 
     useEffect(async () => {
         handleUpdateWallet(setWallet);
+        await loadContactList();
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
@@ -1191,6 +1220,7 @@ const useWallet = () => {
         fiatPrice,
         loading,
         apiError,
+        contactList,
         cashtabSettings,
         changeCashtabSettings,
         getActiveWalletFromLocalForage,

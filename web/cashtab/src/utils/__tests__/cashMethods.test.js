@@ -2,6 +2,7 @@ import { ValidationError } from 'ecashaddrjs';
 import {
     fromSmallestDenomination,
     batchArray,
+    flattenContactList,
     flattenBatchedHydratedUtxos,
     loadStoredWallet,
     isValidStoredWallet,
@@ -819,5 +820,42 @@ describe('Correctly executes cash utility functions', () => {
         expect(result).toStrictEqual(
             new Error(eCashAddress + ' is not a valid ecash address'),
         );
+    });
+
+    it(`flattenContactList flattens contactList array by returning an array of addresses`, () => {
+        expect(
+            flattenContactList([
+                {
+                    address: 'ecash:qpdkc5p7f25hwkxsr69m3evlj4h7wqq9xcgmjc8sxr',
+                    name: 'Alpha',
+                },
+                {
+                    address: 'ecash:qpq235n3l3u6ampc8slapapnatwfy446auuv64ylt2',
+                    name: 'Beta',
+                },
+                {
+                    address: 'ecash:qz50e58nkeg2ej2f34z6mhwylp6ven8emy8pp52r82',
+                    name: 'Gamma',
+                },
+            ]),
+        ).toStrictEqual([
+            'ecash:qpdkc5p7f25hwkxsr69m3evlj4h7wqq9xcgmjc8sxr',
+            'ecash:qpq235n3l3u6ampc8slapapnatwfy446auuv64ylt2',
+            'ecash:qz50e58nkeg2ej2f34z6mhwylp6ven8emy8pp52r82',
+        ]);
+    });
+
+    it(`flattenContactList flattens contactList array of length 1 by returning an array of 1 address`, () => {
+        expect(
+            flattenContactList([
+                {
+                    address: 'ecash:qpdkc5p7f25hwkxsr69m3evlj4h7wqq9xcgmjc8sxr',
+                    name: 'Alpha',
+                },
+            ]),
+        ).toStrictEqual(['ecash:qpdkc5p7f25hwkxsr69m3evlj4h7wqq9xcgmjc8sxr']);
+    });
+    it(`flattenContactList returns an empty array for invalid input`, () => {
+        expect(flattenContactList(false)).toStrictEqual([]);
     });
 });

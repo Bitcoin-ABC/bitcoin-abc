@@ -323,7 +323,12 @@ const TxLink = styled.a`
     color: ${props => props.theme.primary};
 `;
 
-const Tx = ({ data, fiatPrice, fiatCurrency }) => {
+const NotInContactsAlert = styled.h4`
+    color: ${props => props.theme.forms.error} !important;
+    font-style: italic;
+`;
+
+const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
     const txDate =
         typeof data.blocktime === 'undefined'
             ? formatDate()
@@ -590,8 +595,22 @@ const Tx = ({ data, fiatPrice, fiatCurrency }) => {
                                                 <OpReturnType
                                                     received={!data.outgoingTx}
                                                 >
+                                                    {!data.outgoingTx &&
+                                                        !addressesInContactList.includes(
+                                                            data.replyAddress,
+                                                        ) && (
+                                                            <NotInContactsAlert>
+                                                                Warning: This
+                                                                sender is not in
+                                                                your contact
+                                                                list. Beware of
+                                                                scams.
+                                                            </NotInContactsAlert>
+                                                        )}
                                                     {data.isCashtabMessage ? (
-                                                        <h4>Cashtab Message</h4>
+                                                        <h4>
+                                                            Cashtab Message{' '}
+                                                        </h4>
                                                     ) : (
                                                         <h4>
                                                             External Message
@@ -749,6 +768,7 @@ Tx.propTypes = {
     data: PropTypes.object,
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
+    addressesInContactList: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default Tx;

@@ -3,6 +3,7 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidBchApiUtxoObject,
+    isValidContactList,
 } from 'utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
@@ -172,6 +173,23 @@ export const flattenBatchedHydratedUtxos = batchedHydratedUtxoDetails => {
         flattenedBatchedHydratedUtxos.slpUtxos.push(theseSlpUtxos);
     }
     return flattenedBatchedHydratedUtxos;
+};
+
+export const flattenContactList = contactList => {
+    /*
+    Converts contactList from array of objects of type {address: <valid XEC address>, name: <string>} to array of addresses only
+
+    If contact list is invalid, returns and empty array
+    */
+    if (!isValidContactList(contactList)) {
+        return [];
+    }
+    let flattenedContactList = [];
+    for (let i = 0; i < contactList.length; i += 1) {
+        const thisAddress = contactList[i].address;
+        flattenedContactList.push(thisAddress);
+    }
+    return flattenedContactList;
 };
 
 export const loadStoredWallet = walletStateFromStorage => {

@@ -140,6 +140,53 @@ export const isValidCashtabSettings = settings => {
     }
 };
 
+export const isValidContactList = contactList => {
+    /* 
+    A valid contact list is an array of objects
+    An empty contact list looks like [{}]
+    
+    Although a valid contact list does not contain duplicated addresses, this is not checked here.
+    This is checked for when contacts are added. Duplicate addresses will not break the app if a user
+    somehow sideloads a contact list with everything valid except some addresses are duplicated.
+    */
+    if (!Array.isArray(contactList)) {
+        return false;
+    }
+    for (let i = 0; i < contactList.length; i += 1) {
+        const contactObj = contactList[i];
+        // Must have keys 'address' and 'name'
+        if (
+            typeof contactObj === 'object' &&
+            'address' in contactObj &&
+            'name' in contactObj
+        ) {
+            // Address must be a valid XEC address, name must be a string
+            if (
+                isValidXecAddress(contactObj.address) &&
+                typeof contactObj.name === 'string'
+            ) {
+                continue;
+            }
+            return false;
+        } else {
+            // Check for empty object in an array of length 1, the default blank contactList
+            if (
+                contactObj &&
+                Object.keys(contactObj).length === 0 &&
+                Object.getPrototypeOf(contactObj) === Object.prototype &&
+                contactList.length === 1
+            ) {
+                // [{}] is valid, default blank
+                // But a list with random blanks is not valid
+                return true;
+            }
+            return false;
+        }
+    }
+    // If you get here, it's good
+    return true;
+};
+
 export const isValidXecAddress = addr => {
     /* 
     Returns true for a valid XEC address
