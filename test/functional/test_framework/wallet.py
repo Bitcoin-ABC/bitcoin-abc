@@ -127,7 +127,8 @@ class MiniWallet:
 
     def create_self_transfer(self, *, fee_rate=Decimal("3000.00"),
                              from_node, utxo_to_spend=None, mempool_valid=True, locktime=0):
-        """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
+        """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed.
+        Checking mempool validity via the testmempoolaccept RPC can be skipped by setting mempool_valid to False."""
         self._utxos = sorted(self._utxos, key=lambda k: k['value'])
         # Pick the largest utxo (if none provided) and hope it covers the fee
         utxo_to_spend = utxo_to_spend or self._utxos.pop()
@@ -147,12 +148,12 @@ class MiniWallet:
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx, size)
         tx_hex = tx.serialize().hex()
-        tx_info = from_node.testmempoolaccept([tx_hex])[0]
-        assert_equal(mempool_valid, tx_info['allowed'])
         if mempool_valid:
+            tx_info = from_node.testmempoolaccept([tx_hex])[0]
+            assert_equal(mempool_valid, tx_info['allowed'])
             assert_equal(tx_info['size'], size)
             assert_equal(tx_info['fees']['base'], fee)
-        return {'txid': tx_info['txid'], 'hex': tx_hex, 'tx': tx}
+        return {'txid': tx.rehash(), 'hex': tx_hex, 'tx': tx}
 
     def sendrawtransaction(self, *, from_node, tx_hex):
         txid = from_node.sendrawtransaction(tx_hex)
