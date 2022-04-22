@@ -38,6 +38,7 @@ export const currency = {
             eToken: '534c5000',
             cashtab: '00746162',
             cashtabEncrypted: '65746162',
+            airdrop: '64726f70',
         },
         encryptedMsgCharLimit: 94,
         unencryptedMsgCharLimit: 160,

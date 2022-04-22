@@ -62,6 +62,12 @@ export function parseOpReturn(hexStr) {
         ) {
             // add the Cashtab encryption prefix to array
             resultArray[i] = currency.opReturn.appPrefixesHex.cashtabEncrypted;
+        } else if (
+            i === 0 &&
+            message === currency.opReturn.appPrefixesHex.airdrop
+        ) {
+            // add the airdrop prefix to array
+            resultArray[i] = currency.opReturn.appPrefixesHex.airdrop;
         } else {
             // this is either an external message or a subsequent cashtab message loop to extract the message
             resultArray[i] = message;

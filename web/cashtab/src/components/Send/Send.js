@@ -161,6 +161,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [messageVerificationSigError, setMessageVerificationSigError] =
         useState(false);
 
+    const [airdropFlag, setAirdropFlag] = useState(false);
+
     const userLocale = navigator.language;
     const clearInputForms = () => {
         setFormData({
@@ -236,6 +238,8 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     value: location.state.airdropRecipients,
                 },
             });
+
+            setAirdropFlag(true);
         }
 
         // Do not set txInfo in state if query strings are not present
@@ -339,9 +343,14 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     opReturnMsg,
                     true, // indicate send mode is one to many
                     cleanAddressAndValueArray,
+                    null,
+                    null,
+                    false, // one to many tx msg can't be encrypted
+                    airdropFlag,
                 );
                 sendXecNotification(link);
                 clearInputForms();
+                setAirdropFlag(false);
             } catch (e) {
                 handleSendXecError(e, isOneToManyXECSend);
             }

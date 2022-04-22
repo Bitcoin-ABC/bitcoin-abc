@@ -50,3 +50,12 @@ export const mockParsedMixedSegmentedExternalMessageArray = [
 export const mockParsedETokenOutputArray = [
     currency.opReturn.appPrefixesHex.eToken,
 ];
+
+export const mockAirdropHexOutput =
+    '6a0464726f7004007461620f61697264726f70206d657373616765';
+
+export const mockParsedAirdropMessageArray = [
+    '64726f70',
+    '00746162',
+    '61697264726f70206d657373616765',
+];

@@ -128,6 +128,7 @@ export default function useBCH() {
             let outgoingTx = false;
             let tokenTx = false;
             let substring = '';
+            let airdropFlag = false;
 
             // If vin's scriptSig contains one of the publicKeys of this wallet
             // This is an outgoing tx
@@ -184,6 +185,16 @@ export default function useBCH() {
 
                     let message = '';
                     let txType = parsedOpReturnArray[0];
+
+                    if (txType === currency.opReturn.appPrefixesHex.airdrop) {
+                        // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
+                        // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
+                        airdropFlag = true;
+                        txType = parsedOpReturnArray[1];
+                        // remove the first airdrop prefix from array so the array parsing logic below can remain unchanged
+                        parsedOpReturnArray.shift();
+                    }
+
                     if (txType === currency.opReturn.appPrefixesHex.eToken) {
                         // this is an eToken transaction
                         tokenTx = true;
@@ -330,6 +341,7 @@ export default function useBCH() {
             parsedTx.isCashtabMessage = isCashtabMessage;
             parsedTx.isEncryptedMessage = isEncryptedMessage;
             parsedTx.decryptionSuccess = decryptionSuccess;
+            parsedTx.airdropFlag = airdropFlag;
             parsedTxHistory.push(parsedTx);
         }
         return parsedTxHistory;
@@ -1386,6 +1398,7 @@ export default function useBCH() {
         destinationAddress,
         sendAmount,
         encryptionFlag,
+        airdropFlag,
     ) => {
         try {
             let value = new BigNumber(0);
@@ -1469,9 +1482,10 @@ export default function useBCH() {
             // Start of building the OP_RETURN output.
             // only build the OP_RETURN output if the user supplied it
             if (
-                optionalOpReturnMsg &&
-                typeof optionalOpReturnMsg !== 'undefined' &&
-                optionalOpReturnMsg.trim() !== ''
+                (optionalOpReturnMsg &&
+                    typeof optionalOpReturnMsg !== 'undefined' &&
+                    optionalOpReturnMsg.trim() !== '') ||
+                airdropFlag
             ) {
                 if (encryptionFlag) {
                     // if the user has opted to encrypt this message
@@ -1498,14 +1512,48 @@ export default function useBCH() {
                     ];
                 } else {
                     // this is an un-encrypted message
-                    script = [
-                        BCH.Script.opcodes.OP_RETURN, // 6a
-                        Buffer.from(
-                            currency.opReturn.appPrefixesHex.cashtab,
-                            'hex',
-                        ), // 00746162
-                        Buffer.from(optionalOpReturnMsg),
-                    ];
+
+                    if (airdropFlag) {
+                        // un-encrypted airdrop tx
+                        if (optionalOpReturnMsg) {
+                            // airdrop tx with message
+                            script = [
+                                BCH.Script.opcodes.OP_RETURN, // 6a
+                                Buffer.from(
+                                    currency.opReturn.appPrefixesHex.airdrop,
+                                    'hex',
+                                ), // drop
+                                Buffer.from(
+                                    currency.opReturn.appPrefixesHex.cashtab,
+                                    'hex',
+                                ), // 00746162
+                                Buffer.from(optionalOpReturnMsg),
+                            ];
+                        } else {
+                            // airdrop tx with no message
+                            script = [
+                                BCH.Script.opcodes.OP_RETURN, // 6a
+                                Buffer.from(
+                                    currency.opReturn.appPrefixesHex.airdrop,
+                                    'hex',
+                                ), // drop
+                                Buffer.from(
+                                    currency.opReturn.appPrefixesHex.cashtab,
+                                    'hex',
+                                ), // 00746162
+                            ];
+                        }
+                    } else {
+                        // non-airdrop un-encrypted message
+                        script = [
+                            BCH.Script.opcodes.OP_RETURN, // 6a
+                            Buffer.from(
+                                currency.opReturn.appPrefixesHex.cashtab,
+                                'hex',
+                            ), // 00746162
+                            Buffer.from(optionalOpReturnMsg),
+                        ];
+                    }
                 }
                 const data = BCH.Script.encode(script);
                 transactionBuilder.addOutput(data, 0);

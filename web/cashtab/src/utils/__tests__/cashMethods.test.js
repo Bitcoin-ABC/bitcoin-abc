@@ -25,6 +25,7 @@ import {
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
     convertEcashtoEtokenAddr,
 } from 'utils/cashMethods';
+import { currency } from 'components/Common/Ticker';
 import {
     unbatchedArray,
     arrayBatchedByThree,
@@ -84,6 +85,8 @@ import {
     mockParsedMixedSegmentedExternalMessageArray,
     eTokenInputHex,
     mockParsedETokenOutputArray,
+    mockAirdropHexOutput,
+    mockParsedAirdropMessageArray,
 } from '../__mocks__/mockOpReturnParsedArray';
 
 import {
@@ -420,6 +423,18 @@ describe('Correctly executes cash utility functions', () => {
     test('parseOpReturn() successfully parses an eToken output', async () => {
         const result = parseOpReturn(eTokenInputHex);
         expect(result).toStrictEqual(mockParsedETokenOutputArray);
+    });
+
+    test('parseOpReturn() successfully parses an airdrop transaction', async () => {
+        const result = parseOpReturn(mockAirdropHexOutput);
+        // verify the hex output is parsed correctly
+        expect(result).toStrictEqual(mockParsedAirdropMessageArray);
+        // verify airdrop hex prefix is contained in the array returned from parseOpReturn()
+        expect(
+            result.find(
+                element => element === currency.opReturn.appPrefixesHex.airdrop,
+            ),
+        ).toStrictEqual(currency.opReturn.appPrefixesHex.airdrop);
     });
 
     test('isExcludedUtxo returns true for a utxo with different tx_pos and same txid as an existing utxo in the set', async () => {

@@ -15,6 +15,7 @@ export const mockSentCashTx = [
         replyAddress: null,
         tokenTx: false,
         decryptionSuccess: false,
+        airdropFlag: false,
         txid: '089f2188d5771a7de0589def2b8d6c1a1f33f45b6de26d9a0ef32782f019ecf1',
     },
 ];
@@ -35,6 +36,7 @@ export const mockReceivedCashTx = [
         replyAddress: null,
         tokenTx: false,
         decryptionSuccess: false,
+        airdropFlag: false,
         txid: '42d39fbe068a40fe691f987b22fdf04b80f94d71d2fec20a58125e7b1a06d2a9',
     },
 ];
@@ -55,6 +57,7 @@ export const mockSentTokenTx = [
         replyAddress: null,
         tokenTx: true,
         decryptionSuccess: false,
+        airdropFlag: false,
         txid: 'ffe3a7500dbcc98021ad581c98d9947054d1950a7f3416664715066d3d20ad72',
     },
 ];
@@ -74,6 +77,7 @@ export const mockReceivedTokenTx = [
         replyAddress: null,
         tokenTx: true,
         decryptionSuccess: false,
+        airdropFlag: false,
         txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
     },
 ];
@@ -92,6 +96,7 @@ export const mockSentOpReturnMessageTx = [
         isCashtabMessage: false,
         isEncryptedMessage: false,
         decryptionSuccess: false,
+        airdropFlag: false,
         txid: 'dd35690b0cefd24dcc08acba8694ecd49293f365a81372cb66c8f1c1291d97c5',
     },
 ];
@@ -110,6 +115,7 @@ export const mockReceivedOpReturnMessageTx = [
         isCashtabMessage: true,
         isEncryptedMessage: false,
         decryptionSuccess: false,
+        airdropFlag: false,
         txid: '5adc33b5c0509b31c6da359177b19467c443bdc4dd37c283c0f87244c0ad63af',
     },
 ];
@@ -128,6 +134,7 @@ export const mockBurnEtokenTx = [
         outgoingTx: false,
         replyAddress: null,
         tokenTx: true,
+        airdropFlag: false,
         txid: '8b569d64a7e51d1d3cf1cf2b99d8b34451bbebc7df6b67232e5b770418b0428c',
     },
 ];
