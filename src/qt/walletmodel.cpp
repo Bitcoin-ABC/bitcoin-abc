@@ -391,9 +391,9 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel,
                     " purpose=" + strPurpose +
                     " status=" + QString::number(status);
     bool invoked = QMetaObject::invokeMethod(
-        walletmodel, "updateAddressBook", Qt::QueuedConnection,
-        Q_ARG(QString, strAddress), Q_ARG(QString, strLabel),
-        Q_ARG(bool, isMine), Q_ARG(QString, strPurpose), Q_ARG(int, status));
+        walletmodel, "updateAddressBook", Q_ARG(QString, strAddress),
+        Q_ARG(QString, strLabel), Q_ARG(bool, isMine),
+        Q_ARG(QString, strPurpose), Q_ARG(int, status));
     assert(invoked);
 }
 
