@@ -5193,6 +5193,24 @@ void Chainstate::LoadExternalBlockFile(
                     }
                 }
 
+                if (m_blockman.IsPruneMode() && !fReindex && pblock) {
+                    // Must update the tip for pruning to work while importing
+                    // with -loadblock. This is a tradeoff to conserve disk
+                    // space at the expense of time spent updating the tip to be
+                    // able to prune. Otherwise, ActivateBestChain won't be
+                    // called by the import process until after all of the block
+                    // files are loaded. ActivateBestChain can be called by
+                    // concurrent network message processing, but that is not
+                    // reliable for the purpose of pruning while importing.
+                    BlockValidationState state;
+                    if (!ActivateBestChain(config, state, pblock)) {
+                        LogPrint(BCLog::REINDEX,
+                                 "failed to activate chain (%s)\n",
+                                 state.ToString());
+                        break;
+                    }
+                }
+
                 NotifyHeaderTip(*this);
 
                 if (!blocks_with_unknown_parent) {
