@@ -1881,9 +1881,9 @@ RPCHelpMan getblockchaininfo() {
             LOCK(cs_main);
             CChainState &active_chainstate = chainman.ActiveChainstate();
 
-            const CBlockIndex *tip =
-                CHECK_NONFATAL(active_chainstate.m_chain.Tip());
-            const int height = tip->nHeight;
+            const CBlockIndex &tip{
+                *CHECK_NONFATAL(active_chainstate.m_chain.Tip())};
+            const int height{tip.nHeight};
 
             UniValue obj(UniValue::VOBJ);
             obj.pushKV("chain", chainparams.NetworkIDString());
@@ -1891,23 +1891,22 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("headers", chainman.m_best_header
                                       ? chainman.m_best_header->nHeight
                                       : -1);
-            obj.pushKV("bestblockhash", tip->GetBlockHash().GetHex());
-            obj.pushKV("difficulty", double(GetDifficulty(tip)));
-            obj.pushKV("time", tip->GetBlockTime());
-            obj.pushKV("mediantime", tip->GetMedianTimePast());
+            obj.pushKV("bestblockhash", tip.GetBlockHash().GetHex());
+            obj.pushKV("difficulty", GetDifficulty(&tip));
+            obj.pushKV("time", tip.GetBlockTime());
+            obj.pushKV("mediantime", tip.GetMedianTimePast());
             obj.pushKV("verificationprogress",
-                       GuessVerificationProgress(Params().TxData(), tip));
+                       GuessVerificationProgress(Params().TxData(), &tip));
             obj.pushKV("initialblockdownload",
                        active_chainstate.IsInitialBlockDownload());
-            obj.pushKV("chainwork", tip->nChainWork.GetHex());
+            obj.pushKV("chainwork", tip.nChainWork.GetHex());
             obj.pushKV("size_on_disk",
                        chainman.m_blockman.CalculateCurrentUsage());
             obj.pushKV("pruned", node::fPruneMode);
 
             if (node::fPruneMode) {
-                const CBlockIndex *block = CHECK_NONFATAL(tip);
                 obj.pushKV("pruneheight",
-                           node::GetFirstStoredBlock(block)->nHeight);
+                           node::GetFirstStoredBlock(&tip)->nHeight);
 
                 // if 0, execution bypasses the whole if block.
                 bool automatic_pruning = (gArgs.GetIntArg("-prune", 0) != 1);
@@ -1920,7 +1919,8 @@ RPCHelpMan getblockchaininfo() {
             UniValue softforks(UniValue::VOBJ);
             for (int i = 0; i < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS;
                  i++) {
-                SoftForkDescPushBack(tip, softforks, chainparams.GetConsensus(),
+                SoftForkDescPushBack(&tip, softforks,
+                                     chainparams.GetConsensus(),
                                      Consensus::DeploymentPos(i));
             }
             obj.pushKV("softforks", softforks);
