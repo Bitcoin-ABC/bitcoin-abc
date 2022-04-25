@@ -523,6 +523,11 @@ bool CWallet::ChangeWalletPassphrase(
 }
 
 void CWallet::chainStateFlushed(const CBlockLocator &loc) {
+    // Don't update the best block until the chain is attached so that in case
+    // of a shutdown, the rescan will be restarted at next startup.
+    if (m_attaching_chain) {
+        return;
+    }
     WalletBatch batch(*database);
     batch.WriteBestBlock(loc);
 }
@@ -2955,8 +2960,13 @@ bool CWallet::AttachChain(const std::shared_ptr<CWallet> &walletInstance,
     // notifications are going to be pending on the validation-side until lock
     // release. It's likely to have block processing duplicata (if rescan block
     // range overlaps with notification one) but we guarantee at least than
-    // wallet state is correct after notifications delivery. This is temporary
-    // until rescan and notifications delivery are unified under same interface.
+    // wallet state is correct after notifications delivery.
+    // However, chainStateFlushed notifications are ignored until the rescan
+    // is finished so that in case of a shutdown event, the rescan will be
+    // repeated at the next start.
+    // This is temporary until rescan and notifications delivery are unified
+    // under same interface.
+    walletInstance->m_attaching_chain = true;
     walletInstance->m_chain_notifications_handler =
         walletInstance->chain().handleNotifications(walletInstance);
 
@@ -3057,9 +3067,12 @@ bool CWallet::AttachChain(const std::shared_ptr<CWallet> &walletInstance,
                 return false;
             }
         }
+        // The flag must be reset before calling chainStateFlushed
+        walletInstance->m_attaching_chain = false;
         walletInstance->chainStateFlushed(chain.getTipLocator());
         walletInstance->database->IncrementUpdateCounter();
     }
+    walletInstance->m_attaching_chain = false;
 
     return true;
 }
