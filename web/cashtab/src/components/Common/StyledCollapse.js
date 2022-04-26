@@ -54,6 +54,9 @@ export const TokenCollapse = styled(Collapse)`
 `;
 
 export const AdvancedCollapse = styled(Collapse)`
+    .ant-input-textarea-show-count:after {
+        color: ${props => props.theme.lightGrey} !important;
+    }
     .ant-collapse-content {
         background-color: ${props =>
             props.theme.advancedCollapse.expandedBackground} !important;
@@ -90,4 +93,3 @@ export const AdvancedCollapse = styled(Collapse)`
         
             `}
 `;
-
