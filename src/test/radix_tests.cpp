@@ -24,7 +24,7 @@ template <typename K> struct TestElement {
 };
 
 template <typename K> void testInsert() {
-    typedef TestElement<K> E;
+    using E = TestElement<K>;
     RadixTree<E> mytree;
 
     auto zero = RCUPtr<E>::make(0);
@@ -49,10 +49,10 @@ template <typename K> void testInsert() {
     BOOST_CHECK(!mytree.insert(three));
 
     // Check extreme values.
-    typedef typename std::make_signed<K>::type SK;
+    using SK = typename std::make_signed<K>::type;
     auto maxsigned = RCUPtr<E>::make(std::numeric_limits<SK>::max());
     auto minsigned = RCUPtr<E>::make(std::numeric_limits<SK>::min());
-    typedef typename std::make_unsigned<K>::type UK;
+    using UK = typename std::make_unsigned<K>::type;
     auto minusone = RCUPtr<E>::make(std::numeric_limits<UK>::max());
     auto minustwo = RCUPtr<E>::make(std::numeric_limits<UK>::max() - 1);
 
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(insert_test) {
 }
 
 template <typename K> void testGet() {
-    typedef TestElement<K> E;
+    using E = TestElement<K>;
     RadixTree<E> mytree;
 
     auto zero = RCUPtr<E>::make(0);
@@ -114,10 +114,10 @@ template <typename K> void testGet() {
     BOOST_CHECK_EQUAL(mytree.get(3), three);
 
     // Check extreme values.
-    typedef typename std::make_signed<K>::type SK;
+    using SK = typename std::make_signed<K>::type;
     K maxsk = std::numeric_limits<SK>::max();
     K minsk = std::numeric_limits<SK>::min();
-    typedef typename std::make_unsigned<K>::type UK;
+    using UK = typename std::make_unsigned<K>::type;
     K maxuk = std::numeric_limits<UK>::max();
 
     auto maxsigned = RCUPtr<E>::make(maxsk);
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(get_test) {
 }
 
 template <typename K> void testRemove() {
-    typedef TestElement<K> E;
+    using E = TestElement<K>;
     RadixTree<E> mytree;
 
     auto zero = RCUPtr<E>::make(0);
@@ -195,10 +195,10 @@ template <typename K> void testRemove() {
     BOOST_CHECK(!mytree.remove(3));
 
     // Check extreme values.
-    typedef typename std::make_signed<K>::type SK;
+    using SK = typename std::make_signed<K>::type;
     K maxsk = std::numeric_limits<SK>::max();
     K minsk = std::numeric_limits<SK>::min();
-    typedef typename std::make_unsigned<K>::type UK;
+    using UK = typename std::make_unsigned<K>::type;
     K maxuk = std::numeric_limits<UK>::max();
 
     auto maxsigned = RCUPtr<E>::make(maxsk);
@@ -244,7 +244,7 @@ BOOST_AUTO_TEST_CASE(remove_test) {
 }
 
 BOOST_AUTO_TEST_CASE(const_element_test) {
-    typedef const TestElement<uint64_t> C;
+    using C = const TestElement<uint64_t>;
     RadixTree<C> mytree;
 
     BOOST_CHECK(mytree.insert(RCUPtr<C>::make(0)));
@@ -287,7 +287,7 @@ void CheckConstTree(const RadixTree<TestElement<uint64_t>> &mytree,
 }
 
 BOOST_AUTO_TEST_CASE(const_tree_test) {
-    typedef TestElement<uint64_t> E;
+    using E = TestElement<uint64_t>;
     RadixTree<E> mytree;
 
     CheckConstTree(mytree, false);
@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE(const_tree_test) {
 #define ELEMENTS 65536
 
 BOOST_AUTO_TEST_CASE(insert_stress_test) {
-    typedef TestElement<uint32_t> E;
+    using E = TestElement<uint32_t>;
 
     RadixTree<E> mytree;
     std::atomic<uint32_t> success{0};
