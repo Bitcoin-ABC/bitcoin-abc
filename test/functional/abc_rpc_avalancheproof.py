@@ -37,6 +37,9 @@ AVALANCHE_MAX_PROOF_STAKES = 1000
 PROOF_DUST_THRESHOLD = 1000000.0
 """Minimum amount per UTXO in a proof (in coins, not in satoshis)"""
 
+# From delegation.h
+MAX_DELEGATION_LEVELS = 20
+
 
 def add_interface_node(test_node) -> str:
     """Create a mininode, connect it to test_node, return the nodeid
@@ -225,7 +228,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         delegator_privkey = privkey
         delegation = None
-        for i in range(10):
+        for i in range(MAX_DELEGATION_LEVELS):
             delegated_privkey = gen_privkey()
             delegated_pubkey = get_hex_pubkey(delegated_privkey)
             delegation = node.delegateavalancheproof(
@@ -249,6 +252,20 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             assert 'signature' in dg_info['levels'][-1]
 
             delegator_privkey = delegated_privkey
+
+        self.log.info("Check the delegation levels are limited")
+        too_many_levels_privkey = gen_privkey()
+        too_many_levels_delegation = node.delegateavalancheproof(
+            limited_id_hex,
+            bytes_to_wif(delegator_privkey.get_bytes()),
+            get_hex_pubkey(too_many_levels_privkey),
+            delegation,
+        )
+
+        assert_raises_rpc_error(-8,
+                                "too-many-levels",
+                                node.verifyavalanchedelegation,
+                                too_many_levels_delegation)
 
         random_privkey = gen_privkey()
         random_pubkey = get_hex_pubkey(random_privkey)
@@ -545,6 +562,9 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                     "-avaproof={}".format(proof),
                     "-avamasterkey={}".format(
                         bytes_to_wif(delegated_privkey.get_bytes())),
+                    # Prevent the node from adding a delegation level
+                    "-avasessionkey={}".format(
+                        bytes_to_wif(delegated_privkey.get_bytes())),
                 ],
                 expected_msg="Error: " + message,
             )
@@ -567,6 +587,29 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                     bytes_to_wif(random_privkey.get_bytes())),
             ],
             expected_msg="Error: The master key does not match the delegation public key.",
+        )
+
+        # The node stacks another delegation level at startup
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avadelegation={}".format(delegation),
+                "-avaproof={}".format(proof),
+                "-avamasterkey={}".format(
+                    bytes_to_wif(delegated_privkey.get_bytes())),
+            ],
+            expected_msg="Error: The avalanche delegation has too many delegation levels.",
+        )
+
+        node.assert_start_raises_init_error(
+            self.extra_args[0] + [
+                "-avadelegation={}".format(too_many_levels_delegation),
+                "-avaproof={}".format(proof),
+                "-avamasterkey={}".format(
+                    bytes_to_wif(too_many_levels_privkey.get_bytes())),
+                "-avasessionkey={}".format(
+                    bytes_to_wif(too_many_levels_privkey.get_bytes())),
+            ],
+            expected_msg="Error: The avalanche delegation has too many delegation levels.",
         )
 
 

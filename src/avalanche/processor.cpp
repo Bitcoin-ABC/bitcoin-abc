@@ -92,6 +92,10 @@ static bool VerifyDelegation(const Delegation &dg,
             case avalanche::DelegationResult::INVALID_SIGNATURE:
                 error = _("The avalanche delegation has invalid signatures.");
                 return false;
+            case avalanche::DelegationResult::TOO_MANY_LEVELS:
+                error = _(
+                    "The avalanche delegation has too many delegation levels.");
+                return false;
             default:
                 error = _("The avalanche delegation is invalid.");
                 return false;

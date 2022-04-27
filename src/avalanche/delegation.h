@@ -17,6 +17,14 @@ struct bilingual_str;
 
 namespace avalanche {
 
+/**
+ * The maximum number of delegation levels we are willing to verify.
+ * A Schnorr signature verification takes about 35us on a 2022 average machine,
+ * so 20 levels will roughly take under 1ms (accounting some overhead) while
+ * being more than enough to cover all the real world usage.
+ */
+constexpr size_t MAX_DELEGATION_LEVELS{20};
+
 class DelegationState;
 class Proof;
 

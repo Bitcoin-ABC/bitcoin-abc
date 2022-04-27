@@ -35,6 +35,7 @@ class ProofValidationState : public ValidationState<ProofValidationResult> {};
 enum class DelegationResult {
     NONE = 0,
     INVALID_SIGNATURE,
+    TOO_MANY_LEVELS,
 };
 
 class DelegationState : public ValidationState<DelegationResult> {};

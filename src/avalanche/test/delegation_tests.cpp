@@ -193,4 +193,34 @@ BOOST_AUTO_TEST_CASE(deserialization) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(level_limit) {
+    auto proofKey = CKey::MakeCompressedKey();
+    auto p = buildRandomProof(123456, proofKey);
+
+    DelegationBuilder dgb(*p);
+
+    CKey delegatorKey = proofKey;
+    for (size_t i = 0; i < MAX_DELEGATION_LEVELS; i++) {
+        CKey delegatedKey = CKey::MakeCompressedKey();
+        BOOST_CHECK(dgb.addLevel(delegatorKey, delegatedKey.GetPubKey()));
+        delegatorKey = delegatedKey;
+    }
+
+    Delegation dgGood = dgb.build();
+    // Up to MAX_DELEGATION_LEVELS the delegation is verified valid
+    CheckDelegation(dgGood, p, delegatorKey.GetPubKey());
+
+    // Let's add one more delegation level
+    DelegationBuilder dgb2(dgGood);
+    CKey delegatedKey = CKey::MakeCompressedKey();
+    BOOST_CHECK(dgb2.addLevel(delegatorKey, delegatedKey.GetPubKey()));
+    Delegation dgBad = dgb2.build();
+
+    // The delegation is now expected to fail due to too many levels
+    DelegationState state;
+    CPubKey auth;
+    BOOST_CHECK(!dgBad.verify(state, auth));
+    BOOST_CHECK(state.GetResult() == DelegationResult::TOO_MANY_LEVELS);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
