@@ -52,8 +52,52 @@ public:
     RadixTree() : root(RadixElement()) {}
     ~RadixTree() { root.load().release(); }
 
-    RadixTree(const RadixTree &) = delete;
-    RadixTree &operator=(const RadixTree &) = delete;
+    /**
+     * Copy semantic.
+     */
+    RadixTree(const RadixTree &src) : RadixTree() {
+        {
+            RCULock lock;
+            RadixElement e = src.root.load();
+            e.acquire();
+            root = e;
+        }
+
+        // Make sure we the writes in the tree are behind us so
+        // this copy won't mutate behind our back.
+        RCULock::synchronize();
+    }
+
+    RadixTree &operator=(const RadixTree &rhs) {
+        {
+            RCULock lock;
+            RadixElement e = rhs.root.load();
+            e.acquire();
+            root.load().release();
+            root = e;
+        }
+
+        // Make sure we the writes in the tree are behind us so
+        // this copy won't mutate behind our back.
+        RCULock::synchronize();
+
+        return *this;
+    }
+
+    /**
+     * Move semantic.
+     */
+    RadixTree(RadixTree &&src) : RadixTree() { *this = std::move(src); }
+    RadixTree &operator=(RadixTree &&rhs) {
+        {
+            RCULock lock;
+            RadixElement e = rhs.root.load();
+            rhs.root = root.load();
+            root = e;
+        }
+
+        return *this;
+    }
 
     /**
      * Insert a value into the tree.
@@ -93,6 +137,34 @@ public:
         return RCUPtr<const T>::acquire(ptr);
     }
 
+#define SEEK_LEAF_LOOP()                                                       \
+    RadixElement e = eptr->load();                                             \
+                                                                               \
+    /* Walk down the tree until we find a leaf for our node. */                \
+    do {                                                                       \
+        while (e.isNode()) {                                                   \
+        Node:                                                                  \
+            auto nptr = e.getNode();                                           \
+            if (!nptr->isShared()) {                                           \
+                eptr = nptr->get(level--, key);                                \
+                e = eptr->load();                                              \
+                continue;                                                      \
+            }                                                                  \
+                                                                               \
+            auto copy = std::make_unique<RadixNode>(*nptr);                    \
+            if (!eptr->compare_exchange_strong(e, RadixElement(copy.get()))) { \
+                /* We failed to insert our subtree, just try again. */         \
+                continue;                                                      \
+            }                                                                  \
+                                                                               \
+            /* We have a subtree, resume normal operations from there. */      \
+            e.release();                                                       \
+            eptr = copy->get(level--, key);                                    \
+            e = eptr->load();                                                  \
+            copy.release();                                                    \
+        }                                                                      \
+    } while (0)
+
     /**
      * Remove an element from the tree.
      * Returns the removed element, or nullptr if there isn't one.
@@ -103,14 +175,7 @@ public:
         RCULock lock;
         std::atomic<RadixElement> *eptr = &root;
 
-        RadixElement e = eptr->load();
-
-        // Walk down the tree until we find a leaf for our node.
-        while (e.isNode()) {
-        Node:
-            eptr = e.getNode()->get(level--, key);
-            e = eptr->load();
-        }
+        SEEK_LEAF_LOOP();
 
         T *leaf = e.getLeaf();
         if (leaf == nullptr || leaf->getId() != key) {
@@ -140,14 +205,7 @@ private:
         std::atomic<RadixElement> *eptr = &root;
 
         while (true) {
-            RadixElement e = eptr->load();
-
-            // Walk down the tree until we find a leaf for our node.
-            while (e.isNode()) {
-            Node:
-                eptr = e.getNode()->get(level--, key);
-                e = eptr->load();
-            }
+            SEEK_LEAF_LOOP();
 
             // If the slot is empty, try to insert right there.
             if (e.getLeaf() == nullptr) {
@@ -183,6 +241,8 @@ private:
         }
     }
 
+#undef SEEK_LEAF_LOOP
+
     struct RadixElement {
     private:
         union {
@@ -205,6 +265,14 @@ private:
          * RadixElement is designed to be a dumb wrapper. This allows any
          * container to release what is held by the RadixElement.
          */
+        void acquire() {
+            if (isNode()) {
+                RCUPtr<RadixNode>::copy(getNode()).release();
+            } else {
+                RCUPtr<T>::copy(getLeaf()).release();
+            }
+        }
+
         void release() {
             if (isNode()) {
                 RadixNode *ptr = getNode();
@@ -268,12 +336,21 @@ private:
             }
         }
 
-        RadixNode(const RadixNode &) = delete;
+        RadixNode(const RadixNode &rhs) : non_atomic_children_DO_NOT_USE() {
+            for (size_t i = 0; i < CHILD_PER_LEVEL; i++) {
+                auto e = rhs.children[i].load();
+                e.acquire();
+                non_atomic_children_DO_NOT_USE[i] = e;
+            }
+        }
+
         RadixNode &operator=(const RadixNode &) = delete;
 
         std::atomic<RadixElement> *get(uint32_t level, const K &key) {
             return &children[(key >> (level * BITS)) & MASK];
         }
+
+        bool isShared() const { return refcount > 0; }
     };
 
     // Make sure the alignment works for T and RadixElement.

@@ -307,6 +307,80 @@ BOOST_AUTO_TEST_CASE(const_tree_test) {
     CheckConstTree(mytree, false);
 }
 
+BOOST_AUTO_TEST_CASE(test_cow) {
+    using E = TestElement<uint32_t>;
+
+    RadixTree<E> mytree;
+
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(0)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(1)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(2)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(3)));
+
+    RadixTree<E> copyTree = mytree;
+
+    // The copy tree is identical.
+    BOOST_CHECK(copyTree.get(0));
+    BOOST_CHECK(copyTree.get(1));
+    BOOST_CHECK(copyTree.get(2));
+    BOOST_CHECK(copyTree.get(3));
+
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(90)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(91)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(92)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(93)));
+
+    // The copy was unaffected.
+    BOOST_CHECK(copyTree.get(0));
+    BOOST_CHECK(copyTree.get(1));
+    BOOST_CHECK(copyTree.get(2));
+    BOOST_CHECK(copyTree.get(3));
+    BOOST_CHECK(!copyTree.get(90));
+    BOOST_CHECK(!copyTree.get(91));
+    BOOST_CHECK(!copyTree.get(92));
+    BOOST_CHECK(!copyTree.get(93));
+
+    copyTree = mytree;
+
+    BOOST_CHECK(mytree.remove(0));
+    BOOST_CHECK(mytree.remove(1));
+    BOOST_CHECK(mytree.remove(2));
+    BOOST_CHECK(mytree.remove(3));
+
+    // The copy was unaffected by the removals.
+    BOOST_CHECK(copyTree.get(0));
+    BOOST_CHECK(copyTree.get(1));
+    BOOST_CHECK(copyTree.get(2));
+    BOOST_CHECK(copyTree.get(3));
+    BOOST_CHECK(copyTree.get(90));
+    BOOST_CHECK(copyTree.get(91));
+    BOOST_CHECK(copyTree.get(92));
+    BOOST_CHECK(copyTree.get(93));
+}
+
+BOOST_AUTO_TEST_CASE(test_move) {
+    using E = TestElement<uint32_t>;
+
+    RadixTree<E> mytree;
+
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(0)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(1)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(2)));
+    BOOST_CHECK(mytree.insert(RCUPtr<E>::make(3)));
+
+    RadixTree<E> movedTree = std::move(mytree);
+
+    BOOST_CHECK(!mytree.remove(0));
+    BOOST_CHECK(!mytree.remove(1));
+    BOOST_CHECK(!mytree.remove(2));
+    BOOST_CHECK(!mytree.remove(3));
+
+    BOOST_CHECK(movedTree.remove(0));
+    BOOST_CHECK(movedTree.remove(1));
+    BOOST_CHECK(movedTree.remove(2));
+    BOOST_CHECK(movedTree.remove(3));
+}
+
 #define THREADS 128
 #define ELEMENTS 65536
 
