@@ -513,7 +513,7 @@ public:
 
     bool operator()();
 
-    void swap(CScriptCheck &check) {
+    void swap(CScriptCheck &check) noexcept {
         std::swap(ptxTo, check.ptxTo);
         std::swap(m_tx_out, check.m_tx_out);
         std::swap(nIn, check.nIn);
