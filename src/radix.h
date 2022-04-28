@@ -50,7 +50,7 @@ private:
 
 public:
     RadixTree() : root(RadixElement()) {}
-    ~RadixTree() { root.load().release(); }
+    ~RadixTree() { root.load().decrementRefCount(); }
 
     /**
      * Copy semantic.
@@ -59,7 +59,7 @@ public:
         {
             RCULock lock;
             RadixElement e = src.root.load();
-            e.acquire();
+            e.incrementRefCount();
             root = e;
         }
 
@@ -72,8 +72,8 @@ public:
         {
             RCULock lock;
             RadixElement e = rhs.root.load();
-            e.acquire();
-            root.load().release();
+            e.incrementRefCount();
+            root.load().decrementRefCount();
             root = e;
         }
 
@@ -158,7 +158,7 @@ public:
             }                                                                  \
                                                                                \
             /* We have a subtree, resume normal operations from there. */      \
-            e.release();                                                       \
+            e.decrementRefCount();                                             \
             eptr = copy->get(level--, key);                                    \
             e = eptr->load();                                                  \
             copy.release();                                                    \
@@ -265,7 +265,7 @@ private:
          * RadixElement is designed to be a dumb wrapper. This allows any
          * container to release what is held by the RadixElement.
          */
-        void acquire() {
+        void incrementRefCount() {
             if (isNode()) {
                 RCUPtr<RadixNode>::copy(getNode()).release();
             } else {
@@ -273,7 +273,7 @@ private:
             }
         }
 
-        void release() {
+        void decrementRefCount() {
             if (isNode()) {
                 RadixNode *ptr = getNode();
                 RCUPtr<RadixNode>::acquire(ptr);
@@ -332,14 +332,14 @@ private:
 
         ~RadixNode() {
             for (RadixElement e : non_atomic_children_DO_NOT_USE) {
-                e.release();
+                e.decrementRefCount();
             }
         }
 
         RadixNode(const RadixNode &rhs) : non_atomic_children_DO_NOT_USE() {
             for (size_t i = 0; i < CHILD_PER_LEVEL; i++) {
                 auto e = rhs.children[i].load();
-                e.acquire();
+                e.incrementRefCount();
                 non_atomic_children_DO_NOT_USE[i] = e;
             }
         }
