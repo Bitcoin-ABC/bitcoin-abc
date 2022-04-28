@@ -51,6 +51,7 @@ import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import { formatSavedBalance } from 'utils/formatting';
 import { isValidXecAddress } from 'utils/validation';
+import { convertToEcashPrefix } from 'utils/cashMethods';
 
 import { currency } from 'components/Common/Ticker.js';
 const { Panel } = Collapse;
@@ -177,9 +178,9 @@ const SWButtonCtn = styled.div`
     svg {
         stroke: ${props => props.theme.eCashBlue};
         fill: ${props => props.theme.eCashBlue};
-        width: 25px;
+        width: 20px;
         height: 25px;
-        margin-right: 20px;
+        margin-right: 10px;
         cursor: pointer;
 
         :first-child:hover {
@@ -468,6 +469,8 @@ const Configure = () => {
     const [walletDeleteValid, setWalletDeleteValid] = useState(null);
     const [seedInput, openSeedInput] = useState(false);
     const [showTranslationWarning, setShowTranslationWarning] = useState(false);
+    const [savedWalletContactModal, setSavedWalletContactModal] =
+        useState(false);
 
     const showPopulatedDeleteWalletModal = walletInfo => {
         setWalletToBeDeleted(walletInfo);
@@ -1028,6 +1031,79 @@ const Configure = () => {
         csvLink.click();
     };
 
+    const handleAddSavedWalletAsContactOk = async () => {
+        let duplicateContact = false;
+        let tempContactListArray = contactListArray;
+
+        let newContactObj = {
+            name: manualContactName,
+            address: manualContactAddress,
+        };
+
+        if (!tempContactListArray || tempContactListArray.length === 0) {
+            // no existing contact list in local storage
+            tempContactListArray = [{}]; // instantiates to mitigate null pointer issues
+            tempContactListArray.push(newContactObj);
+            tempContactListArray.shift(); // remove the initial entry from instantiation
+        } else {
+            // contact list exists in local storage
+            // check if address already exists in contact list
+            let tempContactListArrayLength = tempContactListArray.length;
+            for (let i = 0; i < tempContactListArrayLength; i++) {
+                if (tempContactListArray[i].address === manualContactAddress) {
+                    errorNotification(
+                        null,
+                        manualContactAddress +
+                            ' already exists in the Contact List',
+                        'handleAddSavedWalletAsContactOk() error',
+                    );
+                    duplicateContact = true;
+                    break;
+                }
+            }
+            // if address does not exist on the contact list, add it
+            if (!duplicateContact) {
+                tempContactListArray.push(newContactObj);
+                generalNotification(
+                    manualContactAddress + ' added to Contact List',
+                    'Success',
+                );
+            }
+        }
+
+        // update localforage
+        try {
+            await updateContactListInLocalForage(tempContactListArray);
+        } catch (err) {
+            console.log('Error in handleAddSavedWalletAsContactOk()');
+            console.log(err);
+        }
+
+        // update local state array
+        setContactListArray(tempContactListArray);
+        setSavedWalletContactModal(false);
+        setManualContactName('');
+        setManualContactAddress('');
+    };
+
+    const handleAddSavedWalletAsContactCancel = () => {
+        setSavedWalletContactModal(false);
+        setManualContactName('');
+        setManualContactAddress('');
+    };
+
+    const addSavedWalletToContact = walletInfo => {
+        if (!walletInfo) {
+            return;
+        }
+        // initialise saved wallet name and address to state for confirmation modal
+        setManualContactName(walletInfo.name);
+        setManualContactAddress(
+            convertToEcashPrefix(walletInfo.Path1899.cashAddress),
+        );
+        setSavedWalletContactModal(true);
+    };
+
     const handleManualAddContactModalOk = async () => {
         // if either inputs are invalid then go no further
         if (!manualContactNameIsValid || !manualContactAddressIsValid) {
@@ -1113,6 +1189,24 @@ const Configure = () => {
     return (
         <SidePaddingCtn>
             <StyledConfigure>
+                {savedWalletContactModal && (
+                    <Modal
+                        title={`Add the following saved wallet to contact list?`}
+                        visible={savedWalletContactModal}
+                        onOk={() => handleAddSavedWalletAsContactOk()}
+                        onCancel={() => handleAddSavedWalletAsContactCancel()}
+                    >
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <FormLabel>Name: {manualContactName}</FormLabel>
+                                <br />
+                                <FormLabel>
+                                    Address: {manualContactAddress}
+                                </FormLabel>
+                            </Form>
+                        </AntdFormWrapper>
+                    </Modal>
+                )}
                 {showManualAddContactModal && (
                     <Modal
                         title={`Add new contact to contact list`}
@@ -1473,6 +1567,13 @@ const Configure = () => {
                                                 <Edit
                                                     onClick={() =>
                                                         showPopulatedRenameWalletModal(
+                                                            sw,
+                                                        )
+                                                    }
+                                                />
+                                                <ThemedContactsOutlined
+                                                    onClick={() =>
+                                                        addSavedWalletToContact(
                                                             sw,
                                                         )
                                                     }
