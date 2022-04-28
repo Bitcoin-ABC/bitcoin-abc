@@ -87,7 +87,7 @@ public:
 
     ~RCUPtr() {
         if (ptr != nullptr) {
-            ptr->release();
+            ptr->decrementRefCount();
         }
     }
 
@@ -112,7 +112,7 @@ public:
      */
     static RCUPtr copy(T *ptr) {
         if (ptr != nullptr) {
-            ptr->acquire();
+            ptr->incrementRefCount();
         }
 
         return RCUPtr::acquire(ptr);
@@ -123,7 +123,7 @@ public:
      */
     RCUPtr(const RCUPtr &src) : ptr(src.ptr) {
         if (ptr != nullptr) {
-            ptr->acquire();
+            ptr->incrementRefCount();
         }
     }
 
@@ -199,7 +199,7 @@ public:
 private:                                                                       \
     mutable std::atomic<T> refcount{0};                                        \
                                                                                \
-    void acquire() const { refcount++; }                                       \
+    void incrementRefCount() const { refcount++; }                             \
                                                                                \
     bool tryDecrement() const {                                                \
         T count = refcount.load();                                             \
@@ -212,7 +212,7 @@ private:                                                                       \
         return false;                                                          \
     }                                                                          \
                                                                                \
-    void release() const {                                                     \
+    void decrementRefCount() const {                                           \
         if (tryDecrement()) {                                                  \
             return;                                                            \
         }                                                                      \

@@ -302,10 +302,10 @@ public:
         : cleanupfun(fun) {}
     ~RCURefMoveTestItem() { cleanupfun(); }
 
-    void acquire() {
+    void incrementRefCount() {
         throw std::runtime_error("RCUPtr incremented the refcount");
     }
-    void release() {
+    void decrementRefCount() {
         RCULock::registerCleanup([this] { delete this; });
     }
 };
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(move_rcuptr_test) {
     // Check tat copy is failing.
     auto rcuptr1 =
         RCUPtr<RCURefMoveTestItem>::make([&] { isDestroyed = true; });
-    BOOST_CHECK_THROW(rcuptr1->acquire(), std::runtime_error);
+    BOOST_CHECK_THROW(rcuptr1->incrementRefCount(), std::runtime_error);
     BOOST_CHECK_THROW(auto rcuptrcopy = rcuptr1;, std::runtime_error);
 
     // Try to move.
