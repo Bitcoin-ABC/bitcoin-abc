@@ -28,9 +28,9 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_valid) {
     };
 
     for (const std::string &str : CASES) {
-        auto ret = CashAddrDecode(str);
-        BOOST_CHECK_MESSAGE(!ret.first.empty(), str);
-        std::string recode = cashaddr::Encode(ret.first, ret.second);
+        auto [prefix, payload] = CashAddrDecode(str);
+        BOOST_CHECK_MESSAGE(!prefix.empty(), str);
+        std::string recode = cashaddr::Encode(prefix, payload);
         BOOST_CHECK_MESSAGE(!recode.empty(), str);
         BOOST_CHECK_MESSAGE(CaseInsensitiveEqual(str, recode), str);
     }
@@ -51,24 +51,21 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_invalid) {
     };
 
     for (const std::string &str : CASES) {
-        auto ret = CashAddrDecode(str);
-        BOOST_CHECK_MESSAGE(ret.first.empty(), str);
+        auto [prefix, payload] = CashAddrDecode(str);
+        BOOST_CHECK_MESSAGE(prefix.empty(), str);
     }
 }
 
 BOOST_AUTO_TEST_CASE(cashaddr_rawencode) {
-    typedef std::pair<std::string, std::vector<uint8_t>> raw;
+    std::string prefix = "helloworld";
+    std::vector<uint8_t> payload = {0x1f, 0x0d};
 
-    raw toEncode;
-    toEncode.first = "helloworld";
-    toEncode.second = {0x1f, 0x0d};
+    std::string encoded = cashaddr::Encode(prefix, payload);
+    auto [decoded_prefix, decoded_payload] = CashAddrDecode(encoded);
 
-    std::string encoded = cashaddr::Encode(toEncode.first, toEncode.second);
-    raw decoded = CashAddrDecode(encoded);
-
-    BOOST_CHECK_EQUAL(toEncode.first, decoded.first);
-    BOOST_CHECK_EQUAL_COLLECTIONS(begin(toEncode.second), end(toEncode.second),
-                                  begin(decoded.second), end(decoded.second));
+    BOOST_CHECK_EQUAL(prefix, decoded_prefix);
+    BOOST_CHECK_EQUAL_COLLECTIONS(begin(payload), end(payload),
+                                  begin(decoded_payload), end(decoded_payload));
 }
 
 BOOST_AUTO_TEST_CASE(cashaddr_testvectors_noprefix) {
@@ -82,13 +79,12 @@ BOOST_AUTO_TEST_CASE(cashaddr_testvectors_noprefix) {
         {"bchreg", "555555555555555555555555555555555555555555555udxmlmrz"},
     };
 
-    for (const std::pair<std::string, std::string> &c : CASES) {
-        std::string prefix = c.first;
-        std::string payload = c.second;
+    for (const auto &[prefix, payload] : CASES) {
         std::string addr = prefix + ":" + payload;
-        auto ret = cashaddr::Decode(payload, prefix);
-        BOOST_CHECK_MESSAGE(CaseInsensitiveEqual(ret.first, prefix), addr);
-        std::string recode = cashaddr::Encode(ret.first, ret.second);
+        auto [decoded_prefix, decoded_payload] =
+            cashaddr::Decode(payload, prefix);
+        BOOST_CHECK_MESSAGE(CaseInsensitiveEqual(decoded_prefix, prefix), addr);
+        std::string recode = cashaddr::Encode(decoded_prefix, decoded_payload);
         BOOST_CHECK_MESSAGE(!recode.empty(), addr);
         BOOST_CHECK_MESSAGE(CaseInsensitiveEqual(addr, recode), addr);
     }

@@ -112,9 +112,7 @@ CTxDestination DecodeCashAddr(const std::string &addr,
 
 CashAddrContent DecodeCashAddrContent(const std::string &addr,
                                       const std::string &expectedPrefix) {
-    std::string prefix;
-    std::vector<uint8_t> payload;
-    std::tie(prefix, payload) = cashaddr::Decode(addr, expectedPrefix);
+    auto [prefix, payload] = cashaddr::Decode(addr, expectedPrefix);
 
     if (prefix != expectedPrefix) {
         return {};
