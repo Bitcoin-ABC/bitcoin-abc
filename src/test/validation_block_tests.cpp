@@ -279,9 +279,9 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     Chainstate &activeChainstate = chainman.ActiveChainstate();
     // Set the tip to pindex because AvalancheFinalizeBlock checks it is in the
     // active chain.
-    activeChainstate.m_chain.SetTip(pindex);
+    activeChainstate.m_chain.SetTip(*Assert(pindex));
     BOOST_CHECK(activeChainstate.AvalancheFinalizeBlock(pindex));
-    activeChainstate.m_chain.SetTip(pindex->pprev);
+    activeChainstate.m_chain.SetTip(*Assert(pindex->pprev));
 
     // Process the block. It should be found invalid and finalization reverted.
     bool processed = chainman.ProcessNewBlock(pblock, true, true, &newBlock);

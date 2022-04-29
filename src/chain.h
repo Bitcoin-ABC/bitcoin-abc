@@ -192,7 +192,7 @@ public:
     int Height() const { return int(vChain.size()) - 1; }
 
     /** Set/initialize a chain with a given tip. */
-    void SetTip(CBlockIndex *pindex);
+    void SetTip(CBlockIndex &block);
 
     /** Return a CBlockLocator that refers to the tip of this chain */
     CBlockLocator GetLocator() const;

@@ -2406,6 +2406,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
     const Consensus::Params &consensusParams = m_chainman.GetConsensus();
 
     assert(pindexDelete);
+    assert(pindexDelete->pprev);
 
     // Read block from disk.
     std::shared_ptr<CBlock> pblock = std::make_shared<CBlock>();
@@ -2457,7 +2458,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
         }
     }
 
-    m_chain.SetTip(pindexDelete->pprev);
+    m_chain.SetTip(*pindexDelete->pprev);
 
     UpdateTip(pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
@@ -2674,7 +2675,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
     }
 
     // Update m_chain & related variables.
-    m_chain.SetTip(pindexNew);
+    m_chain.SetTip(*pindexNew);
     UpdateTip(pindexNew);
 
     int64_t nTime6 = GetTimeMicros();
@@ -4607,7 +4608,7 @@ bool Chainstate::LoadChainTip() {
     if (!pindex) {
         return false;
     }
-    m_chain.SetTip(pindex);
+    m_chain.SetTip(*pindex);
     PruneBlockIndexCandidates();
 
     tip = m_chain.Tip();
@@ -6127,7 +6128,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
         return false;
     }
 
-    snapshot_chainstate.m_chain.SetTip(snapshot_start_block);
+    snapshot_chainstate.m_chain.SetTip(*snapshot_start_block);
 
     // The remainder of this function requires modifying data protected by
     // cs_main.
