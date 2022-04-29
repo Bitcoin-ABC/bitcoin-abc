@@ -9,7 +9,6 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <key.h>
-#include <node/coinstats.h>
 #include <policy/policy.h>
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h>
@@ -25,10 +24,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-
-using node::CCoinsStats;
-using node::CoinStatsHashType;
-using node::GetUTXOStats;
 
 namespace {
 const TestingSetup *g_setup;
@@ -301,19 +296,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
                     assert(MoneyRange(tx_fee_out));
                 } catch (const std::runtime_error &) {
                 }
-                break;
-            }
-            case 3: {
-                CCoinsStats stats{CoinStatsHashType::HASH_SERIALIZED};
-                bool expected_code_path = false;
-                try {
-                    (void)GetUTXOStats(&coins_view_cache,
-                                       g_setup->m_node.chainman->m_blockman,
-                                       stats);
-                } catch (const std::logic_error &) {
-                    expected_code_path = true;
-                }
-                assert(expected_code_path);
                 break;
             }
         }
