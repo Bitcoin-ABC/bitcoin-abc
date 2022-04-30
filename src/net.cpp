@@ -91,9 +91,9 @@ static constexpr int DNSSEEDS_DELAY_PEER_THRESHOLD = 1000;
 /** The default timeframe for -maxuploadtarget. 1 day. */
 static constexpr std::chrono::seconds MAX_UPLOAD_TIMEFRAME{60 * 60 * 24};
 
-// We add a random period time (0 to 1 seconds) to feeler connections to prevent
-// synchronization.
-#define FEELER_SLEEP_WINDOW 1
+// A random time period (0 to 1 seconds) is added to feeler connections to
+// prevent synchronization.
+static constexpr auto FEELER_SLEEP_WINDOW{1s};
 
 /** Used to pass flags to the Bind() function */
 enum BindFlags {
@@ -1639,6 +1639,7 @@ int CConnman::GetExtraBlockRelayCount() const {
 void CConnman::ThreadOpenConnections(
     const std::vector<std::string> connect,
     std::function<void(const CAddress &, ConnectionType)> mockOpenConnection) {
+    FastRandomContext rng;
     // Connect to specific addresses
     if (!connect.empty()) {
         for (int64_t nLoop = 0;; nLoop++) {
@@ -1955,10 +1956,9 @@ void CConnman::ThreadOpenConnections(
             if (fFeeler) {
                 // Add small amount of random noise before connection to avoid
                 // synchronization.
-                int randsleep = FastRandomContext().randrange<int>(
-                    FEELER_SLEEP_WINDOW * 1000);
                 if (!interruptNet.sleep_for(
-                        std::chrono::milliseconds(randsleep))) {
+                        rng.rand_uniform_duration<CThreadInterrupt::Clock>(
+                            FEELER_SLEEP_WINDOW))) {
                     return;
                 }
                 LogPrint(BCLog::NET, "Making feeler connection to %s\n",
