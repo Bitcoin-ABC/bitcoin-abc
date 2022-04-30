@@ -589,6 +589,15 @@ const Configure = () => {
                         break;
                     }
                 }
+
+                // in the edge case of a fresh new wallet on a fresh new browser, remove the initialization entry to avoid an undefined contact in array
+                if (
+                    tempContactListArray &&
+                    tempContactListArray[0].address === undefined
+                ) {
+                    tempContactListArray.shift();
+                }
+
                 // if address does not exist on the contact list, add it
                 if (!duplicateContact) {
                     tempContactListArray.push(newContactObj);
@@ -631,6 +640,15 @@ const Configure = () => {
                 console.log('Error in getContactListFromLocalForage()');
                 console.log(err);
             }
+
+            // in the edge case of a fresh new wallet on a fresh new browser, remove the initialization entry to avoid an undefined contact in array
+            if (
+                loadContactListStatus &&
+                loadContactListStatus[0].address === undefined
+            ) {
+                loadContactListStatus.shift();
+            }
+
             setContactListArray(loadContactListStatus);
         }
     }, []);
