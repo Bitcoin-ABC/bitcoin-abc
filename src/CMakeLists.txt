@@ -675,6 +675,7 @@ add_library(server
 	node/peerman_args.cpp
 	node/psbt.cpp
 	node/transaction.cpp
+	node/txdownloadman_impl.cpp
 	node/ui_interface.cpp
 	node/utxo_snapshot.cpp
 	noui.cpp
