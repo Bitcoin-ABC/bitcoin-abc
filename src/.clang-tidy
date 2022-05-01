@@ -2,6 +2,7 @@ Checks: '
 -*,
 boost-use-to-string,
 readability-braces-around-statements,
+readability-redundant-declaration,
 bugprone-argument-comment,
 performance-move-const-arg,
 performance-no-automatic-move,

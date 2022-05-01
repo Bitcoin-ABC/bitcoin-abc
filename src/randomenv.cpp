@@ -58,7 +58,7 @@
 #endif
 
 //! Necessary on some platforms
-extern char **environ;
+extern char **environ; // NOLINT(readability-redundant-declaration)
 
 namespace {
 void RandAddSeedPerfmon(CSHA512 &hasher) {
