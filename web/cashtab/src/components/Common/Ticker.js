@@ -126,11 +126,11 @@ export function parseAddressForParams(addressString) {
         const addrParams = new URLSearchParams(queryString);
 
         if (addrParams.has('amount')) {
-            // Amount in satoshis
+            // Amount in XEC
             try {
-                amount = new BigNumber(parseInt(addrParams.get('amount')))
-                    .div(10 ** currency.cashDecimals)
-                    .toString();
+                amount = new BigNumber(
+                    parseFloat(addrParams.get('amount')),
+                ).toString();
             } catch (err) {
                 amount = null;
             }
