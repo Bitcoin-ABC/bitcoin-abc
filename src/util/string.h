@@ -24,6 +24,11 @@ void ReplaceAll(std::string &in_out, const std::string &search,
     return spanparsing::Split<std::string>(str, sep);
 }
 
+[[nodiscard]] inline std::vector<std::string>
+SplitString(std::string_view str, std::string_view separators) {
+    return spanparsing::Split<std::string>(str, separators);
+}
+
 [[nodiscard]] inline std::string_view
 TrimStringView(std::string_view str, std::string_view pattern = " \f\n\r\t\v") {
     std::string::size_type front = str.find_first_not_of(pattern);

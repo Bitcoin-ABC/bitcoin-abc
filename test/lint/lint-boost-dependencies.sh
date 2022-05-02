@@ -9,10 +9,6 @@
 export LC_ALL=C
 
 EXPECTED_BOOST_INCLUDES=(
-    boost/algorithm/string.hpp
-    boost/algorithm/string/classification.hpp
-    boost/algorithm/string/split.hpp
-
     boost/mpl/list.hpp
     boost/multiprecision/cpp_int.hpp
     boost/multi_index/composite_key.hpp

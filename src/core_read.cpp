@@ -16,9 +16,6 @@
 
 #include <univalue.h>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-
 #include <algorithm>
 #include <string>
 
@@ -59,9 +56,7 @@ opcodetype ParseOpCode(const std::string &s) {
 CScript ParseScript(const std::string &s) {
     CScript result;
 
-    std::vector<std::string> words;
-    boost::algorithm::split(words, s, boost::algorithm::is_any_of(" \t\n"),
-                            boost::algorithm::token_compress_on);
+    std::vector<std::string> words = SplitString(s, " \t\n");
 
     size_t push_size = 0, next_push_size = 0;
     size_t script_size = 0;
@@ -70,8 +65,8 @@ CScript ParseScript(const std::string &s) {
 
     for (const auto &w : words) {
         if (w.empty()) {
-            // Empty string, ignore. (boost::split given '' will return one
-            // word)
+            // Empty string, ignore. (SplitString doesn't combine multiple
+            // separators)
             continue;
         }
 

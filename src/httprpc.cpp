@@ -13,8 +13,6 @@
 #include <util/string.h>
 #include <walletinitinterface.h>
 
-#include <boost/algorithm/string.hpp>
-
 #include <algorithm>
 #include <cstdio>
 #include <functional>
@@ -442,8 +440,11 @@ static bool InitRPCAuthentication() {
         std::set<std::string> &whitelist = g_rpc_whitelist[strUser];
         if (pos != std::string::npos) {
             std::string strWhitelist = strRPCWhitelist.substr(pos + 1);
-            std::set<std::string> new_whitelist;
-            boost::split(new_whitelist, strWhitelist, boost::is_any_of(", "));
+            std::vector<std::string> whitelist_split =
+                SplitString(strWhitelist, ", ");
+            std::set<std::string> new_whitelist{
+                std::make_move_iterator(whitelist_split.begin()),
+                std::make_move_iterator(whitelist_split.end())};
             if (intersect) {
                 std::set<std::string> tmp_whitelist;
                 std::set_intersection(

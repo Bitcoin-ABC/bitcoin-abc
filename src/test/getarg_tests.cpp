@@ -11,7 +11,6 @@
 
 #include <univalue.h>
 
-#include <boost/algorithm/string.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <string>
@@ -23,7 +22,7 @@ BOOST_FIXTURE_TEST_SUITE(getarg_tests, BasicTestingSetup)
 void ResetArgs(ArgsManager &local_args, const std::string &strArg) {
     std::vector<std::string> vecArg;
     if (strArg.size()) {
-        boost::split(vecArg, strArg, IsSpace, boost::token_compress_on);
+        vecArg = SplitString(strArg, " \f\n\r\t\v");
     }
 
     // Insert dummy executable name:
