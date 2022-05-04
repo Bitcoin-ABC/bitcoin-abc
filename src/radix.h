@@ -38,9 +38,9 @@ private:
     static const int MASK = (1 << BITS) - 1;
     static const size_t CHILD_PER_LEVEL = 1 << BITS;
 
-    using K = typename std::remove_reference<decltype(
+    using KeyType = typename std::remove_reference<decltype(
         std::declval<T &>().getId())>::type;
-    static const size_t KEY_BITS = 8 * sizeof(K);
+    static const size_t KEY_BITS = 8 * sizeof(KeyType);
     static const uint32_t TOP_LEVEL = (KEY_BITS - 1) / BITS;
 
     struct RadixElement;
@@ -111,7 +111,7 @@ public:
      * Get the value corresponding to a key.
      * Returns the value if found, nullptr if not.
      */
-    RCUPtr<T> get(const K &key) {
+    RCUPtr<T> get(const KeyType &key) {
         uint32_t level = TOP_LEVEL;
 
         RCULock lock;
@@ -132,7 +132,7 @@ public:
         return RCUPtr<T>::copy(leaf);
     }
 
-    RCUPtr<const T> get(const K &key) const {
+    RCUPtr<const T> get(const KeyType &key) const {
         T const *ptr = const_cast<RadixTree *>(this)->get(key).release();
         return RCUPtr<const T>::acquire(ptr);
     }
@@ -169,7 +169,7 @@ public:
      * Remove an element from the tree.
      * Returns the removed element, or nullptr if there isn't one.
      */
-    RCUPtr<T> remove(const K &key) {
+    RCUPtr<T> remove(const KeyType &key) {
         uint32_t level = TOP_LEVEL;
 
         RCULock lock;
@@ -198,7 +198,7 @@ public:
     }
 
 private:
-    bool insert(const K &key, RCUPtr<T> value) {
+    bool insert(const KeyType &key, RCUPtr<T> value) {
         uint32_t level = TOP_LEVEL;
 
         RCULock lock;
@@ -222,7 +222,7 @@ private:
             }
 
             // The element was already in the tree.
-            const K &leafKey = e.getLeaf()->getId();
+            const KeyType &leafKey = e.getLeaf()->getId();
             if (key == leafKey) {
                 return false;
             }
@@ -325,7 +325,7 @@ private:
         };
 
     public:
-        RadixNode(uint32_t level, const K &key, RadixElement e)
+        RadixNode(uint32_t level, const KeyType &key, RadixElement e)
             : non_atomic_children_DO_NOT_USE() {
             get(level, key)->store(e);
         }
@@ -346,7 +346,7 @@ private:
 
         RadixNode &operator=(const RadixNode &) = delete;
 
-        std::atomic<RadixElement> *get(uint32_t level, const K &key) {
+        std::atomic<RadixElement> *get(uint32_t level, const KeyType &key) {
             return &children[(key >> (level * BITS)) & MASK];
         }
 
