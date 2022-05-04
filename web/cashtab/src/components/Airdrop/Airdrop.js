@@ -78,6 +78,11 @@ const AirdropOptions = styled.div`
     color: ${props => props.theme.contrast};
 `;
 
+const StyledModal = styled(Modal)`
+    .ant-progress-text {
+        color: ${props => props.theme.lightWhite} !important;
+    }
+`;
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
 const Airdrop = ({ jestBCH, passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
@@ -510,7 +515,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                     </>
                 )}
             </WalletInfoCtn>
-            <Modal
+            <StyledModal
                 title="Querying the eCash blockchain"
                 visible={isAirdropCalcModalVisible}
                 okButtonProps={{ style: { display: 'none' } }}
@@ -518,7 +523,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
             >
                 <Spin indicator={CustomSpinner} />
                 <Progress percent={airdropCalcModalProgress} />
-            </Modal>
+            </StyledModal>
             <br />
             <SidePaddingCtn>
                 <Row type="flex">
