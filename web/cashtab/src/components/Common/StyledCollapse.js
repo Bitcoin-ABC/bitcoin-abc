@@ -34,6 +34,9 @@ const CollapseCtn = styled.div`
             flex: 2;
         }
     }
+    .ant-form-small {
+        color: ${props => props.theme.lightGrey} !important;
+    }
 `;
 
 export const TokenCollapse = styled(Collapse)`
