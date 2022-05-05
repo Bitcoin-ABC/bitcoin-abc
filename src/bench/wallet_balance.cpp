@@ -30,10 +30,8 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
 
     const Config &config = GetConfig();
 
-    NodeContext node;
-    std::unique_ptr<interfaces::Chain> chain =
-        interfaces::MakeChain(node, config.GetChainParams());
-    CWallet wallet{chain.get(), "", CreateMockWalletDatabase()};
+    CWallet wallet{test_setup.m_node.chain.get(), "",
+                   CreateMockWalletDatabase()};
     {
         wallet.SetupLegacyScriptPubKeyMan();
         bool first_run;
@@ -42,7 +40,8 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
         }
     }
 
-    auto handler = chain->handleNotifications({&wallet, [](CWallet *) {}});
+    auto handler = test_setup.m_node.chain->handleNotifications(
+        {&wallet, [](CWallet *) {}});
 
     const std::optional<std::string> address_mine{
         add_mine ? std::optional<std::string>{getnewaddress(config, wallet)}
