@@ -442,4 +442,37 @@ BOOST_AUTO_TEST_CASE(insert_stress_test) {
     RCULock::synchronize();
 }
 
+BOOST_AUTO_TEST_CASE(tree_traversal) {
+    using E = TestElement<uint32_t>;
+
+    RadixTree<E> mytree;
+
+    // Build a vector of elements in ascending key order
+    std::vector<RCUPtr<E>> elements;
+    elements.reserve(ELEMENTS);
+    for (uint32_t i = 0; i < ELEMENTS; i++) {
+        auto ptr = RCUPtr<E>::make(i);
+        elements.push_back(std::move(ptr));
+    }
+
+    // Insert in random order
+    auto randomizedElements = elements;
+    Shuffle(randomizedElements.begin(), randomizedElements.end(),
+            FastRandomContext());
+    for (auto &element : randomizedElements) {
+        BOOST_CHECK(mytree.insert(element));
+    }
+
+    // Check the tree is traversed in ascending key order
+    size_t count = 0;
+    mytree.forEachLeaf([&](RCUPtr<E> ptr) {
+        // This test assumes the key is equal to the value
+        BOOST_CHECK_EQUAL(ptr->getId(), count);
+        BOOST_CHECK_EQUAL(ptr, elements[count++]);
+    });
+
+    // All the elements are parsed
+    BOOST_CHECK_EQUAL(count, ELEMENTS);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

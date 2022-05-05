@@ -137,6 +137,11 @@ public:
         return RCUPtr<const T>::acquire(ptr);
     }
 
+    template <typename Callable> void forEachLeaf(Callable &&func) const {
+        RCULock lock;
+        forEachLeaf(root.load(), std::move(func));
+    }
+
 #define SEEK_LEAF_LOOP()                                                       \
     RadixElement e = eptr->load();                                             \
                                                                                \
@@ -242,6 +247,20 @@ private:
     }
 
 #undef SEEK_LEAF_LOOP
+
+    template <typename Callable>
+    void forEachLeaf(RadixElement e, Callable &&func) const {
+        if (e.isNode()) {
+            e.getNode()->forEachChild(
+                [&](auto pElement) { forEachLeaf(pElement->load(), func); });
+            return;
+        }
+
+        T *leaf = e.getLeaf();
+        if (leaf != nullptr) {
+            func(RCUPtr<T>::copy(leaf));
+        }
+    }
 
     struct RadixElement {
     private:
@@ -351,6 +370,12 @@ private:
         }
 
         bool isShared() const { return refcount > 0; }
+
+        template <typename Callable> void forEachChild(Callable &&func) const {
+            for (size_t i = 0; i < CHILD_PER_LEVEL; i++) {
+                func(&children[i]);
+            }
+        }
     };
 
     // Make sure the alignment works for T and RadixElement.
