@@ -719,7 +719,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                 )}
                                 <TxLink
                                     key={data.txid}
-                                    href={`${currency.tokenExplorerUrl}/tx/${data.txid}`}
+                                    href={`${currency.blockExplorerUrl}/tx/${data.txid}`}
                                     target="_blank"
                                     rel="noreferrer"
                                 >

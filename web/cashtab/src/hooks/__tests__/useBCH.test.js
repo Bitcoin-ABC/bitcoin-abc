@@ -415,7 +415,7 @@ describe('useBCH hook', () => {
             .fn()
             .mockResolvedValue(expectedTxId);
         expect(await createToken(BCH, wallet, 5.01, configObj)).toBe(
-            `${currency.tokenExplorerUrl}/tx/${expectedTxId}`,
+            `${currency.blockExplorerUrl}/tx/${expectedTxId}`,
         );
         expect(BCH.RawTransactions.sendRawTransaction).toHaveBeenCalledWith(
             expectedHex,

@@ -958,7 +958,7 @@ export default function useBCH() {
             let link;
 
             if (process.env.REACT_APP_NETWORK === `mainnet`) {
-                link = `${currency.tokenExplorerUrl}/tx/${txidStr}`;
+                link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
             } else {
                 link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
             }
@@ -1319,7 +1319,7 @@ export default function useBCH() {
 
         let link;
         if (process.env.REACT_APP_NETWORK === `mainnet`) {
-            link = `${currency.tokenExplorerUrl}/tx/${txidStr}`;
+            link = `${currency.blockExplorerUrl}/tx/${txidStr}`;
         } else {
             link = `${currency.blockExplorerUrlTestnet}/tx/${txidStr}`;
         }
