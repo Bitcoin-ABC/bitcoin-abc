@@ -235,7 +235,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         retry = 5
         while retry > 0:
             try:
-                with node.assert_debug_log([f"Avalanche accepted proof {proofid_seq30:0{64}x}, status 3"]):
+                with node.assert_debug_log([f"Avalanche finalized proof {proofid_seq30:0{64}x}"]):
                     self.wait_until(lambda: not self.can_find_proof_in_poll(
                         proofid_seq30, response=AvalancheVoteError.ACCEPTED))
                 break

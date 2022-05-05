@@ -5144,9 +5144,33 @@ void PeerManagerImpl::ProcessMessage(
 
         pfrom.m_avalanche_state->invsVoted(response.GetVotes().size());
 
+        auto logVoteUpdate = [](const auto &voteUpdate,
+                                const std::string &voteItemTypeStr,
+                                const auto &voteItemId) {
+            std::string voteOutcome;
+            switch (voteUpdate.getStatus()) {
+                case avalanche::VoteStatus::Invalid:
+                    voteOutcome = "invalidated";
+                case avalanche::VoteStatus::Rejected:
+                    voteOutcome = "rejected";
+                case avalanche::VoteStatus::Accepted:
+                    voteOutcome = "accepted";
+                case avalanche::VoteStatus::Finalized:
+                    voteOutcome = "finalized";
+
+                    // No default case, so the compiler can warn about missing
+                    // cases
+            }
+
+            LogPrint(BCLog::AVALANCHE, "Avalanche %s %s %s\n", voteOutcome,
+                     voteItemTypeStr, voteItemId.ToString());
+        };
+
         for (avalanche::ProofUpdate &u : proofUpdates) {
             avalanche::ProofRef proof = u.getVoteItem();
             const avalanche::ProofId &proofid = proof->getId();
+
+            logVoteUpdate(u, "proof", proofid);
 
             auto rejectionMode = avalanche::PeerManager::RejectionMode::DEFAULT;
             auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
@@ -5157,9 +5181,6 @@ void PeerManagerImpl::ProcessMessage(
                     WITH_LOCK(cs_rejectedProofs,
                               rejectedProofs->insert(proofid));
                 case avalanche::VoteStatus::Rejected:
-                    LogPrint(BCLog::AVALANCHE,
-                             "Avalanche rejected proof %s, status %d\n",
-                             proofid.GetHex(), uint8_t(u.getStatus()));
                     if (g_avalanche->withPeerManager(
                             [&](avalanche::PeerManager &pm) {
                                 pm.rejectProof(proofid, rejectionMode);
@@ -5175,9 +5196,6 @@ void PeerManagerImpl::ProcessMessage(
                         "-avalanchepeerreplacementcooldown",
                         AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
                 case avalanche::VoteStatus::Accepted:
-                    LogPrint(BCLog::AVALANCHE,
-                             "Avalanche accepted proof %s, status %d\n",
-                             proofid.GetHex(), uint8_t(u.getStatus()));
                     if (!g_avalanche->withPeerManager(
                             [&](avalanche::PeerManager &pm) {
                                 pm.registerProof(
@@ -5203,11 +5221,12 @@ void PeerManagerImpl::ProcessMessage(
         if (blockUpdates.size()) {
             for (avalanche::BlockUpdate &u : blockUpdates) {
                 CBlockIndex *pindex = u.getVoteItem();
+
+                logVoteUpdate(u, "block", pindex->GetBlockHash());
+
                 switch (u.getStatus()) {
                     case avalanche::VoteStatus::Invalid:
                     case avalanche::VoteStatus::Rejected: {
-                        LogPrintf("Avalanche rejected %s, parking\n",
-                                  pindex->GetBlockHash().GetHex());
                         BlockValidationState state;
                         ::ChainstateActive().ParkBlock(config, state, pindex);
                         if (!state.IsValid()) {
@@ -5218,8 +5237,6 @@ void PeerManagerImpl::ProcessMessage(
                     } break;
                     case avalanche::VoteStatus::Accepted:
                     case avalanche::VoteStatus::Finalized: {
-                        LogPrintf("Avalanche accepted %s\n",
-                                  pindex->GetBlockHash().GetHex());
                         LOCK(cs_main);
                         ::ChainstateActive().UnparkBlock(pindex);
                     } break;
