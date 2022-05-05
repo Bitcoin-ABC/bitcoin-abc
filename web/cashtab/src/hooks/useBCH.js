@@ -129,6 +129,7 @@ export default function useBCH() {
             let tokenTx = false;
             let substring = '';
             let airdropFlag = false;
+            let airdropTokenId = '';
 
             // If vin's scriptSig contains one of the publicKeys of this wallet
             // This is an outgoing tx
@@ -190,8 +191,13 @@ export default function useBCH() {
                         // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
                         // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
                         airdropFlag = true;
-                        txType = parsedOpReturnArray[1];
+
+                        txType = parsedOpReturnArray[2]; // 0 is drop, 1 is etoken ID
                         // remove the first airdrop prefix from array so the array parsing logic below can remain unchanged
+                        parsedOpReturnArray.shift();
+
+                        airdropTokenId = parsedOpReturnArray[0]; // with the first element removed, the eToken ID is now pos. 0
+                        // remove the 2nd airdrop prefix for the etoken that the airdrop is based on
                         parsedOpReturnArray.shift();
                     }
 
@@ -342,6 +348,7 @@ export default function useBCH() {
             parsedTx.isEncryptedMessage = isEncryptedMessage;
             parsedTx.decryptionSuccess = decryptionSuccess;
             parsedTx.airdropFlag = airdropFlag;
+            parsedTx.airdropTokenId = airdropTokenId;
             parsedTxHistory.push(parsedTx);
         }
         return parsedTxHistory;
@@ -1399,6 +1406,7 @@ export default function useBCH() {
         sendAmount,
         encryptionFlag,
         airdropFlag,
+        airdropTokenId,
     ) => {
         try {
             let value = new BigNumber(0);
@@ -1523,6 +1531,7 @@ export default function useBCH() {
                                     currency.opReturn.appPrefixesHex.airdrop,
                                     'hex',
                                 ), // drop
+                                Buffer.from(airdropTokenId),
                                 Buffer.from(
                                     currency.opReturn.appPrefixesHex.cashtab,
                                     'hex',
@@ -1537,6 +1546,7 @@ export default function useBCH() {
                                     currency.opReturn.appPrefixesHex.airdrop,
                                     'hex',
                                 ), // drop
+                                Buffer.from(airdropTokenId),
                                 Buffer.from(
                                     currency.opReturn.appPrefixesHex.cashtab,
                                     'hex',

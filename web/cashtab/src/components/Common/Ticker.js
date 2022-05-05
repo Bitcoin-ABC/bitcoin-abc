@@ -41,7 +41,7 @@ export const currency = {
             airdrop: '64726f70',
         },
         encryptedMsgCharLimit: 94,
-        unencryptedMsgCharLimit: 160,
+        unencryptedMsgCharLimit: 145,
     },
     settingsValidation: {
         fiatCurrency: [

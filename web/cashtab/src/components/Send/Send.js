@@ -131,6 +131,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
     const [formData, setFormData] = useState({
         value: '',
         address: '',
+        airdropTokenId: '',
     });
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendBchAddressError, setSendBchAddressError] = useState(false);
@@ -226,10 +227,16 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
 
         // if this was routed from the Airdrop screen's Airdrop Calculator then
         // switch to multiple recipient mode and prepopulate the recipients field
-        if (location && location.state && location.state.airdropRecipients) {
+        if (
+            location &&
+            location.state &&
+            location.state.airdropRecipients &&
+            location.state.airdropTokenId
+        ) {
             setIsOneToManyXECSend(true);
             setFormData({
                 address: location.state.airdropRecipients,
+                airdropTokenId: location.state.airdropTokenId,
             });
 
             // validate the airdrop outputs from the calculator
@@ -347,6 +354,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                     null,
                     false, // one to many tx msg can't be encrypted
                     airdropFlag,
+                    formData.airdropTokenId,
                 );
                 sendXecNotification(link);
                 clearInputForms();

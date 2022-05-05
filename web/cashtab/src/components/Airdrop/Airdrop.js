@@ -784,6 +784,8 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                             state: {
                                                                 airdropRecipients:
                                                                     airdropRecipients,
+                                                                airdropTokenId:
+                                                                    formData.tokenId,
                                                             },
                                                         }}
                                                         disabled={

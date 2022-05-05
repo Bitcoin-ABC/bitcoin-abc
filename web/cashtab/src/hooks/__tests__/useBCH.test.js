@@ -28,6 +28,7 @@ import {
     mockSentOpReturnMessageTx,
     mockReceivedOpReturnMessageTx,
     mockBurnEtokenTx,
+    mockSentAirdropOpReturnMessageTx,
 } from '../__mocks__/mockParsedTxs';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
@@ -565,6 +566,21 @@ describe('useBCH hook', () => {
                 mockPublicKeys,
             ),
         ).toStrictEqual(mockSentOpReturnMessageTx);
+    });
+
+    it(`Correctly parses a "send ${currency.ticker}" airdrop transaction with an OP_RETURN message`, async () => {
+        const { parseTxData } = useBCH();
+        const BCH = new BCHJS();
+        BCH.RawTransactions.getRawTransaction = jest
+            .fn()
+            .mockResolvedValue(mockTxDataWithPassthrough[15]);
+        expect(
+            await parseTxData(
+                BCH,
+                [mockTxDataWithPassthrough[15]],
+                mockPublicKeys,
+            ),
+        ).toStrictEqual(mockSentAirdropOpReturnMessageTx);
     });
 
     it(`Correctly parses a "receive ${currency.ticker}" transaction with an OP_RETURN message`, async () => {

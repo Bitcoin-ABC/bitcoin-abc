@@ -16,6 +16,7 @@ export const mockSentCashTx = [
         tokenTx: false,
         decryptionSuccess: false,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: '089f2188d5771a7de0589def2b8d6c1a1f33f45b6de26d9a0ef32782f019ecf1',
     },
 ];
@@ -37,6 +38,7 @@ export const mockReceivedCashTx = [
         tokenTx: false,
         decryptionSuccess: false,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: '42d39fbe068a40fe691f987b22fdf04b80f94d71d2fec20a58125e7b1a06d2a9',
     },
 ];
@@ -58,6 +60,7 @@ export const mockSentTokenTx = [
         tokenTx: true,
         decryptionSuccess: false,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: 'ffe3a7500dbcc98021ad581c98d9947054d1950a7f3416664715066d3d20ad72',
     },
 ];
@@ -78,6 +81,7 @@ export const mockReceivedTokenTx = [
         tokenTx: true,
         decryptionSuccess: false,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
     },
 ];
@@ -97,6 +101,7 @@ export const mockSentOpReturnMessageTx = [
         isEncryptedMessage: false,
         decryptionSuccess: false,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: 'dd35690b0cefd24dcc08acba8694ecd49293f365a81372cb66c8f1c1291d97c5',
     },
 ];
@@ -116,6 +121,7 @@ export const mockReceivedOpReturnMessageTx = [
         isEncryptedMessage: false,
         decryptionSuccess: false,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: '5adc33b5c0509b31c6da359177b19467c443bdc4dd37c283c0f87244c0ad63af',
     },
 ];
@@ -135,6 +141,28 @@ export const mockBurnEtokenTx = [
         replyAddress: null,
         tokenTx: true,
         airdropFlag: false,
+        airdropTokenId: '',
         txid: '8b569d64a7e51d1d3cf1cf2b99d8b34451bbebc7df6b67232e5b770418b0428c',
+    },
+];
+export const mockSentAirdropOpReturnMessageTx = [
+    {
+        amountReceived: 0,
+        amountSent: 0,
+        blocktime: 1651757835,
+        confirmations: 2,
+        destinationAddress: undefined,
+        height: undefined,
+        opReturnMessage: 'banana',
+        replyAddress: null,
+        outgoingTx: false,
+        tokenTx: false,
+        isCashtabMessage: true,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        airdropFlag: true,
+        airdropTokenId:
+            '31633663396336346437306232383562656665373333663137356430663338343533383537363837366264323830623130353837646638313237396433663565',
+        txid: 'ff253d06a1f3cce088d541dc28d06cf08cebc0288c2ae21e8985df08109b45d8',
     },
 ];
