@@ -14,12 +14,12 @@
 #include <netbase.h>
 #include <util/readwritefile.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
 #include <util/thread.h>
 #include <util/time.h>
 
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/signals2/signal.hpp>
 
@@ -703,7 +703,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
             if (methods.count("HASHEDPASSWORD")) {
                 LogPrint(BCLog::TOR,
                          "tor: Using HASHEDPASSWORD authentication\n");
-                boost::replace_all(torpassword, "\"", "\\\"");
+                ReplaceAll(torpassword, "\"", "\\\"");
                 _conn.Command("AUTHENTICATE \"" + torpassword + "\"",
                               std::bind(&TorController::auth_cb, this,
                                         std::placeholders::_1,

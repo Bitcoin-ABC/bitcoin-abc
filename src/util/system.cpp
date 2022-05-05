@@ -66,8 +66,6 @@
 #include <malloc.h>
 #endif
 
-#include <boost/algorithm/string/replace.hpp>
-
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
@@ -1292,7 +1290,7 @@ fs::path GetSpecialFolderPath(int nFolder, bool fCreate) {
 #ifndef WIN32
 std::string ShellEscape(const std::string &arg) {
     std::string escaped = arg;
-    boost::replace_all(escaped, "'", "'\"'\"'");
+    ReplaceAll(escaped, "'", "'\"'\"'");
     return "'" + escaped + "'";
 }
 #endif

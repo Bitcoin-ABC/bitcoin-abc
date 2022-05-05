@@ -74,7 +74,6 @@
 #include <validationinterface.h>
 #include <walletinitinterface.h>
 
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/signals2/signal.hpp>
 
 #if ENABLE_CHRONIK
@@ -2718,8 +2717,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 return;
             }
             std::string command = block_notify;
-            boost::replace_all(command, "%s",
-                               pBlockIndex->GetBlockHash().GetHex());
+            ReplaceAll(command, "%s", pBlockIndex->GetBlockHash().GetHex());
             std::thread t(runCommand, command);
             // thread runs free
             t.detach();

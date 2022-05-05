@@ -35,8 +35,6 @@
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>
 
-#include <boost/algorithm/string/replace.hpp>
-
 using interfaces::FoundBlock;
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
@@ -1022,14 +1020,14 @@ CWalletTx *CWallet::AddToWallet(CTransactionRef tx,
     std::string strCmd = gArgs.GetArg("-walletnotify", "");
 
     if (!strCmd.empty()) {
-        boost::replace_all(strCmd, "%s", txid.GetHex());
+        ReplaceAll(strCmd, "%s", txid.GetHex());
 #ifndef WIN32
         // Substituting the wallet name isn't currently supported on windows
         // because windows shell escaping has not been implemented yet:
         // https://github.com/bitcoin/bitcoin/pull/13339#issuecomment-537384875
         // A few ways it could be implemented in the future are described in:
         // https://github.com/bitcoin/bitcoin/pull/13339#issuecomment-461288094
-        boost::replace_all(strCmd, "%w", ShellEscape(GetName()));
+        ReplaceAll(strCmd, "%w", ShellEscape(GetName()));
 #endif
 
         std::thread t(runCommand, strCmd);

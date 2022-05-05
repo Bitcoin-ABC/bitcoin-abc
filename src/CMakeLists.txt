@@ -394,6 +394,7 @@ add_library(util
 	util/moneystr.cpp
 	util/readwritefile.cpp
 	util/settings.cpp
+	util/string.cpp
 	util/sock.cpp
 	util/spanparsing.cpp
 	util/strencodings.cpp
