@@ -10,12 +10,12 @@
 #include <wallet/rpcdump.h>
 
 WalletTestingSetup::WalletTestingSetup(const std::string &chainName)
-    : TestingSetup(chainName), m_chain(interfaces::MakeChain(m_node, Params())),
-      m_wallet(m_chain.get(), "", CreateMockWalletDatabase()) {
+    : TestingSetup(chainName),
+      m_wallet(m_node.chain.get(), "", CreateMockWalletDatabase()) {
     bool fFirstRun;
     m_wallet.LoadWallet(fFirstRun);
     m_chain_notifications_handler =
-        m_chain->handleNotifications({&m_wallet, [](CWallet *) {}});
+        m_node.chain->handleNotifications({&m_wallet, [](CWallet *) {}});
     m_wallet_client->registerRpcs();
 }
 

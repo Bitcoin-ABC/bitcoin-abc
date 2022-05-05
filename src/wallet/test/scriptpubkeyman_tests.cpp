@@ -17,10 +17,7 @@ BOOST_FIXTURE_TEST_SUITE(scriptpubkeyman_tests, BasicTestingSetup)
 // for recognized scripts even when keys may not be available for signing.
 BOOST_AUTO_TEST_CASE(CanProvide) {
     // Set up wallet and keyman variables.
-    NodeContext node;
-    std::unique_ptr<interfaces::Chain> chain =
-        interfaces::MakeChain(node, Params());
-    CWallet wallet(chain.get(), "", CreateDummyWalletDatabase());
+    CWallet wallet(m_node.chain.get(), "", CreateDummyWalletDatabase());
     LegacyScriptPubKeyMan &keyman = *wallet.GetOrCreateLegacyScriptPubKeyMan();
 
     // Make a 1 of 2 multisig script

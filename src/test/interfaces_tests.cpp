@@ -17,7 +17,7 @@ using interfaces::FoundBlock;
 BOOST_FIXTURE_TEST_SUITE(interfaces_tests, TestChain100Setup)
 
 BOOST_AUTO_TEST_CASE(findBlock) {
-    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &chain = m_node.chain;
     const CChain &active = Assert(m_node.chainman)->ActiveChain();
 
     BlockHash hash;
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(findBlock) {
 }
 
 BOOST_AUTO_TEST_CASE(findFirstBlockWithTimeAndHeight) {
-    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &chain = m_node.chain;
     const CChain &active = Assert(m_node.chainman)->ActiveChain();
     BlockHash hash;
     int height;
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(findFirstBlockWithTimeAndHeight) {
 }
 
 BOOST_AUTO_TEST_CASE(findAncestorByHeight) {
-    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &chain = m_node.chain;
     const CChain &active = Assert(m_node.chainman)->ActiveChain();
     BlockHash hash;
     BOOST_CHECK(chain->findAncestorByHeight(active[20]->GetBlockHash(), 10,
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(findAncestorByHeight) {
 }
 
 BOOST_AUTO_TEST_CASE(findAncestorByHash) {
-    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &chain = m_node.chain;
     const CChain &active = Assert(m_node.chainman)->ActiveChain();
     int height = -1;
     BOOST_CHECK(chain->findAncestorByHash(active[20]->GetBlockHash(),
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(findAncestorByHash) {
 }
 
 BOOST_AUTO_TEST_CASE(findCommonAncestor) {
-    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &chain = m_node.chain;
     const CChain &active = Assert(m_node.chainman)->ActiveChain();
     auto *orig_tip = active.Tip();
     for (int i = 0; i < 10; ++i) {
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(findCommonAncestor) {
 }
 
 BOOST_AUTO_TEST_CASE(hasBlocks) {
-    auto chain = interfaces::MakeChain(m_node, Params());
+    auto &chain = m_node.chain;
     const CChain &active = Assert(m_node.chainman)->ActiveChain();
 
     // Test ranges
