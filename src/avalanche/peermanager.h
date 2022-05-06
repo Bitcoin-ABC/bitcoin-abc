@@ -357,7 +357,9 @@ public:
     bool isInConflictingPool(const ProofId &proofid) const;
 
 private:
-    void moveToConflictingPool(const ProofRef &proof);
+    template <typename ProofContainer>
+    void moveToConflictingPool(const ProofContainer &proofs);
+
     bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);

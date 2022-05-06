@@ -175,14 +175,17 @@ bool PeerManager::updateNextPossibleConflictTime(
     return it->nextPossibleConflictTime == nextTime;
 }
 
-void PeerManager::moveToConflictingPool(const ProofRef &proof) {
+template <typename ProofContainer>
+void PeerManager::moveToConflictingPool(const ProofContainer &proofs) {
     auto &peersView = peers.get<by_proofid>();
-    auto it = peersView.find(proof->getId());
-    if (it != peersView.end()) {
-        removePeer(it->peerid);
-    }
+    for (const ProofRef &proof : proofs) {
+        auto it = peersView.find(proof->getId());
+        if (it != peersView.end()) {
+            removePeer(it->peerid);
+        }
 
-    conflictingProofPool.addProofIfPreferred(proof);
+        conflictingProofPool.addProofIfPreferred(proof);
+    }
 }
 
 bool PeerManager::registerProof(const ProofRef &proof,
@@ -262,10 +265,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
                         // If we have overridden other proofs due to conflict,
                         // remove the peers and attempt to move them to the
                         // conflicting pool.
-                        for (const ProofRef &conflictingProof :
-                             conflictingProofs) {
-                            moveToConflictingPool(conflictingProof);
-                        }
+                        moveToConflictingPool(conflictingProofs);
 
                         // Replacement is successful, continue to peer creation
                         break;
@@ -285,15 +285,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
 
             // Move the conflicting proofs from the valid pool to the
             // conflicting pool
-            auto &peersView = peers.get<by_proofid>();
-            for (const ProofRef &conflictingProof : conflictingProofs) {
-                auto it = peersView.find(conflictingProof->getId());
-                if (it != peersView.end()) {
-                    removePeer(it->peerid);
-                }
-
-                conflictingProofPool.addProofIfPreferred(conflictingProof);
-            }
+            moveToConflictingPool(conflictingProofs);
 
             auto status = validProofPool.addProofIfNoConflict(proof);
             assert(status == ProofPool::AddProofStatus::SUCCEED);
