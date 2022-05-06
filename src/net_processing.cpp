@@ -790,6 +790,30 @@ private:
     std::atomic<int64_t> m_last_tip_update{0};
 
     /**
+     * Determine whether or not a peer can request a transaction, and return it
+     * (or nullptr if not found or not allowed).
+     */
+    CTransactionRef FindTxForGetData(const CNode &peer, const TxId &txid,
+                                     const std::chrono::seconds mempool_req,
+                                     const std::chrono::seconds now)
+        LOCKS_EXCLUDED(cs_main);
+
+    void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
+                        const std::atomic<bool> &interruptMsgProc)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, peer.m_getdata_requests_mutex);
+
+    /** Relay map. */
+    typedef std::map<TxId, CTransactionRef> MapRelay;
+    MapRelay mapRelay GUARDED_BY(cs_main);
+
+    /**
+     * Expiration-time ordered list of (expire time, relay map entry) pairs,
+     * protected by cs_main).
+     */
+    std::deque<std::pair<std::chrono::microseconds, MapRelay::iterator>>
+        g_relay_expiration GUARDED_BY(cs_main);
+
+    /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
      *
@@ -823,16 +847,6 @@ int nPreferredDownload GUARDED_BY(cs_main) = 0;
 
 /** Number of peers from which we're downloading blocks. */
 int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
-
-/** Relay map. */
-typedef std::map<uint256, CTransactionRef> MapRelay;
-MapRelay mapRelay GUARDED_BY(cs_main);
-/**
- * Expiration-time ordered list of (expire time, relay map entry) pairs,
- * protected by cs_main).
- */
-std::deque<std::pair<std::chrono::microseconds, MapRelay::iterator>>
-    g_relay_expiration GUARDED_BY(cs_main);
 
 struct IteratorComparator {
     template <typename I> bool operator()(const I &a, const I &b) const {
@@ -2625,14 +2639,10 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
     }
 }
 
-//! Determine whether or not a peer can request a transaction, and return it (or
-//! nullptr if not found or not allowed).
-static CTransactionRef FindTxForGetData(const CTxMemPool &mempool,
-                                        const CNode &peer, const TxId &txid,
-                                        const std::chrono::seconds mempool_req,
-                                        const std::chrono::seconds now)
-    LOCKS_EXCLUDED(cs_main) {
-    auto txinfo = mempool.info(txid);
+CTransactionRef PeerManagerImpl::FindTxForGetData(
+    const CNode &peer, const TxId &txid, const std::chrono::seconds mempool_req,
+    const std::chrono::seconds now) LOCKS_EXCLUDED(cs_main) {
+    auto txinfo = m_mempool.info(txid);
     if (txinfo.tx) {
         // If a TX could have been INVed in reply to a MEMPOOL request,
         // or is older than UNCONDITIONAL_RELAY_DELAY, permit the request
@@ -2709,9 +2719,9 @@ FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
     return nullptr;
 }
 
-static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
-                           CConnman &connman, CTxMemPool &mempool,
-                           const std::atomic<bool> &interruptMsgProc)
+void PeerManagerImpl::ProcessGetData(const Config &config, CNode &pfrom,
+                                     Peer &peer,
+                                     const std::atomic<bool> &interruptMsgProc)
     EXCLUSIVE_LOCKS_REQUIRED(peer.m_getdata_requests_mutex)
         LOCKS_EXCLUDED(::cs_main) {
     AssertLockNotHeld(cs_main);
@@ -2746,7 +2756,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
             const avalanche::ProofId proofid(inv.hash);
             auto proof = FindProofForGetData(pfrom, proofid, now);
             if (proof) {
-                connman.PushMessage(
+                m_connman.PushMessage(
                     &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
                 g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                     pm.removeUnbroadcastProof(proofid);
@@ -2768,18 +2778,18 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
 
             const TxId txid(inv.hash);
             CTransactionRef tx =
-                FindTxForGetData(mempool, pfrom, txid, mempool_req, now);
+                FindTxForGetData(pfrom, txid, mempool_req, now);
             if (tx) {
                 int nSendFlags = 0;
-                connman.PushMessage(
+                m_connman.PushMessage(
                     &pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *tx));
-                mempool.RemoveUnbroadcastTx(txid);
+                m_mempool.RemoveUnbroadcastTx(txid);
                 // As we're going to send tx, make sure its unconfirmed parents
                 // are made requestable.
                 std::vector<TxId> parent_ids_to_add;
                 {
-                    LOCK(mempool.cs);
-                    auto txiter = mempool.GetIter(tx->GetId());
+                    LOCK(m_mempool.cs);
+                    auto txiter = m_mempool.GetIter(tx->GetId());
                     if (txiter) {
                         const CTxMemPoolEntry::Parents &parents =
                             (*txiter)->GetMemPoolParentsConst();
@@ -2821,7 +2831,7 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
     if (it != peer.m_getdata_requests.end() && !pfrom.fPauseSend) {
         const CInv &inv = *it++;
         if (inv.IsGenBlkMsg()) {
-            ProcessGetBlockData(config, pfrom, peer, inv, connman);
+            ProcessGetBlockData(config, pfrom, peer, inv, m_connman);
         }
         // else: If the first item on the queue is an unknown type, we erase it
         // and continue processing the queue on the next call.
@@ -2842,8 +2852,8 @@ static void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
         // respond. In normal operation, we often send NOTFOUND messages for
         // parents of transactions that we relay; if a peer is missing a parent,
         // they may assume we have them and request the parents from us.
-        connman.PushMessage(&pfrom,
-                            msgMaker.Make(NetMsgType::NOTFOUND, vNotFound));
+        m_connman.PushMessage(&pfrom,
+                              msgMaker.Make(NetMsgType::NOTFOUND, vNotFound));
     }
 }
 
@@ -4148,8 +4158,7 @@ void PeerManagerImpl::ProcessMessage(
             LOCK(peer->m_getdata_requests_mutex);
             peer->m_getdata_requests.insert(peer->m_getdata_requests.end(),
                                             vInv.begin(), vInv.end());
-            ProcessGetData(config, pfrom, *peer, m_connman, m_mempool,
-                           interruptMsgProc);
+            ProcessGetData(config, pfrom, *peer, interruptMsgProc);
         }
 
         return;
@@ -5743,8 +5752,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     {
         LOCK(peer->m_getdata_requests_mutex);
         if (!peer->m_getdata_requests.empty()) {
-            ProcessGetData(config, *pfrom, *peer, m_connman, m_mempool,
-                           interruptMsgProc);
+            ProcessGetData(config, *pfrom, *peer, interruptMsgProc);
         }
     }
 
