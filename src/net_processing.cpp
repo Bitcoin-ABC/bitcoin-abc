@@ -814,6 +814,21 @@ private:
         g_relay_expiration GUARDED_BY(cs_main);
 
     /**
+     * When a peer sends us a valid block, instruct it to announce blocks to us
+     * using CMPCTBLOCK if possible by adding its nodeid to the end of
+     * lNodesAnnouncingHeaderAndIDs, and keeping that list under a certain size
+     * by removing the first element if necessary.
+     */
+    void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /** Stack of nodes which we have set to announce using compact blocks */
+    std::list<NodeId> lNodesAnnouncingHeaderAndIDs GUARDED_BY(cs_main);
+
+    /** Number of peers from which we're downloading blocks. */
+    int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
+
+    /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
      *
@@ -839,14 +854,8 @@ Mutex cs_rejectedProofs;
 std::unique_ptr<CRollingBloomFilter>
     rejectedProofs GUARDED_BY(cs_rejectedProofs);
 
-/** Stack of nodes which we have set to announce using compact blocks */
-std::list<NodeId> lNodesAnnouncingHeaderAndIDs GUARDED_BY(cs_main);
-
 /** Number of preferable block download peers. */
 int nPreferredDownload GUARDED_BY(cs_main) = 0;
-
-/** Number of peers from which we're downloading blocks. */
-int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
 
 struct IteratorComparator {
     template <typename I> bool operator()(const I &a, const I &b) const {
@@ -1200,15 +1209,7 @@ static void UpdateBlockAvailability(NodeId nodeid, const BlockHash &hash)
     }
 }
 
-/**
- * When a peer sends us a valid block, instruct it to announce blocks to us
- * using CMPCTBLOCK if possible by adding its nodeid to the end of
- * lNodesAnnouncingHeaderAndIDs, and keeping that list under a certain size by
- * removing the first element if necessary.
- */
-static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
-                                                 CConnman &connman)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
     AssertLockHeld(cs_main);
     CNodeState *nodestate = State(nodeid);
     if (!nodestate) {
@@ -1226,17 +1227,17 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
             return;
         }
     }
-    connman.ForNode(nodeid, [&connman](CNode *pfrom) EXCLUSIVE_LOCKS_REQUIRED(
-                                ::cs_main) {
+    m_connman.ForNode(nodeid, [this](CNode *pfrom) EXCLUSIVE_LOCKS_REQUIRED(
+                                  ::cs_main) {
         AssertLockHeld(::cs_main);
         uint64_t nCMPCTBLOCKVersion = 1;
         if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
             // As per BIP152, we only get 3 of our peers to announce
             // blocks using compact encodings.
-            connman.ForNode(
+            m_connman.ForNode(
                 lNodesAnnouncingHeaderAndIDs.front(),
-                [&connman, nCMPCTBLOCKVersion](CNode *pnodeStop) {
-                    connman.PushMessage(
+                [this, nCMPCTBLOCKVersion](CNode *pnodeStop) {
+                    m_connman.PushMessage(
                         pnodeStop, CNetMsgMaker(pnodeStop->GetCommonVersion())
                                        .Make(NetMsgType::SENDCMPCT,
                                              /*fAnnounceUsingCMPCTBLOCK=*/false,
@@ -1248,10 +1249,11 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
                 });
             lNodesAnnouncingHeaderAndIDs.pop_front();
         }
-        connman.PushMessage(pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
-                                       .Make(NetMsgType::SENDCMPCT,
-                                             /*fAnnounceUsingCMPCTBLOCK=*/true,
-                                             nCMPCTBLOCKVersion));
+        m_connman.PushMessage(pfrom,
+                              CNetMsgMaker(pfrom->GetCommonVersion())
+                                  .Make(NetMsgType::SENDCMPCT,
+                                        /*fAnnounceUsingCMPCTBLOCK=*/true,
+                                        nCMPCTBLOCKVersion));
         // save BIP152 bandwidth state: we select peer to be high-bandwidth
         pfrom->m_bip152_highbandwidth_to = true;
         lNodesAnnouncingHeaderAndIDs.push_back(pfrom->GetId());
@@ -2332,7 +2334,7 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
              !::ChainstateActive().IsInitialBlockDownload() &&
              mapBlocksInFlight.count(hash) == mapBlocksInFlight.size()) {
         if (it != mapBlockSource.end()) {
-            MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first, m_connman);
+            MaybeSetPeerAsAnnouncingHeaderAndIDs(it->second.first);
         }
     }
 
