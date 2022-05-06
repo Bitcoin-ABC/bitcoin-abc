@@ -322,6 +322,19 @@ void EraseOrphansFor(NodeId peer);
 // Internal stuff
 namespace {
 /**
+ * Blocks that are in flight, and that are in the queue to be downloaded.
+ */
+struct QueuedBlock {
+    BlockHash hash;
+    //! Optional.
+    const CBlockIndex *pindex;
+    //! Whether this block has validated headers at the time of request.
+    bool fValidatedHeaders;
+    //! Optional, used for CMPCTBLOCK downloads
+    std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
+};
+
+/**
  * Data structure for an individual peer. This struct is not protected by
  * cs_main since it does not contain validation-critical data.
  *
@@ -740,6 +753,43 @@ private:
         GUARDED_BY(m_recent_confirmed_transactions_mutex);
 
     /**
+     * Returns a bool indicating whether we requested this block.
+     * Also used if a block was /not/ received and timed out or started with
+     * another peer
+     */
+    bool MarkBlockAsReceived(const BlockHash &hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Mark a block as in flight
+     * Returns false, still setting pit, if the block was already in flight from
+     * the same peer pit will only be valid as long as the same cs_main lock is
+     * being held
+     */
+    bool MarkBlockAsInFlight(const Config &config, NodeId nodeid,
+                             const BlockHash &hash,
+                             const CBlockIndex *pindex = nullptr,
+                             std::list<QueuedBlock>::iterator **pit = nullptr)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    bool TipMayBeStale() EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
+     * Update pindexLastCommonBlock and add not-in-flight missing successors to
+     * vBlocks, until it has at most count entries.
+     */
+    void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
+                                  std::vector<const CBlockIndex *> &vBlocks,
+                                  NodeId &nodeStaller)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    std::map<BlockHash, std::pair<NodeId, std::list<QueuedBlock>::iterator>>
+        mapBlocksInFlight GUARDED_BY(cs_main);
+
+    /** When our tip was last updated. */
+    std::atomic<int64_t> m_last_tip_update{0};
+
+    /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
      *
@@ -765,21 +815,6 @@ Mutex cs_rejectedProofs;
 std::unique_ptr<CRollingBloomFilter>
     rejectedProofs GUARDED_BY(cs_rejectedProofs);
 
-/**
- * Blocks that are in flight, and that are in the queue to be downloaded.
- */
-struct QueuedBlock {
-    BlockHash hash;
-    //! Optional.
-    const CBlockIndex *pindex;
-    //! Whether this block has validated headers at the time of request.
-    bool fValidatedHeaders;
-    //! Optional, used for CMPCTBLOCK downloads
-    std::unique_ptr<PartiallyDownloadedBlock> partialBlock;
-};
-std::map<BlockHash, std::pair<NodeId, std::list<QueuedBlock>::iterator>>
-    mapBlocksInFlight GUARDED_BY(cs_main);
-
 /** Stack of nodes which we have set to announce using compact blocks */
 std::list<NodeId> lNodesAnnouncingHeaderAndIDs GUARDED_BY(cs_main);
 
@@ -788,9 +823,6 @@ int nPreferredDownload GUARDED_BY(cs_main) = 0;
 
 /** Number of peers from which we're downloading blocks. */
 int nPeersWithValidatedDownloads GUARDED_BY(cs_main) = 0;
-
-/** When our tip was last updated. */
-std::atomic<int64_t> g_last_tip_update(0);
 
 /** Relay map. */
 typedef std::map<uint256, CTransactionRef> MapRelay;
@@ -1031,10 +1063,7 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
     nPreferredDownload += state->fPreferredDownload;
 }
 
-// Returns a bool indicating whether we requested this block.
-// Also used if a block was /not/ received and timed out or started with another
-// peer.
-static bool MarkBlockAsReceived(const BlockHash &hash)
+bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<BlockHash,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
@@ -1066,15 +1095,9 @@ static bool MarkBlockAsReceived(const BlockHash &hash)
     return false;
 }
 
-// returns false, still setting pit, if the block was already in flight from the
-// same peer
-// pit will only be valid as long as the same cs_main lock is being held.
-static bool
-MarkBlockAsInFlight(const Config &config, CTxMemPool &mempool, NodeId nodeid,
-                    const BlockHash &hash,
-                    const Consensus::Params &consensusParams,
-                    const CBlockIndex *pindex = nullptr,
-                    std::list<QueuedBlock>::iterator **pit = nullptr)
+bool PeerManagerImpl::MarkBlockAsInFlight(
+    const Config &config, NodeId nodeid, const BlockHash &hash,
+    const CBlockIndex *pindex, std::list<QueuedBlock>::iterator **pit)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
@@ -1098,7 +1121,8 @@ MarkBlockAsInFlight(const Config &config, CTxMemPool &mempool, NodeId nodeid,
         state->vBlocksInFlight.end(),
         {hash, pindex, pindex != nullptr,
          std::unique_ptr<PartiallyDownloadedBlock>(
-             pit ? new PartiallyDownloadedBlock(config, &mempool) : nullptr)});
+             pit ? new PartiallyDownloadedBlock(config, &m_mempool)
+                 : nullptr)});
     state->nBlocksInFlight++;
     state->nBlocksInFlightValidHeaders += it->fValidatedHeaders;
     if (state->nBlocksInFlight == 1) {
@@ -1221,13 +1245,13 @@ static void MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid,
     });
 }
 
-static bool TipMayBeStale(const Consensus::Params &consensusParams)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerManagerImpl::TipMayBeStale() {
     AssertLockHeld(cs_main);
-    if (g_last_tip_update == 0) {
-        g_last_tip_update = GetTime();
+    const Consensus::Params &consensusParams = m_chainparams.GetConsensus();
+    if (m_last_tip_update == 0) {
+        m_last_tip_update = GetTime();
     }
-    return g_last_tip_update <
+    return m_last_tip_update <
                GetTime() - consensusParams.nPowTargetSpacing * 3 &&
            mapBlocksInFlight.empty();
 }
@@ -1251,14 +1275,9 @@ static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex)
     return false;
 }
 
-/**
- * Update pindexLastCommonBlock and add not-in-flight missing successors to
- * vBlocks, until it has at most count entries.
- */
-static void FindNextBlocksToDownload(NodeId nodeid, unsigned int count,
-                                     std::vector<const CBlockIndex *> &vBlocks,
-                                     NodeId &nodeStaller,
-                                     const Consensus::Params &consensusParams)
+void PeerManagerImpl::FindNextBlocksToDownload(
+    NodeId nodeid, unsigned int count,
+    std::vector<const CBlockIndex *> &vBlocks, NodeId &nodeStaller)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     if (count == 0) {
         return;
@@ -2134,7 +2153,7 @@ void PeerManagerImpl::BlockConnected(
                      nErased);
         }
 
-        g_last_tip_update = GetTime();
+        m_last_tip_update = GetTime();
     }
     {
         LOCK(m_recent_confirmed_transactions_mutex);
@@ -3002,9 +3021,8 @@ void PeerManagerImpl::ProcessHeadersMessage(
                         break;
                     }
                     vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                    MarkBlockAsInFlight(config, m_mempool, pfrom.GetId(),
-                                        pindex->GetBlockHash(),
-                                        m_chainparams.GetConsensus(), pindex);
+                    MarkBlockAsInFlight(config, pfrom.GetId(),
+                                        pindex->GetBlockHash(), pindex);
                     LogPrint(BCLog::NET, "Requesting block %s from  peer=%d\n",
                              pindex->GetBlockHash().ToString(), pfrom.GetId());
                 }
@@ -4659,10 +4677,9 @@ void PeerManagerImpl::ProcessMessage(
                     (fAlreadyInFlight &&
                      blockInFlightIt->second.first == pfrom.GetId())) {
                     std::list<QueuedBlock>::iterator *queuedBlockIt = nullptr;
-                    if (!MarkBlockAsInFlight(config, m_mempool, pfrom.GetId(),
-                                             pindex->GetBlockHash(),
-                                             m_chainparams.GetConsensus(),
-                                             pindex, &queuedBlockIt)) {
+                    if (!MarkBlockAsInFlight(config, pfrom.GetId(),
+                                             pindex->GetBlockHash(), pindex,
+                                             &queuedBlockIt)) {
                         if (!(*queuedBlockIt)->partialBlock) {
                             (*queuedBlockIt)
                                 ->partialBlock.reset(
@@ -6083,11 +6100,10 @@ void PeerManagerImpl::CheckForStaleTipAndEvictPeers() {
         // Check whether our tip is stale, and if so, allow using an extra
         // outbound peer.
         if (!fImporting && !fReindex && m_connman.GetNetworkActive() &&
-            m_connman.GetUseAddrmanOutgoing() &&
-            TipMayBeStale(m_chainparams.GetConsensus())) {
+            m_connman.GetUseAddrmanOutgoing() && TipMayBeStale()) {
             LogPrintf("Potential stale tip detected, will try using extra "
                       "outbound peer (last tip update: %d seconds ago)\n",
-                      time_in_seconds - g_last_tip_update);
+                      time_in_seconds - m_last_tip_update);
             m_connman.SetTryNewOutboundPeer(true);
         } else if (m_connman.GetTryNewOutboundPeer()) {
             m_connman.SetTryNewOutboundPeer(false);
@@ -6850,12 +6866,11 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             FindNextBlocksToDownload(pto->GetId(),
                                      MAX_BLOCKS_IN_TRANSIT_PER_PEER -
                                          state.nBlocksInFlight,
-                                     vToDownload, staller, consensusParams);
+                                     vToDownload, staller);
             for (const CBlockIndex *pindex : vToDownload) {
                 vGetData.push_back(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                MarkBlockAsInFlight(config, m_mempool, pto->GetId(),
-                                    pindex->GetBlockHash(), consensusParams,
-                                    pindex);
+                MarkBlockAsInFlight(config, pto->GetId(),
+                                    pindex->GetBlockHash(), pindex);
                 LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n",
                          pindex->GetBlockHash().ToString(), pindex->nHeight,
                          pto->GetId());
