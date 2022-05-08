@@ -29,11 +29,12 @@ import http.client
 import random
 import time
 
-from test_framework.blocktools import create_confirmed_utxos
+from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.cdefs import DEFAULT_MAX_BLOCK_SIZE
-from test_framework.messages import XEC, COutPoint, CTransaction, CTxIn, CTxOut, ToHex
+from test_framework.messages import XEC
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet import MiniWallet, getnewdestination
 
 
 class ChainstateWriteCrashTest(BitcoinTestFramework):
@@ -71,13 +72,9 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
             self.node3_args,
         ]
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def setup_network(self):
         self.add_nodes(self.num_nodes, extra_args=self.extra_args)
         self.start_nodes()
-        self.import_deterministic_coinbase_privkeys()
         # Leave them unconnected, we'll use submitblock directly in this test
 
     def restart_node(self, node_index, expected_tip):
@@ -200,38 +197,36 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
         num_transactions = 0
         random.shuffle(utxo_list)
         while len(utxo_list) >= 2 and num_transactions < count:
-            tx = CTransaction()
-            input_amount = 0
-            for _ in range(2):
-                utxo = utxo_list.pop()
-                tx.vin.append(CTxIn(COutPoint(int(utxo["txid"], 16), utxo["vout"])))
-                input_amount += int(utxo["amount"] * XEC)
-            output_amount = (input_amount - FEE) // 3
-
-            if output_amount <= 0:
+            utxos_to_spend = [utxo_list.pop() for _ in range(2)]
+            input_amount = int(sum([utxo["value"] for utxo in utxos_to_spend]) * XEC)
+            if input_amount < FEE:
                 # Sanity check -- if we chose inputs that are too small, skip
                 continue
 
-            for _ in range(3):
-                tx.vout.append(
-                    CTxOut(output_amount, bytes.fromhex(utxo["scriptPubKey"]))
-                )
+            tx = self.wallet.create_self_transfer_multi(
+                utxos_to_spend=utxos_to_spend, num_outputs=3, fee_per_output=FEE // 3
+            )
 
-            # Sign and send the transaction to get into the mempool
-            tx_signed_hex = node.signrawtransactionwithwallet(ToHex(tx))["hex"]
-            node.sendrawtransaction(tx_signed_hex)
+            # Send the transaction to get into the mempool (skip fee-checks to run faster)
+            node.sendrawtransaction(hexstring=tx.serialize().hex(), maxfeerate=0)
             num_transactions += 1
 
     def run_test(self):
+        self.wallet = MiniWallet(self.nodes[3])
+        self.wallet.rescan_utxos()
+        initial_height = self.nodes[3].getblockcount()
+        self.generate(self.nodes[3], COINBASE_MATURITY, sync_fun=self.no_op)
+
         # Track test coverage statistics
         self.restart_counts = [0, 0, 0]  # Track the restarts for nodes 0-2
         self.crashed_on_restart = 0  # Track count of crashes during recovery
 
         # Start by creating a lot of utxos on node3
-        initial_height = self.nodes[3].getblockcount()
-        utxo_list = create_confirmed_utxos(
-            self, self.nodes[3], 5000, sync_fun=self.no_op
-        )
+        utxo_list = self.wallet.send_self_transfer_multi(
+            from_node=self.nodes[3], num_outputs=5000
+        )["new_utxos"]
+        self.generate(self.nodes[3], 1, sync_fun=self.no_op)
+        assert_equal(len(self.nodes[3].getrawmempool()), 0)
         self.log.info(f"Prepped {len(utxo_list)} utxo entries")
 
         # Sync these blocks with the other nodes
@@ -295,14 +290,15 @@ class ChainstateWriteCrashTest(BitcoinTestFramework):
                         ),
                         # new address to avoid mining a block that has just been
                         # invalidated
-                        address=self.nodes[3].getnewaddress(),
+                        address=getnewdestination()[2],
                         sync_fun=self.no_op,
                     )
                 )
             self.log.debug(f"Syncing {len(block_hashes)} new blocks...")
             self.sync_node3blocks(block_hashes)
-            utxo_list = self.nodes[3].listunspent()
-            self.log.debug(f"Node3 utxo count: {len(utxo_list)}")
+            self.wallet.rescan_utxos()
+            utxo_list = self.wallet.get_utxos()
+            self.log.debug(f"MiniWallet utxo count: {len(utxo_list)}")
 
         # Check that the utxo hashes agree with node3
         # Useful side effect: each utxo cache gets flushed here, so that we
