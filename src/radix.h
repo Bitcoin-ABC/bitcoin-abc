@@ -252,7 +252,9 @@ private:
     void forEachLeaf(RadixElement e, Callable &&func) const {
         if (e.isNode()) {
             e.getNode()->forEachChild(
-                [&](auto pElement) { forEachLeaf(pElement->load(), func); });
+                [&](const std::atomic<RadixElement> *pElement) {
+                    forEachLeaf(pElement->load(), func);
+                });
             return;
         }
 
