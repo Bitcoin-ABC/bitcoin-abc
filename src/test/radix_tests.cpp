@@ -4,6 +4,9 @@
 
 #include <radix.h>
 
+#include <arith_uint256.h>
+#include <uint256.h>
+
 #include <test/lcg.h>
 #include <test/util/setup_common.h>
 
@@ -23,8 +26,43 @@ template <typename K> struct TestElement {
     IMPLEMENT_RCU_REFCOUNT(uint32_t);
 };
 
-template <typename K> void testInsert() {
-    using E = TestElement<K>;
+template <typename K> struct TestElementInt : TestElement<K> {
+    TestElementInt(K keyIn) : TestElement<K>(std::move(keyIn)) {}
+
+    static auto SignedMin() {
+        return std::numeric_limits<typename std::make_signed<K>::type>::min();
+    }
+    static auto SignedMax() {
+        return std::numeric_limits<typename std::make_signed<K>::type>::max();
+    }
+    static auto MinusOne() {
+        return std::numeric_limits<typename std::make_unsigned<K>::type>::max();
+    }
+    static auto MinusTwo() {
+        return std::numeric_limits<
+                   typename std::make_unsigned<K>::type>::max() -
+               1;
+    }
+};
+
+struct TestElementUint256 : TestElement<Uint256KeyWrapper> {
+    TestElementUint256(const uint256 &keyIn)
+        : TestElement<Uint256KeyWrapper>(Uint256KeyWrapper(keyIn)) {}
+    TestElementUint256(uint64_t keyIn)
+        : TestElement<Uint256KeyWrapper>(Uint256KeyWrapper(keyIn)) {}
+
+    static inline arith_uint256 signedMin = arith_uint256(1) << 255;
+    static inline arith_uint256 signedMax = ~signedMin;
+    static inline arith_uint256 minusOne = arith_uint256(0) - 1;
+    static inline arith_uint256 minusTwo = minusOne - 1;
+
+    static uint256 SignedMin() { return ArithToUint256(signedMin); }
+    static uint256 SignedMax() { return ArithToUint256(signedMax); }
+    static uint256 MinusOne() { return ArithToUint256(minusOne); }
+    static uint256 MinusTwo() { return ArithToUint256(minusTwo); }
+};
+
+template <typename E> void testInsert() {
     RadixTree<E> mytree;
 
     auto zero = RCUPtr<E>::make(0);
@@ -49,12 +87,10 @@ template <typename K> void testInsert() {
     BOOST_CHECK(!mytree.insert(three));
 
     // Check extreme values.
-    using SK = typename std::make_signed<K>::type;
-    auto maxsigned = RCUPtr<E>::make(std::numeric_limits<SK>::max());
-    auto minsigned = RCUPtr<E>::make(std::numeric_limits<SK>::min());
-    using UK = typename std::make_unsigned<K>::type;
-    auto minusone = RCUPtr<E>::make(std::numeric_limits<UK>::max());
-    auto minustwo = RCUPtr<E>::make(std::numeric_limits<UK>::max() - 1);
+    auto maxsigned = RCUPtr<E>::make(E::SignedMax());
+    auto minsigned = RCUPtr<E>::make(E::SignedMin());
+    auto minusone = RCUPtr<E>::make(E::MinusOne());
+    auto minustwo = RCUPtr<E>::make(E::MinusTwo());
 
     // Insert them into the tree.
     BOOST_CHECK(mytree.insert(maxsigned));
@@ -74,14 +110,15 @@ template <typename K> void testInsert() {
 }
 
 BOOST_AUTO_TEST_CASE(insert_test) {
-    testInsert<int32_t>();
-    testInsert<uint32_t>();
-    testInsert<int64_t>();
-    testInsert<uint64_t>();
+    testInsert<TestElementInt<int32_t>>();
+    testInsert<TestElementInt<uint32_t>>();
+    testInsert<TestElementInt<int64_t>>();
+    testInsert<TestElementInt<uint64_t>>();
+
+    testInsert<TestElementUint256>();
 }
 
-template <typename K> void testGet() {
-    using E = TestElement<K>;
+template <typename E> void testGet() {
     RadixTree<E> mytree;
 
     auto zero = RCUPtr<E>::make(0);
@@ -89,47 +126,45 @@ template <typename K> void testGet() {
     auto two = RCUPtr<E>::make(2);
     auto three = RCUPtr<E>::make(3);
 
+    auto keyZero = zero->getId();
+    auto keyOne = one->getId();
+    auto keyTwo = two->getId();
+    auto keyThree = three->getId();
+
     // There are no elements in the tree so far.
-    BOOST_CHECK_EQUAL(mytree.get(1), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
 
     // Insert an element into the tree and check it is there.
     BOOST_CHECK(mytree.insert(one));
-    BOOST_CHECK_EQUAL(mytree.get(1), one);
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), one);
 
     // Let's insert more elements and check they are recovered properly.
-    BOOST_CHECK_EQUAL(mytree.get(0), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), NULLPTR(E));
     BOOST_CHECK(mytree.insert(zero));
-    BOOST_CHECK_EQUAL(mytree.get(0), zero);
-    BOOST_CHECK_EQUAL(mytree.get(1), one);
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), zero);
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), one);
 
     // More elements.
-    BOOST_CHECK_EQUAL(mytree.get(2), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(3), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), NULLPTR(E));
     BOOST_CHECK(mytree.insert(two));
     BOOST_CHECK(mytree.insert(three));
 
-    BOOST_CHECK_EQUAL(mytree.get(0), zero);
-    BOOST_CHECK_EQUAL(mytree.get(1), one);
-    BOOST_CHECK_EQUAL(mytree.get(2), two);
-    BOOST_CHECK_EQUAL(mytree.get(3), three);
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), zero);
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), one);
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), two);
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), three);
 
-    // Check extreme values.
-    using SK = typename std::make_signed<K>::type;
-    K maxsk = std::numeric_limits<SK>::max();
-    K minsk = std::numeric_limits<SK>::min();
-    using UK = typename std::make_unsigned<K>::type;
-    K maxuk = std::numeric_limits<UK>::max();
-
-    auto maxsigned = RCUPtr<E>::make(maxsk);
-    auto minsigned = RCUPtr<E>::make(minsk);
-    auto minusone = RCUPtr<E>::make(maxuk);
-    auto minustwo = RCUPtr<E>::make(maxuk - 1);
+    auto maxsigned = RCUPtr<E>::make(E::SignedMax());
+    auto minsigned = RCUPtr<E>::make(E::SignedMin());
+    auto minusone = RCUPtr<E>::make(E::MinusOne());
+    auto minustwo = RCUPtr<E>::make(E::MinusTwo());
 
     // Check that they are not in the tree.
-    BOOST_CHECK_EQUAL(mytree.get(maxsk), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(minsk), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(maxuk), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(maxuk - 1), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), NULLPTR(E));
 
     // Insert into the tree.
     BOOST_CHECK(mytree.insert(maxsigned));
@@ -138,25 +173,26 @@ template <typename K> void testGet() {
     BOOST_CHECK(mytree.insert(minustwo));
 
     // And now they all are in the tree.
-    BOOST_CHECK_EQUAL(mytree.get(0), zero);
-    BOOST_CHECK_EQUAL(mytree.get(1), one);
-    BOOST_CHECK_EQUAL(mytree.get(2), two);
-    BOOST_CHECK_EQUAL(mytree.get(3), three);
-    BOOST_CHECK_EQUAL(mytree.get(maxsk), maxsigned);
-    BOOST_CHECK_EQUAL(mytree.get(minsk), minsigned);
-    BOOST_CHECK_EQUAL(mytree.get(maxuk), minusone);
-    BOOST_CHECK_EQUAL(mytree.get(maxuk - 1), minustwo);
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), zero);
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), one);
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), two);
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), three);
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), maxsigned);
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), minsigned);
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), minusone);
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), minustwo);
 }
 
 BOOST_AUTO_TEST_CASE(get_test) {
-    testGet<int32_t>();
-    testGet<uint32_t>();
-    testGet<int64_t>();
-    testGet<uint64_t>();
+    testGet<TestElementInt<int32_t>>();
+    testGet<TestElementInt<uint32_t>>();
+    testGet<TestElementInt<int64_t>>();
+    testGet<TestElementInt<uint64_t>>();
+
+    testGet<TestElementUint256>();
 }
 
-template <typename K> void testRemove() {
-    using E = TestElement<K>;
+template <typename E> void testRemove() {
     RadixTree<E> mytree;
 
     auto zero = RCUPtr<E>::make(0);
@@ -164,13 +200,18 @@ template <typename K> void testRemove() {
     auto two = RCUPtr<E>::make(2);
     auto three = RCUPtr<E>::make(3);
 
+    auto keyZero = zero->getId();
+    auto keyOne = one->getId();
+    auto keyTwo = two->getId();
+    auto keyThree = three->getId();
+
     // Removing an element that isn't in the tree returns false.
-    BOOST_CHECK(!mytree.remove(1));
+    BOOST_CHECK(!mytree.remove(keyOne));
 
     // Insert an element into the tree and check you can remove it.
     BOOST_CHECK(mytree.insert(one));
-    BOOST_CHECK(mytree.remove(1));
-    BOOST_CHECK_EQUAL(mytree.get(1), NULLPTR(E));
+    BOOST_CHECK(mytree.remove(keyOne));
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
 
     // Insert several elements and remove them.
     BOOST_CHECK(mytree.insert(zero));
@@ -178,33 +219,27 @@ template <typename K> void testRemove() {
     BOOST_CHECK(mytree.insert(two));
     BOOST_CHECK(mytree.insert(three));
 
-    BOOST_CHECK(mytree.remove(0));
-    BOOST_CHECK(mytree.remove(1));
-    BOOST_CHECK(mytree.remove(2));
-    BOOST_CHECK(mytree.remove(3));
+    BOOST_CHECK(mytree.remove(keyZero));
+    BOOST_CHECK(mytree.remove(keyOne));
+    BOOST_CHECK(mytree.remove(keyTwo));
+    BOOST_CHECK(mytree.remove(keyThree));
 
-    BOOST_CHECK_EQUAL(mytree.get(0), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(1), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(2), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(3), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), NULLPTR(E));
 
     // Once the elements are removed, removing them again returns false.
-    BOOST_CHECK(!mytree.remove(0));
-    BOOST_CHECK(!mytree.remove(1));
-    BOOST_CHECK(!mytree.remove(2));
-    BOOST_CHECK(!mytree.remove(3));
+    BOOST_CHECK(!mytree.remove(keyZero));
+    BOOST_CHECK(!mytree.remove(keyOne));
+    BOOST_CHECK(!mytree.remove(keyTwo));
+    BOOST_CHECK(!mytree.remove(keyThree));
 
     // Check extreme values.
-    using SK = typename std::make_signed<K>::type;
-    K maxsk = std::numeric_limits<SK>::max();
-    K minsk = std::numeric_limits<SK>::min();
-    using UK = typename std::make_unsigned<K>::type;
-    K maxuk = std::numeric_limits<UK>::max();
-
-    auto maxsigned = RCUPtr<E>::make(maxsk);
-    auto minsigned = RCUPtr<E>::make(minsk);
-    auto minusone = RCUPtr<E>::make(maxuk);
-    auto minustwo = RCUPtr<E>::make(maxuk - 1);
+    auto maxsigned = RCUPtr<E>::make(E::SignedMax());
+    auto minsigned = RCUPtr<E>::make(E::SignedMin());
+    auto minusone = RCUPtr<E>::make(E::MinusOne());
+    auto minustwo = RCUPtr<E>::make(E::MinusTwo());
 
     // Insert them all.
     BOOST_CHECK(mytree.insert(zero));
@@ -217,34 +252,36 @@ template <typename K> void testRemove() {
     BOOST_CHECK(mytree.insert(minustwo));
 
     // Delete them all
-    BOOST_CHECK(mytree.remove(0));
-    BOOST_CHECK(mytree.remove(1));
-    BOOST_CHECK(mytree.remove(2));
-    BOOST_CHECK(mytree.remove(3));
-    BOOST_CHECK(mytree.remove(maxsk));
-    BOOST_CHECK(mytree.remove(minsk));
-    BOOST_CHECK(mytree.remove(maxuk));
-    BOOST_CHECK(mytree.remove(maxuk - 1));
+    BOOST_CHECK(mytree.remove(keyZero));
+    BOOST_CHECK(mytree.remove(keyOne));
+    BOOST_CHECK(mytree.remove(keyTwo));
+    BOOST_CHECK(mytree.remove(keyThree));
+    BOOST_CHECK(mytree.remove(E::SignedMax()));
+    BOOST_CHECK(mytree.remove(E::SignedMin()));
+    BOOST_CHECK(mytree.remove(E::MinusOne()));
+    BOOST_CHECK(mytree.remove(E::MinusTwo()));
 
-    BOOST_CHECK_EQUAL(mytree.get(0), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(1), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(2), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(3), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(maxsk), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(minsk), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(maxuk), NULLPTR(E));
-    BOOST_CHECK_EQUAL(mytree.get(maxuk - 1), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyZero), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyOne), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyTwo), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(keyThree), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMax()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::SignedMin()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusOne()), NULLPTR(E));
+    BOOST_CHECK_EQUAL(mytree.get(E::MinusTwo()), NULLPTR(E));
 }
 
 BOOST_AUTO_TEST_CASE(remove_test) {
-    testRemove<int32_t>();
-    testRemove<uint32_t>();
-    testRemove<int64_t>();
-    testRemove<uint64_t>();
+    testRemove<TestElementInt<int32_t>>();
+    testRemove<TestElementInt<uint32_t>>();
+    testRemove<TestElementInt<int64_t>>();
+    testRemove<TestElementInt<uint64_t>>();
+
+    testRemove<TestElementUint256>();
 }
 
 BOOST_AUTO_TEST_CASE(const_element_test) {
-    using C = const TestElement<uint64_t>;
+    using C = const TestElementInt<uint64_t>;
     RadixTree<C> mytree;
 
     BOOST_CHECK(mytree.insert(RCUPtr<C>::make(0)));
@@ -278,7 +315,7 @@ BOOST_AUTO_TEST_CASE(const_element_test) {
     BOOST_CHECK(!mytree.remove(3));
 }
 
-void CheckConstTree(const RadixTree<TestElement<uint64_t>> &mytree,
+void CheckConstTree(const RadixTree<TestElementInt<uint64_t>> &mytree,
                     bool expected) {
     BOOST_CHECK_EQUAL(!!mytree.get(0), expected);
     BOOST_CHECK_EQUAL(!!mytree.get(1), expected);
@@ -287,7 +324,7 @@ void CheckConstTree(const RadixTree<TestElement<uint64_t>> &mytree,
 }
 
 BOOST_AUTO_TEST_CASE(const_tree_test) {
-    using E = TestElement<uint64_t>;
+    using E = TestElementInt<uint64_t>;
     RadixTree<E> mytree;
 
     CheckConstTree(mytree, false);
@@ -308,7 +345,7 @@ BOOST_AUTO_TEST_CASE(const_tree_test) {
 }
 
 BOOST_AUTO_TEST_CASE(test_cow) {
-    using E = TestElement<uint32_t>;
+    using E = TestElementInt<uint32_t>;
 
     RadixTree<E> mytree;
 
@@ -359,7 +396,7 @@ BOOST_AUTO_TEST_CASE(test_cow) {
 }
 
 BOOST_AUTO_TEST_CASE(test_move) {
-    using E = TestElement<uint32_t>;
+    using E = TestElementInt<uint32_t>;
 
     RadixTree<E> mytree;
 
@@ -385,7 +422,7 @@ BOOST_AUTO_TEST_CASE(test_move) {
 #define ELEMENTS 65536
 
 BOOST_AUTO_TEST_CASE(insert_stress_test) {
-    using E = TestElement<uint32_t>;
+    using E = TestElementInt<uint32_t>;
 
     RadixTree<E> mytree;
     std::atomic<uint32_t> success{0};
@@ -473,6 +510,74 @@ BOOST_AUTO_TEST_CASE(tree_traversal) {
 
     // All the elements are parsed
     BOOST_CHECK_EQUAL(count, ELEMENTS);
+}
+
+BOOST_AUTO_TEST_CASE(uint256_key_wrapper) {
+    Uint256KeyWrapper key = uint256S(
+        "AA00000000000000000000000000000000000000000000000000000000000000");
+
+    auto checkEqual = [&](const Uint256KeyWrapper &val,
+                          const uint256 &expected) {
+        BOOST_CHECK_EQUAL(ArithToUint256(val.base), expected);
+    };
+
+    auto checkOperands = [&](const Uint256KeyWrapper &val,
+                             const uint256 &expected_uint256,
+                             const size_t expected_size_t) {
+        checkEqual(val, expected_uint256);
+
+        checkEqual(val & Uint256KeyWrapper(uint256::ZERO), uint256::ZERO);
+        checkEqual(val & val, expected_uint256);
+        checkEqual(val & TestElementUint256::MinusOne(), expected_uint256);
+
+        BOOST_CHECK_EQUAL(size_t(val), expected_size_t);
+    };
+
+    // clang-format off
+    checkOperands(key >> 0u,   uint256S("AA00000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 1u,   uint256S("5500000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 2u,   uint256S("2A80000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 3u,   uint256S("1540000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 4u,   uint256S("0AA0000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 8u,   uint256S("00AA000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 16u,  uint256S("0000AA0000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 24u,  uint256S("000000AA00000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 32u,  uint256S("00000000AA000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 40u,  uint256S("0000000000AA0000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 48u,  uint256S("000000000000AA00000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 56u,  uint256S("00000000000000AA000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 64u,  uint256S("0000000000000000AA0000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 72u,  uint256S("000000000000000000AA00000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 80u,  uint256S("00000000000000000000AA000000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 88u,  uint256S("0000000000000000000000AA0000000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 96u,  uint256S("000000000000000000000000AA00000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 104u, uint256S("00000000000000000000000000AA000000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 112u, uint256S("0000000000000000000000000000AA0000000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 120u, uint256S("000000000000000000000000000000AA00000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 128u, uint256S("00000000000000000000000000000000AA000000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 136u, uint256S("0000000000000000000000000000000000AA0000000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 144u, uint256S("000000000000000000000000000000000000AA00000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 152u, uint256S("00000000000000000000000000000000000000AA000000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 160u, uint256S("0000000000000000000000000000000000000000AA0000000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 168u, uint256S("000000000000000000000000000000000000000000AA00000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 176u, uint256S("00000000000000000000000000000000000000000000AA000000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 184u, uint256S("0000000000000000000000000000000000000000000000AA0000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 185u, uint256S("0000000000000000000000000000000000000000000000550000000000000000"), 0x0000000000000000);
+    checkOperands(key >> 186u, uint256S("00000000000000000000000000000000000000000000002A8000000000000000"), 0x8000000000000000);
+    checkOperands(key >> 192u, uint256S("000000000000000000000000000000000000000000000000AA00000000000000"), 0xAA00000000000000);
+    checkOperands(key >> 200u, uint256S("00000000000000000000000000000000000000000000000000AA000000000000"), 0x00AA000000000000);
+    checkOperands(key >> 208u, uint256S("0000000000000000000000000000000000000000000000000000AA0000000000"), 0x0000AA0000000000);
+    checkOperands(key >> 216u, uint256S("000000000000000000000000000000000000000000000000000000AA00000000"), 0x000000AA00000000);
+    checkOperands(key >> 224u, uint256S("00000000000000000000000000000000000000000000000000000000AA000000"), 0x00000000AA000000);
+    checkOperands(key >> 232u, uint256S("0000000000000000000000000000000000000000000000000000000000AA0000"), 0x0000000000AA0000);
+    checkOperands(key >> 240u, uint256S("000000000000000000000000000000000000000000000000000000000000AA00"), 0x000000000000AA00);
+    checkOperands(key >> 248u, uint256S("00000000000000000000000000000000000000000000000000000000000000AA"), 0x00000000000000AA);
+    checkOperands(key >> 252u, uint256S("000000000000000000000000000000000000000000000000000000000000000A"), 0x000000000000000A);
+    checkOperands(key >> 253u, uint256S("0000000000000000000000000000000000000000000000000000000000000005"), 0x0000000000000005);
+    checkOperands(key >> 254u, uint256S("0000000000000000000000000000000000000000000000000000000000000002"), 0x0000000000000002);
+    checkOperands(key >> 255u, uint256S("0000000000000000000000000000000000000000000000000000000000000001"), 0x0000000000000001);
+    checkOperands(key >> 256u, uint256S("0000000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
+    // clang-format on
 }
 
 BOOST_AUTO_TEST_SUITE_END()
