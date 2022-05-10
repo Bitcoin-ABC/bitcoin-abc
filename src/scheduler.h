@@ -44,11 +44,11 @@ public:
     typedef std::function<bool()> Predicate;
 
     /** Call func at/after time t */
-    void schedule(Function f, std::chrono::system_clock::time_point t);
+    void schedule(Function f, std::chrono::steady_clock::time_point t);
 
     /** Call f once after the delta has passed */
     void scheduleFromNow(Function f, std::chrono::milliseconds delta) {
-        schedule(std::move(f), std::chrono::system_clock::now() + delta);
+        schedule(std::move(f), std::chrono::steady_clock::now() + delta);
     }
 
     /**
@@ -100,8 +100,8 @@ public:
      * Returns number of tasks waiting to be serviced,
      * and first and last task times
      */
-    size_t getQueueInfo(std::chrono::system_clock::time_point &first,
-                        std::chrono::system_clock::time_point &last) const;
+    size_t getQueueInfo(std::chrono::steady_clock::time_point &first,
+                        std::chrono::steady_clock::time_point &last) const;
 
     /** Returns true if there are threads actively running in serviceQueue() */
     bool AreThreadsServicingQueue() const;
@@ -109,7 +109,7 @@ public:
 private:
     mutable Mutex newTaskMutex;
     std::condition_variable newTaskScheduled;
-    std::multimap<std::chrono::system_clock::time_point, Function>
+    std::multimap<std::chrono::steady_clock::time_point, Function>
         taskQueue GUARDED_BY(newTaskMutex);
     int nThreadsServicingQueue GUARDED_BY(newTaskMutex){0};
     bool stopRequested GUARDED_BY(newTaskMutex){false};

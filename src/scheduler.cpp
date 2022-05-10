@@ -4,9 +4,10 @@
 
 #include <scheduler.h>
 
-#include <random.h>
+#include <sync.h>
 
 #include <cassert>
+#include <chrono>
 #include <functional>
 #include <utility>
 
@@ -36,7 +37,7 @@ void CScheduler::serviceQueue() {
             // the time of the first item on the queue:
 
             while (!shouldStop() && !taskQueue.empty()) {
-                std::chrono::system_clock::time_point timeToWaitFor =
+                std::chrono::steady_clock::time_point timeToWaitFor =
                     taskQueue.begin()->first;
                 if (newTaskScheduled.wait_until(lock, timeToWaitFor) ==
                     std::cv_status::timeout) {
@@ -71,7 +72,7 @@ void CScheduler::serviceQueue() {
 }
 
 void CScheduler::schedule(CScheduler::Function f,
-                          std::chrono::system_clock::time_point t) {
+                          std::chrono::steady_clock::time_point t) {
     {
         LOCK(newTaskMutex);
         taskQueue.insert(std::make_pair(t, f));
@@ -86,7 +87,7 @@ void CScheduler::MockForward(std::chrono::seconds delta_seconds) {
         LOCK(newTaskMutex);
 
         // use temp_queue to maintain updated schedule
-        std::multimap<std::chrono::system_clock::time_point, Function>
+        std::multimap<std::chrono::steady_clock::time_point, Function>
             temp_queue;
 
         for (const auto &element : taskQueue) {
@@ -116,8 +117,8 @@ void CScheduler::scheduleEvery(CScheduler::Predicate p,
 }
 
 size_t
-CScheduler::getQueueInfo(std::chrono::system_clock::time_point &first,
-                         std::chrono::system_clock::time_point &last) const {
+CScheduler::getQueueInfo(std::chrono::steady_clock::time_point &first,
+                         std::chrono::steady_clock::time_point &last) const {
     LOCK(newTaskMutex);
     size_t result = taskQueue.size();
     if (!taskQueue.empty()) {
@@ -147,7 +148,7 @@ void SingleThreadedSchedulerClient::MaybeScheduleProcessQueue() {
     }
     m_pscheduler->schedule(
         std::bind(&SingleThreadedSchedulerClient::ProcessQueue, this),
-        std::chrono::system_clock::now());
+        std::chrono::steady_clock::now());
 }
 
 void SingleThreadedSchedulerClient::ProcessQueue() {
