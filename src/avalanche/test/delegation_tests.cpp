@@ -71,28 +71,6 @@ BOOST_AUTO_TEST_CASE(verify_random) {
 // Level 2 pub:
 //     03aac52f4cfca700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a
 
-static Proof getProof() {
-    Proof p;
-    bilingual_str error;
-    BOOST_CHECK(Proof::FromHex(
-        p,
-        "0000000000000000ffffffff0000000021023beefdde700a6bc02036335b4df141"
-        "c8bc67bb05a971f5ac2745fd683797dde301bee72758084395310b5a7ccc98a836"
-        "11dff786f0a469d1d66626ba286b0423870000000000108dbe1c000000a4090000"
-        "2102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6"
-        "8069c539018ac799848811fb44a4b987faa71a634970d35976c5e766fb98502432"
-        "aaec53034bd7df23767e7e695203599cf4a6a71569bdf03e90f0f91c8760faae",
-        error));
-    BOOST_CHECK_EQUAL(p.getId(),
-                      ProofId::fromHex("afc74900c1f28b69e466461fb1e0663352da615"
-                                       "3be0fcd59280e27f2446391d5"));
-    BOOST_CHECK_EQUAL(
-        p.getLimitedId(),
-        LimitedProofId::fromHex("0d45ca55662c483107b45f5c5699e0d8c7778b2"
-                                "45c116cb988abba1afa6a1146"));
-    return p;
-}
-
 struct TestVector {
     std::string name;
     std::string hex;
@@ -102,8 +80,6 @@ struct TestVector {
 };
 
 BOOST_AUTO_TEST_CASE(deserialization) {
-    Proof p = getProof();
-
     std::vector<TestVector> testcases{
         {"Empty delegation",
          "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
