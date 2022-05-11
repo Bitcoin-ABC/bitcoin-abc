@@ -57,13 +57,13 @@ const SecondaryButton = styled.button`
 `;
 
 const DisabledButton = styled.button`
-    border: none;
+    border: 2px solid ${props => props.theme.buttons.secondary.background};
     color: ${props => props.theme.buttons.secondary.color};
     background: ${props => props.theme.buttons.secondary.background};
     transition: all 0.5s ease;
     font-size: 18px;
     width: 100%;
-    padding: 15px 0;
+    padding: 20px 0;
     border-radius: 4px;
     cursor: not-allowed;
     outline: none;
