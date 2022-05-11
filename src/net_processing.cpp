@@ -1087,8 +1087,7 @@ static void UpdatePreferredDownload(const CNode &node, CNodeState *state)
     nPreferredDownload += state->fPreferredDownload;
 }
 
-bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash) {
     std::map<BlockHash,
              std::pair<NodeId, std::list<QueuedBlock>::iterator>>::iterator
         itInFlight = mapBlocksInFlight.find(hash);
@@ -1121,8 +1120,7 @@ bool PeerManagerImpl::MarkBlockAsReceived(const BlockHash &hash)
 
 bool PeerManagerImpl::MarkBlockAsInFlight(
     const Config &config, NodeId nodeid, const BlockHash &hash,
-    const CBlockIndex *pindex, std::list<QueuedBlock>::iterator **pit)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    const CBlockIndex *pindex, std::list<QueuedBlock>::iterator **pit) {
     CNodeState *state = State(nodeid);
     assert(state != nullptr);
 
@@ -1294,8 +1292,7 @@ static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex)
 
 void PeerManagerImpl::FindNextBlocksToDownload(
     NodeId nodeid, unsigned int count,
-    std::vector<const CBlockIndex *> &vBlocks, NodeId &nodeStaller)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+    std::vector<const CBlockIndex *> &vBlocks, NodeId &nodeStaller) {
     if (count == 0) {
         return;
     }
@@ -2349,8 +2346,7 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 // Messages
 //
 
-bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
     assert(recentRejects);
     if (::ChainActive().Tip()->GetBlockHash() != hashRecentRejectsChainTip) {
         // If the chain tip has changed previously rejected transactions
@@ -2642,9 +2638,10 @@ static void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
     }
 }
 
-CTransactionRef PeerManagerImpl::FindTxForGetData(
-    const CNode &peer, const TxId &txid, const std::chrono::seconds mempool_req,
-    const std::chrono::seconds now) LOCKS_EXCLUDED(cs_main) {
+CTransactionRef
+PeerManagerImpl::FindTxForGetData(const CNode &peer, const TxId &txid,
+                                  const std::chrono::seconds mempool_req,
+                                  const std::chrono::seconds now) {
     auto txinfo = m_mempool.info(txid);
     if (txinfo.tx) {
         // If a TX could have been INVed in reply to a MEMPOOL request,
@@ -2722,11 +2719,9 @@ FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
     return nullptr;
 }
 
-void PeerManagerImpl::ProcessGetData(const Config &config, CNode &pfrom,
-                                     Peer &peer,
-                                     const std::atomic<bool> &interruptMsgProc)
-    EXCLUSIVE_LOCKS_REQUIRED(peer.m_getdata_requests_mutex)
-        LOCKS_EXCLUDED(::cs_main) {
+void PeerManagerImpl::ProcessGetData(
+    const Config &config, CNode &pfrom, Peer &peer,
+    const std::atomic<bool> &interruptMsgProc) {
     AssertLockNotHeld(cs_main);
 
     std::deque<CInv>::iterator it = peer.m_getdata_requests.begin();
@@ -3118,8 +3113,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
  *    children to be reconsidered.
  */
 void PeerManagerImpl::ProcessOrphanTx(const Config &config,
-                                      std::set<TxId> &orphan_work_set)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main, g_cs_orphans) {
+                                      std::set<TxId> &orphan_work_set) {
     AssertLockHeld(cs_main);
     AssertLockHeld(g_cs_orphans);
     while (!orphan_work_set.empty()) {
