@@ -1277,11 +1277,10 @@ static RPCHelpMan getblocktemplate() {
 class submitblock_StateCatcher final : public CValidationInterface {
 public:
     uint256 hash;
-    bool found;
-    BlockValidationState state;
+    bool found{false};
+    BlockValidationState state{};
 
-    explicit submitblock_StateCatcher(const uint256 &hashIn)
-        : hash(hashIn), found(false), state() {}
+    explicit submitblock_StateCatcher(const uint256 &hashIn) : hash(hashIn) {}
 
 protected:
     void BlockChecked(const CBlock &block,

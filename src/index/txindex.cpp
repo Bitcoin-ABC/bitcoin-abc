@@ -51,7 +51,7 @@ TxIndex::TxIndex(std::unique_ptr<interfaces::Chain> chain, size_t n_cache_size,
     : BaseIndex(std::move(chain), "txindex"),
       m_db(std::make_unique<TxIndex::DB>(n_cache_size, f_memory, f_wipe)) {}
 
-TxIndex::~TxIndex() {}
+TxIndex::~TxIndex() = default;
 
 bool TxIndex::WriteBlock(const CBlock &block, const CBlockIndex *pindex) {
     // Exclude genesis block transaction because outputs are not spendable.

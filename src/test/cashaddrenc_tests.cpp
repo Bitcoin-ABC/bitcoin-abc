@@ -56,9 +56,9 @@ public:
     }
 
 private:
-    DstTypeChecker() : isKey(false), isScript(false) {}
-    bool isKey;
-    bool isScript;
+    DstTypeChecker() = default;
+    bool isKey{false};
+    bool isScript{false};
 };
 
 // Map all possible size bits in the version to the expected size of the

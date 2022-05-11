@@ -112,7 +112,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle,
     setWalletModel(walletModel);
 }
 
-WalletView::~WalletView() {}
+WalletView::~WalletView() = default;
 
 void WalletView::setClientModel(ClientModel *_clientModel) {
     this->clientModel = _clientModel;

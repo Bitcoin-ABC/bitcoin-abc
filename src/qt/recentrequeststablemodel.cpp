@@ -30,9 +30,7 @@ RecentRequestsTableModel::RecentRequestsTableModel(WalletModel *parent)
             this, &RecentRequestsTableModel::updateDisplayUnit);
 }
 
-RecentRequestsTableModel::~RecentRequestsTableModel() {
-    /* Intentionally left empty */
-}
+RecentRequestsTableModel::~RecentRequestsTableModel() = default;
 
 int RecentRequestsTableModel::rowCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);

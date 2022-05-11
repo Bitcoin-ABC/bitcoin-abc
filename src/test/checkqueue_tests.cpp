@@ -58,18 +58,18 @@ struct FakeCheckCheckCompletion {
 };
 
 struct FailingCheck {
-    bool fails;
+    bool fails{true};
     FailingCheck(bool _fails) : fails(_fails){};
-    FailingCheck() : fails(true){};
+    FailingCheck() = default;
     bool operator()() const { return !fails; }
 };
 
 struct UniqueCheck {
     static Mutex m;
     static std::unordered_multiset<size_t> results GUARDED_BY(m);
-    size_t check_id;
+    size_t check_id{0};
     UniqueCheck(size_t check_id_in) : check_id(check_id_in){};
-    UniqueCheck() : check_id(0){};
+    UniqueCheck() = default;
     bool operator()() {
         LOCK(m);
         results.insert(check_id);
@@ -81,7 +81,7 @@ struct MemoryCheck {
     static std::atomic<size_t> fake_allocated_memory;
     bool b{false};
     bool operator()() const { return true; }
-    MemoryCheck(){};
+    MemoryCheck() = default;
     MemoryCheck(const MemoryCheck &x) {
         // We have to do this to make sure that destructor calls are paired
         //
@@ -103,7 +103,7 @@ struct FrozenCleanupCheck {
     static std::mutex m;
     bool should_freeze{true};
     bool operator()() const { return true; }
-    FrozenCleanupCheck() {}
+    FrozenCleanupCheck() = default;
     ~FrozenCleanupCheck() {
         if (should_freeze) {
             std::unique_lock<std::mutex> l(m);

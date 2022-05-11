@@ -126,7 +126,7 @@ private:
     /** Libevent event base */
     struct event_base *base;
     /** Connection to control socket */
-    struct bufferevent *b_conn;
+    struct bufferevent *b_conn{nullptr};
     /** Message being received */
     TorControlReply message;
     /** Response handlers */
@@ -138,7 +138,7 @@ private:
 };
 
 TorControlConnection::TorControlConnection(struct event_base *_base)
-    : base(_base), b_conn(nullptr) {}
+    : base(_base) {}
 
 TorControlConnection::~TorControlConnection() {
     if (b_conn) {
@@ -432,7 +432,7 @@ private:
     TorControlConnection conn;
     std::string private_key;
     std::string service_id;
-    bool reconnect;
+    bool reconnect{true};
     struct event *reconnect_ev;
     float reconnect_timeout;
     CService service;
@@ -465,7 +465,6 @@ TorController::TorController(struct event_base *_base,
                              const std::string &tor_control_center,
                              const CService &target)
     : base(_base), m_tor_control_center(tor_control_center), conn(base),
-      reconnect(true), reconnect_ev(0),
       reconnect_timeout(RECONNECT_TIMEOUT_START), m_target(target) {
     reconnect_ev = event_new(base, -1, 0, reconnect_cb, this);
     if (!reconnect_ev) {

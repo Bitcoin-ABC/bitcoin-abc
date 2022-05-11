@@ -61,9 +61,9 @@ struct DBVal {
 };
 
 struct DBHeightKey {
-    int height;
+    int height{0};
 
-    DBHeightKey() : height(0) {}
+    DBHeightKey() = default;
     explicit DBHeightKey(int height_in) : height(height_in) {}
 
     template <typename Stream> void Serialize(Stream &s) const {

@@ -11,7 +11,7 @@
 #include <functional>
 #include <utility>
 
-CScheduler::CScheduler() {}
+CScheduler::CScheduler() = default;
 
 CScheduler::~CScheduler() {
     assert(nThreadsServicingQueue == 0);

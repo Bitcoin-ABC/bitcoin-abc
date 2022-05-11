@@ -2801,9 +2801,9 @@ struct Tracker {
     const Tracker *origin;
     //! How many copies where involved between the original object and this one
     //! (moves are not counted)
-    int copies;
+    int copies{0};
 
-    Tracker() noexcept : origin(this), copies(0) {}
+    Tracker() noexcept : origin(this) {}
     Tracker(const Tracker &t) noexcept
         : origin(t.origin), copies(t.copies + 1) {}
     Tracker(Tracker &&t) noexcept : origin(t.origin), copies(t.copies) {}

@@ -117,7 +117,7 @@ bool CNetAddr::SetNetFromBIP155Network(uint8_t possible_bip155_net,
  *
  * @note This address is considered invalid by CNetAddr::IsValid()
  */
-CNetAddr::CNetAddr() {}
+CNetAddr::CNetAddr() = default;
 
 void CNetAddr::SetIP(const CNetAddr &ipIn) {
     // Size check.

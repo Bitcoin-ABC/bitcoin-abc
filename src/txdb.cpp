@@ -359,17 +359,17 @@ namespace {
 class CCoins {
 public:
     //! whether transaction is a coinbase
-    bool fCoinBase;
+    bool fCoinBase{false};
 
     //! unspent transaction outputs; spent outputs are .IsNull(); spent outputs
     //! at the end of the array are dropped
     std::vector<CTxOut> vout;
 
     //! at which height this transaction was included in the active block chain
-    int nHeight;
+    int nHeight{0};
 
     //! empty constructor
-    CCoins() : fCoinBase(false), vout(0), nHeight(0) {}
+    CCoins() : vout(0) {}
 
     template <typename Stream> void Unserialize(Stream &s) {
         uint32_t nCode = 0;

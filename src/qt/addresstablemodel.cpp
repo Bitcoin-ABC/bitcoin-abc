@@ -31,7 +31,7 @@ struct AddressTableEntry {
     QString label;
     QString address;
 
-    AddressTableEntry() {}
+    AddressTableEntry() = default;
     AddressTableEntry(Type _type, const QString &_label,
                       const QString &_address)
         : type(_type), label(_label), address(_address) {}

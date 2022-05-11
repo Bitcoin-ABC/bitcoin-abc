@@ -135,8 +135,8 @@ InterpretValue(const KeyInfo &key, const std::optional<std::string> &value,
 // Define default constructor and destructor that are not inline, so code
 // instantiating this class doesn't need to #include class definitions for all
 // members. For example, m_settings has an internal dependency on univalue.
-ArgsManager::ArgsManager() {}
-ArgsManager::~ArgsManager() {}
+ArgsManager::ArgsManager() = default;
+ArgsManager::~ArgsManager() = default;
 
 std::set<std::string> ArgsManager::GetUnsuitableSectionOnlyArgs() const {
     std::set<std::string> unsuitables;

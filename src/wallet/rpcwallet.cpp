@@ -962,7 +962,7 @@ struct tallyitem {
     int nConf{std::numeric_limits<int>::max()};
     std::vector<uint256> txids;
     bool fIsWatchonly{false};
-    tallyitem() {}
+    tallyitem() = default;
 };
 
 static UniValue ListReceived(const Config &config, const CWallet *const pwallet,

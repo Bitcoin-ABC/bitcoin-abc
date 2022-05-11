@@ -90,11 +90,11 @@ extern "C" uint32_t GetIPList(void *thread, char *requestedHostname,
 class CDnsThread {
 public:
     struct FlagSpecificData {
-        int nIPv4, nIPv6;
+        int nIPv4{0}, nIPv6{0};
         std::vector<addr_t> cache;
-        time_t cacheTime;
-        unsigned int cacheHits;
-        FlagSpecificData() : nIPv4(0), nIPv6(0), cacheTime(0), cacheHits(0) {}
+        time_t cacheTime{0};
+        unsigned int cacheHits{0};
+        FlagSpecificData() = default;
     };
 
     dns_opt_t dns_opt; // must be first

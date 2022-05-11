@@ -226,10 +226,10 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
 
 struct BlockProvider {
     AvalancheProcessorTestingSetup *fixture;
-    uint32_t invType;
+    uint32_t invType{MSG_BLOCK};
 
     BlockProvider(AvalancheProcessorTestingSetup *_fixture)
-        : fixture(_fixture), invType(MSG_BLOCK) {}
+        : fixture(_fixture) {}
 
     CBlockIndex *buildVoteItem() const {
         CBlock block = fixture->CreateAndProcessBlock({}, CScript());
@@ -272,10 +272,10 @@ struct BlockProvider {
 
 struct ProofProvider {
     AvalancheProcessorTestingSetup *fixture;
-    uint32_t invType;
+    uint32_t invType{MSG_AVA_PROOF};
 
     ProofProvider(AvalancheProcessorTestingSetup *_fixture)
-        : fixture(_fixture), invType(MSG_AVA_PROOF) {}
+        : fixture(_fixture) {}
 
     ProofRef buildVoteItem() const {
         ProofRef proof = fixture->GetProof();
@@ -324,10 +324,10 @@ struct StakeContenderProvider {
     AvalancheProcessorTestingSetup *fixture;
 
     std::vector<avalanche::VoteItemUpdate> updates;
-    uint32_t invType;
+    uint32_t invType{MSG_AVA_STAKE_CONTENDER};
 
     StakeContenderProvider(AvalancheProcessorTestingSetup *_fixture)
-        : fixture(_fixture), invType(MSG_AVA_STAKE_CONTENDER) {}
+        : fixture(_fixture) {}
 
     StakeContenderId buildVoteItem() const {
         ChainstateManager &chainman = *Assert(fixture->m_node.chainman);
@@ -409,10 +409,9 @@ struct TxProvider {
     AvalancheProcessorTestingSetup *fixture;
 
     std::vector<avalanche::VoteItemUpdate> updates;
-    uint32_t invType;
+    uint32_t invType{MSG_TX};
 
-    TxProvider(AvalancheProcessorTestingSetup *_fixture)
-        : fixture(_fixture), invType(MSG_TX) {}
+    TxProvider(AvalancheProcessorTestingSetup *_fixture) : fixture(_fixture) {}
 
     CTransactionRef buildVoteItem() const {
         CMutableTransaction mtx;

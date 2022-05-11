@@ -30,8 +30,7 @@ class TxViewDelegate : public QAbstractItemDelegate {
 public:
     explicit TxViewDelegate(const PlatformStyle *_platformStyle,
                             QObject *parent = nullptr)
-        : QAbstractItemDelegate(parent), unit(BitcoinUnits::base),
-          platformStyle(_platformStyle) {}
+        : QAbstractItemDelegate(parent), platformStyle(_platformStyle) {}
 
     inline void paint(QPainter *painter, const QStyleOptionViewItem &option,
                       const QModelIndex &index) const override {
@@ -111,7 +110,7 @@ public:
         return QSize(DECORATION_SIZE, DECORATION_SIZE);
     }
 
-    int unit;
+    int unit{BitcoinUnits::base};
     const PlatformStyle *platformStyle;
 };
 #include <qt/overviewpage.moc>

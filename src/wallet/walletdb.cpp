@@ -297,7 +297,7 @@ public:
         m_descriptor_crypt_keys;
     std::map<uint160, CHDChain> m_hd_chains;
 
-    CWalletScanState() {}
+    CWalletScanState() = default;
 };
 
 static bool ReadKeyValue(CWallet *pwallet, CDataStream &ssKey,

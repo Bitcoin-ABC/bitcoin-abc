@@ -113,9 +113,7 @@ PeerTableModel::PeerTableModel(interfaces::Node &node, QObject *parent)
     refresh();
 }
 
-PeerTableModel::~PeerTableModel() {
-    // Intentionally left empty
-}
+PeerTableModel::~PeerTableModel() = default;
 
 void PeerTableModel::startAutoRefresh() {
     timer->start();

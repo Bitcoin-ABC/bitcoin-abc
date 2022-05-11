@@ -282,7 +282,7 @@ CTxDestination AddAndGetMultisigDestination(const int required,
 
 class DescribeAddressVisitor {
 public:
-    explicit DescribeAddressVisitor() {}
+    explicit DescribeAddressVisitor() = default;
 
     UniValue operator()(const CNoDestination &dest) const {
         return UniValue(UniValue::VOBJ);

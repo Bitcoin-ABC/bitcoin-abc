@@ -53,7 +53,7 @@ struct TxLessThan {
 // queue notifications to show a non freezing progress dialog e.g. for rescan
 struct TransactionNotification {
 public:
-    TransactionNotification() {}
+    TransactionNotification() = default;
     TransactionNotification(TxId _txid, ChangeType _status,
                             bool _showTransaction)
         : txid(_txid), status(_status), showTransaction(_showTransaction) {}

@@ -16,13 +16,12 @@ namespace {
 
 class GUIUtilTestConfig : public DummyConfig {
 public:
-    GUIUtilTestConfig()
-        : DummyConfig(ChainTypeToString(ChainType::MAIN)), useCashAddr(true) {}
+    GUIUtilTestConfig() : DummyConfig(ChainTypeToString(ChainType::MAIN)) {}
     void SetCashAddrEncoding(bool b) override { useCashAddr = b; }
     bool UseCashAddrEncoding() const override { return useCashAddr; }
 
 private:
-    bool useCashAddr;
+    bool useCashAddr{true};
 };
 
 } // namespace

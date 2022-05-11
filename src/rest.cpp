@@ -53,10 +53,10 @@ static const struct {
 };
 
 struct CCoin {
-    uint32_t nHeight;
+    uint32_t nHeight{0};
     CTxOut out;
 
-    CCoin() : nHeight(0) {}
+    CCoin() = default;
     explicit CCoin(Coin in)
         : nHeight(in.GetHeight()), out(std::move(in.GetTxOut())) {}
 

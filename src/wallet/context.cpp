@@ -4,5 +4,5 @@
 
 #include <wallet/context.h>
 
-WalletContext::WalletContext() {}
-WalletContext::~WalletContext() {}
+WalletContext::WalletContext() = default;
+WalletContext::~WalletContext() = default;

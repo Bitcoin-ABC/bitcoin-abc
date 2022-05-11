@@ -76,15 +76,15 @@ private:
     Mutex cs;
     std::condition_variable cond;
     std::deque<std::unique_ptr<WorkItem>> queue;
-    bool running;
+    bool running{true};
     size_t maxDepth;
 
 public:
-    explicit WorkQueue(size_t _maxDepth) : running(true), maxDepth(_maxDepth) {}
+    explicit WorkQueue(size_t _maxDepth) : maxDepth(_maxDepth) {}
     /**
      * Precondition: worker threads have all stopped (they have all been joined)
      */
-    ~WorkQueue() {}
+    ~WorkQueue() = default;
 
     /** Enqueue a work item */
     bool Enqueue(WorkItem *item) EXCLUSIVE_LOCKS_REQUIRED(!cs) {

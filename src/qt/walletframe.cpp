@@ -60,7 +60,7 @@ WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, BitcoinGUI *_gui)
     walletStack->addWidget(no_wallet_group);
 }
 
-WalletFrame::~WalletFrame() {}
+WalletFrame::~WalletFrame() = default;
 
 void WalletFrame::setClientModel(ClientModel *_clientModel) {
     this->clientModel = _clientModel;

@@ -241,11 +241,11 @@ private:
     CScript redeemscript;
     CTransactionRef creditTx;
     CMutableTransaction spendTx;
-    bool havePush;
+    bool havePush{false};
     std::vector<uint8_t> push;
     std::string comment;
     uint32_t flags;
-    ScriptError scriptError;
+    ScriptError scriptError{ScriptError::OK};
     Amount nValue;
 
     void DoPush() {
@@ -296,8 +296,7 @@ public:
     TestBuilder(const CScript &script_, const std::string &comment_,
                 uint32_t flags_, bool P2SH = false,
                 Amount nValue_ = Amount::zero())
-        : script(script_), havePush(false), comment(comment_), flags(flags_),
-          scriptError(ScriptError::OK), nValue(nValue_) {
+        : script(script_), comment(comment_), flags(flags_), nValue(nValue_) {
         CScript scriptPubKey = script;
         if (P2SH) {
             redeemscript = scriptPubKey;

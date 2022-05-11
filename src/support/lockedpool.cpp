@@ -292,7 +292,7 @@ LockedPool::LockedPool(std::unique_ptr<LockedPageAllocator> allocator_in,
     : allocator(std::move(allocator_in)), lf_cb(lf_cb_in),
       cumulative_bytes_locked(0) {}
 
-LockedPool::~LockedPool() {}
+LockedPool::~LockedPool() = default;
 void *LockedPool::alloc(size_t size) {
     std::lock_guard<std::mutex> lock(mutex);
 
