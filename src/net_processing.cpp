@@ -800,7 +800,8 @@ private:
 
     void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
                         const std::atomic<bool> &interruptMsgProc)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_main, peer.m_getdata_requests_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(peer.m_getdata_requests_mutex)
+            LOCKS_EXCLUDED(cs_main);
 
     /** Relay map. */
     typedef std::map<TxId, CTransactionRef> MapRelay;
