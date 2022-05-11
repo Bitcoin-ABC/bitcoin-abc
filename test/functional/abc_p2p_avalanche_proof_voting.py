@@ -17,7 +17,6 @@ from test_framework.messages import (
     MSG_AVA_PROOF,
     AvalancheProofVoteResponse,
     AvalancheVote,
-    AvalancheVoteError,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -71,7 +70,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             votes = []
             for inv in poll.invs:
                 # Vote yes to everything
-                r = AvalancheVoteError.ACCEPTED
+                r = AvalancheProofVoteResponse.ACTIVE
 
                 # Look for what we expect
                 if inv.hash == hash:
@@ -91,7 +90,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         return proof.proofid
 
     def send_and_check_for_polling(self, peer,
-                                   proof_hex, response=AvalancheVoteError.ACCEPTED):
+                                   proof_hex, response=AvalancheProofVoteResponse.ACTIVE):
         proofid = self.send_proof(peer, proof_hex)
         self.wait_until(lambda: self.can_find_proof_in_poll(proofid, response))
 
@@ -166,7 +165,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
         self.send_and_check_for_polling(
-            peer, proof_seq20, response=AvalancheVoteError.INVALID)
+            peer, proof_seq20, response=AvalancheProofVoteResponse.REJECTED)
 
         self.log.info(
             "Check we poll for conflicting proof if the proof is the favorite")
@@ -217,7 +216,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         def accept_proof(proofid):
             self.wait_until(lambda: self.can_find_proof_in_poll(
-                proofid, response=AvalancheVoteError.ACCEPTED), timeout=5)
+                proofid, response=AvalancheProofVoteResponse.ACTIVE), timeout=5)
             return proofid in get_proof_ids(node)
 
         mock_time += self.conflicting_proof_cooldown
@@ -237,7 +236,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             try:
                 with node.assert_debug_log([f"Avalanche finalized proof {proofid_seq30:0{64}x}"]):
                     self.wait_until(lambda: not self.can_find_proof_in_poll(
-                        proofid_seq30, response=AvalancheVoteError.ACCEPTED))
+                        proofid_seq30, response=AvalancheProofVoteResponse.ACTIVE))
                 break
             except AssertionError:
                 retry -= 1
@@ -266,7 +265,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         def reject_proof(proofid):
             self.wait_until(
                 lambda: self.can_find_proof_in_poll(
-                    proofid, response=AvalancheVoteError.INVALID))
+                    proofid, response=AvalancheProofVoteResponse.REJECTED))
             return proofid not in get_proof_ids(node)
 
         self.wait_until(lambda: reject_proof(proofid_seq50))
@@ -279,7 +278,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         def invalidate_proof(proofid):
             self.wait_until(
                 lambda: self.can_find_proof_in_poll(
-                    proofid, response=AvalancheVoteError.INVALID))
+                    proofid, response=AvalancheProofVoteResponse.REJECTED))
             return try_rpc(-8, "Proof not found",
                            node.getrawavalancheproof, f"{proofid:0{64}x}")
 
