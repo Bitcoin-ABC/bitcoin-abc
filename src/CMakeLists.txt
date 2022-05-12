@@ -544,6 +544,7 @@ add_library(server
 	addrdb.cpp
 	addrman.cpp
 	avalanche/avalanche.cpp
+	avalanche/compactproofs.cpp
 	avalanche/delegation.cpp
 	avalanche/delegationbuilder.cpp
 	avalanche/peermanager.cpp
