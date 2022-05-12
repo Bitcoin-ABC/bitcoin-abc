@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-kgAjT jsFvNb"
+    className="sc-cJSrbW jPTFkt"
   >
     <h4
-      className="sc-uJMKN cKiOJP"
+      className="sc-bbmXgH cXxYjE"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-ksYbfQ kyaaba"
+      className="sc-hmzhuo jGtnCu"
     >
       0
        
@@ -19,26 +19,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl gZKPNt"
+    className="sc-TOsTZ ePGIdr"
   >
     <div
-      className="sc-bbmXgH cDnIaX"
+      className="sc-gGBfsJ jUIZZs"
     >
       <button
-        className="sc-gGBfsJ nhSkV"
+        className="sc-jnlKLf izRvRI"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gGBfsJ cUGrfZ"
+        className="sc-jnlKLf lblEKN"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-jnlKLf bEDump"
+      className="sc-fYxtnH fiPSMX"
     >
       <div />
       <span
@@ -65,10 +65,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-jnlKLf iofjAr"
+      className="sc-fYxtnH hfLMVU"
     >
       <a
-        className="sc-ktHwxA bInOhz"
+        className="sc-cIShpX fxEPvd"
         href="/tokens"
         onClick={[Function]}
       >
@@ -87,15 +87,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kgAjT jsFvNb"
+    className="sc-cJSrbW jPTFkt"
   >
     <h4
-      className="sc-uJMKN cKiOJP"
+      className="sc-bbmXgH cXxYjE"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-ksYbfQ kyaaba"
+      className="sc-hmzhuo jGtnCu"
     >
       0
        
@@ -103,26 +103,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl gZKPNt"
+    className="sc-TOsTZ ePGIdr"
   >
     <div
-      className="sc-bbmXgH cDnIaX"
+      className="sc-gGBfsJ jUIZZs"
     >
       <button
-        className="sc-gGBfsJ nhSkV"
+        className="sc-jnlKLf izRvRI"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gGBfsJ cUGrfZ"
+        className="sc-jnlKLf lblEKN"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-jnlKLf bEDump"
+      className="sc-fYxtnH fiPSMX"
     >
       <div />
       <span
@@ -149,10 +149,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-jnlKLf iofjAr"
+      className="sc-fYxtnH hfLMVU"
     >
       <a
-        className="sc-ktHwxA bInOhz"
+        className="sc-cIShpX fxEPvd"
         href="/tokens"
         onClick={[Function]}
       >
@@ -171,15 +171,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kgAjT jsFvNb"
+    className="sc-cJSrbW jPTFkt"
   >
     <h4
-      className="sc-uJMKN cKiOJP"
+      className="sc-bbmXgH cXxYjE"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-ksYbfQ kyaaba"
+      className="sc-hmzhuo jGtnCu"
     >
       0.06
        
@@ -187,26 +187,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl gZKPNt"
+    className="sc-TOsTZ ePGIdr"
   >
     <div
-      className="sc-bbmXgH cDnIaX"
+      className="sc-gGBfsJ jUIZZs"
     >
       <button
-        className="sc-gGBfsJ nhSkV"
+        className="sc-jnlKLf izRvRI"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gGBfsJ cUGrfZ"
+        className="sc-jnlKLf lblEKN"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-jnlKLf bEDump"
+      className="sc-fYxtnH fiPSMX"
     >
       <div />
       <span
@@ -233,10 +233,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-jnlKLf iofjAr"
+      className="sc-fYxtnH hfLMVU"
     >
       <a
-        className="sc-ktHwxA bInOhz"
+        className="sc-cIShpX fxEPvd"
         href="/tokens"
         onClick={[Function]}
       >
@@ -248,13 +248,13 @@ Array [
           onClick={[Function]}
         >
           <div
-            className="sc-hMqMXs knAjCU"
+            className="sc-kEYyzF hdwThf"
           >
             <div
-              className="sc-eNQAEJ fzOwNd"
+              className="sc-hMqMXs kbeXyQ"
             >
               <div
-                className="sc-jKJlTe kbrkdg"
+                className="sc-eNQAEJ fYyIyU"
               />
               <h4>
                 TBS
@@ -274,15 +274,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-kgAjT jsFvNb"
+    className="sc-cJSrbW jPTFkt"
   >
     <h4
-      className="sc-uJMKN cKiOJP"
+      className="sc-bbmXgH cXxYjE"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-ksYbfQ kyaaba"
+      className="sc-hmzhuo jGtnCu"
     >
       0
        
@@ -290,26 +290,26 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-cHGsZl gZKPNt"
+    className="sc-TOsTZ ePGIdr"
   >
     <div
-      className="sc-bbmXgH cDnIaX"
+      className="sc-gGBfsJ jUIZZs"
     >
       <button
-        className="sc-gGBfsJ nhSkV"
+        className="sc-jnlKLf izRvRI"
         onClick={[Function]}
       >
         Transactions
       </button>
       <button
-        className="sc-gGBfsJ cUGrfZ"
+        className="sc-jnlKLf lblEKN"
         onClick={[Function]}
       >
         eTokens
       </button>
     </div>
     <div
-      className="sc-jnlKLf bEDump"
+      className="sc-fYxtnH fiPSMX"
     >
       <div />
       <span
@@ -336,10 +336,10 @@ Array [
        to send to others
     </div>
     <div
-      className="sc-jnlKLf iofjAr"
+      className="sc-fYxtnH hfLMVU"
     >
       <a
-        className="sc-ktHwxA bInOhz"
+        className="sc-cIShpX fxEPvd"
         href="/tokens"
         onClick={[Function]}
       >
@@ -357,18 +357,18 @@ Array [
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-kpOJdX kONCrM"
+  className="sc-dxgOiQ cWRZZO"
 >
   <h2>
     Welcome to Cashtab!
   </h2>
   <p
-    className="sc-dxgOiQ bHCDmq"
+    className="sc-ckVGcZ gYVrKF"
   >
     Cashtab is an
      
     <a
-      className="sc-ckVGcZ cSiZhZ"
+      className="sc-jKJlTe icnQEd"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -384,7 +384,7 @@ exports[`Without wallet defined 1`] = `
     Want to learn more?
      
     <a
-      className="sc-ckVGcZ cSiZhZ"
+      className="sc-jKJlTe icnQEd"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -393,7 +393,7 @@ exports[`Without wallet defined 1`] = `
     </a>
   </p>
   <button
-    className="sc-kAzzGY JHlhn"
+    className="sc-chPdSV bWFpkA"
     onClick={[Function]}
   >
     <span
@@ -421,7 +421,7 @@ exports[`Without wallet defined 1`] = `
      New Wallet
   </button>
   <button
-    className="sc-chPdSV dSieku"
+    className="sc-kgoBCf hCCasR"
     onClick={[Function]}
   >
     <span

@@ -19,6 +19,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
     ThemedCopySolid,
     ThemedLinkSolid,
+    ThemedPdfSolid,
 } from 'components/Common/CustomIcons';
 const TxIcon = styled.div`
     svg {
@@ -294,11 +295,13 @@ const DropdownIconWrapper = styled.div`
 const TextLayer = styled.div`
     font-size: 12px;
     color: ${props => props.theme.contrast};
+    white-space: nowrap;
 `;
 
 const DropdownButton = styled.button`
     display: flex;
     justify-content: flex-end;
+    position: relative;
     background-color: ${props => props.theme.walletBackground};
     border: none;
     cursor: pointer;
@@ -312,11 +315,16 @@ const DropdownButton = styled.button`
         }
     }
 `;
+
 const PanelCtn = styled.div`
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     right: 0;
     gap: 8px;
+    @media (max-width: 500px) {
+        flex-wrap: wrap;
+    }
 `;
 
 const TxLink = styled.a`
@@ -693,7 +701,8 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                         }}
                                     >
                                         <DropdownIconWrapper>
-                                            <TextLayer>Copy Tx ID</TextLayer>
+                                            <TextLayer>Txid</TextLayer>
+
                                             <ThemedCopySolid />
                                         </DropdownIconWrapper>
                                     </DropdownButton>
@@ -711,7 +720,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                             }}
                                         >
                                             <DropdownIconWrapper>
-                                                <TextLayer>Copy Msg</TextLayer>
+                                                <TextLayer>Msg</TextLayer>
                                                 <ThemedCopySolid />
                                             </DropdownIconWrapper>
                                         </DropdownButton>
@@ -728,8 +737,20 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                             <TextLayer>
                                                 View on be.cash
                                             </TextLayer>
-
                                             <ThemedLinkSolid />
+                                        </DropdownIconWrapper>
+                                    </DropdownButton>
+                                </TxLink>
+                                <TxLink
+                                    key={`${data.txid}_receipt`}
+                                    href={`${currency.pdfReceiptUrl}/${data.txid}.pdf`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <DropdownButton>
+                                        <DropdownIconWrapper>
+                                            <TextLayer>Receipt</TextLayer>
+                                            <ThemedPdfSolid />
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </TxLink>

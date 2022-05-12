@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-iAyFgw chWhWK"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-eHgmQL znFwg"
     >
       0
        
@@ -19,17 +19,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
-      className="sc-jDwBTQ ickHpK"
+      className="sc-gPEVay ktxapN"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-cMljjf gKObdA"
     >
       You need at least
        
@@ -50,15 +50,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-iAyFgw chWhWK"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-eHgmQL znFwg"
     >
       0
        
@@ -66,17 +66,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
-      className="sc-jDwBTQ ickHpK"
+      className="sc-gPEVay ktxapN"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-cMljjf gKObdA"
     >
       You need at least
        
@@ -97,15 +97,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-iAyFgw chWhWK"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-eHgmQL znFwg"
     >
       0.06
        
@@ -113,16 +113,16 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
-      className="sc-jDwBTQ ickHpK"
+      className="sc-gPEVay ktxapN"
     >
       <h3>
         Create a Token
       </h3>
       <div
-        className="sc-fjdhpX cHlxwR"
+        className="sc-jzJRlG kGXhCS"
       >
         <form
           className="ant-form ant-form-horizontal ant-form-small"
@@ -135,7 +135,7 @@ Array [
           }
         >
           <label
-            className="sc-kEYyzF gSQyNg"
+            className="sc-kkGfuU ekDVdV"
           >
             Token Name
           </label>
@@ -179,7 +179,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kEYyzF gSQyNg"
+            className="sc-kkGfuU ekDVdV"
           >
             Ticker
           </label>
@@ -223,7 +223,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kEYyzF gSQyNg"
+            className="sc-kkGfuU ekDVdV"
           >
             Decimals
           </label>
@@ -267,7 +267,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kEYyzF gSQyNg"
+            className="sc-kkGfuU ekDVdV"
           >
             Supply
           </label>
@@ -311,7 +311,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kEYyzF gSQyNg"
+            className="sc-kkGfuU ekDVdV"
           >
             Document URL
           </label>
@@ -355,7 +355,7 @@ Array [
             </div>
           </div>
           <label
-            className="sc-kEYyzF gSQyNg"
+            className="sc-kkGfuU ekDVdV"
           >
             Add Image
           </label>
@@ -457,7 +457,7 @@ Array [
         </form>
       </div>
       <button
-        className="sc-ckVGcZ kXppuv"
+        className="sc-jKJlTe cxrKVk"
         disabled={true}
         onClick={[Function]}
         style={
@@ -498,15 +498,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-iAyFgw chWhWK"
   >
     <h4
-      className="sc-iRbamj gCEMNU"
+      className="sc-jlyJG fgeSBQ"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-eHgmQL znFwg"
     >
       0
        
@@ -514,17 +514,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
-      className="sc-jDwBTQ ickHpK"
+      className="sc-gPEVay ktxapN"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-cMljjf gKObdA"
     >
       You need at least
        
@@ -545,10 +545,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-kkGfuU hVVqAi"
+    className="sc-iAyFgw chWhWK"
   >
     <div
-      className="sc-hSdWYo bXDUps"
+      className="sc-eHgmQL znFwg"
     >
       0
        
@@ -556,17 +556,17 @@ Array [
     </div>
   </div>,
   <div
-    className="sc-hMqMXs kjfrok"
+    className="sc-kEYyzF gZfJyA"
   >
     <div
-      className="sc-jDwBTQ ickHpK"
+      className="sc-gPEVay ktxapN"
     >
       <h3>
         Create a Token
       </h3>
     </div>
     <p
-      className="sc-brqgnP kPbEse"
+      className="sc-cMljjf gKObdA"
     >
       You need at least
        

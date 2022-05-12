@@ -15,6 +15,7 @@ export const currency = {
     cashDecimals: 2,
     blockExplorerUrl: 'https://explorer.be.cash',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
+    pdfReceiptUrl: 'https://blockchair.com/ecash/transaction',
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenIconSubmitApi: 'https://icons.etokens.cash/new',

@@ -21,6 +21,7 @@ import { ReactComponent as Settings } from 'assets/cog.svg';
 import { ReactComponent as CopySolid } from 'assets/copy.svg';
 import { ReactComponent as LinkSolid } from 'assets/external-link-square-alt.svg';
 import { ReactComponent as Airdrop } from 'assets/airdrop-icon.svg';
+import { ReactComponent as Pdf } from 'assets/file-pdf.svg';
 
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
@@ -80,6 +81,13 @@ export const ThemedCopySolid = styled(CopySolid)`
 `;
 
 export const ThemedLinkSolid = styled(LinkSolid)`
+    fill: ${props => props.theme.contrast};
+    padding: 0.15rem 0rem 0.18rem 0rem;
+    height: 1.3em;
+    width: 1.3em;
+`;
+
+export const ThemedPdfSolid = styled(Pdf)`
     fill: ${props => props.theme.contrast};
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
