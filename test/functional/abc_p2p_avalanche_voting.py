@@ -214,7 +214,8 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
-        self.wait_until(has_parked_new_tip, timeout=15)
+        with node.assert_debug_log([f"Avalanche invalidated block {hash_to_find:0{64}x}"]):
+            self.wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 
         self.log.info(

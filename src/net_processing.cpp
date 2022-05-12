@@ -5178,12 +5178,16 @@ void PeerManagerImpl::ProcessMessage(
             switch (voteUpdate.getStatus()) {
                 case avalanche::VoteStatus::Invalid:
                     voteOutcome = "invalidated";
+                    break;
                 case avalanche::VoteStatus::Rejected:
                     voteOutcome = "rejected";
+                    break;
                 case avalanche::VoteStatus::Accepted:
                     voteOutcome = "accepted";
+                    break;
                 case avalanche::VoteStatus::Finalized:
                     voteOutcome = "finalized";
+                    break;
 
                     // No default case, so the compiler can warn about missing
                     // cases
