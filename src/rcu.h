@@ -21,6 +21,9 @@ class RCUInfos {
     std::atomic<uint64_t> state;
     std::atomic<RCUInfos *> next;
 
+    bool isCleaningUp = false;
+    class RCUCleanupGuard;
+
     std::map<uint64_t, std::function<void()>> cleanups;
 
     // The largest revision possible means unlocked.
@@ -63,7 +66,10 @@ class RCULock {
 
 public:
     RCULock() : RCULock(&RCUInfos::infos) {}
-    ~RCULock() { infos->readFree(); }
+    ~RCULock() {
+        infos->readFree();
+        infos->runCleanups();
+    }
 
     RCULock(const RCULock &) = delete;
     RCULock &operator=(const RCULock &) = delete;

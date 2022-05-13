@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(synchronize_test) {
     BOOST_CHECK(true);
 }
 
-BOOST_AUTO_TEST_CASE(cleanup_test) {
+BOOST_AUTO_TEST_CASE(cleanup_simple) {
     RCULock::synchronize();
     BOOST_CHECK(RCUTest::getCleanups().empty());
 
@@ -145,16 +145,19 @@ BOOST_AUTO_TEST_CASE(cleanup_test) {
 
     BOOST_CHECK(!isClean1);
     BOOST_CHECK_EQUAL(RCUTest::getCleanups().size(), 1);
-    BOOST_CHECK_EQUAL(RCUTest::getRevision(),
-                      RCUTest::getCleanups().begin()->first);
+
+    auto revision = RCUTest::getCleanups().begin()->first;
+    BOOST_CHECK_EQUAL(RCUTest::getRevision(), revision);
 
     // Synchronize runs the cleanups.
     RCULock::synchronize();
     BOOST_CHECK(RCUTest::getCleanups().empty());
     BOOST_CHECK(isClean1);
+}
 
+BOOST_AUTO_TEST_CASE(cleanup_multiple) {
     // Check multiple callbacks.
-    isClean1 = false;
+    bool isClean1 = false;
     bool isClean2 = false;
     bool isClean3 = false;
     RCULock::registerCleanup([&] { isClean1 = true; });
@@ -167,11 +170,13 @@ BOOST_AUTO_TEST_CASE(cleanup_test) {
     BOOST_CHECK(isClean1);
     BOOST_CHECK(isClean2);
     BOOST_CHECK(isClean3);
+}
 
+BOOST_AUTO_TEST_CASE(cleanup_test_nested) {
     // Check callbacks adding each others.
-    isClean1 = false;
-    isClean2 = false;
-    isClean3 = false;
+    bool isClean1 = false;
+    bool isClean2 = false;
+    bool isClean3 = false;
 
     RCULock::registerCleanup([&] {
         isClean1 = true;
@@ -183,6 +188,33 @@ BOOST_AUTO_TEST_CASE(cleanup_test) {
 
     BOOST_CHECK_EQUAL(RCUTest::getCleanups().size(), 1);
     RCULock::synchronize();
+    BOOST_CHECK(RCUTest::getCleanups().empty());
+    BOOST_CHECK(isClean1);
+    BOOST_CHECK(isClean2);
+    BOOST_CHECK(isClean3);
+}
+
+BOOST_AUTO_TEST_CASE(cleanup_on_unlock) {
+    // Check callbacks adding each others.
+    bool isClean1 = false;
+    bool isClean2 = false;
+    bool isClean3 = false;
+
+    RCULock::registerCleanup([&] {
+        isClean1 = true;
+        RCULock::registerCleanup([&] {
+            isClean2 = true;
+            RCULock::registerCleanup([&] { isClean3 = true; });
+        });
+    });
+
+    BOOST_CHECK_EQUAL(RCUTest::getCleanups().size(), 1);
+
+    {
+        // There is no contention, so this will cleanup.
+        RCULock lock;
+    }
+
     BOOST_CHECK(RCUTest::getCleanups().empty());
     BOOST_CHECK(isClean1);
     BOOST_CHECK(isClean2);

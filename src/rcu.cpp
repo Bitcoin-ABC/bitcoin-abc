@@ -194,21 +194,40 @@ void RCUInfos::synchronize() {
     }));
 }
 
+class RCUInfos::RCUCleanupGuard {
+    RCUInfos *infos;
+
+public:
+    explicit RCUCleanupGuard(RCUInfos *infosIn) : infos(infosIn) {
+        infos->isCleaningUp = true;
+    }
+
+    ~RCUCleanupGuard() { infos->isCleaningUp = false; }
+};
+
 void RCUInfos::runCleanups() {
+    if (isCleaningUp || cleanups.empty()) {
+        // We don't want to run cleanups within cleanups.
+        return;
+    }
+
+    RCUCleanupGuard guard(this);
+
     // By the time we run a set of cleanups, we may have more cleanups
     // available so we loop until there is nothing available for cleanup.
-    while (true) {
-        if (cleanups.empty()) {
-            // There is nothing to cleanup.
+    while (!cleanups.empty()) {
+        auto it = cleanups.begin();
+        uint64_t syncedTo = hasSyncedTo(it->first);
+        if (it->first > syncedTo) {
+            // We have nothing more ready to be cleaned up.
             return;
         }
 
-        auto it = cleanups.begin();
-        uint64_t syncedTo = hasSyncedTo(it->first);
         while (it != cleanups.end() && it->first <= syncedTo) {
             // Run the cleanup and remove it from the map.
-            it->second();
+            auto fun = std::move(it->second);
             cleanups.erase(it++);
+            fun();
         }
     }
 }
