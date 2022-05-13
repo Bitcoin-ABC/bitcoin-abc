@@ -284,7 +284,9 @@ bool CSeederNode::Run() {
         ProcessMessages();
         Send();
     }
-    res = sock != nullptr;
+    if (!sock) {
+        res = false;
+    }
     sock.reset();
     return (ban == 0) && res;
 }
