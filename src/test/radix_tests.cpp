@@ -502,14 +502,31 @@ BOOST_AUTO_TEST_CASE(tree_traversal) {
 
     // Check the tree is traversed in ascending key order
     size_t count = 0;
-    mytree.forEachLeaf([&](RCUPtr<E> ptr) {
+    bool ret = mytree.forEachLeaf([&](RCUPtr<E> ptr) {
         // This test assumes the key is equal to the value
         BOOST_CHECK_EQUAL(ptr->getId(), count);
         BOOST_CHECK_EQUAL(ptr, elements[count++]);
+
+        return true;
     });
 
     // All the elements are parsed
     BOOST_CHECK_EQUAL(count, ELEMENTS);
+    BOOST_CHECK(ret);
+
+    // Check we can stop the traversal when needed
+    const size_t stopCount = ELEMENTS / 2;
+    count = 0;
+    ret = mytree.forEachLeaf([&](RCUPtr<E> ptr) {
+        // This test assumes the key is equal to the value
+        BOOST_CHECK_EQUAL(ptr->getId(), count);
+        BOOST_CHECK_EQUAL(ptr, elements[count++]);
+
+        return count < stopCount;
+    });
+
+    BOOST_CHECK_EQUAL(count, stopCount);
+    BOOST_CHECK(!ret);
 }
 
 BOOST_AUTO_TEST_CASE(uint256_key_wrapper) {

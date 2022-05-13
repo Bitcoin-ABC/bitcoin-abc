@@ -138,9 +138,9 @@ public:
         return RCUPtr<const T>::acquire(ptr);
     }
 
-    template <typename Callable> void forEachLeaf(Callable &&func) const {
+    template <typename Callable> bool forEachLeaf(Callable &&func) const {
         RCULock lock;
-        forEachLeaf(root.load(), std::move(func));
+        return forEachLeaf(root.load(), std::move(func));
     }
 
 #define SEEK_LEAF_LOOP()                                                       \
@@ -250,19 +250,20 @@ private:
 #undef SEEK_LEAF_LOOP
 
     template <typename Callable>
-    void forEachLeaf(RadixElement e, Callable &&func) const {
-        if (e.isNode()) {
-            e.getNode()->forEachChild(
-                [&](const std::atomic<RadixElement> *pElement) {
-                    forEachLeaf(pElement->load(), func);
-                });
-            return;
+    bool forEachLeaf(RadixElement e, Callable &&func) const {
+        if (e.isLeaf()) {
+            T *leaf = e.getLeaf();
+            if (leaf != nullptr) {
+                return func(RCUPtr<T>::copy(leaf));
+            }
+
+            return true;
         }
 
-        T *leaf = e.getLeaf();
-        if (leaf != nullptr) {
-            func(RCUPtr<T>::copy(leaf));
-        }
+        return e.getNode()->forEachChild(
+            [&](const std::atomic<RadixElement> *pElement) {
+                return forEachLeaf(pElement->load(), func);
+            });
     }
 
     struct RadixElement {
@@ -374,10 +375,13 @@ private:
 
         bool isShared() const { return refcount > 0; }
 
-        template <typename Callable> void forEachChild(Callable &&func) const {
+        template <typename Callable> bool forEachChild(Callable &&func) const {
             for (size_t i = 0; i < CHILD_PER_LEVEL; i++) {
-                func(&children[i]);
+                if (!func(&children[i])) {
+                    return false;
+                }
             }
+            return true;
         }
     };
 
