@@ -15,7 +15,7 @@ namespace avalanche {
 /**
  * Compare proofs by score, then by id in case of equality.
  */
-struct ProofComparator {
+struct ProofComparatorByScore {
     bool operator()(const Proof &lhs, const Proof &rhs) const {
         uint32_t scoreLhs = lhs.getScore();
         uint32_t scoreRhs = rhs.getScore();

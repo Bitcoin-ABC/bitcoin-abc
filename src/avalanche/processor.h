@@ -81,7 +81,8 @@ using ProofUpdate = VoteItemUpdate<ProofRef>;
 
 using BlockVoteMap =
     std::map<const CBlockIndex *, VoteRecord, CBlockIndexWorkComparator>;
-using ProofVoteMap = std::map<const ProofRef, VoteRecord, ProofComparator>;
+using ProofVoteMap =
+    std::map<const ProofRef, VoteRecord, ProofComparatorByScore>;
 
 struct query_timeout {};
 
