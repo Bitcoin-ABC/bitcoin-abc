@@ -91,12 +91,12 @@ void ProofPool::rescan(PeerManager &peerManager) {
 ProofRef ProofPool::getProof(const ProofId &proofid) const {
     auto &poolView = pool.get<by_proofid>();
     auto it = poolView.find(proofid);
-    return it == poolView.end() ? nullptr : it->proof;
+    return it == poolView.end() ? ProofRef() : it->proof;
 }
 
 ProofRef ProofPool::getProof(const COutPoint &outpoint) const {
     auto it = pool.find(outpoint);
-    return it == pool.end() ? nullptr : it->proof;
+    return it == pool.end() ? ProofRef() : it->proof;
 }
 
 } // namespace avalanche

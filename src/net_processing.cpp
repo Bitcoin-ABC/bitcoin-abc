@@ -2678,7 +2678,7 @@ PeerManagerImpl::FindTxForGetData(const CNode &peer, const TxId &txid,
 static avalanche::ProofRef
 FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
                     const std::chrono::seconds now) {
-    avalanche::ProofRef proof = nullptr;
+    avalanche::ProofRef proof;
 
     bool send_unconditionally =
         g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
@@ -2703,7 +2703,7 @@ FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
 
     // We don't have this proof
     if (!proof) {
-        return nullptr;
+        return avalanche::ProofRef();
     }
 
     if (send_unconditionally) {
@@ -2716,7 +2716,7 @@ FindProofForGetData(const CNode &peer, const avalanche::ProofId &proofid,
         return proof;
     }
 
-    return nullptr;
+    return avalanche::ProofRef();
 }
 
 void PeerManagerImpl::ProcessGetData(

@@ -445,7 +445,7 @@ void PeerManager::updatedBlockTip() {
 }
 
 ProofRef PeerManager::getProof(const ProofId &proofid) const {
-    ProofRef proof = nullptr;
+    ProofRef proof;
 
     forPeer(proofid, [&](const Peer &p) {
         proof = p.proof;

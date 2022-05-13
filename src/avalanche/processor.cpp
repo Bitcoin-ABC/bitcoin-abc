@@ -564,7 +564,7 @@ bool Processor::sendHello(CNode *pfrom) const {
 }
 
 ProofRef Processor::getLocalProof() const {
-    return peerData ? peerData->proof : nullptr;
+    return peerData ? peerData->proof : ProofRef();
 }
 
 bool Processor::startEventLoop(CScheduler &scheduler) {
