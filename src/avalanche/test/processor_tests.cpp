@@ -455,6 +455,29 @@ BOOST_AUTO_TEST_CASE(block_reconcile_twice) {
     BOOST_CHECK(m_processor->isAccepted(pindex));
 }
 
+BOOST_AUTO_TEST_CASE(block_null) {
+    // Check that null case is handled on the public interface
+    BOOST_CHECK(!m_processor->isAccepted(nullptr));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
+
+    BOOST_CHECK(!m_processor->addBlockToReconcile(nullptr));
+
+    // Check that adding blocks to vote on doesn't change the outcome. A
+    // comparator is used under the hood, and this is skipped if there are no
+    // vote records.
+    CBlock block = CreateAndProcessBlock({}, CScript());
+    const BlockHash blockHash = block.GetHash();
+    CBlockIndex *pindex;
+    {
+        LOCK(cs_main);
+        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
+    }
+    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+
+    BOOST_CHECK(!m_processor->isAccepted(nullptr));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
+}
+
 namespace {
 Response next(Response &r) {
     auto copy = r;

@@ -287,6 +287,11 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
     bool isAccepted;
 
+    if (!pindex) {
+        // IsWorthPolling expects this to be non-null, so bail early.
+        return false;
+    }
+
     {
         LOCK(cs_main);
         if (!IsWorthPolling(pindex)) {
@@ -314,6 +319,11 @@ void Processor::addProofToReconcile(const ProofRef &proof) {
 }
 
 bool Processor::isAccepted(const CBlockIndex *pindex) const {
+    if (!pindex) {
+        // CBlockIndexWorkComparator expects this to be non-null, so bail early.
+        return false;
+    }
+
     auto r = blockVoteRecords.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
@@ -334,6 +344,11 @@ bool Processor::isAccepted(const ProofRef &proof) const {
 }
 
 int Processor::getConfidence(const CBlockIndex *pindex) const {
+    if (!pindex) {
+        // CBlockIndexWorkComparator expects this to be non-null, so bail early.
+        return -1;
+    }
+
     auto r = blockVoteRecords.getReadView();
     auto it = r->find(pindex);
     if (it == r.end()) {
