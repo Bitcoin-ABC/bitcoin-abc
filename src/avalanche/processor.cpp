@@ -7,6 +7,7 @@
 #include <avalanche/avalanche.h>
 #include <avalanche/delegationbuilder.h>
 #include <avalanche/peermanager.h>
+#include <avalanche/proofcomparator.h>
 #include <avalanche/validation.h>
 #include <avalanche/voterecord.h>
 #include <chain.h>
@@ -454,7 +455,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     }
 
     std::map<CBlockIndex *, Vote> responseIndex;
-    std::map<ProofRef, Vote> responseProof;
+    std::map<ProofRef, Vote, ProofRefComparatorByAddress> responseProof;
 
     // At this stage we are certain that invs[i] matches votes[i], so we can use
     // the inv type to retrieve what is being voted on.

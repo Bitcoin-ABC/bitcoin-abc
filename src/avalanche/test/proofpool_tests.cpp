@@ -5,6 +5,7 @@
 #include <avalanche/proofpool.h>
 
 #include <avalanche/peermanager.h>
+#include <avalanche/proofcomparator.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
@@ -79,7 +80,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
     pm.forEachPeer([&](const Peer &p) { hasPeer = true; });
     BOOST_CHECK(!hasPeer);
 
-    std::set<ProofRef> poolProofs;
+    std::set<ProofRef, ProofRefComparatorByAddress> poolProofs;
     for (size_t i = 0; i < 10; i++) {
         auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
     testPool.rescan(pm);
 
     // All the proofs should be registered as peer
-    std::set<ProofRef> pmProofs;
+    std::set<ProofRef, ProofRefComparatorByAddress> pmProofs;
     pm.forEachPeer([&](const Peer &p) { pmProofs.insert(p.proof); });
     BOOST_CHECK_EQUAL_COLLECTIONS(poolProofs.begin(), poolProofs.end(),
                                   pmProofs.begin(), pmProofs.end());

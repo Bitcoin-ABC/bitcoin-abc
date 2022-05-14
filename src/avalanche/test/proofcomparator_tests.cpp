@@ -56,4 +56,21 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(proofref_comparator_by_address) {
+    std::vector<ProofRef> proofs;
+    for (size_t i = 0; i < 100; i++) {
+        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        proofs.push_back(std::move(proof));
+    }
+
+    std::set<ProofRef, ProofRefComparatorByAddress> sortedProofs(proofs.begin(),
+                                                                 proofs.end());
+
+    uintptr_t prevAddr = 0;
+    for (const auto &p : sortedProofs) {
+        BOOST_CHECK_GE(reinterpret_cast<uintptr_t>(p.get()), prevAddr);
+        prevAddr = reinterpret_cast<uintptr_t>(p.get());
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

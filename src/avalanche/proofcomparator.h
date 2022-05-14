@@ -13,6 +13,15 @@
 namespace avalanche {
 
 /**
+ * Compare proof references by pointer address.
+ */
+struct ProofRefComparatorByAddress {
+    bool operator()(const ProofRef &lhs, const ProofRef &rhs) const {
+        return lhs.get() < rhs.get();
+    }
+};
+
+/**
  * Compare proofs by score, then by id in case of equality.
  */
 struct ProofComparatorByScore {
