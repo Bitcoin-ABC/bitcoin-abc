@@ -5112,7 +5112,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPROOF) {
-        auto proof = std::make_shared<avalanche::Proof>();
+        auto proof = RCUPtr<avalanche::Proof>::make();
         vRecv >> *proof;
         const avalanche::ProofId &proofid = proof->getId();
 

@@ -10,6 +10,7 @@
 #include <key.h>
 #include <primitives/transaction.h>
 #include <pubkey.h>
+#include <rcu.h>
 #include <serialize.h>
 
 #include <array>
@@ -114,6 +115,8 @@ class Proof {
     uint32_t score;
     void computeScore();
 
+    IMPLEMENT_RCU_REFCOUNT(uint64_t);
+
 public:
     Proof()
         : sequence(0), expirationTime(0), master(), stakes(),
@@ -129,6 +132,13 @@ public:
         computeProofId();
         computeScore();
     }
+    Proof(Proof &&other)
+        : sequence(other.sequence), expirationTime(other.expirationTime),
+          master(std::move(other.master)), stakes(std::move(other.stakes)),
+          payoutScriptPubKey(std::move(other.payoutScriptPubKey)),
+          signature(std::move(other.signature)),
+          limitedProofId(std::move(other.limitedProofId)),
+          proofid(std::move(other.proofid)), score(other.score) {}
 
     SERIALIZE_METHODS(Proof, obj) {
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
@@ -169,7 +179,7 @@ public:
     bool verify(ProofValidationState &state, const CCoinsView &view) const;
 };
 
-using ProofRef = std::shared_ptr<const Proof>;
+using ProofRef = RCUPtr<const Proof>;
 
 } // namespace avalanche
 

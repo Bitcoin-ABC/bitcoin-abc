@@ -53,9 +53,9 @@ ProofRef ProofBuilder::build() {
         signedStakes.push_back(handle.value().sign(commitment));
     }
 
-    return std::make_shared<Proof>(
-        sequence, expirationTime, masterKey.GetPubKey(),
-        std::move(signedStakes), payoutScriptPubKey, std::move(proofSignature));
+    return ProofRef::make(sequence, expirationTime, masterKey.GetPubKey(),
+                          std::move(signedStakes), payoutScriptPubKey,
+                          std::move(proofSignature));
 }
 
 LimitedProofId ProofBuilder::getLimitedProofId() const {

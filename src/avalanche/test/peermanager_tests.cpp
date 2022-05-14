@@ -874,12 +874,11 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
         "96527eae083f1f24625f049d9e54bb9a2102a93d98bf42ab90cfc0bf9e7c634ed76a7"
         "3e95b02cacfd357b64e4fb6c92e92dd00");
     bilingual_str error;
-    Proof badProof;
-    BOOST_CHECK(Proof::FromHex(badProof, badProofHex, error));
+    auto badProof = RCUPtr<Proof>::make();
+    BOOST_CHECK(Proof::FromHex(*badProof, badProofHex, error));
 
     ProofRegistrationState state;
-    BOOST_CHECK(
-        !pm.registerProof(std::make_shared<Proof>(std::move(badProof)), state));
+    BOOST_CHECK(!pm.registerProof(badProof, state));
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::INVALID);
 }
 

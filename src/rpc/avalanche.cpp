@@ -124,7 +124,7 @@ static RPCHelpMan addavalanchenode() {
             const NodeId nodeid = request.params[0].get_int64();
             CPubKey key = ParsePubKey(request.params[1]);
 
-            auto proof = std::make_shared<avalanche::Proof>();
+            auto proof = RCUPtr<avalanche::Proof>::make();
             NodeContext &node = EnsureNodeContext(request.context);
             verifyProofOrThrow(node, *proof, request.params[2].get_str());
 
@@ -938,7 +938,7 @@ static RPCHelpMan sendavalancheproof() {
                                    "Avalanche is not initialized");
             }
 
-            auto proof = std::make_shared<avalanche::Proof>();
+            auto proof = RCUPtr<avalanche::Proof>::make();
             NodeContext &node = EnsureNodeContext(request.context);
 
             // Verify the proof. Note that this is redundant with the

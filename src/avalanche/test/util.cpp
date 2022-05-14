@@ -78,9 +78,9 @@ ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
         signedStakes.push_back(handle.value().sign(commitment));
     }
 
-    return std::make_shared<Proof>(
-        pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
-        std::move(signedStakes), pb.payoutScriptPubKey, SchnorrSig());
+    return ProofRef::make(pb.sequence, pb.expirationTime,
+                          pb.masterKey.GetPubKey(), std::move(signedStakes),
+                          pb.payoutScriptPubKey, SchnorrSig());
 }
 
 ProofId TestProofBuilder::getDuplicatedStakeProofId(ProofBuilder &pb) {
@@ -115,9 +115,9 @@ ProofRef TestProofBuilder::buildDuplicatedStakes(ProofBuilder &pb) {
         signedStakes.push_back(signedStake);
     }
 
-    return std::make_shared<Proof>(
-        pb.sequence, pb.expirationTime, pb.masterKey.GetPubKey(),
-        std::move(signedStakes), pb.payoutScriptPubKey, SchnorrSig());
+    return ProofRef::make(pb.sequence, pb.expirationTime,
+                          pb.masterKey.GetPubKey(), std::move(signedStakes),
+                          pb.payoutScriptPubKey, SchnorrSig());
 }
 
 } // namespace avalanche
