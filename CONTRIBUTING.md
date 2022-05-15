@@ -8,15 +8,14 @@ This guide is intended to help developers contribute effectively to Bitcoin ABC.
 Communicating with Developers
 -----------------------------
 
-To get in contact with ABC developers, we monitor a telegram supergroup.  The
-intent of this group is specifically to facilitate development of Bitcoin-ABC,
-and to welcome people who wish to participate.
+To get in contact with Bitcoin ABC developers, you can join the
+[eCash Development Telegram group](https://t.me/eCashDevelopment).
+The intent of this group is to facilitate development of Bitcoin ABC and other
+eCash node implementations. We welcome people who wish to participate.
 
-[Join the ABC Development telegram group](https://t.me/joinchat/HCYr50mxRWjA2uLqii-psw)
+Acceptable use of this group includes the following:
 
-Acceptable use of this supergroup includes the following:
-
-* Introducing yourself to other ABC developers.
+* Introducing yourself to other eCash developers.
 * Getting help with your development environment.
 * Discussing how to complete a patch.
 
