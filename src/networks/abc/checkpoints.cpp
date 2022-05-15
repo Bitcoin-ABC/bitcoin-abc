@@ -67,6 +67,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Selectron activation.
         {713661, BlockHash::fromHex("00000000000000000676f84307c7ccb53a0f19083f"
                                     "eace753cb73a38eaaaef8d")},
+        // Gluon activation.
+        {739536, BlockHash::fromHex("000000000000000006db04cd4609560905fe5a7be6"
+                                    "2f2429b159ce6b59fc7b61")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -102,6 +105,9 @@ static CCheckpointData testNetCheckpointData = {
         // Selectron activation.
         {1477500, BlockHash::fromHex("000000000004057554e6f83253e3080774c37ae8a"
                                      "940ffbc38d77525274709ae")},
+        // Gluon activation.
+        {1503557, BlockHash::fromHex("00000000000dbd764814fb67b5ff5aab606faa1f5"
+                                     "881dc86f57639a1396e11ba")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
