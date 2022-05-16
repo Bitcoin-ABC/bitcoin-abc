@@ -77,7 +77,10 @@ namespace {
 
     //! Construct wallet tx status struct.
     WalletTxStatus MakeWalletTxStatus(const CWallet &wallet,
-                                      const CWalletTx &wtx) {
+                                      const CWalletTx &wtx)
+        EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
+        AssertLockHeld(wallet.cs_wallet);
+
         WalletTxStatus result;
         result.block_height = wtx.m_confirm.block_height > 0
                                   ? wtx.m_confirm.block_height
@@ -101,6 +104,8 @@ namespace {
     WalletTxOut MakeWalletTxOut(const CWallet &wallet, const CWalletTx &wtx,
                                 int n, int depth)
         EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
+        AssertLockHeld(wallet.cs_wallet);
+
         WalletTxOut result;
         result.txout = wtx.tx->vout[n];
         result.time = wtx.GetTxTime();

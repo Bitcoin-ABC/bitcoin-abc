@@ -31,23 +31,24 @@ Amount OutputGetChange(const CWallet &wallet, const CTxOut &txout)
 Amount TxGetChange(const CWallet &wallet, const CTransaction &tx);
 
 Amount CachedTxGetCredit(const CWallet &wallet, const CWalletTx &wtx,
-                         const isminefilter &filter);
+                         const isminefilter &filter)
+    EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet);
 //! filter decides which addresses will count towards the debit
 Amount CachedTxGetDebit(const CWallet &wallet, const CWalletTx &wtx,
                         const isminefilter &filter);
 Amount CachedTxGetChange(const CWallet &wallet, const CWalletTx &wtx);
 Amount CachedTxGetImmatureCredit(const CWallet &wallet, const CWalletTx &wtx,
-                                 bool fUseCache = true);
+                                 bool fUseCache = true)
+    EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet);
 Amount CachedTxGetImmatureWatchOnlyCredit(const CWallet &wallet,
                                           const CWalletTx &wtx,
-                                          const bool fUseCache = true);
-// TODO: Remove "NO_THREAD_SAFETY_ANALYSIS" and replace it with the correct
-// annotation "EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet)". The
-// annotation "NO_THREAD_SAFETY_ANALYSIS" was temporarily added to avoid
-// having to resolve the issue of member access into incomplete type CWallet.
-Amount CachedTxGetAvailableCredit(
-    const CWallet &wallet, const CWalletTx &wtx, bool fUseCache = true,
-    const isminefilter &filter = ISMINE_SPENDABLE) NO_THREAD_SAFETY_ANALYSIS;
+                                          const bool fUseCache = true)
+    EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet);
+Amount CachedTxGetAvailableCredit(const CWallet &wallet, const CWalletTx &wtx,
+                                  bool fUseCache = true,
+                                  const isminefilter &filter = ISMINE_SPENDABLE)
+    EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet);
+;
 
 struct COutputEntry {
     CTxDestination destination;

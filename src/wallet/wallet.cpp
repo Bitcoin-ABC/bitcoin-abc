@@ -657,6 +657,8 @@ void CWallet::SyncMetaData(
  * Outpoint is spent if any non-conflicted transaction, spends it:
  */
 bool CWallet::IsSpent(const COutPoint &outpoint) const {
+    AssertLockHeld(cs_wallet);
+
     std::pair<TxSpends::const_iterator, TxSpends::const_iterator> range =
         mapTxSpends.equal_range(outpoint);
 
@@ -1841,6 +1843,8 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(
 }
 
 void CWallet::ReacceptWalletTransactions() {
+    AssertLockHeld(cs_wallet);
+
     // If transactions aren't being broadcasted, don't let them into local
     // mempool either.
     if (!fBroadcastTransactions) {
@@ -1874,6 +1878,8 @@ void CWallet::ReacceptWalletTransactions() {
 bool CWallet::SubmitTxMemoryPoolAndRelay(const CWalletTx &wtx,
                                          std::string &err_string,
                                          bool relay) const {
+    AssertLockHeld(cs_wallet);
+
     // Can't relay if wallet is not broadcasting
     if (!GetBroadcastTransactions()) {
         return false;
@@ -1911,6 +1917,8 @@ bool CWallet::SubmitTxMemoryPoolAndRelay(const CWalletTx &wtx,
 }
 
 std::set<TxId> CWallet::GetTxConflicts(const CWalletTx &wtx) const {
+    AssertLockHeld(cs_wallet);
+
     std::set<TxId> result;
     const TxId &txid = wtx.GetId();
     result = GetConflicts(txid);
@@ -3107,6 +3115,8 @@ int CWallet::GetTxDepthInMainChain(const CWalletTx &wtx) const {
 }
 
 int CWallet::GetTxBlocksToMaturity(const CWalletTx &wtx) const {
+    AssertLockHeld(cs_wallet);
+
     if (!wtx.IsCoinBase()) {
         return 0;
     }
@@ -3117,6 +3127,8 @@ int CWallet::GetTxBlocksToMaturity(const CWalletTx &wtx) const {
 }
 
 bool CWallet::IsTxImmatureCoinBase(const CWalletTx &wtx) const {
+    AssertLockHeld(cs_wallet);
+
     // note GetBlocksToMaturity is 0 for non-coinbase tx
     return GetTxBlocksToMaturity(wtx) > 0;
 }

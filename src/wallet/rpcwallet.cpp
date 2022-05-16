@@ -57,7 +57,8 @@ bool HaveKey(const SigningProvider &wallet, const CKey &key) {
 }
 
 static void WalletTxToJSON(const CWallet &wallet, const CWalletTx &wtx,
-                           UniValue &entry) {
+                           UniValue &entry)
+    EXCLUSIVE_LOCKS_REQUIRED(wallet.cs_wallet) {
     interfaces::Chain &chain = wallet.chain();
     int confirms = wallet.GetTxDepthInMainChain(wtx);
     entry.pushKV("confirmations", confirms);

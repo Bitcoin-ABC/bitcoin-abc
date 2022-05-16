@@ -138,6 +138,8 @@ static Amount GetCachableAmount(const CWallet &wallet, const CWalletTx &wtx,
 
 Amount CachedTxGetCredit(const CWallet &wallet, const CWalletTx &wtx,
                          const isminefilter &filter) {
+    AssertLockHeld(wallet.cs_wallet);
+
     // Must wait until coinbase is safely deep enough in the chain before
     // valuing it.
     if (wallet.IsTxImmatureCoinBase(wtx)) {
@@ -189,6 +191,8 @@ Amount CachedTxGetChange(const CWallet &wallet, const CWalletTx &wtx) {
 
 Amount CachedTxGetImmatureCredit(const CWallet &wallet, const CWalletTx &wtx,
                                  bool fUseCache) {
+    AssertLockHeld(wallet.cs_wallet);
+
     if (wallet.IsTxImmatureCoinBase(wtx) && wallet.IsTxInMainChain(wtx)) {
         return GetCachableAmount(wallet, wtx, CWalletTx::IMMATURE_CREDIT,
                                  ISMINE_SPENDABLE, !fUseCache);
@@ -200,6 +204,8 @@ Amount CachedTxGetImmatureCredit(const CWallet &wallet, const CWalletTx &wtx,
 Amount CachedTxGetImmatureWatchOnlyCredit(const CWallet &wallet,
                                           const CWalletTx &wtx,
                                           const bool fUseCache) {
+    AssertLockHeld(wallet.cs_wallet);
+
     if (wallet.IsTxImmatureCoinBase(wtx) && wallet.IsTxInMainChain(wtx)) {
         return GetCachableAmount(wallet, wtx, CWalletTx::IMMATURE_CREDIT,
                                  ISMINE_WATCH_ONLY, !fUseCache);
@@ -210,6 +216,8 @@ Amount CachedTxGetImmatureWatchOnlyCredit(const CWallet &wallet,
 
 Amount CachedTxGetAvailableCredit(const CWallet &wallet, const CWalletTx &wtx,
                                   bool fUseCache, const isminefilter &filter) {
+    AssertLockHeld(wallet.cs_wallet);
+
     // Avoid caching ismine for NO or ALL cases (could remove this check and
     // simplify in the future).
     bool allow_cache =
