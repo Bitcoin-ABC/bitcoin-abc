@@ -45,11 +45,11 @@ template <typename K> struct TestElementInt : TestElement<K> {
     }
 };
 
-struct TestElementUint256 : TestElement<Uint256KeyWrapper> {
+struct TestElementUint256 : TestElement<Uint256RadixKey> {
     TestElementUint256(const uint256 &keyIn)
-        : TestElement<Uint256KeyWrapper>(Uint256KeyWrapper(keyIn)) {}
+        : TestElement<Uint256RadixKey>(Uint256RadixKey(keyIn)) {}
     TestElementUint256(uint64_t keyIn)
-        : TestElement<Uint256KeyWrapper>(Uint256KeyWrapper(keyIn)) {}
+        : TestElement<Uint256RadixKey>(Uint256RadixKey(keyIn)) {}
 
     static inline arith_uint256 signedMin = arith_uint256(1) << 255;
     static inline arith_uint256 signedMax = ~signedMin;
@@ -530,20 +530,19 @@ BOOST_AUTO_TEST_CASE(tree_traversal) {
 }
 
 BOOST_AUTO_TEST_CASE(uint256_key_wrapper) {
-    Uint256KeyWrapper key = uint256S(
+    Uint256RadixKey key = uint256S(
         "AA00000000000000000000000000000000000000000000000000000000000000");
 
-    auto checkEqual = [&](const Uint256KeyWrapper &val,
-                          const uint256 &expected) {
+    auto checkEqual = [&](const Uint256RadixKey &val, const uint256 &expected) {
         BOOST_CHECK_EQUAL(ArithToUint256(val.base), expected);
     };
 
-    auto checkOperands = [&](const Uint256KeyWrapper &val,
+    auto checkOperands = [&](const Uint256RadixKey &val,
                              const uint256 &expected_uint256,
                              const size_t expected_size_t) {
         checkEqual(val, expected_uint256);
 
-        checkEqual(val & Uint256KeyWrapper(uint256::ZERO), uint256::ZERO);
+        checkEqual(val & Uint256RadixKey(uint256::ZERO), uint256::ZERO);
         checkEqual(val & val, expected_uint256);
         checkEqual(val & TestElementUint256::MinusOne(), expected_uint256);
 

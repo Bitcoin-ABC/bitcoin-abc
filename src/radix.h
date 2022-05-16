@@ -394,21 +394,21 @@ private:
 /**
  * Facility for using an uint256 as a radix tree key.
  */
-struct Uint256KeyWrapper {
+struct Uint256RadixKey {
     arith_uint256 base;
 
-    Uint256KeyWrapper(const uint256 &keyIn) : base(UintToArith256(keyIn)) {}
-    Uint256KeyWrapper(const base_uint<256> &keyIn) : base(keyIn) {}
+    Uint256RadixKey(const uint256 &keyIn) : base(UintToArith256(keyIn)) {}
+    Uint256RadixKey(const base_uint<256> &keyIn) : base(keyIn) {}
 
-    Uint256KeyWrapper operator>>(uint32_t shift) const { return base >> shift; }
-    Uint256KeyWrapper operator&(const Uint256KeyWrapper &mask) const {
+    Uint256RadixKey operator>>(uint32_t shift) const { return base >> shift; }
+    Uint256RadixKey operator&(const Uint256RadixKey &mask) const {
         return base & mask.base;
     }
     operator size_t() const { return size_t(base.GetLow64()); }
 };
 
 // The radix tree relies on sizeof to gather the bit length of the key
-static_assert(sizeof(Uint256KeyWrapper) == 32,
-              "Uint256KeyWrapper key size should be 256 bits");
+static_assert(sizeof(Uint256RadixKey) == 32,
+              "Uint256RadixKey key size should be 256 bits");
 
 #endif // BITCOIN_RADIX_H
