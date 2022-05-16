@@ -8,9 +8,11 @@
 #include <avalanche/node.h>
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
+#include <avalanche/proofradixtreeadapter.h>
 #include <coins.h>
 #include <consensus/validation.h>
 #include <pubkey.h>
+#include <radix.h>
 #include <salteduint256hasher.h>
 #include <util/time.h>
 
@@ -154,6 +156,9 @@ class PeerManager {
     ProofPool validProofPool;
     ProofPool conflictingProofPool;
     ProofPool orphanProofPool;
+
+    using ProofRadixTree = RadixTree<const Proof, ProofRadixTreeAdapter>;
+    ProofRadixTree shareableProofs;
 
     using NodeSet = boost::multi_index_container<
         Node,
@@ -355,6 +360,10 @@ public:
     bool isBoundToPeer(const ProofId &proofid) const;
     bool isOrphan(const ProofId &proofid) const;
     bool isInConflictingPool(const ProofId &proofid) const;
+
+    const ProofRadixTree &getShareableProofsSnapshot() const {
+        return shareableProofs;
+    }
 
 private:
     template <typename ProofContainer>

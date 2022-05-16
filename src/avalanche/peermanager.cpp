@@ -313,6 +313,9 @@ bool PeerManager::registerProof(const ProofRef &proof,
     auto inserted = peers.emplace(peerid, proof, nextCooldownTimePoint);
     assert(inserted.second);
 
+    auto insertedRadixTree = shareableProofs.insert(proof);
+    assert(insertedRadixTree);
+
     // Add to our registered score when adding to the peer list
     totalPeersScore += proof->getScore();
 
@@ -503,6 +506,9 @@ bool PeerManager::removePeer(const PeerId peerid) {
     // Release UTXOs attached to this proof.
     validProofPool.removeProof(it->getProofId());
 
+    auto removed = shareableProofs.remove(Uint256RadixKey(it->getProofId()));
+    assert(removed != nullptr);
+
     m_unbroadcast_proofids.erase(it->getProofId());
 
     // Remove the peer from the PeerSet and remove its score from the registered
@@ -662,6 +668,11 @@ bool PeerManager::verify() const {
         if (slots[p.index].getScore() != p.getScore()) {
             return false;
         }
+
+        // Check the proof is in the radix tree
+        if (shareableProofs.get(p.getProofId()) == nullptr) {
+            return false;
+        }
     }
 
     // Check our accumulated scores against our registred and allocated scores
@@ -678,7 +689,10 @@ bool PeerManager::verify() const {
         return false;
     }
 
-    return true;
+    // Check there is no dangling proof in the radix tree
+    return shareableProofs.forEachLeaf([&](RCUPtr<const Proof> pLeaf) {
+        return isBoundToPeer(pLeaf->getId());
+    });
 }
 
 PeerId selectPeerImpl(const std::vector<Slot> &slots, const uint64_t slot,

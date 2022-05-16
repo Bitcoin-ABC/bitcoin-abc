@@ -1625,4 +1625,120 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     checkScores(0, 0);
 }
 
+BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
+    avalanche::PeerManager pm;
+
+    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
+
+    struct ProofComparatorById {
+        bool operator()(const ProofRef &lhs, const ProofRef &rhs) const {
+            return lhs->getId() < rhs->getId();
+        };
+    };
+    using ProofSetById = std::set<ProofRef, ProofComparatorById>;
+    // Maintain a list of the expected proofs through this test
+    ProofSetById expectedProofs;
+
+    auto matchExpectedContent = [&](const auto &tree) {
+        auto it = expectedProofs.begin();
+        return tree.forEachLeaf([&](auto pLeaf) {
+            return it != expectedProofs.end() &&
+                   pLeaf->getId() == (*it++)->getId();
+        });
+    };
+
+    CKey key = CKey::MakeCompressedKey();
+    const int64_t sequence = 10;
+
+    // Add some initial proofs
+    for (size_t i = 0; i < 10; i++) {
+        auto outpoint = createUtxo(key);
+        auto proof = buildProofWithSequence(key, {{outpoint}}, sequence);
+        BOOST_CHECK(pm.registerProof(proof));
+        expectedProofs.insert(std::move(proof));
+    }
+
+    const auto &treeRef = pm.getShareableProofsSnapshot();
+    BOOST_CHECK(matchExpectedContent(treeRef));
+
+    // Create a copy
+    auto tree = pm.getShareableProofsSnapshot();
+
+    // Adding more proofs doesn't change the tree...
+    ProofSetById addedProofs;
+    std::vector<COutPoint> outpointsToSpend;
+    for (size_t i = 0; i < 10; i++) {
+        auto outpoint = createUtxo(key);
+        auto proof = buildProofWithSequence(key, {{outpoint}}, sequence);
+        BOOST_CHECK(pm.registerProof(proof));
+        addedProofs.insert(std::move(proof));
+        outpointsToSpend.push_back(std::move(outpoint));
+    }
+
+    BOOST_CHECK(matchExpectedContent(tree));
+
+    // ...until we get a new copy
+    tree = pm.getShareableProofsSnapshot();
+    expectedProofs.insert(addedProofs.begin(), addedProofs.end());
+    BOOST_CHECK(matchExpectedContent(tree));
+
+    // Spend some coins to make the associated proofs invalid
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        for (const auto &outpoint : outpointsToSpend) {
+            coins.SpendCoin(outpoint);
+        }
+    }
+
+    pm.updatedBlockTip();
+
+    // This doesn't change the tree...
+    BOOST_CHECK(matchExpectedContent(tree));
+
+    // ...until we get a new copy
+    tree = pm.getShareableProofsSnapshot();
+    for (const auto &proof : addedProofs) {
+        BOOST_CHECK_EQUAL(expectedProofs.erase(proof), 1);
+    }
+    BOOST_CHECK(matchExpectedContent(tree));
+
+    // Add some more proof for which we will create conflicts
+    std::vector<ProofRef> conflictingProofs;
+    std::vector<COutPoint> conflictingOutpoints;
+    for (size_t i = 0; i < 10; i++) {
+        auto outpoint = createUtxo(key);
+        auto proof = buildProofWithSequence(key, {{outpoint}}, sequence);
+        BOOST_CHECK(pm.registerProof(proof));
+        conflictingProofs.push_back(std::move(proof));
+        conflictingOutpoints.push_back(std::move(outpoint));
+    }
+
+    tree = pm.getShareableProofsSnapshot();
+    expectedProofs.insert(conflictingProofs.begin(), conflictingProofs.end());
+    BOOST_CHECK(matchExpectedContent(tree));
+
+    // Build a bunch of conflicting proofs, half better, half worst
+    for (size_t i = 0; i < 10; i += 2) {
+        // The worst proof is not added to the expected set
+        BOOST_CHECK(!pm.registerProof(buildProofWithSequence(
+            key, {{conflictingOutpoints[i]}}, sequence - 1)));
+
+        // But the better proof should replace its conflicting one
+        auto replacementProof = buildProofWithSequence(
+            key, {{conflictingOutpoints[i + 1]}}, sequence + 1);
+        BOOST_CHECK(pm.registerProof(replacementProof));
+        BOOST_CHECK_EQUAL(expectedProofs.erase(conflictingProofs[i + 1]), 1);
+        BOOST_CHECK(expectedProofs.insert(replacementProof).second);
+    }
+
+    tree = pm.getShareableProofsSnapshot();
+    BOOST_CHECK(matchExpectedContent(tree));
+
+    // Check for consistency
+    pm.verify();
+
+    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
