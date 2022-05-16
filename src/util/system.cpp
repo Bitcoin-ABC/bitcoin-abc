@@ -509,11 +509,15 @@ bool ArgsManager::InitSettings(std::string &error) {
     return true;
 }
 
-bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp) const {
+bool ArgsManager::GetSettingsPath(fs::path *filepath, bool temp,
+                                  bool backup) const {
     fs::path settings =
         GetPathArg("-settings", fs::path{BITCOIN_SETTINGS_FILENAME});
     if (settings.empty()) {
         return false;
+    }
+    if (backup) {
+        settings += ".bak";
     }
     if (filepath) {
         *filepath = fsbridge::AbsPathJoin(GetDataDirNet(),
@@ -558,10 +562,11 @@ bool ArgsManager::ReadSettingsFile(std::vector<std::string> *errors) {
     return true;
 }
 
-bool ArgsManager::WriteSettingsFile(std::vector<std::string> *errors) const {
+bool ArgsManager::WriteSettingsFile(std::vector<std::string> *errors,
+                                    bool backup) const {
     fs::path path, path_tmp;
-    if (!GetSettingsPath(&path, /* temp= */ false) ||
-        !GetSettingsPath(&path_tmp, /* temp= */ true)) {
+    if (!GetSettingsPath(&path, /*temp=*/false, backup) ||
+        !GetSettingsPath(&path_tmp, /*temp=*/true, backup)) {
         throw std::logic_error("Attempt to write settings file when dynamic "
                                "settings are disabled.");
     }

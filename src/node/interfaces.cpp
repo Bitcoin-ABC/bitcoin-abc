@@ -135,6 +135,13 @@ namespace {
                 }
             });
         }
+        void resetSettings() override {
+            gArgs.WriteSettingsFile(/*errors=*/nullptr, /*backup=*/true);
+            gArgs.LockSettings([&](util::Settings &settings) {
+                settings.rw_settings.clear();
+            });
+            gArgs.WriteSettingsFile();
+        }
         void mapPort(bool use_upnp, bool use_natpmp) override {
             StartMapPort(use_upnp, use_natpmp);
         }
