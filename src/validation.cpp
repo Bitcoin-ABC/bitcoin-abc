@@ -4628,12 +4628,13 @@ void PruneBlockFilesManual(Chainstate &active_chainstate,
     }
 }
 
-void Chainstate::LoadMempool(const Config &config, const ArgsManager &args) {
+void Chainstate::LoadMempool(const Config &config, const ArgsManager &args,
+                             FopenFn mockable_fopen_function) {
     if (!m_mempool) {
         return;
     }
     if (args.GetBoolArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        ::LoadMempool(config, *m_mempool, *this);
+        ::LoadMempool(config, *m_mempool, *this, mockable_fopen_function);
     }
     m_mempool->SetLoadTried(!ShutdownRequested());
 }
