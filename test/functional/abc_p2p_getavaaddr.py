@@ -279,12 +279,12 @@ class AvaAddrTest(BitcoinTestFramework):
         ip_port = f"127.0.01:{p2p_port(MAX_NODES - p2p_idx)}"
 
         node.addnode(node=ip_port, command="add")
-        self.wait_until(lambda: added_node_connected(ip_port), timeout=3)
+        self.wait_until(lambda: added_node_connected(ip_port))
 
         assert_equal(node.getpeerinfo()[-1]['addr'], ip_port)
         assert_equal(node.getpeerinfo()[-1]['connection_type'], 'manual')
 
-        self.wait_until(lambda: p.last_message.get("getavaaddr"), timeout=5)
+        self.wait_until(lambda: p.last_message.get("getavaaddr"))
 
         # Generate some block to poll for
         node.generate(1)
@@ -292,9 +292,7 @@ class AvaAddrTest(BitcoinTestFramework):
         # Because our avalanche peers is not responding, our node should fail
         # out of option shortly and send another getavaaddr message.
         node.mockscheduler(MAX_GETAVAADDR_DELAY)
-        self.wait_until(
-            lambda: p.message_count.get(
-                "getavaaddr", 0) > 1, timeout=5)
+        self.wait_until(lambda: p.message_count.get("getavaaddr", 0) > 1)
 
     def getavaaddr_noquorum(self):
         self.log.info(
