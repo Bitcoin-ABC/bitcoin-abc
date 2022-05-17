@@ -24,8 +24,8 @@ std::map<COutPoint,
 std::vector<std::map<TxId, COrphanTx>::iterator>
     g_orphan_list GUARDED_BY(g_cs_orphans);
 
-int EraseOrphanTx(TxId id) {
-    std::map<TxId, COrphanTx>::iterator it = mapOrphanTransactions.find(id);
+int EraseOrphanTx(const TxId &txid) {
+    std::map<TxId, COrphanTx>::iterator it = mapOrphanTransactions.find(txid);
     if (it == mapOrphanTransactions.end()) {
         return 0;
     }
