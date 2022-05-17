@@ -115,10 +115,12 @@ const useWallet = () => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
         const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
         const cashAddress = BCH.HDNode.toCashAddress(node);
+        const hash160 = BCH.Address.toHash160(cashAddress);
         const slpAddress = BCH.SLP.Address.toSLPAddress(cashAddress);
 
         return {
             publicKey,
+            hash160,
             cashAddress,
             slpAddress,
             fundingWif: BCH.HDNode.toWIF(node),

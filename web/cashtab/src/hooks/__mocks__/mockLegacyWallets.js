@@ -35,6 +35,7 @@ export default {
             slpAddress:
                 'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
             fundingWif: 'KwgNkyijAaxFr5XQdnaYyNMXVSZobgHzSoKKfWiC3Q7Xr4n7iYMG',
+            hash160: '960c9ed561f1699f0c49974d50b3bb7cdc118625',
             fundingAddress:
                 'simpleledger:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5evac32me',
             legacyAddress: '1EgPUfBgU7ekho3EjtGze87dRADnUE8ojP',
@@ -47,6 +48,7 @@ export default {
             slpAddress:
                 'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
             fundingWif: 'L2xvTe6CdNxroR6pbdpGWNjAa55AZX5Wm59W5TXMuH31ihNJdDjt',
+            hash160: '2be0e0c999e7e77a443ea726f82c441912fca92b',
             fundingAddress:
                 'simpleledger:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vryrap6mu',
             legacyAddress: '1511T3ynXKgCwXhFijCUWKuTfqbPxFV1AF',
@@ -59,6 +61,7 @@ export default {
             slpAddress:
                 'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
             fundingWif: 'Kx4FiBMvKK1iXjFk5QTaAK6E4mDGPjmwDZ2HDKGUZpE4gCXMaPe9',
+            hash160: 'ba8257db65f40359989c7b894c5e88ed7b6344f6',
             fundingAddress:
                 'simpleledger:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7cdsfndq6y',
             legacyAddress: '1J1Aq5tAAYxZgSDRo8soKM2Rb41z3xrYpm',
@@ -98,6 +101,7 @@ export default {
             fundingAddress:
                 'slptest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5234lu2sx',
             fundingWif: 'cN3NDtiabeeX1Wzg2CPgLgrb7fsDG8PgWqTnmwAhYWmY6osSta7Q',
+            hash160: '960c9ed561f1699f0c49974d50b3bb7cdc118625',
             legacyAddress: 'muCLmiGfH961UuWrTTFNU3KxH9pVQJJx6Z',
             slpAddress: 'slptest:qztqe8k4v8ckn8cvfxt5659nhd7dcyvxy5234lu2sx',
             publicKey:
@@ -108,6 +112,7 @@ export default {
             fundingAddress:
                 'slptest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vset6v6sr',
             fundingWif: 'cTKuvZ644Sf7xra5z3dPshEECJNaDyBCq7HyBsysQPh1ySSpxtQ1',
+            hash160: '2be0e0c999e7e77a443ea726f82c441912fca92b',
             legacyAddress: 'mjWxk74mLM7TieAsSJArLF7nXqC6oc2mof',
             slpAddress: 'slptest:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9vset6v6sr',
             publicKey:
@@ -118,6 +123,7 @@ export default {
             fundingAddress:
                 'slptest:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7c7dp5qq3m',
             fundingWif: 'cNRFB6MmkNhyhAj1TpGhXdbHgzWg4BsdHbAkKjiz4vt4vwgpC44F',
+            hash160: 'ba8257db65f40359989c7b894c5e88ed7b6344f6',
             legacyAddress: 'mxX888y8yaPpTYh3WhrB9GEkT3cgumYwPw',
             slpAddress: 'slptest:qzagy47mvh6qxkvcn3acjnz73rkhkc6y7c7dp5qq3m',
             publicKey:

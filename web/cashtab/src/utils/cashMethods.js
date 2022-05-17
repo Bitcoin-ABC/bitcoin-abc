@@ -565,8 +565,11 @@ export const isLegacyMigrationRequired = wallet => {
     if (
         !wallet.Path1899 ||
         !wallet.Path1899.publicKey ||
+        !wallet.Path1899.hash160 ||
         !wallet.Path145.publicKey ||
-        !wallet.Path245.publicKey
+        !wallet.Path145.hash160 ||
+        !wallet.Path245.publicKey ||
+        !wallet.Path245.hash160
     ) {
         return true;
     }

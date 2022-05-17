@@ -66,6 +66,7 @@ import {
     missingPublicKeyInPath145Wallet,
     missingPublicKeyInPath245Wallet,
     notLegacyWallet,
+    missingHash160,
 } from '../__mocks__/mockLegacyWalletsUtils';
 
 import {
@@ -262,6 +263,9 @@ describe('Correctly executes cash utility functions', () => {
         expect(isLegacyMigrationRequired(missingPublicKeyInPath245Wallet)).toBe(
             true,
         );
+    });
+    it(`Recognizes a wallet with missing Hash160 values is a Legacy Wallet and requires migration`, () => {
+        expect(isLegacyMigrationRequired(missingHash160)).toBe(true);
     });
     it(`Recognizes a latest, current wallet that does not require migration`, () => {
         expect(isLegacyMigrationRequired(notLegacyWallet)).toBe(false);
