@@ -1176,6 +1176,8 @@ private:
 
     const Options m_opts;
 
+    bool RejectIncomingTxs(const CNode &peer) const;
+
     /**
      * Whether we've completed initial sync yet, for determining when to turn
      * on extra block-relay-only peers.
@@ -1780,9 +1782,9 @@ bool PeerManagerImpl::BlockRequested(const Config &config, NodeId nodeid,
 void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
     AssertLockHeld(cs_main);
 
-    // Never request high-bandwidth mode from peers if we're blocks-only. Our
-    // mempool will not contain the transactions necessary to reconstruct the
-    // compact block.
+    // When in -blocksonly mode, never request high-bandwidth mode from peers.
+    // Our mempool will not contain the transactions necessary to reconstruct
+    // the compact block.
     if (m_opts.ignore_incoming_txs) {
         return;
     }
@@ -5191,16 +5193,7 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        // Reject tx INVs when the -blocksonly setting is enabled, or this is a
-        // block-relay-only peer
-        bool reject_tx_invs{m_opts.ignore_incoming_txs ||
-                            pfrom.IsBlockOnlyConn()};
-
-        // Allow peers with relay permission to send data other than blocks
-        // in blocks only mode
-        if (pfrom.HasPermission(NetPermissionFlags::Relay)) {
-            reject_tx_invs = false;
-        }
+        const bool reject_tx_invs{RejectIncomingTxs(pfrom)};
 
         const auto current_time{GetTime<std::chrono::microseconds>()};
         std::optional<BlockHash> best_block;
@@ -5604,12 +5597,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::TX) {
-        // Stop processing the transaction early if
-        // 1) We are in blocks only mode and peer has no relay permission; OR
-        // 2) This peer is a block-relay-only peer
-        if ((m_opts.ignore_incoming_txs &&
-             !pfrom.HasPermission(NetPermissionFlags::Relay)) ||
-            pfrom.IsBlockOnlyConn()) {
+        if (RejectIncomingTxs(pfrom)) {
             LogPrint(BCLog::NET,
                      "transaction sent in violation of protocol peer=%d\n",
                      pfrom.GetId());
@@ -8124,6 +8112,19 @@ public:
     }
 };
 } // namespace
+
+bool PeerManagerImpl::RejectIncomingTxs(const CNode &peer) const {
+    // block-relay-only peers may never send txs to us
+    if (peer.IsBlockOnlyConn()) {
+        return true;
+    }
+    // In -blocksonly mode, peers need the 'relay' permission to send txs to us
+    if (m_opts.ignore_incoming_txs &&
+        !peer.HasPermission(NetPermissionFlags::Relay)) {
+        return true;
+    }
+    return false;
+}
 
 bool PeerManagerImpl::SetupAddressRelay(const CNode &node, Peer &peer) {
     // We don't participate in addr relay with outbound block-relay-only
