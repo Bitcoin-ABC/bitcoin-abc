@@ -10,6 +10,8 @@
 
 #include <cassert>
 
+/** Expiration time for orphan transactions in seconds */
+static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
 /** Minimum time between orphan transactions expire time checks in seconds */
 static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
 
@@ -23,6 +25,43 @@ std::map<COutPoint,
 
 std::vector<std::map<TxId, COrphanTx>::iterator>
     g_orphan_list GUARDED_BY(g_cs_orphans);
+
+bool OrphanageAddTx(const CTransactionRef &tx, NodeId peer) {
+    AssertLockHeld(g_cs_orphans);
+
+    const TxId &txid = tx->GetId();
+    if (mapOrphanTransactions.count(txid)) {
+        return false;
+    }
+
+    // Ignore big transactions, to avoid a send-big-orphans memory exhaustion
+    // attack. If a peer has a legitimate large transaction with a missing
+    // parent then we assume it will rebroadcast it later, after the parent
+    // transaction(s) have been mined or received.
+    // 100 orphans, each of which is at most 100,000 bytes big is at most 10
+    // megabytes of orphans and somewhat more byprev index (in the worst case):
+    unsigned int sz = tx->GetTotalSize();
+    if (sz > MAX_STANDARD_TX_SIZE) {
+        LogPrint(BCLog::MEMPOOL,
+                 "ignoring large orphan tx (size: %u, hash: %s)\n", sz,
+                 txid.ToString());
+        return false;
+    }
+
+    auto ret = mapOrphanTransactions.emplace(
+        txid, COrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME,
+                        g_orphan_list.size()});
+    assert(ret.second);
+    g_orphan_list.push_back(ret.first);
+    for (const CTxIn &txin : tx->vin) {
+        mapOrphanTransactionsByPrev[txin.prevout].insert(ret.first);
+    }
+
+    LogPrint(BCLog::MEMPOOL, "stored orphan tx %s (mapsz %u outsz %u)\n",
+             txid.ToString(), mapOrphanTransactions.size(),
+             mapOrphanTransactionsByPrev.size());
+    return true;
+}
 
 int EraseOrphanTx(const TxId &txid) {
     std::map<TxId, COrphanTx>::iterator it = mapOrphanTransactions.find(txid);

@@ -1753,44 +1753,6 @@ static void AddToCompactExtraTransactions(const CTransactionRef &tx)
     vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % max_extra_txn;
 }
 
-bool AddOrphanTx(const CTransactionRef &tx, NodeId peer)
-    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
-    const TxId &txid = tx->GetId();
-    if (mapOrphanTransactions.count(txid)) {
-        return false;
-    }
-
-    // Ignore big transactions, to avoid a send-big-orphans memory exhaustion
-    // attack. If a peer has a legitimate large transaction with a missing
-    // parent then we assume it will rebroadcast it later, after the parent
-    // transaction(s) have been mined or received.
-    // 100 orphans, each of which is at most 100,000 bytes big is at most 10
-    // megabytes of orphans and somewhat more byprev index (in the worst case):
-    unsigned int sz = tx->GetTotalSize();
-    if (sz > MAX_STANDARD_TX_SIZE) {
-        LogPrint(BCLog::MEMPOOL,
-                 "ignoring large orphan tx (size: %u, hash: %s)\n", sz,
-                 txid.ToString());
-        return false;
-    }
-
-    auto ret = mapOrphanTransactions.emplace(
-        txid, COrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME,
-                        g_orphan_list.size()});
-    assert(ret.second);
-    g_orphan_list.push_back(ret.first);
-    for (const CTxIn &txin : tx->vin) {
-        mapOrphanTransactionsByPrev[txin.prevout].insert(ret.first);
-    }
-
-    AddToCompactExtraTransactions(tx);
-
-    LogPrint(BCLog::MEMPOOL, "stored orphan tx %s (mapsz %u outsz %u)\n",
-             txid.ToString(), mapOrphanTransactions.size(),
-             mapOrphanTransactionsByPrev.size());
-    return true;
-}
-
 void PeerManagerImpl::Misbehaving(const NodeId pnode, const int howmuch,
                                   const std::string &message) {
     assert(howmuch > 0);
@@ -4349,7 +4311,10 @@ void PeerManagerImpl::ProcessMessage(
                         AddTxAnnouncement(pfrom, parent_txid, current_time);
                     }
                 }
-                AddOrphanTx(ptx, pfrom.GetId());
+
+                if (OrphanageAddTx(ptx, pfrom.GetId())) {
+                    AddToCompactExtraTransactions(ptx);
+                }
 
                 // Once added to the orphan pool, a tx is considered
                 // AlreadyHave, and we shouldn't request it anymore.

@@ -9,9 +9,6 @@
 #include <primitives/transaction.h>
 #include <sync.h>
 
-/** Expiration time for orphan transactions in seconds */
-static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
-
 /** Guards orphan transactions and extra txs for compact blocks */
 extern RecursiveMutex g_cs_orphans;
 
@@ -32,6 +29,8 @@ void AddChildrenToWorkSet(const CTransaction &tx,
     EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 bool HaveOrphanTx(const TxId &txid) LOCKS_EXCLUDED(g_cs_orphans);
 std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid)
+    EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+bool OrphanageAddTx(const CTransactionRef &tx, NodeId peer)
     EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
 /**

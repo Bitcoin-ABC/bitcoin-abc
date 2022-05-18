@@ -43,9 +43,6 @@ struct CConnmanTest : public CConnman {
 };
 } // namespace
 
-// Tests these internal-to-net_processing.cpp methods:
-extern bool AddOrphanTx(const CTransactionRef &tx, NodeId peer);
-
 static CService ip(uint32_t i) {
     struct in_addr s;
     s.s_addr = i;
@@ -337,9 +334,8 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     peerLogic->FinalizeNode(config, dummyNode, dummy);
 }
 
-static CTransactionRef RandomOrphan() {
+static CTransactionRef RandomOrphan() EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
     std::map<TxId, COrphanTx>::iterator it;
-    LOCK2(cs_main, g_cs_orphans);
     it = mapOrphanTransactions.lower_bound(TxId{InsecureRand256()});
     if (it == mapOrphanTransactions.end()) {
         it = mapOrphanTransactions.begin();
@@ -353,6 +349,8 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     FillableSigningProvider keystore;
     BOOST_CHECK(keystore.AddKey(key));
 
+    LOCK(g_cs_orphans);
+
     // 50 orphan transactions:
     for (int i = 0; i < 50; i++) {
         CMutableTransaction tx;
@@ -364,7 +362,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         tx.vout[0].scriptPubKey =
             GetScriptForDestination(PKHash(key.GetPubKey()));
 
-        AddOrphanTx(MakeTransactionRef(tx), i);
+        OrphanageAddTx(MakeTransactionRef(tx), i);
     }
 
     // ... and 50 that depend on other orphans:
@@ -381,7 +379,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         BOOST_CHECK(SignSignature(keystore, *txPrev, tx, 0,
                                   SigHashType().withForkId()));
 
-        AddOrphanTx(MakeTransactionRef(tx), i);
+        OrphanageAddTx(MakeTransactionRef(tx), i);
     }
 
     // This really-big orphan should be ignored:
@@ -405,10 +403,9 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
             tx.vin[j].scriptSig = tx.vin[0].scriptSig;
         }
 
-        BOOST_CHECK(!AddOrphanTx(MakeTransactionRef(tx), i));
+        BOOST_CHECK(!OrphanageAddTx(MakeTransactionRef(tx), i));
     }
 
-    LOCK2(cs_main, g_cs_orphans);
     // Test EraseOrphansFor:
     for (NodeId i = 0; i < 3; i++) {
         size_t sizeBefore = mapOrphanTransactions.size();
