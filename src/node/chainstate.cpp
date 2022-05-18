@@ -4,20 +4,19 @@
 
 #include <node/chainstate.h>
 
+#include <chainparams.h>
 #include <config.h>
 #include <consensus/params.h>
 #include <node/blockstorage.h>
 #include <validation.h>
 
 namespace node {
-std::optional<ChainstateLoadingError>
-LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
-               bool fPruneMode_, const Consensus::Params &consensus_params,
-               bool fReindexChainState, int64_t nBlockTreeDBCache,
-               int64_t nCoinDBCache, int64_t nCoinCacheUsage,
-               bool block_tree_db_in_memory, bool coins_db_in_memory,
-               std::function<bool()> shutdown_requested,
-               std::function<void()> coins_error_cb) {
+std::optional<ChainstateLoadingError> LoadChainstate(
+    bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
+    bool fPruneMode_, bool fReindexChainState, int64_t nBlockTreeDBCache,
+    int64_t nCoinDBCache, int64_t nCoinCacheUsage, bool block_tree_db_in_memory,
+    bool coins_db_in_memory, std::function<bool()> shutdown_requested,
+    std::function<void()> coins_error_cb) {
     auto is_coinsview_empty =
         [&](Chainstate *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             return fReset || fReindexChainState ||
@@ -48,7 +47,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
     // If necessary, upgrade from older database format.
     // This is a no-op if we cleared the block tree db with -reindex
     // or -reindex-chainstate
-    if (!pblocktree->Upgrade(consensus_params)) {
+    if (!pblocktree->Upgrade()) {
         return ChainstateLoadingError::ERROR_UPGRADING_BLOCK_DB;
     }
 
@@ -69,7 +68,7 @@ LoadChainstate(bool fReset, ChainstateManager &chainman, CTxMemPool *mempool,
 
     if (!chainman.BlockIndex().empty() &&
         !chainman.m_blockman.LookupBlockIndex(
-            consensus_params.hashGenesisBlock)) {
+            chainman.GetConsensus().hashGenesisBlock)) {
         return ChainstateLoadingError::ERROR_BAD_GENESIS_BLOCK;
     }
 

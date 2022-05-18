@@ -2434,9 +2434,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         try {
             maybe_load_error = LoadChainstate(
                 fReset, chainman, Assert(node.mempool.get()), fPruneMode,
-                chainparams.GetConsensus(), fReindexChainState,
-                cache_sizes.block_tree_db, cache_sizes.coins_db,
-                cache_sizes.coins, /*block_tree_db_in_memory=*/false,
+                fReindexChainState, cache_sizes.block_tree_db,
+                cache_sizes.coins_db, cache_sizes.coins,
+                /*block_tree_db_in_memory=*/false,
                 /*coins_db_in_memory=*/false,
                 /*shutdown_requested=*/ShutdownRequested,
                 /*coins_error_cb=*/[]() {

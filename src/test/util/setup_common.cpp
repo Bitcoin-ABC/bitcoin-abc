@@ -189,8 +189,7 @@ ChainTestingSetup::ChainTestingSetup(
         std::make_unique<CBlockTreeDB>(m_cache_sizes.block_tree_db, true);
     // Call Upgrade on the block database so that the version field is set,
     // else LoadBlockIndexGuts will fail (see D8319).
-    m_node.chainman->m_blockman.m_block_tree_db->Upgrade(
-        config.GetChainParams().GetConsensus());
+    m_node.chainman->m_blockman.m_block_tree_db->Upgrade();
 
     constexpr int script_check_threads = 2;
     StartScriptCheckWorkerThreads(script_check_threads);
@@ -233,13 +232,13 @@ TestingSetup::TestingSetup(const std::string &chainName,
         SetRPCWarmupFinished();
     }
 
-    auto maybe_load_error = LoadChainstate(
-        fReindex.load(), *Assert(m_node.chainman.get()),
-        Assert(m_node.mempool.get()), fPruneMode, chainparams.GetConsensus(),
-        m_args.GetBoolArg("-reindex-chainstate", false),
-        m_cache_sizes.block_tree_db, m_cache_sizes.coins_db,
-        m_cache_sizes.coins, /*block_tree_db_in_memory=*/true,
-        /*coins_db_in_memory=*/true);
+    auto maybe_load_error =
+        LoadChainstate(fReindex.load(), *Assert(m_node.chainman.get()),
+                       Assert(m_node.mempool.get()), fPruneMode,
+                       m_args.GetBoolArg("-reindex-chainstate", false),
+                       m_cache_sizes.block_tree_db, m_cache_sizes.coins_db,
+                       m_cache_sizes.coins, /*block_tree_db_in_memory=*/true,
+                       /*coins_db_in_memory=*/true);
     assert(!maybe_load_error.has_value());
 
     auto maybe_verify_error = VerifyLoadedChainstate(

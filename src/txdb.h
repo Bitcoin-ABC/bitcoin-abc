@@ -125,7 +125,7 @@ public:
 
     //! Attempt to update from an older database format.
     //! Returns whether an error occurred.
-    bool Upgrade(const Consensus::Params &params);
+    bool Upgrade();
 };
 
 std::optional<bilingual_str> CheckLegacyTxindex(CBlockTreeDB &block_tree_db);

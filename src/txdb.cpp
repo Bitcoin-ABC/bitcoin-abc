@@ -488,7 +488,7 @@ bool CCoinsViewDB::Upgrade() {
     return !ShutdownRequested();
 }
 
-bool CBlockTreeDB::Upgrade(const Consensus::Params &params) {
+bool CBlockTreeDB::Upgrade() {
     // This method used to add the block size to pre-0.22.8 block index
     // databases. This is no longer supported as of 0.25.5, but the method is
     // kept to update the version number in the database.
