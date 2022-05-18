@@ -337,14 +337,14 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
 class TxOrphanageTest : public TxOrphanage {
 public:
     inline size_t CountOrphans() const EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
-        return mapOrphanTransactions.size();
+        return m_orphans.size();
     }
 
     CTransactionRef RandomOrphan() EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans) {
-        std::map<TxId, COrphanTx>::iterator it;
-        it = mapOrphanTransactions.lower_bound(TxId{InsecureRand256()});
-        if (it == mapOrphanTransactions.end()) {
-            it = mapOrphanTransactions.begin();
+        std::map<TxId, OrphanTx>::iterator it;
+        it = m_orphans.lower_bound(TxId{InsecureRand256()});
+        if (it == m_orphans.end()) {
+            it = m_orphans.begin();
         }
         return it->second.tx;
     }

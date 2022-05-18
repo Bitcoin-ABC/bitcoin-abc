@@ -41,7 +41,7 @@ public:
     void EraseForBlock(const CBlock &block) LOCKS_EXCLUDED(g_cs_orphans);
 
     /** Limit the orphanage to the given maximum */
-    unsigned int LimitOrphans(unsigned int nMaxOrphans)
+    unsigned int LimitOrphans(unsigned int max_orphans)
         EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
     /**
@@ -54,7 +54,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 
 protected:
-    struct COrphanTx {
+    struct OrphanTx {
         CTransactionRef tx;
         NodeId fromPeer;
         int64_t nTimeExpire;
@@ -65,9 +65,9 @@ protected:
      * Map from txid to orphan transaction record. Limited by
      *  -maxorphantx/DEFAULT_MAX_ORPHAN_TRANSACTIONS
      */
-    std::map<TxId, COrphanTx> mapOrphanTransactions GUARDED_BY(g_cs_orphans);
+    std::map<TxId, OrphanTx> m_orphans GUARDED_BY(g_cs_orphans);
 
-    using OrphanMap = decltype(mapOrphanTransactions);
+    using OrphanMap = decltype(m_orphans);
 
     struct IteratorComparator {
         template <typename I> bool operator()(const I &a, const I &b) const {
@@ -76,14 +76,14 @@ protected:
     };
 
     /**
-     * Index from the parents' COutPoint into the mapOrphanTransactions. Used
-     *  to remove orphan transactions from the mapOrphanTransactions
+     * Index from the parents' COutPoint into the m_orphans. Used
+     *  to remove orphan transactions from the m_orphans
      */
     std::map<COutPoint, std::set<OrphanMap ::iterator, IteratorComparator>>
-        mapOrphanTransactionsByPrev GUARDED_BY(g_cs_orphans);
+        m_outpoint_to_orphan_it GUARDED_BY(g_cs_orphans);
 
     /** Orphan transactions in vector for quick random eviction */
-    std::vector<OrphanMap::iterator> g_orphan_list GUARDED_BY(g_cs_orphans);
+    std::vector<OrphanMap::iterator> m_orphan_list GUARDED_BY(g_cs_orphans);
 };
 
 #endif // BITCOIN_TXORPHANAGE_H

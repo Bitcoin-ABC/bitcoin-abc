@@ -21,7 +21,7 @@ bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
     AssertLockHeld(g_cs_orphans);
 
     const TxId &txid = tx->GetId();
-    if (mapOrphanTransactions.count(txid)) {
+    if (m_orphans.count(txid)) {
         return false;
     }
 
@@ -39,50 +39,49 @@ bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
         return false;
     }
 
-    auto ret = mapOrphanTransactions.emplace(
-        txid, COrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME,
-                        g_orphan_list.size()});
+    auto ret = m_orphans.emplace(
+        txid, OrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME,
+                       m_orphan_list.size()});
     assert(ret.second);
-    g_orphan_list.push_back(ret.first);
+    m_orphan_list.push_back(ret.first);
     for (const CTxIn &txin : tx->vin) {
-        mapOrphanTransactionsByPrev[txin.prevout].insert(ret.first);
+        m_outpoint_to_orphan_it[txin.prevout].insert(ret.first);
     }
 
     LogPrint(BCLog::MEMPOOL, "stored orphan tx %s (mapsz %u outsz %u)\n",
-             txid.ToString(), mapOrphanTransactions.size(),
-             mapOrphanTransactionsByPrev.size());
+             txid.ToString(), m_orphans.size(), m_outpoint_to_orphan_it.size());
     return true;
 }
 
 int TxOrphanage::EraseTx(const TxId &txid) {
     AssertLockHeld(g_cs_orphans);
-    std::map<TxId, COrphanTx>::iterator it = mapOrphanTransactions.find(txid);
-    if (it == mapOrphanTransactions.end()) {
+    std::map<TxId, OrphanTx>::iterator it = m_orphans.find(txid);
+    if (it == m_orphans.end()) {
         return 0;
     }
     for (const CTxIn &txin : it->second.tx->vin) {
-        auto itPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
-        if (itPrev == mapOrphanTransactionsByPrev.end()) {
+        auto itPrev = m_outpoint_to_orphan_it.find(txin.prevout);
+        if (itPrev == m_outpoint_to_orphan_it.end()) {
             continue;
         }
         itPrev->second.erase(it);
         if (itPrev->second.empty()) {
-            mapOrphanTransactionsByPrev.erase(itPrev);
+            m_outpoint_to_orphan_it.erase(itPrev);
         }
     }
 
     size_t old_pos = it->second.list_pos;
-    assert(g_orphan_list[old_pos] == it);
-    if (old_pos + 1 != g_orphan_list.size()) {
-        // Unless we're deleting the last entry in g_orphan_list, move the last
+    assert(m_orphan_list[old_pos] == it);
+    if (old_pos + 1 != m_orphan_list.size()) {
+        // Unless we're deleting the last entry in m_orphan_list, move the last
         // entry to the position we're deleting.
-        auto it_last = g_orphan_list.back();
-        g_orphan_list[old_pos] = it_last;
+        auto it_last = m_orphan_list.back();
+        m_orphan_list[old_pos] = it_last;
         it_last->second.list_pos = old_pos;
     }
-    g_orphan_list.pop_back();
+    m_orphan_list.pop_back();
 
-    mapOrphanTransactions.erase(it);
+    m_orphans.erase(it);
     return 1;
 }
 
@@ -90,9 +89,9 @@ void TxOrphanage::EraseForPeer(NodeId peer) {
     AssertLockHeld(g_cs_orphans);
 
     int nErased = 0;
-    std::map<TxId, COrphanTx>::iterator iter = mapOrphanTransactions.begin();
-    while (iter != mapOrphanTransactions.end()) {
-        std::map<TxId, COrphanTx>::iterator maybeErase =
+    std::map<TxId, OrphanTx>::iterator iter = m_orphans.begin();
+    while (iter != m_orphans.end()) {
+        std::map<TxId, OrphanTx>::iterator maybeErase =
             iter++; // increment to avoid iterator becoming invalid
         if (maybeErase->second.fromPeer == peer) {
             nErased += EraseTx(maybeErase->second.tx->GetId());
@@ -104,7 +103,7 @@ void TxOrphanage::EraseForPeer(NodeId peer) {
     }
 }
 
-unsigned int TxOrphanage::LimitOrphans(unsigned int nMaxOrphans) {
+unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
     AssertLockHeld(g_cs_orphans);
 
     unsigned int nEvicted = 0;
@@ -115,10 +114,9 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int nMaxOrphans) {
         int nErased = 0;
         int64_t nMinExpTime =
             nNow + ORPHAN_TX_EXPIRE_TIME - ORPHAN_TX_EXPIRE_INTERVAL;
-        std::map<TxId, COrphanTx>::iterator iter =
-            mapOrphanTransactions.begin();
-        while (iter != mapOrphanTransactions.end()) {
-            std::map<TxId, COrphanTx>::iterator maybeErase = iter++;
+        std::map<TxId, OrphanTx>::iterator iter = m_orphans.begin();
+        while (iter != m_orphans.end()) {
+            std::map<TxId, OrphanTx>::iterator maybeErase = iter++;
             if (maybeErase->second.nTimeExpire <= nNow) {
                 nErased += EraseTx(maybeErase->second.tx->GetId());
             } else {
@@ -135,10 +133,10 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int nMaxOrphans) {
         }
     }
     FastRandomContext rng;
-    while (mapOrphanTransactions.size() > nMaxOrphans) {
+    while (m_orphans.size() > max_orphans) {
         // Evict a random orphan:
-        size_t randompos = rng.randrange(g_orphan_list.size());
-        EraseTx(g_orphan_list[randompos]->first);
+        size_t randompos = rng.randrange(m_orphan_list.size());
+        EraseTx(m_orphan_list[randompos]->first);
         ++nEvicted;
     }
     return nEvicted;
@@ -149,8 +147,8 @@ void TxOrphanage::AddChildrenToWorkSet(const CTransaction &tx,
     AssertLockHeld(g_cs_orphans);
     for (size_t i = 0; i < tx.vout.size(); i++) {
         const auto it_by_prev =
-            mapOrphanTransactionsByPrev.find(COutPoint(tx.GetId(), i));
-        if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
+            m_outpoint_to_orphan_it.find(COutPoint(tx.GetId(), i));
+        if (it_by_prev != m_outpoint_to_orphan_it.end()) {
             for (const auto &elem : it_by_prev->second) {
                 orphan_work_set.insert(elem->first);
             }
@@ -160,14 +158,14 @@ void TxOrphanage::AddChildrenToWorkSet(const CTransaction &tx,
 
 bool TxOrphanage::HaveTx(const TxId &txid) const {
     LOCK(g_cs_orphans);
-    return mapOrphanTransactions.count(txid);
+    return m_orphans.count(txid);
 }
 
 std::pair<CTransactionRef, NodeId> TxOrphanage::GetTx(const TxId &txid) const {
     AssertLockHeld(g_cs_orphans);
 
-    const auto it = mapOrphanTransactions.find(txid);
-    if (it == mapOrphanTransactions.end()) {
+    const auto it = m_orphans.find(txid);
+    if (it == m_orphans.end()) {
         return {nullptr, -1};
     }
     return {it->second.tx, it->second.fromPeer};
@@ -183,8 +181,8 @@ void TxOrphanage::EraseForBlock(const CBlock &block) {
 
         // Which orphan pool entries must we evict?
         for (const auto &txin : tx.vin) {
-            auto itByPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
-            if (itByPrev == mapOrphanTransactionsByPrev.end()) {
+            auto itByPrev = m_outpoint_to_orphan_it.find(txin.prevout);
+            if (itByPrev == m_outpoint_to_orphan_it.end()) {
                 continue;
             }
 
