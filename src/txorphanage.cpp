@@ -180,3 +180,39 @@ std::pair<CTransactionRef, NodeId> GetOrphanTx(const TxId &txid) {
     }
     return {it->second.tx, it->second.fromPeer};
 }
+
+void EraseOrphansForBlock(const CBlock &block) {
+    LOCK(g_cs_orphans);
+
+    std::vector<TxId> vOrphanErase;
+
+    for (const CTransactionRef &ptx : block.vtx) {
+        const CTransaction &tx = *ptx;
+
+        // Which orphan pool entries must we evict?
+        for (const auto &txin : tx.vin) {
+            auto itByPrev = mapOrphanTransactionsByPrev.find(txin.prevout);
+            if (itByPrev == mapOrphanTransactionsByPrev.end()) {
+                continue;
+            }
+
+            for (auto mi = itByPrev->second.begin();
+                 mi != itByPrev->second.end(); ++mi) {
+                const CTransaction &orphanTx = *(*mi)->second.tx;
+                const TxId &orphanId = orphanTx.GetId();
+                vOrphanErase.push_back(orphanId);
+            }
+        }
+    }
+
+    // Erase orphan transactions included or precluded by this block
+    if (vOrphanErase.size()) {
+        int nErased = 0;
+        for (const auto &orphanId : vOrphanErase) {
+            nErased += EraseOrphanTx(orphanId);
+        }
+        LogPrint(BCLog::MEMPOOL,
+                 "Erased %d orphan tx included or conflicted by block\n",
+                 nErased);
+    }
+}

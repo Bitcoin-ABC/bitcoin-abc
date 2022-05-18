@@ -6,6 +6,7 @@
 #define BITCOIN_TXORPHANAGE_H
 
 #include <net.h>
+#include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <sync.h>
 
@@ -22,6 +23,7 @@ struct COrphanTx {
 
 int EraseOrphanTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
+void EraseOrphansForBlock(const CBlock &block) LOCKS_EXCLUDED(g_cs_orphans);
 unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
     EXCLUSIVE_LOCKS_REQUIRED(g_cs_orphans);
 void AddChildrenToWorkSet(const CTransaction &tx,
