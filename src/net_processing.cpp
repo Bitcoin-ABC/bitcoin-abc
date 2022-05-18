@@ -3007,15 +3007,7 @@ void PeerManagerImpl::ProcessOrphanTx(const Config &config,
             LogPrint(BCLog::MEMPOOL, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
             RelayTransaction(orphanTxId, m_connman);
-            for (size_t i = 0; i < porphanTx->vout.size(); i++) {
-                auto it_by_prev =
-                    mapOrphanTransactionsByPrev.find(COutPoint(orphanTxId, i));
-                if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
-                    for (const auto &elem : it_by_prev->second) {
-                        orphan_work_set.insert(elem->first);
-                    }
-                }
-            }
+            AddChildrenToWorkSet(*porphanTx, orphan_work_set);
             EraseOrphanTx(orphanTxId);
             break;
         } else if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
@@ -4317,15 +4309,7 @@ void PeerManagerImpl::ProcessMessage(
             // about any requests for it.
             m_txrequest.ForgetInvId(tx.GetId());
             RelayTransaction(tx.GetId(), m_connman);
-            for (size_t i = 0; i < tx.vout.size(); i++) {
-                auto it_by_prev =
-                    mapOrphanTransactionsByPrev.find(COutPoint(txid, i));
-                if (it_by_prev != mapOrphanTransactionsByPrev.end()) {
-                    for (const auto &elem : it_by_prev->second) {
-                        peer->m_orphan_work_set.insert(elem->first);
-                    }
-                }
-            }
+            AddChildrenToWorkSet(tx, peer->m_orphan_work_set);
 
             pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
 
