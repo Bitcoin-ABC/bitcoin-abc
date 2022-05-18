@@ -2231,11 +2231,8 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         recentRejects->reset();
     }
 
-    {
-        LOCK(g_cs_orphans);
-        if (mapOrphanTransactions.count(txid)) {
-            return true;
-        }
+    if (HaveOrphanTx(txid)) {
+        return true;
     }
 
     {

@@ -126,3 +126,8 @@ void AddChildrenToWorkSet(const CTransaction &tx,
         }
     }
 }
+
+bool HaveOrphanTx(const TxId &txid) {
+    LOCK(g_cs_orphans);
+    return mapOrphanTransactions.count(txid);
+}
