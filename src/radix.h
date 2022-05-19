@@ -15,6 +15,10 @@
 #include <memory>
 #include <type_traits>
 
+template <typename T> struct PassthroughAdapter {
+    auto &&getId(const T &e) const { return e.getId(); }
+};
+
 /**
  * This is a radix tree storing values identified by a unique key.
  *
@@ -33,20 +37,22 @@
  * to speed before destroying anything. It is therefore crucial that the lock be
  * taken before reading anything in the tree.
  */
-template <typename T> struct RadixTree {
+template <typename T, typename Adapter = PassthroughAdapter<T>>
+struct RadixTree {
 private:
     static const int BITS = 4;
     static const int MASK = (1 << BITS) - 1;
     static const size_t CHILD_PER_LEVEL = 1 << BITS;
 
     using KeyType = typename std::remove_reference<decltype(
-        std::declval<T &>().getId())>::type;
+        std::declval<Adapter &>().getId(std::declval<T &>()))>::type;
     static const size_t KEY_BITS = 8 * sizeof(KeyType);
     static const uint32_t TOP_LEVEL = (KEY_BITS - 1) / BITS;
 
     struct RadixElement;
     struct RadixNode;
 
+    Adapter adapter;
     std::atomic<RadixElement> root;
 
 public:
@@ -104,9 +110,7 @@ public:
      * Insert a value into the tree.
      * Returns true if the value was inserted, false if it was already present.
      */
-    bool insert(const RCUPtr<T> &value) {
-        return insert(value->getId(), value);
-    }
+    bool insert(const RCUPtr<T> &value) { return insert(getId(*value), value); }
 
     /**
      * Get the value corresponding to a key.
@@ -124,7 +128,7 @@ public:
         }
 
         T *leaf = e.getLeaf();
-        if (leaf == nullptr || leaf->getId() != key) {
+        if (leaf == nullptr || getId(*leaf) != key) {
             // We failed to find the proper element.
             return RCUPtr<T>();
         }
@@ -184,7 +188,7 @@ public:
         SEEK_LEAF_LOOP();
 
         T *leaf = e.getLeaf();
-        if (leaf == nullptr || leaf->getId() != key) {
+        if (leaf == nullptr || getId(*leaf) != key) {
             // We failed to find the proper element.
             return RCUPtr<T>();
         }
@@ -204,6 +208,8 @@ public:
     }
 
 private:
+    KeyType getId(const T &value) const { return adapter.getId(value); }
+
     bool insert(const KeyType &key, RCUPtr<T> value) {
         uint32_t level = TOP_LEVEL;
 
@@ -228,7 +234,7 @@ private:
             }
 
             // The element was already in the tree.
-            const KeyType &leafKey = e.getLeaf()->getId();
+            const KeyType &leafKey = getId(*e.getLeaf());
             if (key == leafKey) {
                 return false;
             }

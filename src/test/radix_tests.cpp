@@ -6,6 +6,7 @@
 
 #include <arith_uint256.h>
 #include <uint256.h>
+#include <util/strencodings.h>
 
 #include <test/lcg.h>
 #include <test/util/setup_common.h>
@@ -594,6 +595,52 @@ BOOST_AUTO_TEST_CASE(uint256_key_wrapper) {
     checkOperands(key >> 255u, uint256S("0000000000000000000000000000000000000000000000000000000000000001"), 0x0000000000000001);
     checkOperands(key >> 256u, uint256S("0000000000000000000000000000000000000000000000000000000000000000"), 0x0000000000000000);
     // clang-format on
+}
+
+BOOST_AUTO_TEST_CASE(radix_adapter) {
+    using E = TestElement<std::string>;
+
+    struct StringKeyAdapter {
+        uint64_t getId(const E &e) const {
+            uint64_t key;
+            BOOST_REQUIRE(ParseUInt64(e.getId(), &key));
+            return key;
+        }
+    };
+
+    RadixTree<E, StringKeyAdapter> mytree;
+
+    auto zero = RCUPtr<E>::make("0");
+    auto one = RCUPtr<E>::make("1");
+    auto two = RCUPtr<E>::make("2");
+    auto three = RCUPtr<E>::make("3");
+
+    // Let's insert some elements
+    BOOST_CHECK(mytree.insert(zero));
+    BOOST_CHECK(mytree.insert(one));
+    BOOST_CHECK(mytree.insert(two));
+    BOOST_CHECK(mytree.insert(three));
+    BOOST_CHECK(!mytree.insert(zero));
+    BOOST_CHECK(!mytree.insert(one));
+    BOOST_CHECK(!mytree.insert(two));
+    BOOST_CHECK(!mytree.insert(three));
+
+    // Retrieval is done using the converted key
+    BOOST_CHECK_EQUAL(mytree.get(0), zero);
+    BOOST_CHECK_EQUAL(mytree.get(1), one);
+    BOOST_CHECK_EQUAL(mytree.get(2), two);
+    BOOST_CHECK_EQUAL(mytree.get(3), three);
+
+    // And so does removal
+    BOOST_CHECK(mytree.remove(0));
+    BOOST_CHECK(mytree.remove(1));
+    BOOST_CHECK(mytree.remove(2));
+    BOOST_CHECK(mytree.remove(3));
+
+    BOOST_CHECK(!mytree.get(0));
+    BOOST_CHECK(!mytree.get(1));
+    BOOST_CHECK(!mytree.get(2));
+    BOOST_CHECK(!mytree.get(3));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
