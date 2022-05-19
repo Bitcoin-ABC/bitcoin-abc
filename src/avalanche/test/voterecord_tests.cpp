@@ -118,4 +118,54 @@ BOOST_AUTO_TEST_CASE(vote_record) {
     }
 }
 
+namespace {
+NodeId nextNodeId(NodeId &nodeid) {
+    nodeid++;
+    if (nodeid >= 8) {
+        nodeid = 0;
+    }
+    return nodeid;
+}
+} // namespace
+
+BOOST_AUTO_TEST_CASE(duplicate_votes) {
+    VoteRecord vr(true);
+    NodeId nodeid = -1;
+
+    // Register some votes, expecting confidence to increase
+    for (auto i = 0; i < 7; i++) {
+        BOOST_CHECK_EQUAL(vr.getConfidence(), 0);
+        BOOST_CHECK(!vr.registerVote(nextNodeId(nodeid), 0));
+    }
+    BOOST_CHECK_EQUAL(vr.getConfidence(), 1);
+
+    // Multiple duplicate votes do not advance confidence
+    for (auto i = 0; i < 8; i++) {
+        BOOST_CHECK(!vr.registerVote(nodeid, 0));
+        BOOST_CHECK_EQUAL(vr.getConfidence(), 1);
+    }
+
+    // Register more votes with duplicates mixed in. Confidence should only
+    // increase when duplicates are not used.
+    auto expectedConfidence = 1;
+    for (auto i = 0; i < 8; i++) {
+        BOOST_CHECK(!vr.registerVote(nodeid, 0));
+        BOOST_CHECK_EQUAL(vr.getConfidence(), expectedConfidence);
+        for (auto j = i; j < 8; j++) {
+            BOOST_CHECK(!vr.registerVote(nextNodeId(nodeid), 0));
+            BOOST_CHECK_EQUAL(vr.getConfidence(), ++expectedConfidence);
+        }
+    }
+
+    // Register enough votes to get just before finalization
+    for (auto i = 0; i < 90; i++) {
+        BOOST_CHECK(!vr.registerVote(nextNodeId(nodeid), 0));
+        BOOST_CHECK_EQUAL(vr.getConfidence(), ++expectedConfidence);
+    }
+
+    // Sanity check that finalization occurs on the expected vote
+    BOOST_CHECK(vr.registerVote(nextNodeId(nodeid), 0));
+    BOOST_CHECK(vr.hasFinalized());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
