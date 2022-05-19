@@ -10,25 +10,28 @@
 
 using namespace avalanche;
 
-NodeId nextNodeId(NodeId &nodeid) {
-    nodeid++;
-    if (nodeid >= 8) {
-        nodeid = 0;
-    }
-    return nodeid;
-}
+struct VoteRecordFixture {
+    NodeId currentNodeId = -1;
 
-BOOST_FIXTURE_TEST_SUITE(voterecord_tests, TestingSetup)
+    NodeId nextNodeId() {
+        currentNodeId++;
+        if (currentNodeId >= 8) {
+            currentNodeId = 0;
+        }
+        return currentNodeId;
+    }
+};
+
+BOOST_FIXTURE_TEST_SUITE(voterecord_tests, VoteRecordFixture)
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, stale, confidence) \
-    vr.registerVote(nextNodeId(nodeid), vote);                                 \
+    vr.registerVote(nextNodeId(), vote);                                       \
     BOOST_CHECK_EQUAL(vr.isAccepted(), state);                                 \
     BOOST_CHECK_EQUAL(vr.hasFinalized(), finalized);                           \
     BOOST_CHECK_EQUAL(vr.isStale(), stale);                                    \
     BOOST_CHECK_EQUAL(vr.getConfidence(), confidence);
 
 BOOST_AUTO_TEST_CASE(vote_record) {
-    NodeId nodeid = -1;
     VoteRecord vraccepted(true);
 
     // Check initial state.
@@ -134,7 +137,6 @@ BOOST_AUTO_TEST_CASE(vote_record) {
 
 // Test some cases where confidence never advances
 BOOST_AUTO_TEST_CASE(stale_vote_always_inconclusive) {
-    NodeId nodeid = -1;
     // Setup a record that is inconclusive so far
     VoteRecord vr(false);
 
@@ -156,8 +158,6 @@ BOOST_AUTO_TEST_CASE(stale_vote_always_inconclusive) {
 // Test all cases where records reach a specific confidence level and then go
 // stale.
 BOOST_AUTO_TEST_CASE(stale_vote_at_all_confidence_levels) {
-    NodeId nodeid = -1;
-
     for (uint32_t vote = 0; vote <= 1; vote++) {
         for (uint32_t confidence = 0; confidence < AVALANCHE_FINALIZATION_SCORE;
              confidence++) {
@@ -201,22 +201,21 @@ BOOST_AUTO_TEST_CASE(stale_vote_at_all_confidence_levels) {
 
 // Test some cases where confidence may flip flop and then goes stale.
 BOOST_AUTO_TEST_CASE(stale_vote_random_then_inconclusive) {
-    NodeId nodeid = -1;
     VoteRecord vr(false);
 
     for (uint32_t i = 0; i < AVALANCHE_FINALIZATION_SCORE - 14; i++) {
         // Vote randomly. Confidence changes are ok.
-        vr.registerVote(nextNodeId(nodeid), InsecureRand32());
+        vr.registerVote(nextNodeId(), InsecureRand32());
         BOOST_CHECK_EQUAL(vr.hasFinalized(), false);
         BOOST_CHECK_EQUAL(vr.isStale(), false);
     }
 
     // Reset confidence, no matter what it is right now
     for (uint32_t i = 0; i < 7; i++) {
-        vr.registerVote(nextNodeId(nodeid), 0);
+        vr.registerVote(nextNodeId(), 0);
     }
     for (uint32_t i = 0; i < 7; i++) {
-        vr.registerVote(nextNodeId(nodeid), 1);
+        vr.registerVote(nextNodeId(), 1);
     }
     BOOST_CHECK_EQUAL(vr.hasFinalized(), false);
     BOOST_CHECK_EQUAL(vr.isStale(), false);
@@ -235,8 +234,6 @@ BOOST_AUTO_TEST_CASE(stale_vote_random_then_inconclusive) {
 // Test all cases where confidence flips as much as possible, ending at all
 // possible confidence levels.
 BOOST_AUTO_TEST_CASE(stale_vote_with_confidence_flips) {
-    NodeId nodeid = -1;
-
     // Start testing with yes or no votes
     for (uint32_t voteInit = 0; voteInit <= 1; voteInit++) {
         // Test stalling at all confidence levels
@@ -313,18 +310,17 @@ BOOST_AUTO_TEST_CASE(stale_vote_with_confidence_flips) {
 
 BOOST_AUTO_TEST_CASE(duplicate_votes) {
     VoteRecord vr(true);
-    NodeId nodeid = -1;
 
     // Register some votes, expecting confidence to increase
     for (auto i = 0; i < 7; i++) {
         BOOST_CHECK_EQUAL(vr.getConfidence(), 0);
-        BOOST_CHECK(!vr.registerVote(nextNodeId(nodeid), 0));
+        BOOST_CHECK(!vr.registerVote(nextNodeId(), 0));
     }
     BOOST_CHECK_EQUAL(vr.getConfidence(), 1);
 
     // Multiple duplicate votes do not advance confidence
     for (auto i = 0; i < 8; i++) {
-        BOOST_CHECK(!vr.registerVote(nodeid, 0));
+        BOOST_CHECK(!vr.registerVote(currentNodeId, 0));
         BOOST_CHECK_EQUAL(vr.getConfidence(), 1);
     }
 
@@ -332,22 +328,22 @@ BOOST_AUTO_TEST_CASE(duplicate_votes) {
     // increase when duplicates are not used.
     auto expectedConfidence = 1;
     for (auto i = 0; i < 8; i++) {
-        BOOST_CHECK(!vr.registerVote(nodeid, 0));
+        BOOST_CHECK(!vr.registerVote(currentNodeId, 0));
         BOOST_CHECK_EQUAL(vr.getConfidence(), expectedConfidence);
         for (auto j = i; j < 8; j++) {
-            BOOST_CHECK(!vr.registerVote(nextNodeId(nodeid), 0));
+            BOOST_CHECK(!vr.registerVote(nextNodeId(), 0));
             BOOST_CHECK_EQUAL(vr.getConfidence(), ++expectedConfidence);
         }
     }
 
     // Register enough votes to get just before finalization
     for (auto i = 0; i < 90; i++) {
-        BOOST_CHECK(!vr.registerVote(nextNodeId(nodeid), 0));
+        BOOST_CHECK(!vr.registerVote(nextNodeId(), 0));
         BOOST_CHECK_EQUAL(vr.getConfidence(), ++expectedConfidence);
     }
 
     // Sanity check that finalization occurs on the expected vote
-    BOOST_CHECK(vr.registerVote(nextNodeId(nodeid), 0));
+    BOOST_CHECK(vr.registerVote(nextNodeId(), 0));
     BOOST_CHECK(vr.hasFinalized());
 }
 
