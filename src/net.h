@@ -375,14 +375,14 @@ public:
     // computation, payload encryption, etc.)
     virtual void prepareForTransport(const Config &config,
                                      CSerializedNetMsg &msg,
-                                     std::vector<uint8_t> &header) = 0;
+                                     std::vector<uint8_t> &header) const = 0;
     virtual ~TransportSerializer() {}
 };
 
 class V1TransportSerializer : public TransportSerializer {
 public:
     void prepareForTransport(const Config &config, CSerializedNetMsg &msg,
-                             std::vector<uint8_t> &header) override;
+                             std::vector<uint8_t> &header) const override;
 };
 
 struct CNodeOptions {
@@ -394,8 +394,9 @@ struct CNodeOptions {
 /** Information about a peer */
 class CNode {
 public:
-    std::unique_ptr<TransportDeserializer> m_deserializer;
-    std::unique_ptr<TransportSerializer> m_serializer;
+    // Used only by SocketHandler thread
+    const std::unique_ptr<TransportDeserializer> m_deserializer;
+    const std::unique_ptr<const TransportSerializer> m_serializer;
 
     const NetPermissionFlags m_permission_flags{NetPermissionFlags::None};
 
@@ -746,7 +747,7 @@ private:
     Mutex m_msg_process_queue_mutex;
     std::list<CNetMessage>
         m_msg_process_queue GUARDED_BY(m_msg_process_queue_mutex);
-    size_t m_msg_process_queue_size{0};
+    size_t m_msg_process_queue_size GUARDED_BY(m_msg_process_queue_mutex){0};
 
     // Our address, as reported by the peer
     mutable Mutex m_addr_local_mutex;

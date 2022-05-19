@@ -810,9 +810,9 @@ V1TransportDeserializer::GetMessage(const Config &config,
     return msg;
 }
 
-void V1TransportSerializer::prepareForTransport(const Config &config,
-                                                CSerializedNetMsg &msg,
-                                                std::vector<uint8_t> &header) {
+void V1TransportSerializer::prepareForTransport(
+    const Config &config, CSerializedNetMsg &msg,
+    std::vector<uint8_t> &header) const {
     // create dbl-sha256 checksum
     uint256 hash = Hash(msg.data);
 
@@ -2962,7 +2962,12 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
              uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
              bool inbound_onion, CNodeOptions &&node_opts)
-    : m_permission_flags{node_opts.permission_flags}, m_sock{sock},
+    : m_deserializer{std::make_unique<V1TransportDeserializer>(
+          V1TransportDeserializer(GetConfig().GetChainParams().NetMagic(),
+                                  SER_NETWORK, INIT_PROTO_VERSION))},
+      m_serializer{
+          std::make_unique<V1TransportSerializer>(V1TransportSerializer())},
+      m_permission_flags{node_opts.permission_flags}, m_sock{sock},
       m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn),
       m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
@@ -2986,12 +2991,6 @@ CNode::CNode(NodeId idIn, std::shared_ptr<Sock> sock, const CAddress &addrIn,
     } else {
         LogPrint(BCLog::NET, "Added connection peer=%d\n", id);
     }
-
-    m_deserializer = std::make_unique<V1TransportDeserializer>(
-        V1TransportDeserializer(GetConfig().GetChainParams().NetMagic(),
-                                SER_NETWORK, INIT_PROTO_VERSION));
-    m_serializer =
-        std::make_unique<V1TransportSerializer>(V1TransportSerializer());
 }
 
 void CNode::MarkReceivedMsgsForProcessing() {
