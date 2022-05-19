@@ -856,6 +856,15 @@ private:
                              CConnman &connman);
 
     /**
+     * Decide a response for an Avalanche poll about the given block.
+     *
+     * @param[in]   hash            The hash of the block being polled for
+     * @param[out]  uint32_t        Our current vote for the block
+     */
+    uint32_t GetAvalancheVoteForBlock(const BlockHash &hash)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
+    /**
      * Checks if address relay is permitted with peer. If needed, initializes
      * the m_addr_known bloom filter and sets m_addr_relay_enabled to true.
      *
@@ -3232,14 +3241,7 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
            msg_type == NetMsgType::GETAVAADDR;
 }
 
-/**
- * Decide a response for an Avalanche poll about the given block.
- *
- * @param[in]   hash            The hash of the block being polled for
- * @param[out]  uint32_t        Our current vote for the block
- */
-static uint32_t getAvalancheVoteForBlock(const BlockHash &hash)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+uint32_t PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) {
     AssertLockHeld(cs_main);
 
     const CBlockIndex *pindex = g_chainman.m_blockman.LookupBlockIndex(hash);
@@ -4930,7 +4932,7 @@ void PeerManagerImpl::ProcessMessage(
                     vote = getAvalancheVoteForTx(m_mempool, TxId(inv.hash));
                 } break;
                 case MSG_BLOCK: {
-                    vote = WITH_LOCK(cs_main, return getAvalancheVoteForBlock(
+                    vote = WITH_LOCK(cs_main, return GetAvalancheVoteForBlock(
                                                   BlockHash(inv.hash)));
                 } break;
                 case MSG_AVA_PROOF: {
