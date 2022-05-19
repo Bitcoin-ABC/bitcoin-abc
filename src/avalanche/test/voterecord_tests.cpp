@@ -10,15 +10,24 @@
 
 using namespace avalanche;
 
+NodeId nextNodeId(NodeId &nodeid) {
+    nodeid++;
+    if (nodeid >= 8) {
+        nodeid = 0;
+    }
+    return nodeid;
+}
+
 BOOST_FIXTURE_TEST_SUITE(voterecord_tests, TestingSetup)
 
 #define REGISTER_VOTE_AND_CHECK(vr, vote, state, finalized, confidence)        \
-    vr.registerVote(NO_NODE, vote);                                            \
+    vr.registerVote(nextNodeId(nodeid), vote);                                 \
     BOOST_CHECK_EQUAL(vr.isAccepted(), state);                                 \
     BOOST_CHECK_EQUAL(vr.hasFinalized(), finalized);                           \
     BOOST_CHECK_EQUAL(vr.getConfidence(), confidence);
 
 BOOST_AUTO_TEST_CASE(vote_record) {
+    NodeId nodeid = -1;
     VoteRecord vraccepted(true);
 
     // Check initial state.
@@ -117,16 +126,6 @@ BOOST_AUTO_TEST_CASE(vote_record) {
         BOOST_CHECK(!vrinflight.shouldPoll());
     }
 }
-
-namespace {
-NodeId nextNodeId(NodeId &nodeid) {
-    nodeid++;
-    if (nodeid >= 8) {
-        nodeid = 0;
-    }
-    return nodeid;
-}
-} // namespace
 
 BOOST_AUTO_TEST_CASE(duplicate_votes) {
     VoteRecord vr(true);

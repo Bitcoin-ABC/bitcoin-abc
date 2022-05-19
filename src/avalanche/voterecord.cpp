@@ -59,11 +59,6 @@ bool VoteRecord::registerVote(NodeId nodeid, uint32_t error) {
 }
 
 bool VoteRecord::addNodeToQuorum(NodeId nodeid) {
-    if (nodeid == NO_NODE) {
-        // Helpful for testing.
-        return true;
-    }
-
     // MMIX Linear Congruent Generator.
     const uint64_t r1 =
         6364136223846793005 * uint64_t(nodeid) + 1442695040888963407;
