@@ -20,6 +20,7 @@ add_boost_unit_tests_to_suite(avalanche test-avalanche
 		proof_tests.cpp
 		proofcomparator_tests.cpp
 		proofpool_tests.cpp
+		voterecord_tests.cpp
 )
 
 target_link_libraries(test-avalanche server testutil)
