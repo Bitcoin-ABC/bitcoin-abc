@@ -17,6 +17,18 @@
 static constexpr int AVALANCHE_FINALIZATION_SCORE = 128;
 
 /**
+ * Number of votes before a record may be considered as stale.
+ */
+static constexpr uint32_t AVALANCHE_VOTE_STALE_THRESHOLD = 4096;
+
+/**
+ * Scaling factor applied to confidence to determine staleness threshold.
+ * As confidence increases, the staleness threshold should as well. This
+ * ensures that slowly increasing confidence is not marked stale.
+ */
+static constexpr uint32_t AVALANCHE_VOTE_STALE_FACTOR = 64;
+
+/**
  * How many inflight requests can exist for one item.
  */
 static constexpr int AVALANCHE_MAX_INFLIGHT_POLL = 10;
@@ -68,6 +80,11 @@ public:
     uint16_t getConfidence() const { return confidence >> 1; }
     bool hasFinalized() const {
         return getConfidence() >= AVALANCHE_FINALIZATION_SCORE;
+    }
+
+    bool isStale() const {
+        return successfulVotes > AVALANCHE_VOTE_STALE_THRESHOLD &&
+               successfulVotes > getConfidence() * AVALANCHE_VOTE_STALE_FACTOR;
     }
 
     /**
