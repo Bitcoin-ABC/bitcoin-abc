@@ -5,7 +5,6 @@
 #ifndef BITCOIN_RADIX_H
 #define BITCOIN_RADIX_H
 
-#include <arith_uint256.h>
 #include <rcu.h>
 #include <util/system.h>
 
@@ -396,25 +395,5 @@ private:
     static_assert(alignof(RadixNode) > 1,
                   "RadixNode alignment must be 2 or more.");
 };
-
-/**
- * Facility for using an uint256 as a radix tree key.
- */
-struct Uint256RadixKey {
-    arith_uint256 base;
-
-    Uint256RadixKey(const uint256 &keyIn) : base(UintToArith256(keyIn)) {}
-    Uint256RadixKey(const base_uint<256> &keyIn) : base(keyIn) {}
-
-    Uint256RadixKey operator>>(uint32_t shift) const { return base >> shift; }
-    Uint256RadixKey operator&(const Uint256RadixKey &mask) const {
-        return base & mask.base;
-    }
-    operator size_t() const { return size_t(base.GetLow64()); }
-};
-
-// The radix tree relies on sizeof to gather the bit length of the key
-static_assert(sizeof(Uint256RadixKey) == 32,
-              "Uint256RadixKey key size should be 256 bits");
 
 #endif // BITCOIN_RADIX_H

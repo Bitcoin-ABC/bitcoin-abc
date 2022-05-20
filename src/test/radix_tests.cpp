@@ -6,6 +6,7 @@
 
 #include <arith_uint256.h>
 #include <uint256.h>
+#include <uint256radixkey.h>
 #include <util/strencodings.h>
 
 #include <test/lcg.h>
