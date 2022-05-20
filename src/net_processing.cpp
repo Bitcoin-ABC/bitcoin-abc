@@ -474,7 +474,7 @@ struct Peer {
      * Initializes a TxRelay struct for this peer. Can be called at most once
      * for a peer.
      */
-    TxRelay *SetTxRelay() {
+    TxRelay *SetTxRelay() EXCLUSIVE_LOCKS_REQUIRED(!m_tx_relay_mutex) {
         LOCK(m_tx_relay_mutex);
         Assume(!m_tx_relay);
         m_tx_relay = std::make_unique<Peer::TxRelay>();
@@ -724,7 +724,8 @@ public:
                       const BlockValidationState &state) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
     void NewPoWValidBlock(const CBlockIndex *pindex,
-                          const std::shared_ptr<const CBlock> &pblock) override;
+                          const std::shared_ptr<const CBlock> &pblock) override
+        EXCLUSIVE_LOCKS_REQUIRED(!m_most_recent_block_mutex);
 
     /** Implement NetEventsInterface */
     void InitializeNode(const Config &config, CNode &node,
@@ -735,11 +736,13 @@ public:
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
-                                 !m_recent_confirmed_transactions_mutex);
+                                 !m_recent_confirmed_transactions_mutex,
+                                 !m_most_recent_block_mutex);
     bool SendMessages(const Config &config, CNode *pto) override
         EXCLUSIVE_LOCKS_REQUIRED(pto->cs_sendProcessing)
             EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
-                                     !m_recent_confirmed_transactions_mutex);
+                                     !m_recent_confirmed_transactions_mutex,
+                                     !m_most_recent_block_mutex);
 
     /** Implement PeerManager */
     void StartScheduledTasks(CScheduler &scheduler) override;
@@ -764,7 +767,8 @@ public:
                         const std::chrono::microseconds time_received,
                         const std::atomic<bool> &interruptMsgProc) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
-                                 !m_recent_confirmed_transactions_mutex);
+                                 !m_recent_confirmed_transactions_mutex,
+                                 !m_most_recent_block_mutex);
     void UpdateLastBlockAnnounceTime(NodeId node,
                                      int64_t time_in_seconds) override;
 
@@ -1109,7 +1113,8 @@ private:
 
     void ProcessGetData(const Config &config, CNode &pfrom, Peer &peer,
                         const std::atomic<bool> &interruptMsgProc)
-        EXCLUSIVE_LOCKS_REQUIRED(peer.m_getdata_requests_mutex)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_most_recent_block_mutex,
+                                 peer.m_getdata_requests_mutex)
             LOCKS_EXCLUDED(cs_main);
 
     /** Process a new block. Perform any post-processing housekeeping */
@@ -1185,7 +1190,8 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool AlreadyHaveProof(const avalanche::ProofId &proofid);
     void ProcessGetBlockData(const Config &config, CNode &pfrom, Peer &peer,
-                             const CInv &inv);
+                             const CInv &inv)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_most_recent_block_mutex);
 
     /**
      * Validation logic for compact filters request handling.
