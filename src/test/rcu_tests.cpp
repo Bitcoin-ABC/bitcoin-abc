@@ -421,4 +421,55 @@ BOOST_AUTO_TEST_CASE(move_rcuptr_test) {
     BOOST_CHECK(isDestroyed);
 }
 
+BOOST_AUTO_TEST_CASE(rcu_converting_constructor) {
+    bool isDestroyed = false;
+
+    auto rcuNonConst =
+        RCUPtr<RCURefTestItem>::make([&] { isDestroyed = true; });
+    BOOST_CHECK_EQUAL(rcuNonConst->getRefCount(), 0);
+
+    RCUPtr<const RCURefTestItem> rcuConst(rcuNonConst);
+    BOOST_CHECK_EQUAL(rcuConst->getRefCount(), 1);
+    BOOST_CHECK_EQUAL(rcuNonConst->getRefCount(), 1);
+
+    rcuNonConst = RCUPtr<RCURefTestItem>();
+
+    // We still have a copy
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(!isDestroyed);
+
+    // Destroy the copy
+    rcuConst = RCUPtr<const RCURefTestItem>();
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+}
+
+BOOST_AUTO_TEST_CASE(rcu_converting_assignment) {
+    bool isDestroyed = false;
+    auto rcuConst = RCUPtr<const RCURefTestItem>();
+
+    {
+        auto rcuNonConst =
+            RCUPtr<RCURefTestItem>::make([&] { isDestroyed = true; });
+        BOOST_CHECK_EQUAL(rcuNonConst->getRefCount(), 0);
+
+        rcuConst = rcuNonConst;
+        BOOST_CHECK_EQUAL(rcuConst->getRefCount(), 1);
+        BOOST_CHECK_EQUAL(rcuNonConst->getRefCount(), 1);
+    }
+
+    // We still have a copy
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(!isDestroyed);
+
+    // Destroy the copy
+    rcuConst = RCUPtr<const RCURefTestItem>();
+    BOOST_CHECK(!isDestroyed);
+    RCULock::synchronize();
+    BOOST_CHECK(isDestroyed);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

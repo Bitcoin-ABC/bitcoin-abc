@@ -140,6 +140,22 @@ public:
     }
 
     /**
+     * Implicit converting constructor from RCUPtr<U> to RCUPtr<T>, where U * is
+     * implicitely convertible to T *.
+     */
+    template <typename U> RCUPtr(const RCUPtr<U> &src) : ptr(src.get()) {
+        if (ptr != nullptr) {
+            ptr->incrementRefCount();
+        }
+    }
+
+    template <typename U> RCUPtr &operator=(const RCUPtr<U> &rhs) {
+        RCUPtr tmp(rhs);
+        std::swap(ptr, tmp.ptr);
+        return *this;
+    }
+
+    /**
      * Move semantic.
      */
     RCUPtr(RCUPtr &&src) : RCUPtr() { std::swap(ptr, src.ptr); }
