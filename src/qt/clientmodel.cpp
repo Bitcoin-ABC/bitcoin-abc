@@ -247,7 +247,8 @@ static void BannedListChanged(ClientModel *clientmodel) {
 static void BlockTipChanged(ClientModel *clientmodel,
                             SynchronizationState sync_state,
                             interfaces::BlockTip tip,
-                            double verificationProgress, bool fHeader) {
+                            double verificationProgress, bool fHeader)
+    EXCLUSIVE_LOCKS_REQUIRED(!clientmodel->m_cached_tip_mutex) {
     if (fHeader) {
         // cache best headers time and height to reduce future cs_main locks
         clientmodel->cachedBestHeaderHeight = tip.block_height;
