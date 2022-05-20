@@ -154,6 +154,7 @@ private:
     const CChainParams &chainParams;
 
     const CTxMemPool &m_mempool;
+    CChainState &m_chainstate;
 
 public:
     struct Options {
@@ -163,13 +164,14 @@ public:
         CFeeRate blockMinFeeRate;
     };
 
-    BlockAssembler(const Config &config, const CTxMemPool &mempool);
-    BlockAssembler(const CChainParams &params, const CTxMemPool &mempool,
-                   const Options &options);
+    BlockAssembler(const Config &config, CChainState &chainstate,
+                   const CTxMemPool &mempool);
+    BlockAssembler(CChainState &chainstate, const CChainParams &params,
+                   const CTxMemPool &mempool, const Options &options);
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
-    CreateNewBlock(CChainState &chainstate, const CScript &scriptPubKeyIn);
+    CreateNewBlock(const CScript &scriptPubKeyIn);
 
     uint64_t GetMaxGeneratedBlockSize() const { return nMaxGeneratedBlockSize; }
 

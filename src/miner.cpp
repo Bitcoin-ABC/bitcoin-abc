@@ -57,10 +57,11 @@ BlockAssembler::Options::Options()
       nMaxGeneratedBlockSize(DEFAULT_MAX_GENERATED_BLOCK_SIZE),
       blockMinFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB) {}
 
-BlockAssembler::BlockAssembler(const CChainParams &params,
+BlockAssembler::BlockAssembler(CChainState &chainstate,
+                               const CChainParams &params,
                                const CTxMemPool &mempool,
                                const Options &options)
-    : chainParams(params), m_mempool(mempool) {
+    : chainParams(params), m_mempool(mempool), m_chainstate(chainstate) {
     blockMinFeeRate = options.blockMinFeeRate;
     // Limit size to between 1K and options.nExcessiveBlockSize -1K for sanity:
     nMaxGeneratedBlockSize = std::max<uint64_t>(
@@ -98,9 +99,10 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
     return options;
 }
 
-BlockAssembler::BlockAssembler(const Config &config, const CTxMemPool &mempool)
-    : BlockAssembler(config.GetChainParams(), mempool, DefaultOptions(config)) {
-}
+BlockAssembler::BlockAssembler(const Config &config, CChainState &chainstate,
+                               const CTxMemPool &mempool)
+    : BlockAssembler(chainstate, config.GetChainParams(), mempool,
+                     DefaultOptions(config)) {}
 
 void BlockAssembler::resetBlock() {
     inBlock.clear();
@@ -118,8 +120,7 @@ std::optional<int64_t> BlockAssembler::m_last_block_num_txs{std::nullopt};
 std::optional<int64_t> BlockAssembler::m_last_block_size{std::nullopt};
 
 std::unique_ptr<CBlockTemplate>
-BlockAssembler::CreateNewBlock(CChainState &chainstate,
-                               const CScript &scriptPubKeyIn) {
+BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     int64_t nTimeStart = GetTimeMicros();
 
     resetBlock();
@@ -137,8 +138,8 @@ BlockAssembler::CreateNewBlock(CChainState &chainstate,
 
     LOCK2(cs_main, m_mempool.cs);
     assert(std::addressof(*::ChainActive().Tip()) ==
-           std::addressof(*chainstate.m_chain.Tip()));
-    CBlockIndex *pindexPrev = chainstate.m_chain.Tip();
+           std::addressof(*m_chainstate.m_chain.Tip()));
+    CBlockIndex *pindexPrev = m_chainstate.m_chain.Tip();
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
 
@@ -225,8 +226,10 @@ BlockAssembler::CreateNewBlock(CChainState &chainstate,
     pblocktemplate->entries[0].sigOpCount = 0;
 
     BlockValidationState state;
-    assert(std::addressof(::ChainstateActive()) == std::addressof(chainstate));
-    if (!TestBlockValidity(state, chainParams, chainstate, *pblock, pindexPrev,
+    assert(std::addressof(::ChainstateActive()) ==
+           std::addressof(m_chainstate));
+    if (!TestBlockValidity(state, chainParams, m_chainstate, *pblock,
+                           pindexPrev,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false))) {

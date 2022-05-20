@@ -177,8 +177,8 @@ static UniValue generateBlocks(const Config &config,
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(config, mempool)
-                .CreateNewBlock(::ChainstateActive(), coinbase_script));
+            BlockAssembler(config, chainman.ActiveChainstate(), mempool)
+                .CreateNewBlock(coinbase_script));
 
         if (!pblocktemplate.get()) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
@@ -424,7 +424,6 @@ static RPCHelpMan generateblock() {
 
                 } else if (DecodeHexTx(mtx, str)) {
                     txs.push_back(MakeTransactionRef(std::move(mtx)));
-
                 } else {
                     throw JSONRPCError(
                         RPC_DESERIALIZATION_ERROR,
@@ -439,8 +438,8 @@ static RPCHelpMan generateblock() {
 
                 CTxMemPool empty_mempool;
                 std::unique_ptr<CBlockTemplate> blocktemplate(
-                    BlockAssembler(config, empty_mempool)
-                        .CreateNewBlock(::ChainstateActive(), coinbase_script));
+                    BlockAssembler(config, ::ChainstateActive(), empty_mempool)
+                        .CreateNewBlock(coinbase_script));
                 if (!blocktemplate) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
                                        "Couldn't create new block");
@@ -938,8 +937,8 @@ static RPCHelpMan getblocktemplate() {
                 // Create new block
                 CScript scriptDummy = CScript() << OP_TRUE;
                 pblocktemplate =
-                    BlockAssembler(config, mempool)
-                        .CreateNewBlock(::ChainstateActive(), scriptDummy);
+                    BlockAssembler(config, ::ChainstateActive(), mempool)
+                        .CreateNewBlock(scriptDummy);
                 if (!pblocktemplate) {
                     throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
                 }
