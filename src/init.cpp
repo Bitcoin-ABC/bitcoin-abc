@@ -87,7 +87,6 @@
 #endif
 
 #ifndef WIN32
-#include <attributes.h>
 #include <cerrno>
 #include <csignal>
 #include <sys/stat.h>

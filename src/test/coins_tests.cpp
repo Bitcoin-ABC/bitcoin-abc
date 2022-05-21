@@ -4,7 +4,6 @@
 
 #include <coins.h>
 
-#include <attributes.h>
 #include <clientversion.h>
 #include <script/standard.h>
 #include <streams.h>
