@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationOverflowTest) {
     BOOST_CHECK_EXCEPTION(stream >> req1, std::ios_base::failure,
                           HasReason((MAX_SIZE < req0.indices[1])
                                         ? "ReadCompactSize(): size too large"
-                                        : "indices overflowed 32 bits"));
+                                        : "differential value overflow"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
