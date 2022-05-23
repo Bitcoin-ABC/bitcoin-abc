@@ -452,4 +452,62 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     BOOST_CHECK(methodtest3 == methodtest4);
 }
 
+BOOST_AUTO_TEST_CASE(difference_formatter) {
+    VectorFormatter<DifferenceFormatter> formatter;
+
+    {
+        std::vector<uint32_t> indicesIn{0, 1, 2, 5, 10, 20, 50, 100};
+        std::vector<uint32_t> indicesOut;
+
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        formatter.Ser(ss, indicesIn);
+
+        // Check the stream is differentially encoded. Don't care about the
+        // prefixes and vector length here (assumed to be < 253).
+        const std::string streamStr = ss.str();
+        const std::string differences =
+            HexStr(streamStr.substr(streamStr.size() - indicesIn.size()));
+        BOOST_CHECK_EQUAL(differences, "0000000204091d31");
+
+        formatter.Unser(ss, indicesOut);
+        BOOST_CHECK_EQUAL_COLLECTIONS(indicesIn.begin(), indicesIn.end(),
+                                      indicesOut.begin(), indicesOut.end());
+    }
+
+    {
+        std::vector<uint32_t> indicesIn{1, 0};
+
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        BOOST_CHECK_EXCEPTION(formatter.Ser(ss, indicesIn),
+                              std::ios_base::failure,
+                              HasReason("differential value overflow"));
+    }
+
+    {
+        std::vector<uint32_t> indicesOut;
+
+        // Compute the number of MAX_SIZE increment we need to cause an overflow
+        const uint64_t overflow =
+            uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
+        BOOST_CHECK_GE(overflow, MAX_SIZE);
+        const uint64_t overflowIter = overflow / MAX_SIZE;
+
+        // Make sure the iteration fits in an uint32_t
+        BOOST_CHECK_LE(overflowIter, std::numeric_limits<uint32_t>::max());
+        uint32_t remainder = uint32_t(overflow - (MAX_SIZE * overflowIter));
+
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        WriteCompactSize(ss, overflowIter);
+        for (uint32_t i = 0; i < overflowIter; i++) {
+            WriteCompactSize(ss, MAX_SIZE);
+        }
+        // This is the overflow
+        WriteCompactSize(ss, remainder);
+
+        BOOST_CHECK_EXCEPTION(formatter.Unser(ss, indicesOut),
+                              std::ios_base::failure,
+                              HasReason("differential value overflow"));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
