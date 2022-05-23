@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
         txGrandChild[i].vout[0].nValue = 11000 * SATOSHI;
     }
 
-    CTxMemPool testPool;
+    CTxMemPool &testPool = *Assert(m_node.mempool);
     LOCK2(cs_main, testPool.cs);
 
     // Nothing in pool, remove should do nothing:
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(MempoolClearTest) {
         txParent.vout[i].nValue = 33000 * SATOSHI;
     }
 
-    CTxMemPool testPool;
+    CTxMemPool &testPool = *Assert(m_node.mempool);
     LOCK2(cs_main, testPool.cs);
 
     // Nothing in pool, clear should do nothing:
@@ -157,7 +157,7 @@ static void CheckSort(CTxMemPool &pool, std::vector<std::string> &sortedOrder,
 }
 
 BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
-    CTxMemPool pool;
+    CTxMemPool &pool = *Assert(m_node.mempool);
     LOCK2(cs_main, pool.cs);
     TestMemPoolEntryHelper entry;
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(MempoolIndexingTest) {
 }
 
 BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest) {
-    CTxMemPool pool;
+    CTxMemPool &pool = *Assert(m_node.mempool);
     LOCK2(cs_main, pool.cs);
     TestMemPoolEntryHelper entry;
     Amount feeIncrement = MEMPOOL_FULL_FEE_INCREMENT.GetFeePerK();
@@ -439,7 +439,7 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
          {disconnectedTxnsInOrder, disconnectedTxnsMixedOrder,
           disconnectedTxnsInvertedOrder}) {
         for (auto &unconfTxns : {unconfTxnsInOrder, unconfTxnsOutOfOrder}) {
-            CTxMemPool testPool;
+            CTxMemPool &testPool = *Assert(m_node.mempool);
             // addForBlock inserts disconnectTxns in disconnectPool. They
             // simulate transactions that were once confirmed in a block
             std::vector<CTransactionRef> vtx;
@@ -447,7 +447,7 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
                 vtx.push_back(MakeTransactionRef(*tx));
             }
             DisconnectedBlockTransactions disconnectPool;
-            LOCK(testPool.cs);
+            LOCK2(cs_main, testPool.cs);
             {
                 disconnectPool.addForBlock(vtx, testPool);
                 CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
@@ -459,13 +459,10 @@ BOOST_AUTO_TEST_CASE(TestImportMempool) {
                 CheckDisconnectPoolOrder(disconnectPool, correctlyOrderedIds,
                                          disconnectedTxns.size());
 
-                {
-                    LOCK(cs_main);
-                    // Add all unconfirmed transactions in testPool
-                    for (auto tx : unconfTxns) {
-                        TestMemPoolEntryHelper entry;
-                        testPool.addUnchecked(entry.FromTx(*tx));
-                    }
+                // Add all unconfirmed transactions in testPool
+                for (auto tx : unconfTxns) {
+                    TestMemPoolEntryHelper entry;
+                    testPool.addUnchecked(entry.FromTx(*tx));
                 }
 
                 // Now we test importMempool with a non empty mempool

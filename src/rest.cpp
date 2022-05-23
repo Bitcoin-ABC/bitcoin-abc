@@ -654,11 +654,11 @@ static bool rest_getutxos(Config &config, const std::any &context,
     {
         auto process_utxos =
             [&vOutPoints, &outs, &hits, &active_height, &active_hash,
-             &chainman](const CCoinsView &view, const CTxMemPool &mempool)
+             &chainman](const CCoinsView &view, const CTxMemPool *mempool)
                 EXCLUSIVE_LOCKS_REQUIRED(chainman.GetMutex()) {
                     for (const COutPoint &vOutPoint : vOutPoints) {
                         Coin coin;
-                        bool hit = !mempool.isSpent(vOutPoint) &&
+                        bool hit = (!mempool || !mempool->isSpent(vOutPoint)) &&
                                    view.GetCoin(vOutPoint, coin);
                         hits.push_back(hit);
                         if (hit) {
@@ -680,11 +680,11 @@ static bool rest_getutxos(Config &config, const std::any &context,
             LOCK2(cs_main, mempool->cs);
             CCoinsViewCache &viewChain = chainman.ActiveChainstate().CoinsTip();
             CCoinsViewMemPool viewMempool(&viewChain, *mempool);
-            process_utxos(viewMempool, *mempool);
+            process_utxos(viewMempool, mempool);
         } else {
             // no need to lock mempool!
             LOCK(cs_main);
-            process_utxos(chainman.ActiveChainstate().CoinsTip(), CTxMemPool());
+            process_utxos(chainman.ActiveChainstate().CoinsTip(), nullptr);
         }
 
         for (size_t i = 0; i < hits.size(); ++i) {

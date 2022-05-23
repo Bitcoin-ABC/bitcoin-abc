@@ -19,7 +19,7 @@ BOOST_FIXTURE_TEST_SUITE(validation_flush_tests, ChainTestingSetup)
 //! @sa Chainstate::GetCoinsCacheSizeState()
 //!
 BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
-    CTxMemPool mempool;
+    CTxMemPool &mempool = *Assert(m_node.mempool);
     BlockManager blockman{};
     Chainstate chainstate{&mempool, blockman, *Assert(m_node.chainman)};
     chainstate.InitCoinsDB(/*cache_size_bytes*/ 1 << 10, /*in_memory*/ true,

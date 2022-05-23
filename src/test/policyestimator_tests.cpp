@@ -16,7 +16,7 @@
 BOOST_FIXTURE_TEST_SUITE(policyestimator_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(MempoolMinimumFeeEstimate) {
-    CTxMemPool mpool;
+    CTxMemPool &mpool = *Assert(m_node.mempool);
     LOCK2(cs_main, mpool.cs);
     TestMemPoolEntryHelper entry;
 
