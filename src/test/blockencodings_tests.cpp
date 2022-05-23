@@ -59,18 +59,6 @@ static CBlock BuildBlockTestCase() {
     return block;
 }
 
-// BOOST_CHECK_EXCEPTION predicates to check the exception message
-class HasReason {
-public:
-    explicit HasReason(const std::string &reason) : m_reason(reason) {}
-    bool operator()(const std::exception &e) const {
-        return std::string(e.what()).find(m_reason) != std::string::npos;
-    };
-
-private:
-    const std::string m_reason;
-};
-
 // Number of shared use_counts we expect for a tx we haven't touched
 // (block + mempool + our copy from the GetSharedTx call)
 constexpr long SHARED_TX_OFFSET{3};
