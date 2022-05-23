@@ -8,6 +8,7 @@
 
 #include <compat/endian.h>
 #include <prevector.h>
+#include <rcu.h>
 #include <span.h>
 
 #include <algorithm>
@@ -839,6 +840,14 @@ template <typename Stream, typename T>
 void Unserialize(Stream &os, std::unique_ptr<const T> &p);
 
 /**
+ * RCUPtr
+ */
+template <typename Stream, typename T>
+void Serialize(Stream &os, const RCUPtr<const T> &p);
+template <typename Stream, typename T>
+void Unserialize(Stream &os, RCUPtr<const T> &p);
+
+/**
  * If none of the specialized versions above matched, default to calling member
  * function.
  */
@@ -1075,6 +1084,19 @@ void Serialize(Stream &os, const std::shared_ptr<const T> &p) {
 template <typename Stream, typename T>
 void Unserialize(Stream &is, std::shared_ptr<const T> &p) {
     p = std::make_shared<const T>(deserialize, is);
+}
+
+/**
+ * RCUPtr
+ */
+template <typename Stream, typename T>
+void Serialize(Stream &os, const RCUPtr<const T> &p) {
+    Serialize(os, *p);
+}
+
+template <typename Stream, typename T>
+void Unserialize(Stream &is, RCUPtr<const T> &p) {
+    p = RCUPtr<const T>::make(deserialize, is);
 }
 
 /**

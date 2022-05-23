@@ -4,6 +4,8 @@
 
 #include <serialize.h>
 
+#include <avalanche/proof.h>
+#include <avalanche/proofbuilder.h>
 #include <hash.h>
 #include <streams.h>
 #include <util/strencodings.h>
@@ -24,15 +26,18 @@ protected:
     std::string stringval;
     char charstrval[16];
     CTransactionRef txval;
+    avalanche::ProofRef proofval;
 
 public:
     CSerializeMethodsTestSingle() = default;
     CSerializeMethodsTestSingle(int intvalin, bool boolvalin,
                                 std::string stringvalin,
                                 const char *charstrvalin,
-                                const CTransactionRef &txvalin)
+                                const CTransactionRef &txvalin,
+                                const avalanche::ProofRef &proofvalin)
         : intval(intvalin), boolval(boolvalin),
-          stringval(std::move(stringvalin)), txval(txvalin) {
+          stringval(std::move(stringvalin)), txval(txvalin),
+          proofval(proofvalin) {
         memcpy(charstrval, charstrvalin, sizeof(charstrval));
     }
 
@@ -42,12 +47,15 @@ public:
         READWRITE(obj.stringval);
         READWRITE(obj.charstrval);
         READWRITE(obj.txval);
+        READWRITE(obj.proofval);
     }
 
     bool operator==(const CSerializeMethodsTestSingle &rhs) {
         return intval == rhs.intval && boolval == rhs.boolval &&
                stringval == rhs.stringval &&
-               strcmp(charstrval, rhs.charstrval) == 0 && *txval == *rhs.txval;
+               strcmp(charstrval, rhs.charstrval) == 0 &&
+               *txval == *rhs.txval &&
+               proofval->getId() == rhs.proofval->getId();
     }
 };
 
@@ -57,7 +65,7 @@ public:
 
     SERIALIZE_METHODS(CSerializeMethodsTestMany, obj) {
         READWRITE(obj.intval, obj.boolval, obj.stringval, obj.charstrval,
-                  obj.txval);
+                  obj.txval, obj.proofval);
     }
 };
 
@@ -420,10 +428,12 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     const char charstrval[16] = "testing charstr";
     CMutableTransaction txval;
     CTransactionRef tx_ref{MakeTransactionRef(txval)};
+    avalanche::ProofBuilder pb(0, 0, CKey::MakeCompressedKey());
+    avalanche::ProofRef proofval = pb.build();
     CSerializeMethodsTestSingle methodtest1(intval, boolval, stringval,
-                                            charstrval, tx_ref);
+                                            charstrval, tx_ref, proofval);
     CSerializeMethodsTestMany methodtest2(intval, boolval, stringval,
-                                          charstrval, tx_ref);
+                                          charstrval, tx_ref, proofval);
     CSerializeMethodsTestSingle methodtest3;
     CSerializeMethodsTestMany methodtest4;
     CDataStream ss(SER_DISK, PROTOCOL_VERSION);
@@ -437,7 +447,7 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     BOOST_CHECK(methodtest3 == methodtest4);
 
     CDataStream ss2(SER_DISK, PROTOCOL_VERSION, intval, boolval, stringval,
-                    charstrval, txval);
+                    charstrval, txval, proofval);
     ss2 >> methodtest3;
     BOOST_CHECK(methodtest3 == methodtest4);
 }

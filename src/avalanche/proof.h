@@ -140,6 +140,13 @@ public:
           limitedProofId(std::move(other.limitedProofId)),
           proofid(std::move(other.proofid)), score(other.score) {}
 
+    /**
+     * Deserialization constructor.
+     */
+    template <typename Stream> Proof(deserialize_type, Stream &s) {
+        Unserialize(s);
+    }
+
     SERIALIZE_METHODS(Proof, obj) {
         READWRITE(obj.sequence, obj.expirationTime, obj.master, obj.stakes);
         if (!useLegacy()) {
