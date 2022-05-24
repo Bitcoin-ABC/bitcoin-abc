@@ -319,10 +319,8 @@ BOOST_AUTO_TEST_CASE(block_update) {
     CBlockIndex *pindex = &index;
 
     std::set<VoteStatus> status{
-        VoteStatus::Invalid,
-        VoteStatus::Rejected,
-        VoteStatus::Accepted,
-        VoteStatus::Finalized,
+        VoteStatus::Invalid,   VoteStatus::Rejected, VoteStatus::Accepted,
+        VoteStatus::Finalized, VoteStatus::Stale,
     };
 
     for (auto s : status) {

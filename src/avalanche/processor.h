@@ -60,6 +60,7 @@ enum struct VoteStatus : uint8_t {
     Rejected,
     Accepted,
     Finalized,
+    Stale,
 };
 
 template <typename VoteItem> class VoteItemUpdate {

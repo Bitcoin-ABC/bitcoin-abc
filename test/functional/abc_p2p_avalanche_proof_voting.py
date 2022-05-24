@@ -114,6 +114,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.poll_tests(node)
         self.update_tests(node)
         self.vote_tests(node)
+        self.stale_proof_tests(node)
 
     def poll_tests(self, node):
         proof_seq10 = self.build_conflicting_proof(node, 10)
@@ -190,7 +191,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         peer.wait_for_disconnect()
 
     def update_tests(self, node):
-        # Restart the node to get rid og in-flight requests
+        # Restart the node to get rid of in-flight requests
         self.restart_node(0)
 
         mock_time = int(time.time())
@@ -413,6 +414,56 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             AvalancheVote(AvalancheProofVoteResponse.ORPHAN, proof_2_id),
             AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
             AvalancheVote(AvalancheProofVoteResponse.REJECTED, proof_4_id)])
+
+    def stale_proof_tests(self, node):
+        # Restart the node to get rid of in-flight requests
+        self.restart_node(0)
+
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
+
+        self.quorum = self.get_quorum(node)
+        peer = get_ava_p2p_interface(node)
+
+        proof_seq1 = self.build_conflicting_proof(node, 1)
+        proof_seq2 = self.build_conflicting_proof(node, 2)
+        proofid_seq1 = avalanche_proof_from_hex(proof_seq1).proofid
+        proofid_seq2 = avalanche_proof_from_hex(proof_seq2).proofid
+
+        node.sendavalancheproof(proof_seq2)
+        self.wait_until(lambda: proofid_seq2 in get_proof_ids(node))
+
+        assert proofid_seq2 in get_proof_ids(node)
+        assert proofid_seq1 not in get_proof_ids(node)
+
+        mock_time += self.conflicting_proof_cooldown
+        node.setmocktime(mock_time)
+
+        peer.send_avaproof(avalanche_proof_from_hex(proof_seq1))
+
+        # Wait until proof_seq1 voting goes stale
+        retry = 5
+        while retry > 0:
+            try:
+                with node.assert_debug_log([f"Avalanche stalled proof {proofid_seq1:0{64}x}"]):
+                    self.wait_until(lambda: not self.can_find_proof_in_poll(
+                        proofid_seq1, response=AvalancheProofVoteResponse.UNKNOWN), timeout=30)
+                break
+            except AssertionError:
+                retry -= 1
+
+        assert_greater_than(retry, 0)
+
+        # Verify that proof_seq2 was not replaced
+        assert proofid_seq2 in get_proof_ids(node)
+        assert proofid_seq1 not in get_proof_ids(node)
+
+        # When polled, peer responds with expected votes for both proofs
+        peer.send_poll([proofid_seq1, proofid_seq2], MSG_AVA_PROOF)
+        response = peer.wait_for_avaresponse()
+        assert repr(response.response.votes) == repr([
+            AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proofid_seq1),
+            AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proofid_seq2)])
 
 
 if __name__ == '__main__':

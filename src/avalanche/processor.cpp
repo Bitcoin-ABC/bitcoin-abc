@@ -510,6 +510,13 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 
             auto &vr = it->second;
             if (!vr.registerVote(nodeid, v.GetError())) {
+                if (vr.isStale()) {
+                    updates.emplace_back(item, VoteStatus::Stale);
+
+                    // Just drop stale votes. If we see this item again, we'll
+                    // do a new vote.
+                    voteRecordsWriteView->erase(it);
+                }
                 // This vote did not provide any extra information, move on.
                 continue;
             }

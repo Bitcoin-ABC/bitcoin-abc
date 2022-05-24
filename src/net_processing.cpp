@@ -5026,6 +5026,9 @@ void PeerManagerImpl::ProcessMessage(
                 case avalanche::VoteStatus::Finalized:
                     voteOutcome = "finalized";
                     break;
+                case avalanche::VoteStatus::Stale:
+                    voteOutcome = "stalled";
+                    break;
 
                     // No default case, so the compiler can warn about missing
                     // cases
@@ -5045,10 +5048,14 @@ void PeerManagerImpl::ProcessMessage(
             auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
             switch (u.getStatus()) {
                 case avalanche::VoteStatus::Invalid:
-                    rejectionMode =
-                        avalanche::PeerManager::RejectionMode::INVALIDATE;
                     WITH_LOCK(cs_rejectedProofs,
                               rejectedProofs->insert(proofid));
+                    // Fallthrough
+                case avalanche::VoteStatus::Stale:
+                    // Invalidate mode removes the proof from all proof pools
+                    rejectionMode =
+                        avalanche::PeerManager::RejectionMode::INVALIDATE;
+                    // Fallthrough
                 case avalanche::VoteStatus::Rejected:
                     if (g_avalanche->withPeerManager(
                             [&](avalanche::PeerManager &pm) {
@@ -5110,6 +5117,11 @@ void PeerManagerImpl::ProcessMessage(
                         LOCK(cs_main);
                         m_chainman.ActiveChainstate().UnparkBlock(pindex);
                     } break;
+                    case avalanche::VoteStatus::Stale:
+                        // Fall back on Nakamoto consensus in the absence of
+                        // Avalanche votes for other competing or descendant
+                        // blocks.
+                        break;
                 }
             }
 
