@@ -15,6 +15,7 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency, contactList }) => {
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
                     addressesInContactList={addressesInContactList}
+                    contactList={contactList}
                 />
             ))}
         </div>

@@ -21,6 +21,7 @@ import {
     ThemedLinkSolid,
     ThemedPdfSolid,
 } from 'components/Common/CustomIcons';
+
 const TxIcon = styled.div`
     svg {
         width: 20px;
@@ -333,7 +334,23 @@ const NotInContactsAlert = styled.h4`
     font-style: italic;
 `;
 
-const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
+const ReceivedFromCtn = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    h4 {
+        margin-top: 2.5px;
+    }
+`;
+
+const Tx = ({
+    data,
+    fiatPrice,
+    fiatCurrency,
+    addressesInContactList,
+    contactList,
+}) => {
     const txDate =
         typeof data.blocktime === 'undefined'
             ? formatDate()
@@ -405,9 +422,50 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                     )}
                                                 </>
                                             ) : (
-                                                <h3 className="received">
-                                                    Received
-                                                </h3>
+                                                <ReceivedFromCtn>
+                                                    <h3 className="received">
+                                                        Received
+                                                    </h3>
+
+                                                    {addressesInContactList.includes(
+                                                        data.replyAddress,
+                                                    ) && (
+                                                        <>
+                                                            <h4>from</h4>
+                                                            {contactList.map(
+                                                                (
+                                                                    contact,
+                                                                    index,
+                                                                ) => {
+                                                                    let result;
+                                                                    const contactAddress =
+                                                                        contact.address;
+                                                                    const dataAddress =
+                                                                        data.replyAddress;
+                                                                    if (
+                                                                        contactAddress ===
+                                                                        dataAddress
+                                                                    ) {
+                                                                        result =
+                                                                            contact.name;
+                                                                    } else {
+                                                                        result =
+                                                                            '';
+                                                                    }
+                                                                    return (
+                                                                        <h4
+                                                                            key={`${data.txid}${index}`}
+                                                                        >
+                                                                            {
+                                                                                result
+                                                                            }
+                                                                        </h4>
+                                                                    );
+                                                                },
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </ReceivedFromCtn>
                                             )}
                                             <h4>{txDate}</h4>
                                         </LeftTextCtn>
@@ -791,6 +849,12 @@ Tx.propTypes = {
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
     addressesInContactList: PropTypes.arrayOf(PropTypes.string),
+    contactList: PropTypes.arrayOf(
+        PropTypes.shape({
+            address: PropTypes.string,
+            name: PropTypes.string,
+        }),
+    ),
 };
 
 export default Tx;
