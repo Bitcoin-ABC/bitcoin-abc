@@ -69,10 +69,9 @@ static void add_coin(CWallet &wallet, const Amount nValue, int nAge = 6 * 24,
     tx.vout.resize(nInput + 1);
     tx.vout[nInput].nValue = nValue;
     if (spendable) {
-        CTxDestination dest;
-        std::string error;
-        assert(wallet.GetNewDestination(OutputType::LEGACY, "", dest, error));
-        tx.vout[nInput].scriptPubKey = GetScriptForDestination(dest);
+        auto op_dest = wallet.GetNewDestination(OutputType::LEGACY, "");
+        assert(op_dest);
+        tx.vout[nInput].scriptPubKey = GetScriptForDestination(*op_dest);
     }
     if (fIsFromMe) {
         // IsFromMe() returns (GetDebit() > 0), and GetDebit() is 0 if

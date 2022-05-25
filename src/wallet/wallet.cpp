@@ -2334,41 +2334,36 @@ bool CWallet::TopUpKeyPool(unsigned int kpSize) {
     return res;
 }
 
-bool CWallet::GetNewDestination(const OutputType type, const std::string label,
-                                CTxDestination &dest, std::string &error) {
+util::Result<CTxDestination>
+CWallet::GetNewDestination(const OutputType type, const std::string label) {
     LOCK(cs_wallet);
-    error.clear();
-    bool result = false;
-    auto spk_man = GetScriptPubKeyMan(type, false /* internal */);
-    if (spk_man) {
-        spk_man->TopUp();
-        result = spk_man->GetNewDestination(type, dest, error);
-    } else {
-        error = strprintf("Error: No %s addresses available.",
-                          FormatOutputType(type));
+    auto spk_man = GetScriptPubKeyMan(type, /*internal=*/false);
+    if (!spk_man) {
+        return util::Error{strprintf(_("Error: No %s addresses available."),
+                                     FormatOutputType(type))};
     }
-    if (result) {
-        SetAddressBook(dest, label, "receive");
+    spk_man->TopUp();
+    auto op_dest = spk_man->GetNewDestination(type);
+    if (op_dest) {
+        SetAddressBook(*op_dest, label, "receive");
     }
 
-    return result;
+    return op_dest;
 }
 
-bool CWallet::GetNewChangeDestination(const OutputType type,
-                                      CTxDestination &dest,
-                                      std::string &error) {
+util::Result<CTxDestination>
+CWallet::GetNewChangeDestination(const OutputType type) {
     LOCK(cs_wallet);
-    error.clear();
 
+    CTxDestination dest;
     ReserveDestination reservedest(this, type);
     if (!reservedest.GetReservedDestination(dest, true)) {
-        error = _("Error: Keypool ran out, please call keypoolrefill first")
-                    .translated;
-        return false;
+        return util::Error{
+            _("Error: Keypool ran out, please call keypoolrefill first")};
     }
 
     reservedest.KeepDestination();
-    return true;
+    return dest;
 }
 
 int64_t CWallet::GetOldestKeyPoolTime() const {

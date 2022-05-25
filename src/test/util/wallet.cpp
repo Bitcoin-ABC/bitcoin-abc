@@ -6,6 +6,7 @@
 
 #include <config.h>
 #include <key_io.h>
+#include <util/check.h>
 
 #ifdef ENABLE_WALLET
 #include <wallet/wallet.h>
@@ -17,13 +18,8 @@ const std::string ADDRESS_ECREG_UNSPENDABLE =
 #ifdef ENABLE_WALLET
 std::string getnewaddress(const Config &config, CWallet &w) {
     constexpr auto output_type = OutputType::LEGACY;
-    CTxDestination dest;
-    std::string error;
-    if (!w.GetNewDestination(output_type, "", dest, error)) {
-        assert(false);
-    }
-
-    return EncodeDestination(dest, config);
+    return EncodeDestination(*Assert(w.GetNewDestination(output_type, "")),
+                             config);
 }
 
 void importaddress(CWallet &wallet, const std::string &address) {

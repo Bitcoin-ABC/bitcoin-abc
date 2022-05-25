@@ -11,6 +11,7 @@
 #include <script/standard.h>
 #include <util/error.h>
 #include <util/message.h>
+#include <util/result.h>
 #include <util/time.h>
 #include <wallet/crypter.h>
 #include <wallet/ismine.h>
@@ -175,9 +176,9 @@ protected:
 public:
     explicit ScriptPubKeyMan(WalletStorage &storage) : m_storage(storage) {}
     virtual ~ScriptPubKeyMan(){};
-    virtual bool GetNewDestination(const OutputType type, CTxDestination &dest,
-                                   std::string &error) {
-        return false;
+    virtual util::Result<CTxDestination>
+    GetNewDestination(const OutputType type) {
+        return util::Error{Untranslated("Not supported")};
     }
     virtual isminetype IsMine(const CScript &script) const { return ISMINE_NO; }
 
@@ -431,8 +432,8 @@ private:
 public:
     using ScriptPubKeyMan::ScriptPubKeyMan;
 
-    bool GetNewDestination(const OutputType type, CTxDestination &dest,
-                           std::string &error) override;
+    util::Result<CTxDestination>
+    GetNewDestination(const OutputType type) override;
     isminetype IsMine(const CScript &script) const override;
 
     bool CheckDecryptionKey(const CKeyingMaterial &master_key,
@@ -705,8 +706,8 @@ public:
 
     mutable RecursiveMutex cs_desc_man;
 
-    bool GetNewDestination(const OutputType type, CTxDestination &dest,
-                           std::string &error) override;
+    util::Result<CTxDestination>
+    GetNewDestination(const OutputType type) override;
     isminetype IsMine(const CScript &script) const override;
 
     bool CheckDecryptionKey(const CKeyingMaterial &master_key,

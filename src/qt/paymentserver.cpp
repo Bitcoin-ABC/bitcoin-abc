@@ -768,8 +768,8 @@ void PaymentServer::fetchPaymentACK(interfaces::Wallet &wallet,
     payment.add_transactions(transaction.data(), transaction.size());
 
     // Create a new refund address, or re-use:
-    CTxDestination dest;
-    if (wallet.getNewDestination(OutputType::LEGACY, "", dest)) {
+    auto op_dest = wallet.getNewDestination(OutputType::LEGACY, "");
+    if (op_dest) {
         // BIP70 requests encode the scriptPubKey directly, so we are not
         // restricted to address types supported by the receiver. As a result,
         // we choose the address format we also use for change. Despite an
@@ -779,9 +779,9 @@ void PaymentServer::fetchPaymentACK(interfaces::Wallet &wallet,
         std::string label = tr("Refund from %1")
                                 .arg(recipient.authenticatedMerchant)
                                 .toStdString();
-        wallet.setAddressBook(dest, label, "refund");
+        wallet.setAddressBook(*op_dest, label, "refund");
 
-        CScript s = GetScriptForDestination(dest);
+        CScript s = GetScriptForDestination(*op_dest);
         payments::Output *refund_to = payment.add_refund_to();
         refund_to->set_script(&s[0], s.size());
     } else {

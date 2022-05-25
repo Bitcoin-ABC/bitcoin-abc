@@ -94,9 +94,8 @@ public:
     virtual const CChainParams &getChainParams() = 0;
 
     // Get a new address.
-    virtual bool getNewDestination(const OutputType type,
-                                   const std::string label,
-                                   CTxDestination &dest) = 0;
+    virtual util::Result<CTxDestination>
+    getNewDestination(const OutputType type, const std::string label) = 0;
 
     //! Get public key.
     virtual bool getPubKey(const CScript &script, const CKeyID &address,

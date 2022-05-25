@@ -133,14 +133,14 @@ static RPCHelpMan getnewaddress() {
                 label = LabelFromValue(request.params[0]);
             }
 
-            CTxDestination dest;
-            std::string error;
-            if (!pwallet->GetNewDestination(OutputType::LEGACY, label, dest,
-                                            error)) {
-                throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, error);
+            auto op_dest =
+                pwallet->GetNewDestination(OutputType::LEGACY, label);
+            if (!op_dest) {
+                throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT,
+                                   util::ErrorString(op_dest).original);
             }
 
-            return EncodeDestination(dest, config);
+            return EncodeDestination(*op_dest, config);
         },
     };
 }
@@ -181,12 +181,12 @@ static RPCHelpMan getrawchangeaddress() {
                 }
             }
 
-            CTxDestination dest;
-            std::string error;
-            if (!pwallet->GetNewChangeDestination(output_type, dest, error)) {
-                throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, error);
+            auto op_dest = pwallet->GetNewChangeDestination(output_type);
+            if (!op_dest) {
+                throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT,
+                                   util::ErrorString(op_dest).original);
             }
-            return EncodeDestination(dest, config);
+            return EncodeDestination(*op_dest, config);
         },
     };
 }

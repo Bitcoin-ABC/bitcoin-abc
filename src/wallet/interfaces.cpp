@@ -135,11 +135,11 @@ namespace {
             return m_wallet->BackupWallet(filename);
         }
         std::string getWalletName() override { return m_wallet->GetName(); }
-        bool getNewDestination(const OutputType type, const std::string label,
-                               CTxDestination &dest) override {
+        util::Result<CTxDestination>
+        getNewDestination(const OutputType type,
+                          const std::string label) override {
             LOCK(m_wallet->cs_wallet);
-            std::string error;
-            return m_wallet->GetNewDestination(type, label, dest, error);
+            return m_wallet->GetNewDestination(type, label);
         }
         const CChainParams &getChainParams() override {
             return m_wallet->GetChainParams();

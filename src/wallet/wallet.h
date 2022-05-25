@@ -17,6 +17,7 @@
 #include <psbt.h>
 #include <tinyformat.h>
 #include <util/message.h>
+#include <util/result.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/translation.h>
@@ -776,10 +777,9 @@ public:
     void MarkDestinationsDirty(const std::set<CTxDestination> &destinations)
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
 
-    bool GetNewDestination(const OutputType type, const std::string label,
-                           CTxDestination &dest, std::string &error);
-    bool GetNewChangeDestination(const OutputType type, CTxDestination &dest,
-                                 std::string &error);
+    util::Result<CTxDestination> GetNewDestination(const OutputType type,
+                                                   const std::string label);
+    util::Result<CTxDestination> GetNewChangeDestination(const OutputType type);
 
     isminetype IsMine(const CTxDestination &dest) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
