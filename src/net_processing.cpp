@@ -937,6 +937,13 @@ private:
      *            False if address relay is disallowed
      */
     bool SetupAddressRelay(CNode &node, Peer &peer);
+
+    /**
+     * Manage reception of an avalanche proof.
+     *
+     * @return   False if the peer is misbehaving, true otherwise
+     */
+    bool ReceivedAvalancheProof(CNode &peer, const avalanche::ProofRef &proof);
 };
 } // namespace
 
@@ -5119,61 +5126,9 @@ void PeerManagerImpl::ProcessMessage(
     if (msg_type == NetMsgType::AVAPROOF) {
         auto proof = RCUPtr<avalanche::Proof>::make();
         vRecv >> *proof;
-        const avalanche::ProofId &proofid = proof->getId();
 
-        pfrom.AddKnownProof(proofid);
+        ReceivedAvalancheProof(pfrom, proof);
 
-        const NodeId nodeid = pfrom.GetId();
-
-        {
-            LOCK(cs_proofrequest);
-            m_proofrequest.ReceivedResponse(nodeid, proofid);
-
-            if (AlreadyHaveProof(proofid)) {
-                m_proofrequest.ForgetInvId(proofid);
-                return;
-            }
-        }
-
-        // registerProof should not be called while cs_proofrequest because it
-        // holds cs_main and that creates a potential deadlock during shutdown
-
-        avalanche::ProofRegistrationState state;
-        if (g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                return pm.registerProof(proof, state);
-            })) {
-            WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
-            RelayProof(proofid, m_connman);
-
-            pfrom.m_last_proof_time = GetTime<std::chrono::seconds>();
-
-            LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
-                     nodeid, proofid.ToString());
-        }
-
-        if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
-            WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
-            Misbehaving(nodeid, 100, state.GetRejectReason());
-            return;
-        }
-
-        if (!gArgs.GetBoolArg("-enableavalancheproofreplacement",
-                              AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
-            // If proof replacement is not enabled there is no point dealing
-            // with proof polling, so we're done.
-            return;
-        }
-
-        if (state.IsValid() ||
-            state.GetResult() ==
-                avalanche::ProofRegistrationResult::CONFLICTING) {
-            g_avalanche->addProofToReconcile(proof);
-            return;
-        }
-
-        LogPrint(BCLog::AVALANCHE,
-                 "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
-                 state.GetRejectReason(), nodeid, proofid.ToString());
         return;
     }
 
@@ -6860,5 +6815,66 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             }
         }
     } // release cs_main
+    return true;
+}
+
+bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
+                                             const avalanche::ProofRef &proof) {
+    assert(proof != nullptr);
+
+    const avalanche::ProofId &proofid = proof->getId();
+
+    peer.AddKnownProof(proofid);
+
+    const NodeId nodeid = peer.GetId();
+
+    {
+        LOCK(cs_proofrequest);
+        m_proofrequest.ReceivedResponse(nodeid, proofid);
+
+        if (AlreadyHaveProof(proofid)) {
+            m_proofrequest.ForgetInvId(proofid);
+            return true;
+        }
+    }
+
+    // registerProof should not be called while cs_proofrequest because it
+    // holds cs_main and that creates a potential deadlock during shutdown
+
+    avalanche::ProofRegistrationState state;
+    if (g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            return pm.registerProof(proof, state);
+        })) {
+        WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
+        RelayProof(proofid, m_connman);
+
+        peer.m_last_proof_time = GetTime<std::chrono::seconds>();
+
+        LogPrint(BCLog::NET, "New avalanche proof: peer=%d, proofid %s\n",
+                 nodeid, proofid.ToString());
+    }
+
+    if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
+        WITH_LOCK(cs_rejectedProofs, rejectedProofs->insert(proofid));
+        Misbehaving(nodeid, 100, state.GetRejectReason());
+        return false;
+    }
+
+    if (!gArgs.GetBoolArg("-enableavalancheproofreplacement",
+                          AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
+        // If proof replacement is not enabled there is no point dealing
+        // with proof polling, so we're done.
+        return true;
+    }
+
+    if (state.IsValid() ||
+        state.GetResult() == avalanche::ProofRegistrationResult::CONFLICTING) {
+        g_avalanche->addProofToReconcile(proof);
+        return true;
+    }
+
+    LogPrint(BCLog::AVALANCHE,
+             "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
+             state.GetRejectReason(), nodeid, proofid.ToString());
     return true;
 }
