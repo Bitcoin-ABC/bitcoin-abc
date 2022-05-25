@@ -8,7 +8,7 @@
 #include <consensus/params.h>
 #include <util/system.h>
 
-static bool IsUAHFenabled(const Consensus::Params &params, int nHeight) {
+bool IsUAHFenabled(const Consensus::Params &params, int nHeight) {
     return nHeight >= params.uahfHeight;
 }
 
@@ -21,7 +21,7 @@ bool IsUAHFenabled(const Consensus::Params &params,
     return IsUAHFenabled(params, pindexPrev->nHeight);
 }
 
-static bool IsDAAEnabled(const Consensus::Params &params, int nHeight) {
+bool IsDAAEnabled(const Consensus::Params &params, int nHeight) {
     return nHeight >= params.daaHeight;
 }
 

@@ -113,3 +113,48 @@ uint32_t GetNextEDAWorkRequired(const CBlockIndex *pindexPrev,
 
     return nPow.GetCompact();
 }
+
+// Check that on difficulty adjustments, the new difficulty does not increase
+// or decrease beyond the permitted limits.
+bool PermittedEDADifficultyTransition(const Consensus::Params &params,
+                                      uint32_t old_nbits,
+                                      arith_uint256 new_target) {
+    int64_t smallest_timespan = params.nPowTargetTimespan / 4;
+    int64_t largest_timespan = params.nPowTargetTimespan * 4;
+
+    const arith_uint256 pow_limit = UintToArith256(params.powLimit);
+
+    // Calculate the largest difficulty value possible:
+    arith_uint256 largest_difficulty_target;
+    largest_difficulty_target.SetCompact(old_nbits);
+    largest_difficulty_target *= largest_timespan;
+    largest_difficulty_target /= params.nPowTargetTimespan;
+
+    if (largest_difficulty_target > pow_limit) {
+        largest_difficulty_target = pow_limit;
+    }
+
+    // Round and then compare this new calculated value to what is
+    // observed.
+    arith_uint256 maximum_new_target;
+    maximum_new_target.SetCompact(largest_difficulty_target.GetCompact());
+    if (maximum_new_target < new_target) {
+        return false;
+    }
+
+    // Calculate the smallest difficulty value possible:
+    arith_uint256 smallest_difficulty_target;
+    smallest_difficulty_target.SetCompact(old_nbits);
+    smallest_difficulty_target *= smallest_timespan;
+    smallest_difficulty_target /= params.nPowTargetTimespan;
+
+    if (smallest_difficulty_target > pow_limit) {
+        smallest_difficulty_target = pow_limit;
+    }
+
+    // Round and then compare this new calculated value to what is
+    // observed.
+    arith_uint256 minimum_new_target;
+    minimum_new_target.SetCompact(smallest_difficulty_target.GetCompact());
+    return new_target >= minimum_new_target;
+}

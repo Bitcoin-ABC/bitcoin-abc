@@ -16,10 +16,12 @@ struct Params;
 /** Check if UAHF has activated. */
 bool IsUAHFenabled(const Consensus::Params &params,
                    const CBlockIndex *pindexPrev);
+bool IsUAHFenabled(const Consensus::Params &params, int nHeight);
 
 /** Check if DAA HF has activated. */
 bool IsDAAEnabled(const Consensus::Params &params,
                   const CBlockIndex *pindexPrev);
+bool IsDAAEnabled(const Consensus::Params &params, int nHeight);
 
 /** Check if Nov 15, 2018 HF has activated using block height. */
 bool IsMagneticAnomalyEnabled(const Consensus::Params &params, int32_t nHeight);
