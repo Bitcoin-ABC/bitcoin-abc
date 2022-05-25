@@ -2497,9 +2497,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             uiInterface.InitMessage(_("Verifying blocks...").translated);
             if (chainman.m_blockman.m_have_pruned &&
                 options.check_blocks > MIN_BLOCKS_TO_KEEP) {
-                LogPrintf("Prune: pruned datadir may not have more than %d "
-                          "blocks; only checking available blocks\n",
-                          MIN_BLOCKS_TO_KEEP);
+                LogPrintfCategory(BCLog::PRUNE,
+                                  "pruned datadir may not have more than %d "
+                                  "blocks; only checking available blocks\n",
+                                  MIN_BLOCKS_TO_KEEP);
             }
             std::tie(status, error) = catch_exceptions(
                 [&] { return VerifyLoadedChainstate(chainman, options); });

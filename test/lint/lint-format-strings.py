@@ -58,6 +58,7 @@ FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [
     ("LogConnectFailure", 1),
     ("LogPrint", 1),
     ("LogPrintf", 0),
+    ("LogPrintfCategory", 1),
     ("printf", 0),
     ("snprintf", 2),
     ("sprintf", 1),

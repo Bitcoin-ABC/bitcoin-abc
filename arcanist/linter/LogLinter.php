@@ -43,7 +43,8 @@ final class LogLinter extends ArcanistLinter {
 
     /* Recursive patterns to match balanced parenthesis and quotes content. */
     $logFnNamesPattern =
-    'WalletLogPrintf?|LogPrintf?|LogPrintLevel?|log!|log_chronik!';
+    'WalletLogPrintf?|LogPrintf?|LogPrintLevel?|LogPrintfCategory?'
+    .'|log!|log_chronik!';
     $logPrintPattern = '/(?:'.$logFnNamesPattern.')(\((?>[^()]|(?1))*\));/';
     $logPrintContentPattern = '/("(?>[^"]|(?1))*")\s*(?:,|\))/U';
 

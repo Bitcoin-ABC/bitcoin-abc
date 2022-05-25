@@ -523,8 +523,9 @@ void TorController::add_onion_cb(TorControlConnection &_conn,
         }
         service = LookupNumeric(std::string(service_id + ".onion"),
                                 Params().GetDefaultPort());
-        LogPrintf("tor: Got service ID %s, advertising service %s\n",
-                  service_id, service.ToString());
+        LogPrintfCategory(BCLog::TOR,
+                          "Got service ID %s, advertising service %s\n",
+                          service_id, service.ToString());
         if (WriteBinaryFile(GetPrivateKeyFile(), private_key)) {
             LogPrint(BCLog::TOR, "tor: Cached service private key to %s\n",
                      fs::PathToString(GetPrivateKeyFile()));
