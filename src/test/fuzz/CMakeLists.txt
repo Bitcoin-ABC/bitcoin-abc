@@ -61,6 +61,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	net.cpp
 	net_permissions.cpp
 	netaddress.cpp
+	node_eviction.cpp
 	p2p_transport_deserializer.cpp
 	parse_hd_keypath.cpp
 	parse_iso8601.cpp

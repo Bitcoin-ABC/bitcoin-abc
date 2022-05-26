@@ -1039,6 +1039,25 @@ static void EraseLastKElements(
         elements.end());
 }
 
+void ProtectNoBanConnections(
+    std::vector<NodeEvictionCandidate> &eviction_candidates) {
+    eviction_candidates.erase(
+        std::remove_if(
+            eviction_candidates.begin(), eviction_candidates.end(),
+            [](NodeEvictionCandidate const &n) { return n.m_noban; }),
+        eviction_candidates.end());
+}
+
+void ProtectOutboundConnections(
+    std::vector<NodeEvictionCandidate> &eviction_candidates) {
+    eviction_candidates.erase(
+        std::remove_if(eviction_candidates.begin(), eviction_candidates.end(),
+                       [](NodeEvictionCandidate const &n) {
+                           return n.m_conn_type != ConnectionType::INBOUND;
+                       }),
+        eviction_candidates.end());
+}
+
 void ProtectEvictionCandidatesByRatio(
     std::vector<NodeEvictionCandidate> &eviction_candidates) {
     // Protect the half of the remaining nodes which have been connected the
@@ -1137,6 +1156,10 @@ void ProtectEvictionCandidatesByRatio(
 SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // Protect connections with certain characteristics
 
+    ProtectNoBanConnections(vEvictionCandidates);
+
+    ProtectOutboundConnections(vEvictionCandidates);
+
     // Deterministically select 4 peers to protect by netgroup.
     // An attacker cannot predict which netgroups will be protected
     EraseLastKElements(vEvictionCandidates, CompareNetGroupKeyed, 4);
@@ -1234,12 +1257,6 @@ bool CConnman::AttemptToEvictConnection() {
     {
         LOCK(m_nodes_mutex);
         for (const CNode *node : m_nodes) {
-            if (node->HasPermission(NetPermissionFlags::NoBan)) {
-                continue;
-            }
-            if (!node->IsInboundConn()) {
-                continue;
-            }
             if (node->fDisconnect) {
                 continue;
             }
@@ -1258,6 +1275,8 @@ bool CConnman::AttemptToEvictConnection() {
                 .prefer_evict = node->m_prefer_evict,
                 .m_is_local = node->addr.IsLocal(),
                 .m_network = node->ConnectedThroughNetwork(),
+                .m_noban = node->HasPermission(NetPermissionFlags::NoBan),
+                .m_conn_type = node->m_conn_type,
                 .availabilityScore =
                     node->m_avalanche_enabled
                         ? node->getAvailabilityScore()
