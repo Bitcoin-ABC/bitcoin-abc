@@ -267,7 +267,7 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
     const CScript dummy = CScript() << OP_TRUE;
     bench.run([&] {
         auto blocktemplate =
-            node::BlockAssembler{config, activeChainState, mempool}
+            node::BlockAssembler{config, activeChainState, &mempool}
                 .CreateNewBlock(dummy);
         assert(blocktemplate);
         // +1 for coinbase

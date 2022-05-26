@@ -60,7 +60,7 @@ BlockAssembler::Options::Options()
       blockMinFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB) {}
 
 BlockAssembler::BlockAssembler(Chainstate &chainstate,
-                               const CTxMemPool &mempool,
+                               const CTxMemPool *mempool,
                                const Options &options)
     : chainParams(chainstate.m_chainman.GetParams()), m_mempool(mempool),
       m_chainstate(chainstate), fPrintPriority(gArgs.GetBoolArg(
@@ -103,7 +103,7 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
 }
 
 BlockAssembler::BlockAssembler(const Config &config, Chainstate &chainstate,
-                               const CTxMemPool &mempool)
+                               const CTxMemPool *mempool)
     : BlockAssembler(chainstate, mempool, DefaultOptions(config)) {}
 
 void BlockAssembler::resetBlock() {
@@ -136,7 +136,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     // Add dummy coinbase tx as first transaction.  It is updated at the end.
     pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
 
-    LOCK2(cs_main, m_mempool.cs);
+    LOCK(::cs_main);
     CBlockIndex *pindexPrev = m_chainstate.m_chain.Tip();
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
@@ -153,7 +153,10 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblock->nTime = TicksSinceEpoch<std::chrono::seconds>(GetAdjustedTime());
     m_lock_time_cutoff = pindexPrev->GetMedianTimePast();
 
-    addTxs();
+    if (m_mempool) {
+        LOCK(m_mempool->cs);
+        addTxs(*m_mempool);
+    }
 
     if (IsMagneticAnomalyEnabled(consensusParams, pindexPrev)) {
         // If magnetic anomaly is enabled, we make sure transaction are
@@ -289,19 +292,19 @@ bool BlockAssembler::CheckTx(const CTransaction &tx) const {
  * the partial ordering of transactions is maintained.  That is to say
  * children come after parents, despite having a potentially larger fee.
  */
-void BlockAssembler::addTxs() {
+void BlockAssembler::addTxs(const CTxMemPool &mempool) {
     // mapped_value is the number of mempool parents that are still needed for
     // the entry. We decrement this count each time we add a parent of the entry
     // to the block.
     std::unordered_map<CTxMemPoolEntryRef, size_t> missingParentCount;
-    missingParentCount.reserve(m_mempool.size() / 2);
+    missingParentCount.reserve(mempool.size() / 2);
 
     // set of children we skipped because we have not yet added their parents
     std::unordered_set<CTxMemPoolEntryRef> skippedChildren;
 
     auto hasMissingParents =
         [&missingParentCount](const CTxMemPoolEntryRef &entry)
-            EXCLUSIVE_LOCKS_REQUIRED(m_mempool.cs) {
+            EXCLUSIVE_LOCKS_REQUIRED(mempool.cs) {
                 // If we've added any of this tx's parents already, then
                 // missingParentCount will have the current count
                 if (auto pcIt = missingParentCount.find(entry);
@@ -322,7 +325,7 @@ void BlockAssembler::addTxs() {
     // Transactions where a parent has been added and need to be checked for
     // inclusion.
     std::queue<CTxMemPoolEntryRef> backlog;
-    auto mi = m_mempool.mapTx.get<modified_feerate>().begin();
+    auto mi = mempool.mapTx.get<modified_feerate>().begin();
 
     auto nextEntry = [&backlog, &mi](bool &isFromBacklog) {
         if (backlog.empty()) {
@@ -338,7 +341,7 @@ void BlockAssembler::addTxs() {
     };
 
     while (!backlog.empty() ||
-           mi != m_mempool.mapTx.get<modified_feerate>().end()) {
+           mi != mempool.mapTx.get<modified_feerate>().end()) {
         // Get a new or old transaction in mapTx to evaluate.
         bool isFromBacklog = false;
         const CTxMemPoolEntryRef &entry = nextEntry(isFromBacklog);

@@ -74,7 +74,7 @@ CBlock BuildChainTestingSetup::CreateBlock(
     const Config &config = GetConfig();
     std::unique_ptr<CBlockTemplate> pblocktemplate =
         BlockAssembler{config, m_node.chainman->ActiveChainstate(),
-                       *m_node.mempool}
+                       m_node.mempool.get()}
             .CreateNewBlock(scriptPubKey);
     CBlock &block = pblocktemplate->block;
     block.hashPrevBlock = prev->GetBlockHash();

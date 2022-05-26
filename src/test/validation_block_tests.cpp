@@ -78,7 +78,7 @@ std::shared_ptr<CBlock> MinerTestingSetup::Block(const Config &config,
     pubKey << i++ << OP_TRUE;
 
     auto ptemplate = BlockAssembler{config, m_node.chainman->ActiveChainstate(),
-                                    *m_node.mempool}
+                                    m_node.mempool.get()}
                          .CreateNewBlock(pubKey);
     auto pblock = std::make_shared<CBlock>(ptemplate->block);
     pblock->hashPrevBlock = prev_hash;
