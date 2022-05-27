@@ -38,7 +38,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.peer_replacement_cooldown = 2000
         self.extra_args = [
             ['-enableavalanche=1', '-enableavalancheproofreplacement=1',
-                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}', '-avacooldown=0'],
+                f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}', '-avacooldown=0', '-avastalevotethreshold=140', '-avastalevotefactor=1'],
         ]
         self.supports_cli = False
 
@@ -447,7 +447,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             try:
                 with node.assert_debug_log([f"Avalanche stalled proof {proofid_seq1:0{64}x}"]):
                     self.wait_until(lambda: not self.can_find_proof_in_poll(
-                        proofid_seq1, response=AvalancheProofVoteResponse.UNKNOWN), timeout=30)
+                        proofid_seq1, response=AvalancheProofVoteResponse.UNKNOWN), timeout=10)
                 break
             except AssertionError:
                 retry -= 1

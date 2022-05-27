@@ -1292,4 +1292,90 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
     gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
+    // Check that setting voting parameters has the expected effect
+    gArgs.ForceSetArg("-avastalevotethreshold",
+                      ToString(AVALANCHE_VOTE_STALE_MIN_THRESHOLD));
+    gArgs.ForceSetArg("-avastalevotefactor", "2");
+
+    std::vector<std::tuple<int, int>> testCases = {
+        // {number of yes votes, number of neutral votes}
+        {0, AVALANCHE_VOTE_STALE_MIN_THRESHOLD},
+        {AVALANCHE_FINALIZATION_SCORE + 4, AVALANCHE_FINALIZATION_SCORE - 6},
+    };
+
+    bilingual_str error;
+    m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
+                                           m_node.connman.get(), error);
+
+    BOOST_CHECK(m_processor != nullptr);
+    BOOST_CHECK(error.empty());
+
+    P provider(this);
+    auto &updates = provider.updates;
+    const uint32_t invType = provider.invType;
+
+    const auto item = provider.buildVoteItem();
+    const auto itemid = provider.getVoteItemId(item);
+
+    // Create nodes that supports avalanche.
+    auto avanodes = ConnectNodes();
+    int nextNodeIndex = 0;
+
+    for (auto &testCase : testCases) {
+        // Add a new item. Check it is added to the polls.
+        BOOST_CHECK(provider.addToReconcile(item));
+        auto invs = getInvsForNextPoll();
+        BOOST_CHECK_EQUAL(invs.size(), 1);
+        BOOST_CHECK_EQUAL(invs[0].type, invType);
+        BOOST_CHECK(invs[0].hash == itemid);
+
+        BOOST_CHECK(m_processor->isAccepted(item));
+
+        auto registerNewVote = [&](const Response &resp) {
+            runEventLoop();
+            auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
+            BOOST_CHECK(provider.registerVotes(nodeid, resp));
+        };
+
+        // Add some confidence
+        for (int i = 0; i < std::get<0>(testCase); i++) {
+            Response resp = {getRound(), 0, {Vote(0, itemid)}};
+            registerNewVote(next(resp));
+            BOOST_CHECK(m_processor->isAccepted(item));
+            BOOST_CHECK_EQUAL(m_processor->getConfidence(item),
+                              i >= 6 ? i - 5 : 0);
+            BOOST_CHECK_EQUAL(updates.size(), 0);
+        }
+
+        // Vote until just before item goes stale
+        for (int i = 0; i < std::get<1>(testCase); i++) {
+            Response resp = {getRound(), 0, {Vote(-1, itemid)}};
+            registerNewVote(next(resp));
+            BOOST_CHECK_EQUAL(updates.size(), 0);
+        }
+
+        // As long as it is not stale, we poll.
+        invs = getInvsForNextPoll();
+        BOOST_CHECK_EQUAL(invs.size(), 1);
+        BOOST_CHECK_EQUAL(invs[0].type, invType);
+        BOOST_CHECK(invs[0].hash == itemid);
+
+        // Now stale
+        Response resp = {getRound(), 0, {Vote(-1, itemid)}};
+        registerNewVote(next(resp));
+        BOOST_CHECK_EQUAL(updates.size(), 1);
+        BOOST_CHECK(updates[0].getVoteItem() == item);
+        BOOST_CHECK(updates[0].getStatus() == VoteStatus::Stale);
+        updates.clear();
+
+        // Once stale, there is no poll for it.
+        invs = getInvsForNextPoll();
+        BOOST_CHECK_EQUAL(invs.size(), 0);
+    }
+
+    gArgs.ClearForcedArg("-avastalevotethreshold");
+    gArgs.ClearForcedArg("-avastalevotefactor");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

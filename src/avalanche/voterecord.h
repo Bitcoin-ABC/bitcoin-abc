@@ -22,6 +22,12 @@ static constexpr int AVALANCHE_FINALIZATION_SCORE = 128;
 static constexpr uint32_t AVALANCHE_VOTE_STALE_THRESHOLD = 4096;
 
 /**
+ * Lowest configurable staleness threshold (finalization score + necessary votes
+ * to increase confidence + wiggle room).
+ */
+static constexpr uint32_t AVALANCHE_VOTE_STALE_MIN_THRESHOLD = 140;
+
+/**
  * Scaling factor applied to confidence to determine staleness threshold.
  * As confidence increases, the staleness threshold should as well. This
  * ensures that slowly increasing confidence is not marked stale.
@@ -82,9 +88,10 @@ public:
         return getConfidence() >= AVALANCHE_FINALIZATION_SCORE;
     }
 
-    bool isStale() const {
-        return successfulVotes > AVALANCHE_VOTE_STALE_THRESHOLD &&
-               successfulVotes > getConfidence() * AVALANCHE_VOTE_STALE_FACTOR;
+    bool isStale(uint32_t staleThreshold = AVALANCHE_VOTE_STALE_THRESHOLD,
+                 uint32_t staleFactor = AVALANCHE_VOTE_STALE_FACTOR) const {
+        return successfulVotes > staleThreshold &&
+               successfulVotes > getConfidence() * staleFactor;
     }
 
     /**

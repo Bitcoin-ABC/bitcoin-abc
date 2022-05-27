@@ -163,6 +163,10 @@ class Processor final : public NetEventsInterface {
     double minQuorumConnectedScoreRatio;
     std::atomic<bool> quorumIsEstablished{false};
 
+    /** Voting parameters. */
+    const uint32_t staleVoteThreshold;
+    const uint32_t staleVoteFactor;
+
     /** Registered interfaces::Chain::Notifications handler. */
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
@@ -170,7 +174,8 @@ class Processor final : public NetEventsInterface {
     Processor(const ArgsManager &argsman, interfaces::Chain &chain,
               CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
               CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
-              double minQuorumConnectedScoreRatioIn);
+              double minQuorumConnectedScoreRatioIn,
+              uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn);
 
 public:
     ~Processor();

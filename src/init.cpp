@@ -15,6 +15,7 @@
 #include <avalanche/processor.h>
 #include <avalanche/proof.h> // For AVALANCHE_LEGACY_PROOF_DEFAULT
 #include <avalanche/validation.h>
+#include <avalanche/voterecord.h> // For AVALANCHE_VOTE_STALE_*
 #include <banman.h>
 #include <blockfilter.h>
 #include <chain.h>
@@ -1334,6 +1335,19 @@ void SetupServerArgs(NodeContext &node) {
                   " need nodes for to have a usable quorum (default: %s)",
                   AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO),
         ArgsManager::ALLOW_STRING, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avastalevotethreshold",
+        strprintf("Number of avalanche votes before a voted item goes stale "
+                  "when voting confidence is low (default: %u)",
+                  AVALANCHE_VOTE_STALE_THRESHOLD),
+        ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avastalevotefactor",
+        strprintf(
+            "Factor affecting the number of avalanche votes before a voted "
+            "item goes stale when voting confidence is high (default: %u)",
+            AVALANCHE_VOTE_STALE_FACTOR),
+        ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-avacooldown",
         strprintf("Mandatory cooldown between two avapoll (default: %u)",

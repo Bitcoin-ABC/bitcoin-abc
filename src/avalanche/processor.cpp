@@ -22,6 +22,7 @@
 #include <validation.h>
 
 #include <chrono>
+#include <limits>
 #include <tuple>
 
 /**
@@ -139,14 +140,17 @@ public:
 Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
                      CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
                      CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
-                     double minQuorumConnectedScoreRatioIn)
+                     double minQuorumConnectedScoreRatioIn,
+                     uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn)
     : connman(connmanIn),
       queryTimeoutDuration(argsman.GetArg(
           "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
       round(0), peerManager(std::make_unique<PeerManager>()),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
-      minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn) {
+      minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
+      staleVoteThreshold(staleVoteThresholdIn),
+      staleVoteFactor(staleVoteFactorIn) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
@@ -279,10 +283,40 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
         return nullptr;
     }
 
+    // Determine voting parameters
+    int64_t staleVoteThreshold = argsman.GetArg("-avastalevotethreshold",
+                                                AVALANCHE_VOTE_STALE_THRESHOLD);
+    if (staleVoteThreshold < AVALANCHE_VOTE_STALE_MIN_THRESHOLD) {
+        error = strprintf(_("The avalanche stale vote threshold must be "
+                            "greater than or equal to %d"),
+                          AVALANCHE_VOTE_STALE_MIN_THRESHOLD);
+        return nullptr;
+    }
+    if (staleVoteThreshold > std::numeric_limits<uint32_t>::max()) {
+        error = strprintf(_("The avalanche stale vote threshold must be less "
+                            "than or equal to %d"),
+                          std::numeric_limits<uint32_t>::max());
+        return nullptr;
+    }
+
+    int64_t staleVoteFactor =
+        argsman.GetArg("-avastalevotefactor", AVALANCHE_VOTE_STALE_FACTOR);
+    if (staleVoteFactor <= 0) {
+        error = _("The avalanche stale vote factor must be greater than 0");
+        return nullptr;
+    }
+    if (staleVoteFactor > std::numeric_limits<uint32_t>::max()) {
+        error = strprintf(_("The avalanche stale vote factor must be less than "
+                            "or equal to %d"),
+                          std::numeric_limits<uint32_t>::max());
+        return nullptr;
+    }
+
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
         argsman, chain, connman, std::move(peerData), std::move(sessionKey),
-        Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio));
+        Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
+        staleVoteThreshold, staleVoteFactor));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
@@ -510,7 +544,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
 
             auto &vr = it->second;
             if (!vr.registerVote(nodeid, v.GetError())) {
-                if (vr.isStale()) {
+                if (vr.isStale(staleVoteThreshold, staleVoteFactor)) {
                     updates.emplace_back(item, VoteStatus::Stale);
 
                     // Just drop stale votes. If we see this item again, we'll
