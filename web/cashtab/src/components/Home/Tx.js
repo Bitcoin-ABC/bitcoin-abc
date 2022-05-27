@@ -106,12 +106,6 @@ const RightTextCtn = styled.div`
         font-weight: 700;
         margin: 0;
     }
-    .genesis {
-        color: ${props => props.theme.genesisGreen};
-    }
-    .received {
-        color: ${props => props.theme.eCashBlue};
-    }
     h4 {
         font-size: 12px;
         color: ${props => props.theme.lightWhite};
@@ -192,12 +186,7 @@ const TxInfo = styled.div`
         font-weight: 700;
         margin: 0;
     }
-    .genesis {
-        color: ${props => props.theme.genesisGreen};
-    }
-    .received {
-        color: ${props => props.theme.eCashBlue};
-    }
+
     h4 {
         font-size: 12px;
         color: ${props => props.theme.lightWhite};
@@ -245,6 +234,14 @@ const TokenTxAmt = styled.h3`
     overflow: hidden;
     text-overflow: ellipsis;
 `;
+
+const TokenTxAmtGenesis = styled(TokenTxAmt)`
+    color: ${props => props.theme.genesisGreen} !important;
+`;
+const TokenTxAmtReceived = styled(TokenTxAmt)`
+    color: ${props => props.theme.eCashBlue} !important;
+`;
+
 const TokenName = styled.h4`
     text-align: right;
     white-space: nowrap;
@@ -437,7 +434,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                                     .transactionType ===
                                                                 'GENESIS' ? (
                                                                     <>
-                                                                        <TokenTxAmt className="genesis">
+                                                                        <TokenTxAmtGenesis>
                                                                             +{' '}
                                                                             {data.tokenInfo.qtyReceived.toString()}
                                                                             &nbsp;
@@ -446,7 +443,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                                                     .tokenInfo
                                                                                     .tokenTicker
                                                                             }
-                                                                        </TokenTxAmt>
+                                                                        </TokenTxAmtGenesis>
                                                                         <TokenName>
                                                                             {
                                                                                 data
@@ -479,7 +476,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                             </RightTextCtn>
                                                         ) : (
                                                             <RightTextCtn>
-                                                                <TokenTxAmt className="received">
+                                                                <TokenTxAmtReceived>
                                                                     +{' '}
                                                                     {data.tokenInfo.qtyReceived.toString()}
                                                                     &nbsp;
@@ -488,7 +485,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                                             .tokenInfo
                                                                             .tokenTicker
                                                                     }
-                                                                </TokenTxAmt>
+                                                                </TokenTxAmtReceived>
                                                                 <TokenName>
                                                                     {
                                                                         data
@@ -553,7 +550,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <h3 className="received">
+                                                            <TokenTxAmtReceived>
                                                                 +
                                                                 {formatBalance(
                                                                     fromLegacyDecimals(
@@ -563,7 +560,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                                                 {
                                                                     currency.ticker
                                                                 }
-                                                            </h3>
+                                                            </TokenTxAmtReceived>
                                                             {fiatPrice !==
                                                                 null &&
                                                                 !isNaN(
