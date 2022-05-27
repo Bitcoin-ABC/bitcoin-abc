@@ -248,13 +248,13 @@ Array [
           onClick={[Function]}
         >
           <div
-            className="sc-kEYyzF hdwThf"
+            className="sc-iAyFgw fIykat"
           >
             <div
-              className="sc-hMqMXs kbeXyQ"
+              className="sc-kkGfuU bUZIBS"
             >
               <div
-                className="sc-eNQAEJ fYyIyU"
+                className="sc-kEYyzF edBbzK"
               />
               <h4>
                 TBS
@@ -357,18 +357,18 @@ Array [
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-dxgOiQ cWRZZO"
+  className="sc-jKJlTe dtdOPB"
 >
   <h2>
     Welcome to Cashtab!
   </h2>
   <p
-    className="sc-ckVGcZ gYVrKF"
+    className="sc-eNQAEJ jDkKnj"
   >
     Cashtab is an
      
     <a
-      className="sc-jKJlTe icnQEd"
+      className="sc-hMqMXs JqwcT"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -384,7 +384,7 @@ exports[`Without wallet defined 1`] = `
     Want to learn more?
      
     <a
-      className="sc-jKJlTe icnQEd"
+      className="sc-hMqMXs JqwcT"
       href="https://docs.cashtab.com/docs/"
       rel="noreferrer"
       target="_blank"
@@ -393,7 +393,7 @@ exports[`Without wallet defined 1`] = `
     </a>
   </p>
   <button
-    className="sc-chPdSV bWFpkA"
+    className="sc-kGXeez fPsebQ"
     onClick={[Function]}
   >
     <span
@@ -421,7 +421,7 @@ exports[`Without wallet defined 1`] = `
      New Wallet
   </button>
   <button
-    className="sc-kgoBCf hCCasR"
+    className="sc-kpOJdX jLOxVU"
     onClick={[Function]}
   >
     <span

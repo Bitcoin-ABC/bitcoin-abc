@@ -44,6 +44,8 @@ import {
     ThemedSettingOutlined,
     ThemedContactsOutlined,
     ThemedContactSendOutlined,
+    ThemedPlusOutlined,
+    ThemedDownloadOutlined,
 } from 'components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
@@ -320,7 +322,22 @@ const ContactListCtn = styled.div`
     }
 `;
 
+const ContactListBtnCtn = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+`;
+
+const ExpandedBtnText = styled.span`
+    @media (max-width: 335px) {
+        display: none;
+    }
+`;
+
 const ContactListBtn = styled.button`
+    display: flex;
+    justify-content: center;
     align-items: center;
     cursor: pointer;
     background: transparent;
@@ -329,6 +346,7 @@ const ContactListBtn = styled.button`
     color: #fff;
     border-radius: 3px;
     opacity: 0.6;
+    gap: 3px;
     transition: all 200ms ease-in-out;
     @media (max-width: 500px) {
         width: 100%;
@@ -338,6 +356,9 @@ const ContactListBtn = styled.button`
         opacity: 1;
         background: ${props => props.theme.eCashBlue};
         border-color: ${props => props.theme.eCashBlue};
+    }
+    svg {
+        fill: ${props => props.theme.contrast} !important;
     }
 `;
 
@@ -1710,29 +1731,39 @@ const Configure = () => {
                                             </div>
                                         )}
                                         {/* Export button will only show when there are contacts */}
-                                        {contactListArray &&
-                                            contactListArray.length > 0 && (
-                                                <ContactListBtn
-                                                    onClick={() =>
-                                                        exportContactList(
-                                                            contactListArray,
-                                                        )
-                                                    }
-                                                >
-                                                    Export contacts
-                                                </ContactListBtn>
-                                            )}
-                                        <br />
-                                        <br />
-                                        <ContactListBtn
-                                            onClick={() =>
-                                                setShowManualAddContactModal(
-                                                    true,
-                                                )
-                                            }
-                                        >
-                                            New Contact
-                                        </ContactListBtn>
+                                        <ContactListBtnCtn>
+                                            {contactListArray &&
+                                                contactListArray.length > 0 && (
+                                                    <ContactListBtn
+                                                        onClick={() =>
+                                                            exportContactList(
+                                                                contactListArray,
+                                                            )
+                                                        }
+                                                    >
+                                                        <ThemedDownloadOutlined />
+                                                        <ExpandedBtnText>
+                                                            Download
+                                                        </ExpandedBtnText>
+                                                        CSV
+                                                    </ContactListBtn>
+                                                )}
+                                            <br />
+                                            <br />
+                                            <ContactListBtn
+                                                onClick={() =>
+                                                    setShowManualAddContactModal(
+                                                        true,
+                                                    )
+                                                }
+                                            >
+                                                <ThemedPlusOutlined />
+                                                <ExpandedBtnText>
+                                                    Add
+                                                </ExpandedBtnText>
+                                                Contact
+                                            </ContactListBtn>
+                                        </ContactListBtnCtn>
                                     </Form>
                                 </AntdFormWrapper>
                             </Panel>

@@ -3,15 +3,15 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-eHgmQL esgeHR"
+    className="sc-jWBwVP cbXqTI"
   >
     <h4
-      className="sc-gipzik gGlSHN"
+      className="sc-Rmtcm eLIA"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-brqgnP jHOLle"
+      className="sc-jAaTju Vyslf"
     >
       You currently have 0 
       XEC
@@ -21,7 +21,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-iAyFgw eRQdeW"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
       className="ant-row"
@@ -33,10 +33,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kGXeez fexpdX"
+          className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-dxgOiQ kHtnVB"
+            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -77,7 +77,7 @@ Array [
                   </span>
                 </div>
                 <div
-                  className="sc-kgoBCf kVSTZj"
+                  className="sc-kpOJdX kAzjOl"
                 >
                   XEC Airdrop Calculator
                 </div>
@@ -94,15 +94,15 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-eHgmQL esgeHR"
+    className="sc-jWBwVP cbXqTI"
   >
     <h4
-      className="sc-gipzik gGlSHN"
+      className="sc-Rmtcm eLIA"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-brqgnP jHOLle"
+      className="sc-jAaTju Vyslf"
     >
       You currently have 0 
       XEC
@@ -112,7 +112,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-iAyFgw eRQdeW"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
       className="ant-row"
@@ -124,10 +124,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kGXeez fexpdX"
+          className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-dxgOiQ kHtnVB"
+            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -168,7 +168,7 @@ Array [
                   </span>
                 </div>
                 <div
-                  className="sc-kgoBCf kVSTZj"
+                  className="sc-kpOJdX kAzjOl"
                 >
                   XEC Airdrop Calculator
                 </div>
@@ -185,15 +185,15 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-eHgmQL esgeHR"
+    className="sc-jWBwVP cbXqTI"
   >
     <h4
-      className="sc-gipzik gGlSHN"
+      className="sc-Rmtcm eLIA"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-jWBwVP gdMlXD"
+      className="sc-cMljjf coNPHF"
     >
       0.06
        
@@ -202,7 +202,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-iAyFgw eRQdeW"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
       className="ant-row"
@@ -214,10 +214,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kGXeez fexpdX"
+          className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-dxgOiQ kHtnVB"
+            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -258,7 +258,7 @@ Array [
                   </span>
                 </div>
                 <div
-                  className="sc-kgoBCf kVSTZj"
+                  className="sc-kpOJdX kAzjOl"
                 >
                   XEC Airdrop Calculator
                 </div>
@@ -275,15 +275,15 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-eHgmQL esgeHR"
+    className="sc-jWBwVP cbXqTI"
   >
     <h4
-      className="sc-gipzik gGlSHN"
+      className="sc-Rmtcm eLIA"
     >
       MigrationTestAlpha
     </h4>
     <div
-      className="sc-brqgnP jHOLle"
+      className="sc-jAaTju Vyslf"
     >
       You currently have 0 
       XEC
@@ -293,7 +293,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-iAyFgw eRQdeW"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
       className="ant-row"
@@ -305,10 +305,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kGXeez fexpdX"
+          className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-dxgOiQ kHtnVB"
+            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -349,7 +349,7 @@ Array [
                   </span>
                 </div>
                 <div
-                  className="sc-kgoBCf kVSTZj"
+                  className="sc-kpOJdX kAzjOl"
                 >
                   XEC Airdrop Calculator
                 </div>
@@ -366,10 +366,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-eHgmQL esgeHR"
+    className="sc-jWBwVP cbXqTI"
   >
     <div
-      className="sc-brqgnP jHOLle"
+      className="sc-jAaTju Vyslf"
     >
       You currently have 0 
       XEC
@@ -379,7 +379,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-iAyFgw eRQdeW"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
       className="ant-row"
@@ -391,10 +391,10 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kGXeez fexpdX"
+          className="sc-dxgOiQ iPcCXY"
         >
           <div
-            className="ant-collapse ant-collapse-icon-position-left sc-dxgOiQ kHtnVB"
+            className="ant-collapse ant-collapse-icon-position-left sc-jKJlTe bEMpDk"
             role={null}
             style={
               Object {
@@ -435,7 +435,7 @@ Array [
                   </span>
                 </div>
                 <div
-                  className="sc-kgoBCf kVSTZj"
+                  className="sc-kpOJdX kAzjOl"
                 >
                   XEC Airdrop Calculator
                 </div>

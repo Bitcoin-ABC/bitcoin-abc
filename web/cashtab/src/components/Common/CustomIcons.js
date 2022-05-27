@@ -22,7 +22,8 @@ import { ReactComponent as CopySolid } from 'assets/copy.svg';
 import { ReactComponent as LinkSolid } from 'assets/external-link-square-alt.svg';
 import { ReactComponent as Airdrop } from 'assets/airdrop-icon.svg';
 import { ReactComponent as Pdf } from 'assets/file-pdf.svg';
-
+import { ReactComponent as Plus } from 'assets/plus.svg';
+import { ReactComponent as Download } from 'assets/download.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
 export const CashReceivedNotificationIcon = () => (
@@ -88,6 +89,20 @@ export const ThemedLinkSolid = styled(LinkSolid)`
 `;
 
 export const ThemedPdfSolid = styled(Pdf)`
+    fill: ${props => props.theme.contrast};
+    padding: 0.15rem 0rem 0.18rem 0rem;
+    height: 1.3em;
+    width: 1.3em;
+`;
+
+export const ThemedPlusOutlined = styled(Plus)`
+    fill: ${props => props.theme.contrast};
+    padding: 0.15rem 0rem 0.18rem 0rem;
+    height: 1.3em;
+    width: 1.3em;
+`;
+
+export const ThemedDownloadOutlined = styled(Download)`
     fill: ${props => props.theme.contrast};
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
