@@ -23,8 +23,13 @@ import {
     xecReceivedNotification,
     eTokenReceivedNotification,
 } from 'components/Common/Notifications';
+import { ChronikClient } from 'chronik-client';
+// For XEC, eCash chain:
+const chronik = new ChronikClient(currency.chronikUrl);
+
 const useWallet = () => {
     const [wallet, setWallet] = useState(false);
+    const [chronikWebsocket, setChronikWebsocket] = useState(null);
     const [contactList, setContactList] = useState(false);
     const [cashtabSettings, setCashtabSettings] = useState(false);
     const [fiatPrice, setFiatPrice] = useState(null);
@@ -912,6 +917,40 @@ const useWallet = () => {
         }
     };
 
+    // Chronik websockets
+    const initializeWebsocket = async wallet => {
+        // Because wallet is set to `false` before it is loaded, do nothing if you find this case
+        if (!wallet) {
+            return setChronikWebsocket(null);
+        }
+
+        // Initialize if not in state
+        let ws = chronikWebsocket;
+        if (ws === null) {
+            ws = chronik.ws({
+                onMessage: msg => {
+                    // Stub method for initialization diff
+                    console.log(msg);
+                },
+                onReconnect: e => {
+                    // Fired before a reconnect attempt is made:
+                    console.log(
+                        'Reconnecting websocket, disconnection cause: ',
+                        e,
+                    );
+                },
+                onConnect: e => {
+                    console.log(`Chronik websocket connected`, e);
+                },
+            });
+
+            // Wait for websocket to be connected:
+            await ws.waitForOpen();
+        }
+        // Put connected websocket in state
+        return setChronikWebsocket(ws);
+    };
+
     const handleUpdateWallet = async setWallet => {
         await loadWalletFromStorageOnStartup(setWallet);
     };
@@ -1215,6 +1254,17 @@ const useWallet = () => {
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
     }, []);
+
+    /*
+    Run initializeWebsocket(wallet) each time the wallet changes
+    
+    Use wallet.mnemonic as the useEffect parameter here because we 
+    want to run initializeWebsocket(wallet) when a new unique wallet
+    is selected, not when the active wallet changes state
+    */
+    useEffect(async () => {
+        await initializeWebsocket(wallet);
+    }, [wallet.mnemonic]);
 
     return {
         BCH,
