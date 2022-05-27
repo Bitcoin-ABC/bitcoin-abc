@@ -28,7 +28,7 @@ TxHistory.propTypes = {
     contactList: PropTypes.arrayOf(
         PropTypes.shape({
             address: PropTypes.string,
-            namer: PropTypes.string,
+            name: PropTypes.string,
         }),
     ),
 };
