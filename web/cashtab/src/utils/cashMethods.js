@@ -978,3 +978,17 @@ export const areAllUtxosIncludedInIncrementallyHydratedUtxos = (
     incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch = true;
     return incrementallyHydratedUtxosIncludesAllUtxosInLatestUtxoApiFetch;
 };
+
+export const getHashArrayFromWallet = wallet => {
+    // If the wallet has wallet.Path1899.hash160, it's migrated and will have all of them
+    // Return false for an umigrated wallet
+    const hash160Array =
+        wallet && wallet.Path1899 && 'hash160' in wallet.Path1899
+            ? [
+                  wallet.Path245.hash160,
+                  wallet.Path145.hash160,
+                  wallet.Path1899.hash160,
+              ]
+            : false;
+    return hash160Array;
+};

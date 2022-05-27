@@ -24,6 +24,7 @@ import {
     getUtxoCount,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
     convertEcashtoEtokenAddr,
+    getHashArrayFromWallet,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -156,6 +157,7 @@ import {
     incrementallyHydratedUtxosAfterProcessing,
     incrementallyHydratedUtxosAfterProcessingOneMissing,
 } from '../__mocks__/incrementalUtxoMocks';
+import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -876,5 +878,21 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`flattenContactList returns an empty array for invalid input`, () => {
         expect(flattenContactList(false)).toStrictEqual([]);
+    });
+    it(`getHashArrayFromWallet returns false for a legacy wallet`, () => {
+        expect(
+            getHashArrayFromWallet(mockLegacyWallets.legacyAlphaMainnet),
+        ).toBe(false);
+    });
+    it(`Successfully extracts a hash160 array from a migrated wallet object`, () => {
+        expect(
+            getHashArrayFromWallet(
+                mockLegacyWallets.migratedLegacyAlphaMainnet,
+            ),
+        ).toStrictEqual([
+            '960c9ed561f1699f0c49974d50b3bb7cdc118625',
+            '2be0e0c999e7e77a443ea726f82c441912fca92b',
+            'ba8257db65f40359989c7b894c5e88ed7b6344f6',
+        ]);
     });
 });
