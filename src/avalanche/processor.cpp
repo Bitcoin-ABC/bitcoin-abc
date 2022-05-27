@@ -253,8 +253,8 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 
     // Determine quorum parameters
     Amount minQuorumStake = AVALANCHE_DEFAULT_MIN_QUORUM_STAKE;
-    if (gArgs.IsArgSet("-avaminquorumstake") &&
-        !ParseMoney(gArgs.GetArg("-avaminquorumstake", ""), minQuorumStake)) {
+    if (argsman.IsArgSet("-avaminquorumstake") &&
+        !ParseMoney(argsman.GetArg("-avaminquorumstake", ""), minQuorumStake)) {
         error = _("The avalanche min quorum stake amount is invalid.");
         return nullptr;
     }
@@ -266,8 +266,8 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 
     double minQuorumConnectedStakeRatio =
         AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO;
-    if (gArgs.IsArgSet("-avaminquorumconnectedstakeratio") &&
-        !ParseDouble(gArgs.GetArg("-avaminquorumconnectedstakeratio", ""),
+    if (argsman.IsArgSet("-avaminquorumconnectedstakeratio") &&
+        !ParseDouble(argsman.GetArg("-avaminquorumconnectedstakeratio", ""),
                      &minQuorumConnectedStakeRatio)) {
         error = _("The avalanche min quorum connected stake ratio is invalid.");
         return nullptr;
