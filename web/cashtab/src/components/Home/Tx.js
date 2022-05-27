@@ -754,28 +754,32 @@ const Tx = ({ data, fiatPrice, fiatCurrency, addressesInContactList }) => {
                                         </DropdownIconWrapper>
                                     </DropdownButton>
                                 </TxLink>
-                                {!data.outgoingTx && data.replyAddress && (
-                                    <AddToContacts>
-                                        <DropdownButton>
-                                            <Link
-                                                to={{
-                                                    pathname: `/configure`,
-                                                    state: {
-                                                        contactToAdd:
-                                                            data.replyAddress,
-                                                    },
-                                                }}
-                                            >
-                                                <DropdownIconWrapper>
-                                                    <TextLayer>
-                                                        Add to contacts
-                                                    </TextLayer>
-                                                    <ThemedContactsOutlined />
-                                                </DropdownIconWrapper>
-                                            </Link>
-                                        </DropdownButton>
-                                    </AddToContacts>
-                                )}
+                                {!data.outgoingTx &&
+                                    data.replyAddress &&
+                                    !addressesInContactList.includes(
+                                        data.replyAddress,
+                                    ) && (
+                                        <AddToContacts>
+                                            <DropdownButton>
+                                                <Link
+                                                    to={{
+                                                        pathname: `/configure`,
+                                                        state: {
+                                                            contactToAdd:
+                                                                data.replyAddress,
+                                                        },
+                                                    }}
+                                                >
+                                                    <DropdownIconWrapper>
+                                                        <TextLayer>
+                                                            Add to contacts
+                                                        </TextLayer>
+                                                        <ThemedContactsOutlined />
+                                                    </DropdownIconWrapper>
+                                                </Link>
+                                            </DropdownButton>
+                                        </AddToContacts>
+                                    )}
                             </PanelCtn>
                         </Panel>
                     </Collapse>
