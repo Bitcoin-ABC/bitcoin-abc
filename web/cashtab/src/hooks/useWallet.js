@@ -951,6 +951,21 @@ const useWallet = () => {
             await ws.waitForOpen();
         }
 
+        // Unsubscribe to any active subscriptions
+        const previousWebsocketSubscriptions = ws._subs;
+        console.log(
+            `previousWebsocketSubscriptions`,
+            previousWebsocketSubscriptions,
+        );
+        if (previousWebsocketSubscriptions.length > 0) {
+            for (let i = 0; i < previousWebsocketSubscriptions.length; i += 1) {
+                const unsubHash160 =
+                    previousWebsocketSubscriptions[i].scriptPayload;
+                ws.unsubscribe('p2pkh', unsubHash160);
+                console.log(`ws.unsubscribe('p2pkh', ${unsubHash160})`);
+            }
+        }
+
         // Subscribe to addresses of current wallet
         for (let i = 0; i < hash160Array.length; i += 1) {
             ws.subscribe('p2pkh', hash160Array[i]);
