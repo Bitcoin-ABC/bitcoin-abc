@@ -164,6 +164,8 @@ import {
     lambdaHash160s,
     lambdaIncomingXecTx,
     lambdaOutgoingXecTx,
+    lambdaIncomingEtokenTx,
+    lambdaOutgoingEtokenTx,
 } from '../__mocks__/chronikWs';
 
 describe('Correctly executes cash utility functions', () => {
@@ -918,6 +920,38 @@ describe('Correctly executes cash utility functions', () => {
             incoming: false,
             xecAmount: '222',
             isEtokenTx: false,
+        });
+    });
+    it(`Successfully parses an incoming eToken tx`, () => {
+        expect(
+            parseChronikTx(lambdaIncomingEtokenTx, lambdaHash160s),
+        ).toStrictEqual({
+            incoming: true,
+            xecAmount: '5.46',
+            isEtokenTx: true,
+            slpMeta: {
+                tokenId:
+                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+                tokenType: 'FUNGIBLE',
+                txType: 'SEND',
+            },
+            etokenAmount: '12',
+        });
+    });
+    it(`Successfully parses an outgoing eToken tx`, () => {
+        expect(
+            parseChronikTx(lambdaOutgoingEtokenTx, lambdaHash160s),
+        ).toStrictEqual({
+            incoming: false,
+            xecAmount: '5.46',
+            isEtokenTx: true,
+            slpMeta: {
+                tokenId:
+                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+                tokenType: 'FUNGIBLE',
+                txType: 'SEND',
+            },
+            etokenAmount: '17',
         });
     });
 });

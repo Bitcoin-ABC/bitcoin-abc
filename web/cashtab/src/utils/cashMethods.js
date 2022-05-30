@@ -998,6 +998,7 @@ export const parseChronikTx = (tx, walletHash160s) => {
     // Assign defaults
     let incoming = true;
     let xecAmount = new BigNumber(0);
+    let etokenAmount = new BigNumber(0);
     const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
 
     // Iterate over inputs to see if this is an incoming tx (incoming === true)
@@ -1028,18 +1029,61 @@ export const parseChronikTx = (tx, walletHash160s) => {
                 xecAmount = incoming
                     ? xecAmount.plus(thisOutputAmount)
                     : xecAmount.minus(thisOutputAmount);
+
+                // Parse token qty if token tx
+                // Note: edge case this is a token tx that sends XEC to Cashtab recipient but token somewhere else
+                if (isEtokenTx) {
+                    try {
+                        const thisEtokenAmount = new BigNumber(
+                            thisOutput.slpToken.amount,
+                        );
+
+                        etokenAmount = incoming
+                            ? etokenAmount.plus(thisEtokenAmount)
+                            : etokenAmount.minus(thisEtokenAmount);
+                    } catch (err) {
+                        // edge case described above; in this case there is zero eToken value for this Cashtab recipient, so add 0
+                        etokenAmount.plus(new BigNumber(0));
+                    }
+                }
             }
         }
         // Output amounts not at your wallet are sent amounts if !incoming
         if (!incoming) {
             const thisOutputAmount = new BigNumber(thisOutput.value);
             xecAmount = xecAmount.plus(thisOutputAmount);
+            if (isEtokenTx) {
+                try {
+                    const thisEtokenAmount = new BigNumber(
+                        thisOutput.slpToken.amount,
+                    );
+                    etokenAmount = etokenAmount.plus(thisEtokenAmount);
+                } catch (err) {
+                    // NB the edge case described above cannot exist in an outgoing tx
+                    // because the eTokens sent originated from this wallet
+                }
+            }
         }
     }
+
     // Convert from sats to XEC
     xecAmount = xecAmount.shiftedBy(-1 * currency.cashDecimals);
+
     // Convert from BigNumber to string
     xecAmount = xecAmount.toString();
+    etokenAmount = etokenAmount.toString();
 
+    // Return eToken specific fields if eToken tx
+    if (isEtokenTx) {
+        const { slpMeta } = tx.slpTxData;
+        return {
+            incoming,
+            xecAmount,
+            isEtokenTx,
+            etokenAmount,
+            slpMeta,
+        };
+    }
+    // Otherwise do not include these fields
     return { incoming, xecAmount, isEtokenTx };
 };
