@@ -14,6 +14,7 @@ import {
     removeConsumedUtxos,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
     getHashArrayFromWallet,
+    parseChronikTx,
 } from 'utils/cashMethods';
 import { isValidCashtabSettings, isValidContactList } from 'utils/validation';
 import localforage from 'localforage';
@@ -22,6 +23,7 @@ import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import {
     xecReceivedNotification,
+    xecReceivedNotificationWebsocket,
     eTokenReceivedNotification,
 } from 'components/Common/Notifications';
 import { ChronikClient } from 'chronik-client';
@@ -918,8 +920,31 @@ const useWallet = () => {
         }
     };
 
+    // Parse chronik ws message for incoming tx notifications
+    const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
+        // get txid info
+        const txid = msg.txid;
+        const txDetails = await chronik.tx(txid);
+
+        // parse tx for notification
+        const hash160Array = getHashArrayFromWallet(wallet);
+        const parsedChronikTx = parseChronikTx(txDetails, hash160Array);
+
+        if (parsedChronikTx.incoming) {
+            if (parsedChronikTx.isEtokenTx) {
+                // todo: handle incoming eToken txs
+            } else {
+                xecReceivedNotificationWebsocket(
+                    parsedChronikTx.xecAmount,
+                    cashtabSettings,
+                    fiatPrice,
+                );
+            }
+        }
+    };
+
     // Chronik websockets
-    const initializeWebsocket = async wallet => {
+    const initializeWebsocket = async (wallet, fiatPrice) => {
         // Because wallet is set to `false` before it is loaded, do nothing if you find this case
         // Also return and wait for legacy migration if wallet is not migrated
         const hash160Array = getHashArrayFromWallet(wallet);
@@ -932,8 +957,7 @@ const useWallet = () => {
         if (ws === null) {
             ws = chronik.ws({
                 onMessage: msg => {
-                    // Stub method for initialization diff
-                    console.log(msg);
+                    processChronikWsMsg(msg, wallet, fiatPrice);
                 },
                 onReconnect: e => {
                     // Fired before a reconnect attempt is made:
@@ -949,10 +973,48 @@ const useWallet = () => {
 
             // Wait for websocket to be connected:
             await ws.waitForOpen();
+        } else {
+            /*        
+            If the websocket connection is not null, initializeWebsocket was called
+            because one of the websocket's dependencies changed
+
+            Update the onMessage method to get the latest dependencies (wallet, fiatPrice)
+            */
+
+            ws.onMessage = msg => {
+                processChronikWsMsg(msg, wallet, fiatPrice);
+            };
+        }
+
+        // Check if current subscriptions match current wallet
+        let activeSubscriptionsMatchActiveWallet = true;
+
+        const previousWebsocketSubscriptions = ws._subs;
+        // If there are no previous subscriptions, then activeSubscriptionsMatchActiveWallet is certainly false
+        if (previousWebsocketSubscriptions.length === 0) {
+            activeSubscriptionsMatchActiveWallet = false;
+        } else {
+            const subscribedHash160Array = previousWebsocketSubscriptions.map(
+                function (subscription) {
+                    return subscription.scriptPayload;
+                },
+            );
+            // Confirm that websocket is subscribed to every address in wallet hash160Array
+            for (let i = 0; i < hash160Array.length; i += 1) {
+                if (!subscribedHash160Array.includes(hash160Array[i])) {
+                    activeSubscriptionsMatchActiveWallet = false;
+                }
+            }
+        }
+
+        // If you are already subscribed to the right addresses, exit here
+        // You get to this situation if fiatPrice changed but wallet.mnemonic did not
+        if (activeSubscriptionsMatchActiveWallet) {
+            // Put connected websocket in state
+            return setChronikWebsocket(ws);
         }
 
         // Unsubscribe to any active subscriptions
-        const previousWebsocketSubscriptions = ws._subs;
         console.log(
             `previousWebsocketSubscriptions`,
             previousWebsocketSubscriptions,
@@ -971,6 +1033,7 @@ const useWallet = () => {
             ws.subscribe('p2pkh', hash160Array[i]);
             console.log(`ws.subscribe('p2pkh', ${hash160Array[i]})`);
         }
+
         // Put connected websocket in state
         return setChronikWebsocket(ws);
     };
@@ -1280,15 +1343,15 @@ const useWallet = () => {
     }, []);
 
     /*
-    Run initializeWebsocket(wallet) each time the wallet changes
+    Run initializeWebsocket(wallet, fiatPrice) each time the wallet or fiatPrice changes
     
     Use wallet.mnemonic as the useEffect parameter here because we 
-    want to run initializeWebsocket(wallet) when a new unique wallet
+    want to run initializeWebsocket(wallet, fiatPrice) when a new unique wallet
     is selected, not when the active wallet changes state
     */
     useEffect(async () => {
-        await initializeWebsocket(wallet);
-    }, [wallet.mnemonic]);
+        await initializeWebsocket(wallet, fiatPrice);
+    }, [wallet.mnemonic, fiatPrice]);
 
     return {
         BCH,

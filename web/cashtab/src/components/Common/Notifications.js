@@ -144,6 +144,33 @@ const xecReceivedNotification = (
     });
 };
 
+const xecReceivedNotificationWebsocket = (
+    xecAmount,
+    cashtabSettings,
+    fiatPrice,
+) => {
+    const notificationStyle = getDeviceNotificationStyle();
+    notification.success({
+        message: 'eCash received',
+        description: (
+            <Paragraph>
+                + {xecAmount.toLocaleString()} {currency.ticker}{' '}
+                {cashtabSettings &&
+                    cashtabSettings.fiatCurrency &&
+                    `(${
+                        currency.fiatCurrencies[cashtabSettings.fiatCurrency]
+                            .symbol
+                    }${(xecAmount * fiatPrice).toFixed(
+                        currency.cashDecimals,
+                    )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
+            </Paragraph>
+        ),
+        duration: currency.notificationDurationShort,
+        icon: <CashReceivedNotificationIcon />,
+        style: notificationStyle,
+    });
+};
+
 const eTokenReceivedNotification = (
     currency,
     receivedSlpTicker,
@@ -202,6 +229,7 @@ export {
     tokenIconSubmitSuccess,
     sendTokenNotification,
     xecReceivedNotification,
+    xecReceivedNotificationWebsocket,
     eTokenReceivedNotification,
     errorNotification,
     messageSignedNotification,
