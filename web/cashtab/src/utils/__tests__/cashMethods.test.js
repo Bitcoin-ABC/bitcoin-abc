@@ -25,6 +25,7 @@ import {
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
+    parseChronikTx,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -158,6 +159,12 @@ import {
     incrementallyHydratedUtxosAfterProcessingOneMissing,
 } from '../__mocks__/incrementalUtxoMocks';
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
+
+import {
+    lambdaHash160s,
+    lambdaIncomingXecTx,
+    lambdaOutgoingXecTx,
+} from '../__mocks__/chronikWs';
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
@@ -894,5 +901,23 @@ describe('Correctly executes cash utility functions', () => {
             '2be0e0c999e7e77a443ea726f82c441912fca92b',
             'ba8257db65f40359989c7b894c5e88ed7b6344f6',
         ]);
+    });
+    it(`Successfully parses an incoming XEC tx`, () => {
+        expect(
+            parseChronikTx(lambdaIncomingXecTx, lambdaHash160s),
+        ).toStrictEqual({
+            incoming: true,
+            xecAmount: '42',
+            isEtokenTx: false,
+        });
+    });
+    it(`Successfully parses an outgoing XEC tx`, () => {
+        expect(
+            parseChronikTx(lambdaOutgoingXecTx, lambdaHash160s),
+        ).toStrictEqual({
+            incoming: false,
+            xecAmount: '222',
+            isEtokenTx: false,
+        });
     });
 });

@@ -992,3 +992,54 @@ export const getHashArrayFromWallet = wallet => {
             : false;
     return hash160Array;
 };
+
+export const parseChronikTx = (tx, walletHash160s) => {
+    const { inputs, outputs } = tx;
+    // Assign defaults
+    let incoming = true;
+    let xecAmount = new BigNumber(0);
+    const isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
+
+    // Iterate over inputs to see if this is an incoming tx (incoming === true)
+    for (let i = 0; i < inputs.length; i += 1) {
+        const thisInput = inputs[i];
+        const thisInputSendingHash160 = thisInput.outputScript;
+        for (let j = 0; j < walletHash160s.length; j += 1) {
+            const thisWalletHash160 = walletHash160s[j];
+            if (thisInputSendingHash160.includes(thisWalletHash160)) {
+                // Then this is an outgoing tx
+                incoming = false;
+                // Break out of this for loop once you know this is an incoming tx
+                break;
+            }
+        }
+    }
+    // Iterate over outputs to get the amount sent
+    for (let i = 0; i < outputs.length; i += 1) {
+        const thisOutput = outputs[i];
+        const thisOutputReceivedAtHash160 = thisOutput.outputScript;
+        // Find amounts at your wallet's addresses
+        for (let j = 0; j < walletHash160s.length; j += 1) {
+            const thisWalletHash160 = walletHash160s[j];
+            if (thisOutputReceivedAtHash160.includes(thisWalletHash160)) {
+                // If incoming tx, this is amount received by the user's wallet
+                // if outgoing tx (incoming === false), then this is a change amount
+                const thisOutputAmount = new BigNumber(thisOutput.value);
+                xecAmount = incoming
+                    ? xecAmount.plus(thisOutputAmount)
+                    : xecAmount.minus(thisOutputAmount);
+            }
+        }
+        // Output amounts not at your wallet are sent amounts if !incoming
+        if (!incoming) {
+            const thisOutputAmount = new BigNumber(thisOutput.value);
+            xecAmount = xecAmount.plus(thisOutputAmount);
+        }
+    }
+    // Convert from sats to XEC
+    xecAmount = xecAmount.shiftedBy(-1 * currency.cashDecimals);
+    // Convert from BigNumber to string
+    xecAmount = xecAmount.toString();
+
+    return { incoming, xecAmount, isEtokenTx };
+};
