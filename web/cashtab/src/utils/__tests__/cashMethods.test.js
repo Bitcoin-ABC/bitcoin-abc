@@ -26,6 +26,7 @@ import {
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
     parseChronikTx,
+    checkWalletForTokenInfo,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -953,5 +954,25 @@ describe('Correctly executes cash utility functions', () => {
             },
             etokenAmount: '17',
         });
+    });
+    it(`Returns decimals, name, and ticker for an eToken stored in wallet object`, () => {
+        expect(
+            checkWalletForTokenInfo(
+                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+                validStoredWallet,
+            ),
+        ).toStrictEqual({
+            decimals: 0,
+            name: 'Covid19 Lifetime Immunity',
+            ticker: 'NOCOVID',
+        });
+    });
+    it(`Returns false for an eToken not stored in a wallet object`, () => {
+        expect(
+            checkWalletForTokenInfo(
+                '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
+                validStoredWallet,
+            ),
+        ).toBe(false);
     });
 });

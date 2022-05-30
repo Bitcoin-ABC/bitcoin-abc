@@ -1087,3 +1087,28 @@ export const parseChronikTx = (tx, walletHash160s) => {
     // Otherwise do not include these fields
     return { incoming, xecAmount, isEtokenTx };
 };
+
+export const checkWalletForTokenInfo = (tokenId, wallet) => {
+    /* 
+    Check wallet for cached information about a given tokenId
+    Return {decimals: tokenDecimals, name: tokenName, ticker: tokenTicker}
+    If this tokenId does not exist in wallet, return false
+    */
+    try {
+        const { tokens } = wallet.state;
+        for (let i = 0; i < tokens.length; i += 1) {
+            const thisTokenId = tokens[i].tokenId;
+            if (tokenId === thisTokenId) {
+                return {
+                    decimals: tokens[i].info.decimals,
+                    ticker: tokens[i].info.tokenTicker,
+                    name: tokens[i].info.tokenName,
+                };
+            }
+        }
+    } catch (err) {
+        return false;
+    }
+
+    return false;
+};

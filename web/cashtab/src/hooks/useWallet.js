@@ -15,6 +15,7 @@ import {
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
     getHashArrayFromWallet,
     parseChronikTx,
+    checkWalletForTokenInfo,
 } from 'utils/cashMethods';
 import { isValidCashtabSettings, isValidContactList } from 'utils/validation';
 import localforage from 'localforage';
@@ -929,10 +930,28 @@ const useWallet = () => {
         // parse tx for notification
         const hash160Array = getHashArrayFromWallet(wallet);
         const parsedChronikTx = parseChronikTx(txDetails, hash160Array);
-
         if (parsedChronikTx.incoming) {
             if (parsedChronikTx.isEtokenTx) {
-                // todo: handle incoming eToken txs
+                try {
+                    // Get the tokenID
+                    const incomingTokenId = parsedChronikTx.slpMeta.tokenId;
+
+                    // Check cache for token info
+                    // NB this procedure will change when chronik utxo formatting is implemented
+                    const incomingTokenInfo = checkWalletForTokenInfo(
+                        incomingTokenId,
+                        wallet,
+                    );
+
+                    // TODO parse incomingTokenInfo to show incoming eToken notification
+                    // For now, console.log this value so that this commit can build without an unused var error
+                    console.log(`incomingTokenInfo`, incomingTokenInfo);
+                } catch (err) {
+                    console.log(
+                        `Error parsing eToken data for incoming tx notification`,
+                        err,
+                    );
+                }
             } else {
                 xecReceivedNotificationWebsocket(
                     parsedChronikTx.xecAmount,
