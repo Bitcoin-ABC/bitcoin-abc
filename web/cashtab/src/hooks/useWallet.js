@@ -16,6 +16,7 @@ import {
     getHashArrayFromWallet,
     parseChronikTx,
     checkWalletForTokenInfo,
+    isActiveWebsocket,
 } from 'utils/cashMethods';
 import { isValidCashtabSettings, isValidContactList } from 'utils/validation';
 import localforage from 'localforage';
@@ -1216,7 +1217,9 @@ const useWallet = () => {
 
     // Parse for incoming XEC transactions
     // hasUpdated is set to true in the useAsyncTimeout function, and re-sets to false during activateWallet
+    // Do not show this notification if websocket connection is live; in this case the websocket will handle it
     if (
+        !isActiveWebsocket(chronikWebsocket) &&
         previousBalances &&
         balances &&
         'totalBalance' in previousBalances &&
@@ -1235,7 +1238,9 @@ const useWallet = () => {
     }
 
     // Parse for incoming eToken transactions
+    // Do not show this notification if websocket connection is live; in this case the websocket will handle it
     if (
+        !isActiveWebsocket(chronikWebsocket) &&
         tokens &&
         tokens[0] &&
         tokens[0].balance &&

@@ -1112,3 +1112,17 @@ export const checkWalletForTokenInfo = (tokenId, wallet) => {
 
     return false;
 };
+
+export const isActiveWebsocket = ws => {
+    // Return true if websocket is connected and subscribed
+    // Otherwise return false
+    return (
+        ws !== null &&
+        ws &&
+        '_ws' in ws &&
+        'readyState' in ws._ws &&
+        ws._ws.readyState === 1 &&
+        '_subs' in ws &&
+        ws._subs.length > 0
+    );
+};

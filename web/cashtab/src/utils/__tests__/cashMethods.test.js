@@ -27,6 +27,7 @@ import {
     getHashArrayFromWallet,
     parseChronikTx,
     checkWalletForTokenInfo,
+    isActiveWebsocket,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -167,6 +168,9 @@ import {
     lambdaOutgoingXecTx,
     lambdaIncomingEtokenTx,
     lambdaOutgoingEtokenTx,
+    activeWebsocketAlpha,
+    disconnectedWebsocketAlpha,
+    unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
 
 describe('Correctly executes cash utility functions', () => {
@@ -974,5 +978,17 @@ describe('Correctly executes cash utility functions', () => {
                 validStoredWallet,
             ),
         ).toBe(false);
+    });
+    it(`isActiveWebsocket returns true for an active chronik websocket connection`, () => {
+        expect(isActiveWebsocket(activeWebsocketAlpha)).toBe(true);
+    });
+    it(`isActiveWebsocket returns false for a disconnected chronik websocket connection`, () => {
+        expect(isActiveWebsocket(disconnectedWebsocketAlpha)).toBe(false);
+    });
+    it(`isActiveWebsocket returns false for a null chronik websocket connection`, () => {
+        expect(isActiveWebsocket(null)).toBe(false);
+    });
+    it(`isActiveWebsocket returns false for an active websocket connection with no subscriptions`, () => {
+        expect(isActiveWebsocket(unsubscribedWebsocket)).toBe(false);
     });
 });
