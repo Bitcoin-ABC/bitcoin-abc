@@ -938,15 +938,40 @@ const useWallet = () => {
 
                     // Check cache for token info
                     // NB this procedure will change when chronik utxo formatting is implemented
-                    const incomingTokenInfo = checkWalletForTokenInfo(
+                    let incomingTokenInfo = checkWalletForTokenInfo(
                         incomingTokenId,
                         wallet,
                     );
 
-                    // TODO parse incomingTokenInfo to show incoming eToken notification
-                    // For now, console.log this value so that this commit can build without an unused var error
-                    console.log(`incomingTokenInfo`, incomingTokenInfo);
+                    let eTokenAmountReceived;
+                    if (!incomingTokenInfo) {
+                        // chronik call to genesis tx to get this info
+                        const tokenGenesisInfo = await chronik.tx(
+                            incomingTokenId,
+                        );
+                        incomingTokenInfo = {
+                            decimals:
+                                tokenGenesisInfo.slpTxData.genesisInfo.decimals,
+                            name: tokenGenesisInfo.slpTxData.genesisInfo
+                                .tokenName,
+                            ticker: tokenGenesisInfo.slpTxData.genesisInfo
+                                .tokenTicker,
+                        };
+                    }
+                    // Calculate eToken amount with decimals
+                    eTokenAmountReceived = new BigNumber(
+                        parsedChronikTx.etokenAmount,
+                    ).shiftedBy(-1 * incomingTokenInfo.decimals);
+                    // Send this info to the notification function
+                    eTokenReceivedNotification(
+                        currency,
+                        incomingTokenInfo.ticker,
+                        eTokenAmountReceived,
+                        incomingTokenInfo.name,
+                    );
                 } catch (err) {
+                    // In this case, no incoming tx notification is received
+                    // This is an acceptable error condition, no need to fallback to another notification option
                     console.log(
                         `Error parsing eToken data for incoming tx notification`,
                         err,
