@@ -132,6 +132,7 @@ TEST_PARAMS = {
     "abc_p2p_avalanche_peer_discovery.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_proof_voting.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_voting.py": [["--nolegacyavaproof"]],
+    "abc_p2p_compactproofs.py": [["--nolegacyavaproof"]],
     "abc_p2p_getavaaddr.py": [["--nolegacyavaproof"]],
     "abc_p2p_proof_inventory.py": [["--nolegacyavaproof"]],
     "abc_rpc_addavalanchenode.py": [["--nolegacyavaproof"]],
