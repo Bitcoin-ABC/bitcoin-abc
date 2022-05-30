@@ -13,6 +13,7 @@ import {
     addNewHydratedUtxos,
     removeConsumedUtxos,
     areAllUtxosIncludedInIncrementallyHydratedUtxos,
+    getHashArrayFromWallet,
 } from 'utils/cashMethods';
 import { isValidCashtabSettings, isValidContactList } from 'utils/validation';
 import localforage from 'localforage';
@@ -920,7 +921,9 @@ const useWallet = () => {
     // Chronik websockets
     const initializeWebsocket = async wallet => {
         // Because wallet is set to `false` before it is loaded, do nothing if you find this case
-        if (!wallet) {
+        // Also return and wait for legacy migration if wallet is not migrated
+        const hash160Array = getHashArrayFromWallet(wallet);
+        if (!wallet || !hash160Array) {
             return setChronikWebsocket(null);
         }
 
@@ -946,6 +949,12 @@ const useWallet = () => {
 
             // Wait for websocket to be connected:
             await ws.waitForOpen();
+        }
+
+        // Subscribe to addresses of current wallet
+        for (let i = 0; i < hash160Array.length; i += 1) {
+            ws.subscribe('p2pkh', hash160Array[i]);
+            console.log(`ws.subscribe('p2pkh', ${hash160Array[i]})`);
         }
         // Put connected websocket in state
         return setChronikWebsocket(ws);
