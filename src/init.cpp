@@ -1952,6 +1952,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // Step 3: parameter-to-internal-flags
     init::SetLoggingCategories(args);
+    init::SetLoggingLevel(args);
 
     // Configure excessive block size.
     const int64_t nProposedExcessiveBlockSize =

@@ -18,6 +18,8 @@
 #include <list>
 #include <mutex>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS = false;
@@ -72,12 +74,18 @@ enum LogFlags : uint32_t {
 };
 
 enum class Level {
-    Debug = 0,
-    None = 1,
-    Info = 2,
-    Warning = 3,
-    Error = 4,
+    // High-volume or detailed logging for development/debugging
+    Trace = 0,
+    // Reasonably noisy logging, but still usable in production
+    Debug,
+    // Default
+    Info,
+    Warning,
+    Error,
+    // Internal use only
+    None,
 };
+constexpr auto DEFAULT_LOG_LEVEL{Level::Debug};
 
 class Logger {
 private:
@@ -95,6 +103,13 @@ private:
      * timestamp when multiple calls are made that don't end in a newline.
      */
     std::atomic_bool m_started_new_line{true};
+
+    //! Category-specific log level. Overrides `m_log_level`.
+    std::unordered_map<LogFlags, Level> m_category_log_levels GUARDED_BY(m_cs);
+
+    //! If there is no category-specific log level, all logs with a severity
+    //! level lower than `m_log_level` will be ignored.
+    std::atomic<Level> m_log_level{DEFAULT_LOG_LEVEL};
 
     /**
      * Log categories bitfield.
@@ -124,8 +139,8 @@ public:
     /** Send a string to the log output */
     void LogPrintStr(const std::string &str,
                      const std::string &logging_function,
-                     const std::string &source_file, const int source_line,
-                     const BCLog::LogFlags category, const BCLog::Level level);
+                     const std::string &source_file, int source_line,
+                     BCLog::LogFlags category, BCLog::Level level);
 
     /** Returns whether logs will be written to any output */
     bool Enabled() const {
@@ -156,6 +171,22 @@ public:
 
     void ShrinkDebugFile();
 
+    std::unordered_map<LogFlags, Level> CategoryLevels() const {
+        StdLockGuard scoped_lock(m_cs);
+        return m_category_log_levels;
+    }
+    void
+    SetCategoryLogLevel(const std::unordered_map<LogFlags, Level> &levels) {
+        StdLockGuard scoped_lock(m_cs);
+        m_category_log_levels = levels;
+    }
+    bool SetCategoryLogLevel(const std::string &category_str,
+                             const std::string &level_str);
+
+    Level LogLevel() const { return m_log_level.load(); }
+    void SetLogLevel(Level level) { m_log_level = level; }
+    bool SetLogLevel(const std::string &level);
+
     uint32_t GetCategoryMask() const { return m_categories.load(); }
 
     void EnableCategory(LogFlags category);
@@ -165,6 +196,7 @@ public:
 
     /** Return true if log accepts specified category */
     bool WillLogCategory(LogFlags category) const;
+    bool WillLogCategoryLevel(LogFlags category, Level level) const;
 
     /** Returns a vector of the log categories in alphabetical order. */
     std::vector<LogCategory> LogCategoriesList() const;
@@ -173,6 +205,12 @@ public:
         return Join(LogCategoriesList(), ", ",
                     [&](const LogCategory &i) { return i.category; });
     };
+
+    //! Returns a string with all user-selectable log levels.
+    std::string LogLevelsString() const;
+
+    //! Returns the string representation of a log level.
+    std::string LogLevelToStr(BCLog::Level level) const;
 
     /** Default for whether ShrinkDebugFile should be run */
     bool DefaultShrinkDebugFile() const;
@@ -185,12 +223,7 @@ BCLog::Logger &LogInstance();
 /** Return true if log accepts specified category, at the specified level. */
 static inline bool LogAcceptCategory(BCLog::LogFlags category,
                                      BCLog::Level level) {
-    // Log messages at Warning and Error level unconditionally, so that
-    // important troubleshooting information doesn't get lost.
-    if (level >= BCLog::Level::Warning) {
-        return true;
-    }
-    return LogInstance().WillLogCategory(category);
+    return LogInstance().WillLogCategoryLevel(category, level);
 }
 
 /** Return true if str parses as a log category and set the flag */

@@ -108,6 +108,7 @@ BasicTestingSetup::BasicTestingSetup(
             "-printtoconsole=0",
             "-logsourcelocations",
             "-logtimemicros",
+            "-loglevel=trace",
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",

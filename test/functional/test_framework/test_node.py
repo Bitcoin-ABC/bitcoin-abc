@@ -142,6 +142,7 @@ class TestNode:
             "-logtimemicros",
             "-logthreadnames",
             "-logsourcelocations",
+            "-loglevel=trace",
             "-debug",
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
