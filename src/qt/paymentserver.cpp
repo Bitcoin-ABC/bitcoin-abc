@@ -50,10 +50,9 @@ const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 const char *BIP70_MESSAGE_PAYMENTACK = "PaymentACK";
 const char *BIP70_MESSAGE_PAYMENTREQUEST = "PaymentRequest";
 // BIP71 payment protocol media types
-const char *BIP71_MIMETYPE_PAYMENT = "application/bitcoincash-payment";
-const char *BIP71_MIMETYPE_PAYMENTACK = "application/bitcoincash-paymentack";
-const char *BIP71_MIMETYPE_PAYMENTREQUEST =
-    "application/bitcoincash-paymentrequest";
+const char *BIP71_MIMETYPE_PAYMENT = "application/ecash-payment";
+const char *BIP71_MIMETYPE_PAYMENTACK = "application/ecash-paymentack";
+const char *BIP71_MIMETYPE_PAYMENTREQUEST = "application/ecash-paymentrequest";
 #endif
 
 //
