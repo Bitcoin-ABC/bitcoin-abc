@@ -54,6 +54,7 @@ const char *AVAPROOF = "avaproof";
 const char *GETAVAADDR = "getavaaddr";
 const char *GETAVAPROOFS = "getavaproofs";
 const char *AVAPROOFS = "avaproofs";
+const char *AVAPROOFSREQ = "avaproofsreq";
 
 bool IsBlockLike(const std::string &strCommand) {
     return strCommand == NetMsgType::BLOCK ||

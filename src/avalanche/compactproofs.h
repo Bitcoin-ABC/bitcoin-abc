@@ -11,6 +11,7 @@
 #include <radix.h>
 #include <random.h>
 #include <serialize.h>
+#include <shortidprocessor.h>
 
 #include <cstdint>
 #include <ios>
@@ -35,6 +36,21 @@ struct PrefilledProof {
     template <typename Stream> void UnserData(Stream &s) { s >> proof; }
 };
 
+struct ShortIdProcessorPrefilledProofAdapter {
+    uint32_t getIndex(const PrefilledProof &pp) const { return pp.index; }
+    ProofRef getItem(const PrefilledProof &pp) const { return pp.proof; }
+};
+
+struct ProofRefCompare {
+    bool operator()(const ProofRef &lhs, const ProofRef &rhs) const {
+        return lhs->getId() == rhs->getId();
+    }
+};
+
+using ProofShortIdProcessor =
+    ShortIdProcessor<PrefilledProof, ShortIdProcessorPrefilledProofAdapter,
+                     ProofRefCompare>;
+
 class CompactProofs {
 private:
     uint64_t shortproofidk0, shortproofidk1;
@@ -57,6 +73,10 @@ public:
     std::pair<uint64_t, uint64_t> getKeys() const {
         return std::make_pair(shortproofidk0, shortproofidk1);
     }
+    const std::vector<PrefilledProof> &getPrefilledProofs() const {
+        return prefilledProofs;
+    }
+    const std::vector<uint64_t> &getShortIDs() const { return shortproofids; }
 
     SERIALIZE_METHODS(CompactProofs, obj) {
         READWRITE(
@@ -89,6 +109,15 @@ public:
 
 private:
     friend struct ::avalanche::TestCompactProofs;
+};
+
+class ProofsRequest {
+public:
+    std::vector<uint32_t> indices;
+
+    SERIALIZE_METHODS(ProofsRequest, obj) {
+        READWRITE(Using<VectorFormatter<DifferenceFormatter>>(obj.indices));
+    }
 };
 
 } // namespace avalanche

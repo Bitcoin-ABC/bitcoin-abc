@@ -3261,7 +3261,8 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
            msg_type == NetMsgType::AVARESPONSE ||
            msg_type == NetMsgType::AVAPROOF ||
            msg_type == NetMsgType::GETAVAADDR ||
-           msg_type == NetMsgType::GETAVAPROOFS;
+           msg_type == NetMsgType::GETAVAPROOFS ||
+           msg_type == NetMsgType::AVAPROOFS;
 }
 
 uint32_t PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) {
@@ -5174,6 +5175,98 @@ void PeerManagerImpl::ProcessMessage(
         m_connman.PushMessage(
             &pfrom, msgMaker.Make(NetMsgType::AVAPROOFS, compactProofs));
 
+        return;
+    }
+
+    if (msg_type == NetMsgType::AVAPROOFS) {
+        if (pfrom.m_proof_relay == nullptr) {
+            return;
+        }
+
+        // Only process the compact proofs if we requested them
+        if (!pfrom.m_proof_relay->compactproofs_requested) {
+            LogPrint(BCLog::AVALANCHE, "Ignoring unsollicited avaproofs\n");
+            return;
+        }
+        pfrom.m_proof_relay->compactproofs_requested = false;
+
+        avalanche::CompactProofs compactProofs;
+        try {
+            vRecv >> compactProofs;
+        } catch (std::ios_base::failure &e) {
+            // This compact proofs have non contiguous or overflowing indexes
+            Misbehaving(pfrom, 100, "avaproofs-bad-indexes");
+            return;
+        }
+
+        // If there are prefilled proofs, process them first
+        std::set<uint32_t> prefilledIndexes;
+        for (const auto &prefilledProof : compactProofs.getPrefilledProofs()) {
+            if (!ReceivedAvalancheProof(pfrom, prefilledProof.proof)) {
+                // If we got an invalid proof, the peer is getting banned and we
+                // can bail out.
+                return;
+            }
+        }
+
+        // To determine the chance that the number of entries in a bucket
+        // exceeds N, we use the fact that the number of elements in a single
+        // bucket is binomially distributed (with n = the number of shorttxids
+        // S, and p = 1 / the number of buckets), that in the worst case the
+        // number of buckets is equal to S (due to std::unordered_map having a
+        // default load factor of 1.0), and that the chance for any bucket to
+        // exceed N elements is at most buckets * (the chance that any given
+        // bucket is above N elements). Thus:
+        //   P(max_elements_per_bucket > N) <=
+        //     S * (1 - cdf(binomial(n=S,p=1/S), N))
+        // If we assume up to 21000000, allowing 15 elements per bucket should
+        // only fail once per ~2.5 million avaproofs transfers (per peer and
+        // connection).
+        // TODO re-evaluate the bucket count to a more realistic value.
+        // TODO: In the case of a shortid-collision, we should request all the
+        // proofs which collided. For now, we only request one, which is not
+        // that bad considering this event is expected to be very rare.
+        auto shortIdProcessor =
+            avalanche::ProofShortIdProcessor(compactProofs.getPrefilledProofs(),
+                                             compactProofs.getShortIDs(), 15);
+
+        if (shortIdProcessor.hasOutOfBoundIndex()) {
+            // This should be catched by deserialization, but catch it here as
+            // well as a good measure.
+            Misbehaving(pfrom, 100, "avaproofs-bad-indexes");
+            return;
+        }
+        if (!shortIdProcessor.isEvenlyDistributed()) {
+            // This is suspicious, don't ban but bail out
+            return;
+        }
+
+        const auto &proofs =
+            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+                return pm.getShareableProofsSnapshot();
+            });
+
+        size_t proofCount = 0;
+        proofs.forEachLeaf([&](const avalanche::ProofRef &proof) {
+            uint64_t shortid = compactProofs.getShortID(proof->getId());
+
+            proofCount += shortIdProcessor.matchKnownItem(shortid, proof);
+
+            // Though ideally we'd continue scanning for the
+            // two-proofs-match-shortid case, the performance win of an early
+            // exit here is too good to pass up and worth the extra risk.
+            return proofCount != shortIdProcessor.getShortIdCount();
+        });
+
+        avalanche::ProofsRequest req;
+        for (size_t i = 0; i < compactProofs.size(); i++) {
+            if (shortIdProcessor.getItem(i) == nullptr) {
+                req.indices.push_back(i);
+            }
+        }
+
+        m_connman.PushMessage(&pfrom,
+                              msgMaker.Make(NetMsgType::AVAPROOFSREQ, req));
         return;
     }
 

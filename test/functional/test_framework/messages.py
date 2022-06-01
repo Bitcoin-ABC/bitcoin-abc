@@ -2211,6 +2211,41 @@ class msg_avaproofs:
             self.key0, self.key1, len(self.shortids), self.shortids, len(self.prefilled_proofs), self.prefilled_proofs)
 
 
+class msg_avaproofsreq:
+    __slots__ = ("indices")
+    msgtype = b"avaproofsreq"
+
+    def __init__(self):
+        self.indices = []
+
+    def deserialize(self, f):
+        indices_length = deser_compact_size(f)
+
+        # The indices are differentially encoded
+        current_indice = -1
+        for _ in range(indices_length):
+            current_indice += deser_compact_size(f) + 1
+            self.indices.append(current_indice)
+
+    def serialize(self):
+        r = b""
+        r += ser_compact_size(len(self.indices))
+
+        if (len(self.indices) < 1):
+            return r
+
+        # The indices are differentially encoded
+        r += ser_compact_size(self.indices[0])
+        for i in range(len(self.indices[1:])):
+            r += ser_compact_size(self.indices[i + 1] - self.indices[i] - 1)
+
+        return r
+
+    def __repr__(self):
+        return "msg_avaproofsreq(len(shortids)={}, indices={})".format(
+            len(self.indices), self.indices)
+
+
 class TestFrameworkMessages(unittest.TestCase):
     def test_legacy_avalanche_proof_serialization_round_trip(self):
         """Verify that a LegacyAvalancheProof object is unchanged after a

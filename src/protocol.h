@@ -316,6 +316,12 @@ extern const char *GETAVAPROOFS;
 extern const char *AVAPROOFS;
 
 /**
+ * Request for missing avalanche proofs after an avaproofs message has been
+ * processed.
+ */
+extern const char *AVAPROOFSREQ;
+
+/**
  * Indicate if the message is used to transmit the content of a block.
  * These messages can be significantly larger than usual messages and therefore
  * may need to be processed differently.
