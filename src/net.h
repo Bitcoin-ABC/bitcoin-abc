@@ -657,6 +657,7 @@ public:
 
         RadixTree<const avalanche::Proof, avalanche::ProofRadixTreeAdapter>
             sharedProofs;
+        std::atomic<bool> compactproofs_requested{false};
     };
 
     // m_proof_relay == nullptr if we're not relaying proofs with this peer

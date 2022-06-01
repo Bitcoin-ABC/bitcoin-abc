@@ -1673,7 +1673,7 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
     });
 }
 
-static bool shouldSendGetAvaAddr(const CNode *pnode) {
+static bool isAvalancheOutboundOrManual(const CNode *pnode) {
     return pnode->IsAvalancheOutboundConnection() ||
            (pnode->IsManualConn() && (pnode->nServices & NODE_AVALANCHE));
 }
@@ -1686,7 +1686,7 @@ void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
          }))) {
         std::vector<NodeId> avanode_outbound_ids;
         m_connman.ForEachNode([&](CNode *pnode) {
-            if (shouldSendGetAvaAddr(pnode)) {
+            if (isAvalancheOutboundOrManual(pnode)) {
                 avanode_outbound_ids.push_back(pnode->GetId());
             }
         });
@@ -3685,12 +3685,19 @@ void PeerManagerImpl::ProcessMessage(
                     ->m_recently_announced_proofs.insert(localProof->getId());
             }
 
-            // Send getavaaddr to our avalanche outbound connections
-            if (shouldSendGetAvaAddr(&pfrom)) {
+            // Send getavaaddr and getavaproofs to our avalanche outbound or
+            // manual connections
+            if (isAvalancheOutboundOrManual(&pfrom)) {
                 m_connman.PushMessage(&pfrom,
                                       msgMaker.Make(NetMsgType::GETAVAADDR));
                 WITH_LOCK(peer->m_addr_token_bucket_mutex,
                           peer->m_addr_token_bucket += GetMaxAddrToSend());
+
+                if (pfrom.m_proof_relay) {
+                    m_connman.PushMessage(
+                        &pfrom, msgMaker.Make(NetMsgType::GETAVAPROOFS));
+                    pfrom.m_proof_relay->compactproofs_requested = true;
+                }
             }
         }
 
