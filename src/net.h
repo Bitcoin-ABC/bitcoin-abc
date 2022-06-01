@@ -10,7 +10,7 @@
 #include <addrdb.h>
 #include <addrman.h>
 #include <amount.h>
-#include <avalanche/delegation.h>
+#include <avalanche/proofid.h>
 #include <bloom.h>
 #include <chainparams.h>
 #include <compat.h>
@@ -21,6 +21,7 @@
 #include <netaddress.h>
 #include <nodeid.h>
 #include <protocol.h>
+#include <pubkey.h>
 #include <random.h>
 #include <streams.h>
 #include <sync.h>
