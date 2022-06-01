@@ -924,6 +924,12 @@ const useWallet = () => {
 
     // Parse chronik ws message for incoming tx notifications
     const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
+        // get the message type
+        const { type } = msg;
+        // For now, only act on "first seen" transactions, as the only logic to happen is first seen notifications
+        if (type !== 'AddedToMempool') {
+            return;
+        }
         // get txid info
         const txid = msg.txid;
         const txDetails = await chronik.tx(txid);
