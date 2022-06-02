@@ -3603,6 +3603,11 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
     : m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn), m_inbound_onion(inbound_onion),
       nKeyedNetGroup(nKeyedNetGroupIn),
+      m_tx_relay(conn_type_in != ConnectionType::BLOCK_RELAY
+                     ? std::make_unique<TxRelay>()
+                     : nullptr),
+      m_proof_relay(isAvalancheEnabled(gArgs) ? std::make_unique<ProofRelay>()
+                                              : nullptr),
       // Don't relay addr messages to peers that we connect to as
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
@@ -3614,14 +3619,6 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, SOCKET hSocketIn,
     }
     hSocket = hSocketIn;
     addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
-    if (conn_type_in != ConnectionType::BLOCK_RELAY) {
-        m_tx_relay = std::make_unique<TxRelay>();
-    }
-
-    // Don't relay proofs if avalanche is disabled
-    if (isAvalancheEnabled(gArgs)) {
-        m_proof_relay = std::make_unique<ProofRelay>();
-    }
 
     for (const std::string &msg : getAllNetMessageTypes()) {
         mapRecvBytesPerMsgCmd[msg] = 0;

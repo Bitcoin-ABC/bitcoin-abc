@@ -641,7 +641,7 @@ public:
     };
 
     // m_tx_relay == nullptr if we're not relaying transactions with this peer
-    std::unique_ptr<TxRelay> m_tx_relay;
+    const std::unique_ptr<TxRelay> m_tx_relay;
 
     struct ProofRelay {
         mutable RecursiveMutex cs_proof_inventory;
@@ -654,7 +654,7 @@ public:
     };
 
     // m_proof_relay == nullptr if we're not relaying proofs with this peer
-    std::unique_ptr<ProofRelay> m_proof_relay;
+    const std::unique_ptr<ProofRelay> m_proof_relay;
 
     class AvalancheState {
         /**
