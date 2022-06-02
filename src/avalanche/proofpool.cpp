@@ -103,6 +103,12 @@ ProofRef ProofPool::getProof(const COutPoint &outpoint) const {
     return it == pool.end() ? ProofRef() : it->proof;
 }
 
+ProofRef ProofPool::getLowestScoreProof() const {
+    auto &poolView = pool.get<by_proof_score>();
+    return poolView.rbegin() == poolView.rend() ? ProofRef()
+                                                : poolView.rbegin()->proof;
+}
+
 size_t ProofPool::countProofs() {
     if (cacheClean) {
         return cacheProofCount;

@@ -292,4 +292,68 @@ BOOST_AUTO_TEST_CASE(get_proof) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(get_lowest_score_proof) {
+    ProofPool testPool;
+    BOOST_CHECK_EQUAL(testPool.getLowestScoreProof(), nullptr);
+
+    const CKey key = CKey::MakeCompressedKey();
+    auto buildProofWithRandomOutpoints = [&](uint32_t score) {
+        int numOutpoints = InsecureRand32() % 10 + 1;
+        ProofBuilder pb(0, 0, key);
+        for (int i = 0; i < numOutpoints; i++) {
+            Amount amount = 1 * COIN;
+            if (i == numOutpoints - 1) {
+                // Last UTXO is the remainder
+                amount =
+                    (int64_t(score) * COIN) / 100 - (numOutpoints - 1) * COIN;
+            }
+            const COutPoint outpoint{TxId(GetRandHash()), 0};
+            BOOST_CHECK(pb.addUTXO(outpoint, amount, 123456, false, key));
+        }
+        return pb.build();
+    };
+
+    // Add some proofs with different scores and check the lowest scoring proof
+    for (int i = 9; i >= 0; i--) {
+        auto proof = buildProofWithRandomOutpoints(MIN_VALID_PROOF_SCORE + i);
+        BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
+                          ProofPool::AddProofStatus::SUCCEED);
+        auto checkLowestScoreProof = testPool.getLowestScoreProof();
+        BOOST_CHECK_EQUAL(checkLowestScoreProof->getScore(),
+                          MIN_VALID_PROOF_SCORE + i);
+        BOOST_CHECK_EQUAL(checkLowestScoreProof->getId(), proof->getId());
+    }
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 10);
+
+    auto lowestScoreProof = testPool.getLowestScoreProof();
+
+    // Adding more proofs doesn't change the lowest scoring proof
+    for (size_t i = 1; i < 10; i++) {
+        auto proof = buildProofWithRandomOutpoints(MIN_VALID_PROOF_SCORE + i);
+        BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
+                          ProofPool::AddProofStatus::SUCCEED);
+        auto checkLowestScoreProof = testPool.getLowestScoreProof();
+        BOOST_CHECK_EQUAL(checkLowestScoreProof->getScore(),
+                          MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK_EQUAL(checkLowestScoreProof->getId(),
+                          lowestScoreProof->getId());
+    }
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 19);
+
+    // Remove proofs by lowest score, checking the lowest score as we go
+    for (int scoreCount = 1; scoreCount < 10; scoreCount++) {
+        for (size_t i = 0; i < 2; i++) {
+            BOOST_CHECK(
+                testPool.removeProof(testPool.getLowestScoreProof()->getId()));
+            BOOST_CHECK_EQUAL(testPool.getLowestScoreProof()->getScore(),
+                              MIN_VALID_PROOF_SCORE + scoreCount);
+        }
+    }
+
+    // Remove the last proof
+    BOOST_CHECK(testPool.removeProof(testPool.getLowestScoreProof()->getId()));
+    BOOST_CHECK_EQUAL(testPool.getLowestScoreProof(), nullptr);
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

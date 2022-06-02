@@ -13,6 +13,8 @@
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
 #include <cstdint>
@@ -35,6 +37,7 @@ struct ProofPoolEntry {
 
 struct by_utxo;
 struct by_proofid;
+struct by_proof_score;
 
 struct ProofPoolEntryProofIdKeyExtractor {
     using result_type = ProofId;
@@ -61,7 +64,12 @@ class ProofPool {
             // index by proofid
             bmi::hashed_non_unique<bmi::tag<by_proofid>,
                                    ProofPoolEntryProofIdKeyExtractor,
-                                   SaltedProofIdHasher>>>
+                                   SaltedProofIdHasher>,
+            // index by proof score
+            bmi::ordered_non_unique<
+                bmi::tag<by_proof_score>,
+                bmi::member<ProofPoolEntry, ProofRef, &ProofPoolEntry::proof>,
+                ProofComparatorByScore>>>
         pool;
 
     bool cacheClean = true;
@@ -105,6 +113,7 @@ public:
 
     ProofRef getProof(const ProofId &proofid) const;
     ProofRef getProof(const COutPoint &outpoint) const;
+    ProofRef getLowestScoreProof() const;
 
     size_t size() const { return pool.size(); }
     size_t countProofs();
