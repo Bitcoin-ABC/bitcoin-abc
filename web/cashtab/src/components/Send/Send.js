@@ -61,6 +61,7 @@ import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import WalletLabel from 'components/Common/WalletLabel.js';
+import { ThemedCopySolid } from 'components/Common/CustomIcons';
 
 const { TextArea } = Input;
 
@@ -98,6 +99,21 @@ const LocaleFormattedValue = styled.h3`
     color: ${props => props.theme.contrast};
     font-weight: bold;
     margin-bottom: 0;
+`;
+
+const AddressCopyCtn = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    svg {
+        height: 30px;
+        width: 30px;
+        &:hover {
+            fill: ${props => props.theme.eCashBlue};
+            cursor: pointer;
+        }
+    }
 `;
 
 // Note jestBCH is only used for unit tests; BCHJS must be mocked for jest
@@ -1126,19 +1142,46 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                             </Form.Item>
                             <Form.Item>
                                 <SignMessageLabel>Address:</SignMessageLabel>
-                                <Input
-                                    name="signMessageAddress"
-                                    disabled={true}
-                                    value={
-                                        wallet &&
-                                        wallet.Path1899 &&
-                                        wallet.Path1899.cashAddress
-                                            ? convertToEcashPrefix(
-                                                  wallet.Path1899.cashAddress,
-                                              )
-                                            : ''
-                                    }
-                                />
+                                {wallet &&
+                                    wallet.Path1899 &&
+                                    wallet.Path1899.cashAddress && (
+                                        <AddressCopyCtn>
+                                            <Input
+                                                name="signMessageAddress"
+                                                disabled={true}
+                                                value={
+                                                    wallet &&
+                                                    wallet.Path1899 &&
+                                                    wallet.Path1899.cashAddress
+                                                        ? convertToEcashPrefix(
+                                                              wallet.Path1899
+                                                                  .cashAddress,
+                                                          )
+                                                        : ''
+                                                }
+                                            />
+                                            <div
+                                                onClick={() => {
+                                                    const convertedAddress =
+                                                        convertToEcashPrefix(
+                                                            wallet.Path1899
+                                                                .cashAddress,
+                                                        );
+                                                    navigator.clipboard.writeText(
+                                                        convertedAddress,
+                                                    );
+                                                    generalNotification(
+                                                        convertedAddress +
+                                                            ' copied to clipboard',
+                                                        'Copied',
+                                                        'Success',
+                                                    );
+                                                }}
+                                            >
+                                                <ThemedCopySolid />
+                                            </div>
+                                        </AddressCopyCtn>
+                                    )}
                             </Form.Item>
                             <SmartButton
                                 onClick={() => setShowConfirmMsgToSign(true)}
