@@ -46,6 +46,7 @@ import {
     ThemedContactSendOutlined,
     ThemedPlusOutlined,
     ThemedDownloadOutlined,
+    ThemedCopySolid,
 } from 'components/Common/CustomIcons';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
@@ -281,6 +282,9 @@ const ContactListCtn = styled.div`
         width: 100%;
         justify-content: center;
     }
+    ${ThemedCopySolid} {
+        margin-top: 7px;
+    }
 
     button {
         cursor: pointer;
@@ -310,7 +314,6 @@ const ContactListCtn = styled.div`
         height: 25px;
         margin-right: 10px;
         cursor: pointer;
-
         :first-child:hover {
             stroke: ${props => props.theme.eCashBlue};
             fill: ${props => props.theme.eCashBlue};
@@ -1687,6 +1690,19 @@ const Configure = () => {
                                                             </ContactListAddress>
                                                         </Tooltip>
                                                         <ContactListCtn>
+                                                            <ThemedCopySolid
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(
+                                                                        element.address,
+                                                                    );
+                                                                    generalNotification(
+                                                                        element.address +
+                                                                            ' copied to clipboard',
+                                                                        'Copied',
+                                                                        'Success',
+                                                                    );
+                                                                }}
+                                                            />
                                                             <Edit
                                                                 onClick={() =>
                                                                     handleRenameContact(
