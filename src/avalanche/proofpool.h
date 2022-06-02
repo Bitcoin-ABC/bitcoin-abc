@@ -64,6 +64,9 @@ class ProofPool {
                                    SaltedProofIdHasher>>>
         pool;
 
+    bool cacheClean = true;
+    size_t cacheProofCount = 0;
+
 public:
     enum AddProofStatus {
         REJECTED = 0,   //!< Rejected due to conflicts
@@ -104,6 +107,7 @@ public:
     ProofRef getProof(const COutPoint &outpoint) const;
 
     size_t size() const { return pool.size(); }
+    size_t countProofs();
 };
 
 } // namespace avalanche

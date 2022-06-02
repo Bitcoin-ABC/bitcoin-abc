@@ -46,6 +46,7 @@ ProofPool::addProofIfNoConflict(const ProofRef &proof,
         return AddProofStatus::REJECTED;
     }
 
+    cacheClean = false;
     return AddProofStatus::SUCCEED;
 }
 
@@ -68,6 +69,7 @@ ProofPool::addProofIfPreferred(const ProofRef &proof,
     status = addProofIfNoConflict(proof);
     assert(status == AddProofStatus::SUCCEED);
 
+    cacheClean = false;
     return AddProofStatus::SUCCEED;
 }
 
@@ -75,6 +77,7 @@ ProofPool::addProofIfPreferred(const ProofRef &proof,
 // reference to a proof member. This proof will be deleted during the erasure
 // loop so we pass it by value.
 bool ProofPool::removeProof(ProofId proofid) {
+    cacheClean = false;
     auto &poolView = pool.get<by_proofid>();
     return poolView.erase(proofid);
 }
@@ -82,6 +85,7 @@ bool ProofPool::removeProof(ProofId proofid) {
 void ProofPool::rescan(PeerManager &peerManager) {
     auto previousPool = std::move(pool);
     pool.clear();
+    cacheClean = false;
 
     for (auto &entry : previousPool) {
         peerManager.registerProof(entry.proof);
@@ -97,6 +101,27 @@ ProofRef ProofPool::getProof(const ProofId &proofid) const {
 ProofRef ProofPool::getProof(const COutPoint &outpoint) const {
     auto it = pool.find(outpoint);
     return it == pool.end() ? ProofRef() : it->proof;
+}
+
+size_t ProofPool::countProofs() {
+    if (cacheClean) {
+        return cacheProofCount;
+    }
+
+    size_t count = 0;
+    ProofId lastProofId;
+    auto &poolView = pool.get<by_proofid>();
+    for (auto it = poolView.begin(); it != poolView.end(); it++) {
+        const ProofId &proofId = it->proof->getId();
+        if (lastProofId != proofId) {
+            lastProofId = proofId;
+            count++;
+        }
+    }
+
+    cacheProofCount = count;
+    cacheClean = true;
+    return cacheProofCount;
 }
 
 } // namespace avalanche

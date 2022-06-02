@@ -29,11 +29,13 @@ BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
         auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
                           ProofPool::AddProofStatus::SUCCEED);
+        BOOST_CHECK_EQUAL(testPool.countProofs(), i + 1);
 
         // Trying to add them again will return a duplicated status
         for (size_t j = 0; j < 10; j++) {
             BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
                               ProofPool::AddProofStatus::DUPLICATED);
+            BOOST_CHECK_EQUAL(testPool.countProofs(), i + 1);
         }
         proofs.push_back(std::move(proof));
     }
@@ -51,21 +53,25 @@ BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
     auto proof_seq10 = buildProofWithSequence(10);
     BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof_seq10),
                       ProofPool::AddProofStatus::SUCCEED);
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 11);
     proofs.push_back(std::move(proof_seq10));
 
     auto proof_seq20 = buildProofWithSequence(20);
     BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof_seq20),
                       ProofPool::AddProofStatus::REJECTED);
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 11);
 
     // Removing proofs which are not in the pool will fail
     for (size_t i = 0; i < 10; i++) {
         BOOST_CHECK(!testPool.removeProof(ProofId(GetRandHash())));
     }
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 11);
 
     for (auto proof : proofs) {
         BOOST_CHECK(testPool.removeProof(proof->getId()));
     }
     BOOST_CHECK_EQUAL(testPool.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(rescan) {
@@ -74,6 +80,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
 
     testPool.rescan(pm);
     BOOST_CHECK_EQUAL(testPool.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 0);
 
     // No peer should be created
     bool hasPeer = false;
@@ -86,6 +93,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
                           ProofPool::AddProofStatus::SUCCEED);
         poolProofs.insert(std::move(proof));
+        BOOST_CHECK_EQUAL(testPool.countProofs(), i + 1);
     }
 
     testPool.rescan(pm);
@@ -96,6 +104,7 @@ BOOST_AUTO_TEST_CASE(rescan) {
     BOOST_CHECK_EQUAL_COLLECTIONS(poolProofs.begin(), poolProofs.end(),
                                   pmProofs.begin(), pmProofs.end());
     BOOST_CHECK_EQUAL(testPool.size(), 0);
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(proof_override) {
@@ -125,14 +134,17 @@ BOOST_AUTO_TEST_CASE(proof_override) {
     BOOST_CHECK_EQUAL(testPool.addProofIfPreferred(proof_seq10),
                       ProofPool::AddProofStatus::SUCCEED);
     BOOST_CHECK(testPool.getProof(proof_seq10->getId()));
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 1);
 
     BOOST_CHECK_EQUAL(testPool.addProofIfPreferred(proof_seq20),
                       ProofPool::AddProofStatus::SUCCEED);
     BOOST_CHECK(testPool.getProof(proof_seq20->getId()));
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 2);
 
     BOOST_CHECK_EQUAL(testPool.addProofIfPreferred(proof_seq30),
                       ProofPool::AddProofStatus::SUCCEED);
     BOOST_CHECK(testPool.getProof(proof_seq30->getId()));
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 3);
 
     // Build a proof that conflicts with the above 3, but has a higher sequence
     auto proof_seq123 = buildProofWithSequenceAndOutpoints(
@@ -149,6 +161,7 @@ BOOST_AUTO_TEST_CASE(proof_override) {
     BOOST_CHECK_EQUAL_COLLECTIONS(
         conflictingProofs.begin(), conflictingProofs.end(),
         expectedConflictingProofs.begin(), expectedConflictingProofs.end());
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 3);
     BOOST_CHECK(!testPool.getProof(proof_seq123->getId()));
     BOOST_CHECK(testPool.getProof(proof_seq10->getId()));
     BOOST_CHECK(testPool.getProof(proof_seq20->getId()));
@@ -162,6 +175,7 @@ BOOST_AUTO_TEST_CASE(proof_override) {
     BOOST_CHECK_EQUAL_COLLECTIONS(
         conflictingProofs.begin(), conflictingProofs.end(),
         expectedConflictingProofs.begin(), expectedConflictingProofs.end());
+    BOOST_CHECK_EQUAL(testPool.countProofs(), 1);
     BOOST_CHECK(testPool.getProof(proof_seq123->getId()));
     BOOST_CHECK(!testPool.getProof(proof_seq10->getId()));
     BOOST_CHECK(!testPool.getProof(proof_seq20->getId()));
