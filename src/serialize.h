@@ -783,6 +783,28 @@ public:
 };
 
 /**
+ * Helper for a list of items containing a differentially encoded index as their
+ * first member. See DifferenceFormatter for info about the index encoding.
+ *
+ * The index should be a public member of the object.
+ * SerData()/UnserData() methods must be implemented to serialize/deserialize
+ * the remaining item data.
+ *
+ * To be used with a VectorFormatter.
+ */
+struct DifferentialIndexedItemFormatter : public DifferenceFormatter {
+    template <typename Stream, typename T> void Ser(Stream &s, T v) {
+        DifferenceFormatter::Ser(s, v.index);
+        v.SerData(s);
+    }
+
+    template <typename Stream, typename T> void Unser(Stream &s, T &v) {
+        DifferenceFormatter::Unser(s, v.index);
+        v.UnserData(s);
+    }
+};
+
+/**
  * Forward declarations
  */
 

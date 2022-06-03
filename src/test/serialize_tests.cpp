@@ -452,10 +452,67 @@ BOOST_AUTO_TEST_CASE(class_methods) {
     BOOST_CHECK(methodtest3 == methodtest4);
 }
 
-BOOST_AUTO_TEST_CASE(difference_formatter) {
-    VectorFormatter<DifferenceFormatter> formatter;
+namespace {
+struct DifferentialIndexedItem {
+    uint32_t index;
+    std::string text;
+
+    template <typename Stream> void SerData(Stream &s) { s << text; }
+    template <typename Stream> void UnserData(Stream &s) { s >> text; }
+
+    bool operator==(const DifferentialIndexedItem &other) const {
+        return index == other.index && text == other.text;
+    }
+    bool operator!=(const DifferentialIndexedItem &other) const {
+        return !(*this == other);
+    }
+
+    // Make boost happy
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const DifferentialIndexedItem &item) {
+        os << "index: " << item.index << ", text: " << item.text;
+        return os;
+    }
+
+    DifferentialIndexedItem() {}
+    DifferentialIndexedItem(uint32_t indexIn)
+        : index(indexIn), text(ToString(index)) {}
+};
+
+template <typename Formatter, typename T>
+static void checkDifferentialEncodingRoundtrip() {
+    Formatter formatter;
+
+    const std::vector<T> indicesIn{0, 1, 2, 5, 10, 20, 50, 100};
+    std::vector<T> indicesOut;
+
+    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    formatter.Ser(ss, indicesIn);
+    formatter.Unser(ss, indicesOut);
+    BOOST_CHECK_EQUAL_COLLECTIONS(indicesIn.begin(), indicesIn.end(),
+                                  indicesOut.begin(), indicesOut.end());
+}
+
+template <typename Formatter, typename T>
+static void checkDifferentialEncodingOverflow() {
+    Formatter formatter;
 
     {
+        const std::vector<T> indicesIn{1, 0};
+
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        BOOST_CHECK_EXCEPTION(formatter.Ser(ss, indicesIn),
+                              std::ios_base::failure,
+                              HasReason("differential value overflow"));
+    }
+}
+} // namespace
+
+BOOST_AUTO_TEST_CASE(difference_formatter) {
+    {
+        // Roundtrip with internals check
+        VectorFormatter<DifferenceFormatter> formatter;
+
         std::vector<uint32_t> indicesIn{0, 1, 2, 5, 10, 20, 50, 100};
         std::vector<uint32_t> indicesOut;
 
@@ -474,16 +531,15 @@ BOOST_AUTO_TEST_CASE(difference_formatter) {
                                       indicesOut.begin(), indicesOut.end());
     }
 
-    {
-        std::vector<uint32_t> indicesIn{1, 0};
-
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
-        BOOST_CHECK_EXCEPTION(formatter.Ser(ss, indicesIn),
-                              std::ios_base::failure,
-                              HasReason("differential value overflow"));
-    }
+    checkDifferentialEncodingRoundtrip<VectorFormatter<DifferenceFormatter>,
+                                       uint32_t>();
+    checkDifferentialEncodingRoundtrip<
+        VectorFormatter<DifferentialIndexedItemFormatter>,
+        DifferentialIndexedItem>();
 
     {
+        // Checking 32 bits overflow requires to manually create the serialized
+        // stream, so only do it with uint32_t
         std::vector<uint32_t> indicesOut;
 
         // Compute the number of MAX_SIZE increment we need to cause an overflow
@@ -512,6 +568,8 @@ BOOST_AUTO_TEST_CASE(difference_formatter) {
             return ss;
         };
 
+        VectorFormatter<DifferenceFormatter> formatter;
+
         auto noThrowStream = buildStream(remainder - 1);
         BOOST_CHECK_NO_THROW(formatter.Unser(noThrowStream, indicesOut));
 
@@ -520,6 +578,12 @@ BOOST_AUTO_TEST_CASE(difference_formatter) {
                               std::ios_base::failure,
                               HasReason("differential value overflow"));
     }
+
+    checkDifferentialEncodingOverflow<VectorFormatter<DifferenceFormatter>,
+                                      uint32_t>();
+    checkDifferentialEncodingOverflow<
+        VectorFormatter<DifferentialIndexedItemFormatter>,
+        DifferentialIndexedItem>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

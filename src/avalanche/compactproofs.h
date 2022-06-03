@@ -31,18 +31,8 @@ struct PrefilledProof {
     uint32_t index;
     avalanche::ProofRef proof;
 
-    class Formatter : public DifferenceFormatter {
-    public:
-        template <typename Stream> void Ser(Stream &s, PrefilledProof pp) {
-            DifferenceFormatter::Ser(s, pp.index);
-            s << pp.proof;
-        }
-
-        template <typename Stream> void Unser(Stream &s, PrefilledProof &pp) {
-            DifferenceFormatter::Unser(s, pp.index);
-            s >> pp.proof;
-        }
-    };
+    template <typename Stream> void SerData(Stream &s) { s << proof; }
+    template <typename Stream> void UnserData(Stream &s) { s >> proof; }
 };
 
 class CompactProofs {
@@ -73,7 +63,7 @@ public:
             obj.shortproofidk0, obj.shortproofidk1,
             Using<VectorFormatter<CustomUintFormatter<SHORTPROOFIDS_LENGTH>>>(
                 obj.shortproofids),
-            Using<VectorFormatter<PrefilledProof::Formatter>>(
+            Using<VectorFormatter<DifferentialIndexedItemFormatter>>(
                 obj.prefilledProofs));
 
         if (ser_action.ForRead() && obj.prefilledProofs.size() > 0) {
