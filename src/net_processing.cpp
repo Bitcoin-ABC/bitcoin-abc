@@ -4412,7 +4412,13 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         CBlockHeaderAndShortTxIDs cmpctblock;
-        vRecv >> cmpctblock;
+        try {
+            vRecv >> cmpctblock;
+        } catch (std::ios_base::failure &e) {
+            // This block has non contiguous or overflowing indexes
+            Misbehaving(pfrom, 100, "cmpctblock-bad-indexes");
+            return;
+        }
 
         bool received_new_header = false;
 

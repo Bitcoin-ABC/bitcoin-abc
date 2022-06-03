@@ -159,7 +159,8 @@ public:
             obj.header, obj.nonce,
             Using<VectorFormatter<CustomUintFormatter<
                 CBlockHeaderAndShortTxIDs::SHORTTXIDS_LENGTH>>>(obj.shorttxids),
-            obj.prefilledtxn);
+            Using<VectorFormatter<DifferentialIndexedItemFormatter>>(
+                obj.prefilledtxn));
     }
 };
 
@@ -276,8 +277,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         TestHeaderAndShortIDs shortIDs(block);
         shortIDs.prefilledtxn.resize(2);
         shortIDs.prefilledtxn[0] = {0, block.vtx[0]};
-        // id == 1 as it is 1 after index 1
-        shortIDs.prefilledtxn[1] = {1, block.vtx[2]};
+        shortIDs.prefilledtxn[1] = {2, block.vtx[2]};
         shortIDs.shorttxids.resize(1);
         shortIDs.shorttxids[0] = shortIDs.GetShortID(block.vtx[1]->GetHash());
 
@@ -456,6 +456,178 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationOverflowTest) {
                           HasReason((MAX_SIZE < req0.indices[1])
                                         ? "ReadCompactSize(): size too large"
                                         : "differential value overflow"));
+}
+
+BOOST_AUTO_TEST_CASE(compactblock_overflow) {
+    for (uint32_t firstIndex : {0u, 1u, std::numeric_limits<uint32_t>::max()}) {
+        TestHeaderAndShortIDs cb((CBlockHeaderAndShortTxIDs()));
+
+        cb.prefilledtxn.push_back({firstIndex, MakeTransactionRef()});
+        cb.prefilledtxn.push_back({0u, MakeTransactionRef()});
+
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        BOOST_CHECK_EXCEPTION(ss << cb, std::ios_base::failure,
+                              HasReason("differential value overflow"));
+    }
+
+    auto checkShortdTxIdsSizeException = [&](size_t compactSize,
+                                             const std::string &reason) {
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        // header, nonce
+        ss << CBlockHeader() << uint64_t(0);
+        // shorttxids.size()
+        WriteCompactSize(ss, compactSize);
+
+        CBlockHeaderAndShortTxIDs cb;
+        BOOST_CHECK_EXCEPTION(ss >> cb, std::ios_base::failure,
+                              HasReason(reason));
+    };
+    // Here we want to check against the max compact size, so there is no point
+    // in building a valid compact block with MAX_SIZE + 1 shortid in it.
+    // We just check the stream expects more data as a matter of verifying that
+    // the overflow check did not trigger while saving test time and memory by
+    // not constructing the large object.
+    checkShortdTxIdsSizeException(MAX_SIZE, "CDataStream::read(): end of data");
+    checkShortdTxIdsSizeException(MAX_SIZE + 1,
+                                  "ReadCompactSize(): size too large");
+
+    auto checkPrefilledTxnSizeException = [&](size_t compactSize,
+                                              const std::string &reason) {
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        // header, nonce
+        ss << CBlockHeader() << uint64_t(0);
+        // shorttxids.size()
+        WriteCompactSize(ss, 0);
+        // prefilledtxn.size()
+        WriteCompactSize(ss, compactSize);
+
+        CBlockHeaderAndShortTxIDs cb;
+        BOOST_CHECK_EXCEPTION(ss >> cb, std::ios_base::failure,
+                              HasReason(reason));
+    };
+    // Here we want to check against the max compact size, so there is no point
+    // in building a valid compact block with MAX_SIZE + 1 transactions in it.
+    // We just check the stream expects more data as a matter of verifying that
+    // the overflow check did not trigger while saving test time and memory by
+    // not constructing the large object.
+    checkPrefilledTxnSizeException(MAX_SIZE,
+                                   "CDataStream::read(): end of data");
+    checkPrefilledTxnSizeException(MAX_SIZE + 1,
+                                   "ReadCompactSize(): size too large");
+
+    auto checkPrefilledTxnIndexSizeException = [&](size_t compactSize,
+                                                   const std::string &reason) {
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        // header, nonce
+        ss << CBlockHeader() << uint64_t(0);
+        // shorttxids.size()
+        WriteCompactSize(ss, 0);
+        // prefilledtxn.size()
+        WriteCompactSize(ss, 1);
+        // prefilledtxn[0].index
+        WriteCompactSize(ss, compactSize);
+        // prefilledtxn[0].tx
+        ss << MakeTransactionRef();
+
+        CBlockHeaderAndShortTxIDs cb;
+        BOOST_CHECK_EXCEPTION(ss >> cb, std::ios_base::failure,
+                              HasReason(reason));
+    };
+    // Here we want to check against the max compact size, so there is no point
+    // in building a valid compact block with MAX_SIZE shortid in it.
+    // We just check the stream expects more data as a matter of verifying that
+    // the overflow check did not trigger while saving test time and memory by
+    // not constructing the large object.
+    checkPrefilledTxnIndexSizeException(MAX_SIZE, "non contiguous indexes");
+    checkPrefilledTxnIndexSizeException(MAX_SIZE + 1,
+                                        "ReadCompactSize(): size too large");
+
+    // Compute the number of MAX_SIZE increment we need to cause an overflow
+    const uint64_t overflow =
+        uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
+    // Due to differential encoding, a value of MAX_SIZE bumps the index by
+    // MAX_SIZE + 1
+    BOOST_CHECK_GE(overflow, MAX_SIZE + 1);
+    const uint64_t overflowIter = overflow / (MAX_SIZE + 1);
+
+    // Make sure the iteration fits in an uint32_t and is <= MAX_SIZE
+    BOOST_CHECK_LE(overflowIter, std::numeric_limits<uint32_t>::max());
+    BOOST_CHECK_LE(overflowIter, MAX_SIZE);
+    uint32_t remainder = uint32_t(overflow - ((MAX_SIZE + 1) * overflowIter));
+
+    {
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        // header, nonce
+        ss << CBlockHeader() << uint64_t(0);
+        // shorttxids.size()
+        WriteCompactSize(ss, 0);
+        // prefilledtxn.size()
+        WriteCompactSize(ss, overflowIter + 1);
+        for (uint32_t i = 0; i < overflowIter; i++) {
+            // prefilledtxn[i].index
+            WriteCompactSize(ss, MAX_SIZE);
+            // prefilledtxn[i].tx
+            ss << MakeTransactionRef();
+        }
+        // This is the prefilled tx causing the overflow
+        WriteCompactSize(ss, remainder);
+        ss << MakeTransactionRef();
+
+        CBlockHeaderAndShortTxIDs cb;
+        BOOST_CHECK_EXCEPTION(ss >> cb, std::ios_base::failure,
+                              HasReason("differential value overflow"));
+    }
+
+    {
+        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+        // header, nonce
+        ss << CBlockHeader() << uint64_t(0);
+        // shorttxids.size()
+        WriteCompactSize(ss, 1);
+        // shorttxids[0]
+        CustomUintFormatter<CBlockHeaderAndShortTxIDs::SHORTTXIDS_LENGTH>().Ser(
+            ss, 0u);
+        // prefilledtxn.size()
+        WriteCompactSize(ss, overflowIter + 1);
+        for (uint32_t i = 0; i < overflowIter; i++) {
+            // prefilledtxn[i].index
+            WriteCompactSize(ss, MAX_SIZE);
+            // prefilledtxn[i].tx
+            ss << MakeTransactionRef();
+        }
+        // This prefilled tx isn't enough to cause the overflow alone, but it
+        // overflows due to the extra shortid.
+        WriteCompactSize(ss, remainder - 1);
+        ss << MakeTransactionRef();
+
+        CBlockHeaderAndShortTxIDs cb;
+        // ss >> cp;
+        BOOST_CHECK_EXCEPTION(ss >> cb, std::ios_base::failure,
+                              HasReason("indexes overflowed 32 bits"));
+    }
+
+    {
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        // header, nonce
+        ss << CBlockHeader() << uint64_t(0);
+        // shorttxids.size()
+        WriteCompactSize(ss, 0);
+        // prefilledtxn.size()
+        WriteCompactSize(ss, 2);
+        // prefilledtxn[0].index
+        WriteCompactSize(ss, 0);
+        // prefilledtxn[0].tx
+        ss << MakeTransactionRef();
+        // prefilledtxn[1].index = 1 is differentially encoded, which means
+        // it has an absolute index of 2. This leaves no tx at index 1.
+        WriteCompactSize(ss, 1);
+        // prefilledtxn[1].tx
+        ss << MakeTransactionRef();
+
+        CBlockHeaderAndShortTxIDs cb;
+        BOOST_CHECK_EXCEPTION(ss >> cb, std::ios_base::failure,
+                              HasReason("non contiguous indexes"));
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

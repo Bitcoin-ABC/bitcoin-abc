@@ -64,28 +64,12 @@ ReadStatus PartiallyDownloadedBlock::InitData(
     header = cmpctblock.header;
     txns_available.resize(cmpctblock.BlockTxCount());
 
-    int64_t lastprefilledindex = -1;
-    for (size_t i = 0; i < cmpctblock.prefilledtxn.size(); i++) {
-        auto &prefilledtxn = cmpctblock.prefilledtxn[i];
+    for (const auto &prefilledtxn : cmpctblock.prefilledtxn) {
         if (prefilledtxn.tx->IsNull()) {
             return READ_STATUS_INVALID;
         }
 
-        // index is a uint32_t, so can't overflow here.
-        lastprefilledindex += prefilledtxn.index + 1;
-        if (lastprefilledindex > std::numeric_limits<uint32_t>::max()) {
-            return READ_STATUS_INVALID;
-        }
-
-        if (uint32_t(lastprefilledindex) > cmpctblock.shorttxids.size() + i) {
-            // If we are inserting a tx at an index greater than our full list
-            // of shorttxids plus the number of prefilled txn we've inserted,
-            // then we have txn for which we have neither a prefilled txn or a
-            // shorttxid!
-            return READ_STATUS_INVALID;
-        }
-
-        txns_available[lastprefilledindex] = prefilledtxn.tx;
+        txns_available[prefilledtxn.index] = prefilledtxn.tx;
     }
 
     prefilled_count = cmpctblock.prefilledtxn.size();
