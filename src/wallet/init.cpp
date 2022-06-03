@@ -9,7 +9,6 @@
 #include <interfaces/chain.h>
 #include <interfaces/wallet.h>
 #include <net.h>
-#include <network.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <univalue.h>

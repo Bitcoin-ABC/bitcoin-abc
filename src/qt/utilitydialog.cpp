@@ -11,7 +11,6 @@
 
 #include <clientversion.h>
 #include <init.h>
-#include <network.h>
 #include <qt/forms/ui_helpmessagedialog.h>
 #ifdef ENABLE_BIP70
 #include <qt/paymentrequestplus.h>

@@ -38,7 +38,6 @@
 #include <net_permissions.h>
 #include <net_processing.h>
 #include <netbase.h>
-#include <network.h>
 #include <node/blockstorage.h>
 #include <node/context.h>
 #include <node/ui_interface.h>

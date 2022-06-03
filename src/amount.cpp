@@ -7,7 +7,6 @@
 #include <amount.h>
 
 #include <currencyunit.h>
-#include <network.h>
 #include <univalue.h>
 #include <util/system.h>
 

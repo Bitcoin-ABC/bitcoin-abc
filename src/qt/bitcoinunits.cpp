@@ -5,7 +5,6 @@
 #include <qt/bitcoinunits.h>
 
 #include <currencyunit.h>
-#include <network.h>
 #include <util/system.h>
 
 #include <QStringList>

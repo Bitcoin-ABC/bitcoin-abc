@@ -16,7 +16,6 @@
 #include <core_io.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
-#include <network.h>
 #include <node/blockstorage.h>
 #include <node/coinstats.h>
 #include <node/context.h>

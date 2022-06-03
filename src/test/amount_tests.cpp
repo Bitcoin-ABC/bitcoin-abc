@@ -4,8 +4,6 @@
 
 #include <amount.h>
 
-#include <network.h>
-
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>

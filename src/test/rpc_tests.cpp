@@ -8,7 +8,6 @@
 #include <rpc/util.h>
 
 #include <config.h>
-#include <core_io.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
 #include <util/time.h>

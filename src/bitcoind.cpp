@@ -14,7 +14,6 @@
 #include <httprpc.h>
 #include <init.h>
 #include <interfaces/chain.h>
-#include <network.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <noui.h>
