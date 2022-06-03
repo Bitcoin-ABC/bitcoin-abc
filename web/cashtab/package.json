@@ -88,6 +88,7 @@
     "scripts": {
         "start": "node scripts/start.js",
         "build": "node scripts/build.js",
+        "prepare": "cd ../.. && husky install web/cashtab/.husky",
         "test": "node scripts/test.js",
         "test:coverage": "CI=true npm run test --coverage",
         "preextension": "npm  i -g browserify",
@@ -177,5 +178,8 @@
         "presets": [
             "react-app"
         ]
+    },
+    "devDependencies": {
+        "husky": "^8.0.1"
     }
 }
