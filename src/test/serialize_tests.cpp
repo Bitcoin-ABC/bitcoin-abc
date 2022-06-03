@@ -489,22 +489,34 @@ BOOST_AUTO_TEST_CASE(difference_formatter) {
         // Compute the number of MAX_SIZE increment we need to cause an overflow
         const uint64_t overflow =
             uint64_t(std::numeric_limits<uint32_t>::max()) + 1;
-        BOOST_CHECK_GE(overflow, MAX_SIZE);
-        const uint64_t overflowIter = overflow / MAX_SIZE;
+        // Due to differential encoding, a value of MAX_SIZE bumps the index by
+        // MAX_SIZE + 1
+        BOOST_CHECK_GE(overflow, MAX_SIZE + 1);
+        const uint64_t overflowIter = overflow / (MAX_SIZE + 1);
 
-        // Make sure the iteration fits in an uint32_t
+        // Make sure the iteration fits in an uint32_t and is <= MAX_SIZE
         BOOST_CHECK_LE(overflowIter, std::numeric_limits<uint32_t>::max());
-        uint32_t remainder = uint32_t(overflow - (MAX_SIZE * overflowIter));
+        BOOST_CHECK_LE(overflowIter, MAX_SIZE);
+        uint32_t remainder =
+            uint32_t(overflow - ((MAX_SIZE + 1) * overflowIter));
 
-        CDataStream ss(SER_DISK, PROTOCOL_VERSION);
-        WriteCompactSize(ss, overflowIter);
-        for (uint32_t i = 0; i < overflowIter; i++) {
-            WriteCompactSize(ss, MAX_SIZE);
-        }
-        // This is the overflow
-        WriteCompactSize(ss, remainder);
+        auto buildStream = [&](uint32_t lastItemDifference) {
+            CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+            WriteCompactSize(ss, overflowIter + 1);
+            for (uint32_t i = 0; i < overflowIter; i++) {
+                WriteCompactSize(ss, MAX_SIZE);
+            }
+            // This will cause an overflow if lastItemDifference >= remainder
+            WriteCompactSize(ss, lastItemDifference);
 
-        BOOST_CHECK_EXCEPTION(formatter.Unser(ss, indicesOut),
+            return ss;
+        };
+
+        auto noThrowStream = buildStream(remainder - 1);
+        BOOST_CHECK_NO_THROW(formatter.Unser(noThrowStream, indicesOut));
+
+        auto overflowStream = buildStream(remainder);
+        BOOST_CHECK_EXCEPTION(formatter.Unser(overflowStream, indicesOut),
                               std::ios_base::failure,
                               HasReason("differential value overflow"));
     }
