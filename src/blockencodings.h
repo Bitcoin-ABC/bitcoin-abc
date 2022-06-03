@@ -7,6 +7,11 @@
 
 #include <primitives/block.h>
 #include <serialize.h>
+#include <shortidprocessor.h>
+
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 class Config;
 class CTxMemPool;
@@ -52,6 +57,13 @@ struct PrefilledTransaction {
 
     template <typename Stream> void SerData(Stream &s) { s << tx; }
     template <typename Stream> void UnserData(Stream &s) { s >> tx; }
+};
+
+struct ShortIdProcessorPrefilledTransactionAdapter {
+    uint32_t getIndex(const PrefilledTransaction &pt) const { return pt.index; }
+    CTransactionRef getItem(const PrefilledTransaction &pt) const {
+        return pt.tx;
+    }
 };
 
 typedef enum ReadStatus_t {
@@ -127,8 +139,24 @@ public:
 };
 
 class PartiallyDownloadedBlock {
+    struct CTransactionRefCompare {
+        bool operator()(const CTransactionRef &lhs,
+                        const CTransactionRef &rhs) const {
+            return lhs->GetHash() == rhs->GetHash();
+        }
+    };
+
+    using TransactionShortIdProcessor =
+        ShortIdProcessor<PrefilledTransaction,
+                         ShortIdProcessorPrefilledTransactionAdapter,
+                         CTransactionRefCompare>;
+
+    // FIXME This better fits a unique_ptr, but the unit tests needs a copy
+    // operator for this class. It can be trivially changed when the unit tests
+    // are refactored.
+    std::shared_ptr<TransactionShortIdProcessor> shortidProcessor;
+
 protected:
-    std::vector<CTransactionRef> txns_available;
     size_t prefilled_count = 0, mempool_count = 0, extra_count = 0;
     const CTxMemPool *pool;
     const Config *config;

@@ -60,86 +60,51 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         return READ_STATUS_INVALID;
     }
 
-    assert(header.IsNull() && txns_available.empty());
+    assert(header.IsNull());
+    assert(shortidProcessor == nullptr);
     header = cmpctblock.header;
-    txns_available.resize(cmpctblock.BlockTxCount());
 
     for (const auto &prefilledtxn : cmpctblock.prefilledtxn) {
         if (prefilledtxn.tx->IsNull()) {
             return READ_STATUS_INVALID;
         }
-
-        txns_available[prefilledtxn.index] = prefilledtxn.tx;
     }
-
     prefilled_count = cmpctblock.prefilledtxn.size();
 
-    // Calculate map of txids -> positions and check mempool to see what we have
-    // (or don't). Because well-formed cmpctblock messages will have a
-    // (relatively) uniform distribution of short IDs, any highly-uneven
-    // distribution of elements can be safely treated as a READ_STATUS_FAILED.
-    std::unordered_map<uint64_t, uint32_t> shorttxids(
-        cmpctblock.shorttxids.size());
-    uint32_t index_offset = 0;
-    for (size_t i = 0; i < cmpctblock.shorttxids.size(); i++) {
-        while (txns_available[i + index_offset]) {
-            index_offset++;
-        }
+    // To determine the chance that the number of entries in a bucket exceeds N,
+    // we use the fact that the number of elements in a single bucket is
+    // binomially distributed (with n = the number of shorttxids S, and
+    // p = 1 / the number of buckets), that in the worst case the number of
+    // buckets is equal to S (due to std::unordered_map having a default load
+    // factor of 1.0), and that the chance for any bucket to exceed N elements
+    // is at most buckets * (the chance that any given bucket is above N
+    // elements). Thus:
+    //   P(max_elements_per_bucket > N) <= S * (1 - cdf(binomial(n=S,p=1/S), N))
+    // If we assume blocks of up to 16000, allowing 12 elements per bucket
+    // should only fail once per ~1 million block transfers (per peer and
+    // connection).
+    // FIXME the value of 16000 txs in a block should be re-evaluated.
+    shortidProcessor = std::make_shared<TransactionShortIdProcessor>(
+        cmpctblock.prefilledtxn, cmpctblock.shorttxids, 12);
 
-        shorttxids[cmpctblock.shorttxids[i]] = i + index_offset;
-        // To determine the chance that the number of entries in a bucket
-        // exceeds N, we use the fact that the number of elements in a single
-        // bucket is binomially distributed (with n = the number of shorttxids
-        // S, and p = 1 / the number of buckets), that in the worst case the
-        // number of buckets is equal to S (due to std::unordered_map having a
-        // default load factor of 1.0), and that the chance for any bucket to
-        // exceed N elements is at most buckets * (the chance that any given
-        // bucket is above N elements). Thus: P(max_elements_per_bucket > N) <=
-        // S * (1 - cdf(binomial(n=S,p=1/S), N)). If we assume blocks of up to
-        // 16000, allowing 12 elements per bucket should only fail once per ~1
-        // million block transfers (per peer and connection).
-        if (shorttxids.bucket_size(
-                shorttxids.bucket(cmpctblock.shorttxids[i])) > 12) {
-            return READ_STATUS_FAILED;
-        }
-    }
-
-    // TODO: in the shortid-collision case, we should instead request both
-    // transactions which collided. Falling back to full-block-request here is
-    // overkill.
-    if (shorttxids.size() != cmpctblock.shorttxids.size()) {
-        // Short ID collision
+    if (!shortidProcessor->isEvenlyDistributed() ||
+        shortidProcessor->hasShortIdCollision() ||
+        shortidProcessor->hasOutOfBoundIndex()) {
+        // TODO: in the shortid-collision case, we should instead request both
+        // transactions which collided. Falling back to full-block-request here
+        // is overkill.
         return READ_STATUS_FAILED;
     }
 
-    std::vector<bool> have_txn(txns_available.size());
     {
         LOCK(pool->cs);
         for (size_t i = 0; i < pool->vTxHashes.size(); i++) {
             uint64_t shortid = cmpctblock.GetShortID(pool->vTxHashes[i].first);
-            std::unordered_map<uint64_t, uint32_t>::iterator idit =
-                shorttxids.find(shortid);
-            if (idit != shorttxids.end()) {
-                if (!have_txn[idit->second]) {
-                    txns_available[idit->second] =
-                        pool->vTxHashes[i].second->GetSharedTx();
-                    have_txn[idit->second] = true;
-                    mempool_count++;
-                } else {
-                    // If we find two mempool txn that match the short id, just
-                    // request it. This should be rare enough that the extra
-                    // bandwidth doesn't matter, but eating a round-trip due to
-                    // FillBlock failure would be annoying.
-                    if (txns_available[idit->second]) {
-                        txns_available[idit->second].reset();
-                        mempool_count--;
-                    }
-                }
-            }
-            // Though ideally we'd continue scanning for the
-            // two-txn-match-shortid case, the performance win of an early exit
-            // here is too good to pass up and worth the extra risk.
-            if (mempool_count == shorttxids.size()) {
+
+            mempool_count += shortidProcessor->matchKnownItem(
+                shortid, pool->vTxHashes[i].second->GetSharedTx());
+
+            if (mempool_count == shortidProcessor->getShortIdCount()) {
                 break;
             }
         }
@@ -147,35 +112,12 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 
     for (auto &extra_txn : extra_txns) {
         uint64_t shortid = cmpctblock.GetShortID(extra_txn.first);
-        std::unordered_map<uint64_t, uint32_t>::iterator idit =
-            shorttxids.find(shortid);
-        if (idit != shorttxids.end()) {
-            if (!have_txn[idit->second]) {
-                txns_available[idit->second] = extra_txn.second;
-                have_txn[idit->second] = true;
-                mempool_count++;
-                extra_count++;
-            } else {
-                // If we find two mempool/extra txn that match the short id,
-                // just request it. This should be rare enough that the extra
-                // bandwidth doesn't matter, but eating a round-trip due to
-                // FillBlock failure would be annoying. Note that we don't want
-                // duplication between extra_txns and mempool to trigger this
-                // case, so we compare hashes first.
-                if (txns_available[idit->second] &&
-                    txns_available[idit->second]->GetHash() !=
-                        extra_txn.second->GetHash()) {
-                    txns_available[idit->second].reset();
-                    mempool_count--;
-                    extra_count--;
-                }
-            }
-        }
 
-        // Though ideally we'd continue scanning for the two-txn-match-shortid
-        // case, the performance win of an early exit here is too good to pass
-        // up and worth the extra risk.
-        if (mempool_count == shorttxids.size()) {
+        int count = shortidProcessor->matchKnownItem(shortid, extra_txn.second);
+        mempool_count += count;
+        extra_count += count;
+
+        if (mempool_count == shortidProcessor->getShortIdCount()) {
             break;
         }
     }
@@ -191,8 +133,8 @@ ReadStatus PartiallyDownloadedBlock::InitData(
 
 bool PartiallyDownloadedBlock::IsTxAvailable(size_t index) const {
     assert(!header.IsNull());
-    assert(index < txns_available.size());
-    return txns_available[index] != nullptr;
+    assert(shortidProcessor != nullptr);
+    return shortidProcessor->getItem(index) != nullptr;
 }
 
 ReadStatus PartiallyDownloadedBlock::FillBlock(
@@ -200,11 +142,12 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
     assert(!header.IsNull());
     uint256 hash = header.GetHash();
     block = header;
-    block.vtx.resize(txns_available.size());
+    const size_t txnCount = shortidProcessor->getItemCount();
+    block.vtx.resize(txnCount);
 
     size_t tx_missing_offset = 0;
-    for (size_t i = 0; i < txns_available.size(); i++) {
-        auto &txn_available = txns_available[i];
+    for (size_t i = 0; i < txnCount; i++) {
+        auto &txn_available = shortidProcessor->getItem(i);
         if (!txn_available) {
             if (vtx_missing.size() <= tx_missing_offset) {
                 return READ_STATUS_INVALID;
@@ -217,7 +160,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
 
     // Make sure we can't call FillBlock again.
     header.SetNull();
-    txns_available.clear();
+    shortidProcessor.reset();
 
     if (vtx_missing.size() != tx_missing_offset) {
         return READ_STATUS_INVALID;
