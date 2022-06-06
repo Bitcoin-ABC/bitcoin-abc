@@ -3639,7 +3639,7 @@ void CaptureMessage(const CAddress &addr, const std::string &msg_type,
 
     fs::path path =
         base_path / (is_incoming ? "msgs_recv.dat" : "msgs_sent.dat");
-    CAutoFile f(fsbridge::fopen(path, "ab"), SER_DISK, CLIENT_VERSION);
+    AutoFile f{fsbridge::fopen(path, "ab")};
 
     ser_writedata64(f, now.count());
     f.write(msg_type.data(), msg_type.length());

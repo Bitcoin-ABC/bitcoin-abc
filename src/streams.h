@@ -578,24 +578,18 @@ public:
  * you're returning the file pointer, return file.release(). If you need to
  * close the file early, use file.fclose() instead of fclose(file).
  */
-class CAutoFile {
-private:
-    const int nType;
-    const int nVersion;
-
+class AutoFile {
+protected:
     FILE *file;
 
 public:
-    CAutoFile(FILE *filenew, int nTypeIn, int nVersionIn)
-        : nType(nTypeIn), nVersion(nVersionIn) {
-        file = filenew;
-    }
+    explicit AutoFile(FILE *filenew) : file{filenew} {}
 
-    ~CAutoFile() { fclose(); }
+    ~AutoFile() { fclose(); }
 
     // Disallow copies
-    CAutoFile(const CAutoFile &) = delete;
-    CAutoFile &operator=(const CAutoFile &) = delete;
+    AutoFile(const AutoFile &) = delete;
+    AutoFile &operator=(const AutoFile &) = delete;
 
     void fclose() {
         if (file) {
@@ -606,7 +600,7 @@ public:
 
     /**
      * Get wrapped FILE* with transfer of ownership.
-     * @note This will invalidate the CAutoFile object, and makes it the
+     * @note This will invalidate the AutoFile object, and makes it the
      * responsibility of the caller of this function to clean up the returned
      * FILE*.
      */
@@ -619,7 +613,7 @@ public:
     /**
      * Get wrapped FILE* without transfer of ownership.
      * @note Ownership of the FILE* will remain with this class. Use this only
-     * if the scope of the CAutoFile outlives use of the passed pointer.
+     * if the scope of the AutoFile outlives use of the passed pointer.
      */
     FILE *Get() const { return file; }
 
@@ -629,33 +623,30 @@ public:
     //
     // Stream subset
     //
-    int GetType() const { return nType; }
-    int GetVersion() const { return nVersion; }
-
     void read(char *pch, size_t nSize) {
         if (!file) {
             throw std::ios_base::failure(
-                "CAutoFile::read: file handle is nullptr");
+                "AutoFile::read: file handle is nullptr");
         }
         if (fread(pch, 1, nSize, file) != nSize) {
             throw std::ios_base::failure(feof(file)
-                                             ? "CAutoFile::read: end of file"
-                                             : "CAutoFile::read: fread failed");
+                                             ? "AutoFile::read: end of file"
+                                             : "AutoFile::read: fread failed");
         }
     }
 
     void ignore(size_t nSize) {
         if (!file) {
             throw std::ios_base::failure(
-                "CAutoFile::ignore: file handle is nullptr");
+                "AutoFile::ignore: file handle is nullptr");
         }
         uint8_t data[4096];
         while (nSize > 0) {
             size_t nNow = std::min<size_t>(nSize, sizeof(data));
             if (fread(data, 1, nNow, file) != nNow) {
                 throw std::ios_base::failure(
-                    feof(file) ? "CAutoFile::ignore: end of file"
-                               : "CAutoFile::read: fread failed");
+                    feof(file) ? "AutoFile::ignore: end of file"
+                               : "AutoFile::read: fread failed");
             }
             nSize -= nNow;
         }
@@ -664,12 +655,40 @@ public:
     void write(const char *pch, size_t nSize) {
         if (!file) {
             throw std::ios_base::failure(
-                "CAutoFile::write: file handle is nullptr");
+                "AutoFile::write: file handle is nullptr");
         }
         if (fwrite(pch, 1, nSize, file) != nSize) {
-            throw std::ios_base::failure("CAutoFile::write: write failed");
+            throw std::ios_base::failure("AutoFile::write: write failed");
         }
     }
+
+    template <typename T> AutoFile &operator<<(const T &obj) {
+        if (!file)
+            throw std::ios_base::failure(
+                "AutoFile::operator<<: file handle is nullptr");
+        ::Serialize(*this, obj);
+        return *this;
+    }
+
+    template <typename T> AutoFile &operator>>(T &&obj) {
+        if (!file)
+            throw std::ios_base::failure(
+                "AutoFile::operator>>: file handle is nullptr");
+        ::Unserialize(*this, obj);
+        return *this;
+    }
+};
+
+class CAutoFile : public AutoFile {
+private:
+    const int nType;
+    const int nVersion;
+
+public:
+    CAutoFile(FILE *filenew, int nTypeIn, int nVersionIn)
+        : AutoFile{filenew}, nType(nTypeIn), nVersion(nVersionIn) {}
+    int GetType() const { return nType; }
+    int GetVersion() const { return nVersion; }
 
     template <typename T> CAutoFile &operator<<(const T &obj) {
         // Serialize to this stream

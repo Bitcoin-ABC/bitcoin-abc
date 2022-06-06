@@ -435,19 +435,13 @@ ConsumeFile(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 }
 
 class FuzzedAutoFileProvider {
-    FuzzedDataProvider &m_fuzzed_data_provider;
     FuzzedFileProvider m_fuzzed_file_provider;
 
 public:
     FuzzedAutoFileProvider(FuzzedDataProvider &fuzzed_data_provider)
-        : m_fuzzed_data_provider{fuzzed_data_provider},
-          m_fuzzed_file_provider{fuzzed_data_provider} {}
+        : m_fuzzed_file_provider{fuzzed_data_provider} {}
 
-    CAutoFile open() {
-        return {m_fuzzed_file_provider.open(),
-                m_fuzzed_data_provider.ConsumeIntegral<int>(),
-                m_fuzzed_data_provider.ConsumeIntegral<int>()};
-    }
+    AutoFile open() { return AutoFile{m_fuzzed_file_provider.open()}; }
 };
 
 [[nodiscard]] inline FuzzedAutoFileProvider

@@ -1110,7 +1110,7 @@ private:
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
     PopulateAndValidateSnapshot(Chainstate &snapshot_chainstate,
-                                CAutoFile &coins_file,
+                                AutoFile &coins_file,
                                 const node::SnapshotMetadata &metadata);
     /**
      * If a block header hasn't already been seen, call CheckBlockHeader on it,
@@ -1192,7 +1192,7 @@ public:
     //!   snapshot, faking nTx* block index data along the way.
     //! - Move the new chainstate to `m_snapshot_chainstate` and make it our
     //!   ActiveChainstate().
-    [[nodiscard]] bool ActivateSnapshot(CAutoFile &coins_file,
+    [[nodiscard]] bool ActivateSnapshot(AutoFile &coins_file,
                                         const node::SnapshotMetadata &metadata,
                                         bool in_memory);
 

@@ -18,7 +18,7 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     FuzzedAutoFileProvider fuzzed_auto_file_provider =
         ConsumeAutoFile(fuzzed_data_provider);
-    CAutoFile auto_file = fuzzed_auto_file_provider.open();
+    AutoFile auto_file{fuzzed_auto_file_provider.open()};
     while (fuzzed_data_provider.ConsumeBool()) {
         switch (fuzzed_data_provider.ConsumeIntegralInRange<int>(0, 5)) {
             case 0: {
@@ -67,8 +67,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
         }
     }
     (void)auto_file.Get();
-    (void)auto_file.GetType();
-    (void)auto_file.GetVersion();
     (void)auto_file.IsNull();
     if (fuzzed_data_provider.ConsumeBool()) {
         FILE *f = auto_file.release();

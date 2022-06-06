@@ -60,6 +60,6 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
  * @return a UniValue map containing metadata about the snapshot.
  */
 UniValue CreateUTXOSnapshot(node::NodeContext &node, Chainstate &chainstate,
-                            CAutoFile &afile);
+                            AutoFile &afile);
 
 #endif // BITCOIN_RPC_BLOCKCHAIN_H

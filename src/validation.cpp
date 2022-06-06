@@ -5816,7 +5816,7 @@ const AssumeutxoData *ExpectedAssumeutxo(const int height,
     return nullptr;
 }
 
-bool ChainstateManager::ActivateSnapshot(CAutoFile &coins_file,
+bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
                                          const SnapshotMetadata &metadata,
                                          bool in_memory) {
     BlockHash base_blockhash = metadata.m_base_blockhash;
@@ -5919,7 +5919,7 @@ static void FlushSnapshotToDisk(CCoinsViewCache &coins_cache,
 }
 
 bool ChainstateManager::PopulateAndValidateSnapshot(
-    Chainstate &snapshot_chainstate, CAutoFile &coins_file,
+    Chainstate &snapshot_chainstate, AutoFile &coins_file,
     const SnapshotMetadata &metadata) {
     // It's okay to release cs_main before we're done using `coins_cache`
     // because we know that nothing else will be referencing the newly created

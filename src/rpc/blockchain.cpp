@@ -3068,7 +3068,7 @@ static RPCHelpMan dumptxoutset() {
             }
 
             FILE *file{fsbridge::fopen(temppath, "wb")};
-            CAutoFile afile{file, SER_DISK, CLIENT_VERSION};
+            AutoFile afile{file};
             NodeContext &node = EnsureAnyNodeContext(request.context);
             UniValue result = CreateUTXOSnapshot(
                 node, node.chainman->ActiveChainstate(), afile);
@@ -3081,7 +3081,7 @@ static RPCHelpMan dumptxoutset() {
 }
 
 UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
-                            CAutoFile &afile) {
+                            AutoFile &afile) {
     std::unique_ptr<CCoinsViewCursor> pcursor;
     CCoinsStats stats{CoinStatsHashType::NONE};
     const CBlockIndex *tip;
