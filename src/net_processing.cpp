@@ -7,6 +7,7 @@
 
 #include <addrman.h>
 #include <avalanche/avalanche.h>
+#include <avalanche/compactproofs.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
 #include <avalanche/proof.h>
@@ -3259,7 +3260,8 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
            msg_type == NetMsgType::AVAPOLL ||
            msg_type == NetMsgType::AVARESPONSE ||
            msg_type == NetMsgType::AVAPROOF ||
-           msg_type == NetMsgType::GETAVAADDR;
+           msg_type == NetMsgType::GETAVAADDR ||
+           msg_type == NetMsgType::GETAVAPROOFS;
 }
 
 uint32_t PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) {
@@ -5140,6 +5142,24 @@ void PeerManagerImpl::ProcessMessage(
         vRecv >> *proof;
 
         ReceivedAvalancheProof(pfrom, proof);
+
+        return;
+    }
+
+    if (msg_type == NetMsgType::GETAVAPROOFS) {
+        if (pfrom.m_proof_relay == nullptr) {
+            return;
+        }
+
+        pfrom.m_proof_relay->sharedProofs =
+            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+                return pm.getShareableProofsSnapshot();
+            });
+
+        avalanche::CompactProofs compactProofs(
+            pfrom.m_proof_relay->sharedProofs);
+        m_connman.PushMessage(
+            &pfrom, msgMaker.Make(NetMsgType::AVAPROOFS, compactProofs));
 
         return;
     }

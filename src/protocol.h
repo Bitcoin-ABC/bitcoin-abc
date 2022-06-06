@@ -304,6 +304,18 @@ extern const char *AVAPROOF;
 extern const char *GETAVAADDR;
 
 /**
+ * The getavaproofs message requests an avaproofs message that provides
+ * the proof short ids of all the valid proofs known by our peer.
+ */
+extern const char *GETAVAPROOFS;
+
+/**
+ * The avaproofs message the proof short ids of all the valid proofs that we
+ * know.
+ */
+extern const char *AVAPROOFS;
+
+/**
  * Indicate if the message is used to transmit the content of a block.
  * These messages can be significantly larger than usual messages and therefore
  * may need to be processed differently.

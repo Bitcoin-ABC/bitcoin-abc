@@ -40,6 +40,7 @@ from test_framework.messages import (
     msg_avahello,
     msg_avapoll,
     msg_avaproof,
+    msg_avaproofs,
     msg_block,
     msg_blocktxn,
     msg_cfcheckpt,
@@ -52,6 +53,7 @@ from test_framework.messages import (
     msg_filterload,
     msg_getaddr,
     msg_getavaaddr,
+    msg_getavaproofs,
     msg_getblocks,
     msg_getblocktxn,
     msg_getdata,
@@ -94,6 +96,7 @@ MESSAGEMAP = {
     b"addrv2": msg_addrv2,
     b"avapoll": msg_avapoll,
     b"avaproof": msg_avaproof,
+    b"avaproofs": msg_avaproofs,
     b"avaresponse": msg_tcpavaresponse,
     b"avahello": msg_avahello,
     b"block": msg_block,
@@ -108,6 +111,7 @@ MESSAGEMAP = {
     b"filterload": msg_filterload,
     b"getaddr": msg_getaddr,
     b"getavaaddr": msg_getavaaddr,
+    b"getavaproofs": msg_getavaproofs,
     b"getblocks": msg_getblocks,
     b"getblocktxn": msg_getblocktxn,
     b"getdata": msg_getdata,
@@ -432,6 +436,8 @@ class P2PInterface(P2PConnection):
 
     def on_avaproof(self, message): pass
 
+    def on_avaproofs(self, message): pass
+
     def on_avaresponse(self, message): pass
 
     def on_avahello(self, message): pass
@@ -459,6 +465,8 @@ class P2PInterface(P2PConnection):
     def on_getaddr(self, message): pass
 
     def on_getavaaddr(self, message): pass
+
+    def on_getavaproofs(self, message): pass
 
     def on_getblocks(self, message): pass
 

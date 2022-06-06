@@ -999,6 +999,28 @@ class LegacyAvalancheProof(AvalancheProof):
                f"stakes={self.stakes})"
 
 
+class AvalanchePrefilledProof:
+    __slots__ = ("index", "proof")
+
+    def __init__(self, index=0, proof=None):
+        self.index = index
+        self.proof = proof or AvalancheProof()
+
+    def deserialize(self, f):
+        self.index = deser_compact_size(f)
+        self.proof.deserialize(f)
+
+    def serialize(self):
+        r = b""
+        r += ser_compact_size(self.index)
+        r += self.proof.serialize()
+        return r
+
+    def __repr__(self):
+        return "AvalanchePrefilledProof(index={}, proof={})".format(
+            self.index, repr(self.proof))
+
+
 class AvalanchePoll:
     __slots__ = ("round", "invs")
 
@@ -2116,6 +2138,77 @@ class msg_getavaaddr:
 
     def __repr__(self):
         return "msg_getavaaddr()"
+
+
+class msg_getavaproofs:
+    __slots__ = ()
+    msgtype = b"getavaproofs"
+
+    def __init__(self):
+        pass
+
+    def deserialize(self, f):
+        pass
+
+    def serialize(self):
+        return b""
+
+    def __repr__(self):
+        return "msg_getavaproofs()"
+
+
+class msg_avaproofs:
+    __slots__ = ("key0", "key1", "shortids", "prefilled_proofs")
+    msgtype = b"avaproofs"
+
+    def __init__(self):
+        self.key0 = 0
+        self.key1 = 0
+        self.shortids = []
+        self.prefilled_proofs = []
+
+    def deserialize(self, f):
+        self.key0 = struct.unpack("<Q", f.read(8))[0]
+        self.key1 = struct.unpack("<Q", f.read(8))[0]
+        shortids_length = deser_compact_size(f)
+        for _ in range(shortids_length):
+            # shortids are defined to be 6 bytes in the spec, so append
+            # two zero bytes and read it in as an 8-byte number
+            self.shortids.append(
+                struct.unpack("<Q", f.read(6) + b'\x00\x00')[0])
+
+        # The indices are differentially encoded
+        self.prefilled_proofs = deser_vector(f, AvalanchePrefilledProof)
+        current_indice = -1
+        for p in self.prefilled_proofs:
+            current_indice += p.index + 1
+            p.index = current_indice
+
+    def serialize(self):
+        r = b""
+        r += struct.pack("<Q", self.key0)
+        r += struct.pack("<Q", self.key1)
+        r += ser_compact_size(len(self.shortids))
+        for shortid in self.shortids:
+            # We only want the first 6 bytes
+            r += struct.pack("<Q", shortid)[0:6]
+
+        r += ser_compact_size(len(self.prefilled_proofs))
+        if (len(self.prefilled_proofs) < 1):
+            return r
+
+        # The indices are differentially encoded
+        r += self.prefilled_proofs[0].serialize()
+        for i in range(len(self.prefilled_proofs[1:])):
+            r += ser_compact_size(
+                self.prefilled_proofs[i + 1].index - self.prefilled_proofs[i].index - 1)
+            r += self.prefilled_proofs[i].proof.serialize()
+
+        return r
+
+    def __repr__(self):
+        return "msg_avaproofs(key0={}, key1={}, len(shortids)={}, shortids={}), len(prefilled_proofs)={}, prefilled_proofs={}".format(
+            self.key0, self.key1, len(self.shortids), self.shortids, len(self.prefilled_proofs), self.prefilled_proofs)
 
 
 class TestFrameworkMessages(unittest.TestCase):

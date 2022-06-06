@@ -11,6 +11,7 @@
 #include <addrman.h>
 #include <amount.h>
 #include <avalanche/proofid.h>
+#include <avalanche/proofradixtreeadapter.h>
 #include <bloom.h>
 #include <chainparams.h>
 #include <compat.h>
@@ -22,6 +23,7 @@
 #include <nodeid.h>
 #include <protocol.h>
 #include <pubkey.h>
+#include <radix.h>
 #include <random.h>
 #include <streams.h>
 #include <sync.h>
@@ -652,6 +654,9 @@ public:
         CRollingBloomFilter filterProofKnown GUARDED_BY(cs_proof_inventory){
             10000, 0.000001};
         std::chrono::microseconds nextInvSend{0};
+
+        RadixTree<const avalanche::Proof, avalanche::ProofRadixTreeAdapter>
+            sharedProofs;
     };
 
     // m_proof_relay == nullptr if we're not relaying proofs with this peer

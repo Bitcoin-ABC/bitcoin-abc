@@ -10,6 +10,7 @@ import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
+    AvaP2PInterface,
     avalanche_proof_from_hex,
     gen_proof,
     get_proof_ids,
@@ -21,9 +22,11 @@ from test_framework.messages import (
     MSG_TYPE_MASK,
     CInv,
     msg_avaproof,
+    msg_getavaproofs,
     msg_getdata,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
+from test_framework.siphash import siphash256
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than
 from test_framework.wallet_util import bytes_to_wif
@@ -187,14 +190,62 @@ class ProofInventoryTest(BitcoinTestFramework):
         node0.sendavalancheproof(proof.serialize().hex())
         self.sync_proofs()
 
+    def test_respond_getavaproofs(self):
+        self.log.info("Check the node responds to getavaproofs messages")
+
+        self.restart_node(0)
+        node = self.nodes[0]
+
+        def received_avaproofs(peer):
+            with p2p_lock:
+                return peer.last_message.get("avaproofs")
+
+        def send_getavaproof_check_shortid_len(peer, expected_len):
+            peer.send_message(msg_getavaproofs())
+            self.wait_until(lambda: received_avaproofs(peer))
+
+            avaproofs = received_avaproofs(peer)
+            assert_equal(len(avaproofs.shortids), expected_len)
+
+        # Initially the node has 0 peer
+        assert_equal(len(get_proof_ids(node)), 0)
+
+        peer = node.add_p2p_connection(AvaP2PInterface())
+        send_getavaproof_check_shortid_len(peer, 0)
+
+        # Add some proofs
+        sending_peer = node.add_p2p_connection(AvaP2PInterface())
+        for _ in range(50):
+            _, proof = gen_proof(node)
+            sending_peer.send_avaproof(proof)
+            wait_for_proof(node, f"{proof.proofid:0{64}x}")
+
+        proofids = get_proof_ids(node)
+        assert_equal(len(proofids), 50)
+
+        receiving_peer = node.add_p2p_connection(AvaP2PInterface())
+        send_getavaproof_check_shortid_len(receiving_peer, len(proofids))
+
+        avaproofs = received_avaproofs(receiving_peer)
+        expected_shortids = [
+            siphash256(
+                avaproofs.key0,
+                avaproofs.key1,
+                proofid) & 0x0000ffffffffffff for proofid in sorted(proofids)]
+        assert_equal(expected_shortids, avaproofs.shortids)
+
+        # Don't expect any prefilled proof for now
+        assert_equal(len(avaproofs.prefilled_proofs), 0)
+
     def test_unbroadcast(self):
         self.log.info("Test broadcasting proofs")
 
         node = self.nodes[0]
 
-        # Disconnect the other nodes, or they will request the proof and
+        # Disconnect the other nodes/peers, or they will request the proof and
         # invalidate the test
-        [node.stop_node() for node in self.nodes[1:]]
+        [n.stop_node() for n in self.nodes[1:]]
+        node.disconnect_p2ps()
 
         def add_peers(count):
             peers = []
@@ -289,6 +340,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.test_receive_proof()
         self.test_proof_relay()
         self.test_manually_sent_proof()
+        self.test_respond_getavaproofs()
 
         # Run these tests last because they need to disconnect the nodes
         self.test_unbroadcast()
