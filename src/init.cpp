@@ -1848,20 +1848,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
             UintToArith256(chainparams.GetConsensus().nMinimumChainWork);
     }
 
-    // mempool limits
-    int64_t nMempoolSizeMax =
-        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000;
-    // FIXME: this legacy limit comes from the DEFAULT_DESCENDANT_SIZE_LIMIT
-    // (101) that was enforced before the wellington activation. While it's
-    // still a good idea to have some minimum mempool size, using this value as
-    // a threshold is no longer relevant.
-    int64_t nMempoolSizeMin = 101 * 1000 * 40;
-    if (nMempoolSizeMax < 0 ||
-        (!chainparams.IsTestChain() && nMempoolSizeMax < nMempoolSizeMin)) {
-        return InitError(strprintf(_("-maxmempool must be at least %d MB"),
-                                   std::ceil(nMempoolSizeMin / 1000000.0)));
-    }
-
     // Configure excessive block size.
     const int64_t nProposedExcessiveBlockSize =
         args.GetIntArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);
@@ -2425,6 +2411,18 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     ApplyArgsManOptions(args, mempool_opts);
     mempool_opts.check_ratio =
         std::clamp<int>(mempool_opts.check_ratio, 0, 1'000'000);
+
+    // FIXME: this legacy limit comes from the DEFAULT_DESCENDANT_SIZE_LIMIT
+    // (101) that was enforced before the wellington activation. While it's
+    // still a good idea to have some minimum mempool size, using this value as
+    // a threshold is no longer relevant.
+    int64_t nMempoolSizeMin = 101 * 1000 * 40;
+    if (mempool_opts.max_size_bytes < 0 ||
+        (!chainparams.IsTestChain() &&
+         mempool_opts.max_size_bytes < nMempoolSizeMin)) {
+        return InitError(strprintf(_("-maxmempool must be at least %d MB"),
+                                   std::ceil(nMempoolSizeMin / 1000000.0)));
+    }
     LogPrintf("* Using %.1f MiB for in-memory UTXO set (plus up to %.1f MiB of "
               "unused mempool space)\n",
               cache_sizes.coins * (1.0 / 1024 / 1024),
