@@ -3262,7 +3262,8 @@ bool IsAvalancheMessageType(const std::string &msg_type) {
            msg_type == NetMsgType::AVAPROOF ||
            msg_type == NetMsgType::GETAVAADDR ||
            msg_type == NetMsgType::GETAVAPROOFS ||
-           msg_type == NetMsgType::AVAPROOFS;
+           msg_type == NetMsgType::AVAPROOFS ||
+           msg_type == NetMsgType::AVAPROOFSREQ;
 }
 
 uint32_t PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) {
@@ -5267,6 +5268,35 @@ void PeerManagerImpl::ProcessMessage(
 
         m_connman.PushMessage(&pfrom,
                               msgMaker.Make(NetMsgType::AVAPROOFSREQ, req));
+        return;
+    }
+
+    if (msg_type == NetMsgType::AVAPROOFSREQ) {
+        if (pfrom.m_proof_relay == nullptr) {
+            return;
+        }
+
+        avalanche::ProofsRequest proofreq;
+        vRecv >> proofreq;
+
+        auto requestedIndiceIt = proofreq.indices.begin();
+        uint32_t treeIndice = 0;
+        pfrom.m_proof_relay->sharedProofs.forEachLeaf([&](const auto &proof) {
+            if (requestedIndiceIt == proofreq.indices.end()) {
+                // No more indice to process
+                return false;
+            }
+
+            if (treeIndice++ == *requestedIndiceIt) {
+                m_connman.PushMessage(
+                    &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
+                requestedIndiceIt++;
+            }
+
+            return true;
+        });
+
+        pfrom.m_proof_relay->sharedProofs = {};
         return;
     }
 
