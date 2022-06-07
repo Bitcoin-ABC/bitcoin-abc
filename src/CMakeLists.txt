@@ -453,7 +453,6 @@ endfunction()
 
 add_network_sources(NETWORK_SOURCES
 	checkpoints.cpp
-	network.cpp
 	chainparamsconstants.cpp
 )
 
