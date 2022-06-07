@@ -15,10 +15,10 @@ from test_framework.avatools import (
 from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
+    calculate_shortid,
     msg_getavaproofs,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
-from test_framework.siphash import siphash256
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import MAX_NODES, assert_equal, p2p_port
 
@@ -144,10 +144,10 @@ class CompactProofsTest(BitcoinTestFramework):
 
         avaproofs = received_avaproofs(receiving_peer)
         expected_shortids = [
-            siphash256(
+            calculate_shortid(
                 avaproofs.key0,
                 avaproofs.key1,
-                proofid) & 0x0000ffffffffffff for proofid in sorted(proofids)]
+                proofid) for proofid in sorted(proofids)]
         assert_equal(expected_shortids, avaproofs.shortids)
 
         # Don't expect any prefilled proof for now

@@ -21,12 +21,12 @@ from test_framework.messages import (
     MSG_AVA_PROOF,
     MSG_TYPE_MASK,
     CInv,
+    calculate_shortid,
     msg_avaproof,
     msg_getavaproofs,
     msg_getdata,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
-from test_framework.siphash import siphash256
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_greater_than
 from test_framework.wallet_util import bytes_to_wif
@@ -228,10 +228,10 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         avaproofs = received_avaproofs(receiving_peer)
         expected_shortids = [
-            siphash256(
+            calculate_shortid(
                 avaproofs.key0,
                 avaproofs.key1,
-                proofid) & 0x0000ffffffffffff for proofid in sorted(proofids)]
+                proofid) for proofid in sorted(proofids)]
         assert_equal(expected_shortids, avaproofs.shortids)
 
         # Don't expect any prefilled proof for now
