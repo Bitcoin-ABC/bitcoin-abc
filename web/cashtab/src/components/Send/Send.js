@@ -26,6 +26,7 @@ import {
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { currency, parseAddressForParams } from 'components/Common/Ticker.js';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
@@ -59,7 +60,6 @@ import {
 } from 'components/Common/Atoms';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 
@@ -1160,26 +1160,20 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                                         : ''
                                                 }
                                             />
-                                            <div
-                                                onClick={() => {
-                                                    const convertedAddress =
-                                                        convertToEcashPrefix(
-                                                            wallet.Path1899
-                                                                .cashAddress,
-                                                        );
-                                                    navigator.clipboard.writeText(
-                                                        convertedAddress,
-                                                    );
-                                                    generalNotification(
-                                                        convertedAddress +
-                                                            ' copied to clipboard',
-                                                        'Copied',
-                                                        'Success',
-                                                    );
+                                            <CopyToClipboard
+                                                data={convertToEcashPrefix(
+                                                    wallet.Path1899.cashAddress,
+                                                )}
+                                                optionalOnCopyNotification={{
+                                                    title: 'Copied',
+                                                    msg: `${convertToEcashPrefix(
+                                                        wallet.Path1899
+                                                            .cashAddress,
+                                                    )} copied to clipboard`,
                                                 }}
                                             >
                                                 <ThemedCopySolid />
-                                            </div>
+                                            </CopyToClipboard>
                                         </AddressCopyCtn>
                                     )}
                             </Form.Item>
@@ -1191,12 +1185,11 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                                 &nbsp;Sign Message
                             </SmartButton>
                             <CopyToClipboard
-                                style={{
-                                    display: 'inline-block',
-                                    width: '100%',
-                                    position: 'relative',
+                                data={messageSignature}
+                                optionalOnCopyNotification={{
+                                    title: 'Message signature copied to clipboard',
+                                    msg: `${messageSignature}`,
                                 }}
-                                text={messageSignature}
                             >
                                 <Form.Item>
                                     <SignMessageLabel>

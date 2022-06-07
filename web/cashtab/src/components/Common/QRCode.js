@@ -3,10 +3,9 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import RawQRCode from 'qrcode.react';
 import { currency } from 'components/Common/Ticker.js';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Event } from 'utils/GoogleAnalytics';
 import { convertToEcashPrefix } from 'utils/cashMethods';
-
+import CopyToClipboard from './CopyToClipboard';
 export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
     border-radius: 10px;
@@ -176,68 +175,73 @@ export const QRCode = ({
     };
 
     return (
-        <CopyToClipboard
-            style={{
-                display: 'inline-block',
-                width: '100%',
-                position: 'relative',
-            }}
-            text={address}
-            onCopy={handleOnCopy}
-        >
-            <div style={{ position: 'relative' }} onClick={handleOnClick}>
-                <Copied
-                    xec={address && isCashAddress ? 1 : 0}
-                    style={{ display: visible ? null : 'none' }}
-                >
-                    Copied <br />
-                    <span style={{ fontSize: '12px' }}>{address}</span>
-                </Copied>
+        <CopyToClipboard data={address}>
+            <div
+                style={{
+                    display: 'inline-block',
+                    width: '100%',
+                    position: 'relative',
+                }}
+                text={address}
+                onCopy={handleOnCopy}
+            >
+                <div style={{ position: 'relative' }} onClick={handleOnClick}>
+                    <Copied
+                        xec={address && isCashAddress ? 1 : 0}
+                        style={{ display: visible ? null : 'none' }}
+                    >
+                        Copied <br />
+                        <span style={{ fontSize: '12px' }}>{address}</span>
+                    </Copied>
 
-                <StyledRawQRCode
-                    id="borderedQRCode"
-                    value={address || ''}
-                    size={size}
-                    xec={address && isCashAddress ? 1 : 0}
-                    renderAs={'svg'}
-                    includeMargin
-                    imageSettings={{
-                        src:
-                            address && isCashAddress
-                                ? currency.logo
-                                : currency.tokenLogo,
-                        x: null,
-                        y: null,
-                        height: 24,
-                        width: 24,
-                        excavate: true,
-                    }}
-                />
+                    <StyledRawQRCode
+                        id="borderedQRCode"
+                        value={address || ''}
+                        size={size}
+                        xec={address && isCashAddress ? 1 : 0}
+                        renderAs={'svg'}
+                        includeMargin
+                        imageSettings={{
+                            src:
+                                address && isCashAddress
+                                    ? currency.logo
+                                    : currency.tokenLogo,
+                            x: null,
+                            y: null,
+                            height: 24,
+                            width: 24,
+                            excavate: true,
+                        }}
+                    />
 
-                {address && (
-                    <CustomInput className="notranslate">
-                        <input
-                            ref={txtRef}
-                            readOnly
-                            value={address}
-                            spellCheck="false"
-                            type="text"
-                        />
-                        <PrefixLabel xec={address && isCashAddress ? 1 : 0}>
-                            {address.slice(0, prefixLength)}
-                        </PrefixLabel>
-                        <AddressHighlightTrim>
+                    {address && (
+                        <CustomInput className="notranslate">
+                            <input
+                                ref={txtRef}
+                                readOnly
+                                value={address}
+                                spellCheck="false"
+                                type="text"
+                            />
+                            <PrefixLabel xec={address && isCashAddress ? 1 : 0}>
+                                {address.slice(0, prefixLength)}
+                            </PrefixLabel>
+                            <AddressHighlightTrim>
+                                {address.slice(
+                                    prefixLength,
+                                    prefixLength + trimAmount,
+                                )}
+                            </AddressHighlightTrim>
                             {address.slice(
-                                prefixLength,
                                 prefixLength + trimAmount,
+                                address_trim,
                             )}
-                        </AddressHighlightTrim>
-                        {address.slice(prefixLength + trimAmount, address_trim)}
-                        <AddressHighlightTrim>
-                            {address.slice(-trimAmount)}
-                        </AddressHighlightTrim>
-                    </CustomInput>
-                )}
+                            <AddressHighlightTrim>
+                                {address.slice(-trimAmount)}
+                            </AddressHighlightTrim>
+                        </CustomInput>
+                    )}
+                </div>
             </div>
         </CopyToClipboard>
     );

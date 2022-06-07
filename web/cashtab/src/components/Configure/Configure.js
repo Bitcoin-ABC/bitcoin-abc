@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
 import {
-    generalNotification,
     errorNotification,
+    generalNotification,
 } from 'components/Common/Notifications';
 import {
     Collapse,
@@ -52,6 +52,7 @@ import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
 import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { formatSavedBalance } from 'utils/formatting';
 import { isValidXecAddress } from 'utils/validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
@@ -1673,20 +1674,7 @@ const Configure = () => {
                                                             }
                                                         >
                                                             <ContactListAddress>
-                                                                <div
-                                                                    className="overflow notranslate"
-                                                                    onClick={() => {
-                                                                        navigator.clipboard.writeText(
-                                                                            element.address,
-                                                                        );
-                                                                        generalNotification(
-                                                                            element.address +
-                                                                                ' copied to clipboard',
-                                                                            'Copied',
-                                                                            'Success',
-                                                                        );
-                                                                    }}
-                                                                >
+                                                                <div className="overflow notranslate">
                                                                     {
                                                                         element.address
                                                                     }
@@ -1694,19 +1682,17 @@ const Configure = () => {
                                                             </ContactListAddress>
                                                         </Tooltip>
                                                         <ContactListCtn>
-                                                            <ThemedCopySolid
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(
-                                                                        element.address,
-                                                                    );
-                                                                    generalNotification(
-                                                                        element.address +
-                                                                            ' copied to clipboard',
-                                                                        'Copied',
-                                                                        'Success',
-                                                                    );
+                                                            <CopyToClipboard
+                                                                data={
+                                                                    element.address
+                                                                }
+                                                                optionalOnCopyNotification={{
+                                                                    title: 'Copied',
+                                                                    msg: `${element.address} copied to clipboard`,
                                                                 }}
-                                                            />
+                                                            >
+                                                                <ThemedCopySolid />
+                                                            </CopyToClipboard>
                                                             <Edit
                                                                 onClick={() =>
                                                                     handleRenameContact(

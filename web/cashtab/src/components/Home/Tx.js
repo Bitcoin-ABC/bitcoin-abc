@@ -14,8 +14,7 @@ import { fromLegacyDecimals } from 'utils/cashMethods';
 import { formatBalance, formatDate } from 'utils/formatting';
 import TokenIcon from 'components/Tokens/TokenIcon';
 import { Collapse } from 'antd';
-import { generalNotification } from 'components/Common/Notifications';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     ThemedCopySolid,
     ThemedLinkSolid,
@@ -746,15 +745,14 @@ const Tx = ({
                             }
                         >
                             <PanelCtn>
-                                <CopyToClipboard text={data.txid}>
-                                    <DropdownButton
-                                        onClick={() => {
-                                            generalNotification(
-                                                data.txid,
-                                                'Tx ID copied to clipboard',
-                                            );
-                                        }}
-                                    >
+                                <CopyToClipboard
+                                    data={data.txid}
+                                    optionalOnCopyNotification={{
+                                        title: 'Txid copied to clipboard',
+                                        msg: `${data.txid}`,
+                                    }}
+                                >
+                                    <DropdownButton>
                                         <DropdownIconWrapper>
                                             <TextLayer>Txid</TextLayer>
 
@@ -764,16 +762,13 @@ const Tx = ({
                                 </CopyToClipboard>
                                 {data.opReturnMessage && (
                                     <CopyToClipboard
-                                        text={data.opReturnMessage}
+                                        data={data.opReturnMessage}
+                                        optionalOnCopyNotification={{
+                                            title: 'Cashtab message copied to clipboard',
+                                            msg: `${data.opReturnMessage}`,
+                                        }}
                                     >
-                                        <DropdownButton
-                                            onClick={() => {
-                                                generalNotification(
-                                                    data.opReturnMessage,
-                                                    'Cashtab message copied to clipboard',
-                                                );
-                                            }}
-                                        >
+                                        <DropdownButton>
                                             <DropdownIconWrapper>
                                                 <TextLayer>Msg</TextLayer>
                                                 <ThemedCopySolid />

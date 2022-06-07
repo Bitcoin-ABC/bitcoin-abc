@@ -15,13 +15,11 @@ const { TextArea } = Input;
 import { Row, Col, Switch } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import useBCH from 'hooks/useBCH';
-import {
-    errorNotification,
-    generalNotification,
-} from 'components/Common/Notifications';
+import { errorNotification } from 'components/Common/Notifications';
 import { currency } from 'components/Common/Ticker.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     getWalletState,
     convertEtokenToEcashAddr,
@@ -50,6 +48,8 @@ const AirdropActions = styled.div`
     width: 100%;
     padding: 10px;
     border-radius: 5px;
+    display: flex;
+    justify-content: center;
     a {
         color: ${props => props.theme.contrast};
         margin: 0;
@@ -795,24 +795,23 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                         Copy to Send screen
                                                     </Link>
                                                     &nbsp;&nbsp;
-                                                    <Link
-                                                        type="text"
-                                                        disabled={
-                                                            !airdropRecipients
-                                                        }
-                                                        to={'#'}
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(
-                                                                airdropRecipients,
-                                                            );
-                                                            generalNotification(
-                                                                'Airdrop recipients copied to clipboard',
-                                                                'Copied',
-                                                            );
+                                                    <CopyToClipboard
+                                                        data={airdropRecipients}
+                                                        optionalOnCopyNotification={{
+                                                            title: 'Copied',
+                                                            msg: 'Airdrop recipients copied to clipboard',
                                                         }}
                                                     >
-                                                        Copy to Clipboard
-                                                    </Link>
+                                                        <Link
+                                                            type="text"
+                                                            disabled={
+                                                                !airdropRecipients
+                                                            }
+                                                            to={'#'}
+                                                        >
+                                                            Copy to Clipboard
+                                                        </Link>
+                                                    </CopyToClipboard>
                                                 </AirdropActions>
                                             </Form.Item>
                                         </>
