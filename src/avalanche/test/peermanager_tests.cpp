@@ -791,6 +791,80 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     // The status of proof 1 and proof2 are unchanged
     checkOrphan(proof1, true);
     checkOrphan(proof2, false);
+
+    // Track expected orphans so we can test them later
+    std::vector<ProofRef> orphans;
+    orphans.push_back(proof1);
+    orphans.push_back(proof2);
+    orphans.push_back(proof3);
+
+    // Fill up orphan pool to test the size limit
+    for (uint32_t i = 1; i < AVALANCHE_MAX_ORPHAN_PROOFS; i++) {
+        COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
+        auto proof =
+            buildProofWithOutpoints(key, {outpoint}, 10 * COIN, key, 0, height);
+        registerOrphan(proof);
+        orphans.push_back(proof);
+    }
+
+    // New orphans are rejected when the pool is full, even if they have higher
+    // proof scores.
+    {
+        COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
+        auto proof =
+            buildProofWithOutpoints(key, {outpoint}, 20 * COIN, key, 0, height);
+        registerOrphan(proof);
+        BOOST_CHECK(!pm.exists(proof->getId()));
+    }
+
+    // Replacement when the pool is full still works
+    {
+        auto proof = buildProofWithOutpoints(key, {outpoint1}, 10 * COIN, key,
+                                             1, height);
+        registerOrphan(proof);
+        checkOrphan(proof, true);
+        BOOST_CHECK(!pm.exists(proof1->getId()));
+        orphans.push_back(proof);
+        orphans.erase(orphans.begin());
+    }
+
+    // Reorg so that some more proofs become orphans
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.SpendCoin(outpoint2);
+        coins.SpendCoin(outpoint3);
+    }
+
+    pm.updatedBlockTip();
+
+    // New orphans are rejected when the pool is full, even if they have higher
+    // proof scores.
+    {
+        COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
+        auto proof =
+            buildProofWithOutpoints(key, {outpoint}, 20 * COIN, key, 0, height);
+        registerOrphan(proof);
+        BOOST_CHECK(!pm.exists(proof->getId()));
+    }
+
+    // Even though we've exceeded the orphan pool limit, the reorged proofs are
+    // still being tracked.
+    for (auto &proof : orphans) {
+        checkOrphan(proof, true);
+    }
+
+    // Another block causes orphans to be trimmed to the limit
+    pm.updatedBlockTip();
+
+    int numOrphans = 0;
+    for (auto &proof : orphans) {
+        if (pm.exists(proof->getId())) {
+            checkOrphan(proof, true);
+            numOrphans++;
+        }
+    }
+    BOOST_CHECK_EQUAL(numOrphans, AVALANCHE_MAX_ORPHAN_PROOFS);
 }
 
 BOOST_AUTO_TEST_CASE(dangling_node) {

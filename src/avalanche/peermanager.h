@@ -32,6 +32,15 @@
 
 namespace avalanche {
 
+/**
+ * Maximum number of orphan proofs the peer manager will accept from the
+ * network. Under good conditions, this allows the node to collect relevant
+ * proofs during IBD. Note that reorgs can cause the orphan pool to
+ * temporarily exceed this limit. But a change in chaintip cause previously
+ * reorged proofs to be trimmed.
+ */
+static constexpr uint32_t AVALANCHE_MAX_ORPHAN_PROOFS = 4000;
+
 class Delegation;
 
 namespace {

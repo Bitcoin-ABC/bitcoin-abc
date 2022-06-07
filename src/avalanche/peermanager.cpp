@@ -217,7 +217,18 @@ bool PeerManager::registerProof(const ProofRef &proof,
                    return proof->verify(validationState,
                                         ::ChainstateActive().CoinsTip()))) {
         if (isOrphanState(validationState)) {
-            orphanProofPool.addProofIfPreferred(proof);
+            // Only accept orphan proofs if there's room in the orphan pool.
+            auto status = orphanProofPool.addProofIfNoConflict(proof);
+            if (status != ProofPool::AddProofStatus::SUCCEED) {
+                // Attempt proof replacement
+                orphanProofPool.addProofIfPreferred(proof);
+            } else if (orphanProofPool.countProofs() >
+                       AVALANCHE_MAX_ORPHAN_PROOFS) {
+                // Adding this proof exceeds the orphan pool limit, so remove
+                // it.
+                orphanProofPool.removeProof(proof->getId());
+            }
+
             return invalidate(ProofRegistrationResult::ORPHAN, "orphan-proof");
         }
 
