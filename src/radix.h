@@ -37,7 +37,7 @@ template <typename T> struct PassthroughAdapter {
  * taken before reading anything in the tree.
  */
 template <typename T, typename Adapter = PassthroughAdapter<T>>
-struct RadixTree {
+struct RadixTree : private Adapter {
 private:
     static const int BITS = 4;
     static const int MASK = (1 << BITS) - 1;
@@ -51,7 +51,6 @@ private:
     struct RadixElement;
     struct RadixNode;
 
-    Adapter adapter;
     std::atomic<RadixElement> root;
 
 public:
@@ -207,7 +206,7 @@ public:
     }
 
 private:
-    KeyType getId(const T &value) const { return adapter.getId(value); }
+    KeyType getId(const T &value) const { return Adapter::getId(value); }
 
     bool insert(const KeyType &key, RCUPtr<T> value) {
         uint32_t level = TOP_LEVEL;
