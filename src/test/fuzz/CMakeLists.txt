@@ -191,7 +191,6 @@ add_deserialize_fuzz_targets(
 	out_point_deserialize
 	partial_merkle_tree_deserialize
 	partially_signed_transaction_deserialize
-	prefilled_transaction_deserialize
 	psbt_input_deserialize
 	psbt_output_deserialize
 	pub_key_deserialize

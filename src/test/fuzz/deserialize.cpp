@@ -132,9 +132,6 @@ void test_one_input(const std::vector<uint8_t> &buffer) {
 #elif PARTIALLY_SIGNED_TRANSACTION_DESERIALIZE
         PartiallySignedTransaction partially_signed_transaction;
         DeserializeFromFuzzingInput(buffer, partially_signed_transaction);
-#elif PREFILLED_TRANSACTION_DESERIALIZE
-        PrefilledTransaction prefilled_transaction;
-        DeserializeFromFuzzingInput(buffer, prefilled_transaction);
 #elif PSBT_INPUT_DESERIALIZE
         PSBTInput psbt_input;
         DeserializeFromFuzzingInput(buffer, psbt_input);
