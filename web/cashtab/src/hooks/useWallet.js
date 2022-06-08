@@ -229,7 +229,13 @@ const useWallet = () => {
             const utxos = await getUtxos(BCH, cashAddresses);
 
             // If an error is returned or utxos from only 1 address are returned
-            if (!utxos || isEmpty(utxos) || utxos.error || utxos.length < 2) {
+            if (
+                !utxos ||
+                !Array.isArray(utxos) ||
+                isEmpty(utxos) ||
+                utxos.error ||
+                utxos.length < 2
+            ) {
                 // Throw error here to prevent more attempted api calls
                 // as you are likely already at rate limits
                 throw new Error('Error fetching utxos');

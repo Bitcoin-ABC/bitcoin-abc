@@ -566,6 +566,7 @@ export default function useBCH() {
             return utxosResponse.utxos;
         } catch (err) {
             console.log(`Error in BCH.Electrumx.utxo(addresses):`);
+            console.log(err);
             return err;
         }
     };
