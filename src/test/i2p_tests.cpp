@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(unlimited_recv) {
                               CService{}, &interrupt);
 
     {
-        ASSERT_DEBUG_LOG("Creating SAM session");
+        ASSERT_DEBUG_LOG("Creating persistent SAM session");
         ASSERT_DEBUG_LOG("too many bytes without a terminator");
 
         i2p::Connection conn;

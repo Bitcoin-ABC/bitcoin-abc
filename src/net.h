@@ -377,6 +377,7 @@ public:
 };
 
 struct CNodeOptions {
+    std::unique_ptr<i2p::sam::Session> i2p_sam_session = nullptr;
     NetPermissionFlags permission_flags = NetPermissionFlags::None;
     bool prefer_evict = false;
     size_t recv_flood_size{DEFAULT_MAXRECEIVEBUFFER * 1000};
@@ -756,6 +757,18 @@ private:
 
     mapMsgTypeSize mapSendBytesPerMsgType GUARDED_BY(cs_vSend);
     mapMsgTypeSize mapRecvBytesPerMsgType GUARDED_BY(cs_vRecv);
+
+    /**
+     * If an I2P session is created per connection (for outbound transient I2P
+     * connections) then it is stored here so that it can be destroyed when the
+     * socket is closed. I2P sessions involve a data/transport socket (in
+     * `m_sock`) and a control socket (in `m_i2p_sam_session`). For transient
+     * sessions, once the data socket is closed, the control socket is not going
+     * to be used anymore and is just taking up resources. So better close it as
+     * soon as `m_sock` is closed. Otherwise this unique_ptr is empty.
+     */
+    std::unique_ptr<i2p::sam::Session>
+        m_i2p_sam_session GUARDED_BY(m_sock_mutex);
 };
 
 /**
@@ -1320,7 +1333,8 @@ private:
 
     /**
      * I2P SAM session.
-     * Used to accept incoming and make outgoing I2P connections.
+     * Used to accept incoming and make outgoing I2P connections from a
+     * persistent address.
      */
     std::unique_ptr<i2p::sam::Session> m_i2p_sam_session;
 
