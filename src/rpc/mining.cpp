@@ -536,7 +536,7 @@ static RPCHelpMan getmininginfo() {
             const CChain &active_chain = chainman.ActiveChain();
 
             UniValue obj(UniValue::VOBJ);
-            obj.pushKV("blocks", int(active_chain.Height()));
+            obj.pushKV("blocks", active_chain.Height());
             if (BlockAssembler::m_last_block_size) {
                 obj.pushKV("currentblocksize",
                            *BlockAssembler::m_last_block_size);
