@@ -5,22 +5,16 @@
 #ifndef BITCOIN_KERNEL_CHECKS_H
 #define BITCOIN_KERNEL_CHECKS_H
 
-#include <optional>
+#include <util/result.h>
 
 namespace kernel {
 
 struct Context;
 
-enum class SanityCheckError {
-    ERROR_ECC,
-    ERROR_RANDOM,
-    ERROR_CHRONO,
-};
-
 /**
  *  Ensure a usable environment with all necessary library support.
  */
-std::optional<SanityCheckError> SanityChecks(const Context &);
+util::Result<void> SanityChecks(const Context &);
 
 } // namespace kernel
 
