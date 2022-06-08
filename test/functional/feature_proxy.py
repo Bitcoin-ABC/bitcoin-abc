@@ -30,7 +30,6 @@ addnode connect to generic DNS name
 - Test getnetworkinfo for each node
 """
 
-import os
 import socket
 
 from test_framework.netutil import test_ipv6_local
@@ -41,9 +40,7 @@ from test_framework.socks5 import (
     Socks5Server,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import PORT_MIN, PORT_RANGE, assert_equal
-
-RANGE_BEGIN = PORT_MIN + 2 * PORT_RANGE  # Start after p2p and rpc ports
+from test_framework.util import assert_equal, p2p_port
 
 # Networks returned by RPC getpeerinfo.
 NET_UNROUTABLE = "not_publicly_routable"
@@ -67,21 +64,19 @@ class ProxyTest(BitcoinTestFramework):
         # Create two proxies on different ports
         # ... one unauthenticated
         self.conf1 = Socks5Configuration()
-        self.conf1.addr = ('127.0.0.1', RANGE_BEGIN + (os.getpid() % 1000))
+        self.conf1.addr = ('127.0.0.1', p2p_port(self.num_nodes))
         self.conf1.unauth = True
         self.conf1.auth = False
         # ... one supporting authenticated and unauthenticated (Tor)
         self.conf2 = Socks5Configuration()
-        self.conf2.addr = (
-            '127.0.0.1', RANGE_BEGIN + 1000 + (os.getpid() % 1000))
+        self.conf2.addr = ('127.0.0.1', p2p_port(self.num_nodes + 1))
         self.conf2.unauth = True
         self.conf2.auth = True
         if self.have_ipv6:
             # ... one on IPv6 with similar configuration
             self.conf3 = Socks5Configuration()
             self.conf3.af = socket.AF_INET6
-            self.conf3.addr = (
-                '::1', RANGE_BEGIN + 2000 + (os.getpid() % 1000))
+            self.conf3.addr = ('::1', p2p_port(self.num_nodes + 2))
             self.conf3.unauth = True
             self.conf3.auth = True
         else:

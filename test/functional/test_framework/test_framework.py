@@ -205,10 +205,10 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.add_options(parser)
         self.options = parser.parse_args()
 
-    def setup(self):
-        """Call this method to start up the test framework object with options set."""
         PortSeed.n = self.options.port_seed
 
+    def setup(self):
+        """Call this method to start up the test framework object with options set."""
         check_json_precision()
 
         self.options.cachedir = os.path.abspath(self.options.cachedir)

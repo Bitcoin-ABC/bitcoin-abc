@@ -38,6 +38,9 @@ class AddrReceiver(P2PInterface):
 class AddrTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        # TODO When Backporting core#25096, please also includes changes from:
+        #  - core#25312
+        #  - core#25333
 
     def run_test(self):
         self.log.info('Fill peer AddrMan with a lot of records')
