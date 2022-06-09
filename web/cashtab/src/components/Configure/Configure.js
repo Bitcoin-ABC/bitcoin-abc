@@ -56,7 +56,8 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { formatSavedBalance } from 'utils/formatting';
 import { isValidXecAddress } from 'utils/validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
-
+import useWindowDimensions from 'hooks/useWindowDimensions';
+import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { currency } from 'components/Common/Ticker.js';
 const { Panel } = Collapse;
 
@@ -435,6 +436,13 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
+const HideableTextContainer = styled.div``;
+const AutoCameraTextCtn = styled.div`
+    display: flex;
+    white-space: nowrap;
+    gap: 3px;
+`;
+
 const GeneralSettingsItem = styled.div`
     display: flex;
     align-items: center;
@@ -459,6 +467,14 @@ const GeneralSettingsItem = styled.div`
     }
     .SendConfirm {
         color: ${props => props.theme.lightWhite};
+    }
+    ${AutoCameraTextCtn} {
+        color: ${props => props.theme.lightWhite};
+        ${HideableTextContainer} {
+            @media (max-width: 500px) {
+                display: none;
+            }
+        }
     }
 `;
 
@@ -561,6 +577,9 @@ const Configure = () => {
         useState(null);
     const [manualContactAddressIsValid, setManualContactAddressIsValid] =
         useState(null);
+    const { width } = useWindowDimensions();
+
+    const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
 
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
@@ -936,6 +955,10 @@ const Configure = () => {
 
     const handleSendModalToggle = checkedState => {
         changeCashtabSettings('sendModal', checkedState);
+    };
+
+    const handleCameraOverride = checkedState => {
+        changeCashtabSettings('autoCameraOn', checkedState);
     };
 
     const getContactNameByAddress = contactAddress => {
@@ -1834,6 +1857,27 @@ const Configure = () => {
                         onChange={handleSendModalToggle}
                     />
                 </GeneralSettingsItem>
+                {scannerSupported && (
+                    <GeneralSettingsItem>
+                        <AutoCameraTextCtn>
+                            <LockFilled /> Auto-open camera{' '}
+                            <HideableTextContainer>
+                                on send
+                            </HideableTextContainer>
+                        </AutoCameraTextCtn>
+                        <Switch
+                            size="small"
+                            checkedChildren={<CheckOutlined />}
+                            unCheckedChildren={<CloseOutlined />}
+                            checked={
+                                cashtabSettings
+                                    ? cashtabSettings.autoCameraOn
+                                    : false
+                            }
+                            onChange={handleCameraOverride}
+                        />
+                    </GeneralSettingsItem>
+                )}
                 <StyledSpacer />
                 <SettingsLinkCtn>
                     [

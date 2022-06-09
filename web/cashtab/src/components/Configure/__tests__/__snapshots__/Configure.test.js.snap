@@ -348,7 +348,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-cJSrbW kMsRCc"
+      className="sc-hmzhuo hnhvOF"
     >
       <div
         className="title"
@@ -407,7 +407,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </span>
     </div>
     <div
-      className="sc-cJSrbW kMsRCc"
+      className="sc-hmzhuo hnhvOF"
     >
       <div
         className="SendConfirm"
@@ -839,7 +839,7 @@ exports[`Without wallet defined 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-cJSrbW kMsRCc"
+      className="sc-hmzhuo hnhvOF"
     >
       <div
         className="title"
@@ -898,7 +898,7 @@ exports[`Without wallet defined 1`] = `
       </span>
     </div>
     <div
-      className="sc-cJSrbW kMsRCc"
+      className="sc-hmzhuo hnhvOF"
     >
       <div
         className="SendConfirm"

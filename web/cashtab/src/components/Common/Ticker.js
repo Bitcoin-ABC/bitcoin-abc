@@ -28,7 +28,11 @@ export const currency = {
     xecApiBatchSize: 20,
     websocketDisconnectedRefreshInterval: 1000, // 1000 = 1s
     websocketConnectedRefreshInterval: 30000,
-    defaultSettings: { fiatCurrency: 'usd', sendModal: false },
+    defaultSettings: {
+        fiatCurrency: 'usd',
+        sendModal: false,
+        autoCameraOn: true,
+    },
     notificationDurationShort: 3,
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
@@ -76,6 +80,7 @@ export const currency = {
             'chf',
         ],
         sendModal: [true, false],
+        autoCameraOn: [true, false],
     },
     fiatCurrencies: {
         usd: { name: 'US Dollar', symbol: '$', slug: 'usd' },

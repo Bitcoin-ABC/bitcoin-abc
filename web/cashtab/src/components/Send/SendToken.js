@@ -113,7 +113,12 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     // If this is less than 769, the page will open with QR scanner open
     const { width } = useWindowDimensions();
     // Load with QR code open if device is mobile and NOT iOS + anything but safari
-    const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
+    const scannerSupported =
+        cashtabSettings &&
+        cashtabSettings.autoCameraOn === true &&
+        width < 769 &&
+        isMobile &&
+        !(isIOS && !isSafari);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({

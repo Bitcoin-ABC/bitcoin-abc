@@ -264,7 +264,11 @@ describe('Validation utils', () => {
     });
     it(`Recognizes a valid cashtab settings object`, () => {
         expect(
-            isValidCashtabSettings({ fiatCurrency: 'usd', sendModal: false }),
+            isValidCashtabSettings({
+                fiatCurrency: 'usd',
+                sendModal: false,
+                autoCameraOn: true,
+            }),
         ).toBe(true);
     });
     it(`Rejects a cashtab settings object for an unsupported currency`, () => {
@@ -671,20 +675,24 @@ describe('Validation utils', () => {
         ).toStrictEqual({
             fiatCurrency: 'gbp',
             sendModal: false,
+            autoCameraOn: true,
         }));
     it('sets settings object with no exsting valid settings to default values', () =>
         expect(parseInvalidSettingsForMigration({})).toStrictEqual({
             fiatCurrency: 'usd',
             sendModal: false,
+            autoCameraOn: true,
         }));
     it('does nothing if valid settings object is present in localStorage', () =>
         expect(
             parseInvalidSettingsForMigration({
                 fiatCurrency: 'brl',
                 sendModal: true,
+                autoCameraOn: true,
             }),
         ).toStrictEqual({
             fiatCurrency: 'brl',
             sendModal: true,
+            autoCameraOn: true,
         }));
 });
