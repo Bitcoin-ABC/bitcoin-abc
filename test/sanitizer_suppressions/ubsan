@@ -31,6 +31,7 @@ unsigned-integer-overflow:pubkey.h
 unsigned-integer-overflow:script/interpreter.cpp
 unsigned-integer-overflow:stl_bvector.h
 unsigned-integer-overflow:util/strencodings.cpp
+unsigned-integer-overflow:xoroshiro128plusplus.h
 # False positive vptr due to boost::unit_test::decorator::timeout
 vptr:avalanche/test/processor_tests.cpp
 vptr:avalanche/test/peermanager_tests.cpp
@@ -84,3 +85,4 @@ shift-base:hash.cpp
 shift-base:leveldb/
 shift-base:streams.h
 shift-base:util/bip32.cpp
+shift-base:xoroshiro128plusplus.h

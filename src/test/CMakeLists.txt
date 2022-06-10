@@ -258,6 +258,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		validation_flush_tests.cpp
 		validation_tests.cpp
 		validationinterface_tests.cpp
+		xoroshiro128plusplus_tests.cpp
         blockindex_comparator_tests.cpp
 
 		# RPC Tests
