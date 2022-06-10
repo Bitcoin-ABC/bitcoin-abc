@@ -7,6 +7,7 @@ Test proof inventory relaying
 """
 
 import random
+import time
 
 from test_framework.avatools import (
     AvaP2PInterface,
@@ -27,6 +28,11 @@ from test_framework.messages import (
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import MAX_NODES, assert_equal, p2p_port
+
+# Timeout after which the proofs can be cleaned up
+AVALANCHE_AVAPROOFS_TIMEOUT = 2 * 60
+# Max interval between 2 periodic networking processing
+AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
 
 
 class ProofStoreP2PInterface(AvaP2PInterface):
@@ -413,6 +419,30 @@ class CompactProofsTest(BitcoinTestFramework):
         check_received_proofs([i for i in range(numof_proof) if i % 2 == 1])
         # All
         check_received_proofs(range(numof_proof))
+
+        self.log.info(
+            "Check the node will not send the proofs if not requested before the timeout elapsed")
+
+        mocktime = int(time.time())
+        node.setmocktime(mocktime)
+
+        slow_peer = node.add_p2p_connection(ProofStoreP2PInterface())
+        slow_peer.nodeid = node.getpeerinfo()[-1]['id']
+        _ = request_proofs(slow_peer)
+
+        # Elapse the timeout
+        mocktime += AVALANCHE_AVAPROOFS_TIMEOUT + 1
+        node.setmocktime(mocktime)
+
+        with node.assert_debug_log([f"Cleaning up timed out compact proofs from peer {slow_peer.nodeid}"]):
+            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+
+        req = msg_avaproofsreq()
+        req.indices = range(numof_proof)
+        slow_peer.send_and_ping(req)
+
+        # Check we get no proof
+        assert_equal(len(slow_peer.get_proofs()), 0)
 
     def test_compact_proofs_download_on_connect(self):
         self.log.info(

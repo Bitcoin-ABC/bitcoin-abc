@@ -108,6 +108,12 @@ static_assert(MAX_PROTOCOL_MESSAGE_LENGTH > MAX_INV_SZ * sizeof(CInv),
 /** Minimum time between 2 successives getavaaddr messages from the same peer */
 static constexpr std::chrono::minutes GETAVAADDR_INTERVAL{2};
 
+/**
+ * If no proof was requested from a compact proof message after this timeout
+ * expired, the proof radix tree can be cleaned up.
+ */
+static constexpr std::chrono::minutes AVALANCHE_AVAPROOFS_TIMEOUT{2};
+
 struct DataRequestParameters {
     /**
      * Maximum number of in-flight data requests from a peer. It is not a hard
@@ -524,10 +530,9 @@ private:
     void UpdateAvalancheStatistics() const;
 
     /**
-     * Send a getavaaddr message to one of our avalanche outbounds if we are
-     * missing good nodes.
+     * Process periodic avalanche network messaging and cleanups.
      */
-    void MaybeRequestAvalancheNodes(CScheduler &scheduler) const;
+    void AvalanchePeriodicNetworking(CScheduler &scheduler) const;
 
     /**
      * Get a shared pointer to the Peer object.
@@ -1678,47 +1683,68 @@ static bool isAvalancheOutboundOrManual(const CNode *pnode) {
            (pnode->IsManualConn() && (pnode->nServices & NODE_AVALANCHE));
 }
 
-void PeerManagerImpl::MaybeRequestAvalancheNodes(CScheduler &scheduler) const {
-    if (g_avalanche &&
-        (!g_avalanche->isQuorumEstablished() ||
-         g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-             return pm.shouldRequestMoreNodes();
-         }))) {
-        std::vector<NodeId> avanode_outbound_ids;
-        m_connman.ForEachNode([&](CNode *pnode) {
-            if (isAvalancheOutboundOrManual(pnode)) {
-                avanode_outbound_ids.push_back(pnode->GetId());
-            }
-        });
+void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
+    const auto now = GetTime<std::chrono::seconds>();
+    std::vector<NodeId> avanode_outbound_ids;
 
-        // Randomly select an avalanche outbound peer to send the getavaaddr
-        // message to
-        if (!avanode_outbound_ids.empty()) {
-            Shuffle(avanode_outbound_ids.begin(), avanode_outbound_ids.end(),
-                    FastRandomContext());
-            const NodeId avanodeId = avanode_outbound_ids.front();
-
-            m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
-                LogPrint(BCLog::AVALANCHE,
-                         "Requesting more avalanche addresses to peer %d\n",
-                         avanodeId);
-                m_connman.PushMessage(pavanode,
-                                      CNetMsgMaker(pavanode->GetCommonVersion())
-                                          .Make(NetMsgType::GETAVAADDR));
-                PeerRef peer = GetPeerRef(avanodeId);
-                WITH_LOCK(peer->m_addr_token_bucket_mutex,
-                          peer->m_addr_token_bucket += GetMaxAddrToSend());
-                return true;
-            });
-        }
+    if (!g_avalanche) {
+        // Not enabled or not ready yet, retry later
+        goto scheduleLater;
     }
 
+    m_connman.ForEachNode([&](CNode *pnode) {
+        // Build a list of the avalanche manual or outbound peers nodeids
+        if (isAvalancheOutboundOrManual(pnode)) {
+            avanode_outbound_ids.push_back(pnode->GetId());
+        }
+
+        // If a proof radix tree timed out, cleanup
+        if (pnode->m_proof_relay &&
+            now > (pnode->m_proof_relay->lastSharedProofsUpdate.load() +
+                   AVALANCHE_AVAPROOFS_TIMEOUT)) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Cleaning up timed out compact proofs from peer %d\n",
+                     pnode->GetId());
+            pnode->m_proof_relay->sharedProofs = {};
+        }
+    });
+
+    if (avanode_outbound_ids.empty()) {
+        // Not node is available for messaging, retry later
+        goto scheduleLater;
+    }
+
+    if (!g_avalanche->isQuorumEstablished() ||
+        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            return pm.shouldRequestMoreNodes();
+        })) {
+        // Randomly select an avalanche outbound peer to send the getavaaddr
+        // message to
+        Shuffle(avanode_outbound_ids.begin(), avanode_outbound_ids.end(),
+                FastRandomContext());
+        const NodeId avanodeId = avanode_outbound_ids.front();
+
+        m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Requesting more avalanche addresses to peer %d\n",
+                     avanodeId);
+            m_connman.PushMessage(pavanode,
+                                  CNetMsgMaker(pavanode->GetCommonVersion())
+                                      .Make(NetMsgType::GETAVAADDR));
+            PeerRef peer = GetPeerRef(avanodeId);
+            WITH_LOCK(peer->m_addr_token_bucket_mutex,
+                      peer->m_addr_token_bucket += GetMaxAddrToSend());
+            return true;
+        });
+    }
+
+scheduleLater:
     // Schedule next run for 2-5 minutes in the future.
     // We add randomness on every cycle to avoid the possibility of P2P
     // fingerprinting.
-    const auto requestAvalancheNodesInteval = 2min + GetRandMillis(3min);
-    scheduler.scheduleFromNow([&] { MaybeRequestAvalancheNodes(scheduler); },
-                              requestAvalancheNodesInteval);
+    const auto avalanchePeriodicNetworkingInterval = 2min + GetRandMillis(3min);
+    scheduler.scheduleFromNow([&] { AvalanchePeriodicNetworking(scheduler); },
+                              avalanchePeriodicNetworkingInterval);
 }
 
 void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node,
@@ -2057,9 +2083,9 @@ PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
         AVALANCHE_STATISTICS_REFRESH_PERIOD);
 
     // schedule next run for 2-5 minutes in the future
-    const auto requestAvalancheNodesInteval = 2min + GetRandMillis(3min);
-    scheduler.scheduleFromNow([&] { MaybeRequestAvalancheNodes(scheduler); },
-                              requestAvalancheNodesInteval);
+    const auto avalanchePeriodicNetworkingInterval = 2min + GetRandMillis(3min);
+    scheduler.scheduleFromNow([&] { AvalanchePeriodicNetworking(scheduler); },
+                              avalanchePeriodicNetworkingInterval);
 }
 
 /**
@@ -5165,6 +5191,9 @@ void PeerManagerImpl::ProcessMessage(
         if (pfrom.m_proof_relay == nullptr) {
             return;
         }
+
+        pfrom.m_proof_relay->lastSharedProofsUpdate =
+            GetTime<std::chrono::seconds>();
 
         pfrom.m_proof_relay->sharedProofs =
             g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {

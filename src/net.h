@@ -657,6 +657,7 @@ public:
 
         RadixTree<const avalanche::Proof, avalanche::ProofRadixTreeAdapter>
             sharedProofs;
+        std::atomic<std::chrono::seconds> lastSharedProofsUpdate{0s};
         std::atomic<bool> compactproofs_requested{false};
     };
 
