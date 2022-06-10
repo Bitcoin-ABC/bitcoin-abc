@@ -53,6 +53,14 @@ namespace {
         static double getMinQuorumConnectedScoreRatio(const Processor &p) {
             return p.minQuorumConnectedScoreRatio;
         }
+
+        static int64_t getavaproofsNodeCounter(Processor &p) {
+            return p.avaproofsNodeCounter;
+        }
+
+        static void clearavaproofsNodeCounter(Processor &p) {
+            p.avaproofsNodeCounter = 0;
+        }
     };
 } // namespace
 } // namespace avalanche
@@ -1242,42 +1250,50 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 }
 
 BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
-    // Create vector of tuples of <min stake, min ratio, success bool>
-    std::vector<std::tuple<std::string, std::string, bool>> tests = {
-        // Both parameters are invalid
-        {"", "", false},
-        {"-1", "-1", false},
+    // Create vector of tuples of:
+    // <min stake, min ratio, min avaproofs messages, success bool>
+    std::vector<std::tuple<std::string, std::string, std::string, bool>> tests =
+        {
+            // All parameters are invalid
+            {"", "", "", false},
+            {"-1", "-1", "-1", false},
 
-        // Min stake is out of range
-        {"-1", "0", false},
-        {"-0.01", "0", false},
-        {"21000000000000.01", "0", false},
+            // Min stake is out of range
+            {"-1", "0", "0", false},
+            {"-0.01", "0", "0", false},
+            {"21000000000000.01", "0", "0", false},
 
-        // Min connected ratio is out of range
-        {"0", "-1", false},
-        {"0", "1.1", false},
+            // Min connected ratio is out of range
+            {"0", "-1", "0", false},
+            {"0", "1.1", "0", false},
 
-        // Both parameters are valid
-        {"0", "0", true},
-        {"0.00", "0", true},
-        {"0.01", "0", true},
-        {"1", "0.1", true},
-        {"10", "0.5", true},
-        {"10", "1", true},
-        {"21000000000000.00", "0", true},
-    };
+            // Min avaproofs messages ratio is out of range
+            {"0", "0", "-1", false},
+
+            // All parameters are valid
+            {"0", "0", "0", true},
+            {"0.00", "0", "0", true},
+            {"0.01", "0", "0", true},
+            {"1", "0.1", "0", true},
+            {"10", "0.5", "0", true},
+            {"10", "1", "0", true},
+            {"21000000000000.00", "0", "0", true},
+            {"0", "0", "1", true},
+            {"0", "0", "100", true},
+        };
 
     // For each case set the parameters and check that making the processor
     // succeeds or fails as expected
     for (auto it = tests.begin(); it != tests.end(); ++it) {
         gArgs.ForceSetArg("-avaminquorumstake", std::get<0>(*it));
         gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", std::get<1>(*it));
+        gArgs.ForceSetArg("-avaminavaproofsnodecount", std::get<2>(*it));
 
         bilingual_str error;
         std::unique_ptr<Processor> processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(), error);
 
-        if (std::get<2>(*it)) {
+        if (std::get<3>(*it)) {
             BOOST_CHECK(processor != nullptr);
             BOOST_CHECK(error.empty());
             BOOST_CHECK_EQUAL(error.original, "");
@@ -1290,6 +1306,61 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
 
     gArgs.ClearForcedArg("-avaminquorumstake");
     gArgs.ClearForcedArg("-avaminquorumconnectedstakeratio");
+    gArgs.ClearForcedArg("-avaminavaproofsnodecount");
+}
+
+BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
+    ArgsManager argsman;
+    argsman.ForceSetArg("-avaminquorumstake", "0");
+    argsman.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
+
+    auto checkMinAvaproofsMessages = [&](int64_t minAvaproofsMessages) {
+        argsman.ForceSetArg("-avaminavaproofsnodecount",
+                            ToString(minAvaproofsMessages));
+
+        bilingual_str error;
+        auto processor = Processor::MakeProcessor(argsman, *m_node.chain,
+                                                  m_node.connman.get(), error);
+
+        BOOST_CHECK_EQUAL(processor->isQuorumEstablished(),
+                          minAvaproofsMessages <= 0);
+
+        auto addNode = [&](NodeId nodeid) {
+            auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+            processor->withPeerManager([&](avalanche::PeerManager &pm) {
+                BOOST_CHECK(pm.registerProof(proof));
+                BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
+            });
+        };
+
+        for (int64_t i = 0; i < minAvaproofsMessages - 1; i++) {
+            addNode(i);
+
+            processor->avaproofsSent(i);
+            BOOST_CHECK_EQUAL(
+                AvalancheTest::getavaproofsNodeCounter(*processor), i + 1);
+
+            // Receiving again on the same node does not increase the counter
+            processor->avaproofsSent(i);
+            BOOST_CHECK_EQUAL(
+                AvalancheTest::getavaproofsNodeCounter(*processor), i + 1);
+
+            BOOST_CHECK(!processor->isQuorumEstablished());
+        }
+
+        addNode(minAvaproofsMessages);
+        processor->avaproofsSent(minAvaproofsMessages);
+        BOOST_CHECK(processor->isQuorumEstablished());
+
+        // Check the latch
+        AvalancheTest::clearavaproofsNodeCounter(*processor);
+        BOOST_CHECK(processor->isQuorumEstablished());
+    };
+
+    checkMinAvaproofsMessages(0);
+    checkMinAvaproofsMessages(1);
+    checkMinAvaproofsMessages(10);
+    checkMinAvaproofsMessages(100);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {

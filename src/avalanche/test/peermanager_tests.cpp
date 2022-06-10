@@ -1815,4 +1815,25 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
+BOOST_AUTO_TEST_CASE(received_avaproofs) {
+    avalanche::PeerManager pm;
+
+    auto addNode = [&](NodeId nodeid) {
+        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(pm.registerProof(proof));
+        BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
+    };
+
+    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+        // Node doesn't exist
+        BOOST_CHECK(!pm.latchAvaproofsSent(nodeid));
+
+        addNode(nodeid);
+        BOOST_CHECK(pm.latchAvaproofsSent(nodeid));
+
+        // The flag is already set
+        BOOST_CHECK(!pm.latchAvaproofsSent(nodeid));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -162,6 +162,8 @@ class Processor final : public NetEventsInterface {
     uint32_t minQuorumScore;
     double minQuorumConnectedScoreRatio;
     std::atomic<bool> quorumIsEstablished{false};
+    int64_t minAvaproofsNodeCount;
+    std::atomic<int64_t> avaproofsNodeCounter{0};
 
     /** Voting parameters. */
     const uint32_t staleVoteThreshold;
@@ -175,7 +177,8 @@ class Processor final : public NetEventsInterface {
               CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
               CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
               double minQuorumConnectedScoreRatioIn,
-              uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn);
+              int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
+              uint32_t staleVoteFactorIn);
 
 public:
     ~Processor();
@@ -221,6 +224,7 @@ public:
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
 
+    void avaproofsSent(NodeId nodeid);
     bool isQuorumEstablished();
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.

@@ -1335,6 +1335,13 @@ void SetupServerArgs(NodeContext &node) {
                   AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO),
         ArgsManager::ALLOW_STRING, OptionsCategory::AVALANCHE);
     argsman.AddArg(
+        "-avaminavaproofsnodecount",
+        strprintf("Minimum number of node that needs to send us an avaproofs"
+                  " message before we consider we have a usable quorum"
+                  " (default: %s)",
+                  AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT),
+        ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
         "-avastalevotethreshold",
         strprintf("Number of avalanche votes before a voted item goes stale "
                   "when voting confidence is low (default: %u)",
@@ -1662,6 +1669,10 @@ void InitParameterInteraction(ArgsManager &args) {
             fAvalanche
                 ? "0.8"
                 : ToString(AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO));
+        args.SoftSetArg(
+            "-avaminavaproofsnodecount",
+            fAvalanche ? "8"
+                       : ToString(AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT));
     }
 }
 

@@ -5308,6 +5308,12 @@ void PeerManagerImpl::ProcessMessage(
 
         m_connman.PushMessage(&pfrom,
                               msgMaker.Make(NetMsgType::AVAPROOFSREQ, req));
+
+        // We want to keep a count of how many nodes we successfully requested
+        // avaproofs from as this is used to determine when we are confident our
+        // quorum is close enough to the other participants.
+        g_avalanche->avaproofsSent(pfrom.GetId());
+
         return;
     }
 

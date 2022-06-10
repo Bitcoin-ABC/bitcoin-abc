@@ -48,6 +48,7 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
                           tenBillion);
         BOOST_CHECK_EQUAL(
             args.GetArg("-avaminquorumconnectedstakeratio", "0.42"), "0.8");
+        BOOST_CHECK_EQUAL(args.GetArg("-avaminavaproofsnodecount", 42), 8);
     }
 
     {
@@ -69,6 +70,8 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         BOOST_CHECK_EQUAL(
             args.GetArg("-avaminquorumconnectedstakeratio", "0.8"),
             ToString(AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO));
+        BOOST_CHECK_EQUAL(args.GetArg("-avaminavaproofsnodecount", 42),
+                          AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT);
     }
 
     {
@@ -79,6 +82,7 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
         args.ForceSetArg("-enableavalancheproofreplacement", "0");
         args.ForceSetArg("-automaticunparking", "1");
         args.ForceSetArg("-avaminquorumstake", FormatMoney(123 * COIN));
+        args.ForceSetArg("-avaminavaproofsnodecount", "42");
         InitParameterInteraction(args);
 
         BOOST_CHECK_EQUAL(args.GetBoolArg("-enableavalanche", false), true);
@@ -92,6 +96,7 @@ BOOST_AUTO_TEST_CASE(avalanche_flag_tests) {
                           123 * COIN);
         BOOST_CHECK_EQUAL(
             args.GetArg("-avaminquorumconnectedstakeratio", "0.42"), "0.8");
+        BOOST_CHECK_EQUAL(args.GetArg("-avaminavaproofsnodecount", 0), 42);
     }
 
     gArgs.ClearForcedArg("-ecash");

@@ -153,6 +153,16 @@ bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
     return nodes.modify(it, [&](Node &n) { n.nextRequestTime = timeout; });
 }
 
+bool PeerManager::latchAvaproofsSent(NodeId nodeid) {
+    auto it = nodes.find(nodeid);
+    if (it == nodes.end()) {
+        return false;
+    }
+
+    return !it->avaproofsSent &&
+           nodes.modify(it, [&](Node &n) { n.avaproofsSent = true; });
+}
+
 static bool isOrphanState(const ProofValidationState &state) {
     return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
            state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;

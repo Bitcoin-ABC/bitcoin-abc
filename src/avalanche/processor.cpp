@@ -141,6 +141,7 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
                      CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
                      CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
                      double minQuorumConnectedScoreRatioIn,
+                     int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn)
     : connman(connmanIn),
       queryTimeoutDuration(argsman.GetArg(
@@ -149,6 +150,7 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
+      minAvaproofsNodeCount(minAvaproofsNodeCountIn),
       staleVoteThreshold(staleVoteThresholdIn),
       staleVoteFactor(staleVoteFactorIn) {
     // Make sure we get notified of chain state changes.
@@ -283,6 +285,15 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
         return nullptr;
     }
 
+    int64_t minAvaproofsNodeCount =
+        argsman.GetArg("-avaminavaproofsnodecount",
+                       AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT);
+    if (minAvaproofsNodeCount < 0) {
+        error = _("The minimum number of node that sent avaproofs message "
+                  "should be non-negative");
+        return nullptr;
+    }
+
     // Determine voting parameters
     int64_t staleVoteThreshold = argsman.GetArg("-avastalevotethreshold",
                                                 AVALANCHE_VOTE_STALE_THRESHOLD);
@@ -316,7 +327,7 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
     return std::unique_ptr<Processor>(new Processor(
         argsman, chain, connman, std::move(peerData), std::move(sessionKey),
         Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
-        staleVoteThreshold, staleVoteFactor));
+        minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
@@ -829,6 +840,21 @@ void Processor::runEventLoop() {
     } while (nodeid != NO_NODE);
 }
 
+void Processor::avaproofsSent(NodeId nodeid) {
+    if (::ChainstateActive().IsInitialBlockDownload()) {
+        // Before IBD is complete there is no way to make sure a proof is valid
+        // or not, e.g. it can be spent in a block we don't know yet. In order
+        // to increase confidence that our proof set is similar to other nodes
+        // on the network, the messages received during IBD are not accounted.
+        return;
+    }
+
+    LOCK(cs_peerManager);
+    if (peerManager->latchAvaproofsSent(nodeid)) {
+        avaproofsNodeCounter++;
+    }
+}
+
 /*
  * Returns a bool indicating whether we have a usable Avalanche quorum enabling
  * us to take decisions based on polls.
@@ -836,6 +862,10 @@ void Processor::runEventLoop() {
 bool Processor::isQuorumEstablished() {
     if (quorumIsEstablished) {
         return true;
+    }
+
+    if (avaproofsNodeCounter < minAvaproofsNodeCount) {
+        return false;
     }
 
     auto localProof = getLocalProof();

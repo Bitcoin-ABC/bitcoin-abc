@@ -228,6 +228,12 @@ public:
 
     // Update when a node is to be polled next.
     bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
+    /**
+     * Flag that a node did send its compact proofs.
+     * @return True if the flag changed state, i;e. if this is the first time
+     * the message is accounted for this node.
+     */
+    bool latchAvaproofsSent(NodeId nodeid);
 
     // Randomly select a node to poll.
     NodeId selectNode();
