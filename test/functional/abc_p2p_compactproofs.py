@@ -99,7 +99,26 @@ class CompactProofsTest(BitcoinTestFramework):
         self.wait_until(
             lambda: all([p.last_message.get("getavaproofs") for p in outbound_avapeers]))
         assert all([p.message_count.get(
-            "getavaproofs", 0) == 1 for p in outbound_avapeers])
+            "getavaproofs", 0) >= 1 for p in outbound_avapeers])
+        assert all([p.message_count.get(
+            "getavaproofs", 0) == 0 for p in non_avapeers])
+        assert all([p.message_count.get(
+            "getavaproofs", 0) == 0 for p in inbound_avapeers])
+
+        self.log.info(
+            "Check we send periodic getavaproofs message to one of our peers")
+
+        def count_outbounds_getavaproofs():
+            return sum([p.message_count.get("getavaproofs", 0)
+                       for p in outbound_avapeers])
+
+        outbounds_getavaproofs = count_outbounds_getavaproofs()
+        for i in range(12):
+            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+            self.wait_until(lambda: count_outbounds_getavaproofs()
+                            == outbounds_getavaproofs + 1)
+            outbounds_getavaproofs += 1
+
         assert all([p.message_count.get(
             "getavaproofs", 0) == 0 for p in non_avapeers])
         assert all([p.message_count.get(

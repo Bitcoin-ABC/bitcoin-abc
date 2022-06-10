@@ -1714,14 +1714,15 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         goto scheduleLater;
     }
 
+    Shuffle(avanode_outbound_ids.begin(), avanode_outbound_ids.end(),
+            FastRandomContext());
+
     if (!g_avalanche->isQuorumEstablished() ||
         g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             return pm.shouldRequestMoreNodes();
         })) {
         // Randomly select an avalanche outbound peer to send the getavaaddr
         // message to
-        Shuffle(avanode_outbound_ids.begin(), avanode_outbound_ids.end(),
-                FastRandomContext());
         const NodeId avanodeId = avanode_outbound_ids.front();
 
         m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
@@ -1737,6 +1738,16 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
             return true;
         });
     }
+
+    // Send a getavaproofs to one of our peers
+    m_connman.ForNode(avanode_outbound_ids.back(), [&](CNode *pavanode) {
+        LogPrint(BCLog::AVALANCHE, "Requesting compact proofs from peer %d\n",
+                 pavanode->GetId());
+        m_connman.PushMessage(pavanode,
+                              CNetMsgMaker(pavanode->GetCommonVersion())
+                                  .Make(NetMsgType::GETAVAPROOFS));
+        return true;
+    });
 
 scheduleLater:
     // Schedule next run for 2-5 minutes in the future.
