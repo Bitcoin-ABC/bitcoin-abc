@@ -490,7 +490,7 @@ namespace {
     public:
         TCPResponse(Response responseIn, const CKey &key)
             : response(std::move(responseIn)) {
-            CHashWriter hasher(SER_GETHASH, 0);
+            HashWriter hasher{};
             hasher << response;
             const uint256 hash = hasher.GetHash();
 
@@ -694,7 +694,7 @@ bool Processor::sendHelloInternal(CNode *pfrom) {
         }
     }
 
-    CHashWriter hasher(SER_GETHASH, 0);
+    HashWriter hasher{};
     hasher << delegation.getId();
     hasher << pfrom->GetLocalNonce();
     hasher << pfrom->nRemoteHostNonce;

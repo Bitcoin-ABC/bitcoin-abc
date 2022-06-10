@@ -5961,7 +5961,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
                 pfrom.m_avalanche_pubkey = std::move(pubkey);
 
-                CHashWriter sighasher(SER_GETHASH, 0);
+                HashWriter sighasher{};
                 sighasher << delegation.getId();
                 sighasher << pfrom.nRemoteHostNonce;
                 sighasher << pfrom.GetLocalNonce();

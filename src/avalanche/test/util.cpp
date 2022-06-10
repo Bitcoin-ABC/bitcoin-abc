@@ -50,7 +50,7 @@ bool hasDustStake(const ProofRef &proof) {
 
 LimitedProofId
 TestProofBuilder::getReverseOrderLimitedProofId(ProofBuilder &pb) {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << pb.sequence;
     ss << pb.expirationTime;
     ss << pb.payoutScriptPubKey;
@@ -90,7 +90,7 @@ ProofRef TestProofBuilder::buildWithReversedOrderStakes(ProofBuilder &pb) {
 
 LimitedProofId
 TestProofBuilder::getDuplicatedStakeLimitedProofId(ProofBuilder &pb) {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << pb.sequence;
     ss << pb.expirationTime;
     ss << pb.payoutScriptPubKey;

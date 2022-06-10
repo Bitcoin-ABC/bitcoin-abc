@@ -10,7 +10,7 @@
 namespace avalanche {
 
 ProofId LimitedProofId::computeProofId(const CPubKey &proofMaster) const {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << *this;
     ss << proofMaster;
     return ProofId(ss.GetHash());

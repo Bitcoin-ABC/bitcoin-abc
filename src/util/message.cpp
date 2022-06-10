@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <hash.h>            // For CHashWriter
+#include <hash.h>            // For HashWriter
 #include <key.h>             // For CKey
 #include <key_io.h>          // For DecodeDestination()
 #include <pubkey.h>          // For CPubKey
@@ -67,7 +67,7 @@ bool MessageSign(const CKey &privkey, const std::string &message,
 }
 
 uint256 MessageHash(const std::string &message) {
-    CHashWriter hasher(SER_GETHASH, 0);
+    HashWriter hasher{};
     hasher << MESSAGE_MAGIC << message;
 
     return hasher.GetHash();

@@ -24,7 +24,7 @@ namespace avalanche {
 
 StakeCommitment::StakeCommitment(int64_t expirationTime,
                                  const CPubKey &master) {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << expirationTime;
     ss << master;
     const uint256 &hash = ss.GetHash();
@@ -32,13 +32,13 @@ StakeCommitment::StakeCommitment(int64_t expirationTime,
 }
 
 void Stake::computeStakeId() {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << *this;
     stakeid = StakeId(ss.GetHash());
 }
 
 uint256 Stake::getHash(const StakeCommitment &commitment) const {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << commitment;
     ss << *this;
     return ss.GetHash();
@@ -74,7 +74,7 @@ std::string Proof::ToHex() const {
 }
 
 void Proof::computeProofId() {
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << sequence;
     ss << expirationTime;
     ss << payoutScriptPubKey;

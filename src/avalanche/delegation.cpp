@@ -35,7 +35,7 @@ bool Delegation::FromHex(Delegation &dg, const std::string &dgHex,
 template <typename L, typename F>
 static bool reduceLevels(uint256 &hash, const std::vector<L> &levels, F f) {
     for (const auto &l : levels) {
-        CHashWriter ss(SER_GETHASH, 0);
+        HashWriter ss{};
         ss << hash;
         ss << l.pubkey;
         hash = ss.GetHash();

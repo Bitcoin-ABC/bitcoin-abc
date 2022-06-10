@@ -54,11 +54,9 @@ static constexpr auto ADDRMAN_TEST_WINDOW{40min};
 
 int AddrInfo::GetTriedBucket(const uint256 &nKey,
                              const std::vector<bool> &asmap) const {
-    uint64_t hash1 =
-        (CHashWriter(SER_GETHASH, 0) << nKey << GetKey()).GetCheapHash();
-    uint64_t hash2 = (CHashWriter(SER_GETHASH, 0)
-                      << nKey << GetGroup(asmap)
-                      << (hash1 % ADDRMAN_TRIED_BUCKETS_PER_GROUP))
+    uint64_t hash1 = (HashWriter{} << nKey << GetKey()).GetCheapHash();
+    uint64_t hash2 = (HashWriter{} << nKey << GetGroup(asmap)
+                                   << (hash1 % ADDRMAN_TRIED_BUCKETS_PER_GROUP))
                          .GetCheapHash();
     return hash2 % ADDRMAN_TRIED_BUCKET_COUNT;
 }
@@ -66,21 +64,21 @@ int AddrInfo::GetTriedBucket(const uint256 &nKey,
 int AddrInfo::GetNewBucket(const uint256 &nKey, const CNetAddr &src,
                            const std::vector<bool> &asmap) const {
     std::vector<uint8_t> vchSourceGroupKey = src.GetGroup(asmap);
-    uint64_t hash1 = (CHashWriter(SER_GETHASH, 0)
-                      << nKey << GetGroup(asmap) << vchSourceGroupKey)
-                         .GetCheapHash();
-    uint64_t hash2 = (CHashWriter(SER_GETHASH, 0)
-                      << nKey << vchSourceGroupKey
+    uint64_t hash1 =
+        (HashWriter{} << nKey << GetGroup(asmap) << vchSourceGroupKey)
+            .GetCheapHash();
+    uint64_t hash2 =
+        (HashWriter{} << nKey << vchSourceGroupKey
                       << (hash1 % ADDRMAN_NEW_BUCKETS_PER_SOURCE_GROUP))
-                         .GetCheapHash();
+            .GetCheapHash();
     return hash2 % ADDRMAN_NEW_BUCKET_COUNT;
 }
 
 int AddrInfo::GetBucketPosition(const uint256 &nKey, bool fNew,
                                 int nBucket) const {
     uint64_t hash1 =
-        (CHashWriter(SER_GETHASH, 0)
-         << nKey << (fNew ? uint8_t{'N'} : uint8_t{'K'}) << nBucket << GetKey())
+        (HashWriter{} << nKey << (fNew ? uint8_t{'N'} : uint8_t{'K'}) << nBucket
+                      << GetKey())
             .GetCheapHash();
     return hash1 % ADDRMAN_BUCKET_SIZE;
 }
@@ -241,7 +239,7 @@ template <typename Stream> void AddrManImpl::Serialize(Stream &s_) const {
     // can be ignored by older clients for backward compatibility.
     uint256 asmap_checksum;
     if (m_asmap.size() != 0) {
-        asmap_checksum = SerializeHash(m_asmap);
+        asmap_checksum = (HashWriter{} << m_asmap).GetHash();
     }
     s << asmap_checksum;
 }

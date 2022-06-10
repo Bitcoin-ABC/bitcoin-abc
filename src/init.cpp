@@ -2198,7 +2198,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                                     fs::quoted(fs::PathToString(asmap_path))));
                 return false;
             }
-            const uint256 asmap_version = SerializeHash(asmap);
+            const uint256 asmap_version = (HashWriter{} << asmap).GetHash();
             LogPrintf("Using asmap version %s for IP bucketing\n",
                       asmap_version.ToString());
         } else {

@@ -44,7 +44,7 @@ bool DelegationBuilder::addLevel(const CKey &delegatorKey,
         return false;
     }
 
-    CHashWriter ss(SER_GETHASH, 0);
+    HashWriter ss{};
     ss << dgid;
     ss << delegatedPubKey;
     auto hash = ss.GetHash();

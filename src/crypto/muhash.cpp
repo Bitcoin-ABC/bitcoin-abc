@@ -338,7 +338,7 @@ void Num3072::ToBytes(uint8_t (&out)[BYTE_SIZE]) {
 Num3072 MuHash3072::ToNum3072(Span<const uint8_t> in) {
     uint8_t tmp[Num3072::BYTE_SIZE];
 
-    uint256 hashed_in = (CHashWriter(SER_DISK, 0) << in).GetSHA256();
+    uint256 hashed_in{(HashWriter{} << in).GetSHA256()};
     ChaCha20(hashed_in.data(), hashed_in.size())
         .Keystream(tmp, Num3072::BYTE_SIZE);
     Num3072 out{tmp};
@@ -358,7 +358,7 @@ void MuHash3072::Finalize(uint256 &out) noexcept {
     uint8_t data[Num3072::BYTE_SIZE];
     m_numerator.ToBytes(data);
 
-    out = (CHashWriter(SER_DISK, 0) << data).GetSHA256();
+    out = (HashWriter{} << data).GetSHA256();
 }
 
 MuHash3072 &MuHash3072::operator*=(const MuHash3072 &mul) noexcept {
