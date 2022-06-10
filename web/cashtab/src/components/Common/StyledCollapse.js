@@ -143,7 +143,7 @@ export const CustomCollapseCtn = ({
 };
 
 CustomCollapseCtn.propTypes = {
-    optionalDefaultActiveKey: PropTypes.bool,
+    optionalDefaultActiveKey: PropTypes.arrayOf(PropTypes.string),
     panelHeader: PropTypes.string,
     children: PropTypes.node,
     optionalKey: PropTypes.string,
