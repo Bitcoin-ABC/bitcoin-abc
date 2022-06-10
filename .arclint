@@ -50,7 +50,7 @@
             "type": "lint-format-strings",
             "include": "(^(src|chronik)/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)",
                 "(^src/test/fuzz/strprintf.cpp$)"
             ]
@@ -75,7 +75,7 @@
             "type": "lint-locale-dependence",
             "include": "(^(src|chronik)/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|tinyformat.h|univalue/))",
+                "(^src/(crypto/ctaes/|leveldb/|secp256k1/|tinyformat.h))",
                 "(^src/bench/nanobench.h$)"
             ]
         },
@@ -83,7 +83,7 @@
             "type": "lint-cheader",
             "include": "(^(src|chronik)/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/(crypto/ctaes|secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
@@ -93,7 +93,7 @@
                 "(^build-aux/m4/)",
                 "(^depends/)",
                 "(^doc/release-notes/)",
-                "(^src/(qt/locale|secp256k1|univalue|leveldb)/)",
+                "(^src/(qt/locale|secp256k1|leveldb)/)",
                 "(^test/lint/dictionary/)",
                 "(^web/e.cash/public/animations/)",
                 "(package-lock.json)",
@@ -107,7 +107,7 @@
             "type": "lint-assert-with-side-effects",
             "include": "(^(src|chronik)/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
@@ -115,7 +115,7 @@
             "type": "lint-include-quotes",
             "include": "(^(src|chronik)/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
@@ -123,7 +123,7 @@
             "type": "lint-include-guard",
             "include": "(^(src|chronik)/.*\\.h$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/(crypto/ctaes|secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)",
                 "(^src/tinyformat.h$)"
             ]
@@ -132,7 +132,7 @@
             "type": "lint-include-source",
             "include": "(^(src|chronik)/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
@@ -144,7 +144,7 @@
             "type": "lint-stdint",
             "include": "(^(src|chronik)/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)",
                 "(^src/compat/assumptions.h$)"
             ]
@@ -172,7 +172,7 @@
             ],
             "include": "(\\.(sh|bash)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue)/)",
+                "(^src/(secp256k1)/)",
                 "(^electrum/)"
             ]
         },
@@ -180,7 +180,7 @@
             "type": "lint-shell-locale",
             "include": "(\\.(sh|bash)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue)/)",
+                "(^src/(secp256k1)/)",
                 "(^cmake/utils/log-and-print-on-failure.sh)"
             ]
         },
@@ -188,7 +188,7 @@
             "type": "lint-cpp-void-parameters",
             "include": "(^(src|chronik)/.*\\.(h|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/(crypto/ctaes|secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)",
                 "(^src/compat/glibc_compat.cpp$)"
             ]
@@ -208,7 +208,7 @@
             "type": "lint-doxygen",
             "include": "(^(src|chronik)/.*\\.(h|c|cpp)$)",
             "exclude": [
-                "(^src/(crypto/ctaes|secp256k1|univalue|leveldb)/)",
+                "(^src/(crypto/ctaes|secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
@@ -216,14 +216,14 @@
             "type": "lint-whitespace",
             "include": "(\\.(ac|am|cmake|conf|in|include|json|m4|md|openrc|php|pl|rs|sh|txt|yml)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
         "yamllint": {
             "type": "yamllint",
             "include": "(\\.(yml|yaml)$)",
-            "exclude": "(^src/(secp256k1|univalue|leveldb)/)"
+            "exclude": "(^src/(secp256k1|leveldb)/)"
         },
         "lint-check-nonfatal": {
             "type": "lint-check-nonfatal",

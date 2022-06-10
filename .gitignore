@@ -14,7 +14,6 @@ src/test/test_bitcoin
 src/test/test_bitcoin_fuzzy
 src/qt/test/test_bitcoin-qt
 
-src/univalue/gen
 src/obj
 
 src/qt/*.moc

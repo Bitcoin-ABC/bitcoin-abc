@@ -983,10 +983,6 @@ Current third party libraries include:
   - Upstream at https://github.com/bitcoin-core/ctaes ; maintained by Bitcoin
     Core contributors.
 
-- src/univalue
-  - Upstream at https://github.com/bitcoin-core/univalue ; actively maintained by
-    Bitcoin Core contributors, deviates from upstream https://github.com/jgarzik/univalue
-
 Upgrading LevelDB
 ---------------------
 

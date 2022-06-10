@@ -31,7 +31,7 @@ ALLOWED_EXECUTABLE_SHEBANG = {
 # use mixedCase in their names.
 ALLOWED_FILENAME_EXCEPTION = "web/e.cash/pages/blog/[slug].js"
 ALLOWED_SOURCE_FILENAME_EXCEPTION_REGEXPS = (
-    "^src/(secp256k1/|univalue/|test/fuzz/FuzzedDataProvider.h)",
+    "^src/(secp256k1/|test/fuzz/FuzzedDataProvider.h)",
     "^cmake/utils/EventCheckVersion.cpp$",
     "^contrib/buildbot/test/test_endpoint_",
 )

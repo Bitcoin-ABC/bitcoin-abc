@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or https://opensource.org/licenses/mit-license.php.
 
-#ifndef __UNIVALUE_H__
-#define __UNIVALUE_H__
+#ifndef BITCOIN_UNIVALUE_INCLUDE_UNIVALUE_H
+#define BITCOIN_UNIVALUE_INCLUDE_UNIVALUE_H
 
 #include <charconv>
 #include <cstdint>
@@ -203,4 +203,4 @@ static inline bool json_isspace(int ch)
 
 extern const UniValue NullUniValue;
 
-#endif // __UNIVALUE_H__
+#endif // BITCOIN_UNIVALUE_INCLUDE_UNIVALUE_H
