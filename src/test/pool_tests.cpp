@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <memusage.h>
 #include <support/allocators/pool.h>
 #include <test/util/poolresourcetester.h>
 #include <test/util/random.h>
@@ -165,6 +166,47 @@ BOOST_AUTO_TEST_CASE(random_allocations) {
     // deallocate all the rest
     for (auto const &x : ptr_size_alignment) {
         resource.Deallocate(x.ptr, x.bytes, x.alignment);
+    }
+
+    PoolResourceTester::CheckAllDataAccountedFor(resource);
+}
+
+BOOST_AUTO_TEST_CASE(memusage_test) {
+    auto std_map = std::unordered_map<int64_t, int64_t>{};
+
+    using Map = std::unordered_map<
+        int64_t, int64_t, std::hash<int64_t>, std::equal_to<int64_t>,
+        PoolAllocator<std::pair<const int64_t, int64_t>,
+                      sizeof(std::pair<const int64_t, int64_t>) +
+                          sizeof(void *) * 4>>;
+    auto resource = Map::allocator_type::ResourceType(1024);
+
+    PoolResourceTester::CheckAllDataAccountedFor(resource);
+
+    {
+        auto resource_map =
+            Map{0, std::hash<int64_t>{}, std::equal_to<int64_t>{}, &resource};
+
+        // can't have the same resource usage
+        BOOST_TEST(memusage::DynamicUsage(std_map) !=
+                   memusage::DynamicUsage(resource_map));
+
+        for (size_t i = 0; i < 10000; ++i) {
+            std_map[i];
+            resource_map[i];
+        }
+
+        // Eventually the resource_map should have a much lower memory usage
+        // because it has less malloc overhead
+        BOOST_TEST(memusage::DynamicUsage(resource_map) <=
+                   memusage::DynamicUsage(std_map) * 90 / 100);
+
+        // Make sure the pool is actually used by the nodes
+        auto max_nodes_per_chunk =
+            resource.ChunkSizeBytes() / sizeof(Map::value_type);
+        auto min_num_allocated_chunks =
+            resource_map.size() / max_nodes_per_chunk + 1;
+        BOOST_TEST(resource.NumAllocatedChunks() >= min_num_allocated_chunks);
     }
 
     PoolResourceTester::CheckAllDataAccountedFor(resource);
