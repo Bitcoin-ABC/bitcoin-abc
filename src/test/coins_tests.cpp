@@ -7,6 +7,7 @@
 #include <clientversion.h>
 #include <script/standard.h>
 #include <streams.h>
+#include <test/util/poolresourcetester.h>
 #include <txdb.h>
 #include <undo.h>
 #include <util/strencodings.h>
@@ -672,7 +673,8 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags,
 }
 
 void WriteCoinViewEntry(CCoinsView &view, const Amount value, char flags) {
-    CCoinsMap map;
+    CCoinsMapMemoryResource resource;
+    CCoinsMap map{0, CCoinsMap::hasher{}, CCoinsMap::key_equal{}, &resource};
     InsertCoinMapEntry(map, value, flags);
     BOOST_CHECK(view.BatchWrite(map, BlockHash()));
 }
@@ -985,6 +987,7 @@ void TestFlushBehavior(CCoinsViewCacheTest *view, CCoinsViewDB &base,
     Amount value;
     char flags;
     size_t cache_usage;
+    size_t cache_size;
 
     auto flush_all = [&all_caches](bool erase) {
         // Flush in reverse order to ensure that flushes happen from children
@@ -1011,6 +1014,8 @@ void TestFlushBehavior(CCoinsViewCacheTest *view, CCoinsViewDB &base,
     view->AddCoin(outp, Coin(coin), false);
 
     cache_usage = view->DynamicMemoryUsage();
+    cache_size = view->map().size();
+
     // `base` shouldn't have coin (no flush yet) but `view` should have cached
     // it.
     BOOST_CHECK(!base.HaveCoin(outp));
@@ -1026,6 +1031,7 @@ void TestFlushBehavior(CCoinsViewCacheTest *view, CCoinsViewDB &base,
 
     // CoinsMap usage should be unchanged since we didn't erase anything.
     BOOST_CHECK_EQUAL(cache_usage, view->DynamicMemoryUsage());
+    BOOST_CHECK_EQUAL(cache_size, view->map().size());
 
     // --- 3. Ensuring the entry still exists in the cache and has been written
     // to parent
@@ -1043,8 +1049,11 @@ void TestFlushBehavior(CCoinsViewCacheTest *view, CCoinsViewDB &base,
         //
         flush_all(/*erase=*/true);
 
-        // Memory usage should have gone down.
-        BOOST_CHECK(view->DynamicMemoryUsage() < cache_usage);
+        // Memory does not necessarily go down due to the map using a memory
+        // pool
+        BOOST_TEST(view->DynamicMemoryUsage() <= cache_usage);
+        // Size of the cache must go down though
+        BOOST_TEST(view->map().size() < cache_size);
 
         // --- 5. Ensuring the entry is no longer in the cache
         //
@@ -1160,6 +1169,31 @@ BOOST_AUTO_TEST_CASE(ccoins_flush_behavior) {
         delete caches.back();
         caches.pop_back();
     }
+}
+
+BOOST_AUTO_TEST_CASE(coins_resource_is_used) {
+    CCoinsMapMemoryResource resource;
+    PoolResourceTester::CheckAllDataAccountedFor(resource);
+
+    {
+        CCoinsMap map{0, CCoinsMap::hasher{}, CCoinsMap::key_equal{},
+                      &resource};
+        BOOST_TEST(memusage::DynamicUsage(map) >= resource.ChunkSizeBytes());
+
+        map.reserve(1000);
+
+        // The resource has preallocated a chunk, so we should have space for at
+        // several nodes without the need to allocate anything else.
+        const auto usage_before = memusage::DynamicUsage(map);
+
+        for (size_t i = 0; i < 1000; ++i) {
+            COutPoint out_point{TxId{}, /*nIn=*/static_cast<uint32_t>(i)};
+            map[out_point];
+        }
+        BOOST_TEST(usage_before == memusage::DynamicUsage(map));
+    }
+
+    PoolResourceTester::CheckAllDataAccountedFor(resource);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
