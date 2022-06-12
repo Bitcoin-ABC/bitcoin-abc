@@ -37,7 +37,6 @@ FUZZ_TARGET(chain) {
         (void)disk_block_index->GetUndoPos();
         (void)disk_block_index->HaveTxsDownloaded();
         (void)disk_block_index->IsValid();
-        (void)disk_block_index->ToString();
         (void)disk_block_index->UpdateChainStats();
     }
 
