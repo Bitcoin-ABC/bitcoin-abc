@@ -114,7 +114,7 @@ public:
         READWRITE(obj.nNonce);
     }
 
-    BlockHash GetBlockHash() const {
+    BlockHash ConstructBlockHash() const {
         CBlockHeader block;
         block.nVersion = nVersion;
         block.hashPrevBlock = hashPrev;
@@ -125,6 +125,7 @@ public:
         return block.GetHash();
     }
 
+    BlockHash GetBlockHash() = delete;
     std::string ToString() = delete;
 };
 
