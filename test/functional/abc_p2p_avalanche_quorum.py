@@ -4,8 +4,6 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the quorum detection of avalanche."""
 
-from time import time
-
 from test_framework.avatools import (
     AvaP2PInterface,
     create_coinbase_stakes,
@@ -40,14 +38,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             ]
         ]
 
-    def mock_forward(self, delta):
-        self.mock_time += delta
-        self.nodes[0].setmocktime(self.mock_time)
-
     def run_test(self):
-        self.mock_time = int(time())
-        self.mock_forward(0)
-
         # Create a local node to poll from and a helper to send polls from it
         # and assert on the response
         node = self.nodes[0]
@@ -139,7 +130,6 @@ class AvalancheQuorumTest(BitcoinTestFramework):
 
         # Disconnect peer 1's node which drops us below the threshold, but we've
         # latched that the quorum is established
-        self.mock_forward(1)
         peers[1]['node'].peer_disconnect()
         peers[1]['node'].wait_for_disconnect()
         poll_and_assert_response(AvalancheVoteError.ACCEPTED)
