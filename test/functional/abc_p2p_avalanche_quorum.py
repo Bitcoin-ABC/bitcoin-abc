@@ -24,7 +24,7 @@ from test_framework.util import assert_equal
 class AvalancheQuorumTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 2
+        self.num_nodes = 3
         self.min_avaproofs_node_count = 8
         self.extra_args = [[
             '-enableavalanche=1',
@@ -32,10 +32,13 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             '-avatimeout=0',
             '-avaminquorumstake=100000000',
             '-avaminquorumconnectedstakeratio=0.8',
+            '-minimumchainwork=0',
         ]] * self.num_nodes
         self.extra_args[0] = self.extra_args[0] + \
             ['-avaminavaproofsnodecount=0']
         self.extra_args[1] = self.extra_args[1] + \
+            [f'-avaminavaproofsnodecount={self.min_avaproofs_node_count}']
+        self.extra_args[2] = self.extra_args[2] + \
             [f'-avaminavaproofsnodecount={self.min_avaproofs_node_count}']
 
     def run_test(self):
@@ -49,6 +52,15 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         # sure they won't exchange proofs when we start connecting peers.
         self.sync_all()
         self.disconnect_nodes(0, 1)
+
+        # Restart node 2 to apply the minimum chainwork and make sure it's still
+        # in IBD state.
+        chainwork = int(self.nodes[2].getblockchaininfo()['chainwork'], 16)
+        self.restart_node(
+            2,
+            extra_args=self.extra_args[2] +
+            [f'-minimumchainwork={chainwork + 2:#x}'])
+        assert self.nodes[2].getblockchaininfo()['initialblockdownload']
 
         # Build polling nodes
         pollers = [get_ava_p2p_interface(node) for node in self.nodes]
@@ -122,6 +134,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             peers[0], [
                 AvalancheVoteError.UNKNOWN,
                 AvalancheVoteError.UNKNOWN,
+                AvalancheVoteError.UNKNOWN,
             ])
 
         # Create a second peer with the other half and add one node.
@@ -129,6 +142,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         add_avapeer_and_check_status(
             peers[1], [
                 AvalancheVoteError.ACCEPTED,
+                AvalancheVoteError.UNKNOWN,
                 AvalancheVoteError.UNKNOWN,
             ])
 
@@ -138,10 +152,36 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 peers[i], [
                     AvalancheVoteError.ACCEPTED,
                     AvalancheVoteError.UNKNOWN,
+                    AvalancheVoteError.UNKNOWN,
                 ])
 
         add_avapeer_and_check_status(
             peers[self.min_avaproofs_node_count - 1], [
+                AvalancheVoteError.ACCEPTED,
+                AvalancheVoteError.ACCEPTED,
+                AvalancheVoteError.UNKNOWN,
+            ])
+
+        self.nodes[2].generate(1)
+        assert not self.nodes[2].getblockchaininfo()['initialblockdownload']
+        # The avaproofs message are not accounted during IBD, so this is not
+        # enough.
+        poll_and_assert_response(self.nodes[2], AvalancheVoteError.UNKNOWN)
+
+        # Connect more peers to reach the message threshold while node 2 is out
+        # of IBD.
+        for i in range(self.min_avaproofs_node_count - 1):
+            add_avapeer_and_check_status(
+                peers[i], [
+                    AvalancheVoteError.ACCEPTED,
+                    AvalancheVoteError.ACCEPTED,
+                    AvalancheVoteError.UNKNOWN,
+                ])
+
+        # The messages are accounted and the node quorum finally valid
+        add_avapeer_and_check_status(
+            peers[self.min_avaproofs_node_count - 1], [
+                AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
             ])

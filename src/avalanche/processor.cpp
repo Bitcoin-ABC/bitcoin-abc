@@ -768,11 +768,6 @@ void Processor::clearTimedoutRequests() {
 }
 
 void Processor::runEventLoop() {
-    // Don't do Avalanche while node is IBD'ing
-    if (::ChainstateActive().IsInitialBlockDownload()) {
-        return;
-    }
-
     // Don't poll if quorum hasn't been established yet
     if (!isQuorumEstablished()) {
         return;
@@ -862,6 +857,11 @@ void Processor::avaproofsSent(NodeId nodeid) {
 bool Processor::isQuorumEstablished() {
     if (quorumIsEstablished) {
         return true;
+    }
+
+    // Don't do Avalanche while node is IBD'ing
+    if (::ChainstateActive().IsInitialBlockDownload()) {
+        return false;
     }
 
     if (avaproofsNodeCounter < minAvaproofsNodeCount) {
