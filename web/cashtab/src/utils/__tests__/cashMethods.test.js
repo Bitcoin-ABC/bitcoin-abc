@@ -1,4 +1,5 @@
 import { ValidationError } from 'ecashaddrjs';
+import BigNumber from 'bignumber.js';
 import {
     fromSmallestDenomination,
     batchArray,
@@ -28,6 +29,7 @@ import {
     parseChronikTx,
     checkWalletForTokenInfo,
     isActiveWebsocket,
+    parseXecSendValue,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -172,6 +174,70 @@ import {
     disconnectedWebsocketAlpha,
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
+
+it(`parseXecSendValue() correctly parses the value for a valid one to one send XEC transaction`, () => {
+    expect(parseXecSendValue(false, '550', null)).toStrictEqual(
+        new BigNumber(550),
+    );
+});
+
+it(`parseXecSendValue() correctly parses the value for a valid one to many send XEC transaction`, () => {
+    const destinationAddressAndValueArray = [
+        'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,6',
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,6',
+        'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,6',
+    ];
+    expect(
+        parseXecSendValue(true, null, destinationAddressAndValueArray),
+    ).toStrictEqual(new BigNumber(18));
+});
+
+it(`parseXecSendValue() correctly throws error when singleSendValue is invalid for a one to one send XEC transaction`, () => {
+    let errorThrown;
+    try {
+        parseXecSendValue(false, null, 550);
+    } catch (err) {
+        errorThrown = err;
+    }
+    expect(errorThrown.message).toStrictEqual('Invalid singleSendValue');
+});
+
+it(`parseXecSendValue() correctly throws error when destinationAddressAndValueArray is invalid for a one to many send XEC transaction`, () => {
+    let errorThrown;
+    try {
+        parseXecSendValue(true, null, null);
+    } catch (err) {
+        errorThrown = err;
+    }
+    expect(errorThrown.message).toStrictEqual(
+        'Invalid destinationAddressAndValueArray',
+    );
+});
+
+it(`parseXecSendValue() correctly throws error when the total value for a one to one send XEC transaction is below dust`, () => {
+    let errorThrown;
+    try {
+        parseXecSendValue(false, '4.5', null);
+    } catch (err) {
+        errorThrown = err;
+    }
+    expect(errorThrown.message).toStrictEqual('dust');
+});
+
+it(`parseXecSendValue() correctly throws error when the total value for a one to many send XEC transaction is below dust`, () => {
+    const destinationAddressAndValueArray = [
+        'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,2',
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,2',
+        'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,1',
+    ];
+    let errorThrown;
+    try {
+        parseXecSendValue(true, null, destinationAddressAndValueArray);
+    } catch (err) {
+        errorThrown = err;
+    }
+    expect(errorThrown.message).toStrictEqual('dust');
+});
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
