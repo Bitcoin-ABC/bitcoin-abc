@@ -6,10 +6,10 @@
 
 from test_framework.avatools import (
     AvaP2PInterface,
-    create_coinbase_stakes,
+    gen_proof,
     get_ava_p2p_interface,
 )
-from test_framework.key import ECKey, ECPubKey
+from test_framework.key import ECPubKey
 from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
@@ -19,7 +19,6 @@ from test_framework.messages import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
-from test_framework.wallet_util import bytes_to_wif
 
 
 class AvalancheQuorumTest(BitcoinTestFramework):
@@ -61,25 +60,19 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             expected = repr(AvalancheVote(expected, block))
             assert_equal(actual, expected)
 
-        # Create peers to poll
-        coinbase_key = node.get_deterministic_priv_key().key
-        blocks = node.generate(self.min_avaproofs_node_count)
+        # Prepare peers proofs
         peers = []
-
         for i in range(0, self.min_avaproofs_node_count):
-            keyHex = f"12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f7{i:02}"
-            k = ECKey()
-            k.set(bytes.fromhex(keyHex), True)
-            stakes = create_coinbase_stakes(
-                node, [blocks[i]], coinbase_key)
-            proof = node.buildavalancheproof(1, 1, bytes_to_wif(k.get_bytes()),
-                                             stakes)
-            peers.append({'key': k, 'proof': proof, 'stake': stakes})
+            key, proof = gen_proof(node)
+            peers.append({'key': key, 'proof': proof})
 
         def addavalanchenode(peer):
             pubkey = peer['key'].get_pubkey().get_bytes().hex()
             assert node.addavalanchenode(
-                peer['node'].nodeid, pubkey, peer['proof']) is True
+                peer['node'].nodeid,
+                pubkey,
+                peer['proof'].serialize().hex(),
+            ) is True
 
         p2p_idx = 0
 
