@@ -121,7 +121,18 @@ namespace {
 } // namespace avalanche
 
 namespace {
-struct NoCoolDownFixture : public TestingSetup {
+struct PeerManagerFixture : public TestChain100Setup {
+    PeerManagerFixture() {
+        gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
+    }
+    ~PeerManagerFixture() {
+        gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
+    }
+};
+} // namespace
+
+namespace {
+struct NoCoolDownFixture : public PeerManagerFixture {
     NoCoolDownFixture() {
         gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
     }
@@ -131,7 +142,7 @@ struct NoCoolDownFixture : public TestingSetup {
 };
 } // namespace
 
-BOOST_FIXTURE_TEST_SUITE(peermanager_tests, TestingSetup)
+BOOST_FIXTURE_TEST_SUITE(peermanager_tests, PeerManagerFixture)
 
 BOOST_AUTO_TEST_CASE(select_peer_linear) {
     // No peers.
@@ -698,6 +709,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
 }
 
 BOOST_AUTO_TEST_CASE(orphan_proofs) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm;
 
     auto key = CKey::MakeCompressedKey();
@@ -705,10 +717,12 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     COutPoint outpoint1 = COutPoint(TxId(GetRandHash()), 0);
     COutPoint outpoint2 = COutPoint(TxId(GetRandHash()), 0);
     COutPoint outpoint3 = COutPoint(TxId(GetRandHash()), 0);
+    COutPoint outpoint4 = COutPoint(TxId(GetRandHash()), 0);
 
     const Amount v = 5 * COIN;
-    const int height = 1234;
-    const int wrongHeight = 12345;
+    const int height = 98;
+    const int wrongHeight = 99;
+    const int immatureHeight = 100;
 
     const auto makeProof = [&](const COutPoint &outpoint, const int h) {
         return buildProofWithOutpoints(key, {outpoint}, v, key, 0, h);
@@ -717,10 +731,12 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     auto proof1 = makeProof(outpoint1, height);
     auto proof2 = makeProof(outpoint2, height);
     auto proof3 = makeProof(outpoint3, wrongHeight);
+    auto proof4 = makeProof(outpoint4, immatureHeight);
 
-    // Add outpoints 1 and 3, not 2
+    // Add outpoints, except for proof 2
     addCoin(outpoint1, key, v, height);
     addCoin(outpoint3, key, v, height);
+    addCoin(outpoint4, key, v, immatureHeight);
 
     // Add the proofs
     BOOST_CHECK(pm.registerProof(proof1));
@@ -733,6 +749,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
 
     registerOrphan(proof2);
     registerOrphan(proof3);
+    registerOrphan(proof4);
 
     auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
         const ProofId &proofid = proof->getId();
@@ -756,6 +773,8 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     checkOrphan(proof2, true);
     // HEIGHT_MISMATCH
     checkOrphan(proof3, true);
+    // IMMATURE_UTXO
+    checkOrphan(proof4, true);
 
     // Add outpoint2, proof2 is no longer considered orphan
     addCoin(outpoint2, key, v, height);
@@ -766,6 +785,11 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     // The status of proof1 and proof3 are unchanged
     checkOrphan(proof1, false);
     checkOrphan(proof3, true);
+
+    // Mine a block to increase the chain height for proof4 verification
+    mineBlocks(1);
+    pm.updatedBlockTip();
+    checkOrphan(proof4, false);
 
     // Spend outpoint1, proof1 becomes orphan
     {
@@ -799,8 +823,6 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     // Track expected orphans so we can test them later
     std::vector<ProofRef> orphans;
     orphans.push_back(proof1);
-    orphans.push_back(proof2);
-    orphans.push_back(proof3);
 
     // Fill up orphan pool to test the size limit
     for (uint32_t i = 1; i < AVALANCHE_MAX_ORPHAN_PROOFS; i++) {
@@ -838,6 +860,11 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
         coins.SpendCoin(outpoint2);
         coins.SpendCoin(outpoint3);
+        coins.SpendCoin(outpoint4);
+
+        orphans.push_back(proof2);
+        orphans.push_back(proof3);
+        orphans.push_back(proof4);
     }
 
     pm.updatedBlockTip();

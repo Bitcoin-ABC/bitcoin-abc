@@ -28,6 +28,7 @@ enum class ProofValidationResult {
     NON_STANDARD_DESTINATION,
     DESTINATION_NOT_SUPPORTED,
     DESTINATION_MISMATCH,
+    IMMATURE_UTXO,
 };
 
 class ProofValidationState : public ValidationState<ProofValidationResult> {};

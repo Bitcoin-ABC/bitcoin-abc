@@ -122,6 +122,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 2
         self.extra_args = [['-enableavalanche=1',
+                            '-avaproofstakeutxoconfirmations=1',
                             '-avacooldown=0']] * self.num_nodes
 
     def test_data_requests(self, context):

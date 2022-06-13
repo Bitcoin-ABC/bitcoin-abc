@@ -11,6 +11,7 @@
 #include <script/standard.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
+#include <validation.h>
 
 #include <test/util/setup_common.h>
 
@@ -18,7 +19,7 @@
 
 using namespace avalanche;
 
-BOOST_FIXTURE_TEST_SUITE(proof_tests, TestingSetup)
+BOOST_FIXTURE_TEST_SUITE(proof_tests, TestChain100Setup)
 
 BOOST_AUTO_TEST_CASE(proof_random) {
     for (int i = 0; i < 1000; i++) {
@@ -887,6 +888,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
 }
 
 BOOST_AUTO_TEST_CASE(verify) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
     CCoinsView coinsDummy;
     CCoinsViewCache coins(&coinsDummy);
 
@@ -1023,6 +1025,55 @@ BOOST_AUTO_TEST_CASE(verify) {
         BOOST_CHECK(!p->verify(state, coins));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::WRONG_STAKE_ORDERING);
+    }
+
+    // Immature stake
+    {
+        uint32_t chaintipHeight = ::ChainActive().Height();
+
+        // A proof where the UTXO is both missing and immature gives
+        // MISSING_UTXO
+        {
+            gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "11");
+            for (auto h = chaintipHeight; h > chaintipHeight - 10; h--) {
+                COutPoint outpoint(TxId(InsecureRand256()), InsecureRand32());
+                CTxOut output(value, GetScriptForRawPubKey(pubkey));
+                runCheck(ProofValidationResult::MISSING_UTXO, outpoint, value,
+                         h, false, key);
+
+                // Add the coin to the UTXO set to verify it's immature
+                coins.AddCoin(outpoint, Coin(output, h, false), false);
+                runCheck(ProofValidationResult::IMMATURE_UTXO, outpoint, value,
+                         h, false, key);
+            }
+        }
+
+        // tuple<stake utxo confs, avaproofstakeutxoconfirmations, result>
+        std::vector<std::tuple<uint32_t, std::string, ProofValidationResult>>
+            testCases = {
+                // Require less or equal the number of confirmations the stake
+                // has
+                {chaintipHeight, "1", ProofValidationResult::NONE},
+                {50, "1", ProofValidationResult::NONE},
+                {50, "50", ProofValidationResult::NONE},
+                {50, "51", ProofValidationResult::NONE},
+                // Require more than the number of confirmations the stake has
+                {chaintipHeight, "2", ProofValidationResult::IMMATURE_UTXO},
+                {50, "52", ProofValidationResult::IMMATURE_UTXO},
+                {50, "100", ProofValidationResult::IMMATURE_UTXO},
+            };
+
+        for (auto it = testCases.begin(); it != testCases.end(); ++it) {
+            const uint32_t stakeConfs = std::get<0>(*it);
+            COutPoint outpoint(TxId(InsecureRand256()), InsecureRand32());
+            CTxOut output(value, GetScriptForRawPubKey(pubkey));
+            coins.AddCoin(outpoint, Coin(output, stakeConfs, false), false);
+
+            gArgs.ForceSetArg("-avaproofstakeutxoconfirmations",
+                              std::get<1>(*it));
+            runCheck(std::get<2>(*it), outpoint, value, stakeConfs, false, key);
+        }
+        gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
     }
 }
 

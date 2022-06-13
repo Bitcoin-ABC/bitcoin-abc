@@ -20,7 +20,9 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
         self.num_nodes = 1
-        self.extra_args = [['-enableavalanche=1', '-avacooldown=0']]
+        self.extra_args = [['-enableavalanche=1',
+                            '-avaproofstakeutxoconfirmations=1',
+                            '-avacooldown=0']]
 
     def run_test(self):
         node = self.nodes[0]

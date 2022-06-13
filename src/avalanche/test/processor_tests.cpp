@@ -113,11 +113,15 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
                                                m_node.connman.get(), error);
         BOOST_CHECK(m_processor);
+
+        gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
     }
 
     ~AvalancheTestingSetup() {
         m_connman->ClearNodes();
         SyncWithValidationInterfaceQueue();
+
+        gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
     }
 
     CNode *ConnectNode(ServiceFlags nServices) {
@@ -1137,7 +1141,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
 
     const CKey key = CKey::MakeCompressedKey();
-    auto localProof = buildRandomProof(minScore / 4, 1234, key);
+    auto localProof = buildRandomProof(minScore / 4, 100, key);
     gArgs.ForceSetArg("-avamasterkey", EncodeSecret(key));
     gArgs.ForceSetArg("-avaproof", localProof->ToHex());
 

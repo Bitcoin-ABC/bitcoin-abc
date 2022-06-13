@@ -1392,6 +1392,14 @@ void SetupServerArgs(NodeContext &node) {
         strprintf("Use the legacy avalanche proof format (default: %u)",
                   AVALANCHE_DEFAULT_LEGACY_PROOF),
         ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avaproofstakeutxoconfirmations",
+        strprintf(
+            "Minimum number of confirmations before a stake utxo is mature"
+            " enough to be included into a proof. Utxos in the mempool are not "
+            "accepted (i.e this value must be greater than 0) (default: %s)",
+            AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS),
+        ArgsManager::ALLOW_INT, OptionsCategory::HIDDEN);
     argsman.AddArg("-avamasterkey",
                    "Master key associated with the proof. If a proof is "
                    "required, this is mandatory.",
@@ -2134,6 +2142,23 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
         return InitError(_(
             "No proxy server specified. Use -proxy=<ip> or -proxy=<ip:port>."));
+    }
+
+    // Avalanche parameters
+    const int64_t stakeUtxoMinConfirmations =
+        args.GetArg("-avaproofstakeutxoconfirmations",
+                    AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
+
+    if (!chainparams.IsTestChain() &&
+        stakeUtxoMinConfirmations !=
+            AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS) {
+        return InitError(_("Avalanche stake UTXO minimum confirmations can "
+                           "only be set on test chains."));
+    }
+
+    if (stakeUtxoMinConfirmations <= 0) {
+        return InitError(_("Avalanche stake UTXO minimum confirmations must be "
+                           "a positive integer."));
     }
 
     return true;

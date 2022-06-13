@@ -165,7 +165,8 @@ bool PeerManager::latchAvaproofsSent(NodeId nodeid) {
 
 static bool isOrphanState(const ProofValidationState &state) {
     return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
-           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH;
+           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH ||
+           state.GetResult() == ProofValidationResult::IMMATURE_UTXO;
 }
 
 bool PeerManager::updateNextPossibleConflictTime(

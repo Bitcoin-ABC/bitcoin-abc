@@ -56,7 +56,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [
-            ['-enableavalanche=1', '-avacooldown=0', '-legacyavaproof=1']] * self.num_nodes
+            ['-enableavalanche=1', "-avaproofstakeutxoconfirmations=1", '-avacooldown=0', '-legacyavaproof=1']] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 

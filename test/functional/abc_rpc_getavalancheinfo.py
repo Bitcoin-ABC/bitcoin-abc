@@ -19,6 +19,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [[
             '-enableavalanche=1',
+            '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=',
             '-avatimeout=100',
             '-enableavalanchepeerdiscovery=1',

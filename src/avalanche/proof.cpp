@@ -13,6 +13,7 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>
+#include <validation.h> // For g_chainman
 
 #include <tinyformat.h>
 
@@ -185,6 +186,12 @@ bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
         return false;
     }
 
+    const int64_t activeHeight =
+        WITH_LOCK(cs_main, return g_chainman.ActiveHeight());
+    const int64_t stakeUtxoMinConfirmations =
+        gArgs.GetArg("-avaproofstakeutxoconfirmations",
+                     AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
+
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();
         const COutPoint &utxo = s.getUTXO();
@@ -194,6 +201,14 @@ bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
             // The coins are not in the UTXO set.
             return state.Invalid(ProofValidationResult::MISSING_UTXO,
                                  "utxo-missing-or-spent");
+        }
+
+        if ((s.getHeight() + stakeUtxoMinConfirmations - 1) > activeHeight) {
+            return state.Invalid(
+                ProofValidationResult::IMMATURE_UTXO, "immature-utxo",
+                strprintf("TxId: %s, block height: %d, chaintip height: %d",
+                          s.getUTXO().GetTxId().ToString(), s.getHeight(),
+                          activeHeight));
         }
 
         if (s.isCoinbase() != coin.IsCoinBase()) {

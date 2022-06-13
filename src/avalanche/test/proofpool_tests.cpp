@@ -18,7 +18,7 @@
 
 using namespace avalanche;
 
-BOOST_FIXTURE_TEST_SUITE(proofpool_tests, TestingSetup)
+BOOST_FIXTURE_TEST_SUITE(proofpool_tests, TestChain100Setup)
 
 BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
     ProofPool testPool;
@@ -75,6 +75,7 @@ BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
 }
 
 BOOST_AUTO_TEST_CASE(rescan) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
     ProofPool testPool;
     avalanche::PeerManager pm;
 
@@ -105,6 +106,8 @@ BOOST_AUTO_TEST_CASE(rescan) {
                                   pmProofs.begin(), pmProofs.end());
     BOOST_CHECK_EQUAL(testPool.size(), 0);
     BOOST_CHECK_EQUAL(testPool.countProofs(), 0);
+
+    gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
 }
 
 BOOST_AUTO_TEST_CASE(proof_override) {

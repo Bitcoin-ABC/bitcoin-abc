@@ -32,6 +32,12 @@ static constexpr int AVALANCHE_MAX_PROOF_STAKES = 1000;
  */
 static constexpr bool AVALANCHE_DEFAULT_LEGACY_PROOF = true;
 
+/**
+ * Minimum number of confirmations before a stake utxo is mature enough to be
+ * included into a proof.
+ */
+static constexpr int AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS = 2016;
+
 namespace avalanche {
 
 /** Minimum amount per utxo */

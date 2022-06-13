@@ -64,8 +64,10 @@ class P2PEvict(BitcoinTestFramework):
         # 4 by netgroup, 4 that sent us blocks, 4 that sent us proofs, 4 that
         # sent us transactions, 8 via lowest ping time, 128 with the best
         # avalanche availability score
-        self.extra_args = [['-maxconnections=188',
-                            "-enableavalanche=1", "-maxavalancheoutbound=16"]]
+        self.extra_args = [["-maxconnections=188",
+                            "-enableavalanche=1",
+                            "-avaproofstakeutxoconfirmations=1",
+                            "-maxavalancheoutbound=16"]]
 
     def run_test(self):
         # peers that we expect to be protected from eviction

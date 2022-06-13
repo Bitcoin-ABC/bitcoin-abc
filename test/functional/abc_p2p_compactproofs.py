@@ -53,6 +53,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.num_nodes = 2
         self.extra_args = [[
             '-enableavalanche=1',
+            '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
         ]] * self.num_nodes
 

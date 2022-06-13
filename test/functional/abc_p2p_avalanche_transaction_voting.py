@@ -16,7 +16,8 @@ from test_framework.wallet import MiniWallet
 class AvalancheTransactionVotingTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
-        self.extra_args = [['-enableavalanche=1']]
+        self.extra_args = [['-enableavalanche=1',
+                            '-avaproofstakeutxoconfirmations=1']]
 
     def run_test(self):
         node = self.nodes[0]

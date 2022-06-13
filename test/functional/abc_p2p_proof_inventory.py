@@ -50,6 +50,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         self.num_nodes = 5
         self.extra_args = [[
             '-enableavalanche=1',
+            '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
             '-whitelist=noban@127.0.0.1',
         ]] * self.num_nodes
