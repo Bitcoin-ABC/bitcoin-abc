@@ -5,7 +5,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
   className="sc-cSHVUG jkzHCz"
 >
   <div
-    className="sc-cHGsZl exGvdx"
+    className="sc-TOsTZ bvNCJE"
   >
     <h2>
       <span
@@ -72,7 +72,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
     <h2>
       <span
@@ -206,7 +206,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
     <h2>
       <span
@@ -323,7 +323,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
     <h2>
       <span
@@ -348,7 +348,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-kgAjT dYHIBL"
+      className="sc-cJSrbW kMsRCc"
     >
       <div
         className="title"
@@ -407,7 +407,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </span>
     </div>
     <div
-      className="sc-kgAjT dYHIBL"
+      className="sc-cJSrbW kMsRCc"
     >
       <div
         className="SendConfirm"
@@ -470,19 +470,23 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </button>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
-    [
-    <a
-      className="sc-csuQGl ezYjbJ"
-      href="https://docs.cashtab.com/docs/"
-      rel="noreferrer"
-      target="_blank"
-      type="link"
+    <div
+      className="sc-csuQGl iEJzqX"
     >
-      Documentation
-    </a>
-    ]
+      [
+      <a
+        className="sc-Rmtcm jetxTC"
+        href="https://docs.cashtab.com/docs/"
+        rel="noreferrer"
+        target="_blank"
+        type="link"
+      >
+        Documentation
+      </a>
+      ]
+    </div>
   </div>
 </div>
 `;
@@ -492,7 +496,7 @@ exports[`Without wallet defined 1`] = `
   className="sc-cSHVUG jkzHCz"
 >
   <div
-    className="sc-cHGsZl exGvdx"
+    className="sc-TOsTZ bvNCJE"
   >
     <h2>
       <span
@@ -559,7 +563,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
     <h2>
       <span
@@ -693,7 +697,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
     <h2>
       <span
@@ -810,7 +814,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
     <h2>
       <span
@@ -835,7 +839,7 @@ exports[`Without wallet defined 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-kgAjT dYHIBL"
+      className="sc-cJSrbW kMsRCc"
     >
       <div
         className="title"
@@ -894,7 +898,7 @@ exports[`Without wallet defined 1`] = `
       </span>
     </div>
     <div
-      className="sc-kgAjT dYHIBL"
+      className="sc-cJSrbW kMsRCc"
     >
       <div
         className="SendConfirm"
@@ -957,19 +961,23 @@ exports[`Without wallet defined 1`] = `
       </button>
     </div>
     <div
-      className="sc-TOsTZ iGtEPf"
+      className="sc-kgAjT dqIHCd"
     />
-    [
-    <a
-      className="sc-csuQGl ezYjbJ"
-      href="https://docs.cashtab.com/docs/"
-      rel="noreferrer"
-      target="_blank"
-      type="link"
+    <div
+      className="sc-csuQGl iEJzqX"
     >
-      Documentation
-    </a>
-    ]
+      [
+      <a
+        className="sc-Rmtcm jetxTC"
+        href="https://docs.cashtab.com/docs/"
+        rel="noreferrer"
+        target="_blank"
+        type="link"
+      >
+        Documentation
+      </a>
+      ]
+    </div>
   </div>
 </div>
 `;
