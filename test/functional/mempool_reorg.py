@@ -62,8 +62,7 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         timelock_tx = wallet.create_self_transfer(
             from_node=self.nodes[0],
             utxo_to_spend=utxo,
-            mempool_valid=False,
-            locktime=self.nodes[0].getblockcount() + 2
+            locktime=self.nodes[0].getblockcount() + 2,
         )['hex']
 
         self.log.info(

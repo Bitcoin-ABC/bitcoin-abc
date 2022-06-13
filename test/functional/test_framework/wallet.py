@@ -114,10 +114,7 @@ class MiniWallet:
         (the utxo with the largest value is taken).
         Returns a tuple (txid, n) referring to the created external utxo outpoint.
         """
-        tx = self.create_self_transfer(
-            from_node=from_node,
-            fee_rate=0,
-            mempool_valid=False)['tx']
+        tx = self.create_self_transfer(from_node=from_node, fee_rate=0)["tx"]
         assert_greater_than_or_equal(tx.vout[0].nValue, amount + fee)
         # change output -> MiniWallet
         tx.vout[0].nValue -= (amount + fee)
@@ -129,16 +126,14 @@ class MiniWallet:
         return txid, len(tx.vout) - 1
 
     def create_self_transfer(self, *, fee_rate=Decimal("3000.00"),
-                             from_node, utxo_to_spend=None, mempool_valid=True, locktime=0):
-        """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed.
-        Checking mempool validity via the testmempoolaccept RPC can be skipped by setting mempool_valid to False."""
+                             from_node, utxo_to_spend=None, locktime=0):
+        """Create and return a tx with the specified fee_rate. Fee may be exact or at most one satoshi higher than needed."""
         utxo_to_spend = utxo_to_spend or self.get_utxo()
 
         # The size will be enforced by pad_tx()
         size = 100
         send_value = satoshi_round(
             utxo_to_spend['value'] - fee_rate * (Decimal(size) / 1000))
-        fee = utxo_to_spend['value'] - send_value
         assert send_value > 0
 
         tx = CTransaction()
@@ -149,11 +144,9 @@ class MiniWallet:
         tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
         pad_tx(tx, size)
         tx_hex = tx.serialize().hex()
-        if mempool_valid:
-            tx_info = from_node.testmempoolaccept([tx_hex])[0]
-            assert_equal(mempool_valid, tx_info['allowed'])
-            assert_equal(tx_info['size'], size)
-            assert_equal(tx_info['fees']['base'], fee)
+
+        assert_equal(len(tx.serialize()), size)
+
         return {'txid': tx.rehash(), 'hex': tx_hex, 'tx': tx}
 
     def sendrawtransaction(self, *, from_node, tx_hex):
