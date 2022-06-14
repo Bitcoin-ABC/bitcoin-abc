@@ -226,8 +226,8 @@ So all you changes for this Diff should be in one Git commit.
 - For large changes, break them into several Diffs, as described in this
 [guide](https://medium.com/@kurtisnusbaum/stacked-diffs-keeping-phabricator-diffs-small-d9964f4dcfa6).
 You must also include "Depends on Dxxx" in the Arcanist summary to indicate
-dependence on other Diffs. Note: the `arc land` procedure described in the 
-guide above is obsolete. With the most recent version of arcanist, you may 
+dependence on other Diffs. Note: the `arc land` procedure described in the
+guide above is obsolete. With the most recent version of arcanist, you may
 `arc land` the latest commit of your stacked diff after all parts are approved.
 
 - Log into Phabricator to see review and feedback.
