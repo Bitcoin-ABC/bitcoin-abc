@@ -87,6 +87,84 @@ export const parseXecSendValue = (
     return value;
 };
 
+/*
+ * Generates an OP_RETURN script to reflect the various send XEC permutations
+ * involving messaging, encryption, eToken IDs and airdrop flags.
+ *
+ * Returns the final encoded script object
+ */
+export const generateOpReturnScript = (
+    BCH,
+    optionalOpReturnMsg,
+    encryptionFlag,
+    airdropFlag,
+    airdropTokenId,
+    encryptedEj,
+) => {
+    // encrypted mesage is mandatory when encryptionFlag is true
+    // airdrop token id is mandatory when airdropFlag is true
+    if (
+        !BCH ||
+        (encryptionFlag && !encryptedEj) ||
+        (airdropFlag && !airdropTokenId)
+    ) {
+        throw new Error('Invalid OP RETURN script input');
+    }
+
+    // Note: script.push(Buffer.from(currency.opReturn.opReturnPrefixHex, 'hex')); actually evaluates to '016a'
+    // instead of keeping the hex string intact. This behavour is specific to the initial script array element.
+    // To get around this, the bch-js approach of directly using the opReturn prefix in decimal form for the initial entry is used here.
+    let script = [currency.opReturn.opReturnPrefixDec]; // initialize script with the OP_RETURN op code (6a) in decimal form (106)
+
+    try {
+        if (encryptionFlag) {
+            // if the user has opted to encrypt this message
+
+            // add the encrypted cashtab messaging prefix and encrypted msg to script
+            script.push(
+                Buffer.from(
+                    currency.opReturn.appPrefixesHex.cashtabEncrypted,
+                    'hex',
+                ), // 65746162
+            );
+
+            // add the encrypted message to script
+            script.push(Buffer.from(encryptedEj));
+        } else {
+            // this is an un-encrypted message
+
+            if (airdropFlag) {
+                // if this was routed from the airdrop component
+                // add the airdrop prefix to script
+                script.push(
+                    Buffer.from(
+                        currency.opReturn.appPrefixesHex.airdrop,
+                        'hex',
+                    ), // drop
+                );
+                // add the airdrop token ID to script
+                script.push(Buffer.from(airdropTokenId, 'hex'));
+            }
+
+            // add the cashtab prefix to script
+            script.push(
+                Buffer.from(currency.opReturn.appPrefixesHex.cashtab, 'hex'), // 00746162
+            );
+
+            // add the un-encrypted message to script if supplied
+            if (optionalOpReturnMsg) {
+                script.push(Buffer.from(optionalOpReturnMsg));
+            }
+        }
+    } catch (err) {
+        console.log('Error in generateOpReturnScript(): ' + err);
+        throw err;
+    }
+
+    const data = BCH.Script.encode(script);
+    return data;
+};
+
 export function parseOpReturn(hexStr) {
     if (
         !hexStr ||

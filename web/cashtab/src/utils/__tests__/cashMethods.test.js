@@ -31,6 +31,7 @@ import {
     isActiveWebsocket,
     parseXecSendValue,
     getChangeAddressFromInputUtxos,
+    generateOpReturnScript,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -332,6 +333,132 @@ it(`parseXecSendValue() correctly throws error when the total value for a one to
         errorThrown = err;
     }
     expect(errorThrown.message).toStrictEqual('dust');
+});
+
+it('generateOpReturnScript() correctly generates an encrypted message script', () => {
+    const BCH = new BCHJS();
+    const optionalOpReturnMsg = 'testing generateOpReturnScript()';
+    const encryptionFlag = true;
+    const airdropFlag = false;
+    const airdropTokenId = null;
+    const mockEncryptedEj =
+        '04688f9907fe3c7c0b78a73c4ab4f75e15e7e2b79641add519617086126fe6f6b1405a14eed48e90c9c8c0fc77f0f36984a78173e76ce51f0a44af94b59e9da703c9ff82758cfdb9cc46437d662423400fb731d3bfc1df0599279356ca261213fbb40d398c041e1bac966afed1b404581ab1bcfcde1fa039d53b7c7b70e8edf26d64bea9fbeed24cc80909796e6af5863707fa021f2a2ebaa2fe894904702be19d';
+
+    const encodedScript = generateOpReturnScript(
+        BCH,
+        optionalOpReturnMsg,
+        encryptionFlag,
+        airdropFlag,
+        airdropTokenId,
+        mockEncryptedEj,
+    );
+    expect(encodedScript.toString('hex')).toBe(
+        '6a04657461624d420130343638386639393037666533633763306237386137336334616234663735653135653765326237393634316164643531393631373038363132366665366636623134303561313465656434386539306339633863306663373766306633363938346137383137336537366365353166306134346166393462353965396461373033633966663832373538636664623963633436343337643636323432333430306662373331643362666331646630353939323739333536636132363132313366626234306433393863303431653162616339363661666564316234303435383161623162636663646531666130333964353362376337623730653865646632366436346265613966626565643234636338303930393739366536616635383633373037666130323166326132656261613266653839343930343730326265313964',
+    );
+});
+
+it('generateOpReturnScript() correctly generates an un-encrypted non-airdrop message script', () => {
+    const BCH = new BCHJS();
+    const optionalOpReturnMsg = 'testing generateOpReturnScript()';
+    const encryptionFlag = false;
+    const airdropFlag = false;
+
+    const encodedScript = generateOpReturnScript(
+        BCH,
+        optionalOpReturnMsg,
+        encryptionFlag,
+        airdropFlag,
+    );
+    expect(encodedScript.toString('hex')).toBe(
+        '6a04007461622074657374696e672067656e65726174654f7052657475726e5363726970742829',
+    );
+});
+
+it('generateOpReturnScript() correctly generates an un-encrypted airdrop message script', () => {
+    const BCH = new BCHJS();
+    const optionalOpReturnMsg = 'testing generateOpReturnScript()';
+    const encryptionFlag = false;
+    const airdropFlag = true;
+    const airdropTokenId =
+        '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
+
+    const encodedScript = generateOpReturnScript(
+        BCH,
+        optionalOpReturnMsg,
+        encryptionFlag,
+        airdropFlag,
+        airdropTokenId,
+    );
+    expect(encodedScript.toString('hex')).toBe(
+        '6a0464726f70201c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e04007461622074657374696e672067656e65726174654f7052657475726e5363726970742829',
+    );
+});
+
+it('generateOpReturnScript() correctly generates an un-encrypted airdrop with no message script', () => {
+    const BCH = new BCHJS();
+    const optionalOpReturnMsg = null;
+    const encryptionFlag = false;
+    const airdropFlag = true;
+    const airdropTokenId =
+        '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
+
+    const encodedScript = generateOpReturnScript(
+        BCH,
+        optionalOpReturnMsg,
+        encryptionFlag,
+        airdropFlag,
+        airdropTokenId,
+    );
+    expect(encodedScript.toString('hex')).toBe(
+        '6a0464726f70201c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e0400746162',
+    );
+});
+
+it('generateOpReturnScript() correctly throws an error on an invalid encryption input', () => {
+    const BCH = new BCHJS();
+    const optionalOpReturnMsg = null;
+    const encryptionFlag = true;
+    const airdropFlag = false;
+    const airdropTokenId = null;
+    const mockEncryptedEj = null; // invalid given encryptionFlag is true
+    let thrownError;
+
+    try {
+        generateOpReturnScript(
+            BCH,
+            optionalOpReturnMsg,
+            encryptionFlag,
+            airdropFlag,
+            airdropTokenId,
+            mockEncryptedEj,
+        );
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
+});
+
+it('generateOpReturnScript() correctly throws an error on an invalid airdrop input', () => {
+    const BCH = new BCHJS();
+    const optionalOpReturnMsg = null;
+    const encryptionFlag = false;
+    const airdropFlag = true;
+    const airdropTokenId = null; // invalid given airdropFlag is true
+
+    let thrownError;
+
+    try {
+        generateOpReturnScript(
+            BCH,
+            optionalOpReturnMsg,
+            encryptionFlag,
+            airdropFlag,
+            airdropTokenId,
+        );
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
 });
 
 describe('Correctly executes cash utility functions', () => {

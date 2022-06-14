@@ -35,6 +35,7 @@ export const currency = {
     newTokenDefaultUrl: 'https://cashtab.com/',
     opReturn: {
         opReturnPrefixHex: '6a',
+        opReturnPrefixDec: '106',
         opReturnAppPrefixLengthHex: '04',
         opPushDataOne: '4c',
         appPrefixesHex: {
