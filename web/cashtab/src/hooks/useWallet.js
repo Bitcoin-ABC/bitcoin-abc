@@ -933,6 +933,9 @@ const useWallet = () => {
         // get the message type
         const { type } = msg;
         // For now, only act on "first seen" transactions, as the only logic to happen is first seen notifications
+        // Dev note: Other chronik msg types
+        // "BlockConnected", arrives as new blocks are found
+        // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
         if (type !== 'AddedToMempool') {
             return;
         }
