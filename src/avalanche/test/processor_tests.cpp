@@ -27,6 +27,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <functional>
+#include <type_traits>
 #include <vector>
 
 using namespace avalanche;
@@ -259,6 +260,10 @@ struct BlockProvider {
 
         return votes;
     }
+
+    void invalidateItem(CBlockIndex *pindex) {
+        pindex->nStatus = pindex->nStatus.withFailed();
+    }
 };
 
 struct ProofProvider {
@@ -295,8 +300,7 @@ struct ProofProvider {
     }
 
     bool addToReconcile(const ProofRef &proof) {
-        fixture->m_processor->addProofToReconcile(proof);
-        return true;
+        return fixture->m_processor->addProofToReconcile(proof);
     }
 
     std::vector<Vote> buildVotesForItems(uint32_t error,
@@ -313,6 +317,13 @@ struct ProofProvider {
         }
 
         return votes;
+    }
+
+    void invalidateItem(const ProofRef &proof) {
+        fixture->m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            pm.rejectProof(proof->getId(),
+                           avalanche::PeerManager::RejectionMode::INVALIDATE);
+        });
     }
 };
 
@@ -341,39 +352,33 @@ BOOST_AUTO_TEST_CASE(block_update) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(block_reconcile_twice) {
-    CBlock block = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash = block.GetHash();
-    CBlockIndex *pindex;
-    {
-        LOCK(cs_main);
-        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
-    }
+BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
+    P provider(this);
 
-    // Adding the block twice does nothing.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
-    BOOST_CHECK(!m_processor->addBlockToReconcile(pindex));
-    BOOST_CHECK(m_processor->isAccepted(pindex));
+    auto item = provider.buildVoteItem();
+
+    // Adding the item twice does nothing.
+    BOOST_CHECK(provider.addToReconcile(item));
+    BOOST_CHECK(!provider.addToReconcile(item));
+    BOOST_CHECK(m_processor->isAccepted(item));
 }
 
-BOOST_AUTO_TEST_CASE(block_null) {
+BOOST_AUTO_TEST_CASE_TEMPLATE(item_null, P, VoteItemProviders) {
+    P provider(this);
+
     // Check that null case is handled on the public interface
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
 
-    BOOST_CHECK(!m_processor->addBlockToReconcile(nullptr));
+    auto item = decltype(provider.buildVoteItem())();
+    BOOST_CHECK(item == nullptr);
+    BOOST_CHECK(!provider.addToReconcile(item));
 
-    // Check that adding blocks to vote on doesn't change the outcome. A
+    // Check that adding item to vote on doesn't change the outcome. A
     // comparator is used under the hood, and this is skipped if there are no
     // vote records.
-    CBlock block = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHash = block.GetHash();
-    CBlockIndex *pindex;
-    {
-        LOCK(cs_main);
-        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
-    }
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
+    item = provider.buildVoteItem();
+    BOOST_CHECK(provider.addToReconcile(item));
 
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
@@ -745,40 +750,44 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 }
 
-BOOST_AUTO_TEST_CASE(dont_poll_invalid_block) {
-    std::vector<BlockUpdate> updates;
+BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
+    P provider(this);
+    auto &updates = provider.updates;
+    const uint32_t invType = provider.invType;
 
-    CBlock blockA = CreateAndProcessBlock({}, CScript());
-    CBlock blockB = CreateAndProcessBlock({}, CScript());
-    const BlockHash blockHashA = blockA.GetHash();
-    const BlockHash blockHashB = blockB.GetHash();
-    const CBlockIndex *pindexA;
-    CBlockIndex *pindexB;
-    {
-        LOCK(cs_main);
-        pindexA = g_chainman.m_blockman.LookupBlockIndex(blockHashA);
-        pindexB = g_chainman.m_blockman.LookupBlockIndex(blockHashB);
-    }
+    auto itemA = provider.buildVoteItem();
+    auto itemB = provider.buildVoteItem();
 
     auto avanodes = ConnectNodes();
 
-    // Register the blocks and check they are added to the list of elements to
+    // Build votes to get proper ordering
+    std::vector<Vote> votes = provider.buildVotesForItems(0, {itemA, itemB});
+
+    // Register the items and check they are added to the list of elements to
     // poll.
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindexA));
-    BOOST_CHECK(m_processor->addBlockToReconcile(pindexB));
+    BOOST_CHECK(provider.addToReconcile(itemA));
+    BOOST_CHECK(provider.addToReconcile(itemB));
     auto invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 2);
-    BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
-    BOOST_CHECK(invs[0].hash == blockHashB);
-    BOOST_CHECK_EQUAL(invs[1].type, MSG_BLOCK);
-    BOOST_CHECK(invs[1].hash == blockHashA);
+    for (size_t i = 0; i < invs.size(); i++) {
+        BOOST_CHECK_EQUAL(invs[i].type, invType);
+        BOOST_CHECK(invs[i].hash == votes[i].GetHash());
+    }
 
-    // When a block is marked invalid, stop polling.
-    pindexB->nStatus = pindexB->nStatus.withFailed();
-    Response resp{getRound(), 0, {Vote(0, blockHashA)}};
+    // When an item is marked invalid, stop polling.
+    provider.invalidateItem(itemB);
+
+    Response goodResp{getRound(), 0, {Vote(0, provider.getVoteItemId(itemA))}};
     runEventLoop();
-    BOOST_CHECK(registerVotes(avanodes[0]->GetId(), resp, updates));
+    BOOST_CHECK(provider.registerVotes(avanodes[0]->GetId(), goodResp));
     BOOST_CHECK_EQUAL(updates.size(), 0);
+
+    // Votes including itemB are rejected
+    Response badResp{getRound(), 0, votes};
+    runEventLoop();
+    std::string error;
+    BOOST_CHECK(!provider.registerVotes(avanodes[1]->GetId(), badResp, error));
+    BOOST_CHECK_EQUAL(error, "invalid-ava-response-size");
 }
 
 BOOST_TEST_DECORATOR(*boost::unit_test::timeout(60))
@@ -1055,7 +1064,10 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
 
     auto addProofToReconcile = [&](uint32_t proofScore) {
         auto proof = buildRandomProof(proofScore);
-        m_processor->addProofToReconcile(proof);
+        m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            BOOST_CHECK(pm.registerProof(proof));
+        });
+        BOOST_CHECK(m_processor->addProofToReconcile(proof));
         return proof;
     };
 
@@ -1100,31 +1112,83 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
 }
 
 BOOST_AUTO_TEST_CASE(proof_record) {
+    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
+    gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
+
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(nullptr), -1);
 
-    auto proofA = GetProof();
-    auto proofB = GetProof();
+    const CKey key = CKey::MakeCompressedKey();
 
-    BOOST_CHECK(!m_processor->isAccepted(proofA));
-    BOOST_CHECK(!m_processor->isAccepted(proofB));
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), -1);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), -1);
+    const COutPoint conflictingOutpoint{TxId(GetRandHash()), 0};
+    {
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
-    m_processor->addProofToReconcile(proofA);
-    BOOST_CHECK(!m_processor->isAccepted(proofA));
-    BOOST_CHECK(!m_processor->isAccepted(proofB));
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), 0);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), -1);
+        LOCK(cs_main);
+        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        coins.AddCoin(conflictingOutpoint,
+                      Coin(CTxOut(10 * COIN, script), 10, false), false);
+    }
+    const COutPoint missingOutpoint{TxId(GetRandHash()), 0};
+
+    auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key);
+        BOOST_CHECK(pb.addUTXO(outpoint, 10 * COIN, 10, false, key));
+        return pb.build();
+    };
+
+    auto conflictingProof = buildProof(conflictingOutpoint, 1);
+    auto validProof = buildProof(conflictingOutpoint, 2);
+    auto orphanProof = buildProof(missingOutpoint, 3);
+
+    BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
+    BOOST_CHECK(!m_processor->isAccepted(validProof));
+    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+
+    // Reconciling proofs that don't exist will fail
+    BOOST_CHECK(!m_processor->addProofToReconcile(conflictingProof));
+    BOOST_CHECK(!m_processor->addProofToReconcile(validProof));
+    BOOST_CHECK(!m_processor->addProofToReconcile(orphanProof));
 
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
-        BOOST_CHECK(pm.registerProof(proofB));
+        BOOST_CHECK(pm.registerProof(conflictingProof));
+        BOOST_CHECK(pm.registerProof(validProof));
+        BOOST_CHECK(!pm.registerProof(orphanProof));
+
+        BOOST_CHECK(pm.isBoundToPeer(validProof->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
+        BOOST_CHECK(pm.isOrphan(orphanProof->getId()));
     });
-    m_processor->addProofToReconcile(proofB);
-    BOOST_CHECK(!m_processor->isAccepted(proofA));
-    BOOST_CHECK(m_processor->isAccepted(proofB));
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofA), 0);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(proofB), 0);
+
+    BOOST_CHECK(m_processor->addProofToReconcile(conflictingProof));
+    BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
+    BOOST_CHECK(!m_processor->isAccepted(validProof));
+    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+
+    BOOST_CHECK(m_processor->addProofToReconcile(validProof));
+    BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
+    BOOST_CHECK(m_processor->isAccepted(validProof));
+    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+
+    BOOST_CHECK(!m_processor->addProofToReconcile(orphanProof));
+    BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
+    BOOST_CHECK(m_processor->isAccepted(validProof));
+    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+
+    gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
+    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_CASE(quorum_detection) {

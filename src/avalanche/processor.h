@@ -195,7 +195,7 @@ public:
     }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
-    void addProofToReconcile(const ProofRef &proof);
+    bool addProofToReconcile(const ProofRef &proof);
     bool isAccepted(const CBlockIndex *pindex) const;
     bool isAccepted(const ProofRef &proof) const;
     int getConfidence(const CBlockIndex *pindex) const;
@@ -260,6 +260,8 @@ private:
 
     bool isWorthPolling(const CBlockIndex *pindex) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+    bool isWorthPolling(const ProofRef &proof) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_peerManager);
 
     friend struct ::avalanche::AvalancheTest;
 };

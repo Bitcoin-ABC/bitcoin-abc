@@ -317,13 +317,12 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
-    bool isAccepted;
-
     if (!pindex) {
         // isWorthPolling expects this to be non-null, so bail early.
         return false;
     }
 
+    bool isAccepted;
     {
         LOCK(cs_main);
         if (!isWorthPolling(pindex)) {
@@ -339,15 +338,25 @@ bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
         .second;
 }
 
-void Processor::addProofToReconcile(const ProofRef &proof) {
-    // TODO We don't want to accept an infinite number of conflicting proofs.
-    // They should be some rules to make them expensive and/or limited by
-    // design.
-    const bool isAccepted = WITH_LOCK(
-        cs_peerManager, return peerManager->isBoundToPeer(proof->getId()));
+bool Processor::addProofToReconcile(const ProofRef &proof) {
+    if (!proof) {
+        // isWorthPolling expects this to be non-null, so bail early.
+        return false;
+    }
 
-    proofVoteRecords.getWriteView()->insert(
-        std::make_pair(proof, VoteRecord(isAccepted)));
+    bool isAccepted;
+    {
+        LOCK(cs_peerManager);
+        if (!isWorthPolling(proof)) {
+            return false;
+        }
+
+        isAccepted = peerManager->isBoundToPeer(proof->getId());
+    }
+
+    return proofVoteRecords.getWriteView()
+        ->insert(std::make_pair(proof, VoteRecord(isAccepted)))
+        .second;
 }
 
 bool Processor::isAccepted(const CBlockIndex *pindex) const {
@@ -514,10 +523,17 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         if (invs[i].IsMsgProof()) {
             const ProofId proofid(votes[i].GetHash());
 
-            const ProofRef proof = WITH_LOCK(
-                cs_peerManager, return peerManager->getProof(proofid));
-            if (!proof) {
-                continue;
+            ProofRef proof;
+            {
+                LOCK(cs_peerManager);
+                proof = peerManager->getProof(proofid);
+                if (!proof) {
+                    continue;
+                }
+
+                if (!isWorthPolling(proof)) {
+                    continue;
+                }
             }
 
             responseProof.insert(std::make_pair(proof, votes[i]));
@@ -828,6 +844,20 @@ void Processor::clearTimedoutRequests() {
 std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     std::vector<CInv> invs;
 
+    // Use NO_THREAD_SAFETY_ANALYSIS to avoid false positive due to
+    // isWorthPolling requiring a different lock depending of the prototype.
+    auto removeItemsNotWorthPolling =
+        [&](auto &itemVoteRecords) NO_THREAD_SAFETY_ANALYSIS {
+            auto w = itemVoteRecords.getWriteView();
+            for (auto it = w->begin(); it != w->end();) {
+                if (!isWorthPolling(it->first)) {
+                    it = w->erase(it);
+                } else {
+                    ++it;
+                }
+            }
+        };
+
     auto extractVoteRecordsToInvs = [&](const auto &itemVoteRecordRange,
                                         auto buildInvFromVoteItem) {
         for (const auto &[item, voteRecord] : itemVoteRecordRange) {
@@ -850,6 +880,9 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         return invs.size() >= AVALANCHE_MAX_ELEMENT_POLL;
     };
 
+    // First remove all proofs that are not worth polling.
+    WITH_LOCK(cs_peerManager, removeItemsNotWorthPolling(proofVoteRecords));
+
     if (extractVoteRecordsToInvs(proofVoteRecords.getReadView(),
                                  [](const ProofRef &proof) {
                                      return CInv(MSG_AVA_PROOF, proof->getId());
@@ -859,18 +892,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     }
 
     // First remove all blocks that are not worth polling.
-    {
-        LOCK(cs_main);
-        auto w = blockVoteRecords.getWriteView();
-        for (auto it = w->begin(); it != w->end();) {
-            const CBlockIndex *pindex = it->first;
-            if (!isWorthPolling(pindex)) {
-                w->erase(it++);
-            } else {
-                ++it;
-            }
-        }
-    }
+    WITH_LOCK(cs_main, removeItemsNotWorthPolling(blockVoteRecords));
 
     auto r = blockVoteRecords.getReadView();
     extractVoteRecordsToInvs(reverse_iterate(r), [](const CBlockIndex *pindex) {
@@ -909,6 +931,16 @@ bool Processor::isWorthPolling(const CBlockIndex *pindex) const {
     }
 
     return true;
+}
+
+bool Processor::isWorthPolling(const ProofRef &proof) const {
+    AssertLockHeld(cs_peerManager);
+
+    const ProofId &proofid = proof->getId();
+
+    // No point polling orphans or discarded proofs
+    return peerManager->isBoundToPeer(proofid) ||
+           peerManager->isInConflictingPool(proofid);
 }
 
 } // namespace avalanche
