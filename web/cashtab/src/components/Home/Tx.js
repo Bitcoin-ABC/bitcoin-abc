@@ -733,7 +733,7 @@ const Tx = ({
                                                                 },
                                                             }}
                                                         >
-                                                            Reply To Message
+                                                            Reply
                                                         </Link>
                                                     ) : (
                                                         ''
