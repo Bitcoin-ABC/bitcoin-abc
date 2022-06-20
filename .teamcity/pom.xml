@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <name>BitcoinABC Config DSL Script</name>
   <properties>
-    <kotlin.version>1.1.4-3</kotlin.version>
+    <kotlin.version>1.6.0</kotlin.version>
     <teamcity.dsl.version>2017.2</teamcity.dsl.version>
   </properties>
   <groupId>BitcoinABC</groupId>
