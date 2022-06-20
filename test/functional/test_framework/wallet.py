@@ -64,8 +64,9 @@ class MiniWallet:
     def __init__(self, test_node, *, mode=MiniWalletMode.ADDRESS_OP_TRUE):
         self._test_node = test_node
         self._utxos = []
-        self._priv_key = None
-        self._address = None
+        self._mode = mode
+
+        assert isinstance(mode, MiniWalletMode)
         if mode == MiniWalletMode.RAW_P2PK:
             # use simple deterministic private key (k=1)
             self._priv_key = ECKey()
@@ -128,7 +129,7 @@ class MiniWallet:
 
     def sign_tx(self, tx, amount, fixed_length=True):
         """Sign tx that has been created by MiniWallet in P2PK mode"""
-        assert self._priv_key is not None
+        assert_equal(self._mode, MiniWalletMode.RAW_P2PK)
         sighash = SignatureHashForkId(
             CScript(self._scriptPubKey), tx, 0, SIGHASH_ALL | SIGHASH_FORKID, amount
         )
@@ -233,6 +234,7 @@ class MiniWallet:
         utxos_to_spend=None,
         num_outputs=1,
         amount_per_output=0,
+        locktime=0,
         sequence=0,
         fee_per_output=1000,
         target_size=0,
@@ -247,28 +249,42 @@ class MiniWallet:
             [sequence] * len(utxos_to_spend) if type(sequence) is int else sequence
         )
         assert_equal(len(utxos_to_spend), len(sequence))
-        # create simple tx template (1 input, 1 output)
-        tx = self.create_self_transfer(fee_rate=0, utxo_to_spend=utxos_to_spend[0])[
-            "tx"
-        ]
 
-        # duplicate inputs and outputs
-        tx.vin = [deepcopy(tx.vin[0]) for _ in range(len(utxos_to_spend))]
-        for txin, seq in zip(tx.vin, sequence):
-            txin.nSequence = seq
-        tx.vout = [deepcopy(tx.vout[0]) for _ in range(num_outputs)]
-
-        # adapt input prevouts
-        for i, utxo in enumerate(utxos_to_spend):
-            tx.vin[i] = CTxIn(
-                COutPoint(int(utxo["txid"], 16), utxo["vout"]), SCRIPTSIG_OP_TRUE
-            )
-
-        # adapt output amounts (use fixed fee per output)
+        # calculate output amount
         inputs_value_total = sum([int(XEC * utxo["value"]) for utxo in utxos_to_spend])
         outputs_value_total = inputs_value_total - fee_per_output * num_outputs
-        for o in tx.vout:
-            o.nValue = amount_per_output or (outputs_value_total // num_outputs)
+        amount_per_output = amount_per_output or (outputs_value_total // num_outputs)
+
+        # create tx
+        tx = CTransaction()
+        tx.vin = [
+            CTxIn(
+                COutPoint(int(utxo_to_spend["txid"], 16), utxo_to_spend["vout"]),
+                nSequence=seq,
+            )
+            for utxo_to_spend, seq in zip(utxos_to_spend, sequence)
+        ]
+        tx.vout = [
+            CTxOut(amount_per_output, bytearray(self._scriptPubKey))
+            for _ in range(num_outputs)
+        ]
+        tx.nLockTime = locktime
+
+        if self._mode == MiniWalletMode.RAW_P2PK:
+            self.sign_tx(
+                tx,
+                sum(
+                    [
+                        int(utxo_to_spend["value"] * XEC)
+                        for utxo_to_spend in utxos_to_spend
+                    ]
+                ),
+            )
+        elif self._mode == MiniWalletMode.ADDRESS_OP_TRUE:
+            for i in range(len(utxos_to_spend)):
+                tx.vin[i].scriptSig = SCRIPTSIG_OP_TRUE
+        else:
+            assert False
 
         pad_tx(tx, 100)
 
@@ -298,6 +314,7 @@ class MiniWallet:
         fee=Decimal("0"),
         utxo_to_spend=None,
         locktime=0,
+        sequence=0,
         target_size=0,
     ):
         """Create and return a tx with the specified fee. If fee is 0, use fee_rate, where the resulting fee may be exact or at most one satoshi higher than needed."""
@@ -305,43 +322,37 @@ class MiniWallet:
         assert fee_rate >= 0
         assert fee >= 0
 
-        if self._priv_key is None:
+        if self._mode == MiniWalletMode.ADDRESS_OP_TRUE:
             # anyone-can-spend, the size will be enforced by pad_tx()
             size = 100
-        else:
+        elif self._mode == MiniWalletMode.RAW_P2PK:
             # P2PK (73 bytes scriptSig + 35 bytes scriptPubKey + 60 bytes other)
             size = 168
+        else:
+            assert False
 
         send_value = satoshi_round(
             utxo_to_spend["value"] - (fee or (fee_rate * (Decimal(size) / 1000)))
         )
         assert send_value > 0
 
-        tx = CTransaction()
-        tx.vin = [
-            CTxIn(COutPoint(int(utxo_to_spend["txid"], 16), utxo_to_spend["vout"]))
-        ]
-        tx.vout = [CTxOut(int(send_value * XEC), bytearray(self._scriptPubKey))]
-        tx.nLockTime = locktime
-        if self._priv_key is not None:
-            # P2PK, need to sign
-            self.sign_tx(tx, int(utxo_to_spend["value"] * XEC))
-        else:
-            # anyone-can-spend
-            tx.vin[0].scriptSig = SCRIPTSIG_OP_TRUE
-
-        pad_tx(tx, size)
-        assert_equal(len(tx.serialize()), size)
-
-        if target_size:
-            pad_tx(tx, target_size)
-
-        tx_hex = tx.serialize().hex()
-        new_utxo = self._create_utxo(
-            txid=tx.rehash(), vout=0, value=send_value, height=0
+        # create tx
+        tx = self.create_self_transfer_multi(
+            utxos_to_spend=[utxo_to_spend],
+            locktime=locktime,
+            sequence=sequence,
+            amount_per_output=int(XEC * send_value),
+            target_size=target_size,
         )
+        if not target_size:
+            assert_equal(len(tx["tx"].serialize()), size)
 
-        return {"txid": new_utxo["txid"], "hex": tx_hex, "tx": tx, "new_utxo": new_utxo}
+        return {
+            "txid": tx["txid"],
+            "hex": tx["hex"],
+            "tx": tx["tx"],
+            "new_utxo": tx["new_utxos"][0],
+        }
 
     def sendrawtransaction(self, *, from_node, tx_hex):
         txid = from_node.sendrawtransaction(tx_hex)
