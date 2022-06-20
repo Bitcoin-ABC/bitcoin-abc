@@ -35,23 +35,6 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 std::unique_ptr<avalanche::Processor> g_avalanche;
 
 namespace avalanche {
-static bool IsWorthPolling(const CBlockIndex *pindex)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    AssertLockHeld(cs_main);
-
-    if (pindex->nStatus.isInvalid()) {
-        // No point polling invalid blocks.
-        return false;
-    }
-
-    if (::ChainstateActive().IsBlockFinalized(pindex)) {
-        // There is no point polling finalized block.
-        return false;
-    }
-
-    return true;
-}
-
 static bool VerifyProof(const Proof &proof, bilingual_str &error) {
     ProofValidationState proof_state;
 
@@ -334,13 +317,13 @@ bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
     bool isAccepted;
 
     if (!pindex) {
-        // IsWorthPolling expects this to be non-null, so bail early.
+        // isWorthPolling expects this to be non-null, so bail early.
         return false;
     }
 
     {
         LOCK(cs_main);
-        if (!IsWorthPolling(pindex)) {
+        if (!isWorthPolling(pindex)) {
             // There is no point polling this block.
             return false;
         }
@@ -516,7 +499,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
                     continue;
                 }
 
-                if (!IsWorthPolling(pindex)) {
+                if (!isWorthPolling(pindex)) {
                     // There is no point polling this block.
                     continue;
                 }
@@ -878,7 +861,7 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
         auto w = blockVoteRecords.getWriteView();
         for (auto it = w->begin(); it != w->end();) {
             const CBlockIndex *pindex = it->first;
-            if (!IsWorthPolling(pindex)) {
+            if (!isWorthPolling(pindex)) {
                 w->erase(it++);
             } else {
                 ++it;
@@ -907,6 +890,22 @@ uint256 Processor::buildLocalSighash(CNode *pfrom) const {
     hasher << pfrom->GetLocalExtraEntropy();
     hasher << pfrom->nRemoteExtraEntropy;
     return hasher.GetHash();
+}
+
+bool Processor::isWorthPolling(const CBlockIndex *pindex) const {
+    AssertLockHeld(cs_main);
+
+    if (pindex->nStatus.isInvalid()) {
+        // No point polling invalid blocks.
+        return false;
+    }
+
+    if (::ChainstateActive().IsBlockFinalized(pindex)) {
+        // There is no point polling finalized block.
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace avalanche

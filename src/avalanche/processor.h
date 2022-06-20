@@ -253,6 +253,9 @@ private:
      */
     uint256 buildLocalSighash(CNode *pfrom) const;
 
+    bool isWorthPolling(const CBlockIndex *pindex) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     friend struct ::avalanche::AvalancheTest;
 };
 
