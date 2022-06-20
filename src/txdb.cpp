@@ -259,10 +259,6 @@ bool CCoinsViewDBCursor::GetValue(Coin &coin) const {
     return pcursor->GetValue(coin);
 }
 
-unsigned int CCoinsViewDBCursor::GetValueSize() const {
-    return pcursor->GetValueSize();
-}
-
 bool CCoinsViewDBCursor::Valid() const {
     return keyTmp.first == DB_COIN;
 }

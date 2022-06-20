@@ -82,7 +82,6 @@ public:
 
     bool GetKey(COutPoint &key) const override;
     bool GetValue(Coin &coin) const override;
-    unsigned int GetValueSize() const override;
 
     bool Valid() const override;
     void Next() override;
