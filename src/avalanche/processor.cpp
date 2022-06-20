@@ -595,16 +595,6 @@ CPubKey Processor::getSessionPubKey() const {
     return sessionKey.GetPubKey();
 }
 
-uint256 Processor::buildLocalSighash(CNode *pfrom) const {
-    CHashWriter hasher(SER_GETHASH, 0);
-    hasher << peerData->delegation.getId();
-    hasher << pfrom->GetLocalNonce();
-    hasher << pfrom->nRemoteHostNonce;
-    hasher << pfrom->GetLocalExtraEntropy();
-    hasher << pfrom->nRemoteExtraEntropy;
-    return hasher.GetHash();
-}
-
 bool Processor::sendHello(CNode *pfrom) const {
     if (!peerData) {
         // We do not have a delegation to advertise.
@@ -642,197 +632,6 @@ bool Processor::startEventLoop(CScheduler &scheduler) {
 
 bool Processor::stopEventLoop() {
     return eventLoop.stopEventLoop();
-}
-
-std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
-    std::vector<CInv> invs;
-
-    auto extractVoteRecordsToInvs = [&](const auto &itemVoteRecordRange,
-                                        auto buildInvFromVoteItem) {
-        for (const auto &[item, voteRecord] : itemVoteRecordRange) {
-            if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
-                // Make sure we do not produce more invs than specified by the
-                // protocol.
-                return true;
-            }
-
-            const bool shouldPoll =
-                forPoll ? voteRecord.registerPoll() : voteRecord.shouldPoll();
-
-            if (!shouldPoll) {
-                continue;
-            }
-
-            invs.emplace_back(buildInvFromVoteItem(item));
-        }
-
-        return invs.size() >= AVALANCHE_MAX_ELEMENT_POLL;
-    };
-
-    if (extractVoteRecordsToInvs(proofVoteRecords.getReadView(),
-                                 [](const ProofRef &proof) {
-                                     return CInv(MSG_AVA_PROOF, proof->getId());
-                                 })) {
-        // The inventory vector is full, we're done
-        return invs;
-    }
-
-    // First remove all blocks that are not worth polling.
-    {
-        LOCK(cs_main);
-        auto w = blockVoteRecords.getWriteView();
-        for (auto it = w->begin(); it != w->end();) {
-            const CBlockIndex *pindex = it->first;
-            if (!IsWorthPolling(pindex)) {
-                w->erase(it++);
-            } else {
-                ++it;
-            }
-        }
-    }
-
-    auto r = blockVoteRecords.getReadView();
-    extractVoteRecordsToInvs(reverse_iterate(r), [](const CBlockIndex *pindex) {
-        return CInv(MSG_BLOCK, pindex->GetBlockHash());
-    });
-
-    return invs;
-}
-
-NodeId Processor::getSuitableNodeToQuery() {
-    LOCK(cs_peerManager);
-    return peerManager->selectNode();
-}
-
-void Processor::clearTimedoutRequests() {
-    auto now = std::chrono::steady_clock::now();
-    std::map<CInv, uint8_t> timedout_items{};
-
-    {
-        // Clear expired requests.
-        auto w = queries.getWriteView();
-        auto it = w->get<query_timeout>().begin();
-        while (it != w->get<query_timeout>().end() && it->timeout < now) {
-            for (const auto &i : it->invs) {
-                timedout_items[i]++;
-            }
-
-            w->get<query_timeout>().erase(it++);
-        }
-    }
-
-    if (timedout_items.empty()) {
-        return;
-    }
-
-    auto clearInflightRequest = [&](auto &voteRecords, const auto &voteItem,
-                                    uint8_t count) {
-        if (!voteItem) {
-            return false;
-        }
-
-        auto voteRecordsWriteView = voteRecords.getWriteView();
-        auto it = voteRecordsWriteView->find(voteItem);
-        if (it == voteRecordsWriteView.end()) {
-            return false;
-        }
-
-        it->second.clearInflightRequest(count);
-
-        return true;
-    };
-
-    // In flight request accounting.
-    for (const auto &p : timedout_items) {
-        const CInv &inv = p.first;
-        if (inv.IsMsgBlk()) {
-            const CBlockIndex *pindex = WITH_LOCK(
-                cs_main, return g_chainman.m_blockman.LookupBlockIndex(
-                             BlockHash(inv.hash)));
-
-            if (!clearInflightRequest(blockVoteRecords, pindex, p.second)) {
-                continue;
-            }
-        }
-
-        if (inv.IsMsgProof()) {
-            const ProofRef proof =
-                WITH_LOCK(cs_peerManager,
-                          return peerManager->getProof(ProofId(inv.hash)));
-
-            if (!clearInflightRequest(proofVoteRecords, proof, p.second)) {
-                continue;
-            }
-        }
-    }
-}
-
-void Processor::runEventLoop() {
-    // Don't poll if quorum hasn't been established yet
-    if (!isQuorumEstablished()) {
-        return;
-    }
-
-    // First things first, check if we have requests that timed out and clear
-    // them.
-    clearTimedoutRequests();
-
-    // Make sure there is at least one suitable node to query before gathering
-    // invs.
-    NodeId nodeid = getSuitableNodeToQuery();
-    if (nodeid == NO_NODE) {
-        return;
-    }
-    std::vector<CInv> invs = getInvsForNextPoll();
-    if (invs.empty()) {
-        return;
-    }
-
-    do {
-        /**
-         * If we lost contact to that node, then we remove it from nodeids, but
-         * never add the request to queries, which ensures bad nodes get cleaned
-         * up over time.
-         */
-        bool hasSent = connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
-            uint64_t current_round = round++;
-
-            {
-                // Compute the time at which this requests times out.
-                auto timeout =
-                    std::chrono::steady_clock::now() + queryTimeoutDuration;
-                // Register the query.
-                queries.getWriteView()->insert(
-                    {pnode->GetId(), current_round, timeout, invs});
-                // Set the timeout.
-                LOCK(cs_peerManager);
-                peerManager->updateNextRequestTime(pnode->GetId(), timeout);
-            }
-
-            pnode->m_avalanche_state->invsPolled(invs.size());
-
-            // Send the query to the node.
-            connman->PushMessage(
-                pnode, CNetMsgMaker(pnode->GetCommonVersion())
-                           .Make(NetMsgType::AVAPOLL,
-                                 Poll(current_round, std::move(invs))));
-            return true;
-        });
-
-        // Success!
-        if (hasSent) {
-            return;
-        }
-
-        {
-            // This node is obsolete, delete it.
-            LOCK(cs_peerManager);
-            peerManager->removeNode(nodeid);
-        }
-
-        // Get next suitable node to try again
-        nodeid = getSuitableNodeToQuery();
-    } while (nodeid != NO_NODE);
 }
 
 void Processor::avaproofsSent(NodeId nodeid) {
@@ -907,6 +706,207 @@ bool Processor::isQuorumEstablished() {
 void Processor::FinalizeNode(const Config &config, const CNode &node,
                              bool &update_connection_time) {
     WITH_LOCK(cs_peerManager, peerManager->removeNode(node.GetId()));
+}
+
+void Processor::runEventLoop() {
+    // Don't poll if quorum hasn't been established yet
+    if (!isQuorumEstablished()) {
+        return;
+    }
+
+    // First things first, check if we have requests that timed out and clear
+    // them.
+    clearTimedoutRequests();
+
+    // Make sure there is at least one suitable node to query before gathering
+    // invs.
+    NodeId nodeid = getSuitableNodeToQuery();
+    if (nodeid == NO_NODE) {
+        return;
+    }
+    std::vector<CInv> invs = getInvsForNextPoll();
+    if (invs.empty()) {
+        return;
+    }
+
+    do {
+        /**
+         * If we lost contact to that node, then we remove it from nodeids, but
+         * never add the request to queries, which ensures bad nodes get cleaned
+         * up over time.
+         */
+        bool hasSent = connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
+            uint64_t current_round = round++;
+
+            {
+                // Compute the time at which this requests times out.
+                auto timeout =
+                    std::chrono::steady_clock::now() + queryTimeoutDuration;
+                // Register the query.
+                queries.getWriteView()->insert(
+                    {pnode->GetId(), current_round, timeout, invs});
+                // Set the timeout.
+                LOCK(cs_peerManager);
+                peerManager->updateNextRequestTime(pnode->GetId(), timeout);
+            }
+
+            pnode->m_avalanche_state->invsPolled(invs.size());
+
+            // Send the query to the node.
+            connman->PushMessage(
+                pnode, CNetMsgMaker(pnode->GetCommonVersion())
+                           .Make(NetMsgType::AVAPOLL,
+                                 Poll(current_round, std::move(invs))));
+            return true;
+        });
+
+        // Success!
+        if (hasSent) {
+            return;
+        }
+
+        {
+            // This node is obsolete, delete it.
+            LOCK(cs_peerManager);
+            peerManager->removeNode(nodeid);
+        }
+
+        // Get next suitable node to try again
+        nodeid = getSuitableNodeToQuery();
+    } while (nodeid != NO_NODE);
+}
+
+void Processor::clearTimedoutRequests() {
+    auto now = std::chrono::steady_clock::now();
+    std::map<CInv, uint8_t> timedout_items{};
+
+    {
+        // Clear expired requests.
+        auto w = queries.getWriteView();
+        auto it = w->get<query_timeout>().begin();
+        while (it != w->get<query_timeout>().end() && it->timeout < now) {
+            for (const auto &i : it->invs) {
+                timedout_items[i]++;
+            }
+
+            w->get<query_timeout>().erase(it++);
+        }
+    }
+
+    if (timedout_items.empty()) {
+        return;
+    }
+
+    auto clearInflightRequest = [&](auto &voteRecords, const auto &voteItem,
+                                    uint8_t count) {
+        if (!voteItem) {
+            return false;
+        }
+
+        auto voteRecordsWriteView = voteRecords.getWriteView();
+        auto it = voteRecordsWriteView->find(voteItem);
+        if (it == voteRecordsWriteView.end()) {
+            return false;
+        }
+
+        it->second.clearInflightRequest(count);
+
+        return true;
+    };
+
+    // In flight request accounting.
+    for (const auto &p : timedout_items) {
+        const CInv &inv = p.first;
+        if (inv.IsMsgBlk()) {
+            const CBlockIndex *pindex = WITH_LOCK(
+                cs_main, return g_chainman.m_blockman.LookupBlockIndex(
+                             BlockHash(inv.hash)));
+
+            if (!clearInflightRequest(blockVoteRecords, pindex, p.second)) {
+                continue;
+            }
+        }
+
+        if (inv.IsMsgProof()) {
+            const ProofRef proof =
+                WITH_LOCK(cs_peerManager,
+                          return peerManager->getProof(ProofId(inv.hash)));
+
+            if (!clearInflightRequest(proofVoteRecords, proof, p.second)) {
+                continue;
+            }
+        }
+    }
+}
+
+std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
+    std::vector<CInv> invs;
+
+    auto extractVoteRecordsToInvs = [&](const auto &itemVoteRecordRange,
+                                        auto buildInvFromVoteItem) {
+        for (const auto &[item, voteRecord] : itemVoteRecordRange) {
+            if (invs.size() >= AVALANCHE_MAX_ELEMENT_POLL) {
+                // Make sure we do not produce more invs than specified by the
+                // protocol.
+                return true;
+            }
+
+            const bool shouldPoll =
+                forPoll ? voteRecord.registerPoll() : voteRecord.shouldPoll();
+
+            if (!shouldPoll) {
+                continue;
+            }
+
+            invs.emplace_back(buildInvFromVoteItem(item));
+        }
+
+        return invs.size() >= AVALANCHE_MAX_ELEMENT_POLL;
+    };
+
+    if (extractVoteRecordsToInvs(proofVoteRecords.getReadView(),
+                                 [](const ProofRef &proof) {
+                                     return CInv(MSG_AVA_PROOF, proof->getId());
+                                 })) {
+        // The inventory vector is full, we're done
+        return invs;
+    }
+
+    // First remove all blocks that are not worth polling.
+    {
+        LOCK(cs_main);
+        auto w = blockVoteRecords.getWriteView();
+        for (auto it = w->begin(); it != w->end();) {
+            const CBlockIndex *pindex = it->first;
+            if (!IsWorthPolling(pindex)) {
+                w->erase(it++);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    auto r = blockVoteRecords.getReadView();
+    extractVoteRecordsToInvs(reverse_iterate(r), [](const CBlockIndex *pindex) {
+        return CInv(MSG_BLOCK, pindex->GetBlockHash());
+    });
+
+    return invs;
+}
+
+NodeId Processor::getSuitableNodeToQuery() {
+    LOCK(cs_peerManager);
+    return peerManager->selectNode();
+}
+
+uint256 Processor::buildLocalSighash(CNode *pfrom) const {
+    CHashWriter hasher(SER_GETHASH, 0);
+    hasher << peerData->delegation.getId();
+    hasher << pfrom->GetLocalNonce();
+    hasher << pfrom->nRemoteHostNonce;
+    hasher << pfrom->GetLocalExtraEntropy();
+    hasher << pfrom->nRemoteExtraEntropy;
+    return hasher.GetHash();
 }
 
 } // namespace avalanche
