@@ -31,7 +31,7 @@ from test_framework.wallet import MiniWallet
 CLTV_HEIGHT = 1351
 
 
-def cltv_lock_to_height(wallet, from_node, fundtx, height=-1):
+def cltv_lock_to_height(fundtx, height=-1):
     """Modify the scriptPubKey to add an OP_CHECKLOCKTIMEVERIFY, and make
     a transaction that spends it.
 
@@ -91,8 +91,8 @@ class BIP65Test(BitcoinTestFramework):
             " block"
         )
 
-        fundtx = wallet.create_self_transfer(from_node=self.nodes[0])["tx"]
-        fundtx, spendtx = cltv_lock_to_height(wallet, self.nodes[0], fundtx)
+        fundtx = wallet.create_self_transfer()["tx"]
+        fundtx, spendtx = cltv_lock_to_height(fundtx)
 
         tip = self.nodes[0].getbestblockhash()
         block_time = self.nodes[0].getblockheader(tip)["mediantime"] + 1
@@ -128,8 +128,8 @@ class BIP65Test(BitcoinTestFramework):
         )
         block.nVersion = 4
 
-        fundtx = wallet.create_self_transfer(from_node=self.nodes[0])["tx"]
-        fundtx, spendtx = cltv_lock_to_height(wallet, self.nodes[0], fundtx)
+        fundtx = wallet.create_self_transfer()["tx"]
+        fundtx, spendtx = cltv_lock_to_height(fundtx)
 
         # The funding tx only has unexecuted bad CLTV, in scriptpubkey; this is
         # valid.
@@ -182,10 +182,8 @@ class BIP65Test(BitcoinTestFramework):
             " accepted"
         )
 
-        fundtx = wallet.create_self_transfer(from_node=self.nodes[0])["tx"]
-        fundtx, spendtx = cltv_lock_to_height(
-            wallet, self.nodes[0], fundtx, height=CLTV_HEIGHT
-        )
+        fundtx = wallet.create_self_transfer()["tx"]
+        fundtx, spendtx = cltv_lock_to_height(fundtx, height=CLTV_HEIGHT)
 
         # make sure sequence is nonfinal and locktime is good
         spendtx.vin[0].nSequence = 0xFFFFFFFE

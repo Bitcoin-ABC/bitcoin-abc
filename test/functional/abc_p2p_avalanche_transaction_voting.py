@@ -239,9 +239,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             int(node.getbestblockhash(), 16),
             create_coinbase(node.getblockcount() - 1),
         )
-        conflicting_tx = wallet.create_self_transfer(
-            from_node=node, utxo_to_spend=utxo
-        )["tx"]
+        conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)["tx"]
         assert conflicting_tx.get_id() != txid
 
         conflicting_block.vtx.append(conflicting_tx)
