@@ -149,12 +149,12 @@ export const mockSentAirdropOpReturnMessageTx = [
     {
         amountReceived: 0,
         amountSent: 0,
-        blocktime: 1651757835,
-        confirmations: 2,
+        blocktime: 1655939541,
+        confirmations: 5,
         destinationAddress: undefined,
         height: undefined,
-        opReturnMessage: 'banana',
-        replyAddress: null,
+        opReturnMessage: 'airdrop44',
+        replyAddress: 'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed',
         outgoingTx: false,
         tokenTx: false,
         isCashtabMessage: true,
@@ -162,7 +162,7 @@ export const mockSentAirdropOpReturnMessageTx = [
         decryptionSuccess: false,
         airdropFlag: true,
         airdropTokenId:
-            '31633663396336346437306232383562656665373333663137356430663338343533383537363837366264323830623130353837646638313237396433663565',
-        txid: 'ff253d06a1f3cce088d541dc28d06cf08cebc0288c2ae21e8985df08109b45d8',
+            '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
+        txid: '918494859b46ae2c9a587983504f9c42aba2fe48df1e09d4f9c77bee7a1aa0ee',
     },
 ];
