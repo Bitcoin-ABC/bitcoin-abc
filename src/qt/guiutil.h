@@ -119,6 +119,16 @@ void setClipboard(const QString &str);
  */
 QString getDefaultDataDirectory();
 
+/**
+ * Extract first suffix from filter pattern "Description (*.foo)" or
+ * "Description (*.foo *.bar ...).
+ *
+ * @param[in] filter Filter specification such as
+ *                   "Comma Separated Files (*.csv)"
+ * @return QString
+ */
+QString ExtractFirstSuffixFromFilter(const QString &filter);
+
 /** Get save filename, mimics QFileDialog::getSaveFileName, except that it
   appends a default suffix
     when no suffix is provided by the user.

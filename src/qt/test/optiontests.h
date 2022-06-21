@@ -16,6 +16,7 @@ public:
 
 private Q_SLOTS:
     void optionTests();
+    void extractFilter();
 
 private:
     interfaces::Node &m_node;
