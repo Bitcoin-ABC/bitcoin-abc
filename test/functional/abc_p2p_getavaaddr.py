@@ -36,7 +36,6 @@ MAX_GETAVAADDR_DELAY = 5 * 60
 
 
 class AddrReceiver(P2PInterface):
-
     def __init__(self):
         super().__init__()
         self.received_addrs = None
@@ -90,6 +89,17 @@ class AvaAddrTest(BitcoinTestFramework):
         self.extra_args = [['-enableavalanche=1',
                             '-avacooldown=0', '-whitelist=noban@127.0.0.1']]
 
+    def check_all_peers_received_getavaaddr_once(self, avapeers):
+        def received_all_getavaaddr(avapeers):
+            with p2p_lock:
+                return all([p.last_message.get("getavaaddr")
+                           for p in avapeers])
+        self.wait_until(lambda: received_all_getavaaddr(avapeers))
+
+        with p2p_lock:
+            assert all([p.message_count.get(
+                "getavaaddr", 0) == 1 for p in avapeers])
+
     def getavaaddr_interval_test(self):
         node = self.nodes[0]
 
@@ -102,14 +112,17 @@ class AvaAddrTest(BitcoinTestFramework):
         proof_hex = proof.serialize().hex()
 
         # Add some avalanche peers to the node
-        for n in range(10):
+        for _ in range(10):
             node.add_p2p_connection(AllYesAvaP2PInterface(master_privkey))
             assert node.addavalanchenode(
                 node.getpeerinfo()[-1]['id'], master_pubkey, proof_hex)
 
         # Build some statistics to ensure some addresses will be returned
-        self.wait_until(lambda: all(
-            [avanode.poll_received > 0 for avanode in node.p2ps]))
+        def all_peers_received_poll():
+            with p2p_lock:
+                return all([avanode.poll_received >
+                           0 for avanode in node.p2ps])
+        self.wait_until(all_peers_received_poll)
         node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
         requester = node.add_p2p_connection(AddrReceiver())
@@ -118,7 +131,7 @@ class AvaAddrTest(BitcoinTestFramework):
         getavaddr_time = mock_time
 
         # Spamming more get getavaaddr has no effect
-        for i in range(10):
+        for _ in range(10):
             with node.assert_debug_log(["Ignoring repeated getavaaddr from peer"]):
                 requester.send_message(msg_getavaaddr())
 
@@ -183,8 +196,9 @@ class AvaAddrTest(BitcoinTestFramework):
         # muted nodes.
         def poll_all_for_block():
             node.generate(1)
-            return all([avanode.poll_received > (
-                10 if avanode.is_responding else 0) for avanode in avanodes])
+            with p2p_lock:
+                return all([avanode.poll_received > (
+                    10 if avanode.is_responding else 0) for avanode in avanodes])
         self.wait_until(poll_all_for_block)
 
         # Move the scheduler time 10 minutes forward so that so that our peers
@@ -236,10 +250,7 @@ class AvaAddrTest(BitcoinTestFramework):
             )
             avapeers.append(avapeer)
 
-        self.wait_until(
-            lambda: all([p.last_message.get("getavaaddr") for p in avapeers]))
-        assert all([p.message_count.get(
-            "getavaaddr", 0) == 1 for p in avapeers])
+        self.check_all_peers_received_getavaaddr_once(avapeers)
 
         # Generate some block to poll for
         node.generate(1)
@@ -248,8 +259,12 @@ class AvaAddrTest(BitcoinTestFramework):
         # fail out of option shortly and send a getavaaddr message to one of its
         # outbound avalanche peers.
         node.mockscheduler(MAX_GETAVAADDR_DELAY)
-        self.wait_until(
-            lambda: any([p.message_count.get("getavaaddr", 0) > 1 for p in avapeers]))
+
+        def any_peer_received_getavaaddr():
+            with p2p_lock:
+                return any([p.message_count.get(
+                    "getavaaddr", 0) > 1 for p in avapeers])
+        self.wait_until(any_peer_received_getavaaddr)
 
     def getavaaddr_manual_test(self):
         self.log.info(
@@ -284,15 +299,15 @@ class AvaAddrTest(BitcoinTestFramework):
         assert_equal(node.getpeerinfo()[-1]['addr'], ip_port)
         assert_equal(node.getpeerinfo()[-1]['connection_type'], 'manual')
 
-        self.wait_until(lambda: p.last_message.get("getavaaddr"))
+        p.wait_until(lambda: p.last_message.get("getavaaddr"))
 
         # Generate some block to poll for
         node.generate(1)
 
-        # Because our avalanche peers is not responding, our node should fail
+        # Because our avalanche peer is not responding, our node should fail
         # out of option shortly and send another getavaaddr message.
         node.mockscheduler(MAX_GETAVAADDR_DELAY)
-        self.wait_until(lambda: p.message_count.get("getavaaddr", 0) > 1)
+        p.wait_until(lambda: p.message_count.get("getavaaddr", 0) > 1)
 
     def getavaaddr_noquorum(self):
         self.log.info(
@@ -320,14 +335,12 @@ class AvaAddrTest(BitcoinTestFramework):
             peerinfo = node.getpeerinfo()[-1]
             avapeer.set_addr(peerinfo["addr"])
 
-        self.wait_until(
-            lambda: all([p.last_message.get("getavaaddr") for p in avapeers]))
-        assert all([p.message_count.get(
-            "getavaaddr", 0) == 1 for p in avapeers])
+        self.check_all_peers_received_getavaaddr_once(avapeers)
 
         def total_getavaaddr_msg():
-            return sum([p.message_count.get("getavaaddr", 0)
-                       for p in avapeers])
+            with p2p_lock:
+                return sum([p.message_count.get("getavaaddr", 0)
+                            for p in avapeers])
 
         # Because we have not enough stake to start polling, we keep requesting
         # more addresses

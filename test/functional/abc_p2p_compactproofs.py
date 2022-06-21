@@ -96,21 +96,27 @@ class CompactProofsTest(BitcoinTestFramework):
             )
             outbound_avapeers.append(peer)
 
-        self.wait_until(
-            lambda: all([p.last_message.get("getavaproofs") for p in outbound_avapeers]))
-        assert all([p.message_count.get(
-            "getavaproofs", 0) >= 1 for p in outbound_avapeers])
-        assert all([p.message_count.get(
-            "getavaproofs", 0) == 0 for p in non_avapeers])
-        assert all([p.message_count.get(
-            "getavaproofs", 0) == 0 for p in inbound_avapeers])
+        def all_peers_received_getavaproofs():
+            with p2p_lock:
+                return all([p.last_message.get("getavaproofs")
+                           for p in outbound_avapeers])
+        self.wait_until(all_peers_received_getavaproofs)
+
+        with p2p_lock:
+            assert all([p.message_count.get(
+                "getavaproofs", 0) >= 1 for p in outbound_avapeers])
+            assert all([p.message_count.get(
+                "getavaproofs", 0) == 0 for p in non_avapeers])
+            assert all([p.message_count.get(
+                "getavaproofs", 0) == 0 for p in inbound_avapeers])
 
         self.log.info(
             "Check we send periodic getavaproofs message to one of our peers")
 
         def count_outbounds_getavaproofs():
-            return sum([p.message_count.get("getavaproofs", 0)
-                       for p in outbound_avapeers])
+            with p2p_lock:
+                return sum([p.message_count.get("getavaproofs", 0)
+                            for p in outbound_avapeers])
 
         outbounds_getavaproofs = count_outbounds_getavaproofs()
         for i in range(12):
@@ -119,10 +125,11 @@ class CompactProofsTest(BitcoinTestFramework):
                             == outbounds_getavaproofs + 1)
             outbounds_getavaproofs += 1
 
-        assert all([p.message_count.get(
-            "getavaproofs", 0) == 0 for p in non_avapeers])
-        assert all([p.message_count.get(
-            "getavaproofs", 0) == 0 for p in inbound_avapeers])
+        with p2p_lock:
+            assert all([p.message_count.get(
+                "getavaproofs", 0) == 0 for p in non_avapeers])
+            assert all([p.message_count.get(
+                "getavaproofs", 0) == 0 for p in inbound_avapeers])
 
     def test_send_manual_getavaproofs(self):
         self.log.info(
@@ -157,7 +164,7 @@ class CompactProofsTest(BitcoinTestFramework):
         assert_equal(node.getpeerinfo()[-1]['addr'], ip_port)
         assert_equal(node.getpeerinfo()[-1]['connection_type'], 'manual')
 
-        self.wait_until(lambda: p.last_message.get("getavaproofs"))
+        p.wait_until(lambda: p.last_message.get("getavaproofs"))
 
     def test_respond_getavaproofs(self):
         self.log.info("Check the node responds to getavaproofs messages")
