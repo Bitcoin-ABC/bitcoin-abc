@@ -32,6 +32,7 @@ import {
     parseXecSendValue,
     getChangeAddressFromInputUtxos,
     generateOpReturnScript,
+    generateTxInput,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -177,6 +178,7 @@ import {
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
 import sendBCHMock from '../../hooks/__mocks__/sendBCH';
+import mockReturnGetSlpBalancesAndUtxos from '../../hooks/__mocks__/mockReturnGetSlpBalancesAndUtxos';
 
 it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo`, () => {
     const BCH = new BCHJS();
@@ -459,6 +461,114 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
         thrownError = err;
     }
     expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
+});
+
+it(`generateTxInput() returns an input object for a valid one to one XEC tx `, async () => {
+    const BCH = new BCHJS();
+    const isOneToMany = false;
+    const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
+    let txBuilder = new BCH.TransactionBuilder();
+    const destinationAddressAndValueArray = null;
+    const satoshisToSend = new BigNumber(2184);
+    const feeInSatsPerByte = currency.defaultFee;
+
+    const inputObj = generateTxInput(
+        BCH,
+        isOneToMany,
+        utxos,
+        txBuilder,
+        destinationAddressAndValueArray,
+        satoshisToSend,
+        feeInSatsPerByte,
+    );
+    expect(inputObj.txBuilder).not.toStrictEqual(null);
+    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(701000));
+    expect(inputObj.txFee).toStrictEqual(752);
+    expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
+});
+
+it(`generateTxInput() returns an input object for a valid one to many XEC tx `, async () => {
+    const BCH = new BCHJS();
+    const isOneToMany = true;
+    const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
+    let txBuilder = new BCH.TransactionBuilder();
+    const destinationAddressAndValueArray = [
+        'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
+        'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
+    ];
+    const satoshisToSend = new BigNumber(900000);
+    const feeInSatsPerByte = currency.defaultFee;
+
+    const inputObj = generateTxInput(
+        BCH,
+        isOneToMany,
+        utxos,
+        txBuilder,
+        destinationAddressAndValueArray,
+        satoshisToSend,
+        feeInSatsPerByte,
+    );
+    expect(inputObj.txBuilder).not.toStrictEqual(null);
+    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(1401000));
+    expect(inputObj.txFee).toStrictEqual(1186);
+    expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
+});
+
+it(`generateTxInput() throws error for a one to many XEC tx with invalid destinationAddressAndValueArray input`, async () => {
+    const BCH = new BCHJS();
+    const isOneToMany = true;
+    const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
+    let txBuilder = new BCH.TransactionBuilder();
+    const destinationAddressAndValueArray = null; // invalid since isOneToMany is true
+    const satoshisToSend = new BigNumber(900000);
+    const feeInSatsPerByte = currency.defaultFee;
+
+    let thrownError;
+    try {
+        generateTxInput(
+            BCH,
+            isOneToMany,
+            utxos,
+            txBuilder,
+            destinationAddressAndValueArray,
+            satoshisToSend,
+            feeInSatsPerByte,
+        );
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid tx input parameter');
+});
+
+it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos input`, async () => {
+    const BCH = new BCHJS();
+    const isOneToMany = true;
+    const utxos = null;
+    let txBuilder = new BCH.TransactionBuilder();
+    const destinationAddressAndValueArray = [
+        'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
+        'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
+    ];
+    const satoshisToSend = new BigNumber(900000);
+    const feeInSatsPerByte = currency.defaultFee;
+
+    let thrownError;
+    try {
+        generateTxInput(
+            BCH,
+            isOneToMany,
+            utxos,
+            txBuilder,
+            destinationAddressAndValueArray,
+            satoshisToSend,
+            feeInSatsPerByte,
+        );
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid tx input parameter');
 });
 
 describe('Correctly executes cash utility functions', () => {

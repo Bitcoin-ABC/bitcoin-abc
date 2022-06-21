@@ -7,6 +7,64 @@ import {
 } from 'utils/validation';
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
+import useBCH from '../hooks/useBCH';
+
+export const generateTxInput = (
+    BCH,
+    isOneToMany,
+    utxos,
+    txBuilder,
+    destinationAddressAndValueArray,
+    satoshisToSend,
+    feeInSatsPerByte,
+) => {
+    const { calcFee } = useBCH();
+    let txInputObj = {};
+    const inputUtxos = [];
+    let txFee = 0;
+    let totalInputUtxoValue = new BigNumber(0);
+    try {
+        if (
+            !BCH ||
+            (isOneToMany && !destinationAddressAndValueArray) ||
+            !utxos ||
+            !txBuilder ||
+            !satoshisToSend ||
+            !feeInSatsPerByte
+        ) {
+            throw new Error('Invalid tx input parameter');
+        }
+
+        // A normal tx will have 2 outputs, destination and change
+        // A one to many tx will have n outputs + 1 change output, where n is the number of recipients
+        const txOutputs = isOneToMany
+            ? destinationAddressAndValueArray.length + 1
+            : 2;
+        for (let i = 0; i < utxos.length; i++) {
+            const utxo = utxos[i];
+            totalInputUtxoValue = totalInputUtxoValue.plus(utxo.value);
+            const vout = utxo.vout;
+            const txid = utxo.txid;
+            // add input with txid and index of vout
+            txBuilder.addInput(txid, vout);
+
+            inputUtxos.push(utxo);
+            txFee = calcFee(BCH, inputUtxos, txOutputs, feeInSatsPerByte);
+
+            if (totalInputUtxoValue.minus(satoshisToSend).minus(txFee).gte(0)) {
+                break;
+            }
+        }
+    } catch (err) {
+        console.log(`generateTxInput() error: ` + err);
+        throw err;
+    }
+    txInputObj.txBuilder = txBuilder;
+    txInputObj.totalInputUtxoValue = totalInputUtxoValue;
+    txInputObj.inputUtxos = inputUtxos;
+    txInputObj.txFee = txFee;
+    return txInputObj;
+};
 
 export const getChangeAddressFromInputUtxos = (BCH, inputUtxos, wallet) => {
     if (!BCH || !inputUtxos || !wallet) {
