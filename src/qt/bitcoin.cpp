@@ -101,6 +101,8 @@ static void RegisterMetaTypes() {
     // copy-construct non-pointers to objects for invoking slots
     // behind-the-scenes in the 'Queued' connection case.
     qRegisterMetaType<Config *>();
+
+    // TODO: apply core-gui#623 if we ever backport core-gui#556
 }
 
 static QString GetLangTerritory() {
@@ -143,17 +145,20 @@ static void initTranslations(QTranslator &qtTranslatorBase,
     // - First load the translator for the base language, without territory
     // - Then load the more specific locale translator
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+    const QString translation_path{
+        QLibraryInfo::location(QLibraryInfo::TranslationsPath)};
+#else
+    const QString translation_path{
+        QLibraryInfo::path(QLibraryInfo::TranslationsPath)};
+#endif
     // Load e.g. qt_de.qm
-    if (qtTranslatorBase.load(
-            "qt_" + lang,
-            QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+    if (qtTranslatorBase.load("qt_" + lang, translation_path)) {
         QApplication::installTranslator(&qtTranslatorBase);
     }
 
     // Load e.g. qt_de_DE.qm
-    if (qtTranslator.load(
-            "qt_" + lang_territory,
-            QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+    if (qtTranslator.load("qt_" + lang_territory, translation_path)) {
         QApplication::installTranslator(&qtTranslator);
     }
 
@@ -645,9 +650,11 @@ int GuiMain(int argc, char *argv[]) {
     Q_INIT_RESOURCE(bitcoin);
     Q_INIT_RESOURCE(bitcoin_locale);
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     // Generate high-dpi pixmaps
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
 
     BitcoinApplication app;
 
