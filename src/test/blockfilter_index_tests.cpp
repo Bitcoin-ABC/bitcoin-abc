@@ -69,7 +69,8 @@ CBlock BuildChainTestingSetup::CreateBlock(
     const CScript &scriptPubKey) {
     const Config &config = GetConfig();
     std::unique_ptr<CBlockTemplate> pblocktemplate =
-        BlockAssembler(config, ::ChainstateActive(), *m_node.mempool)
+        BlockAssembler(config, m_node.chainman->ActiveChainstate(),
+                       *m_node.mempool)
             .CreateNewBlock(scriptPubKey);
     CBlock &block = pblocktemplate->block;
     block.hashPrevBlock = prev->GetBlockHash();
@@ -129,9 +130,10 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
         std::vector<BlockFilter> filters;
         std::vector<uint256> filter_hashes;
 
-        for (const CBlockIndex *block_index = ::ChainActive().Genesis();
+        for (const CBlockIndex *block_index =
+                 m_node.chainman->ActiveChain().Genesis();
              block_index != nullptr;
-             block_index = ::ChainActive().Next(block_index)) {
+             block_index = m_node.chainman->ActiveChain().Next(block_index)) {
             BOOST_CHECK(!filter_index.LookupFilter(block_index, filter));
             BOOST_CHECK(
                 !filter_index.LookupFilterHeader(block_index, filter_header));
@@ -146,7 +148,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     // started.
     BOOST_CHECK(!filter_index.BlockUntilSyncedToCurrentChain());
 
-    filter_index.Start(::ChainstateActive());
+    filter_index.Start(m_node.chainman->ActiveChainstate());
 
     // Allow filter index to catch up with the block index.
     constexpr int64_t timeout_ms = 10 * 1000;
@@ -161,8 +163,9 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     {
         LOCK(cs_main);
         const CBlockIndex *block_index;
-        for (block_index = ::ChainActive().Genesis(); block_index != nullptr;
-             block_index = ::ChainActive().Next(block_index)) {
+        for (block_index = m_node.chainman->ActiveChain().Genesis();
+             block_index != nullptr;
+             block_index = m_node.chainman->ActiveChain().Next(block_index)) {
             CheckFilterLookups(filter_index, block_index, last_header);
         }
     }
@@ -171,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
     const CBlockIndex *tip;
     {
         LOCK(cs_main);
-        tip = ::ChainActive().Tip();
+        tip = m_node.chainman->ActiveTip();
     }
 
     // Make sure we disable reorg protection.
@@ -201,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
         {
             LOCK(cs_main);
             block_index =
-                g_chainman.m_blockman.LookupBlockIndex(block->GetHash());
+                m_node.chainman->m_blockman.LookupBlockIndex(block->GetHash());
         }
 
         BOOST_CHECK(filter_index.BlockUntilSyncedToCurrentChain());
@@ -221,7 +224,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
         {
             LOCK(cs_main);
             block_index =
-                g_chainman.m_blockman.LookupBlockIndex(block->GetHash());
+                m_node.chainman->m_blockman.LookupBlockIndex(block->GetHash());
         }
 
         BOOST_CHECK(filter_index.BlockUntilSyncedToCurrentChain());
@@ -236,7 +239,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
         {
             LOCK(cs_main);
             block_index =
-                g_chainman.m_blockman.LookupBlockIndex(block->GetHash());
+                m_node.chainman->m_blockman.LookupBlockIndex(block->GetHash());
         }
 
         BOOST_CHECK(filter_index.BlockUntilSyncedToCurrentChain());
@@ -258,16 +261,16 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
 
         {
             LOCK(cs_main);
-            block_index =
-                g_chainman.m_blockman.LookupBlockIndex(chainA[i]->GetHash());
+            block_index = m_node.chainman->m_blockman.LookupBlockIndex(
+                chainA[i]->GetHash());
         }
         BOOST_CHECK(filter_index.BlockUntilSyncedToCurrentChain());
         CheckFilterLookups(filter_index, block_index, chainA_last_header);
 
         {
             LOCK(cs_main);
-            block_index =
-                g_chainman.m_blockman.LookupBlockIndex(chainB[i]->GetHash());
+            block_index = m_node.chainman->m_blockman.LookupBlockIndex(
+                chainB[i]->GetHash());
         }
         BOOST_CHECK(filter_index.BlockUntilSyncedToCurrentChain());
         CheckFilterLookups(filter_index, block_index, chainB_last_header);
@@ -279,7 +282,7 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync,
 
     {
         LOCK(cs_main);
-        tip = ::ChainActive().Tip();
+        tip = m_node.chainman->ActiveTip();
     }
     BOOST_CHECK(filter_index.LookupFilterRange(0, tip, filters));
     BOOST_CHECK(filter_index.LookupFilterHashRange(0, tip, filter_hashes));

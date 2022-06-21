@@ -211,18 +211,19 @@ TestingSetup::TestingSetup(const std::string &chainName,
     }
 
     m_node.chainman->InitializeChainstate(*m_node.mempool);
-    ::ChainstateActive().InitCoinsDB(
+    m_node.chainman->ActiveChainstate().InitCoinsDB(
         /* cache_size_bytes */ 1 << 23, /* in_memory */ true,
         /* should_wipe */ false);
-    assert(!::ChainstateActive().CanFlushToDisk());
-    ::ChainstateActive().InitCoinsCache(1 << 23);
-    assert(::ChainstateActive().CanFlushToDisk());
-    if (!::ChainstateActive().LoadGenesisBlock(chainparams)) {
+    assert(!m_node.chainman->ActiveChainstate().CanFlushToDisk());
+    m_node.chainman->ActiveChainstate().InitCoinsCache(1 << 23);
+    assert(m_node.chainman->ActiveChainstate().CanFlushToDisk());
+    if (!m_node.chainman->ActiveChainstate().LoadGenesisBlock(chainparams)) {
         throw std::runtime_error("LoadGenesisBlock failed.");
     }
     {
         BlockValidationState state;
-        if (!::ChainstateActive().ActivateBestChain(config, state)) {
+        if (!m_node.chainman->ActiveChainstate().ActivateBestChain(config,
+                                                                   state)) {
             throw std::runtime_error(
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }
@@ -262,7 +263,7 @@ TestChain100Setup::TestChain100Setup(bool deterministic) {
     if (m_deterministic) {
         LOCK(::cs_main);
         assert(
-            m_node.chainman->ActiveChain().Tip()->GetBlockHash().ToString() ==
+            m_node.chainman->ActiveTip()->GetBlockHash().ToString() ==
             "7709f3c48b74400f751dc88fcb318431cbe43f2284c43d830775defb89b50168");
     }
 }
@@ -284,9 +285,10 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     const std::vector<CMutableTransaction> &txns, const CScript &scriptPubKey) {
     const Config &config = GetConfig();
     CTxMemPool empty_pool;
-    CBlock block = BlockAssembler(config, ::ChainstateActive(), empty_pool)
-                       .CreateNewBlock(scriptPubKey)
-                       ->block;
+    CBlock block =
+        BlockAssembler(config, m_node.chainman->ActiveChainstate(), empty_pool)
+            .CreateNewBlock(scriptPubKey)
+            ->block;
 
     Assert(block.vtx.size() == 1);
     for (const CMutableTransaction &tx : txns) {
@@ -304,7 +306,7 @@ CBlock TestChain100Setup::CreateAndProcessBlock(
     {
         LOCK(cs_main);
         unsigned int extraNonce = 0;
-        IncrementExtraNonce(&block, ::ChainActive().Tip(),
+        IncrementExtraNonce(&block, m_node.chainman->ActiveTip(),
                             config.GetMaxBlockSize(), extraNonce);
     }
 

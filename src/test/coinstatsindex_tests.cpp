@@ -20,7 +20,7 @@ BOOST_FIXTURE_TEST_CASE(coinstatsindex_initial_sync, TestChain100Setup) {
     const CBlockIndex *block_index;
     {
         LOCK(cs_main);
-        block_index = ChainActive().Tip();
+        block_index = m_node.chainman->ActiveTip();
     }
 
     // CoinStatsIndex should not be found before it is started.
@@ -30,7 +30,7 @@ BOOST_FIXTURE_TEST_CASE(coinstatsindex_initial_sync, TestChain100Setup) {
     // is started.
     BOOST_CHECK(!coin_stats_index.BlockUntilSyncedToCurrentChain());
 
-    coin_stats_index.Start(::ChainstateActive());
+    coin_stats_index.Start(m_node.chainman->ActiveChainstate());
 
     // Allow the CoinStatsIndex to catch up with the block index that is syncing
     // in a background thread.
@@ -44,7 +44,7 @@ BOOST_FIXTURE_TEST_CASE(coinstatsindex_initial_sync, TestChain100Setup) {
     const CBlockIndex *genesis_block_index;
     {
         LOCK(cs_main);
-        genesis_block_index = ChainActive().Genesis();
+        genesis_block_index = m_node.chainman->ActiveChain().Genesis();
     }
     BOOST_CHECK(coin_stats_index.LookUpStats(genesis_block_index, coin_stats));
 
@@ -63,7 +63,7 @@ BOOST_FIXTURE_TEST_CASE(coinstatsindex_initial_sync, TestChain100Setup) {
     const CBlockIndex *new_block_index;
     {
         LOCK(cs_main);
-        new_block_index = ChainActive().Tip();
+        new_block_index = m_node.chainman->ActiveTip();
     }
     coin_stats_index.LookUpStats(new_block_index, new_coin_stats);
 

@@ -189,8 +189,8 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     // Sanity check to ensure header was not saved in memory
     {
         LOCK(cs_main);
-        BOOST_CHECK(g_chainman.m_blockman.LookupBlockIndex(headerB.GetHash()) ==
-                    nullptr);
+        BOOST_CHECK(m_node.chainman->m_blockman.LookupBlockIndex(
+                        headerB.GetHash()) == nullptr);
     }
 
     // Header AB should be rejected
@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     // Sanity check to ensure header was not saved in memory
     {
         LOCK(cs_main);
-        BOOST_CHECK(g_chainman.m_blockman.LookupBlockIndex(
+        BOOST_CHECK(m_node.chainman->m_blockman.LookupBlockIndex(
                         headerAB.GetHash()) == nullptr);
     }
 }

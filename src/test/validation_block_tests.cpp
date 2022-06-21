@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
     const CBlockIndex *initial_tip = nullptr;
     {
         LOCK(cs_main);
-        initial_tip = ::ChainActive().Tip();
+        initial_tip = m_node.chainman->ActiveTip();
     }
     auto sub = std::make_shared<TestSubscriber>(initial_tip->GetBlockHash());
     RegisterSharedValidationInterface(sub);
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
 
     LOCK(cs_main);
     BOOST_CHECK_EQUAL(sub->m_expected_tip,
-                      ::ChainActive().Tip()->GetBlockHash());
+                      m_node.chainman->ActiveTip()->GetBlockHash());
 }
 
 /**
@@ -283,7 +283,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
     // Run the test multiple times
     for (int test_runs = 3; test_runs > 0; --test_runs) {
         BOOST_CHECK_EQUAL(last_mined->GetHash(),
-                          ::ChainActive().Tip()->GetBlockHash());
+                          m_node.chainman->ActiveTip()->GetBlockHash());
 
         // Later on split from here
         const BlockHash split_hash{last_mined->hashPrevBlock};
@@ -332,8 +332,8 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
             TxValidationState state;
             for (const auto &tx : txs) {
                 BOOST_REQUIRE_MESSAGE(
-                    AcceptToMemoryPool(::ChainstateActive(), config,
-                                       *m_node.mempool, state, tx,
+                    AcceptToMemoryPool(m_node.chainman->ActiveChainstate(),
+                                       config, *m_node.mempool, state, tx,
                                        /* bypass_limits */ false),
                     state.GetRejectReason());
             }
@@ -367,7 +367,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
             }
             LOCK(cs_main);
             // We are done with the reorg, so the tip must have changed
-            assert(tip_init != ::ChainActive().Tip()->GetBlockHash());
+            assert(tip_init != m_node.chainman->ActiveTip()->GetBlockHash());
         }};
 
         // Make sure we disable reorg protection.
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
         }
         // Check that the reorg was eventually successful
         BOOST_CHECK_EQUAL(last_mined->GetHash(),
-                          ::ChainActive().Tip()->GetBlockHash());
+                          m_node.chainman->ActiveTip()->GetBlockHash());
 
         // We can join the other thread, which returns when the reorg was
         // successful

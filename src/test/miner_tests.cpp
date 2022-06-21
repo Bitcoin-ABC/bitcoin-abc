@@ -37,8 +37,8 @@ struct MinerTestingSetup : public TestingSetup {
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs);
     bool TestSequenceLocks(const CTransaction &tx, int flags)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_node.mempool->cs) {
-        return CheckSequenceLocks(::ChainstateActive(), *m_node.mempool, tx,
-                                  flags);
+        return CheckSequenceLocks(m_node.chainman->ActiveChainstate(),
+                                  *m_node.mempool, tx, flags);
     }
     BlockAssembler AssemblerForTest(const CChainParams &params);
 };
@@ -51,8 +51,8 @@ static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB);
 BlockAssembler MinerTestingSetup::AssemblerForTest(const CChainParams &params) {
     BlockAssembler::Options options;
     options.blockMinFeeRate = blockMinFeeRate;
-    return BlockAssembler(::ChainstateActive(), params, *m_node.mempool,
-                          options);
+    return BlockAssembler(m_node.chainman->ActiveChainstate(), params,
+                          *m_node.mempool, options);
 }
 
 constexpr static struct {
@@ -242,7 +242,7 @@ static void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
 
     // IncrementExtraNonce creates a valid coinbase and merkleRoot
     unsigned int extraNonce = 0;
-    CBlockIndex *active_chain_tip = chainman.ActiveChain().Tip();
+    CBlockIndex *active_chain_tip = chainman.ActiveTip();
     IncrementExtraNonce(pblock, active_chain_tip, config.GetMaxBlockSize(),
                         extraNonce);
     unsigned int nHeight = active_chain_tip->nHeight + 1;
@@ -299,17 +299,19 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         {
             LOCK(cs_main);
             pblock->nVersion = 1;
-            pblock->nTime = ::ChainActive().Tip()->GetMedianTimePast() + 1;
+            pblock->nTime =
+                m_node.chainman->ActiveTip()->GetMedianTimePast() + 1;
             CMutableTransaction txCoinbase(*pblock->vtx[0]);
             txCoinbase.nVersion = 1;
             txCoinbase.vin[0].scriptSig = CScript();
             txCoinbase.vin[0].scriptSig.push_back(bi.extranonce);
-            txCoinbase.vin[0].scriptSig.push_back(::ChainActive().Height());
+            txCoinbase.vin[0].scriptSig.push_back(
+                m_node.chainman->ActiveHeight());
             txCoinbase.vout.resize(1);
             txCoinbase.vout[0].scriptPubKey = CScript();
             pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
             if (txFirst.size() == 0) {
-                baseheight = ::ChainActive().Height();
+                baseheight = m_node.chainman->ActiveHeight();
             }
             if (txFirst.size() < 4) {
                 txFirst.push_back(pblock->vtx[0]);
@@ -426,30 +428,32 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     m_node.mempool->clear();
 
     // Subsidy changing.
-    int nHeight = ::ChainActive().Height();
+    int nHeight = m_node.chainman->ActiveHeight();
     // Create an actual 209999-long block chain (without valid blocks).
-    while (::ChainActive().Tip()->nHeight < 209999) {
-        CBlockIndex *prev = ::ChainActive().Tip();
+    while (m_node.chainman->ActiveHeight() < 209999) {
+        CBlockIndex *prev = m_node.chainman->ActiveTip();
         CBlockIndex *next = new CBlockIndex();
         next->phashBlock = new BlockHash(InsecureRand256());
-        ::ChainstateActive().CoinsTip().SetBestBlock(next->GetBlockHash());
+        m_node.chainman->ActiveChainstate().CoinsTip().SetBestBlock(
+            next->GetBlockHash());
         next->pprev = prev;
         next->nHeight = prev->nHeight + 1;
         next->BuildSkip();
-        ::ChainActive().SetTip(next);
+        m_node.chainman->ActiveChain().SetTip(next);
     }
     BOOST_CHECK(pblocktemplate =
                     AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
     // Extend to a 210000-long block chain.
-    while (::ChainActive().Tip()->nHeight < 210000) {
-        CBlockIndex *prev = ::ChainActive().Tip();
+    while (m_node.chainman->ActiveHeight() < 210000) {
+        CBlockIndex *prev = m_node.chainman->ActiveTip();
         CBlockIndex *next = new CBlockIndex();
         next->phashBlock = new BlockHash(InsecureRand256());
-        ::ChainstateActive().CoinsTip().SetBestBlock(next->GetBlockHash());
+        m_node.chainman->ActiveChainstate().CoinsTip().SetBestBlock(
+            next->GetBlockHash());
         next->pprev = prev;
         next->nHeight = prev->nHeight + 1;
         next->BuildSkip();
-        ::ChainActive().SetTip(next);
+        m_node.chainman->ActiveChain().SetTip(next);
     }
 
     BOOST_CHECK(pblocktemplate =
@@ -478,17 +482,17 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     m_node.mempool->clear();
 
     // Delete the dummy blocks again.
-    while (::ChainActive().Tip()->nHeight > nHeight) {
-        CBlockIndex *del = ::ChainActive().Tip();
-        ::ChainActive().SetTip(del->pprev);
-        ::ChainstateActive().CoinsTip().SetBestBlock(
+    while (m_node.chainman->ActiveHeight() > nHeight) {
+        CBlockIndex *del = m_node.chainman->ActiveTip();
+        m_node.chainman->ActiveChain().SetTip(del->pprev);
+        m_node.chainman->ActiveChainstate().CoinsTip().SetBestBlock(
             del->pprev->GetBlockHash());
         delete del->phashBlock;
         delete del;
     }
 
     // non-final txs in mempool
-    SetMockTime(::ChainActive().Tip()->GetMedianTimePast() + 1);
+    SetMockTime(m_node.chainman->ActiveTip()->GetMedianTimePast() + 1);
     uint32_t flags = LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
     // height map
     std::vector<int> prevheights;
@@ -501,7 +505,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin[0].prevout = COutPoint(txFirst[0]->GetId(), 0);
     tx.vin[0].scriptSig = CScript() << OP_1;
     // txFirst[0] is the 2nd block
-    tx.vin[0].nSequence = ::ChainActive().Tip()->nHeight + 1;
+    tx.vin[0].nSequence = m_node.chainman->ActiveHeight() + 1;
     prevheights[0] = baseheight + 1;
     tx.vout.resize(1);
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
@@ -517,7 +521,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
+            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
+            flags));
     }
 
     // Sequence locks fail.
@@ -532,11 +537,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // Relative time locked.
     tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
     // txFirst[1] is the 3rd block.
-    tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG |
-                          (((::ChainActive().Tip()->GetMedianTimePast() + 1 -
-                             ::ChainActive()[1]->GetMedianTimePast()) >>
-                            CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) +
-                           1);
+    tx.vin[0].nSequence =
+        CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG |
+        (((m_node.chainman->ActiveTip()->GetMedianTimePast() + 1 -
+           m_node.chainman->ActiveChain()[1]->GetMedianTimePast()) >>
+          CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) +
+         1);
     prevheights[0] = baseheight + 2;
     txid = tx.GetId();
     m_node.mempool->addUnchecked(entry.Time(GetTime()).FromTx(tx));
@@ -545,7 +551,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
+            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
+            flags));
     }
 
     // Sequence locks fail.
@@ -566,9 +573,9 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
 
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
         // Undo tricked MTP.
-        ::ChainActive()
+        m_node.chainman->ActiveChain()
             .Tip()
-            ->GetAncestor(::ChainActive().Tip()->nHeight - i)
+            ->GetAncestor(m_node.chainman->ActiveHeight() - i)
             ->nTime -= 512;
     }
 
@@ -576,7 +583,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     tx.vin[0].prevout = COutPoint(txFirst[2]->GetId(), 0);
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL - 1;
     prevheights[0] = baseheight + 3;
-    tx.nLockTime = ::ChainActive().Tip()->nHeight + 1;
+    tx.nLockTime = m_node.chainman->ActiveHeight() + 1;
     txid = tx.GetId();
     m_node.mempool->addUnchecked(entry.Time(GetTime()).FromTx(tx));
 
@@ -584,7 +591,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
+            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
+            flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -594,15 +602,17 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     {
         // Locktime passes on 2nd block.
         TxValidationState state;
-        int64_t nMedianTimePast = ::ChainActive().Tip()->GetMedianTimePast();
-        BOOST_CHECK(ContextualCheckTransaction(
-            params, CTransaction(tx), state, ::ChainActive().Tip()->nHeight + 2,
-            nMedianTimePast, nMedianTimePast));
+        int64_t nMedianTimePast =
+            m_node.chainman->ActiveTip()->GetMedianTimePast();
+        BOOST_CHECK(
+            ContextualCheckTransaction(params, CTransaction(tx), state,
+                                       m_node.chainman->ActiveHeight() + 2,
+                                       nMedianTimePast, nMedianTimePast));
     }
 
     // Absolute time locked.
     tx.vin[0].prevout = COutPoint(txFirst[3]->GetId(), 0);
-    tx.nLockTime = ::ChainActive().Tip()->GetMedianTimePast();
+    tx.nLockTime = m_node.chainman->ActiveTip()->GetMedianTimePast();
     prevheights.resize(1);
     prevheights[0] = baseheight + 4;
     txid = tx.GetId();
@@ -612,7 +622,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
+            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
+            flags));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -623,15 +634,16 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes 1 second later.
         TxValidationState state;
         int64_t nMedianTimePast =
-            ::ChainActive().Tip()->GetMedianTimePast() + 1;
-        BOOST_CHECK(ContextualCheckTransaction(
-            params, CTransaction(tx), state, ::ChainActive().Tip()->nHeight + 1,
-            nMedianTimePast, nMedianTimePast));
+            m_node.chainman->ActiveTip()->GetMedianTimePast() + 1;
+        BOOST_CHECK(
+            ContextualCheckTransaction(params, CTransaction(tx), state,
+                                       m_node.chainman->ActiveHeight() + 1,
+                                       nMedianTimePast, nMedianTimePast));
     }
 
     // mempool-dependent transactions (not added)
     tx.vin[0].prevout = COutPoint(txid, 0);
-    prevheights[0] = ::ChainActive().Tip()->nHeight + 1;
+    prevheights[0] = m_node.chainman->ActiveHeight() + 1;
     tx.nLockTime = 0;
     tx.vin[0].nSequence = 0;
 
@@ -639,7 +651,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            ::ChainActive().Tip(), params, CTransaction(tx), state, flags));
+            m_node.chainman->ActiveTip(), params, CTransaction(tx), state,
+            flags));
     }
 
     // Sequence locks pass.
@@ -666,19 +679,19 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     // mined.
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++) {
         // Trick the MedianTimePast.
-        ::ChainActive()
+        m_node.chainman->ActiveChain()
             .Tip()
-            ->GetAncestor(::ChainActive().Tip()->nHeight - i)
+            ->GetAncestor(m_node.chainman->ActiveHeight() - i)
             ->nTime += 512;
     }
-    ::ChainActive().Tip()->nHeight++;
-    SetMockTime(::ChainActive().Tip()->GetMedianTimePast() + 1);
+    m_node.chainman->ActiveTip()->nHeight++;
+    SetMockTime(m_node.chainman->ActiveTip()->GetMedianTimePast() + 1);
 
     BOOST_CHECK(pblocktemplate =
                     AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
     BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 5UL);
 
-    ::ChainActive().Tip()->nHeight--;
+    m_node.chainman->ActiveTip()->nHeight--;
     SetMockTime(0);
     m_node.mempool->clear();
 
@@ -741,7 +754,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // DEFAULT_MAX_GENERATED_BLOCK_SIZE
     {
         gArgs.ClearForcedArg("-blockmaxsize");
-        BlockAssembler ba(config, ::ChainstateActive(), *m_node.mempool);
+        BlockAssembler ba(config, m_node.chainman->ActiveChainstate(),
+                          *m_node.mempool);
         BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
                           DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     }
