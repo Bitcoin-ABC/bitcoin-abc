@@ -222,8 +222,9 @@ void MinerTestingSetup::TestPackageSelection(
     BOOST_CHECK(pblocktemplate->block.vtx[8]->GetId() == lowFeeTxId2);
 }
 
-void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
-                           const CTxMemPool &mempool) {
+static void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
+                                  const CTxMemPool &mempool,
+                                  const ChainstateManager &chainman) {
     GlobalConfig config;
     config.SetMaxBlockSize(eb);
 
@@ -234,16 +235,17 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
                   << OP_CHECKSIG;
 
     std::unique_ptr<CBlockTemplate> pblocktemplate =
-        BlockAssembler(config, ::ChainstateActive(), mempool)
+        BlockAssembler(config, chainman.ActiveChainstate(), mempool)
             .CreateNewBlock(scriptPubKey);
 
     CBlock *pblock = &pblocktemplate->block;
 
     // IncrementExtraNonce creates a valid coinbase and merkleRoot
     unsigned int extraNonce = 0;
-    IncrementExtraNonce(pblock, ::ChainActive().Tip(), config.GetMaxBlockSize(),
+    CBlockIndex *active_chain_tip = chainman.ActiveChain().Tip();
+    IncrementExtraNonce(pblock, active_chain_tip, config.GetMaxBlockSize(),
                         extraNonce);
-    unsigned int nHeight = ::ChainActive().Tip()->nHeight + 1;
+    unsigned int nHeight = active_chain_tip->nHeight + 1;
     std::vector<uint8_t> vec(cbmsg.begin(), cbmsg.end());
     BOOST_CHECK(pblock->vtx[0]->vin[0].scriptSig ==
                 (CScript() << nHeight << CScriptNum(extraNonce) << vec));
@@ -252,10 +254,14 @@ void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
 // Coinbase scriptSig has to contains the correct EB value
 // converted to MB, rounded down to the first decimal
 BOOST_AUTO_TEST_CASE(CheckCoinbase_EB) {
-    TestCoinbaseMessageEB(1000001, "/EB1.0/", *m_node.mempool);
-    TestCoinbaseMessageEB(2000000, "/EB2.0/", *m_node.mempool);
-    TestCoinbaseMessageEB(8000000, "/EB8.0/", *m_node.mempool);
-    TestCoinbaseMessageEB(8320000, "/EB8.3/", *m_node.mempool);
+    TestCoinbaseMessageEB(1000001, "/EB1.0/", *m_node.mempool,
+                          *m_node.chainman);
+    TestCoinbaseMessageEB(2000000, "/EB2.0/", *m_node.mempool,
+                          *m_node.chainman);
+    TestCoinbaseMessageEB(8000000, "/EB8.0/", *m_node.mempool,
+                          *m_node.chainman);
+    TestCoinbaseMessageEB(8320000, "/EB8.3/", *m_node.mempool,
+                          *m_node.chainman);
 }
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
@@ -681,11 +687,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     fCheckpointsEnabled = true;
 }
 
-void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,
-                       uint64_t size, uint64_t expected) {
+static void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,
+                              CChainState &active_chainstate, uint64_t size,
+                              uint64_t expected) {
     gArgs.ForceSetArg("-blockmaxsize", ToString(size));
 
-    BlockAssembler ba(config, ::ChainstateActive(), mempool);
+    BlockAssembler ba(config, active_chainstate, mempool);
     BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), expected);
 }
 
@@ -695,34 +702,40 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // We are working on a fake chain and need to protect ourselves.
     LOCK(cs_main);
 
+    const CTxMemPool &mempool = *m_node.mempool;
+    CChainState &active_chainstate = m_node.chainman->ActiveChainstate();
+
     // Test around historical 1MB (plus one byte because that's mandatory)
     config.SetMaxBlockSize(ONE_MEGABYTE + 1);
-    CheckBlockMaxSize(config, *m_node.mempool, 0, 1000);
-    CheckBlockMaxSize(config, *m_node.mempool, 1000, 1000);
-    CheckBlockMaxSize(config, *m_node.mempool, 1001, 1001);
-    CheckBlockMaxSize(config, *m_node.mempool, 12345, 12345);
+    CheckBlockMaxSize(config, mempool, active_chainstate, 0, 1000);
+    CheckBlockMaxSize(config, mempool, active_chainstate, 1000, 1000);
+    CheckBlockMaxSize(config, mempool, active_chainstate, 1001, 1001);
+    CheckBlockMaxSize(config, mempool, active_chainstate, 12345, 12345);
 
-    CheckBlockMaxSize(config, *m_node.mempool, ONE_MEGABYTE - 1001,
+    CheckBlockMaxSize(config, mempool, active_chainstate, ONE_MEGABYTE - 1001,
                       ONE_MEGABYTE - 1001);
-    CheckBlockMaxSize(config, *m_node.mempool, ONE_MEGABYTE - 1000,
+    CheckBlockMaxSize(config, mempool, active_chainstate, ONE_MEGABYTE - 1000,
                       ONE_MEGABYTE - 1000);
-    CheckBlockMaxSize(config, *m_node.mempool, ONE_MEGABYTE - 999,
+    CheckBlockMaxSize(config, mempool, active_chainstate, ONE_MEGABYTE - 999,
                       ONE_MEGABYTE - 999);
-    CheckBlockMaxSize(config, *m_node.mempool, ONE_MEGABYTE,
+    CheckBlockMaxSize(config, mempool, active_chainstate, ONE_MEGABYTE,
                       ONE_MEGABYTE - 999);
 
     // Test around default cap
     config.SetMaxBlockSize(DEFAULT_MAX_BLOCK_SIZE);
 
     // Now we can use the default max block size.
-    CheckBlockMaxSize(config, *m_node.mempool, DEFAULT_MAX_BLOCK_SIZE - 1001,
+    CheckBlockMaxSize(config, mempool, active_chainstate,
+                      DEFAULT_MAX_BLOCK_SIZE - 1001,
                       DEFAULT_MAX_BLOCK_SIZE - 1001);
-    CheckBlockMaxSize(config, *m_node.mempool, DEFAULT_MAX_BLOCK_SIZE - 1000,
+    CheckBlockMaxSize(config, mempool, active_chainstate,
+                      DEFAULT_MAX_BLOCK_SIZE - 1000,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
-    CheckBlockMaxSize(config, *m_node.mempool, DEFAULT_MAX_BLOCK_SIZE - 999,
+    CheckBlockMaxSize(config, mempool, active_chainstate,
+                      DEFAULT_MAX_BLOCK_SIZE - 999,
                       DEFAULT_MAX_BLOCK_SIZE - 1000);
-    CheckBlockMaxSize(config, *m_node.mempool, DEFAULT_MAX_BLOCK_SIZE,
-                      DEFAULT_MAX_BLOCK_SIZE - 1000);
+    CheckBlockMaxSize(config, mempool, active_chainstate,
+                      DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE - 1000);
 
     // If the parameter is not specified, we use
     // DEFAULT_MAX_GENERATED_BLOCK_SIZE
