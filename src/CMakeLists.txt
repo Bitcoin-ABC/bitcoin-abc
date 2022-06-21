@@ -505,6 +505,7 @@ macro(link_boost_headers_only TARGET)
 endmacro()
 
 link_boost_headers_only(util headers)
+target_compile_definitions(util PUBLIC BOOST_NO_CXX98_FUNCTION_BASE)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
