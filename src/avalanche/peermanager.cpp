@@ -173,9 +173,7 @@ bool PeerManager::latchAvaproofsSent(NodeId nodeid) {
 }
 
 static bool isOrphanState(const ProofValidationState &state) {
-    return state.GetResult() == ProofValidationResult::MISSING_UTXO ||
-           state.GetResult() == ProofValidationResult::HEIGHT_MISMATCH ||
-           state.GetResult() == ProofValidationResult::IMMATURE_UTXO;
+    return state.GetResult() == ProofValidationResult::IMMATURE_UTXO;
 }
 
 bool PeerManager::updateNextPossibleConflictTime(
@@ -237,16 +235,12 @@ bool PeerManager::registerProof(const ProofRef &proof,
                    return proof->verify(validationState,
                                         ::ChainstateActive().CoinsTip()))) {
         if (isOrphanState(validationState)) {
-            // Only accept orphan proofs if there's room in the orphan pool.
-            auto status = orphanProofPool.addProofIfNoConflict(proof);
-            if (status != ProofPool::AddProofStatus::SUCCEED) {
-                // Attempt proof replacement
-                orphanProofPool.addProofIfPreferred(proof);
-            } else if (orphanProofPool.countProofs() >
-                       AVALANCHE_MAX_ORPHAN_PROOFS) {
-                // Adding this proof exceeds the orphan pool limit, so remove
-                // it.
-                orphanProofPool.removeProof(proof->getId());
+            orphanProofPool.addProofIfPreferred(proof);
+            if (orphanProofPool.countProofs() > AVALANCHE_MAX_ORPHAN_PROOFS) {
+                // Adding this proof exceeds the orphan pool limit, so evict
+                // the lowest scoring proof.
+                orphanProofPool.removeProof(
+                    orphanProofPool.getLowestScoreProof()->getId());
             }
 
             return invalidate(ProofRegistrationResult::ORPHAN, "orphan-proof");

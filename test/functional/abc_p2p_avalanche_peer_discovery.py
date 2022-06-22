@@ -40,7 +40,7 @@ class AvalancheTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [['-enableavalanche=1',
-                            '-avaproofstakeutxoconfirmations=1',
+                            '-avaproofstakeutxoconfirmations=3',
                             '-enableavalanchepeerdiscovery=1']]
         self.supports_cli = False
 
@@ -61,7 +61,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         # Create stakes by mining blocks
         addrkey0 = node.get_deterministic_priv_key()
-        blockhashes = node.generatetoaddress(2, addrkey0.address)
+        blockhashes = node.generatetoaddress(4, addrkey0.address)
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
 
         proof_sequence = 11
@@ -194,6 +194,9 @@ class AvalancheTest(BitcoinTestFramework):
         new_proof = new_proof_obj.serialize().hex()
         new_proofid = new_proof_obj.proofid
 
+        # Make the proof mature
+        node.generate(2)
+
         node.sendavalancheproof(new_proof)
         wait_for_proof(node, f"{new_proofid:0{64}x}")
 
@@ -259,8 +262,8 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info("Invalidate the proof and check the nodes are removed")
         tip = node.getbestblockhash()
-        # Invalidate the block with the proof utxo
-        node.invalidateblock(blockhashes[1])
+        # Invalidate the block after the proof utxo to make the proof immature
+        node.invalidateblock(blockhashes[2])
         # Change the address to make sure we don't generate a block identical
         # to the one we just invalidated. Can be generate(1) after D9694 or
         # D9697 is landed.

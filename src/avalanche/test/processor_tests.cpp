@@ -1133,6 +1133,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
 }
 
 BOOST_AUTO_TEST_CASE(proof_record) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
 
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
@@ -1141,6 +1142,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     const CKey key = CKey::MakeCompressedKey();
 
     const COutPoint conflictingOutpoint{TxId(GetRandHash()), 0};
+    const COutPoint immatureOutpoint{TxId(GetRandHash()), 0};
     {
         CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
@@ -1148,18 +1150,20 @@ BOOST_AUTO_TEST_CASE(proof_record) {
         CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
         coins.AddCoin(conflictingOutpoint,
                       Coin(CTxOut(10 * COIN, script), 10, false), false);
+        coins.AddCoin(immatureOutpoint,
+                      Coin(CTxOut(10 * COIN, script), 100, false), false);
     }
-    const COutPoint missingOutpoint{TxId(GetRandHash()), 0};
 
-    auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence) {
+    auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence,
+                          uint32_t height = 10) {
         ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(pb.addUTXO(outpoint, 10 * COIN, 10, false, key));
+        BOOST_CHECK(pb.addUTXO(outpoint, 10 * COIN, height, false, key));
         return pb.build();
     };
 
     auto conflictingProof = buildProof(conflictingOutpoint, 1);
     auto validProof = buildProof(conflictingOutpoint, 2);
-    auto orphanProof = buildProof(missingOutpoint, 3);
+    auto orphanProof = buildProof(immatureOutpoint, 3, 100);
 
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(!m_processor->isAccepted(validProof));
@@ -1207,6 +1211,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
 
+    gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
     gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
 }
 
@@ -1292,9 +1297,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
-    // Remove peers one at a time by orphaning their proofs, and ensure the
-    // quorum stays established
-    auto orphanProof = [&processor](ProofRef proof) {
+    // Remove peers one at a time and ensure the quorum stays established
+    auto spendProofUtxo = [&processor](ProofRef proof) {
         {
             LOCK(cs_main);
             CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
@@ -1302,26 +1306,25 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
         }
         processor->withPeerManager([&proof](avalanche::PeerManager &pm) {
             pm.updatedBlockTip();
-            BOOST_CHECK(pm.isOrphan(proof->getId()));
             BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
         });
     };
 
-    orphanProof(proof2);
+    spendProofUtxo(proof2);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
-    orphanProof(proof1);
+    spendProofUtxo(proof1);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 4);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
-    orphanProof(processor->getLocalProof());
+    spendProofUtxo(processor->getLocalProof());
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);

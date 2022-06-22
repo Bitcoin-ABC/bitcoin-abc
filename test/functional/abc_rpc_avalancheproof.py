@@ -56,7 +56,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 2
         self.extra_args = [
-            ['-enableavalanche=1', "-avaproofstakeutxoconfirmations=1", '-avacooldown=0', '-legacyavaproof=1']] * self.num_nodes
+            ['-enableavalanche=1', '-avaproofstakeutxoconfirmations=1', '-avacooldown=0', '-legacyavaproof=1']] * self.num_nodes
         self.supports_cli = False
         self.rpc_timeout = 120
 
@@ -204,18 +204,21 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         # transactions used for stakes.
         self.log.info("Start a node with an orphan proof")
 
-        self.start_node(1, self.extra_args[0] + [
+        stake_age = node.getblockcount() + 2
+        self.restart_node(1, self.extra_args[0] + [
+            "-avaproofstakeutxoconfirmations={}".format(stake_age),
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN",
         ])
         # Mine a block to trigger an attempt at registering the proof
+        self.connect_nodes(1, node.index)
+        self.sync_all()
         self.nodes[1].generate(1)
         wait_for_proof(self.nodes[1], proofid_hex, expect_orphan=True)
 
-        self.log.info("Connect to an up-to-date node to unorphan the proof")
-        self.connect_nodes(1, node.index)
-        self.sync_all()
-        wait_for_proof(self.nodes[1], proofid_hex, expect_orphan=False)
+        # Mine another block to make the orphan mature
+        self.nodes[1].generate(1)
+        wait_for_proof(self.nodes[0], proofid_hex, expect_orphan=False)
 
         self.log.info(
             "Generate delegations for the proof, verify and decode them")
@@ -404,8 +407,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             node.generate(101)
             too_many_stakes = create_stakes(
                 node, new_blocks, AVALANCHE_MAX_PROOF_STAKES + 1)
-            maximum_stakes = too_many_stakes[:-1]
+            # Make the newly split UTXOs mature
+            node.generate(stake_age)
 
+            maximum_stakes = too_many_stakes[:-1]
             good_proof = node.buildavalancheproof(
                 proof_sequence, proof_expiration,
                 wif_privkey, maximum_stakes)
@@ -441,7 +446,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                                     node.sendavalancheproof, conflicting_utxo)
 
         # Clear the proof pool
-        self.restart_node(0)
+        stake_age = node.getblockcount()
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproofstakeutxoconfirmations={}".format(stake_age),
+        ])
 
         # Good proof
         assert node.verifyavalancheproof(proof)
@@ -468,16 +476,18 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_raises_rpc_error(-8, "Proof not found",
                                 node.getrawavalancheproof, '0' * 64)
 
-        # Orphan the proof by sending the stake
-        raw_tx = node.createrawtransaction(
-            [{"txid": stakes[-1]["txid"], "vout": 0}],
-            {ADDRESS_ECREG_UNSPENDABLE: stakes[-1]
-                ["amount"] - Decimal('10000')}
-        )
-        signed_tx = node.signrawtransactionwithkey(raw_tx, [addrkey0.key])
-        node.sendrawtransaction(signed_tx["hex"])
+        # To orphan the proof, we make it immature by switching to a shorter
+        # chain
+        node.invalidateblock(node.getbestblockhash())
+        # Although the chaintip has changed, updatedBlockTip does not get
+        # called unless new chainwork needs evaluating, so invalidate another
+        # block and then mine a new one.
+        node.invalidateblock(node.getbestblockhash())
+        node.setmocktime(
+            node.getblock(
+                node.getbestblockhash())['mediantime'] +
+            100)
         node.generate(1)
-        self.wait_until(lambda: proofid not in get_proof_ids(node))
 
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)

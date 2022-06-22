@@ -10,7 +10,11 @@ import functools
 import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
-from test_framework.avatools import avalanche_proof_from_hex, wait_for_proof
+from test_framework.avatools import (
+    avalanche_proof_from_hex,
+    gen_proof,
+    wait_for_proof,
+)
 from test_framework.key import ECKey
 from test_framework.messages import (
     MSG_AVA_PROOF,
@@ -376,33 +380,22 @@ class InventoryDownloadTest(BitcoinTestFramework):
     @skip(TX_TEST_CONTEXT)
     def test_orphan_download(self, context):
         node = self.nodes[0]
-        privkey = ECKey()
-        privkey.generate()
-        privkey_wif = bytes_to_wif(privkey.get_bytes())
 
-        # Build a proof with missing utxos so it will be orphaned
-        orphan = node.buildavalancheproof(
-            42, 2000000000, bytes_to_wif(privkey.get_bytes()), [{
-                'txid': '0' * 64,
-                'vout': 0,
-                'amount': 10e6,
-                'height': 42,
-                'iscoinbase': False,
-                'privatekey': privkey_wif,
-            }]
-        )
-        proofid = avalanche_proof_from_hex(orphan).proofid
-        proofid_hex = "{:064x}".format(proofid)
+        # Build a proof with immature utxos so it will be orphaned
+        privkey, orphan = gen_proof(node)
+        proofid_hex = "{:064x}".format(orphan.proofid)
 
         self.restart_node(0, extra_args=self.extra_args[0] + [
-            "-avaproof={}".format(orphan),
-            "-avamasterkey={}".format(privkey_wif),
+            "-avaproofstakeutxoconfirmations=3",
+            "-avaproof={}".format(orphan.serialize().hex()),
+            "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes())),
         ])
         node.generate(1)
         wait_for_proof(node, proofid_hex, expect_orphan=True)
 
         peer = node.add_p2p_connection(context.p2p_conn())
-        peer.send_message(msg_inv([CInv(t=context.inv_type, h=proofid)]))
+        peer.send_message(
+            msg_inv([CInv(t=context.inv_type, h=orphan.proofid)]))
 
         # Give enough time for the node to eventually request the proof.
         node.setmocktime(int(time.time()) +

@@ -7,6 +7,7 @@
 #include <avalanche/proofbuilder.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/test/util.h>
+#include <config.h>
 #include <script/standard.h>
 #include <util/time.h>
 #include <util/translation.h>
@@ -589,13 +590,10 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 }
 
 BOOST_AUTO_TEST_CASE(node_binding_reorg) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm(*m_node.scheduler);
 
-    auto key = CKey::MakeCompressedKey();
-
-    COutPoint utxo = createUtxo(key);
-
-    auto proof = buildProofWithOutpoints(key, {utxo}, 10 * COIN);
+    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE, 99);
     const ProofId &proofid = proof->getId();
 
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
@@ -609,11 +607,13 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
     }
 
-    // Orphan the proof
+    // Orphan the proof by reorging to a shorter chain that makes the proof
+    // immature
     {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.SpendCoin(utxo);
+        BlockValidationState state;
+        ::ChainstateActive().InvalidateBlock(GetConfig(), state,
+                                             ::ChainActive().Tip());
+        BOOST_CHECK_EQUAL(::ChainActive().Height(), 99);
     }
 
     pm.updatedBlockTip();
@@ -626,7 +626,15 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     BOOST_CHECK(pm.verify());
 
     // Make the proof great again
-    addCoin(utxo, key);
+    {
+        // Advance the clock so the newly mined block won't collide with the
+        // other deterministically-generated blocks
+        SetMockTime(GetTime() + 20);
+        mineBlocks(1);
+        BlockValidationState state;
+        BOOST_CHECK(::ChainstateActive().ActivateBestChain(GetConfig(), state));
+        BOOST_CHECK_EQUAL(::ChainActive().Height(), 100);
+    }
 
     pm.updatedBlockTip();
     BOOST_CHECK(!pm.isOrphan(proofid));
@@ -713,43 +721,13 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     avalanche::PeerManager pm(*m_node.scheduler);
 
     auto key = CKey::MakeCompressedKey();
-
-    COutPoint outpoint1 = COutPoint(TxId(GetRandHash()), 0);
-    COutPoint outpoint2 = COutPoint(TxId(GetRandHash()), 0);
-    COutPoint outpoint3 = COutPoint(TxId(GetRandHash()), 0);
-    COutPoint outpoint4 = COutPoint(TxId(GetRandHash()), 0);
-
-    const Amount v = 5 * COIN;
-    const int height = 98;
-    const int wrongHeight = 99;
-    const int immatureHeight = 100;
-
-    const auto makeProof = [&](const COutPoint &outpoint, const int h) {
-        return buildProofWithOutpoints(key, {outpoint}, v, key, 0, h);
-    };
-
-    auto proof1 = makeProof(outpoint1, height);
-    auto proof2 = makeProof(outpoint2, height);
-    auto proof3 = makeProof(outpoint3, wrongHeight);
-    auto proof4 = makeProof(outpoint4, immatureHeight);
-
-    // Add outpoints, except for proof 2
-    addCoin(outpoint1, key, v, height);
-    addCoin(outpoint3, key, v, height);
-    addCoin(outpoint4, key, v, immatureHeight);
-
-    // Add the proofs
-    BOOST_CHECK(pm.registerProof(proof1));
+    int immatureHeight = 100;
 
     auto registerOrphan = [&](const ProofRef &proof) {
         ProofRegistrationState state;
         BOOST_CHECK(!pm.registerProof(proof, state));
         BOOST_CHECK(state.GetResult() == ProofRegistrationResult::ORPHAN);
     };
-
-    registerOrphan(proof2);
-    registerOrphan(proof3);
-    registerOrphan(proof4);
 
     auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
         const ProofId &proofid = proof->getId();
@@ -767,135 +745,52 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         BOOST_CHECK_EQUAL(ret, !expectedOrphan);
     };
 
-    // Good
-    checkOrphan(proof1, false);
-    // MISSING_UTXO
-    checkOrphan(proof2, true);
-    // HEIGHT_MISMATCH
-    checkOrphan(proof3, true);
-    // IMMATURE_UTXO
-    checkOrphan(proof4, true);
-
-    // Add outpoint2, proof2 is no longer considered orphan
-    addCoin(outpoint2, key, v, height);
-
-    pm.updatedBlockTip();
-    checkOrphan(proof2, false);
-
-    // The status of proof1 and proof3 are unchanged
-    checkOrphan(proof1, false);
-    checkOrphan(proof3, true);
-
-    // Mine a block to increase the chain height for proof4 verification
-    mineBlocks(1);
-    pm.updatedBlockTip();
-    checkOrphan(proof4, false);
-
-    // Spend outpoint1, proof1 becomes orphan
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.SpendCoin(outpoint1);
-    }
-
-    pm.updatedBlockTip();
-    checkOrphan(proof1, true);
-
-    // The status of proof2 and proof3 are unchanged
-    checkOrphan(proof2, false);
-    checkOrphan(proof3, true);
-
-    // A reorg could make a previous HEIGHT_MISMATCH become valid
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.SpendCoin(outpoint3);
-    }
-    addCoin(outpoint3, key, v, wrongHeight);
-
-    pm.updatedBlockTip();
-    checkOrphan(proof3, false);
-
-    // The status of proof 1 and proof2 are unchanged
-    checkOrphan(proof1, true);
-    checkOrphan(proof2, false);
-
-    // Track expected orphans so we can test them later
+    // Track orphans so we can test them later
     std::vector<ProofRef> orphans;
-    orphans.push_back(proof1);
 
     // Fill up orphan pool to test the size limit
-    for (uint32_t i = 1; i < AVALANCHE_MAX_ORPHAN_PROOFS; i++) {
+    for (int64_t i = 1; i <= AVALANCHE_MAX_ORPHAN_PROOFS; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
-        auto proof =
-            buildProofWithOutpoints(key, {outpoint}, 10 * COIN, key, 0, height);
+        auto proof = buildProofWithOutpoints(key, {outpoint}, i * COIN, key, 0,
+                                             immatureHeight);
+        addCoin(outpoint, key, i * COIN, immatureHeight);
         registerOrphan(proof);
+        checkOrphan(proof, true);
         orphans.push_back(proof);
     }
 
-    // New orphans are rejected when the pool is full, even if they have higher
-    // proof scores.
-    {
+    // More orphans evict lower scoring proofs
+    for (auto i = 0; i < 100; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
-        auto proof =
-            buildProofWithOutpoints(key, {outpoint}, 20 * COIN, key, 0, height);
+        auto proof = buildProofWithOutpoints(key, {outpoint}, 200 * COIN, key,
+                                             0, immatureHeight);
+        addCoin(outpoint, key, 200 * COIN, immatureHeight);
         registerOrphan(proof);
-        BOOST_CHECK(!pm.exists(proof->getId()));
+        checkOrphan(proof, true);
+        orphans.push_back(proof);
+        BOOST_CHECK(!pm.exists(orphans.front()->getId()));
+        orphans.erase(orphans.begin());
     }
 
     // Replacement when the pool is full still works
     {
-        auto proof = buildProofWithOutpoints(key, {outpoint1}, 10 * COIN, key,
-                                             1, height);
+        const COutPoint &outpoint =
+            orphans.front()->getStakes()[0].getStake().getUTXO();
+        auto proof = buildProofWithOutpoints(key, {outpoint}, 101 * COIN, key,
+                                             1, immatureHeight);
         registerOrphan(proof);
         checkOrphan(proof, true);
-        BOOST_CHECK(!pm.exists(proof1->getId()));
         orphans.push_back(proof);
+        BOOST_CHECK(!pm.exists(orphans.front()->getId()));
         orphans.erase(orphans.begin());
     }
 
-    // Reorg so that some more proofs become orphans
-    {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.SpendCoin(outpoint2);
-        coins.SpendCoin(outpoint3);
-        coins.SpendCoin(outpoint4);
-
-        orphans.push_back(proof2);
-        orphans.push_back(proof3);
-        orphans.push_back(proof4);
-    }
-
+    // Mine a block to increase the chain height, making all orphans mature
+    mineBlocks(1);
     pm.updatedBlockTip();
-
-    // New orphans are rejected when the pool is full, even if they have higher
-    // proof scores.
-    {
-        COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
-        auto proof =
-            buildProofWithOutpoints(key, {outpoint}, 20 * COIN, key, 0, height);
-        registerOrphan(proof);
-        BOOST_CHECK(!pm.exists(proof->getId()));
+    for (const auto &proof : orphans) {
+        checkOrphan(proof, false);
     }
-
-    // Even though we've exceeded the orphan pool limit, the reorged proofs are
-    // still being tracked.
-    for (auto &proof : orphans) {
-        checkOrphan(proof, true);
-    }
-
-    // Another block causes orphans to be trimmed to the limit
-    pm.updatedBlockTip();
-
-    int numOrphans = 0;
-    for (auto &proof : orphans) {
-        if (pm.exists(proof->getId())) {
-            checkOrphan(proof, true);
-            numOrphans++;
-        }
-    }
-    BOOST_CHECK_EQUAL(numOrphans, AVALANCHE_MAX_ORPHAN_PROOFS);
 }
 
 BOOST_AUTO_TEST_CASE(dangling_node) {
@@ -1017,7 +912,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
 
     pm.updatedBlockTip();
 
-    BOOST_CHECK(pm.isOrphan(proofToInvalidate->getId()));
+    BOOST_CHECK(!pm.exists(proofToInvalidate->getId()));
 
     BOOST_CHECK(!pm.isInConflictingPool(conflictingProof->getId()));
     BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
@@ -1113,16 +1008,17 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_orphans) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm(*m_node.scheduler);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint(TxId(GetRandHash()), 0);
-    const COutPoint randomOutpoint1(TxId(GetRandHash()), 0);
+    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint matureOutpoint = createUtxo(key, 10 * COIN, 99);
 
     auto orphan10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto orphan20 =
-        buildProofWithSequence(key, {conflictingOutpoint, randomOutpoint1}, 20);
+        buildProofWithSequence(key, {conflictingOutpoint, matureOutpoint}, 20);
 
     BOOST_CHECK(!pm.registerProof(orphan10));
     BOOST_CHECK(pm.isOrphan(orphan10->getId()));
@@ -1131,23 +1027,18 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(pm.isOrphan(orphan20->getId()));
     BOOST_CHECK(!pm.exists(orphan10->getId()));
 
-    const COutPoint outpointToSend(TxId(GetRandHash()), 0);
-    // Add both randomOutpoint1 and outpointToSend to the UTXO set. The orphan20
-    // proof is still an orphan because the conflictingOutpoint is unknown.
-    addCoin(randomOutpoint1, key);
-    addCoin(outpointToSend, key);
-
-    // Build and register proof valid proof that will conflict with the orphan
+    // Build and register a valid proof that will conflict with the orphan
     auto proof30 =
-        buildProofWithSequence(key, {randomOutpoint1, outpointToSend}, 30);
+        buildProofWithOutpoints(key, {matureOutpoint}, 10 * COIN, key, 30, 99);
     BOOST_CHECK(pm.registerProof(proof30));
     BOOST_CHECK(pm.isBoundToPeer(proof30->getId()));
 
-    // Spend the outpointToSend to orphan proof30
+    // Reorg to a shorter chain to orphan proof30
     {
-        LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
-        coins.SpendCoin(outpointToSend);
+        BlockValidationState state;
+        ::ChainstateActive().InvalidateBlock(GetConfig(), state,
+                                             ::ChainActive().Tip());
+        BOOST_CHECK_EQUAL(::ChainActive().Height(), 99);
     }
 
     // Check that a rescan will also select the preferred orphan, in this case
@@ -1386,17 +1277,21 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
 }
 
 BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm(*m_node.scheduler);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint conflictingOutpoint = createUtxo(key, 10 * COIN, 99);
+    const COutPoint immatureOutpoint = createUtxo(key);
 
     // The good, the bad and the ugly
-    auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
-    auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
+    auto proofSeq10 = buildProofWithOutpoints(key, {conflictingOutpoint},
+                                              10 * COIN, key, 10, 99);
+    auto proofSeq20 = buildProofWithOutpoints(key, {conflictingOutpoint},
+                                              10 * COIN, key, 20, 99);
     auto orphan30 = buildProofWithSequence(
-        key, {conflictingOutpoint, {TxId(GetRandHash()), 0}}, 30);
+        key, {conflictingOutpoint, immatureOutpoint}, 30);
 
     BOOST_CHECK(pm.registerProof(proofSeq20));
     BOOST_CHECK(!pm.registerProof(proofSeq10));

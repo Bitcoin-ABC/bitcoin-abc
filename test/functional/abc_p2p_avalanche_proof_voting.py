@@ -39,7 +39,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.extra_args = [
             ['-enableavalanche=1',
              '-enableavalancheproofreplacement=1',
-             '-avaproofstakeutxoconfirmations=1',
+             '-avaproofstakeutxoconfirmations=2',
                 f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}', '-avacooldown=0', '-avastalevotethreshold=140', '-avastalevotefactor=1'],
         ]
         self.supports_cli = False
@@ -106,12 +106,17 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.privkey, self.quorum_proof = gen_proof(node)
         self.privkey_wif = bytes_to_wif(self.privkey.get_bytes())
 
+        # Make the quorum proof mature before preparing the quorum
+        node.generate(1)
+
         self.quorum = self.get_quorum(node)
 
         addrkey0 = node.get_deterministic_priv_key()
         blockhash = node.generatetoaddress(10, addrkey0.address)
         self.conflicting_stakes = create_coinbase_stakes(
-            node, blockhash[5:], addrkey0.key)
+            node, blockhash[5:9], addrkey0.key)
+        self.immature_stakes = create_coinbase_stakes(
+            node, blockhash[9:], addrkey0.key)
 
         self.poll_tests(node)
         self.update_tests(node)
@@ -126,15 +131,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_seq40 = self.build_conflicting_proof(node, 40)
 
         orphan = node.buildavalancheproof(
-            100, 2000000000, self.privkey_wif, [{
-                'txid': '0' * 64,
-                'vout': 0,
-                'amount': 10e6,
-                'height': 42,
-                'iscoinbase': False,
-                'privatekey': self.privkey_wif,
-            }]
-        )
+            100, 0, self.privkey_wif, self.immature_stakes)
 
         no_stake = node.buildavalancheproof(
             200, 2000000000, self.privkey_wif, []
@@ -310,7 +307,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
     def vote_tests(self, node):
         self.restart_node(0, extra_args=['-enableavalanche=1',
-                                         '-avaproofstakeutxoconfirmations=1',
+                                         '-avaproofstakeutxoconfirmations=2',
                                          '-avacooldown=0',
                                          '-avalancheconflictingproofcooldown=0',
                                          '-whitelist=noban@127.0.0.1', ])
@@ -338,9 +335,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         stakes_1 = create_coinbase_stakes(node, [blocks[1]], stakes_key.key)
         proof_1, proof_1_id = create_proof(stakes_1)
 
-        # proof_2 is an orphan because the stake UTXO is unknown
-        stakes_2 = create_coinbase_stakes(node, [blocks[2]], stakes_key.key)
-        stakes_2[0]['height'] = 5
+        # proof_2 is an orphan because the stake UTXO is immature
+        stakes_2 = create_coinbase_stakes(node, [blocks[3]], stakes_key.key)
         proof_2, proof_2_id = create_proof(stakes_2)
 
         # proof_3 conflicts with proof_0 and proof_1
@@ -349,7 +345,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_3, proof_3_id = create_proof(stakes_3)
 
         # proof_4 is invalid and should be rejected
-        stakes_4 = create_coinbase_stakes(node, [blocks[3]], stakes_key.key)
+        stakes_4 = create_coinbase_stakes(node, [blocks[2]], stakes_key.key)
         stakes_4[0]['amount'] -= 100000
         proof_4, proof_4_id = create_proof(stakes_4)
 
