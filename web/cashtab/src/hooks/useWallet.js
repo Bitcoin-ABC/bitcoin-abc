@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import useAsyncTimeout from 'hooks/useAsyncTimeout';
 import usePrevious from 'hooks/usePrevious';
+import useInterval from './useInterval';
 import useBCH from 'hooks/useBCH';
 import BigNumber from 'bignumber.js';
 import {
@@ -1232,7 +1232,7 @@ const useWallet = () => {
     };
 
     // Parse for incoming XEC transactions
-    // hasUpdated is set to true in the useAsyncTimeout function, and re-sets to false during activateWallet
+    // hasUpdated is set to true in the useInterval function, and re-sets to false during activateWallet
     // Do not show this notification if websocket connection is live; in this case the websocket will handle it
     if (
         !isActiveWebsocket(chronikWebsocket) &&
@@ -1353,7 +1353,7 @@ const useWallet = () => {
     }
 
     // Update wallet according to defined interval
-    useAsyncTimeout(async () => {
+    useInterval(async () => {
         const wallet = await getWallet();
         update({
             wallet,
