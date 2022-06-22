@@ -10,8 +10,14 @@
 #include <string_view>
 #include <vector>
 
+// Use a counter name that is unique per line, so that nested LIMITED_WHILE
+// loops don't trigger -Wshadow.
+#define LIMITED_WHILE_CONCAT_(a, b) a##b
+#define LIMITED_WHILE_CONCAT(a, b) LIMITED_WHILE_CONCAT_(a, b)
+#define LIMITED_WHILE_IMPL(condition, limit, count)                            \
+    for (unsigned count{limit}; (condition) && count; --count)
 #define LIMITED_WHILE(condition, limit)                                        \
-    for (unsigned _count{limit}; (condition) && _count; --_count)
+    LIMITED_WHILE_IMPL(condition, limit, LIMITED_WHILE_CONCAT(_count, __LINE__))
 
 using TypeTestOneInput = std::function<void(const std::vector<uint8_t> &)>;
 using TypeInitialize = std::function<void()>;

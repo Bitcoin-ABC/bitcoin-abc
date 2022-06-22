@@ -93,6 +93,16 @@ void CallOneOf(FuzzedDataProvider &fuzzed_data_provider,
     return ((i++ == call_index ? callables() : void()), ...);
 }
 
+template <typename Collection>
+auto &PickValue(FuzzedDataProvider &fuzzed_data_provider, Collection &col) {
+    auto sz{col.size()};
+    assert(sz >= 1);
+    auto it = col.begin();
+    std::advance(it, fuzzed_data_provider.ConsumeIntegralInRange<decltype(sz)>(
+                         0, sz - 1));
+    return *it;
+}
+
 template <typename B = uint8_t>
 [[nodiscard]] inline std::vector<B>
 ConsumeRandomLengthByteVector(FuzzedDataProvider &fuzzed_data_provider,
