@@ -668,6 +668,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         from_connection = self.nodes[a]
         to_connection = self.nodes[b]
 
+        from_num_peers = 1 + len(from_connection.getpeerinfo())
+        to_num_peers = 1 + len(to_connection.getpeerinfo())
         host = to_connection.host
         if host is None:
             host = "127.0.0.1"
@@ -678,23 +680,27 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # See comments in net_processing:
         # * Must have a version message before anything else
         # * Must have a verack message before anything else
-        wait_until_helper(
-            lambda: all(peer["version"] != 0 for peer in from_connection.getpeerinfo())
+        self.wait_until(
+            lambda: sum(peer["version"] != 0 for peer in from_connection.getpeerinfo())
+            == from_num_peers
         )
-        wait_until_helper(
-            lambda: all(peer["version"] != 0 for peer in to_connection.getpeerinfo())
+        self.wait_until(
+            lambda: sum(peer["version"] != 0 for peer in to_connection.getpeerinfo())
+            == to_num_peers
         )
-        wait_until_helper(
-            lambda: all(
+        self.wait_until(
+            lambda: sum(
                 peer["bytesrecv_per_msg"].pop("verack", 0) == 24
                 for peer in from_connection.getpeerinfo()
             )
+            == from_num_peers
         )
-        wait_until_helper(
-            lambda: all(
+        self.wait_until(
+            lambda: sum(
                 peer["bytesrecv_per_msg"].pop("verack", 0) == 24
                 for peer in to_connection.getpeerinfo()
             )
+            == to_num_peers
         )
 
     def disconnect_nodes(self, a, b):
@@ -727,7 +733,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     raise
 
         # wait to disconnect
-        wait_until_helper(lambda: not get_peer_ids(), timeout=5)
+        self.wait_until(lambda: not get_peer_ids(), timeout=5)
 
     def split_network(self):
         """
