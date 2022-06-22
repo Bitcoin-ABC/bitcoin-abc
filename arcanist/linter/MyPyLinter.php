@@ -25,6 +25,12 @@ final class MyPyLinter extends ArcanistExternalLinter {
     return 'mypy';
   }
 
+  public function getMandatoryFlags() {
+    return array(
+      '--show-error-codes',
+    );
+  }
+
   public function getInstallInstructions() {
     return pht('Please install mypy and make sure it is in your $PATH');
   }
