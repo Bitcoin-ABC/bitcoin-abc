@@ -90,6 +90,12 @@ struct Peer {
     std::chrono::seconds registration_time;
     std::chrono::seconds nextPossibleConflictTime;
 
+    /**
+     * Consider dropping the peer if no node is attached after this timeout
+     * expired.
+     */
+    static constexpr auto DANGLING_TIMEOUT = 15min;
+
     Peer(PeerId peerid_, ProofRef proof_,
          std::chrono::seconds nextPossibleConflictTime_)
         : peerid(peerid_), proof(std::move(proof_)),
@@ -387,6 +393,8 @@ private:
     bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
+
+    void cleanupDanglingProofs();
 
     friend struct ::avalanche::TestPeerManager;
 };

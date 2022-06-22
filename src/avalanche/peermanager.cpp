@@ -784,4 +784,22 @@ void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
     m_unbroadcast_proofids.erase(proofid);
 }
 
+void PeerManager::cleanupDanglingProofs() {
+    const auto now = GetTime<std::chrono::seconds>();
+
+    std::vector<ProofId> danglingProofIds;
+    for (const Peer &peer : peers) {
+        // If the peer has been registered for some time and has no node
+        // attached, discard it.
+        if (peer.node_count == 0 &&
+            (peer.registration_time + Peer::DANGLING_TIMEOUT) <= now) {
+            danglingProofIds.push_back(peer.getProofId());
+        }
+    }
+
+    for (const ProofId &proofid : danglingProofIds) {
+        rejectProof(proofid, RejectionMode::INVALIDATE);
+    }
+}
+
 } // namespace avalanche

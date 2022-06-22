@@ -56,6 +56,10 @@ namespace {
 
             return scores;
         }
+
+        static void cleanupDanglingProofs(PeerManager &pm) {
+            pm.cleanupDanglingProofs();
+        }
     };
 
     static void addCoin(const COutPoint &outpoint, const CKey &key,
@@ -1834,6 +1838,143 @@ BOOST_AUTO_TEST_CASE(received_avaproofs) {
         // The flag is already set
         BOOST_CHECK(!pm.latchAvaproofsSent(nodeid));
     }
+}
+
+BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
+    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
+
+    avalanche::PeerManager pm;
+
+    const auto now = GetTime<std::chrono::seconds>();
+    auto mocktime = now;
+
+    auto elapseTime = [&](std::chrono::seconds seconds) {
+        mocktime += seconds;
+        SetMockTime(mocktime.count());
+    };
+    elapseTime(0s);
+
+    const CKey key = CKey::MakeCompressedKey();
+
+    const size_t numProofs = 10;
+
+    std::vector<COutPoint> outpoints(numProofs);
+    std::vector<ProofRef> proofs(numProofs);
+    std::vector<ProofRef> conflictingProofs(numProofs);
+    for (size_t i = 0; i < numProofs; i++) {
+        outpoints[i] = createUtxo(key);
+        proofs[i] = buildProofWithSequence(key, {outpoints[i]}, 2);
+        conflictingProofs[i] = buildProofWithSequence(key, {outpoints[i]}, 1);
+
+        BOOST_CHECK(pm.registerProof(proofs[i]));
+        BOOST_CHECK(pm.isBoundToPeer(proofs[i]->getId()));
+
+        BOOST_CHECK(!pm.registerProof(conflictingProofs[i]));
+        BOOST_CHECK(pm.isInConflictingPool(conflictingProofs[i]->getId()));
+
+        if (i % 2) {
+            // Odd indexes get a node attached to them
+            BOOST_CHECK(pm.addNode(i, proofs[i]->getId()));
+        }
+        BOOST_CHECK_EQUAL(pm.forPeer(proofs[i]->getId(),
+                                     [&](const avalanche::Peer &peer) {
+                                         return peer.node_count;
+                                     }),
+                          i % 2);
+
+        elapseTime(1s);
+    }
+
+    // No proof expired yet
+    TestPeerManager::cleanupDanglingProofs(pm);
+    for (size_t i = 0; i < numProofs; i++) {
+        BOOST_CHECK(pm.isBoundToPeer(proofs[i]->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(conflictingProofs[i]->getId()));
+    }
+
+    // Elapse the dangling timeout
+    elapseTime(avalanche::Peer::DANGLING_TIMEOUT);
+    TestPeerManager::cleanupDanglingProofs(pm);
+    for (size_t i = 0; i < numProofs; i++) {
+        const bool hasNodeAttached = i % 2;
+
+        // Only the peers with no nodes attached are getting discarded
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(proofs[i]->getId()),
+                          hasNodeAttached);
+        BOOST_CHECK_EQUAL(!pm.exists(proofs[i]->getId()), !hasNodeAttached);
+
+        // The proofs conflicting with the discarded ones are pulled back
+        BOOST_CHECK_EQUAL(pm.isInConflictingPool(conflictingProofs[i]->getId()),
+                          hasNodeAttached);
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(conflictingProofs[i]->getId()),
+                          !hasNodeAttached);
+    }
+
+    // Attach a node to the first conflicting proof, which has been promoted
+    BOOST_CHECK(pm.addNode(42, conflictingProofs[0]->getId()));
+    BOOST_CHECK(pm.forPeer(
+        conflictingProofs[0]->getId(),
+        [&](const avalanche::Peer &peer) { return peer.node_count == 1; }));
+
+    // Elapse the dangling timeout again
+    elapseTime(avalanche::Peer::DANGLING_TIMEOUT);
+    TestPeerManager::cleanupDanglingProofs(pm);
+    for (size_t i = 0; i < numProofs; i++) {
+        const bool hasNodeAttached = i % 2;
+
+        // The initial peers with a node attached are still there
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(proofs[i]->getId()),
+                          hasNodeAttached);
+        BOOST_CHECK_EQUAL(!pm.exists(proofs[i]->getId()), !hasNodeAttached);
+
+        // This time the previouly promoted conflicting proofs are evicted
+        // because they have no node attached, except the index 0.
+        BOOST_CHECK_EQUAL(pm.exists(conflictingProofs[i]->getId()),
+                          hasNodeAttached || i == 0);
+        BOOST_CHECK_EQUAL(pm.isInConflictingPool(conflictingProofs[i]->getId()),
+                          hasNodeAttached);
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(conflictingProofs[i]->getId()),
+                          i == 0);
+    }
+
+    // Disconnect all the nodes
+    for (size_t i = 1; i < numProofs; i += 2) {
+        BOOST_CHECK(pm.removeNode(i));
+        BOOST_CHECK(
+            pm.forPeer(proofs[i]->getId(), [&](const avalanche::Peer &peer) {
+                return peer.node_count == 0;
+            }));
+    }
+    BOOST_CHECK(pm.removeNode(42));
+    BOOST_CHECK(pm.forPeer(
+        conflictingProofs[0]->getId(),
+        [&](const avalanche::Peer &peer) { return peer.node_count == 0; }));
+
+    TestPeerManager::cleanupDanglingProofs(pm);
+    for (size_t i = 0; i < numProofs; i++) {
+        const bool hadNodeAttached = i % 2;
+
+        // All initially valid proofs have now been discarded
+        BOOST_CHECK(!pm.exists(proofs[i]->getId()));
+
+        // The remaining conflicting proofs are promoted
+        BOOST_CHECK_EQUAL(!pm.exists(conflictingProofs[i]->getId()),
+                          !hadNodeAttached);
+        BOOST_CHECK(!pm.isInConflictingPool(conflictingProofs[i]->getId()));
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(conflictingProofs[i]->getId()),
+                          hadNodeAttached);
+    }
+
+    // Elapse the timeout for the newly promoted conflicting proofs
+    elapseTime(avalanche::Peer::DANGLING_TIMEOUT);
+    TestPeerManager::cleanupDanglingProofs(pm);
+    for (size_t i = 0; i < numProofs; i++) {
+        // All proofs have now been discarded
+        BOOST_CHECK(!pm.exists(proofs[i]->getId()));
+        BOOST_CHECK(!pm.exists(conflictingProofs[i]->getId()));
+    }
+
+    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
