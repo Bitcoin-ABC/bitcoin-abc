@@ -33,6 +33,7 @@ import { ChronikClient } from 'chronik-client';
 const chronik = new ChronikClient(currency.chronikUrl);
 
 const useWallet = () => {
+    const [walletRefreshInterval] = useState(currency.walletRefreshInterval);
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
     const [contactList, setContactList] = useState(false);
@@ -1351,7 +1352,7 @@ const useWallet = () => {
         }
     }
 
-    // Update wallet every 10s
+    // Update wallet according to defined interval
     useAsyncTimeout(async () => {
         const wallet = await getWallet();
         update({
@@ -1362,7 +1363,7 @@ const useWallet = () => {
                 setHasUpdated(true);
             }
         });
-    }, 1000);
+    }, walletRefreshInterval);
 
     const fetchBchPrice = async (
         fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
