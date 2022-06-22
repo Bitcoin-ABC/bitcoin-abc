@@ -13,7 +13,7 @@ VOUT_VALUE_SIZE = 8
 
 def get_random_bytes(size: int) -> bytes:
     if sys.version_info >= (3, 9, 0):
-        return random.randbytes(size)
+        return random.randbytes(size)  # type: ignore[attr-defined]
     # slower workaround
     if not size:
         return b''
