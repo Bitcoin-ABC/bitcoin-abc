@@ -89,12 +89,12 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
                                 timelock_tx)
 
         self.log.info("Create spend_2_1 and spend_3_1")
-        spend_2_utxo = wallet.get_utxo(txid=spend_2['txid'])
         spend_2_1 = wallet.create_self_transfer(
-            from_node=self.nodes[0], utxo_to_spend=spend_2_utxo)
-        spend_3_utxo = wallet.get_utxo(txid=spend_3['txid'])
+            from_node=self.nodes[0],
+            utxo_to_spend=spend_2["new_utxo"])
         spend_3_1 = wallet.create_self_transfer(
-            from_node=self.nodes[0], utxo_to_spend=spend_3_utxo)
+            from_node=self.nodes[0],
+            utxo_to_spend=spend_3["new_utxo"])
 
         self.log.info("Broadcast and mine spend_3_1")
         spend_3_1_id = self.nodes[0].sendrawtransaction(spend_3_1['hex'])

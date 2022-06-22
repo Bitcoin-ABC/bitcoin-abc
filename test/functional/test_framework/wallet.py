@@ -52,6 +52,9 @@ class MiniWallet:
             self._test_node.validateaddress(
                 self._address)['scriptPubKey'])
 
+    def _create_utxo(self, *, txid, vout, value, height):
+        return {"txid": txid, "vout": vout, "value": value, "height": height}
+
     def rescan_utxos(self):
         """Drop all utxos and rescan the utxo set"""
         self._utxos = []
@@ -60,25 +63,44 @@ class MiniWallet:
         assert_equal(True, res['success'])
         for utxo in res['unspents']:
             self._utxos.append(
-                {'txid': utxo['txid'], 'vout': utxo['vout'], 'value': utxo['amount'], 'height': utxo['height']})
+                self._create_utxo(
+                    txid=utxo["txid"],
+                    vout=utxo["vout"],
+                    value=utxo["amount"],
+                    height=utxo["height"]))
 
     def scan_tx(self, tx):
-        """Scan the tx for self._scriptPubKey outputs and add them to self._utxos"""
+        """Scan the tx and adjust the internal list of owned utxos"""
+        for spent in tx["vin"]:
+            # Mark spent. This may happen when the caller has ownership of a
+            # utxo that remained in this wallet. For example, by passing
+            # mark_as_spent=False to get_utxo or by using an utxo returned by a
+            # create_self_transfer* call.
+            try:
+                self.get_utxo(txid=spent["txid"], vout=spent["vout"])
+            except StopIteration:
+                pass
         for out in tx['vout']:
             if out['scriptPubKey']['hex'] == self._scriptPubKey.hex():
                 self._utxos.append(
-                    {'txid': tx['txid'], 'vout': out['n'], 'value': out['value'], 'height': 0})
+                    self._create_utxo(
+                        txid=tx["txid"],
+                        vout=out["n"],
+                        value=out["value"],
+                        height=0))
 
     def generate(self, num_blocks, **kwargs):
-        """Generate blocks with coinbase outputs to the internal address,
-        and append the outputs to the internal list"""
+        """Generate blocks with coinbase outputs to the internal address, and call rescan_utxos"""
         blocks = self._test_node.generatetodescriptor(
             num_blocks, f'raw({self._scriptPubKey.hex()})', **kwargs)
-        for b in blocks:
-            block_info = self._test_node.getblock(blockhash=b, verbosity=2)
-            cb_tx = block_info['tx'][0]
-            self._utxos.append(
-                {'txid': cb_tx['txid'], 'vout': 0, 'value': cb_tx['vout'][0]['value'], 'height': block_info['height']})
+        # Calling rescan_utxos here makes sure that after a generate the utxo
+        # set is in a clean state. For example, the wallet will update
+        # - if the caller consumed utxos, but never used them
+        # - if the caller sent a transaction that is not mined
+        # - after block re-orgs
+        # - the utxo height for mined mempool txs
+        # - However, the wallet will not consider remaining mempool txs
+        self.rescan_utxos()
         return blocks
 
     def get_scriptPubKey(self):
@@ -158,8 +180,11 @@ class MiniWallet:
         tx_hex = tx.serialize().hex()
 
         assert_equal(len(tx.serialize()), size)
+        new_utxo = self._create_utxo(
+            txid=tx.rehash(), vout=0, value=send_value, height=0)
 
-        return {'txid': tx.rehash(), 'hex': tx_hex, 'tx': tx}
+        return {"txid": new_utxo["txid"],
+                "hex": tx_hex, "tx": tx, "new_utxo": new_utxo}
 
     def sendrawtransaction(self, *, from_node, tx_hex):
         txid = from_node.sendrawtransaction(tx_hex)
