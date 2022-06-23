@@ -131,6 +131,7 @@ TEST_PARAMS = {
     # Avalanche tests running with and without the legacy proof format
     "abc_p2p_avalanche_peer_discovery.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_proof_voting.py": [["--nolegacyavaproof"]],
+    "abc_p2p_avalanche_quorum.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_voting.py": [["--nolegacyavaproof"]],
     "abc_p2p_compactproofs.py": [["--nolegacyavaproof"]],
     "abc_p2p_getavaaddr.py": [["--nolegacyavaproof"]],
