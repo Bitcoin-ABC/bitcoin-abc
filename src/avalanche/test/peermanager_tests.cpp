@@ -1534,6 +1534,7 @@ BOOST_AUTO_TEST_CASE(score_ordering) {
 }
 
 BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
+    gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm;
 
     const CKey key = CKey::MakeCompressedKey();
@@ -1541,20 +1542,21 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
     const Amount amount10(10 * COIN);
     const Amount amount20(20 * COIN);
 
-    const COutPoint peer1ConflictingOutput = createUtxo(key, amount10);
-    const COutPoint peer1SecondaryOutpoint = createUtxo(key, amount20);
+    const COutPoint peer1ConflictingOutput = createUtxo(key, amount10, 99);
+    const COutPoint peer1SecondaryOutpoint = createUtxo(key, amount20, 99);
 
     auto peer1Proof1 = buildProof(key,
                                   {{peer1ConflictingOutput, amount10},
                                    {peer1SecondaryOutpoint, amount20}},
-                                  key, 10);
+                                  key, 10, 99);
     auto peer1Proof2 =
-        buildProof(key, {{peer1ConflictingOutput, amount10}}, key, 20);
-    auto peer1Proof3 =
-        buildProof(key,
-                   {{peer1ConflictingOutput, amount10},
-                    {COutPoint{TxId(GetRandHash()), 0}, amount10}},
-                   key, 30);
+        buildProof(key, {{peer1ConflictingOutput, amount10}}, key, 20, 99);
+
+    // Create a proof with an immature UTXO, so the proof will be orphaned
+    auto peer1Proof3 = buildProof(key,
+                                  {{peer1ConflictingOutput, amount10},
+                                   {createUtxo(key, amount10), amount10}},
+                                  key, 30);
 
     const uint32_t peer1Score1 = Proof::amountToScore(amount10 + amount20);
     const uint32_t peer1Score2 = Proof::amountToScore(amount10);
@@ -1625,7 +1627,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 
     // Now add another peer and check that combined scores are correct
     uint32_t peer2Score = 1 * MIN_VALID_PROOF_SCORE;
-    auto peer2Proof1 = buildRandomProof(peer2Score);
+    auto peer2Proof1 = buildRandomProof(peer2Score, 99);
     PeerId peerid2 = TestPeerManager::registerAndGetPeerId(pm, peer2Proof1);
     BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2 + peer2Score);
 
