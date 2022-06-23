@@ -33,7 +33,9 @@ import { ChronikClient } from 'chronik-client';
 const chronik = new ChronikClient(currency.chronikUrl);
 
 const useWallet = () => {
-    const [walletRefreshInterval] = useState(currency.walletRefreshInterval);
+    const [walletRefreshInterval, setWalletRefreshInterval] = useState(
+        currency.walletRefreshInterval,
+    );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
     const [contactList, setContactList] = useState(false);
@@ -211,6 +213,12 @@ const useWallet = () => {
     const update = async ({ wallet }) => {
         //console.log(`tick()`);
         //console.time("update");
+
+        // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
+        // If walletRefreshInterval is 10, set it back to the usual refresh rate
+        if (walletRefreshInterval === 10) {
+            setWalletRefreshInterval(currency.walletRefreshInterval);
+        }
         try {
             if (!wallet) {
                 return;
@@ -248,7 +256,6 @@ const useWallet = () => {
                 utxos,
                 previousUtxos,
             );
-
             // If the utxo set has not changed,
             if (!utxosHaveChanged) {
                 // remove api error here; otherwise it will remain if recovering from a rate
@@ -940,6 +947,10 @@ const useWallet = () => {
         if (type !== 'AddedToMempool') {
             return;
         }
+        // If you see a tx from your subscribed addresses added to the mempool, then the wallet utxo set has changed
+        // Update it
+        setWalletRefreshInterval(10);
+
         // get txid info
         const txid = msg.txid;
         const txDetails = await chronik.tx(txid);
