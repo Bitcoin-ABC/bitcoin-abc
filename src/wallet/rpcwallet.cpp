@@ -1288,12 +1288,13 @@ static void MaybePushAddress(UniValue &entry, const CTxDestination &dest) {
  * @param  nMinDepth      The minimum confirmation depth.
  * @param  fLong          Whether to include the JSON version of the
  * transaction.
- * @param  ret            The UniValue into which the result is stored.
+ * @param  ret            The vector into which the result is stored.
  * @param  filter_ismine  The "is mine" filter flags.
  * @param  filter_label   Optional label string to filter incoming transactions.
  */
+template <class Vec>
 static void ListTransactions(const CWallet *const pwallet, const CWalletTx &wtx,
-                             int nMinDepth, bool fLong, UniValue &ret,
+                             int nMinDepth, bool fLong, Vec &ret,
                              const isminefilter &filter_ismine,
                              const std::string *filter_label)
     EXCLUSIVE_LOCKS_REQUIRED(pwallet->cs_wallet) {
@@ -1532,8 +1533,8 @@ RPCHelpMan listtransactions() {
             if (nFrom < 0) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Negative from");
             }
-            UniValue ret(UniValue::VARR);
 
+            std::vector<UniValue> ret;
             {
                 LOCK(pwallet->cs_wallet);
 
@@ -1561,11 +1562,10 @@ RPCHelpMan listtransactions() {
                 nCount = ret.size() - nFrom;
             }
 
-            const std::vector<UniValue> &txs = ret.getValues();
+            auto txs_rev_it{std::make_move_iterator(ret.rend())};
             UniValue result{UniValue::VARR};
             // Return oldest to newest
-            result.push_backV(
-                {txs.rend() - nFrom - nCount, txs.rend() - nFrom});
+            result.push_backV(txs_rev_it - nFrom - nCount, txs_rev_it - nFrom);
             return result;
         },
     };

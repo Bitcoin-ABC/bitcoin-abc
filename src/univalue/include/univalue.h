@@ -96,6 +96,8 @@ public:
 
     bool push_back(const UniValue& val);
     bool push_backV(const std::vector<UniValue>& vec);
+    template <class It>
+    bool push_backV(It first, It last);
 
     void __pushKV(const std::string& key, const UniValue& val);
     bool pushKV(const std::string& key, const UniValue& val);
@@ -147,6 +149,14 @@ public:
 
     const UniValue& find_value(std::string_view key) const;
 };
+
+template <class It>
+bool UniValue::push_backV(It first, It last)
+{
+    if (typ != VARR) return false;
+    values.insert(values.end(), first, last);
+    return true;
+}
 
 enum jtokentype {
     JTOK_ERR        = -1,
