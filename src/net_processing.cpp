@@ -1739,6 +1739,12 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         });
     }
 
+    if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+        // Don't request proofs while in IBD. We're likely to orphan them
+        // because we don't have the UTXOs.
+        goto scheduleLater;
+    }
+
     // Send a getavaproofs to one of our peers
     m_connman.ForNode(avanode_outbound_ids.back(), [&](CNode *pavanode) {
         LogPrint(BCLog::AVALANCHE, "Requesting compact proofs from peer %d\n",
@@ -3732,7 +3738,8 @@ void PeerManagerImpl::ProcessMessage(
                 WITH_LOCK(peer->m_addr_token_bucket_mutex,
                           peer->m_addr_token_bucket += GetMaxAddrToSend());
 
-                if (pfrom.m_proof_relay) {
+                if (pfrom.m_proof_relay &&
+                    !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
                     m_connman.PushMessage(
                         &pfrom, msgMaker.Make(NetMsgType::GETAVAPROOFS));
                     pfrom.m_proof_relay->compactproofs_requested = true;

@@ -494,6 +494,40 @@ class CompactProofsTest(BitcoinTestFramework):
             lambda: all(
                 proof.proofid in proofids for proof in get_proof_ids(requester)))
 
+    def test_no_compactproofs_during_ibs(self):
+        self.log.info(
+            "Check the node don't request compact proofs during IBD")
+
+        node = self.nodes[0]
+
+        chainwork = int(node.getblockchaininfo()['chainwork'], 16)
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0] +
+            [f'-minimumchainwork={chainwork + 2:#x}'])
+
+        assert node.getblockchaininfo()['initialblockdownload']
+
+        peer = P2PInterface()
+        node.add_outbound_p2p_connection(
+            peer,
+            p2p_idx=0,
+            connection_type="avalanche",
+            services=NODE_NETWORK | NODE_AVALANCHE,
+        )
+
+        # Force the node to process the sending loop
+        peer.sync_send_with_ping()
+        with p2p_lock:
+            assert_equal(peer.message_count.get("getavaproofs", 0), 0)
+
+        # Make sure there is no message sent as part as the periodic network
+        # messaging either
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        peer.sync_send_with_ping()
+        with p2p_lock:
+            assert_equal(peer.message_count.get("getavaproofs", 0), 0)
+
     def run_test(self):
         # Most if the tests only need a single node, let the other ones start
         # the node when required
@@ -505,6 +539,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.test_request_missing_proofs()
         self.test_send_missing_proofs()
         self.test_compact_proofs_download_on_connect()
+        self.test_no_compactproofs_during_ibs()
 
 
 if __name__ == '__main__':

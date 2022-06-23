@@ -111,11 +111,13 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             peer['node'] = avapeer
             addavalanchenode(node, peer)
 
-            avapeer.wait_until(
-                lambda: avapeer.last_message.get("getavaproofs"))
-            avapeer.send_and_ping(msg_avaproofs())
-            avapeer.wait_until(
-                lambda: avapeer.last_message.get("avaproofsreq"))
+            # There is no compact proof request if the node is in IBD state
+            if not node.getblockchaininfo()['initialblockdownload']:
+                avapeer.wait_until(
+                    lambda: avapeer.last_message.get("getavaproofs"))
+                avapeer.send_and_ping(msg_avaproofs())
+                avapeer.wait_until(
+                    lambda: avapeer.last_message.get("avaproofsreq"))
 
             return avapeer
 
