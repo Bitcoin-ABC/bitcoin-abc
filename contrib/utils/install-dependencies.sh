@@ -137,3 +137,16 @@ DEBIAN_FRONTEND=noninteractive dpkg -i pandoc-2.10.1-1-amd64.deb
 # Install npm v7.x and nodejs v15.x
 curl -sL https://deb.nodesource.com/setup_15.x | bash -
 apt-get install -y nodejs
+
+# Install Rust 1.61
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.61.0
+
+# Install corrosion from Github
+wget https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.2.1 -O corrosion.tar.gz
+echo "49fdaa6af103c5523cc940e73a23c67e5b25d4b74f4ee55a8b7a524a4f815517 corrosion.tar.gz" | sha256sum -c
+tar xzf corrosion.tar.gz
+CORROSION_SRC_FOLDER=corrosion-rs-corrosion-28fa50c
+CORROSION_BUILD_FOLDER=${CORROSION_SRC_FOLDER}-build
+cmake -S${CORROSION_SRC_FOLDER} -B${CORROSION_BUILD_FOLDER} -DCMAKE_BUILD_TYPE=Release
+cmake --build ${CORROSION_BUILD_FOLDER} --config Release
+cmake --install ${CORROSION_BUILD_FOLDER} --config Release
