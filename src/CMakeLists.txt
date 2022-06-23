@@ -719,8 +719,6 @@ add_library(server
 	versionbits.cpp
 )
 
-target_include_directories(server PRIVATE leveldb/helpers/memenv)
-
 target_link_libraries(server
 	bitcoinconsensus
 	leveldb
@@ -970,7 +968,6 @@ if(BUILD_CHAINSTATE)
 	target_include_directories(bitcoinkernel
 		PUBLIC
 			.
-			leveldb/helpers/memenv
 			# To access the config/ and obj/ directories
 			${CMAKE_CURRENT_BINARY_DIR}
 	)
