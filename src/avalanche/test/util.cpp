@@ -17,12 +17,11 @@
 
 namespace avalanche {
 
-ProofRef buildRandomProof(uint32_t score, const CKey &masterKey) {
+ProofRef buildRandomProof(uint32_t score, int height, const CKey &masterKey) {
     auto key = CKey::MakeCompressedKey();
 
     const COutPoint o(TxId(GetRandHash()), 0);
     const Amount v = (int64_t(score) * COIN) / 100;
-    const int height = 1234;
     const bool is_coinbase = false;
 
     {

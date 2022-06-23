@@ -15,7 +15,7 @@ namespace avalanche {
 
 constexpr uint32_t MIN_VALID_PROOF_SCORE = 100 * PROOF_DUST_THRESHOLD / COIN;
 
-ProofRef buildRandomProof(uint32_t score,
+ProofRef buildRandomProof(uint32_t score, int height = 1234,
                           const CKey &masterKey = CKey::MakeCompressedKey());
 
 bool hasDustStake(const ProofRef &proof);

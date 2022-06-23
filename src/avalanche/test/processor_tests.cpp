@@ -1137,7 +1137,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
 
     const CKey key = CKey::MakeCompressedKey();
-    auto localProof = buildRandomProof(minScore / 4, key);
+    auto localProof = buildRandomProof(minScore / 4, 1234, key);
     gArgs.ForceSetArg("-avamasterkey", EncodeSecret(key));
     gArgs.ForceSetArg("-avaproof", localProof->ToHex());
 

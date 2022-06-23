@@ -31,7 +31,7 @@ static void CheckDelegation(const Delegation &dg, const ProofRef &p,
 BOOST_AUTO_TEST_CASE(verify_random) {
     auto key = CKey::MakeCompressedKey();
 
-    auto p = buildRandomProof(123456, key);
+    auto p = buildRandomProof(123456, 1234, key);
     DelegationBuilder dgb(*p);
 
     {
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
 
 BOOST_AUTO_TEST_CASE(level_limit) {
     auto proofKey = CKey::MakeCompressedKey();
-    auto p = buildRandomProof(123456, proofKey);
+    auto p = buildRandomProof(123456, 1234, proofKey);
 
     DelegationBuilder dgb(*p);
 
