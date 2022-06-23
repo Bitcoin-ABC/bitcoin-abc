@@ -48,7 +48,6 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
         data_size = required_padding - VOUT_VALUE_SIZE - 3
         was_op_pushdata1_used = True
 
-        script_operations = []
         if data_size <= 0x4c:
             was_op_pushdata1_used = False
             if data_size == 0x4c:
@@ -73,11 +72,9 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
 
         required_padding -= data_size + VOUT_VALUE_SIZE + 3
 
-        script_operations += [
-            OP_RETURN,
-            get_random_bytes(data_size)
-        ]
-        tx.vout.append(CTxOut(0, CScript(script_operations)))
+        tx.vout.append(
+            CTxOut(0, CScript([OP_RETURN, get_random_bytes(data_size)]))
+        )
 
     tx.rehash()
 
