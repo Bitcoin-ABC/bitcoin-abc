@@ -12,14 +12,18 @@
 #include <sync.h>
 #include <util/strencodings.h>
 #include <util/string.h>
+#include <util/time.h>
 
 #include <boost/signals2/signal.hpp>
 
 #include <cassert>
-#include <memory> // for unique_ptr
+#include <chrono>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <unordered_map>
+
+using SteadyClock = std::chrono::steady_clock;
 
 static GlobalMutex g_rpc_warmup_mutex;
 static std::atomic<bool> g_rpc_running{false};
@@ -38,7 +42,7 @@ static bool ExecuteCommand(const Config &config, const CRPCCommand &command,
 
 struct RPCCommandExecutionInfo {
     std::string method;
-    int64_t start;
+    SteadyClock::time_point start;
 };
 
 struct RPCServerInfo {
@@ -54,7 +58,7 @@ struct RPCCommandExecution {
         LOCK(g_rpc_server_info.mutex);
         it = g_rpc_server_info.active_commands.insert(
             g_rpc_server_info.active_commands.cend(),
-            {method, GetTimeMicros()});
+            {method, SteadyClock::now()});
     }
     ~RPCCommandExecution() {
         LOCK(g_rpc_server_info.mutex);
@@ -288,7 +292,9 @@ static RPCHelpMan getrpcinfo() {
                  g_rpc_server_info.active_commands) {
                 UniValue entry(UniValue::VOBJ);
                 entry.pushKV("method", info.method);
-                entry.pushKV("duration", GetTimeMicros() - info.start);
+                entry.pushKV("duration",
+                             int64_t{Ticks<std::chrono::microseconds>(
+                                 SteadyClock::now() - info.start)});
                 active_commands.push_back(entry);
             }
 
