@@ -1745,15 +1745,26 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         goto scheduleLater;
     }
 
-    // Send a getavaproofs to one of our peers
-    m_connman.ForNode(avanode_outbound_ids.back(), [&](CNode *pavanode) {
-        LogPrint(BCLog::AVALANCHE, "Requesting compact proofs from peer %d\n",
-                 pavanode->GetId());
-        m_connman.PushMessage(pavanode,
-                              CNetMsgMaker(pavanode->GetCommonVersion())
-                                  .Make(NetMsgType::GETAVAPROOFS));
-        return true;
-    });
+    // If we never had an avaproofs message yet, be kind and only request to a
+    // subset of our peers as we expect a ton of avaproofs message in the
+    // process.
+    if (g_avalanche->getAvaproofsNodeCounter() == 0) {
+        avanode_outbound_ids.resize(
+            std::min<size_t>(avanode_outbound_ids.size(), 3));
+    }
+
+    for (NodeId nodeid : avanode_outbound_ids) {
+        // Send a getavaproofs to one of our peers
+        m_connman.ForNode(nodeid, [&](CNode *pavanode) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Requesting compact proofs from peer %d\n",
+                     pavanode->GetId());
+            m_connman.PushMessage(pavanode,
+                                  CNetMsgMaker(pavanode->GetCommonVersion())
+                                      .Make(NetMsgType::GETAVAPROOFS));
+            return true;
+        });
+    }
 
 scheduleLater:
     // Schedule next run for 2-5 minutes in the future.

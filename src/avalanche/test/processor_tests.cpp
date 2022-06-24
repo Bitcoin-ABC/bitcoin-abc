@@ -54,10 +54,6 @@ namespace {
             return p.minQuorumConnectedScoreRatio;
         }
 
-        static int64_t getavaproofsNodeCounter(Processor &p) {
-            return p.avaproofsNodeCounter;
-        }
-
         static void clearavaproofsNodeCounter(Processor &p) {
             p.avaproofsNodeCounter = 0;
         }
@@ -1341,13 +1337,11 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
             addNode(i);
 
             processor->avaproofsSent(i);
-            BOOST_CHECK_EQUAL(
-                AvalancheTest::getavaproofsNodeCounter(*processor), i + 1);
+            BOOST_CHECK_EQUAL(processor->getAvaproofsNodeCounter(), i + 1);
 
             // Receiving again on the same node does not increase the counter
             processor->avaproofsSent(i);
-            BOOST_CHECK_EQUAL(
-                AvalancheTest::getavaproofsNodeCounter(*processor), i + 1);
+            BOOST_CHECK_EQUAL(processor->getAvaproofsNodeCounter(), i + 1);
 
             BOOST_CHECK(!processor->isQuorumEstablished());
         }

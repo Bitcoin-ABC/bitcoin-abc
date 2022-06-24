@@ -225,6 +225,9 @@ public:
     bool stopEventLoop();
 
     void avaproofsSent(NodeId nodeid);
+    int64_t getAvaproofsNodeCounter() const {
+        return avaproofsNodeCounter.load();
+    }
     bool isQuorumEstablished();
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
