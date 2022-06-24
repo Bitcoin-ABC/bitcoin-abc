@@ -174,8 +174,9 @@ class Processor final : public NetEventsInterface {
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
     Processor(const ArgsManager &argsman, interfaces::Chain &chain,
-              CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
-              CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
+              CConnman *connmanIn, CScheduler &scheduler,
+              std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
+              uint32_t minQuorumTotalScoreIn,
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
               uint32_t staleVoteFactorIn);
@@ -186,6 +187,7 @@ public:
     static std::unique_ptr<Processor> MakeProcessor(const ArgsManager &argsman,
                                                     interfaces::Chain &chain,
                                                     CConnman *connman,
+                                                    CScheduler &scheduler,
                                                     bilingual_str &error);
 
     void setQueryTimeoutDuration(std::chrono::milliseconds d) {

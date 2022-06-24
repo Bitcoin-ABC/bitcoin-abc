@@ -8,12 +8,21 @@
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
 #include <random.h>
+#include <scheduler.h>
 #include <validation.h> // For ChainstateActive()
 
 #include <algorithm>
 #include <cassert>
 
 namespace avalanche {
+PeerManager::PeerManager(CScheduler &scheduler) {
+    scheduler.scheduleEvery(
+        [this]() -> bool {
+            this->cleanupDanglingProofs();
+            return true;
+        },
+        5min);
+}
 
 bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
     auto &pview = peers.get<by_proofid>();

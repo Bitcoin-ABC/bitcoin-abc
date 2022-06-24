@@ -129,6 +129,7 @@ TEST_PARAMS = {
     "wallet_watchonly.py": [["--usecli"]],
 
     # Avalanche tests running with and without the legacy proof format
+    "abc_feature_proof_cleanup.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_peer_discovery.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_proof_voting.py": [["--nolegacyavaproof"]],
     "abc_p2p_avalanche_quorum.py": [["--nolegacyavaproof"]],

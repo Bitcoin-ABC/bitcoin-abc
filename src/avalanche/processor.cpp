@@ -121,15 +121,16 @@ public:
 };
 
 Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
-                     CConnman *connmanIn, std::unique_ptr<PeerData> peerDataIn,
-                     CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
+                     CConnman *connmanIn, CScheduler &scheduler,
+                     std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
+                     uint32_t minQuorumTotalScoreIn,
                      double minQuorumConnectedScoreRatioIn,
                      int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn)
     : connman(connmanIn),
       queryTimeoutDuration(argsman.GetArg(
           "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
-      round(0), peerManager(std::make_unique<PeerManager>()),
+      round(0), peerManager(std::make_unique<PeerManager>(scheduler)),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -149,6 +150,7 @@ Processor::~Processor() {
 std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
                                                     interfaces::Chain &chain,
                                                     CConnman *connman,
+                                                    CScheduler &scheduler,
                                                     bilingual_str &error) {
     std::unique_ptr<PeerData> peerData;
     CKey masterKey;
@@ -308,9 +310,10 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
-        argsman, chain, connman, std::move(peerData), std::move(sessionKey),
-        Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
-        minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor));
+        argsman, chain, connman, scheduler, std::move(peerData),
+        std::move(sessionKey), Proof::amountToScore(minQuorumStake),
+        minQuorumConnectedStakeRatio, minAvaproofsNodeCount, staleVoteThreshold,
+        staleVoteFactor));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {

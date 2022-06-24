@@ -30,6 +30,8 @@
 #include <unordered_set>
 #include <vector>
 
+class CScheduler;
+
 namespace avalanche {
 
 /**
@@ -224,6 +226,8 @@ class PeerManager {
     uint32_t connectedPeersScore = 0;
 
 public:
+    PeerManager(CScheduler &scheduler);
+
     /**
      * Node API.
      */
