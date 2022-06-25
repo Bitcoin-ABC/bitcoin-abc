@@ -6,3 +6,11 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.61.0"
 license = "MIT"
+
+[dependencies]
+# En-/decode byte strings from/to hex
+hex = "0.4"
+
+[dev-dependencies]
+# hex!() macro for byte array hex literals
+hex-literal = "0.3"
