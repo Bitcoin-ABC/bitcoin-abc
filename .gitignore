@@ -86,3 +86,6 @@ node_modules/
 
 # Local Netlify folder
 .netlify
+
+# arc liberate cache file
+.phutil_module_cache
