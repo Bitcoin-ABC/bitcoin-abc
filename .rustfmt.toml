@@ -1,0 +1,13 @@
+# Note: We require nightly rustfmt
+
+comment_width = 80
+edition = "2021"
+format_code_in_doc_comments = true
+format_macro_bodies = true
+format_strings = true
+group_imports = "StdExternalCrate"
+max_width = 80
+reorder_impl_items = true
+unstable_features = true
+use_field_init_shorthand = true
+wrap_comments = true
