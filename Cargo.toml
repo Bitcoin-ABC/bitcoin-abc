@@ -1,0 +1,7 @@
+# Copyright (c) 2022 The Bitcoin developers
+
+[workspace]
+
+members = [
+    "chronik/bitcoinsuite-core",
+]

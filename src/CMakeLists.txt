@@ -73,6 +73,7 @@ endif(CCACHE)
 include(NativeExecutable)
 native_add_cmake_flags(
 	"-DBUILD_BITCOIN_WALLET=OFF"
+	"-DBUILD_BITCOIN_CHRONIK=OFF"
 	"-DBUILD_BITCOIN_QT=OFF"
 	"-DBUILD_BITCOIN_ZMQ=OFF"
 	"-DENABLE_QRCODE=OFF"

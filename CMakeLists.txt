@@ -121,6 +121,12 @@ if(ENABLE_COVERAGE)
 endif()
 
 add_subdirectory(src)
+
+option(BUILD_BITCOIN_CHRONIK "Activate the Chronik indexer" OFF)
+if(BUILD_BITCOIN_CHRONIK)
+	add_subdirectory(chronik)
+endif()
+
 add_subdirectory(test)
 
 add_subdirectory(contrib)
