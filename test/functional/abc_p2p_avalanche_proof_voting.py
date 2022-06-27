@@ -192,6 +192,16 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             peer.send_avaproof(avalanche_proof_from_hex(no_stake))
         peer.wait_for_disconnect()
 
+        self.log.info("We don't poll for proofs if replacement is disabled")
+
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0] +
+            ['-enableavalancheproofreplacement=0'])
+        peer = get_ava_p2p_interface(node)
+        with node.assert_debug_log(["Not polling the avalanche proof (not-worth-polling)"]):
+            peer.send_avaproof(avalanche_proof_from_hex(proof_seq10))
+
     def update_tests(self, node):
         # Restart the node to get rid of in-flight requests
         self.restart_node(0)

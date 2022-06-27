@@ -113,6 +113,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         BOOST_CHECK(m_processor);
 
         gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
+        gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
     }
 
     ~AvalancheTestingSetup() {
@@ -120,6 +121,7 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         SyncWithValidationInterfaceQueue();
 
         gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
+        gArgs.ClearForcedArg("-enableavalancheproofreplacement");
     }
 
     CNode *ConnectNode(ServiceFlags nServices) {
@@ -1103,16 +1105,34 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
         BOOST_CHECK_EQUAL(invs.front().hash, lastProofId);
     }
 
-    // The score is not high enough to get polled
-    auto proof = addProofToReconcile(--score);
-    auto invs = AvalancheTest::getInvsForNextPoll(*m_processor);
-    for (auto &inv : invs) {
-        BOOST_CHECK_NE(inv.hash, proof->getId());
+    {
+        // The score is not high enough to get polled
+        auto proof = addProofToReconcile(--score);
+        auto invs = AvalancheTest::getInvsForNextPoll(*m_processor);
+        for (auto &inv : invs) {
+            BOOST_CHECK_NE(inv.hash, proof->getId());
+        }
+    }
+
+    {
+        // If proof replacement is not enabled there is no point polling for the
+        // proof.
+        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            BOOST_CHECK(pm.registerProof(proof));
+        });
+
+        gArgs.ForceSetArg("-enableavalancheproofreplacement", "0");
+        BOOST_CHECK(!m_processor->addProofToReconcile(proof));
+
+        gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
+        BOOST_CHECK(m_processor->addProofToReconcile(proof));
+
+        gArgs.ClearForcedArg("-enableavalancheproofreplacement");
     }
 }
 
 BOOST_AUTO_TEST_CASE(proof_record) {
-    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
     gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
 
     BOOST_CHECK(!m_processor->isAccepted(nullptr));
@@ -1188,7 +1208,6 @@ BOOST_AUTO_TEST_CASE(proof_record) {
     BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
 
     gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
-    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
 BOOST_AUTO_TEST_CASE(quorum_detection) {

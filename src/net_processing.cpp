@@ -7092,21 +7092,13 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
         return false;
     }
 
-    if (!gArgs.GetBoolArg("-enableavalancheproofreplacement",
-                          AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
-        // If proof replacement is not enabled there is no point dealing
-        // with proof polling, so we're done.
-        return true;
+    if (!g_avalanche->addProofToReconcile(proof)) {
+        LogPrint(BCLog::AVALANCHE,
+                 "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
+                 state.IsValid() ? "not-worth-polling"
+                                 : state.GetRejectReason(),
+                 nodeid, proofid.ToString());
     }
 
-    if (state.IsValid() ||
-        state.GetResult() == avalanche::ProofRegistrationResult::CONFLICTING) {
-        g_avalanche->addProofToReconcile(proof);
-        return true;
-    }
-
-    LogPrint(BCLog::AVALANCHE,
-             "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
-             state.GetRejectReason(), nodeid, proofid.ToString());
     return true;
 }

@@ -936,6 +936,13 @@ bool Processor::isWorthPolling(const CBlockIndex *pindex) const {
 bool Processor::isWorthPolling(const ProofRef &proof) const {
     AssertLockHeld(cs_peerManager);
 
+    if (!gArgs.GetBoolArg("-enableavalancheproofreplacement",
+                          AVALANCHE_DEFAULT_PROOF_REPLACEMENT_ENABLED)) {
+        // If proof replacement is not enabled there is no point dealing
+        // with proof polling, so we're done.
+        return false;
+    }
+
     const ProofId &proofid = proof->getId();
 
     // No point polling orphans or discarded proofs
