@@ -323,10 +323,19 @@ class CompactProofsTest(BitcoinTestFramework):
             assert_equal(avaproofsreq.indices, expected_indices)
 
         self.log.info("Check no proof is requested if there is no shortid")
-        expect_indices([], [])
+
+        msg = build_msg_avaproofs([])
+        sender = add_avalanche_p2p_outbound()
+        with node.assert_debug_log(["Got an avaproofs message with no shortid"]):
+            sender.send_message(msg)
+        # Make sure we don't get an avaproofsreq message
+        sender.sync_send_with_ping()
+        with p2p_lock:
+            assert_equal(sender.message_count.get("avaproofsreq", 0), 0)
 
         self.log.info(
             "Check the node requests all the proofs if it known none")
+
         expect_indices(
             list(shortid_map.values()),
             [i for i in range(len(shortid_map))]
@@ -346,6 +355,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         self.log.info(
             "Check the node don't request prefilled proofs")
+
         # Get the indices for a couple of proofs
         indice_proof5 = list(shortid_map.keys()).index(proofids[5])
         indice_proof6 = list(shortid_map.keys()).index(proofids[6])

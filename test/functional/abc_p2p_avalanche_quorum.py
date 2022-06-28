@@ -6,6 +6,7 @@
 
 from test_framework.avatools import (
     AvaP2PInterface,
+    build_msg_avaproofs,
     gen_proof,
     get_ava_p2p_interface,
 )
@@ -15,8 +16,8 @@ from test_framework.messages import (
     NODE_NETWORK,
     AvalancheVote,
     AvalancheVoteError,
-    msg_avaproofs,
 )
+from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
@@ -45,7 +46,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
     def run_test(self):
         # Prepare peers proofs
         peers = []
-        for i in range(0, self.min_avaproofs_node_count):
+        for i in range(0, self.min_avaproofs_node_count + 1):
             key, proof = gen_proof(self.nodes[0])
             peers.append({'key': key, 'proof': proof})
 
@@ -96,7 +97,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
 
         p2p_idx = 0
 
-        def get_ava_outbound(node, peer):
+        def get_ava_outbound(node, peer, empty_avaproof):
             nonlocal p2p_idx
 
             avapeer = AvaP2PInterface()
@@ -116,15 +117,25 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             if not node.getblockchaininfo()['initialblockdownload']:
                 avapeer.wait_until(
                     lambda: avapeer.last_message.get("getavaproofs"))
-                avapeer.send_and_ping(msg_avaproofs())
-                avapeer.wait_until(
-                    lambda: avapeer.last_message.get("avaproofsreq"))
+
+                if empty_avaproof:
+                    avapeer.send_message(build_msg_avaproofs([]))
+                    avapeer.sync_send_with_ping()
+                    with p2p_lock:
+                        assert_equal(
+                            avapeer.message_count.get(
+                                "avaproofsreq", 0), 0)
+                else:
+                    avapeer.send_and_ping(build_msg_avaproofs([peer['proof']]))
+                    avapeer.wait_until(
+                        lambda: avapeer.last_message.get("avaproofsreq"))
 
             return avapeer
 
-        def add_avapeer_and_check_status(peer, expected_status):
+        def add_avapeer_and_check_status(
+                peer, expected_status, empty_avaproof=False):
             for i, node in enumerate(self.nodes):
-                get_ava_outbound(node, peer)
+                get_ava_outbound(node, peer, empty_avaproof)
                 poll_and_assert_response(node, expected_status[i])
 
         # Start polling. The response should be UNKNOWN because there's no
@@ -181,9 +192,17 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                     AvalancheVoteError.UNKNOWN,
                 ])
 
-        # The messages are accounted and the node quorum finally valid
+        # The messages is not accounted when there is no shortid
         add_avapeer_and_check_status(
             peers[self.min_avaproofs_node_count - 1], [
+                AvalancheVoteError.ACCEPTED,
+                AvalancheVoteError.ACCEPTED,
+                AvalancheVoteError.UNKNOWN,
+            ], empty_avaproof=True)
+
+        # The messages are accounted and the node quorum finally valid
+        add_avapeer_and_check_status(
+            peers[self.min_avaproofs_node_count], [
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,

@@ -5268,6 +5268,15 @@ void PeerManagerImpl::ProcessMessage(
             }
         }
 
+        // If there is no shortid, avoid parsing/responding/accounting for the
+        // message.
+        if (compactProofs.getShortIDs().size() == 0) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Got an avaproofs message with no shortid (peer %d)\n",
+                     pfrom.GetId());
+            return;
+        }
+
         // To determine the chance that the number of entries in a bucket
         // exceeds N, we use the fact that the number of elements in a single
         // bucket is binomially distributed (with n = the number of shorttxids
