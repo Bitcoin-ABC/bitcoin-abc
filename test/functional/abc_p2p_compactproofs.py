@@ -11,6 +11,7 @@ import time
 
 from test_framework.avatools import (
     AvaP2PInterface,
+    build_msg_avaproofs,
     gen_proof,
     get_ava_p2p_interface,
     get_proof_ids,
@@ -21,7 +22,6 @@ from test_framework.messages import (
     NODE_NETWORK,
     AvalanchePrefilledProof,
     calculate_shortid,
-    msg_avaproofs,
     msg_avaproofsreq,
     msg_getavaproofs,
 )
@@ -159,15 +159,7 @@ class CompactProofsTest(BitcoinTestFramework):
             proof.serialize().hex())
 
         # Send the avaproofs message
-        avaproofs = msg_avaproofs()
-        avaproofs.key0 = random.randint(0, 2**64 - 1)
-        avaproofs.key1 = random.randint(0, 2**64 - 1)
-        avaproofs.prefilled_proofs = []
-        avaproofs.shortids = [
-            calculate_shortid(
-                avaproofs.key0,
-                avaproofs.key1,
-                proof.proofid)]
+        avaproofs = build_msg_avaproofs([proof])
         responding_outbound_avapeer.send_and_ping(avaproofs)
 
         # Now the node will request from all its peers at each time period
@@ -286,11 +278,9 @@ class CompactProofsTest(BitcoinTestFramework):
 
         spam_peer = get_ava_p2p_interface(node)
 
-        msg = msg_avaproofs()
-        msg.key0 = key0
-        msg.key1 = key1
-        msg.shortids = list(shortid_map.values())
-        msg.prefilled_proofs = []
+        msg = build_msg_avaproofs(
+            proofs, prefilled_proofs=[], key_pair=[
+                key0, key1])
 
         with node.assert_debug_log(["Ignoring unsollicited avaproofs"]):
             spam_peer.send_message(msg)
@@ -320,14 +310,10 @@ class CompactProofsTest(BitcoinTestFramework):
         def expect_indices(shortids, expected_indices, prefilled_proofs=None):
             nonlocal p2p_idx
 
-            if prefilled_proofs is None:
-                prefilled_proofs = []
-
-            msg = msg_avaproofs()
-            msg.key0 = key0
-            msg.key1 = key1
+            msg = build_msg_avaproofs(
+                [], prefilled_proofs=prefilled_proofs, key_pair=[
+                    key0, key1])
             msg.shortids = shortids
-            msg.prefilled_proofs = prefilled_proofs
 
             peer = add_avalanche_p2p_outbound()
             peer.send_message(msg)
@@ -393,14 +379,11 @@ class CompactProofsTest(BitcoinTestFramework):
 
         bad_peer = add_avalanche_p2p_outbound()
 
-        msg = msg_avaproofs()
-        msg.key0 = key0
-        msg.key1 = key1
-        msg.shortids = list(shortid_map.values())
-        msg.prefilled_proofs = [
+        msg = build_msg_avaproofs([], prefilled_proofs=[
             AvalanchePrefilledProof(
                 len(shortid_map) + 1,
-                gen_proof(node)[1])]
+                gen_proof(node)[1])], key_pair=[key0, key1])
+        msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "avaproofs-bad-indexes"]):
             bad_peer.send_message(msg)
@@ -413,13 +396,10 @@ class CompactProofsTest(BitcoinTestFramework):
 
         bad_peer = add_avalanche_p2p_outbound()
 
-        msg = msg_avaproofs()
-        msg.key0 = key0
-        msg.key1 = key1
-        msg.shortids = list(shortid_map.values())
-        msg.prefilled_proofs = [
+        msg = build_msg_avaproofs([], prefilled_proofs=[
             AvalanchePrefilledProof(len(shortid_map), no_stake),
-        ]
+        ], key_pair=[key0, key1])
+        msg.shortids = list(shortid_map.values())
 
         with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
             bad_peer.send_message(msg)

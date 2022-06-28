@@ -4,6 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Utilities for avalanche tests."""
 
+import random
 import struct
 from typing import Any, Dict, List, Optional
 
@@ -22,10 +23,12 @@ from .messages import (
     LegacyAvalancheProof,
     TCPAvalancheResponse,
     ToHex,
+    calculate_shortid,
     hash256,
     msg_avahello,
     msg_avapoll,
     msg_avaproof,
+    msg_avaproofs,
     msg_tcpavaresponse,
 )
 from .p2p import P2PInterface, p2p_lock
@@ -300,3 +303,21 @@ def gen_proof(node, coinbase_utxos=1):
         42, 2000000000, bytes_to_wif(privkey.get_bytes()), stakes)
 
     return privkey, avalanche_proof_from_hex(proof_hex)
+
+
+def build_msg_avaproofs(proofs: List[AvalancheProof], prefilled_proofs: Optional[List[AvalancheProof]]
+                        = None, key_pair: Optional[List[int]] = None) -> msg_avaproofs:
+    if key_pair is None:
+        key_pair = [random.randint(0, 2**64 - 1)] * 2
+
+    msg = msg_avaproofs()
+    msg.key0 = key_pair[0]
+    msg.key1 = key_pair[1]
+    msg.prefilled_proofs = prefilled_proofs or []
+    msg.shortids = [
+        calculate_shortid(
+            msg.key0,
+            msg.key1,
+            proof.proofid) for proof in proofs]
+
+    return msg
