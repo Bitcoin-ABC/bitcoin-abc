@@ -194,6 +194,14 @@ public:
 
 using ProofRef = RCUPtr<const Proof>;
 
+class SaltedProofHasher : private SaltedUint256Hasher {
+public:
+    SaltedProofHasher() : SaltedUint256Hasher() {}
+    size_t operator()(const ProofRef &proof) const {
+        return hash(proof->getId());
+    }
+};
+
 } // namespace avalanche
 
 #endif // BITCOIN_AVALANCHE_PROOF_H

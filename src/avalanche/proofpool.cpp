@@ -7,6 +7,8 @@
 #include <avalanche/peermanager.h>
 #include <avalanche/proofcomparator.h>
 
+#include <unordered_set>
+
 namespace avalanche {
 
 ProofPool::AddProofStatus
@@ -87,8 +89,11 @@ void ProofPool::rescan(PeerManager &peerManager) {
     pool.clear();
     cacheClean = false;
 
+    std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
     for (auto &entry : previousPool) {
-        peerManager.registerProof(entry.proof);
+        if (registeredProofs.insert(entry.proof).second) {
+            peerManager.registerProof(entry.proof);
+        }
     }
 }
 
