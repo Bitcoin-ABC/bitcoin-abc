@@ -109,7 +109,8 @@ public:
 
     bool removeProof(ProofId proofid);
 
-    void rescan(PeerManager &peerManager);
+    std::unordered_set<ProofRef, SaltedProofHasher>
+    rescan(PeerManager &peerManager);
 
     ProofRef getProof(const ProofId &proofid) const;
     ProofRef getProof(const COutPoint &outpoint) const;

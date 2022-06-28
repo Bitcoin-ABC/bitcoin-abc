@@ -117,6 +117,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.update_tests(node)
         self.vote_tests(node)
         self.stale_proof_tests(node)
+        self.unorphan_poll_tests(node)
 
     def poll_tests(self, node):
         proof_seq10 = self.build_conflicting_proof(node, 10)
@@ -477,6 +478,31 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         assert repr(response.response.votes) == repr([
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proofid_seq1),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proofid_seq2)])
+
+    def unorphan_poll_tests(self, node):
+        # Restart the node with appropriate flags for this test
+        self.restart_node(0, extra_args=[
+            '-enableavalanche=1',
+            '-enableavalancheproofreplacement=1',
+            '-avaproofstakeutxoconfirmations=2',
+            '-avalancheconflictingproofcooldown=0',
+            '-avacooldown=0',
+        ])
+
+        self.quorum = self.get_quorum(node)
+        peer = get_ava_p2p_interface(node)
+
+        _, immature_proof = gen_proof(node)
+
+        self.log.info("Orphan proofs are not polled")
+
+        with node.assert_debug_log(["Not polling the avalanche proof (orphan-proof)"]):
+            peer.send_avaproof(immature_proof)
+
+        self.log.info("Unorphaned proofs are polled")
+
+        node.generate(1)
+        self.send_and_check_for_polling(peer, immature_proof.serialize().hex())
 
 
 if __name__ == '__main__':

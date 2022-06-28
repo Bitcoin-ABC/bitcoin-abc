@@ -84,7 +84,8 @@ bool ProofPool::removeProof(ProofId proofid) {
     return poolView.erase(proofid);
 }
 
-void ProofPool::rescan(PeerManager &peerManager) {
+std::unordered_set<ProofRef, SaltedProofHasher>
+ProofPool::rescan(PeerManager &peerManager) {
     auto previousPool = std::move(pool);
     pool.clear();
     cacheClean = false;
@@ -95,6 +96,8 @@ void ProofPool::rescan(PeerManager &peerManager) {
             peerManager.registerProof(entry.proof);
         }
     }
+
+    return registeredProofs;
 }
 
 ProofRef ProofPool::getProof(const ProofId &proofid) const {

@@ -337,7 +337,7 @@ public:
     /**
      * Update the peer set when a new block is connected.
      */
-    void updatedBlockTip();
+    std::unordered_set<ProofRef, SaltedProofHasher> updatedBlockTip();
 
     /**
      * Proof broadcast API.

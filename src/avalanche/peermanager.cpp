@@ -445,7 +445,7 @@ NodeId PeerManager::selectNode() {
     return NO_NODE;
 }
 
-void PeerManager::updatedBlockTip() {
+std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
     std::vector<ProofId> invalidProofIds;
     std::vector<ProofRef> newOrphans;
 
@@ -471,11 +471,13 @@ void PeerManager::updatedBlockTip() {
         rejectProof(invalidProofId, RejectionMode::INVALIDATE);
     }
 
-    orphanProofPool.rescan(*this);
+    auto registeredProofs = orphanProofPool.rescan(*this);
 
     for (auto &p : newOrphans) {
         orphanProofPool.addProofIfPreferred(p);
     }
+
+    return registeredProofs;
 }
 
 ProofRef PeerManager::getProof(const ProofId &proofid) const {

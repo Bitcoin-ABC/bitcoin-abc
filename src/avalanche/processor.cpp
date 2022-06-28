@@ -109,14 +109,21 @@ public:
     NotificationsHandler(Processor *p) : m_processor(p) {}
 
     void updatedBlockTip() override {
-        LOCK(m_processor->cs_peerManager);
+        auto registerProofs = [&]() {
+            LOCK(m_processor->cs_peerManager);
 
-        if (m_processor->peerData && m_processor->peerData->proof) {
-            m_processor->peerManager->registerProof(
-                m_processor->peerData->proof);
+            if (m_processor->peerData && m_processor->peerData->proof) {
+                m_processor->peerManager->registerProof(
+                    m_processor->peerData->proof);
+            }
+
+            return m_processor->peerManager->updatedBlockTip();
+        };
+
+        auto registeredProofs = registerProofs();
+        for (const auto &proof : registeredProofs) {
+            m_processor->addProofToReconcile(proof);
         }
-
-        m_processor->peerManager->updatedBlockTip();
     }
 };
 
