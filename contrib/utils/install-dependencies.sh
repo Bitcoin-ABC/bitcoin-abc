@@ -138,8 +138,13 @@ DEBIAN_FRONTEND=noninteractive dpkg -i pandoc-2.10.1-1-amd64.deb
 curl -sL https://deb.nodesource.com/setup_15.x | bash -
 apt-get install -y nodejs
 
-# Install Rust 1.61
+# Install Rust stable 1.61 and nightly from the 2022-06-29
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.61.0
+RUST_HOME="${HOME}/.cargo/bin"
+RUST_NIGHTLY_DATE=2022-06-29
+"${RUST_HOME}/rustup" install nightly-${RUST_NIGHTLY_DATE}
+# Name the nightly toolchain "abc-nightly"
+"${RUST_HOME}/rustup" toolchain link abc-nightly "$(${RUST_HOME}/rustc +nightly-${RUST_NIGHTLY_DATE} --print sysroot)"
 
 # Install corrosion from Github
 wget https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.2.1 -O corrosion.tar.gz
