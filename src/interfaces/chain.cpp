@@ -217,8 +217,6 @@ namespace {
         findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            assert(std::addressof(g_chainman) ==
-                   std::addressof(*m_node.chainman));
             if (CBlockIndex *fork =
                     m_node.chainman->m_blockman.FindForkInGlobalIndex(
                         active, locator)) {
@@ -230,8 +228,6 @@ namespace {
                        const FoundBlock &block) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            assert(std::addressof(g_chainman) ==
-                   std::addressof(*m_node.chainman));
             return FillBlock(m_node.chainman->m_blockman.LookupBlockIndex(hash),
                              block, lock, active);
         }
@@ -248,8 +244,6 @@ namespace {
                                   const FoundBlock &ancestor_out) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            assert(std::addressof(g_chainman) ==
-                   std::addressof(*m_node.chainman));
             if (const CBlockIndex *block =
                     m_node.chainman->m_blockman.LookupBlockIndex(block_hash)) {
                 if (const CBlockIndex *ancestor =
@@ -264,8 +258,6 @@ namespace {
                                 const FoundBlock &ancestor_out) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            assert(std::addressof(g_chainman) ==
-                   std::addressof(*m_node.chainman));
             const CBlockIndex *block =
                 m_node.chainman->m_blockman.LookupBlockIndex(block_hash);
             const CBlockIndex *ancestor =
@@ -283,8 +275,6 @@ namespace {
                                 const FoundBlock &block2_out) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            assert(std::addressof(g_chainman) ==
-                   std::addressof(*m_node.chainman));
             const CBlockIndex *block1 =
                 m_node.chainman->m_blockman.LookupBlockIndex(block_hash1);
             const CBlockIndex *block2 =
@@ -303,8 +293,6 @@ namespace {
         }
         double guessVerificationProgress(const BlockHash &block_hash) override {
             LOCK(cs_main);
-            assert(std::addressof(g_chainman.m_blockman) ==
-                   std::addressof(chainman().m_blockman));
             return GuessVerificationProgress(
                 Params().TxData(),
                 chainman().m_blockman.LookupBlockIndex(block_hash));
@@ -319,8 +307,6 @@ namespace {
             // used to limit the range, and passing min_height that's too low or
             // max_height that's too high will not crash or change the result.
             LOCK(::cs_main);
-            assert(std::addressof(g_chainman.m_blockman) ==
-                   std::addressof(chainman().m_blockman));
             if (CBlockIndex *block =
                     chainman().m_blockman.LookupBlockIndex(block_hash)) {
                 if (max_height && block->nHeight >= *max_height) {

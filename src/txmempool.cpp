@@ -580,8 +580,6 @@ void CTxMemPool::removeForReorg(const Config &config,
          it != mapTx.end(); it++) {
         const CTransaction &tx = it->GetTx();
         LockPoints lp = it->GetLockPoints();
-        assert(std::addressof(::ChainstateActive()) ==
-               std::addressof(active_chainstate));
         bool validLP = TestLockPointValidity(active_chainstate.m_chain, &lp);
 
         TxValidationState state;
@@ -734,15 +732,9 @@ void CTxMemPool::check(CChainState &active_chainstate) const {
     uint64_t innerUsage = 0;
 
     CCoinsViewCache &active_coins_tip = active_chainstate.CoinsTip();
-    // TODO: REVIEW-ONLY, REMOVE IN FUTURE COMMIT
-    assert(std::addressof(::ChainstateActive().CoinsTip()) ==
-           std::addressof(active_coins_tip));
     CCoinsViewCache mempoolDuplicate(
         const_cast<CCoinsViewCache *>(&active_coins_tip));
     const int64_t spendheight = active_chainstate.m_chain.Height() + 1;
-    // TODO: REVIEW-ONLY, REMOVE IN FUTURE COMMIT
-    assert(g_chainman.m_blockman.GetSpendHeight(mempoolDuplicate) ==
-           spendheight);
 
     std::list<const CTxMemPoolEntry *> waitingOnDependants;
     for (indexed_transaction_set::const_iterator it = mapTx.begin();
@@ -1143,8 +1135,6 @@ void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache, size_t limit,
 
     std::vector<COutPoint> vNoSpendsRemaining;
     TrimToSize(limit, &vNoSpendsRemaining);
-    assert(std::addressof(::ChainstateActive().CoinsTip()) ==
-           std::addressof(coins_cache));
     for (const COutPoint &removed : vNoSpendsRemaining) {
         coins_cache.Uncache(removed);
     }
@@ -1412,8 +1402,6 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
     CTxMemPool &pool) {
     AssertLockHeld(cs_main);
     AssertLockHeld(pool.cs);
-    assert(std::addressof(::ChainstateActive()) ==
-           std::addressof(active_chainstate));
     std::vector<TxId> txidsUpdate;
 
     // disconnectpool's insertion_order index sorts the entries from oldest to

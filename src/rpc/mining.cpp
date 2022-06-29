@@ -130,8 +130,6 @@ static bool GenerateBlock(const Config &config, ChainstateManager &chainman,
 
     {
         LOCK(cs_main);
-        CHECK_NONFATAL(std::addressof(::ChainActive()) ==
-                       std::addressof(chainman.ActiveChain()));
         IncrementExtraNonce(&block, chainman.ActiveTip(), nExcessiveBlockSize,
                             extra_nonce);
     }
@@ -174,8 +172,6 @@ static UniValue generateBlocks(const Config &config,
     {
         // Don't keep cs_main locked.
         LOCK(cs_main);
-        CHECK_NONFATAL(std::addressof(::ChainActive()) ==
-                       std::addressof(chainman.ActiveChain()));
         nHeight = chainman.ActiveHeight();
         nHeightEnd = nHeight + nGenerate;
     }

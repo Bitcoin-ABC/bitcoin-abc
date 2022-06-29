@@ -187,8 +187,6 @@ namespace {
         }
         int getNumBlocks() override {
             LOCK(::cs_main);
-            assert(std::addressof(::ChainActive()) ==
-                   std::addressof(chainman().ActiveChain()));
             return chainman().ActiveChain().Height();
         }
         BlockHash getBestBlockHash() override {
@@ -199,8 +197,6 @@ namespace {
         }
         int64_t getLastBlockTime() override {
             LOCK(::cs_main);
-            assert(std::addressof(::ChainActive()) ==
-                   std::addressof(chainman().ActiveChain()));
             if (chainman().ActiveChain().Tip()) {
                 return chainman().ActiveChain().Tip()->GetBlockTime();
             }
@@ -211,8 +207,6 @@ namespace {
             const CBlockIndex *tip;
             {
                 LOCK(::cs_main);
-                assert(std::addressof(::ChainActive()) ==
-                       std::addressof(chainman().ActiveChain()));
                 tip = chainman().ActiveChain().Tip();
             }
             return GuessVerificationProgress(Params().TxData(), tip);
@@ -252,8 +246,6 @@ namespace {
         }
         bool getUnspentOutput(const COutPoint &output, Coin &coin) override {
             LOCK(::cs_main);
-            assert(std::addressof(::ChainstateActive()) ==
-                   std::addressof(chainman().ActiveChainstate()));
             return chainman().ActiveChainstate().CoinsTip().GetCoin(output,
                                                                     coin);
         }

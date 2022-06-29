@@ -2704,8 +2704,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way
                 // around).
-                assert(std::addressof(g_chainman.m_blockman) ==
-                       std::addressof(chainman.m_blockman));
                 if (!chainman.BlockIndex().empty() &&
                     !chainman.m_blockman.LookupBlockIndex(
                         params.hashGenesisBlock)) {
@@ -2945,8 +2943,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
     boost::signals2::connection block_notify_genesis_wait_connection;
-    assert(std::addressof(::ChainActive()) ==
-           std::addressof(chainman.ActiveChain()));
     if (chainman.ActiveTip() == nullptr) {
         block_notify_genesis_wait_connection =
             uiInterface.NotifyBlockTip_connect(

@@ -137,8 +137,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries.emplace_back(CTransactionRef(), -SATOSHI, -1);
 
     LOCK2(cs_main, m_mempool.cs);
-    assert(std::addressof(*::ChainActive().Tip()) ==
-           std::addressof(*m_chainstate.m_chain.Tip()));
     CBlockIndex *pindexPrev = m_chainstate.m_chain.Tip();
     assert(pindexPrev != nullptr);
     nHeight = pindexPrev->nHeight + 1;
@@ -226,8 +224,6 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries[0].sigOpCount = 0;
 
     BlockValidationState state;
-    assert(std::addressof(::ChainstateActive()) ==
-           std::addressof(m_chainstate));
     if (!TestBlockValidity(state, chainParams, m_chainstate, *pblock,
                            pindexPrev,
                            BlockValidationOptions(nMaxGeneratedBlockSize)
