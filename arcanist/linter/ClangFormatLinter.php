@@ -46,7 +46,7 @@ final class ClangFormatLinter extends ArcanistExternalLinter {
     }
 
     /*
-     * FIXME: This is a hack to only allow for clang-format version 10.x.
+     * FIXME: This is a hack to only allow for clang-format version 11.x.
      * The .arclint `version` field only allow to filter versions using `=`,
      * `>`, `<`, `>=` or `<=`. There is no facility to define that the required
      * version should be >= 11.0 and < 12.0.
