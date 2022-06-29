@@ -5748,7 +5748,6 @@ static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 bool LoadMempool(const Config &config, CTxMemPool &pool,
                  Chainstate &active_chainstate,
                  FopenFn mockable_fopen_function) {
-    int64_t nExpiryTimeout = std::chrono::seconds{pool.m_expiry}.count();
     FILE *filestr{
         mockable_fopen_function(gArgs.GetDataDirNet() / "mempool.dat", "rb")};
     CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
@@ -5763,7 +5762,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
     int64_t failed = 0;
     int64_t already_there = 0;
     int64_t unbroadcast = 0;
-    int64_t nNow = GetTime();
+    auto now = NodeClock::now();
 
     try {
         uint64_t version;
@@ -5787,7 +5786,8 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
             if (amountdelta != Amount::zero()) {
                 pool.PrioritiseTransaction(tx->GetId(), amountdelta);
             }
-            if (nTime > nNow - nExpiryTimeout) {
+            if (nTime >
+                TicksSinceEpoch<std::chrono::seconds>(now - pool.m_expiry)) {
                 LOCK(cs_main);
                 const auto &accepted =
                     AcceptToMemoryPool(config, active_chainstate, tx, nTime,
