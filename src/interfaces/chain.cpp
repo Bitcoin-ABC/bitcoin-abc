@@ -417,17 +417,7 @@ namespace {
             return !::fImporting && !::fReindex && !isInitialBlockDownload();
         }
         bool isInitialBlockDownload() override {
-            const CChainState *active_chainstate;
-            {
-                // TODO: Temporary scope to check correctness of refactored code
-                // Should be removed manually after backport of
-                // https://github.com/bitcoin/bitcoin/pull/20158
-                LOCK(::cs_main);
-                active_chainstate = &chainman().ActiveChainstate();
-                assert(std::addressof(::ChainstateActive()) ==
-                       std::addressof(*active_chainstate));
-            }
-            return active_chainstate->IsInitialBlockDownload();
+            return chainman().ActiveChainstate().IsInitialBlockDownload();
         }
         bool shutdownRequested() override { return ShutdownRequested(); }
         int64_t getAdjustedTime() override { return GetAdjustedTime(); }
