@@ -26,7 +26,8 @@ export const currency = {
     tokenDbUrl: 'https://tokendb.kingbch.com',
     txHistoryCount: 10,
     xecApiBatchSize: 20,
-    walletRefreshInterval: 30000, // 1000 = 1s
+    websocketDisconnectedRefreshInterval: 1000, // 1000 = 1s
+    websocketConnectedRefreshInterval: 30000,
     defaultSettings: { fiatCurrency: 'usd', sendModal: false },
     notificationDurationShort: 3,
     notificationDurationLong: 5,

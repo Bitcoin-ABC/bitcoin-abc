@@ -34,7 +34,7 @@ const chronik = new ChronikClient(currency.chronikUrl);
 
 const useWallet = () => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
-        currency.walletRefreshInterval,
+        currency.websocketDisconnectedRefreshInterval,
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
@@ -217,7 +217,9 @@ const useWallet = () => {
         // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
         // If walletRefreshInterval is 10, set it back to the usual refresh rate
         if (walletRefreshInterval === 10) {
-            setWalletRefreshInterval(currency.walletRefreshInterval);
+            setWalletRefreshInterval(
+                currency.websocketConnectedRefreshInterval,
+            );
         }
         try {
             if (!wallet) {
@@ -1040,6 +1042,14 @@ const useWallet = () => {
                 },
                 onConnect: e => {
                     console.log(`Chronik websocket connected`, e);
+                    console.log(
+                        `Websocket connected, adjusting wallet refresh interval to ${
+                            currency.websocketConnectedRefreshInterval / 1000
+                        }s`,
+                    );
+                    setWalletRefreshInterval(
+                        currency.websocketConnectedRefreshInterval,
+                    );
                 },
             });
 
