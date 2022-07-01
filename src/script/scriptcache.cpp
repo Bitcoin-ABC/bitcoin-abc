@@ -73,7 +73,7 @@ static CuckooCache::cache<ScriptCacheElement, ScriptCacheHasher>
     g_scriptExecutionCache;
 static CSHA256 g_scriptExecutionCacheHasher;
 
-bool InitScriptExecutionCache(int64_t max_size_bytes) {
+bool InitScriptExecutionCache(size_t max_size_bytes) {
     // Setup the salted hasher
     uint256 nonce = GetRandHash();
     // We want the nonce to be 64 bytes long to force the hasher to process
@@ -81,11 +81,8 @@ bool InitScriptExecutionCache(int64_t max_size_bytes) {
     // just write our 32-byte entropy twice to fill the 64 bytes.
     g_scriptExecutionCacheHasher.Write(nonce.begin(), 32);
     g_scriptExecutionCacheHasher.Write(nonce.begin(), 32);
-    // nMaxCacheSize is unsigned. If -maxscriptcachesize is set to zero,
-    // setup_bytes creates the minimum possible cache (2 elements).
-    size_t nMaxCacheSize = std::max<int64_t>(max_size_bytes, 0);
 
-    auto setup_results = g_scriptExecutionCache.setup_bytes(nMaxCacheSize);
+    auto setup_results = g_scriptExecutionCache.setup_bytes(max_size_bytes);
     if (!setup_results) {
         return false;
     }

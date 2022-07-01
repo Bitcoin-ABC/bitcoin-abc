@@ -48,7 +48,7 @@ public:
 static constexpr size_t DEFAULT_MAX_SCRIPT_CACHE_BYTES{32 << 20};
 
 /** Initializes the script-execution cache */
-[[nodiscard]] bool InitScriptExecutionCache(int64_t max_size_bytes);
+[[nodiscard]] bool InitScriptExecutionCache(size_t max_size_bytes);
 
 /**
  * Check if a given key is in the cache, and if so, return its values.

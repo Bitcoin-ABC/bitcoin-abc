@@ -8,6 +8,9 @@
 
 #include <util/system.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 
@@ -16,11 +19,16 @@ using kernel::ValidationCacheSizes;
 namespace node {
 void ApplyArgsManOptions(const ArgsManager &argsman,
                          ValidationCacheSizes &cache_sizes) {
+    // When supplied with a max_size of 0, both InitSignatureCache and
+    // InitScriptExecutionCache create the minimum possible cache (2
+    // elements). Therefore, we can use 0 as a floor here.
     if (auto max_size = argsman.GetIntArg("-maxsigcachesize")) {
-        cache_sizes.signature_cache_bytes = *max_size * (1 << 20);
+        cache_sizes.signature_cache_bytes =
+            std::max<int64_t>(*max_size, 0) * (1 << 20);
     }
     if (auto max_size = argsman.GetIntArg("-maxscriptcachesize")) {
-        cache_sizes.script_execution_cache_bytes = *max_size * (1 << 20);
+        cache_sizes.script_execution_cache_bytes =
+            std::max<int64_t>(*max_size, 0) * (1 << 20);
     }
 }
 } // namespace node

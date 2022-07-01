@@ -41,6 +41,6 @@ public:
     friend class TestCachingTransactionSignatureChecker;
 };
 
-[[nodiscard]] bool InitSignatureCache(int64_t max_size_bytes);
+[[nodiscard]] bool InitSignatureCache(size_t max_size_bytes);
 
 #endif // BITCOIN_SCRIPT_SIGCACHE_H

@@ -8,13 +8,13 @@
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 
-#include <cstdint>
+#include <cstddef>
 #include <limits>
 
 namespace kernel {
 struct ValidationCacheSizes {
-    int64_t signature_cache_bytes{DEFAULT_MAX_SIG_CACHE_BYTES};
-    int64_t script_execution_cache_bytes{DEFAULT_MAX_SCRIPT_CACHE_BYTES};
+    size_t signature_cache_bytes{DEFAULT_MAX_SIG_CACHE_BYTES};
+    size_t script_execution_cache_bytes{DEFAULT_MAX_SCRIPT_CACHE_BYTES};
 };
 } // namespace kernel
 
