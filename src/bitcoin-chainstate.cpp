@@ -11,6 +11,8 @@
 //
 // It is part of the libbitcoinkernel project.
 
+#include <kernel/validation_cache_sizes.h>
+
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/validation.h>
@@ -61,8 +63,10 @@ int main(int argc, char *argv[]) {
     // Necessary for CheckInputScripts (eventually called by ProcessNewBlock),
     // which will try the script cache first and fall back to actually
     // performing the check with the signature cache.
-    Assert(InitSignatureCache());
-    Assert(InitScriptExecutionCache());
+    kernel::ValidationCacheSizes validation_cache_sizes{};
+    Assert(InitSignatureCache(validation_cache_sizes.signature_cache_bytes));
+    Assert(InitScriptExecutionCache(
+        validation_cache_sizes.script_execution_cache_bytes));
 
     // SETUP: Scheduling and Background Signals
     CScheduler scheduler{};

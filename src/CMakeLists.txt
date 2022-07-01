@@ -661,6 +661,7 @@ add_library(server
 	node/transaction.cpp
 	node/ui_interface.cpp
 	node/utxo_snapshot.cpp
+	node/validation_cache_args.cpp
 	noui.cpp
 	policy/block/minerfund.cpp
 	policy/block/stakingrewards.cpp

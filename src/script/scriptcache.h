@@ -42,13 +42,13 @@ public:
     friend class ScriptCacheHasher;
 };
 
-// DoS prevention: limit cache size to 32MB (over 1000000 entries on 64-bit
+// DoS prevention: limit cache size to 32MiB (over 1000000 entries on 64-bit
 // systems). Due to how we count cache size, actual memory usage is slightly
-// more (~32.25 MB)
-static const unsigned int DEFAULT_MAX_SCRIPT_CACHE_SIZE = 32;
+// more (~32.25 MiB)
+static constexpr size_t DEFAULT_MAX_SCRIPT_CACHE_BYTES{32 << 20};
 
 /** Initializes the script-execution cache */
-[[nodiscard]] bool InitScriptExecutionCache();
+[[nodiscard]] bool InitScriptExecutionCache(int64_t max_size_bytes);
 
 /**
  * Check if a given key is in the cache, and if so, return its values.

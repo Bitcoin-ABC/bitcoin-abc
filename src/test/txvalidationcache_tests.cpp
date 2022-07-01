@@ -5,6 +5,7 @@
 #include <chain.h>
 #include <config.h>
 #include <consensus/validation.h>
+#include <kernel/validation_cache_sizes.h>
 #include <key.h>
 #include <policy/policy.h>
 #include <script/scriptcache.h>

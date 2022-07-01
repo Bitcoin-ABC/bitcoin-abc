@@ -10,6 +10,7 @@
 #include <init.h>
 
 #include <kernel/mempool_persist.h>
+#include <kernel/validation_cache_sizes.h>
 
 #include <addrman.h>
 #include <avalanche/avalanche.h>
@@ -49,6 +50,7 @@
 #include <node/mempool_persist_args.h>
 #include <node/miner.h>
 #include <node/ui_interface.h>
+#include <node/validation_cache_args.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
 #include <rpc/blockchain.h>
@@ -106,7 +108,9 @@
 #include <vector>
 
 using kernel::DumpMempool;
+using kernel::ValidationCacheSizes;
 
+using node::ApplyArgsManOptions;
 using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::CleanupBlockRevFiles;
@@ -1079,13 +1083,13 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-maxsigcachesize=<n>",
         strprintf("Limit size of signature cache to <n> MiB (default: %u)",
-                  DEFAULT_MAX_SIG_CACHE_SIZE),
+                  DEFAULT_MAX_SIG_CACHE_BYTES >> 20),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
         "-maxscriptcachesize=<n>",
         strprintf("Limit size of script cache to <n> MiB (default: %u)",
-                  DEFAULT_MAX_SCRIPT_CACHE_SIZE),
+                  DEFAULT_MAX_SCRIPT_CACHE_BYTES >> 20),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-maxtipage=<n>",
@@ -2153,16 +2157,21 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                   fs::PathToString(fs::current_path()));
     }
 
-    if (!InitSignatureCache()) {
+    ValidationCacheSizes validation_cache_sizes{};
+    ApplyArgsManOptions(args, validation_cache_sizes);
+
+    if (!InitSignatureCache(validation_cache_sizes.signature_cache_bytes)) {
         return InitError(strprintf(
             _("Unable to allocate memory for -maxsigcachesize: '%s' MiB"),
-            args.GetIntArg("-maxsigcachesize", DEFAULT_MAX_SIG_CACHE_SIZE)));
+            args.GetIntArg("-maxsigcachesize",
+                           DEFAULT_MAX_SIG_CACHE_BYTES >> 20)));
     }
-    if (!InitScriptExecutionCache()) {
+    if (!InitScriptExecutionCache(
+            validation_cache_sizes.script_execution_cache_bytes)) {
         return InitError(strprintf(
             _("Unable to allocate memory for -maxscriptcachesize: '%s' MiB"),
             args.GetIntArg("-maxscriptcachesize",
-                           DEFAULT_MAX_SCRIPT_CACHE_SIZE)));
+                           DEFAULT_MAX_SCRIPT_CACHE_BYTES >> 20)));
     }
 
     int script_threads = args.GetIntArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
