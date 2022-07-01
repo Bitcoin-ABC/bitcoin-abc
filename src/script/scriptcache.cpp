@@ -89,8 +89,11 @@ bool InitScriptExecutionCache() {
         (size_t(1) << 20);
 
     auto setup_results = g_scriptExecutionCache.setup_bytes(nMaxCacheSize);
+    if (!setup_results) {
+        return false;
+    }
 
-    const auto [num_elems, approx_size_bytes] = setup_results;
+    const auto [num_elems, approx_size_bytes] = *setup_results;
     LogPrintf("Using %zu MiB out of %zu requested for script execution cache, "
               "able to store %zu elements\n",
               approx_size_bytes >> 20, nMaxCacheSize >> 20, num_elems);
