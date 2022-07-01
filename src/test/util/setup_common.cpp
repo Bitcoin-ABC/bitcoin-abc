@@ -151,8 +151,8 @@ BasicTestingSetup::BasicTestingSetup(
     ECC_Start();
     SetupEnvironment();
     SetupNetworking();
-    InitSignatureCache();
-    InitScriptExecutionCache();
+    Assert(InitSignatureCache());
+    Assert(InitScriptExecutionCache());
 
     m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
     g_wallet_init_interface.Construct(m_node);

@@ -73,7 +73,7 @@ static CuckooCache::cache<ScriptCacheElement, ScriptCacheHasher>
     g_scriptExecutionCache;
 static CSHA256 g_scriptExecutionCacheHasher;
 
-void InitScriptExecutionCache() {
+bool InitScriptExecutionCache() {
     // Setup the salted hasher
     uint256 nonce = GetRandHash();
     // We want the nonce to be 64 bytes long to force the hasher to process
@@ -89,10 +89,14 @@ void InitScriptExecutionCache() {
                                           DEFAULT_MAX_SCRIPT_CACHE_SIZE)),
                  MAX_MAX_SCRIPT_CACHE_SIZE) *
         (size_t(1) << 20);
-    size_t nElems = g_scriptExecutionCache.setup_bytes(nMaxCacheSize);
+
+    auto setup_results = g_scriptExecutionCache.setup_bytes(nMaxCacheSize);
+
+    const auto [num_elems, approx_size_bytes] = setup_results;
     LogPrintf("Using %zu MiB out of %zu requested for script execution cache, "
               "able to store %zu elements\n",
-              (nElems * sizeof(uint256)) >> 20, nMaxCacheSize >> 20, nElems);
+              approx_size_bytes >> 20, nMaxCacheSize >> 20, num_elems);
+    return true;
 }
 
 ScriptCacheKey::ScriptCacheKey(const CTransaction &tx, uint32_t flags) {

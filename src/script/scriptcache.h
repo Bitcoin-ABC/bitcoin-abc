@@ -50,7 +50,7 @@ static const unsigned int DEFAULT_MAX_SCRIPT_CACHE_SIZE = 32;
 static const int64_t MAX_MAX_SCRIPT_CACHE_SIZE = 16384;
 
 /** Initializes the script-execution cache */
-void InitScriptExecutionCache();
+[[nodiscard]] bool InitScriptExecutionCache();
 
 /**
  * Check if a given key is in the cache, and if so, return its values.

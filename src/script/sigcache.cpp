@@ -62,7 +62,9 @@ public:
         std::unique_lock<std::shared_mutex> lock(cs_sigcache);
         setValid.insert(entry);
     }
-    uint32_t setup_bytes(size_t n) { return setValid.setup_bytes(n); }
+    std::pair<uint32_t, size_t> setup_bytes(size_t n) {
+        return setValid.setup_bytes(n);
+    }
 };
 
 /**
@@ -77,7 +79,8 @@ static CSignatureCache signatureCache;
 
 // To be called once in AppInitMain/BasicTestingSetup to initialize the
 // signatureCache.
-void InitSignatureCache() {
+
+bool InitSignatureCache() {
     // nMaxCacheSize is unsigned. If -maxsigcachesize is set to zero,
     // setup_bytes creates the minimum possible cache (2 elements).
     size_t nMaxCacheSize =
@@ -86,10 +89,13 @@ void InitSignatureCache() {
                                                  DEFAULT_MAX_SIG_CACHE_SIZE)),
             MAX_MAX_SIG_CACHE_SIZE) *
         (size_t(1) << 20);
-    size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);
+    auto setup_results = signatureCache.setup_bytes(nMaxCacheSize);
+
+    const auto [num_elems, approx_size_bytes] = setup_results;
     LogPrintf("Using %zu MiB out of %zu requested for signature cache, able to "
               "store %zu elements\n",
-              (nElems * sizeof(uint256)) >> 20, nMaxCacheSize >> 20, nElems);
+              approx_size_bytes >> 20, nMaxCacheSize >> 20, num_elems);
+    return true;
 }
 
 template <typename F>

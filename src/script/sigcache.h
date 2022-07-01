@@ -42,6 +42,6 @@ public:
     friend class TestCachingTransactionSignatureChecker;
 };
 
-void InitSignatureCache();
+[[nodiscard]] bool InitSignatureCache();
 
 #endif // BITCOIN_SCRIPT_SIGCACHE_H
