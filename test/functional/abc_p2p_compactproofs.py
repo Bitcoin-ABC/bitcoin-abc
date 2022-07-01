@@ -171,6 +171,10 @@ class CompactProofsTest(BitcoinTestFramework):
                             == outbounds_getavaproofs + num_outbound_avapeers)
             outbounds_getavaproofs += num_outbound_avapeers
 
+            for p in outbound_avapeers:
+                with node.assert_debug_log(["received: avaproofs"], ["Ignoring unsollicited avaproofs"]):
+                    p.send_message(build_msg_avaproofs([]))
+
         with p2p_lock:
             assert all([p.message_count.get(
                 "getavaproofs", 0) == 0 for p in non_avapeers])

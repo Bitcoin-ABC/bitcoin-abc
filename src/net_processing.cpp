@@ -1759,9 +1759,13 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
             LogPrint(BCLog::AVALANCHE,
                      "Requesting compact proofs from peer %d\n",
                      pavanode->GetId());
-            m_connman.PushMessage(pavanode,
-                                  CNetMsgMaker(pavanode->GetCommonVersion())
-                                      .Make(NetMsgType::GETAVAPROOFS));
+            if (pavanode->m_proof_relay) {
+                m_connman.PushMessage(pavanode,
+                                      CNetMsgMaker(pavanode->GetCommonVersion())
+                                          .Make(NetMsgType::GETAVAPROOFS));
+
+                pavanode->m_proof_relay->compactproofs_requested = true;
+            }
             return true;
         });
     }
