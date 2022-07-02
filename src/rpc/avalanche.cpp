@@ -670,6 +670,9 @@ static RPCHelpMan getavalancheinfo() {
                      {RPCResult::Type::NUM, "connected_proof_count",
                       "The number of avalanche proofs with at least one node "
                       "we are connected to."},
+                     {RPCResult::Type::NUM, "conflicting_proof_count",
+                      "The number of known avalanche proofs that conflict with "
+                      "valid proofs."},
                      {RPCResult::Type::STR_AMOUNT, "total_stake_amount",
                       "The total staked amount over all the valid proofs in " +
                           Currency::get().ticker + "."},
@@ -721,7 +724,7 @@ static RPCHelpMan getavalancheinfo() {
                 ret.pushKV("local", local);
             }
 
-            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                 UniValue network(UniValue::VOBJ);
 
                 uint64_t proofCount{0};
@@ -750,6 +753,8 @@ static RPCHelpMan getavalancheinfo() {
 
                 network.pushKV("proof_count", proofCount);
                 network.pushKV("connected_proof_count", connectedProofCount);
+                network.pushKV("conflicting_proof_count",
+                               pm.getConflictingProofCount());
                 network.pushKV("total_stake_amount", totalStakes);
                 network.pushKV("connected_stake_amount", connectedStakes);
 

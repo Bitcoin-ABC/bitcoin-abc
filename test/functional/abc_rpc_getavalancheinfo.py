@@ -3,10 +3,16 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the getavalancheinfo RPC."""
+import time
 from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
-from test_framework.avatools import gen_proof, get_ava_p2p_interface
+from test_framework.avatools import (
+    avalanche_proof_from_hex,
+    create_coinbase_stakes,
+    gen_proof,
+    get_ava_p2p_interface,
+)
 from test_framework.key import ECKey
 from test_framework.messages import LegacyAvalancheProof
 from test_framework.test_framework import BitcoinTestFramework
@@ -17,8 +23,11 @@ from test_framework.wallet_util import bytes_to_wif
 class GetAvalancheInfoTest(BitcoinTestFramework):
     def set_test_params(self):
         self.num_nodes = 1
+        self.conflicting_proof_cooldown = 100
         self.extra_args = [[
             '-enableavalanche=1',
+            '-enableavalancheproofreplacement=1',
+            f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=',
             '-avatimeout=100',
@@ -56,6 +65,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": 0,
                 "connected_proof_count": 0,
+                "conflicting_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
                 "connected_stake_amount": Decimal('0.00'),
                 "node_count": 0,
@@ -83,6 +93,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": 0,
                 "connected_proof_count": 0,
+                "conflicting_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
                 "connected_stake_amount": Decimal('0.00'),
                 "node_count": 0,
@@ -106,6 +117,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "network": {
                     "proof_count": 0,
                     "connected_proof_count": 0,
+                    "conflicting_proof_count": 0,
                     "total_stake_amount": Decimal('0.00'),
                     "connected_stake_amount": Decimal('0.00'),
                     "node_count": 0,
@@ -117,33 +129,50 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.log.info("Connect a bunch of peers and nodes")
 
+        mock_time = int(time.time())
+        node.setmocktime(mock_time)
+
         N = 10
         for _ in range(N):
             _privkey, _proof = gen_proof(node)
+
+            # For each proof, also make a conflicting one
+            stakes = create_coinbase_stakes(
+                node, [node.getbestblockhash()], node.get_deterministic_priv_key().key)
+            conflicting_proof = node.buildavalancheproof(
+                10, 9999, bytes_to_wif(_privkey.get_bytes()), stakes)
+
             n = get_ava_p2p_interface(node)
             success = node.addavalanchenode(
                 n.nodeid, _privkey.get_pubkey().get_bytes().hex(), _proof.serialize().hex())
             assert success is True
 
-        assert_avalancheinfo({
-            "active": True,
-            "local": {
-                "live": True,
-                "proofid": f"{proof.proofid:0{64}x}",
-                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
-                "master": privkey.get_pubkey().get_bytes().hex(),
-                "stake_amount": coinbase_amount,
-            },
-            "network": {
-                "proof_count": N,
-                "connected_proof_count": N,
-                "total_stake_amount": coinbase_amount * N,
-                "connected_stake_amount": coinbase_amount * N,
-                "node_count": N,
-                "connected_node_count": N,
-                "pending_node_count": 0,
-            }
-        })
+            mock_time += self.conflicting_proof_cooldown
+            node.setmocktime(mock_time)
+            n.send_avaproof(avalanche_proof_from_hex(conflicting_proof))
+
+        self.wait_until(
+            lambda: node.getavalancheinfo() == handle_legacy_format({
+                "active": True,
+                "local": {
+                    "live": True,
+                    "proofid": f"{proof.proofid:0{64}x}",
+                    "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                },
+                "network": {
+                    "proof_count": N,
+                    "connected_proof_count": N,
+                    "conflicting_proof_count": N,
+                    "total_stake_amount": coinbase_amount * N,
+                    "connected_stake_amount": coinbase_amount * N,
+                    "node_count": N,
+                    "connected_node_count": N,
+                    "pending_node_count": 0,
+                }
+            })
+        )
 
         self.log.info("Disconnect some nodes")
 
@@ -166,6 +195,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "network": {
                     "proof_count": N,
                     "connected_proof_count": N - D,
+                    "conflicting_proof_count": N,
                     "total_stake_amount": coinbase_amount * N,
                     "connected_stake_amount": coinbase_amount * (N - D),
                     "node_count": N - D,
@@ -184,6 +214,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             dg_pub = dg_priv.get_pubkey().get_bytes().hex()
 
             _privkey, _proof = gen_proof(node)
+
             delegation = node.delegateavalancheproof(
                 f"{_proof.limited_proofid:0{64}x}",
                 bytes_to_wif(_privkey.get_bytes()),
@@ -209,6 +240,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": N,
                 "connected_proof_count": N - D,
+                "conflicting_proof_count": N,
                 "total_stake_amount": coinbase_amount * N,
                 "connected_stake_amount": coinbase_amount * (N - D),
                 "node_count": N - D + P,
@@ -235,6 +267,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": N,
                 "connected_proof_count": 0,
+                "conflicting_proof_count": N,
                 "total_stake_amount": coinbase_amount * N,
                 "connected_stake_amount": 0,
                 "node_count": 0,
