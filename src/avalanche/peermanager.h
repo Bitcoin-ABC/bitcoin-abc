@@ -389,6 +389,7 @@ public:
     size_t getConflictingProofCount() {
         return conflictingProofPool.countProofs();
     }
+    size_t getOrphanProofCount() { return orphanProofPool.countProofs(); }
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;

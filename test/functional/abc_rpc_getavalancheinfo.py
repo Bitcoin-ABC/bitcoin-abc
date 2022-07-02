@@ -28,7 +28,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-enableavalanche=1',
             '-enableavalancheproofreplacement=1',
             f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
-            '-avaproofstakeutxoconfirmations=1',
+            '-avaproofstakeutxoconfirmations=2',
             '-avacooldown=',
             '-avatimeout=100',
             '-enableavalanchepeerdiscovery=1',
@@ -41,6 +41,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         privkey, proof = gen_proof(node)
         is_legacy = isinstance(proof, LegacyAvalancheProof)
+
+        # Make the proof mature
+        node.generate(1)
 
         def handle_legacy_format(expected):
             # Add the payout address to the expected output if the legacy format
@@ -66,6 +69,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "proof_count": 0,
                 "connected_proof_count": 0,
                 "conflicting_proof_count": 0,
+                "orphan_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
                 "connected_stake_amount": Decimal('0.00'),
                 "node_count": 0,
@@ -94,6 +98,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "proof_count": 0,
                 "connected_proof_count": 0,
                 "conflicting_proof_count": 0,
+                "orphan_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
                 "connected_stake_amount": Decimal('0.00'),
                 "node_count": 0,
@@ -118,6 +123,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "proof_count": 0,
                     "connected_proof_count": 0,
                     "conflicting_proof_count": 0,
+                    "orphan_proof_count": 0,
                     "total_stake_amount": Decimal('0.00'),
                     "connected_stake_amount": Decimal('0.00'),
                     "node_count": 0,
@@ -142,6 +148,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             conflicting_proof = node.buildavalancheproof(
                 10, 9999, bytes_to_wif(_privkey.get_bytes()), stakes)
 
+            # Make the proof and its conflicting proof mature
+            node.generate(1)
+
             n = get_ava_p2p_interface(node)
             success = node.addavalanchenode(
                 n.nodeid, _privkey.get_pubkey().get_bytes().hex(), _proof.serialize().hex())
@@ -150,6 +159,10 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             mock_time += self.conflicting_proof_cooldown
             node.setmocktime(mock_time)
             n.send_avaproof(avalanche_proof_from_hex(conflicting_proof))
+
+        # Generate an orphan (immature) proof
+        _, orphan_proof = gen_proof(node)
+        n.send_avaproof(orphan_proof)
 
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
@@ -165,6 +178,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "proof_count": N,
                     "connected_proof_count": N,
                     "conflicting_proof_count": N,
+                    "orphan_proof_count": 1,
                     "total_stake_amount": coinbase_amount * N,
                     "connected_stake_amount": coinbase_amount * N,
                     "node_count": N,
@@ -196,6 +210,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     "proof_count": N,
                     "connected_proof_count": N - D,
                     "conflicting_proof_count": N,
+                    "orphan_proof_count": 1,
                     "total_stake_amount": coinbase_amount * N,
                     "connected_stake_amount": coinbase_amount * (N - D),
                     "node_count": N - D,
@@ -214,6 +229,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             dg_pub = dg_priv.get_pubkey().get_bytes().hex()
 
             _privkey, _proof = gen_proof(node)
+
+            # Make the proof mature
+            node.generate(1)
 
             delegation = node.delegateavalancheproof(
                 f"{_proof.limited_proofid:0{64}x}",
@@ -238,10 +256,12 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "stake_amount": coinbase_amount,
             },
             "network": {
-                "proof_count": N,
+                # Orphan became mature
+                "proof_count": N + 1,
                 "connected_proof_count": N - D,
                 "conflicting_proof_count": N,
-                "total_stake_amount": coinbase_amount * N,
+                "orphan_proof_count": 0,
+                "total_stake_amount": coinbase_amount * (N + 1),
                 "connected_stake_amount": coinbase_amount * (N - D),
                 "node_count": N - D + P,
                 "connected_node_count": N - D,
@@ -265,10 +285,11 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "stake_amount": coinbase_amount,
             },
             "network": {
-                "proof_count": N,
+                "proof_count": N + 1,
                 "connected_proof_count": 0,
                 "conflicting_proof_count": N,
-                "total_stake_amount": coinbase_amount * N,
+                "orphan_proof_count": 0,
+                "total_stake_amount": coinbase_amount * (N + 1),
                 "connected_stake_amount": 0,
                 "node_count": 0,
                 "connected_node_count": 0,

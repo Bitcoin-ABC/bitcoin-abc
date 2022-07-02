@@ -673,6 +673,9 @@ static RPCHelpMan getavalancheinfo() {
                      {RPCResult::Type::NUM, "conflicting_proof_count",
                       "The number of known avalanche proofs that conflict with "
                       "valid proofs."},
+                     {RPCResult::Type::NUM, "orphan_proof_count",
+                      "The number of known avalanche proofs that are "
+                      "orphaned."},
                      {RPCResult::Type::STR_AMOUNT, "total_stake_amount",
                       "The total staked amount over all the valid proofs in " +
                           Currency::get().ticker + "."},
@@ -755,6 +758,7 @@ static RPCHelpMan getavalancheinfo() {
                 network.pushKV("connected_proof_count", connectedProofCount);
                 network.pushKV("conflicting_proof_count",
                                pm.getConflictingProofCount());
+                network.pushKV("orphan_proof_count", pm.getOrphanProofCount());
                 network.pushKV("total_stake_amount", totalStakes);
                 network.pushKV("connected_stake_amount", connectedStakes);
 
