@@ -9,16 +9,46 @@ if(Rust_VERSION VERSION_LESS REQUIRED_RUST_VERSION)
 endif()
 
 set(CARGO_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/cargo/build")
-
-add_custom_target(check-bitcoinsuite
-COMMAND
-    "${CMAKE_COMMAND}"
-    -E env
-        CARGO_TARGET_DIR="${CARGO_BUILD_DIR}"
-        CARGO_BUILD_RUSTC="$<TARGET_FILE:Rust::Rustc>"
-    "$<TARGET_FILE:Rust::Cargo>"
-    test
-    --package bitcoinsuite-*
-WORKING_DIRECTORY
-    "${CMAKE_SOURCE_DIR}"
+set_property(DIRECTORY "${CMAKE_SOURCE_DIR}"
+    APPEND PROPERTY
+    ADDITIONAL_CLEAN_FILES "${CARGO_BUILD_DIR}"
 )
+
+function(add_cargo_custom_target TARGET)
+    add_custom_target(${TARGET}
+    COMMAND
+        "${CMAKE_COMMAND}"
+        -E env
+            CARGO_TARGET_DIR="${CARGO_BUILD_DIR}"
+            CARGO_BUILD_RUSTC="$<TARGET_FILE:Rust::Rustc>"
+        "$<TARGET_FILE:Rust::Cargo>"
+        ${ARGN}
+    WORKING_DIRECTORY
+        "${CMAKE_SOURCE_DIR}"
+    )
+endfunction()
+
+function(add_crate_test_targets CRATE)
+    set(CRATE_TEST_TARGET "check-${CRATE}")
+    add_custom_target("${CRATE_TEST_TARGET}")
+
+    set(CLIPPY_TARGET "${CRATE_TEST_TARGET}-clippy")
+    add_cargo_custom_target("${CLIPPY_TARGET}"
+        clippy
+        --package "${CRATE}-*"
+        -- -D warnings
+    )
+
+    set(TEST_TARGET "${CRATE_TEST_TARGET}-test")
+    add_cargo_custom_target("${TEST_TARGET}"
+        test
+        --package "${CRATE}-*"
+    )
+
+    add_dependencies("${CRATE_TEST_TARGET}"
+        "${CLIPPY_TARGET}"
+        "${TEST_TARGET}"
+    )
+endfunction()
+
+add_crate_test_targets(bitcoinsuite)
