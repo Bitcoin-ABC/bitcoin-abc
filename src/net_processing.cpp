@@ -1678,11 +1678,6 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
     });
 }
 
-static bool isAvalancheOutboundOrManual(const CNode *pnode) {
-    return pnode->IsAvalancheOutboundConnection() ||
-           (pnode->IsManualConn() && (pnode->nServices & NODE_AVALANCHE));
-}
-
 void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     const auto now = GetTime<std::chrono::seconds>();
     std::vector<NodeId> avanode_outbound_ids;
@@ -1694,7 +1689,7 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
 
     m_connman.ForEachNode([&](CNode *pnode) {
         // Build a list of the avalanche manual or outbound peers nodeids
-        if (isAvalancheOutboundOrManual(pnode)) {
+        if (pnode->m_avalanche_state && !pnode->IsInboundConn()) {
             avanode_outbound_ids.push_back(pnode->GetId());
         }
 
@@ -3742,22 +3737,6 @@ void PeerManagerImpl::ProcessMessage(
                             localProof->getId());
                 }
             }
-
-            // Send getavaaddr and getavaproofs to our avalanche outbound or
-            // manual connections
-            if (isAvalancheOutboundOrManual(&pfrom)) {
-                m_connman.PushMessage(&pfrom,
-                                      msgMaker.Make(NetMsgType::GETAVAADDR));
-                WITH_LOCK(peer->m_addr_token_bucket_mutex,
-                          peer->m_addr_token_bucket += GetMaxAddrToSend());
-
-                if (pfrom.m_proof_relay &&
-                    !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
-                    m_connman.PushMessage(
-                        &pfrom, msgMaker.Make(NetMsgType::GETAVAPROOFS));
-                    pfrom.m_proof_relay->compactproofs_requested = true;
-                }
-            }
         }
 
         pfrom.fSuccessfullyConnected = true;
@@ -4933,49 +4912,63 @@ void PeerManagerImpl::ProcessMessage(
 
         // A delegation with an all zero limited id indicates that the peer has
         // no proof, so we're done.
-        if (delegation.getLimitedProofId() == uint256::ZERO) {
-            return;
+        if (delegation.getLimitedProofId() != uint256::ZERO) {
+            avalanche::DelegationState state;
+            CPubKey &pubkey = pfrom.m_avalanche_state->pubkey;
+            if (!delegation.verify(state, pubkey)) {
+                Misbehaving(pfrom, 100, "invalid-delegation");
+                return;
+            }
+
+            CHashWriter sighasher(SER_GETHASH, 0);
+            sighasher << delegation.getId();
+            sighasher << pfrom.nRemoteHostNonce;
+            sighasher << pfrom.GetLocalNonce();
+            sighasher << pfrom.nRemoteExtraEntropy;
+            sighasher << pfrom.GetLocalExtraEntropy();
+
+            SchnorrSig sig;
+            vRecv >> sig;
+            if (!pubkey.VerifySchnorr(sighasher.GetHash(), sig)) {
+                Misbehaving(pfrom, 100, "invalid-avahello-signature");
+                return;
+            }
+
+            // If we don't know this proof already, add it to the tracker so it
+            // can be requested.
+            const avalanche::ProofId proofid(delegation.getProofId());
+            if (!AlreadyHaveProof(proofid)) {
+                const bool preferred = isPreferredDownloadPeer(pfrom);
+                LOCK(cs_proofrequest);
+                AddProofAnnouncement(pfrom, proofid,
+                                     GetTime<std::chrono::microseconds>(),
+                                     preferred);
+            }
+
+            if (gArgs.GetBoolArg("-enableavalanchepeerdiscovery",
+                                 AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED)) {
+                // Don't check the return value. If it fails we probably don't
+                // know about the proof yet.
+                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                    return pm.addNode(pfrom.GetId(), proofid);
+                });
+            }
         }
 
-        avalanche::DelegationState state;
-        CPubKey &pubkey = pfrom.m_avalanche_state->pubkey;
-        if (!delegation.verify(state, pubkey)) {
-            Misbehaving(pfrom, 100, "invalid-delegation");
-            return;
-        }
+        // Send getavaaddr and getavaproofs to our avalanche outbound or
+        // manual connections
+        if (!pfrom.IsInboundConn()) {
+            m_connman.PushMessage(&pfrom,
+                                  msgMaker.Make(NetMsgType::GETAVAADDR));
+            WITH_LOCK(peer->m_addr_token_bucket_mutex,
+                      peer->m_addr_token_bucket += GetMaxAddrToSend());
 
-        CHashWriter sighasher(SER_GETHASH, 0);
-        sighasher << delegation.getId();
-        sighasher << pfrom.nRemoteHostNonce;
-        sighasher << pfrom.GetLocalNonce();
-        sighasher << pfrom.nRemoteExtraEntropy;
-        sighasher << pfrom.GetLocalExtraEntropy();
-
-        SchnorrSig sig;
-        vRecv >> sig;
-        if (!pubkey.VerifySchnorr(sighasher.GetHash(), sig)) {
-            Misbehaving(pfrom, 100, "invalid-avahello-signature");
-            return;
-        }
-
-        // If we don't know this proof already, add it to the tracker so it can
-        // be requested.
-        const avalanche::ProofId proofid(delegation.getProofId());
-        if (!AlreadyHaveProof(proofid)) {
-            const bool preferred = isPreferredDownloadPeer(pfrom);
-            LOCK(cs_proofrequest);
-            AddProofAnnouncement(pfrom, proofid,
-                                 GetTime<std::chrono::microseconds>(),
-                                 preferred);
-        }
-
-        if (gArgs.GetBoolArg("-enableavalanchepeerdiscovery",
-                             AVALANCHE_DEFAULT_PEER_DISCOVERY_ENABLED)) {
-            // Don't check the return value. If it fails we probably don't know
-            // about the proof yet.
-            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-                return pm.addNode(pfrom.GetId(), proofid);
-            });
+            if (pfrom.m_proof_relay &&
+                !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+                m_connman.PushMessage(&pfrom,
+                                      msgMaker.Make(NetMsgType::GETAVAPROOFS));
+                pfrom.m_proof_relay->compactproofs_requested = true;
+            }
         }
 
         return;

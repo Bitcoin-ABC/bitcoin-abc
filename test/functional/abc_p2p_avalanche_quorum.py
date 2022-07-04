@@ -29,6 +29,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         self.min_avaproofs_node_count = 8
         self.extra_args = [[
             '-enableavalanche=1',
+            '-enableavalanchepeerdiscovery=1',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
             '-avatimeout=0',
@@ -87,20 +88,14 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             expected = repr(AvalancheVote(expected, block))
             assert_equal(actual, expected)
 
-        def addavalanchenode(node, peer):
-            pubkey = peer['key'].get_pubkey().get_bytes().hex()
-            assert node.addavalanchenode(
-                peer['node'].nodeid,
-                pubkey,
-                peer['proof'].serialize().hex(),
-            ) is True
-
         p2p_idx = 0
 
         def get_ava_outbound(node, peer, empty_avaproof):
             nonlocal p2p_idx
 
             avapeer = AvaP2PInterface()
+            avapeer.proof = peer['proof']
+            avapeer.master_privkey = peer['key']
             node.add_outbound_p2p_connection(
                 avapeer,
                 p2p_idx=p2p_idx,
@@ -111,7 +106,6 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             avapeer.nodeid = node.getpeerinfo()[-1]['id']
 
             peer['node'] = avapeer
-            addavalanchenode(node, peer)
 
             # There is no compact proof request if the node is in IBD state
             if not node.getblockchaininfo()['initialblockdownload']:

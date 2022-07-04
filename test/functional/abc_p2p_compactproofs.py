@@ -11,6 +11,7 @@ import time
 
 from test_framework.avatools import (
     AvaP2PInterface,
+    NoHandshakeAvaP2PInterface,
     build_msg_avaproofs,
     gen_proof,
     get_ava_p2p_interface,
@@ -73,7 +74,7 @@ class CompactProofsTest(BitcoinTestFramework):
 
         p2p_idx = 0
         non_avapeers = []
-        for i in range(4):
+        for _ in range(4):
             peer = P2PInterface()
             node.add_outbound_p2p_connection(
                 peer,
@@ -86,16 +87,29 @@ class CompactProofsTest(BitcoinTestFramework):
 
         inbound_avapeers = [
             node.add_p2p_connection(
-                AvaP2PInterface()) for _ in range(4)]
+                NoHandshakeAvaP2PInterface()) for _ in range(4)]
 
         outbound_avapeers = []
-        for i in range(4):
-            peer = P2PInterface()
+        # With a proof and the service bit set
+        for _ in range(4):
+            peer = AvaP2PInterface(node)
             node.add_outbound_p2p_connection(
                 peer,
                 p2p_idx=p2p_idx,
                 connection_type="avalanche",
                 services=NODE_NETWORK | NODE_AVALANCHE,
+            )
+            outbound_avapeers.append(peer)
+            p2p_idx += 1
+
+        # Without a proof and no service bit set
+        for _ in range(4):
+            peer = AvaP2PInterface()
+            node.add_outbound_p2p_connection(
+                peer,
+                p2p_idx=p2p_idx,
+                connection_type="outbound-full-relay",
+                services=NODE_NETWORK,
             )
             outbound_avapeers.append(peer)
             p2p_idx += 1
@@ -138,7 +152,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.log.info(
             "After the first avaproofs has been received, all the peers are requested periodically")
 
-        responding_outbound_avapeer = P2PInterface()
+        responding_outbound_avapeer = AvaP2PInterface(node)
         node.add_outbound_p2p_connection(
             responding_outbound_avapeer,
             p2p_idx=p2p_idx,
@@ -197,7 +211,7 @@ class CompactProofsTest(BitcoinTestFramework):
         def connect_callback(address, port):
             self.log.debug("Connecting to {}:{}".format(address, port))
 
-        p = AvaP2PInterface()
+        p = AvaP2PInterface(node)
         p2p_idx = 1
         p.peer_accept_connection(
             connect_cb=connect_callback,
@@ -232,11 +246,11 @@ class CompactProofsTest(BitcoinTestFramework):
         self.restart_node(0)
         assert_equal(len(get_proof_ids(node)), 0)
 
-        peer = node.add_p2p_connection(AvaP2PInterface())
+        peer = node.add_p2p_connection(NoHandshakeAvaP2PInterface())
         send_getavaproof_check_shortid_len(peer, 0)
 
         # Add some proofs
-        sending_peer = node.add_p2p_connection(AvaP2PInterface())
+        sending_peer = node.add_p2p_connection(NoHandshakeAvaP2PInterface())
         for _ in range(50):
             _, proof = gen_proof(node)
             sending_peer.send_avaproof(proof)
@@ -245,7 +259,7 @@ class CompactProofsTest(BitcoinTestFramework):
         proofids = get_proof_ids(node)
         assert_equal(len(proofids), 50)
 
-        receiving_peer = node.add_p2p_connection(AvaP2PInterface())
+        receiving_peer = node.add_p2p_connection(NoHandshakeAvaP2PInterface())
         send_getavaproof_check_shortid_len(receiving_peer, len(proofids))
 
         avaproofs = self.received_avaproofs(receiving_peer)
@@ -298,7 +312,7 @@ class CompactProofsTest(BitcoinTestFramework):
         def add_avalanche_p2p_outbound():
             nonlocal p2p_idx
 
-            peer = P2PInterface()
+            peer = AvaP2PInterface(node)
             node.add_outbound_p2p_connection(
                 peer,
                 p2p_idx=p2p_idx,

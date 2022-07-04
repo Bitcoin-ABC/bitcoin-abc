@@ -91,16 +91,8 @@ class AvalancheTest(BitcoinTestFramework):
             "A delegation with all zero limited id indicates that the peer has no proof")
 
         no_proof_peer = GetProofDataCountingInterface()
-        node.add_p2p_connection(no_proof_peer)
+        node.add_p2p_connection(no_proof_peer, wait_for_verack=True)
 
-        master_key = ECKey()
-        master_key.generate()
-        null_delegation = node.delegateavalancheproof(
-            f"{0:0{64}x}",
-            bytes_to_wif(privkey.get_bytes()),
-            master_key.get_pubkey().get_bytes().hex(),
-        )
-        no_proof_peer.send_avahello(null_delegation, privkey)
         no_proof_peer.sync_send_with_ping()
 
         # No proof is requested
@@ -136,6 +128,9 @@ class AvalancheTest(BitcoinTestFramework):
             "-avaproof={}".format(proof),
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN"
         ])
+
+        master_key = ECKey()
+        master_key.generate()
 
         limited_id = avalanche_proof_from_hex(proof).limited_proofid
         delegation = node.delegateavalancheproof(

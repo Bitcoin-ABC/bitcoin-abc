@@ -7,7 +7,6 @@ import time
 from decimal import Decimal
 
 from test_framework.avatools import AvaP2PInterface, gen_proof
-from test_framework.key import ECKey
 from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
@@ -18,7 +17,6 @@ from test_framework.messages import (
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import MAX_NODES, assert_equal, p2p_port
-from test_framework.wallet_util import bytes_to_wif
 
 # getavaaddr time interval in seconds, as defined in net_processing.cpp
 # A node will ignore repeated getavaaddr during this interval
@@ -54,8 +52,8 @@ class AddrReceiver(P2PInterface):
 
 
 class MutedAvaP2PInterface(AvaP2PInterface):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, node=None):
+        super().__init__(node)
         self.is_responding = False
         self.privkey = None
         self.addr = None
@@ -69,16 +67,16 @@ class MutedAvaP2PInterface(AvaP2PInterface):
 
 
 class AllYesAvaP2PInterface(MutedAvaP2PInterface):
-    def __init__(self, privkey):
-        super().__init__()
-        self.privkey = privkey
+    def __init__(self, node=None):
+        super().__init__(node)
         self.is_responding = True
 
     def on_avapoll(self, message):
         self.send_avaresponse(
             message.poll.round, [
                 AvalancheVote(
-                    AvalancheVoteError.ACCEPTED, inv.hash) for inv in message.poll.invs], self.privkey)
+                    AvalancheVoteError.ACCEPTED, inv.hash) for inv in message.poll.invs],
+            self.master_privkey if self.delegation is None else self.delegated_privkey)
         super().on_avapoll(message)
 
 
@@ -87,6 +85,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.setup_clean_chain = False
         self.num_nodes = 1
         self.extra_args = [['-enableavalanche=1',
+                            '-enableavalanchepeerdiscovery=1',
                             '-avaproofstakeutxoconfirmations=1',
                             '-avacooldown=0', '-whitelist=noban@127.0.0.1']]
 
@@ -108,15 +107,9 @@ class AvaAddrTest(BitcoinTestFramework):
         mock_time = int(time.time())
         node.setmocktime(mock_time)
 
-        master_privkey, proof = gen_proof(node)
-        master_pubkey = master_privkey.get_pubkey().get_bytes().hex()
-        proof_hex = proof.serialize().hex()
-
         # Add some avalanche peers to the node
         for _ in range(10):
-            node.add_p2p_connection(AllYesAvaP2PInterface(master_privkey))
-            assert node.addavalanchenode(
-                node.getpeerinfo()[-1]['id'], master_pubkey, proof_hex)
+            node.add_p2p_connection(AllYesAvaP2PInterface(node))
 
         # Build some statistics to ensure some addresses will be returned
         def all_peers_received_poll():
@@ -168,19 +161,15 @@ class AvaAddrTest(BitcoinTestFramework):
         avanodes = []
         for _ in range(num_proof):
             master_privkey, proof = gen_proof(node)
-            master_pubkey = master_privkey.get_pubkey().get_bytes().hex()
-            proof_hex = proof.serialize().hex()
-
             for n in range(num_avanode):
-                avanode = AllYesAvaP2PInterface(
-                    master_privkey) if n % 2 else MutedAvaP2PInterface()
+                avanode = AllYesAvaP2PInterface() if n % 2 else MutedAvaP2PInterface()
+                avanode.master_privkey = master_privkey
+                avanode.proof = proof
                 node.add_p2p_connection(avanode)
 
                 peerinfo = node.getpeerinfo()[-1]
                 avanode.set_addr(peerinfo["addr"])
 
-                assert node.addavalanchenode(
-                    peerinfo['id'], master_pubkey, proof_hex)
                 avanodes.append(avanode)
 
         responding_addresses = [
@@ -188,10 +177,18 @@ class AvaAddrTest(BitcoinTestFramework):
         assert_equal(len(responding_addresses), num_proof * num_avanode // 2)
 
         # Check we have what we expect
-        avapeers = node.getavalanchepeerinfo()
-        assert_equal(len(avapeers), num_proof)
-        for avapeer in avapeers:
-            assert_equal(len(avapeer['nodes']), num_avanode)
+        def all_nodes_connected():
+            avapeers = node.getavalanchepeerinfo()
+            if len(avapeers) != num_proof:
+                return False
+
+            for avapeer in avapeers:
+                if len(avapeer['nodes']) != num_avanode:
+                    return False
+
+            return True
+
+        self.wait_until(all_nodes_connected)
 
         # Force the availability score to diverge between the responding and the
         # muted nodes.
@@ -242,12 +239,10 @@ class AvaAddrTest(BitcoinTestFramework):
 
         avapeers = []
         for i in range(16):
-            avapeer = P2PInterface()
+            avapeer = AvaP2PInterface()
             node.add_outbound_p2p_connection(
                 avapeer,
                 p2p_idx=i,
-                connection_type="avalanche",
-                services=NODE_NETWORK | NODE_AVALANCHE,
             )
             avapeers.append(avapeer)
 
@@ -290,7 +285,6 @@ class AvaAddrTest(BitcoinTestFramework):
             connect_id=p2p_idx,
             net=node.chain,
             timeout_factor=node.timeout_factor,
-            services=NODE_NETWORK | NODE_AVALANCHE,
         )()
         ip_port = f"127.0.01:{p2p_port(MAX_NODES - p2p_idx)}"
 
@@ -316,15 +310,13 @@ class AvaAddrTest(BitcoinTestFramework):
         node = self.nodes[0]
 
         self.restart_node(0, extra_args=self.extra_args[0] + [
-            '-avaminquorumstake=100000000',
+            '-avaminquorumstake=1000000000',
             '-avaminquorumconnectedstakeratio=0.8',
         ])
 
-        privkey, proof = gen_proof(node)
-
         avapeers = []
         for i in range(16):
-            avapeer = AllYesAvaP2PInterface(privkey)
+            avapeer = AllYesAvaP2PInterface(node)
             node.add_outbound_p2p_connection(
                 avapeer,
                 p2p_idx=i,
@@ -350,18 +342,6 @@ class AvaAddrTest(BitcoinTestFramework):
             node.mockscheduler(MAX_GETAVAADDR_DELAY)
             self.wait_until(lambda: total_getavaaddr_msg() > total_getavaaddr)
             total_getavaaddr = total_getavaaddr_msg()
-
-        # Connect the nodes via an avahello message
-        limitedproofid_hex = f"{proof.limited_proofid:0{64}x}"
-        for avapeer in avapeers:
-            avakey = ECKey()
-            avakey.generate()
-            delegation = node.delegateavalancheproof(
-                limitedproofid_hex,
-                bytes_to_wif(privkey.get_bytes()),
-                avakey.get_pubkey().get_bytes().hex(),
-            )
-            avapeer.send_avahello(delegation, avakey)
 
         # Move the schedulter time forward to make seure we get statistics
         # computed. But since we did not start polling yet it should remain all

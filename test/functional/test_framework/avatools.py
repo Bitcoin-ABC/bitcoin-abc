@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from .authproxy import JSONRPCException
 from .key import ECKey
 from .messages import (
+    MSG_AVA_PROOF,
     MSG_BLOCK,
     NODE_AVALANCHE,
     NODE_NETWORK,
@@ -29,6 +30,7 @@ from .messages import (
     msg_avapoll,
     msg_avaproof,
     msg_avaproofs,
+    msg_notfound,
     msg_tcpavaresponse,
 )
 from .p2p import P2PInterface, p2p_lock
@@ -170,7 +172,7 @@ def wait_for_proof(node, proofid_hex, timeout=60, expect_orphan=None):
         assert_equal(expect_orphan, wait_for_proof.is_orphan)
 
 
-class AvaP2PInterface(P2PInterface):
+class NoHandshakeAvaP2PInterface(P2PInterface):
     """P2PInterface with avalanche capabilities"""
 
     def __init__(self):
@@ -256,8 +258,8 @@ class AvaP2PInterface(P2PInterface):
         with p2p_lock:
             return self.avahello
 
-    def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
-        delegation = FromHex(AvalancheDelegation(), delegation_hex)
+    def build_avahello(self, delegation: AvalancheDelegation,
+                       delegated_privkey: ECKey) -> msg_avahello:
         local_sighash = hash256(
             delegation.getid() +
             struct.pack("<QQQQ", self.local_nonce, self.remote_nonce,
@@ -266,9 +268,15 @@ class AvaP2PInterface(P2PInterface):
         msg = msg_avahello()
         msg.hello.delegation = delegation
         msg.hello.sig = delegated_privkey.sign_schnorr(local_sighash)
+
+        return msg
+
+    def send_avahello(self, delegation_hex: str, delegated_privkey: ECKey):
+        delegation = FromHex(AvalancheDelegation(), delegation_hex)
+        msg = self.build_avahello(delegation, delegated_privkey)
         self.send_message(msg)
 
-        return delegation.proofid
+        return msg.hello.delegation.proofid
 
     def send_avaproof(self, proof: AvalancheProof):
         msg = msg_avaproof()
@@ -276,13 +284,65 @@ class AvaP2PInterface(P2PInterface):
         self.send_message(msg)
 
 
+class AvaP2PInterface(NoHandshakeAvaP2PInterface):
+    def __init__(self, node=None):
+        super().__init__()
+
+        self.master_privkey = None
+        self.proof = None
+
+        self.delegated_privkey = ECKey()
+        self.delegated_privkey.generate()
+        self.delegation = None
+
+        if node is not None:
+            self.master_privkey, self.proof = gen_proof(node)
+            delegation_hex = node.delegateavalancheproof(
+                f"{self.proof.limited_proofid:0{64}x}",
+                bytes_to_wif(self.master_privkey.get_bytes()),
+                self.delegated_privkey.get_pubkey().get_bytes().hex(),
+            )
+            assert node.verifyavalanchedelegation(delegation_hex)
+
+            self.delegation = FromHex(AvalancheDelegation(), delegation_hex)
+
+    def on_version(self, message):
+        super().on_version(message)
+
+        avahello = msg_avahello()
+        if self.delegation is not None:
+            avahello = self.build_avahello(
+                self.delegation, self.delegated_privkey)
+        elif self.proof is not None:
+            avahello = self.build_avahello(
+                AvalancheDelegation(
+                    self.proof.limited_proofid,
+                    self.master_privkey.get_pubkey().get_bytes()),
+                self.master_privkey)
+
+        self.send_message(avahello)
+
+    def on_getdata(self, message):
+        super().on_getdata(message)
+
+        not_found = []
+        for inv in message.inv:
+            if inv.type == MSG_AVA_PROOF and self.proof is not None and inv.hash == self.proof.proofid:
+                self.send_avaproof(self.proof)
+            else:
+                not_found.append(inv)
+
+        if len(not_found) > 0:
+            self.send_message(msg_notfound(not_found))
+
+
 def get_ava_p2p_interface(
         node: TestNode,
-        services=NODE_NETWORK | NODE_AVALANCHE) -> AvaP2PInterface:
-    """Build and return an AvaP2PInterface connected to the specified
+        services=NODE_NETWORK | NODE_AVALANCHE) -> NoHandshakeAvaP2PInterface:
+    """Build and return a NoHandshakeAvaP2PInterface connected to the specified
     TestNode.
     """
-    n = AvaP2PInterface()
+    n = NoHandshakeAvaP2PInterface()
     node.add_p2p_connection(
         n, services=services)
     n.wait_for_verack()
