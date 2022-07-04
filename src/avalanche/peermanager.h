@@ -31,6 +31,7 @@
 #include <unordered_set>
 #include <vector>
 
+class ChainstateManager;
 class CScheduler;
 
 namespace avalanche {
@@ -236,7 +237,11 @@ class PeerManager {
     uint32_t totalPeersScore = 0;
     uint32_t connectedPeersScore = 0;
 
+    ChainstateManager &chainman;
+
 public:
+    PeerManager(ChainstateManager &chainmanIn) : chainman(chainmanIn){};
+
     /**
      * Node API.
      */

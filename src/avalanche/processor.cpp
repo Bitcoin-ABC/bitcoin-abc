@@ -138,7 +138,7 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
     : connman(connmanIn), chainman(chainmanIn),
       queryTimeoutDuration(argsman.GetArg(
           "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
-      round(0), peerManager(std::make_unique<PeerManager>()),
+      round(0), peerManager(std::make_unique<PeerManager>(chainman)),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
