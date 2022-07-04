@@ -238,8 +238,8 @@ enum {
 };
 
 bool IsPeerAddrLocalGood(CNode *pnode);
-/** Returns a local address that we should advertise to this peer */
-std::optional<CAddress> GetLocalAddrForPeer(CNode *pnode);
+/** Returns a local address that we should advertise to this peer. */
+std::optional<CService> GetLocalAddrForPeer(CNode &node);
 
 /**
  * Mark a network as reachable or unreachable (no automatic connects to it)
@@ -257,8 +257,7 @@ void RemoveLocal(const CService &addr);
 bool SeenLocal(const CService &addr);
 bool IsLocal(const CService &addr);
 bool GetLocal(CService &addr, const CNetAddr *paddrPeer = nullptr);
-CAddress GetLocalAddress(const CNetAddr *paddrPeer,
-                         ServiceFlags nLocalServices);
+CService GetLocalAddress(const CNetAddr &addrPeer);
 
 extern bool fDiscover;
 extern bool fListen;
