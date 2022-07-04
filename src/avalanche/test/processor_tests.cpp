@@ -108,9 +108,9 @@ struct AvalancheTestingSetup : public TestChain100Setup {
 
         // Get the processor ready.
         bilingual_str error;
-        m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
-                                               m_node.connman.get(),
-                                               *m_node.scheduler, error);
+        m_processor = Processor::MakeProcessor(
+            *m_node.args, *m_node.chain, m_node.connman.get(),
+            *Assert(m_node.chainman), *m_node.scheduler, error);
         BOOST_CHECK(m_processor);
 
         gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
@@ -1233,8 +1233,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
 
     bilingual_str error;
     std::unique_ptr<Processor> processor = Processor::MakeProcessor(
-        *m_node.args, *m_node.chain, m_node.connman.get(), *m_node.scheduler,
-        error);
+        *m_node.args, *m_node.chain, m_node.connman.get(),
+        *Assert(m_node.chainman), *m_node.scheduler, error);
 
     BOOST_CHECK(processor != nullptr);
     BOOST_CHECK(processor->getLocalProof() != nullptr);
@@ -1381,7 +1381,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection_parameter_validation) {
         bilingual_str error;
         std::unique_ptr<Processor> processor = Processor::MakeProcessor(
             *m_node.args, *m_node.chain, m_node.connman.get(),
-            *m_node.scheduler, error);
+            *Assert(m_node.chainman), *m_node.scheduler, error);
 
         if (std::get<3>(*it)) {
             BOOST_CHECK(processor != nullptr);
@@ -1409,9 +1409,9 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
                             ToString(minAvaproofsMessages));
 
         bilingual_str error;
-        auto processor = Processor::MakeProcessor(argsman, *m_node.chain,
-                                                  m_node.connman.get(),
-                                                  *m_node.scheduler, error);
+        auto processor = Processor::MakeProcessor(
+            argsman, *m_node.chain, m_node.connman.get(),
+            *Assert(m_node.chainman), *m_node.scheduler, error);
 
         BOOST_CHECK_EQUAL(processor->isQuorumEstablished(),
                           minAvaproofsMessages <= 0);
@@ -1465,9 +1465,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
     };
 
     bilingual_str error;
-    m_processor = Processor::MakeProcessor(*m_node.args, *m_node.chain,
-                                           m_node.connman.get(),
-                                           *m_node.scheduler, error);
+    m_processor = Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(),
+        *Assert(m_node.chainman), *m_node.scheduler, error);
 
     BOOST_CHECK(m_processor != nullptr);
     BOOST_CHECK(error.empty());

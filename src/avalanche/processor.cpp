@@ -128,13 +128,14 @@ public:
 };
 
 Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
-                     CConnman *connmanIn, CScheduler &scheduler,
+                     CConnman *connmanIn, ChainstateManager &chainmanIn,
+                     CScheduler &scheduler,
                      std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
                      uint32_t minQuorumTotalScoreIn,
                      double minQuorumConnectedScoreRatioIn,
                      int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn)
-    : connman(connmanIn),
+    : connman(connmanIn), chainman(chainmanIn),
       queryTimeoutDuration(argsman.GetArg(
           "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
       round(0), peerManager(std::make_unique<PeerManager>()),
@@ -161,11 +162,10 @@ Processor::~Processor() {
     stopEventLoop();
 }
 
-std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
-                                                    interfaces::Chain &chain,
-                                                    CConnman *connman,
-                                                    CScheduler &scheduler,
-                                                    bilingual_str &error) {
+std::unique_ptr<Processor>
+Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
+                         CConnman *connman, ChainstateManager &chainman,
+                         CScheduler &scheduler, bilingual_str &error) {
     std::unique_ptr<PeerData> peerData;
     CKey masterKey;
     CKey sessionKey;
@@ -324,7 +324,7 @@ std::unique_ptr<Processor> Processor::MakeProcessor(const ArgsManager &argsman,
 
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
-        argsman, chain, connman, scheduler, std::move(peerData),
+        argsman, chain, connman, chainman, scheduler, std::move(peerData),
         std::move(sessionKey), Proof::amountToScore(minQuorumStake),
         minQuorumConnectedStakeRatio, minAvaproofsNodeCount, staleVoteThreshold,
         staleVoteFactor));
@@ -344,7 +344,7 @@ bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
             return false;
         }
 
-        isAccepted = ::ChainActive().Contains(pindex);
+        isAccepted = chainman.ActiveChain().Contains(pindex);
     }
 
     return blockVoteRecords.getWriteView()
@@ -518,7 +518,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             CBlockIndex *pindex;
             {
                 LOCK(cs_main);
-                pindex = g_chainman.m_blockman.LookupBlockIndex(
+                pindex = chainman.m_blockman.LookupBlockIndex(
                     BlockHash(votes[i].GetHash()));
                 if (!pindex) {
                     // This should not happen, but just in case...
@@ -652,7 +652,7 @@ bool Processor::stopEventLoop() {
 }
 
 void Processor::avaproofsSent(NodeId nodeid) {
-    if (::ChainstateActive().IsInitialBlockDownload()) {
+    if (chainman.ActiveChainstate().IsInitialBlockDownload()) {
         // Before IBD is complete there is no way to make sure a proof is valid
         // or not, e.g. it can be spent in a block we don't know yet. In order
         // to increase confidence that our proof set is similar to other nodes
@@ -676,7 +676,7 @@ bool Processor::isQuorumEstablished() {
     }
 
     // Don't do Avalanche while node is IBD'ing
-    if (::ChainstateActive().IsInitialBlockDownload()) {
+    if (chainman.ActiveChainstate().IsInitialBlockDownload()) {
         return false;
     }
 
@@ -835,9 +835,9 @@ void Processor::clearTimedoutRequests() {
     for (const auto &p : timedout_items) {
         const CInv &inv = p.first;
         if (inv.IsMsgBlk()) {
-            const CBlockIndex *pindex = WITH_LOCK(
-                cs_main, return g_chainman.m_blockman.LookupBlockIndex(
-                             BlockHash(inv.hash)));
+            const CBlockIndex *pindex =
+                WITH_LOCK(cs_main, return chainman.m_blockman.LookupBlockIndex(
+                                       BlockHash(inv.hash)));
 
             if (!clearInflightRequest(blockVoteRecords, pindex, p.second)) {
                 continue;
@@ -925,7 +925,7 @@ bool Processor::isWorthPolling(const CBlockIndex *pindex) const {
         return false;
     }
 
-    if (::ChainstateActive().IsBlockFinalized(pindex)) {
+    if (chainman.ActiveChainstate().IsBlockFinalized(pindex)) {
         // There is no point polling finalized block.
         return false;
     }
