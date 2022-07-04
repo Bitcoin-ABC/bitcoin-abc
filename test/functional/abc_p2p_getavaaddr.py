@@ -366,6 +366,66 @@ class AvaAddrTest(BitcoinTestFramework):
         expected_addresses = [avapeer.addr for avapeer in avapeers]
         assert all([address in expected_addresses for address in addresses])
 
+    def test_send_inbound_getavaaddr_until_quorum_is_established(self):
+        self.log.info(
+            "Check we also request the inbounds until the quorum is established")
+
+        node = self.nodes[0]
+
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0] +
+            ['-avaminquorumstake=1000000'])
+
+        assert_equal(node.getavalancheinfo()['active'], False)
+
+        outbound = MutedAvaP2PInterface()
+        node.add_outbound_p2p_connection(outbound, p2p_idx=0)
+
+        inbound = MutedAvaP2PInterface()
+        node.add_p2p_connection(inbound)
+        inbound.nodeid = node.getpeerinfo()[-1]['id']
+
+        def count_getavaaddr(peers):
+            with p2p_lock:
+                return sum([peer.message_count.get("getavaaddr", 0)
+                           for peer in peers])
+
+        # Upon connection only the outbound gets a getavaaddr message
+        assert_equal(count_getavaaddr([inbound]), 0)
+        self.wait_until(lambda: count_getavaaddr([outbound]) == 1)
+
+        # Periodic send will include the inbound as well
+        current_total = count_getavaaddr([inbound, outbound])
+        while count_getavaaddr([inbound]) == 0:
+            node.mockscheduler(MAX_GETAVAADDR_DELAY)
+            self.wait_until(lambda: count_getavaaddr(
+                [inbound, outbound]) > current_total)
+            current_total = count_getavaaddr([inbound, outbound])
+
+        # Connect the minimum amount of stake
+        privkey, proof = gen_proof(node)
+        assert node.addavalanchenode(
+            inbound.nodeid,
+            privkey.get_pubkey().get_bytes().hex(),
+            proof.serialize().hex())
+
+        assert_equal(node.getavalancheinfo()['active'], True)
+
+        # From now only the outbound is requested
+        count_inbound = count_getavaaddr([inbound])
+        for _ in range(10):
+            # Trigger a poll
+            node.generate(1)
+            inbound.sync_send_with_ping()
+
+            node.mockscheduler(MAX_GETAVAADDR_DELAY)
+            self.wait_until(lambda: count_getavaaddr(
+                [inbound, outbound]) > current_total)
+            current_total = count_getavaaddr([inbound, outbound])
+
+        assert_equal(count_getavaaddr([inbound]), count_inbound)
+
     def run_test(self):
         self.getavaaddr_interval_test()
 
@@ -377,6 +437,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.getavaaddr_outbound_test()
         self.getavaaddr_manual_test()
         self.getavaaddr_noquorum()
+        self.test_send_inbound_getavaaddr_until_quorum_is_established()
 
 
 if __name__ == '__main__':

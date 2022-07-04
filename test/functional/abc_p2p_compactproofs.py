@@ -610,6 +610,62 @@ class CompactProofsTest(BitcoinTestFramework):
         with p2p_lock:
             assert_equal(peer.message_count.get("getavaproofs", 0), 0)
 
+    def test_send_inbound_getavaproofs_until_quorum_is_established(self):
+        self.log.info(
+            "Check we also request the inbounds until the quorum is established")
+
+        node = self.nodes[0]
+
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0] +
+            ['-avaminquorumstake=1000000'])
+
+        assert_equal(node.getavalancheinfo()['active'], False)
+
+        outbound = HelloAvaP2PInterface()
+        node.add_outbound_p2p_connection(outbound, p2p_idx=0)
+
+        inbound = HelloAvaP2PInterface()
+        node.add_p2p_connection(inbound)
+        inbound.nodeid = node.getpeerinfo()[-1]['id']
+
+        def count_getavaproofs(peers):
+            with p2p_lock:
+                return sum([peer.message_count.get("getavaproofs", 0)
+                           for peer in peers])
+
+        # Upon connection only the outbound gets a compact proofs message
+        assert_equal(count_getavaproofs([inbound]), 0)
+        self.wait_until(lambda: count_getavaproofs([outbound]) == 1)
+
+        # Periodic send will include the inbound as well
+        current_total = count_getavaproofs([inbound, outbound])
+        while count_getavaproofs([inbound]) == 0:
+            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+            self.wait_until(lambda: count_getavaproofs(
+                [inbound, outbound]) > current_total)
+            current_total = count_getavaproofs([inbound, outbound])
+
+        # Connect the minimum amount of stake
+        privkey, proof = gen_proof(node)
+        assert node.addavalanchenode(
+            inbound.nodeid,
+            privkey.get_pubkey().get_bytes().hex(),
+            proof.serialize().hex())
+
+        assert_equal(node.getavalancheinfo()['active'], True)
+
+        # From now only the outbound is requested
+        count_inbound = count_getavaproofs([inbound])
+        for _ in range(20):
+            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+            self.wait_until(lambda: count_getavaproofs(
+                [inbound, outbound]) > current_total)
+            current_total = count_getavaproofs([inbound, outbound])
+
+        assert_equal(count_getavaproofs([inbound]), count_inbound)
+
     def run_test(self):
         # Most if the tests only need a single node, let the other ones start
         # the node when required
@@ -622,6 +678,7 @@ class CompactProofsTest(BitcoinTestFramework):
         self.test_send_missing_proofs()
         self.test_compact_proofs_download_on_connect()
         self.test_no_compactproofs_during_ibs()
+        self.test_send_inbound_getavaproofs_until_quorum_is_established()
 
 
 if __name__ == '__main__':

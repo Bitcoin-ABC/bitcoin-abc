@@ -1680,7 +1680,10 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
 
 void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     const auto now = GetTime<std::chrono::seconds>();
-    std::vector<NodeId> avanode_outbound_ids;
+    std::vector<NodeId> avanode_ids;
+
+    const bool fQuorumEstablished =
+        g_avalanche && g_avalanche->isQuorumEstablished();
 
     if (!g_avalanche) {
         // Not enabled or not ready yet, retry later
@@ -1688,9 +1691,10 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     }
 
     m_connman.ForEachNode([&](CNode *pnode) {
-        // Build a list of the avalanche manual or outbound peers nodeids
-        if (pnode->m_avalanche_state && !pnode->IsInboundConn()) {
-            avanode_outbound_ids.push_back(pnode->GetId());
+        // Build a list of the avalanche peers nodeids
+        if (pnode->m_avalanche_state &&
+            (!fQuorumEstablished || !pnode->IsInboundConn())) {
+            avanode_ids.push_back(pnode->GetId());
         }
 
         // If a proof radix tree timed out, cleanup
@@ -1701,21 +1705,19 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         }
     });
 
-    if (avanode_outbound_ids.empty()) {
-        // Not node is available for messaging, retry later
+    if (avanode_ids.empty()) {
+        // No node is available for messaging, retry later
         goto scheduleLater;
     }
 
-    Shuffle(avanode_outbound_ids.begin(), avanode_outbound_ids.end(),
-            FastRandomContext());
+    Shuffle(avanode_ids.begin(), avanode_ids.end(), FastRandomContext());
 
-    if (!g_avalanche->isQuorumEstablished() ||
+    if (!fQuorumEstablished ||
         g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             return pm.shouldRequestMoreNodes();
         })) {
-        // Randomly select an avalanche outbound peer to send the getavaaddr
-        // message to
-        const NodeId avanodeId = avanode_outbound_ids.front();
+        // Randomly select an avalanche peer to send the getavaaddr message to
+        const NodeId avanodeId = avanode_ids.front();
 
         m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
             LogPrint(BCLog::AVALANCHE,
@@ -1741,11 +1743,10 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     // subset of our peers as we expect a ton of avaproofs message in the
     // process.
     if (g_avalanche->getAvaproofsNodeCounter() == 0) {
-        avanode_outbound_ids.resize(
-            std::min<size_t>(avanode_outbound_ids.size(), 3));
+        avanode_ids.resize(std::min<size_t>(avanode_ids.size(), 3));
     }
 
-    for (NodeId nodeid : avanode_outbound_ids) {
+    for (NodeId nodeid : avanode_ids) {
         // Send a getavaproofs to one of our peers
         m_connman.ForNode(nodeid, [&](CNode *pavanode) {
             LogPrint(BCLog::AVALANCHE,
