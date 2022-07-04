@@ -180,6 +180,17 @@ If you are running Debian 10, it is also available in the backports repository:
 sudo apt-get -t buster-backports install shellcheck
 ```
 
+If you are modifying Rust files, you will need to install a stable rust version,
+plus a nightly toolchain called "abc-nightly" for formatting:
+```bash
+# Install latest stable Rust version
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s
+source ~/.cargo/env
+rustup install nightly-2022-06-29
+# Name the nightly toolchain "abc-nightly"
+rustup toolchain link abc-nightly "$(rustc +nightly-2022-06-29 --print sysroot)"
+```
+
 Contributing to the web projects
 --------------------------------
 
