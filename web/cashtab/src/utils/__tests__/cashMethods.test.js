@@ -33,6 +33,8 @@ import {
     getChangeAddressFromInputUtxos,
     generateOpReturnScript,
     generateTxInput,
+    generateTxOutput,
+    toSmallestDenomination,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -167,6 +169,7 @@ import {
 } from '../__mocks__/incrementalUtxoMocks';
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
 import BCHJS from '@psf/bch-js';
+import sendBCHMock from '../../hooks/__mocks__/sendBCH';
 import {
     lambdaHash160s,
     lambdaIncomingXecTx,
@@ -177,8 +180,11 @@ import {
     disconnectedWebsocketAlpha,
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
-import sendBCHMock from '../../hooks/__mocks__/sendBCH';
 import mockReturnGetSlpBalancesAndUtxos from '../../hooks/__mocks__/mockReturnGetSlpBalancesAndUtxos';
+import {
+    mockOneToOneSendXecTxBuilderObj,
+    mockOneToManySendXecTxBuilderObj,
+} from '../__mocks__/mockTxBuilderObj';
 
 it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo`, () => {
     const BCH = new BCHJS();
@@ -564,6 +570,181 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
             destinationAddressAndValueArray,
             satoshisToSend,
             feeInSatsPerByte,
+        );
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid tx input parameter');
+});
+
+it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC tx `, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    const { destinationAddress, wallet } = sendBCHMock;
+    const isOneToMany = false;
+    const singleSendValue = new BigNumber(
+        fromSmallestDenomination(
+            mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
+        ),
+    );
+    const totalInputUtxoValue =
+        mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
+    const satoshisToSend = toSmallestDenomination(
+        new BigNumber(singleSendValue),
+    );
+    // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
+    // no change output to be subtracted in this tx
+    const txFee = new BigNumber(totalInputUtxoValue).minus(
+        new BigNumber(satoshisToSend),
+    );
+
+    const destinationAddressAndValueArray = null;
+    let txBuilder = new BCH.TransactionBuilder();
+    const changeAddress = wallet.Path1899.cashAddress;
+
+    const outputObj = generateTxOutput(
+        BCH,
+        isOneToMany,
+        singleSendValue,
+        satoshisToSend,
+        totalInputUtxoValue,
+        destinationAddress,
+        destinationAddressAndValueArray,
+        changeAddress,
+        txFee,
+        txBuilder,
+    );
+    expect(outputObj.toString()).toStrictEqual(
+        mockOneToOneSendXecTxBuilderObj.toString(),
+    );
+});
+
+it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC tx `, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    const { destinationAddress, wallet } = sendBCHMock;
+    const isOneToMany = true;
+    const singleSendValue = null;
+    const totalInputUtxoValue =
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[0].value +
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[1].value +
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[2].value;
+    const satoshisToSend = new BigNumber(
+        mockOneToManySendXecTxBuilderObj.transaction.tx.outs[0].value +
+            mockOneToManySendXecTxBuilderObj.transaction.tx.outs[1].value +
+            mockOneToManySendXecTxBuilderObj.transaction.tx.outs[2].value,
+    );
+    // for unit test purposes, calculate fee by subtracting satoshisToSend and change amount from totalInputUtxoValue
+    const txFee = new BigNumber(totalInputUtxoValue)
+        .minus(satoshisToSend)
+        .minus(
+            new BigNumber(
+                mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
+            ),
+        ); // change value
+
+    const destinationAddressAndValueArray = toLegacyCashArray(
+        validAddressArrayInput,
+    );
+    let txBuilder = new BCH.TransactionBuilder();
+    const changeAddress = wallet.Path1899.cashAddress;
+
+    const outputObj = generateTxOutput(
+        BCH,
+        isOneToMany,
+        singleSendValue,
+        satoshisToSend,
+        totalInputUtxoValue,
+        destinationAddress,
+        destinationAddressAndValueArray,
+        changeAddress,
+        txFee,
+        txBuilder,
+    );
+    expect(outputObj.toString()).toStrictEqual(
+        mockOneToManySendXecTxBuilderObj.toString(),
+    );
+});
+
+it(`generateTxOutput() throws an error on invalid input params for a one to one XEC tx`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    const { wallet } = sendBCHMock;
+    const isOneToMany = false;
+    const singleSendValue = null; // invalid due to singleSendValue being mandatory when isOneToMany is false
+    const totalInputUtxoValue =
+        mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
+    const satoshisToSend = toSmallestDenomination(
+        new BigNumber(singleSendValue),
+    );
+    // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
+    // no change output to be subtracted in this tx
+    const txFee = new BigNumber(totalInputUtxoValue).minus(satoshisToSend);
+
+    const destinationAddressAndValueArray = null;
+    let txBuilder = new BCH.TransactionBuilder();
+    const changeAddress = wallet.Path1899.cashAddress;
+
+    let thrownError;
+    try {
+        generateTxOutput(
+            BCH,
+            isOneToMany,
+            singleSendValue,
+            satoshisToSend,
+            totalInputUtxoValue,
+            null,
+            destinationAddressAndValueArray,
+            changeAddress,
+            txFee,
+            txBuilder,
+        );
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid tx input parameter');
+});
+
+it(`generateTxOutput() throws an error on invalid input params for a one to many XEC tx`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    const { wallet } = sendBCHMock;
+    const isOneToMany = true;
+    const singleSendValue = null;
+    const totalInputUtxoValue =
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[0].value +
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[1].value +
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[2].value;
+    const satoshisToSend = new BigNumber(
+        mockOneToManySendXecTxBuilderObj.transaction.tx.outs[0].value +
+            mockOneToManySendXecTxBuilderObj.transaction.tx.outs[1].value +
+            mockOneToManySendXecTxBuilderObj.transaction.tx.outs[2].value,
+    );
+    // for unit test purposes, calculate fee by subtracting satoshisToSend and change amount from totalInputUtxoValue
+    const txFee = new BigNumber(totalInputUtxoValue)
+        .minus(satoshisToSend)
+        .minus(
+            new BigNumber(
+                mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
+            ),
+        ); // change value
+    const destinationAddressAndValueArray = null; // invalid as this is mandatory when isOneToMany is true
+    let txBuilder = new BCH.TransactionBuilder();
+    const changeAddress = wallet.Path1899.cashAddress;
+
+    let thrownError;
+    try {
+        generateTxOutput(
+            BCH,
+            isOneToMany,
+            singleSendValue,
+            satoshisToSend,
+            totalInputUtxoValue,
+            null,
+            destinationAddressAndValueArray,
+            changeAddress,
+            txFee,
+            txBuilder,
         );
     } catch (err) {
         thrownError = err;

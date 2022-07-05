@@ -223,6 +223,75 @@ export const generateOpReturnScript = (
     return data;
 };
 
+export const generateTxOutput = (
+    BCH,
+    isOneToMany,
+    singleSendValue,
+    satoshisToSend,
+    totalInputUtxoValue,
+    destinationAddress,
+    destinationAddressAndValueArray,
+    changeAddress,
+    txFee,
+    txBuilder,
+) => {
+    try {
+        if (
+            !BCH ||
+            (isOneToMany && !destinationAddressAndValueArray) ||
+            (!isOneToMany && !destinationAddress && !singleSendValue) ||
+            !changeAddress ||
+            !satoshisToSend ||
+            !totalInputUtxoValue ||
+            !txFee ||
+            !txBuilder
+        ) {
+            throw new Error('Invalid tx input parameter');
+        }
+
+        // amount to send back to the remainder address.
+        const remainder = new BigNumber(totalInputUtxoValue)
+            .minus(satoshisToSend)
+            .minus(txFee);
+        if (remainder.lt(0)) {
+            throw new Error(`Insufficient funds`);
+        }
+
+        if (isOneToMany) {
+            // for one to many mode, add the multiple outputs from the array
+            let arrayLength = destinationAddressAndValueArray.length;
+            for (let i = 0; i < arrayLength; i++) {
+                // add each send tx from the array as an output
+                let outputAddress =
+                    destinationAddressAndValueArray[i].split(',')[0];
+                let outputValue = new BigNumber(
+                    destinationAddressAndValueArray[i].split(',')[1],
+                );
+                txBuilder.addOutput(
+                    BCH.Address.toCashAddress(outputAddress),
+                    parseInt(toSmallestDenomination(outputValue)),
+                );
+            }
+        } else {
+            // for one to one mode, add output w/ single address and amount to send
+            txBuilder.addOutput(
+                BCH.Address.toCashAddress(destinationAddress),
+                parseInt(toSmallestDenomination(singleSendValue)),
+            );
+        }
+
+        // if a remainder exists, return to change address as the final output
+        if (remainder.gte(new BigNumber(currency.dustSats))) {
+            txBuilder.addOutput(changeAddress, parseInt(remainder));
+        }
+    } catch (err) {
+        console.log('Error in generateTxOutput(): ' + err);
+        throw err;
+    }
+
+    return txBuilder;
+};
+
 export function parseOpReturn(hexStr) {
     if (
         !hexStr ||
