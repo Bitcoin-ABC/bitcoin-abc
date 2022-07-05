@@ -34,6 +34,7 @@ import {
     generateOpReturnScript,
     generateTxInput,
     generateTxOutput,
+    signAndBuildTx,
     toSmallestDenomination,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
@@ -185,6 +186,12 @@ import {
     mockOneToOneSendXecTxBuilderObj,
     mockOneToManySendXecTxBuilderObj,
 } from '../__mocks__/mockTxBuilderObj';
+import {
+    mockSingleInputUtxo,
+    mockMultipleInputUtxos,
+    mockSingleOutput,
+    mockMultipleOutputs,
+} from '../__mocks__/mockTxBuilderData';
 
 it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo`, () => {
     const BCH = new BCHJS();
@@ -750,6 +757,145 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
         thrownError = err;
     }
     expect(thrownError.message).toStrictEqual('Invalid tx input parameter');
+});
+
+it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and a single output`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+
+    // add inputs to txBuilder
+    txBuilder.addInput(
+        mockSingleInputUtxo[0].txid,
+        mockSingleInputUtxo[0].vout,
+    );
+
+    // add outputs to txBuilder
+    const outputAddressAndValue = mockSingleOutput.split(',');
+    txBuilder.addOutput(
+        outputAddressAndValue[0], // address
+        parseInt(
+            toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
+        ), // value
+    );
+
+    const rawTxHex = signAndBuildTx(BCH, mockSingleInputUtxo, txBuilder);
+    expect(rawTxHex).toStrictEqual(
+        '0200000001582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006b483045022100f0064dc6ab95765ed22047aa952e509b9ce7d24e384c2c4f06b064e5cc4fc87a02207f00266cc8261c203e2832ae1e700b6035aebe3ef5ff18e9eabbdee6815b086041210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0158020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+    );
+});
+
+it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single input and multiple outputs`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+
+    // add inputs to txBuilder
+    txBuilder.addInput(
+        mockSingleInputUtxo[0].txid,
+        mockSingleInputUtxo[0].vout,
+    );
+
+    // add outputs to txBuilder
+    for (let i = 0; i < mockMultipleOutputs.length; i++) {
+        const outputAddressAndValue = mockMultipleOutputs[i].split(',');
+        txBuilder.addOutput(
+            outputAddressAndValue[0], // address
+            parseInt(
+                toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
+            ), // value
+        );
+    }
+
+    const rawTxHex = signAndBuildTx(BCH, mockSingleInputUtxo, txBuilder);
+    expect(rawTxHex).toStrictEqual(
+        '0200000001582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a47304402200aba1829f51c420d6c37c8e50021b8541d2d62590ad5c67eaeee535e959377390220272318cbdf8161c399a2592c3e86ede499276c1d2e3506300f58bee786f2de6541210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0326020000000000001976a914f627e51001a51a1a92d8927808701373cf29267f88ac26020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac26020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+    );
+});
+
+it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and a single output`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+
+    // add inputs to txBuilder
+    for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
+        txBuilder.addInput(
+            mockMultipleInputUtxos[i].txid,
+            mockMultipleInputUtxos[i].vout,
+        );
+    }
+    // add outputs to txBuilder
+    const outputAddressAndValue = mockSingleOutput.split(',');
+    txBuilder.addOutput(
+        outputAddressAndValue[0], // address
+        parseInt(
+            toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
+        ), // value
+    );
+
+    const rawTxHex = signAndBuildTx(BCH, mockMultipleInputUtxos, txBuilder);
+    expect(rawTxHex).toStrictEqual(
+        '0200000003582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a4730440220041f2c5674222f802d49783301dfbece1ac0f4cef6d0c3b8ad83a46b24481d5002200e977c1990a946e66e4cbdc2c057788e01a5d038ff9b281da95870d88c85da0c41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff7313e804af08113dfa290515390a8ec3ac01448118f2eb556ee168a96ee6acdd000000006b483045022100f9ac95c2febb445393f36ad51e221a77b2813ea8643c349d597ca19db71e829202200464567d95250c86665d3ad567f3ae1826f8ea3907cfb8fe7f36b9f72b18239c41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff960dd2f0c47e8a3cf1486b046d879f45a047da3b51aedfb5594138ac857214f1000000006a47304402207807c0bb717e1955f87db9110e91e1701c614b0cc5fa544e7cff1591a9ba45db022067f86ecac7c6d9ee8e00033fc0071f34833775f4410f72036cd958f50c60bfc141210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0158020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+    );
+});
+
+it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple inputs and multiple outputs`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+
+    // add inputs to txBuilder
+    for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
+        txBuilder.addInput(
+            mockMultipleInputUtxos[i].txid,
+            mockMultipleInputUtxos[i].vout,
+        );
+    }
+    // add outputs to txBuilder
+    for (let i = 0; i < mockMultipleOutputs.length; i++) {
+        const outputAddressAndValue = mockMultipleOutputs[i].split(',');
+        txBuilder.addOutput(
+            outputAddressAndValue[0], // address
+            parseInt(
+                toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
+            ), // value
+        );
+    }
+
+    const rawTxHex = signAndBuildTx(BCH, mockMultipleInputUtxos, txBuilder);
+    expect(rawTxHex).toStrictEqual(
+        '0200000003582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a47304402205cca1aacd87779f218d153222f56eefc14331803a588bae7c9b10f8b1df32e4502203579bb35e53b2e8562d7728bc3a205739f50e85076919bc16b56eec421b8d01b41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff7313e804af08113dfa290515390a8ec3ac01448118f2eb556ee168a96ee6acdd000000006b483045022100aafc986d0a45200c01ccb390db2961eb6c62c7a16e4d8a1df6725b3a3e4a98ec0220565afbea0c53b1d4a8073a54e4d167f5cc36c941c541897b20b9bb6ad5694fac41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff960dd2f0c47e8a3cf1486b046d879f45a047da3b51aedfb5594138ac857214f1000000006a473044022065c92eddc1ea2a4aa057c6ee68b85018ee97787eb8921427a635c141c6fdd4bc022034e92f6c129cd66ab5522615e7f48965187a751690198f79154114ed974bb2d441210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0326020000000000001976a914f627e51001a51a1a92d8927808701373cf29267f88ac26020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac26020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+    );
+});
+
+it(`signAndBuildTx() throws error on an empty inputUtxo param`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+
+    let thrownError;
+    try {
+        signAndBuildTx(BCH, [], txBuilder);
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid buildTx parameter');
+});
+
+it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
+    // txbuilder output params
+    const BCH = new BCHJS();
+    let txBuilder = new BCH.TransactionBuilder();
+    const inputUtxo = null; // invalid input param
+
+    let thrownError;
+    try {
+        signAndBuildTx(BCH, inputUtxo, txBuilder);
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid buildTx parameter');
 });
 
 describe('Correctly executes cash utility functions', () => {

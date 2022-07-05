@@ -292,6 +292,46 @@ export const generateTxOutput = (
     return txBuilder;
 };
 
+export const signAndBuildTx = (BCH, inputUtxos, txBuilder) => {
+    if (
+        !BCH ||
+        !inputUtxos ||
+        inputUtxos.length === 0 ||
+        !txBuilder ||
+        // txBuilder.transaction.tx.ins is empty until the inputUtxos are signed
+        txBuilder.transaction.tx.outs.length === 0
+    ) {
+        throw new Error('Invalid buildTx parameter');
+    }
+
+    // Sign the transactions with the HD node.
+    for (let i = 0; i < inputUtxos.length; i++) {
+        const utxo = inputUtxos[i];
+        try {
+            txBuilder.sign(
+                i,
+                BCH.ECPair.fromWIF(utxo.wif),
+                undefined,
+                txBuilder.hashTypes.SIGHASH_ALL,
+                utxo.value,
+            );
+        } catch (err) {
+            throw new Error('Error signing input utxos');
+        }
+    }
+
+    let hex;
+    try {
+        // build tx
+        const tx = txBuilder.build();
+        // output rawhex
+        hex = tx.toHex();
+    } catch (err) {
+        throw new Error('Transaction build failed');
+    }
+    return hex;
+};
+
 export function parseOpReturn(hexStr) {
     if (
         !hexStr ||
