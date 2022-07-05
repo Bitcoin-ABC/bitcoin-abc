@@ -34,4 +34,5 @@
 //! Note: This is a general purpose library, but has been optimized for the
 //! usage in Chronik, an indexer for Bitcoin ABC.
 
+pub mod block;
 pub mod hash;
