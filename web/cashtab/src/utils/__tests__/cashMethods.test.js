@@ -30,6 +30,7 @@ import {
     checkWalletForTokenInfo,
     isActiveWebsocket,
     parseXecSendValue,
+    getChangeAddressFromInputUtxos,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -163,7 +164,7 @@ import {
     incrementallyHydratedUtxosAfterProcessingOneMissing,
 } from '../__mocks__/incrementalUtxoMocks';
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
-
+import BCHJS from '@psf/bch-js';
 import {
     lambdaHash160s,
     lambdaIncomingXecTx,
@@ -174,6 +175,100 @@ import {
     disconnectedWebsocketAlpha,
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
+import sendBCHMock from '../../hooks/__mocks__/sendBCH';
+
+it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo`, () => {
+    const BCH = new BCHJS();
+    const { wallet } = sendBCHMock;
+    const inputUtxo = [
+        {
+            height: 669639,
+            tx_hash:
+                '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            tx_pos: 0,
+            value: 1000,
+            txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            vout: 0,
+            isValid: false,
+            address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
+            wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
+        },
+    ];
+
+    const changeAddress = getChangeAddressFromInputUtxos(
+        BCH,
+        inputUtxo,
+        wallet,
+    );
+    expect(changeAddress).toStrictEqual(inputUtxo[0].address);
+});
+
+it(`getChangeAddressFromInputUtxos() throws error upon a malformed input utxo`, () => {
+    const BCH = new BCHJS();
+    const { wallet } = sendBCHMock;
+    const invalidInputUtxo = [
+        {
+            height: 669639,
+            tx_hash:
+                '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            tx_pos: 0,
+            value: 1000,
+            txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            vout: 0,
+            isValid: false,
+            wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
+        },
+    ];
+    let thrownError;
+    try {
+        getChangeAddressFromInputUtxos(BCH, invalidInputUtxo, wallet);
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid input utxo');
+});
+
+it(`getChangeAddressFromInputUtxos() throws error upon a valid input utxo with invalid address param`, () => {
+    const BCH = new BCHJS();
+    const { wallet } = sendBCHMock;
+    const invalidInputUtxo = [
+        {
+            height: 669639,
+            tx_hash:
+                '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            tx_pos: 0,
+            value: 1000,
+            address: 'bitcoincash:1qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl', // invalid cash address
+            txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
+            vout: 0,
+            isValid: false,
+            wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
+        },
+    ];
+    let thrownError;
+    try {
+        getChangeAddressFromInputUtxos(BCH, invalidInputUtxo, wallet);
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual('Invalid input utxo');
+});
+
+it(`getChangeAddressFromInputUtxos() throws an error upon a null inputUtxos param`, () => {
+    const BCH = new BCHJS();
+    const { wallet } = sendBCHMock;
+    const inputUtxo = null;
+
+    let thrownError;
+    try {
+        getChangeAddressFromInputUtxos(BCH, inputUtxo, wallet);
+    } catch (err) {
+        thrownError = err;
+    }
+    expect(thrownError.message).toStrictEqual(
+        'Invalid getChangeAddressFromWallet input parameter',
+    );
+});
 
 it(`parseXecSendValue() correctly parses the value for a valid one to one send XEC transaction`, () => {
     expect(parseXecSendValue(false, '550', null)).toStrictEqual(

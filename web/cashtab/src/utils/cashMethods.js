@@ -8,6 +8,24 @@ import {
 import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 
+export const getChangeAddressFromInputUtxos = (BCH, inputUtxos, wallet) => {
+    if (!BCH || !inputUtxos || !wallet) {
+        throw new Error('Invalid getChangeAddressFromWallet input parameter');
+    }
+
+    // Assume change address is input address of utxo at index 0
+    let changeAddress;
+
+    // Validate address
+    try {
+        changeAddress = inputUtxos[0].address;
+        BCH.Address.isCashAddress(changeAddress);
+    } catch (err) {
+        throw new Error('Invalid input utxo');
+    }
+    return changeAddress;
+};
+
 /*
  * Parse the total value of a send XEC tx and checks whether it is more than dust
  * One to many: isOneToMany is true, singleSendValue is null
