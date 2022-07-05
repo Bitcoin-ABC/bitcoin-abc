@@ -194,7 +194,7 @@ impl PublicKey {
         let mut len = 33;
         unsafe {
             let ret = secp256k1_ec_pubkey_serialize(
-                secp256k1_context_no_precomp,
+                secp256k1_context_static,
                 buf.as_mut_c_ptr(),
                 &mut len,
                 self,
@@ -218,7 +218,7 @@ impl PartialOrd for PublicKey {
 impl Ord for PublicKey {
     fn cmp(&self, other: &PublicKey) -> core::cmp::Ordering {
         let ret = unsafe {
-            secp256k1_ec_pubkey_cmp(secp256k1_context_no_precomp, self, other)
+            secp256k1_ec_pubkey_cmp(secp256k1_context_static, self, other)
         };
         ret.cmp(&0i32)
     }
@@ -289,7 +289,7 @@ impl Signature {
         let mut buf = [0u8; 64];
         unsafe {
             let ret = secp256k1_ecdsa_signature_serialize_compact(
-                secp256k1_context_no_precomp,
+                secp256k1_context_static,
                 buf.as_mut_c_ptr(),
                 self,
             );
@@ -381,7 +381,7 @@ impl XOnlyPublicKey {
         let mut buf = [0u8; 32];
         unsafe {
             let ret = secp256k1_xonly_pubkey_serialize(
-                secp256k1_context_no_precomp,
+                secp256k1_context_static,
                 buf.as_mut_c_ptr(),
                 self,
             );
@@ -405,11 +405,7 @@ impl PartialOrd for XOnlyPublicKey {
 impl Ord for XOnlyPublicKey {
     fn cmp(&self, other: &XOnlyPublicKey) -> core::cmp::Ordering {
         let ret = unsafe {
-            secp256k1_xonly_pubkey_cmp(
-                secp256k1_context_no_precomp,
-                self,
-                other,
-            )
+            secp256k1_xonly_pubkey_cmp(secp256k1_context_static, self, other)
         };
         ret.cmp(&0i32)
     }
@@ -479,11 +475,8 @@ impl Keypair {
     fn public_key(&self) -> PublicKey {
         unsafe {
             let mut pk = PublicKey::new();
-            let ret = secp256k1_keypair_pub(
-                secp256k1_context_no_precomp,
-                &mut pk,
-                self,
-            );
+            let ret =
+                secp256k1_keypair_pub(secp256k1_context_static, &mut pk, self);
             debug_assert_eq!(ret, 1);
             pk
         }
@@ -596,7 +589,7 @@ extern "C" {
 
     pub static secp256k1_nonce_function_bip340: SchnorrNonceFn;
 
-    pub static secp256k1_context_no_precomp: *const Context;
+    pub static secp256k1_context_static: *const Context;
 
     // Contexts
 
@@ -1279,7 +1272,7 @@ mod fuzz_dummy {
 
     unsafe fn check_context_flags(cx: *const Context, required_flags: c_uint) {
         assert!(!cx.is_null());
-        let cx_flags = if cx == secp256k1_context_no_precomp {
+        let cx_flags = if cx == secp256k1_context_static {
             1
         } else {
             let ptr = (cx as *const u8)

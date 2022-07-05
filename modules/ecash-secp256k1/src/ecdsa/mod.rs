@@ -60,7 +60,7 @@ impl Signature {
         unsafe {
             let mut ret = ffi::Signature::new();
             if ffi::secp256k1_ecdsa_signature_parse_der(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut ret,
                 data.as_c_ptr(),
                 data.len(),
@@ -82,7 +82,7 @@ impl Signature {
         unsafe {
             let mut ret = ffi::Signature::new();
             if ffi::secp256k1_ecdsa_signature_parse_compact(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut ret,
                 data.as_c_ptr(),
             ) == 1
@@ -107,7 +107,7 @@ impl Signature {
         unsafe {
             let mut ret = ffi::Signature::new();
             if ffi::ecdsa_signature_parse_der_lax(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut ret,
                 data.as_c_ptr(),
                 data.len(),
@@ -142,7 +142,7 @@ impl Signature {
             // Ignore return value, which indicates whether the sig
             // was already normalized. We don't care.
             ffi::secp256k1_ecdsa_signature_normalize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 self.as_mut_c_ptr(),
                 self.as_c_ptr(),
             );
@@ -156,7 +156,7 @@ impl Signature {
         let mut len: usize = serialized_signature::MAX_LEN;
         unsafe {
             let err = ffi::secp256k1_ecdsa_signature_serialize_der(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 data.as_mut_ptr(),
                 &mut len,
                 self.as_c_ptr(),
@@ -172,7 +172,7 @@ impl Signature {
         let mut ret = [0u8; 64];
         unsafe {
             let err = ffi::secp256k1_ecdsa_signature_serialize_compact(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 ret.as_mut_c_ptr(),
                 self.as_c_ptr(),
             );
@@ -416,7 +416,7 @@ pub(crate) fn compact_sig_has_zero_first_bit(sig: &ffi::Signature) -> bool {
     let mut compact = [0u8; 64];
     unsafe {
         let err = ffi::secp256k1_ecdsa_signature_serialize_compact(
-            ffi::secp256k1_context_no_precomp,
+            ffi::secp256k1_context_static,
             compact.as_mut_c_ptr(),
             sig,
         );
@@ -430,7 +430,7 @@ pub(crate) fn der_length_check(sig: &ffi::Signature, max_len: usize) -> bool {
     let mut len: usize = ser_ret.len();
     unsafe {
         let err = ffi::secp256k1_ecdsa_signature_serialize_der(
-            ffi::secp256k1_context_no_precomp,
+            ffi::secp256k1_context_static,
             ser_ret.as_mut_c_ptr(),
             &mut len,
             sig,

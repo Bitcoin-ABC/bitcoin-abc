@@ -28,7 +28,7 @@ impl RecoverableSignature {
         let mut recid = 0;
         unsafe {
             let ret = secp256k1_ecdsa_recoverable_signature_serialize_compact(
-                crate::secp256k1_context_no_precomp,
+                crate::secp256k1_context_static,
                 buf.as_mut_c_ptr(),
                 &mut recid,
                 self,
@@ -53,7 +53,7 @@ impl fmt::Debug for RecoverableSignature {
 
         unsafe {
             let err = secp256k1_ecdsa_recoverable_signature_serialize_compact(
-                crate::secp256k1_context_no_precomp,
+                crate::secp256k1_context_static,
                 ret.as_mut_c_ptr(),
                 &mut recid,
                 self,

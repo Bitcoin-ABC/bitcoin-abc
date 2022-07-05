@@ -221,7 +221,7 @@ impl SecretKey {
         let mut data = crate::random_32_bytes(rng);
         unsafe {
             while ffi::secp256k1_ec_seckey_verify(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 data.as_c_ptr(),
             ) == 0
             {
@@ -263,7 +263,7 @@ impl SecretKey {
     ) -> Result<SecretKey, Error> {
         unsafe {
             if ffi::secp256k1_ec_seckey_verify(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 data.as_c_ptr(),
             ) == 0
             {
@@ -291,7 +291,7 @@ impl SecretKey {
         let mut sk = [0u8; constants::SECRET_KEY_SIZE];
         unsafe {
             let ret = ffi::secp256k1_keypair_sec(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 sk.as_mut_c_ptr(),
                 keypair.as_c_ptr(),
             );
@@ -312,7 +312,7 @@ impl SecretKey {
     pub fn negate(mut self) -> SecretKey {
         unsafe {
             let res = ffi::secp256k1_ec_seckey_negate(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 self.as_mut_c_ptr(),
             );
             debug_assert_eq!(res, 1);
@@ -329,7 +329,7 @@ impl SecretKey {
     pub fn add_tweak(mut self, tweak: &Scalar) -> Result<SecretKey, Error> {
         unsafe {
             if ffi::secp256k1_ec_seckey_tweak_add(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 self.as_mut_c_ptr(),
                 tweak.as_c_ptr(),
             ) != 1
@@ -350,7 +350,7 @@ impl SecretKey {
     pub fn mul_tweak(mut self, tweak: &Scalar) -> Result<SecretKey, Error> {
         unsafe {
             if ffi::secp256k1_ec_seckey_tweak_mul(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 self.as_mut_c_ptr(),
                 tweak.as_c_ptr(),
             ) != 1
@@ -511,7 +511,7 @@ impl PublicKey {
         unsafe {
             let mut pk = ffi::PublicKey::new();
             if ffi::secp256k1_ec_pubkey_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut pk,
                 data.as_c_ptr(),
                 constants::PUBLIC_KEY_SIZE,
@@ -532,7 +532,7 @@ impl PublicKey {
         unsafe {
             let mut pk = ffi::PublicKey::new();
             if ffi::secp256k1_ec_pubkey_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut pk,
                 data.as_c_ptr(),
                 constants::UNCOMPRESSED_PUBLIC_KEY_SIZE,
@@ -563,7 +563,7 @@ impl PublicKey {
         unsafe {
             let mut pk = ffi::PublicKey::new();
             let ret = ffi::secp256k1_keypair_pub(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut pk,
                 keypair.as_c_ptr(),
             );
@@ -617,7 +617,7 @@ impl PublicKey {
         let mut ret_len = ret.len();
         let res = unsafe {
             ffi::secp256k1_ec_pubkey_serialize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 ret.as_mut_c_ptr(),
                 &mut ret_len,
                 self.as_c_ptr(),
@@ -754,7 +754,7 @@ impl PublicKey {
             let ptrs: &[*const ffi::PublicKey] =
                 transmute::<&[&PublicKey], &[*const ffi::PublicKey]>(keys);
             if ffi::secp256k1_ec_pubkey_combine(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut ret,
                 ptrs.as_c_ptr(),
                 keys.len(),
@@ -775,7 +775,7 @@ impl PublicKey {
         unsafe {
             let mut xonly_pk = ffi::XOnlyPublicKey::new();
             let ret = ffi::secp256k1_xonly_pubkey_from_pubkey(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut xonly_pk,
                 &mut pk_parity,
                 self.as_c_ptr(),
@@ -1317,7 +1317,7 @@ impl XOnlyPublicKey {
         unsafe {
             let mut xonly_pk = ffi::XOnlyPublicKey::new();
             let ret = ffi::secp256k1_keypair_xonly_pub(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut xonly_pk,
                 &mut pk_parity,
                 keypair.as_c_ptr(),
@@ -1358,7 +1358,7 @@ impl XOnlyPublicKey {
         unsafe {
             let mut pk = ffi::XOnlyPublicKey::new();
             if ffi::secp256k1_xonly_pubkey_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut pk,
                 data.as_c_ptr(),
             ) == 1
@@ -1377,7 +1377,7 @@ impl XOnlyPublicKey {
 
         unsafe {
             let err = ffi::secp256k1_xonly_pubkey_serialize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 ret.as_mut_c_ptr(),
                 self.as_c_ptr(),
             );
@@ -1705,7 +1705,7 @@ impl From<PublicKey> for XOnlyPublicKey {
             assert_eq!(
                 1,
                 ffi::secp256k1_xonly_pubkey_from_pubkey(
-                    ffi::secp256k1_context_no_precomp,
+                    ffi::secp256k1_context_static,
                     &mut pk,
                     ptr::null_mut(),
                     src.as_c_ptr(),

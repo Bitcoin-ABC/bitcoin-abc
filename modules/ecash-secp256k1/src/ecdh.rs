@@ -43,7 +43,7 @@ impl SharedSecret {
         let mut buf = [0u8; SHARED_SECRET_SIZE];
         let res = unsafe {
             ffi::secp256k1_ecdh(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 buf.as_mut_ptr(),
                 point.as_c_ptr(),
                 scalar.as_c_ptr(),
@@ -142,7 +142,7 @@ pub fn shared_secret_point(point: &PublicKey, scalar: &SecretKey) -> [u8; 64] {
 
     let res = unsafe {
         ffi::secp256k1_ecdh(
-            ffi::secp256k1_context_no_precomp,
+            ffi::secp256k1_context_static,
             xy.as_mut_ptr(),
             point.as_c_ptr(),
             scalar.as_c_ptr(),

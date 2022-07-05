@@ -11,7 +11,7 @@ extern "C" {
  * Verify a signature created by secp256k1_schnorr_sign.
  * Returns: 1: correct signature
  *          0: incorrect signature
- * Args:    ctx:       a secp256k1 context object, initialized for verification.
+ * Args:    ctx:       a secp256k1 context object.
  * In:      sig64:     the 64-byte signature being verified (cannot be NULL)
  *          msghash32: the 32-byte message hash being verified (cannot be NULL).
  *                     The verifier must make sure to apply a cryptographic
@@ -35,8 +35,7 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_schnorr_verify(
  * Returns: 1: signature created
  *          0: the nonce generation function failed, or the private key was
  *             invalid.
- * Args:    ctx:       pointer to a context object, initialized for signing
- *                     (cannot be NULL)
+ * Args:    ctx:       pointer to a context object (not secp256k1_context_static)
  * Out:     sig64:     pointer to a 64-byte array where the signature will be
  *                     placed (cannot be NULL)
  * In:      msghash32: the 32-byte message hash being signed (cannot be NULL).

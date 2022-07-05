@@ -73,7 +73,7 @@ impl RecoverableSignature {
             if data.len() != 64 {
                 Err(Error::InvalidSignature)
             } else if ffi::secp256k1_ecdsa_recoverable_signature_parse_compact(
-                super_ffi::secp256k1_context_no_precomp,
+                super_ffi::secp256k1_context_static,
                 &mut ret,
                 data.as_c_ptr(),
                 recid.into(),
@@ -94,7 +94,7 @@ impl RecoverableSignature {
         unsafe {
             let err =
                 ffi::secp256k1_ecdsa_recoverable_signature_serialize_compact(
-                    super_ffi::secp256k1_context_no_precomp,
+                    super_ffi::secp256k1_context_static,
                     ret.as_mut_c_ptr(),
                     &mut recid,
                     self.as_c_ptr(),
@@ -114,7 +114,7 @@ impl RecoverableSignature {
         unsafe {
             let mut ret = super_ffi::Signature::new();
             let err = ffi::secp256k1_ecdsa_recoverable_signature_convert(
-                super_ffi::secp256k1_context_no_precomp,
+                super_ffi::secp256k1_context_static,
                 &mut ret,
                 self.as_c_ptr(),
             );

@@ -432,7 +432,7 @@ impl<'buf> Secp256k1<AllPreallocated<'buf>> {
     ///   **exactly the one linked into this library**.
     /// * The lifetime of the `raw_ctx` pointer must outlive `'buf`.
     /// * `raw_ctx` must point to writable memory (cannot be
-    ///   `ffi::secp256k1_context_no_precomp`).
+    ///   `ffi::secp256k1_context_static`).
     pub unsafe fn from_raw_all(
         raw_ctx: NonNull<ffi::Context>,
     ) -> ManuallyDrop<Secp256k1<AllPreallocated<'buf>>> {

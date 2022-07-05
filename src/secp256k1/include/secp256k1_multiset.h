@@ -28,7 +28,7 @@ typedef struct {
  *
  *  Returns: 1: success
  *           0: invalid parameter
- *  Args:    ctx:      pointer to a context object (cannot be NULL)
+ *  Args:    ctx:      pointer to a context object (not secp256k1_context_static)
  *  Out:     multiset: the resulting multiset
  */
 SECP256K1_API int secp256k1_multiset_init(
@@ -41,7 +41,7 @@ SECP256K1_API int secp256k1_multiset_init(
  *
  *  Returns: 1: success
  *           0: invalid parameter
- *  Args:    ctx:      pointer to a context object (cannot be NULL)
+ *  Args:    ctx:      pointer to a context object (not secp256k1_context_static)
  *  Out:     multiset: the multiset to update
  *  In:      input:    the data to add
  *           inputLen: the size of the data to add
@@ -57,7 +57,7 @@ SECP256K1_API int secp256k1_multiset_add(
  *
  *  Returns: 1: success
  *           0: invalid parameter
- *  Args:    ctx:      pointer to a context object (cannot be NULL)
+ *  Args:    ctx:      pointer to a context object (not secp256k1_context_static)
  *  Out:     multiset: the multiset to update
  *  In:      input:    the data to remove
  *           inputLen: the size of the data to remove
@@ -75,7 +75,7 @@ SECP256K1_API int secp256k1_multiset_remove(
  *
  *  Returns: 1: success
  *           0: invalid parameter
- *  Args:    ctx:      pointer to a context object (cannot be NULL)
+ *  Args:    ctx:      pointer to a context object (not secp256k1_context_static)
  *  In/Out:  multiset: the multiset to which the input must be added
  *  In:      input:    the multiset to add
  */
@@ -91,7 +91,7 @@ SECP256K1_API int secp256k1_multiset_combine(
  *
  *  Returns: 1: success
  *           0: invalid parameter
- *  Args:    ctx:      pointer to a context object (cannot be NULL)
+ *  Args:    ctx:      pointer to a context object (not secp256k1_context_static)
  *  Out:     hash:     the resulting 32-byte hash
  *  In:      multiset: the multiset to hash
  */
