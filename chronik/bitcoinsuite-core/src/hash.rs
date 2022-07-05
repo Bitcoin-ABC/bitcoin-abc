@@ -7,6 +7,8 @@
 
 use std::{cmp::Ordering, fmt::Debug, hash::Hash};
 
+use thiserror::Error;
+
 /// Trait for structs containing the result of a cryptographic hash function,
 /// like SHA-256, RIPEMD-160 etc. With this trait, we can abstractly write code
 /// that varies for different hash functions.
@@ -204,6 +206,140 @@ where
     fn to_be_vec(&self) -> Vec<u8> {
         self.to_be_bytes().as_ref().to_vec()
     }
+
+    /// Try to interpret the slice as a little-endian hash.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed, HashedError};
+    /// # use hex_literal::hex;
+    /// assert_eq!(
+    ///     Ripemd160::from_le_slice(&[1, 2, 3]),
+    ///     Err(HashedError::InvalidLength {
+    ///         expected: 20,
+    ///         actual: 3,
+    ///     }),
+    /// );
+    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// assert_eq!(Ripemd160::from_le_slice(&arr_le), Ok(Ripemd160(arr_le)));
+    /// ```
+    fn from_le_slice(slice: &[u8]) -> Result<Self, HashedError> {
+        verify_size::<Self>(slice.len())?;
+        let mut array: Self::Array = Default::default();
+        array.as_mut().copy_from_slice(slice);
+        Ok(Self::from_le_bytes(array))
+    }
+
+    /// Try to interpret the slice as a big-endian hash.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed, HashedError};
+    /// # use hex_literal::hex;
+    /// assert_eq!(
+    ///     Ripemd160::from_be_slice(&[1, 2, 3]),
+    ///     Err(HashedError::InvalidLength {
+    ///         expected: 20,
+    ///         actual: 3,
+    ///     }),
+    /// );
+    /// let arr_be = hex!("0011223344556677889900112233445566778899");
+    /// assert_eq!(
+    ///     Ripemd160::from_be_slice(&arr_be),
+    ///     Ok(Ripemd160::from_be_bytes(arr_be)),
+    /// );
+    /// ```
+    fn from_be_slice(slice: &[u8]) -> Result<Self, HashedError> {
+        verify_size::<Self>(slice.len())?;
+        let mut array: Self::Array = Default::default();
+        array.as_mut().copy_from_slice(slice);
+        Ok(Self::from_be_bytes(array))
+    }
+
+    /// Try to parse the string as little-endian hex.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed, HashedError};
+    /// # use hex_literal::hex;
+    /// assert_eq!(
+    ///     Ripemd160::from_le_hex("invalidhex"),
+    ///     Err(HashedError::InvalidHex(
+    ///         hex::FromHexError::InvalidHexCharacter { c: 'i', index: 0 }
+    ///     )),
+    /// );
+    /// assert_eq!(
+    ///     Ripemd160::from_le_hex("aabbcc"),
+    ///     Err(HashedError::InvalidLength {
+    ///         expected: 20,
+    ///         actual: 3,
+    ///     }),
+    /// );
+    /// let arr_le = hex!("0011223344556677889900112233445566778899");
+    /// assert_eq!(
+    ///     Ripemd160::from_le_hex("0011223344556677889900112233445566778899"),
+    ///     Ok(Ripemd160::from_le_bytes(arr_le)),
+    /// );
+    /// ```
+    fn from_le_hex(s: &str) -> Result<Self, HashedError> {
+        let vec = hex::decode(s).map_err(HashedError::InvalidHex)?;
+        Self::from_le_slice(&vec)
+    }
+
+    /// Try to parse the string as big-endian hex.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::hash::{Ripemd160, Hashed, HashedError};
+    /// # use hex_literal::hex;
+    /// assert_eq!(
+    ///     Ripemd160::from_be_hex("invalidhex"),
+    ///     Err(HashedError::InvalidHex(hex::FromHexError::InvalidHexCharacter {
+    ///         c: 'i',
+    ///         index: 0,
+    ///     })),
+    /// );
+    /// assert_eq!(
+    ///     Ripemd160::from_be_hex("aabbcc"),
+    ///     Err(HashedError::InvalidLength {
+    ///         expected: 20,
+    ///         actual: 3,
+    ///     }),
+    /// );
+    /// let arr_be = hex!("0011223344556677889900112233445566778899");
+    /// assert_eq!(
+    ///     Ripemd160::from_be_hex("0011223344556677889900112233445566778899"),
+    ///     Ok(Ripemd160::from_be_bytes(arr_be)),
+    /// );
+    fn from_be_hex(s: &str) -> Result<Self, HashedError> {
+        let vec = hex::decode(s).map_err(HashedError::InvalidHex)?;
+        Self::from_be_slice(&vec)
+    }
+}
+
+/// Errors indicating some data doesn't map to a [`Hashed`] object.
+#[derive(Debug, Error, PartialEq)]
+pub enum HashedError {
+    /// Hash expects a fixed length which was not met.
+    #[error(
+        "Invalid hash length, expected {expected} bytes but got {actual} bytes"
+    )]
+    InvalidLength {
+        /// Expected number of bytes of the hash.
+        expected: usize,
+        /// Actual number of bytes of the hash.
+        actual: usize,
+    },
+
+    /// Hex contains invalid characters, odd length, etc.
+    #[error("Invalid hex: {0}")]
+    InvalidHex(hex::FromHexError),
+}
+
+fn verify_size<H: Hashed>(size: usize) -> Result<(), HashedError> {
+    if H::SIZE != size {
+        return Err(HashedError::InvalidLength {
+            expected: H::SIZE,
+            actual: size,
+        });
+    }
+    Ok(())
 }
 
 macro_rules! hash_algo {

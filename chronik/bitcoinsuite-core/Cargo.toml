@@ -11,6 +11,9 @@ license = "MIT"
 # En-/decode byte strings from/to hex
 hex = "0.4"
 
+# Derive error enums
+thiserror = "1.0"
+
 [dev-dependencies]
 # hex!() macro for byte array hex literals
 hex-literal = "0.3"
