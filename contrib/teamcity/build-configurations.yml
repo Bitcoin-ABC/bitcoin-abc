@@ -96,6 +96,14 @@ builds:
         "Bitcoin ABC Benchmark" \
         "${BUILD_DIR}/src/bench/BitcoinABC_Bench.json"
 
+  build-chronik:
+    runOnDiffRegex:
+      - chronik/
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+    targets:
+      - - check-bitcoinsuite
+
   build-clang:
     Werror: true
     clang: true

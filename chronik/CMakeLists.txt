@@ -14,6 +14,16 @@ set_property(DIRECTORY "${CMAKE_SOURCE_DIR}"
     ADDITIONAL_CLEAN_FILES "${CARGO_BUILD_DIR}"
 )
 
+get_property(
+    RUSTC_EXECUTABLE
+    TARGET Rust::Rustc PROPERTY IMPORTED_LOCATION
+)
+get_filename_component(RUST_BIN_DIR ${RUSTC_EXECUTABLE} DIRECTORY)
+include(DoOrFail)
+find_program_or_fail(RUSTDOC_EXECUTABLE rustdoc
+    PATHS "${RUST_BIN_DIR}"
+)
+
 function(add_cargo_custom_target TARGET)
     add_custom_target(${TARGET}
     COMMAND
@@ -21,6 +31,7 @@ function(add_cargo_custom_target TARGET)
         -E env
             CARGO_TARGET_DIR="${CARGO_BUILD_DIR}"
             CARGO_BUILD_RUSTC="$<TARGET_FILE:Rust::Rustc>"
+            CARGO_BUILD_RUSTDOC="${RUSTDOC_EXECUTABLE}"
         "$<TARGET_FILE:Rust::Cargo>"
         ${ARGN}
     WORKING_DIRECTORY
