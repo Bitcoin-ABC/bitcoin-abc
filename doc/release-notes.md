@@ -4,4 +4,4 @@ Bitcoin ABC version 0.25.9 is now available from:
 
   <https://download.bitcoinabc.org/0.25.9/>
 
-This release includes the following features and fixes:
+This is a maintenance release with no user-visible change.
