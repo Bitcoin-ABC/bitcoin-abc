@@ -187,6 +187,7 @@ plus a nightly toolchain called "abc-nightly" for formatting:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s
 source ~/.cargo/env
 rustup install nightly-2022-06-29
+rustup component add rustfmt --toolchain nightly-2022-06-29
 # Name the nightly toolchain "abc-nightly"
 rustup toolchain link abc-nightly "$(rustc +nightly-2022-06-29 --print sysroot)"
 ```

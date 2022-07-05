@@ -143,6 +143,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --defaul
 RUST_HOME="${HOME}/.cargo/bin"
 RUST_NIGHTLY_DATE=2022-06-29
 "${RUST_HOME}/rustup" install nightly-${RUST_NIGHTLY_DATE}
+"${RUST_HOME}/rustup" component add rustfmt --toolchain nightly-${RUST_NIGHTLY_DATE}
 # Name the nightly toolchain "abc-nightly"
 "${RUST_HOME}/rustup" toolchain link abc-nightly "$(${RUST_HOME}/rustc +nightly-${RUST_NIGHTLY_DATE} --print sysroot)"
 
