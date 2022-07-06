@@ -1072,10 +1072,10 @@ private:
      * Potentially fetch blocks from this peer upon receipt of new headers tip
      */
     void HeadersDirectFetchBlocks(const Config &config, CNode &pfrom,
-                                  const CBlockIndex *pindexLast);
+                                  const CBlockIndex &last_header);
     /** Update peer state based on received headers message */
     void UpdatePeerStateForReceivedHeaders(CNode &pfrom, Peer &peer,
-                                           const CBlockIndex *pindexLast,
+                                           const CBlockIndex &last_header,
                                            bool received_new_header,
                                            bool may_have_more_headers)
         EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex);
@@ -3810,24 +3810,24 @@ bool PeerManagerImpl::MaybeSendGetHeaders(CNode &pfrom,
 }
 
 /**
- * Given a new headers tip ending in pindexLast, potentially request blocks
+ * Given a new headers tip ending in last_header, potentially request blocks
  * towards that tip. We require that the given tip have at least as much work as
  * our tip, and for our current tip to be "close to synced" (see
  * CanDirectFetch()).
  */
 void PeerManagerImpl::HeadersDirectFetchBlocks(const Config &config,
                                                CNode &pfrom,
-                                               const CBlockIndex *pindexLast) {
+                                               const CBlockIndex &last_header) {
     const CNetMsgMaker msgMaker(pfrom.GetCommonVersion());
 
     LOCK(cs_main);
     CNodeState *nodestate = State(pfrom.GetId());
 
-    if (CanDirectFetch() && pindexLast->IsValid(BlockValidity::TREE) &&
-        m_chainman.ActiveChain().Tip()->nChainWork <= pindexLast->nChainWork) {
+    if (CanDirectFetch() && last_header.IsValid(BlockValidity::TREE) &&
+        m_chainman.ActiveChain().Tip()->nChainWork <= last_header.nChainWork) {
         std::vector<const CBlockIndex *> vToFetch;
-        const CBlockIndex *pindexWalk = pindexLast;
-        // Calculate all the blocks we'd need to switch to pindexLast, up to
+        const CBlockIndex *pindexWalk{&last_header};
+        // Calculate all the blocks we'd need to switch to last_header, up to
         // a limit.
         while (pindexWalk && !m_chainman.ActiveChain().Contains(pindexWalk) &&
                vToFetch.size() <= MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
@@ -3844,8 +3844,8 @@ void PeerManagerImpl::HeadersDirectFetchBlocks(const Config &config,
         // direct fetch and rely on parallel download instead.
         if (!m_chainman.ActiveChain().Contains(pindexWalk)) {
             LogPrint(BCLog::NET, "Large reorg, won't direct fetch to %s (%d)\n",
-                     pindexLast->GetBlockHash().ToString(),
-                     pindexLast->nHeight);
+                     last_header.GetBlockHash().ToString(),
+                     last_header.nHeight);
         } else {
             std::vector<CInv> vGetData;
             // Download as much as possible, from earliest to latest.
@@ -3864,14 +3864,14 @@ void PeerManagerImpl::HeadersDirectFetchBlocks(const Config &config,
                 LogPrint(BCLog::NET,
                          "Downloading blocks toward %s (%d) via headers "
                          "direct fetch\n",
-                         pindexLast->GetBlockHash().ToString(),
-                         pindexLast->nHeight);
+                         last_header.GetBlockHash().ToString(),
+                         last_header.nHeight);
             }
             if (vGetData.size() > 0) {
                 if (!m_opts.ignore_incoming_txs &&
                     nodestate->m_provides_cmpctblocks && vGetData.size() == 1 &&
                     mapBlocksInFlight.size() == 1 &&
-                    pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
+                    last_header.pprev->IsValid(BlockValidity::CHAIN)) {
                     // In any case, we want to download using a compact
                     // block, not a regular one.
                     vGetData[0] = CInv(MSG_CMPCT_BLOCK, vGetData[0].hash);
@@ -3884,12 +3884,12 @@ void PeerManagerImpl::HeadersDirectFetchBlocks(const Config &config,
 }
 
 /**
- * Given receipt of headers from a peer ending in pindexLast, along with
+ * Given receipt of headers from a peer ending in last_header, along with
  * whether that header was new and whether the headers message was full,
  * update the state we keep for the peer.
  */
 void PeerManagerImpl::UpdatePeerStateForReceivedHeaders(
-    CNode &pfrom, Peer &peer, const CBlockIndex *pindexLast,
+    CNode &pfrom, Peer &peer, const CBlockIndex &last_header,
     bool received_new_header, bool may_have_more_headers) {
     if (peer.m_num_unconnecting_headers_msgs > 0) {
         LogPrint(
@@ -3903,15 +3903,14 @@ void PeerManagerImpl::UpdatePeerStateForReceivedHeaders(
 
     CNodeState *nodestate = State(pfrom.GetId());
 
-    assert(pindexLast);
-    UpdateBlockAvailability(pfrom.GetId(), pindexLast->GetBlockHash());
+    UpdateBlockAvailability(pfrom.GetId(), last_header.GetBlockHash());
 
     // From here, pindexBestKnownBlock should be guaranteed to be non-null,
     // because it is set in UpdateBlockAvailability. Some nullptr checks are
     // still present, however, as belt-and-suspenders.
 
     if (received_new_header &&
-        pindexLast->nChainWork > m_chainman.ActiveChain().Tip()->nChainWork) {
+        last_header.nChainWork > m_chainman.ActiveChain().Tip()->nChainWork) {
         nodestate->m_last_block_announcement = GetTime();
     }
 
@@ -4096,7 +4095,7 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
             return;
         }
     }
-    Assume(pindexLast);
+    assert(pindexLast);
 
     // Consider fetching more headers if we are not using our headers-sync
     // mechanism.
@@ -4110,12 +4109,12 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
         }
     }
 
-    UpdatePeerStateForReceivedHeaders(pfrom, peer, pindexLast,
+    UpdatePeerStateForReceivedHeaders(pfrom, peer, *pindexLast,
                                       received_new_header,
                                       nCount == MAX_HEADERS_RESULTS);
 
     // Consider immediately downloading blocks.
-    HeadersDirectFetchBlocks(config, pfrom, pindexLast);
+    HeadersDirectFetchBlocks(config, pfrom, *pindexLast);
 }
 
 void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
