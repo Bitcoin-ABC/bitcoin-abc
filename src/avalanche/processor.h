@@ -251,12 +251,6 @@ private:
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
 
-    /**
-     * Build and return the challenge whose signature is included in the
-     * AVAHELLO message that we send to a peer.
-     */
-    uint256 buildLocalSighash(CNode *pfrom) const;
-
     bool isWorthPolling(const CBlockIndex *pindex) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool isWorthPolling(const ProofRef &proof) const

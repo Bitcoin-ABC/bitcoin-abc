@@ -12,6 +12,7 @@ import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
+    AvaP2PInterface,
     avalanche_proof_from_hex,
     create_coinbase_stakes,
     gen_proof,
@@ -22,6 +23,7 @@ from test_framework.avatools import (
 from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import (
     MSG_AVA_PROOF,
+    MSG_TYPE_MASK,
     NODE_AVALANCHE,
     NODE_NETWORK,
     CInv,
@@ -33,6 +35,16 @@ from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
 
 UNCONDITIONAL_RELAY_DELAY = 2 * 60
+
+
+class GetProofDataCountingInterface(AvaP2PInterface):
+    def __init__(self):
+        self.get_proof_data_count = 0
+        super().__init__()
+
+    def on_getdata(self, message):
+        if message.inv.type & MSG_TYPE_MASK == MSG_AVA_PROOF:
+            self.get_proof_data_count += 1
 
 
 class AvalancheTest(BitcoinTestFramework):
@@ -69,6 +81,32 @@ class AvalancheTest(BitcoinTestFramework):
         proof = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, stakes)
 
+        self.log.info("Test the avahello signature with no proof")
+
+        peer = get_ava_p2p_interface(node)
+        avahello = peer.wait_for_avahello().hello
+        assert_equal(avahello.delegation.limited_proofid, 0)
+
+        self.log.info(
+            "A delegation with all zero limited id indicates that the peer has no proof")
+
+        no_proof_peer = GetProofDataCountingInterface()
+        node.add_p2p_connection(no_proof_peer)
+
+        master_key = ECKey()
+        master_key.generate()
+        null_delegation = node.delegateavalancheproof(
+            f"{0:0{64}x}",
+            bytes_to_wif(privkey.get_bytes()),
+            master_key.get_pubkey().get_bytes().hex(),
+        )
+        no_proof_peer.send_avahello(null_delegation, privkey)
+        no_proof_peer.sync_send_with_ping()
+
+        # No proof is requested
+        with p2p_lock:
+            assert_equal(no_proof_peer.get_proof_data_count, 0)
+
         # Restart the node
         self.restart_node(0, self.extra_args[0] + [
             "-avaproof={}".format(proof),
@@ -99,8 +137,6 @@ class AvalancheTest(BitcoinTestFramework):
             "-avamasterkey=cND2ZvtabDbJ1gucx9GWH6XT9kgTAqfb6cotPt5Q5CyxVDhid2EN"
         ])
 
-        master_key = ECKey()
-        master_key.generate()
         limited_id = avalanche_proof_from_hex(proof).limited_proofid
         delegation = node.delegateavalancheproof(
             f"{limited_id:0{64}x}",

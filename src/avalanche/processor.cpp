@@ -612,27 +612,28 @@ CPubKey Processor::getSessionPubKey() const {
 }
 
 bool Processor::sendHello(CNode *pfrom) const {
-    if (!peerData) {
-        // We do not have a delegation to advertise.
-        return false;
+    Delegation delegation;
+    if (peerData) {
+        delegation = peerData->delegation;
+        pfrom->AddKnownProof(delegation.getProofId());
     }
+
+    CHashWriter hasher(SER_GETHASH, 0);
+    hasher << delegation.getId();
+    hasher << pfrom->GetLocalNonce();
+    hasher << pfrom->nRemoteHostNonce;
+    hasher << pfrom->GetLocalExtraEntropy();
+    hasher << pfrom->nRemoteExtraEntropy;
 
     // Now let's sign!
     SchnorrSig sig;
-
-    {
-        const uint256 hash = buildLocalSighash(pfrom);
-
-        if (!sessionKey.SignSchnorr(hash, sig)) {
-            return false;
-        }
+    if (!sessionKey.SignSchnorr(hasher.GetHash(), sig)) {
+        return false;
     }
 
-    connman->PushMessage(pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
-                                    .Make(NetMsgType::AVAHELLO,
-                                          Hello(peerData->delegation, sig)));
-
-    pfrom->AddKnownProof(peerData->delegation.getProofId());
+    connman->PushMessage(
+        pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
+                   .Make(NetMsgType::AVAHELLO, Hello(delegation, sig)));
 
     return true;
 }
@@ -914,16 +915,6 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     });
 
     return invs;
-}
-
-uint256 Processor::buildLocalSighash(CNode *pfrom) const {
-    CHashWriter hasher(SER_GETHASH, 0);
-    hasher << peerData->delegation.getId();
-    hasher << pfrom->GetLocalNonce();
-    hasher << pfrom->nRemoteHostNonce;
-    hasher << pfrom->GetLocalExtraEntropy();
-    hasher << pfrom->nRemoteExtraEntropy;
-    return hasher.GetHash();
 }
 
 bool Processor::isWorthPolling(const CBlockIndex *pindex) const {

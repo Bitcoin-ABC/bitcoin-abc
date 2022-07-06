@@ -3731,15 +3731,16 @@ void PeerManagerImpl::ProcessMessage(
                          pfrom.GetId());
 
                 auto localProof = g_avalanche->getLocalProof();
-                // If we sent a hello message, we should have a proof
-                assert(localProof);
 
-                // Add our proof id to the list or the recently announced proof
-                // INVs to this peer. This is used for filtering which INV can
-                // be requested for download.
-                LOCK(cs_main);
-                State(pfrom.GetId())
-                    ->m_recently_announced_proofs.insert(localProof->getId());
+                if (localProof) {
+                    // Add our proof id to the list or the recently announced
+                    // proof INVs to this peer. This is used for filtering which
+                    // INV can be requested for download.
+                    LOCK(cs_main);
+                    State(pfrom.GetId())
+                        ->m_recently_announced_proofs.insert(
+                            localProof->getId());
+                }
             }
 
             // Send getavaaddr and getavaproofs to our avalanche outbound or
@@ -4929,6 +4930,12 @@ void PeerManagerImpl::ProcessMessage(
 
         avalanche::Delegation delegation;
         vRecv >> delegation;
+
+        // A delegation with an all zero limited id indicates that the peer has
+        // no proof, so we're done.
+        if (delegation.getLimitedProofId() == uint256::ZERO) {
+            return;
+        }
 
         avalanche::DelegationState state;
         CPubKey &pubkey = pfrom.m_avalanche_state->pubkey;
