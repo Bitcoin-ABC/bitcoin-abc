@@ -498,10 +498,24 @@ class CompactProofsTest(BitcoinTestFramework):
         self.log.info(
             "Check the node will not send the proofs if not requested before the timeout elapsed")
 
+        # Disconnect the peers
+        for peer in node.p2ps:
+            peer.peer_disconnect()
+            peer.wait_for_disconnect()
+
         mocktime = int(time.time())
         node.setmocktime(mocktime)
 
-        slow_peer = node.add_p2p_connection(ProofStoreP2PInterface())
+        slow_peer = ProofStoreP2PInterface()
+        node.add_outbound_p2p_connection(
+            slow_peer,
+            p2p_idx=0,
+            connection_type="avalanche",
+            services=NODE_NETWORK | NODE_AVALANCHE,
+        )
+        slow_peer.wait_until(
+            lambda: slow_peer.last_message.get("getavaproofs"))
+
         slow_peer.nodeid = node.getpeerinfo()[-1]['id']
         _ = request_proofs(slow_peer)
 
@@ -509,8 +523,13 @@ class CompactProofsTest(BitcoinTestFramework):
         mocktime += AVALANCHE_AVAPROOFS_TIMEOUT + 1
         node.setmocktime(mocktime)
 
-        with node.assert_debug_log([f"Cleaning up timed out compact proofs from peer {slow_peer.nodeid}"]):
-            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+
+        # Periodic compact proofs requests are sent in the same loop than the
+        # cleanup, so when such a request is made we are sure the cleanup did
+        # happen.
+        slow_peer.wait_until(
+            lambda: slow_peer.message_count.get("getavaproofs") > 1)
 
         req = msg_avaproofsreq()
         req.indices = range(numof_proof)

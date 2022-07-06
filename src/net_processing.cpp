@@ -1702,9 +1702,6 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
         if (pnode->m_proof_relay &&
             now > (pnode->m_proof_relay->lastSharedProofsUpdate.load() +
                    AVALANCHE_AVAPROOFS_TIMEOUT)) {
-            LogPrint(BCLog::AVALANCHE,
-                     "Cleaning up timed out compact proofs from peer %d\n",
-                     pnode->GetId());
             pnode->m_proof_relay->sharedProofs = {};
         }
     });
