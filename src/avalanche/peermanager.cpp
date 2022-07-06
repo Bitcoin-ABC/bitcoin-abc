@@ -229,9 +229,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
 
     // Check the proof's validity.
     ProofValidationState validationState;
-    if (!WITH_LOCK(cs_main, return proof->verify(
-                                validationState,
-                                chainman.ActiveChainstate().CoinsTip()))) {
+    if (!WITH_LOCK(cs_main, return proof->verify(validationState, chainman))) {
         if (isOrphanState(validationState)) {
             orphanProofPool.addProofIfPreferred(proof);
             if (orphanProofPool.countProofs() > AVALANCHE_MAX_ORPHAN_PROOFS) {
@@ -464,10 +462,9 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
     {
         LOCK(cs_main);
 
-        const CCoinsViewCache &coins = chainman.ActiveChainstate().CoinsTip();
         for (const auto &p : peers) {
             ProofValidationState state;
-            if (!p.proof->verify(state, coins)) {
+            if (!p.proof->verify(state, chainman)) {
                 if (isOrphanState(state)) {
                     newOrphans.push_back(p.proof);
                 }

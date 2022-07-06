@@ -13,7 +13,6 @@
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/translation.h>
-#include <validation.h> // For g_chainman
 
 #include <tinyformat.h>
 
@@ -180,14 +179,15 @@ bool Proof::verify(ProofValidationState &state) const {
     return true;
 }
 
-bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
+bool Proof::verify(ProofValidationState &state,
+                   const ChainstateManager &chainman) const {
+    AssertLockHeld(cs_main);
     if (!verify(state)) {
         // state is set by verify.
         return false;
     }
 
-    const int64_t activeHeight =
-        WITH_LOCK(cs_main, return g_chainman.ActiveHeight());
+    const int64_t activeHeight = chainman.ActiveHeight();
     const int64_t stakeUtxoMinConfirmations =
         gArgs.GetArg("-avaproofstakeutxoconfirmations",
                      AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS);
@@ -197,7 +197,7 @@ bool Proof::verify(ProofValidationState &state, const CCoinsView &view) const {
         const COutPoint &utxo = s.getUTXO();
 
         Coin coin;
-        if (!view.GetCoin(utxo, coin)) {
+        if (!chainman.ActiveChainstate().CoinsTip().GetCoin(utxo, coin)) {
             // The coins are not in the UTXO set.
             return state.Invalid(ProofValidationResult::MISSING_UTXO,
                                  "utxo-missing-or-spent");

@@ -85,8 +85,7 @@ static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
     avalanche::ProofValidationState state;
     {
         LOCK(cs_main);
-        if (!proof.verify(state,
-                          node.chainman->ActiveChainstate().CoinsTip())) {
+        if (!proof.verify(state, *Assert(node.chainman))) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "The proof is invalid: " + state.ToString());
         }

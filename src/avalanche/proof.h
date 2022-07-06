@@ -12,6 +12,7 @@
 #include <pubkey.h>
 #include <rcu.h>
 #include <serialize.h>
+#include <validation.h> // For ChainstateManager and cs_main
 
 #include <array>
 #include <cstdint>
@@ -19,7 +20,6 @@
 #include <vector>
 
 class ArgsManager;
-class CCoinsView;
 struct bilingual_str;
 
 /**
@@ -189,7 +189,9 @@ public:
     Amount getStakedAmount() const;
 
     bool verify(ProofValidationState &state) const;
-    bool verify(ProofValidationState &state, const CCoinsView &view) const;
+    bool verify(ProofValidationState &state,
+                const ChainstateManager &chainman) const
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 
 using ProofRef = RCUPtr<const Proof>;

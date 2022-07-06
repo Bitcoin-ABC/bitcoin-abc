@@ -889,8 +889,6 @@ BOOST_AUTO_TEST_CASE(deserialization) {
 
 BOOST_AUTO_TEST_CASE(verify) {
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
-    CCoinsView coinsDummy;
-    CCoinsViewCache coins(&coinsDummy);
 
     auto key = CKey::MakeCompressedKey();
     const CPubKey pubkey = key.GetPubKey();
@@ -899,6 +897,8 @@ BOOST_AUTO_TEST_CASE(verify) {
     const uint32_t height = 10;
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
+    LOCK(cs_main);
+    CCoinsViewCache &coins = chainman.ActiveChainstate().CoinsTip();
 
     COutPoint pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
     CTxOut pkh_output(value, GetScriptForRawPubKey(pubkey));
@@ -924,7 +924,8 @@ BOOST_AUTO_TEST_CASE(verify) {
 
         ProofValidationState state;
         BOOST_CHECK(p->verify(state));
-        BOOST_CHECK(p->verify(state, coins) ==
+        LOCK(cs_main);
+        BOOST_CHECK(p->verify(state, chainman) ==
                     (result == ProofValidationResult::NONE));
         BOOST_CHECK(state.GetResult() == result);
     };
@@ -972,7 +973,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = ProofBuilder(0, 0, key).build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, coins));
+        BOOST_CHECK(!p->verify(state, chainman));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::NO_STAKE);
     }
 
@@ -984,7 +985,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = pb.build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, coins));
+        BOOST_CHECK(!p->verify(state, chainman));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESHOLD);
     }
 
@@ -995,7 +996,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = pb.build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, coins));
+        BOOST_CHECK(!p->verify(state, chainman));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESHOLD);
     }
 
@@ -1006,7 +1007,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = TestProofBuilder::buildDuplicatedStakes(pb);
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, coins));
+        BOOST_CHECK(!p->verify(state, chainman));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::DUPLICATE_STAKE);
     }
@@ -1024,7 +1025,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = TestProofBuilder::buildWithReversedOrderStakes(pb);
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, coins));
+        BOOST_CHECK(!p->verify(state, chainman));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::WRONG_STAKE_ORDERING);
     }
@@ -1080,9 +1081,6 @@ BOOST_AUTO_TEST_CASE(verify) {
 }
 
 BOOST_AUTO_TEST_CASE(deterministic_proofid) {
-    CCoinsView coinsDummy;
-    CCoinsViewCache coins(&coinsDummy);
-
     auto key = CKey::MakeCompressedKey();
 
     const Amount value = 12345 * COIN;
