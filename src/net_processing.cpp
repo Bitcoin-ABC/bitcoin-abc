@@ -4930,9 +4930,8 @@ void PeerManagerImpl::ProcessMessage(
 
         pfrom.m_avalanche_state = std::make_unique<CNode::AvalancheState>();
 
-        CHashVerifier<CDataStream> verifier(&vRecv);
         avalanche::Delegation delegation;
-        verifier >> delegation;
+        vRecv >> delegation;
 
         avalanche::DelegationState state;
         CPubKey &pubkey = pfrom.m_avalanche_state->pubkey;
@@ -4949,7 +4948,7 @@ void PeerManagerImpl::ProcessMessage(
         sighasher << pfrom.GetLocalExtraEntropy();
 
         SchnorrSig sig;
-        verifier >> sig;
+        vRecv >> sig;
         if (!pubkey.VerifySchnorr(sighasher.GetHash(), sig)) {
             Misbehaving(pfrom, 100, "invalid-avahello-signature");
             return;
