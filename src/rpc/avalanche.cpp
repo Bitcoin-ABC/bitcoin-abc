@@ -906,7 +906,8 @@ static RPCHelpMan getavalanchepeerinfo() {
                     }
 
                     pm.forPeer(proofid, [&](const avalanche::Peer &peer) {
-                        return ret.push_back(peerToUniv(pm, peer));
+                        ret.push_back(peerToUniv(pm, peer));
+                        return true;
                     });
 
                     return;
