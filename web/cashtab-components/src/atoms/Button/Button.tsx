@@ -139,7 +139,7 @@ class Button extends React.PureComponent<Props> {
                 {isInstall && (
                     <WarningCover>
                         <A href={Ticker.installLink} target="_blank">
-                            Install CashTab & refresh
+                            Install Cashtab & refresh
                         </A>
                     </WarningCover>
                 )}

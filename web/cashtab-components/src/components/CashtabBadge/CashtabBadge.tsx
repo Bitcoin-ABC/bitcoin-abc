@@ -92,7 +92,7 @@ type CashtabBadgeProps = CashtabBaseProps & {
 class CashtabBadge extends React.PureComponent<CashtabBadgeProps> {
     static defaultProps = {
         currency: 'USD',
-        tag: 'CashTab Pay',
+        tag: 'Cashtab Pay',
         text: 'Payment Total',
         showAmount: true,
         showBrand: false,

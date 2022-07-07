@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react/dist/client/preview';
 import Button from './Button';
 import Text from '../Text';
 
-const ButtonText = 'CashTab Pay';
+const ButtonText = 'Cashtab Pay';
 
 storiesOf('Button', module)
     .add(
@@ -51,6 +51,6 @@ storiesOf('Button', module)
             </Button>
         ),
         {
-            notes: 'CashTab extension not installed, prompt user to install CashTab',
+            notes: 'Cashtab extension not installed, prompt user to install Cashtab',
         },
     );

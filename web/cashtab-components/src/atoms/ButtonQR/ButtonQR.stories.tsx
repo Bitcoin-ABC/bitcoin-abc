@@ -6,7 +6,7 @@ import { text, number } from '@storybook/addon-knobs';
 import ButtonQR from './ButtonQR';
 import Text from '../Text';
 
-const ButtonText = 'CashTab Pay';
+const ButtonText = 'Cashtab Pay';
 
 storiesOf('ButtonQR', module)
     .add(

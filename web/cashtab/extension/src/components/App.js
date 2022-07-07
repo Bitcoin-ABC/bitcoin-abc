@@ -21,7 +21,7 @@ import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
 import Configure from 'components/Configure/Configure';
 import NotFound from 'components/NotFound';
-import CashTab from 'assets/cashtab_xec.png';
+import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'utils/context';
 import { isValidStoredWallet } from 'utils/cashMethods';
@@ -201,7 +201,7 @@ export const HeaderCtn = styled.div`
     padding: 15px;
 `;
 
-export const CashTabLogo = styled.img`
+export const CashtabLogo = styled.img`
     width: 120px;
     @media (max-width: 768px) {
         width: 110px;
@@ -247,7 +247,7 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                <CashtabLogo src={Cashtab} alt="cashtab" />
                                 {/*Begin extension-only components*/}
                                 <OpenInTabBtn
                                     data-tip="Open in tab"

@@ -14,7 +14,7 @@ extension.runtime.onConnect.addListener(function (port) {
     port.onMessage.addListener(function (msg) {
         console.log('msg received in background.js');
         console.log(msg.text);
-        if (msg.text == `CashTab` && msg.txInfo) {
+        if (msg.text == `Cashtab` && msg.txInfo) {
             console.log(`Caught, opening popup`);
             triggerUi(msg.txInfo);
         }

@@ -183,7 +183,7 @@ class ButtonQR extends React.PureComponent<Props> {
                                         href={Ticker.installLink}
                                         target="_blank"
                                     >
-                                        Install CashTab & refresh
+                                        Install Cashtab & refresh
                                     </A>
                                 </Text>
                             </WarningCover>

@@ -1,6 +1,6 @@
 const extension = require('extensionizer');
 
-// Insert flag into window object to denote CashTab is available and active as a browser extension
+// Insert flag into window object to denote Cashtab is available and active as a browser extension
 // Could use a div or other approach for now, but emulate MetaMask this way so it is extensible to other items
 // Try window object approach
 var cashTabInject = document.createElement('script');

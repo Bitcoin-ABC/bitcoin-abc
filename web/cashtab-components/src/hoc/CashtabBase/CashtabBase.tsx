@@ -143,7 +143,7 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
             }
         };
 
-        getCashTabProviderStatus = () => {
+        getCashtabProviderStatus = () => {
             console.log(window.bitcoinAbc);
             if (
                 window &&
@@ -165,7 +165,7 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
                 return;
             }
 
-            const walletProviderStatus = this.getCashTabProviderStatus();
+            const walletProviderStatus = this.getCashtabProviderStatus();
 
             if (typeof window === `undefined` || !walletProviderStatus) {
                 this.setState({ step: 'install' });
@@ -187,7 +187,7 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
                 return window.postMessage(
                     {
                         type: 'FROM_PAGE',
-                        text: 'CashTab',
+                        text: 'Cashtab',
                         txInfo: {
                             address: to,
                             value: satoshis
@@ -314,8 +314,8 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
             }
         };
 
-        confirmCashTabProviderStatus = () => {
-            const cashTabStatus = this.getCashTabProviderStatus();
+        confirmCashtabProviderStatus = () => {
+            const cashTabStatus = this.getCashtabProviderStatus();
             if (cashTabStatus) {
                 this.setState({ step: 'fresh' });
             }
@@ -332,10 +332,10 @@ const CashtabBase = (Wrapped: React.ComponentType<any>) => {
 
                 // Occasionially the cashtab window object is not available on componentDidMount, check later
                 // TODO make this less hacky
-                setTimeout(this.confirmCashTabProviderStatus, 750);
+                setTimeout(this.confirmCashtabProviderStatus, 750);
 
-                // Detect CashTab and determine if button should show install CTA
-                const walletProviderStatus = this.getCashTabProviderStatus();
+                // Detect Cashtab and determine if button should show install CTA
+                const walletProviderStatus = this.getCashtabProviderStatus();
                 if (walletProviderStatus) {
                     this.setState({ step: 'fresh' });
                 } else {
