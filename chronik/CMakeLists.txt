@@ -67,5 +67,6 @@ function(add_crate_test_targets CRATE)
 endfunction()
 
 add_custom_target("check-crates")
-add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(abc-rust)
+add_crate_test_targets(bitcoinsuite)
+add_crate_test_targets(chronik)
