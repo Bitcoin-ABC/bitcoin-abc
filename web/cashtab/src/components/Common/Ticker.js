@@ -13,7 +13,7 @@ export const currency = {
     dustSats: 550,
     etokenSats: 546,
     cashDecimals: 2,
-    chronikUrl: 'https://chronik.be.cash/xec',
+    chronikUrl: 'https://chronik.fabien.cash',
     blockExplorerUrl: 'https://explorer.be.cash',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
     pdfReceiptUrl: 'https://blockchair.com/ecash/transaction',
