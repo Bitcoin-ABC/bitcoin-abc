@@ -47,6 +47,8 @@ static void help(int default_iters) {
     printf("    ecdsa             : all ECDSA algorithms--sign, verify, recovery (if enabled)\n");
     printf("    ecdsa_sign        : ECDSA siging algorithm\n");
     printf("    ecdsa_verify      : ECDSA verification algorithm\n");
+    printf("    ec                : all EC public key algorithms (keygen)\n");
+    printf("    ec_keygen         : EC public key generation\n");
 
 #ifdef ENABLE_MODULE_RECOVERY
     printf("    ecdsa_recover     : ECDSA public key recovery algorithm\n");
@@ -66,6 +68,14 @@ static void help(int default_iters) {
     printf("    schnorrsig        : all taproot Schnorr signature algorithms (sign, verify)\n");
     printf("    schnorrsig_sign   : taproot Schnorr sigining algorithm\n");
     printf("    schnorrsig_verify : taproot Schnorr verification algorithm\n");
+#endif
+
+#ifdef ENABLE_MODULE_ELLSWIFT
+    printf("    ellswift          : all ElligatorSwift benchmarks (encode, decode, keygen, ecdh)\n");
+    printf("    ellswift_encode   : ElligatorSwift encoding\n");
+    printf("    ellswift_decode   : ElligatorSwift decoding\n");
+    printf("    ellswift_keygen   : ElligatorSwift key generation\n");
+    printf("    ellswift_ecdh     : ECDH on ElligatorSwift keys\n");
 #endif
 
     printf("\n");
@@ -149,6 +159,28 @@ static void bench_sign_run(void* arg, int iters) {
     }
 }
 
+static void bench_keygen_setup(void* arg) {
+    int i;
+    bench_data *data = (bench_data*)arg;
+
+    for (i = 0; i < 32; i++) {
+        data->key[i] = i + 65;
+    }
+}
+
+static void bench_keygen_run(void *arg, int iters) {
+    int i;
+    bench_data *data = (bench_data*)arg;
+
+    for (i = 0; i < iters; i++) {
+        unsigned char pub33[33];
+        size_t len = 33;
+        secp256k1_pubkey pubkey;
+        CHECK(secp256k1_ec_pubkey_create(data->ctx, &pubkey, data->key));
+        CHECK(secp256k1_ec_pubkey_serialize(data->ctx, pub33, &len, &pubkey, SECP256K1_EC_COMPRESSED));
+        memcpy(data->key, pub33 + 1, 32);
+    }
+}
 
 #ifdef ENABLE_MODULE_SCHNORR
 static void bench_schnorr_sign_run(void* arg, int iters) {
@@ -182,6 +214,10 @@ static void bench_schnorr_sign_run(void* arg, int iters) {
 # include "modules/multiset/bench_impl.h"
 #endif
 
+#ifdef ENABLE_MODULE_ELLSWIFT
+# include "modules/ellswift/bench_impl.h"
+#endif
+
 int main(int argc, char** argv) {
     int i;
     secp256k1_pubkey pubkey;
@@ -194,7 +230,9 @@ int main(int argc, char** argv) {
 
     /* Check for invalid user arguments */
     char* valid_args[] = {"ecdsa", "verify", "ecdsa_verify", "sign", "ecdsa_sign", "ecdh", "recover",
-                         "ecdsa_recover", "schnorrsig", "schnorrsig_verify", "schnorrsig_sign"};
+                         "ecdsa_recover", "schnorrsig", "schnorrsig_verify", "schnorrsig_sign", "ec",
+                         "keygen", "ec_keygen", "ellswift", "encode", "ellswift_encode", "decode",
+                         "ellswift_decode", "ellswift_keygen", "ellswift_ecdh"};
     size_t valid_args_size = sizeof(valid_args)/sizeof(valid_args[0]);
     int invalid_args = have_invalid_args(argc, argv, valid_args, valid_args_size);
 
@@ -236,6 +274,16 @@ int main(int argc, char** argv) {
     }
 #endif
 
+#ifndef ENABLE_MODULE_ELLSWIFT
+    if (have_flag(argc, argv, "ellswift") || have_flag(argc, argv, "ellswift_encode") || have_flag(argc, argv, "ellswift_decode") ||
+        have_flag(argc, argv, "encode") || have_flag(argc, argv, "decode") || have_flag(argc, argv, "ellswift_keygen") ||
+        have_flag(argc, argv, "ellswift_ecdh")) {
+        fprintf(stderr, "./bench: ElligatorSwift module not enabled.\n");
+        fprintf(stderr, "Use ./configure --enable-module-ellswift.\n\n");
+        return 1;
+    }
+#endif
+
     /* ECDSA benchmark */
     data.ctx = secp256k1_context_create(SECP256K1_CONTEXT_NONE);
 
@@ -264,6 +312,7 @@ int main(int argc, char** argv) {
 #endif
 
     if (d || have_flag(argc, argv, "ecdsa") || have_flag(argc, argv, "sign") || have_flag(argc, argv, "ecdsa_sign")) run_benchmark("ecdsa_sign", bench_sign_run, bench_sign_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "ec") || have_flag(argc, argv, "keygen") || have_flag(argc, argv, "ec_keygen")) run_benchmark("ec_keygen", bench_keygen_run, bench_keygen_setup, NULL, &data, 10, iters);
 #ifdef ENABLE_MODULE_SCHNORR
     if (d || have_flag(argc, argv, "schnorr") || have_flag(argc, argv, "sign") || have_flag(argc, argv, "schnorr_sign")) run_benchmark("schnorr_sign", bench_schnorr_sign_run, bench_sign_setup, NULL, &data, 10, iters);
 #endif
@@ -287,6 +336,11 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_MODULE_MULTISET
     run_multiset_bench(iters, argc, argv);
+#endif
+
+#ifdef ENABLE_MODULE_ELLSWIFT
+    /* ElligatorSwift benchmarks */
+    run_ellswift_bench(iters, argc, argv);
 #endif
 
     return 0;

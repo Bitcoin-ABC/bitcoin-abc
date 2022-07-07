@@ -12,7 +12,7 @@ print_environment() {
     # does not rely on bash.
     for var in WERROR_CFLAGS MAKEFLAGS AUTOTOOLS_TARGET \
             ECMULTWINDOW ECMULTGENPRECISION ASM WIDEMUL WITH_VALGRIND AUTOTOOLS_EXTRAFLAGS \
-            EXPERIMENTAL ECDH RECOVERY SCHNORR SCHNORRSIG MULTISET \
+            EXPERIMENTAL ECDH RECOVERY SCHNORR SCHNORRSIG MULTISET ELLSWIFT \
             SECP256K1_TEST_ITERS BENCH SECP256K1_BENCH_ITERS CTIMETESTS \
             EXAMPLES \
             HOST WRAPPER_CMD \
@@ -87,6 +87,7 @@ pushd buildautotools
   --with-ecmult-window="$ECMULTWINDOW" \
   --with-ecmult-gen-precision=$ECMULTGENPRECISION \
   --enable-module-ecdh=$ECDH \
+  --enable-module-ellswift="$ELLSWIFT" \
   --enable-module-multiset=$MULTISET \
   --enable-module-recovery=$RECOVERY \
   --enable-module-schnorr=$SCHNORR \

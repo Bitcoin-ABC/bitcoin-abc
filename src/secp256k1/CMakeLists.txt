@@ -264,6 +264,12 @@ if(SECP256K1_ENABLE_MODULE_SCHNORRSIG)
 	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_schnorrsig.h)
 endif()
 
+option(SECP256K1_ENABLE_MODULE_ELLSWIFT "Enable ElligatorSwift module." ON)
+if(SECP256K1_ENABLE_MODULE_ELLSWIFT)
+	add_compile_definitions(ENABLE_MODULE_ELLSWIFT=1)
+	list(APPEND SECP256K1_PUBLIC_HEADERS include/secp256k1_ellswift.h)
+endif()
+
 # External default callbacks
 option(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS "Enable external default callbacks" OFF)
 if(SECP256K1_ENABLE_EXTERNAL_DEFAULT_CALLBACKS)

@@ -32,6 +32,7 @@ env:
   SCHNORR: 'yes'
   SCHNORRSIG: 'no'
   MULTISET: 'no'
+  ELLSWIFT: 'no'
   ### test options
   SECP256K1_TEST_ITERS:
   BENCH: 'yes'
@@ -70,12 +71,12 @@ jobs:
       matrix:
         configuration:
           - env_vars: {WIDEMUL:  'int64',  RECOVERY: 'yes'}
-          - env_vars: {WIDEMUL:  'int64',                 ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
+          - env_vars: {WIDEMUL:  'int64',                 ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', ELLSWIFT: 'yes'}
           - env_vars: {WIDEMUL: 'int128'}
-          - env_vars: {WIDEMUL: 'int128_struct'}
-          - env_vars: {WIDEMUL: 'int128',  RECOVERY: 'yes',            SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
+          - env_vars: {WIDEMUL: 'int128_struct',                                                                                ELLSWIFT: 'yes'}
+          - env_vars: {WIDEMUL: 'int128',  RECOVERY: 'yes',            SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', ELLSWIFT: 'yes'}
           - env_vars: {WIDEMUL: 'int128',                 ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
-          - env_vars: {WIDEMUL: 'int128',  ASM: 'x86_64'}
+          - env_vars: {WIDEMUL: 'int128',  ASM: 'x86_64',                                                                       ELLSWIFT: 'yes'}
           - env_vars: {                    RECOVERY: 'yes',            SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes'}
           - env_vars: {AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install', WITH_VALGRIND: 'no', CTIMETESTS: 'no', BENCH: 'no'}
           - env_vars: {AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DDETERMINISTIC', CMAKE_EXTRA_FLAGS: '-DCMAKE_C_FLAGS=-DDETERMINISTIC'}
@@ -132,6 +133,7 @@ jobs:
       ECDH: 'yes'
       RECOVERY: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CC: ${{ matrix.cc }}
 
     steps:
@@ -159,6 +161,7 @@ jobs:
       EXPERIMENTAL: 'yes'
       MULTISET: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
 
     steps:
@@ -186,6 +189,7 @@ jobs:
       ECDH: 'yes'
       RECOVERY: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
 
     steps:
@@ -206,6 +210,7 @@ jobs:
       ECDH: 'yes'
       RECOVERY: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
 
     strategy:
@@ -236,6 +241,7 @@ jobs:
       ECDH: 'yes'
       RECOVERY: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
 
     steps:
@@ -264,6 +270,7 @@ jobs:
       EXPERIMENTAL: 'yes'
       MULTISET: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
       SECP256K1_TEST_ITERS: 2
 
@@ -290,6 +297,7 @@ jobs:
       EXPERIMENTAL: 'yes'
       MULTISET: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
       CFLAGS: '-fsanitize=undefined,address -g'
       UBSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
@@ -324,6 +332,7 @@ jobs:
       EXPERIMENTAL: 'yes'
       MULTISET: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'yes'
       CC: 'clang'
       SECP256K1_TEST_ITERS: 32
@@ -348,6 +357,7 @@ jobs:
       EXPERIMENTAL: 'yes'
       MULTISET: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
       CTIMETESTS: 'no'
 
     strategy:
@@ -385,13 +395,13 @@ jobs:
       fail-fast: false
       matrix:
         env_vars:
-          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes' }
-          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', CC: 'gcc' }
+          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', ELLSWIFT: 'yes' }
+          - { WIDEMUL: 'int64',  RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes',                                       ELLSWIFT: 'yes', CC: 'gcc' }
           - { WIDEMUL: 'int128_struct', ECMULTGENPRECISION: 2, ECMULTWINDOW: 4 }
-          - { WIDEMUL: 'int128',                  ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes' }
-          - { WIDEMUL: 'int128', RECOVERY: 'yes',              SCHNORRSIG: 'yes' }
-          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', CC: 'gcc' }
-          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes', AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DVERIFY' }
+          - { WIDEMUL: 'int128',                  ECDH: 'yes', SCHNORRSIG: 'yes', EXPERIMENTAL: 'yes', MULTISET: 'yes', ELLSWIFT: 'yes' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes',              SCHNORRSIG: 'yes',                                       ELLSWIFT: 'yes' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes',                                       ELLSWIFT: 'yes', CC: 'gcc' }
+          - { WIDEMUL: 'int128', RECOVERY: 'yes', ECDH: 'yes', SCHNORRSIG: 'yes',                                       ELLSWIFT: 'yes', AUTOTOOLS_EXTRA_FLAGS: 'CPPFLAGS=-DVERIFY' }
           # Fixme: the following task fails with error "System.IO.IOException: No space left on device" even if we run only the autotools job
           # - { AUTOTOOLS_TARGET: 'distcheck', CMAKE_TARGET: 'install' }
     steps:
@@ -433,6 +443,7 @@ jobs:
       ECDH: 'yes'
       RECOVERY: 'yes'
       SCHNORRSIG: 'yes'
+      ELLSWIFT: 'yes'
 
     steps:
       - *CHECKOUT
