@@ -140,6 +140,16 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.nodes[2].syncwithvalidationinterfacequeue()
         assert_equal(node2_balance, self.nodes[2].getbalance())
 
+        mempooldat0 = os.path.join(self.nodes[0].datadir, self.chain, "mempool.dat")
+        mempooldat1 = os.path.join(self.nodes[1].datadir, self.chain, "mempool.dat")
+
+        self.log.debug("Force -persistmempool=0 node1 to savemempool to disk via RPC")
+        assert not os.path.exists(mempooldat1)
+        result1 = self.nodes[1].savemempool()
+        assert os.path.isfile(mempooldat1)
+        assert_equal(result1["filename"], mempooldat1)
+        os.remove(mempooldat1)
+
         # start node0 with wallet disabled so wallet transactions don't get
         # resubmitted
         self.log.debug(
@@ -159,8 +169,6 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert self.nodes[0].getmempoolinfo()["loaded"]
         assert_equal(len(self.nodes[0].getrawmempool()), 6)
 
-        mempooldat0 = os.path.join(self.nodes[0].datadir, self.chain, "mempool.dat")
-        mempooldat1 = os.path.join(self.nodes[1].datadir, self.chain, "mempool.dat")
         self.log.debug(
             "Remove the mempool.dat file. Verify that savemempool to disk via RPC"
             " re-creates it"
