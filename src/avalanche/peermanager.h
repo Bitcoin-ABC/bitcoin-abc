@@ -89,6 +89,7 @@ struct Peer {
     uint32_t node_count = 0;
 
     ProofRef proof;
+    bool hasFinalized = false;
 
     // The network stack uses timestamp in seconds, so we oblige.
     std::chrono::seconds registration_time;
@@ -292,6 +293,11 @@ public:
      */
     bool updateNextPossibleConflictTime(PeerId peerid,
                                         const std::chrono::seconds &nextTime);
+
+    /**
+     * Latch on that this peer has a finalized proof.
+     */
+    bool setFinalized(PeerId peerid);
 
     /**
      * Registration mode

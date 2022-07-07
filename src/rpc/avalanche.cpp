@@ -669,6 +669,9 @@ static RPCHelpMan getavalancheinfo() {
                      {RPCResult::Type::NUM, "connected_proof_count",
                       "The number of avalanche proofs with at least one node "
                       "we are connected to."},
+                     {RPCResult::Type::NUM, "finalized_proof_count",
+                      "The number of known avalanche proofs that have been "
+                      "finalized by avalanche."},
                      {RPCResult::Type::NUM, "conflicting_proof_count",
                       "The number of known avalanche proofs that conflict with "
                       "valid proofs."},
@@ -731,6 +734,7 @@ static RPCHelpMan getavalancheinfo() {
 
                 uint64_t proofCount{0};
                 uint64_t connectedProofCount{0};
+                uint64_t finalizedProofCount{0};
                 Amount totalStakes = Amount::zero();
                 Amount connectedStakes = Amount::zero();
 
@@ -747,6 +751,10 @@ static RPCHelpMan getavalancheinfo() {
                     ++proofCount;
                     totalStakes += proofStake;
 
+                    if (peer.hasFinalized) {
+                        ++finalizedProofCount;
+                    }
+
                     if (peer.node_count > 0) {
                         ++connectedProofCount;
                         connectedStakes += proofStake;
@@ -755,6 +763,7 @@ static RPCHelpMan getavalancheinfo() {
 
                 network.pushKV("proof_count", proofCount);
                 network.pushKV("connected_proof_count", connectedProofCount);
+                network.pushKV("finalized_proof_count", finalizedProofCount);
                 network.pushKV("conflicting_proof_count",
                                uint64_t(pm.getConflictingProofCount()));
                 network.pushKV("orphan_proof_count",

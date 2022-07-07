@@ -184,6 +184,18 @@ bool PeerManager::updateNextPossibleConflictTime(
     return it->nextPossibleConflictTime == nextTime;
 }
 
+bool PeerManager::setFinalized(PeerId peerid) {
+    auto it = peers.find(peerid);
+    if (it == peers.end()) {
+        // No such peer
+        return false;
+    }
+
+    peers.modify(it, [&](Peer &p) { p.hasFinalized = true; });
+
+    return true;
+}
+
 template <typename ProofContainer>
 void PeerManager::moveToConflictingPool(const ProofContainer &proofs) {
     auto &peersView = peers.get<by_proofid>();

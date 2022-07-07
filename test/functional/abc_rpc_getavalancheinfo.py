@@ -8,13 +8,19 @@ from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
+    AvaP2PInterface,
     avalanche_proof_from_hex,
     create_coinbase_stakes,
     gen_proof,
     get_ava_p2p_interface,
+    wait_for_proof,
 )
 from test_framework.key import ECKey
-from test_framework.messages import LegacyAvalancheProof
+from test_framework.messages import (
+    AvalancheProofVoteResponse,
+    AvalancheVote,
+    LegacyAvalancheProof,
+)
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 from test_framework.wallet_util import bytes_to_wif
@@ -29,8 +35,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-enableavalancheproofreplacement=1',
             f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}',
             '-avaproofstakeutxoconfirmations=2',
-            '-avacooldown=',
-            '-avatimeout=100',
+            '-avacooldown=0',
             '-enableavalanchepeerdiscovery=1',
             '-avaminquorumstake=250000000',
             '-avaminquorumconnectedstakeratio=0.9',
@@ -68,6 +73,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": 0,
                 "connected_proof_count": 0,
+                "finalized_proof_count": 0,
                 "conflicting_proof_count": 0,
                 "orphan_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
@@ -97,6 +103,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": 0,
                 "connected_proof_count": 0,
+                "finalized_proof_count": 0,
                 "conflicting_proof_count": 0,
                 "orphan_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
@@ -122,6 +129,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "network": {
                     "proof_count": 0,
                     "connected_proof_count": 0,
+                    "finalized_proof_count": 0,
                     "conflicting_proof_count": 0,
                     "orphan_proof_count": 0,
                     "total_stake_amount": Decimal('0.00'),
@@ -138,27 +146,39 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         mock_time = int(time.time())
         node.setmocktime(mock_time)
 
-        N = 10
+        privkeys = []
+        proofs = []
+        conflicting_proofs = []
+        quorum = []
+        N = 13
         for _ in range(N):
             _privkey, _proof = gen_proof(node)
+            proofs.append(_proof)
+            privkeys.append(_privkey)
 
             # For each proof, also make a conflicting one
             stakes = create_coinbase_stakes(
                 node, [node.getbestblockhash()], node.get_deterministic_priv_key().key)
-            conflicting_proof = node.buildavalancheproof(
+            conflicting_proof_hex = node.buildavalancheproof(
                 10, 9999, bytes_to_wif(_privkey.get_bytes()), stakes)
+            conflicting_proof = avalanche_proof_from_hex(conflicting_proof_hex)
+            conflicting_proofs.append(conflicting_proof)
 
             # Make the proof and its conflicting proof mature
             node.generate(1)
 
-            n = get_ava_p2p_interface(node)
-            success = node.addavalanchenode(
-                n.nodeid, _privkey.get_pubkey().get_bytes().hex(), _proof.serialize().hex())
-            assert success is True
+            n = AvaP2PInterface()
+            n.proof = _proof
+            n.master_privkey = _privkey
+            node.add_p2p_connection(n)
+            quorum.append(n)
+
+            n.send_avaproof(_proof)
+            wait_for_proof(node, f"{_proof.proofid:0{64}x}", timeout=10)
 
             mock_time += self.conflicting_proof_cooldown
             node.setmocktime(mock_time)
-            n.send_avaproof(avalanche_proof_from_hex(conflicting_proof))
+            n.send_avaproof(conflicting_proof)
 
         # Generate an orphan (immature) proof
         _, orphan_proof = gen_proof(node)
@@ -177,6 +197,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "network": {
                     "proof_count": N,
                     "connected_proof_count": N,
+                    "finalized_proof_count": 0,
                     "conflicting_proof_count": N,
                     "orphan_proof_count": 1,
                     "total_stake_amount": coinbase_amount * N,
@@ -209,6 +230,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "network": {
                     "proof_count": N,
                     "connected_proof_count": N - D,
+                    "finalized_proof_count": 0,
                     "conflicting_proof_count": N,
                     "orphan_proof_count": 1,
                     "total_stake_amount": coinbase_amount * N,
@@ -259,6 +281,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 # Orphan became mature
                 "proof_count": N + 1,
                 "connected_proof_count": N - D,
+                "finalized_proof_count": 0,
                 "conflicting_proof_count": N,
                 "orphan_proof_count": 0,
                 "total_stake_amount": coinbase_amount * (N + 1),
@@ -268,6 +291,51 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "pending_node_count": P,
             }
         })
+
+        self.log.info("Finalize the proofs for some peers")
+
+        def vote_for_all_proofs():
+            done_voting = True
+            for i, n in enumerate(quorum):
+                if not n.is_connected:
+                    continue
+
+                poll = n.get_avapoll_if_available()
+
+                # That node has not received a poll
+                if poll is None:
+                    continue
+
+                # Respond yes to all polls except the conflicting proofs
+                votes = []
+                for inv in poll.invs:
+                    response = AvalancheProofVoteResponse.ACTIVE
+                    if inv.hash in [p.proofid for p in conflicting_proofs]:
+                        response = AvalancheProofVoteResponse.REJECTED
+
+                        # We need to finish voting on the conflicting proofs to
+                        # ensure the count is stable and that no valid proof
+                        # was replaced.
+                        done_voting = False
+
+                    votes.append(AvalancheVote(response, inv.hash))
+
+                    # If we voted on one of our proofs, we're probably not done
+                    # voting.
+                    if inv.hash in [p.proofid for p in proofs]:
+                        done_voting = False
+
+                n.send_avaresponse(poll.round, votes, privkeys[i])
+
+            return done_voting
+
+        # Vote until proofs have finalized
+        expected_logs = []
+        for p in proofs:
+            expected_logs.append(
+                f"Avalanche finalized proof {p.proofid:0{64}x}")
+        with node.assert_debug_log(expected_logs):
+            self.wait_until(lambda: vote_for_all_proofs())
 
         self.log.info("Disconnect all the nodes")
 
@@ -287,7 +355,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "network": {
                 "proof_count": N + 1,
                 "connected_proof_count": 0,
-                "conflicting_proof_count": N,
+                "finalized_proof_count": N + 1,
+                "conflicting_proof_count": 0,
                 "orphan_proof_count": 0,
                 "total_stake_amount": coinbase_amount * (N + 1),
                 "connected_stake_amount": 0,

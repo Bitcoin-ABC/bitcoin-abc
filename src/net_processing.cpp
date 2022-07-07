@@ -5153,6 +5153,10 @@ void PeerManagerImpl::ProcessMessage(
                                     proofid, [&](const avalanche::Peer &peer) {
                                         pm.updateNextPossibleConflictTime(
                                             peer.peerid, nextCooldownTimePoint);
+                                        if (u.getStatus() ==
+                                            avalanche::VoteStatus::Finalized) {
+                                            pm.setFinalized(peer.peerid);
+                                        }
                                         // Only fail if the peer was not
                                         // created
                                         return true;
