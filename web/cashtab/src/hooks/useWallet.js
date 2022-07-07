@@ -38,7 +38,7 @@ const useWallet = () => {
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
-    const [contactList, setContactList] = useState(false);
+    const [contactList, setContactList] = useState([{}]);
     const [cashtabSettings, setCashtabSettings] = useState(false);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
