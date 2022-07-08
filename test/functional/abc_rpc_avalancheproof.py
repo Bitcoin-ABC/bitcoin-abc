@@ -489,6 +489,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             100)
         node.generate(1)
 
+        # Wait until UpdatedBlockTip has been called so we know the proof
+        # validity has updated
+        node.syncwithvalidationinterfacequeue()
+
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['orphan'], True)
