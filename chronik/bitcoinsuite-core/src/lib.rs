@@ -5,8 +5,6 @@
 #![deny(unsafe_code)]
 #![warn(
     const_err,
-    dead_code,
-    elided_lifetimes_in_paths,
     explicit_outlives_requirements,
     improper_ctypes,
     keyword_idents,
@@ -21,7 +19,6 @@
     patterns_in_fns_without_body,
     private_in_public,
     rust_2018_idioms,
-    single_use_lifetimes,
     unconditional_recursion,
     unreachable_pub,
     unused_comparisons,
