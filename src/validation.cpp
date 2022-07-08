@@ -4630,6 +4630,7 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
     int nGoodTransactions = 0;
     BlockValidationState state;
     int reportDone = 0;
+    bool skipped_l3_checks{false};
     LogPrintfToBeContinued("[0%%]...");
 
     const bool is_snapshot_cs{!chainstate.m_from_snapshot_blockhash};
@@ -4695,23 +4696,25 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
         size_t curr_coins_usage = coins.DynamicMemoryUsage() +
                                   chainstate.CoinsTip().DynamicMemoryUsage();
 
-        if (nCheckLevel >= 3 &&
-            curr_coins_usage <= chainstate.m_coinstip_cache_size_bytes) {
-            assert(coins.GetBestBlock() == pindex->GetBlockHash());
-            DisconnectResult res =
-                chainstate.DisconnectBlock(block, pindex, coins);
-            if (res == DisconnectResult::FAILED) {
-                return error("VerifyDB(): *** irrecoverable inconsistency in "
-                             "block data at %d, hash=%s",
-                             pindex->nHeight,
-                             pindex->GetBlockHash().ToString());
-            }
-
-            if (res == DisconnectResult::UNCLEAN) {
-                nGoodTransactions = 0;
-                pindexFailure = pindex;
+        if (nCheckLevel >= 3) {
+            if (curr_coins_usage <= chainstate.m_coinstip_cache_size_bytes) {
+                assert(coins.GetBestBlock() == pindex->GetBlockHash());
+                DisconnectResult res =
+                    chainstate.DisconnectBlock(block, pindex, coins);
+                if (res == DisconnectResult::FAILED) {
+                    return error("VerifyDB(): *** irrecoverable inconsistency "
+                                 "in block data at %d, hash=%s",
+                                 pindex->nHeight,
+                                 pindex->GetBlockHash().ToString());
+                }
+                if (res == DisconnectResult::UNCLEAN) {
+                    nGoodTransactions = 0;
+                    pindexFailure = pindex;
+                } else {
+                    nGoodTransactions += block.vtx.size();
+                }
             } else {
-                nGoodTransactions += block.vtx.size();
+                skipped_l3_checks = true;
             }
         }
 
@@ -4726,12 +4729,15 @@ bool CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
                      chainstate.m_chain.Height() - pindexFailure->nHeight + 1,
                      nGoodTransactions);
     }
-
+    if (skipped_l3_checks) {
+        LogPrintf("Skipped verification of level >=3 (insufficient database "
+                  "cache size). Consider increasing -dbcache.\n");
+    }
     // store block count as we move pindex at check level >= 4
     int block_count = chainstate.m_chain.Height() - pindex->nHeight;
 
     // check level 4: try reconnecting blocks
-    if (nCheckLevel >= 4) {
+    if (nCheckLevel >= 4 && !skipped_l3_checks) {
         while (pindex != chainstate.m_chain.Tip()) {
             const int percentageDone = std::max(
                 1, std::min(99, 100 - int(double(chainstate.m_chain.Height() -
