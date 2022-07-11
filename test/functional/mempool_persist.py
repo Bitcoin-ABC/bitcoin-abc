@@ -123,6 +123,13 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert_equal(len(self.nodes[0].p2ps), 0)
         self.mini_wallet.send_self_transfer(from_node=self.nodes[0])
 
+        # Test persistence of prioritisation for transactions not in the mempool.
+        # Create a tx and prioritise but don't submit until after the restart.
+        tx_prioritised_not_submitted = self.mini_wallet.create_self_transfer()
+        self.nodes[0].prioritisetransaction(
+            txid=tx_prioritised_not_submitted["txid"], fee_delta=9999
+        )
+
         self.log.debug(
             "Stop-start the nodes. Verify that node0 has the "
             "transactions in its mempool and node1 does not. "
@@ -151,6 +158,14 @@ class MempoolPersistTest(BitcoinTestFramework):
 
         self.log.debug("Verify all fields are loaded correctly")
         assert_equal(last_entry, self.nodes[0].getmempoolentry(txid=last_txid))
+        self.nodes[0].sendrawtransaction(tx_prioritised_not_submitted["hex"])
+        entry_prioritised_before_restart = self.nodes[0].getmempoolentry(
+            txid=tx_prioritised_not_submitted["txid"]
+        )
+        assert_equal(
+            entry_prioritised_before_restart["fees"]["base"] + Decimal("99.99"),
+            entry_prioritised_before_restart["fees"]["modified"],
+        )
 
         # Verify accounting of mempool transactions after restart is correct
         if self.is_wallet_compiled():
@@ -187,7 +202,7 @@ class MempoolPersistTest(BitcoinTestFramework):
         self.stop_nodes()
         self.start_node(0)
         assert self.nodes[0].getmempoolinfo()["loaded"]
-        assert_equal(len(self.nodes[0].getrawmempool()), 6)
+        assert_equal(len(self.nodes[0].getrawmempool()), 7)
 
         self.log.debug(
             "Remove the mempool.dat file. Verify that savemempool to disk via RPC"
@@ -199,14 +214,14 @@ class MempoolPersistTest(BitcoinTestFramework):
         assert_equal(result0["filename"], mempooldat0)
 
         self.log.debug(
-            "Stop nodes, make node1 use mempool.dat from node0. Verify it has 6"
+            "Stop nodes, make node1 use mempool.dat from node0. Verify it has 7"
             " transactions"
         )
         os.rename(mempooldat0, mempooldat1)
         self.stop_nodes()
         self.start_node(1, extra_args=["-persistmempool"])
         assert self.nodes[1].getmempoolinfo()["loaded"]
-        assert_equal(len(self.nodes[1].getrawmempool()), 6)
+        assert_equal(len(self.nodes[1].getrawmempool()), 7)
 
         self.log.debug(
             "Prevent bitcoind from writing mempool.dat to disk. Verify that"
