@@ -226,8 +226,6 @@ class PeerManager {
     uint32_t connectedPeersScore = 0;
 
 public:
-    PeerManager(CScheduler &scheduler);
-
     /**
      * Node API.
      */
@@ -321,6 +319,8 @@ public:
         return getProof(proofid) != nullptr;
     }
 
+    void cleanupDanglingProofs();
+
     template <typename Callable>
     bool forPeer(const ProofId &proofid, Callable &&func) const {
         auto &pview = peers.get<by_proofid>();
@@ -402,8 +402,6 @@ private:
     bool addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid);
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
-
-    void cleanupDanglingProofs();
 
     friend struct ::avalanche::TestPeerManager;
 };

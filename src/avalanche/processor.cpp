@@ -137,7 +137,7 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
     : connman(connmanIn),
       queryTimeoutDuration(argsman.GetArg(
           "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
-      round(0), peerManager(std::make_unique<PeerManager>(scheduler)),
+      round(0), peerManager(std::make_unique<PeerManager>()),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -147,6 +147,13 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
+
+    scheduler.scheduleEvery(
+        [this]() -> bool {
+            WITH_LOCK(cs_peerManager, peerManager->cleanupDanglingProofs());
+            return true;
+        },
+        5min);
 }
 
 Processor::~Processor() {
