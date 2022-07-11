@@ -729,7 +729,7 @@ void Processor::runEventLoop() {
 
     // Make sure there is at least one suitable node to query before gathering
     // invs.
-    NodeId nodeid = getSuitableNodeToQuery();
+    NodeId nodeid = WITH_LOCK(cs_peerManager, return peerManager->selectNode());
     if (nodeid == NO_NODE) {
         return;
     }
@@ -738,50 +738,50 @@ void Processor::runEventLoop() {
         return;
     }
 
+    LOCK(cs_peerManager);
+
     do {
         /**
          * If we lost contact to that node, then we remove it from nodeids, but
          * never add the request to queries, which ensures bad nodes get cleaned
          * up over time.
          */
-        bool hasSent = connman->ForNode(nodeid, [this, &invs](CNode *pnode) {
-            uint64_t current_round = round++;
+        bool hasSent = connman->ForNode(
+            nodeid, [this, &invs](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(
+                        cs_peerManager) {
+                uint64_t current_round = round++;
 
-            {
-                // Compute the time at which this requests times out.
-                auto timeout =
-                    std::chrono::steady_clock::now() + queryTimeoutDuration;
-                // Register the query.
-                queries.getWriteView()->insert(
-                    {pnode->GetId(), current_round, timeout, invs});
-                // Set the timeout.
-                LOCK(cs_peerManager);
-                peerManager->updateNextRequestTime(pnode->GetId(), timeout);
-            }
+                {
+                    // Compute the time at which this requests times out.
+                    auto timeout =
+                        std::chrono::steady_clock::now() + queryTimeoutDuration;
+                    // Register the query.
+                    queries.getWriteView()->insert(
+                        {pnode->GetId(), current_round, timeout, invs});
+                    // Set the timeout.
+                    peerManager->updateNextRequestTime(pnode->GetId(), timeout);
+                }
 
-            pnode->m_avalanche_state->invsPolled(invs.size());
+                pnode->m_avalanche_state->invsPolled(invs.size());
 
-            // Send the query to the node.
-            connman->PushMessage(
-                pnode, CNetMsgMaker(pnode->GetCommonVersion())
-                           .Make(NetMsgType::AVAPOLL,
-                                 Poll(current_round, std::move(invs))));
-            return true;
-        });
+                // Send the query to the node.
+                connman->PushMessage(
+                    pnode, CNetMsgMaker(pnode->GetCommonVersion())
+                               .Make(NetMsgType::AVAPOLL,
+                                     Poll(current_round, std::move(invs))));
+                return true;
+            });
 
         // Success!
         if (hasSent) {
             return;
         }
 
-        {
-            // This node is obsolete, delete it.
-            LOCK(cs_peerManager);
-            peerManager->removeNode(nodeid);
-        }
+        // This node is obsolete, delete it.
+        peerManager->removeNode(nodeid);
 
         // Get next suitable node to try again
-        nodeid = getSuitableNodeToQuery();
+        nodeid = peerManager->selectNode();
     } while (nodeid != NO_NODE);
 }
 
@@ -907,11 +907,6 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     });
 
     return invs;
-}
-
-NodeId Processor::getSuitableNodeToQuery() {
-    LOCK(cs_peerManager);
-    return peerManager->selectNode();
 }
 
 uint256 Processor::buildLocalSighash(CNode *pfrom) const {

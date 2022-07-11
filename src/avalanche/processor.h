@@ -250,7 +250,6 @@ private:
     void runEventLoop();
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
-    NodeId getSuitableNodeToQuery();
 
     /**
      * Build and return the challenge whose signature is included in the

@@ -42,7 +42,8 @@ namespace {
         }
 
         static NodeId getSuitableNodeToQuery(Processor &p) {
-            return p.getSuitableNodeToQuery();
+            return WITH_LOCK(p.cs_peerManager,
+                             return p.peerManager->selectNode());
         }
 
         static uint64_t getRound(const Processor &p) { return p.round; }
