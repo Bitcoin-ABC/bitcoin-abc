@@ -34,6 +34,11 @@ struct ConnmanTestMsg : public CConnman {
         m_nodes.clear();
     }
 
+    void Handshake(CNode &node, bool successfully_connected,
+                   ServiceFlags remote_services,
+                   NetPermissionFlags permission_flags, int32_t version,
+                   bool relay_txs);
+
     void ProcessMessagesOnce(CNode &node) {
         for (auto interface : m_msgproc) {
             interface->ProcessMessages(*config, &node, flagInterruptMsgProc);

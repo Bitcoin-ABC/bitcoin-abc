@@ -14,6 +14,7 @@
 #include <script/signingprovider.h>
 #include <script/standard.h>
 #include <serialize.h>
+#include <timedata.h>
 #include <txorphanage.h>
 #include <util/system.h>
 #include <util/time.h>
@@ -65,13 +66,10 @@ BOOST_FIXTURE_TEST_SUITE(denialofservice_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     const Config &config = GetConfig();
 
-    auto connman =
-        std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
+    ConnmanTestMsg &connman = static_cast<ConnmanTestMsg &>(*m_node.connman);
     // Disable inactivity checks for this test to avoid interference
-    static_cast<ConnmanTestMsg *>(connman.get())->SetPeerConnectTimeout(99999s);
-    auto peerLogic =
-        PeerManager::make(*connman, *m_node.addrman, nullptr, *m_node.chainman,
-                          *m_node.mempool, false);
+    connman.SetPeerConnectTimeout(99999s);
+    PeerManager &peerman = *m_node.peerman;
 
     // Mock an outbound peer
     CAddress addr1(ip(0xa0b0c001), NODE_NONE);
@@ -80,11 +78,15 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
                      /* nLocalExtraEntropyIn */ 0, CAddress(), /* pszDest */ "",
                      ConnectionType::OUTBOUND_FULL_RELAY,
                      /* inbound_onion */ false);
-    dummyNode1.SetCommonVersion(PROTOCOL_VERSION);
 
-    peerLogic->InitializeNode(config, dummyNode1,
-                              dummyNode1.GetLocalServices());
-    dummyNode1.fSuccessfullyConnected = true;
+    connman.Handshake(
+        /*node=*/dummyNode1,
+        /*successfully_connected=*/true,
+        /*remote_services=*/ServiceFlags(NODE_NETWORK),
+        /*permission_flags=*/NetPermissionFlags::None,
+        /*version=*/PROTOCOL_VERSION,
+        /*relay_txs=*/true);
+    TestOnlyResetTimeData();
 
     // This test requires that we have a chain with non-zero work.
     {
@@ -97,7 +99,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     {
         LOCK(dummyNode1.cs_sendProcessing);
         // should result in getheaders
-        BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode1));
+        BOOST_CHECK(peerman.SendMessages(config, &dummyNode1));
     }
     {
         LOCK(dummyNode1.cs_vSend);
@@ -111,7 +113,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     {
         LOCK(dummyNode1.cs_sendProcessing);
         // should result in getheaders
-        BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode1));
+        BOOST_CHECK(peerman.SendMessages(config, &dummyNode1));
     }
     {
         LOCK(dummyNode1.cs_vSend);
@@ -122,12 +124,12 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     {
         LOCK(dummyNode1.cs_sendProcessing);
         // should result in disconnect
-        BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode1));
+        BOOST_CHECK(peerman.SendMessages(config, &dummyNode1));
     }
     BOOST_CHECK(dummyNode1.fDisconnect == true);
     SetMockTime(0);
 
-    peerLogic->FinalizeNode(config, dummyNode1);
+    peerman.FinalizeNode(config, dummyNode1);
 }
 
 static void AddRandomOutboundPeer(const Config &config,
