@@ -328,7 +328,9 @@ TestChain100Setup::CreateBlock(const std::vector<CMutableTransaction> &txns,
                   return txa->GetId() < txb->GetId();
               });
 
-    createCoinbaseAndMerkleRoot(&block, m_node.chainman->ActiveTip(),
+    createCoinbaseAndMerkleRoot(&block,
+                                WITH_LOCK(m_node.chainman->GetMutex(),
+                                          return m_node.chainman->ActiveTip()),
                                 config.GetMaxBlockSize());
 
     const Consensus::Params &params = config.GetChainParams().GetConsensus();

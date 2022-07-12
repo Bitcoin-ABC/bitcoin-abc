@@ -635,9 +635,11 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     // Make the proof immature by reorging to a shorter chain
     {
         BlockValidationState state;
-        chainman.ActiveChainstate().InvalidateBlock(GetConfig(), state,
-                                                    chainman.ActiveTip());
-        BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 99);
+        chainman.ActiveChainstate().InvalidateBlock(
+            GetConfig(), state,
+            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
+        BOOST_CHECK_EQUAL(
+            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveHeight()), 99);
     }
 
     pm.updatedBlockTip();
@@ -658,6 +660,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
         BlockValidationState state;
         BOOST_CHECK(
             chainman.ActiveChainstate().ActivateBestChain(GetConfig(), state));
+        LOCK(chainman.GetMutex());
         BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 100);
     }
 
@@ -1087,9 +1090,11 @@ BOOST_AUTO_TEST_CASE(conflicting_immature_proofs) {
     // Reorg to a shorter chain to make proof30 immature
     {
         BlockValidationState state;
-        active_chainstate.InvalidateBlock(GetConfig(), state,
-                                          chainman.ActiveTip());
-        BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 99);
+        active_chainstate.InvalidateBlock(
+            GetConfig(), state,
+            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
+        BOOST_CHECK_EQUAL(
+            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveHeight()), 99);
     }
 
     // Check that a rescan will also select the preferred immature proof, in
@@ -2056,7 +2061,9 @@ BOOST_AUTO_TEST_CASE(proof_expiry) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
-    const int64_t tipTime = chainman.ActiveTip()->GetBlockTime();
+    const int64_t tipTime =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
+            ->GetBlockTime();
 
     CKey key = CKey::MakeCompressedKey();
 
@@ -2080,8 +2087,10 @@ BOOST_AUTO_TEST_CASE(proof_expiry) {
         SetMockTime(proofToExpire->getExpirationTime() + i);
         CreateAndProcessBlock({}, CScript());
     }
-    BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetMedianTimePast(),
-                      proofToExpire->getExpirationTime());
+    BOOST_CHECK_EQUAL(
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
+            ->GetMedianTimePast(),
+        proofToExpire->getExpirationTime());
 
     pm.updatedBlockTip();
 

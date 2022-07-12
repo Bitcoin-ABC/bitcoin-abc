@@ -486,7 +486,9 @@ Response next(Response &r) {
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(item_reconcile_twice, P, VoteItemProviders) {
     P provider(this);
-    const CBlockIndex *chaintip = Assert(m_node.chainman)->ActiveTip();
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const CBlockIndex *chaintip =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
 
     auto item = provider.buildVoteItem();
     auto itemid = provider.getVoteItemId(item);
@@ -1508,7 +1510,9 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     BOOST_CHECK(!m_processor->isQuorumEstablished());
 
     // Add the rest of the stake, but we are still lacking connected stake
-    const int64_t tipTime = chainman.ActiveTip()->GetBlockTime();
+    const int64_t tipTime =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
+            ->GetBlockTime();
     const COutPoint utxo{TxId(GetRandHash()), 0};
     const Amount amount = (int64_t(minScore / 4) * COIN) / 100;
     const int height = 100;
@@ -1582,8 +1586,10 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
         SetMockTime(proof2->getExpirationTime() + i);
         CreateAndProcessBlock({}, CScript());
     }
-    BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetMedianTimePast(),
-                      proof2->getExpirationTime());
+    BOOST_CHECK_EQUAL(
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
+            ->GetMedianTimePast(),
+        proof2->getExpirationTime());
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
         pm.updatedBlockTip();
         BOOST_CHECK(!pm.exists(proof2->getId()));

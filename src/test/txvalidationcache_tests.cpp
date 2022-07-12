@@ -233,9 +233,9 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup) {
     // Spend the funding transaction by mining it into a block
     {
         CBlock block = CreateAndProcessBlock({funding_tx}, p2pk_scriptPubKey);
+        LOCK(cs_main);
         BOOST_CHECK(m_node.chainman->ActiveTip()->GetBlockHash() ==
                     block.GetHash());
-        LOCK(cs_main);
         BOOST_CHECK(
             m_node.chainman->ActiveChainstate().CoinsTip().GetBestBlock() ==
             block.GetHash());

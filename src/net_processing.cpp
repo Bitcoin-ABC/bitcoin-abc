@@ -4080,6 +4080,7 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         if (best_block) {
+            LOCK(m_chainman.GetMutex());
             m_connman.PushMessage(
                 &pfrom, msgMaker.Make(NetMsgType::GETHEADERS,
                                       m_chainman.ActiveChain().GetLocator(

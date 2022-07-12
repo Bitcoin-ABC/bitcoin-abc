@@ -208,7 +208,8 @@ static void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
 
     CBlock *pblock = &pblocktemplate->block;
 
-    CBlockIndex *active_chain_tip = chainman.ActiveTip();
+    CBlockIndex *active_chain_tip =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
     createCoinbaseAndMerkleRoot(pblock, active_chain_tip,
                                 config.GetMaxBlockSize());
 

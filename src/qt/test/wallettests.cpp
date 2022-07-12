@@ -123,6 +123,7 @@ void TestGUI(interfaces::Node &node) {
 
     bool firstRun;
     wallet->LoadWallet(firstRun);
+    ChainstateManager &chainman = *Assert(node.context()->chainman);
     {
         auto spk_man = wallet->GetOrCreateLegacyScriptPubKeyMan();
         LOCK2(wallet->cs_wallet, spk_man->cs_KeyStore);
@@ -132,7 +133,8 @@ void TestGUI(interfaces::Node &node) {
             "", "receive");
         spk_man->AddKeyPubKey(test.coinbaseKey, test.coinbaseKey.GetPubKey());
         wallet->SetLastBlockProcessed(
-            105, node.context()->chainman->ActiveTip()->GetBlockHash());
+            105, WITH_LOCK(chainman.GetMutex(),
+                           return chainman.ActiveTip()->GetBlockHash()));
     }
     {
         WalletRescanReserver reserver(*wallet);
@@ -142,7 +144,8 @@ void TestGUI(interfaces::Node &node) {
             {} /* max height */, reserver, true /* fUpdate */);
         QCOMPARE(result.status, CWallet::ScanResult::SUCCESS);
         QCOMPARE(result.last_scanned_block,
-                 node.context()->chainman->ActiveTip()->GetBlockHash());
+                 WITH_LOCK(chainman.GetMutex(),
+                           return chainman.ActiveTip()->GetBlockHash()));
         QVERIFY(result.last_failed_block.IsNull());
     }
     wallet->SetBroadcastTransactions(true);

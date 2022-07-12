@@ -39,8 +39,10 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
     const CChainParams &params = GetConfig().GetChainParams();
 
     // Read 100 existing coinbase txs
+    auto active_tip =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
     for (int32_t height = 0; height < 100; ++height) {
-        CBlockIndex *pindex = chainman.ActiveTip()->GetAncestor(height);
+        CBlockIndex *pindex = active_tip->GetAncestor(height);
         CBlock block;
         BOOST_CHECK(
             node::ReadBlockFromDisk(block, pindex, params.GetConsensus()));
@@ -62,9 +64,10 @@ BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
                       CScript() << OP_RETURN << std::vector<uint8_t>(100))};
     CBlock testBlock = CreateAndProcessBlock({tx}, CScript() << OP_1,
                                              &chainman.ActiveChainstate());
-    BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetBlockHash(),
-                      testBlock.GetHash());
-    CBlockIndex *ptest = chainman.ActiveTip();
+
+    CBlockIndex *ptest =
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
+    BOOST_CHECK_EQUAL(ptest->GetBlockHash(), testBlock.GetHash());
 
     // Check coinbase tx
     CheckReadTx(WITH_LOCK(cs_main, return FlatFilePos(ptest->nFile,

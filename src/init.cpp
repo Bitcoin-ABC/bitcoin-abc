@@ -2623,7 +2623,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
     boost::signals2::connection block_notify_genesis_wait_connection;
-    if (chainman.ActiveTip() == nullptr) {
+    if (WITH_LOCK(chainman.GetMutex(),
+                  return chainman.ActiveChain().Tip() == nullptr)) {
         block_notify_genesis_wait_connection =
             uiInterface.NotifyBlockTip_connect(
                 std::bind(BlockNotifyGenesisWait, std::placeholders::_2));
@@ -2865,12 +2866,13 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // At this point, the RPC is "started", but still in warmup, which means it
     // cannot yet be called. Before we make it callable, we need to make sure
     // that the RPC's view of the best block is valid and consistent with
-    // ChainstateManager's ActiveTip.
+    // ChainstateManager's active tip.
     //
     // If we do not do this, RPC's view of the best block will be height=0 and
     // hash=0x0. This will lead to erroroneous responses for things like
     // waitforblockheight.
-    RPCNotifyBlockChange(chainman.ActiveTip());
+    RPCNotifyBlockChange(
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
     SetRPCWarmupFinished();
 
     uiInterface.InitMessage(_("Done loading").translated);

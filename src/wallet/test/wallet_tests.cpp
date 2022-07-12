@@ -82,19 +82,23 @@ static void AddKey(CWallet &wallet, const CKey &key) {
 }
 
 BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     // Cap last block file size, and mine new block in a new block file.
-    CBlockIndex *oldTip = m_node.chainman->ActiveTip();
+    CBlockIndex *oldTip = WITH_LOCK(
+        chainman.GetMutex(), return m_node.chainman->ActiveChain().Tip());
     WITH_LOCK(::cs_main, m_node.chainman->m_blockman
                              .GetBlockFileInfo(oldTip->GetBlockPos().nFile)
                              ->nSize = MAX_BLOCKFILE_SIZE);
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
-    CBlockIndex *newTip = m_node.chainman->ActiveTip();
+    CBlockIndex *newTip = WITH_LOCK(
+        chainman.GetMutex(), return m_node.chainman->ActiveChain().Tip());
 
     // Verify ScanForWalletTransactions fails to read an unknown start block.
     {
         CWallet wallet(m_node.chain.get(), "", CreateDummyWalletDatabase());
         {
             LOCK(wallet.cs_wallet);
+            LOCK(chainman.GetMutex());
             wallet.SetLastBlockProcessed(
                 m_node.chainman->ActiveHeight(),
                 m_node.chainman->ActiveTip()->GetBlockHash());
@@ -118,6 +122,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
         CWallet wallet(m_node.chain.get(), "", CreateDummyWalletDatabase());
         {
             LOCK(wallet.cs_wallet);
+            LOCK(chainman.GetMutex());
             wallet.SetLastBlockProcessed(
                 m_node.chainman->ActiveHeight(),
                 m_node.chainman->ActiveTip()->GetBlockHash());
@@ -150,6 +155,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
         CWallet wallet(m_node.chain.get(), "", CreateDummyWalletDatabase());
         {
             LOCK(wallet.cs_wallet);
+            LOCK(chainman.GetMutex());
             wallet.SetLastBlockProcessed(
                 m_node.chainman->ActiveHeight(),
                 m_node.chainman->ActiveTip()->GetBlockHash());
@@ -180,6 +186,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
         CWallet wallet(m_node.chain.get(), "", CreateDummyWalletDatabase());
         {
             LOCK(wallet.cs_wallet);
+            LOCK(chainman.GetMutex());
             wallet.SetLastBlockProcessed(
                 m_node.chainman->ActiveHeight(),
                 m_node.chainman->ActiveTip()->GetBlockHash());
@@ -199,20 +206,23 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     // Cap last block file size, and mine new block in a new block file.
-    CBlockIndex *oldTip = m_node.chainman->ActiveTip();
+    CBlockIndex *oldTip = WITH_LOCK(
+        chainman.GetMutex(), return m_node.chainman->ActiveChain().Tip());
     WITH_LOCK(::cs_main, m_node.chainman->m_blockman
                              .GetBlockFileInfo(oldTip->GetBlockPos().nFile)
                              ->nSize = MAX_BLOCKFILE_SIZE);
     CreateAndProcessBlock({}, GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
-    CBlockIndex *newTip = m_node.chainman->ActiveTip();
+    CBlockIndex *newTip = WITH_LOCK(
+        chainman.GetMutex(), return m_node.chainman->ActiveChain().Tip());
 
     // Prune the older block file.
     int file_number;
     {
         LOCK(cs_main);
         file_number = oldTip->GetBlockPos().nFile;
-        Assert(m_node.chainman)->m_blockman.PruneOneBlockFile(file_number);
+        chainman.m_blockman.PruneOneBlockFile(file_number);
     }
     UnlinkPrunedFiles({file_number});
 
@@ -274,10 +284,12 @@ BOOST_FIXTURE_TEST_CASE(importmulti_rescan, TestChain100Setup) {
 // importwallet RPC would start the scan at the latest block with timestamp less
 // than or equal to key birthday.
 BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     // Create two blocks with same timestamp to verify that importwallet rescan
     // will pick up both blocks, not just the first.
     const int64_t BLOCK_TIME =
-        m_node.chainman->ActiveTip()->GetBlockTimeMax() + 5;
+        WITH_LOCK(chainman.GetMutex(),
+                  return chainman.ActiveTip()->GetBlockTimeMax() + 5);
     SetMockTime(BLOCK_TIME);
     m_coinbase_txns.emplace_back(
         CreateAndProcessBlock({},
@@ -312,9 +324,9 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
             spk_man->AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
 
             AddWallet(wallet);
-            wallet->SetLastBlockProcessed(
-                m_node.chainman->ActiveHeight(),
-                m_node.chainman->ActiveTip()->GetBlockHash());
+            LOCK(chainman.GetMutex());
+            wallet->SetLastBlockProcessed(chainman.ActiveHeight(),
+                                          chainman.ActiveTip()->GetBlockHash());
         }
         JSONRPCRequest request;
         request.params.setArray();
@@ -335,9 +347,11 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
         request.params.setArray();
         request.params.push_back(backup_file);
         AddWallet(wallet);
-        wallet->SetLastBlockProcessed(
-            m_node.chainman->ActiveHeight(),
-            m_node.chainman->ActiveTip()->GetBlockHash());
+        {
+            LOCK(chainman.GetMutex());
+            wallet->SetLastBlockProcessed(chainman.ActiveHeight(),
+                                          chainman.ActiveTip()->GetBlockHash());
+        }
         ::importwallet().HandleRequest(GetConfig(), request);
         RemoveWallet(wallet, std::nullopt);
 
@@ -358,17 +372,19 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup) {
 // function. Similar tests probably should be written for the other credit and
 // debit functions.
 BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     CWallet wallet(m_node.chain.get(), "", CreateDummyWalletDatabase());
     auto spk_man = wallet.GetOrCreateLegacyScriptPubKeyMan();
     CWalletTx wtx(m_coinbase_txns.back());
 
     LOCK2(wallet.cs_wallet, spk_man->cs_KeyStore);
-    wallet.SetLastBlockProcessed(m_node.chainman->ActiveHeight(),
-                                 m_node.chainman->ActiveTip()->GetBlockHash());
+    LOCK(chainman.GetMutex());
+    wallet.SetLastBlockProcessed(chainman.ActiveHeight(),
+                                 chainman.ActiveTip()->GetBlockHash());
 
-    CWalletTx::Confirmation confirm(
-        CWalletTx::Status::CONFIRMED, m_node.chainman->ActiveHeight(),
-        m_node.chainman->ActiveTip()->GetBlockHash(), 0);
+    CWalletTx::Confirmation confirm(CWalletTx::Status::CONFIRMED,
+                                    chainman.ActiveHeight(),
+                                    chainman.ActiveTip()->GetBlockHash(), 0);
     wtx.m_confirm = confirm;
 
     // Call GetImmatureCredit() once before adding the key to the wallet to
@@ -540,15 +556,15 @@ BOOST_AUTO_TEST_CASE(WatchOnlyPubKeys) {
 class ListCoinsTestingSetup : public TestChain100Setup {
 public:
     ListCoinsTestingSetup() {
+        ChainstateManager &chainman = *Assert(m_node.chainman);
         CreateAndProcessBlock({},
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
         wallet = std::make_unique<CWallet>(m_node.chain.get(), "",
                                            CreateMockWalletDatabase());
         {
             LOCK2(wallet->cs_wallet, ::cs_main);
-            wallet->SetLastBlockProcessed(
-                m_node.chainman->ActiveHeight(),
-                m_node.chainman->ActiveTip()->GetBlockHash());
+            wallet->SetLastBlockProcessed(chainman.ActiveHeight(),
+                                          chainman.ActiveTip()->GetBlockHash());
         }
         bool firstRun;
         wallet->LoadWallet(firstRun);
@@ -560,16 +576,17 @@ public:
             0 /* start_height */, {} /* max_height */, reserver,
             false /* update */);
         BOOST_CHECK_EQUAL(result.status, CWallet::ScanResult::SUCCESS);
+        LOCK(chainman.GetMutex());
         BOOST_CHECK_EQUAL(result.last_scanned_block,
-                          m_node.chainman->ActiveTip()->GetBlockHash());
-        BOOST_CHECK_EQUAL(*result.last_scanned_height,
-                          m_node.chainman->ActiveHeight());
+                          chainman.ActiveTip()->GetBlockHash());
+        BOOST_CHECK_EQUAL(*result.last_scanned_height, chainman.ActiveHeight());
         BOOST_CHECK(result.last_failed_block.IsNull());
     }
 
     ~ListCoinsTestingSetup() { wallet.reset(); }
 
     CWalletTx &AddTx(CRecipient recipient) {
+        ChainstateManager &chainman = *Assert(m_node.chainman);
         CTransactionRef tx;
         Amount fee;
         int changePos = -1;
@@ -592,14 +609,14 @@ public:
                               GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
 
         LOCK(wallet->cs_wallet);
-        wallet->SetLastBlockProcessed(
-            wallet->GetLastBlockHeight() + 1,
-            m_node.chainman->ActiveTip()->GetBlockHash());
+        LOCK(chainman.GetMutex());
+        wallet->SetLastBlockProcessed(wallet->GetLastBlockHeight() + 1,
+                                      chainman.ActiveTip()->GetBlockHash());
         auto it = wallet->mapWallet.find(tx->GetId());
         BOOST_CHECK(it != wallet->mapWallet.end());
         CWalletTx::Confirmation confirm(
-            CWalletTx::Status::CONFIRMED, m_node.chainman->ActiveHeight(),
-            m_node.chainman->ActiveTip()->GetBlockHash(), 1);
+            CWalletTx::Status::CONFIRMED, chainman.ActiveHeight(),
+            chainman.ActiveTip()->GetBlockHash(), 1);
         it->second.m_confirm = confirm;
         return it->second;
     }

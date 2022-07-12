@@ -131,7 +131,8 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
         checkBlockFinalizedCall(nullptr);
     }
 
-    CBlockIndex *pindex = m_node.chainman->ActiveTip();
+    CBlockIndex *pindex = WITH_LOCK(m_node.chainman->GetMutex(),
+                                    return m_node.chainman->ActiveTip());
     // If pindex is null the following test is pointless
     BOOST_CHECK_NE(pindex, nullptr);
 
@@ -145,7 +146,8 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
 
     // Check calling from AvalancheFinalizedBlock
     Chainstate &activeChainState = m_node.chainman->ActiveChainstate();
-    CBlockIndex *tip = m_node.chainman->ActiveTip();
+    CBlockIndex *tip = WITH_LOCK(m_node.chainman->GetMutex(),
+                                 return m_node.chainman->ActiveTip());
 
     expectedIndex = nullptr;
     BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(expectedIndex));
