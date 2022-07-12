@@ -18,7 +18,11 @@ import {
     checkWalletForTokenInfo,
     isActiveWebsocket,
 } from 'utils/cashMethods';
-import { isValidCashtabSettings, isValidContactList } from 'utils/validation';
+import {
+    isValidCashtabSettings,
+    isValidContactList,
+    parseInvalidSettingsForMigration,
+} from 'utils/validation';
 import localforage from 'localforage';
 import { currency } from 'components/Common/Ticker';
 import isEmpty from 'lodash.isempty';
@@ -1149,9 +1153,21 @@ const useWallet = () => {
             setCashtabSettings(localSettings);
             return localSettings;
         }
-        // if not valid, also set cashtabSettings to default
-        setCashtabSettings(currency.defaultSettings);
-        return currency.defaultSettings;
+        // If a settings object is present but invalid, parse to find and add missing keys
+        let modifiedLocalSettings =
+            parseInvalidSettingsForMigration(localSettings);
+        if (isValidCashtabSettings(modifiedLocalSettings)) {
+            // modifiedLocalSettings placed in local storage
+            localforage.setItem('settings', modifiedLocalSettings);
+            setCashtabSettings(modifiedLocalSettings);
+            // update missing key in local storage without overwriting existing valid settings
+            return modifiedLocalSettings;
+        } else {
+            // if not valid, also set cashtabSettings to default
+            setCashtabSettings(currency.defaultSettings);
+            // Since this is returning default settings based on an error from reading storage, do not overwrite whatever is in storage
+            return currency.defaultSettings;
+        }
     };
 
     const loadContactList = async () => {

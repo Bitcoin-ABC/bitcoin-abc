@@ -20,6 +20,7 @@ import {
     isValidAirdropOutputsArray,
     isValidAirdropExclusionArray,
     isValidContactList,
+    parseInvalidSettingsForMigration,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
 import { fromSmallestDenomination } from 'utils/cashMethods';
@@ -662,4 +663,28 @@ describe('Validation utils', () => {
                 },
             ]),
         ).toBe(false));
+    it('updates an invalid settings object and keeps existing valid settings intact', () =>
+        expect(
+            parseInvalidSettingsForMigration({
+                fiatCurrency: 'gbp',
+            }),
+        ).toStrictEqual({
+            fiatCurrency: 'gbp',
+            sendModal: false,
+        }));
+    it('sets settings object with no exsting valid settings to default values', () =>
+        expect(parseInvalidSettingsForMigration({})).toStrictEqual({
+            fiatCurrency: 'usd',
+            sendModal: false,
+        }));
+    it('does nothing if valid settings object is present in localStorage', () =>
+        expect(
+            parseInvalidSettingsForMigration({
+                fiatCurrency: 'brl',
+                sendModal: true,
+            }),
+        ).toStrictEqual({
+            fiatCurrency: 'brl',
+            sendModal: true,
+        }));
 });
