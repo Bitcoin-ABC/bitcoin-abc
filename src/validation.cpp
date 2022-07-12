@@ -352,8 +352,7 @@ public:
               gArgs.GetArg("-limitdescendantcount", DEFAULT_DESCENDANT_LIMIT)),
           m_limit_descendant_size(gArgs.GetArg("-limitdescendantsize",
                                                DEFAULT_DESCENDANT_SIZE_LIMIT) *
-                                  1000) {
-    }
+                                  1000) {}
 
     // We put the arguments we're handed into a struct, so we can pass them
     // around easier.
@@ -718,7 +717,7 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 
     Workspace workspace(ptx, GetNextBlockScriptFlags(
                                  args.m_config.GetChainParams().GetConsensus(),
-                                 ::ChainActive().Tip()));
+                                 m_active_chainstate.m_chain.Tip()));
 
     if (!PreChecks(args, workspace)) {
         return false;
@@ -4824,7 +4823,6 @@ bool CVerifyDB::VerifyDB(CChainState &chainstate, const Config &config,
                          CCoinsView &coinsview, int nCheckLevel,
                          int nCheckDepth) {
     AssertLockHeld(cs_main);
-
 
     const CChainParams &params = config.GetChainParams();
     const Consensus::Params &consensusParams = params.GetConsensus();

@@ -898,6 +898,8 @@ BOOST_AUTO_TEST_CASE(verify) {
     const Amount value = 12345 * COIN;
     const uint32_t height = 10;
 
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+
     COutPoint pkh_outpoint(TxId(InsecureRand256()), InsecureRand32());
     CTxOut pkh_output(value, GetScriptForRawPubKey(pubkey));
     coins.AddCoin(pkh_outpoint, Coin(pkh_output, height, false), false);
@@ -1029,7 +1031,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
     // Immature stake
     {
-        uint32_t chaintipHeight = ::ChainActive().Height();
+        uint32_t chaintipHeight = chainman.ActiveHeight();
 
         // A proof where the UTXO is both missing and immature gives
         // MISSING_UTXO

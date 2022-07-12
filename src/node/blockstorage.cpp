@@ -201,11 +201,11 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
 
             LOCK(cs_main);
             CBlockIndex *pblockindex =
-                g_chainman.m_blockman.LookupBlockIndex(hash);
+                chainman.m_blockman.LookupBlockIndex(hash);
             if (pblockindex && !pblockindex->nStatus.isValid()) {
                 LogPrintf("Reconsidering checkpointed block %s ...\n",
                           hash.GetHex());
-                ::ChainstateActive().ResetBlockFailureFlags(pblockindex);
+                chainman.ActiveChainstate().ResetBlockFailureFlags(pblockindex);
             }
         }
 

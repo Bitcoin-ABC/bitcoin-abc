@@ -225,7 +225,8 @@ struct BlockProvider {
         const BlockHash blockHash = block.GetHash();
 
         LOCK(cs_main);
-        return g_chainman.m_blockman.LookupBlockIndex(blockHash);
+        return Assert(fixture->m_node.chainman)
+            ->m_blockman.LookupBlockIndex(blockHash);
     }
 
     uint256 getVoteItemId(const CBlockIndex *pindex) const {
@@ -902,7 +903,8 @@ BOOST_AUTO_TEST_CASE(quorum_diversity) {
     const CBlockIndex *pindex;
     {
         LOCK(cs_main);
-        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
+        pindex =
+            Assert(m_node.chainman)->m_blockman.LookupBlockIndex(blockHash);
     }
 
     // Create nodes that supports avalanche.
@@ -965,7 +967,8 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     const CBlockIndex *pindex;
     {
         LOCK(cs_main);
-        pindex = g_chainman.m_blockman.LookupBlockIndex(blockHash);
+        pindex =
+            Assert(m_node.chainman)->m_blockman.LookupBlockIndex(blockHash);
     }
 
     // Starting the event loop.
@@ -1148,7 +1151,8 @@ BOOST_AUTO_TEST_CASE(proof_record) {
         CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
         LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        CCoinsViewCache &coins =
+            Assert(m_node.chainman)->ActiveChainstate().CoinsTip();
         coins.AddCoin(conflictingOutpoint,
                       Coin(CTxOut(10 * COIN, script), 10, false), false);
         coins.AddCoin(immatureOutpoint,
@@ -1232,9 +1236,10 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     gArgs.ForceSetArg("-avaproof", localProof->ToHex());
 
     bilingual_str error;
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     std::unique_ptr<Processor> processor = Processor::MakeProcessor(
-        *m_node.args, *m_node.chain, m_node.connman.get(),
-        *Assert(m_node.chainman), *m_node.scheduler, error);
+        *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
+        *m_node.scheduler, error);
 
     BOOST_CHECK(processor != nullptr);
     BOOST_CHECK(processor->getLocalProof() != nullptr);
@@ -1299,10 +1304,10 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     BOOST_CHECK(processor->isQuorumEstablished());
 
     // Remove peers one at a time and ensure the quorum stays established
-    auto spendProofUtxo = [&processor](ProofRef proof) {
+    auto spendProofUtxo = [&processor, &chainman](ProofRef proof) {
         {
             LOCK(cs_main);
-            CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+            CCoinsViewCache &coins = chainman.ActiveChainstate().CoinsTip();
             coins.SpendCoin(proof->getStakes()[0].getStake().getUTXO());
         }
         processor->withPeerManager([&proof](avalanche::PeerManager &pm) {
