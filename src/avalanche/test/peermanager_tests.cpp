@@ -63,23 +63,23 @@ namespace {
         }
     };
 
-    static void addCoin(const COutPoint &outpoint, const CKey &key,
-                        const Amount amount = 10 * COIN, uint32_t height = 100,
-                        bool is_coinbase = false) {
+    static void addCoin(CChainState &chainstate, const COutPoint &outpoint,
+                        const CKey &key, const Amount amount = 10 * COIN,
+                        uint32_t height = 100, bool is_coinbase = false) {
         CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
         LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        CCoinsViewCache &coins = chainstate.CoinsTip();
         coins.AddCoin(outpoint,
                       Coin(CTxOut(amount, script), height, is_coinbase), false);
     }
 
-    static COutPoint createUtxo(const CKey &key,
+    static COutPoint createUtxo(CChainState &chainstate, const CKey &key,
                                 const Amount amount = 10 * COIN,
                                 uint32_t height = 100,
                                 bool is_coinbase = false) {
         COutPoint outpoint(TxId(GetRandHash()), 0);
-        addCoin(outpoint, key, amount, height, is_coinbase);
+        addCoin(chainstate, outpoint, key, amount, height, is_coinbase);
         return outpoint;
     }
 
@@ -591,7 +591,9 @@ BOOST_AUTO_TEST_CASE(node_binding) {
 
 BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+
+    avalanche::PeerManager pm(chainman);
 
     auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE, 99);
     const ProofId &proofid = proof->getId();
@@ -611,9 +613,9 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     // immature
     {
         BlockValidationState state;
-        ::ChainstateActive().InvalidateBlock(GetConfig(), state,
-                                             ::ChainActive().Tip());
-        BOOST_CHECK_EQUAL(::ChainActive().Height(), 99);
+        chainman.ActiveChainstate().InvalidateBlock(GetConfig(), state,
+                                                    chainman.ActiveTip());
+        BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 99);
     }
 
     pm.updatedBlockTip();
@@ -632,8 +634,9 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
         SetMockTime(GetTime() + 20);
         mineBlocks(1);
         BlockValidationState state;
-        BOOST_CHECK(::ChainstateActive().ActivateBestChain(GetConfig(), state));
-        BOOST_CHECK_EQUAL(::ChainActive().Height(), 100);
+        BOOST_CHECK(
+            chainman.ActiveChainstate().ActivateBestChain(GetConfig(), state));
+        BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 100);
     }
 
     pm.updatedBlockTip();
@@ -659,12 +662,13 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     const Amount v = 10 * COIN;
     const int height = 100;
 
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     for (uint32_t i = 0; i < 10; i++) {
-        addCoin({txid1, i}, key);
-        addCoin({txid2, i}, key);
+        addCoin(chainman.ActiveChainstate(), {txid1, i}, key);
+        addCoin(chainman.ActiveChainstate(), {txid2, i}, key);
     }
 
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
     CKey masterKey = CKey::MakeCompressedKey();
     const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
         return TestPeerManager::registerAndGetPeerId(
@@ -717,8 +721,9 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
 }
 
 BOOST_AUTO_TEST_CASE(orphan_proofs) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
 
     auto key = CKey::MakeCompressedKey();
     int immatureHeight = 100;
@@ -753,7 +758,8 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
         auto proof = buildProofWithOutpoints(key, {outpoint}, i * COIN, key, 0,
                                              immatureHeight);
-        addCoin(outpoint, key, i * COIN, immatureHeight);
+        addCoin(chainman.ActiveChainstate(), outpoint, key, i * COIN,
+                immatureHeight);
         registerOrphan(proof);
         checkOrphan(proof, true);
         orphans.push_back(proof);
@@ -764,7 +770,8 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
         auto proof = buildProofWithOutpoints(key, {outpoint}, 200 * COIN, key,
                                              0, immatureHeight);
-        addCoin(outpoint, key, 200 * COIN, immatureHeight);
+        addCoin(chainman.ActiveChainstate(), outpoint, key, 200 * COIN,
+                immatureHeight);
         registerOrphan(proof);
         checkOrphan(proof, true);
         orphans.push_back(proof);
@@ -883,12 +890,15 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
 }
 
 BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key);
-    const COutPoint outpointToSend = createUtxo(key);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
+    const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
+    const COutPoint outpointToSend = createUtxo(active_chainstate, key);
 
     const Amount amount = 10 * COIN;
 
@@ -897,7 +907,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     BOOST_CHECK(pm.registerProof(proofToInvalidate));
 
     ProofRef conflictingProof = buildProofWithOutpoints(
-        key, {conflictingOutpoint, createUtxo(key)}, amount);
+        key, {conflictingOutpoint, createUtxo(active_chainstate, key)}, amount);
     ProofRegistrationState state;
     BOOST_CHECK(!pm.registerProof(conflictingProof, state));
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::CONFLICTING);
@@ -905,7 +915,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
 
     {
         LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        CCoinsViewCache &coins = active_chainstate.CoinsTip();
         // Make proofToInvalidate invalid
         coins.SpendCoin(outpointToSend);
     }
@@ -925,8 +935,11 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     const uint32_t height = 100;
     const bool is_coinbase = false;
 
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
     // This will be the conflicting UTXO for all the following proofs
-    auto conflictingOutpoint = createUtxo(key, amount);
+    auto conflictingOutpoint = createUtxo(active_chainstate, key, amount);
 
     auto proof_base = buildProofWithSequence(key, {conflictingOutpoint}, 10);
 
@@ -938,7 +951,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
         BOOST_CHECK_EQUAL(comparator(candidate, reference), expectAccepted);
         BOOST_CHECK_EQUAL(comparator(reference, candidate), !expectAccepted);
 
-        avalanche::PeerManager pm(*Assert(m_node.chainman));
+        avalanche::PeerManager pm(chainman);
         BOOST_CHECK(pm.registerProof(reference));
         BOOST_CHECK(pm.isBoundToPeer(reference->getId()));
 
@@ -972,9 +985,10 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
             {conflictingOutpoint, amount}};
         std::transform(amounts.begin(), amounts.end(),
                        std::back_inserter(outpointsWithAmount),
-                       [&key](const Amount amount) {
-                           return std::make_tuple(createUtxo(key, amount),
-                                                  amount);
+                       [&key, &active_chainstate](const Amount amount) {
+                           return std::make_tuple(
+                               createUtxo(active_chainstate, key, amount),
+                               amount);
                        });
         return buildProof(key, outpointsWithAmount, master, 0, height,
                           is_coinbase, 0);
@@ -1008,13 +1022,17 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_orphans) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key);
-    const COutPoint matureOutpoint = createUtxo(key, 10 * COIN, 99);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
+    const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
+    const COutPoint matureOutpoint =
+        createUtxo(active_chainstate, key, 10 * COIN, 99);
 
     auto orphan10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto orphan20 =
@@ -1036,9 +1054,9 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     // Reorg to a shorter chain to orphan proof30
     {
         BlockValidationState state;
-        ::ChainstateActive().InvalidateBlock(GetConfig(), state,
-                                             ::ChainActive().Tip());
-        BOOST_CHECK_EQUAL(::ChainActive().Height(), 99);
+        active_chainstate.InvalidateBlock(GetConfig(), state,
+                                          chainman.ActiveTip());
+        BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 99);
     }
 
     // Check that a rescan will also select the preferred orphan, in this case
@@ -1051,10 +1069,12 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
 }
 
 BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
-    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint conflictingOutpoint =
+        createUtxo(chainman.ActiveChainstate(), key);
 
     auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
@@ -1115,11 +1135,13 @@ BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint conflictingOutpoint =
+        createUtxo(chainman.ActiveChainstate(), key);
 
     auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
@@ -1179,11 +1201,13 @@ BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint conflictingOutpoint =
+        createUtxo(chainman.ActiveChainstate(), key);
 
     auto proofSeq10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
@@ -1209,11 +1233,13 @@ BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
 }
 
 BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key);
+    const COutPoint conflictingOutpoint =
+        createUtxo(chainman.ActiveChainstate(), key);
 
     auto proofSeq20 = buildProofWithSequence(key, {conflictingOutpoint}, 20);
     auto proofSeq30 = buildProofWithSequence(key, {conflictingOutpoint}, 30);
@@ -1277,13 +1303,17 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
 }
 
 BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const COutPoint conflictingOutpoint = createUtxo(key, 10 * COIN, 99);
-    const COutPoint immatureOutpoint = createUtxo(key);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
+    const COutPoint conflictingOutpoint =
+        createUtxo(active_chainstate, key, 10 * COIN, 99);
+    const COutPoint immatureOutpoint = createUtxo(active_chainstate, key);
 
     // The good, the bad and the ugly
     auto proofSeq10 = buildProofWithOutpoints(key, {conflictingOutpoint},
@@ -1429,16 +1459,21 @@ BOOST_AUTO_TEST_CASE(score_ordering) {
 }
 
 BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
     const Amount amount10(10 * COIN);
     const Amount amount20(20 * COIN);
 
-    const COutPoint peer1ConflictingOutput = createUtxo(key, amount10, 99);
-    const COutPoint peer1SecondaryOutpoint = createUtxo(key, amount20, 99);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
+    const COutPoint peer1ConflictingOutput =
+        createUtxo(active_chainstate, key, amount10, 99);
+    const COutPoint peer1SecondaryOutpoint =
+        createUtxo(active_chainstate, key, amount20, 99);
 
     auto peer1Proof1 = buildProof(key,
                                   {{peer1ConflictingOutput, amount10},
@@ -1448,10 +1483,11 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
         buildProof(key, {{peer1ConflictingOutput, amount10}}, key, 20, 99);
 
     // Create a proof with an immature UTXO, so the proof will be orphaned
-    auto peer1Proof3 = buildProof(key,
-                                  {{peer1ConflictingOutput, amount10},
-                                   {createUtxo(key, amount10), amount10}},
-                                  key, 30);
+    auto peer1Proof3 =
+        buildProof(key,
+                   {{peer1ConflictingOutput, amount10},
+                    {createUtxo(active_chainstate, key, amount10), amount10}},
+                   key, 30);
 
     const uint32_t peer1Score1 = Proof::amountToScore(amount10 + amount20);
     const uint32_t peer1Score2 = Proof::amountToScore(amount10);
@@ -1628,7 +1664,8 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
 }
 
 BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
@@ -1652,9 +1689,11 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     CKey key = CKey::MakeCompressedKey();
     const int64_t sequence = 10;
 
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
     // Add some initial proofs
     for (size_t i = 0; i < 10; i++) {
-        auto outpoint = createUtxo(key);
+        auto outpoint = createUtxo(active_chainstate, key);
         auto proof = buildProofWithSequence(key, {{outpoint}}, sequence);
         BOOST_CHECK(pm.registerProof(proof));
         expectedProofs.insert(std::move(proof));
@@ -1670,7 +1709,7 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     ProofSetById addedProofs;
     std::vector<COutPoint> outpointsToSpend;
     for (size_t i = 0; i < 10; i++) {
-        auto outpoint = createUtxo(key);
+        auto outpoint = createUtxo(active_chainstate, key);
         auto proof = buildProofWithSequence(key, {{outpoint}}, sequence);
         BOOST_CHECK(pm.registerProof(proof));
         addedProofs.insert(std::move(proof));
@@ -1687,7 +1726,7 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     // Spend some coins to make the associated proofs invalid
     {
         LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        CCoinsViewCache &coins = active_chainstate.CoinsTip();
         for (const auto &outpoint : outpointsToSpend) {
             coins.SpendCoin(outpoint);
         }
@@ -1709,7 +1748,7 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     std::vector<ProofRef> conflictingProofs;
     std::vector<COutPoint> conflictingOutpoints;
     for (size_t i = 0; i < 10; i++) {
-        auto outpoint = createUtxo(key);
+        auto outpoint = createUtxo(active_chainstate, key);
         auto proof = buildProofWithSequence(key, {{outpoint}}, sequence);
         BOOST_CHECK(pm.registerProof(proof));
         conflictingProofs.push_back(std::move(proof));
@@ -1765,9 +1804,10 @@ BOOST_AUTO_TEST_CASE(received_avaproofs) {
 }
 
 BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
 
     const auto now = GetTime<std::chrono::seconds>();
     auto mocktime = now;
@@ -1786,7 +1826,7 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
     std::vector<ProofRef> proofs(numProofs);
     std::vector<ProofRef> conflictingProofs(numProofs);
     for (size_t i = 0; i < numProofs; i++) {
-        outpoints[i] = createUtxo(key);
+        outpoints[i] = createUtxo(chainman.ActiveChainstate(), key);
         proofs[i] = buildProofWithSequence(key, {outpoints[i]}, 2);
         conflictingProofs[i] = buildProofWithSequence(key, {outpoints[i]}, 1);
 
