@@ -220,6 +220,13 @@ bool PeerManager::registerProof(const ProofRef &proof,
                           "proof-already-registered");
     }
 
+    if (danglingProofIds.contains(proofid) &&
+        pendingNodes.count(proofid) == 0) {
+        // Don't attempt to register a proof that we already evicted because it
+        // was dangling.
+        return invalidate(ProofRegistrationResult::DANGLING, "dangling-proof");
+    }
+
     // Check the proof's validity.
     ProofValidationState validationState;
     if (!WITH_LOCK(cs_main,
@@ -407,18 +414,19 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
 void PeerManager::cleanupDanglingProofs() {
     const auto now = GetTime<std::chrono::seconds>();
 
-    std::vector<ProofId> danglingProofIds;
+    std::vector<ProofId> newlyDanglingProofIds;
     for (const Peer &peer : peers) {
         // If the peer has been registered for some time and has no node
         // attached, discard it.
         if (peer.node_count == 0 &&
             (peer.registration_time + Peer::DANGLING_TIMEOUT) <= now) {
-            danglingProofIds.push_back(peer.getProofId());
+            newlyDanglingProofIds.push_back(peer.getProofId());
         }
     }
 
-    for (const ProofId &proofid : danglingProofIds) {
+    for (const ProofId &proofid : newlyDanglingProofIds) {
         rejectProof(proofid, RejectionMode::INVALIDATE);
+        danglingProofIds.insert(proofid);
     }
 }
 

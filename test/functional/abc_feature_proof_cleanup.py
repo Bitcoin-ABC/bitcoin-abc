@@ -13,8 +13,10 @@ from test_framework.avatools import (
     get_ava_p2p_interface,
     get_proof_ids,
 )
+from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
+from test_framework.wallet_util import bytes_to_wif
 
 # Interval between 2 proof cleanups
 AVALANCHE_CLEANUP_INTERVAL = 5 * 60
@@ -28,6 +30,9 @@ class ProofsCleanupTest(BitcoinTestFramework):
         self.extra_args = [[
             '-enableavalanche=1',
             '-avaproofstakeutxoconfirmations=1',
+            '-enableavalanchepeerdiscovery=1',
+            # Get rid of the getdata delay penalty for inbounds
+            '-whitelist=noban@127.0.0.1',
         ]] * self.num_nodes
 
     def run_test(self):
@@ -37,6 +42,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
         node.setmocktime(mocktime)
 
         proofs = []
+        keys = []
         peers = []
         # The first 5 peers have a node attached
         for _ in range(5):
@@ -49,6 +55,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
                 proof.serialize().hex())
 
             proofs.append(proof)
+            keys.append(key)
             peers.append(peer)
 
         # The last 5 peers have no node attached
@@ -90,6 +97,42 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
         self.wait_until(lambda: get_proof_ids(node) == [])
+
+        self.log.info("Check the cleaned up proofs are no longer accepted...")
+
+        sender = get_ava_p2p_interface(node)
+        for proof in proofs:
+            with node.assert_debug_log(["dangling-proof"]):
+                sender.send_avaproof(proof)
+
+        assert_equal(get_proof_ids(node), [])
+
+        self.log.info("...until there is a node to attach")
+
+        node.disconnect_p2ps()
+        assert_equal(len(node.p2ps), 0)
+
+        avanode = get_ava_p2p_interface(node)
+
+        avanode_key = keys[0]
+        avanode_proof = proofs[0]
+
+        delegated_key = ECKey()
+        delegated_key.generate()
+
+        delegation = node.delegateavalancheproof(
+            f"{avanode_proof.limited_proofid:064x}",
+            bytes_to_wif(avanode_key.get_bytes()),
+            delegated_key.get_pubkey().get_bytes().hex(),
+        )
+
+        avanode.send_avahello(delegation, delegated_key)
+        avanode.sync_with_ping()
+        avanode.wait_until(lambda: avanode.last_message.get(
+            "getdata") and avanode.last_message["getdata"].inv[-1].hash == avanode_proof.proofid)
+
+        avanode.send_avaproof(avanode_proof)
+        self.wait_until(lambda: avanode_proof.proofid in get_proof_ids(node))
 
 
 if __name__ == '__main__':

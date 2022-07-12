@@ -9,6 +9,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
 #include <avalanche/proofradixtreeadapter.h>
+#include <bloom.h>
 #include <coins.h>
 #include <consensus/validation.h>
 #include <pubkey.h>
@@ -140,6 +141,7 @@ enum class ProofRegistrationResult {
     CONFLICTING,
     REJECTED,
     COOLDOWN_NOT_ELAPSED,
+    DANGLING,
 };
 
 class ProofRegistrationState : public ValidationState<ProofRegistrationResult> {
@@ -218,6 +220,15 @@ class PeerManager {
      * Track proof ids to broadcast
      */
     std::unordered_set<ProofId, SaltedProofIdHasher> m_unbroadcast_proofids;
+
+    /**
+     * Remember the last proofs that have been evicted because they had no node
+     * attached.
+     * A false positive would cause the proof to fail to register if there is
+     * no previously known node that is claiming it, which is acceptable
+     * intended the low expected false positive rate.
+     */
+    CRollingBloomFilter danglingProofIds{10000, 0.00001};
 
     /**
      * Quorum management.
