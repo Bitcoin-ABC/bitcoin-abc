@@ -654,6 +654,7 @@ add_library(server
 	node/coinstats.cpp
 	node/context.cpp
 	node/interfaces.cpp
+	node/mempool_persist_args.cpp
 	node/miner.cpp
 	node/psbt.cpp
 	node/transaction.cpp

@@ -44,6 +44,7 @@
 #include <node/caches.h>
 #include <node/chainstate.h>
 #include <node/context.h>
+#include <node/mempool_persist_args.h>
 #include <node/miner.h>
 #include <node/ui_interface.h>
 #include <policy/policy.h>
@@ -109,8 +110,10 @@ using node::DEFAULT_STOPAFTERBLOCKIMPORT;
 using node::fPruneMode;
 using node::fReindex;
 using node::LoadChainstate;
+using node::MempoolPath;
 using node::NodeContext;
 using node::nPruneTarget;
+using node::ShouldPersistMempool;
 using node::ThreadImport;
 using node::VerifyLoadedChainstate;
 
@@ -270,8 +273,8 @@ void Shutdown(NodeContext &node) {
     node.addrman.reset();
 
     if (node.mempool && node.mempool->IsLoaded() &&
-        node.args->GetBoolArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
-        DumpMempool(*node.mempool);
+        ShouldPersistMempool(*node.args)) {
+        DumpMempool(*node.mempool, MempoolPath(*node.args));
     }
 
     // FlushStateToDisk generates a ChainStateFlushed callback, which we should

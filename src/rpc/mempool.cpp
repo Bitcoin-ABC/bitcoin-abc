@@ -6,6 +6,7 @@
 #include <core_io.h>
 #include <fs.h>
 #include <node/context.h>
+#include <node/mempool_persist_args.h>
 #include <policy/settings.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
@@ -15,7 +16,9 @@
 #include <univalue.h>
 #include <validation.h>
 
+using node::MempoolPath;
 using node::NodeContext;
+using node::ShouldPersistMempool;
 
 static std::vector<RPCResult> MempoolEntryDescription() {
     const auto &ticker = Currency::get().ticker;
@@ -461,15 +464,15 @@ RPCHelpMan savemempool() {
                                    "The mempool was not loaded yet");
             }
 
-            if (!DumpMempool(mempool)) {
+            const fs::path &dump_path = MempoolPath(args);
+
+            if (!DumpMempool(mempool, dump_path)) {
                 throw JSONRPCError(RPC_MISC_ERROR,
                                    "Unable to dump mempool to disk");
             }
 
             UniValue ret(UniValue::VOBJ);
-            ret.pushKV(
-                "filename",
-                fs::path((args.GetDataDirNet() / "mempool.dat")).u8string());
+            ret.pushKV("filename", dump_path.u8string());
 
             return ret;
         },

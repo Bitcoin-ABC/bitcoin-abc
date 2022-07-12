@@ -1500,7 +1500,7 @@ public:
 using FopenFn = std::function<FILE *(const fs::path &, const char *)>;
 
 /** Dump the mempool to disk. */
-bool DumpMempool(const CTxMemPool &pool,
+bool DumpMempool(const CTxMemPool &pool, const fs::path &dump_path,
                  FopenFn mockable_fopen_function = fsbridge::fopen,
                  bool skip_file_commit = false);
 
