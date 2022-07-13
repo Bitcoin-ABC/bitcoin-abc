@@ -34,6 +34,7 @@ import {
 } from 'react-router-dom';
 // Extension-only import used for open in new tab link
 import PopOut from 'assets/popout.svg';
+
 const GlobalStyle = createGlobalStyle`    
     *::placeholder {
         color: ${props => props.theme.forms.placeholder} !important;
@@ -264,76 +265,46 @@ const App = () => {
                                     <Home />
                                 </Route>
                                 <Route path="/receive">
-                                    {wallet ? (
-                                        <Receive
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    ) : (
-                                        <Redirect to="/wallet" />
-                                    )}
+                                    <Receive
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
                                 </Route>
-
                                 <Route path="/tokens">
-                                    {wallet ? (
-                                        <Tokens
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    ) : (
-                                        <Redirect to="/wallet" />
-                                    )}
+                                    <Tokens
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
                                 </Route>
                                 <Route path="/send">
-                                    {wallet ? (
-                                        <Send
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    ) : (
-                                        <Redirect to="/wallet" />
-                                    )}
+                                    <Send
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
                                 </Route>
                                 <Route
                                     path="/send-token/:tokenId"
                                     render={props => (
-                                        <>
-                                            {wallet ? (
-                                                <SendToken
-                                                    tokenId={
-                                                        props.match.params
-                                                            .tokenId
-                                                    }
-                                                    passLoadingStatus={
-                                                        setLoadingUtxosAfterSend
-                                                    }
-                                                />
-                                            ) : (
-                                                <Redirect to="/wallet" />
-                                            )}
-                                        </>
-                                    )}
-                                />
-                                <Route path="/airdrop">
-                                    {wallet ? (
-                                        <Airdrop
+                                        <SendToken
+                                            tokenId={props.match.params.tokenId}
                                             passLoadingStatus={
                                                 setLoadingUtxosAfterSend
                                             }
                                         />
-                                    ) : (
-                                        <Redirect to="/wallet" />
                                     )}
+                                />
+                                <Route path="/airdrop">
+                                    <Airdrop
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
                                 </Route>
                                 <Route path="/configure">
-                                    {wallet ? (
-                                        <Configure />
-                                    ) : (
-                                        <Redirect to="/wallet" />
-                                    )}
+                                    <Configure />
                                 </Route>
                                 <Redirect exact from="/" to="/wallet" />
                                 <Route component={NotFound} />
