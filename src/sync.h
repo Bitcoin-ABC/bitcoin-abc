@@ -112,7 +112,7 @@ public:
         return PARENT::try_lock();
     }
 
-    using UniqueLock = std::unique_lock<PARENT>;
+    using unique_lock = std::unique_lock<PARENT>;
 #ifdef __clang__
     //! For negative capabilities in the Clang Thread Safety Analysis.
     //! A negative requirement uses the EXCLUSIVE_LOCKS_REQUIRED attribute, in
@@ -163,10 +163,12 @@ inline void AssertLockNotHeldInline(const char *name, const char *file,
 #define AssertLockNotHeld(cs)                                                  \
     AssertLockNotHeldInline(#cs, __FILE__, __LINE__, &cs)
 
-/** Wrapper around std::unique_lock style lock for Mutex. */
-template <typename Mutex, typename Base = typename Mutex::UniqueLock>
-class SCOPED_LOCKABLE UniqueLock : public Base {
+/** Wrapper around std::unique_lock style lock for MutexType. */
+template <typename MutexType>
+class SCOPED_LOCKABLE UniqueLock : public MutexType::unique_lock {
 private:
+    using Base = typename MutexType::unique_lock;
+
     void Enter(const char *pszName, const char *pszFile, int nLine) {
         EnterCritical(pszName, pszFile, nLine, Base::mutex());
 #ifdef DEBUG_LOCKCONTENTION
@@ -190,7 +192,7 @@ private:
     }
 
 public:
-    UniqueLock(Mutex &mutexIn, const char *pszName, const char *pszFile,
+    UniqueLock(MutexType &mutexIn, const char *pszName, const char *pszFile,
                int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(mutexIn)
         : Base(mutexIn, std::defer_lock) {
         if (fTry) {
@@ -200,7 +202,7 @@ public:
         }
     }
 
-    UniqueLock(Mutex *pmutexIn, const char *pszName, const char *pszFile,
+    UniqueLock(MutexType *pmutexIn, const char *pszName, const char *pszFile,
                int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn) {
         if (!pmutexIn) {
             return;
@@ -266,10 +268,6 @@ public:
     typename std::decay<decltype(g)>::type::reverse_lock UNIQUE_LOG_NAME(      \
         revlock)(g, #g, __FILE__, __LINE__)
 
-template <typename MutexArg>
-using DebugLock = UniqueLock<typename std::remove_reference<
-    typename std::remove_pointer<MutexArg>::type>::type>;
-
 // When locking a Mutex, require negative capability to ensure the lock
 // is not already held
 inline Mutex &MaybeCheckNotHeld(Mutex &cs) EXCLUSIVE_LOCKS_REQUIRED(!cs)
@@ -281,41 +279,30 @@ inline Mutex *MaybeCheckNotHeld(Mutex *cs) EXCLUSIVE_LOCKS_REQUIRED(!cs)
     return cs;
 }
 
-// When locking a GlobalMutex, just check it is not locked in the surrounding
-// scope
-inline GlobalMutex &MaybeCheckNotHeld(GlobalMutex &cs) LOCKS_EXCLUDED(cs)
-    LOCK_RETURNED(cs) {
-    return cs;
+// When locking a GlobalMutex or RecursiveMutex, just check it is not
+// locked in the surrounding scope.
+template <typename MutexType>
+inline MutexType &MaybeCheckNotHeld(MutexType &m) LOCKS_EXCLUDED(m)
+    LOCK_RETURNED(m) {
+    return m;
 }
-inline GlobalMutex *MaybeCheckNotHeld(GlobalMutex *cs) LOCKS_EXCLUDED(cs)
-    LOCK_RETURNED(cs) {
-    return cs;
-}
-
-// When locking a RecursiveMutex, it's okay to already hold the lock
-// but check that it is not known to be locked in the surrounding scope anyway
-inline RecursiveMutex &MaybeCheckNotHeld(RecursiveMutex &cs) LOCKS_EXCLUDED(cs)
-    LOCK_RETURNED(cs) {
-    return cs;
-}
-inline RecursiveMutex *MaybeCheckNotHeld(RecursiveMutex *cs) LOCKS_EXCLUDED(cs)
-    LOCK_RETURNED(cs) {
-    return cs;
+template <typename MutexType>
+inline MutexType *MaybeCheckNotHeld(MutexType *m) LOCKS_EXCLUDED(m)
+    LOCK_RETURNED(m) {
+    return m;
 }
 
 #define LOCK(cs)                                                               \
-    DebugLock<decltype(cs)> UNIQUE_LOG_NAME(criticalblock)(                    \
-        MaybeCheckNotHeld(cs), #cs, __FILE__, __LINE__)
+    UniqueLock UNIQUE_LOG_NAME(criticalblock)(MaybeCheckNotHeld(cs), #cs,      \
+                                              __FILE__, __LINE__)
 #define LOCK2(cs1, cs2)                                                        \
-    DebugLock<decltype(cs1)> criticalblock1(MaybeCheckNotHeld(cs1), #cs1,      \
-                                            __FILE__, __LINE__);               \
-    DebugLock<decltype(cs2)> criticalblock2(MaybeCheckNotHeld(cs2), #cs2,      \
-                                            __FILE__, __LINE__);
+    UniqueLock criticalblock1(MaybeCheckNotHeld(cs1), #cs1, __FILE__,          \
+                              __LINE__);                                       \
+    UniqueLock criticalblock2(MaybeCheckNotHeld(cs2), #cs2, __FILE__, __LINE__)
 #define TRY_LOCK(cs, name)                                                     \
-    DebugLock<decltype(cs)> name(MaybeCheckNotHeld(cs), #cs, __FILE__,         \
-                                 __LINE__, true)
+    UniqueLock name(MaybeCheckNotHeld(cs), #cs, __FILE__, __LINE__, true)
 #define WAIT_LOCK(cs, name)                                                    \
-    DebugLock<decltype(cs)> name(MaybeCheckNotHeld(cs), #cs, __FILE__, __LINE__)
+    UniqueLock name(MaybeCheckNotHeld(cs), #cs, __FILE__, __LINE__)
 
 #define ENTER_CRITICAL_SECTION(cs)                                             \
     {                                                                          \
