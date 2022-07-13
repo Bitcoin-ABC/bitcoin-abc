@@ -55,15 +55,18 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
         BOOST_CHECK_EQUAL(cpr.getKeys().second, cpw.getKeys().second);
     }
 
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
+
     {
         // Check index boundaries
         CompactProofs cp;
 
         TestCompactProofs::addPrefilledProof(
-            cp, 0, buildRandomProof(MIN_VALID_PROOF_SCORE));
+            cp, 0, buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
         TestCompactProofs::addPrefilledProof(
             cp, std::numeric_limits<uint32_t>::max(),
-            buildRandomProof(MIN_VALID_PROOF_SCORE));
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
 
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         BOOST_CHECK_NO_THROW(ss << cp);
@@ -80,7 +83,8 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
                                  size_t numofPrefilledProof) {
         RadixTree<const Proof, ProofRadixTreeAdapter> proofs;
         for (size_t i = 0; i < numofProof; i++) {
-            BOOST_CHECK(proofs.insert(buildRandomProof(MIN_VALID_PROOF_SCORE)));
+            BOOST_CHECK(proofs.insert(
+                buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE)));
         }
 
         CompactProofs cpw(proofs);
@@ -91,6 +95,7 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
             TestCompactProofs::addPrefilledProof(
                 cpw, prefilledProofIndex++,
                 buildRandomProof(
+                    active_chainstate,
                     GetRand(std::numeric_limits<uint32_t>::max())));
         }
         auto prefilledProofs = TestCompactProofs::getPrefilledProofs(cpw);
@@ -144,13 +149,15 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
 }
 
 BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
     {
         CompactProofs cp;
 
         TestCompactProofs::addPrefilledProof(
-            cp, 0, buildRandomProof(MIN_VALID_PROOF_SCORE));
+            cp, 0, buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
         TestCompactProofs::addPrefilledProof(
-            cp, 0, buildRandomProof(MIN_VALID_PROOF_SCORE));
+            cp, 0, buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
 
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         BOOST_CHECK_EXCEPTION(ss << cp, std::ios_base::failure,
@@ -161,9 +168,9 @@ BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
         CompactProofs cp;
 
         TestCompactProofs::addPrefilledProof(
-            cp, 1, buildRandomProof(MIN_VALID_PROOF_SCORE));
+            cp, 1, buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
         TestCompactProofs::addPrefilledProof(
-            cp, 0, buildRandomProof(MIN_VALID_PROOF_SCORE));
+            cp, 0, buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
 
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         BOOST_CHECK_EXCEPTION(ss << cp, std::ios_base::failure,
@@ -175,9 +182,9 @@ BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
 
         TestCompactProofs::addPrefilledProof(
             cp, std::numeric_limits<uint32_t>::max(),
-            buildRandomProof(MIN_VALID_PROOF_SCORE));
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
         TestCompactProofs::addPrefilledProof(
-            cp, 0, buildRandomProof(MIN_VALID_PROOF_SCORE));
+            cp, 0, buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE));
 
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         BOOST_CHECK_EXCEPTION(ss << cp, std::ios_base::failure,
@@ -221,7 +228,7 @@ BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
         // prefilledProofs[0].index
         WriteCompactSize(ss, MAX_SIZE + 1);
         // prefilledProofs[0].proof
-        ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+        ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
 
         CompactProofs cp;
         BOOST_CHECK_EXCEPTION(ss >> cp, std::ios_base::failure,
@@ -253,11 +260,11 @@ BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
             // prefilledProofs[i].index
             WriteCompactSize(ss, MAX_SIZE);
             // prefilledProofs[i].proof
-            ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+            ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         }
         // This is the prefilled proof causing the overflow
         WriteCompactSize(ss, remainder);
-        ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+        ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
 
         CompactProofs cp;
         BOOST_CHECK_EXCEPTION(ss >> cp, std::ios_base::failure,
@@ -278,12 +285,12 @@ BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
             // prefilledProofs[i].index
             WriteCompactSize(ss, MAX_SIZE);
             // prefilledProofs[i].proof
-            ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+            ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         }
         // This prefilled proof isn't enough to cause the overflow alone, but it
         // overflows due to the extra shortid.
         WriteCompactSize(ss, remainder - 1);
-        ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+        ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
 
         CompactProofs cp;
         // ss >> cp;
@@ -302,12 +309,12 @@ BOOST_AUTO_TEST_CASE(compactproofs_overflow) {
         // prefilledProofs[0].index
         WriteCompactSize(ss, 0);
         // prefilledProofs[0].proof
-        ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+        ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         // prefilledProofs[1].index = 1 is differentially encoded, which means
         // it has an absolute index of 2. This leaves no proof at index 1.
         WriteCompactSize(ss, 1);
         // prefilledProofs[1].proof
-        ss << buildRandomProof(MIN_VALID_PROOF_SCORE);
+        ss << buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
 
         CompactProofs cp;
         BOOST_CHECK_EXCEPTION(ss >> cp, std::ios_base::failure,

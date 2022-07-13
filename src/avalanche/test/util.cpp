@@ -17,7 +17,8 @@
 
 namespace avalanche {
 
-ProofRef buildRandomProof(uint32_t score, int height, const CKey &masterKey) {
+ProofRef buildRandomProof(CChainState &active_chainstate, uint32_t score,
+                          int height, const CKey &masterKey) {
     auto key = CKey::MakeCompressedKey();
 
     const COutPoint o(TxId(GetRandHash()), 0);
@@ -28,7 +29,7 @@ ProofRef buildRandomProof(uint32_t score, int height, const CKey &masterKey) {
         CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
         LOCK(cs_main);
-        CCoinsViewCache &coins = ::ChainstateActive().CoinsTip();
+        CCoinsViewCache &coins = active_chainstate.CoinsTip();
         coins.AddCoin(o, Coin(CTxOut(v, script), height, is_coinbase), false);
     }
 

@@ -1067,9 +1067,11 @@ BOOST_AUTO_TEST_CASE(destructor) {
 
 BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
     uint32_t score = MIN_VALID_PROOF_SCORE;
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
 
     auto addProofToReconcile = [&](uint32_t proofScore) {
-        auto proof = buildRandomProof(proofScore);
+        auto proof = buildRandomProof(active_chainstate, proofScore);
         m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
             BOOST_CHECK(pm.registerProof(proof));
         });
@@ -1121,7 +1123,7 @@ BOOST_AUTO_TEST_CASE(add_proof_to_reconcile) {
     {
         // If proof replacement is not enabled there is no point polling for the
         // proof.
-        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
             BOOST_CHECK(pm.registerProof(proof));
         });
@@ -1233,8 +1235,12 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     const auto currency = Currency::get();
     uint32_t minScore = Proof::amountToScore(minStake * currency.baseunit);
 
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
+
     const CKey key = CKey::MakeCompressedKey();
-    auto localProof = buildRandomProof(minScore / 4, 100, key);
+    auto localProof =
+        buildRandomProof(active_chainstate, minScore / 4, 100, key);
     gArgs.ForceSetArg("-avamasterkey", EncodeSecret(key));
     gArgs.ForceSetArg("-avaproof", localProof->ToHex());
 
@@ -1270,7 +1276,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     BOOST_CHECK(!processor->isQuorumEstablished());
 
     // Add part of the required stake and make sure we still report no quorum
-    auto proof1 = buildRandomProof(minScore / 2);
+    auto proof1 = buildRandomProof(active_chainstate, minScore / 2);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof1));
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
@@ -1279,7 +1285,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     BOOST_CHECK(!processor->isQuorumEstablished());
 
     // Add the rest of the stake, but we are still lacking connected stake
-    auto proof2 = buildRandomProof(minScore / 4);
+    auto proof2 = buildRandomProof(active_chainstate, minScore / 4);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof2));
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
@@ -1412,20 +1418,23 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
     argsman.ForceSetArg("-avaminquorumstake", "0");
     argsman.ForceSetArg("-avaminquorumconnectedstakeratio", "0");
 
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+
     auto checkMinAvaproofsMessages = [&](int64_t minAvaproofsMessages) {
         argsman.ForceSetArg("-avaminavaproofsnodecount",
                             ToString(minAvaproofsMessages));
 
         bilingual_str error;
         auto processor = Processor::MakeProcessor(
-            argsman, *m_node.chain, m_node.connman.get(),
-            *Assert(m_node.chainman), *m_node.scheduler, error);
+            argsman, *m_node.chain, m_node.connman.get(), chainman,
+            *m_node.scheduler, error);
 
         BOOST_CHECK_EQUAL(processor->isQuorumEstablished(),
                           minAvaproofsMessages <= 0);
 
         auto addNode = [&](NodeId nodeid) {
-            auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+            auto proof = buildRandomProof(chainman.ActiveChainstate(),
+                                          MIN_VALID_PROOF_SCORE);
             processor->withPeerManager([&](avalanche::PeerManager &pm) {
                 BOOST_CHECK(pm.registerProof(proof));
                 BOOST_CHECK(pm.addNode(nodeid, proof->getId()));

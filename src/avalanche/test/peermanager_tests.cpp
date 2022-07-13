@@ -285,26 +285,29 @@ BOOST_AUTO_TEST_CASE(select_peer_random) {
     }
 }
 
-static void addNodeWithScore(avalanche::PeerManager &pm, NodeId node,
+static void addNodeWithScore(CChainState &active_chainstate,
+                             avalanche::PeerManager &pm, NodeId node,
                              uint32_t score) {
-    auto proof = buildRandomProof(score);
+    auto proof = buildRandomProof(active_chainstate, score);
     BOOST_CHECK(pm.registerProof(proof));
     BOOST_CHECK(pm.addNode(node, proof->getId()));
 };
 
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     // No peers.
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     const NodeId node0 = 42, node1 = 69, node2 = 37;
 
+    CChainState &active_chainstate = chainman.ActiveChainstate();
     // One peer, we always return it.
-    addNodeWithScore(pm, node0, MIN_VALID_PROOF_SCORE);
+    addNodeWithScore(active_chainstate, pm, node0, MIN_VALID_PROOF_SCORE);
     BOOST_CHECK_EQUAL(pm.selectNode(), node0);
 
     // Two peers, verify ratio.
-    addNodeWithScore(pm, node1, 2 * MIN_VALID_PROOF_SCORE);
+    addNodeWithScore(active_chainstate, pm, node1, 2 * MIN_VALID_PROOF_SCORE);
 
     std::unordered_map<PeerId, int> results = {};
     for (int i = 0; i < 10000; i++) {
@@ -316,7 +319,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
     BOOST_CHECK(abs(2 * results[0] - results[1]) < 500);
 
     // Three peers, verify ratio.
-    addNodeWithScore(pm, node2, MIN_VALID_PROOF_SCORE);
+    addNodeWithScore(active_chainstate, pm, node2, MIN_VALID_PROOF_SCORE);
 
     results.clear();
     for (int i = 0; i < 10000; i++) {
@@ -329,14 +332,16 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
 }
 
 BOOST_AUTO_TEST_CASE(remove_peer) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
     // No peers.
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(chainman);
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
+    CChainState &active_chainstate = chainman.ActiveChainstate();
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        auto p = buildRandomProof(100);
+        auto p = buildRandomProof(active_chainstate, 100);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -368,7 +373,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        auto p = buildRandomProof(100);
+        auto p = buildRandomProof(active_chainstate, 100);
         peerids[i + 4] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -405,12 +410,13 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 }
 
 BOOST_AUTO_TEST_CASE(compact_slots) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        auto p = buildRandomProof(100);
+        auto p = buildRandomProof(chainman.ActiveChainstate(), 100);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -434,10 +440,14 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
 }
 
 BOOST_AUTO_TEST_CASE(node_crud) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
+
+    CChainState &active_chainstate = chainman.ActiveChainstate();
 
     // Create one peer.
-    auto proof = buildRandomProof(10000000 * MIN_VALID_PROOF_SCORE);
+    auto proof =
+        buildRandomProof(active_chainstate, 10000000 * MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof));
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
@@ -477,7 +487,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
     // Move a node from a peer to another. This peer has a very low score such
     // as chances of being picked are 1 in 10 million.
-    addNodeWithScore(pm, 3, MIN_VALID_PROOF_SCORE);
+    addNodeWithScore(active_chainstate, pm, 3, MIN_VALID_PROOF_SCORE);
 
     int node3selected = 0;
     for (int i = 0; i < 100; i++) {
@@ -494,9 +504,12 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 }
 
 BOOST_AUTO_TEST_CASE(node_binding) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
-    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
+    auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     const ProofId &proofid = proof->getId();
 
     BOOST_CHECK_EQUAL(pm.getNodeCount(), 0);
@@ -539,7 +552,7 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), 0);
     }
 
-    auto alt_proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    auto alt_proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     const ProofId &alt_proofid = alt_proof->getId();
 
     // Update some nodes from a known proof to an unknown proof
@@ -551,7 +564,8 @@ BOOST_AUTO_TEST_CASE(node_binding) {
         BOOST_CHECK_EQUAL(pm.getPendingNodeCount(), i + 1);
     }
 
-    auto alt2_proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    auto alt2_proof =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     const ProofId &alt2_proofid = alt2_proof->getId();
 
     // Update some nodes from an unknown proof to another unknown proof
@@ -598,7 +612,8 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
 
     avalanche::PeerManager pm(chainman);
 
-    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE, 99);
+    auto proof = buildRandomProof(chainman.ActiveChainstate(),
+                                  MIN_VALID_PROOF_SCORE, 99);
     const ProofId &proofid = proof->getId();
 
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
@@ -806,9 +821,12 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
 }
 
 BOOST_AUTO_TEST_CASE(dangling_node) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
-    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
+    auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
@@ -830,7 +848,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     }
 
     // Build a new one
-    proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
     peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
@@ -851,14 +869,16 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
 }
 
 BOOST_AUTO_TEST_CASE(proof_accessors) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     constexpr int numProofs = 10;
 
     std::vector<ProofRef> proofs;
     proofs.reserve(numProofs);
     for (int i = 0; i < numProofs; i++) {
-        proofs.push_back(buildRandomProof(MIN_VALID_PROOF_SCORE));
+        proofs.push_back(buildRandomProof(chainman.ActiveChainstate(),
+                                          MIN_VALID_PROOF_SCORE));
     }
 
     for (int i = 0; i < numProofs; i++) {
@@ -1112,7 +1132,8 @@ BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     auto now = GetTime<std::chrono::seconds>();
     SetMockTime(now.count());
@@ -1123,7 +1144,8 @@ BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
             !pm.updateNextPossibleConflictTime(PeerId(GetRandInt(1000)), now));
     }
 
-    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    auto proof =
+        buildRandomProof(chainman.ActiveChainstate(), MIN_VALID_PROOF_SCORE);
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
 
     auto checkNextPossibleConflictTime = [&](std::chrono::seconds expected) {
@@ -1396,9 +1418,11 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
 }
 
 BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
-    auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+    auto proof =
+        buildRandomProof(chainman.ActiveChainstate(), MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof));
 
     // We have no nodes, so select node will fail and flag that we need more
@@ -1444,7 +1468,8 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
 }
 
 BOOST_AUTO_TEST_CASE(score_ordering) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     std::vector<uint32_t> expectedScores(10);
     // Expect the peers to be ordered by descending score
@@ -1454,7 +1479,7 @@ BOOST_AUTO_TEST_CASE(score_ordering) {
     std::vector<ProofRef> proofs;
     proofs.reserve(expectedScores.size());
     for (uint32_t score : expectedScores) {
-        proofs.push_back(buildRandomProof(score));
+        proofs.push_back(buildRandomProof(chainman.ActiveChainstate(), score));
     }
 
     // Shuffle the proofs so they are registered in a random score order
@@ -1568,7 +1593,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 
     // Now add another peer and check that combined scores are correct
     uint32_t peer2Score = 1 * MIN_VALID_PROOF_SCORE;
-    auto peer2Proof1 = buildRandomProof(peer2Score, 99);
+    auto peer2Proof1 = buildRandomProof(active_chainstate, peer2Score, 99);
     PeerId peerid2 = TestPeerManager::registerAndGetPeerId(pm, peer2Proof1);
     BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2 + peer2Score);
 
@@ -1586,7 +1611,8 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 }
 
 BOOST_AUTO_TEST_CASE(connected_score_tracking) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     const auto checkScores = [&pm](uint32_t known, uint32_t connected) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), known);
@@ -1596,10 +1622,12 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     // Start out with 0s
     checkScores(0, 0);
 
+    CChainState &active_chainstate = chainman.ActiveChainstate();
+
     // Create one peer without a node. Its score should be registered but not
     // connected
     uint32_t score1 = 10000000 * MIN_VALID_PROOF_SCORE;
-    auto proof1 = buildRandomProof(score1);
+    auto proof1 = buildRandomProof(active_chainstate, score1);
     PeerId peerid1 = TestPeerManager::registerAndGetPeerId(pm, proof1);
     checkScores(score1, 0);
 
@@ -1629,7 +1657,7 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     checkScores(score1, score1);
 
     uint32_t score2 = 1 * MIN_VALID_PROOF_SCORE;
-    auto proof2 = buildRandomProof(score2);
+    auto proof2 = buildRandomProof(active_chainstate, score2);
     PeerId peerid2 = TestPeerManager::registerAndGetPeerId(pm, proof2);
     checkScores(score1 + score2, score1);
     BOOST_CHECK(pm.addNode(2, proof2->getId()));
@@ -1793,10 +1821,12 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
 }
 
 BOOST_AUTO_TEST_CASE(received_avaproofs) {
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
 
     auto addNode = [&](NodeId nodeid) {
-        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto proof = buildRandomProof(chainman.ActiveChainstate(),
+                                      MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(pm.registerProof(proof));
         BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
     };

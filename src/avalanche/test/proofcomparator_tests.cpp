@@ -20,17 +20,21 @@ using namespace avalanche;
 BOOST_FIXTURE_TEST_SUITE(proofcomparator_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
     uint32_t score = MIN_VALID_PROOF_SCORE;
 
-    auto proofMinScore = buildRandomProof(MIN_VALID_PROOF_SCORE);
-    auto proofMaxScore = buildRandomProof(std::numeric_limits<uint32_t>::max());
+    auto proofMinScore =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    auto proofMaxScore = buildRandomProof(active_chainstate,
+                                          std::numeric_limits<uint32_t>::max());
 
     const ProofComparatorByScore comparator;
 
     auto prevProof = proofMinScore;
     for (size_t i = 0; i < 100; i++) {
         score += 1000 + GetRandInt(10000);
-        auto higherScoreProof = buildRandomProof(score);
+        auto higherScoreProof = buildRandomProof(active_chainstate, score);
         BOOST_CHECK(comparator(higherScoreProof, proofMinScore));
         BOOST_CHECK(comparator(higherScoreProof, prevProof));
         BOOST_CHECK(!comparator(higherScoreProof, proofMaxScore));
@@ -41,7 +45,7 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     // the score reached the minimal value.
     for (size_t i = 0; i < 100; i++) {
         score -= 1 + GetRandInt(100);
-        auto lowerScoreProof = buildRandomProof(score);
+        auto lowerScoreProof = buildRandomProof(active_chainstate, score);
         BOOST_CHECK(comparator(lowerScoreProof, proofMinScore));
         BOOST_CHECK(!comparator(lowerScoreProof, prevProof));
         BOOST_CHECK(!comparator(lowerScoreProof, proofMaxScore));
@@ -49,7 +53,8 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     }
 
     for (size_t i = 0; i < 100; i++) {
-        auto anotherProofMinScore = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto anotherProofMinScore =
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(comparator(anotherProofMinScore, proofMinScore),
                           anotherProofMinScore->getId() <
                               proofMinScore->getId());
@@ -57,9 +62,11 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
 }
 
 BOOST_AUTO_TEST_CASE(proofref_comparator_by_address) {
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
     std::vector<ProofRef> proofs;
     for (size_t i = 0; i < 100; i++) {
-        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         proofs.push_back(std::move(proof));
     }
 

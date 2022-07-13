@@ -23,10 +23,13 @@ BOOST_FIXTURE_TEST_SUITE(proofpool_tests, TestChain100Setup)
 BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
     ProofPool testPool;
 
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
+
     std::vector<ProofRef> proofs;
     for (size_t i = 0; i < 10; i++) {
         // Add a bunch of random proofs
-        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
                           ProofPool::AddProofStatus::SUCCEED);
         BOOST_CHECK_EQUAL(testPool.countProofs(), i + 1);
@@ -88,9 +91,12 @@ BOOST_AUTO_TEST_CASE(rescan) {
     pm.forEachPeer([&](const Peer &p) { hasPeer = true; });
     BOOST_CHECK(!hasPeer);
 
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
+
     std::set<ProofRef, ProofRefComparatorByAddress> poolProofs;
     for (size_t i = 0; i < 10; i++) {
-        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
                           ProofPool::AddProofStatus::SUCCEED);
         poolProofs.insert(std::move(proof));
@@ -205,11 +211,14 @@ BOOST_AUTO_TEST_CASE(conflicting_proofs_set) {
     BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proofSeq20),
                       ProofPool::AddProofStatus::SUCCEED);
 
-    auto getRandomConflictingProofSet = []() {
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
+
+    auto getRandomConflictingProofSet = [&active_chainstate]() {
         return ProofPool::ConflictingProofSet{
-            buildRandomProof(MIN_VALID_PROOF_SCORE),
-            buildRandomProof(MIN_VALID_PROOF_SCORE),
-            buildRandomProof(MIN_VALID_PROOF_SCORE),
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE),
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE),
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE),
         };
     };
 
@@ -284,8 +293,11 @@ BOOST_AUTO_TEST_CASE(get_proof) {
         BOOST_CHECK(!testPool.getProof(ProofId(GetRandHash())));
     }
 
+    CChainState &active_chainstate =
+        Assert(m_node.chainman)->ActiveChainstate();
+
     for (size_t i = 0; i < 10; i++) {
-        auto proof = buildRandomProof(MIN_VALID_PROOF_SCORE);
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK_EQUAL(testPool.addProofIfNoConflict(proof),
                           ProofPool::AddProofStatus::SUCCEED);
 
