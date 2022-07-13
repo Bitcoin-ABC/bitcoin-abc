@@ -1253,7 +1253,7 @@ private:
     SteadyMilliseconds m_last_presync_update GUARDED_BY(::cs_main){};
 
 public:
-    using Options = ChainstateManagerOpts;
+    using Options = kernel::ChainstateManagerOpts;
 
     explicit ChainstateManager(const Options &opts)
         : m_config(opts.config), m_adjusted_time_callback{
