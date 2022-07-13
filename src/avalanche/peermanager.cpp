@@ -411,14 +411,15 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
     return true;
 }
 
-void PeerManager::cleanupDanglingProofs() {
+void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
     const auto now = GetTime<std::chrono::seconds>();
 
     std::vector<ProofId> newlyDanglingProofIds;
     for (const Peer &peer : peers) {
-        // If the peer has been registered for some time and has no node
-        // attached, discard it.
-        if (peer.node_count == 0 &&
+        // If the peer is not our local proof, has been registered for some
+        // time and has no node attached, discard it.
+        if ((!localProof || peer.getProofId() != localProof->getId()) &&
+            peer.node_count == 0 &&
             (peer.registration_time + Peer::DANGLING_TIMEOUT) <= now) {
             newlyDanglingProofIds.push_back(peer.getProofId());
         }

@@ -151,7 +151,9 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
 
     scheduler.scheduleEvery(
         [this]() -> bool {
-            WITH_LOCK(cs_peerManager, peerManager->cleanupDanglingProofs());
+            WITH_LOCK(cs_peerManager,
+                      peerManager->cleanupDanglingProofs(
+                          peerData ? peerData->proof : ProofRef()));
             return true;
         },
         5min);

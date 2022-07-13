@@ -58,8 +58,10 @@ namespace {
             return scores;
         }
 
-        static void cleanupDanglingProofs(PeerManager &pm) {
-            pm.cleanupDanglingProofs();
+        static void
+        cleanupDanglingProofs(PeerManager &pm,
+                              const ProofRef &localProof = ProofRef()) {
+            pm.cleanupDanglingProofs(localProof);
         }
     };
 
@@ -1931,9 +1933,21 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
 
     // Elapse the timeout for the newly promoted conflicting proofs
     elapseTime(avalanche::Peer::DANGLING_TIMEOUT);
-    TestPeerManager::cleanupDanglingProofs(pm);
+
+    // Use the first conflicting proof as our local proof
+    TestPeerManager::cleanupDanglingProofs(pm, conflictingProofs[1]);
+
     for (size_t i = 0; i < numProofs; i++) {
-        // All proofs have now been discarded
+        // All other proofs have now been discarded
+        BOOST_CHECK(!pm.exists(proofs[i]->getId()));
+        BOOST_CHECK_EQUAL(!pm.exists(conflictingProofs[i]->getId()), i != 1);
+    }
+
+    // Cleanup one more time with no local proof
+    TestPeerManager::cleanupDanglingProofs(pm);
+
+    for (size_t i = 0; i < numProofs; i++) {
+        // All proofs have finally been discarded
         BOOST_CHECK(!pm.exists(proofs[i]->getId()));
         BOOST_CHECK(!pm.exists(conflictingProofs[i]->getId()));
     }

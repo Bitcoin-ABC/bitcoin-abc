@@ -12,6 +12,7 @@ from test_framework.avatools import (
     gen_proof,
     get_ava_p2p_interface,
     get_proof_ids,
+    wait_for_proof,
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
@@ -38,11 +39,21 @@ class ProofsCleanupTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
+        master_key, local_proof = gen_proof(node)
+
+        self.restart_node(0, self.extra_args[0] + [
+            "-avaproof={}".format(local_proof.serialize().hex()),
+            "-avamasterkey={}".format(bytes_to_wif(master_key.get_bytes())),
+        ])
+
+        node.generate(1)
+        wait_for_proof(node, f"{local_proof.proofid:0{64}x}")
+
         mocktime = int(time.time())
         node.setmocktime(mocktime)
 
-        proofs = []
-        keys = []
+        proofs = [local_proof]
+        keys = [master_key]
         peers = []
         # The first 5 peers have a node attached
         for _ in range(5):
@@ -65,7 +76,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
             proofs.append(proof)
 
         peer_info = node.getavalanchepeerinfo()
-        assert_equal(len(peer_info), 10)
+        assert_equal(len(peer_info), 11)
         assert_equal(set(get_proof_ids(node)),
                      set([proof.proofid for proof in proofs]))
 
@@ -75,7 +86,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
         node.setmocktime(mocktime)
         # Run the cleanup, the proofs are still there
         node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
-        assert_equal(len(peer_info), 10)
+        assert_equal(len(peer_info), 11)
 
         self.log.info("Check the proofs with attached nodes are not cleaned")
 
@@ -83,10 +94,11 @@ class ProofsCleanupTest(BitcoinTestFramework):
         mocktime += 1
         node.setmocktime(mocktime)
 
-        # Run the cleanup, the proofs with no node are cleaned
+        # Run the cleanup, the proofs with no node are cleaned excepted our
+        # local proof
         node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
         self.wait_until(lambda: set(get_proof_ids(node)) == set(
-            [proof.proofid for proof in proofs[:5]]), timeout=5)
+            [proof.proofid for proof in proofs[:6]]), timeout=5)
 
         self.log.info(
             "Check the proofs are cleaned on next cleanup after the nodes disconnected")
@@ -96,16 +108,16 @@ class ProofsCleanupTest(BitcoinTestFramework):
             peer.wait_for_disconnect()
 
         node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
-        self.wait_until(lambda: get_proof_ids(node) == [])
+        self.wait_until(lambda: get_proof_ids(node) == [local_proof.proofid])
 
         self.log.info("Check the cleaned up proofs are no longer accepted...")
 
         sender = get_ava_p2p_interface(node)
-        for proof in proofs:
+        for proof in proofs[1:]:
             with node.assert_debug_log(["dangling-proof"]):
                 sender.send_avaproof(proof)
 
-        assert_equal(get_proof_ids(node), [])
+        assert_equal(get_proof_ids(node), [local_proof.proofid])
 
         self.log.info("...until there is a node to attach")
 
@@ -114,8 +126,8 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         avanode = get_ava_p2p_interface(node)
 
-        avanode_key = keys[0]
-        avanode_proof = proofs[0]
+        avanode_key = keys[1]
+        avanode_proof = proofs[1]
 
         delegated_key = ECKey()
         delegated_key.generate()

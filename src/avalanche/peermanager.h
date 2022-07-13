@@ -335,7 +335,7 @@ public:
         return getProof(proofid) != nullptr;
     }
 
-    void cleanupDanglingProofs();
+    void cleanupDanglingProofs(const ProofRef &localProof);
 
     template <typename Callable>
     bool forPeer(const ProofId &proofid, Callable &&func) const {
