@@ -106,6 +106,7 @@
 using node::CacheSizes;
 using node::CalculateCacheSizes;
 using node::CleanupBlockRevFiles;
+using node::DEFAULT_PERSIST_MEMPOOL;
 using node::DEFAULT_STOPAFTERBLOCKIMPORT;
 using node::fPruneMode;
 using node::fReindex;

@@ -86,9 +86,6 @@ static const bool DEFAULT_TXINDEX = false;
 static constexpr bool DEFAULT_COINSTATSINDEX{false};
 static const char *const DEFAULT_BLOCKFILTERINDEX = "0";
 
-/** Default for -persistmempool */
-static const bool DEFAULT_PERSIST_MEMPOOL = true;
-
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** Default for -stopatheight */
