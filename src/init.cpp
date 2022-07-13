@@ -2697,7 +2697,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     chainman.m_load_block = std::thread(
         &util::TraceThread, "loadblk", [=, &config, &chainman, &args] {
-            ThreadImport(config, chainman, vImportFiles, args);
+            ThreadImport(config, chainman, vImportFiles, args,
+                         ShouldPersistMempool(args) ? MempoolPath(args)
+                                                    : fs::path{});
         });
 
     // Wait for genesis block to be processed

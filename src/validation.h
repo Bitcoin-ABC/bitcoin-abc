@@ -1027,7 +1027,7 @@ public:
 
     /** Load the persisted mempool from disk */
     void
-    LoadMempool(const Config &config, const ArgsManager &args,
+    LoadMempool(const Config &config, const fs::path &load_path,
                 fsbridge::FopenFn mockable_fopen_function = fsbridge::fopen);
 
     /** Update the chain tip based on database information, i.e. CoinsTip()'s
@@ -1506,7 +1506,7 @@ bool DumpMempool(const CTxMemPool &pool, const fs::path &dump_path,
 
 /** Load the mempool from disk. */
 bool LoadMempool(const Config &config, CTxMemPool &pool,
-                 Chainstate &active_chainstate,
+                 const fs::path &load_path, Chainstate &active_chainstate,
                  fsbridge::FopenFn mockable_fopen_function = fsbridge::fopen);
 
 /**

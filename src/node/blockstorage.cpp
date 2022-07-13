@@ -870,7 +870,8 @@ struct CImportingNow {
 };
 
 void ThreadImport(const Config &config, ChainstateManager &chainman,
-                  std::vector<fs::path> vImportFiles, const ArgsManager &args) {
+                  std::vector<fs::path> vImportFiles, const ArgsManager &args,
+                  const fs::path &mempool_path) {
     ScheduleBatchPriority();
 
     {
@@ -982,6 +983,6 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
             return;
         }
     } // End scope of CImportingNow
-    chainman.ActiveChainstate().LoadMempool(config, args);
+    chainman.ActiveChainstate().LoadMempool(config, mempool_path);
 }
 } // namespace node

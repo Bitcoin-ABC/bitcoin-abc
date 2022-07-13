@@ -240,7 +240,8 @@ bool ReadTxFromDisk(CMutableTransaction &tx, const FlatFilePos &pos);
 bool ReadTxUndoFromDisk(CTxUndo &tx, const FlatFilePos &pos);
 
 void ThreadImport(const Config &config, ChainstateManager &chainman,
-                  std::vector<fs::path> vImportFiles, const ArgsManager &args);
+                  std::vector<fs::path> vImportFiles, const ArgsManager &args,
+                  const fs::path &mempool_path);
 } // namespace node
 
 #endif // BITCOIN_NODE_BLOCKSTORAGE_H
