@@ -2451,8 +2451,7 @@ bool CChainState::MarkBlockAsFinal(BlockValidationState &state,
     return true;
 }
 
-static const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
+const CBlockIndex *CChainState::FindBlockToFinalize(CBlockIndex *pindexNew) {
     AssertLockHeld(cs_main);
 
     const int32_t maxreorgdepth =
@@ -2478,7 +2477,7 @@ static const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
 
     // While our candidate is not eligible (finalization delay not expired), try
     // the previous one.
-    while (pindex && (pindex != ::ChainstateActive().GetFinalizedBlock())) {
+    while (pindex && (pindex != GetFinalizedBlock())) {
         // Check that the block to finalize is known for a long enough time.
         // This test will ensure that an attacker could not cause a block to
         // finalize by forking the chain with a depth > maxreorgdepth.

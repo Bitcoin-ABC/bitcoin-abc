@@ -1051,6 +1051,9 @@ private:
     bool LoadBlockIndexDB(const Consensus::Params &params)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
+    const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+
     friend ChainstateManager;
 };
 
