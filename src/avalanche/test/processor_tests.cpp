@@ -1154,15 +1154,18 @@ BOOST_AUTO_TEST_CASE(proof_record) {
         CCoinsViewCache &coins =
             Assert(m_node.chainman)->ActiveChainstate().CoinsTip();
         coins.AddCoin(conflictingOutpoint,
-                      Coin(CTxOut(10 * COIN, script), 10, false), false);
+                      Coin(CTxOut(PROOF_DUST_THRESHOLD, script), 10, false),
+                      false);
         coins.AddCoin(immatureOutpoint,
-                      Coin(CTxOut(10 * COIN, script), 100, false), false);
+                      Coin(CTxOut(PROOF_DUST_THRESHOLD, script), 100, false),
+                      false);
     }
 
     auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence,
                           uint32_t height = 10) {
         ProofBuilder pb(sequence, 0, key);
-        BOOST_CHECK(pb.addUTXO(outpoint, 10 * COIN, height, false, key));
+        BOOST_CHECK(
+            pb.addUTXO(outpoint, PROOF_DUST_THRESHOLD, height, false, key));
         return pb.build();
     };
 

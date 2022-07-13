@@ -66,7 +66,8 @@ namespace {
     };
 
     static void addCoin(CChainState &chainstate, const COutPoint &outpoint,
-                        const CKey &key, const Amount amount = 10 * COIN,
+                        const CKey &key,
+                        const Amount amount = PROOF_DUST_THRESHOLD,
                         uint32_t height = 100, bool is_coinbase = false) {
         CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
 
@@ -77,7 +78,7 @@ namespace {
     }
 
     static COutPoint createUtxo(CChainState &chainstate, const CKey &key,
-                                const Amount amount = 10 * COIN,
+                                const Amount amount = PROOF_DUST_THRESHOLD,
                                 uint32_t height = 100,
                                 bool is_coinbase = false) {
         COutPoint outpoint(TxId(GetRandHash()), 0);
@@ -117,8 +118,8 @@ namespace {
     buildProofWithSequence(const CKey &key,
                            const std::vector<COutPoint> &outpoints,
                            int64_t sequence) {
-        return buildProofWithOutpoints(key, outpoints, 10 * COIN, key,
-                                       sequence);
+        return buildProofWithOutpoints(key, outpoints, PROOF_DUST_THRESHOLD,
+                                       key, sequence);
     }
 } // namespace
 } // namespace avalanche
@@ -661,7 +662,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
     TxId txid2(GetRandHash());
     BOOST_CHECK(txid1 != txid2);
 
-    const Amount v = 10 * COIN;
+    const Amount v = PROOF_DUST_THRESHOLD;
     const int height = 100;
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
@@ -758,10 +759,10 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     // Fill up orphan pool to test the size limit
     for (int64_t i = 1; i <= AVALANCHE_MAX_ORPHAN_PROOFS; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
-        auto proof = buildProofWithOutpoints(key, {outpoint}, i * COIN, key, 0,
-                                             immatureHeight);
-        addCoin(chainman.ActiveChainstate(), outpoint, key, i * COIN,
-                immatureHeight);
+        auto proof = buildProofWithOutpoints(
+            key, {outpoint}, i * PROOF_DUST_THRESHOLD, key, 0, immatureHeight);
+        addCoin(chainman.ActiveChainstate(), outpoint, key,
+                i * PROOF_DUST_THRESHOLD, immatureHeight);
         registerOrphan(proof);
         checkOrphan(proof, true);
         orphans.push_back(proof);
@@ -770,10 +771,11 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     // More orphans evict lower scoring proofs
     for (auto i = 0; i < 100; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
-        auto proof = buildProofWithOutpoints(key, {outpoint}, 200 * COIN, key,
-                                             0, immatureHeight);
-        addCoin(chainman.ActiveChainstate(), outpoint, key, 200 * COIN,
-                immatureHeight);
+        auto proof =
+            buildProofWithOutpoints(key, {outpoint}, 200 * PROOF_DUST_THRESHOLD,
+                                    key, 0, immatureHeight);
+        addCoin(chainman.ActiveChainstate(), outpoint, key,
+                200 * PROOF_DUST_THRESHOLD, immatureHeight);
         registerOrphan(proof);
         checkOrphan(proof, true);
         orphans.push_back(proof);
@@ -785,8 +787,9 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     {
         const COutPoint &outpoint =
             orphans.front()->getStakes()[0].getStake().getUTXO();
-        auto proof = buildProofWithOutpoints(key, {outpoint}, 101 * COIN, key,
-                                             1, immatureHeight);
+        auto proof =
+            buildProofWithOutpoints(key, {outpoint}, 101 * PROOF_DUST_THRESHOLD,
+                                    key, 1, immatureHeight);
         registerOrphan(proof);
         checkOrphan(proof, true);
         orphans.push_back(proof);
@@ -902,7 +905,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
     const COutPoint outpointToSend = createUtxo(active_chainstate, key);
 
-    const Amount amount = 10 * COIN;
+    const Amount amount = PROOF_DUST_THRESHOLD;
 
     ProofRef proofToInvalidate = buildProofWithOutpoints(
         key, {conflictingOutpoint, outpointToSend}, amount);
@@ -933,7 +936,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
 BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount(10 * COIN);
+    const Amount amount(PROOF_DUST_THRESHOLD);
     const uint32_t height = 100;
     const bool is_coinbase = false;
 
@@ -996,26 +999,31 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
                           is_coinbase, 0);
     };
 
-    auto proof_multiUtxo = buildProofFromAmounts(key, {10 * COIN, 10 * COIN});
+    auto proof_multiUtxo = buildProofFromAmounts(
+        key, {2 * PROOF_DUST_THRESHOLD, 2 * PROOF_DUST_THRESHOLD});
 
     // Test for both the same master and a different one. The sequence number
     // is the same for all these tests.
     for (const CKey &k : {key, CKey::MakeCompressedKey()}) {
         // Low amount
-        checkPreferred(buildProofFromAmounts(k, {10 * COIN, 5 * COIN}),
+        checkPreferred(buildProofFromAmounts(
+                           k, {2 * PROOF_DUST_THRESHOLD, PROOF_DUST_THRESHOLD}),
                        proof_multiUtxo, false);
         // High amount
-        checkPreferred(buildProofFromAmounts(k, {10 * COIN, 15 * COIN}),
+        checkPreferred(buildProofFromAmounts(k, {2 * PROOF_DUST_THRESHOLD,
+                                                 3 * PROOF_DUST_THRESHOLD}),
                        proof_multiUtxo, true);
         // Same amount, low stake count
-        checkPreferred(buildProofFromAmounts(k, {20 * COIN}), proof_multiUtxo,
-                       true);
+        checkPreferred(buildProofFromAmounts(k, {4 * PROOF_DUST_THRESHOLD}),
+                       proof_multiUtxo, true);
         // Same amount, high stake count
-        checkPreferred(
-            buildProofFromAmounts(k, {10 * COIN, 5 * COIN, 5 * COIN}),
-            proof_multiUtxo, false);
+        checkPreferred(buildProofFromAmounts(k, {2 * PROOF_DUST_THRESHOLD,
+                                                 PROOF_DUST_THRESHOLD,
+                                                 PROOF_DUST_THRESHOLD}),
+                       proof_multiUtxo, false);
         // Same amount, same stake count, selection is done on proof id
-        auto proofSimilar = buildProofFromAmounts(k, {10 * COIN, 10 * COIN});
+        auto proofSimilar = buildProofFromAmounts(
+            k, {2 * PROOF_DUST_THRESHOLD, 2 * PROOF_DUST_THRESHOLD});
         checkPreferred(proofSimilar, proof_multiUtxo,
                        proofSimilar->getId() < proof_multiUtxo->getId());
     }
@@ -1034,7 +1042,7 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
 
     const COutPoint conflictingOutpoint = createUtxo(active_chainstate, key);
     const COutPoint matureOutpoint =
-        createUtxo(active_chainstate, key, 10 * COIN, 99);
+        createUtxo(active_chainstate, key, PROOF_DUST_THRESHOLD, 99);
 
     auto orphan10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto orphan20 =
@@ -1048,8 +1056,8 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     BOOST_CHECK(!pm.exists(orphan10->getId()));
 
     // Build and register a valid proof that will conflict with the orphan
-    auto proof30 =
-        buildProofWithOutpoints(key, {matureOutpoint}, 10 * COIN, key, 30, 99);
+    auto proof30 = buildProofWithOutpoints(key, {matureOutpoint},
+                                           PROOF_DUST_THRESHOLD, key, 30, 99);
     BOOST_CHECK(pm.registerProof(proof30));
     BOOST_CHECK(pm.isBoundToPeer(proof30->getId()));
 
@@ -1314,14 +1322,14 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
     CChainState &active_chainstate = chainman.ActiveChainstate();
 
     const COutPoint conflictingOutpoint =
-        createUtxo(active_chainstate, key, 10 * COIN, 99);
+        createUtxo(active_chainstate, key, PROOF_DUST_THRESHOLD, 99);
     const COutPoint immatureOutpoint = createUtxo(active_chainstate, key);
 
     // The good, the bad and the ugly
-    auto proofSeq10 = buildProofWithOutpoints(key, {conflictingOutpoint},
-                                              10 * COIN, key, 10, 99);
-    auto proofSeq20 = buildProofWithOutpoints(key, {conflictingOutpoint},
-                                              10 * COIN, key, 20, 99);
+    auto proofSeq10 = buildProofWithOutpoints(
+        key, {conflictingOutpoint}, PROOF_DUST_THRESHOLD, key, 10, 99);
+    auto proofSeq20 = buildProofWithOutpoints(
+        key, {conflictingOutpoint}, PROOF_DUST_THRESHOLD, key, 20, 99);
     auto orphan30 = buildProofWithSequence(
         key, {conflictingOutpoint, immatureOutpoint}, 30);
 
@@ -1467,32 +1475,32 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 
     const CKey key = CKey::MakeCompressedKey();
 
-    const Amount amount10(10 * COIN);
-    const Amount amount20(20 * COIN);
+    const Amount amount1(PROOF_DUST_THRESHOLD);
+    const Amount amount2(2 * PROOF_DUST_THRESHOLD);
 
     CChainState &active_chainstate = chainman.ActiveChainstate();
 
     const COutPoint peer1ConflictingOutput =
-        createUtxo(active_chainstate, key, amount10, 99);
+        createUtxo(active_chainstate, key, amount1, 99);
     const COutPoint peer1SecondaryOutpoint =
-        createUtxo(active_chainstate, key, amount20, 99);
+        createUtxo(active_chainstate, key, amount2, 99);
 
-    auto peer1Proof1 = buildProof(key,
-                                  {{peer1ConflictingOutput, amount10},
-                                   {peer1SecondaryOutpoint, amount20}},
-                                  key, 10, 99);
+    auto peer1Proof1 = buildProof(
+        key,
+        {{peer1ConflictingOutput, amount1}, {peer1SecondaryOutpoint, amount2}},
+        key, 10, 99);
     auto peer1Proof2 =
-        buildProof(key, {{peer1ConflictingOutput, amount10}}, key, 20, 99);
+        buildProof(key, {{peer1ConflictingOutput, amount1}}, key, 20, 99);
 
     // Create a proof with an immature UTXO, so the proof will be orphaned
     auto peer1Proof3 =
         buildProof(key,
-                   {{peer1ConflictingOutput, amount10},
-                    {createUtxo(active_chainstate, key, amount10), amount10}},
+                   {{peer1ConflictingOutput, amount1},
+                    {createUtxo(active_chainstate, key, amount1), amount1}},
                    key, 30);
 
-    const uint32_t peer1Score1 = Proof::amountToScore(amount10 + amount20);
-    const uint32_t peer1Score2 = Proof::amountToScore(amount10);
+    const uint32_t peer1Score1 = Proof::amountToScore(amount1 + amount2);
+    const uint32_t peer1Score2 = Proof::amountToScore(amount1);
 
     // Add first peer and check that we have its score tracked
     BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
