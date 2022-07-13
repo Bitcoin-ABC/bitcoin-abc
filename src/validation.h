@@ -1496,16 +1496,6 @@ public:
     bool ValidatedSnapshotCleanup() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 };
 
-/** Dump the mempool to disk. */
-bool DumpMempool(const CTxMemPool &pool, const fs::path &dump_path,
-                 fsbridge::FopenFn mockable_fopen_function = fsbridge::fopen,
-                 bool skip_file_commit = false);
-
-/** Load the mempool from disk. */
-bool LoadMempool(const Config &config, CTxMemPool &pool,
-                 const fs::path &load_path, Chainstate &active_chainstate,
-                 fsbridge::FopenFn mockable_fopen_function = fsbridge::fopen);
-
 /**
  * Return the expected assumeutxo value for a given height, if one exists.
  *

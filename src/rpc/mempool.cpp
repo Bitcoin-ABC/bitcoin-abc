@@ -3,6 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <kernel/mempool_persist.h>
+
 #include <core_io.h>
 #include <fs.h>
 #include <node/context.h>
@@ -15,6 +17,8 @@
 #include <txmempool.h>
 #include <univalue.h>
 #include <validation.h>
+
+using kernel::DumpMempool;
 
 using node::MempoolPath;
 using node::NodeContext;

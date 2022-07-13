@@ -9,6 +9,8 @@
 
 #include <init.h>
 
+#include <kernel/mempool_persist.h>
+
 #include <addrman.h>
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
@@ -102,6 +104,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+using kernel::DumpMempool;
 
 using node::CacheSizes;
 using node::CalculateCacheSizes;

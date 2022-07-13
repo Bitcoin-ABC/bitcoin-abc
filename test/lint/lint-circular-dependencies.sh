@@ -35,6 +35,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "chainparams -> protocol -> config -> chainparams"
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
     "node/coinstats -> validation -> node/coinstats"
+    "kernel/mempool_persist -> validation -> kernel/mempool_persist"
 )
 
 EXIT_CODE=0
