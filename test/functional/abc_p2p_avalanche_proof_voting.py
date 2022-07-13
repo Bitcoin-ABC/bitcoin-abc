@@ -11,6 +11,7 @@ from test_framework.avatools import (
     gen_proof,
     get_ava_p2p_interface,
     get_proof_ids,
+    wait_for_proof,
 )
 from test_framework.key import ECPubKey
 from test_framework.messages import (
@@ -123,6 +124,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.vote_tests(node)
         self.stale_proof_tests(node)
         self.unorphan_poll_tests(node)
+        self.repeated_conflicting_proofs_tests(node, increase_sequence=True)
+        self.repeated_conflicting_proofs_tests(node, increase_sequence=False)
 
     def poll_tests(self, node):
         proof_seq10 = self.build_conflicting_proof(node, 10)
@@ -153,12 +156,12 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info(
             "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof not the favorite")
-        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+        with node.assert_debug_log(["Misbehaving", "cooldown-not-elapsed"]):
             peer.send_avaproof(avalanche_proof_from_hex(proof_seq20))
 
         self.log.info(
             "Check we don't poll for subsequent proofs if the cooldown is not elapsed, proof is the favorite")
-        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+        with node.assert_debug_log(["Misbehaving", "cooldown-not-elapsed"]):
             peer.send_avaproof(avalanche_proof_from_hex(proof_seq40))
 
         self.log.info(
@@ -261,7 +264,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         peer = get_ava_p2p_interface(node)
 
-        with node.assert_debug_log(["Not polling the avalanche proof (cooldown-not-elapsed)"]):
+        with node.assert_debug_log(["Misbehaving", "cooldown-not-elapsed"]):
             self.send_proof(peer, proof_seq50)
 
         mock_time += self.peer_replacement_cooldown
@@ -499,6 +502,43 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         node.generate(1)
         self.send_and_check_for_polling(peer, immature_proof.serialize().hex())
+
+    def repeated_conflicting_proofs_tests(
+            self, node, increase_sequence, banscore=5):
+        self.log.info(
+            "Send a lot of conflicting proofs ({} sequence) and check the peer "
+            "gets banned".format(
+                "increasing" if increase_sequence else "decreasing"
+            )
+        )
+
+        self.restart_node(0)
+
+        sequence = 100
+
+        # Build and send a first proof
+        proof_base = avalanche_proof_from_hex(
+            self.build_conflicting_proof(node, sequence))
+
+        peer = get_ava_p2p_interface(node)
+        peer.send_avaproof(proof_base)
+
+        wait_for_proof(node, f"{proof_base.proofid:0{64}x}")
+
+        def send_conflicting_proof():
+            nonlocal sequence
+            sequence += 1 if increase_sequence else -1
+            proof = self.build_conflicting_proof(node, sequence)
+            with node.assert_debug_log(["Misbehaving", "cooldown-not-elapsed"]):
+                peer.send_avaproof(avalanche_proof_from_hex(proof))
+
+        # Ramp up the banscore by sending conflicting proofs repeatidly
+        for _ in range(100 // banscore - 1):
+            send_conflicting_proof()
+
+        # This one will trigger the ban
+        send_conflicting_proof()
+        peer.wait_for_disconnect()
 
 
 if __name__ == '__main__':
