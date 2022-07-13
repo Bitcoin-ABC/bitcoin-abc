@@ -21,6 +21,7 @@
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
 #include <deploymentstatus.h>
+#include <fs.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
 #include <logging.h>
@@ -67,6 +68,7 @@
 #include <string>
 #include <thread>
 
+using fsbridge::FopenFn;
 using node::BLOCKFILE_CHUNK_SIZE;
 using node::BlockManager;
 using node::BlockMap;
