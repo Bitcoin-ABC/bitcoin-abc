@@ -4855,7 +4855,7 @@ static RPCHelpMan upgradewallet() {
         "version number is specified\n"
         "New keys may be generated and a new wallet backup will need to "
         "be made.",
-        {{"version", RPCArg::Type::NUM, RPCArg::Default{FEATURE_LATEST},
+        {{"version", RPCArg::Type::NUM, RPCArg::Default{int{FEATURE_LATEST}},
           "The version number to upgrade to. Default is the latest "
           "wallet version"}},
         RPCResult{RPCResult::Type::NONE, "", ""},

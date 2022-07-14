@@ -48,7 +48,7 @@ static RPCHelpMan getconnectioncount() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             const CConnman &connman = EnsureConnman(node);
 
-            return int(connman.GetNodeCount(CConnman::CONNECTIONS_ALL));
+            return connman.GetNodeCount(CConnman::CONNECTIONS_ALL);
         },
     };
 }
@@ -800,12 +800,12 @@ static RPCHelpMan getnetworkinfo() {
             obj.pushKV("timeoffset", GetTimeOffset());
             if (node.connman) {
                 obj.pushKV("networkactive", node.connman->GetNetworkActive());
-                obj.pushKV("connections", int(node.connman->GetNodeCount(
-                                              CConnman::CONNECTIONS_ALL)));
-                obj.pushKV("connections_in", int(node.connman->GetNodeCount(
-                                                 CConnman::CONNECTIONS_IN)));
-                obj.pushKV("connections_out", int(node.connman->GetNodeCount(
-                                                  CConnman::CONNECTIONS_OUT)));
+                obj.pushKV("connections", node.connman->GetNodeCount(
+                                              CConnman::CONNECTIONS_ALL));
+                obj.pushKV("connections_in", node.connman->GetNodeCount(
+                                                 CConnman::CONNECTIONS_IN));
+                obj.pushKV("connections_out", node.connman->GetNodeCount(
+                                                  CConnman::CONNECTIONS_OUT));
             }
             obj.pushKV("networks", GetNetworksInfo());
             if (node.mempool) {
