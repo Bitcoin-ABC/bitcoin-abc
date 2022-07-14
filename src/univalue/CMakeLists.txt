@@ -34,7 +34,6 @@ if(UNIVALUE_BUILD_TESTS)
 		PUBLIC JSON_TEST_SRC="${PROJECT_SOURCE_DIR}/test"
 	)
 
-	create_univalue_test(no_nul_test test/no_nul.cpp)
 	create_univalue_test(object_test test/object.cpp)
 
 	# test_json is not meant to run in an automated test suite.
