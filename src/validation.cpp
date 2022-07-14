@@ -3371,15 +3371,15 @@ bool CChainState::FinalizeBlock(const Config &config,
 
         // If the finalized block is on the active chain, there is no need to
         // rewind.
-        if (::ChainActive().Contains(pindex)) {
+        if (m_chain.Contains(pindex)) {
             return true;
         }
 
         // If the finalized block is not on the active chain, that chain is
         // invalid
         // ...
-        const CBlockIndex *pindexFork = ::ChainActive().FindFork(pindex);
-        pindexToInvalidate = ::ChainActive().Next(pindexFork);
+        const CBlockIndex *pindexFork = m_chain.FindFork(pindex);
+        pindexToInvalidate = m_chain.Next(pindexFork);
         if (!pindexToInvalidate) {
             return false;
         }
@@ -3406,8 +3406,7 @@ bool CChainState::UpdateFlagsForBlock(CBlockIndex *pindexBase,
 
         if (pindex->IsValid(BlockValidity::TRANSACTIONS) &&
             pindex->HaveTxsDownloaded() &&
-            setBlockIndexCandidates.value_comp()(::ChainActive().Tip(),
-                                                 pindex)) {
+            setBlockIndexCandidates.value_comp()(m_chain.Tip(), pindex)) {
             setBlockIndexCandidates.insert(pindex);
         }
         return true;
