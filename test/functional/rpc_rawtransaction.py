@@ -102,14 +102,14 @@ class RawTransactionsTest(BitcoinTestFramework):
         )
         assert_raises_rpc_error(
             -1,
-            "JSON value is not an object as expected",
+            "JSON value of type string is not of expected type object",
             self.nodes[0].createrawtransaction,
             ["foo"],
             {},
         )
         assert_raises_rpc_error(
             -1,
-            "JSON value is not a string as expected",
+            "JSON value of type null is not of expected type string",
             self.nodes[0].createrawtransaction,
             [{}],
             {},
@@ -167,7 +167,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         address2 = self.nodes[0].getnewaddress()
         assert_raises_rpc_error(
             -1,
-            "JSON value is not an array as expected",
+            "JSON value of type string is not of expected type array",
             self.nodes[0].createrawtransaction,
             [],
             "foo",
@@ -738,17 +738,21 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # 6. invalid parameters - supply txid and string "Flase"
         assert_raises_rpc_error(
-            -1, "not a boolean", self.nodes[0].getrawtransaction, txId, "Flase"
+            -1,
+            "not of expected type bool",
+            self.nodes[0].getrawtransaction,
+            txId,
+            "Flase",
         )
 
         # 7. invalid parameters - supply txid and empty array
         assert_raises_rpc_error(
-            -1, "not a boolean", self.nodes[0].getrawtransaction, txId, []
+            -1, "not of expected type bool", self.nodes[0].getrawtransaction, txId, []
         )
 
         # 8. invalid parameters - supply txid and empty dict
         assert_raises_rpc_error(
-            -1, "not a boolean", self.nodes[0].getrawtransaction, txId, {}
+            -1, "not of expected type bool", self.nodes[0].getrawtransaction, txId, {}
         )
 
         inputs = [
