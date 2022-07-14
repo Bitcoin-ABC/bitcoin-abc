@@ -152,7 +152,7 @@ bool Proof::verify(ProofValidationState &state) const {
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();
         if (s.getAmount() < PROOF_DUST_THRESHOLD) {
-            return state.Invalid(ProofValidationResult::DUST_THRESOLD,
+            return state.Invalid(ProofValidationResult::DUST_THRESHOLD,
                                  "amount-below-dust-threshold",
                                  strprintf("%s < %s", s.getAmount().ToString(),
                                            PROOF_DUST_THRESHOLD.ToString()));

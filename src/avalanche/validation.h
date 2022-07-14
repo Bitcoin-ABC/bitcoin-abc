@@ -12,7 +12,7 @@ namespace avalanche {
 enum class ProofValidationResult {
     NONE = 0,
     NO_STAKE,
-    DUST_THRESOLD,
+    DUST_THRESHOLD,
     DUPLICATE_STAKE,
     WRONG_STAKE_ORDERING,
     INVALID_STAKE_SIGNATURE,

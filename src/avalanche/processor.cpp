@@ -43,7 +43,7 @@ static bool VerifyProof(const Proof &proof, bilingual_str &error) {
             case ProofValidationResult::NO_STAKE:
                 error = _("The avalanche proof has no stake.");
                 return false;
-            case ProofValidationResult::DUST_THRESOLD:
+            case ProofValidationResult::DUST_THRESHOLD:
                 error = _("The avalanche proof stake is too low.");
                 return false;
             case ProofValidationResult::DUPLICATE_STAKE:

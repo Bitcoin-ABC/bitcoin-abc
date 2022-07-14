@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(proof_random) {
         BOOST_CHECK_EQUAL(p->getScore(), score);
 
         ProofValidationResult expected_state =
-            hasDustStake(p) ? ProofValidationResult::DUST_THRESOLD
+            hasDustStake(p) ? ProofValidationResult::DUST_THRESHOLD
                             : ProofValidationResult::NONE;
 
         ProofValidationState state;
@@ -307,7 +307,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "9619ca502bfd4dd6dbc0967692ff6d2211b0bd9b9f05e1298",
          ProofId::fromHex("38f7c9696f9c2c07db3f23024d550a6b0b7f851013074280dbe3"
                           "49f42a2a5a00"),
-         0, ProofValidationResult::DUST_THRESOLD},
+         0, ProofValidationResult::DUST_THRESHOLD},
     };
 
     // Proof master key:
@@ -582,7 +582,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
          "7579d8ea26ca28162e3091d53cc51fd58be9b18d22",
          ProofId::fromHex("c95e3c6417a799dd3085af689ea12fb3d2e1130870fef9f0bdc6"
                           "d10a27df746a"),
-         0, ProofValidationResult::DUST_THRESOLD},
+         0, ProofValidationResult::DUST_THRESHOLD},
 
         // Exclusive tests (not duplicated from legacy)
         {"Properly signed 1 UTXO proof, P2PK payout script",
@@ -985,7 +985,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
         ProofValidationState state;
         BOOST_CHECK(!p->verify(state, coins));
-        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESOLD);
+        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESHOLD);
     }
 
     {
@@ -996,7 +996,7 @@ BOOST_AUTO_TEST_CASE(verify) {
 
         ProofValidationState state;
         BOOST_CHECK(!p->verify(state, coins));
-        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESOLD);
+        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESHOLD);
     }
 
     // Duplicated input
