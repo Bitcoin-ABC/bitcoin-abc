@@ -282,7 +282,11 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                     proofid, response=AvalancheProofVoteResponse.REJECTED))
             return proofid not in get_proof_ids(node)
 
-        self.wait_until(lambda: reject_proof(proofid_seq50))
+        with node.assert_debug_log(
+            [f"Avalanche rejected proof {proofid_seq50:0{64}x}"],
+            ["Failed to reject proof"]
+        ):
+            self.wait_until(lambda: reject_proof(proofid_seq50))
 
         assert proofid_seq50 not in get_proof_ids(node)
         assert proofid_seq40 in get_proof_ids(node)
@@ -296,7 +300,11 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             return try_rpc(-8, "Proof not found",
                            node.getrawavalancheproof, f"{proofid:0{64}x}")
 
-        self.wait_until(lambda: invalidate_proof(proofid_seq50))
+        with node.assert_debug_log(
+            [f"Avalanche invalidated proof {proofid_seq50:0{64}x}"],
+            ["Failed to reject proof"]
+        ):
+            self.wait_until(lambda: invalidate_proof(proofid_seq50))
 
         self.log.info("The node will now ignore the invalid proof")
 

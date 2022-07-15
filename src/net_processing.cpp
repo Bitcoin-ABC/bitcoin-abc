@@ -5130,10 +5130,9 @@ void PeerManagerImpl::ProcessMessage(
                         avalanche::PeerManager::RejectionMode::INVALIDATE;
                     // Fallthrough
                 case avalanche::VoteStatus::Rejected:
-                    if (g_avalanche->withPeerManager(
+                    if (!g_avalanche->withPeerManager(
                             [&](avalanche::PeerManager &pm) {
-                                pm.rejectProof(proofid, rejectionMode);
-                                return pm.exists(proofid);
+                                return pm.rejectProof(proofid, rejectionMode);
                             })) {
                         LogPrint(BCLog::AVALANCHE,
                                  "ERROR: Failed to reject proof: %s\n",
