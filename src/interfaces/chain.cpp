@@ -235,9 +235,8 @@ namespace {
                                              const FoundBlock &block) override {
             WAIT_LOCK(cs_main, lock);
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
-            return FillBlock(
-                ChainActive().FindEarliestAtLeast(min_time, min_height), block,
-                lock, active);
+            return FillBlock(active.FindEarliestAtLeast(min_time, min_height),
+                             block, lock, active);
         }
         bool findAncestorByHeight(const BlockHash &block_hash,
                                   int ancestor_height,
