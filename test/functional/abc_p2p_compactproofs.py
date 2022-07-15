@@ -623,10 +623,10 @@ class CompactProofsTest(BitcoinTestFramework):
 
         assert_equal(node.getavalancheinfo()['active'], False)
 
-        outbound = HelloAvaP2PInterface()
+        outbound = AvaP2PInterface()
         node.add_outbound_p2p_connection(outbound, p2p_idx=0)
 
-        inbound = HelloAvaP2PInterface()
+        inbound = AvaP2PInterface()
         node.add_p2p_connection(inbound)
         inbound.nodeid = node.getpeerinfo()[-1]['id']
 
