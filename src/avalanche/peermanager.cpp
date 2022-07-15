@@ -268,7 +268,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
     switch (validProofPool.addProofIfNoConflict(proof, conflictingProofs)) {
         case ProofPool::AddProofStatus::REJECTED: {
             if (mode != RegistrationMode::FORCE_ACCEPT) {
-                auto bestPossibleConflictTime = std::chrono::seconds();
+                auto bestPossibleConflictTime = std::chrono::seconds(0);
                 auto &pview = peers.get<by_proofid>();
                 for (auto &conflictingProof : conflictingProofs) {
                     auto it = pview.find(conflictingProof->getId());
