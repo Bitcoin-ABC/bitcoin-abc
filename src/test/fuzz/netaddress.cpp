@@ -91,7 +91,6 @@ FUZZ_TARGET(netaddress) {
     (void)service.GetKey();
     (void)service.GetPort();
     (void)service.ToStringAddrPort();
-    (void)service.ToStringPort();
     (void)CServiceHash()(service);
     (void)CServiceHash(0, 0)(service);
 

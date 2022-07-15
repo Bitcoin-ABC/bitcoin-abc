@@ -1072,18 +1072,15 @@ std::vector<uint8_t> CService::GetKey() const {
     return key;
 }
 
-std::string CService::ToStringPort() const {
-    return strprintf("%u", port);
-}
-
 std::string CService::ToStringAddrPort() const {
+    const auto port_str = strprintf("%u", port);
+
     if (IsIPv4() || IsTor() || IsI2P() || IsInternal()) {
-        return ToStringAddr() + ":" + ToStringPort();
+        return ToStringAddr() + ":" + port_str;
     } else {
-        return "[" + ToStringAddr() + "]:" + ToStringPort();
+        return "[" + ToStringAddr() + "]:" + port_str;
     }
 }
-
 
 CSubNet::CSubNet() : valid(false) {
     memset(netmask, 0, sizeof(netmask));
