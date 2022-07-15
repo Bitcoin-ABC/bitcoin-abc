@@ -740,7 +740,7 @@ bool AddrManImpl::Add_(const std::vector<CAddress> &vAddr,
     if (added > 0) {
         LogPrint(BCLog::ADDRMAN,
                  "Added %i addresses (of %i) from %s: %i tried, %i new\n",
-                 added, vAddr.size(), source.ToString(), nTried, nNew);
+                 added, vAddr.size(), source.ToStringAddr(), nTried, nNew);
     }
     return added > 0;
 }
