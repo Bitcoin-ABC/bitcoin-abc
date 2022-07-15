@@ -270,7 +270,7 @@ std::optional<CService> GetLocalAddrForPeer(CNode &node) {
     }
     if (addrLocal.IsRoutable() || gArgs.GetBoolArg("-addrmantest", false)) {
         LogPrint(BCLog::NET, "Advertising address %s to peer=%d\n",
-                 addrLocal.ToString(), node.GetId());
+                 addrLocal.ToStringAddrPort(), node.GetId());
         return addrLocal;
     }
     // Address is unroutable. Don't advertise.
@@ -291,7 +291,7 @@ bool AddLocal(const CService &addr, int nScore) {
         return false;
     }
 
-    LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
+    LogPrintf("AddLocal(%s,%i)\n", addr.ToStringAddrPort(), nScore);
 
     {
         LOCK(g_maplocalhost_mutex);
@@ -313,7 +313,7 @@ bool AddLocal(const CNetAddr &addr, int nScore) {
 
 void RemoveLocal(const CService &addr) {
     LOCK(g_maplocalhost_mutex);
-    LogPrintf("RemoveLocal(%s)\n", addr.ToString());
+    LogPrintf("RemoveLocal(%s)\n", addr.ToStringAddrPort());
     mapLocalHost.erase(addr);
 }
 
@@ -443,7 +443,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
 
     LogPrintLevel(BCLog::NET, BCLog::Level::Debug,
                   "trying connection %s lastseen=%.1fhrs\n",
-                  pszDest ? pszDest : addrConnect.ToString(),
+                  pszDest ? pszDest : addrConnect.ToStringAddrPort(),
                   Ticks<HoursDouble>(
                       pszDest ? 0h : Now<NodeSeconds>() - addrConnect.nTime));
 
@@ -462,7 +462,7 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
             if (!addrConnect.IsValid()) {
                 LogPrint(BCLog::NET,
                          "Resolver returned invalid address %s for %s\n",
-                         addrConnect.ToString(), pszDest);
+                         addrConnect.ToStringAddrPort(), pszDest);
                 return nullptr;
             }
             // It is possible that we already have a connection to the IP/port
@@ -616,7 +616,7 @@ void CNode::SetAddrLocal(const CService &addrLocalIn) {
         LogError(
             "Addr local already set for node: %i. Refusing to change from %s "
             "to %s\n",
-            id, addrLocal.ToString(), addrLocalIn.ToString());
+            id, addrLocal.ToStringAddrPort(), addrLocalIn.ToStringAddrPort());
     } else {
         addrLocal = addrLocalIn;
     }
@@ -665,7 +665,7 @@ void CNode::copyStats(CNodeStats &stats) {
     // Leave string empty if addrLocal invalid (not filled in yet)
     CService addrLocalUnlocked = GetAddrLocal();
     stats.addrLocal =
-        addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToString() : "";
+        addrLocalUnlocked.IsValid() ? addrLocalUnlocked.ToStringAddrPort() : "";
 
     stats.m_conn_type = m_conn_type;
 
@@ -1010,13 +1010,13 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
     if (!fNetworkActive) {
         LogPrint(BCLog::NET,
                  "connection from %s dropped: not accepting new connections\n",
-                 addr.ToString());
+                 addr.ToStringAddrPort());
         return;
     }
 
     if (!IsSelectableSocket(sock->Get())) {
         LogPrintf("connection from %s dropped: non-selectable socket\n",
-                  addr.ToString());
+                  addr.ToStringAddrPort());
         return;
     }
 
@@ -1029,7 +1029,7 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
     if (!NetPermissions::HasFlag(permission_flags, NetPermissionFlags::NoBan) &&
         banned) {
         LogPrint(BCLog::NET, "connection from %s dropped (banned)\n",
-                 addr.ToString());
+                 addr.ToStringAddrPort());
         return;
     }
 
@@ -1039,7 +1039,7 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
     if (!NetPermissions::HasFlag(permission_flags, NetPermissionFlags::NoBan) &&
         nInbound + 1 >= nMaxInbound && discouraged) {
         LogPrint(BCLog::NET, "connection from %s dropped (discouraged)\n",
-                 addr.ToString());
+                 addr.ToStringAddrPort());
         return;
     }
 
@@ -1077,7 +1077,8 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
         interface->InitializeNode(*config, *pnode, GetLocalServices());
     }
 
-    LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
+    LogPrint(BCLog::NET, "connection from %s accepted\n",
+             addr.ToStringAddrPort());
 
     {
         LOCK(m_nodes_mutex);
@@ -1852,7 +1853,7 @@ void CConnman::ThreadOpenConnections(
                 addrConnect = addr;
                 LogPrint(BCLog::NET,
                          "Trying to make an anchor connection to %s\n",
-                         addrConnect.ToString());
+                         addrConnect.ToStringAddrPort());
                 break;
             }
             // If we didn't find an appropriate destination after trying 100
@@ -1964,7 +1965,7 @@ void CConnman::ThreadOpenConnections(
                     return;
                 }
                 LogPrint(BCLog::NET, "Making feeler connection to %s\n",
-                         addrConnect.ToString());
+                         addrConnect.ToStringAddrPort());
             }
 
             // This mock is for testing purpose only. It prevents the thread
@@ -2230,7 +2231,7 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
     if (!addrBind.GetSockAddr((struct sockaddr *)&sockaddr, &len)) {
         strError =
             strprintf(Untranslated("Bind address family for %s not supported"),
-                      addrBind.ToString());
+                      addrBind.ToStringAddrPort());
         LogPrintLevel(BCLog::NET, BCLog::Level::Error, "%s\n",
                       strError.original);
         return false;
@@ -2273,18 +2274,19 @@ bool CConnman::BindListenPort(const CService &addrBind, bilingual_str &strError,
         if (nErr == WSAEADDRINUSE) {
             strError = strprintf(_("Unable to bind to %s on this computer. %s "
                                    "is probably already running."),
-                                 addrBind.ToString(), PACKAGE_NAME);
+                                 addrBind.ToStringAddrPort(), PACKAGE_NAME);
         } else {
             strError = strprintf(_("Unable to bind to %s on this computer "
                                    "(bind returned error %s)"),
-                                 addrBind.ToString(), NetworkErrorString(nErr));
+                                 addrBind.ToStringAddrPort(),
+                                 NetworkErrorString(nErr));
         }
 
         LogPrintLevel(BCLog::NET, BCLog::Level::Error, "%s\n",
                       strError.original);
         return false;
     }
-    LogPrintf("Bound to %s\n", addrBind.ToString());
+    LogPrintf("Bound to %s\n", addrBind.ToStringAddrPort());
 
     // Listen for incoming connections
     if (listen(sock->Get(), SOMAXCONN) == SOCKET_ERROR) {
@@ -3166,7 +3168,7 @@ void CaptureMessageToFile(const CAddress &addr, const std::string &msg_type,
     auto now = GetTime<std::chrono::microseconds>();
 
     // Windows folder names can not include a colon
-    std::string clean_addr = addr.ToString();
+    std::string clean_addr = addr.ToStringAddrPort();
     std::replace(clean_addr.begin(), clean_addr.end(), ':', '_');
 
     fs::path base_path = gArgs.GetDataDirNet() / "message_capture" / clean_addr;

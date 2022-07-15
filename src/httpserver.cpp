@@ -317,7 +317,7 @@ static void http_request_cb(struct evhttp_request *req, void *arg) {
         LogPrint(BCLog::HTTP,
                  "HTTP request from %s rejected: Client network is not allowed "
                  "RPC access\n",
-                 hreq->GetPeer().ToString());
+                 hreq->GetPeer().ToStringAddrPort());
         hreq->WriteReply(HTTP_FORBIDDEN);
         return;
     }
@@ -326,7 +326,7 @@ static void http_request_cb(struct evhttp_request *req, void *arg) {
     if (hreq->GetRequestMethod() == HTTPRequest::UNKNOWN) {
         LogPrint(BCLog::HTTP,
                  "HTTP request from %s rejected: Unknown HTTP request method\n",
-                 hreq->GetPeer().ToString());
+                 hreq->GetPeer().ToStringAddrPort());
         hreq->WriteReply(HTTP_BAD_METHOD);
         return;
     }
@@ -334,7 +334,7 @@ static void http_request_cb(struct evhttp_request *req, void *arg) {
     LogPrint(BCLog::HTTP, "Received a %s request for %s from %s\n",
              RequestMethodString(hreq->GetRequestMethod()),
              SanitizeString(hreq->GetURI(), SAFE_CHARS_URI).substr(0, 100),
-             hreq->GetPeer().ToString());
+             hreq->GetPeer().ToStringAddrPort());
 
     // Find registered handler for prefix
     std::string strURI = hreq->GetURI();

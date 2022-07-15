@@ -1084,9 +1084,6 @@ std::string CService::ToStringAddrPort() const {
     }
 }
 
-std::string CService::ToString() const {
-    return ToStringAddrPort();
-}
 
 CSubNet::CSubNet() : valid(false) {
     memset(netmask, 0, sizeof(netmask));

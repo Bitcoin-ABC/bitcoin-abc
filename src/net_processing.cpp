@@ -2281,8 +2281,8 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
         LogPrint(BCLog::NET,
                  "send version message: version %d, blocks=%d, them=%s, "
                  "txrelay=%d, peer=%d\n",
-                 PROTOCOL_VERSION, nNodeStartingHeight, addr_you.ToString(),
-                 tx_relay, nodeid);
+                 PROTOCOL_VERSION, nNodeStartingHeight,
+                 addr_you.ToStringAddrPort(), tx_relay, nodeid);
     } else {
         LogPrint(BCLog::NET,
                  "send version message: version %d, blocks=%d, "
@@ -4986,7 +4986,7 @@ void PeerManagerImpl::ProcessMessage(
         // Disconnect if we connected to ourself
         if (pfrom.IsInboundConn() && !m_connman.CheckIncomingNonce(nNonce)) {
             LogPrintf("connected to self at %s, disconnecting\n",
-                      pfrom.addr.ToString());
+                      pfrom.addr.ToStringAddrPort());
             pfrom.fDisconnect = true;
             return;
         }
@@ -5098,14 +5098,14 @@ void PeerManagerImpl::ProcessMessage(
 
         std::string remoteAddr;
         if (fLogIPs) {
-            remoteAddr = ", peeraddr=" + pfrom.addr.ToString();
+            remoteAddr = ", peeraddr=" + pfrom.addr.ToStringAddrPort();
         }
 
         LogPrint(BCLog::NET,
                  "receive version message: [%s] %s: version %d, blocks=%d, "
                  "us=%s, txrelay=%d, peer=%d%s\n",
-                 pfrom.addr.ToString(), cleanSubVer, pfrom.nVersion,
-                 peer->m_starting_height, addrMe.ToString(), fRelay,
+                 pfrom.addr.ToStringAddrPort(), cleanSubVer, pfrom.nVersion,
+                 peer->m_starting_height, addrMe.ToStringAddrPort(), fRelay,
                  pfrom.GetId(), remoteAddr);
 
         int64_t currentTime = GetTime();
@@ -5146,13 +5146,14 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         if (!pfrom.IsInboundConn()) {
-            LogPrintf(
-                "New outbound peer connected: version: %d, blocks=%d, "
-                "peer=%d%s (%s)\n",
-                pfrom.nVersion.load(), peer->m_starting_height, pfrom.GetId(),
-                (fLogIPs ? strprintf(", peeraddr=%s", pfrom.addr.ToString())
-                         : ""),
-                pfrom.ConnectionTypeAsString());
+            LogPrintf("New outbound peer connected: version: %d, blocks=%d, "
+                      "peer=%d%s (%s)\n",
+                      pfrom.nVersion.load(), peer->m_starting_height,
+                      pfrom.GetId(),
+                      (fLogIPs ? strprintf(", peeraddr=%s",
+                                           pfrom.addr.ToStringAddrPort())
+                               : ""),
+                      pfrom.ConnectionTypeAsString());
         }
 
         if (pfrom.GetCommonVersion() >= SHORT_IDS_BLOCKS_VERSION) {

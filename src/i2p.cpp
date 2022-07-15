@@ -223,7 +223,7 @@ namespace sam {
             throw std::runtime_error(strprintf("\"%s\"", connect_reply.full));
         } catch (const std::runtime_error &e) {
             LogPrintLevel(BCLog::I2P, BCLog::Level::Debug,
-                          "Error connecting to %s: %s\n", to.ToString(),
+                          "Error connecting to %s: %s\n", to.ToStringAddrPort(),
                           e.what());
             CheckControlSock();
             return false;
@@ -292,8 +292,8 @@ namespace sam {
 
         if (!ConnectSocketDirectly(m_control_host, *sock, nConnectTimeout,
                                    true)) {
-            throw std::runtime_error(
-                strprintf("Cannot connect to %s", m_control_host.ToString()));
+            throw std::runtime_error(strprintf(
+                "Cannot connect to %s", m_control_host.ToStringAddrPort()));
         }
 
         SendRequestAndGetReply(*sock, "HELLO VERSION MIN=3.1 MAX=3.1");
@@ -361,7 +361,7 @@ namespace sam {
 
         LogPrintLevel(BCLog::I2P, BCLog::Level::Info,
                       "Creating SAM session with %s\n",
-                      m_control_host.ToString());
+                      m_control_host.ToStringAddrPort());
 
         auto sock = Hello();
 
@@ -387,7 +387,7 @@ namespace sam {
 
         LogPrintLevel(BCLog::I2P, BCLog::Level::Debug,
                       "SAM session created: session id=%s, my address=%s\n",
-                      m_session_id, m_my_addr.ToString());
+                      m_session_id, m_my_addr.ToStringAddrPort());
     }
 
     std::unique_ptr<Sock> Session::StreamAccept() {

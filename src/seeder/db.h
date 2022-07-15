@@ -34,7 +34,7 @@ static inline bool HasCheckpoint() {
 }
 
 static inline std::string ToString(const CService &ip) {
-    std::string str = ip.ToString();
+    std::string str = ip.ToStringAddrPort();
     while (str.size() < 22) {
         str += ' ';
     }

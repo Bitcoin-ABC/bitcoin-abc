@@ -117,7 +117,7 @@ static bool NatpmpMapping(natpmp_t *natpmp,
                 }
                 LogPrintf(
                     "natpmp: Port mapping successful. External address = %s\n",
-                    external.ToString());
+                    external.ToStringAddrPort());
                 return true;
             } else {
                 LogPrintf("natpmp: Port mapping failed.\n");

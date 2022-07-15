@@ -231,7 +231,7 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("id", stats.nodeid);
                 obj.pushKV("addr", stats.m_addr_name);
                 if (stats.addrBind.IsValid()) {
-                    obj.pushKV("addrbind", stats.addrBind.ToString());
+                    obj.pushKV("addrbind", stats.addrBind.ToStringAddrPort());
                 }
                 if (!(stats.addrLocal.empty())) {
                     obj.pushKV("addrlocal", stats.addrLocal);
@@ -593,7 +593,8 @@ static RPCHelpMan getaddednodeinfo() {
                 UniValue addresses(UniValue::VARR);
                 if (info.fConnected) {
                     UniValue address(UniValue::VOBJ);
-                    address.pushKV("address", info.resolvedAddress.ToString());
+                    address.pushKV("address",
+                                   info.resolvedAddress.ToStringAddrPort());
                     address.pushKV("connected",
                                    info.fInbound ? "inbound" : "outbound");
                     addresses.push_back(std::move(address));

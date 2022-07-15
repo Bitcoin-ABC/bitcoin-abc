@@ -588,7 +588,6 @@ public:
     }
     friend bool operator<(const CService &a, const CService &b);
     std::vector<uint8_t> GetKey() const;
-    std::string ToString() const;
     std::string ToStringPort() const;
     std::string ToStringAddrPort() const;
 
