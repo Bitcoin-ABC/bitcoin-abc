@@ -68,11 +68,12 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
         assert_equal(len(avapeerinfo), peercount)
         for i, peer in enumerate(avapeerinfo):
             proofid_hex = f"{avalanche_proof_from_hex(proofs[i]).proofid:0{64}x}"
-            assert_equal(peer["peerid"], i)
+            assert_equal(peer["avalanche_peerid"], i)
             assert_equal(peer["proofid"], proofid_hex)
             assert_equal(peer["proof"], proofs[i])
             assert_equal(peer["nodecount"], nodecount)
-            assert_equal(set(peer["nodes"]), set([n.nodeid for n in nodes[i]]))
+            assert_equal(set(peer["node_list"]), set(
+                [n.nodeid for n in nodes[i]]))
 
         self.log.info("Testing with a specified proofid")
 

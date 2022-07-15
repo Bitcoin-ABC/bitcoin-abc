@@ -150,8 +150,7 @@ def create_stakes(
 
 
 def get_proof_ids(node):
-    return [int(node.decodeavalancheproof(peer['proof'])['proofid'], 16)
-            for peer in node.getavalanchepeerinfo()]
+    return [int(peer['proofid'], 16) for peer in node.getavalanchepeerinfo()]
 
 
 def wait_for_proof(node, proofid_hex, timeout=60, expect_orphan=None):

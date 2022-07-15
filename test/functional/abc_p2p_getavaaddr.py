@@ -183,7 +183,7 @@ class AvaAddrTest(BitcoinTestFramework):
                 return False
 
             for avapeer in avapeers:
-                if len(avapeer['nodes']) != num_avanode:
+                if avapeer['nodecount'] != num_avanode:
                     return False
 
             return True

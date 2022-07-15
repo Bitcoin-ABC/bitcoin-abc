@@ -803,7 +803,8 @@ static RPCHelpMan getavalanchepeerinfo() {
                 "",
                 "",
                 {{
-                    {RPCResult::Type::NUM, "peerid", "The peer id"},
+                    {RPCResult::Type::NUM, "avalanche_peerid",
+                     "The avalanche internal peer identifier"},
                     {RPCResult::Type::STR_HEX, "proofid",
                      "The avalanche proof id used by this peer"},
                     {RPCResult::Type::STR_HEX, "proof",
@@ -811,7 +812,7 @@ static RPCHelpMan getavalanchepeerinfo() {
                     {RPCResult::Type::NUM, "nodecount",
                      "The number of nodes for this peer"},
                     {RPCResult::Type::ARR,
-                     "nodes",
+                     "node_list",
                      "",
                      {
                          {RPCResult::Type::NUM, "nodeid",
@@ -837,7 +838,7 @@ static RPCHelpMan getavalanchepeerinfo() {
                                  const avalanche::Peer &peer) {
                 UniValue obj(UniValue::VOBJ);
 
-                obj.pushKV("peerid", uint64_t(peer.peerid));
+                obj.pushKV("avalanche_peerid", uint64_t(peer.peerid));
                 obj.pushKV("proofid", peer.getProofId().ToString());
                 obj.pushKV("proof", peer.proof->ToHex());
 
@@ -847,7 +848,7 @@ static RPCHelpMan getavalanchepeerinfo() {
                 });
 
                 obj.pushKV("nodecount", uint64_t(peer.node_count));
-                obj.pushKV("nodes", nodes);
+                obj.pushKV("node_list", nodes);
 
                 return obj;
             };
