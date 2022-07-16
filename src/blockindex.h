@@ -144,7 +144,10 @@ public:
         return block;
     }
 
-    BlockHash GetBlockHash() const { return *phashBlock; }
+    BlockHash GetBlockHash() const {
+        assert(phashBlock != nullptr);
+        return *phashBlock;
+    }
 
     /**
      * Get the number of transaction in the chain so far.
