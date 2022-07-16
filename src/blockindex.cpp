@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <blockindex.h>
+#include <tinyformat.h>
 
 /**
  * Turn the lowest '1' bit in the binary representation of a number into a '0'.
@@ -22,6 +23,12 @@ static inline int GetSkipHeight(int height) {
     // in simulations (max 110 steps to go back up to 2**18 blocks).
     return (height & 1) ? InvertLowestOne(InvertLowestOne(height - 1)) + 1
                         : InvertLowestOne(height);
+}
+
+std::string CBlockIndex::ToString() const {
+    return strprintf(
+        "CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)", pprev,
+        nHeight, hashMerkleRoot.ToString(), GetBlockHash().ToString());
 }
 
 bool CBlockIndex::UpdateChainStats() {

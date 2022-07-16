@@ -16,7 +16,6 @@
 #include <kernel/cs_main.h>
 #include <primitives/block.h>
 #include <sync.h>
-#include <tinyformat.h>
 #include <uint256.h>
 
 #include <unordered_map>
