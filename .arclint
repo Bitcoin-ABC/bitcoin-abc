@@ -136,6 +136,10 @@
                 "(^src/bench/nanobench.h$)"
             ]
         },
+        "lint-std-chrono": {
+            "type": "lint-std-chrono",
+            "include": "(^src/.*\\.(h|cpp)$)"
+        },
         "lint-stdint": {
             "type": "lint-stdint",
             "include": "(^src/.*\\.(h|c|cpp)$)",
