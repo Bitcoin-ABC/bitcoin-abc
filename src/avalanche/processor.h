@@ -5,6 +5,7 @@
 #ifndef BITCOIN_AVALANCHE_PROCESSOR_H
 #define BITCOIN_AVALANCHE_PROCESSOR_H
 
+#include <avalanche/config.h>
 #include <avalanche/node.h>
 #include <avalanche/proofcomparator.h>
 #include <avalanche/protocol.h>
@@ -94,9 +95,9 @@ namespace {
 // FIXME Implement a proper notification handler for node disconnection instead
 // of implementing the whole NetEventsInterface for a single interesting event.
 class Processor final : public NetEventsInterface {
+    Config avaconfig;
     CConnman *connman;
     ChainstateManager &chainman;
-    std::chrono::milliseconds queryTimeoutDuration;
 
     /**
      * Blocks to run avalanche on.
@@ -174,10 +175,10 @@ class Processor final : public NetEventsInterface {
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
-    Processor(const ArgsManager &argsman, interfaces::Chain &chain,
-              CConnman *connmanIn, ChainstateManager &chainman,
-              CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
-              CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
+    Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
+              ChainstateManager &chainman, CScheduler &scheduler,
+              std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
+              uint32_t minQuorumTotalScoreIn,
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
               uint32_t staleVoteFactorIn);
@@ -189,10 +190,6 @@ public:
     MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
                   CConnman *connman, ChainstateManager &chainman,
                   CScheduler &scheduler, bilingual_str &error);
-
-    void setQueryTimeoutDuration(std::chrono::milliseconds d) {
-        queryTimeoutDuration = d;
-    }
 
     bool addBlockToReconcile(const CBlockIndex *pindex);
     bool addProofToReconcile(const ProofRef &proof);
@@ -233,17 +230,17 @@ public:
     bool isQuorumEstablished();
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
-    void InitializeNode(const Config &config, CNode *pnode) override {}
-    bool ProcessMessages(const Config &config, CNode *pnode,
+    void InitializeNode(const ::Config &config, CNode *pnode) override {}
+    bool ProcessMessages(const ::Config &config, CNode *pnode,
                          std::atomic<bool> &interrupt) override {
         return false;
     }
-    bool SendMessages(const Config &config, CNode *pnode) override {
+    bool SendMessages(const ::Config &config, CNode *pnode) override {
         return false;
     }
 
     /** Handle removal of a node */
-    void FinalizeNode(const Config &config, const CNode &node,
+    void FinalizeNode(const ::Config &config, const CNode &node,
                       bool &update_connection_time) override;
 
 private:

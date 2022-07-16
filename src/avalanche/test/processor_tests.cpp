@@ -86,7 +86,7 @@ CService ip(uint32_t i) {
 }
 
 struct AvalancheTestingSetup : public TestChain100Setup {
-    const Config &config;
+    const ::Config &config;
     CConnmanTest *m_connman;
 
     std::unique_ptr<Processor> m_processor;
@@ -833,6 +833,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(dont_poll_invalid_item, P, VoteItemProviders) {
 BOOST_TEST_DECORATOR(*boost::unit_test::timeout(60))
 BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     P provider(this);
+    ArgsManager argsman;
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+
+    auto queryTimeDuration = std::chrono::milliseconds(10);
+    argsman.ForceSetArg("-avatimeout", ToString(queryTimeDuration.count()));
+
+    bilingual_str error;
+    m_processor =
+        Processor::MakeProcessor(argsman, *m_node.chain, m_node.connman.get(),
+                                 chainman, *m_node.scheduler, error);
 
     const auto item = provider.buildVoteItem();
     const auto itemid = provider.getVoteItemId(item);
@@ -845,8 +855,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     NodeId avanodeid = NO_NODE;
 
     // Expire requests after some time.
-    auto queryTimeDuration = std::chrono::milliseconds(10);
-    m_processor->setQueryTimeoutDuration(queryTimeDuration);
     for (int i = 0; i < 10; i++) {
         Response resp = {getRound(), 0, {Vote(0, itemid)}};
         avanodeid = getSuitableNodeToQuery();

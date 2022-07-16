@@ -127,7 +127,7 @@ public:
     }
 };
 
-Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
+Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      CConnman *connmanIn, ChainstateManager &chainmanIn,
                      CScheduler &scheduler,
                      std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
@@ -135,10 +135,9 @@ Processor::Processor(const ArgsManager &argsman, interfaces::Chain &chain,
                      double minQuorumConnectedScoreRatioIn,
                      int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn)
-    : connman(connmanIn), chainman(chainmanIn),
-      queryTimeoutDuration(argsman.GetArg(
-          "-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count())),
-      round(0), peerManager(std::make_unique<PeerManager>(chainman)),
+    : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
+      chainman(chainmanIn), round(0),
+      peerManager(std::make_unique<PeerManager>(chainman)),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -258,6 +257,9 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         }
     }
 
+    const auto queryTimeoutDuration = std::chrono::milliseconds(
+        argsman.GetArg("-avatimeout", AVALANCHE_DEFAULT_QUERY_TIMEOUT.count()));
+
     // Determine quorum parameters
     Amount minQuorumStake = AVALANCHE_DEFAULT_MIN_QUORUM_STAKE;
     if (argsman.IsArgSet("-avaminquorumstake") &&
@@ -324,12 +326,14 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         return nullptr;
     }
 
+    Config avaconfig(queryTimeoutDuration);
+
     // We can't use std::make_unique with a private constructor
     return std::unique_ptr<Processor>(new Processor(
-        argsman, chain, connman, chainman, scheduler, std::move(peerData),
-        std::move(sessionKey), Proof::amountToScore(minQuorumStake),
-        minQuorumConnectedStakeRatio, minAvaproofsNodeCount, staleVoteThreshold,
-        staleVoteFactor));
+        std::move(avaconfig), chain, connman, chainman, scheduler,
+        std::move(peerData), std::move(sessionKey),
+        Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
+        minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {
@@ -741,7 +745,7 @@ bool Processor::isQuorumEstablished() {
     return true;
 }
 
-void Processor::FinalizeNode(const Config &config, const CNode &node,
+void Processor::FinalizeNode(const ::Config &config, const CNode &node,
                              bool &update_connection_time) {
     WITH_LOCK(cs_peerManager, peerManager->removeNode(node.GetId()));
 }
@@ -782,8 +786,8 @@ void Processor::runEventLoop() {
 
                 {
                     // Compute the time at which this requests times out.
-                    auto timeout =
-                        std::chrono::steady_clock::now() + queryTimeoutDuration;
+                    auto timeout = std::chrono::steady_clock::now() +
+                                   avaconfig.queryTimeoutDuration;
                     // Register the query.
                     queries.getWriteView()->insert(
                         {pnode->GetId(), current_round, timeout, invs});
