@@ -50,6 +50,24 @@ class AvalancheTest(BitcoinTestFramework):
         # Use the first coinbase to create a stake
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
 
+        # duplicate the deterministic sig test from src/test/key_tests.cpp
+        privkey = ECKey()
+        privkey.set(bytes.fromhex(
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
+
+        proof_sequence = 11
+        proof_expiration = 12
+        proof = node.buildavalancheproof(
+            proof_sequence, proof_expiration, bytes_to_wif(
+                privkey.get_bytes()),
+            stakes)
+
+        # Activate the quorum.
+        for n in quorum:
+            success = node.addavalanchenode(
+                n.nodeid, privkey.get_pubkey().get_bytes().hex(), proof)
+            assert success is True
+
         fork_node = self.nodes[1]
         # Make sure the fork node has synced the blocks
         self.sync_blocks([node, fork_node])
@@ -126,23 +144,6 @@ class AvalancheTest(BitcoinTestFramework):
                         [AvalancheVote(AvalancheVoteError.UNKNOWN, h) for h in various_block_hashes[-3:]])
 
         self.log.info("Trigger polling from the node...")
-        # duplicate the deterministic sig test from src/test/key_tests.cpp
-        privkey = ECKey()
-        privkey.set(bytes.fromhex(
-            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
-
-        proof_sequence = 11
-        proof_expiration = 12
-        proof = node.buildavalancheproof(
-            proof_sequence, proof_expiration, bytes_to_wif(
-                privkey.get_bytes()),
-            stakes)
-
-        # Activate the quorum.
-        for n in quorum:
-            success = node.addavalanchenode(
-                n.nodeid, privkey.get_pubkey().get_bytes().hex(), proof)
-            assert success is True
 
         def can_find_block_in_poll(hash, resp=AvalancheVoteError.ACCEPTED):
             found_hash = False

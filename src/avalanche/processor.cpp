@@ -673,6 +673,25 @@ void Processor::avaproofsSent(NodeId nodeid) {
  * us to take decisions based on polls.
  */
 bool Processor::isQuorumEstablished() {
+    {
+        LOCK(cs_peerManager);
+        if (peerManager->getNodeCount() < 8) {
+            // There is no point polling if we know the vote cannot converge
+            return false;
+        }
+    }
+
+    /*
+     * The following parameters can naturally go temporarly below the threshold
+     * under normal circumstances, like during a proof replacement with a lower
+     * stake amount, or the discovery of a new proofs for which we don't have a
+     * node yet.
+     * In order to prevent our node from starting and stopping the polls
+     * spuriously on such event, the quorum establishement is latched. The only
+     * parameters that should not latched is the minimum node count, as this
+     * would cause the poll to be inconclusive anyway and should not happen
+     * under normal circumstances.
+     */
     if (quorumIsEstablished) {
         return true;
     }

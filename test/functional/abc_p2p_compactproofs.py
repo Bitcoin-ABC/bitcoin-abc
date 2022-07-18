@@ -56,6 +56,7 @@ class CompactProofsTest(BitcoinTestFramework):
             '-enableavalanche=1',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
+            '-enableavalanchepeerdiscovery=1',
         ]] * self.num_nodes
 
     def setup_network(self):
@@ -647,14 +648,10 @@ class CompactProofsTest(BitcoinTestFramework):
                 [inbound, outbound]) > current_total)
             current_total = count_getavaproofs([inbound, outbound])
 
-        # Connect the minimum amount of stake
-        privkey, proof = gen_proof(node)
-        assert node.addavalanchenode(
-            inbound.nodeid,
-            privkey.get_pubkey().get_bytes().hex(),
-            proof.serialize().hex())
-
-        assert_equal(node.getavalancheinfo()['active'], True)
+        # Connect the minimum amount of stake and nodes
+        for _ in range(8):
+            node.add_p2p_connection(AvaP2PInterface(node))
+        self.wait_until(lambda: node.getavalancheinfo()['active'] is True)
 
         # From now only the outbound is requested
         count_inbound = count_getavaproofs([inbound])

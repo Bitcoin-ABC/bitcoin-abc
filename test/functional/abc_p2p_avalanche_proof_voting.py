@@ -323,6 +323,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                                          '-avalancheconflictingproofcooldown=0',
                                          '-whitelist=noban@127.0.0.1', ])
 
+        self.get_quorum(node)
+
         ava_node = get_ava_p2p_interface(node)
 
         # Generate coinbases to use for stakes

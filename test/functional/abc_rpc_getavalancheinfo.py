@@ -351,12 +351,10 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.log.info("Disconnect all the nodes")
 
-        for n in node.p2ps:
-            n.peer_disconnect()
-            n.wait_for_disconnect()
+        node.disconnect_p2ps()
 
         assert_avalancheinfo({
-            "active": True,
+            "active": False,
             "local": {
                 "live": True,
                 "proofid": f"{proof.proofid:0{64}x}",

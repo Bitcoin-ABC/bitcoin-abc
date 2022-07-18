@@ -9,6 +9,7 @@ from test_framework.avatools import (
     build_msg_avaproofs,
     gen_proof,
     get_ava_p2p_interface,
+    wait_for_proof,
 )
 from test_framework.key import ECPubKey
 from test_framework.messages import (
@@ -33,7 +34,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',
             '-avatimeout=0',
-            '-avaminquorumstake=100000000',
+            '-avaminquorumstake=150000000',
             '-avaminquorumconnectedstakeratio=0.8',
             '-minimumchainwork=0',
         ]] * self.num_nodes
@@ -45,6 +46,20 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             [f'-avaminavaproofsnodecount={self.min_avaproofs_node_count}']
 
     def run_test(self):
+        # Initially all nodes start with 8 nodes attached to a single proof
+        privkey, proof = gen_proof(self.nodes[0])
+        for node in self.nodes:
+            quorum = [get_ava_p2p_interface(node)
+                      for _ in range(0, 8)]
+
+            for n in quorum:
+                success = node.addavalanchenode(
+                    n.nodeid,
+                    privkey.get_pubkey().get_bytes().hex(),
+                    proof.serialize().hex(),
+                )
+                assert success is True
+
         # Prepare peers proofs
         peers = []
         for i in range(0, self.min_avaproofs_node_count + 1):
@@ -132,12 +147,13 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 get_ava_outbound(node, peer, empty_avaproof)
                 poll_and_assert_response(node, expected_status[i])
 
-        # Start polling. The response should be UNKNOWN because there's no
-        # score
+        # Start polling. The response should be UNKNOWN because there's not
+        # enough stake
         [poll_and_assert_response(node, AvalancheVoteError.UNKNOWN)
          for node in self.nodes]
 
-        # Create one peer with half the score and add one node
+        # Create one peer with half the remaining missing stake and add one
+        # node
         add_avapeer_and_check_status(
             peers[0], [
                 AvalancheVoteError.UNKNOWN,
@@ -201,6 +217,20 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 AvalancheVoteError.ACCEPTED,
                 AvalancheVoteError.ACCEPTED,
             ])
+
+        # Unless there is not enough nodes to poll
+        for node in self.nodes:
+            avapeers = [p2p for p2p in node.p2ps if p2p not in pollers]
+            for peer in avapeers[7:]:
+                peer.peer_disconnect()
+                peer.wait_for_disconnect()
+            poll_and_assert_response(node, AvalancheVoteError.UNKNOWN)
+
+            # Add a node back and check it resumes the quorum status
+            avapeer = AvaP2PInterface(node)
+            node.add_p2p_connection(avapeer)
+            wait_for_proof(node, f"{avapeer.proof.proofid:0{64}x}")
+            poll_and_assert_response(node, AvalancheVoteError.ACCEPTED)
 
 
 if __name__ == '__main__':

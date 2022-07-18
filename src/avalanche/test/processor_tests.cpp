@@ -641,20 +641,29 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
-    const auto item = provider.buildVoteItem();
-    const auto itemid = provider.getVoteItemId(item);
+    auto item = provider.buildVoteItem();
+    auto itemid = provider.getVoteItemId(item);
 
     // There is no node to query.
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), NO_NODE);
 
-    // Create a node that supports avalanche and one that doesn't.
-    ConnectNode(NODE_NONE);
-    auto avanode = ConnectNode(NODE_AVALANCHE);
-    NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(addNode(avanodeid));
+    // Add enough nodes to have a valid quorum, and the same amount with no
+    // avalanche support
+    std::set<NodeId> avanodeIds;
+    auto avanodes = ConnectNodes();
+    for (auto avanode : avanodes) {
+        ConnectNode(NODE_NONE);
+        avanodeIds.insert(avanode->GetId());
+    }
 
-    // It returns the avalanche peer.
-    BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
+    auto getSelectedAvanodeId = [&]() {
+        NodeId avanodeid = getSuitableNodeToQuery();
+        BOOST_CHECK(avanodeIds.find(avanodeid) != avanodeIds.end());
+        return avanodeid;
+    };
+
+    // It returns one of the avalanche peer.
+    NodeId avanodeid = getSelectedAvanodeId();
 
     // Register an item and check it is added to the list of elements to poll.
     BOOST_CHECK(provider.addToReconcile(item));
@@ -663,11 +672,24 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     BOOST_CHECK_EQUAL(invs[0].type, invType);
     BOOST_CHECK(invs[0].hash == itemid);
 
-    // Trigger a poll on avanode.
+    std::set<NodeId> unselectedNodeids = avanodeIds;
+    unselectedNodeids.erase(avanodeid);
+    const size_t remainingNodeIds = unselectedNodeids.size();
+
     uint64_t round = getRound();
-    runEventLoop();
+    for (size_t i = 0; i < remainingNodeIds; i++) {
+        // Trigger a poll on avanode.
+        runEventLoop();
+
+        // Another node is selected
+        NodeId nodeid = getSuitableNodeToQuery();
+        BOOST_CHECK(unselectedNodeids.find(nodeid) != avanodeIds.end());
+        unselectedNodeids.erase(nodeid);
+    }
 
     // There is no more suitable peer available, so return nothing.
+    BOOST_CHECK(unselectedNodeids.empty());
+    runEventLoop();
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), NO_NODE);
 
     // Respond to the request.
@@ -714,6 +736,20 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     runEventLoop();
     checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-content");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
+
+    // At this stage we have reached the max inflight requests for our inv, so
+    // it won't be requested anymore until the requests are fullfilled. Let's
+    // vote on another item with no inflight request so the remaining tests
+    // makes sense.
+    invs = getInvsForNextPoll();
+    BOOST_CHECK(invs.empty());
+
+    item = provider.buildVoteItem();
+    itemid = provider.getVoteItemId(item);
+    BOOST_CHECK(provider.addToReconcile(item));
+
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 1);
 
     // 4. Invalid round count. Request is not discarded.
     uint64_t queryRound = getRound();
@@ -804,16 +840,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     // Add the item
     BOOST_CHECK(provider.addToReconcile(item));
 
-    // Create a node that supports avalanche.
-    auto avanode = ConnectNode(NODE_AVALANCHE);
-    NodeId avanodeid = avanode->GetId();
-    BOOST_CHECK(addNode(avanodeid));
+    // Create a quorum of nodes that support avalanche.
+    ConnectNodes();
+    NodeId avanodeid = NO_NODE;
 
     // Expire requests after some time.
     auto queryTimeDuration = std::chrono::milliseconds(10);
     m_processor->setQueryTimeoutDuration(queryTimeDuration);
     for (int i = 0; i < 10; i++) {
         Response resp = {getRound(), 0, {Vote(0, itemid)}};
+        avanodeid = getSuitableNodeToQuery();
 
         auto start = std::chrono::steady_clock::now();
         runEventLoop();
@@ -833,6 +869,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
 
         // We are within time bounds, so the vote should have worked.
         BOOST_CHECK(ret);
+
+        avanodeid = getSuitableNodeToQuery();
 
         // Now try again but wait for expiration.
         runEventLoop();
@@ -984,23 +1022,23 @@ BOOST_AUTO_TEST_CASE(event_loop) {
     // Start the scheduler thread.
     std::thread schedulerThread(std::bind(&CScheduler::serviceQueue, &s));
 
-    // Create a node that supports avalanche.
-    auto avanode = ConnectNode(NODE_AVALANCHE);
-    NodeId nodeid = avanode->GetId();
-    BOOST_CHECK(addNode(nodeid));
+    // Create a quorum of nodes that support avalanche.
+    auto avanodes = ConnectNodes();
 
     // There is no query in flight at the moment.
-    BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), nodeid);
+    NodeId nodeid = getSuitableNodeToQuery();
+    BOOST_CHECK_NE(nodeid, NO_NODE);
 
     // Add a new block. Check it is added to the polls.
     uint64_t queryRound = getRound();
     BOOST_CHECK(m_processor->addBlockToReconcile(pindex));
 
+    // Wait until all nodes got a poll
     for (int i = 0; i < 60 * 1000; i++) {
         // Technically, this is a race condition, but this should do just fine
-        // as we wait up to 1 minute for an event that should take 10ms.
+        // as we wait up to 1 minute for an event that should take 80ms.
         UninterruptibleSleep(std::chrono::milliseconds(1));
-        if (getRound() != queryRound) {
+        if (getRound() == queryRound + avanodes.size()) {
             break;
         }
     }
@@ -1014,7 +1052,9 @@ BOOST_AUTO_TEST_CASE(event_loop) {
         std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
 
     std::vector<BlockUpdate> updates;
+    // Only the first node answers, so it's the only one that gets polled again
     registerVotes(nodeid, {queryRound, 100, {Vote(0, blockHash)}}, updates);
+
     for (int i = 0; i < 10000; i++) {
         // We make sure that we do not get a request before queryTime.
         UninterruptibleSleep(std::chrono::milliseconds(1));
@@ -1275,12 +1315,21 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     });
     BOOST_CHECK(!processor->isQuorumEstablished());
 
+    // Add enough nodes to get a conclusive vote
+    for (NodeId id = 0; id < 8; id++) {
+        processor->withPeerManager([&](avalanche::PeerManager &pm) {
+            pm.addNode(id, processor->getLocalProof()->getId());
+            BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 4);
+            BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
+        });
+    }
+
     // Add part of the required stake and make sure we still report no quorum
     auto proof1 = buildRandomProof(active_chainstate, minScore / 2);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof1));
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
     });
     BOOST_CHECK(!processor->isQuorumEstablished());
 
@@ -1289,30 +1338,42 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof2));
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
     });
     BOOST_CHECK(!processor->isQuorumEstablished());
 
     // Adding a node should cause the quorum to be detected and locked-in
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.addNode(0, proof2->getId());
+        pm.addNode(8, proof2->getId());
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
         // The peer manager knows that proof2 has a node attached ...
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 2);
     });
     // ... but the processor also account for the local proof, so we reached 50%
     BOOST_CHECK(processor->isQuorumEstablished());
 
-    // Go back to not having enough connected nodes, but we've already latched
+    // Go back to not having enough connected score, but we've already latched
     // the quorum as established
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
-        pm.removeNode(0);
+        pm.removeNode(8);
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
-    // Remove peers one at a time and ensure the quorum stays established
+    // Removing one more node drops our count below the minimum and the quorum
+    // is no longer ready
+    processor->withPeerManager(
+        [&](avalanche::PeerManager &pm) { pm.removeNode(7); });
+    BOOST_CHECK(!processor->isQuorumEstablished());
+
+    // It resumes when we have enough nodes again
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.addNode(7, processor->getLocalProof()->getId());
+    });
+    BOOST_CHECK(processor->isQuorumEstablished());
+
+    // Remove peers one at a time until the quorum is no longer established
     auto spendProofUtxo = [&processor, &chainman](ProofRef proof) {
         {
             LOCK(cs_main);
@@ -1328,14 +1389,14 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     spendProofUtxo(proof2);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
     spendProofUtxo(proof1);
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore / 4);
-        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
+        BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);
     });
     BOOST_CHECK(processor->isQuorumEstablished());
 
@@ -1344,7 +1405,8 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 0);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), 0);
     });
-    BOOST_CHECK(processor->isQuorumEstablished());
+    // There is no node left
+    BOOST_CHECK(!processor->isQuorumEstablished());
 
     gArgs.ClearForcedArg("-avamasterkey");
     gArgs.ClearForcedArg("-avaproof");
@@ -1429,9 +1491,6 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
             argsman, *m_node.chain, m_node.connman.get(), chainman,
             *m_node.scheduler, error);
 
-        BOOST_CHECK_EQUAL(processor->isQuorumEstablished(),
-                          minAvaproofsMessages <= 0);
-
         auto addNode = [&](NodeId nodeid) {
             auto proof = buildRandomProof(chainman.ActiveChainstate(),
                                           MIN_VALID_PROOF_SCORE);
@@ -1440,6 +1499,17 @@ BOOST_AUTO_TEST_CASE(min_avaproofs_messages) {
                 BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
             });
         };
+
+        // Add enough node to have a conclusive vote, but don't account any
+        // avaproofs.
+        // NOTE: we can't use the test facilites like ConnectNodes() because we
+        // are not testing on m_processor.
+        for (NodeId id = 100; id < 108; id++) {
+            addNode(id);
+        }
+
+        BOOST_CHECK_EQUAL(processor->isQuorumEstablished(),
+                          minAvaproofsMessages <= 0);
 
         for (int64_t i = 0; i < minAvaproofsMessages - 1; i++) {
             addNode(i);

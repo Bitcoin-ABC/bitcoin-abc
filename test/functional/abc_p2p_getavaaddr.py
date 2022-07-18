@@ -403,14 +403,10 @@ class AvaAddrTest(BitcoinTestFramework):
                 [inbound, outbound]) > current_total)
             current_total = count_getavaaddr([inbound, outbound])
 
-        # Connect the minimum amount of stake
-        privkey, proof = gen_proof(node)
-        assert node.addavalanchenode(
-            inbound.nodeid,
-            privkey.get_pubkey().get_bytes().hex(),
-            proof.serialize().hex())
-
-        assert_equal(node.getavalancheinfo()['active'], True)
+        # Connect the minimum amount of stake and nodes
+        for _ in range(8):
+            node.add_p2p_connection(AvaP2PInterface(node))
+        self.wait_until(lambda: node.getavalancheinfo()['active'] is True)
 
         # From now only the outbound is requested
         count_inbound = count_getavaaddr([inbound])
