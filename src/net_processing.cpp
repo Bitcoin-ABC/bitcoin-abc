@@ -1721,7 +1721,7 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
 
         m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
             LogPrint(BCLog::AVALANCHE,
-                     "Requesting more avalanche addresses to peer %d\n",
+                     "Requesting more avalanche addresses from peer %d\n",
                      avanodeId);
             m_connman.PushMessage(pavanode,
                                   CNetMsgMaker(pavanode->GetCommonVersion())
