@@ -1681,14 +1681,19 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
 void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     const auto now = GetTime<std::chrono::seconds>();
     std::vector<NodeId> avanode_ids;
-
-    const bool fQuorumEstablished =
-        g_avalanche && g_avalanche->isQuorumEstablished();
+    bool fQuorumEstablished;
+    bool fShouldRequestMoreNodes;
 
     if (!g_avalanche) {
         // Not enabled or not ready yet, retry later
         goto scheduleLater;
     }
+
+    fQuorumEstablished = g_avalanche->isQuorumEstablished();
+    fShouldRequestMoreNodes =
+        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            return pm.shouldRequestMoreNodes();
+        });
 
     m_connman.ForEachNode([&](CNode *pnode) {
         // Build a list of the avalanche peers nodeids
@@ -1712,13 +1717,8 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
 
     Shuffle(avanode_ids.begin(), avanode_ids.end(), FastRandomContext());
 
-    if (!fQuorumEstablished ||
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-            return pm.shouldRequestMoreNodes();
-        })) {
-        // Randomly select an avalanche peer to send the getavaaddr message to
-        const NodeId avanodeId = avanode_ids.front();
-
+    // Request avalanche addresses from our peers
+    for (NodeId avanodeId : avanode_ids) {
         m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
             LogPrint(BCLog::AVALANCHE,
                      "Requesting more avalanche addresses from peer %d\n",
@@ -1731,6 +1731,12 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
                       peer->m_addr_token_bucket += GetMaxAddrToSend());
             return true;
         });
+
+        // If we have no reason to believe that we need more nodes, only request
+        // addresses from one of our peers.
+        if (fQuorumEstablished && !fShouldRequestMoreNodes) {
+            break;
+        }
     }
 
     if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
