@@ -8,7 +8,7 @@ This project is based on [badger-components-react](https://github.com/Bitcoin-co
 
 Some features from `badger-components-react` are not yet fully supported. Upcoming features:
 
--   [ ] SLPA transactions
+-   [ ] eToken invoices
 -   [ ] OP Return text
 -   [ ] successFn and failureFn props
 -   [ ] Bip70-style invoices
@@ -68,17 +68,17 @@ const Example = props => {
             <CashtabBadge to={toAddress} amount={0.01} coinType="XEC" />
             <CashtabButton to={toAddress} amount={0.0001} coinType="XEC" />
 
-            {/* Price in SLP tokens - NAKAMOTO in this example */}
+            {/* Price in eTokens - NAKAMOTO in this example */}
             <CashtabBadge
                 to={toSLPAddress}
                 amount={5.01}
-                coinType="SLPA"
+                coinType="eToken"
                 tokenId={nakamotoID}
             />
             <CashtabButton
                 to={toSLPAddress}
                 amount={2.0001}
-                coinType="SLPA"
+                coinType="eToken"
                 tokenId={nakamotoID}
             />
 

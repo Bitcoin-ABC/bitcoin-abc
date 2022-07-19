@@ -63,8 +63,8 @@ XEC.args = {
 
 XEC.storyName = `price in ${Ticker.coinSymbol}`;
 
-export const SLPA = Template.bind({});
-SLPA.args = {
+export const eToken = Template.bind({});
+eToken.args = {
     coinType: Ticker.tokenTicker,
     tokenId: tokenIdOptions[0],
     amount: 100,
@@ -72,7 +72,7 @@ SLPA.args = {
     showQR: true,
 };
 
-SLPA.storyName = `price in ${Ticker.tokenTicker}`;
+eToken.storyName = `price in ${Ticker.tokenTicker}`;
 
 export const StepControlled = Template.bind({});
 StepControlled.args = {

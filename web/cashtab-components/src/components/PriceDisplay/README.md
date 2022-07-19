@@ -1,6 +1,6 @@
 # PriceDisplay
 
-Show a price display item in fiat, XEC, or SLPA.
+Show a price display item in fiat, XEC, or eToken.
 
 For open BIP70 invoices, get price and currency info from the invoice.
 
