@@ -439,6 +439,10 @@ void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
         rejectProof(proofid, RejectionMode::INVALIDATE);
         danglingProofIds.insert(proofid);
     }
+
+    // If we have dangling proof, this is a good indicator that we need to
+    // request more nodes from our peers.
+    needMoreNodes = !newlyDanglingProofIds.empty();
 }
 
 NodeId PeerManager::selectNode() {

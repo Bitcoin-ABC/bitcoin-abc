@@ -1465,6 +1465,36 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     BOOST_CHECK(pm.updateNextRequestTime(0, std::chrono::steady_clock::now()));
     BOOST_CHECK_NE(pm.selectNode(), NO_NODE);
     BOOST_CHECK(!pm.shouldRequestMoreNodes());
+
+    // Add another proof with no node attached
+    auto proof2 =
+        buildRandomProof(chainman.ActiveChainstate(), MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proof2));
+    pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(!pm.shouldRequestMoreNodes());
+
+    // After some time the proof will be considered dangling and more nodes will
+    // be requested.
+    SetMockTime(GetTime() + 15 * 60);
+    pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(pm.shouldRequestMoreNodes());
+
+    for (size_t i = 0; i < 10; i++) {
+        // The flag will not trigger again until the condition is met again
+        BOOST_CHECK(!pm.shouldRequestMoreNodes());
+    }
+
+    // Attach a node to that proof
+    BOOST_CHECK(!pm.addNode(11, proof2->getId()));
+    BOOST_CHECK(pm.registerProof(proof2));
+    SetMockTime(GetTime() + 15 * 60);
+    pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(!pm.shouldRequestMoreNodes());
+
+    // Disconnect the node, the proof is dangling again
+    BOOST_CHECK(pm.removeNode(11));
+    pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(pm.shouldRequestMoreNodes());
 }
 
 BOOST_AUTO_TEST_CASE(score_ordering) {
