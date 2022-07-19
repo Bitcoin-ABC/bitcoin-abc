@@ -808,7 +808,8 @@ public:
     /** Adds a transaction to the unbroadcast set */
     void AddUnbroadcastTx(const TxId &txid) {
         LOCK(cs);
-        // Sanity Check: the transaction should also be in the mempool
+        // Sanity check the transaction is in the mempool & insert into
+        // unbroadcast set.
         if (exists(txid)) {
             m_unbroadcast_txids.insert(txid);
         }
