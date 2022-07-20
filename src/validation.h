@@ -82,7 +82,6 @@ struct Params;
 static const int MAX_SCRIPTCHECK_THREADS = 15;
 /** -par default (number of script-checking threads, 0 = auto) */
 static const int DEFAULT_SCRIPTCHECK_THREADS = 0;
-static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
@@ -120,12 +119,6 @@ extern std::condition_variable g_best_block_cv;
 extern uint256 g_best_block;
 extern bool fCheckBlockIndex;
 extern bool fCheckpointsEnabled;
-
-/**
- * If the tip is older than this (in seconds), the node is considered to be in
- * initial block download.
- */
-extern int64_t nMaxTipAge;
 
 /**
  * Block hash whose ancestors we will assume to have valid scripts without

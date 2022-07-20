@@ -653,6 +653,7 @@ add_library(server
 	node/blockstorage.cpp
 	node/caches.cpp
 	node/chainstate.cpp
+	node/chainstatemanager_args.cpp
 	node/coin.cpp
 	node/coinstats.cpp
 	node/context.cpp

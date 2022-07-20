@@ -12,6 +12,8 @@
 
 class Config;
 
+static constexpr auto DEFAULT_MAX_TIP_AGE{24h};
+
 namespace kernel {
 
 /**
@@ -23,6 +25,9 @@ struct ChainstateManagerOpts {
     const Config &config;
     const std::function<NodeClock::time_point()> adjusted_time_callback{
         nullptr};
+    //! If the tip is older than this, the node is considered to be in initial
+    //! block download.
+    std::chrono::seconds max_tip_age{DEFAULT_MAX_TIP_AGE};
 };
 
 } // namespace kernel

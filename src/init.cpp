@@ -46,6 +46,7 @@
 #include <node/blockstorage.h>
 #include <node/caches.h>
 #include <node/chainstate.h>
+#include <node/chainstatemanager_args.h>
 #include <node/context.h>
 #include <node/mempool_persist_args.h>
 #include <node/miner.h>
@@ -1095,7 +1096,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-maxtipage=<n>",
                    strprintf("Maximum tip age in seconds to consider node in "
                              "initial block download (default: %u)",
-                             DEFAULT_MAX_TIP_AGE),
+                             Ticks<std::chrono::seconds>(DEFAULT_MAX_TIP_AGE)),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
                    OptionsCategory::DEBUG_TEST);
 
@@ -1965,8 +1966,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_BLOOM);
     }
 
-    nMaxTipAge = args.GetIntArg("-maxtipage", DEFAULT_MAX_TIP_AGE);
-
     if (args.IsArgSet("-proxy") && args.GetArg("-proxy", "").empty()) {
         return InitError(_(
             "No proxy server specified. Use -proxy=<ip> or -proxy=<ip:port>."));
@@ -2396,6 +2395,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     fReindex = args.GetBoolArg("-reindex", false);
     bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
 
+    ChainstateManager::Options chainman_opts{
+        .config = config,
+        .adjusted_time_callback = GetAdjustedTime,
+    };
+    ApplyArgsManOptions(args, chainman_opts);
+
     // cache size calculations
     CacheSizes cache_sizes =
         CalculateCacheSizes(args, g_enabled_filter_types.size());
@@ -2446,10 +2451,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(mempool_opts);
 
-        const ChainstateManager::Options chainman_opts{
-            .config = config,
-            .adjusted_time_callback = GetAdjustedTime,
-        };
         node.chainman = std::make_unique<ChainstateManager>(chainman_opts);
         ChainstateManager &chainman = *node.chainman;
 
