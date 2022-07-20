@@ -1,0 +1,21 @@
+# Copyright (c) 2022 The Bitcoin developers
+
+[package]
+name = "abc-rust-error"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61.0"
+license = "MIT"
+
+[dependencies]
+abc-rust-lint = { path = "../abc-rust-lint" }
+
+# Error wrapper for easy error handling and reporting
+eyre = "0.6"
+
+# Enables error backtracing on stable Rust
+stable-eyre = "0.2"
+
+[dev-dependencies]
+# Derive error enums
+thiserror = "1.0"
