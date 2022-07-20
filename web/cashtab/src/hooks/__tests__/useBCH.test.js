@@ -30,6 +30,11 @@ import {
     mockBurnEtokenTx,
     mockSentAirdropOpReturnMessageTx,
 } from '../__mocks__/mockParsedTxs';
+import {
+    mockReceivedXecTxRawTx,
+    mockBurnEtokenTxRawTx,
+    mockReceivedEtokenTxRawTx,
+} from '../__mocks__/mockParseTxDataRawTxs';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
@@ -460,6 +465,9 @@ describe('useBCH hook', () => {
     it(`Correctly parses a "receive ${currency.ticker}" transaction`, async () => {
         const { parseTxData } = useBCH();
         const BCH = new BCHJS();
+        BCH.RawTransactions.getRawTransaction = jest
+            .fn()
+            .mockResolvedValue(mockReceivedXecTxRawTx);
         expect(
             await parseTxData(
                 BCH,
@@ -484,6 +492,10 @@ describe('useBCH hook', () => {
     it(`Correctly parses a "burn ${currency.tokenTicker}" transaction`, async () => {
         const { parseTxData } = useBCH();
         const BCH = new BCHJS();
+        BCH.RawTransactions.getRawTransaction = jest
+            .fn()
+            .mockResolvedValue(mockBurnEtokenTxRawTx);
+
         expect(
             await parseTxData(
                 BCH,
@@ -496,6 +508,9 @@ describe('useBCH hook', () => {
     it(`Correctly parses a "receive ${currency.tokenTicker}" transaction`, async () => {
         const { parseTxData } = useBCH();
         const BCH = new BCHJS();
+        BCH.RawTransactions.getRawTransaction = jest
+            .fn()
+            .mockResolvedValue(mockReceivedEtokenTxRawTx);
         expect(
             await parseTxData(
                 BCH,

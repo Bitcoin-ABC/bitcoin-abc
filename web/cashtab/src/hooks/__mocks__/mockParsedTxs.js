@@ -1,4 +1,5 @@
 // Expected result of applying parseTxData to mockTxDataWityhPassthrough[0]
+
 export const mockSentCashTx = [
     {
         amountReceived: 0,
@@ -34,7 +35,7 @@ export const mockReceivedCashTx = [
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
-        replyAddress: null,
+        replyAddress: 'ecash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxav9up3h67g',
         tokenTx: false,
         decryptionSuccess: false,
         airdropFlag: false,
@@ -77,7 +78,7 @@ export const mockReceivedTokenTx = [
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
-        replyAddress: null,
+        replyAddress: 'ecash:qzudj5fd9t0cknnsc3wzdd4sp46u9r42jc2d89j2kc',
         tokenTx: true,
         decryptionSuccess: false,
         airdropFlag: false,
@@ -138,7 +139,7 @@ export const mockBurnEtokenTx = [
         isEncryptedMessage: false,
         opReturnMessage: '',
         outgoingTx: false,
-        replyAddress: null,
+        replyAddress: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
         tokenTx: true,
         airdropFlag: false,
         airdropTokenId: '',
