@@ -2457,7 +2457,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     CTxMemPool::Options mempool_opts{
         .check_ratio = chainparams.DefaultConsistencyChecks() ? 1 : 0,
     };
-    ApplyArgsManOptions(args, mempool_opts);
+    if (const auto err{ApplyArgsManOptions(args, chainparams, mempool_opts)}) {
+        return InitError(*err);
+    }
     mempool_opts.check_ratio =
         std::clamp<int>(mempool_opts.check_ratio, 0, 1'000'000);
 

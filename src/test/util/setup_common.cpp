@@ -186,7 +186,9 @@ CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
         // chainparams.DefaultConsistencyChecks for tests
         .check_ratio = 1,
     };
-    ApplyArgsManOptions(*node.args, mempool_opts);
+    const auto err{ApplyArgsManOptions(
+        *node.args, ::GetConfig().GetChainParams(), mempool_opts)};
+    Assert(!err);
     return mempool_opts;
 }
 

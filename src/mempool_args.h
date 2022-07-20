@@ -5,12 +5,26 @@
 #ifndef BITCOIN_MEMPOOL_ARGS_H
 #define BITCOIN_MEMPOOL_ARGS_H
 
+#include <optional>
+
 class ArgsManager;
+class CChainParams;
+struct bilingual_str;
 namespace kernel {
 struct MemPoolOptions;
 };
 
-void ApplyArgsManOptions(const ArgsManager &argsman,
-                         kernel::MemPoolOptions &mempool_opts);
+/**
+ * Overlay the options set in \p argsman on top of corresponding members in
+ * \p mempool_opts.
+ * Returns an error if one was encountered.
+ *
+ * @param[in]  argsman The ArgsManager in which to check set options.
+ * @param[in,out] mempool_opts The MemPoolOptions to modify according to
+ *                             \p argsman.
+ */
+[[nodiscard]] std::optional<bilingual_str>
+ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
+                    kernel::MemPoolOptions &mempool_opts);
 
 #endif // BITCOIN_MEMPOOL_ARGS_H

@@ -6,12 +6,19 @@
 
 #include <kernel/mempool_options.h>
 
+#include <chainparams.h>
+#include <tinyformat.h>
 #include <util/system.h>
+#include <util/translation.h>
+
+#include <chrono>
+#include <memory>
 
 using kernel::MemPoolOptions;
 
-void ApplyArgsManOptions(const ArgsManager &argsman,
-                         MemPoolOptions &mempool_opts) {
+std::optional<bilingual_str>
+ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
+                    MemPoolOptions &mempool_opts) {
     mempool_opts.check_ratio =
         argsman.GetIntArg("-checkmempool", mempool_opts.check_ratio);
 
@@ -22,4 +29,6 @@ void ApplyArgsManOptions(const ArgsManager &argsman,
     if (auto hours = argsman.GetIntArg("-mempoolexpiry")) {
         mempool_opts.expiry = std::chrono::hours{*hours};
     }
+
+    return std::nullopt;
 }
