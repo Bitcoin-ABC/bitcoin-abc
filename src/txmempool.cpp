@@ -159,8 +159,8 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
 }
 
 CTxMemPool::CTxMemPool(const Options &opts)
-    : m_check_ratio(opts.check_ratio),
-      m_max_size_bytes{opts.max_size_bytes}, m_expiry{opts.expiry} {
+    : m_check_ratio(opts.check_ratio), m_max_size_bytes{opts.max_size_bytes},
+      m_expiry{opts.expiry}, m_require_standard{opts.require_standard} {
     // lock free clear
     _clear();
 }

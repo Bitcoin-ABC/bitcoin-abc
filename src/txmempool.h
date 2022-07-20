@@ -477,6 +477,7 @@ public:
 
     const int64_t m_max_size_bytes;
     const std::chrono::seconds m_expiry;
+    const bool m_require_standard;
 
     /**
      * Create a new CTxMemPool.

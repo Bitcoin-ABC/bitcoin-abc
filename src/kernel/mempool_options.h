@@ -28,6 +28,7 @@ struct MemPoolOptions {
     int64_t max_size_bytes{DEFAULT_MAX_MEMPOOL_SIZE_MB * 1'000'000};
     std::chrono::seconds expiry{
         std::chrono::hours{DEFAULT_MEMPOOL_EXPIRY_HOURS}};
+    bool require_standard{true};
 };
 } // namespace kernel
 

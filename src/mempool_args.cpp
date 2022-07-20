@@ -30,5 +30,14 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
         mempool_opts.expiry = std::chrono::hours{*hours};
     }
 
+    mempool_opts.require_standard =
+        !argsman.GetBoolArg("-acceptnonstdtxn", !chainparams.RequireStandard());
+    if (!chainparams.IsTestChain() && !mempool_opts.require_standard) {
+        return strprintf(
+            Untranslated(
+                "acceptnonstdtxn is not currently supported for %s chain"),
+            chainparams.NetworkIDString());
+    }
+
     return std::nullopt;
 }

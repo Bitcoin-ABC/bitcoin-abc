@@ -1972,14 +1972,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         dustRelayFee = CFeeRate(n);
     }
 
-    fRequireStandard =
-        !args.GetBoolArg("-acceptnonstdtxn", !chainparams.RequireStandard());
-    if (!chainparams.IsTestChain() && !fRequireStandard) {
-        return InitError(strprintf(
-            Untranslated(
-                "acceptnonstdtxn is not currently supported for %s chain"),
-            chainparams.NetworkIDString()));
-    }
     nBytesPerSigCheck =
         args.IsArgSet("-bytespersigcheck")
             ? args.GetIntArg("-bytespersigcheck", nBytesPerSigCheck)
