@@ -63,12 +63,19 @@ function(add_functional_test_check TARGET DESCRIPTION)
 		set(JUNIT_OUTPUT "--junitoutput=${JUNIT_REPORT_DIRECTORY}/${JUNIT_FILE}")
 	endif()
 
+	# Sanitizers can have a lot of overhead, so double the timeout to prevent
+	# false positives.
+	if(ENABLE_SANITIZERS)
+		set(EXTENDED_TIMEOUT "--timeout-factor=2")
+	endif()
+
 	add_test_custom_target(${TARGET}
 		TEST_COMMAND
 			"${Python_EXECUTABLE}"
 			./functional/test_runner.py
 			"--testsuitename=Bitcoin ABC ${DESCRIPTION}"
 			${JUNIT_OUTPUT}
+			${EXTENDED_TIMEOUT}
 			${ARGN}
 		CUSTOM_TARGET_ARGS
 			COMMENT "Running ${DESCRIPTION}"
