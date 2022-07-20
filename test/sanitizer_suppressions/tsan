@@ -54,6 +54,10 @@ deadlock:src/qt/test/*
 
 # External libraries
 deadlock:libdb
+# Note: Clang-14 doesn't exclude properly the libdb with the deadlock filter, so
+# called_from_lib is used instead. We need to specify db_cxx to avoid name
+# conflicts with other libs (like dbus).
+called_from_lib:libdb_cxx
 thread:src/leveldb/*
 race:epoll_ctl
 
