@@ -121,12 +121,6 @@ extern bool fCheckBlockIndex;
 extern bool fCheckpointsEnabled;
 
 /**
- * Block hash whose ancestors we will assume to have valid scripts without
- * checking them.
- */
-extern BlockHash hashAssumeValid;
-
-/**
  * Minimum work we will assume exists on some valid chain.
  */
 extern arith_uint256 nMinimumChainWork;
@@ -1235,10 +1229,7 @@ private:
 public:
     using Options = kernel::ChainstateManagerOpts;
 
-    explicit ChainstateManager(Options options)
-        : m_options{std::move(options)} {
-        Assert(m_options.adjusted_time_callback);
-    }
+    explicit ChainstateManager(Options options);
 
     const Config &GetConfig() const { return m_options.config; }
 
@@ -1247,6 +1238,9 @@ public:
     }
     const Consensus::Params &GetConsensus() const {
         return m_options.config.GetChainParams().GetConsensus();
+    }
+    const BlockHash &AssumedValidBlock() const {
+        return *Assert(m_options.assumed_valid_block);
     }
 
     /**

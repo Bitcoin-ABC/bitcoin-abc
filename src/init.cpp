@@ -1865,10 +1865,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         LogPrintf("Skipping checkpoint verification.\n");
     }
 
-    hashAssumeValid = BlockHash::fromHex(
-        args.GetArg("-assumevalid",
-                    chainparams.GetConsensus().defaultAssumeValid.GetHex()));
-
     if (args.IsArgSet("-minimumchainwork")) {
         const std::string minChainWorkStr =
             args.GetArg("-minimumchainwork", "");

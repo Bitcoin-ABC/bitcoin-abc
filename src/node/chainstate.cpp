@@ -163,9 +163,9 @@ static ChainstateLoadResult CompleteChainstateInitialization(
 ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
                                     const CacheSizes &cache_sizes,
                                     const ChainstateLoadOptions &options) {
-    if (!hashAssumeValid.IsNull()) {
+    if (!chainman.AssumedValidBlock().IsNull()) {
         LogPrintf("Assuming ancestors of block %s have valid signatures.\n",
-                  hashAssumeValid.GetHex());
+                  chainman.AssumedValidBlock().GetHex());
     } else {
         LogPrintf("Validating signatures for all blocks.\n");
     }

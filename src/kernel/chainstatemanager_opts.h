@@ -5,10 +5,12 @@
 #ifndef BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
 #define BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
 
+#include <primitives/blockhash.h>
 #include <util/time.h>
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 class Config;
 
@@ -25,6 +27,9 @@ struct ChainstateManagerOpts {
     const Config &config;
     const std::function<NodeClock::time_point()> adjusted_time_callback{
         nullptr};
+    //! If set, it will override the block hash whose ancestors we will assume
+    //! to have valid scripts without checking them.
+    std::optional<BlockHash> assumed_valid_block{};
     //! If the tip is older than this, the node is considered to be in initial
     //! block download.
     std::chrono::seconds max_tip_age{DEFAULT_MAX_TIP_AGE};
