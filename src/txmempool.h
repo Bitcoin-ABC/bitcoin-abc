@@ -477,6 +477,7 @@ public:
 
     const int64_t m_max_size_bytes;
     const std::chrono::seconds m_expiry;
+    const CFeeRate m_min_relay_feerate;
     const bool m_require_standard;
 
     /**
@@ -575,10 +576,7 @@ public:
 
     /**
      * The minimum fee to get into the mempool, which may itself not be enough
-     * for larger-sized transactions. The incrementalRelayFee policy variable is
-     * used to bound the time it takes the fee rate to go back down all the way
-     * to 0. When the feerate would otherwise be half of this, it is set to 0
-     * instead.
+     * for larger-sized transactions.
      */
     CFeeRate GetMinFee() const { return GetMinFee(m_max_size_bytes); }
     CFeeRate GetMinFee(size_t sizelimit) const;

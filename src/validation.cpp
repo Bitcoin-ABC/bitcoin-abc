@@ -646,15 +646,16 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     unsigned int nSize = tx.GetTotalSize();
 
-    // No transactions are allowed below minRelayTxFee except from disconnected
-    // blocks.
+    // No transactions are allowed below the min relay feerate except from
+    // disconnected blocks.
     // Do not change this to use virtualsize without coordinating a network
     // policy upgrade.
-    if (!bypass_limits && ws.m_modified_fees < minRelayTxFee.GetFee(nSize)) {
-        return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
-                             "min relay fee not met",
-                             strprintf("%d < %d", ws.m_modified_fees,
-                                       ::minRelayTxFee.GetFee(nSize)));
+    if (!bypass_limits &&
+        ws.m_modified_fees < m_pool.m_min_relay_feerate.GetFee(nSize)) {
+        return state.Invalid(
+            TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
+            strprintf("%d < %d", ws.m_modified_fees,
+                      m_pool.m_min_relay_feerate.GetFee(nSize)));
     }
 
     // Validate input scripts against standard script flags.

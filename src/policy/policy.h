@@ -54,8 +54,8 @@ static constexpr unsigned int DEFAULT_BYTES_PER_SIGCHECK{50};
 /** Default for -permitbaremultisig */
 static constexpr bool DEFAULT_PERMIT_BAREMULTISIG{true};
 /**
- * Min feerate for defining dust. Historically this has been the same as the
- * minRelayTxFee, however changing the dust limit changes which transactions are
+ * Min feerate for defining dust.
+ * Changing the dust limit changes which transactions are
  * standard and should be done with care and ideally rarely. It makes sense to
  * only increase the dust limit after prior releases were already not creating
  * outputs below the new threshold.

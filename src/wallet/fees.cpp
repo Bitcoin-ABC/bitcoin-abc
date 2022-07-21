@@ -39,6 +39,6 @@ CFeeRate GetMinimumFeeRate(const CWallet &wallet,
         }
     }
 
-    // Prevent user from paying a fee below minRelayTxFee or minTxFee.
+    // Prevent user from paying a fee below the min relay fee.
     return std::max(neededFeeRate, GetRequiredFeeRate(wallet));
 }

@@ -160,7 +160,8 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
 
 CTxMemPool::CTxMemPool(const Options &opts)
     : m_check_ratio(opts.check_ratio), m_max_size_bytes{opts.max_size_bytes},
-      m_expiry{opts.expiry}, m_require_standard{opts.require_standard} {
+      m_expiry{opts.expiry}, m_min_relay_feerate{opts.min_relay_feerate},
+      m_require_standard{opts.require_standard} {
     // lock free clear
     _clear();
 }
@@ -584,7 +585,7 @@ CFeeRate CTxMemPool::estimateFee() const {
     // may disagree with the rollingMinimumFeerate under certain scenarios
     // where the mempool  increases rapidly, or blocks are being mined which
     // do not contain propagated transactions.
-    return std::max(::minRelayTxFee, GetMinFee());
+    return std::max(m_min_relay_feerate, GetMinFee());
 }
 
 void CTxMemPool::PrioritiseTransaction(const TxId &txid,

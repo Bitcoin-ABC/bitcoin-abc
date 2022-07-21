@@ -7,7 +7,10 @@
 #include <kernel/mempool_options.h>
 
 #include <chainparams.h>
+#include <consensus/amount.h>
 #include <tinyformat.h>
+#include <util/error.h>
+#include <util/moneystr.h>
 #include <util/system.h>
 #include <util/translation.h>
 
@@ -28,6 +31,17 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
 
     if (auto hours = argsman.GetIntArg("-mempoolexpiry")) {
         mempool_opts.expiry = std::chrono::hours{*hours};
+    }
+
+    if (argsman.IsArgSet("-minrelaytxfee")) {
+        Amount n = Amount::zero();
+        auto parsed = ParseMoney(argsman.GetArg("-minrelaytxfee", ""), n);
+        if (!parsed || n == Amount::zero()) {
+            return AmountErrMsg("minrelaytxfee",
+                                argsman.GetArg("-minrelaytxfee", ""));
+        }
+        // High fee check is done afterward in CWallet::Create()
+        mempool_opts.min_relay_feerate = CFeeRate(n);
     }
 
     mempool_opts.require_standard =

@@ -809,7 +809,12 @@ static RPCHelpMan getnetworkinfo() {
                                                   CConnman::CONNECTIONS_OUT)));
             }
             obj.pushKV("networks", GetNetworksInfo());
-            obj.pushKV("relayfee", ::minRelayTxFee.GetFeePerK());
+            if (node.mempool) {
+                // This field can be deprecated, to be replaced by the
+                // getmempoolinfo fields
+                obj.pushKV("relayfee",
+                           node.mempool->m_min_relay_feerate.GetFeePerK());
+            }
             UniValue localAddresses(UniValue::VARR);
             {
                 LOCK(g_maplocalhost_mutex);

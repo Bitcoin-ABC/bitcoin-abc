@@ -1938,17 +1938,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
             "peertimeout cannot be configured with a negative value."));
     }
 
-    if (args.IsArgSet("-minrelaytxfee")) {
-        Amount n = Amount::zero();
-        auto parsed = ParseMoney(args.GetArg("-minrelaytxfee", ""), n);
-        if (!parsed || n == Amount::zero()) {
-            return InitError(AmountErrMsg("minrelaytxfee",
-                                          args.GetArg("-minrelaytxfee", "")));
-        }
-        // High fee check is done afterward in CWallet::Create()
-        ::minRelayTxFee = CFeeRate(n);
-    }
-
     // Sanity check argument for min fee for including tx in block
     // TODO: Harmonize which arguments need sanity checking and where that
     // happens.

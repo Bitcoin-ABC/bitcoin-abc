@@ -663,7 +663,12 @@ namespace {
             }
             return m_node.mempool->estimateFee();
         }
-        CFeeRate relayMinFee() override { return ::minRelayTxFee; }
+        CFeeRate relayMinFee() override {
+            if (!m_node.mempool) {
+                return CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB};
+            }
+            return m_node.mempool->m_min_relay_feerate;
+        }
         CFeeRate relayDustFee() override { return ::dustRelayFee; }
         bool havePruned() override {
             LOCK(cs_main);

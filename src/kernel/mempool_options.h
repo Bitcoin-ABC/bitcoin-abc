@@ -4,6 +4,8 @@
 #ifndef BITCOIN_KERNEL_MEMPOOL_OPTIONS_H
 #define BITCOIN_KERNEL_MEMPOOL_OPTIONS_H
 
+#include <policy/policy.h>
+
 #include <chrono>
 #include <cstdint>
 
@@ -28,6 +30,11 @@ struct MemPoolOptions {
     int64_t max_size_bytes{DEFAULT_MAX_MEMPOOL_SIZE_MB * 1'000'000};
     std::chrono::seconds expiry{
         std::chrono::hours{DEFAULT_MEMPOOL_EXPIRY_HOURS}};
+    /**
+     * A fee rate smaller than this is considered zero fee (for relaying,
+     * mining and transaction creation)
+     */
+    CFeeRate min_relay_feerate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB};
     bool require_standard{true};
 };
 } // namespace kernel
