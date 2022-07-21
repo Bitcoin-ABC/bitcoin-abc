@@ -8,6 +8,8 @@ rust-version = "1.61.0"
 license = "MIT"
 
 [dependencies]
+abc-lint = { path = "../abc-lint" }
+
 # En-/decode byte strings from/to hex
 hex = "0.4"
 
