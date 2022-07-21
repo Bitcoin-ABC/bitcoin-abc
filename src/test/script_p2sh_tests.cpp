@@ -50,7 +50,6 @@ static bool Verify(const CScript &scriptSig, const CScript &scriptPubKey,
 BOOST_FIXTURE_TEST_SUITE(script_p2sh_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(sign) {
-    LOCK(cs_main);
     // Pay-to-script-hash looks like this:
     // scriptSig:    <sig> <sig...> <serialized_script>
     // scriptPubKey: HASH160 <hash> EQUAL
@@ -160,7 +159,6 @@ BOOST_AUTO_TEST_CASE(norecurse) {
 }
 
 BOOST_AUTO_TEST_CASE(set) {
-    LOCK(cs_main);
     // Test the CScript::Set* methods
     FillableSigningProvider keystore;
     CKey key[4];
@@ -282,7 +280,6 @@ BOOST_AUTO_TEST_CASE(switchover) {
 }
 
 BOOST_AUTO_TEST_CASE(AreInputsStandard) {
-    LOCK(cs_main);
     CCoinsView coinsDummy;
     CCoinsViewCache coins(&coinsDummy);
     FillableSigningProvider keystore;
