@@ -59,7 +59,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee,
       sigChecks(_sigChecks), lockPoints(lp) {}
 
 size_t CTxMemPoolEntry::GetTxVirtualSize() const {
-    return GetVirtualTransactionSize(nTxSize, sigChecks);
+    return GetVirtualTransactionSize(nTxSize, sigChecks, ::nBytesPerSigCheck);
 }
 
 void CTxMemPoolEntry::UpdateFeeDelta(Amount newFeeDelta) {

@@ -6,6 +6,7 @@
 #include <policy/settings.h>
 
 #include <feerate.h>
+#include <policy/policy.h>
 
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
 uint32_t nBytesPerSigCheck = DEFAULT_BYTES_PER_SIGCHECK;
