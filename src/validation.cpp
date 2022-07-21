@@ -6162,6 +6162,12 @@ void ChainstateManager::MaybeRebalanceCaches() {
     }
 }
 
+void ChainstateManager::ResetChainstates() {
+    m_ibd_chainstate.reset();
+    m_snapshot_chainstate.reset();
+    m_active_chainstate = nullptr;
+}
+
 bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {
     assert(!m_snapshot_chainstate);
     std::optional<fs::path> path = node::FindSnapshotChainstateDir();
