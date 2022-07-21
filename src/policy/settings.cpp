@@ -7,6 +7,5 @@
 
 #include <feerate.h>
 
-bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
 uint32_t nBytesPerSigCheck = DEFAULT_BYTES_PER_SIGCHECK;

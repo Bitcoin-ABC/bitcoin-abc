@@ -8,6 +8,7 @@
 
 #include <chainparams.h>
 #include <consensus/amount.h>
+#include <policy/policy.h>
 #include <tinyformat.h>
 #include <util/error.h>
 #include <util/moneystr.h>
@@ -43,6 +44,9 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
         // High fee check is done afterward in CWallet::Create()
         mempool_opts.min_relay_feerate = CFeeRate(n);
     }
+
+    mempool_opts.permit_bare_multisig =
+        argsman.GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
 
     mempool_opts.require_standard =
         !argsman.GetBoolArg("-acceptnonstdtxn", !chainparams.RequireStandard());

@@ -1970,8 +1970,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         return false;
     }
 
-    fIsBareMultisigStd =
-        args.GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
     fAcceptDatacarrier =
         args.GetBoolArg("-datacarrier", DEFAULT_ACCEPT_DATACARRIER);
 

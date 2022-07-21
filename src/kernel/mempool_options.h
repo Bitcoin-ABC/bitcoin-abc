@@ -35,6 +35,7 @@ struct MemPoolOptions {
      * mining and transaction creation)
      */
     CFeeRate min_relay_feerate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB};
+    bool permit_bare_multisig{DEFAULT_PERMIT_BAREMULTISIG};
     bool require_standard{true};
 };
 } // namespace kernel

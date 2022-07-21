@@ -16,7 +16,6 @@ class CTransaction;
 // Policy settings which are configurable at runtime.
 extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigCheck;
-extern bool fIsBareMultisigStd;
 
 static inline int64_t GetVirtualTransactionSize(int64_t nSize,
                                                 int64_t nSigChecks) {
