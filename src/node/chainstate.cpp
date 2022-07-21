@@ -169,8 +169,9 @@ ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
     } else {
         LogPrintf("Validating signatures for all blocks.\n");
     }
-    LogPrintf("Setting nMinimumChainWork=%s\n", nMinimumChainWork.GetHex());
-    if (nMinimumChainWork <
+    LogPrintf("Setting nMinimumChainWork=%s\n",
+              chainman.MinimumChainWork().GetHex());
+    if (chainman.MinimumChainWork() <
         UintToArith256(chainman.GetConsensus().nMinimumChainWork)) {
         LogPrintf("Warning: nMinimumChainWork set below default value of %s\n",
                   chainman.GetConsensus().nMinimumChainWork.GetHex());

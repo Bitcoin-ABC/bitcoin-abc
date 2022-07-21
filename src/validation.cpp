@@ -112,8 +112,6 @@ uint256 g_best_block;
 bool fCheckBlockIndex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 
-arith_uint256 nMinimumChainWork;
-
 BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
       checkMerkleRoot(true) {}
@@ -1171,7 +1169,7 @@ bool Chainstate::IsInitialBlockDownload() const {
     if (m_chain.Tip() == nullptr) {
         return true;
     }
-    if (m_chain.Tip()->nChainWork < nMinimumChainWork) {
+    if (m_chain.Tip()->nChainWork < m_chainman.MinimumChainWork()) {
         return true;
     }
     if (m_chain.Tip()->Time() <
@@ -1767,7 +1765,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
             if (it->second.GetAncestor(pindex->nHeight) == pindex &&
                 m_chainman.m_best_header->GetAncestor(pindex->nHeight) ==
                     pindex &&
-                m_chainman.m_best_header->nChainWork >= nMinimumChainWork) {
+                m_chainman.m_best_header->nChainWork >=
+                    m_chainman.MinimumChainWork()) {
                 // This block is a member of the assumed verified chain and an
                 // ancestor of the best header.
                 // Script verification is skipped when connecting blocks under
@@ -1785,8 +1784,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
                 // release candidates that are hardly doing any signature
                 // verification at all in testing without having to artificially
                 // set the default assumed verified block further back. The test
-                // against nMinimumChainWork prevents the skipping when denied
-                // access to any chain at least as good as the expected chain.
+                // against the minimum chain work prevents the skipping when
+                // denied access to any chain at least as good as the expected
+                // chain.
                 fScriptChecks = (GetBlockProofEquivalentTime(
                                      *m_chainman.m_best_header, *pindex,
                                      *m_chainman.m_best_header,
@@ -4387,7 +4387,7 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
         // If our tip is behind, a peer could try to send us
         // low-work blocks on a fake chain that we would never
         // request; don't process these.
-        if (pindex->nChainWork < nMinimumChainWork) {
+        if (pindex->nChainWork < m_chainman.MinimumChainWork()) {
             return true;
         }
     }
@@ -6368,6 +6368,10 @@ void ChainstateManager::ResetChainstates() {
  * operators that accept nullopt, thus ignoring the intended default value.
  */
 static ChainstateManager::Options &&Flatten(ChainstateManager::Options &&opts) {
+    if (!opts.minimum_chain_work.has_value()) {
+        opts.minimum_chain_work = UintToArith256(
+            opts.config.GetChainParams().GetConsensus().nMinimumChainWork);
+    }
     if (!opts.assumed_valid_block.has_value()) {
         opts.assumed_valid_block =
             opts.config.GetChainParams().GetConsensus().defaultAssumeValid;

@@ -1841,7 +1841,8 @@ void PeerManagerImpl::FindNextBlocksToDownload(
     if (state->pindexBestKnownBlock == nullptr ||
         state->pindexBestKnownBlock->nChainWork <
             m_chainman.ActiveChain().Tip()->nChainWork ||
-        state->pindexBestKnownBlock->nChainWork < nMinimumChainWork) {
+        state->pindexBestKnownBlock->nChainWork <
+            m_chainman.MinimumChainWork()) {
         // This peer has nothing interesting.
         return;
     }
@@ -3423,7 +3424,7 @@ arith_uint256 PeerManagerImpl::GetAntiDoSWorkThreshold() {
             tip->nChainWork -
             std::min<arith_uint256>(144 * GetBlockProof(*tip), tip->nChainWork);
     }
-    return std::max(near_chaintip_work, arith_uint256(nMinimumChainWork));
+    return std::max(near_chaintip_work, m_chainman.MinimumChainWork());
 }
 
 /**
@@ -3771,14 +3772,15 @@ void PeerManagerImpl::UpdatePeerStateForReceivedHeaders(
         // When nCount < MAX_HEADERS_RESULTS, we know we have no more
         // headers to fetch from this peer.
         if (nodestate->pindexBestKnownBlock &&
-            nodestate->pindexBestKnownBlock->nChainWork < nMinimumChainWork) {
+            nodestate->pindexBestKnownBlock->nChainWork <
+                m_chainman.MinimumChainWork()) {
             // This peer has too little work on their headers chain to help
             // us sync -- disconnect if it is an outbound disconnection
             // candidate.
-            // Note: We compare their tip to nMinimumChainWork (rather than
+            // Note: We compare their tip to the minimum chain work (rather than
             // m_chainman.ActiveChain().Tip()) because we won't start block
             // download until we have a headers chain that has at least
-            // nMinimumChainWork, even if a peer has a chain past our tip,
+            // the minimum chain work, even if a peer has a chain past our tip,
             // as an anti-DoS measure.
             if (pfrom.IsOutboundOrBlockRelayConn()) {
                 LogPrintf("Disconnecting outbound peer %d -- headers "
@@ -5169,12 +5171,13 @@ void PeerManagerImpl::ProcessMessage(
         // Note that if we were to be on a chain that forks from the
         // checkpointed chain, then serving those headers to a peer that has
         // seen the checkpointed chain would cause that peer to disconnect us.
-        // Requiring that our chainwork exceed nMinimumChainWork is a protection
-        // against being fed a bogus chain when we started up for the first time
-        // and getting partitioned off the honest network for serving that chain
-        // to others.
+        // Requiring that our chainwork exceed the minimum chainwork is a
+        // protection against being fed a bogus chain when we started up for
+        // the first time and getting partitioned off the honest network for
+        // serving that chain to others.
         if (m_chainman.ActiveTip() == nullptr ||
-            (m_chainman.ActiveTip()->nChainWork < nMinimumChainWork &&
+            (m_chainman.ActiveTip()->nChainWork <
+                 m_chainman.MinimumChainWork() &&
              !pfrom.HasPermission(NetPermissionFlags::Download))) {
             LogPrint(BCLog::NET,
                      "Ignoring getheaders from peer=%d because active chain "
@@ -5669,9 +5672,9 @@ void PeerManagerImpl::ProcessMessage(
             // (eg disk space). Because we only try to reconstruct blocks when
             // we're close to caught up (via the CanDirectFetch() requirement
             // above, combined with the behavior of not requesting blocks until
-            // we have a chain with at least nMinimumChainWork), and we ignore
-            // compact blocks with less work than our tip, it is safe to treat
-            // reconstructed compact blocks as having been requested.
+            // we have a chain with at least the minimum chain work), and we
+            // ignore compact blocks with less work than our tip, it is safe to
+            // treat reconstructed compact blocks as having been requested.
             ProcessBlock(config, pfrom, pblock, /*force_processing=*/true,
                          /*min_pow_checked=*/true);
             // hold cs_main for CBlockIndex::IsValid()
@@ -7450,7 +7453,8 @@ void PeerManagerImpl::MaybeSendSendHeaders(CNode &node, Peer &peer) {
         LOCK(cs_main);
         CNodeState &state = *State(node.GetId());
         if (state.pindexBestKnownBlock != nullptr &&
-            state.pindexBestKnownBlock->nChainWork > nMinimumChainWork) {
+            state.pindexBestKnownBlock->nChainWork >
+                m_chainman.MinimumChainWork()) {
             // Tell our peer we prefer to receive headers rather than inv's
             // We send this to non-NODE NETWORK peers as well, because even
             // non-NODE NETWORK peers can announce blocks (such as pruning

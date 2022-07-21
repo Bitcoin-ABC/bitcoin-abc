@@ -5,6 +5,7 @@
 #ifndef BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
 #define BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
 
+#include <arith_uint256.h>
 #include <primitives/blockhash.h>
 #include <util/time.h>
 
@@ -27,6 +28,9 @@ struct ChainstateManagerOpts {
     const Config &config;
     const std::function<NodeClock::time_point()> adjusted_time_callback{
         nullptr};
+    //! If set, it will override the minimum work we will assume exists on some
+    //! valid chain.
+    std::optional<arith_uint256> minimum_chain_work{};
     //! If set, it will override the block hash whose ancestors we will assume
     //! to have valid scripts without checking them.
     std::optional<BlockHash> assumed_valid_block{};

@@ -1865,21 +1865,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         LogPrintf("Skipping checkpoint verification.\n");
     }
 
-    if (args.IsArgSet("-minimumchainwork")) {
-        const std::string minChainWorkStr =
-            args.GetArg("-minimumchainwork", "");
-        if (!IsHexNumber(minChainWorkStr)) {
-            return InitError(strprintf(
-                Untranslated(
-                    "Invalid non-hex (%s) minimum chain work value specified"),
-                minChainWorkStr));
-        }
-        nMinimumChainWork = UintToArith256(uint256S(minChainWorkStr));
-    } else {
-        nMinimumChainWork =
-            UintToArith256(chainparams.GetConsensus().nMinimumChainWork);
-    }
-
     // Configure excessive block size.
     const int64_t nProposedExcessiveBlockSize =
         args.GetIntArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);
@@ -2019,6 +2004,16 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
             return InitError(
                 _("Restricting the outbound network is not supported when "
                   "running a staking node. Please disable -onlynet."));
+        }
+    }
+
+    // Also report errors from parsing before daemonization
+    {
+        ChainstateManager::Options chainman_opts_dummy{
+            .config = config,
+        };
+        if (const auto error{ApplyArgsManOptions(args, chainman_opts_dummy)}) {
+            return InitError(*error);
         }
     }
 
@@ -2395,7 +2390,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         .config = config,
         .adjusted_time_callback = GetAdjustedTime,
     };
-    ApplyArgsManOptions(args, chainman_opts);
+    // no error can happen, already checked in AppInitParameterInteraction
+    Assert(!ApplyArgsManOptions(args, chainman_opts));
 
     // cache size calculations
     CacheSizes cache_sizes =
