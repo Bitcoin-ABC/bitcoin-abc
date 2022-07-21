@@ -59,11 +59,6 @@ class FullBlockTest(BitcoinTestFramework):
         # TSAN enabled
         self.rpc_timeout = 360
 
-    def add_options(self, parser):
-        super().add_options(parser)
-        parser.add_argument(
-            "--runbarelyexpensive", dest="runbarelyexpensive", default=True)
-
     def add_transactions_to_block(self, block, tx_list):
         [tx.rehash() for tx in tx_list]
         block.vtx.extend(tx_list)
