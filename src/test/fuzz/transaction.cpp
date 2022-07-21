@@ -87,7 +87,6 @@ FUZZ_TARGET_INIT(transaction, initialize_transaction) {
     (void)GetVirtualTransactionSize(tx);
     (void)ContextualCheckTransaction(params->GetConsensus(), tx, state, 1024,
                                      1024);
-    (void)IsStandardTx(tx, reason);
     (void)RecursiveDynamicUsage(tx);
 
     CCoinsView coins_view;

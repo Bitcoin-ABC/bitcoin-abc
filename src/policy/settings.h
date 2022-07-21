@@ -18,10 +18,6 @@ extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigCheck;
 extern bool fIsBareMultisigStd;
 
-static inline bool IsStandardTx(const CTransaction &tx, std::string &reason) {
-    return IsStandardTx(tx, ::fIsBareMultisigStd, ::dustRelayFee, reason);
-}
-
 static inline int64_t GetVirtualTransactionSize(int64_t nSize,
                                                 int64_t nSigChecks) {
     return GetVirtualTransactionSize(nSize, nSigChecks, ::nBytesPerSigCheck);

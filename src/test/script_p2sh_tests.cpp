@@ -20,6 +20,11 @@
 #include <vector>
 
 // Helpers:
+static bool IsStandardTx(const CTransaction &tx, std::string &reason) {
+    return IsStandardTx(tx, DEFAULT_PERMIT_BAREMULTISIG,
+                        CFeeRate{DUST_RELAY_TX_FEE}, reason);
+}
+
 static std::vector<uint8_t> Serialize(const CScript &s) {
     std::vector<uint8_t> sSerialized(s.begin(), s.end());
     return sSerialized;
