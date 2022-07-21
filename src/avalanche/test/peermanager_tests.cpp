@@ -1421,6 +1421,10 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(chainman);
 
+    // Set mock time so that proof registration time is predictable and
+    // testable.
+    SetMockTime(GetTime());
+
     auto proof =
         buildRandomProof(chainman.ActiveChainstate(), MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof));
