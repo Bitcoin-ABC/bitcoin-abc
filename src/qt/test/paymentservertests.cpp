@@ -69,7 +69,7 @@ void PaymentServerTests::paymentServerTests() {
     SSL_library_init();
 
     BasicTestingSetup testing_setup(CBaseChainParams::MAIN);
-    auto node = interfaces::MakeNode();
+    auto node = interfaces::MakeNode(&testing_setup.m_node);
     OptionsModel optionsModel;
     optionsModel.setNode(*node);
     PaymentServer *server = new PaymentServer(nullptr, false);

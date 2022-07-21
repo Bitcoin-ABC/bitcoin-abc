@@ -8,10 +8,6 @@
 
 #include <cstdint>
 
-class CFeeRate;
-
-// Policy settings which are configurable at runtime.
-extern CFeeRate dustRelayFee;
 extern uint32_t nBytesPerSigCheck;
 
 #endif // BITCOIN_POLICY_SETTINGS_H

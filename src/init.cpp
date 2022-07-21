@@ -1949,18 +1949,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         }
     }
 
-    // Feerate used to define dust.  Shouldn't be changed lightly as old
-    // implementations may inadvertently create non-standard transactions.
-    if (args.IsArgSet("-dustrelayfee")) {
-        Amount n = Amount::zero();
-        auto parsed = ParseMoney(args.GetArg("-dustrelayfee", ""), n);
-        if (!parsed || Amount::zero() == n) {
-            return InitError(
-                AmountErrMsg("dustrelayfee", args.GetArg("-dustrelayfee", "")));
-        }
-        dustRelayFee = CFeeRate(n);
-    }
-
     nBytesPerSigCheck =
         args.IsArgSet("-bytespersigcheck")
             ? args.GetIntArg("-bytespersigcheck", nBytesPerSigCheck)

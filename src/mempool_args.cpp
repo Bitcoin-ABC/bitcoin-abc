@@ -45,6 +45,18 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
         mempool_opts.min_relay_feerate = CFeeRate(n);
     }
 
+    // Feerate used to define dust.  Shouldn't be changed lightly as old
+    // implementations may inadvertently create non-standard transactions.
+    if (argsman.IsArgSet("-dustrelayfee")) {
+        Amount n = Amount::zero();
+        auto parsed = ParseMoney(argsman.GetArg("-dustrelayfee", ""), n);
+        if (!parsed || Amount::zero() == n) {
+            return AmountErrMsg("dustrelayfee",
+                                argsman.GetArg("-dustrelayfee", ""));
+        }
+        mempool_opts.dust_relay_feerate = CFeeRate(n);
+    }
+
     mempool_opts.permit_bare_multisig =
         argsman.GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
 

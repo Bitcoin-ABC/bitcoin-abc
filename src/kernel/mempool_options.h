@@ -36,6 +36,7 @@ struct MemPoolOptions {
      * mining and transaction creation)
      */
     CFeeRate min_relay_feerate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB};
+    CFeeRate dust_relay_feerate{DUST_RELAY_TX_FEE};
     /**
      * A data carrying output is an unspendable output containing data. The
      * script type is designated as TxoutType::NULL_DATA.
