@@ -52,7 +52,7 @@ enum class SigningResult {
 
 /**
  * Verify a signed message.
- * @param[in] chain params to be used to interpret the address.
+ * @param[in] params Chain params to be used to interpret the address.
  * @param[in] address Signer's bitcoin address, it must refer to a public key.
  * @param[in] signature The signature in base64 format.
  * @param[in] message The message that was signed.

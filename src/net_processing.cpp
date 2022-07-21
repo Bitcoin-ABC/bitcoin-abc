@@ -930,7 +930,7 @@ private:
      * Decide a response for an Avalanche poll about the given block.
      *
      * @param[in]   hash            The hash of the block being polled for
-     * @param[out]  uint32_t        Our current vote for the block
+     * @return                      Our current vote for the block
      */
     uint32_t GetAvalancheVoteForBlock(const BlockHash &hash)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -3064,7 +3064,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
  * Reconsider orphan transactions after a parent has been accepted to the
  * mempool.
  *
- * @param[in/out]  orphan_work_set  The set of orphan transactions to
+ * @param[in,out]  orphan_work_set  The set of orphan transactions to
  *    reconsider. Generally only one orphan will be reconsidered on each call of
  *    this function. This set may be added to if accepting an orphan causes its
  *    children to be reconsidered.
@@ -3366,9 +3366,9 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) {
  * FIXME This function should be expanded to return different vote responses
  * based on inspection of mempool.
  *
- * @param[in]   CTxMemPool The mempool to base our votes on
- * @param[in]   TxId       The id of the transaction being polled for
- * @param[out]  uint32_t   Our current vote for the proof
+ * @param[in] mempool  The mempool to base our votes on
+ * @param[in] id       The id of the transaction being polled for
+ * @return             Our current vote for the proof
  */
 static uint32_t getAvalancheVoteForTx(CTxMemPool &mempool, const TxId &id) {
     return -1;
@@ -3377,8 +3377,8 @@ static uint32_t getAvalancheVoteForTx(CTxMemPool &mempool, const TxId &id) {
 /**
  * Decide a response for an Avalanche poll about the given proof.
  *
- * @param[in]   avalanche::ProofId     The id of the proof being polled for
- * @param[out]  uint32_t               Our current vote for the proof
+ * @param[in] id   The id of the proof being polled for
+ * @return         Our current vote for the proof
  */
 static uint32_t getAvalancheVoteForProof(const avalanche::ProofId &id) {
     assert(g_avalanche);

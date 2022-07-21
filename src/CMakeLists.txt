@@ -232,6 +232,7 @@ add_compiler_flags(
 	-Wduplicated-branches
 	-Wduplicated-cond
 	-Wlogical-op
+	-Wdocumentation
 )
 add_compiler_flag_group(-Wformat -Wformat-security)
 add_cxx_compiler_flags(

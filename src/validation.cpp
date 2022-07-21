@@ -4172,11 +4172,11 @@ bool ChainstateManager::ProcessNewBlockHeaders(
  * Store a block on disk.
  *
  * @param[in]     config     The global config.
- * @param[in-out] pblock     The block we want to accept.
+ * @param[in,out] pblock     The block we want to accept.
  * @param[in]     fRequested A boolean to indicate if this block was requested
  *                           from our peers.
  * @param[in]     dbp        If non-null, the disk position of the block.
- * @param[in-out] fNewBlock  True if block was first received via this call.
+ * @param[in,out] fNewBlock  True if block was first received via this call.
  * @return True if the block is accepted as a valid block and written to disk.
  */
 bool CChainState::AcceptBlock(const Config &config,

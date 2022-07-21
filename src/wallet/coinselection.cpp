@@ -17,6 +17,8 @@ struct {
     }
 } descending;
 
+static const size_t TOTAL_TRIES = 100000;
+
 /**
  * This is the Branch and Bound Coin Selection algorithm designed by Murch. It
  * searches for an input set that can pay for the spending target and does not
@@ -51,24 +53,20 @@ struct {
  * Thesis:
  * https://murch.one/wp-content/uploads/2016/11/erhardt2016coinselection.pdf
  *
- * @param const std::vector<CInputCoin>& utxo_pool The set of UTXOs that we are
- * choosing from. These UTXOs will be sorted in descending order by effective
- * value and the CInputCoins' values are their effective values.
- * @param const Amount& target_value This is the value that we want to select.
- * It is the lower bound of the range.
- * @param const Amount& cost_of_change This is the cost of creating and
- * spending a change output. This plus target_value is the upper bound of the
- * range.
- * @param std::set<CInputCoin>& out_set -> This is an output parameter for the
- * set of CInputCoins that have been selected.
- * @param Amount& value_ret -> This is an output parameter for the total value
- * of the CInputCoins that were selected.
- * @param Amount not_input_fees -> The fees that need to be paid for the
- * outputs and fixed size overhead (version, locktime, marker and flag)
+ * @param utxo_pool The set of UTXOs that we are choosing from. These UTXOs will
+ *     be sorted in descending order by effective value and the CInputCoins'
+ *     values are their effective values.
+ * @param target_value This is the value that we want to select.
+ *     It is the lower bound of the range.
+ * @param cost_of_change This is the cost of creating and spending a change
+ *     output. This plus target_value is the upper bound of the range.
+ * @param out_set This is an output parameter for the set of CInputCoins that
+ *     have been selected.
+ * @param value_ret This is an output parameter for the total value of the
+ *     CInputCoins that were selected.
+ * @param not_input_fees -> The fees that need to be paid for the outputs and
+ *     fixed size overhead (version, locktime, marker and flag)
  */
-
-static const size_t TOTAL_TRIES = 100000;
-
 bool SelectCoinsBnB(std::vector<OutputGroup> &utxo_pool,
                     const Amount &target_value, const Amount &cost_of_change,
                     std::set<CInputCoin> &out_set, Amount &value_ret,

@@ -164,7 +164,7 @@ CService LookupNumeric(const std::string &name, uint16_t portDefault = 0,
  * @param strSubnet A string representation of a subnet of the form `network
  *                address [ "/", ( CIDR-style suffix | netmask ) ]`(e.g.
  *                `2001:db8::/32`, `192.0.2.0/255.255.255.0`, or `8.8.8.8`).
- * @param ret The resulting internal representation of a subnet.
+ * @param subnet The resulting internal representation of a subnet.
  *
  * @returns Whether the operation succeeded or not.
  */
