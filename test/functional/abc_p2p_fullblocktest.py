@@ -189,23 +189,6 @@ class FullBlockTest(BitcoinTestFramework):
         def get_spendable_output():
             return PreviousSpendableOutput(spendable_outputs.pop(0).vtx[0], 0)
 
-        # adds transactions to the block and updates state
-        def update_block(block_number, new_transactions):
-            block = self.blocks[block_number]
-            self.add_transactions_to_block(block, new_transactions)
-            old_sha256 = block.sha256
-            make_conform_to_ctor(block)
-            block.hashMerkleRoot = block.calc_merkle_root()
-            block.solve()
-            # Update the internal state just like in next_block
-            self.tip = block
-            if block.sha256 != old_sha256:
-                self.block_heights[
-                    block.sha256] = self.block_heights[old_sha256]
-                del self.block_heights[old_sha256]
-            self.blocks[block_number] = block
-            return block
-
         # shorthand for functions
         block = self.next_block
 
