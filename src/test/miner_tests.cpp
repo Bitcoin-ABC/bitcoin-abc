@@ -424,7 +424,8 @@ void MinerTestingSetup::TestBasicMining(
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
+            *Assert(m_node.chainman->ActiveTip()), params, CTransaction{tx},
+            state));
     }
 
     // Sequence locks fail.
@@ -453,7 +454,8 @@ void MinerTestingSetup::TestBasicMining(
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
+            *Assert(m_node.chainman->ActiveTip()), params, CTransaction{tx},
+            state));
     }
 
     // Sequence locks fail.
@@ -493,7 +495,8 @@ void MinerTestingSetup::TestBasicMining(
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
+            *Assert(m_node.chainman->ActiveTip()), params, CTransaction{tx},
+            state));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -522,7 +525,8 @@ void MinerTestingSetup::TestBasicMining(
         // Locktime fails.
         TxValidationState state;
         BOOST_CHECK(!ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
+            *Assert(m_node.chainman->ActiveTip()), params, CTransaction{tx},
+            state));
         BOOST_CHECK_EQUAL(state.GetRejectReason(), "bad-txns-nonfinal");
     }
 
@@ -549,7 +553,8 @@ void MinerTestingSetup::TestBasicMining(
         // Locktime passes.
         TxValidationState state;
         BOOST_CHECK(ContextualCheckTransactionForCurrentBlock(
-            m_node.chainman->ActiveTip(), params, CTransaction{tx}, state));
+            *Assert(m_node.chainman->ActiveTip()), params, CTransaction{tx},
+            state));
     }
 
     // Sequence locks pass.

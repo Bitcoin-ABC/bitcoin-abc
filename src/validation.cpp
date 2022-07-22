@@ -484,7 +484,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // be mined yet.
     TxValidationState ctxState;
     if (!ContextualCheckTransactionForCurrentBlock(
-            m_active_chainstate.m_chain.Tip(),
+            *Assert(m_active_chainstate.m_chain.Tip()),
             args.m_config.GetChainParams().GetConsensus(), tx, ctxState)) {
         // We copy the state from a dummy to ensure we don't increase the
         // ban score of peer for transaction that could be valid in the future.
@@ -3963,11 +3963,9 @@ static bool ContextualCheckBlockHeader(
 }
 
 bool ContextualCheckTransactionForCurrentBlock(
-    const CBlockIndex *active_chain_tip, const Consensus::Params &params,
+    const CBlockIndex &active_chain_tip, const Consensus::Params &params,
     const CTransaction &tx, TxValidationState &state) {
     AssertLockHeld(cs_main);
-    // TODO: Make active_chain_tip a reference
-    assert(active_chain_tip);
 
     // ContextualCheckTransactionForCurrentBlock() uses
     // active_chain_tip.Height()+1 to evaluate nLockTime because when
@@ -3976,7 +3974,7 @@ bool ContextualCheckTransactionForCurrentBlock(
     // transaction can be part of the *next* block, we need to call
     // ContextualCheckTransaction() with one more than
     // active_chain_tip.Height().
-    const int nBlockHeight = active_chain_tip->nHeight + 1;
+    const int nBlockHeight = active_chain_tip.nHeight + 1;
 
     // BIP113 will require that time-locked transactions have nLockTime set to
     // less than the median time of the previous block they're contained in.
@@ -3984,7 +3982,7 @@ bool ContextualCheckTransactionForCurrentBlock(
     // chain tip, so we use that to calculate the median time passed to
     // ContextualCheckTransaction().
     // This time can also be used for consensus upgrades.
-    const int64_t nMedianTimePast{active_chain_tip->GetMedianTimePast()};
+    const int64_t nMedianTimePast{active_chain_tip.GetMedianTimePast()};
 
     return ContextualCheckTransaction(params, tx, state, nBlockHeight,
                                       nMedianTimePast);
