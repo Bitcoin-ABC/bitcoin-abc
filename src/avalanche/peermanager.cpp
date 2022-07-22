@@ -235,7 +235,8 @@ bool PeerManager::registerProof(const ProofRef &proof,
     if (danglingProofIds.contains(proofid) &&
         pendingNodes.count(proofid) == 0) {
         // Don't attempt to register a proof that we already evicted because it
-        // was dangling.
+        // was dangling, but rather attempt to retrieve an associated node.
+        needMoreNodes = true;
         return invalidate(ProofRegistrationResult::DANGLING, "dangling-proof");
     }
 

@@ -1488,6 +1488,18 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
         BOOST_CHECK(!pm.shouldRequestMoreNodes());
     }
 
+    // Attempt to register the dangling proof again. This should fail but
+    // trigger a request for more nodes.
+    ProofRegistrationState state;
+    BOOST_CHECK(!pm.registerProof(proof2, state));
+    BOOST_CHECK(state.GetResult() == ProofRegistrationResult::DANGLING);
+    BOOST_CHECK(pm.shouldRequestMoreNodes());
+
+    for (size_t i = 0; i < 10; i++) {
+        // The flag will not trigger again until the condition is met again
+        BOOST_CHECK(!pm.shouldRequestMoreNodes());
+    }
+
     // Attach a node to that proof
     BOOST_CHECK(!pm.addNode(11, proof2->getId()));
     BOOST_CHECK(pm.registerProof(proof2));
