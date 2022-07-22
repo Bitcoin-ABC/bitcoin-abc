@@ -11,7 +11,7 @@
 ///
 /// Usage:
 /// ```
-/// abc_lint::lint! {
+/// abc_rust_lint::lint! {
 ///     /// docs for `a`.
 ///     pub mod a {}
 /// }

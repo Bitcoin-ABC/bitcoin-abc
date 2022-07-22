@@ -3,14 +3,14 @@
 version = 3
 
 [[package]]
-name = "abc-lint"
+name = "abc-rust-lint"
 version = "0.1.0"
 
 [[package]]
 name = "bitcoinsuite-core"
 version = "0.1.0"
 dependencies = [
- "abc-lint",
+ "abc-rust-lint",
  "hex",
  "hex-literal",
  "thiserror",

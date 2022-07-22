@@ -3,6 +3,6 @@
 [workspace]
 
 members = [
-    "chronik/abc-lint",
+    "chronik/abc-rust-lint",
     "chronik/bitcoinsuite-core",
 ]

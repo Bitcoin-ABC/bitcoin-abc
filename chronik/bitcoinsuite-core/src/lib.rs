@@ -7,7 +7,7 @@
 //! Note: This is a general purpose library, but has been optimized for the
 //! usage in Chronik, an indexer for Bitcoin ABC.
 
-abc_lint::lint! {
+abc_rust_lint::lint! {
     pub mod block;
     pub mod hash;
 }

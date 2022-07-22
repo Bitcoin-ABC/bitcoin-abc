@@ -102,7 +102,7 @@ builds:
     cmake_flags:
       - '-DBUILD_BITCOIN_CHRONIK=ON'
     targets:
-      - - check-bitcoinsuite
+      - - check-crates
 
   build-clang:
     Werror: true

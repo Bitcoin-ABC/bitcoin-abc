@@ -40,7 +40,7 @@ function(add_cargo_custom_target TARGET)
 endfunction()
 
 function(add_crate_test_targets CRATE)
-    set(CRATE_TEST_TARGET "check-${CRATE}")
+    set(CRATE_TEST_TARGET "check-crate-${CRATE}")
     add_custom_target("${CRATE_TEST_TARGET}")
 
     set(CLIPPY_TARGET "${CRATE_TEST_TARGET}-clippy")
@@ -60,6 +60,12 @@ function(add_crate_test_targets CRATE)
         "${CLIPPY_TARGET}"
         "${TEST_TARGET}"
     )
+
+    add_dependencies("check-crates"
+        "${CRATE_TEST_TARGET}"
+    )
 endfunction()
 
+add_custom_target("check-crates")
 add_crate_test_targets(bitcoinsuite)
+add_crate_test_targets(abc-rust)
