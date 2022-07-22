@@ -9,10 +9,12 @@ import json
 import logging
 import os
 import re
+import socket
 import time
 import unittest
 from base64 import b64encode
 from decimal import ROUND_DOWN, Decimal
+from functools import lru_cache
 from io import BytesIO
 from subprocess import CalledProcessError
 from typing import Callable, Optional
@@ -295,6 +297,14 @@ MAX_NODES = 64
 PORT_MIN = int(os.getenv('TEST_RUNNER_PORT_MIN', default=20000))
 # The number of ports to "reserve" for p2p and rpc, each
 PORT_RANGE = 5000
+# The number of times we increment the port counters and test it again before
+# giving up.
+MAX_PORT_RETRY = 5
+
+# Globals used for incrementing ports. Initially uninitialized because they
+# depend on PortSeed.n.
+LAST_P2P_PORT_USED: Optional[int] = None
+LAST_RPC_PORT_USED: Optional[int] = None
 
 
 class PortSeed:
@@ -329,15 +339,59 @@ def get_rpc_proxy(url, node_number, *, timeout=None, coveragedir=None):
     return coverage.AuthServiceProxyWrapper(proxy, coverage_logfile)
 
 
-def p2p_port(n):
-    assert n <= MAX_NODES
-    return PORT_MIN + n + \
-        (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+# We initialize the port counters at runtime, because at import time PortSeed.n
+# will not yet be defined. It is defined based on a command line option
+# in the BitcoinTestFramework class __init__
+def initialize_p2p_port():
+    global LAST_P2P_PORT_USED
+    assert PortSeed.n is not None
+    LAST_P2P_PORT_USED = PORT_MIN + (
+        MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
 
 
-def rpc_port(n):
-    return PORT_MIN + PORT_RANGE + n + \
-        (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+def initialize_rpc_port():
+    global LAST_RPC_PORT_USED
+    assert PortSeed.n is not None
+    LAST_RPC_PORT_USED = PORT_MIN + PORT_RANGE + (
+        MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
+
+
+def is_port_available(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        return sock.connect_ex(('127.0.0.1', port)) != 0
+
+
+# The LRU cache ensures that for a given peer / node index, the functions
+# always return the same port, and that it is tested only the first time.
+# The parameter `n` is not unused, it is the key in the cache dictionary.
+@lru_cache(maxsize=None)
+def p2p_port(n: int) -> int:
+    global LAST_P2P_PORT_USED
+    if LAST_P2P_PORT_USED is None:
+        initialize_p2p_port()
+
+    for _ in range(MAX_PORT_RETRY):
+        LAST_P2P_PORT_USED += 1    # type: ignore
+        if is_port_available(LAST_P2P_PORT_USED):
+            return LAST_P2P_PORT_USED
+
+    raise RuntimeError(
+        f"Could not find available P2P port after {MAX_PORT_RETRY} attempts.")
+
+
+@lru_cache(maxsize=None)
+def rpc_port(n: int) -> int:
+    global LAST_RPC_PORT_USED
+    if LAST_RPC_PORT_USED is None:
+        initialize_rpc_port()
+
+    for _ in range(MAX_PORT_RETRY):
+        LAST_RPC_PORT_USED += 1    # type: ignore
+        if is_port_available(LAST_RPC_PORT_USED):
+            return LAST_RPC_PORT_USED
+
+    raise RuntimeError(
+        f"Could not find available RPC port after {MAX_PORT_RETRY} attempts.")
 
 
 def rpc_url(datadir, chain, host, port):
