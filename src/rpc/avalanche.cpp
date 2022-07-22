@@ -735,6 +735,7 @@ static RPCHelpMan getavalancheinfo() {
                 uint64_t proofCount{0};
                 uint64_t connectedProofCount{0};
                 uint64_t finalizedProofCount{0};
+                uint64_t connectedNodeCount{0};
                 Amount totalStakes = Amount::zero();
                 Amount connectedStakes = Amount::zero();
 
@@ -759,6 +760,8 @@ static RPCHelpMan getavalancheinfo() {
                         ++connectedProofCount;
                         connectedStakes += proofStake;
                     }
+
+                    connectedNodeCount += peer.node_count;
                 });
 
                 network.pushKV("proof_count", proofCount);
@@ -777,10 +780,9 @@ static RPCHelpMan getavalancheinfo() {
                 network.pushKV("dangling_stake_amount",
                                totalStakes - connectedStakes);
 
-                const uint64_t connectedNodes = pm.getNodeCount();
                 const uint64_t pendingNodes = pm.getPendingNodeCount();
-                network.pushKV("node_count", connectedNodes + pendingNodes);
-                network.pushKV("connected_node_count", connectedNodes);
+                network.pushKV("node_count", connectedNodeCount + pendingNodes);
+                network.pushKV("connected_node_count", connectedNodeCount);
                 network.pushKV("pending_node_count", pendingNodes);
 
                 ret.pushKV("network", network);
