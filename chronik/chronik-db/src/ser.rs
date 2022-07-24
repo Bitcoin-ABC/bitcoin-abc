@@ -44,7 +44,6 @@ pub(crate) fn db_serialize<T: serde::Serialize>(value: &T) -> Result<Vec<u8>> {
     })?)
 }
 
-#[cfg(test)]
 pub(crate) fn db_deserialize<'a, T: serde::Deserialize<'a>>(
     bytes: &'a [u8],
 ) -> Result<T> {

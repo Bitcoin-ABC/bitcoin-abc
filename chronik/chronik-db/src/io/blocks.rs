@@ -6,10 +6,11 @@ use abc_rust_error::Result;
 use bitcoinsuite_core::block::BlockHash;
 use rocksdb::ColumnFamilyDescriptor;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::{
     db::{Db, CF, CF_BLK},
-    ser::db_serialize,
+    ser::{db_deserialize, db_serialize},
 };
 
 /// Height of a block in the chain. Genesis block has height 0.
@@ -19,6 +20,11 @@ pub type BlockHeight = i32;
 /// Writes block data to the database.
 pub struct BlockWriter<'a> {
     cf: &'a CF,
+}
+
+/// Reads block data ([`DbBlock`]) from the database.
+pub struct BlockReader<'a> {
+    db: &'a Db,
 }
 
 /// Block data to/from the database.
@@ -50,9 +56,31 @@ struct SerBlock {
     data_pos: u32,
 }
 
+/// Errors for [`BlockWriter`] and [`BlockReader`].
+#[derive(Debug, Error, PartialEq)]
+pub enum BlocksError {
+    /// Block height must be 4 bytes.
+    #[error("Inconsistent DB: Invalid height bytes: {0:?}")]
+    InvalidHeightBytes(Vec<u8>),
+
+    /// Block has no parent.
+    #[error("Inconsistent DB: Orphan block at height {0}")]
+    OrphanBlock(BlockHeight),
+}
+
+use self::BlocksError::*;
+
 fn bh_to_bytes(height: BlockHeight) -> [u8; 4] {
     // big-endian, so blocks are sorted ascendingly
     height.to_be_bytes()
+}
+
+fn bytes_to_bh(bytes: &[u8]) -> Result<BlockHeight> {
+    Ok(BlockHeight::from_be_bytes(
+        bytes
+            .try_into()
+            .map_err(|_| InvalidHeightBytes(bytes.to_vec()))?,
+    ))
 }
 
 impl<'a> BlockWriter<'a> {
@@ -104,6 +132,88 @@ impl std::fmt::Debug for BlockWriter<'_> {
     }
 }
 
+impl<'a> BlockReader<'a> {
+    /// Create reader from the database for blocks.
+    pub fn new(db: &'a Db) -> Result<Self> {
+        db.cf(CF_BLK)?;
+        Ok(BlockReader { db })
+    }
+
+    /// The height of the most-work fully-validated chain. The genesis block has
+    /// height 0
+    pub fn height(&self) -> Result<BlockHeight> {
+        let mut iter = self.db.iterator_end(self.cf());
+        match iter.next() {
+            Some((height_bytes, _)) => Ok(bytes_to_bh(&height_bytes)?),
+            None => Ok(-1),
+        }
+    }
+
+    /// Tip of the chain: the most recently added block.
+    /// [`None`] if chain is empty (not even the genesis block).
+    pub fn tip(&self) -> Result<Option<DbBlock>> {
+        let mut iter = self.db.iterator_end(self.cf());
+        match iter.next() {
+            Some((height_bytes, block_data)) => {
+                let height = bytes_to_bh(&height_bytes)?;
+                let block_data = db_deserialize::<SerBlock>(&block_data)?;
+                let prev_block_hash = self.get_prev_hash(height)?;
+                Ok(Some(DbBlock {
+                    hash: BlockHash::from(block_data.hash),
+                    prev_hash: BlockHash::from(prev_block_hash),
+                    height,
+                    n_bits: block_data.n_bits,
+                    timestamp: block_data.timestamp,
+                    file_num: block_data.file_num,
+                    data_pos: block_data.data_pos,
+                }))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// [`DbBlock`] by height. The genesis block has height 0.
+    pub fn by_height(&self, height: BlockHeight) -> Result<Option<DbBlock>> {
+        let block_data = self.db.get(self.cf(), bh_to_bytes(height))?;
+        let block_data = match &block_data {
+            Some(block_data) => db_deserialize::<SerBlock>(block_data)?,
+            None => return Ok(None),
+        };
+        let prev_block_hash = self.get_prev_hash(height)?;
+        Ok(Some(DbBlock {
+            hash: BlockHash::from(block_data.hash),
+            prev_hash: BlockHash::from(prev_block_hash),
+            height,
+            n_bits: block_data.n_bits,
+            timestamp: block_data.timestamp,
+            file_num: block_data.file_num,
+            data_pos: block_data.data_pos,
+        }))
+    }
+
+    fn get_prev_hash(&self, height: BlockHeight) -> Result<[u8; 32]> {
+        if height == 0 {
+            return Ok([0; 32]);
+        }
+        let prev_block_data = self
+            .db
+            .get(self.cf(), bh_to_bytes(height - 1))?
+            .ok_or(OrphanBlock(height))?;
+        let prev_block = db_deserialize::<SerBlock>(&prev_block_data)?;
+        Ok(prev_block.hash)
+    }
+
+    fn cf(&self) -> &CF {
+        self.db.cf(CF_BLK).unwrap()
+    }
+}
+
+impl std::fmt::Debug for BlockReader<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BlockReader {{ ... }}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
@@ -111,8 +221,10 @@ mod tests {
 
     use crate::{
         db::{Db, CF_BLK},
-        io::{blocks::SerBlock, BlockWriter, DbBlock},
-        ser::db_deserialize,
+        io::{
+            blocks::SerBlock, BlockReader, BlockWriter, BlocksError, DbBlock,
+        },
+        ser::{db_deserialize, SerError},
     };
 
     #[test]
@@ -122,6 +234,12 @@ mod tests {
         let tempdir = tempdir::TempDir::new("chronik-db--blocks")?;
         let db = Db::open(tempdir.path())?;
         let writer = BlockWriter::new(&db)?;
+        let blocks = BlockReader::new(&db)?;
+        {
+            assert_eq!(blocks.height()?, -1);
+            assert_eq!(blocks.tip()?, None);
+            assert_eq!(blocks.by_height(0)?, None);
+        }
         let block0 = DbBlock {
             hash: BlockHash::from([44; 32]),
             prev_hash: BlockHash::from([0; 32]),
@@ -157,6 +275,10 @@ mod tests {
                     data_pos: block0.data_pos,
                 },
             );
+            assert_eq!(blocks.height()?, 0);
+            assert_eq!(blocks.tip()?, Some(block0.clone()));
+            assert_eq!(blocks.by_height(0)?, Some(block0.clone()));
+            assert_eq!(blocks.by_height(1)?, None);
         }
         {
             let mut batch = rocksdb::WriteBatch::default();
@@ -174,6 +296,11 @@ mod tests {
                     data_pos: block1.data_pos,
                 },
             );
+            assert_eq!(blocks.height()?, 1);
+            assert_eq!(blocks.tip()?, Some(block1.clone()));
+            assert_eq!(blocks.by_height(0)?, Some(block0.clone()));
+            assert_eq!(blocks.by_height(1)?, Some(block1));
+            assert_eq!(blocks.by_height(2)?, None);
         }
         {
             let mut batch = rocksdb::WriteBatch::default();
@@ -181,6 +308,10 @@ mod tests {
             db.write_batch(batch)?;
             assert_eq!(db.get(cf, [0, 0, 0, 1])?.as_deref(), None);
             assert!(db.get(cf, [0, 0, 0, 0])?.is_some());
+            assert_eq!(blocks.height()?, 0);
+            assert_eq!(blocks.tip()?, Some(block0.clone()));
+            assert_eq!(blocks.by_height(0)?, Some(block0));
+            assert_eq!(blocks.by_height(1)?, None);
         }
         {
             let mut batch = rocksdb::WriteBatch::default();
@@ -188,6 +319,31 @@ mod tests {
             db.write_batch(batch)?;
             assert_eq!(db.get(cf, [0, 0, 0, 1])?.as_deref(), None);
             assert_eq!(db.get(cf, [0, 0, 0, 0])?.as_deref(), None);
+            assert_eq!(blocks.height()?, -1);
+            assert_eq!(blocks.tip()?, None);
+            assert_eq!(blocks.by_height(0)?, None);
+        }
+        {
+            let mut batch = rocksdb::WriteBatch::default();
+            batch.put_cf(cf, [0, 0, 0], []);
+            db.write_batch(batch)?;
+            assert_eq!(
+                blocks.height().unwrap_err().downcast::<BlocksError>()?,
+                BlocksError::InvalidHeightBytes(vec![0, 0, 0]),
+            );
+        }
+        {
+            let mut batch = rocksdb::WriteBatch::default();
+            batch.put_cf(cf, [0, 0, 0, 0], [0xff, 0xff, 0xff]);
+            db.write_batch(batch)?;
+            assert_eq!(
+                blocks.by_height(0).unwrap_err().downcast::<SerError>()?,
+                SerError::DeserializeError {
+                    type_name: "chronik_db::io::blocks::SerBlock",
+                    error: postcard::Error::DeserializeUnexpectedEnd,
+                    bytes: vec![0xff, 0xff, 0xff],
+                },
+            );
         }
         Ok(())
     }

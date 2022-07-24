@@ -9,7 +9,7 @@
 use std::path::Path;
 
 use abc_rust_error::Result;
-use rocksdb::ColumnFamilyDescriptor;
+use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
 use crate::io::BlockWriter;
@@ -68,13 +68,16 @@ impl Db {
             .ok_or_else(|| NoSuchColumnFamily(name.to_string()))?)
     }
 
-    #[cfg(test)]
     pub(crate) fn get(
         &self,
         cf: &CF,
         key: impl AsRef<[u8]>,
     ) -> Result<Option<rocksdb::DBPinnableSlice<'_>>> {
         Ok(self.db.get_pinned_cf(cf, key).map_err(RocksDb)?)
+    }
+
+    pub(crate) fn iterator_end(&self, cf: &CF) -> rocksdb::DBIterator<'_> {
+        self.db.iterator_cf(cf, IteratorMode::End)
     }
 
     #[cfg(test)]
