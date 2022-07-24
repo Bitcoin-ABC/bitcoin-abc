@@ -189,6 +189,7 @@ dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
  "bitcoinsuite-core",
+ "hex",
  "postcard",
  "pretty_assertions",
  "rocksdb",

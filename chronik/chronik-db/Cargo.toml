@@ -12,6 +12,9 @@ abc-rust-error = { path = "../abc-rust-error" }
 abc-rust-lint = { path = "../abc-rust-lint" }
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 
+# En-/decode byte strings from/to hex
+hex = "0.4"
+
 # Compact and fast serialization
 postcard = { version = "1.0", features = ["alloc"] }
 

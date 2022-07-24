@@ -7,7 +7,10 @@ use bitcoinsuite_core::block::BlockHash;
 use rocksdb::ColumnFamilyDescriptor;
 use serde::{Deserialize, Serialize};
 
-use crate::db::{Db, CF, CF_BLK};
+use crate::{
+    db::{Db, CF, CF_BLK},
+    ser::db_serialize,
+};
 
 /// Height of a block in the chain. Genesis block has height 0.
 /// -1 indicates "not part of the chain".
@@ -65,8 +68,8 @@ impl<'a> BlockWriter<'a> {
         batch: &mut rocksdb::WriteBatch,
         block: &DbBlock,
     ) -> Result<()> {
-        // Use `postcard` to serialize the block data
-        let data = postcard::to_allocvec(&SerBlock {
+        // Serialize the block data
+        let data = db_serialize(&SerBlock {
             hash: block.hash.to_bytes(),
             n_bits: block.n_bits,
             timestamp: block.timestamp,
@@ -109,6 +112,7 @@ mod tests {
     use crate::{
         db::{Db, CF_BLK},
         io::{blocks::SerBlock, BlockWriter, DbBlock},
+        ser::db_deserialize,
     };
 
     #[test]
@@ -142,7 +146,7 @@ mod tests {
             writer.insert(&mut batch, &block0)?;
             db.write_batch(batch)?;
             assert_eq!(
-                postcard::from_bytes::<SerBlock>(
+                db_deserialize::<SerBlock>(
                     &db.get(cf, [0, 0, 0, 0])?.unwrap()
                 )?,
                 SerBlock {
@@ -159,7 +163,7 @@ mod tests {
             writer.insert(&mut batch, &block1)?;
             db.write_batch(batch)?;
             assert_eq!(
-                postcard::from_bytes::<SerBlock>(
+                db_deserialize::<SerBlock>(
                     &db.get(cf, [0, 0, 0, 1])?.unwrap(),
                 )?,
                 SerBlock {
