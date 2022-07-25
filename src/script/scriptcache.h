@@ -46,8 +46,6 @@ public:
 // systems). Due to how we count cache size, actual memory usage is slightly
 // more (~32.25 MB)
 static const unsigned int DEFAULT_MAX_SCRIPT_CACHE_SIZE = 32;
-// Maximum sig cache size allowed
-static const int64_t MAX_MAX_SCRIPT_CACHE_SIZE = 16384;
 
 /** Initializes the script-execution cache */
 [[nodiscard]] bool InitScriptExecutionCache();

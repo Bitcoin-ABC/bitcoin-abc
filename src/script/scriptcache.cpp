@@ -84,10 +84,8 @@ bool InitScriptExecutionCache() {
     // nMaxCacheSize is unsigned. If -maxscriptcachesize is set to zero,
     // setup_bytes creates the minimum possible cache (2 elements).
     size_t nMaxCacheSize =
-        std::min(std::max(int64_t(0),
-                          gArgs.GetIntArg("-maxscriptcachesize",
-                                          DEFAULT_MAX_SCRIPT_CACHE_SIZE)),
-                 MAX_MAX_SCRIPT_CACHE_SIZE) *
+        std::max(int64_t(0), gArgs.GetIntArg("-maxscriptcachesize",
+                                             DEFAULT_MAX_SCRIPT_CACHE_SIZE)) *
         (size_t(1) << 20);
 
     auto setup_results = g_scriptExecutionCache.setup_bytes(nMaxCacheSize);
