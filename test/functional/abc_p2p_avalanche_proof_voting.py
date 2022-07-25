@@ -462,7 +462,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
 
-        peer.send_avaproof(avalanche_proof_from_hex(proof_seq1))
+        self.send_and_check_for_polling(
+            peer, proof_seq1, response=AvalancheProofVoteResponse.UNKNOWN)
 
         # Wait until proof_seq1 voting goes stale
         retry = 5
