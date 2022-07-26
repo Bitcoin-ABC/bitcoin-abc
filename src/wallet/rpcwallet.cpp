@@ -876,7 +876,8 @@ static RPCHelpMan addmultisigaddress() {
         "This functionality is only intended for use with non-watchonly "
         "addresses.\n"
         "See `importaddress` for watchonly p2sh address support.\n"
-        "If 'label' is specified (DEPRECATED), assign address to that label.\n",
+        "If 'label' is specified (DEPRECATED), assign address to that label.\n"
+        "Note: This command is only compatible with legacy wallets.\n",
         {
             {"nrequired", RPCArg::Type::NUM, RPCArg::Optional::NO,
              "The number of required signatures out of the n keys or "
@@ -4471,7 +4472,8 @@ static RPCHelpMan sethdseed() {
         "will be derived from this new seed.\n"
         "\nNote that you will need to MAKE A NEW BACKUP of your wallet after "
         "setting the HD wallet seed.\n" +
-            HELP_REQUIRING_PASSPHRASE,
+            HELP_REQUIRING_PASSPHRASE +
+            "Note: This command is only compatible with legacy wallets.\n",
         {
             {"newkeypool", RPCArg::Type::BOOL, RPCArg::Default{true},
              "Whether to flush old unused addresses, including change "

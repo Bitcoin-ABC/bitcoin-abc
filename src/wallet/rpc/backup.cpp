@@ -117,7 +117,9 @@ RPCHelpMan importprivkey() {
         "may report that the imported key exists but related transactions are "
         "still missing, leading to temporarily incorrect/bogus balances and "
         "unspent outputs until rescan completes.\n"
-        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n"
+        "Note: This command is only compatible with legacy wallets. Use "
+        "\"importdescriptors\" with \"combo(X)\" for descriptor wallets.\n",
         {
             {"privkey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The private key (see dumpprivkey)"},
@@ -280,7 +282,9 @@ RPCHelpMan importaddress() {
         "\nNote: If you import a non-standard raw script in hex form, outputs "
         "sending to it will be treated\n"
         "as change, and not show up in many RPCs.\n"
-        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n"
+        "Note: This command is only compatible with legacy wallets. Use "
+        "\"importdescriptors\" for descriptor wallets.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The Bitcoin address (or hex-encoded script)"},
@@ -541,7 +545,9 @@ RPCHelpMan importpubkey() {
         "may report that the imported pubkey exists but related transactions "
         "are still missing, leading to temporarily incorrect/bogus balances "
         "and unspent outputs until rescan completes.\n"
-        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n"
+        "Note: This command is only compatible with legacy wallets. Use "
+        "\"importdescriptors\" with \"combo(X)\" for descriptor wallets.\n",
         {
             {"pubkey", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The hex-encoded public key"},
@@ -643,7 +649,8 @@ RPCHelpMan importwallet() {
         "importwallet",
         "Imports keys from a wallet dump file (see dumpwallet). Requires a "
         "new wallet backup to include imported keys.\n"
-        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n"
+        "Note: This command is only compatible with legacy wallets.\n",
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The wallet file"},
@@ -856,7 +863,8 @@ RPCHelpMan dumpprivkey() {
     return RPCHelpMan{
         "dumpprivkey",
         "Reveals the private key corresponding to 'address'.\n"
-        "Then the importprivkey can be used with this output\n",
+        "Then the importprivkey can be used with this output\n"
+        "Note: This command is only compatible with legacy wallets.\n",
         {
             {"address", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The bitcoin address for the private key"},
@@ -914,7 +922,8 @@ RPCHelpMan dumpwallet() {
         "Note that if your wallet contains keys which are not derived from "
         "your HD seed (e.g. imported keys), these are not covered by\n"
         "only backing up the seed itself, and must be backed up too (e.g. "
-        "ensure you back up the whole dumpfile).\n",
+        "ensure you back up the whole dumpfile).\n"
+        "Note: This command is only compatible with legacy wallets.\n",
         {
             {"filename", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The filename with path (absolute path recommended)"},
@@ -1684,7 +1693,9 @@ RPCHelpMan importmulti() {
         "Conversely, if all the private keys are provided and the "
         "address/script is spendable, the watchonly option must be set to "
         "false, or a warning will be returned.\n"
-        "Note: Use \"getwalletinfo\" to query the scanning progress.\n",
+        "Note: Use \"getwalletinfo\" to query the scanning progress.\n"
+        "Note: This command is only compatible with legacy wallets. Use "
+        "\"importdescriptors\" for descriptor wallets.\n",
         {
             {"requests",
              RPCArg::Type::ARR,
