@@ -31,6 +31,53 @@
 
 using namespace std::literals;
 
+namespace {
+struct CConnmanTest : public CConnman {
+    using CConnman::CConnman;
+
+    NodeId nodeid = 0;
+
+    void AddNode(ConnectionType type) {
+        ServiceFlags services = NODE_NETWORK;
+        if (type == ConnectionType::AVALANCHE_OUTBOUND) {
+            services = ServiceFlags(services | NODE_AVALANCHE);
+        }
+
+        struct in_addr s;
+        s.s_addr = GetRandInt(0xffffffff);
+        CAddress addr(CService(CNetAddr(s), Params().GetDefaultPort()),
+                      NODE_NONE);
+
+        CNode *pnode = new CNode(nodeid++, services, INVALID_SOCKET, addr,
+                                 /* nKeyedNetGroupIn */ 0,
+                                 /* nLocalHostNonceIn */ 0,
+                                 /* nLocalExtraEntropyIn */ 0, CAddress(),
+                                 /* pszDest */ "", type,
+                                 /* inbound_onion */ false);
+
+        LOCK(cs_vNodes);
+        vNodes.push_back(pnode);
+        pnode->fSuccessfullyConnected = true;
+    }
+
+    void ClearNodes() {
+        LOCK(cs_vNodes);
+        for (CNode *node : vNodes) {
+            delete node;
+        }
+        vNodes.clear();
+    }
+
+    void SetMaxOutbounds(int maxFullRelayOutbounds, int maxAvalancheOutbounds) {
+        Options options;
+        options.nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS;
+        options.m_max_outbound_full_relay = maxFullRelayOutbounds;
+        options.m_max_avalanche_outbound = maxAvalancheOutbounds;
+        Init(options);
+    };
+};
+} // namespace
+
 class CAddrManSerializationMock : public CAddrMan {
 public:
     virtual void Serialize(CDataStream &s) const = 0;
@@ -917,6 +964,48 @@ BOOST_AUTO_TEST_CASE(avalanche_statistics) {
         BOOST_CHECK_LE(currentScore, 0.);
         previousScore = currentScore;
     }
+}
+
+BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
+    CConnmanTest connman(GetConfig(), 0x1337, 0x1337);
+
+    auto checkExtraFullOutboundCount = [&](size_t fullOutboundCount,
+                                           size_t avalancheOutboundCount,
+                                           int expectedExtraCount) {
+        connman.ClearNodes();
+        for (size_t i = 0; i < fullOutboundCount; i++) {
+            connman.AddNode(ConnectionType::OUTBOUND_FULL_RELAY);
+        }
+        for (size_t i = 0; i < avalancheOutboundCount; i++) {
+            connman.AddNode(ConnectionType::AVALANCHE_OUTBOUND);
+        }
+        BOOST_CHECK_EQUAL(connman.GetExtraFullOutboundCount(),
+                          expectedExtraCount);
+    };
+
+    connman.SetMaxOutbounds(0, 0);
+    checkExtraFullOutboundCount(0, 0, 0);
+    checkExtraFullOutboundCount(1, 0, 1);
+    checkExtraFullOutboundCount(0, 1, 1);
+    checkExtraFullOutboundCount(5, 5, 10);
+
+    connman.SetMaxOutbounds(4, 0);
+    checkExtraFullOutboundCount(0, 0, 0);
+    checkExtraFullOutboundCount(1, 0, 0);
+    checkExtraFullOutboundCount(0, 1, 0);
+    checkExtraFullOutboundCount(4, 0, 0);
+    checkExtraFullOutboundCount(0, 4, 0);
+    checkExtraFullOutboundCount(2, 2, 0);
+    checkExtraFullOutboundCount(5, 5, 6);
+
+    connman.SetMaxOutbounds(4, 4);
+    checkExtraFullOutboundCount(0, 0, 0);
+    checkExtraFullOutboundCount(1, 0, 0);
+    checkExtraFullOutboundCount(0, 1, 0);
+    checkExtraFullOutboundCount(4, 0, 0);
+    checkExtraFullOutboundCount(0, 4, 0);
+    checkExtraFullOutboundCount(4, 4, 0);
+    checkExtraFullOutboundCount(5, 5, 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
