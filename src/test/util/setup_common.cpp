@@ -23,6 +23,7 @@
 #include <net_processing.h>
 #include <node/blockstorage.h>
 #include <node/chainstate.h>
+#include <node/chainstatemanager_args.h>
 #include <node/context.h>
 #include <node/miner.h>
 #include <node/validation_cache_args.h>
@@ -210,10 +211,11 @@ ChainTestingSetup::ChainTestingSetup(
 
     m_cache_sizes = CalculateCacheSizes(m_args);
 
-    const ChainstateManager::Options chainman_opts{
+    ChainstateManager::Options chainman_opts{
         .config = config,
         .adjusted_time_callback = GetAdjustedTime,
     };
+    ApplyArgsManOptions(*m_node.args, chainman_opts);
     m_node.chainman = std::make_unique<ChainstateManager>(chainman_opts);
     m_node.chainman->m_blockman.m_block_tree_db =
         std::make_unique<CBlockTreeDB>(m_cache_sizes.block_tree_db, true);

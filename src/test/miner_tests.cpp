@@ -37,6 +37,9 @@ using node::CBlockTemplateEntry;
 
 namespace miner_tests {
 struct MinerTestingSetup : public TestingSetup {
+    MinerTestingSetup(const std::vector<const char *> &extra_args = {})
+        : TestingSetup(CBaseChainParams::MAIN, extra_args) {}
+
     void TestPackageSelection(const CChainParams &chainparams,
                               const CScript &scriptPubKey,
                               const std::vector<CTransactionRef> &txFirst)
@@ -59,6 +62,11 @@ struct MinerTestingSetup : public TestingSetup {
     }
     BlockAssembler AssemblerForTest(const CChainParams &params);
 };
+
+struct MinerTestingSetupNoCheckpoints : public MinerTestingSetup {
+    MinerTestingSetupNoCheckpoints() : MinerTestingSetup({"-checkpoints=0"}) {}
+};
+
 } // namespace miner_tests
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, MinerTestingSetup)
@@ -672,7 +680,8 @@ void MinerTestingSetup::TestPrioritisedMining(
 }
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
-BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
+BOOST_FIXTURE_TEST_CASE(CreateNewBlock_validity,
+                        MinerTestingSetupNoCheckpoints) {
     // FIXME Update the below blocks to create a valid miner fund coinbase.
     // This requires to update the blockinfo nonces.
     gArgs.ForceSetArg("-enableminerfund", "0");
@@ -685,8 +694,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
                               "de5c384df7ba0b8d578a4c702b6bf11d5f")
                   << OP_CHECKSIG;
     std::unique_ptr<CBlockTemplate> pblocktemplate;
-
-    fCheckpointsEnabled = false;
 
     // Simple block creation, nothing special yet:
     BOOST_CHECK(pblocktemplate =
@@ -747,8 +754,6 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
     m_node.mempool->clear();
 
     TestPrioritisedMining(chainparams, scriptPubKey, txFirst);
-
-    fCheckpointsEnabled = true;
 
     gArgs.ClearForcedArg("-enableminerfund");
 }

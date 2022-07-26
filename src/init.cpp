@@ -1857,13 +1857,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     fCheckBlockIndex = args.GetBoolArg("-checkblockindex",
                                        chainparams.DefaultConsistencyChecks());
-    fCheckpointsEnabled =
-        args.GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED);
-    if (fCheckpointsEnabled) {
-        LogPrintf("Checkpoints will be verified.\n");
-    } else {
-        LogPrintf("Skipping checkpoint verification.\n");
-    }
 
     // Configure excessive block size.
     const int64_t nProposedExcessiveBlockSize =
@@ -2392,6 +2385,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     };
     // no error can happen, already checked in AppInitParameterInteraction
     Assert(!ApplyArgsManOptions(args, chainman_opts));
+
+    if (chainman_opts.checkpoints_enabled) {
+        LogPrintf("Checkpoints will be verified.\n");
+    } else {
+        LogPrintf("Skipping checkpoint verification.\n");
+    }
 
     // cache size calculations
     CacheSizes cache_sizes =

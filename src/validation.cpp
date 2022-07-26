@@ -110,7 +110,6 @@ GlobalMutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
 uint256 g_best_block;
 bool fCheckBlockIndex = false;
-bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 
 BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
@@ -3901,7 +3900,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader &block,
     }
 
     // Check against checkpoints
-    if (fCheckpointsEnabled) {
+    if (chainman.m_options.checkpoints_enabled) {
         const CCheckpointData &checkpoints = params.Checkpoints();
 
         // Check that the block chain matches the known block chain up to a
