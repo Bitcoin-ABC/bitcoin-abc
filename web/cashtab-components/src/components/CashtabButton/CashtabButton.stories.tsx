@@ -54,14 +54,14 @@ Fiat.args = {
 
 Fiat.storyName = 'price in fiat';
 
-export const BCHA = Template.bind({});
-BCHA.args = {
+export const XEC = Template.bind({});
+XEC.args = {
     coinType: Ticker.coinSymbol,
     amount: 0.33,
     to: 'ecash:qrcl220pxeec78vnchwyh6fsdyf60uv9tca7668slm',
 };
 
-BCHA.storyName = `price in ${Ticker.coinSymbol}`;
+XEC.storyName = `price in ${Ticker.coinSymbol}`;
 
 export const SLPA = Template.bind({});
 SLPA.args = {

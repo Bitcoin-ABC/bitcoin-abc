@@ -64,9 +64,9 @@ const Example = props => {
             <CashtabBadge to={toAddress} price={0.5} currency="USD" />
             <CashtabButton to={toAddress} price={1} currency="JPY" />
 
-            {/* Price in bcha */}
-            <CashtabBadge to={toAddress} amount={0.01} coinType="BCHA" />
-            <CashtabButton to={toAddress} amount={0.0001} coinType="BCHA" />
+            {/* Price in XEC */}
+            <CashtabBadge to={toAddress} amount={0.01} coinType="XEC" />
+            <CashtabButton to={toAddress} amount={0.0001} coinType="XEC" />
 
             {/* Price in SLP tokens - NAKAMOTO in this example */}
             <CashtabBadge
@@ -112,10 +112,10 @@ const Example = props => {
                 failFn={() => console.log('fail example function called')}
             />
 
-            {/* Pricing in BCHA */}
+            {/* Pricing in XEC */}
             <CashtabBadge
                 amount={0.001} // Amount in crypto
-                coinType="BCHA" // Defaults to BCHA
+                coinType="XEC" // Defaults to XEC
                 to="bitcoincash:pp8skudq3x5hzw8ew7vzsw8tn4k8wxsqsv0lt0mf3g" // Payment address
                 isRepeatable // Reset to fresh state after a few seconds
                 repeatTimeout={4000} // time in ms to reset button after payment

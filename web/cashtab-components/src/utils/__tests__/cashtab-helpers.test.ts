@@ -11,15 +11,15 @@ describe('Helper functions match expected performance', () => {
         );
     });
 
-    it('Correctly returns BCHA amount in satoshis given (1) fiat price of BCHA and (2) fiat amount of requested satoshis', () => {
+    it('Correctly returns XEC amount in satoshis given (1) fiat price of XEC and (2) fiat amount of requested satoshis', () => {
         expect(priceToSatoshis(20, 10)).toBe(50000000);
     });
 
-    it('Converts amount in satoshis as number to amount in BCHA as string', () => {
+    it('Converts amount in satoshis as number to amount in XEC as string', () => {
         expect(adjustAmount(50000000, 8, true)).toBe('0.5');
     });
 
-    it('Converts amount in BCHA as number to amount in satoshis as string', () => {
+    it('Converts amount in XEC as number to amount in satoshis as string', () => {
         expect(adjustAmount(0.5, 8, false)).toBe('50000000');
     });
 
