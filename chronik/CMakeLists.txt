@@ -1,5 +1,8 @@
 # Copyright (c) 2022 The Bitcoin developers
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(Corrosion 0.2.0 REQUIRED)
 
 set(REQUIRED_RUST_VERSION "1.61.0")
