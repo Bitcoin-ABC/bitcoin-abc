@@ -227,6 +227,9 @@ set(CMAKE_REQUIRED_FLAGS -O2)
 # Activate wallet
 set(ENABLE_WALLET ${BUILD_BITCOIN_WALLET})
 
+# Activate Chronik indexer
+set(ENABLE_CHRONIK ${BUILD_BITCOIN_CHRONIK})
+
 # Activate ZeroMQ
 set(ENABLE_ZMQ ${BUILD_BITCOIN_ZMQ})
 

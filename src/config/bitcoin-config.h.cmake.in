@@ -75,6 +75,9 @@
 #cmakedefine ENABLE_WALLET 1
 #cmakedefine ENABLE_ZMQ 1
 
+/* Define if the Chronik indexer should be compiled in. */
+#cmakedefine01 ENABLE_CHRONIK
+
 /* Define if QR support should be compiled in */
 #cmakedefine USE_QRCODE 1
 
