@@ -47,7 +47,7 @@ SplashScreen::SplashScreen(const NetworkStyle *networkStyle)
     QString copyrightText = QString::fromUtf8(
         CopyrightHolders(strprintf("\xc2\xA9 %u-%u ", 2009, COPYRIGHT_YEAR))
             .c_str());
-    QString titleAddText = networkStyle->getTitleAddText();
+    const QString &titleAddText = networkStyle->getTitleAddText();
 
     QString font = QApplication::font().toString();
 

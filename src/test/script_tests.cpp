@@ -2404,7 +2404,7 @@ BOOST_AUTO_TEST_CASE(script_json_test) {
     UniValue tests = read_json(json_tests::script_tests);
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         Amount nValue = Amount::zero();
         unsigned int pos = 0;

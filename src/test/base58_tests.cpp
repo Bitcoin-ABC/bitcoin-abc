@@ -24,7 +24,7 @@ BOOST_FIXTURE_TEST_SUITE(base58_tests, BasicTestingSetup)
 BOOST_AUTO_TEST_CASE(base58_EncodeBase58) {
     UniValue tests = read_json(json_tests::base58_encode_decode);
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         // Allow for extra stuff (useful for comments)
         if (test.size() < 2) {
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(base58_DecodeBase58) {
     std::vector<uint8_t> result;
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         // Allow for extra stuff (useful for comments)
         if (test.size() < 2) {

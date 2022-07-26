@@ -263,7 +263,7 @@ extern "C" void *ThreadDumper(void *data) {
                    "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
                    "%%(30d)  blocks      svcs  version\n");
             double stat[5] = {0, 0, 0, 0, 0};
-            for (CAddrReport rep : v) {
+            for (const CAddrReport &rep : v) {
                 tfm::format(
                     d,
                     "%-47s  %4d  %11" PRId64

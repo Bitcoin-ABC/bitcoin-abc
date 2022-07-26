@@ -4,6 +4,8 @@ boost-use-to-string,
 readability-braces-around-statements,
 readability-redundant-declaration,
 bugprone-argument-comment,
+performance-for-range-copy,
+performance-unnecessary-copy-initialization,
 performance-move-const-arg,
 performance-no-automatic-move,
 '

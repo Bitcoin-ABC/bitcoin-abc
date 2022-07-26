@@ -176,7 +176,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
                    FillableSigningProvider *keystore,
                    std::map<COutPoint, Coin> &coins) {
     if (!prevTxsUnival.isNull()) {
-        UniValue prevTxs = prevTxsUnival.get_array();
+        const UniValue &prevTxs = prevTxsUnival.get_array();
         for (size_t idx = 0; idx < prevTxs.size(); ++idx) {
             const UniValue &p = prevTxs[idx];
             if (!p.isObject()) {
@@ -185,7 +185,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
                                    "{\"txid'\",\"vout\",\"scriptPubKey\"}");
             }
 
-            UniValue prevOut = p.get_obj();
+            const UniValue &prevOut = p.get_obj();
 
             RPCTypeCheckObj(prevOut,
                             {

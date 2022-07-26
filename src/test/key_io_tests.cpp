@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(key_io_valid_parse) {
     SelectParams(ChainType::MAIN);
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         // Allow for extra stuff (useful for comments)
         if (test.size() < 3) {
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(key_io_valid_gen) {
     UniValue tests = read_json(json_tests::key_io_valid);
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         // Allow for extra stuff (useful for comments)
         if (test.size() < 3) {
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(key_io_invalid) {
     CTxDestination destination;
 
     for (unsigned int idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         // Allow for extra stuff (useful for comments)
         if (test.size() < 1) {

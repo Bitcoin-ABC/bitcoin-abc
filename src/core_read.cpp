@@ -288,7 +288,7 @@ SigHashType ParseSighashString(const UniValue &sighash) {
             {"SINGLE|FORKID|ANYONECANPAY",
              SIGHASH_SINGLE | SIGHASH_FORKID | SIGHASH_ANYONECANPAY},
         };
-        std::string strHashType = sighash.get_str();
+        const std::string &strHashType = sighash.get_str();
         const auto &it = map_sighash_values.find(strHashType);
         if (it != map_sighash_values.end()) {
             sigHashType = SigHashType(it->second);

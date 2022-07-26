@@ -48,7 +48,7 @@ static RPCHelpMan getavalanchekey() {
 }
 
 static CPubKey ParsePubKey(const UniValue &param) {
-    const std::string keyHex = param.get_str();
+    const std::string &keyHex = param.get_str();
     if ((keyHex.length() != 2 * CPubKey::COMPRESSED_SIZE &&
          keyHex.length() != 2 * CPubKey::SIZE) ||
         !IsHex(keyHex)) {

@@ -74,7 +74,7 @@ Amount AmountFromValue(const UniValue &value) {
 }
 
 uint256 ParseHashV(const UniValue &v, std::string strName) {
-    std::string strHex(v.get_str());
+    const std::string &strHex(v.get_str());
     if (64 != strHex.length()) {
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,

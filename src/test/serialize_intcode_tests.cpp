@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(example_intcode_valid_json) {
     UniValue tests = read_json(json_tests::intcode_valid);
 
     for (size_t idx = 0; idx < tests.size(); idx++) {
-        UniValue test = tests[idx];
+        const UniValue &test = tests[idx];
         std::string strTest = test.write();
         if (!test.isArray()) {
             BOOST_ERROR("Bad test, expected array: " << strTest);
