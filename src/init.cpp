@@ -1855,9 +1855,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     // Step 3: parameter-to-internal-flags
     init::SetLoggingCategories(args);
 
-    fCheckBlockIndex = args.GetBoolArg("-checkblockindex",
-                                       chainparams.DefaultConsistencyChecks());
-
     // Configure excessive block size.
     const int64_t nProposedExcessiveBlockSize =
         args.GetIntArg("-excessiveblocksize", DEFAULT_MAX_BLOCK_SIZE);

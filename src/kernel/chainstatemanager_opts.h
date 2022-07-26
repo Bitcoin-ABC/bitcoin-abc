@@ -29,6 +29,7 @@ struct ChainstateManagerOpts {
     const Config &config;
     const std::function<NodeClock::time_point()> adjusted_time_callback{
         nullptr};
+    std::optional<bool> check_block_index{};
     bool checkpoints_enabled{DEFAULT_CHECKPOINTS_ENABLED};
     //! If set, it will override the minimum work we will assume exists on some
     //! valid chain.

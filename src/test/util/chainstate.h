@@ -63,16 +63,6 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
     malleation(auto_infile, metadata);
 
     if (reset_chainstate) {
-        // Disable CheckBlockIndex until we are finished resetting the
-        // chainstate. It is enabled again and CheckBlockIndex is
-        // called manually after the snapshot is activated.
-        // This is necessary for Bitcoin ABC because, as of D4717,
-        // CheckBlockIndex is called more aggressively in ActivateBestChain and
-        // would not support resetting the chainstate while preserving the
-        // block index.
-        bool prev_check_block_index = fCheckBlockIndex;
-        fCheckBlockIndex = false;
-
         {
             // What follows is code to selectively reset chainstate data without
             // disturbing the existing BlockManager instance, which is needed to
@@ -100,20 +90,22 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
             node.chainman->MaybeRebalanceCaches();
         }
         BlockValidationState state;
-        if (!node.chainman->ActiveChainstate().ActivateBestChain(state)) {
+        // Skip checking the block index when calling ActivateBestChain, because
+        // as of D4717 CheckBlockIndex is called more aggressively and would not
+        // support resetting the chainstate while preserving the block index.
+        // We call CheckBlockIndex() explicitly below, after ActivateSnapshot.
+        if (!node.chainman->ActiveChainstate().ActivateBestChain(
+                state, /*pblock=*/nullptr, /*skip_checkblockindex=*/true)) {
             throw std::runtime_error(
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }
-        fCheckBlockIndex = prev_check_block_index;
         Assert(0 == WITH_LOCK(node.chainman->GetMutex(),
                               return node.chainman->ActiveHeight()));
     }
 
     bool ret = node.chainman->ActivateSnapshot(auto_infile, metadata,
                                                in_memory_chainstate);
-    if (fCheckBlockIndex) {
-        node.chainman->ActiveChainstate().CheckBlockIndex();
-    }
+    node.chainman->ActiveChainstate().CheckBlockIndex();
     return ret;
 }
 

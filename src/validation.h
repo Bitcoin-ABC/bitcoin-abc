@@ -116,7 +116,6 @@ extern GlobalMutex g_best_block_mutex;
 extern std::condition_variable g_best_block_cv;
 /** Used to notify getblocktemplate RPC of new tips. */
 extern uint256 g_best_block;
-extern bool fCheckBlockIndex;
 
 /** Documentation for argument 'checklevel'. */
 extern const std::vector<std::string> CHECKLEVEL_DOC;
@@ -878,10 +877,16 @@ public:
      * the background UTXO set to verify the assumeutxo value the snapshot was
      * activated with. `cs_main` will be held during this time.
      *
+     * @param[in] skip_checkblockindex (optional)
+     *     If true, skip calling CheckBlockIndex even if -checkblockindex is
+     *     true. If false (default behavior), respect the -checkblockindex arg.
+     *     This is used in tests when we need to skip the checks only
+     *     temporarily, and resume normal behavior later.
      * @returns true unless a system error occurred
      */
     bool ActivateBestChain(BlockValidationState &state,
-                           std::shared_ptr<const CBlock> pblock = nullptr)
+                           std::shared_ptr<const CBlock> pblock = nullptr,
+                           bool skip_checkblockindex = false)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex)
             LOCKS_EXCLUDED(cs_main);
@@ -991,7 +996,7 @@ public:
      * Make various assertions about the state of the block index.
      *
      * By default this only executes fully when using the Regtest chain; see:
-     * fCheckBlockIndex.
+     * m_options.check_block_index.
      */
     void CheckBlockIndex();
 
@@ -1231,6 +1236,9 @@ public:
     }
     const Consensus::Params &GetConsensus() const {
         return m_options.config.GetChainParams().GetConsensus();
+    }
+    bool ShouldCheckBlockIndex() const {
+        return *Assert(m_options.check_block_index);
     }
     const arith_uint256 &MinimumChainWork() const {
         return *Assert(m_options.minimum_chain_work);

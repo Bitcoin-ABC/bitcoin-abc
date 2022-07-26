@@ -168,7 +168,6 @@ BasicTestingSetup::BasicTestingSetup(
     m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
     g_wallet_init_interface.Construct(m_node);
 
-    fCheckBlockIndex = true;
     static bool noui_connected = false;
     if (!noui_connected) {
         noui_connect();
@@ -214,6 +213,7 @@ ChainTestingSetup::ChainTestingSetup(
     ChainstateManager::Options chainman_opts{
         .config = config,
         .adjusted_time_callback = GetAdjustedTime,
+        .check_block_index = true,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);
     m_node.chainman = std::make_unique<ChainstateManager>(chainman_opts);

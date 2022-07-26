@@ -109,7 +109,6 @@ const std::vector<std::string> CHECKLEVEL_DOC{
 GlobalMutex g_best_block_mutex;
 std::condition_variable g_best_block_cv;
 uint256 g_best_block;
-bool fCheckBlockIndex = false;
 
 BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
@@ -3074,7 +3073,8 @@ static void LimitValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main) {
 }
 
 bool Chainstate::ActivateBestChain(BlockValidationState &state,
-                                   std::shared_ptr<const CBlock> pblock) {
+                                   std::shared_ptr<const CBlock> pblock,
+                                   bool skip_checkblockindex) {
     AssertLockNotHeld(m_chainstate_mutex);
 
     // Note that while we're often called here from ProcessNewBlock, this is
@@ -3184,7 +3184,9 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
             // we're going to release cs_main soon. If the index is in a bad
             // state now, then it's better to know immediately rather than
             // randomly have it cause a problem in a race.
-            CheckBlockIndex();
+            if (!skip_checkblockindex) {
+                CheckBlockIndex();
+            }
 
             if (blocks_connected) {
                 const CBlockIndex *pindexFork = m_chain.FindFork(starting_tip);
@@ -5315,7 +5317,7 @@ void Chainstate::LoadExternalBlockFile(
 }
 
 void Chainstate::CheckBlockIndex() {
-    if (!fCheckBlockIndex) {
+    if (!m_chainman.ShouldCheckBlockIndex()) {
         return;
     }
 
@@ -6367,6 +6369,11 @@ void ChainstateManager::ResetChainstates() {
  * operators that accept nullopt, thus ignoring the intended default value.
  */
 static ChainstateManager::Options &&Flatten(ChainstateManager::Options &&opts) {
+    if (!opts.check_block_index.has_value()) {
+        opts.check_block_index =
+            opts.config.GetChainParams().DefaultConsistencyChecks();
+    }
+
     if (!opts.minimum_chain_work.has_value()) {
         opts.minimum_chain_work = UintToArith256(
             opts.config.GetChainParams().GetConsensus().nMinimumChainWork);
