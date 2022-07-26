@@ -13,6 +13,9 @@ import { currency } from 'components/Common/Ticker.js';
 const { TextArea } = Input;
 
 export const AntdFormCss = css`
+    input[type='number'] {
+        -moz-appearance: textfield;
+    }
     .ant-input-group-addon {
         background-color: ${props =>
             props.theme.forms.addonBackground} !important;
