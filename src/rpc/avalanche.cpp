@@ -909,8 +909,13 @@ static RPCHelpMan getrawavalancheproof() {
                  "The hex encoded proof matching the identifier."},
                 {RPCResult::Type::BOOL, "orphan",
                  "Whether the proof is an orphan."},
-                {RPCResult::Type::BOOL, "isBoundToPeer",
+                {RPCResult::Type::BOOL, "boundToPeer",
                  "Whether the proof is bound to an avalanche peer."},
+                {RPCResult::Type::BOOL, "conflicting",
+                 "Whether the proof has a conflicting UTXO with an avalanche "
+                 "peer."},
+                {RPCResult::Type::BOOL, "finalized",
+                 "Whether the proof is finalized by vote."},
             }},
         },
         RPCExamples{HelpExampleRpc("getrawavalancheproof", "<proofid>")},
@@ -926,10 +931,17 @@ static RPCHelpMan getrawavalancheproof() {
 
             bool isOrphan = false;
             bool isBoundToPeer = false;
-            auto proof =
-                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            bool conflicting = false;
+            bool finalized = false;
+            auto proof = g_avalanche->withPeerManager(
+                [&](const avalanche::PeerManager &pm) {
                     isOrphan = pm.isOrphan(proofid);
                     isBoundToPeer = pm.isBoundToPeer(proofid);
+                    conflicting = pm.isInConflictingPool(proofid);
+                    finalized =
+                        pm.forPeer(proofid, [&](const avalanche::Peer &p) {
+                            return p.hasFinalized;
+                        });
                     return pm.getProof(proofid);
                 });
 
@@ -943,7 +955,9 @@ static RPCHelpMan getrawavalancheproof() {
             ss << *proof;
             ret.pushKV("proof", HexStr(ss));
             ret.pushKV("orphan", isOrphan);
-            ret.pushKV("isBoundToPeer", isBoundToPeer);
+            ret.pushKV("boundToPeer", isBoundToPeer);
+            ret.pushKV("conflicting", conflicting);
+            ret.pushKV("finalized", finalized);
 
             return ret;
         },

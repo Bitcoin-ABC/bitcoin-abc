@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE, base58_to_byte
 from test_framework.avatools import (
+    avalanche_proof_from_hex,
     create_coinbase_stakes,
     create_stakes,
     get_proof_ids,
@@ -21,6 +22,7 @@ from test_framework.messages import (
     AvalancheProof,
     FromHex,
     LegacyAvalancheProof,
+    msg_avaproof,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
@@ -449,6 +451,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         stake_age = node.getblockcount()
         self.restart_node(0, self.extra_args[0] + [
             "-avaproofstakeutxoconfirmations={}".format(stake_age),
+            '-enableavalancheproofreplacement=1',
+            '-avalancheconflictingproofcooldown=0'
         ])
 
         # Good proof
@@ -471,10 +475,29 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['orphan'], False)
-        assert_equal(raw_proof['isBoundToPeer'], True)
+        assert_equal(raw_proof['boundToPeer'], True)
+        assert_equal(raw_proof['conflicting'], False)
+        assert_equal(raw_proof['finalized'], False)
 
         assert_raises_rpc_error(-8, "Proof not found",
                                 node.getrawavalancheproof, '0' * 64)
+
+        conflicting_proof = node.buildavalancheproof(
+            proof_sequence - 1, proof_expiration, wif_privkey, stakes)
+        conflicting_proofobj = avalanche_proof_from_hex(conflicting_proof)
+        conflicting_proofid_hex = f"{conflicting_proofobj.proofid:0{64}x}"
+
+        msg = msg_avaproof()
+        msg.proof = conflicting_proofobj
+        peer.send_message(msg)
+        wait_for_proof(node, conflicting_proofid_hex)
+
+        raw_proof = node.getrawavalancheproof(conflicting_proofid_hex)
+        assert_equal(raw_proof['proof'], conflicting_proof)
+        assert_equal(raw_proof['orphan'], False)
+        assert_equal(raw_proof['boundToPeer'], False)
+        assert_equal(raw_proof['conflicting'], True)
+        assert_equal(raw_proof['finalized'], False)
 
         # To orphan the proof, we make it immature by switching to a shorter
         # chain
@@ -496,7 +519,9 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
         assert_equal(raw_proof['orphan'], True)
-        assert_equal(raw_proof['isBoundToPeer'], False)
+        assert_equal(raw_proof['boundToPeer'], False)
+        assert_equal(raw_proof['conflicting'], False)
+        assert_equal(raw_proof['finalized'], False)
 
         self.log.info("Bad proof should be rejected at startup")
 

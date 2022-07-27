@@ -20,12 +20,7 @@ from test_framework.messages import (
     AvalancheVote,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import (
-    assert_equal,
-    assert_greater_than,
-    assert_raises_rpc_error,
-    try_rpc,
-)
+from test_framework.util import assert_equal, assert_raises_rpc_error, try_rpc
 from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
@@ -244,18 +239,14 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("Test the peer replacement rate limit")
 
-        # Wait until proof_seq30 is finalized
-        retry = 5
-        while retry > 0:
-            try:
-                with node.assert_debug_log([f"Avalanche finalized proof {proofid_seq30:0{64}x}"]):
-                    self.wait_until(lambda: not self.can_find_proof_in_poll(
-                        proofid_seq30, response=AvalancheProofVoteResponse.ACTIVE))
-                break
-            except AssertionError:
-                retry -= 1
+        def vote_until_finalized(proofid):
+            self.can_find_proof_in_poll(
+                proofid, response=AvalancheProofVoteResponse.ACTIVE)
+            return node.getrawavalancheproof(
+                f"{proofid:0{64}x}").get("finalized", False)
 
-        assert_greater_than(retry, 0)
+        # Wait until proof_seq30 is finalized
+        self.wait_until(lambda: vote_until_finalized(proofid_seq30))
 
         # Not enough
         assert self.conflicting_proof_cooldown < self.peer_replacement_cooldown
