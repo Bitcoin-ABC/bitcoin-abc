@@ -180,7 +180,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             quorum.append(n)
 
             n.send_avaproof(_proof)
-            wait_for_proof(node, f"{_proof.proofid:0{64}x}", timeout=10)
+            wait_for_proof(node, f"{_proof.proofid:0{64}x}")
 
             mock_time += self.conflicting_proof_cooldown
             node.setmocktime(mock_time)

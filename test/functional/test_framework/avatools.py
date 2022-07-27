@@ -35,7 +35,7 @@ from .messages import (
 )
 from .p2p import P2PInterface, p2p_lock
 from .test_node import TestNode
-from .util import assert_equal, satoshi_round, wait_until_helper
+from .util import satoshi_round, wait_until_helper
 from .wallet_util import bytes_to_wif
 
 
@@ -153,22 +153,23 @@ def get_proof_ids(node):
     return [int(peer['proofid'], 16) for peer in node.getavalanchepeerinfo()]
 
 
-def wait_for_proof(node, proofid_hex, timeout=60, expect_orphan=None):
+def wait_for_proof(node, proofid_hex, expect_status="boundToPeer", timeout=60):
     """
-    Wait for the proof to be known by the node. If expect_orphan is set, the
-    proof should match the orphan state, otherwise it's a don't care parameter.
+    Wait for the proof to be known by the node. The expect_status is checked
+    once after the proof is found and can be one of the following: "orphan",
+    "boundToPeer", "conflicting" or "finalized".
     """
+    ret = {}
+
     def proof_found():
+        nonlocal ret
         try:
-            wait_for_proof.is_orphan = node.getrawavalancheproof(proofid_hex)[
-                "orphan"]
+            ret = node.getrawavalancheproof(proofid_hex)
             return True
         except JSONRPCException:
             return False
     wait_until_helper(proof_found, timeout=timeout)
-
-    if expect_orphan is not None:
-        assert_equal(expect_orphan, wait_for_proof.is_orphan)
+    assert ret.get(expect_status, False) is True
 
 
 class NoHandshakeAvaP2PInterface(P2PInterface):

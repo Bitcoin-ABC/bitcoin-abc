@@ -216,11 +216,11 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.connect_nodes(1, node.index)
         self.sync_all()
         self.nodes[1].generate(1)
-        wait_for_proof(self.nodes[1], proofid_hex, expect_orphan=True)
+        wait_for_proof(self.nodes[1], proofid_hex, expect_status="orphan")
 
         # Mine another block to make the orphan mature
         self.nodes[1].generate(1)
-        wait_for_proof(self.nodes[0], proofid_hex, expect_orphan=False)
+        wait_for_proof(self.nodes[0], proofid_hex)
 
         self.log.info(
             "Generate delegations for the proof, verify and decode them")
@@ -490,7 +490,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         msg = msg_avaproof()
         msg.proof = conflicting_proofobj
         peer.send_message(msg)
-        wait_for_proof(node, conflicting_proofid_hex)
+        wait_for_proof(
+            node,
+            conflicting_proofid_hex,
+            expect_status="conflicting")
 
         raw_proof = node.getrawavalancheproof(conflicting_proofid_hex)
         assert_equal(raw_proof['proof'], conflicting_proof)
