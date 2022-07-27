@@ -465,18 +465,14 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.send_and_check_for_polling(
             peer, proof_seq1, response=AvalancheProofVoteResponse.UNKNOWN)
 
-        # Wait until proof_seq1 voting goes stale
-        retry = 5
-        while retry > 0:
-            try:
-                with node.assert_debug_log([f"Avalanche stalled proof {proofid_seq1:0{64}x}"]):
-                    self.wait_until(lambda: not self.can_find_proof_in_poll(
-                        proofid_seq1, response=AvalancheProofVoteResponse.UNKNOWN), timeout=10)
-                break
-            except AssertionError:
-                retry -= 1
+        def vote_until_dropped(proofid):
+            self.can_find_proof_in_poll(
+                proofid, response=AvalancheProofVoteResponse.UNKNOWN)
+            return try_rpc(-8, "Proof not found",
+                           node.getrawavalancheproof, f"{proofid:0{64}x}")
 
-        assert_greater_than(retry, 0)
+        with node.assert_debug_log([f"Avalanche stalled proof {proofid_seq1:0{64}x}"]):
+            self.wait_until(lambda: vote_until_dropped(proofid_seq1))
 
         # Verify that proof_seq2 was not replaced
         assert proofid_seq2 in get_proof_ids(node)
