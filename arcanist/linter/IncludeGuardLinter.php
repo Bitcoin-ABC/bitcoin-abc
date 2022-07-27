@@ -62,6 +62,8 @@ final class IncludeGuardLinter extends ArcanistLinter {
     $guard = array_slice($guard, 1);
     // Join to a string using an underscore ('_') as the delimiter.
     $guard = implode('_', $guard);
+    // Replace any special char with an underscore.
+    $guard = preg_replace('/[^A-Za-z0-9]/', '_', $guard);
     // Transform the whole string to uppercase.
     $guard = strtoupper($guard);
     // Surround with prefix and suffix.
