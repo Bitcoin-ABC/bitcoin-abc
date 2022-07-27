@@ -4,7 +4,7 @@ The goal of Bitcoin ABC is to create sound money that is usable by everyone in
 the world. This is a civilization-changing technology which will dramatically
 increase human flourishing, freedom, and prosperity. The project aims to
 achieve this goal by implementing a series of optimizations and protocol
-upgrades that will enable peer-to-peer digital cash to succeed at mankind scale.
+upgrades that will enable peer-to-peer digital cash to succeed at mankind's scale.
 
 What is eCash?
 ---------------------
