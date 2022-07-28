@@ -22,7 +22,7 @@ from test_framework.messages import (
     LegacyAvalancheProof,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, try_rpc
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -307,7 +307,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.log.info("Finalize the proofs for some peers")
 
         def vote_for_all_proofs():
-            done_voting = True
             for i, n in enumerate(quorum):
                 if not n.is_connected:
                     continue
@@ -325,21 +324,16 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                     if inv.hash in [p.proofid for p in conflicting_proofs]:
                         response = AvalancheProofVoteResponse.REJECTED
 
-                        # We need to finish voting on the conflicting proofs to
-                        # ensure the count is stable and that no valid proof
-                        # was replaced.
-                        done_voting = False
-
                     votes.append(AvalancheVote(response, inv.hash))
-
-                    # If we voted on one of our proofs, we're probably not done
-                    # voting.
-                    if inv.hash in [p.proofid for p in proofs]:
-                        done_voting = False
 
                 n.send_avaresponse(poll.round, votes, privkeys[i])
 
-            return done_voting
+            # Check if all proofs are finalized or invalidated
+            return all(
+                [node.getrawavalancheproof(f"{p.proofid:0{64}x}").get("finalized", False) for p in proofs] +
+                [try_rpc(-8, "Proof not found", node.getrawavalancheproof,
+                         f"{c.proofid:0{64}x}") for c in conflicting_proofs]
+            )
 
         # Vote until proofs have finalized
         expected_logs = []
