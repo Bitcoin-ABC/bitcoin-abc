@@ -9,6 +9,7 @@ from test_framework.avatools import (
     build_msg_avaproofs,
     gen_proof,
     get_ava_p2p_interface,
+    get_proof_ids,
     wait_for_proof,
 )
 from test_framework.key import ECPubKey
@@ -186,8 +187,23 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 AvalancheVoteError.UNKNOWN,
             ])
 
+        # The proofs are not requested during IBD, so node 2 has no proof yet.
+        assert_equal(len(get_proof_ids(self.nodes[2])), 0)
+        # And all the nodes are pending
+        assert_equal(
+            self.nodes[2].getavalancheinfo()['network']['pending_node_count'],
+            self.min_avaproofs_node_count)
+
         self.nodes[2].generate(1)
         assert not self.nodes[2].getblockchaininfo()['initialblockdownload']
+
+        # Connect the pending nodes so the next compact proofs requests can get
+        # accounted for
+        for i in range(self.min_avaproofs_node_count):
+            node.sendavalancheproof(peers[i]['proof'].serialize().hex())
+        assert_equal(self.nodes[2].getavalancheinfo()[
+                     'network']['pending_node_count'], 0)
+
         # The avaproofs message are not accounted during IBD, so this is not
         # enough.
         poll_and_assert_response(self.nodes[2], AvalancheVoteError.UNKNOWN)

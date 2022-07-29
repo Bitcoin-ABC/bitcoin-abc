@@ -10,6 +10,7 @@ import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import (
+    AvaP2PInterface,
     avalanche_proof_from_hex,
     gen_proof,
     get_proof_ids,
@@ -166,38 +167,57 @@ class ProofInventoryTest(BitcoinTestFramework):
             peer.wait_for_disconnect()
 
     def test_proof_relay(self):
-        # This test makes no sense with a single node !
-        assert_greater_than(self.num_nodes, 1)
-        node = self.nodes[0]
+        # This test makes no sense with less than 2 nodes !
+        assert_greater_than(self.num_nodes, 2)
 
-        def restart_nodes_with_proof(nodes=self.nodes):
-            proofs = []
-            for i in range(self.num_nodes):
-                proofs.append(self.generate_proof(self.nodes[0]))
-            self.sync_all()
+        proofs_keys = [self.generate_proof(self.nodes[0]) for _ in self.nodes]
+        proofids = set([proof_key[1].proofid for proof_key in proofs_keys])
+        self.sync_all()
 
-            # Restart nodes with new proofs
-            for i, node in enumerate(nodes):
-                privkey, proof = proofs[i]
+        def restart_nodes_with_proof(nodes, extra_args=None):
+            for node in nodes:
+                privkey, proof = proofs_keys[node.index]
                 self.restart_node(node.index, self.extra_args[node.index] + [
                     "-avaproof={}".format(proof.serialize().hex()),
                     "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes()))
-                ])
+                ] + (extra_args or []))
 
-                [self.connect_nodes(node.index, j) for j in range(node.index)]
+        restart_nodes_with_proof(self.nodes[:-1])
 
-            return set(proof.proofid for _, proof in proofs)
+        chainwork = int(self.nodes[-1].getblockchaininfo()['chainwork'], 16)
+        restart_nodes_with_proof(
+            self.nodes[-1:], extra_args=[f'-minimumchainwork={chainwork + 100:#x}'])
 
-        proofids = restart_nodes_with_proof(self.nodes)
+        [[self.connect_nodes(node.index, j)
+          for j in range(node.index)] for node in self.nodes]
 
         # Connect a block to make the proofs added to our pool
-        node.generate(1)
+        self.nodes[0].generate(1)
         self.sync_all()
 
         self.log.info("Nodes should eventually get the proof from their peer")
-        self.sync_proofs()
-        for node in self.nodes:
+        self.sync_proofs(self.nodes[:-1])
+        for node in self.nodes[:-1]:
             assert_equal(set(get_proof_ids(node)), proofids)
+
+        assert self.nodes[-1].getblockchaininfo()['initialblockdownload']
+        self.log.info("Except the node that has not completed IBD")
+        assert_equal(len(get_proof_ids(self.nodes[-1])), 1)
+
+        # The same if we send a proof directly with no download request
+        peer = AvaP2PInterface()
+        self.nodes[-1].add_p2p_connection(peer)
+
+        _, proof = self.generate_proof(self.nodes[0])
+        peer.send_avaproof(proof)
+        peer.sync_send_with_ping()
+        with p2p_lock:
+            assert_equal(peer.message_count.get('getdata', 0), 0)
+
+        # Leave the nodes in good shape for the next tests
+        restart_nodes_with_proof(self.nodes)
+        [[self.connect_nodes(node.index, j)
+          for j in range(node.index)] for node in self.nodes]
 
     def test_manually_sent_proof(self):
         node0 = self.nodes[0]

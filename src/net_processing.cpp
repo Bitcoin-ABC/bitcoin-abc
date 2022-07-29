@@ -3981,7 +3981,8 @@ void PeerManagerImpl::ProcessMessage(
                 logInv(inv, fAlreadyHave);
                 pfrom.AddKnownProof(proofid);
 
-                if (!fAlreadyHave && g_avalanche && isAvalancheEnabled(gArgs)) {
+                if (!fAlreadyHave && g_avalanche && isAvalancheEnabled(gArgs) &&
+                    !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
                     const bool preferred = isPreferredDownloadPeer(pfrom);
 
                     LOCK(cs_proofrequest);
@@ -7082,6 +7083,13 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
     const avalanche::ProofId &proofid = proof->getId();
 
     peer.AddKnownProof(proofid);
+
+    if (m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
+        // We cannot reliably verify proofs during IBD, so bail out early and
+        // keep the inventory as pending so it can be requested when the node
+        // has synced.
+        return true;
+    }
 
     const NodeId nodeid = peer.GetId();
 
