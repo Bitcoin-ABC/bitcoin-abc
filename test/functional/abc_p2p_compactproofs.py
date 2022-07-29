@@ -138,11 +138,10 @@ class CompactProofsTest(BitcoinTestFramework):
                             for p in outbound_avapeers])
 
         outbounds_getavaproofs = count_outbounds_getavaproofs()
-        for i in range(12):
-            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-            self.wait_until(lambda: count_outbounds_getavaproofs()
-                            == outbounds_getavaproofs + 3)
-            outbounds_getavaproofs += 3
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        self.wait_until(lambda: count_outbounds_getavaproofs()
+                        == outbounds_getavaproofs + 3)
+        outbounds_getavaproofs += 3
 
         with p2p_lock:
             assert all([p.message_count.get(
@@ -180,15 +179,14 @@ class CompactProofsTest(BitcoinTestFramework):
         # Now the node will request from all its peers at each time period
         outbounds_getavaproofs = count_outbounds_getavaproofs()
         num_outbound_avapeers = len(outbound_avapeers)
-        for i in range(12):
-            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-            self.wait_until(lambda: count_outbounds_getavaproofs()
-                            == outbounds_getavaproofs + num_outbound_avapeers)
-            outbounds_getavaproofs += num_outbound_avapeers
+        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        self.wait_until(lambda: count_outbounds_getavaproofs()
+                        == outbounds_getavaproofs + num_outbound_avapeers)
+        outbounds_getavaproofs += num_outbound_avapeers
 
-            for p in outbound_avapeers:
-                with node.assert_debug_log(["received: avaproofs"], ["Ignoring unsollicited avaproofs"]):
-                    p.send_message(build_msg_avaproofs([]))
+        for p in outbound_avapeers:
+            with node.assert_debug_log(["received: avaproofs"], ["Ignoring unsollicited avaproofs"]):
+                p.send_message(build_msg_avaproofs([]))
 
         with p2p_lock:
             assert all([p.message_count.get(
