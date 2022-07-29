@@ -362,9 +362,9 @@ BOOST_AUTO_TEST_CASE(rpc_format_monetary_values) {
     BOOST_CHECK_EQUAL(UniValue(COIN / 100000000).write(), "0.01");
 }
 
-static UniValue ValueFromString(const std::string &str) {
+static UniValue ValueFromString(const std::string &str) noexcept {
     UniValue value;
-    BOOST_CHECK(value.setNumStr(str));
+    value.setNumStr(str);
     return value;
 }
 
