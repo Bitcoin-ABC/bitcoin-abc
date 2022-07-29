@@ -2039,4 +2039,17 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
     gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
+BOOST_AUTO_TEST_CASE(register_proof_missing_utxo) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(chainman);
+
+    CKey key = CKey::MakeCompressedKey();
+    auto proof = buildProofWithOutpoints(key, {{TxId(GetRandHash()), 0}},
+                                         PROOF_DUST_THRESHOLD);
+
+    ProofRegistrationState state;
+    BOOST_CHECK(!pm.registerProof(proof, state));
+    BOOST_CHECK(state.GetResult() == ProofRegistrationResult::MISSING_UTXO);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

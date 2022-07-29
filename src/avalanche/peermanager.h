@@ -144,6 +144,7 @@ enum class ProofRegistrationResult {
     REJECTED,
     COOLDOWN_NOT_ELAPSED,
     DANGLING,
+    MISSING_UTXO,
 };
 
 class ProofRegistrationState : public ValidationState<ProofRegistrationResult> {

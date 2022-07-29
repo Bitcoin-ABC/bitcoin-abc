@@ -9,7 +9,12 @@ Test proof inventory relaying
 import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
-from test_framework.avatools import gen_proof, get_proof_ids, wait_for_proof
+from test_framework.avatools import (
+    avalanche_proof_from_hex,
+    gen_proof,
+    get_proof_ids,
+    wait_for_proof,
+)
 from test_framework.messages import (
     MSG_AVA_PROOF,
     MSG_TYPE_MASK,
@@ -129,11 +134,29 @@ class ProofInventoryTest(BitcoinTestFramework):
         _, bad_proof = self.generate_proof(node)
         bad_proof.stakes = []
 
+        privkey = node.get_deterministic_priv_key().key
+        missing_stake = node.buildavalancheproof(
+            1, 0, privkey, [{
+                'txid': '0' * 64,
+                'vout': 0,
+                'amount': 10000000,
+                'height': 42,
+                'iscoinbase': False,
+                'privatekey': privkey,
+            }]
+        )
+
         self.restart_node(0, ['-enableavalanche=1'])
 
         peer = node.add_p2p_connection(P2PInterface())
-
         msg = msg_avaproof()
+
+        # Sending a proof with a missing utxo doesn't trigger a ban
+        msg.proof = avalanche_proof_from_hex(missing_stake)
+        with node.assert_debug_log(["received: avaproof"], ["Misbehaving"]):
+            peer.send_message(msg)
+            peer.sync_with_ping()
+
         msg.proof = bad_proof
         with node.assert_debug_log([
             'Misbehaving',

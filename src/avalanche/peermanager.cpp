@@ -255,6 +255,12 @@ bool PeerManager::registerProof(const ProofRef &proof,
             return invalidate(ProofRegistrationResult::ORPHAN, "orphan-proof");
         }
 
+        if (validationState.GetResult() ==
+            ProofValidationResult::MISSING_UTXO) {
+            return invalidate(ProofRegistrationResult::MISSING_UTXO,
+                              "utxo-missing-or-spent");
+        }
+
         // Reject invalid proof.
         return invalidate(ProofRegistrationResult::INVALID, "invalid-proof");
     }

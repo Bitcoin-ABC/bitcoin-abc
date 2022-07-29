@@ -7126,6 +7126,12 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
         return false;
     }
 
+    if (state.GetResult() == avalanche::ProofRegistrationResult::MISSING_UTXO) {
+        // This is possible that a proof contains a utxo we don't know yet, so
+        // don't ban for this.
+        return false;
+    }
+
     if (!g_avalanche->addProofToReconcile(proof)) {
         LogPrint(BCLog::AVALANCHE,
                  "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
