@@ -206,6 +206,7 @@ int main(int argc, char *argv[]) {
         RegisterSharedValidationInterface(sc);
         bool accepted = chainman.ProcessNewBlock(config, blockptr,
                                                  /*force_processing=*/true,
+                                                 /*min_pow_checked=*/true,
                                                  /*new_block=*/&new_block);
         UnregisterSharedValidationInterface(sc);
         if (!new_block && accepted) {
@@ -221,6 +222,11 @@ int main(int argc, char *argv[]) {
             case BlockValidationResult::BLOCK_RESULT_UNSET:
                 std::cerr << "Initial value. Block has not yet been rejected"
                           << std::endl;
+                break;
+            case BlockValidationResult::BLOCK_HEADER_LOW_WORK:
+                std::cerr
+                    << "the block header may be on a too-little-work chain"
+                    << std::endl;
                 break;
             case BlockValidationResult::BLOCK_CONSENSUS:
                 std::cerr << "Invalid by consensus rules (excluding any below "

@@ -70,6 +70,8 @@ enum class BlockValidationResult {
     BLOCK_TIME_FUTURE,
     //! the block failed to meet one of our checkpoints
     BLOCK_CHECKPOINT,
+    //! the block header may be on a too-little-work chain
+    BLOCK_HEADER_LOW_WORK
 };
 
 /**

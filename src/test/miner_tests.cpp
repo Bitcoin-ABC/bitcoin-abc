@@ -756,7 +756,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity) {
             std::make_shared<const CBlock>(*pblock);
         BOOST_CHECK(
             Assert(m_node.chainman)
-                ->ProcessNewBlock(config, shared_pblock, true, nullptr));
+                ->ProcessNewBlock(config, shared_pblock, true, true, nullptr));
         pblock->hashPrevBlock = pblock->GetHash();
     }
 

@@ -91,9 +91,9 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
 
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            Assert(m_node.chainman)
-                ->ProcessNewBlockHeaders(config, {headerG}, state, &pindex));
+        BOOST_CHECK(Assert(m_node.chainman)
+                        ->ProcessNewBlockHeaders(config, {headerG}, true, state,
+                                                 &pindex));
         pindex = nullptr;
     }
 
@@ -157,9 +157,9 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     // Headers A and AA should be accepted
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            Assert(m_node.chainman)
-                ->ProcessNewBlockHeaders(config, {headerA}, state, &pindex));
+        BOOST_CHECK(Assert(m_node.chainman)
+                        ->ProcessNewBlockHeaders(config, {headerA}, true, state,
+                                                 &pindex));
         BOOST_CHECK(state.IsValid());
         BOOST_CHECK(pindex != nullptr);
         pindex = nullptr;
@@ -167,9 +167,9 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
 
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            Assert(m_node.chainman)
-                ->ProcessNewBlockHeaders(config, {headerAA}, state, &pindex));
+        BOOST_CHECK(Assert(m_node.chainman)
+                        ->ProcessNewBlockHeaders(config, {headerAA}, true,
+                                                 state, &pindex));
         BOOST_CHECK(state.IsValid());
         BOOST_CHECK(pindex != nullptr);
         pindex = nullptr;
@@ -178,9 +178,9 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     // Header B should be rejected
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            !Assert(m_node.chainman)
-                 ->ProcessNewBlockHeaders(config, {headerB}, state, &pindex));
+        BOOST_CHECK(!Assert(m_node.chainman)
+                         ->ProcessNewBlockHeaders(config, {headerB}, true,
+                                                  state, &pindex));
         BOOST_CHECK(state.IsInvalid());
         BOOST_CHECK(state.GetRejectReason() == "bad-fork-prior-to-checkpoint");
         BOOST_CHECK(pindex == nullptr);
@@ -196,9 +196,9 @@ BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     // Header AB should be rejected
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            !Assert(m_node.chainman)
-                 ->ProcessNewBlockHeaders(config, {headerAB}, state, &pindex));
+        BOOST_CHECK(!Assert(m_node.chainman)
+                         ->ProcessNewBlockHeaders(config, {headerAB}, true,
+                                                  state, &pindex));
         BOOST_CHECK(state.IsInvalid());
         BOOST_CHECK(state.GetRejectReason() == "checkpoint mismatch");
         BOOST_CHECK(pindex == nullptr);

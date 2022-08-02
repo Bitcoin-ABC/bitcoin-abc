@@ -189,14 +189,14 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
 
     // Process all the headers so we understand the toplogy of the chain
     BOOST_CHECK(Assert(m_node.chainman)
-                    ->ProcessNewBlockHeaders(config, headers, state));
+                    ->ProcessNewBlockHeaders(config, headers, true, state));
 
     // Connect the genesis block and drain any outstanding events
     BOOST_CHECK(Assert(m_node.chainman)
                     ->ProcessNewBlock(
                         config,
                         std::make_shared<CBlock>(chainParams.GenesisBlock()),
-                        true, &ignored));
+                        true, true, &ignored));
     SyncWithValidationInterfaceQueue();
 
     // subscribe to events (this subscriber will validate event ordering)
@@ -220,16 +220,16 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering) {
             for (int j = 0; j < 1000; j++) {
                 auto block = blocks[insecure.randrange(blocks.size() - 1)];
                 Assert(m_node.chainman)
-                    ->ProcessNewBlock(config, block, true, &tlignored);
+                    ->ProcessNewBlock(config, block, true, true, &tlignored);
             }
 
             // to make sure that eventually we process the full chain - do it
             // here
             for (auto block : blocks) {
                 if (block->vtx.size() == 1) {
-                    bool processed =
-                        Assert(m_node.chainman)
-                            ->ProcessNewBlock(config, block, true, &tlignored);
+                    bool processed = Assert(m_node.chainman)
+                                         ->ProcessNewBlock(config, block, true,
+                                                           true, &tlignored);
                     assert(processed);
                 }
             }
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     bool newBlock;
     BOOST_CHECK(chainman.ProcessNewBlock(
         config, std::make_shared<CBlock>(chainParams.GenesisBlock()), true,
-        &newBlock));
+        true, &newBlock));
 
     // Generate an invalid block with a valid header
     const std::shared_ptr<const CBlock> pblock =
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     const CBlockIndex *pindexBadBlock;
     BlockValidationState state;
     BOOST_CHECK(chainman.ProcessNewBlockHeaders(
-        config, {pblock->GetBlockHeader()}, state, &pindexBadBlock));
+        config, {pblock->GetBlockHeader()}, true, state, &pindexBadBlock));
 
     // In order to force the invalid block to be finalized, we set the chain
     // tip manually. This does not happen under normal conditions. Rewind
@@ -285,7 +285,8 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     activeChainstate.m_chain.SetTip(pindex->pprev);
 
     // Process the block. It should be found invalid and finalization reverted.
-    bool processed = chainman.ProcessNewBlock(config, pblock, true, &newBlock);
+    bool processed =
+        chainman.ProcessNewBlock(config, pblock, true, true, &newBlock);
     assert(processed);
     BOOST_CHECK(newBlock);
     {
@@ -321,8 +322,9 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
     bool ignored;
     auto ProcessBlock = [&](std::shared_ptr<const CBlock> block) -> bool {
         return Assert(m_node.chainman)
-            ->ProcessNewBlock(config, block, /* fForceProcessing */ true,
-                              /* fNewBlock */ &ignored);
+            ->ProcessNewBlock(config, block, /*force_processing=*/true,
+                              /*min_pow_checked=*/true,
+                              /*new_block=*/&ignored);
     };
 
     // Process all mined blocks

@@ -146,7 +146,7 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
             *pblock, state, config.GetChainParams().GetConsensus(), options);
         BOOST_CHECK(checked);
         bool accepted = background_cs.AcceptBlock(config, pblock, state, true,
-                                                  nullptr, &newblock);
+                                                  nullptr, &newblock, true);
         BOOST_CHECK(accepted);
     }
     // UpdateTip is called here
