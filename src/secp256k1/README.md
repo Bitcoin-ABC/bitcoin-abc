@@ -1,7 +1,7 @@
 libsecp256k1
 ============
 
-[![Build Status](https://api.cirrus-ci.com/github/Bitcoin-ABC/secp256k1.svg?branch=master)](https://cirrus-ci.com/github/Bitcoin-ABC/secp256k1)
+![Dependencies: None](https://img.shields.io/badge/dependencies-none-success)
 
 Optimized C library for cryptographic operations on curve secp256k1.
 
@@ -18,6 +18,7 @@ Features:
 * Derandomized ECDSA (via RFC6979 or with a caller provided function.)
 * Very efficient implementation.
 * Suitable for embedded systems.
+* No runtime dependencies.
 * Optional module for public key recovery.
 * Optional module for ECDH key exchange.
 * Optional module for multiset hash (experimental).
@@ -91,13 +92,14 @@ To compile optional modules (such as taproot Schnorr signatures), you need to ru
 
 Usage examples
 -----------
-  Usage examples can be found in the [examples](examples) directory. To compile them you need to configure with `--enable-examples`.
-  For experimental modules, you will also need `--enable-experimental` as well as a flag for each individual module, e.g. `--enable-module-multiset`.
-  If using CMake, a `secp256k1-examples` ninja target is available to build all examples whose modules are enabled.
+Usage examples can be found in the [examples](examples) directory. To compile them you need to configure with `--enable-examples`.
+For experimental modules, you will also need `--enable-experimental` as well as a flag for each individual module, e.g. `--enable-module-multiset`.
+If using CMake, a `secp256k1-examples` ninja target is available to build all examples whose modules are enabled.
   * [ECDSA example](examples/ecdsa.c)
   * [Schnorr signatures (taproot) example](examples/schnorr.c)
   * [Deriving a shared secret (ECDH) example](examples/ecdh.c)
-  To compile the Schnorr signature and ECDH examples, you also need to configure with `--enable-module-schnorrsig` and `--enable-module-ecdh`.
+
+To compile the Schnorr signature and ECDH examples, you also need to configure with `--enable-module-schnorrsig` and `--enable-module-ecdh`.
 
 Test coverage
 -----------
