@@ -341,7 +341,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
     // Add 4 peers.
     std::array<PeerId, 8> peerids;
     for (int i = 0; i < 4; i++) {
-        auto p = buildRandomProof(active_chainstate, 100);
+        auto p = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -373,7 +373,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Add 4 more peers.
     for (int i = 0; i < 4; i++) {
-        auto p = buildRandomProof(active_chainstate, 100);
+        auto p = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         peerids[i + 4] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
@@ -416,7 +416,8 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
     for (int i = 0; i < 4; i++) {
-        auto p = buildRandomProof(chainman.ActiveChainstate(), 100);
+        auto p = buildRandomProof(chainman.ActiveChainstate(),
+                                  MIN_VALID_PROOF_SCORE);
         peerids[i] = TestPeerManager::registerAndGetPeerId(pm, p);
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
