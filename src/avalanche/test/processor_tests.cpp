@@ -147,14 +147,21 @@ struct AvalancheTestingSetup : public TestChain100Setup {
         return node;
     }
 
-    size_t next_coinbase = 0;
     ProofRef GetProof() {
-        size_t current_coinbase = next_coinbase++;
-        const CTransaction &coinbase = *m_coinbase_txns[current_coinbase];
+        const CKey key = CKey::MakeCompressedKey();
+        const COutPoint outpoint{TxId(GetRandHash()), 0};
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+        const Amount amount = PROOF_DUST_THRESHOLD;
+        const uint32_t height = 100;
+
+        LOCK(cs_main);
+        CCoinsViewCache &coins =
+            Assert(m_node.chainman)->ActiveChainstate().CoinsTip();
+        coins.AddCoin(outpoint, Coin(CTxOut(amount, script), height, false),
+                      false);
+
         ProofBuilder pb(0, 0, masterpriv);
-        BOOST_CHECK(pb.addUTXO(COutPoint(coinbase.GetId(), 0),
-                               coinbase.vout[0].nValue, current_coinbase + 1,
-                               true, coinbaseKey));
+        BOOST_CHECK(pb.addUTXO(outpoint, amount, height, false, key));
         return pb.build();
     }
 
