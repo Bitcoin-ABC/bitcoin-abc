@@ -4,10 +4,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `null`;
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-hMqMXs kjfrok"
+  className="sc-kEYyzF gZfJyA"
 >
   <div
-    className="sc-hSdWYo bXDUps"
+    className="sc-eHgmQL znFwg"
   >
     6.001
      
@@ -33,7 +33,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-kpOJdX hEMbUj"
+          className="sc-dxgOiQ hgEvvT"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -107,7 +107,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-chPdSV lgTLHT"
+                            className="sc-kgoBCf fXiQWC"
                             onClick={[Function]}
                           >
                             <span
@@ -140,7 +140,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-kpOJdX hEMbUj"
+          className="sc-dxgOiQ hgEvvT"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -199,7 +199,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-dxgOiQ bpDknu"
+                            className="sc-ckVGcZ jywPMT"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -222,7 +222,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-fjdhpX eQicuE"
+            className="sc-jzJRlG lltaza"
             onClick={[Function]}
           >
             Send 

@@ -24,6 +24,7 @@ import { ReactComponent as Airdrop } from 'assets/airdrop-icon.svg';
 import { ReactComponent as Pdf } from 'assets/file-pdf.svg';
 import { ReactComponent as Plus } from 'assets/plus.svg';
 import { ReactComponent as Download } from 'assets/download.svg';
+import { ReactComponent as Edit } from 'assets/edit.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 
 export const CashReceivedNotificationIcon = () => (
@@ -107,6 +108,14 @@ export const ThemedDownloadOutlined = styled(Download)`
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
     width: 1.3em;
+`;
+
+export const ThemedEditOutlined = styled(Edit)`
+    stroke: ${props => props.theme.eCashBlue};
+    fill: ${props => props.theme.eCashBlue};
+    min-width: 20px;
+    min-height: 20px;
+    cursor: pointer;
 `;
 
 export const LoadingBlock = styled.div`

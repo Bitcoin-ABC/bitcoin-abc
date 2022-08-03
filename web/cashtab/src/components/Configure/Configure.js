@@ -369,6 +369,7 @@ const AWRow = styled.div`
     margin-bottom: 6px;
     h3 {
         font-size: 16px;
+        flex: 1 1 0;
         display: inline-block;
         color: ${props => props.theme.darkBlue};
         margin: 0;
@@ -380,10 +381,14 @@ const AWRow = styled.div`
     }
     h4 {
         font-size: 16px;
+        flex: 1 1 0;
         display: inline-block;
         color: ${props => props.theme.eCashBlue} !important;
         margin: 0;
         text-align: right;
+    }
+    ${SWButtonCtn} {
+        flex: 1 1 0;
     }
     @media (max-width: 500px) {
         flex-direction: column;
@@ -480,7 +485,8 @@ const Configure = () => {
     const {
         addNewSavedWallet,
         activateWallet,
-        renameWallet,
+        renameSavedWallet,
+        renameActiveWallet,
         deleteWallet,
         validateMnemonic,
         getSavedWallets,
@@ -583,6 +589,15 @@ const Configure = () => {
         const detectedBrowserLang = navigator.language;
         if (!detectedBrowserLang.includes('en-')) {
             setShowTranslationWarning(true);
+        }
+
+        if (
+            location &&
+            location.state &&
+            location.state.showRenameWalletModal
+        ) {
+            setShowRenameWalletModal(true);
+            setWalletToBeRenamed(wallet);
         }
 
         // if this was routed from Home screen's Add to Contact link
@@ -757,6 +772,7 @@ const Configure = () => {
     };
 
     const changeWalletName = async () => {
+        let oldActiveWalletName;
         if (!isValidNewWalletNameLength(newWalletName)) {
             setNewWalletNameIsValid(false);
             return;
@@ -767,14 +783,29 @@ const Configure = () => {
         console.log(
             `Changing wallet ${walletToBeRenamed.name} name to ${newWalletName}`,
         );
-        const renameSuccess = await renameWallet(
-            walletToBeRenamed.name,
-            newWalletName,
-        );
+        let renameSuccess;
+
+        if (walletToBeRenamed.name === wallet.name) {
+            oldActiveWalletName = walletToBeRenamed.name;
+            renameSuccess = await renameActiveWallet(
+                wallet,
+                walletToBeRenamed.name,
+                newWalletName,
+            );
+        } else {
+            renameSuccess = await renameSavedWallet(
+                walletToBeRenamed.name,
+                newWalletName,
+            );
+        }
 
         if (renameSuccess) {
             Modal.success({
-                content: `Wallet "${walletToBeRenamed.name}" renamed to "${newWalletName}"`,
+                content: `Wallet "${
+                    oldActiveWalletName !== undefined
+                        ? oldActiveWalletName
+                        : walletToBeRenamed.name
+                }" renamed to "${newWalletName}"`,
             });
         } else {
             Modal.error({
@@ -1486,7 +1517,7 @@ const Configure = () => {
                     />
                 )}
                 {wallet && wallet.mnemonic && (
-                    <StyledCollapse expandIconPosition="left">
+                    <StyledCollapse expandIconPosition="start">
                         <Panel
                             header={
                                 <div className="seedPhrase">
@@ -1579,6 +1610,20 @@ const Configure = () => {
                                         </h3>
                                     </Tooltip>
                                     <h4>Currently active</h4>
+                                    <SWButtonCtn>
+                                        <Edit
+                                            onClick={() =>
+                                                showPopulatedRenameWalletModal(
+                                                    wallet,
+                                                )
+                                            }
+                                        />
+                                        <ThemedContactsOutlined
+                                            onClick={() =>
+                                                addSavedWalletToContact(wallet)
+                                            }
+                                        />
+                                    </SWButtonCtn>
                                 </AWRow>
                                 <div>
                                     {savedWallets.map(sw => (

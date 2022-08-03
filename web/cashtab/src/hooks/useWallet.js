@@ -743,14 +743,14 @@ const useWallet = () => {
         return walletToActivate;
     };
 
-    const renameWallet = async (oldName, newName) => {
+    const renameSavedWallet = async (oldName, newName) => {
         // Load savedWallets
         let savedWallets;
         try {
             savedWallets = await localforage.getItem('savedWallets');
         } catch (err) {
             console.log(
-                `Error in await localforage.getItem("savedWallets") in renameWallet`,
+                `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
             );
             console.log(err);
             return false;
@@ -776,7 +776,52 @@ const useWallet = () => {
             await localforage.setItem('savedWallets', savedWallets);
         } catch (err) {
             console.log(
-                `Error in localforage.setItem("savedWallets", savedWallets) in renameWallet()`,
+                `Error in localforage.setItem("savedWallets", savedWallets) in renameSavedWallet()`,
+            );
+            return false;
+        }
+        return true;
+    };
+
+    const renameActiveWallet = async (wallet, oldName, newName) => {
+        // Load savedWallets
+        let savedWallets;
+        try {
+            savedWallets = await localforage.getItem('savedWallets');
+        } catch (err) {
+            console.log(
+                `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
+            );
+            console.log(err);
+            return false;
+        }
+        // Verify that no existing wallet has this name
+        for (let i = 0; i < savedWallets.length; i += 1) {
+            if (savedWallets[i].name === newName) {
+                // return an error
+                return false;
+            }
+        }
+        if (wallet.name === oldName) {
+            wallet.name = newName;
+            setWallet(wallet);
+        }
+
+        // change name of desired wallet
+        for (let i = 0; i < savedWallets.length; i += 1) {
+            if (savedWallets[i].name === oldName) {
+                // Replace the name of this entry with the new name
+                savedWallets[i].name = newName;
+            }
+        }
+        // resave savedWallets
+        try {
+            // Set walletName as the active wallet
+            await localforage.setItem('savedWallets', savedWallets);
+            await localforage.setItem('wallet', wallet);
+        } catch (err) {
+            console.log(
+                `Error in localforage.setItem("wallet", wallet) in renameActiveWallet()`,
             );
             return false;
         }
@@ -1487,7 +1532,8 @@ const useWallet = () => {
             }
         },
         addNewSavedWallet,
-        renameWallet,
+        renameSavedWallet,
+        renameActiveWallet,
         deleteWallet,
     };
 };

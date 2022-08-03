@@ -2,10 +2,10 @@
 
 exports[`Wallet with BCH balances and tokens 1`] = `
 <div
-  className="sc-cSHVUG jkzHCz"
+  className="sc-kAzzGY fEGWQF"
 >
   <div
-    className="sc-TOsTZ bvNCJE"
+    className="sc-kgAjT ipRqIP"
   >
     <h2>
       <span
@@ -72,7 +72,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <h2>
       <span
@@ -97,7 +97,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-gPEVay fIifAs"
+      className="sc-iRbamj fvPHft"
       onClick={[Function]}
     >
       <span
@@ -125,7 +125,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-iRbamj eDAZIV"
+      className="sc-jlyJG kiMfqH"
       onClick={[Function]}
     >
       <span
@@ -159,7 +159,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF BStYT"
+          className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU kcgGis"
           role={null}
           style={
             Object {
@@ -215,7 +215,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <h2>
       <span
@@ -240,7 +240,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-cMljjf hRKaxd"
+      className="sc-jAaTju esgADR"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -333,7 +333,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <h2>
       <span
@@ -358,7 +358,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-hmzhuo hrXGsZ"
+      className="sc-frDJqD gHcDjq"
     >
       <div
         className="title"
@@ -417,7 +417,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </span>
     </div>
     <div
-      className="sc-hmzhuo hrXGsZ"
+      className="sc-frDJqD gHcDjq"
     >
       <div
         className="SendConfirm"
@@ -480,7 +480,7 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </button>
     </div>
     <div
-      className="sc-hmzhuo hrXGsZ"
+      className="sc-frDJqD gHcDjq"
     >
       <div
         className="ShowMessages"
@@ -543,14 +543,14 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </button>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <div
-      className="sc-csuQGl iEJzqX"
+      className="sc-Rmtcm irNbQg"
     >
       [
       <a
-        className="sc-Rmtcm jetxTC"
+        className="sc-bRBYWo hnPTQa"
         href="https://docs.cashtab.com/docs/"
         rel="noreferrer"
         target="_blank"
@@ -566,10 +566,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-cSHVUG jkzHCz"
+  className="sc-kAzzGY fEGWQF"
 >
   <div
-    className="sc-TOsTZ bvNCJE"
+    className="sc-kgAjT ipRqIP"
   >
     <h2>
       <span
@@ -636,7 +636,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <h2>
       <span
@@ -661,7 +661,7 @@ exports[`Without wallet defined 1`] = `
        Manage Wallets
     </h2>
     <button
-      className="sc-gPEVay fIifAs"
+      className="sc-iRbamj fvPHft"
       onClick={[Function]}
     >
       <span
@@ -689,7 +689,7 @@ exports[`Without wallet defined 1`] = `
        New Wallet
     </button>
     <button
-      className="sc-iRbamj eDAZIV"
+      className="sc-jlyJG kiMfqH"
       onClick={[Function]}
     >
       <span
@@ -723,7 +723,7 @@ exports[`Without wallet defined 1`] = `
         style={Object {}}
       >
         <div
-          className="ant-collapse ant-collapse-icon-position-start sc-kEYyzF BStYT"
+          className="ant-collapse ant-collapse-icon-position-start sc-kkGfuU kcgGis"
           role={null}
           style={
             Object {
@@ -779,7 +779,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <h2>
       <span
@@ -804,7 +804,7 @@ exports[`Without wallet defined 1`] = `
        Fiat Currency
     </h2>
     <div
-      className="sc-cMljjf hRKaxd"
+      className="sc-jAaTju esgADR"
     >
       <div
         className="ant-select select-after ant-select-single ant-select-show-arrow"
@@ -897,7 +897,7 @@ exports[`Without wallet defined 1`] = `
       </div>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <h2>
       <span
@@ -922,7 +922,7 @@ exports[`Without wallet defined 1`] = `
        General Settings
     </h2>
     <div
-      className="sc-hmzhuo hrXGsZ"
+      className="sc-frDJqD gHcDjq"
     >
       <div
         className="title"
@@ -981,7 +981,7 @@ exports[`Without wallet defined 1`] = `
       </span>
     </div>
     <div
-      className="sc-hmzhuo hrXGsZ"
+      className="sc-frDJqD gHcDjq"
     >
       <div
         className="SendConfirm"
@@ -1044,7 +1044,7 @@ exports[`Without wallet defined 1`] = `
       </button>
     </div>
     <div
-      className="sc-hmzhuo hrXGsZ"
+      className="sc-frDJqD gHcDjq"
     >
       <div
         className="ShowMessages"
@@ -1107,14 +1107,14 @@ exports[`Without wallet defined 1`] = `
       </button>
     </div>
     <div
-      className="sc-kgAjT dqIHCd"
+      className="sc-cJSrbW gjKLFi"
     />
     <div
-      className="sc-csuQGl iEJzqX"
+      className="sc-Rmtcm irNbQg"
     >
       [
       <a
-        className="sc-Rmtcm jetxTC"
+        className="sc-bRBYWo hnPTQa"
         href="https://docs.cashtab.com/docs/"
         rel="noreferrer"
         target="_blank"
