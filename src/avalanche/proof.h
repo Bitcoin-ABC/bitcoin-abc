@@ -41,7 +41,7 @@ static constexpr int AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS = 2016;
 namespace avalanche {
 
 /** Minimum amount per utxo */
-static constexpr Amount PROOF_DUST_THRESHOLD = 1 * COIN;
+static constexpr Amount PROOF_DUST_THRESHOLD = 100 * COIN;
 
 class ProofValidationState;
 

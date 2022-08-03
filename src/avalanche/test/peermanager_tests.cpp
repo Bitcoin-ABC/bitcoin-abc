@@ -346,7 +346,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 40000);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     for (int i = 0; i < 100; i++) {
@@ -357,13 +357,13 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
     // Remove one peer, it nevers show up now.
     BOOST_CHECK(pm.removePeer(peerids[2]));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 400);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 40000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 10000);
 
     // Make sure we compact to never get NO_PEER.
-    BOOST_CHECK_EQUAL(pm.compact(), 100);
+    BOOST_CHECK_EQUAL(pm.compact(), 10000);
     BOOST_CHECK(pm.verify());
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 300);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 30000);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     for (int i = 0; i < 100; i++) {
@@ -378,22 +378,22 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
         BOOST_CHECK(pm.addNode(InsecureRand32(), p->getId()));
     }
 
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 70000);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     BOOST_CHECK(pm.removePeer(peerids[0]));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 700);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 70000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 10000);
 
     // Removing the last entry do not increase fragmentation.
     BOOST_CHECK(pm.removePeer(peerids[7]));
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 600);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 100);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 60000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 10000);
 
     // Make sure we compact to never get NO_PEER.
-    BOOST_CHECK_EQUAL(pm.compact(), 100);
+    BOOST_CHECK_EQUAL(pm.compact(), 10000);
     BOOST_CHECK(pm.verify());
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 500);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 50000);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);
 
     for (int i = 0; i < 100; i++) {
@@ -427,14 +427,14 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
         pm.removePeer(p);
     }
 
-    BOOST_CHECK_EQUAL(pm.getSlotCount(), 300);
-    BOOST_CHECK_EQUAL(pm.getFragmentation(), 300);
+    BOOST_CHECK_EQUAL(pm.getSlotCount(), 30000);
+    BOOST_CHECK_EQUAL(pm.getFragmentation(), 30000);
 
     for (int i = 0; i < 100; i++) {
         BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
     }
 
-    BOOST_CHECK_EQUAL(pm.compact(), 300);
+    BOOST_CHECK_EQUAL(pm.compact(), 30000);
     BOOST_CHECK(pm.verify());
     BOOST_CHECK_EQUAL(pm.getSlotCount(), 0);
     BOOST_CHECK_EQUAL(pm.getFragmentation(), 0);

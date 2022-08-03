@@ -1286,7 +1286,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
 
 BOOST_AUTO_TEST_CASE(quorum_detection) {
     // Set min quorum parameters for our test
-    int minStake = 4'000'000;
+    int minStake = 400'000'000;
     gArgs.ForceSetArg("-avaminquorumstake", ToString(minStake));
     gArgs.ForceSetArg("-avaminquorumconnectedstakeratio", "0.5");
 

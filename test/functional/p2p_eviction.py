@@ -66,6 +66,7 @@ class P2PEvict(BitcoinTestFramework):
         # avalanche availability score
         self.extra_args = [["-maxconnections=188",
                             "-enableavalanche=1",
+                            "-avaproofstakeutxodustthreshold=1000000",
                             "-avaproofstakeutxoconfirmations=1",
                             "-maxavalancheoutbound=16"]]
 

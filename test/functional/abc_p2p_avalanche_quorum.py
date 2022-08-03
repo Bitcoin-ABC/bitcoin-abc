@@ -31,6 +31,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
         self.min_avaproofs_node_count = 8
         self.extra_args = [[
             '-enableavalanche=1',
+            '-avaproofstakeutxodustthreshold=1000000',
             '-enableavalanchepeerdiscovery=1',
             '-avaproofstakeutxoconfirmations=1',
             '-avacooldown=0',

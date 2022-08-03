@@ -39,6 +39,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-enableavalanchepeerdiscovery=1',
             '-avaminquorumstake=250000000',
             '-avaminquorumconnectedstakeratio=0.9',
+            '-avaproofstakeutxodustthreshold=1000000',
         ]]
 
     def run_test(self):

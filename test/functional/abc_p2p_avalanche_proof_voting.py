@@ -33,6 +33,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.peer_replacement_cooldown = 2000
         self.extra_args = [
             ['-enableavalanche=1',
+             '-avaproofstakeutxodustthreshold=1000000',
              '-enableavalancheproofreplacement=1',
              '-avaproofstakeutxoconfirmations=2',
                 f'-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}', f'-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}', '-avacooldown=0', '-avastalevotethreshold=140', '-avastalevotefactor=1'],
@@ -306,6 +307,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
     def vote_tests(self, node):
         self.restart_node(0, extra_args=['-enableavalanche=1',
+                                         '-avaproofstakeutxodustthreshold=1000000',
                                          '-avaproofstakeutxoconfirmations=2',
                                          '-avacooldown=0',
                                          '-avalancheconflictingproofcooldown=0',
@@ -477,6 +479,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         # Restart the node with appropriate flags for this test
         self.restart_node(0, extra_args=[
             '-enableavalanche=1',
+            '-avaproofstakeutxodustthreshold=1000000',
             '-enableavalancheproofreplacement=1',
             '-avaproofstakeutxoconfirmations=2',
             '-avalancheconflictingproofcooldown=0',
