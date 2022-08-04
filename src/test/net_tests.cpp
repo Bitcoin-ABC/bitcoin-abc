@@ -81,12 +81,6 @@ struct CConnmanTest : public CConnman {
 class CAddrManSerializationMock : public CAddrMan {
 public:
     virtual void Serialize(CDataStream &s) const = 0;
-
-    //! Ensure that bucket placement is always the same for testing purposes.
-    void MakeDeterministic() {
-        nKey.SetNull();
-        insecure_rand = FastRandomContext(true);
-    }
 };
 
 class CAddrManUncorrupted : public CAddrManSerializationMock {

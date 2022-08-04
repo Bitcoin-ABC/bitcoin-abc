@@ -254,12 +254,16 @@ private:
     //! entries. Test-before-evict discipline used to resolve these collisions.
     std::set<int> m_tried_collisions;
 
+    //! Source of random numbers for randomization in inner loops
+    FastRandomContext insecure_rand;
+
+    //! Use deterministic bucket selection and inner loops randomization.
+    //! For testing purpose only.
+    bool deterministic = false;
+
 protected:
     //! secret key to randomize bucket select with
     uint256 nKey;
-
-    //! Source of random numbers for randomization in inner loops
-    FastRandomContext insecure_rand;
 
     //! Find an entry.
     CAddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr)
@@ -630,7 +634,13 @@ public:
     void Clear() {
         LOCK(cs);
         std::vector<int>().swap(vRandom);
-        nKey = insecure_rand.rand256();
+
+        if (deterministic) {
+            nKey.SetNull();
+            insecure_rand = FastRandomContext(true);
+        } else {
+            nKey = insecure_rand.rand256();
+        }
         for (size_t bucket = 0; bucket < ADDRMAN_NEW_BUCKET_COUNT; bucket++) {
             for (size_t entry = 0; entry < ADDRMAN_BUCKET_SIZE; entry++) {
                 vvNew[bucket][entry] = -1;
@@ -797,6 +807,12 @@ public:
         Check();
         SetServices_(addr, nServices);
         Check();
+    }
+
+    //! Ensure that bucket placement is always the same for testing purposes.
+    void MakeDeterministic() {
+        deterministic = true;
+        Clear();
     }
 };
 

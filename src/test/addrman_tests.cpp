@@ -18,24 +18,11 @@
 #include <string>
 
 class CAddrManTest : public CAddrMan {
-private:
-    bool deterministic;
-
 public:
-    explicit CAddrManTest(bool makeDeterministic = true,
-                          std::vector<bool> asmap = std::vector<bool>()) {
-        if (makeDeterministic) {
-            // Set addrman addr placement to be deterministic.
-            MakeDeterministic();
-        }
-        deterministic = makeDeterministic;
+    explicit CAddrManTest(std::vector<bool> asmap = std::vector<bool>()) {
+        // Set addrman addr placement to be deterministic.
+        MakeDeterministic();
         m_asmap = asmap;
-    }
-
-    //! Ensure that bucket placement is always the same for testing purposes.
-    void MakeDeterministic() {
-        nKey.SetNull();
-        insecure_rand = FastRandomContext(true);
     }
 
     CAddrInfo *Find(const CNetAddr &addr, int *pnId = nullptr) {
@@ -79,14 +66,6 @@ public:
         bool count_failure = false;
         int64_t nLastTry = GetAdjustedTime() - 61;
         Attempt(addr, count_failure, nLastTry);
-    }
-
-    void Clear() {
-        CAddrMan::Clear();
-        if (deterministic) {
-            nKey.SetNull();
-            insecure_rand = FastRandomContext(true);
-        }
     }
 };
 
@@ -730,8 +709,8 @@ BOOST_AUTO_TEST_CASE(caddrinfo_get_new_bucket) {
 BOOST_AUTO_TEST_CASE(addrman_serialization) {
     std::vector<bool> asmap1 = FromBytes(asmap_raw, sizeof(asmap_raw) * 8);
 
-    CAddrManTest addrman_asmap1(true, asmap1);
-    CAddrManTest addrman_asmap1_dup(true, asmap1);
+    CAddrManTest addrman_asmap1(asmap1);
+    CAddrManTest addrman_asmap1_dup(asmap1);
     CAddrManTest addrman_noasmap;
     CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
 
