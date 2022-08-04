@@ -69,6 +69,9 @@ const DateType = styled.div`
     }
 `;
 
+const GenesisHeader = styled.h3``;
+const ReceivedHeader = styled.h3``;
+
 const LeftTextCtn = styled.div`
     text-align: left;
     display: flex;
@@ -81,10 +84,10 @@ const LeftTextCtn = styled.div`
         font-weight: 700;
         margin: 0;
     }
-    .genesis {
+    ${GenesisHeader} {
         color: ${props => props.theme.genesisGreen};
     }
-    .received {
+    ${ReceivedHeader} {
         color: ${props => props.theme.eCashBlue};
     }
     h4 {
@@ -376,7 +379,7 @@ const Tx = ({
                     <TxInfo>Open in Explorer</TxInfo>
                 </TxWrapper>
             ) : (
-                <AntdContextCollapseWrapper className="antd-collapse">
+                <AntdContextCollapseWrapper>
                     <Collapse bordered={false}>
                         <Panel
                             showArrow={false}
@@ -411,20 +414,18 @@ const Tx = ({
                                                     data.tokenInfo
                                                         .transactionType ===
                                                         'GENESIS' ? (
-                                                        <h3 className="genesis">
+                                                        <GenesisHeader>
                                                             Genesis
-                                                        </h3>
+                                                        </GenesisHeader>
                                                     ) : (
-                                                        <h3 className="sent">
-                                                            Sent
-                                                        </h3>
+                                                        <h3>Sent</h3>
                                                     )}
                                                 </>
                                             ) : (
                                                 <ReceivedFromCtn>
-                                                    <h3 className="received">
+                                                    <ReceivedHeader>
                                                         Received
-                                                    </h3>
+                                                    </ReceivedHeader>
 
                                                     {addressesInContactList.includes(
                                                         data.replyAddress,
