@@ -224,13 +224,14 @@ struct CConnmanTest : public CConnman {
             threadOpenConnections.join();
         }
 
-        // Check each node belongs to a different group
+        // Check each non avalanche outbound node belongs to a different group
         std::set<std::vector<uint8_t>> groups;
         ForEachNode([&](const CNode *pnode) {
-            groups.insert(pnode->addr.GetGroup({}));
+            if (!pnode->IsAvalancheOutboundConnection()) {
+                groups.insert(pnode->addr.GetGroup({}));
+            }
         });
-        BOOST_CHECK_EQUAL(groups.size(), expectedOutboundFullRelayCount +
-                                             expectedAvalancheOutboundsCount);
+        BOOST_CHECK_EQUAL(groups.size(), expectedOutboundFullRelayCount);
 
         return ret;
     }
@@ -1250,6 +1251,39 @@ BOOST_FIXTURE_TEST_CASE(net_group_limit, TestChain100Setup) {
         },
         0, // Expected full-relay outbound count
         1  // Expected avalanche outbound count
+        ));
+
+    // Adding more avalanche outbounds is fine
+    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+        {
+            // group, services, quantity
+            {0, NODE_NETWORK | NODE_AVALANCHE, 3},
+            {0, NODE_NETWORK, 3},
+        },
+        0, // Expected full-relay outbound count
+        3  // Expected avalanche outbound count
+        ));
+
+    // Group limit still applies to non avalanche outbounds, which also remain
+    // capped to the max from the connman options.
+    BOOST_CHECK(connman->checkContiguousAddressesConnection(
+        {
+            // group, services, quantity
+            {0, NODE_NETWORK | NODE_AVALANCHE, 50},
+            {1, NODE_NETWORK, 10},
+            {2, NODE_NETWORK, 10},
+            {3, NODE_NETWORK, 10},
+            {4, NODE_NETWORK, 10},
+            {5, NODE_NETWORK, 10},
+            {6, NODE_NETWORK, 10},
+            {7, NODE_NETWORK, 10},
+            {8, NODE_NETWORK, 10},
+            {9, NODE_NETWORK, 10},
+            {10, NODE_NETWORK, 10},
+            {11, NODE_NETWORK, 10},
+        },
+        options.m_max_outbound_full_relay, // Expected full-relay outbound count
+        50                                 // Expected avalanche outbound count
         ));
 
     g_avalanche.reset();

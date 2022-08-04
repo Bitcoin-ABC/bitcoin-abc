@@ -2344,6 +2344,14 @@ void CConnman::ThreadOpenConnections(
         {
             LOCK(cs_vNodes);
             for (const CNode *pnode : vNodes) {
+                if (pnode->IsAvalancheOutboundConnection()) {
+                    nOutboundAvalanche++;
+                } else if (pnode->IsFullOutboundConn()) {
+                    nOutboundFullRelay++;
+                } else if (pnode->IsBlockOnlyConn()) {
+                    nOutboundBlockRelay++;
+                }
+
                 // Netgroups for inbound and manual peers are not excluded
                 // because our goal here is to not use multiple of our
                 // limited outbound slots on a single netgroup but inbound
@@ -2356,11 +2364,8 @@ void CConnman::ThreadOpenConnections(
                     case ConnectionType::MANUAL:
                         break;
                     case ConnectionType::AVALANCHE_OUTBOUND:
-                        nOutboundAvalanche++;
                     case ConnectionType::OUTBOUND_FULL_RELAY:
-                        nOutboundFullRelay++;
                     case ConnectionType::BLOCK_RELAY:
-                        nOutboundBlockRelay++;
                     case ConnectionType::ADDR_FETCH:
                     case ConnectionType::FEELER:
                         setConnected.insert(
@@ -2442,8 +2447,6 @@ void CConnman::ThreadOpenConnections(
 
         int64_t nANow = GetAdjustedTime();
         int nTries = 0;
-        const bool fBypassNetGroupLimit =
-            gArgs.GetBoolArg("-bypassnetgrouplimit", false);
         while (!interruptNet) {
             if (anchor && !m_anchors.empty()) {
                 const CAddress addr = m_anchors.back();
@@ -2496,9 +2499,9 @@ void CConnman::ThreadOpenConnections(
                 addr = addrman.Select();
             }
 
-            // Require outbound connections, other than feelers, to be to
-            // distinct network groups
-            if (!fFeeler && !fBypassNetGroupLimit &&
+            // Require outbound connections, other than feelers and avalanche,
+            // to be to distinct network groups
+            if (!fFeeler && conn_type != ConnectionType::AVALANCHE_OUTBOUND &&
                 setConnected.count(addr.GetGroup(addrman.m_asmap))) {
                 break;
             }
@@ -2547,7 +2550,8 @@ void CConnman::ThreadOpenConnections(
                 // over 50 addresses already, see if we can fallback to a non
                 // avalanche full outbound.
                 if (nTries < 50 ||
-                    nOutboundFullRelay >= m_max_outbound_full_relay) {
+                    nOutboundFullRelay >= m_max_outbound_full_relay ||
+                    setConnected.count(addr.GetGroup(addrman.m_asmap))) {
                     // Fallback is not desirable or possible, try another one
                     continue;
                 }
