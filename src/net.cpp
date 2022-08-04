@@ -2243,7 +2243,9 @@ int CConnman::GetExtraBlockRelayCount() {
     return std::max(block_relay_peers - m_max_outbound_block_relay, 0);
 }
 
-void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
+void CConnman::ThreadOpenConnections(
+    const std::vector<std::string> connect,
+    std::function<void(const CAddress &, ConnectionType)> mockOpenConnection) {
     // Connect to specific addresses
     if (!connect.empty()) {
         for (int64_t nLoop = 0;; nLoop++) {
@@ -2282,7 +2284,9 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
     while (!interruptNet) {
         ProcessAddrFetch();
 
-        if (!interruptNet.sleep_for(std::chrono::milliseconds(500))) {
+        // No need to sleep the thread if we are mocking the network connection
+        if (!mockOpenConnection &&
+            !interruptNet.sleep_for(std::chrono::milliseconds(500))) {
             return;
         }
 
@@ -2569,10 +2573,16 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect) {
                          addrConnect.ToString());
             }
 
-            OpenNetworkConnection(addrConnect,
-                                  int(setConnected.size()) >=
-                                      std::min(nMaxConnections - 1, 2),
-                                  &grant, nullptr, conn_type);
+            // This mock is for testing purpose only. It prevents the thread
+            // from attempting the connection which is useful for testing.
+            if (mockOpenConnection) {
+                mockOpenConnection(addrConnect, conn_type);
+            } else {
+                OpenNetworkConnection(addrConnect,
+                                      int(setConnected.size()) >=
+                                          std::min(nMaxConnections - 1, 2),
+                                      &grant, nullptr, conn_type);
+            }
         }
     }
 }
@@ -3145,9 +3155,9 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
         !connOptions.m_specified_outgoing.empty()) {
         threadOpenConnections =
             std::thread(&TraceThread<std::function<void()>>, "opencon",
-                        std::function<void()>(
-                            std::bind(&CConnman::ThreadOpenConnections, this,
-                                      connOptions.m_specified_outgoing)));
+                        std::function<void()>(std::bind(
+                            &CConnman::ThreadOpenConnections, this,
+                            connOptions.m_specified_outgoing, nullptr)));
     }
 
     // Process messages

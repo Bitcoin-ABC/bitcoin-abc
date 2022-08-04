@@ -1213,7 +1213,10 @@ private:
     void ThreadOpenAddedConnections();
     void AddAddrFetch(const std::string &strDest);
     void ProcessAddrFetch();
-    void ThreadOpenConnections(std::vector<std::string> connect);
+    void
+    ThreadOpenConnections(std::vector<std::string> connect,
+                          std::function<void(const CAddress &, ConnectionType)>
+                              mockOpenConnection);
     void ThreadMessageHandler();
     void ThreadI2PAcceptIncoming();
     void AcceptConnection(const ListenSocket &hListenSocket);
