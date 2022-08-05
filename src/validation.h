@@ -557,12 +557,11 @@ bool ContextualCheckTransactionForCurrentBlock(
  * Check a block is completely valid from start to finish (only works on top of
  * our current best block)
  */
-bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
-                       Chainstate &chainstate, const CBlock &block,
-                       CBlockIndex *pindexPrev,
-                       const std::function<int64_t()> &adjusted_time_callback,
-                       BlockValidationOptions validationOptions)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+bool TestBlockValidity(
+    BlockValidationState &state, const CChainParams &params,
+    Chainstate &chainstate, const CBlock &block, CBlockIndex *pindexPrev,
+    const std::function<NodeClock::time_point()> &adjusted_time_callback,
+    BlockValidationOptions validationOptions) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 enum class VerifyDBResult {
     SUCCESS,
@@ -1206,7 +1205,7 @@ private:
 
     const Config &m_config;
 
-    const std::function<int64_t()> m_adjusted_time_callback;
+    const std::function<NodeClock::time_point()> m_adjusted_time_callback;
 
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool

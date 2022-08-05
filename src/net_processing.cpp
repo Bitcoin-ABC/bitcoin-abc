@@ -1613,9 +1613,9 @@ bool PeerManagerImpl::TipMayBeStale() {
 }
 
 bool PeerManagerImpl::CanDirectFetch() {
-    return m_chainman.ActiveChain().Tip()->GetBlockTime() >
+    return m_chainman.ActiveChain().Tip()->Time() >
            GetAdjustedTime() -
-               m_chainparams.GetConsensus().nPowTargetSpacing * 20;
+               m_chainparams.GetConsensus().PowTargetSpacing() * 20;
 }
 
 static bool PeerHasHeader(CNodeState *state, const CBlockIndex *pindex)
@@ -7103,8 +7103,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             // Only actively request headers from a single peer, unless we're
             // close to today.
             if ((nSyncStarted == 0 && sync_blocks_and_headers_from_peer) ||
-                m_chainman.m_best_header->GetBlockTime() >
-                    GetAdjustedTime() - 24 * 60 * 60) {
+                m_chainman.m_best_header->Time() > GetAdjustedTime() - 24h) {
                 const CBlockIndex *pindexStart = m_chainman.m_best_header;
                 /**
                  * If possible, start at the block preceding the currently best
@@ -7134,8 +7133,9 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                             // microseconds before scaling to maintain precision
                             std::chrono::microseconds{
                                 HEADERS_DOWNLOAD_TIMEOUT_PER_HEADER} *
-                            (GetAdjustedTime() -
-                             m_chainman.m_best_header->GetBlockTime()) /
+                            Ticks<std::chrono::seconds>(
+                                GetAdjustedTime() -
+                                m_chainman.m_best_header->Time()) /
                             consensusParams.nPowTargetSpacing);
                     nSyncStarted++;
                 }
@@ -7578,8 +7578,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         if (state.fSyncStarted &&
             state.m_headers_sync_timeout < std::chrono::microseconds::max()) {
             // Detect whether this is a stalling initial-headers-sync peer
-            if (m_chainman.m_best_header->GetBlockTime() <=
-                GetAdjustedTime() - 24 * 60 * 60) {
+            if (m_chainman.m_best_header->Time() <= GetAdjustedTime() - 24h) {
                 if (current_time > state.m_headers_sync_timeout &&
                     nSyncStarted == 1 &&
                     (m_num_preferred_download_peers -

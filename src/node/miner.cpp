@@ -38,8 +38,9 @@ namespace node {
 int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
                    const CBlockIndex *pindexPrev) {
     int64_t nOldTime = pblock->nTime;
-    int64_t nNewTime =
-        std::max(pindexPrev->GetMedianTimePast() + 1, GetAdjustedTime());
+    int64_t nNewTime{std::max<int64_t>(
+        pindexPrev->GetMedianTimePast() + 1,
+        TicksSinceEpoch<std::chrono::seconds>(GetAdjustedTime()))};
 
     if (nOldTime < nNewTime) {
         pblock->nTime = nNewTime;
@@ -149,7 +150,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
         pblock->nVersion = gArgs.GetIntArg("-blockversion", pblock->nVersion);
     }
 
-    pblock->nTime = GetAdjustedTime();
+    pblock->nTime = TicksSinceEpoch<std::chrono::seconds>(GetAdjustedTime());
     m_lock_time_cutoff = pindexPrev->GetMedianTimePast();
 
     addTxs();

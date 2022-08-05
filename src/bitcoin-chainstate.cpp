@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     // SETUP: Chainstate
     const ChainstateManager::Options chainman_opts{
         config,
-        static_cast<int64_t (*)()>(GetTime),
+        NodeClock::now,
     };
     ChainstateManager chainman{chainman_opts};
 

@@ -921,7 +921,8 @@ static RPCHelpMan gettime() {
             UniValue timeObj(UniValue::VOBJ);
             timeObj.pushKV("local", GetTime());
             timeObj.pushKV("offset", GetTimeOffset());
-            timeObj.pushKV("adjusted", GetAdjustedTime());
+            timeObj.pushKV("adjusted", TicksSinceEpoch<std::chrono::seconds>(
+                                           GetAdjustedTime()));
             return timeObj;
         },
     };

@@ -10,6 +10,7 @@
 #include <primitives/transaction.h>
 #include <serialize.h>
 #include <uint256.h>
+#include <util/time.h>
 
 /**
  * Nodes collect new transactions into a block, hash them into a hash tree, and
@@ -48,6 +49,10 @@ public:
     bool IsNull() const { return (nBits == 0); }
 
     BlockHash GetHash() const;
+
+    NodeSeconds Time() const {
+        return NodeSeconds{std::chrono::seconds{nTime}};
+    }
 
     int64_t GetBlockTime() const { return (int64_t)nTime; }
 };

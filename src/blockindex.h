@@ -12,6 +12,7 @@
 #include <sync.h>
 #include <tinyformat.h>
 #include <uint256.h>
+#include <util/time.h>
 
 struct BlockHash;
 
@@ -170,6 +171,10 @@ public:
      * (IsBlockPruned might return true)
      */
     bool HaveTxsDownloaded() const { return GetChainTxCount() != 0; }
+
+    NodeSeconds Time() const {
+        return NodeSeconds{std::chrono::seconds{nTime}};
+    }
 
     int64_t GetBlockTime() const { return int64_t(nTime); }
 

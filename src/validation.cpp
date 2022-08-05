@@ -3903,11 +3903,12 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
  * in ConnectBlock().
  * Note that -reindex-chainstate skips the validation that happens here!
  */
-static bool
-ContextualCheckBlockHeader(const CChainParams &params,
-                           const CBlockHeader &block,
-                           BlockValidationState &state, BlockManager &blockman,
-                           const CBlockIndex *pindexPrev, int64_t nAdjustedTime)
+static bool ContextualCheckBlockHeader(const CChainParams &params,
+                                       const CBlockHeader &block,
+                                       BlockValidationState &state,
+                                       BlockManager &blockman,
+                                       const CBlockIndex *pindexPrev,
+                                       NodeClock::time_point now)
     EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
     AssertLockHeld(::cs_main);
     assert(pindexPrev != nullptr);
@@ -3957,7 +3958,7 @@ ContextualCheckBlockHeader(const CChainParams &params,
     }
 
     // Check timestamp
-    if (block.GetBlockTime() > nAdjustedTime + MAX_FUTURE_BLOCK_TIME) {
+    if (block.Time() > now + std::chrono::seconds{MAX_FUTURE_BLOCK_TIME}) {
         return state.Invalid(BlockValidationResult::BLOCK_TIME_FUTURE,
                              "time-too-new",
                              "block timestamp too far in the future");
@@ -4505,11 +4506,11 @@ ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
     return result;
 }
 
-bool TestBlockValidity(BlockValidationState &state, const CChainParams &params,
-                       Chainstate &chainstate, const CBlock &block,
-                       CBlockIndex *pindexPrev,
-                       const std::function<int64_t()> &adjusted_time_callback,
-                       BlockValidationOptions validationOptions) {
+bool TestBlockValidity(
+    BlockValidationState &state, const CChainParams &params,
+    Chainstate &chainstate, const CBlock &block, CBlockIndex *pindexPrev,
+    const std::function<NodeClock::time_point()> &adjusted_time_callback,
+    BlockValidationOptions validationOptions) {
     AssertLockHeld(cs_main);
     assert(pindexPrev && pindexPrev == chainstate.m_chain.Tip());
     CCoinsViewCache viewNew(&chainstate.CoinsTip());

@@ -5,6 +5,8 @@
 #ifndef BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
 #define BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
 
+#include <util/time.h>
+
 #include <cstdint>
 #include <functional>
 
@@ -17,7 +19,8 @@ class Config;
  */
 struct ChainstateManagerOpts {
     const Config &config;
-    const std::function<int64_t()> adjusted_time_callback{nullptr};
+    const std::function<NodeClock::time_point()> adjusted_time_callback{
+        nullptr};
 };
 
 #endif // BITCOIN_KERNEL_CHAINSTATEMANAGER_OPTS_H
