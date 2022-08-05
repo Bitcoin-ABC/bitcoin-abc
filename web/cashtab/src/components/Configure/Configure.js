@@ -146,11 +146,6 @@ const SWBalance = styled.div`
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    div.overflow:hover {
-        background-color: ${props => props.theme.settings.background};
-        inline-size: 150px;
-        white-space: normal;
-    }
 `;
 
 const SWButtonCtn = styled.div`
@@ -242,9 +237,6 @@ const ContactListAddress = styled.div`
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    div.overflow:hover {
-        background-color: ${props => props.theme.settings.background};
-    }
 `;
 
 const ContactListName = styled.div`
@@ -272,11 +264,6 @@ const ContactListName = styled.div`
         width: 150px;
         overflow: hidden;
         text-overflow: ellipsis;
-    }
-    div.overflow:hover {
-        background-color: ${props => props.theme.settings.background};
-        inline-size: 150px;
-        white-space: normal;
     }
 `;
 
