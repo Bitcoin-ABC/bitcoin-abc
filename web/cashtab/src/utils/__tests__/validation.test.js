@@ -9,6 +9,7 @@ import {
     isValidTokenStats,
     isValidCashtabSettings,
     isValidXecAddress,
+    isValidNewWalletNameLength,
     isValidEtokenAddress,
     isValidXecSendAmount,
     isValidSendToMany,
@@ -695,4 +696,20 @@ describe('Validation utils', () => {
             sendModal: true,
             autoCameraOn: true,
         }));
+    it(`accepts a valid wallet name`, () => {
+        expect(isValidNewWalletNameLength('Apollo')).toBe(true);
+    });
+    it(`rejects wallet name that is too long`, () => {
+        expect(
+            isValidNewWalletNameLength(
+                'this string is far too long to be used as a wallet name...',
+            ),
+        ).toBe(false);
+    });
+    it(`rejects blank string as new wallet name`, () => {
+        expect(isValidNewWalletNameLength('')).toBe(false);
+    });
+    it(`rejects wallet name of the wrong type`, () => {
+        expect(isValidNewWalletNameLength(['newWalletName'])).toBe(false);
+    });
 });

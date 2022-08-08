@@ -394,6 +394,15 @@ export const isValidTokenId = tokenId => {
     );
 };
 
+export const isValidNewWalletNameLength = newWalletName => {
+    return (
+        typeof newWalletName === 'string' &&
+        newWalletName.length > 0 &&
+        newWalletName.length <= currency.localStorageMaxCharacters &&
+        newWalletName.length !== ''
+    );
+};
+
 export const isValidXecAirdrop = xecAirdrop => {
     return (
         typeof xecAirdrop === 'string' &&

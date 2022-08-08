@@ -54,7 +54,10 @@ import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { formatSavedBalance } from 'utils/formatting';
-import { isValidXecAddress } from 'utils/validation';
+import {
+    isValidXecAddress,
+    isValidNewWalletNameLength,
+} from 'utils/validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
@@ -751,10 +754,7 @@ const Configure = () => {
     };
 
     const changeWalletName = async () => {
-        if (
-            newWalletName === '' ||
-            newWalletName.length > currency.localStorageMaxCharacters
-        ) {
+        if (!isValidNewWalletNameLength(newWalletName)) {
             setNewWalletNameIsValid(false);
             return;
         }
@@ -818,11 +818,7 @@ const Configure = () => {
     const handleWalletNameInput = e => {
         const { value } = e.target;
         // validation
-        if (
-            value &&
-            value.length &&
-            value.length <= currency.localStorageMaxCharacters
-        ) {
+        if (value && isValidNewWalletNameLength(value)) {
             setNewWalletNameIsValid(true);
         } else {
             setNewWalletNameIsValid(false);
