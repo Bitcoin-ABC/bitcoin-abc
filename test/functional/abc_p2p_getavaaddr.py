@@ -86,6 +86,7 @@ class AvaAddrTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.extra_args = [['-enableavalanche=1',
                             '-enableavalanchepeerdiscovery=1',
+                            '-enableavalancheproofreplacement=1',
                             '-avaproofstakeutxoconfirmations=1',
                             '-avacooldown=0', '-whitelist=noban@127.0.0.1']]
 
@@ -371,7 +372,22 @@ class AvaAddrTest(BitcoinTestFramework):
             node.add_p2p_connection(avapeer)
         self.wait_until(lambda: node.getavalancheinfo()['active'] is True)
 
-        # From now only a single outbound peer is requested periodically
+        def is_vote_finalized(proof):
+            return node.getrawavalancheproof(
+                f"{proof.proofid:0{64}x}").get("finalized", False)
+
+        # Wait until all proofs are finalized
+        self.wait_until(lambda: all([is_vote_finalized(p.proof)
+                        for p in node.p2ps if isinstance(p, AvaP2PInterface)]))
+
+        # Go through a round of getavaaddr requests. We don't know for sure how
+        # many will be sent as it depends on whether the peers responded fast
+        # enough during the polling phase.
+        total_getavaaddr = total_getavaaddr_msg()
+        node.mockscheduler(MAX_GETAVAADDR_DELAY)
+        self.wait_until(lambda: total_getavaaddr_msg() >= total_getavaaddr + 1)
+
+        # But from now only a single outbound peer is requested periodically
         total_getavaaddr = total_getavaaddr_msg()
         node.mockscheduler(MAX_GETAVAADDR_DELAY)
         self.wait_until(lambda: total_getavaaddr_msg() == total_getavaaddr + 1)
