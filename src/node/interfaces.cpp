@@ -388,6 +388,7 @@ namespace {
         if (block.m_in_active_chain) {
             *block.m_in_active_chain = active[index->nHeight] == index;
         }
+        // TODO backport core#25494 with change from core#25717
         if (block.m_next_block) {
             FillBlock(active[index->nHeight] == index
                           ? active[index->nHeight + 1]
@@ -536,6 +537,7 @@ namespace {
             const CChain &active = Assert(m_node.chainman)->ActiveChain();
             return active.GetLocator();
         }
+        // TODO: backport core#25036 with changes from core#25717
         std::optional<int>
         findLocatorFork(const CBlockLocator &locator) override {
             LOCK(cs_main);

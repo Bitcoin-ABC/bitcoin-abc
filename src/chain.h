@@ -195,11 +195,8 @@ public:
     /** Set/initialize a chain with a given tip. */
     void SetTip(CBlockIndex *pindex);
 
-    /**
-     * Return a CBlockLocator that refers to a block in this chain (by default
-     * the tip).
-     */
-    CBlockLocator GetLocator(const CBlockIndex *pindex = nullptr) const;
+    /** Return a CBlockLocator that refers to the tip of this chain */
+    CBlockLocator GetLocator() const;
 
     /**
      * Find the last common block between this chain and a block index entry.
@@ -212,5 +209,11 @@ public:
      */
     CBlockIndex *FindEarliestAtLeast(int64_t nTime, int height) const;
 };
+
+/** Get a locator for a block index entry. */
+CBlockLocator GetLocator(const CBlockIndex *index);
+
+/** Construct a list of hash entries to put in a locator.  */
+std::vector<BlockHash> LocatorEntries(const CBlockIndex *index);
 
 #endif // BITCOIN_CHAIN_H

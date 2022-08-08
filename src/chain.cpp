@@ -18,35 +18,36 @@ void CChain::SetTip(CBlockIndex *pindex) {
     }
 }
 
-CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {
-    int nStep = 1;
-    std::vector<BlockHash> vHave;
-    vHave.reserve(32);
-
-    if (!pindex) {
-        pindex = Tip();
+std::vector<BlockHash> LocatorEntries(const CBlockIndex *index) {
+    int step = 1;
+    std::vector<BlockHash> have;
+    if (index == nullptr) {
+        return have;
     }
-    while (pindex) {
-        vHave.push_back(pindex->GetBlockHash());
-        // Stop when we have added the genesis block.
-        if (pindex->nHeight == 0) {
+
+    have.reserve(32);
+    while (index) {
+        have.emplace_back(index->GetBlockHash());
+        if (index->nHeight == 0) {
             break;
         }
         // Exponentially larger steps back, plus the genesis block.
-        int nHeight = std::max(pindex->nHeight - nStep, 0);
-        if (Contains(pindex)) {
-            // Use O(1) CChain index if possible.
-            pindex = (*this)[nHeight];
-        } else {
-            // Otherwise, use O(log n) skiplist.
-            pindex = pindex->GetAncestor(nHeight);
-        }
-        if (vHave.size() > 10) {
-            nStep *= 2;
+        int height = std::max(index->nHeight - step, 0);
+        // Use skiplist.
+        index = index->GetAncestor(height);
+        if (have.size() > 10) {
+            step *= 2;
         }
     }
+    return have;
+}
 
-    return CBlockLocator(vHave);
+CBlockLocator GetLocator(const CBlockIndex *index) {
+    return CBlockLocator{std::move(LocatorEntries(index))};
+}
+
+CBlockLocator CChain::GetLocator() const {
+    return ::GetLocator(Tip());
 }
 
 const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {

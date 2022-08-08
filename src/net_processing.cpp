@@ -3251,10 +3251,8 @@ void PeerManagerImpl::HandleFewUnconnectingHeaders(
 
     nodestate->nUnconnectingHeaders++;
     // Try to fill in the missing headers.
-    if (MaybeSendGetHeaders(
-            pfrom,
-            m_chainman.ActiveChain().GetLocator(m_chainman.m_best_header),
-            peer)) {
+    if (MaybeSendGetHeaders(pfrom, GetLocator(m_chainman.m_best_header),
+                            peer)) {
         LogPrint(
             BCLog::NET,
             "received header %s: missing prev block %s, sending getheaders "
@@ -3510,13 +3508,12 @@ void PeerManagerImpl::ProcessHeadersMessage(
             return;
         }
     }
+    Assume(pindexLast);
 
     // Consider fetching more headers.
     if (nCount == MAX_HEADERS_RESULTS) {
-        LOCK(cs_main);
         // Headers message had its maximum size; the peer may have more headers.
-        if (MaybeSendGetHeaders(
-                pfrom, m_chainman.ActiveChain().GetLocator(pindexLast), peer)) {
+        if (MaybeSendGetHeaders(pfrom, GetLocator(pindexLast), peer)) {
             LogPrint(
                 BCLog::NET,
                 "more getheaders (%d) to end to peer=%d (startheight:%d)\n",
@@ -4527,10 +4524,8 @@ void PeerManagerImpl::ProcessMessage(
             if (state.fSyncStarted ||
                 (!peer->m_inv_triggered_getheaders_before_sync &&
                  *best_block != m_last_block_inv_triggering_headers_sync)) {
-                if (MaybeSendGetHeaders(pfrom,
-                                        m_chainman.ActiveChain().GetLocator(
-                                            m_chainman.m_best_header),
-                                        *peer)) {
+                if (MaybeSendGetHeaders(
+                        pfrom, GetLocator(m_chainman.m_best_header), *peer)) {
                     LogPrint(BCLog::NET, "getheaders (%d) %s to peer=%d\n",
                              m_chainman.m_best_header->nHeight,
                              best_block->ToString(), pfrom.GetId());
@@ -5017,10 +5012,8 @@ void PeerManagerImpl::ProcessMessage(
                 // Doesn't connect (or is genesis), instead of DoSing in
                 // AcceptBlockHeader, request deeper headers
                 if (!m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
-                    MaybeSendGetHeaders(pfrom,
-                                        m_chainman.ActiveChain().GetLocator(
-                                            m_chainman.m_best_header),
-                                        *peer);
+                    MaybeSendGetHeaders(
+                        pfrom, GetLocator(m_chainman.m_best_header), *peer);
                 }
                 return;
             }
@@ -6592,9 +6585,7 @@ void PeerManagerImpl::ConsiderEviction(CNode &pto, Peer &peer,
                 // getheaders in-flight already, in which case the peer should
                 // still respond to us with a sufficiently high work chain tip.
                 MaybeSendGetHeaders(
-                    pto,
-                    m_chainman.ActiveChain().GetLocator(
-                        state.m_chain_sync.m_work_header->pprev),
+                    pto, GetLocator(state.m_chain_sync.m_work_header->pprev),
                     peer);
                 LogPrint(
                     BCLog::NET,
@@ -7117,9 +7108,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 if (pindexStart->pprev) {
                     pindexStart = pindexStart->pprev;
                 }
-                if (MaybeSendGetHeaders(
-                        *pto, m_chainman.ActiveChain().GetLocator(pindexStart),
-                        *peer)) {
+                if (MaybeSendGetHeaders(*pto, GetLocator(pindexStart), *peer)) {
                     LogPrint(
                         BCLog::NET,
                         "initial getheaders (%d) to peer=%d (startheight:%d)\n",
