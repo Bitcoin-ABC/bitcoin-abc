@@ -219,6 +219,11 @@ struct CConnmanTest : public CConnman {
                    avalancheOutboundsCount == expectedAvalancheOutboundsCount;
         });
 
+        interruptNet();
+        if (threadOpenConnections.joinable()) {
+            threadOpenConnections.join();
+        }
+
         // Check each node belongs to a different group
         std::set<std::vector<uint8_t>> groups;
         ForEachNode([&](const CNode *pnode) {
@@ -226,11 +231,6 @@ struct CConnmanTest : public CConnman {
         });
         BOOST_CHECK_EQUAL(groups.size(), expectedOutboundFullRelayCount +
                                              expectedAvalancheOutboundsCount);
-
-        interruptNet();
-        if (threadOpenConnections.joinable()) {
-            threadOpenConnections.join();
-        }
 
         return ret;
     }
