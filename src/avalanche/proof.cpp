@@ -122,7 +122,8 @@ Amount Proof::getStakedAmount() const {
                            });
 }
 
-bool Proof::verify(ProofValidationState &state) const {
+bool Proof::verify(const Amount &stakeUtxoDustThreshold,
+                   ProofValidationState &state) const {
     if (stakes.empty()) {
         return state.Invalid(ProofValidationResult::NO_STAKE, "no-stake");
     }
@@ -150,11 +151,11 @@ bool Proof::verify(ProofValidationState &state) const {
     std::unordered_set<COutPoint, SaltedOutpointHasher> utxos;
     for (const SignedStake &ss : stakes) {
         const Stake &s = ss.getStake();
-        if (s.getAmount() < PROOF_DUST_THRESHOLD) {
+        if (s.getAmount() < stakeUtxoDustThreshold) {
             return state.Invalid(ProofValidationResult::DUST_THRESHOLD,
                                  "amount-below-dust-threshold",
                                  strprintf("%s < %s", s.getAmount().ToString(),
-                                           PROOF_DUST_THRESHOLD.ToString()));
+                                           stakeUtxoDustThreshold.ToString()));
         }
 
         if (s.getId() < prevId) {
@@ -179,10 +180,11 @@ bool Proof::verify(ProofValidationState &state) const {
     return true;
 }
 
-bool Proof::verify(ProofValidationState &state,
-                   const ChainstateManager &chainman) const {
+bool Proof::verify(const Amount &stakeUtxoDustThreshold,
+                   const ChainstateManager &chainman,
+                   ProofValidationState &state) const {
     AssertLockHeld(cs_main);
-    if (!verify(state)) {
+    if (!verify(stakeUtxoDustThreshold, state)) {
         // state is set by verify.
         return false;
     }

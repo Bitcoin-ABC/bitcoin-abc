@@ -184,7 +184,7 @@ class Processor final : public NetEventsInterface {
               uint32_t minQuorumTotalScoreIn,
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
-              uint32_t staleVoteFactorIn);
+              uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn);
 
 public:
     ~Processor();

@@ -296,7 +296,7 @@ static void addNodeWithScore(CChainState &active_chainstate,
 BOOST_AUTO_TEST_CASE(peer_probabilities) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     // No peers.
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
     BOOST_CHECK_EQUAL(pm.selectNode(), NO_NODE);
 
     const NodeId node0 = 42, node1 = 69, node2 = 37;
@@ -334,7 +334,7 @@ BOOST_AUTO_TEST_CASE(peer_probabilities) {
 BOOST_AUTO_TEST_CASE(remove_peer) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     // No peers.
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
     BOOST_CHECK_EQUAL(pm.selectPeer(), NO_PEER);
 
     CChainState &active_chainstate = chainman.ActiveChainstate();
@@ -411,7 +411,7 @@ BOOST_AUTO_TEST_CASE(remove_peer) {
 
 BOOST_AUTO_TEST_CASE(compact_slots) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     // Add 4 peers.
     std::array<PeerId, 4> peerids;
@@ -442,7 +442,7 @@ BOOST_AUTO_TEST_CASE(compact_slots) {
 
 BOOST_AUTO_TEST_CASE(node_crud) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     CChainState &active_chainstate = chainman.ActiveChainstate();
 
@@ -506,7 +506,7 @@ BOOST_AUTO_TEST_CASE(node_crud) {
 
 BOOST_AUTO_TEST_CASE(node_binding) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     CChainState &active_chainstate = chainman.ActiveChainstate();
 
@@ -611,7 +611,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     auto proof = buildRandomProof(chainman.ActiveChainstate(),
                                   MIN_VALID_PROOF_SCORE, 99);
@@ -687,7 +687,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
         addCoin(chainman.ActiveChainstate(), {txid2, i}, key);
     }
 
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
     CKey masterKey = CKey::MakeCompressedKey();
     const auto getPeerId = [&](const std::vector<COutPoint> &outpoints) {
         return TestPeerManager::registerAndGetPeerId(
@@ -742,7 +742,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
 BOOST_AUTO_TEST_CASE(orphan_proofs) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     auto key = CKey::MakeCompressedKey();
     int immatureHeight = 100;
@@ -823,7 +823,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
 
 BOOST_AUTO_TEST_CASE(dangling_node) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     CChainState &active_chainstate = chainman.ActiveChainstate();
 
@@ -871,7 +871,7 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
 
 BOOST_AUTO_TEST_CASE(proof_accessors) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     constexpr int numProofs = 10;
 
@@ -917,7 +917,7 @@ BOOST_AUTO_TEST_CASE(proof_accessors) {
 
 BOOST_FIXTURE_TEST_CASE(conflicting_proof_rescan, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -977,7 +977,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
         BOOST_CHECK_EQUAL(comparator(candidate, reference), expectAccepted);
         BOOST_CHECK_EQUAL(comparator(reference, candidate), !expectAccepted);
 
-        avalanche::PeerManager pm(chainman);
+        avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
         BOOST_CHECK(pm.registerProof(reference));
         BOOST_CHECK(pm.isBoundToPeer(reference->getId()));
 
@@ -1055,7 +1055,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
 BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -1101,7 +1101,7 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
 
 BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
     const COutPoint conflictingOutpoint =
@@ -1134,7 +1134,7 @@ BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
 
 BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     auto now = GetTime<std::chrono::seconds>();
     SetMockTime(now.count());
@@ -1169,7 +1169,7 @@ BOOST_FIXTURE_TEST_CASE(update_next_conflict_time, NoCoolDownFixture) {
 
 BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -1235,7 +1235,7 @@ BOOST_FIXTURE_TEST_CASE(register_force_accept, NoCoolDownFixture) {
 
 BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -1267,7 +1267,7 @@ BOOST_FIXTURE_TEST_CASE(evicted_proof, NoCoolDownFixture) {
 
 BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -1338,7 +1338,7 @@ BOOST_AUTO_TEST_CASE(conflicting_proof_cooldown) {
 BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -1420,7 +1420,7 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
 
 BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     // Set mock time so that proof registration time is predictable and
     // testable.
@@ -1516,7 +1516,7 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
 
 BOOST_AUTO_TEST_CASE(score_ordering) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     std::vector<uint32_t> expectedScores(10);
     // Expect the peers to be ordered by descending score
@@ -1543,7 +1543,7 @@ BOOST_AUTO_TEST_CASE(score_ordering) {
 BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const CKey key = CKey::MakeCompressedKey();
 
@@ -1659,7 +1659,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 
 BOOST_AUTO_TEST_CASE(connected_score_tracking) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const auto checkScores = [&pm](uint32_t known, uint32_t connected) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), known);
@@ -1750,7 +1750,7 @@ BOOST_AUTO_TEST_CASE(connected_score_tracking) {
 
 BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
@@ -1869,7 +1869,7 @@ BOOST_FIXTURE_TEST_CASE(proof_radix_tree, NoCoolDownFixture) {
 
 BOOST_AUTO_TEST_CASE(received_avaproofs) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     auto addNode = [&](NodeId nodeid) {
         auto proof = buildRandomProof(chainman.ActiveChainstate(),
@@ -1894,7 +1894,7 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
 
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     const auto now = GetTime<std::chrono::seconds>();
     auto mocktime = now;
@@ -2042,7 +2042,7 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
 
 BOOST_AUTO_TEST_CASE(register_proof_missing_utxo) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    avalanche::PeerManager pm(chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
     CKey key = CKey::MakeCompressedKey();
     auto proof = buildProofWithOutpoints(key, {{TxId(GetRandHash()), 0}},

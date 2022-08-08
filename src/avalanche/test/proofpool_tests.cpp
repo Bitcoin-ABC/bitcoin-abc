@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(add_remove_proof_no_conflict) {
 BOOST_AUTO_TEST_CASE(rescan) {
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "1");
     ProofPool testPool;
-    avalanche::PeerManager pm(*Assert(m_node.chainman));
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, *Assert(m_node.chainman));
 
     testPool.rescan(pm);
     BOOST_CHECK_EQUAL(testPool.size(), 0);

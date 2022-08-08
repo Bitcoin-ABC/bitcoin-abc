@@ -82,10 +82,19 @@ static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, error.original);
     }
 
+    Amount stakeUtxoDustThreshold = avalanche::PROOF_DUST_THRESHOLD;
+    if (g_avalanche) {
+        // If Avalanche is enabled, use the configured dust threshold
+        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            stakeUtxoDustThreshold = pm.getStakeUtxoDustThreshold();
+        });
+    }
+
     avalanche::ProofValidationState state;
     {
         LOCK(cs_main);
-        if (!proof.verify(state, *Assert(node.chainman))) {
+        if (!proof.verify(stakeUtxoDustThreshold, *Assert(node.chainman),
+                          state)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "The proof is invalid: " + state.ToString());
         }

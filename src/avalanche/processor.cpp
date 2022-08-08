@@ -35,10 +35,11 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 std::unique_ptr<avalanche::Processor> g_avalanche;
 
 namespace avalanche {
-static bool VerifyProof(const Proof &proof, bilingual_str &error) {
+static bool VerifyProof(const Amount &stakeUtxoDustThreshold,
+                        const Proof &proof, bilingual_str &error) {
     ProofValidationState proof_state;
 
-    if (!proof.verify(proof_state)) {
+    if (!proof.verify(stakeUtxoDustThreshold, proof_state)) {
         switch (proof_state.GetResult()) {
             case ProofValidationResult::NO_STAKE:
                 error = _("The avalanche proof has no stake.");
@@ -134,10 +135,11 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      uint32_t minQuorumTotalScoreIn,
                      double minQuorumConnectedScoreRatioIn,
                      int64_t minAvaproofsNodeCountIn,
-                     uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn)
+                     uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn,
+                     Amount stakeUtxoDustThreshold)
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
-      chainman(chainmanIn), round(0),
-      peerManager(std::make_unique<PeerManager>(chainman)),
+      chainman(chainmanIn), round(0), peerManager(std::make_unique<PeerManager>(
+                                          stakeUtxoDustThreshold, chainman)),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -171,6 +173,14 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
     CKey masterKey;
     CKey sessionKey;
 
+    Amount stakeUtxoDustThreshold = PROOF_DUST_THRESHOLD;
+    if (gArgs.IsArgSet("-avaproofstakeutxodustthreshold") &&
+        !ParseMoney(gArgs.GetArg("-avaproofstakeutxodustthreshold", ""),
+                    stakeUtxoDustThreshold)) {
+        error = _("The avalanche stake utxo dust threshold amount is invalid.");
+        return nullptr;
+    }
+
     if (argsman.IsArgSet("-avasessionkey")) {
         sessionKey = DecodeSecret(argsman.GetArg("-avasessionkey", ""));
         if (!sessionKey.IsValid()) {
@@ -203,7 +213,7 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
 
         peerData = std::make_unique<PeerData>();
         peerData->proof = std::move(proof);
-        if (!VerifyProof(*peerData->proof, error)) {
+        if (!VerifyProof(stakeUtxoDustThreshold, *peerData->proof, error)) {
             // error is set by VerifyProof
             return nullptr;
         }
@@ -333,7 +343,8 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         std::move(avaconfig), chain, connman, chainman, scheduler,
         std::move(peerData), std::move(sessionKey),
         Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
-        minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor));
+        minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor,
+        stakeUtxoDustThreshold));
 }
 
 bool Processor::addBlockToReconcile(const CBlockIndex *pindex) {

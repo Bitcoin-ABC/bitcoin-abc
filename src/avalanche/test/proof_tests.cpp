@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(proof_random) {
                             : ProofValidationResult::NONE;
 
         ProofValidationState state;
-        BOOST_CHECK_EQUAL(p->verify(state),
+        BOOST_CHECK_EQUAL(p->verify(PROOF_DUST_THRESHOLD, state),
                           state.GetResult() == ProofValidationResult::NONE);
         BOOST_CHECK(state.GetResult() == expected_state);
     }
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(proofbuilder) {
     ProofRef p = pb.build();
 
     ProofValidationState state;
-    BOOST_CHECK(p->verify(state));
+    BOOST_CHECK(p->verify(PROOF_DUST_THRESHOLD, state));
 
     BOOST_CHECK_EQUAL(p->getSequence(), sequence);
     BOOST_CHECK_EQUAL(p->getExpirationTime(), expiration);
@@ -871,7 +871,7 @@ BOOST_AUTO_TEST_CASE(deserialization) {
             BOOST_CHECK_EQUAL(p.getScore(), c.score);
 
             ProofValidationState state;
-            BOOST_CHECK_EQUAL(p.verify(state),
+            BOOST_CHECK_EQUAL(p.verify(PROOF_DUST_THRESHOLD, state),
                               c.result == ProofValidationResult::NONE);
             BOOST_CHECK(state.GetResult() == c.result);
             BOOST_TEST_MESSAGE(c.proofid);
@@ -895,7 +895,7 @@ BOOST_AUTO_TEST_CASE(verify) {
     auto key = CKey::MakeCompressedKey();
     const CPubKey pubkey = key.GetPubKey();
 
-    const Amount value = 12345 * COIN;
+    const Amount value = 2 * PROOF_DUST_THRESHOLD;
     const uint32_t height = 10;
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
@@ -925,9 +925,9 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = pb.build();
 
         ProofValidationState state;
-        BOOST_CHECK(p->verify(state));
+        BOOST_CHECK(p->verify(PROOF_DUST_THRESHOLD, state));
         LOCK(cs_main);
-        BOOST_CHECK(p->verify(state, chainman) ==
+        BOOST_CHECK(p->verify(PROOF_DUST_THRESHOLD, chainman, state) ==
                     (result == ProofValidationResult::NONE));
         BOOST_CHECK(state.GetResult() == result);
     };
@@ -975,31 +975,39 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = ProofBuilder(0, 0, key).build();
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, chainman));
+        BOOST_CHECK(!p->verify(PROOF_DUST_THRESHOLD, chainman, state));
         BOOST_CHECK(state.GetResult() == ProofValidationResult::NO_STAKE);
     }
 
     // Dust thresold
     {
-        ProofBuilder pb(0, 0, key);
-        BOOST_CHECK(
-            pb.addUTXO(pkh_outpoint, Amount::zero(), height, false, key));
-        ProofRef p = pb.build();
+        // tuple<utxo value, dust threshold, result>
+        std::vector<std::tuple<Amount, Amount, ProofValidationResult>>
+            testCases = {
+                // Defaults
+                {Amount::zero(), PROOF_DUST_THRESHOLD,
+                 ProofValidationResult::DUST_THRESHOLD},
+                {PROOF_DUST_THRESHOLD - 1 * SATOSHI, PROOF_DUST_THRESHOLD,
+                 ProofValidationResult::DUST_THRESHOLD},
+                {value, PROOF_DUST_THRESHOLD, ProofValidationResult::NONE},
+                // Modified threshold
+                {Amount::zero(), value, ProofValidationResult::DUST_THRESHOLD},
+                {value - 1 * SATOSHI, value,
+                 ProofValidationResult::DUST_THRESHOLD},
+                {value, value, ProofValidationResult::NONE},
+            };
 
-        ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, chainman));
-        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESHOLD);
-    }
+        for (auto it = testCases.begin(); it != testCases.end(); ++it) {
+            ProofBuilder pb(0, 0, key);
+            BOOST_CHECK(
+                pb.addUTXO(pkh_outpoint, std::get<0>(*it), height, false, key));
+            ProofRef p = pb.build();
 
-    {
-        ProofBuilder pb(0, 0, key);
-        BOOST_CHECK(pb.addUTXO(pkh_outpoint, PROOF_DUST_THRESHOLD - 1 * SATOSHI,
-                               height, false, key));
-        ProofRef p = pb.build();
-
-        ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, chainman));
-        BOOST_CHECK(state.GetResult() == ProofValidationResult::DUST_THRESHOLD);
+            ProofValidationState state;
+            BOOST_CHECK(p->verify(std::get<1>(*it), chainman, state) ==
+                        (std::get<2>(*it) == ProofValidationResult::NONE));
+            BOOST_CHECK(state.GetResult() == std::get<2>(*it));
+        }
     }
 
     // Duplicated input
@@ -1009,7 +1017,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = TestProofBuilder::buildDuplicatedStakes(pb);
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, chainman));
+        BOOST_CHECK(!p->verify(PROOF_DUST_THRESHOLD, chainman, state));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::DUPLICATE_STAKE);
     }
@@ -1027,7 +1035,7 @@ BOOST_AUTO_TEST_CASE(verify) {
         ProofRef p = TestProofBuilder::buildWithReversedOrderStakes(pb);
 
         ProofValidationState state;
-        BOOST_CHECK(!p->verify(state, chainman));
+        BOOST_CHECK(!p->verify(PROOF_DUST_THRESHOLD, chainman, state));
         BOOST_CHECK(state.GetResult() ==
                     ProofValidationResult::WRONG_STAKE_ORDERING);
     }

@@ -1408,6 +1408,11 @@ void SetupServerArgs(NodeContext &node) {
             "accepted (i.e this value must be greater than 0) (default: %s)",
             AVALANCHE_DEFAULT_STAKE_UTXO_CONFIRMATIONS),
         ArgsManager::ALLOW_INT, OptionsCategory::HIDDEN);
+    argsman.AddArg("-avaproofstakeutxodustthreshold",
+                   strprintf("Minimum value each stake utxo must have to be "
+                             "considered valid (default: %s)",
+                             avalanche::PROOF_DUST_THRESHOLD),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::HIDDEN);
     argsman.AddArg("-avamasterkey",
                    "Master key associated with the proof. If a proof is "
                    "required, this is mandatory.",
@@ -2173,6 +2178,23 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     if (stakeUtxoMinConfirmations <= 0) {
         return InitError(_("Avalanche stake UTXO minimum confirmations must be "
                            "a positive integer."));
+    }
+
+    if (args.IsArgSet("-avaproofstakeutxodustthreshold")) {
+        Amount amount = Amount::zero();
+        auto parsed = ParseMoney(
+            args.GetArg("-avaproofstakeutxodustthreshold", ""), amount);
+        if (!parsed || Amount::zero() == amount) {
+            return InitError(AmountErrMsg(
+                "avaproofstakeutxodustthreshold",
+                args.GetArg("-avaproofstakeutxodustthreshold", "")));
+        }
+
+        if (!chainparams.IsTestChain() &&
+            amount != avalanche::PROOF_DUST_THRESHOLD) {
+            return InitError(_("Avalanche stake UTXO dust threshold can "
+                               "only be set on test chains."));
+        }
     }
 
     return true;

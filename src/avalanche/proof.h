@@ -188,9 +188,11 @@ public:
     uint32_t getScore() const { return score; }
     Amount getStakedAmount() const;
 
-    bool verify(ProofValidationState &state) const;
-    bool verify(ProofValidationState &state,
-                const ChainstateManager &chainman) const
+    bool verify(const Amount &stakeUtxoDustThreshold,
+                ProofValidationState &state) const;
+    bool verify(const Amount &stakeUtxoDustThreshold,
+                const ChainstateManager &chainman,
+                ProofValidationState &state) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 

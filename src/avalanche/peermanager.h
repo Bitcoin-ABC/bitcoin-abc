@@ -239,10 +239,15 @@ class PeerManager {
     uint32_t totalPeersScore = 0;
     uint32_t connectedPeersScore = 0;
 
+    Amount stakeUtxoDustThreshold;
+
     ChainstateManager &chainman;
 
 public:
-    PeerManager(ChainstateManager &chainmanIn) : chainman(chainmanIn){};
+    PeerManager(const Amount &stakeUtxoDustThresholdIn,
+                ChainstateManager &chainmanIn)
+        : stakeUtxoDustThreshold(stakeUtxoDustThresholdIn),
+          chainman(chainmanIn){};
 
     /**
      * Node API.
@@ -416,6 +421,10 @@ public:
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;
+    }
+
+    const Amount &getStakeUtxoDustThreshold() const {
+        return stakeUtxoDustThreshold;
     }
 
 private:
