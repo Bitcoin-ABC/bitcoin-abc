@@ -193,8 +193,9 @@ class AvaAddrTest(BitcoinTestFramework):
 
         # Force the availability score to diverge between the responding and the
         # muted nodes.
+        node.generate(1)
+
         def poll_all_for_block():
-            node.generate(1)
             with p2p_lock:
                 return all([avanode.poll_received > (
                     10 if avanode.is_responding else 0) for avanode in avanodes])
@@ -380,22 +381,20 @@ class AvaAddrTest(BitcoinTestFramework):
         self.wait_until(lambda: all([is_vote_finalized(p.proof)
                         for p in node.p2ps if isinstance(p, AvaP2PInterface)]))
 
-        # Go through a round of getavaaddr requests. We don't know for sure how
-        # many will be sent as it depends on whether the peers responded fast
-        # enough during the polling phase.
-        total_getavaaddr = total_getavaaddr_msg()
-        node.mockscheduler(MAX_GETAVAADDR_DELAY)
-        self.wait_until(lambda: total_getavaaddr_msg() >= total_getavaaddr + 1)
+        # Go through several rounds of getavaaddr requests. We don't know for
+        # sure how many will be sent as it depends on whether the peers
+        # responded fast enough during the polling phase, but at some point a
+        # single outbound peer will be requested and no more.
+        def sent_single_getavaaddr():
+            total_getavaaddr = total_getavaaddr_msg()
+            node.mockscheduler(MAX_GETAVAADDR_DELAY)
+            self.wait_until(lambda: total_getavaaddr_msg()
+                            >= total_getavaaddr + 1)
+            for p in avapeers:
+                p.sync_send_with_ping()
+            return total_getavaaddr_msg() == total_getavaaddr + 1
 
-        # But from now only a single outbound peer is requested periodically
-        total_getavaaddr = total_getavaaddr_msg()
-        node.mockscheduler(MAX_GETAVAADDR_DELAY)
-        self.wait_until(lambda: total_getavaaddr_msg() == total_getavaaddr + 1)
-
-        # And no more
-        for p in avapeers:
-            p.sync_send_with_ping()
-        assert_equal(total_getavaaddr_msg(), total_getavaaddr + 1)
+        self.wait_until(sent_single_getavaaddr)
 
     def test_send_inbound_getavaaddr_until_quorum_is_established(self):
         self.log.info(
