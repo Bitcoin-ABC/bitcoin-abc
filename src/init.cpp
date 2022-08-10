@@ -1403,9 +1403,11 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-avamasterkey",
                    "Master key associated with the proof. If a proof is "
                    "required, this is mandatory.",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+                   ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                   OptionsCategory::AVALANCHE);
     argsman.AddArg("-avasessionkey", "Avalanche session key (default: random)",
-                   ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+                   ArgsManager::ALLOW_ANY | ArgsManager::SENSITIVE,
+                   OptionsCategory::AVALANCHE);
     argsman.AddArg(
         "-maxavalancheoutbound",
         "Set the maximum number of avalanche outbound peers to connect to. "
