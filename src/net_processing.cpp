@@ -7125,15 +7125,6 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
         return false;
     }
 
-    if (state.GetResult() ==
-        avalanche::ProofRegistrationResult::COOLDOWN_NOT_ELAPSED) {
-        // Conflicting proofs are not necessarly adversarial, but if they are
-        // repeated within a short time period this is suspicious, so we affect
-        // a low ban score to our peer.
-        Misbehaving(nodeid, 5, state.GetRejectReason());
-        return false;
-    }
-
     if (state.GetResult() == avalanche::ProofRegistrationResult::MISSING_UTXO) {
         // This is possible that a proof contains a utxo we don't know yet, so
         // don't ban for this.
