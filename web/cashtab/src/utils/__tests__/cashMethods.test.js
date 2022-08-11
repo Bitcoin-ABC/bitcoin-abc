@@ -476,7 +476,7 @@ it('generateOpReturnScript() correctly throws an error on an invalid airdrop inp
     expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
 });
 
-it(`generateTxInput() returns an input object for a valid one to one XEC tx `, async () => {
+it(`generateTxInput() returns an input object for a valid one to one XEC tx`, async () => {
     const BCH = new BCHJS();
     const isOneToMany = false;
     const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
@@ -500,7 +500,7 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx `, a
     expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
 });
 
-it(`generateTxInput() returns an input object for a valid one to many XEC tx `, async () => {
+it(`generateTxInput() returns an input object for a valid one to many XEC tx`, async () => {
     const BCH = new BCHJS();
     const isOneToMany = true;
     const utxos = mockReturnGetSlpBalancesAndUtxos.nonSlpUtxos;
@@ -584,7 +584,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
     expect(thrownError.message).toStrictEqual('Invalid tx input parameter');
 });
 
-it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC tx `, () => {
+it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC tx`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
     const { destinationAddress, wallet } = sendBCHMock;
@@ -626,7 +626,7 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     );
 });
 
-it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC tx `, () => {
+it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC tx`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
     const { destinationAddress, wallet } = sendBCHMock;
