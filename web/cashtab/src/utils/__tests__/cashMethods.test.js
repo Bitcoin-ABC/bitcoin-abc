@@ -1,4 +1,3 @@
-import { ValidationError } from 'ecashaddrjs';
 import BigNumber from 'bignumber.js';
 import {
     fromSmallestDenomination,
