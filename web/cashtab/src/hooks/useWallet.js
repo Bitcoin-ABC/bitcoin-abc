@@ -4,7 +4,6 @@ import useInterval from './useInterval';
 import useBCH from 'hooks/useBCH';
 import BigNumber from 'bignumber.js';
 import {
-    fromSmallestDenomination,
     loadStoredWallet,
     isValidStoredWallet,
     isLegacyMigrationRequired,
@@ -17,6 +16,7 @@ import {
     parseChronikTx,
     checkWalletForTokenInfo,
     isActiveWebsocket,
+    getWalletBalanceFromUtxos,
 } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
@@ -115,17 +115,6 @@ const useWallet = () => {
         });
 
         return slpBalancesAndUtxos;
-    };
-
-    const normalizeBalance = slpBalancesAndUtxos => {
-        const totalBalanceInSatoshis = slpBalancesAndUtxos.nonSlpUtxos.reduce(
-            (previousBalance, utxo) => previousBalance + utxo.value,
-            0,
-        );
-        return {
-            totalBalanceInSatoshis,
-            totalBalance: fromSmallestDenomination(totalBalanceInSatoshis),
-        };
     };
 
     const deriveAccount = async (BCH, { masterHDNode, path }) => {
@@ -375,7 +364,9 @@ const useWallet = () => {
                 wallet,
             );
 
-            newState.balances = normalizeBalance(slpBalancesAndUtxos);
+            newState.balances = getWalletBalanceFromUtxos(
+                slpBalancesAndUtxos.nonSlpUtxos,
+            );
 
             newState.tokens = tokens;
 
