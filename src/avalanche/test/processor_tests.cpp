@@ -408,8 +408,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     auto &updates = provider.updates;
     const uint32_t invType = provider.invType;
 
-    const auto item = provider.buildVoteItem();
-    const auto itemid = provider.getVoteItemId(item);
+    auto item = provider.buildVoteItem();
+    auto itemid = provider.getVoteItemId(item);
 
     // Create nodes that supports avalanche.
     auto avanodes = ConnectNodes();
@@ -501,8 +501,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(vote_item_register, P, VoteItemProviders) {
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 0);
 
-    // Now let's undo this and finalize rejection.
+    // Get a new item to vote on
+    item = provider.buildVoteItem();
+    itemid = provider.getVoteItemId(item);
     BOOST_CHECK(provider.addToReconcile(item));
+
+    // Now let's finalize rejection.
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, invType);
@@ -1639,6 +1643,131 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
 
     gArgs.ClearForcedArg("-avastalevotethreshold");
     gArgs.ClearForcedArg("-avastalevotefactor");
+}
+
+BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
+    BlockProvider provider(this);
+
+    std::vector<CBlockIndex *> blockIndexes;
+    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
+        CBlockIndex *pindex = provider.buildVoteItem();
+        BOOST_CHECK(provider.addToReconcile(pindex));
+        blockIndexes.push_back(pindex);
+    }
+
+    auto invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), AVALANCHE_MAX_ELEMENT_POLL);
+    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
+        BOOST_CHECK_EQUAL(
+            invs[i].hash,
+            blockIndexes[AVALANCHE_MAX_ELEMENT_POLL - i - 1]->GetBlockHash());
+    }
+
+    // Build a vote vector with the 11th block only being accepted and others
+    // unknown.
+    const BlockHash eleventhBlockHash =
+        blockIndexes[AVALANCHE_MAX_ELEMENT_POLL - 10 - 1]->GetBlockHash();
+    std::vector<Vote> votes;
+    votes.reserve(AVALANCHE_MAX_ELEMENT_POLL);
+    for (size_t i = AVALANCHE_MAX_ELEMENT_POLL; i > 0; i--) {
+        BlockHash blockhash = blockIndexes[i - 1]->GetBlockHash();
+        votes.emplace_back(blockhash == eleventhBlockHash ? 0 : -1, blockhash);
+    }
+
+    auto avanodes = ConnectNodes();
+    int nextNodeIndex = 0;
+
+    auto registerNewVote = [&]() {
+        Response resp = {getRound(), 0, votes};
+        runEventLoop();
+        auto nodeid = avanodes[nextNodeIndex++ % avanodes.size()]->GetId();
+        BOOST_CHECK(provider.registerVotes(nodeid, resp));
+    };
+
+    // Vote for the blocks until the one being accepted finalizes
+    bool eleventhBlockFinalized = false;
+    for (size_t i = 0; i < 10000 && !eleventhBlockFinalized; i++) {
+        registerNewVote();
+
+        for (auto &update : provider.updates) {
+            if (update.getStatus() == VoteStatus::Finalized &&
+                update.getVoteItem()->GetBlockHash() == eleventhBlockHash) {
+                eleventhBlockFinalized = true;
+            }
+        }
+    }
+    BOOST_CHECK(eleventhBlockFinalized);
+
+    // From now only the 10 blocks with more work are polled for
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 10);
+    for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK_EQUAL(
+            invs[i].hash,
+            blockIndexes[AVALANCHE_MAX_ELEMENT_POLL - i - 1]->GetBlockHash());
+    }
+
+    // Adding ancestor blocks to reconcile will fail
+    for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL - 10 - 1; i++) {
+        BOOST_CHECK(!provider.addToReconcile(blockIndexes[i]));
+    }
+
+    // Create a couple concurrent chain tips
+    CBlockIndex *tip = provider.buildVoteItem();
+
+    const auto &config = GetConfig();
+    auto &activeChainstate = m_node.chainman->ActiveChainstate();
+    BlockValidationState state;
+    activeChainstate.InvalidateBlock(config, state, tip);
+
+    // Use another script to make sure we don't generate the same block again
+    CBlock altblock = CreateAndProcessBlock({}, CScript() << OP_TRUE);
+    auto alttip = WITH_LOCK(
+        cs_main, return Assert(m_node.chainman)
+                     ->m_blockman.LookupBlockIndex(altblock.GetHash()));
+    BOOST_CHECK(alttip);
+    BOOST_CHECK(alttip->pprev == tip->pprev);
+    BOOST_CHECK(alttip->GetBlockHash() != tip->GetBlockHash());
+
+    // Reconsider the previous tip valid, so we have concurrent tip candidates
+    {
+        LOCK(cs_main);
+        activeChainstate.ResetBlockFailureFlags(tip);
+    }
+    activeChainstate.ActivateBestChain(config, state);
+
+    BOOST_CHECK(provider.addToReconcile(tip));
+    BOOST_CHECK(provider.addToReconcile(alttip));
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 12);
+
+    // Vote for the tip until it finalizes
+    BlockHash tiphash = tip->GetBlockHash();
+    votes.clear();
+    votes.reserve(12);
+    for (auto &inv : invs) {
+        votes.emplace_back(inv.hash == tiphash ? 0 : -1, inv.hash);
+    }
+
+    bool tipFinalized = false;
+    for (size_t i = 0; i < 10000 && !tipFinalized; i++) {
+        registerNewVote();
+
+        for (auto &update : provider.updates) {
+            if (update.getStatus() == VoteStatus::Finalized &&
+                update.getVoteItem()->GetBlockHash() == tiphash) {
+                tipFinalized = true;
+            }
+        }
+    }
+    BOOST_CHECK(tipFinalized);
+
+    // Now the tip and all its ancestors will be removed from polls. Only the
+    // alttip remains because it is on a forked chain so we want to keep polling
+    // for that one until it's invalidated or stalled.
+    invs = getInvsForNextPoll();
+    BOOST_CHECK_EQUAL(invs.size(), 1);
+    BOOST_CHECK_EQUAL(invs[0].hash, alttip->GetBlockHash());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

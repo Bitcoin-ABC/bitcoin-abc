@@ -589,7 +589,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
             }
 
             if (!vr.hasFinalized()) {
-                // This item has note been finalized, so we have nothing more to
+                // This item has not been finalized, so we have nothing more to
                 // do.
                 updates.emplace_back(item, vr.isAccepted()
                                                ? VoteStatus::Accepted
@@ -609,6 +609,21 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
                       responseIndex);
     registerVoteItems(proofVoteRecords.getWriteView(), proofUpdates,
                       responseProof);
+
+    for (const auto &blockUpdate : blockUpdates) {
+        if (blockUpdate.getStatus() != VoteStatus::Finalized) {
+            continue;
+        }
+
+        LOCK(cs_finalizationTip);
+        CBlockIndex *pindex = blockUpdate.getVoteItem();
+        if (finalizationTip &&
+            finalizationTip->GetAncestor(pindex->nHeight) == pindex) {
+            continue;
+        }
+
+        finalizationTip = pindex;
+    }
 
     return true;
 }
@@ -942,11 +957,19 @@ std::vector<CInv> Processor::getInvsForNextPoll(bool forPoll) {
     return invs;
 }
 
-bool Processor::isWorthPolling(const CBlockIndex *pindex) const {
+bool Processor::isWorthPolling(const CBlockIndex *pindex) {
     AssertLockHeld(cs_main);
 
     if (pindex->nStatus.isInvalid()) {
         // No point polling invalid blocks.
+        return false;
+    }
+
+    if (WITH_LOCK(cs_finalizationTip,
+                  return finalizationTip && finalizationTip->GetAncestor(
+                                                pindex->nHeight) == pindex)) {
+        // There is no point polling blocks that are ancestor of a block that
+        // has been accepted by the network.
         return false;
     }
 

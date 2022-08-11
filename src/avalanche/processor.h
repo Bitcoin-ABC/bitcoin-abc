@@ -175,6 +175,9 @@ class Processor final : public NetEventsInterface {
     class NotificationsHandler;
     std::unique_ptr<interfaces::Handler> chainNotificationsHandler;
 
+    Mutex cs_finalizationTip;
+    CBlockIndex *finalizationTip GUARDED_BY(cs_finalizationTip){nullptr};
+
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CScheduler &scheduler,
               std::unique_ptr<PeerData> peerDataIn, CKey sessionKeyIn,
@@ -248,7 +251,7 @@ private:
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
 
-    bool isWorthPolling(const CBlockIndex *pindex) const
+    bool isWorthPolling(const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     bool isWorthPolling(const ProofRef &proof) const
         EXCLUSIVE_LOCKS_REQUIRED(cs_peerManager);
