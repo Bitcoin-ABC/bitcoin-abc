@@ -36,7 +36,8 @@ static constexpr size_t AVALANCHE_DEFAULT_CONFLICTING_PROOF_COOLDOWN = 60;
  * Peer replacement cooldown time default value in seconds.
  * Minimal delay before a peer can be replaced due to a conflicting proof.
  */
-static constexpr size_t AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN = 60 * 60;
+static constexpr size_t AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN =
+    24 * 60 * 60;
 
 /**
  * Is proof replacement enabled by default.
