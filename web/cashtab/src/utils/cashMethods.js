@@ -537,13 +537,13 @@ export const loadStoredWallet = walletStateFromStorage => {
 
     // Also confirm balance is correct
     // Necessary step in case currency.decimals changed since last startup
-    const balancesRebased = normalizeBalance(slpBalancesAndUtxos);
+    const balancesRebased = normalizeBalance(slpBalancesAndUtxos.nonSlpUtxos);
     liveWalletState.balances = balancesRebased;
     return liveWalletState;
 };
 
-export const normalizeBalance = slpBalancesAndUtxos => {
-    const totalBalanceInSatoshis = slpBalancesAndUtxos.nonSlpUtxos.reduce(
+export const normalizeBalance = nonSlpUtxos => {
+    const totalBalanceInSatoshis = nonSlpUtxos.reduce(
         (previousBalance, utxo) => previousBalance + utxo.value,
         0,
     );
