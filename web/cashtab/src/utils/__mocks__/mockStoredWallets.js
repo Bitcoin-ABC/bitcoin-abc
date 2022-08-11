@@ -1,5 +1,3 @@
-// @generated
-
 export const validStoredWallet = {
     mnemonic: 'Nope',
     name: 'TripDos',
@@ -30,7 +28,7 @@ export const validStoredWallet = {
     state: {
         balances: {
             totalBalanceInSatoshis: 1503017804,
-            totalBalance: 15.03017804,
+            totalBalance: 15030178.04,
         },
         tokens: [
             {
