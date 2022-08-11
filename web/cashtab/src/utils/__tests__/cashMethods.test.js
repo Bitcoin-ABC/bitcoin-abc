@@ -35,7 +35,7 @@ import {
     generateTxOutput,
     signAndBuildTx,
     toSmallestDenomination,
-    normalizeBalance,
+    getWalletBalanceFromUtxos,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -935,14 +935,14 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`Correctly determines a wallet's balance from its set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
-            normalizeBalance(
+            getWalletBalanceFromUtxos(
                 validStoredWallet.state.slpBalancesAndUtxos.nonSlpUtxos,
             ),
         ).toStrictEqual(validStoredWallet.state.balances);
     });
     it(`Correctly determines a wallet's zero balance from its empty set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
-            normalizeBalance(
+            getWalletBalanceFromUtxos(
                 utxosLoadedFromCache.slpBalancesAndUtxos.nonSlpUtxos,
             ),
         ).toStrictEqual(utxosLoadedFromCache.balances);
