@@ -6977,7 +6977,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             } else {
                 // We have already seen this proof, no need to download.
                 // This is just a belt-and-suspenders, as this should
-                // already be called whenever a transaction becomes
+                // already be called whenever a proof becomes
                 // AlreadyHaveProof().
                 m_proofrequest.ForgetInvId(proofid);
             }
