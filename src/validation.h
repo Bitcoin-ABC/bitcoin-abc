@@ -1254,6 +1254,9 @@ private:
         return pchainstate && !pchainstate->m_disabled;
     }
 
+    /** Most recent headers presync progress update, for rate-limiting. */
+    SteadyMilliseconds m_last_presync_update GUARDED_BY(::cs_main){};
+
 public:
     using Options = ChainstateManagerOpts;
 
@@ -1464,6 +1467,15 @@ public:
     //! Check to see if caches are out of balance and if so, call
     //! ResizeCoinsCaches() as needed.
     void MaybeRebalanceCaches() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
+    /**
+     * This is used by net_processing to report pre-synchronization progress of
+     * headers, as headers are not yet fed to validation during that time, but
+     * validation is (for now) responsible for logging and signalling through
+     * NotifyHeaderTip, so it needs this information.
+     */
+    void ReportHeadersPresync(const arith_uint256 &work, int64_t height,
+                              int64_t timestamp);
 
     //! When starting up, search the datadir for a chainstate based on a UTXO
     //! snapshot that is in the process of being validated.

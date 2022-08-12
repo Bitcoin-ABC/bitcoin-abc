@@ -4287,6 +4287,39 @@ bool ChainstateManager::ProcessNewBlockHeaders(
     return true;
 }
 
+void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
+                                             int64_t height,
+                                             int64_t timestamp) {
+    AssertLockNotHeld(cs_main);
+    const auto &chainstate = ActiveChainstate();
+    {
+        LOCK(cs_main);
+        // Don't report headers presync progress if we already have a
+        // post-minchainwork header chain.
+        // This means we lose reporting for potentially legimate, but unlikely,
+        // deep reorgs, but prevent attackers that spam low-work headers from
+        // filling our logs.
+        if (m_best_header->nChainWork >=
+            UintToArith256(GetConsensus().nMinimumChainWork)) {
+            return;
+        }
+        // Rate limit headers presync updates to 4 per second, as these are not
+        // subject to DoS protection.
+        auto now = Now<SteadyMilliseconds>();
+        if (now < m_last_presync_update + 250ms) {
+            return;
+        }
+        m_last_presync_update = now;
+    }
+    if (chainstate.IsInitialBlockDownload()) {
+        const int64_t blocks_left{(GetTime() - timestamp) /
+                                  GetConsensus().nPowTargetSpacing};
+        const double progress{100.0 * height / (height + blocks_left)};
+        LogPrintf("Pre-synchronizing blockheaders, height: %d (~%.2f%%)\n",
+                  height, progress);
+    }
+}
+
 /**
  * Store a block on disk.
  *
