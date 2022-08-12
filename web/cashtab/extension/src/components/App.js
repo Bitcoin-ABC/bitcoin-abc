@@ -114,6 +114,14 @@ const GlobalStyle = createGlobalStyle`
     .ant-modal-confirm-content, .ant-modal-confirm-title {	
         color: ${props => props.theme.contrast} !important;	
     }
+    .ant-form-item-explain {
+        div {
+            color: ${props => props.theme.forms.text};
+        }
+    }
+    .ant-input-prefix {
+        color: ${props => props.theme.eCashBlue};
+    }
 `;
 
 const CustomApp = styled.div`
