@@ -130,9 +130,7 @@ export const parseXecSendValue = (
         // If user is attempting to send an aggregate value that is less than minimum accepted by the backend
         if (
             value.lt(
-                new BigNumber(
-                    fromSmallestDenomination(currency.dustSats).toString(),
-                ),
+                new BigNumber(fromSatoshisToXec(currency.dustSats).toString()),
             )
         ) {
             // Throw the same error given by the backend attempting to broadcast such a tx
@@ -418,7 +416,7 @@ export const fromLegacyDecimals = (
     return amountSmallestDenomination;
 };
 
-export const fromSmallestDenomination = (
+export const fromSatoshisToXec = (
     amount,
     cashDecimals = currency.cashDecimals,
 ) => {
@@ -551,7 +549,7 @@ export const getWalletBalanceFromUtxos = nonSlpUtxos => {
     );
     return {
         totalBalanceInSatoshis,
-        totalBalance: fromSmallestDenomination(totalBalanceInSatoshis),
+        totalBalance: fromSatoshisToXec(totalBalanceInSatoshis),
     };
 };
 

@@ -23,7 +23,7 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     getWalletState,
     convertEtokenToEcashAddr,
-    fromSmallestDenomination,
+    fromSatoshisToXec,
     convertToEcashPrefix,
     convertEcashtoEtokenAddr,
 } from 'utils/cashMethods';
@@ -312,7 +312,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         if (ignoreRecipientsBelowDust) {
             // minimum airdrop threshold
             const minEligibleAirdrop = new BigNumber(
-                fromSmallestDenomination(currency.dustSats),
+                fromSatoshisToXec(currency.dustSats),
             );
 
             // first calculation on expected pro rata airdrops
@@ -628,7 +628,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                             />
                                             &ensp;Ignore airdrops below min.
                                             payment (
-                                            {fromSmallestDenomination(
+                                            {fromSatoshisToXec(
                                                 currency.dustSats,
                                             )}{' '}
                                             XEC)
@@ -753,7 +753,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                         <Alert
                                                             description={
                                                                 'At least one airdrop is below the minimum ' +
-                                                                fromSmallestDenomination(
+                                                                fromSatoshisToXec(
                                                                     currency.dustSats,
                                                                 ) +
                                                                 ' XEC dust. Please increase the total XEC airdrop.'

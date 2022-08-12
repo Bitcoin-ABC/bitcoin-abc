@@ -50,7 +50,7 @@ import {
     convertToEcashPrefix,
     toLegacyCash,
     toLegacyCashArray,
-    fromSmallestDenomination,
+    fromSatoshisToXec,
 } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
@@ -235,7 +235,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                value: `${fromSmallestDenomination(currency.dustSats)}`,
+                value: `${fromSatoshisToXec(currency.dustSats)}`,
             });
         }
 
@@ -579,7 +579,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                 }));
             }
             if (!validValueString) {
-                error = `Amount must be at least ${fromSmallestDenomination(
+                error = `Amount must be at least ${fromSatoshisToXec(
                     currency.dustSats,
                 )} XEC: ${addressString}, ${valueString}`;
                 setSendBchAddressError(error);

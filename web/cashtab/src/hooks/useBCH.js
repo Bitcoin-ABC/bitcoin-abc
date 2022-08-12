@@ -4,7 +4,7 @@ import { isValidTokenStats } from 'utils/validation';
 import SlpWallet from 'minimal-slp-wallet';
 import {
     toSmallestDenomination,
-    fromSmallestDenomination,
+    fromSatoshisToXec,
     batchArray,
     flattenBatchedHydratedUtxos,
     isValidStoredWallet,
@@ -1434,9 +1434,7 @@ export default function useBCH() {
                 if (
                     value.lt(
                         new BigNumber(
-                            fromSmallestDenomination(
-                                currency.dustSats,
-                            ).toString(),
+                            fromSatoshisToXec(currency.dustSats).toString(),
                         ),
                     )
                 ) {
@@ -1457,9 +1455,7 @@ export default function useBCH() {
                 if (
                     value.lt(
                         new BigNumber(
-                            fromSmallestDenomination(
-                                currency.dustSats,
-                            ).toString(),
+                            fromSatoshisToXec(currency.dustSats).toString(),
                         ),
                     )
                 ) {

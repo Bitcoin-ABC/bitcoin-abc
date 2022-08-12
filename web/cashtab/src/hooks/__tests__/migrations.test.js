@@ -1,17 +1,14 @@
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import BCHJS from '@psf/bch-js';
-import {
-    fromSmallestDenomination,
-    toSmallestDenomination,
-} from 'utils/cashMethods';
+import { fromSatoshisToXec, toSmallestDenomination } from 'utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
     it('Replacement currency.dustSats parameter parsing matches legacy DUST parameter', () => {
         expect(
             parseFloat(
                 new BigNumber(
-                    fromSmallestDenomination(currency.dustSats, 8).toString(),
+                    fromSatoshisToXec(currency.dustSats, 8).toString(),
                 ).toFixed(8),
             ),
         ).toBe(0.0000055);
@@ -107,31 +104,31 @@ describe('Testing functions for upgrading Cashtab', () => {
         const remainder = new BigNumber('12345678');
         expect(parseInt(remainder)).toStrictEqual(12345678);
     });
-    it('Replicates return value from instance of toBitcoinCash with fromSmallestDenomination and cashDecimals = 8', () => {
+    it('Replicates return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
         const BCH = new BCHJS();
         const testSendAmount = '12345678';
-        expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
+        expect(fromSatoshisToXec(testSendAmount, 8)).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
         );
     });
-    it('Replicates largest possible digits return value from instance of toBitcoinCash with fromSmallestDenomination and cashDecimals = 8', () => {
+    it('Replicates largest possible digits return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
         const BCH = new BCHJS();
         const testSendAmount = '1000000012345678';
-        expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
+        expect(fromSatoshisToXec(testSendAmount, 8)).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
         );
     });
 
-    it('Replicates smallest unit value return value from instance of toBitcoinCash with fromSmallestDenomination and cashDecimals = 8', () => {
+    it('Replicates smallest unit value return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
         const BCH = new BCHJS();
         const testSendAmount = '1';
-        expect(fromSmallestDenomination(testSendAmount, 8)).toBe(
+        expect(fromSatoshisToXec(testSendAmount, 8)).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
         );
     });
 
     it(`Converts dust limit in satoshis to dust limit in current app setting`, () => {
-        expect(fromSmallestDenomination(currency.dustSats, 8).toString()).toBe(
+        expect(fromSatoshisToXec(currency.dustSats, 8).toString()).toBe(
             '0.0000055',
         );
     });

@@ -24,7 +24,7 @@ import {
     parseInvalidSettingsForMigration,
 } from '../validation';
 import { currency } from 'components/Common/Ticker.js';
-import { fromSmallestDenomination } from 'utils/cashMethods';
+import { fromSatoshisToXec } from 'utils/cashMethods';
 import {
     stStatsValid,
     noCovidStatsValid,
@@ -91,17 +91,16 @@ describe('Validation utils', () => {
     });
     it(`Returns error if ${
         currency.ticker
-    } send amount is less than ${fromSmallestDenomination(
+    } send amount is less than ${fromSatoshisToXec(
         currency.dustSats,
     ).toString()} minimum`, () => {
-        const expectedValidationError = `Send amount must be at least ${fromSmallestDenomination(
+        const expectedValidationError = `Send amount must be at least ${fromSatoshisToXec(
             currency.dustSats,
         ).toString()} ${currency.ticker}`;
         expect(
             shouldRejectAmountInput(
                 (
-                    fromSmallestDenomination(currency.dustSats).toString() -
-                    0.00000001
+                    fromSatoshisToXec(currency.dustSats).toString() - 0.00000001
                 ).toString(),
                 currency.ticker,
                 20.0,
@@ -111,10 +110,10 @@ describe('Validation utils', () => {
     });
     it(`Returns error if ${
         currency.ticker
-    } send amount is less than ${fromSmallestDenomination(
+    } send amount is less than ${fromSatoshisToXec(
         currency.dustSats,
     ).toString()} minimum in fiat currency`, () => {
-        const expectedValidationError = `Send amount must be at least ${fromSmallestDenomination(
+        const expectedValidationError = `Send amount must be at least ${fromSatoshisToXec(
             currency.dustSats,
         ).toString()} ${currency.ticker}`;
         expect(
@@ -385,12 +384,11 @@ describe('Validation utils', () => {
         expect(isValidEtokenAddress(addr)).toBe(false);
     });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
-        const testXecSendAmount = fromSmallestDenomination(currency.dustSats);
+        const testXecSendAmount = fromSatoshisToXec(currency.dustSats);
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum`, () => {
-        const testXecSendAmount =
-            fromSmallestDenomination(currency.dustSats) + 1.75;
+        const testXecSendAmount = fromSatoshisToXec(currency.dustSats) + 1.75;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount rejects zero`, () => {
@@ -403,7 +401,7 @@ describe('Validation utils', () => {
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum as a string`, () => {
         const testXecSendAmount = `${
-            fromSmallestDenomination(currency.dustSats) + 1.75
+            fromSatoshisToXec(currency.dustSats) + 1.75
         }`;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });

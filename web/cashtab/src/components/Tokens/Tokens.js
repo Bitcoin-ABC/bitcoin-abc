@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
-import { fromSmallestDenomination, getWalletState } from 'utils/cashMethods';
+import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
 import CreateTokenForm from 'components/Tokens/CreateTokenForm';
 import { currency } from 'components/Common/Ticker.js';
 import useBCH from 'hooks/useBCH';
@@ -53,7 +53,7 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                 {balances.totalBalanceInSatoshis < currency.dustSats && (
                     <AlertMsg>
                         You need at least{' '}
-                        {fromSmallestDenomination(currency.dustSats).toString()}{' '}
+                        {fromSatoshisToXec(currency.dustSats).toString()}{' '}
                         {currency.ticker} (
                         {cashtabSettings
                             ? `${
@@ -63,9 +63,8 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                               }`
                             : '$'}
                         {(
-                            fromSmallestDenomination(
-                                currency.dustSats,
-                            ).toString() * fiatPrice
+                            fromSatoshisToXec(currency.dustSats).toString() *
+                            fiatPrice
                         ).toFixed(4)}{' '}
                         {cashtabSettings
                             ? `${currency.fiatCurrencies[

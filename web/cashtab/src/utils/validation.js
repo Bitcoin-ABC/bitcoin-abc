@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { currency } from 'components/Common/Ticker.js';
-import { fromSmallestDenomination } from 'utils/cashMethods';
+import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 
 // Validate cash amount
@@ -25,9 +25,9 @@ export const shouldRejectAmountInput = (
     } else if (testedAmount.lte(0)) {
         error = 'Amount must be greater than 0';
     } else if (
-        testedAmount.lt(fromSmallestDenomination(currency.dustSats).toString())
+        testedAmount.lt(fromSatoshisToXec(currency.dustSats).toString())
     ) {
-        error = `Send amount must be at least ${fromSmallestDenomination(
+        error = `Send amount must be at least ${fromSatoshisToXec(
             currency.dustSats,
         ).toString()} ${currency.ticker}`;
     } else if (testedAmount.gt(totalCashBalance)) {
@@ -298,7 +298,7 @@ export const isValidXecSendAmount = xecSendAmount => {
         xecSendAmount !== null &&
         typeof xecSendAmount !== 'undefined' &&
         !isNaN(parseFloat(xecSendAmount)) &&
-        parseFloat(xecSendAmount) >= fromSmallestDenomination(currency.dustSats)
+        parseFloat(xecSendAmount) >= fromSatoshisToXec(currency.dustSats)
     );
 };
 
@@ -428,7 +428,7 @@ export const isValidAirdropOutputsArray = airdropOutputsArray => {
         // if the XEC being sent is less than dust sats or contains extra values per line
         if (
             new BigNumber(valueString).lt(
-                fromSmallestDenomination(currency.dustSats),
+                fromSatoshisToXec(currency.dustSats),
             ) ||
             substring.length !== 2
         ) {
