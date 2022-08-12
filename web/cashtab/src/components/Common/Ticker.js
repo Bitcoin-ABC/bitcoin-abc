@@ -14,7 +14,7 @@ export const currency = {
     etokenSats: 546,
     cashDecimals: 2,
     chronikUrl: 'https://chronik.fabien.cash',
-    blockExplorerUrl: 'https://explorer.be.cash',
+    blockExplorerUrl: 'https://explorer.e.cash',
     blockExplorerUrlTestnet: 'https://texplorer.bitcoinabc.org',
     pdfReceiptUrl: 'https://blockchair.com/ecash/transaction',
     tokenName: 'eToken',

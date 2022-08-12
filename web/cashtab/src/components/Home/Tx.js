@@ -786,7 +786,7 @@ const Tx = ({
                                     <DropdownButton>
                                         <DropdownIconWrapper>
                                             <TextLayer>
-                                                View on be.cash
+                                                View on e.cash
                                             </TextLayer>
                                             <ThemedLinkSolid />
                                         </DropdownIconWrapper>
