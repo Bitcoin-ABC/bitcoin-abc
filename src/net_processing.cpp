@@ -2319,6 +2319,12 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
     stats.m_addr_processed = peer->m_addr_processed.load();
     stats.m_addr_rate_limited = peer->m_addr_rate_limited.load();
     stats.m_addr_relay_enabled = peer->m_addr_relay_enabled.load();
+    {
+        LOCK(peer->m_headers_sync_mutex);
+        if (peer->m_headers_sync) {
+            stats.presync_height = peer->m_headers_sync->GetPresyncHeight();
+        }
+    }
 
     return true;
 }
