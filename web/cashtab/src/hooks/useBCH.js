@@ -3,7 +3,7 @@ import { currency } from 'components/Common/Ticker';
 import { isValidTokenStats } from 'utils/validation';
 import SlpWallet from 'minimal-slp-wallet';
 import {
-    toSmallestDenomination,
+    fromXecToSatoshis,
     fromSatoshisToXec,
     batchArray,
     flattenBatchedHydratedUtxos,
@@ -1472,9 +1472,9 @@ export default function useBCH() {
                 transactionBuilder = new BCH.TransactionBuilder();
             else transactionBuilder = new BCH.TransactionBuilder('testnet');
 
-            const satoshisToSend = toSmallestDenomination(value);
+            const satoshisToSend = fromXecToSatoshis(value);
 
-            // Throw validation error if toSmallestDenomination returns false
+            // Throw validation error if fromXecToSatoshis returns false
             if (!satoshisToSend) {
                 const error = new Error(
                     `Invalid decimal places for send amount`,
@@ -1627,14 +1627,14 @@ export default function useBCH() {
                     );
                     transactionBuilder.addOutput(
                         BCH.Address.toCashAddress(outputAddress),
-                        parseInt(toSmallestDenomination(outputValue)),
+                        parseInt(fromXecToSatoshis(outputValue)),
                     );
                 }
             } else {
                 // for one to one mode, add output w/ single address and amount to send
                 transactionBuilder.addOutput(
                     BCH.Address.toCashAddress(destinationAddress),
-                    parseInt(toSmallestDenomination(value)),
+                    parseInt(fromXecToSatoshis(value)),
                 );
             }
 

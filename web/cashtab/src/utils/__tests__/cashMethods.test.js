@@ -34,7 +34,7 @@ import {
     generateTxInput,
     generateTxOutput,
     signAndBuildTx,
-    toSmallestDenomination,
+    fromXecToSatoshis,
     getWalletBalanceFromUtxos,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
@@ -596,9 +596,7 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     );
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const satoshisToSend = toSmallestDenomination(
-        new BigNumber(singleSendValue),
-    );
+    const satoshisToSend = fromXecToSatoshis(new BigNumber(singleSendValue));
     // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
     // no change output to be subtracted in this tx
     const txFee = new BigNumber(totalInputUtxoValue).minus(
@@ -681,9 +679,7 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
     const singleSendValue = null; // invalid due to singleSendValue being mandatory when isOneToMany is false
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const satoshisToSend = toSmallestDenomination(
-        new BigNumber(singleSendValue),
-    );
+    const satoshisToSend = fromXecToSatoshis(new BigNumber(singleSendValue));
     // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
     // no change output to be subtracted in this tx
     const txFee = new BigNumber(totalInputUtxoValue).minus(satoshisToSend);
@@ -774,9 +770,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
         outputAddressAndValue[0], // address
-        parseInt(
-            toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
-        ), // value
+        parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
     );
 
     const rawTxHex = signAndBuildTx(BCH, mockSingleInputUtxo, txBuilder);
@@ -802,7 +796,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
         txBuilder.addOutput(
             outputAddressAndValue[0], // address
             parseInt(
-                toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
+                fromXecToSatoshis(new BigNumber(outputAddressAndValue[1])),
             ), // value
         );
     }
@@ -829,9 +823,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
         outputAddressAndValue[0], // address
-        parseInt(
-            toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
-        ), // value
+        parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
     );
 
     const rawTxHex = signAndBuildTx(BCH, mockMultipleInputUtxos, txBuilder);
@@ -858,7 +850,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
         txBuilder.addOutput(
             outputAddressAndValue[0], // address
             parseInt(
-                toSmallestDenomination(new BigNumber(outputAddressAndValue[1])),
+                fromXecToSatoshis(new BigNumber(outputAddressAndValue[1])),
             ), // value
         );
     }

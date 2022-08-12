@@ -1,7 +1,7 @@
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
 import BCHJS from '@psf/bch-js';
-import { fromSatoshisToXec, toSmallestDenomination } from 'utils/cashMethods';
+import { fromSatoshisToXec, fromXecToSatoshis } from 'utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
     it('Replacement currency.dustSats parameter parsing matches legacy DUST parameter', () => {
@@ -13,57 +13,57 @@ describe('Testing functions for upgrading Cashtab', () => {
             ),
         ).toBe(0.0000055);
     });
-    it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with toSmallestDenomination', () => {
+    it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with fromXecToSatoshis', () => {
         const BCH = new BCHJS();
         const testSendAmount = '0.12345678';
         expect(
-            parseInt(toSmallestDenomination(new BigNumber(testSendAmount), 8)),
+            parseInt(fromXecToSatoshis(new BigNumber(testSendAmount), 8)),
         ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
     });
-    it('Replicate 2-decimal return value from instance of toSatoshi in TransactionBuilder with toSmallestDenomination', () => {
+    it('Replicate 2-decimal return value from instance of toSatoshi in TransactionBuilder with fromXecToSatoshis', () => {
         const BCH = new BCHJS();
         const testSendAmount = '0.12';
         expect(
-            parseInt(toSmallestDenomination(new BigNumber(testSendAmount), 8)),
+            parseInt(fromXecToSatoshis(new BigNumber(testSendAmount), 8)),
         ).toBe(BCH.BitcoinCash.toSatoshi(Number(testSendAmount).toFixed(8)));
     });
-    it('Replicate 8-decimal return value from instance of toSatoshi in remainder comparison with toSmallestDenomination', () => {
+    it('Replicate 8-decimal return value from instance of toSatoshi in remainder comparison with fromXecToSatoshis', () => {
         const BCH = new BCHJS();
         expect(
-            parseFloat(toSmallestDenomination(new BigNumber('0.00000546'), 8)),
+            parseFloat(fromXecToSatoshis(new BigNumber('0.00000546'), 8)),
         ).toBe(
             BCH.BitcoinCash.toSatoshi(
                 parseFloat(new BigNumber('0.00000546').toFixed(8)),
             ),
         );
     });
-    it('toSmallestDenomination() returns false if input is not a BigNumber', () => {
+    it('fromXecToSatoshis() returns false if input is not a BigNumber', () => {
         const testInput = 132.12345678;
-        expect(toSmallestDenomination(testInput)).toBe(false);
+        expect(fromXecToSatoshis(testInput)).toBe(false);
     });
-    it(`toSmallestDenomination() returns false if input is a BigNumber with more decimals than specified by cashDecimals parameter`, () => {
+    it(`fromXecToSatoshis() returns false if input is a BigNumber with more decimals than specified by cashDecimals parameter`, () => {
         const testInput = new BigNumber('132.123456789');
-        expect(toSmallestDenomination(testInput, 8)).toBe(false);
+        expect(fromXecToSatoshis(testInput, 8)).toBe(false);
     });
-    it(`toSmallestDenomination() returns expected value if input is a BigNumber with 8 decimal places`, () => {
+    it(`fromXecToSatoshis() returns expected value if input is a BigNumber with 8 decimal places`, () => {
         const testInput = new BigNumber('100.12345678');
-        expect(toSmallestDenomination(testInput, 8)).toStrictEqual(
+        expect(fromXecToSatoshis(testInput, 8)).toStrictEqual(
             new BigNumber('10012345678'),
         );
     });
-    it(`toSmallestDenomination() returns expected value if input is a BigNumber with 2 decimal places`, () => {
+    it(`fromXecToSatoshis() returns expected value if input is a BigNumber with 2 decimal places`, () => {
         const testInput = new BigNumber('100.12');
-        expect(toSmallestDenomination(testInput, 2)).toStrictEqual(
+        expect(fromXecToSatoshis(testInput, 2)).toStrictEqual(
             new BigNumber('10012'),
         );
     });
-    it(`toSmallestDenomination() returns expected value if input is a BigNumber with 1 decimal place`, () => {
+    it(`fromXecToSatoshis() returns expected value if input is a BigNumber with 1 decimal place`, () => {
         const testInput = new BigNumber('100.1');
-        expect(toSmallestDenomination(testInput, 8)).toStrictEqual(
+        expect(fromXecToSatoshis(testInput, 8)).toStrictEqual(
             new BigNumber('10010000000'),
         );
     });
-    it('toSmallestDenomination() returns exact result as toSatoshi but in BigNumber format', () => {
+    it('fromXecToSatoshis() returns exact result as toSatoshi but in BigNumber format', () => {
         const BCH = new BCHJS();
         const testAmount = new BigNumber('0.12345678');
 
@@ -72,7 +72,7 @@ describe('Testing functions for upgrading Cashtab', () => {
             testAmount.toFixed(8),
         );
 
-        const testAmountInCashDecimals = toSmallestDenomination(testAmount, 8);
+        const testAmountInCashDecimals = fromXecToSatoshis(testAmount, 8);
 
         expect(testAmountInSatoshis).toStrictEqual(12345678);
         expect(testAmountInCashDecimals).toStrictEqual(
@@ -81,7 +81,7 @@ describe('Testing functions for upgrading Cashtab', () => {
     });
     it(`BigNumber version of remainder variable is equivalent to Math.floor version`, () => {
         // Test case for sending 0.12345678 BCHA
-        let satoshisToSendTest = toSmallestDenomination(
+        let satoshisToSendTest = fromXecToSatoshis(
             new BigNumber('0.12345678'),
             8,
         );

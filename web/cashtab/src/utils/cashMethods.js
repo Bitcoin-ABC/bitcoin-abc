@@ -267,14 +267,14 @@ export const generateTxOutput = (
                 );
                 txBuilder.addOutput(
                     BCH.Address.toCashAddress(outputAddress),
-                    parseInt(toSmallestDenomination(outputValue)),
+                    parseInt(fromXecToSatoshis(outputValue)),
                 );
             }
         } else {
             // for one to one mode, add output w/ single address and amount to send
             txBuilder.addOutput(
                 BCH.Address.toCashAddress(destinationAddress),
-                parseInt(toSmallestDenomination(singleSendValue)),
+                parseInt(fromXecToSatoshis(singleSendValue)),
             );
         }
 
@@ -426,7 +426,7 @@ export const fromSatoshisToXec = (
     return amountInBaseUnits.toNumber();
 };
 
-export const toSmallestDenomination = (
+export const fromXecToSatoshis = (
     sendAmount,
     cashDecimals = currency.cashDecimals,
 ) => {
