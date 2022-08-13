@@ -352,12 +352,10 @@ namespace {
         handleNotifyHeaderTip(NotifyHeaderTipFn fn) override {
             /* verification progress is unused when a header was received */
             return MakeHandler(::uiInterface.NotifyHeaderTip_connect(
-                [fn](SynchronizationState sync_state,
-                     const CBlockIndex *block) {
+                [fn](SynchronizationState sync_state, int64_t height,
+                     int64_t timestamp, bool presync) {
                     fn(sync_state,
-                       BlockTip{block->nHeight, block->GetBlockTime(),
-                                block->GetBlockHash()},
-                       0);
+                       BlockTip{int(height), timestamp, BlockHash{}}, presync);
                 }));
         }
         NodeContext *context() override { return m_context; }

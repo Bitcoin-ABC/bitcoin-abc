@@ -85,9 +85,9 @@ void CClientUIInterface::NotifyBlockTip(SynchronizationState s,
                                         const CBlockIndex *i) {
     return g_ui_signals.NotifyBlockTip(s, i);
 }
-void CClientUIInterface::NotifyHeaderTip(SynchronizationState s,
-                                         const CBlockIndex *i) {
-    return g_ui_signals.NotifyHeaderTip(s, i);
+void CClientUIInterface::NotifyHeaderTip(SynchronizationState s, int64_t height,
+                                         int64_t timestamp, bool presync) {
+    return g_ui_signals.NotifyHeaderTip(s, height, timestamp, presync);
 }
 void CClientUIInterface::BannedListChanged() {
     return g_ui_signals.BannedListChanged();

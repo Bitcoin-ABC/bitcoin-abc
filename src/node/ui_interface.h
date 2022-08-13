@@ -127,7 +127,7 @@ public:
 
     /** Best header has changed */
     ADD_SIGNALS_DECL_WRAPPER(NotifyHeaderTip, void, SynchronizationState,
-                             const CBlockIndex *);
+                             int64_t height, int64_t timestamp, bool presync);
 
     /** Banlist did change. */
     ADD_SIGNALS_DECL_WRAPPER(BannedListChanged, void, void);
