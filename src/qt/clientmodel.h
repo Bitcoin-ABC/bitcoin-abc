@@ -33,6 +33,8 @@ QT_END_NAMESPACE
 
 enum class BlockSource { NONE, REINDEX, DISK, NETWORK };
 
+enum class SyncType { HEADER_PRESYNC, HEADER_SYNC, BLOCK_SYNC };
+
 /** Model for Bitcoin network client. */
 class ClientModel : public QObject {
     Q_OBJECT
@@ -102,14 +104,14 @@ private:
     QThread *const m_thread;
 
     void TipChanged(SynchronizationState sync_state, interfaces::BlockTip tip,
-                    double verification_progress, bool header);
+                    double verification_progress, SyncType synctype);
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 
 Q_SIGNALS:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, const QDateTime &blockDate,
-                          double nVerificationProgress, bool header,
+                          double nVerificationProgress, SyncType header,
                           SynchronizationState sync_state);
     void mempoolSizeChanged(long count, size_t mempoolSizeInBytes);
     void networkActiveChanged(bool networkActive);

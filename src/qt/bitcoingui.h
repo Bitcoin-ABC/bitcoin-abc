@@ -9,6 +9,7 @@
 #include <config/bitcoin-config.h>
 #endif
 
+#include <qt/clientmodel.h>
 #include <qt/optionsdialog.h>
 
 #include <consensus/amount.h>
@@ -25,7 +26,6 @@
 
 #include <memory>
 
-class ClientModel;
 class Config;
 class HelpMessageDialog;
 class ModalOverlay;
@@ -214,6 +214,8 @@ private:
     void updateNetworkState();
 
     void updateHeadersSyncProgressLabel();
+    void updateHeadersPresyncProgressLabel(int64_t height,
+                                           const QDateTime &blockDate);
 
     /** Open the OptionsDialog on the specified tab index */
     void openOptionsDialogWithTab(OptionsDialog::Tab tab);
@@ -232,7 +234,7 @@ public Q_SLOTS:
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
     void setNumBlocks(int count, const QDateTime &blockDate,
-                      double nVerificationProgress, bool headers,
+                      double nVerificationProgress, SyncType synctype,
                       SynchronizationState sync_state);
 
     /**

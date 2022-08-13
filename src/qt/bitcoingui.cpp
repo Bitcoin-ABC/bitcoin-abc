@@ -669,10 +669,10 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel,
 
         modalOverlay->setKnownBestHeight(
             tip_info->header_height,
-            QDateTime::fromTime_t(tip_info->header_time));
+            QDateTime::fromTime_t(tip_info->header_time), /*presync=*/false);
         setNumBlocks(tip_info->block_height,
                      QDateTime::fromTime_t(tip_info->block_time),
-                     tip_info->verification_progress, false,
+                     tip_info->verification_progress, SyncType::BLOCK_SYNC,
                      SynchronizationState::INIT_DOWNLOAD);
         connect(_clientModel, &ClientModel::numBlocksChanged, this,
                 &BitcoinGUI::setNumBlocks);
@@ -1067,6 +1067,18 @@ void BitcoinGUI::updateHeadersSyncProgressLabel() {
     }
 }
 
+void BitcoinGUI::updateHeadersPresyncProgressLabel(int64_t height,
+                                                   const QDateTime &blockDate) {
+    int estHeadersLeft = blockDate.secsTo(QDateTime::currentDateTime()) /
+                         Params().GetConsensus().nPowTargetSpacing;
+    if (estHeadersLeft > HEADER_HEIGHT_DELTA_SYNC) {
+        progressBarLabel->setText(
+            tr("Pre-syncing Headers (%1%)…")
+                .arg(QString::number(100.0 / (height + estHeadersLeft) * height,
+                                     'f', 1)));
+    }
+}
+
 void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
     if (!clientModel || !clientModel->getOptionsModel()) {
         return;
@@ -1079,7 +1091,7 @@ void BitcoinGUI::openOptionsDialogWithTab(OptionsDialog::Tab tab) {
 }
 
 void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
-                              double nVerificationProgress, bool header,
+                              double nVerificationProgress, SyncType synctype,
                               SynchronizationState sync_state) {
 // Disabling macOS App Nap on initial sync, disk and reindex operations.
 #ifdef Q_OS_MAC
@@ -1091,8 +1103,9 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
 #endif
 
     if (modalOverlay) {
-        if (header) {
-            modalOverlay->setKnownBestHeight(count, blockDate);
+        if (synctype != SyncType::BLOCK_SYNC) {
+            modalOverlay->setKnownBestHeight(
+                count, blockDate, synctype == SyncType::HEADER_PRESYNC);
         } else {
             modalOverlay->tipUpdate(count, blockDate, nVerificationProgress);
         }
@@ -1109,7 +1122,10 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
     enum BlockSource blockSource = clientModel->getBlockSource();
     switch (blockSource) {
         case BlockSource::NETWORK:
-            if (header) {
+            if (synctype == SyncType::HEADER_PRESYNC) {
+                updateHeadersPresyncProgressLabel(count, blockDate);
+                return;
+            } else if (synctype == SyncType::HEADER_SYNC) {
                 updateHeadersSyncProgressLabel();
                 return;
             }
@@ -1117,7 +1133,7 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
             updateHeadersSyncProgressLabel();
             break;
         case BlockSource::DISK:
-            if (header) {
+            if (synctype != SyncType::BLOCK_SYNC) {
                 progressBarLabel->setText(tr("Indexing blocks on disk..."));
             } else {
                 progressBarLabel->setText(tr("Processing blocks on disk..."));
@@ -1127,7 +1143,7 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime &blockDate,
             progressBarLabel->setText(tr("Reindexing blocks on disk..."));
             break;
         case BlockSource::NONE:
-            if (header) {
+            if (synctype != SyncType::BLOCK_SYNC) {
                 return;
             }
             progressBarLabel->setText(tr("Connecting to peers..."));

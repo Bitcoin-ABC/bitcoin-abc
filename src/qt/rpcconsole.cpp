@@ -675,7 +675,7 @@ void RPCConsole::setClientModel(ClientModel *model, int bestblock_height,
                 &RPCConsole::setNumConnections);
 
         setNumBlocks(bestblock_height, QDateTime::fromTime_t(bestblock_date),
-                     verification_progress, false);
+                     verification_progress, SyncType::BLOCK_SYNC);
         connect(model, &ClientModel::numBlocksChanged, this,
                 &RPCConsole::setNumBlocks);
 
@@ -1022,8 +1022,8 @@ void RPCConsole::setNetworkActive(bool networkActive) {
 }
 
 void RPCConsole::setNumBlocks(int count, const QDateTime &blockDate,
-                              double nVerificationProgress, bool headers) {
-    if (!headers) {
+                              double nVerificationProgress, SyncType synctype) {
+    if (synctype == SyncType::BLOCK_SYNC) {
         ui->numberOfBlocks->setText(QString::number(count));
         ui->lastBlockTime->setText(blockDate.toString());
     }

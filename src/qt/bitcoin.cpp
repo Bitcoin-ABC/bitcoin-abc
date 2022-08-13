@@ -66,6 +66,7 @@ Q_IMPORT_PLUGIN(QMacStylePlugin);
 Q_DECLARE_METATYPE(bool *)
 Q_DECLARE_METATYPE(Amount)
 Q_DECLARE_METATYPE(SynchronizationState)
+Q_DECLARE_METATYPE(SyncType)
 Q_DECLARE_METATYPE(uint256)
 
 // Config is non-copyable so we can only register pointers to it
@@ -78,6 +79,7 @@ static void RegisterMetaTypes() {
     // Qt::QueuedConnection
     qRegisterMetaType<bool *>();
     qRegisterMetaType<SynchronizationState>();
+    qRegisterMetaType<SyncType>();
 #ifdef ENABLE_WALLET
     qRegisterMetaType<WalletModel *>();
 #endif
