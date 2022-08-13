@@ -103,6 +103,10 @@ builds:
       - '-DBUILD_BITCOIN_CHRONIK=ON'
     targets:
       - - check-crates
+      - - all
+        - install
+      - - check
+        - check-functional
 
   build-clang:
     Werror: true

@@ -73,6 +73,10 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/signals2/signal.hpp>
 
+#if ENABLE_CHRONIK
+#include <chronik-cpp/chronik.h>
+#endif
+
 #if ENABLE_ZMQ
 #include <zmq/zmqabstractnotifier.h>
 #include <zmq/zmqnotificationinterface.h>
@@ -226,6 +230,10 @@ void Shutdown(NodeContext &node) {
     if (node.connman) {
         node.connman->Stop();
     }
+
+#if ENABLE_CHRONIK
+    chronik::Stop();
+#endif
 
     StopTorControl();
 
@@ -2910,6 +2918,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             /* cache size */ 0, false, fReindex);
         g_coin_stats_index->Start(chainman.ActiveChainstate());
     }
+
+#if ENABLE_CHRONIK
+    chronik::Start(config, node);
+#endif
+
     // Step 9: load wallet
     for (const auto &client : node.chain_clients) {
         if (!client->load()) {

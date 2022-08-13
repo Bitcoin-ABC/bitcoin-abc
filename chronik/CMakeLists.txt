@@ -73,3 +73,17 @@ add_custom_target("check-crates")
 add_crate_test_targets(abc-rust)
 add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(chronik)
+
+# Chronik library
+add_library(chronik
+    chronik-cpp/chronik.cpp
+)
+target_include_directories(chronik PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(chronik
+    util
+)
+
+# Add chronik to server
+target_link_libraries(server
+    chronik
+)
