@@ -1547,6 +1547,7 @@ const Configure = () => {
                                                 autoComplete="off"
                                                 onChange={e => handleChange(e)}
                                                 required
+                                                title=""
                                             />
                                         </Form.Item>
                                         <SmartButton
