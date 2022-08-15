@@ -119,6 +119,39 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             }
         })
 
+        # Make sure receiving our own proof from the network before validating
+        # the local proof doesn't change our proof count.
+        sender = get_ava_p2p_interface(node)
+        sender.send_avaproof(proof)
+
+        # Make sure getting the proof via RPC doesn't change our proof count
+        # either.
+        node.sendavalancheproof(proof.serialize().hex())
+        assert_avalancheinfo({
+            "ready_to_poll": False,
+            "local": {
+                "verified": False,
+                "proofid": f"{proof.proofid:0{64}x}",
+                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                "master": privkey.get_pubkey().get_bytes().hex(),
+                "stake_amount": coinbase_amount,
+            },
+            "network": {
+                "proof_count": 0,
+                "connected_proof_count": 0,
+                "dangling_proof_count": 0,
+                "finalized_proof_count": 0,
+                "conflicting_proof_count": 0,
+                "immature_proof_count": 0,
+                "total_stake_amount": Decimal('0.00'),
+                "connected_stake_amount": Decimal('0.00'),
+                "dangling_stake_amount": Decimal('0.00'),
+                "node_count": 0,
+                "connected_node_count": 0,
+                "pending_node_count": 0,
+            }
+        })
+
         # Mine a block to trigger proof validation
         node.generate(1)
         self.wait_until(

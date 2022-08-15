@@ -55,6 +55,11 @@ static CPubKey ParsePubKey(const UniValue &param) {
 }
 
 static bool registerProofIfNeeded(avalanche::ProofRef proof) {
+    auto localProof = g_avalanche->getLocalProof();
+    if (localProof && localProof->getId() == proof->getId()) {
+        return true;
+    }
+
     return g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         return pm.getProof(proof->getId()) ||
                pm.registerProof(std::move(proof));

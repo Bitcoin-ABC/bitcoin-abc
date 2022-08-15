@@ -2340,6 +2340,11 @@ bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
 bool PeerManagerImpl::AlreadyHaveProof(const avalanche::ProofId &proofid) {
     assert(g_avalanche);
 
+    auto localProof = g_avalanche->getLocalProof();
+    if (localProof && localProof->getId() == proofid) {
+        return true;
+    }
+
     const bool hasProof = g_avalanche->withPeerManager(
         [&proofid](avalanche::PeerManager &pm) { return pm.exists(proofid); });
 
