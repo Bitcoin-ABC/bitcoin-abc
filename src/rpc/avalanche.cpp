@@ -638,14 +638,15 @@ static RPCHelpMan getavalancheinfo() {
             "",
             "",
             {
-                {RPCResult::Type::BOOL, "active",
+                {RPCResult::Type::BOOL, "ready_to_poll",
                  "Whether the node is ready to start polling and voting."},
                 {RPCResult::Type::OBJ,
                  "local",
                  "Only available if -avaproof has been supplied to the node",
                  {
-                     {RPCResult::Type::BOOL, "live",
-                      "Whether the node local proof has been verified or not."},
+                     {RPCResult::Type::BOOL, "verified",
+                      "Whether the node local proof has been locally verified "
+                      "or not."},
                      {RPCResult::Type::STR_HEX, "proofid",
                       "The node local proof id."},
                      {RPCResult::Type::STR_HEX, "limited_proofid",
@@ -665,31 +666,47 @@ static RPCHelpMan getavalancheinfo() {
                  "",
                  {
                      {RPCResult::Type::NUM, "proof_count",
-                      "The number of valid avalanche proofs we know exist."},
+                      "The number of valid avalanche proofs we know exist "
+                      "(including this node's local proof if applicable)."},
                      {RPCResult::Type::NUM, "connected_proof_count",
                       "The number of avalanche proofs with at least one node "
-                      "we are connected to."},
+                      "we are connected to (including this node's local proof "
+                      "if applicable)."},
+                     {RPCResult::Type::NUM, "dangling_proof_count",
+                      "The number of avalanche proofs with no node attached."},
                      {RPCResult::Type::NUM, "finalized_proof_count",
                       "The number of known avalanche proofs that have been "
                       "finalized by avalanche."},
                      {RPCResult::Type::NUM, "conflicting_proof_count",
                       "The number of known avalanche proofs that conflict with "
                       "valid proofs."},
-                     {RPCResult::Type::NUM, "orphan_proof_count",
-                      "The number of known avalanche proofs that are "
-                      "orphaned."},
+                     {RPCResult::Type::NUM, "immature_proof_count",
+                      "The number of known avalanche proofs that have immature "
+                      "utxos."},
                      {RPCResult::Type::STR_AMOUNT, "total_stake_amount",
                       "The total staked amount over all the valid proofs in " +
-                          Currency::get().ticker + "."},
+                          Currency::get().ticker +
+                          " (including this node's local proof if "
+                          "applicable)."},
                      {RPCResult::Type::STR_AMOUNT, "connected_stake_amount",
                       "The total staked amount over all the connected proofs "
                       "in " +
-                          Currency::get().ticker + "."},
+                          Currency::get().ticker +
+                          " (including this node's local proof if "
+                          "applicable)."},
+                     {RPCResult::Type::STR_AMOUNT, "dangling_stake_amount",
+                      "The total staked amount over all the dangling proofs "
+                      "in " +
+                          Currency::get().ticker +
+                          " (including this node's local proof if "
+                          "applicable)."},
                      {RPCResult::Type::NUM, "node_count",
-                      "The number of avalanche nodes we are connected to."},
+                      "The number of avalanche nodes we are connected to "
+                      "(including this node if a local proof is set)."},
                      {RPCResult::Type::NUM, "connected_node_count",
                       "The number of avalanche nodes associated with an "
-                      "avalanche proof."},
+                      "avalanche proof (including this node if a local proof "
+                      "is set)."},
                      {RPCResult::Type::NUM, "pending_node_count",
                       "The number of avalanche nodes pending for a proof."},
                  }},
@@ -705,16 +722,17 @@ static RPCHelpMan getavalancheinfo() {
             }
 
             UniValue ret(UniValue::VOBJ);
-            ret.pushKV("active", g_avalanche->isQuorumEstablished());
+            ret.pushKV("ready_to_poll", g_avalanche->isQuorumEstablished());
 
             auto localProof = g_avalanche->getLocalProof();
             if (localProof != nullptr) {
                 UniValue local(UniValue::VOBJ);
-                local.pushKV("live", g_avalanche->withPeerManager(
-                                         [&](const avalanche::PeerManager &pm) {
-                                             return pm.isBoundToPeer(
-                                                 localProof->getId());
-                                         }));
+                local.pushKV("verified",
+                             g_avalanche->withPeerManager(
+                                 [&](const avalanche::PeerManager &pm) {
+                                     return pm.isBoundToPeer(
+                                         localProof->getId());
+                                 }));
                 local.pushKV("proofid", localProof->getId().ToString());
                 local.pushKV("limited_proofid",
                              localProof->getLimitedId().ToString());
@@ -742,26 +760,23 @@ static RPCHelpMan getavalancheinfo() {
                 pm.forEachPeer([&](const avalanche::Peer &peer) {
                     CHECK_NONFATAL(peer.proof != nullptr);
 
-                    // Don't account for our local proof here
-                    if (peer.proof == localProof) {
-                        return;
-                    }
-
-                    const Amount proofStake = peer.proof->getStakedAmount();
+                    const bool isLocalProof = peer.proof == localProof;
 
                     ++proofCount;
+                    const Amount proofStake = peer.proof->getStakedAmount();
+
                     totalStakes += proofStake;
 
                     if (peer.hasFinalized) {
                         ++finalizedProofCount;
                     }
 
-                    if (peer.node_count > 0) {
+                    if (peer.node_count > 0 || isLocalProof) {
                         ++connectedProofCount;
                         connectedStakes += proofStake;
                     }
 
-                    connectedNodeCount += peer.node_count;
+                    connectedNodeCount += peer.node_count + isLocalProof;
                 });
 
                 network.pushKV("proof_count", proofCount);
@@ -772,7 +787,7 @@ static RPCHelpMan getavalancheinfo() {
                 network.pushKV("finalized_proof_count", finalizedProofCount);
                 network.pushKV("conflicting_proof_count",
                                uint64_t(pm.getConflictingProofCount()));
-                network.pushKV("orphan_proof_count",
+                network.pushKV("immature_proof_count",
                                uint64_t(pm.getOrphanProofCount()));
 
                 network.pushKV("total_stake_amount", totalStakes);

@@ -69,14 +69,14 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         self.log.info("The test node has no proof")
 
         assert_avalancheinfo({
-            "active": False,
+            "ready_to_poll": False,
             "network": {
                 "proof_count": 0,
                 "connected_proof_count": 0,
                 "dangling_proof_count": 0,
                 "finalized_proof_count": 0,
                 "conflicting_proof_count": 0,
-                "orphan_proof_count": 0,
+                "immature_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
                 "connected_stake_amount": Decimal('0.00'),
                 "dangling_stake_amount": Decimal('0.00'),
@@ -94,9 +94,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             '-avamasterkey={}'.format(bytes_to_wif(privkey.get_bytes()))
         ])
         assert_avalancheinfo({
-            "active": False,
+            "ready_to_poll": False,
             "local": {
-                "live": False,
+                "verified": False,
                 "proofid": f"{proof.proofid:0{64}x}",
                 "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -108,7 +108,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "dangling_proof_count": 0,
                 "finalized_proof_count": 0,
                 "conflicting_proof_count": 0,
-                "orphan_proof_count": 0,
+                "immature_proof_count": 0,
                 "total_stake_amount": Decimal('0.00'),
                 "connected_stake_amount": Decimal('0.00'),
                 "dangling_stake_amount": Decimal('0.00'),
@@ -122,26 +122,26 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node.generate(1)
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
-                "active": False,
+                "ready_to_poll": False,
                 "local": {
-                    "live": True,
+                    "verified": True,
                     "proofid": f"{proof.proofid:0{64}x}",
                     "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
                 },
                 "network": {
-                    "proof_count": 0,
-                    "connected_proof_count": 0,
+                    "proof_count": 1,
+                    "connected_proof_count": 1,
                     "dangling_proof_count": 0,
                     "finalized_proof_count": 0,
                     "conflicting_proof_count": 0,
-                    "orphan_proof_count": 0,
-                    "total_stake_amount": Decimal('0.00'),
-                    "connected_stake_amount": Decimal('0.00'),
+                    "immature_proof_count": 0,
+                    "total_stake_amount": coinbase_amount,
+                    "connected_stake_amount": coinbase_amount,
                     "dangling_stake_amount": Decimal('0.00'),
-                    "node_count": 0,
-                    "connected_node_count": 0,
+                    "node_count": 1,
+                    "connected_node_count": 1,
                     "pending_node_count": 0,
                 }
             })
@@ -192,26 +192,26 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
-                "active": True,
+                "ready_to_poll": True,
                 "local": {
-                    "live": True,
+                    "verified": True,
                     "proofid": f"{proof.proofid:0{64}x}",
                     "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
                 },
                 "network": {
-                    "proof_count": N,
-                    "connected_proof_count": N,
+                    "proof_count": N + 1,
+                    "connected_proof_count": N + 1,
                     "dangling_proof_count": 0,
                     "finalized_proof_count": 0,
                     "conflicting_proof_count": N,
-                    "orphan_proof_count": 1,
-                    "total_stake_amount": coinbase_amount * N,
-                    "connected_stake_amount": coinbase_amount * N,
+                    "immature_proof_count": 1,
+                    "total_stake_amount": coinbase_amount * (N + 1),
+                    "connected_stake_amount": coinbase_amount * (N + 1),
                     "dangling_stake_amount": Decimal('0.00'),
-                    "node_count": N,
-                    "connected_node_count": N,
+                    "node_count": N + 1,
+                    "connected_node_count": N + 1,
                     "pending_node_count": 0,
                 }
             })
@@ -227,26 +227,26 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
-                "active": True,
+                "ready_to_poll": True,
                 "local": {
-                    "live": True,
+                    "verified": True,
                     "proofid": f"{proof.proofid:0{64}x}",
                     "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
                 },
                 "network": {
-                    "proof_count": N,
-                    "connected_proof_count": N - D,
+                    "proof_count": N + 1,
+                    "connected_proof_count": N - D + 1,
                     "dangling_proof_count": D,
                     "finalized_proof_count": 0,
                     "conflicting_proof_count": N,
-                    "orphan_proof_count": 1,
-                    "total_stake_amount": coinbase_amount * N,
-                    "connected_stake_amount": coinbase_amount * (N - D),
+                    "immature_proof_count": 1,
+                    "total_stake_amount": coinbase_amount * (N + 1),
+                    "connected_stake_amount": coinbase_amount * (N + 1 - D),
                     "dangling_stake_amount": coinbase_amount * D,
-                    "node_count": N - D,
-                    "connected_node_count": N - D,
+                    "node_count": N + 1 - D,
+                    "connected_node_count": N + 1 - D,
                     "pending_node_count": 0,
                 }
             })
@@ -279,9 +279,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             n.sync_with_ping()
 
         assert_avalancheinfo({
-            "active": True,
+            "ready_to_poll": True,
             "local": {
-                "live": True,
+                "verified": True,
                 "proofid": f"{proof.proofid:0{64}x}",
                 "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                 "master": privkey.get_pubkey().get_bytes().hex(),
@@ -289,17 +289,17 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             },
             "network": {
                 # Orphan became mature
-                "proof_count": N + 1,
-                "connected_proof_count": N - D,
+                "proof_count": N + 2,
+                "connected_proof_count": N + 1 - D,
                 "dangling_proof_count": D + 1,
                 "finalized_proof_count": 0,
                 "conflicting_proof_count": N,
-                "orphan_proof_count": 0,
-                "total_stake_amount": coinbase_amount * (N + 1),
-                "connected_stake_amount": coinbase_amount * (N - D),
+                "immature_proof_count": 0,
+                "total_stake_amount": coinbase_amount * (N + 2),
+                "connected_stake_amount": coinbase_amount * (N + 1 - D),
                 "dangling_stake_amount": coinbase_amount * (D + 1),
-                "node_count": N - D + P,
-                "connected_node_count": N - D,
+                "node_count": N + 1 - D + P,
+                "connected_node_count": N + 1 - D,
                 "pending_node_count": P,
             }
         })
@@ -343,31 +343,32 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         with node.assert_debug_log(expected_logs):
             self.wait_until(lambda: vote_for_all_proofs())
 
-        self.log.info("Disconnect all the nodes")
+        self.log.info(
+            "Disconnect all the nodes, so we are the only node left on the network")
 
         node.disconnect_p2ps()
 
         assert_avalancheinfo({
-            "active": False,
+            "ready_to_poll": False,
             "local": {
-                "live": True,
+                "verified": True,
                 "proofid": f"{proof.proofid:0{64}x}",
                 "limited_proofid": f"{proof.limited_proofid:0{64}x}",
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
             },
             "network": {
-                "proof_count": N + 1,
-                "connected_proof_count": 0,
+                "proof_count": N + 2,
+                "connected_proof_count": 1,
                 "dangling_proof_count": N + 1,
                 "finalized_proof_count": N + 1,
                 "conflicting_proof_count": 0,
-                "orphan_proof_count": 0,
-                "total_stake_amount": coinbase_amount * (N + 1),
-                "connected_stake_amount": 0,
+                "immature_proof_count": 0,
+                "total_stake_amount": coinbase_amount * (N + 2),
+                "connected_stake_amount": coinbase_amount,
                 "dangling_stake_amount": coinbase_amount * (N + 1),
-                "node_count": 0,
-                "connected_node_count": 0,
+                "node_count": 1,
+                "connected_node_count": 1,
                 "pending_node_count": 0,
             }
         })

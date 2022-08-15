@@ -371,7 +371,8 @@ class AvaAddrTest(BitcoinTestFramework):
         for _ in range(4):
             avapeer = AllYesAvaP2PInterface(node)
             node.add_p2p_connection(avapeer)
-        self.wait_until(lambda: node.getavalancheinfo()['active'] is True)
+        self.wait_until(lambda: node.getavalancheinfo()
+                        ['ready_to_poll'] is True)
 
         def is_vote_finalized(proof):
             return node.getrawavalancheproof(
@@ -407,7 +408,7 @@ class AvaAddrTest(BitcoinTestFramework):
             extra_args=self.extra_args[0] +
             ['-avaminquorumstake=1000000'])
 
-        assert_equal(node.getavalancheinfo()['active'], False)
+        assert_equal(node.getavalancheinfo()['ready_to_poll'], False)
 
         outbound = MutedAvaP2PInterface()
         node.add_outbound_p2p_connection(outbound, p2p_idx=0)
@@ -436,7 +437,8 @@ class AvaAddrTest(BitcoinTestFramework):
         # Connect the minimum amount of stake and nodes
         for _ in range(8):
             node.add_p2p_connection(AvaP2PInterface(node))
-        self.wait_until(lambda: node.getavalancheinfo()['active'] is True)
+        self.wait_until(lambda: node.getavalancheinfo()
+                        ['ready_to_poll'] is True)
 
         # From now only the outbound is requested
         count_inbound = count_getavaaddr([inbound])

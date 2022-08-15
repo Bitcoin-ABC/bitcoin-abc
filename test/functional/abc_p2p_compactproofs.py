@@ -620,7 +620,7 @@ class CompactProofsTest(BitcoinTestFramework):
             extra_args=self.extra_args[0] +
             ['-avaminquorumstake=1000000'])
 
-        assert_equal(node.getavalancheinfo()['active'], False)
+        assert_equal(node.getavalancheinfo()['ready_to_poll'], False)
 
         outbound = AvaP2PInterface()
         node.add_outbound_p2p_connection(outbound, p2p_idx=0)
@@ -649,7 +649,8 @@ class CompactProofsTest(BitcoinTestFramework):
         # Connect the minimum amount of stake and nodes
         for _ in range(8):
             node.add_p2p_connection(AvaP2PInterface(node))
-        self.wait_until(lambda: node.getavalancheinfo()['active'] is True)
+        self.wait_until(lambda: node.getavalancheinfo()
+                        ['ready_to_poll'] is True)
 
         # From now only the outbound is requested
         count_inbound = count_getavaproofs([inbound])
