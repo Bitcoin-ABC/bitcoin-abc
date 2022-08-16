@@ -392,7 +392,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
             "-avamasterkey={}".format(bytes_to_wif(privkey.get_bytes())),
         ])
         node.generate(1)
-        wait_for_proof(node, proofid_hex, expect_status="orphan")
+        wait_for_proof(node, proofid_hex, expect_status="immature")
 
         peer = node.add_p2p_connection(context.p2p_conn())
         peer.send_message(

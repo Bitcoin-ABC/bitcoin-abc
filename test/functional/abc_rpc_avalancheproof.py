@@ -221,7 +221,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.connect_nodes(1, node.index)
         self.sync_all()
         self.nodes[1].generate(1)
-        wait_for_proof(self.nodes[1], proofid_hex, expect_status="orphan")
+        wait_for_proof(self.nodes[1], proofid_hex, expect_status="immature")
 
         # Mine another block to make the orphan mature
         self.nodes[1].generate(1)
@@ -479,7 +479,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
-        assert_equal(raw_proof['orphan'], False)
+        assert_equal(raw_proof['immature'], False)
         assert_equal(raw_proof['boundToPeer'], True)
         assert_equal(raw_proof['conflicting'], False)
         assert_equal(raw_proof['finalized'], False)
@@ -502,7 +502,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         raw_proof = node.getrawavalancheproof(conflicting_proofid_hex)
         assert_equal(raw_proof['proof'], conflicting_proof)
-        assert_equal(raw_proof['orphan'], False)
+        assert_equal(raw_proof['immature'], False)
         assert_equal(raw_proof['boundToPeer'], False)
         assert_equal(raw_proof['conflicting'], True)
         assert_equal(raw_proof['finalized'], False)
@@ -526,7 +526,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         raw_proof = node.getrawavalancheproof("{:064x}".format(proofid))
         assert_equal(raw_proof['proof'], proof)
-        assert_equal(raw_proof['orphan'], True)
+        assert_equal(raw_proof['immature'], True)
         assert_equal(raw_proof['boundToPeer'], False)
         assert_equal(raw_proof['conflicting'], False)
         assert_equal(raw_proof['finalized'], False)

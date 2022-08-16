@@ -156,7 +156,7 @@ def get_proof_ids(node):
 def wait_for_proof(node, proofid_hex, expect_status="boundToPeer", timeout=60):
     """
     Wait for the proof to be known by the node. The expect_status is checked
-    once after the proof is found and can be one of the following: "orphan",
+    once after the proof is found and can be one of the following: "immature",
     "boundToPeer", "conflicting" or "finalized".
     """
     ret = {}

@@ -129,7 +129,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         msg.proof = orphan
         peer.send_message(msg)
 
-        wait_for_proof(node, orphan_proofid, expect_status="orphan")
+        wait_for_proof(node, orphan_proofid, expect_status="immature")
 
     def test_ban_invalid_proof(self):
         node = self.nodes[0]

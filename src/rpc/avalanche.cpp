@@ -931,8 +931,8 @@ static RPCHelpMan getrawavalancheproof() {
             {{
                 {RPCResult::Type::STR_HEX, "proof",
                  "The hex encoded proof matching the identifier."},
-                {RPCResult::Type::BOOL, "orphan",
-                 "Whether the proof is an orphan."},
+                {RPCResult::Type::BOOL, "immature",
+                 "Whether the proof has immature utxos."},
                 {RPCResult::Type::BOOL, "boundToPeer",
                  "Whether the proof is bound to an avalanche peer."},
                 {RPCResult::Type::BOOL, "conflicting",
@@ -953,13 +953,13 @@ static RPCHelpMan getrawavalancheproof() {
             const avalanche::ProofId proofid =
                 avalanche::ProofId::fromHex(request.params[0].get_str());
 
-            bool isOrphan = false;
+            bool isImmature = false;
             bool isBoundToPeer = false;
             bool conflicting = false;
             bool finalized = false;
             auto proof = g_avalanche->withPeerManager(
                 [&](const avalanche::PeerManager &pm) {
-                    isOrphan = pm.isOrphan(proofid);
+                    isImmature = pm.isOrphan(proofid);
                     isBoundToPeer = pm.isBoundToPeer(proofid);
                     conflicting = pm.isInConflictingPool(proofid);
                     finalized =
@@ -978,7 +978,7 @@ static RPCHelpMan getrawavalancheproof() {
             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
             ss << *proof;
             ret.pushKV("proof", HexStr(ss));
-            ret.pushKV("orphan", isOrphan);
+            ret.pushKV("immature", isImmature);
             ret.pushKV("boundToPeer", isBoundToPeer);
             ret.pushKV("conflicting", conflicting);
             ret.pushKV("finalized", finalized);
