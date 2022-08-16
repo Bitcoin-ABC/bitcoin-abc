@@ -178,8 +178,8 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         mock_time += self.conflicting_proof_cooldown
         node.setmocktime(mock_time)
 
-        self.log.info("Check we don't poll for orphans")
-        with node.assert_debug_log(["Not polling the avalanche proof (orphan-proof)"]):
+        self.log.info("Check we don't poll for immature proofs")
+        with node.assert_debug_log(["Not polling the avalanche proof (immature-proof)"]):
             peer.send_avaproof(avalanche_proof_from_hex(orphan))
 
         self.log.info("Check we don't poll for proofs that get rejected")
@@ -496,9 +496,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         _, immature_proof = gen_proof(node)
 
-        self.log.info("Orphan proofs are not polled")
+        self.log.info("Immature proofs are not polled")
 
-        with node.assert_debug_log(["Not polling the avalanche proof (orphan-proof)"]):
+        with node.assert_debug_log(["Not polling the avalanche proof (immature-proof)"]):
             peer.send_avaproof(immature_proof)
 
         self.log.info("Unorphaned proofs are polled")

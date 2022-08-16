@@ -749,7 +749,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     auto registerOrphan = [&](const ProofRef &proof) {
         ProofRegistrationState state;
         BOOST_CHECK(!pm.registerProof(proof, state));
-        BOOST_CHECK(state.GetResult() == ProofRegistrationResult::ORPHAN);
+        BOOST_CHECK(state.GetResult() == ProofRegistrationResult::IMMATURE);
     };
 
     auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
@@ -772,7 +772,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     std::vector<ProofRef> orphans;
 
     // Fill up orphan pool to test the size limit
-    for (int64_t i = 1; i <= AVALANCHE_MAX_ORPHAN_PROOFS; i++) {
+    for (int64_t i = 1; i <= AVALANCHE_MAX_IMMATURE_PROOFS; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
         auto proof = buildProofWithOutpoints(
             key, {outpoint}, i * PROOF_DUST_THRESHOLD, key, 0, immatureHeight);

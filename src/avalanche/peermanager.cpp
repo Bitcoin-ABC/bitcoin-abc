@@ -245,15 +245,17 @@ bool PeerManager::registerProof(const ProofRef &proof,
     if (!WITH_LOCK(cs_main, return proof->verify(stakeUtxoDustThreshold,
                                                  chainman, validationState))) {
         if (isImmatureState(validationState)) {
-            orphanProofPool.addProofIfPreferred(proof);
-            if (orphanProofPool.countProofs() > AVALANCHE_MAX_ORPHAN_PROOFS) {
-                // Adding this proof exceeds the orphan pool limit, so evict
+            immatureProofPool.addProofIfPreferred(proof);
+            if (immatureProofPool.countProofs() >
+                AVALANCHE_MAX_IMMATURE_PROOFS) {
+                // Adding this proof exceeds the immature pool limit, so evict
                 // the lowest scoring proof.
-                orphanProofPool.removeProof(
-                    orphanProofPool.getLowestScoreProof()->getId());
+                immatureProofPool.removeProof(
+                    immatureProofPool.getLowestScoreProof()->getId());
             }
 
-            return invalidate(ProofRegistrationResult::ORPHAN, "orphan-proof");
+            return invalidate(ProofRegistrationResult::IMMATURE,
+                              "immature-proof");
         }
 
         if (validationState.GetResult() ==
@@ -384,7 +386,7 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
         return false;
     }
 
-    if (orphanProofPool.removeProof(proofid)) {
+    if (immatureProofPool.removeProof(proofid)) {
         return true;
     }
 
@@ -497,17 +499,17 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
         }
     }
 
-    // Remove the invalid proofs before the orphans rescan. This makes it
+    // Remove the invalid proofs before the immature rescan. This makes it
     // possible to pull back proofs with utxos that conflicted with these
     // invalid proofs.
     for (const ProofId &invalidProofId : invalidProofIds) {
         rejectProof(invalidProofId, RejectionMode::INVALIDATE);
     }
 
-    auto registeredProofs = orphanProofPool.rescan(*this);
+    auto registeredProofs = immatureProofPool.rescan(*this);
 
     for (auto &p : newOrphans) {
-        orphanProofPool.addProofIfPreferred(p);
+        immatureProofPool.addProofIfPreferred(p);
     }
 
     return registeredProofs;
@@ -526,7 +528,7 @@ ProofRef PeerManager::getProof(const ProofId &proofid) const {
     }
 
     if (!proof) {
-        proof = orphanProofPool.getProof(proofid);
+        proof = immatureProofPool.getProof(proofid);
     }
 
     return proof;
@@ -538,7 +540,7 @@ bool PeerManager::isBoundToPeer(const ProofId &proofid) const {
 }
 
 bool PeerManager::isImmature(const ProofId &proofid) const {
-    return orphanProofPool.getProof(proofid) != nullptr;
+    return immatureProofPool.getProof(proofid) != nullptr;
 }
 
 bool PeerManager::isInConflictingPool(const ProofId &proofid) const {

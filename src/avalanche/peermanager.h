@@ -37,13 +37,12 @@ class CScheduler;
 namespace avalanche {
 
 /**
- * Maximum number of orphan proofs the peer manager will accept from the
- * network. Under good conditions, this allows the node to collect relevant
- * proofs during IBD. Note that reorgs can cause the orphan pool to
- * temporarily exceed this limit. But a change in chaintip cause previously
- * reorged proofs to be trimmed.
+ * Maximum number of immature proofs the peer manager will accept from the
+ * network. Note that reorgs can cause the immature pool to temporarily exceed
+ * this limit, but a change in chaintip cause previously reorged proofs to be
+ * trimmed.
  */
-static constexpr uint32_t AVALANCHE_MAX_ORPHAN_PROOFS = 4000;
+static constexpr uint32_t AVALANCHE_MAX_IMMATURE_PROOFS = 4000;
 
 class Delegation;
 
@@ -138,7 +137,7 @@ struct by_score;
 enum class ProofRegistrationResult {
     NONE = 0,
     ALREADY_REGISTERED,
-    ORPHAN,
+    IMMATURE,
     INVALID,
     CONFLICTING,
     REJECTED,
@@ -177,7 +176,7 @@ class PeerManager {
 
     ProofPool validProofPool;
     ProofPool conflictingProofPool;
-    ProofPool orphanProofPool;
+    ProofPool immatureProofPool;
 
     using ProofRadixTree = RadixTree<const Proof, ProofRadixTreeAdapter>;
     ProofRadixTree shareableProofs;
@@ -417,7 +416,7 @@ public:
     size_t getConflictingProofCount() {
         return conflictingProofPool.countProofs();
     }
-    size_t getImmatureProofCount() { return orphanProofPool.countProofs(); }
+    size_t getImmatureProofCount() { return immatureProofPool.countProofs(); }
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;
