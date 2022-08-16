@@ -1253,7 +1253,7 @@ BOOST_AUTO_TEST_CASE(proof_record) {
 
         BOOST_CHECK(pm.isBoundToPeer(validProof->getId()));
         BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
-        BOOST_CHECK(pm.isOrphan(orphanProof->getId()));
+        BOOST_CHECK(pm.isImmature(orphanProof->getId()));
     });
 
     BOOST_CHECK(m_processor->addProofToReconcile(conflictingProof));

@@ -3412,17 +3412,17 @@ static uint32_t getAvalancheVoteForProof(const avalanche::ProofId &id) {
             return -1;
         }
 
-        // Orphan proof
-        if (pm.isOrphan(id)) {
+        // Immature proof
+        if (pm.isImmature(id)) {
             return 2;
         }
 
-        // Not an orphan, but in conflict with an actively bound proof
+        // Not immature, but in conflict with an actively bound proof
         if (pm.isInConflictingPool(id)) {
             return 3;
         }
 
-        // The proof is known, not rejected, not an orphan, not a conflict, but
+        // The proof is known, not rejected, not immature, not a conflict, but
         // for some reason unbound. This should not happen if the above pools
         // are managed correctly, but added for robustness.
         return -2;

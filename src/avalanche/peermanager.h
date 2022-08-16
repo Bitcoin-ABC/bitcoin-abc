@@ -411,13 +411,13 @@ public:
 
     ProofRef getProof(const ProofId &proofid) const;
     bool isBoundToPeer(const ProofId &proofid) const;
-    bool isOrphan(const ProofId &proofid) const;
+    bool isImmature(const ProofId &proofid) const;
     bool isInConflictingPool(const ProofId &proofid) const;
 
     size_t getConflictingProofCount() {
         return conflictingProofPool.countProofs();
     }
-    size_t getOrphanProofCount() { return orphanProofPool.countProofs(); }
+    size_t getImmatureProofCount() { return orphanProofPool.countProofs(); }
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;

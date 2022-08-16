@@ -163,7 +163,7 @@ bool PeerManager::latchAvaproofsSent(NodeId nodeid) {
            nodes.modify(it, [&](Node &n) { n.avaproofsSent = true; });
 }
 
-static bool isOrphanState(const ProofValidationState &state) {
+static bool isImmatureState(const ProofValidationState &state) {
     return state.GetResult() == ProofValidationResult::IMMATURE_UTXO;
 }
 
@@ -244,7 +244,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
     ProofValidationState validationState;
     if (!WITH_LOCK(cs_main, return proof->verify(stakeUtxoDustThreshold,
                                                  chainman, validationState))) {
-        if (isOrphanState(validationState)) {
+        if (isImmatureState(validationState)) {
             orphanProofPool.addProofIfPreferred(proof);
             if (orphanProofPool.countProofs() > AVALANCHE_MAX_ORPHAN_PROOFS) {
                 // Adding this proof exceeds the orphan pool limit, so evict
@@ -489,7 +489,7 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
         for (const auto &p : peers) {
             ProofValidationState state;
             if (!p.proof->verify(stakeUtxoDustThreshold, chainman, state)) {
-                if (isOrphanState(state)) {
+                if (isImmatureState(state)) {
                     newOrphans.push_back(p.proof);
                 }
                 invalidProofIds.push_back(p.getProofId());
@@ -537,7 +537,7 @@ bool PeerManager::isBoundToPeer(const ProofId &proofid) const {
     return pview.find(proofid) != pview.end();
 }
 
-bool PeerManager::isOrphan(const ProofId &proofid) const {
+bool PeerManager::isImmature(const ProofId &proofid) const {
     return orphanProofPool.getProof(proofid) != nullptr;
 }
 

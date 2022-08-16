@@ -802,7 +802,7 @@ static RPCHelpMan getavalancheinfo() {
                 network.pushKV("conflicting_proof_count",
                                uint64_t(pm.getConflictingProofCount()));
                 network.pushKV("immature_proof_count",
-                               uint64_t(pm.getOrphanProofCount()));
+                               uint64_t(pm.getImmatureProofCount()));
 
                 network.pushKV("total_stake_amount", totalStakes);
                 network.pushKV("connected_stake_amount", connectedStakes);
@@ -964,7 +964,7 @@ static RPCHelpMan getrawavalancheproof() {
             bool finalized = false;
             auto proof = g_avalanche->withPeerManager(
                 [&](const avalanche::PeerManager &pm) {
-                    isImmature = pm.isOrphan(proofid);
+                    isImmature = pm.isImmature(proofid);
                     isBoundToPeer = pm.isBoundToPeer(proofid);
                     conflicting = pm.isInConflictingPool(proofid);
                     finalized =

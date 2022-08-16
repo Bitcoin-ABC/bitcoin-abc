@@ -628,8 +628,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
         BOOST_CHECK(TestPeerManager::nodeBelongToPeer(pm, i, peerid));
     }
 
-    // Orphan the proof by reorging to a shorter chain that makes the proof
-    // immature
+    // Make the proof immature by reorging to a shorter chain
     {
         BlockValidationState state;
         chainman.ActiveChainstate().InvalidateBlock(GetConfig(), state,
@@ -638,7 +637,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     }
 
     pm.updatedBlockTip();
-    BOOST_CHECK(pm.isOrphan(proofid));
+    BOOST_CHECK(pm.isImmature(proofid));
     BOOST_CHECK(!pm.isBoundToPeer(proofid));
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK(TestPeerManager::isNodePending(pm, i));
@@ -659,7 +658,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     }
 
     pm.updatedBlockTip();
-    BOOST_CHECK(!pm.isOrphan(proofid));
+    BOOST_CHECK(!pm.isImmature(proofid));
     BOOST_CHECK(pm.isBoundToPeer(proofid));
     // The peerid has certainly been updated
     peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
@@ -757,7 +756,7 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
         const ProofId &proofid = proof->getId();
         BOOST_CHECK(pm.exists(proofid));
 
-        BOOST_CHECK_EQUAL(pm.isOrphan(proofid), expectedOrphan);
+        BOOST_CHECK_EQUAL(pm.isImmature(proofid), expectedOrphan);
         BOOST_CHECK_EQUAL(pm.isBoundToPeer(proofid), !expectedOrphan);
 
         bool ret = false;
@@ -1070,10 +1069,10 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
         buildProofWithSequence(key, {conflictingOutpoint, matureOutpoint}, 20);
 
     BOOST_CHECK(!pm.registerProof(orphan10));
-    BOOST_CHECK(pm.isOrphan(orphan10->getId()));
+    BOOST_CHECK(pm.isImmature(orphan10->getId()));
 
     BOOST_CHECK(!pm.registerProof(orphan20));
-    BOOST_CHECK(pm.isOrphan(orphan20->getId()));
+    BOOST_CHECK(pm.isImmature(orphan20->getId()));
     BOOST_CHECK(!pm.exists(orphan10->getId()));
 
     // Build and register a valid proof that will conflict with the orphan
@@ -1095,7 +1094,7 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     pm.updatedBlockTip();
 
     BOOST_CHECK(!pm.isBoundToPeer(proof30->getId()));
-    BOOST_CHECK(pm.isOrphan(proof30->getId()));
+    BOOST_CHECK(pm.isImmature(proof30->getId()));
     BOOST_CHECK(!pm.exists(orphan20->getId()));
 }
 
@@ -1362,7 +1361,7 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
 
     BOOST_CHECK(pm.isBoundToPeer(proofSeq20->getId()));
     BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
-    BOOST_CHECK(pm.isOrphan(orphan30->getId()));
+    BOOST_CHECK(pm.isImmature(orphan30->getId()));
 
     // Rejecting a proof that doesn't exist should fail
     for (size_t i = 0; i < 10; i++) {
@@ -1376,11 +1375,11 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
 
     auto checkRejectDefault = [&](const ProofId &proofid) {
         BOOST_CHECK(pm.exists(proofid));
-        const bool isOrphan = pm.isOrphan(proofid);
+        const bool isImmature = pm.isImmature(proofid);
         BOOST_CHECK(pm.rejectProof(
             proofid, avalanche::PeerManager::RejectionMode::DEFAULT));
         BOOST_CHECK(!pm.isBoundToPeer(proofid));
-        BOOST_CHECK_EQUAL(pm.exists(proofid), !isOrphan);
+        BOOST_CHECK_EQUAL(pm.exists(proofid), !isImmature);
     };
 
     auto checkRejectInvalidate = [&](const ProofId &proofid) {
@@ -1392,7 +1391,7 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
     // Reject from the orphan pool
     checkRejectDefault(orphan30->getId());
     BOOST_CHECK(!pm.registerProof(orphan30));
-    BOOST_CHECK(pm.isOrphan(orphan30->getId()));
+    BOOST_CHECK(pm.isImmature(orphan30->getId()));
     checkRejectInvalidate(orphan30->getId());
 
     // Reject from the conflicting pool
@@ -1586,17 +1585,17 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
 
     BOOST_CHECK(pm.isBoundToPeer(peer1Proof2->getId()));
     BOOST_CHECK(pm.isInConflictingPool(peer1Proof1->getId()));
-    BOOST_CHECK(pm.isOrphan(peer1Proof3->getId()));
+    BOOST_CHECK(pm.isImmature(peer1Proof3->getId()));
 
     BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
 
     auto checkRejectDefault = [&](const ProofId &proofid) {
         BOOST_CHECK(pm.exists(proofid));
-        const bool isOrphan = pm.isOrphan(proofid);
+        const bool isImmature = pm.isImmature(proofid);
         BOOST_CHECK(pm.rejectProof(
             proofid, avalanche::PeerManager::RejectionMode::DEFAULT));
         BOOST_CHECK(!pm.isBoundToPeer(proofid));
-        BOOST_CHECK_EQUAL(pm.exists(proofid), !isOrphan);
+        BOOST_CHECK_EQUAL(pm.exists(proofid), !isImmature);
     };
 
     auto checkRejectInvalidate = [&](const ProofId &proofid) {
@@ -1608,7 +1607,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
     // Reject from the orphan pool doesn't affect tracked score
     checkRejectDefault(peer1Proof3->getId());
     BOOST_CHECK(!pm.registerProof(peer1Proof3));
-    BOOST_CHECK(pm.isOrphan(peer1Proof3->getId()));
+    BOOST_CHECK(pm.isImmature(peer1Proof3->getId()));
     BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
     checkRejectInvalidate(peer1Proof3->getId());
     BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), peer1Score2);
