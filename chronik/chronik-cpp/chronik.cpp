@@ -7,12 +7,13 @@
 #include <node/context.h>
 
 #include <chronik-cpp/chronik.h>
+#include <chronik-cpp/chronik_bridge.h>
 
 namespace chronik {
 
 void Start([[maybe_unused]] const Config &config,
            [[maybe_unused]] const NodeContext &node) {
-  LogPrintf("Starting Chronik...\n");
+  chronik_bridge::setup_bridge();
 }
 
 void Stop() { LogPrintf("Stopping Chronik...\n"); }

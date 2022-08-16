@@ -7,4 +7,5 @@ members = [
     "chronik/abc-rust-lint",
     "chronik/bitcoinsuite-core",
     "chronik/chronik-db",
+    "chronik/chronik-ffi",
 ]

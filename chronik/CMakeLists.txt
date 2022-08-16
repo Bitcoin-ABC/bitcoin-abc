@@ -74,13 +74,38 @@ add_crate_test_targets(abc-rust)
 add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(chronik)
 
+# Compile Rust, generates chronik-ffi-static
+corrosion_import_crate(MANIFEST_PATH "chronik-ffi/Cargo.toml")
+
+# cxx crate generates some source files at this location
+set(CXXBRIDGE_GENERATED_FOLDER
+    "${CARGO_BUILD_DIR}/${Rust_CARGO_TARGET}/cxxbridge")
+set(CXXBRIDGE_GENERATED_CPP_FILES
+    "${CXXBRIDGE_GENERATED_FOLDER}/chronik-ffi/src/ffi.rs.cc")
+add_custom_command(
+    OUTPUT
+        ${CXXBRIDGE_GENERATED_CPP_FILES}
+    COMMAND
+        "${CMAKE_COMMAND}"
+        -E env
+        "echo" "Generating cxx bridge files"
+    DEPENDS chronik-ffi-static
+)
+
 # Chronik library
 add_library(chronik
     chronik-cpp/chronik.cpp
+    chronik-cpp/chronik_bridge.cpp
+    ${CXXBRIDGE_GENERATED_CPP_FILES}
 )
-target_include_directories(chronik PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(chronik
+    PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CXXBRIDGE_GENERATED_FOLDER}"
+)
 target_link_libraries(chronik
     util
+    chronik-ffi-static
 )
 
 # Add chronik to server

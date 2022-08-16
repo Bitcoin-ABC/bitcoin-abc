@@ -4,6 +4,9 @@ set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
 set(TOOLCHAIN_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-apple-darwin16)
 
+# Set Corrosion Rust target
+set(Rust_CARGO_TARGET "x86_64-apple-darwin")
+
 # On OSX, we use clang by default.
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)

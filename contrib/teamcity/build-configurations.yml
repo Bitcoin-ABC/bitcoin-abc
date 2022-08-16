@@ -199,6 +199,8 @@ builds:
     cross_build:
       static_depends: linux32
       toolchain: Linux32
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
     templates:
       - check+secp256k1
     timeout: 3600
@@ -207,6 +209,8 @@ builds:
     cross_build:
       static_depends: linux64
       toolchain: Linux64
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
     templates:
       - check+secp256k1
     timeout: 3600
@@ -217,6 +221,7 @@ builds:
       toolchain: LinuxAArch64
       emulator: qemu-aarch64-static
     cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
       # The ZMQ functional test will fail with qemu (due to a qemu limitation),
       # so disable it to avoid the failure.
       # Extracted from stderr:
@@ -247,6 +252,7 @@ builds:
       toolchain: LinuxARM
       emulator: qemu-arm-static
     cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
       # The ZMQ functional test will fail with qemu (due to a qemu limitation),
       # so disable it to avoid the failure.
       # Extracted from stderr:
@@ -300,6 +306,9 @@ builds:
     cross_build:
       static_depends: osx
       toolchain: OSX
+    # Uncomment to build Chronik once the cxx crate is working for OSX
+    # cmake_flags:
+    #  - '-DBUILD_BITCOIN_CHRONIK=ON'
     targets:
       - - all
         - install
@@ -376,6 +385,7 @@ builds:
       static_depends: win64
       toolchain: Win64
     cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
       - "-DBUILD_BITCOIN_SEEDER=OFF"
       - "-DCPACK_STRIP_FILES=ON"
       - "-DUSE_JEMALLOC=OFF"
