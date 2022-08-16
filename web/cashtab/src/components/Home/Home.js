@@ -192,6 +192,7 @@ const WalletInfo = () => {
                                 : 'usd'
                         }
                         contactList={contactList}
+                        cashtabSettings={cashtabSettings}
                     />
                     {!hasHistory && (
                         <>

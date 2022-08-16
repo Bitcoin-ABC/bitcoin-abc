@@ -3,7 +3,13 @@ import PropTypes from 'prop-types';
 import Tx from './Tx';
 import { flattenContactList } from 'utils/cashMethods';
 
-const TxHistory = ({ txs, fiatPrice, fiatCurrency, contactList }) => {
+const TxHistory = ({
+    txs,
+    fiatPrice,
+    fiatCurrency,
+    contactList,
+    cashtabSettings,
+}) => {
     // Convert contactList array of objects to an array of addresses
     const addressesInContactList = flattenContactList(contactList);
     return (
@@ -16,6 +22,7 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency, contactList }) => {
                     fiatCurrency={fiatCurrency}
                     addressesInContactList={addressesInContactList}
                     contactList={contactList}
+                    cashtabSettings={cashtabSettings}
                 />
             ))}
         </div>
@@ -32,6 +39,15 @@ TxHistory.propTypes = {
             name: PropTypes.string,
         }),
     ),
+    cashtabSettings: PropTypes.oneOfType([
+        PropTypes.shape({
+            fiatCurrency: PropTypes.string,
+            sendModal: PropTypes.bool,
+            autoCameraOn: PropTypes.bool,
+            hideMessagesFromUnknownSender: PropTypes.bool,
+        }),
+        PropTypes.bool,
+    ]),
 };
 
 export default TxHistory;

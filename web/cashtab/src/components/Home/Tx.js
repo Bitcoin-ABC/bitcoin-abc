@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
@@ -115,6 +115,7 @@ const RightTextCtn = styled.div`
         margin: 0;
     }
 `;
+
 const OpReturnType = styled.div`
     text-align: right;
     width: 100%;
@@ -122,6 +123,18 @@ const OpReturnType = styled.div`
     border-radius: 5px;
     background: ${props => props.theme.sentMessage};
     margin-top: 15px;
+    transition: max-height 500ms cubic-bezier(0, 1, 0, 1);
+    max-height: auto;
+    &[aria-expanded='true'] {
+        max-height: 5000px;
+        transition: max-height 500ms ease-in;
+    }
+
+    &[aria-expanded='false'] {
+        transition: max-height 200ms ease-in;
+        max-height: 6rem;
+    }
+
     h4 {
         color: ${props => props.theme.lightWhite};
         margin: 0;
@@ -137,7 +150,7 @@ const OpReturnType = styled.div`
     }
     a {
         color: ${props => props.theme.contrast};
-        margin: 0;
+        margin: 0px 0px 0px 5px;
         font-size: 10px;
         border: 1px solid ${props => props.theme.contrast};
         border-radius: 5px;
@@ -158,6 +171,22 @@ const OpReturnType = styled.div`
   `}
 `;
 
+const ShowHideMessageButton = styled.button`
+    color: ${props => props.theme.contrast};
+    background-color: transparent;
+    margin: 0px 0px 0px 5px;
+    font-size: 10px;
+    border: 1px solid ${props => props.theme.contrast};
+    border-radius: 5px;
+    padding: 1.6px 10px;
+    opacity: 0.6;
+    &:hover {
+        opacity: 1;
+        border-color: ${props => props.theme.eCashBlue};
+        color: ${props => props.theme.contrast};
+        background: ${props => props.theme.eCashBlue};
+    }
+`;
 const ReceivedLabel = styled.span`
     font-weight: bold;
     color: ${props => props.theme.eCashBlue} !important;
@@ -174,6 +203,19 @@ const UnauthorizedDecryptionMessage = styled.span`
     color: ${props => props.theme.encryptionRed};
     white-space: nowrap;
     font-style: italic;
+`;
+
+const DecryptedMessage = styled.div`
+    ${props =>
+        props.authorized
+            ? {
+                  color: `${props => props.theme.contrast}`,
+                  margin: '0',
+                  fontSize: '14px',
+                  marginBottom: '10px',
+                  overflowWrap: 'break-word',
+              }
+            : `${UnauthorizedDecryptionMessage}`}
 `;
 
 const TxInfo = styled.div`
@@ -352,7 +394,12 @@ const Tx = ({
     fiatCurrency,
     addressesInContactList,
     contactList,
+    cashtabSettings,
 }) => {
+    const [displayedMessage, setDisplayedMessage] = useState(false);
+    const handleShowMessage = () => {
+        setDisplayedMessage(!displayedMessage);
+    };
     const txDate =
         typeof data.blocktime === 'undefined'
             ? formatDate()
@@ -657,6 +704,11 @@ const Tx = ({
                                             <>
                                                 <OpReturnType
                                                     received={!data.outgoingTx}
+                                                    aria-expanded={
+                                                        cashtabSettings.hideMessagesFromUnknownSenders
+                                                            ? displayedMessage
+                                                            : false
+                                                    }
                                                 >
                                                     {!data.outgoingTx &&
                                                         !addressesInContactList.includes(
@@ -687,43 +739,144 @@ const Tx = ({
                                                         ''
                                                     )}
                                                     <br />
-                                                    {/*unencrypted OP_RETURN Message*/}
-                                                    {data.opReturnMessage &&
-                                                    !data.isEncryptedMessage ? (
-                                                        <p>
-                                                            {
-                                                                data.opReturnMessage
-                                                            }
-                                                        </p>
+                                                    {cashtabSettings.hideMessagesFromUnknownSenders ? (
+                                                        <>
+                                                            {/*unencrypted OP_RETURN Message*/}
+                                                            {data.opReturnMessage &&
+                                                                !data.isEncryptedMessage && (
+                                                                    <>
+                                                                        {!displayedMessage &&
+                                                                        !data.outgoingTx &&
+                                                                        !addressesInContactList.includes(
+                                                                            data.replyAddress,
+                                                                        ) ? (
+                                                                            <ShowHideMessageButton
+                                                                                onClick={e => {
+                                                                                    e.stopPropagation();
+                                                                                    handleShowMessage();
+                                                                                }}
+                                                                            >
+                                                                                Show
+                                                                            </ShowHideMessageButton>
+                                                                        ) : (
+                                                                            <>
+                                                                                <p>
+                                                                                    {' '}
+                                                                                    {
+                                                                                        data.opReturnMessage
+                                                                                    }
+                                                                                </p>
+                                                                                {!addressesInContactList.includes(
+                                                                                    data.replyAddress,
+                                                                                ) &&
+                                                                                    !data.outgoingTx && (
+                                                                                        <ShowHideMessageButton
+                                                                                            onClick={e => {
+                                                                                                e.stopPropagation();
+                                                                                                handleShowMessage();
+                                                                                            }}
+                                                                                        >
+                                                                                            Hide
+                                                                                        </ShowHideMessageButton>
+                                                                                    )}
+                                                                            </>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            {data.opReturnMessage &&
+                                                                data.isEncryptedMessage && (
+                                                                    <>
+                                                                        {!displayedMessage &&
+                                                                        !data.outgoingTx &&
+                                                                        !addressesInContactList.includes(
+                                                                            data.replyAddress,
+                                                                        ) ? (
+                                                                            <ShowHideMessageButton
+                                                                                onClick={e => {
+                                                                                    e.stopPropagation();
+                                                                                    handleShowMessage();
+                                                                                }}
+                                                                            >
+                                                                                Show
+                                                                            </ShowHideMessageButton>
+                                                                        ) : (
+                                                                            <>
+                                                                                <DecryptedMessage
+                                                                                    authorized={
+                                                                                        data.decryptionSuccess
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        data.opReturnMessage
+                                                                                    }
+                                                                                </DecryptedMessage>
+                                                                                {!addressesInContactList.includes(
+                                                                                    data.replyAddress,
+                                                                                ) &&
+                                                                                    // do not render 'Hide' button if msg cannot be decrypted
+                                                                                    data.decryptionSuccess && (
+                                                                                        <ShowHideMessageButton
+                                                                                            onClick={e => {
+                                                                                                e.stopPropagation();
+                                                                                                handleShowMessage();
+                                                                                            }}
+                                                                                        >
+                                                                                            Hide
+                                                                                        </ShowHideMessageButton>
+                                                                                    )}
+                                                                            </>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                        </>
                                                     ) : (
-                                                        ''
+                                                        <>
+                                                            {/*unencrypted OP_RETURN Message*/}
+                                                            {data.opReturnMessage &&
+                                                            !data.isEncryptedMessage ? (
+                                                                <p>
+                                                                    {
+                                                                        data.opReturnMessage
+                                                                    }
+                                                                </p>
+                                                            ) : (
+                                                                ''
+                                                            )}
+                                                            {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
+                                                            {data.opReturnMessage &&
+                                                            data.isEncryptedMessage &&
+                                                            data.decryptionSuccess ? (
+                                                                <p>
+                                                                    {
+                                                                        data.opReturnMessage
+                                                                    }
+                                                                </p>
+                                                            ) : (
+                                                                ''
+                                                            )}
+                                                            {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
+                                                            {data.opReturnMessage &&
+                                                            data.isEncryptedMessage &&
+                                                            !data.decryptionSuccess ? (
+                                                                <UnauthorizedDecryptionMessage>
+                                                                    {
+                                                                        data.opReturnMessage
+                                                                    }
+                                                                </UnauthorizedDecryptionMessage>
+                                                            ) : (
+                                                                ''
+                                                            )}
+                                                        </>
                                                     )}
-                                                    {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                                    {data.opReturnMessage &&
-                                                    data.isEncryptedMessage &&
-                                                    data.decryptionSuccess ? (
-                                                        <p>
-                                                            {
-                                                                data.opReturnMessage
-                                                            }
-                                                        </p>
-                                                    ) : (
-                                                        ''
-                                                    )}
-                                                    {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                                    {data.opReturnMessage &&
-                                                    data.isEncryptedMessage &&
-                                                    !data.decryptionSuccess ? (
-                                                        <UnauthorizedDecryptionMessage>
-                                                            {
-                                                                data.opReturnMessage
-                                                            }
-                                                        </UnauthorizedDecryptionMessage>
-                                                    ) : (
-                                                        ''
-                                                    )}
-                                                    {!data.outgoingTx &&
-                                                    data.replyAddress ? (
+                                                    {(!data.outgoingTx &&
+                                                        data.replyAddress &&
+                                                        addressesInContactList.includes(
+                                                            data.replyAddress,
+                                                        )) ||
+                                                    (!cashtabSettings.hideMessagesFromUnknownSenders &&
+                                                        !data.outgoingTx &&
+                                                        data.replyAddress &&
+                                                        displayedMessage) ? (
                                                         <Link
                                                             to={{
                                                                 pathname: `/send`,
@@ -851,6 +1004,15 @@ Tx.propTypes = {
             name: PropTypes.string,
         }),
     ),
+    cashtabSettings: PropTypes.oneOfType([
+        PropTypes.shape({
+            fiatCurrency: PropTypes.string,
+            sendModal: PropTypes.bool,
+            autoCameraOn: PropTypes.bool,
+            hideMessagesFromUnknownSenders: PropTypes.bool,
+        }),
+        PropTypes.bool,
+    ]),
 };
 
 export default Tx;

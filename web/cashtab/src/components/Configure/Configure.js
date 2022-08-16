@@ -466,6 +466,9 @@ const GeneralSettingsItem = styled.div`
             }
         }
     }
+    .ShowMessages {
+        color: ${props => props.theme.lightWhite};
+    }
 `;
 
 const Configure = () => {
@@ -942,6 +945,9 @@ const Configure = () => {
 
     const handleCameraOverride = checkedState => {
         changeCashtabSettings('autoCameraOn', checkedState);
+    };
+    const handleUnknownSenderMsg = checkedState => {
+        changeCashtabSettings('hideMessagesFromUnknownSenders', checkedState);
     };
 
     const getContactNameByAddress = contactAddress => {
@@ -1862,6 +1868,22 @@ const Configure = () => {
                         />
                     </GeneralSettingsItem>
                 )}
+                <GeneralSettingsItem>
+                    <div className="ShowMessages">
+                        <LockFilled /> Hide messages from unknown sender
+                    </div>
+                    <Switch
+                        size="small"
+                        checkedChildren={<CheckOutlined />}
+                        unCheckedChildren={<CloseOutlined />}
+                        checked={
+                            cashtabSettings
+                                ? cashtabSettings.hideMessagesFromUnknownSenders
+                                : false
+                        }
+                        onChange={handleUnknownSenderMsg}
+                    />
+                </GeneralSettingsItem>
                 <StyledSpacer />
                 <SettingsLinkCtn>
                     [
