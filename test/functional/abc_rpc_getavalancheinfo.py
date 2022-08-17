@@ -364,12 +364,12 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
             # Check if all proofs are finalized or invalidated
             return all(
-                [node.getrawavalancheproof(uint256_hex(p.proofid)).get("finalized", False) for p in proofs] +
+                [node.getrawavalancheproof(uint256_hex(p.proofid)).get("finalized", False) for p in (proofs + [proof])] +
                 [try_rpc(-8, "Proof not found", node.getrawavalancheproof,
                          uint256_hex(c.proofid)) for c in conflicting_proofs]
             )
 
-        # Vote until proofs have finalized
+        # Vote until all the proofs have finalized (including ours)
         expected_logs = []
         for p in proofs:
             expected_logs.append(
@@ -395,7 +395,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "proof_count": N + 2,
                 "connected_proof_count": 1,
                 "dangling_proof_count": N + 1,
-                "finalized_proof_count": N + 1,
+                "finalized_proof_count": N + 2,
                 "conflicting_proof_count": 0,
                 "immature_proof_count": 0,
                 "total_stake_amount": coinbase_amount * (N + 2),

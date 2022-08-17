@@ -113,12 +113,15 @@ public:
         auto registerProofs = [&]() {
             LOCK(m_processor->cs_peerManager);
 
-            if (m_processor->peerData && m_processor->peerData->proof) {
+            auto registeredProofs = m_processor->peerManager->updatedBlockTip();
+
+            if (m_processor->peerData && m_processor->peerData->proof &&
                 m_processor->peerManager->registerProof(
-                    m_processor->peerData->proof);
+                    m_processor->peerData->proof)) {
+                registeredProofs.insert(m_processor->peerData->proof);
             }
 
-            return m_processor->peerManager->updatedBlockTip();
+            return registeredProofs;
         };
 
         auto registeredProofs = registerProofs();
