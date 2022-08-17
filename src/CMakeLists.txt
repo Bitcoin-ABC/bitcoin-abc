@@ -659,6 +659,7 @@ add_library(server
 	node/coin.cpp
 	node/coinstats.cpp
 	node/context.cpp
+	node/database_args.cpp
 	node/interfaces.cpp
 	node/mempool_persist_args.cpp
 	node/miner.cpp
@@ -879,6 +880,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		networks/abc/checkpoints.cpp
 		node/blockstorage.cpp
 		node/chainstate.cpp
+		node/database_args.cpp
 		node/ui_interface.cpp
 		node/utxo_snapshot.cpp
 		policy/fees.cpp
