@@ -9,6 +9,8 @@
 #include <consensus/params.h>
 #include <node/blockstorage.h>
 #include <node/caches.h>
+#include <node/database_args.h>
+#include <util/system.h>
 #include <validation.h>
 
 namespace node {
@@ -21,9 +23,16 @@ static ChainstateLoadResult CompleteChainstateInitialization(
     // new CBlockTreeDB tries to delete the existing file, which
     // fails if it's still open from the previous loop. Close it first:
     pblocktree.reset();
-    pblocktree.reset(new CBlockTreeDB(cache_sizes.block_tree_db,
-                                      options.block_tree_db_in_memory,
-                                      options.reindex));
+    pblocktree = std::make_unique<CBlockTreeDB>(
+        DBParams{.path = gArgs.GetDataDirNet() / "blocks" / "index",
+                 .cache_bytes = static_cast<size_t>(cache_sizes.block_tree_db),
+                 .memory_only = options.block_tree_db_in_memory,
+                 .wipe_data = options.reindex,
+                 .options = [] {
+                     DBOptions options;
+                     node::ReadDatabaseArgs(gArgs, options);
+                     return options;
+                 }()});
 
     if (options.reindex) {
         pblocktree->WriteReindexing(true);
