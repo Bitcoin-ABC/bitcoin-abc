@@ -147,6 +147,14 @@ RUST_NIGHTLY_DATE=2022-06-29
 # Name the nightly toolchain "abc-nightly"
 "${RUST_HOME}/rustup" toolchain link abc-nightly "$(${RUST_HOME}/rustc +nightly-${RUST_NIGHTLY_DATE} --print sysroot)"
 
+# Install required compile platform targets on stable
+"${RUST_HOME}/rustup" target add "i686-unknown-linux-gnu" \
+                                 "x86_64-unknown-linux-gnu" \
+                                 "aarch64-unknown-linux-gnu" \
+                                 "arm-unknown-linux-gnueabihf" \
+                                 "x86_64-apple-darwin" \
+                                 "x86_64-pc-windows-gnu"
+
 # Install corrosion from Github
 wget https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.2.1 -O corrosion.tar.gz
 echo "49fdaa6af103c5523cc940e73a23c67e5b25d4b74f4ee55a8b7a524a4f815517 corrosion.tar.gz" | sha256sum -c
