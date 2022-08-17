@@ -312,6 +312,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             # might miss the last pending node for the following assert
             n.sync_with_ping()
 
+        # Immature became mature
+        proofs.append(immature_proof)
+
         assert_avalancheinfo({
             "ready_to_poll": True,
             "local": {
@@ -322,7 +325,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "stake_amount": coinbase_amount,
             },
             "network": {
-                # Immature became mature
                 "proof_count": N + 2,
                 "connected_proof_count": N + 1 - D,
                 "dangling_proof_count": D + 1,
