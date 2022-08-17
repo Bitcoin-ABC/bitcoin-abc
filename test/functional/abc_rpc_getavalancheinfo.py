@@ -187,7 +187,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node.setmocktime(mock_time)
 
         privkeys = []
-        proofs = []
+        proofs = [proof]
         conflicting_proofs = []
         quorum = []
         N = 13
@@ -366,7 +366,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
             # Check if all proofs are finalized or invalidated
             return all(
-                [node.getrawavalancheproof(uint256_hex(p.proofid)).get("finalized", False) for p in (proofs + [proof])] +
+                [node.getrawavalancheproof(uint256_hex(p.proofid)).get("finalized", False) for p in proofs] +
                 [try_rpc(-8, "Proof not found", node.getrawavalancheproof,
                          uint256_hex(c.proofid)) for c in conflicting_proofs]
             )
