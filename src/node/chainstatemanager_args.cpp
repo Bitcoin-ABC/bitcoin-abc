@@ -5,6 +5,9 @@
 #include <node/chainstatemanager_args.h>
 
 #include <arith_uint256.h>
+#include <kernel/chainstatemanager_opts.h>
+#include <node/coins_view_args.h>
+#include <node/database_args.h>
 #include <tinyformat.h>
 #include <uint256.h>
 #include <util/strencodings.h>
@@ -44,6 +47,11 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
     if (auto value{args.GetIntArg("-maxtipage")}) {
         opts.max_tip_age = std::chrono::seconds{*value};
     }
+
+    ReadDatabaseArgs(args, opts.block_tree_db);
+    ReadDatabaseArgs(args, opts.coins_db);
+    ReadCoinsViewArgs(args, opts.coins_view);
+
     return std::nullopt;
 }
 } // namespace node

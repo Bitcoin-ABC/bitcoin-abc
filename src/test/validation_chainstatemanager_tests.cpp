@@ -398,6 +398,7 @@ struct SnapshotTestSetup : TestChain100Setup {
             BOOST_CHECK_EQUAL(chainman.GetAll().size(), 0);
             const ChainstateManager::Options chainman_opts{
                 .config = ::GetConfig(),
+                .datadir = m_args.GetDataDirNet(),
                 .adjusted_time_callback = GetAdjustedTime,
             };
             node::BlockManager::Options blockman_opts{

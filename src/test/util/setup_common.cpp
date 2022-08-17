@@ -212,6 +212,7 @@ ChainTestingSetup::ChainTestingSetup(
 
     ChainstateManager::Options chainman_opts{
         .config = config,
+        .datadir = m_args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
         .check_block_index = true,
     };

@@ -1984,6 +1984,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     {
         ChainstateManager::Options chainman_opts_dummy{
             .config = config,
+            .datadir = args.GetDataDirNet(),
         };
         if (const auto error{ApplyArgsManOptions(args, chainman_opts_dummy)}) {
             return InitError(*error);
@@ -2367,6 +2368,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     ChainstateManager::Options chainman_opts{
         .config = config,
+        .datadir = args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
     };
     // no error can happen, already checked in AppInitParameterInteraction

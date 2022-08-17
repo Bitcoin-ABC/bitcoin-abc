@@ -9,8 +9,6 @@
 #include <consensus/params.h>
 #include <node/blockstorage.h>
 #include <node/caches.h>
-#include <node/database_args.h>
-#include <util/system.h>
 #include <validation.h>
 
 namespace node {
@@ -24,15 +22,11 @@ static ChainstateLoadResult CompleteChainstateInitialization(
     // fails if it's still open from the previous loop. Close it first:
     pblocktree.reset();
     pblocktree = std::make_unique<CBlockTreeDB>(
-        DBParams{.path = gArgs.GetDataDirNet() / "blocks" / "index",
+        DBParams{.path = chainman.m_options.datadir / "blocks" / "index",
                  .cache_bytes = static_cast<size_t>(cache_sizes.block_tree_db),
                  .memory_only = options.block_tree_db_in_memory,
                  .wipe_data = options.reindex,
-                 .options = [] {
-                     DBOptions options;
-                     node::ReadDatabaseArgs(gArgs, options);
-                     return options;
-                 }()});
+                 .options = chainman.m_options.block_tree_db});
 
     if (options.reindex) {
         pblocktree->WriteReindexing(true);

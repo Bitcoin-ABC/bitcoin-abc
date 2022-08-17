@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
     // SETUP: Chainstate
     const ChainstateManager::Options chainman_opts{
         .config = config,
+        .datadir = gArgs.GetDataDirNet(),
         .adjusted_time_callback = NodeClock::now,
     };
     const node::BlockManager::Options blockman_opts{
