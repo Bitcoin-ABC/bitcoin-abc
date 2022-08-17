@@ -1056,7 +1056,7 @@ class AvalancheVoteError(IntEnum):
 class AvalancheProofVoteResponse(IntEnum):
     ACTIVE = 0
     REJECTED = 1
-    ORPHAN = 2
+    IMMATURE = 2
     CONFLICT = 3
     UNKNOWN = -1
 

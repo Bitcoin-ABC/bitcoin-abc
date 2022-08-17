@@ -738,7 +738,7 @@ BOOST_AUTO_TEST_CASE(proof_conflict) {
                       NO_PEER);
 }
 
-BOOST_AUTO_TEST_CASE(orphan_proofs) {
+BOOST_AUTO_TEST_CASE(immature_proofs) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
@@ -746,18 +746,18 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
     auto key = CKey::MakeCompressedKey();
     int immatureHeight = 100;
 
-    auto registerOrphan = [&](const ProofRef &proof) {
+    auto registerImmature = [&](const ProofRef &proof) {
         ProofRegistrationState state;
         BOOST_CHECK(!pm.registerProof(proof, state));
         BOOST_CHECK(state.GetResult() == ProofRegistrationResult::IMMATURE);
     };
 
-    auto checkOrphan = [&](const ProofRef &proof, bool expectedOrphan) {
+    auto checkImmature = [&](const ProofRef &proof, bool expectedImmature) {
         const ProofId &proofid = proof->getId();
         BOOST_CHECK(pm.exists(proofid));
 
-        BOOST_CHECK_EQUAL(pm.isImmature(proofid), expectedOrphan);
-        BOOST_CHECK_EQUAL(pm.isBoundToPeer(proofid), !expectedOrphan);
+        BOOST_CHECK_EQUAL(pm.isImmature(proofid), expectedImmature);
+        BOOST_CHECK_EQUAL(pm.isBoundToPeer(proofid), !expectedImmature);
 
         bool ret = false;
         pm.forEachPeer([&](const Peer &peer) {
@@ -765,25 +765,25 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
                 ret = true;
             }
         });
-        BOOST_CHECK_EQUAL(ret, !expectedOrphan);
+        BOOST_CHECK_EQUAL(ret, !expectedImmature);
     };
 
-    // Track orphans so we can test them later
-    std::vector<ProofRef> orphans;
+    // Track immature proofs so we can test them later
+    std::vector<ProofRef> immatureProofs;
 
-    // Fill up orphan pool to test the size limit
+    // Fill up the immature pool to test the size limit
     for (int64_t i = 1; i <= AVALANCHE_MAX_IMMATURE_PROOFS; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
         auto proof = buildProofWithOutpoints(
             key, {outpoint}, i * PROOF_DUST_THRESHOLD, key, 0, immatureHeight);
         addCoin(chainman.ActiveChainstate(), outpoint, key,
                 i * PROOF_DUST_THRESHOLD, immatureHeight);
-        registerOrphan(proof);
-        checkOrphan(proof, true);
-        orphans.push_back(proof);
+        registerImmature(proof);
+        checkImmature(proof, true);
+        immatureProofs.push_back(proof);
     }
 
-    // More orphans evict lower scoring proofs
+    // More immature proofs evict lower scoring proofs
     for (auto i = 0; i < 100; i++) {
         COutPoint outpoint = COutPoint(TxId(GetRandHash()), 0);
         auto proof =
@@ -791,32 +791,33 @@ BOOST_AUTO_TEST_CASE(orphan_proofs) {
                                     key, 0, immatureHeight);
         addCoin(chainman.ActiveChainstate(), outpoint, key,
                 200 * PROOF_DUST_THRESHOLD, immatureHeight);
-        registerOrphan(proof);
-        checkOrphan(proof, true);
-        orphans.push_back(proof);
-        BOOST_CHECK(!pm.exists(orphans.front()->getId()));
-        orphans.erase(orphans.begin());
+        registerImmature(proof);
+        checkImmature(proof, true);
+        immatureProofs.push_back(proof);
+        BOOST_CHECK(!pm.exists(immatureProofs.front()->getId()));
+        immatureProofs.erase(immatureProofs.begin());
     }
 
     // Replacement when the pool is full still works
     {
         const COutPoint &outpoint =
-            orphans.front()->getStakes()[0].getStake().getUTXO();
+            immatureProofs.front()->getStakes()[0].getStake().getUTXO();
         auto proof =
             buildProofWithOutpoints(key, {outpoint}, 101 * PROOF_DUST_THRESHOLD,
                                     key, 1, immatureHeight);
-        registerOrphan(proof);
-        checkOrphan(proof, true);
-        orphans.push_back(proof);
-        BOOST_CHECK(!pm.exists(orphans.front()->getId()));
-        orphans.erase(orphans.begin());
+        registerImmature(proof);
+        checkImmature(proof, true);
+        immatureProofs.push_back(proof);
+        BOOST_CHECK(!pm.exists(immatureProofs.front()->getId()));
+        immatureProofs.erase(immatureProofs.begin());
     }
 
-    // Mine a block to increase the chain height, making all orphans mature
+    // Mine a block to increase the chain height, turning all immature proofs to
+    // mature
     mineBlocks(1);
     pm.updatedBlockTip();
-    for (const auto &proof : orphans) {
-        checkOrphan(proof, false);
+    for (const auto &proof : immatureProofs) {
+        checkImmature(proof, false);
     }
 }
 
@@ -1051,7 +1052,7 @@ BOOST_FIXTURE_TEST_CASE(conflicting_proof_selection, NoCoolDownFixture) {
     gArgs.ClearForcedArg("-enableavalancheproofreplacement");
 }
 
-BOOST_AUTO_TEST_CASE(conflicting_orphans) {
+BOOST_AUTO_TEST_CASE(conflicting_immature_proofs) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     gArgs.ForceSetArg("-avaproofstakeutxoconfirmations", "2");
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
@@ -1064,24 +1065,24 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
     const COutPoint matureOutpoint =
         createUtxo(active_chainstate, key, PROOF_DUST_THRESHOLD, 99);
 
-    auto orphan10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
-    auto orphan20 =
+    auto immature10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
+    auto immature20 =
         buildProofWithSequence(key, {conflictingOutpoint, matureOutpoint}, 20);
 
-    BOOST_CHECK(!pm.registerProof(orphan10));
-    BOOST_CHECK(pm.isImmature(orphan10->getId()));
+    BOOST_CHECK(!pm.registerProof(immature10));
+    BOOST_CHECK(pm.isImmature(immature10->getId()));
 
-    BOOST_CHECK(!pm.registerProof(orphan20));
-    BOOST_CHECK(pm.isImmature(orphan20->getId()));
-    BOOST_CHECK(!pm.exists(orphan10->getId()));
+    BOOST_CHECK(!pm.registerProof(immature20));
+    BOOST_CHECK(pm.isImmature(immature20->getId()));
+    BOOST_CHECK(!pm.exists(immature10->getId()));
 
-    // Build and register a valid proof that will conflict with the orphan
+    // Build and register a valid proof that will conflict with the immature one
     auto proof30 = buildProofWithOutpoints(key, {matureOutpoint},
                                            PROOF_DUST_THRESHOLD, key, 30, 99);
     BOOST_CHECK(pm.registerProof(proof30));
     BOOST_CHECK(pm.isBoundToPeer(proof30->getId()));
 
-    // Reorg to a shorter chain to orphan proof30
+    // Reorg to a shorter chain to make proof30 immature
     {
         BlockValidationState state;
         active_chainstate.InvalidateBlock(GetConfig(), state,
@@ -1089,13 +1090,13 @@ BOOST_AUTO_TEST_CASE(conflicting_orphans) {
         BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 99);
     }
 
-    // Check that a rescan will also select the preferred orphan, in this case
-    // proof30 will replace orphan20.
+    // Check that a rescan will also select the preferred immature proof, in
+    // this case proof30 will replace immature20.
     pm.updatedBlockTip();
 
     BOOST_CHECK(!pm.isBoundToPeer(proof30->getId()));
     BOOST_CHECK(pm.isImmature(proof30->getId()));
-    BOOST_CHECK(!pm.exists(orphan20->getId()));
+    BOOST_CHECK(!pm.exists(immature20->getId()));
 }
 
 BOOST_FIXTURE_TEST_CASE(preferred_conflicting_proof, NoCoolDownFixture) {
@@ -1352,16 +1353,16 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
         key, {conflictingOutpoint}, PROOF_DUST_THRESHOLD, key, 10, 99);
     auto proofSeq20 = buildProofWithOutpoints(
         key, {conflictingOutpoint}, PROOF_DUST_THRESHOLD, key, 20, 99);
-    auto orphan30 = buildProofWithSequence(
+    auto immature30 = buildProofWithSequence(
         key, {conflictingOutpoint, immatureOutpoint}, 30);
 
     BOOST_CHECK(pm.registerProof(proofSeq20));
     BOOST_CHECK(!pm.registerProof(proofSeq10));
-    BOOST_CHECK(!pm.registerProof(orphan30));
+    BOOST_CHECK(!pm.registerProof(immature30));
 
     BOOST_CHECK(pm.isBoundToPeer(proofSeq20->getId()));
     BOOST_CHECK(pm.isInConflictingPool(proofSeq10->getId()));
-    BOOST_CHECK(pm.isImmature(orphan30->getId()));
+    BOOST_CHECK(pm.isImmature(immature30->getId()));
 
     // Rejecting a proof that doesn't exist should fail
     for (size_t i = 0; i < 10; i++) {
@@ -1388,11 +1389,11 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
             proofid, avalanche::PeerManager::RejectionMode::INVALIDATE));
     };
 
-    // Reject from the orphan pool
-    checkRejectDefault(orphan30->getId());
-    BOOST_CHECK(!pm.registerProof(orphan30));
-    BOOST_CHECK(pm.isImmature(orphan30->getId()));
-    checkRejectInvalidate(orphan30->getId());
+    // Reject from the immature pool
+    checkRejectDefault(immature30->getId());
+    BOOST_CHECK(!pm.registerProof(immature30));
+    BOOST_CHECK(pm.isImmature(immature30->getId()));
+    checkRejectInvalidate(immature30->getId());
 
     // Reject from the conflicting pool
     checkRejectDefault(proofSeq10->getId());
@@ -1563,7 +1564,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
     auto peer1Proof2 =
         buildProof(key, {{peer1ConflictingOutput, amount1}}, key, 20, 99);
 
-    // Create a proof with an immature UTXO, so the proof will be orphaned
+    // Create a proof with an immature UTXO, so the proof will be immature
     auto peer1Proof3 =
         buildProof(key,
                    {{peer1ConflictingOutput, amount1},
@@ -1604,7 +1605,7 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
             proofid, avalanche::PeerManager::RejectionMode::INVALIDATE));
     };
 
-    // Reject from the orphan pool doesn't affect tracked score
+    // Reject from the immature pool doesn't affect tracked score
     checkRejectDefault(peer1Proof3->getId());
     BOOST_CHECK(!pm.registerProof(peer1Proof3));
     BOOST_CHECK(pm.isImmature(peer1Proof3->getId()));

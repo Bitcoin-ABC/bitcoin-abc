@@ -1004,7 +1004,7 @@ bool Processor::isWorthPolling(const ProofRef &proof) const {
 
     const ProofId &proofid = proof->getId();
 
-    // No point polling orphans or discarded proofs
+    // No point polling immature or discarded proofs
     return peerManager->isBoundToPeer(proofid) ||
            peerManager->isInConflictingPool(proofid);
 }

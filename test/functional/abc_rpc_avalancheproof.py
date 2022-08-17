@@ -69,7 +69,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
     def run_test(self):
         # Turn off node 1 while node 0 mines blocks to generate stakes,
-        # so that we can later try starting node 1 with an orphan proof.
+        # so that we can later try starting node 1 with an immature proof.
         self.stop_node(1)
 
         node = self.nodes[0]
@@ -209,7 +209,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         # This case will occur for users building proofs with a third party
         # tool and then starting a new node that is not yet aware of the
         # transactions used for stakes.
-        self.log.info("Start a node with an orphan proof")
+        self.log.info("Start a node with an immature proof")
 
         stake_age = node.getblockcount() + 2
         self.restart_node(1, self.extra_args[0] + [
@@ -223,7 +223,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.nodes[1].generate(1)
         wait_for_proof(self.nodes[1], proofid_hex, expect_status="immature")
 
-        # Mine another block to make the orphan mature
+        # Mine another block to make the proof mature
         self.nodes[1].generate(1)
         wait_for_proof(self.nodes[0], proofid_hex)
 
@@ -507,8 +507,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         assert_equal(raw_proof['conflicting'], True)
         assert_equal(raw_proof['finalized'], False)
 
-        # To orphan the proof, we make it immature by switching to a shorter
-        # chain
+        # Make the proof immature by switching to a shorter chain
         node.invalidateblock(node.getbestblockhash())
         # Although the chaintip has changed, updatedBlockTip does not get
         # called unless new chainwork needs evaluating, so invalidate another

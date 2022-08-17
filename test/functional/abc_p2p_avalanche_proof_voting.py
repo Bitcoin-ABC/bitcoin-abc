@@ -123,7 +123,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.update_tests(node)
         self.vote_tests(node)
         self.stale_proof_tests(node)
-        self.unorphan_poll_tests(node)
+        self.maturity_poll_tests(node)
 
     def poll_tests(self, node):
         proof_seq10 = self.build_conflicting_proof(node, 10)
@@ -131,7 +131,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         proof_seq30 = self.build_conflicting_proof(node, 30)
         proof_seq40 = self.build_conflicting_proof(node, 40)
 
-        orphan = node.buildavalancheproof(
+        immature = node.buildavalancheproof(
             100, 0, self.privkey_wif, self.immature_stakes)
 
         no_stake = node.buildavalancheproof(
@@ -180,7 +180,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("Check we don't poll for immature proofs")
         with node.assert_debug_log(["Not polling the avalanche proof (immature-proof)"]):
-            peer.send_avaproof(avalanche_proof_from_hex(orphan))
+            peer.send_avaproof(avalanche_proof_from_hex(immature))
 
         self.log.info("Check we don't poll for proofs that get rejected")
         with node.assert_debug_log(["Not polling the avalanche proof (rejected-proof)"]):
@@ -343,7 +343,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         stakes_1 = create_coinbase_stakes(node, [blocks[1]], stakes_key.key)
         proof_1, proof_1_id = create_proof(stakes_1)
 
-        # proof_2 is an orphan because the stake UTXO is immature
+        # proof_2 is immature because the stake UTXO is immature
         stakes_2 = create_coinbase_stakes(node, [blocks[3]], stakes_key.key)
         proof_2, proof_2_id = create_proof(stakes_2)
 
@@ -403,12 +403,12 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
 
-        # The next proof should be rejected/put in the orphan pool
+        # The next proof should be rejected/put in the immature pool
         ava_node.send_proof(avalanche_proof_from_hex(proof_2))
         poll_assert_response([
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.ORPHAN, proof_2_id),
+            AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_3_id),
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
 
@@ -419,7 +419,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         poll_assert_response([
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.ORPHAN, proof_2_id),
+            AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
             AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proof_4_id)])
 
@@ -429,7 +429,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         poll_assert_response([
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_0_id),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proof_1_id),
-            AvalancheVote(AvalancheProofVoteResponse.ORPHAN, proof_2_id),
+            AvalancheVote(AvalancheProofVoteResponse.IMMATURE, proof_2_id),
             AvalancheVote(AvalancheProofVoteResponse.CONFLICT, proof_3_id),
             AvalancheVote(AvalancheProofVoteResponse.REJECTED, proof_4_id)])
 
@@ -480,7 +480,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             AvalancheVote(AvalancheProofVoteResponse.UNKNOWN, proofid_seq1),
             AvalancheVote(AvalancheProofVoteResponse.ACTIVE, proofid_seq2)])
 
-    def unorphan_poll_tests(self, node):
+    def maturity_poll_tests(self, node):
         # Restart the node with appropriate flags for this test
         self.restart_node(0, extra_args=[
             '-enableavalanche=1',
@@ -501,7 +501,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         with node.assert_debug_log(["Not polling the avalanche proof (immature-proof)"]):
             peer.send_avaproof(immature_proof)
 
-        self.log.info("Unorphaned proofs are polled")
+        self.log.info("Newly mature proofs are polled")
 
         node.generate(1)
         self.send_and_check_for_polling(peer, immature_proof.serialize().hex())

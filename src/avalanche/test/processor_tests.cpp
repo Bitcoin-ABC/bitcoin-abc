@@ -1232,53 +1232,53 @@ BOOST_AUTO_TEST_CASE(proof_record) {
 
     auto conflictingProof = buildProof(conflictingOutpoint, 1);
     auto validProof = buildProof(conflictingOutpoint, 2);
-    auto orphanProof = buildProof(immatureOutpoint, 3, 100);
+    auto immatureProof = buildProof(immatureOutpoint, 3, 100);
 
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(!m_processor->isAccepted(validProof));
-    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK(!m_processor->isAccepted(immatureProof));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), -1);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), -1);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
     // Reconciling proofs that don't exist will fail
     BOOST_CHECK(!m_processor->addProofToReconcile(conflictingProof));
     BOOST_CHECK(!m_processor->addProofToReconcile(validProof));
-    BOOST_CHECK(!m_processor->addProofToReconcile(orphanProof));
+    BOOST_CHECK(!m_processor->addProofToReconcile(immatureProof));
 
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(conflictingProof));
         BOOST_CHECK(pm.registerProof(validProof));
-        BOOST_CHECK(!pm.registerProof(orphanProof));
+        BOOST_CHECK(!pm.registerProof(immatureProof));
 
         BOOST_CHECK(pm.isBoundToPeer(validProof->getId()));
         BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
-        BOOST_CHECK(pm.isImmature(orphanProof->getId()));
+        BOOST_CHECK(pm.isImmature(immatureProof->getId()));
     });
 
     BOOST_CHECK(m_processor->addProofToReconcile(conflictingProof));
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(!m_processor->isAccepted(validProof));
-    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK(!m_processor->isAccepted(immatureProof));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), -1);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
     BOOST_CHECK(m_processor->addProofToReconcile(validProof));
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(m_processor->isAccepted(validProof));
-    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK(!m_processor->isAccepted(immatureProof));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
-    BOOST_CHECK(!m_processor->addProofToReconcile(orphanProof));
+    BOOST_CHECK(!m_processor->addProofToReconcile(immatureProof));
     BOOST_CHECK(!m_processor->isAccepted(conflictingProof));
     BOOST_CHECK(m_processor->isAccepted(validProof));
-    BOOST_CHECK(!m_processor->isAccepted(orphanProof));
+    BOOST_CHECK(!m_processor->isAccepted(immatureProof));
     BOOST_CHECK_EQUAL(m_processor->getConfidence(conflictingProof), 0);
     BOOST_CHECK_EQUAL(m_processor->getConfidence(validProof), 0);
-    BOOST_CHECK_EQUAL(m_processor->getConfidence(orphanProof), -1);
+    BOOST_CHECK_EQUAL(m_processor->getConfidence(immatureProof), -1);
 
     gArgs.ClearForcedArg("-avaproofstakeutxoconfirmations");
     gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");

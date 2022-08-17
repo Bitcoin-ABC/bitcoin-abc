@@ -119,17 +119,16 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         self.wait_until(lambda: proof.proofid in get_proof_ids(node))
 
-        self.log.info(
-            "Test receiving a proof with an immature utxo is orphaned")
+        self.log.info("Test receiving a proof with an immature utxo")
 
-        _, orphan = self.generate_proof(node, mature=False)
-        orphan_proofid = "{:064x}".format(orphan.proofid)
+        _, immature = self.generate_proof(node, mature=False)
+        immature_proofid = "{:064x}".format(immature.proofid)
 
         msg = msg_avaproof()
-        msg.proof = orphan
+        msg.proof = immature
         peer.send_message(msg)
 
-        wait_for_proof(node, orphan_proofid, expect_status="immature")
+        wait_for_proof(node, immature_proofid, expect_status="immature")
 
     def test_ban_invalid_proof(self):
         node = self.nodes[0]

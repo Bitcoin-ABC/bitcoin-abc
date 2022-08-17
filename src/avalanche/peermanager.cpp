@@ -483,7 +483,7 @@ NodeId PeerManager::selectNode() {
 
 std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
     std::vector<ProofId> invalidProofIds;
-    std::vector<ProofRef> newOrphans;
+    std::vector<ProofRef> newImmatures;
 
     {
         LOCK(cs_main);
@@ -492,7 +492,7 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
             ProofValidationState state;
             if (!p.proof->verify(stakeUtxoDustThreshold, chainman, state)) {
                 if (isImmatureState(state)) {
-                    newOrphans.push_back(p.proof);
+                    newImmatures.push_back(p.proof);
                 }
                 invalidProofIds.push_back(p.getProofId());
             }
@@ -508,7 +508,7 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
 
     auto registeredProofs = immatureProofPool.rescan(*this);
 
-    for (auto &p : newOrphans) {
+    for (auto &p : newImmatures) {
         immatureProofPool.addProofIfPreferred(p);
     }
 

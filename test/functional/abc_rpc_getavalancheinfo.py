@@ -220,9 +220,9 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             node.setmocktime(mock_time)
             n.send_avaproof(conflicting_proof)
 
-        # Generate an orphan (immature) proof
-        _, orphan_proof = gen_proof(node)
-        n.send_avaproof(orphan_proof)
+        # Generate an immature proof
+        _, immature_proof = gen_proof(node)
+        n.send_avaproof(immature_proof)
 
         self.wait_until(
             lambda: node.getavalancheinfo() == handle_legacy_format({
@@ -322,7 +322,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "stake_amount": coinbase_amount,
             },
             "network": {
-                # Orphan became mature
+                # Immature became mature
                 "proof_count": N + 2,
                 "connected_proof_count": N + 1 - D,
                 "dangling_proof_count": D + 1,
