@@ -12,7 +12,11 @@ from test_framework.avatools import (
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    uint256_hex,
+)
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -68,7 +72,9 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
 
         assert_equal(len(avapeerinfo), peercount)
         for i, peer in enumerate(avapeerinfo):
-            proofid_hex = f"{avalanche_proof_from_hex(proofs[i]).proofid:0{64}x}"
+            proofid_hex = uint256_hex(
+                avalanche_proof_from_hex(
+                    proofs[i]).proofid)
             assert_equal(peer["avalanche_peerid"], i)
             assert_equal(peer["proofid"], proofid_hex)
             assert_equal(peer["proof"], proofs[i])
@@ -84,7 +90,7 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
         target_proof = choice(proofs)
         target_proofid = avalanche_proof_from_hex(target_proof).proofid
         avapeerinfo = node.getavalanchepeerinfo(
-            proofid=f"{target_proofid:0{64}x}")
+            proofid=uint256_hex(target_proofid))
         assert_equal(len(avapeerinfo), 1)
         assert_equal(avapeerinfo[0]["proof"], target_proof)
 

@@ -31,7 +31,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 UNCONDITIONAL_RELAY_DELAY = 2 * 60
@@ -135,7 +135,7 @@ class AvalancheTest(BitcoinTestFramework):
 
         limited_id = avalanche_proof_from_hex(proof).limited_proofid
         delegation = node.delegateavalancheproof(
-            f"{limited_id:0{64}x}",
+            uint256_hex(limited_id),
             bytes_to_wif(privkey.get_bytes()),
             master_key.get_pubkey().get_bytes().hex(),
         )
@@ -157,7 +157,7 @@ class AvalancheTest(BitcoinTestFramework):
         delegated_key = ECKey()
         delegated_key.generate()
         interface_delegation_hex = node.delegateavalancheproof(
-            f"{limited_id:0{64}x}",
+            uint256_hex(limited_id),
             bytes_to_wif(privkey.get_bytes()),
             delegated_key.get_pubkey().get_bytes().hex(),
             None)
@@ -230,7 +230,7 @@ class AvalancheTest(BitcoinTestFramework):
         node.generate(2)
 
         node.sendavalancheproof(new_proof)
-        wait_for_proof(node, f"{new_proofid:0{64}x}")
+        wait_for_proof(node, uint256_hex(new_proofid))
 
         # Request both our local proof and the new proof
         getdata = msg_getdata(

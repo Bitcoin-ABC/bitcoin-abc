@@ -19,7 +19,12 @@ from test_framework.messages import (
     AvalancheVote,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error, try_rpc
+from test_framework.util import (
+    assert_equal,
+    assert_raises_rpc_error,
+    try_rpc,
+    uint256_hex,
+)
 from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
@@ -241,7 +246,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             self.can_find_proof_in_poll(
                 proofid, response=AvalancheProofVoteResponse.ACTIVE)
             return node.getrawavalancheproof(
-                f"{proofid:0{64}x}").get("finalized", False)
+                uint256_hex(proofid)).get("finalized", False)
 
         # Wait until proof_seq30 is finalized
         self.wait_until(lambda: vote_until_finalized(proofid_seq30))
@@ -272,7 +277,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             return proofid not in get_proof_ids(node)
 
         with node.assert_debug_log(
-            [f"Avalanche rejected proof {proofid_seq50:0{64}x}"],
+            [f"Avalanche rejected proof {uint256_hex(proofid_seq50)}"],
             ["Failed to reject proof"]
         ):
             self.wait_until(lambda: reject_proof(proofid_seq50))
@@ -287,10 +292,10 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
                 lambda: self.can_find_proof_in_poll(
                     proofid, response=AvalancheProofVoteResponse.REJECTED))
             return try_rpc(-8, "Proof not found",
-                           node.getrawavalancheproof, f"{proofid:0{64}x}")
+                           node.getrawavalancheproof, uint256_hex(proofid))
 
         with node.assert_debug_log(
-            [f"Avalanche invalidated proof {proofid_seq50:0{64}x}"],
+            [f"Avalanche invalidated proof {uint256_hex(proofid_seq50)}"],
             ["Failed to reject proof"]
         ):
             self.wait_until(lambda: invalidate_proof(proofid_seq50))
@@ -303,7 +308,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             assert_raises_rpc_error(-8,
                                     "Proof not found",
                                     node.getrawavalancheproof,
-                                    f"{proofid_seq50:0{64}x}")
+                                    uint256_hex(proofid_seq50))
 
     def vote_tests(self, node):
         self.restart_node(0, extra_args=['-enableavalanche=1',
@@ -459,9 +464,9 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
             self.can_find_proof_in_poll(
                 proofid, response=AvalancheProofVoteResponse.UNKNOWN)
             return try_rpc(-8, "Proof not found",
-                           node.getrawavalancheproof, f"{proofid:0{64}x}")
+                           node.getrawavalancheproof, uint256_hex(proofid))
 
-        with node.assert_debug_log([f"Avalanche stalled proof {proofid_seq1:0{64}x}"]):
+        with node.assert_debug_log([f"Avalanche stalled proof {uint256_hex(proofid_seq1)}"]):
             self.wait_until(lambda: vote_until_dropped(proofid_seq1))
 
         # Verify that proof_seq2 was not replaced

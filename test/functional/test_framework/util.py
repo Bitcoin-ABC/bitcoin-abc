@@ -539,6 +539,10 @@ def modinv(a, n):
     return t1
 
 
+def uint256_hex(hash_int: int) -> str:
+    return f"{hash_int:0{64}x}"
+
+
 class TestFrameworkUtil(unittest.TestCase):
     def test_modinv(self):
         test_vectors = [

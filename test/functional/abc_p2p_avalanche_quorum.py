@@ -21,7 +21,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 
 
 class AvalancheQuorumTest(BitcoinTestFramework):
@@ -246,7 +246,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             # Add a node back and check it resumes the quorum status
             avapeer = AvaP2PInterface(node)
             node.add_p2p_connection(avapeer)
-            wait_for_proof(node, f"{avapeer.proof.proofid:0{64}x}")
+            wait_for_proof(node, uint256_hex(avapeer.proof.proofid))
             poll_and_assert_response(node, AvalancheVoteError.ACCEPTED)
 
 

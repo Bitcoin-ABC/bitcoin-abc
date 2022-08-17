@@ -12,7 +12,7 @@ from test_framework.avatools import (
 from test_framework.key import ECKey, ECPubKey
 from test_framework.messages import AvalancheVote, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 QUORUM_NODE_COUNT = 16
@@ -220,7 +220,7 @@ class AvalancheTest(BitcoinTestFramework):
             return node.getbestblockhash() == fork_tip
 
         # Because everybody answers no, the node will park that block.
-        with node.assert_debug_log([f"Avalanche invalidated block {hash_to_find:0{64}x}"]):
+        with node.assert_debug_log([f"Avalanche invalidated block {uint256_hex(hash_to_find)}"]):
             self.wait_until(has_parked_new_tip, timeout=15)
         assert_equal(node.getbestblockhash(), fork_tip)
 

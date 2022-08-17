@@ -22,7 +22,7 @@ from test_framework.messages import (
     LegacyAvalancheProof,
 )
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, try_rpc
+from test_framework.util import assert_equal, try_rpc, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 
@@ -98,8 +98,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "ready_to_poll": False,
             "local": {
                 "verified": False,
-                "proofid": f"{proof.proofid:0{64}x}",
-                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                "proofid": uint256_hex(proof.proofid),
+                "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
             },
@@ -126,8 +126,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
-                    "proofid": f"{proof.proofid:0{64}x}",
-                    "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
                 },
@@ -181,7 +181,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             quorum.append(n)
 
             n.send_avaproof(_proof)
-            wait_for_proof(node, f"{_proof.proofid:0{64}x}")
+            wait_for_proof(node, uint256_hex(_proof.proofid))
 
             mock_time += self.conflicting_proof_cooldown
             node.setmocktime(mock_time)
@@ -196,8 +196,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
-                    "proofid": f"{proof.proofid:0{64}x}",
-                    "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
                 },
@@ -231,8 +231,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
-                    "proofid": f"{proof.proofid:0{64}x}",
-                    "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
                     "stake_amount": coinbase_amount,
                 },
@@ -267,7 +267,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             node.generate(1)
 
             delegation = node.delegateavalancheproof(
-                f"{_proof.limited_proofid:0{64}x}",
+                uint256_hex(_proof.limited_proofid),
                 bytes_to_wif(_privkey.get_bytes()),
                 dg_pub,
                 None
@@ -283,8 +283,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "ready_to_poll": True,
             "local": {
                 "verified": True,
-                "proofid": f"{proof.proofid:0{64}x}",
-                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                "proofid": uint256_hex(proof.proofid),
+                "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
             },
@@ -331,16 +331,16 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
 
             # Check if all proofs are finalized or invalidated
             return all(
-                [node.getrawavalancheproof(f"{p.proofid:0{64}x}").get("finalized", False) for p in proofs] +
+                [node.getrawavalancheproof(uint256_hex(p.proofid)).get("finalized", False) for p in proofs] +
                 [try_rpc(-8, "Proof not found", node.getrawavalancheproof,
-                         f"{c.proofid:0{64}x}") for c in conflicting_proofs]
+                         uint256_hex(c.proofid)) for c in conflicting_proofs]
             )
 
         # Vote until proofs have finalized
         expected_logs = []
         for p in proofs:
             expected_logs.append(
-                f"Avalanche finalized proof {p.proofid:0{64}x}")
+                f"Avalanche finalized proof {uint256_hex(p.proofid)}")
         with node.assert_debug_log(expected_logs):
             self.wait_until(lambda: vote_for_all_proofs())
 
@@ -353,8 +353,8 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             "ready_to_poll": False,
             "local": {
                 "verified": True,
-                "proofid": f"{proof.proofid:0{64}x}",
-                "limited_proofid": f"{proof.limited_proofid:0{64}x}",
+                "proofid": uint256_hex(proof.proofid),
+                "limited_proofid": uint256_hex(proof.limited_proofid),
                 "master": privkey.get_pubkey().get_bytes().hex(),
                 "stake_amount": coinbase_amount,
             },

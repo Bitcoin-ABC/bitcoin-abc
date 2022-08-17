@@ -32,7 +32,7 @@ from io import BytesIO
 from typing import List
 
 from test_framework.siphash import siphash256
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 
 MAX_LOCATOR_SZ = 101
 MAX_BLOCK_BASE_SIZE = 1000000
@@ -2267,7 +2267,7 @@ class TestFrameworkMessages(unittest.TestCase):
         self.assertEqual(ToHex(avaproof), proof_hex)
 
         self.assertEqual(
-            f"{avaproof.proofid:0{64}x}",
+            uint256_hex(avaproof.proofid),
             "cb33d7fac9092089f0d473c13befa012e6ee4d19abf9a42248f731d5e59e74a2"
         )
         self.assertEqual(avaproof.sequence, 42)
@@ -2322,7 +2322,7 @@ class TestFrameworkMessages(unittest.TestCase):
         self.assertEqual(ToHex(avaproof), proof_hex)
 
         self.assertEqual(
-            f"{avaproof.proofid:0{64}x}",
+            uint256_hex(avaproof.proofid),
             "455f34eb8a00b0799630071c0728481bdb1653035b1484ac33e974aa4ae7db6d"
         )
         self.assertEqual(avaproof.sequence, 6296457553413371353)

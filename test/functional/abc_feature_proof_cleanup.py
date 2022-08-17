@@ -16,7 +16,7 @@ from test_framework.avatools import (
 )
 from test_framework.key import ECKey
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 # Interval between 2 proof cleanups
@@ -48,7 +48,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
         ])
 
         node.generate(1)
-        wait_for_proof(node, f"{local_proof.proofid:0{64}x}")
+        wait_for_proof(node, uint256_hex(local_proof.proofid))
 
         mocktime = int(time.time())
         node.setmocktime(mocktime)

@@ -31,6 +31,7 @@ from test_framework.util import (
     append_config,
     assert_equal,
     assert_raises_rpc_error,
+    uint256_hex,
 )
 from test_framework.wallet_util import bytes_to_wif
 
@@ -104,8 +105,8 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         self.log.info("Test decodeavalancheproof RPC")
         proofobj = FromHex(LegacyAvalancheProof(), proof)
         decodedproof = node.decodeavalancheproof(proof)
-        limited_id_hex = f"{proofobj.limited_proofid:0{64}x}"
-        proofid_hex = f"{proofobj.proofid:0{64}x}"
+        limited_id_hex = uint256_hex(proofobj.limited_proofid)
+        proofid_hex = uint256_hex(proofobj.proofid)
         assert_equal(decodedproof["sequence"], proof_sequence)
         assert_equal(decodedproof["expiration"], proof_expiration)
         assert_equal(decodedproof["master"], proof_master)
@@ -164,10 +165,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             base64.b64encode(regular_proof_obj.signature).decode("ascii"))
         assert_equal(
             decoded_regular_proof["proofid"],
-            f"{regular_proof_obj.proofid:0{64}x}")
+            uint256_hex(regular_proof_obj.proofid))
         assert_equal(
             decoded_regular_proof["limitedid"],
-            f"{regular_proof_obj.limited_proofid:0{64}x}")
+            uint256_hex(regular_proof_obj.limited_proofid))
         assert_equal(
             decoded_regular_proof["staked_amount"],
             decodedproof["staked_amount"])
@@ -489,7 +490,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
         conflicting_proof = node.buildavalancheproof(
             proof_sequence - 1, proof_expiration, wif_privkey, stakes)
         conflicting_proofobj = avalanche_proof_from_hex(conflicting_proof)
-        conflicting_proofid_hex = f"{conflicting_proofobj.proofid:0{64}x}"
+        conflicting_proofid_hex = uint256_hex(conflicting_proofobj.proofid)
 
         msg = msg_avaproof()
         msg.proof = conflicting_proofobj

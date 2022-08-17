@@ -28,7 +28,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import MAX_NODES, assert_equal, p2p_port
+from test_framework.util import MAX_NODES, assert_equal, p2p_port, uint256_hex
 
 # Timeout after which the proofs can be cleaned up
 AVALANCHE_AVAPROOFS_TIMEOUT = 2 * 60
@@ -254,7 +254,7 @@ class CompactProofsTest(BitcoinTestFramework):
         for _ in range(50):
             _, proof = gen_proof(node)
             sending_peer.send_avaproof(proof)
-            wait_for_proof(node, f"{proof.proofid:0{64}x}")
+            wait_for_proof(node, uint256_hex(proof.proofid))
 
         proofids = get_proof_ids(node)
         assert_equal(len(proofids), 50)

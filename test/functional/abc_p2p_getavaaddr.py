@@ -16,7 +16,7 @@ from test_framework.messages import (
 )
 from test_framework.p2p import P2PInterface, p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import MAX_NODES, assert_equal, p2p_port
+from test_framework.util import MAX_NODES, assert_equal, p2p_port, uint256_hex
 
 # getavaaddr time interval in seconds, as defined in net_processing.cpp
 # A node will ignore repeated getavaaddr during this interval
@@ -377,7 +377,7 @@ class AvaAddrTest(BitcoinTestFramework):
 
         def is_vote_finalized(proof):
             return node.getrawavalancheproof(
-                f"{proof.proofid:0{64}x}").get("finalized", False)
+                uint256_hex(proof.proofid)).get("finalized", False)
 
         # Wait until all proofs are finalized
         self.wait_until(lambda: all([is_vote_finalized(p.proof)
