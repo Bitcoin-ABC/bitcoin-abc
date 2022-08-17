@@ -75,40 +75,20 @@ struct CoinEntry {
 };
 } // namespace
 
-CCoinsViewDB::CCoinsViewDB(fs::path ldb_path, size_t nCacheSize, bool fMemory,
-                           bool fWipe)
-    : m_db{std::make_unique<CDBWrapper>(DBParams{.path = ldb_path,
-                                                 .cache_bytes = nCacheSize,
-                                                 .memory_only = fMemory,
-                                                 .wipe_data = fWipe,
-                                                 .obfuscate = true,
-                                                 .options =
-                                                     [] {
-                                                         DBOptions options;
-                                                         node::ReadDatabaseArgs(
-                                                             gArgs, options);
-                                                         return options;
-                                                     }()})},
-      m_ldb_path(ldb_path), m_is_memory(fMemory) {}
+CCoinsViewDB::CCoinsViewDB(DBParams db_params, CoinsViewOptions options)
+    : m_db_params{std::move(db_params)}, m_options{std::move(options)},
+      m_db{std::make_unique<CDBWrapper>(m_db_params)} {}
 
 void CCoinsViewDB::ResizeCache(size_t new_cache_size) {
     // We can't do this operation with an in-memory DB since we'll lose all the
     // coins upon reset.
-    if (!m_is_memory) {
+    if (!m_db_params.memory_only) {
         // Have to do a reset first to get the original `m_db` state to release
         // its filesystem lock.
         m_db.reset();
-        m_db = std::make_unique<CDBWrapper>(
-            DBParams{.path = m_ldb_path,
-                     .cache_bytes = new_cache_size,
-                     .memory_only = m_is_memory,
-                     .wipe_data = false,
-                     .obfuscate = true,
-                     .options = [] {
-                         DBOptions options;
-                         node::ReadDatabaseArgs(gArgs, options);
-                         return options;
-                     }()});
+        m_db_params.cache_bytes = new_cache_size;
+        m_db_params.wipe_data = false;
+        m_db = std::make_unique<CDBWrapper>(m_db_params);
     }
 }
 
@@ -140,9 +120,6 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) {
     CDBBatch batch(*m_db);
     size_t count = 0;
     size_t changed = 0;
-    size_t batch_size =
-        (size_t)gArgs.GetIntArg("-dbbatchsize", DEFAULT_DB_BATCH_SIZE);
-    int crash_simulate = gArgs.GetIntArg("-dbcrashratio", 0);
     assert(!hashBlock.IsNull());
 
     BlockHash old_tip = GetBestBlock();
@@ -175,14 +152,14 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock) {
         count++;
         CCoinsMap::iterator itOld = it++;
         mapCoins.erase(itOld);
-        if (batch.SizeEstimate() > batch_size) {
+        if (batch.SizeEstimate() > m_options.batch_write_bytes) {
             LogPrint(BCLog::COINDB, "Writing partial batch of %.2f MiB\n",
                      batch.SizeEstimate() * (1.0 / 1048576.0));
             m_db->WriteBatch(batch);
             batch.Clear();
-            if (crash_simulate) {
+            if (m_options.simulate_crash_ratio) {
                 static FastRandomContext rng;
-                if (rng.randrange(crash_simulate) == 0) {
+                if (rng.randrange(m_options.simulate_crash_ratio) == 0) {
                     LogPrintf("Simulating a crash. Goodbye.\n");
                     _Exit(0);
                 }

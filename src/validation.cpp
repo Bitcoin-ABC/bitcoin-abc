@@ -31,6 +31,8 @@
 #include <logging/timer.h>
 #include <minerfund.h>
 #include <node/blockstorage.h>
+#include <node/coins_view_args.h>
+#include <node/database_args.h>
 #include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
@@ -1118,10 +1120,8 @@ Amount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams) {
     return ((nSubsidy / SATOSHI) >> halvings) * SATOSHI;
 }
 
-CoinsViews::CoinsViews(std::string ldb_name, size_t cache_size_bytes,
-                       bool in_memory, bool should_wipe)
-    : m_dbview(gArgs.GetDataDirNet() / ldb_name, cache_size_bytes, in_memory,
-               should_wipe),
+CoinsViews::CoinsViews(DBParams db_params, CoinsViewOptions options)
+    : m_dbview{std::move(db_params), std::move(options)},
       m_catcherview(&m_dbview) {}
 
 void CoinsViews::InitCache() {
@@ -1140,8 +1140,24 @@ void Chainstate::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
     if (m_from_snapshot_blockhash) {
         leveldb_name += node::SNAPSHOT_CHAINSTATE_SUFFIX;
     }
-    m_coins_views = std::make_unique<CoinsViews>(leveldb_name, cache_size_bytes,
-                                                 in_memory, should_wipe);
+
+    m_coins_views = std::make_unique<CoinsViews>(
+        DBParams{.path = gArgs.GetDataDirNet() / leveldb_name,
+                 .cache_bytes = cache_size_bytes,
+                 .memory_only = in_memory,
+                 .wipe_data = should_wipe,
+                 .obfuscate = true,
+                 .options =
+                     [] {
+                         DBOptions options;
+                         node::ReadDatabaseArgs(gArgs, options);
+                         return options;
+                     }()},
+        [] {
+            CoinsViewOptions options;
+            node::ReadCoinsViewArgs(gArgs, options);
+            return options;
+        }());
 }
 
 void Chainstate::InitCoinsCache(size_t cache_size_bytes) {
