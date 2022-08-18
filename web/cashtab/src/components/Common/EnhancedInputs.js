@@ -103,8 +103,12 @@ export const AntdFormCss = css`
         color: ${props => props.theme.forms.error} !important;
         border-color: ${props => props.theme.forms.error} !important;
     }
-    .ant-form-item-explain.ant-form-item-explain-error {
+    .ant-form-item-explain .ant-form-item-explain-error {
         color: ${props => props.theme.forms.error} !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        min-width: 1px;
     }
     .ant-input-suffix {
         color: ${props => props.theme.lightWhite};
