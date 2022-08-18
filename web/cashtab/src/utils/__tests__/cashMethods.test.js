@@ -589,10 +589,8 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     const BCH = new BCHJS();
     const { destinationAddress, wallet } = sendBCHMock;
     const isOneToMany = false;
-    const singleSendValue = new BigNumber(
-        fromSatoshisToXec(
-            mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
-        ),
+    const singleSendValue = fromSatoshisToXec(
+        mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
     );
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
@@ -892,16 +890,22 @@ it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
-        expect(fromSatoshisToXec(1, 2)).toBe(0.01);
+        expect(fromSatoshisToXec(1, 2)).toStrictEqual(new BigNumber(0.01));
     });
     it(`Correctly converts largest base unit to smallest decimal for cashDecimals = 2`, () => {
-        expect(fromSatoshisToXec(1000000012345678, 2)).toBe(10000000123456.78);
+        expect(fromSatoshisToXec(1000000012345678, 2)).toStrictEqual(
+            new BigNumber(10000000123456.78),
+        );
     });
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 8`, () => {
-        expect(fromSatoshisToXec(1, 8)).toBe(0.00000001);
+        expect(fromSatoshisToXec(1, 8)).toStrictEqual(
+            new BigNumber(0.00000001),
+        );
     });
     it(`Correctly converts largest base unit to smallest decimal for cashDecimals = 8`, () => {
-        expect(fromSatoshisToXec(1000000012345678, 8)).toBe(10000000.12345678);
+        expect(fromSatoshisToXec(1000000012345678, 8)).toStrictEqual(
+            new BigNumber(10000000.12345678),
+        );
     });
     it(`Correctly converts an array of length 10 to an array of 4 arrays, each with max length 3`, () => {
         expect(batchArray(unbatchedArray, 3)).toStrictEqual(

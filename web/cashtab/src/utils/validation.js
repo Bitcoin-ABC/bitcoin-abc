@@ -24,9 +24,7 @@ export const shouldRejectAmountInput = (
         error = 'Amount must be a number';
     } else if (testedAmount.lte(0)) {
         error = 'Amount must be greater than 0';
-    } else if (
-        testedAmount.lt(fromSatoshisToXec(currency.dustSats).toString())
-    ) {
+    } else if (testedAmount.lt(fromSatoshisToXec(currency.dustSats))) {
         error = `Send amount must be at least ${fromSatoshisToXec(
             currency.dustSats,
         ).toString()} ${currency.ticker}`;
@@ -298,7 +296,8 @@ export const isValidXecSendAmount = xecSendAmount => {
         xecSendAmount !== null &&
         typeof xecSendAmount !== 'undefined' &&
         !isNaN(parseFloat(xecSendAmount)) &&
-        parseFloat(xecSendAmount) >= fromSatoshisToXec(currency.dustSats)
+        parseFloat(xecSendAmount) >=
+            fromSatoshisToXec(currency.dustSats).toNumber()
     );
 };
 

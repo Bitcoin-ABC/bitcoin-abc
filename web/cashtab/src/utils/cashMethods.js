@@ -423,7 +423,7 @@ export const fromSatoshisToXec = (
     const amountBig = new BigNumber(amount);
     const multiplier = new BigNumber(10 ** (-1 * cashDecimals));
     const amountInBaseUnits = amountBig.times(multiplier);
-    return amountInBaseUnits.toNumber();
+    return amountInBaseUnits;
 };
 
 export const fromXecToSatoshis = (
@@ -549,7 +549,7 @@ export const getWalletBalanceFromUtxos = nonSlpUtxos => {
     );
     return {
         totalBalanceInSatoshis,
-        totalBalance: fromSatoshisToXec(totalBalanceInSatoshis),
+        totalBalance: fromSatoshisToXec(totalBalanceInSatoshis).toNumber(),
     };
 };
 

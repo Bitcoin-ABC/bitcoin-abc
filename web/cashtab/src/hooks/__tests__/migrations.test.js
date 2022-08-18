@@ -5,13 +5,9 @@ import { fromSatoshisToXec, fromXecToSatoshis } from 'utils/cashMethods';
 
 describe('Testing functions for upgrading Cashtab', () => {
     it('Replacement currency.dustSats parameter parsing matches legacy DUST parameter', () => {
-        expect(
-            parseFloat(
-                new BigNumber(
-                    fromSatoshisToXec(currency.dustSats, 8).toString(),
-                ).toFixed(8),
-            ),
-        ).toBe(0.0000055);
+        expect(fromSatoshisToXec(currency.dustSats, 8).toNumber()).toBe(
+            0.0000055,
+        );
     });
     it('Replicate 8-decimal return value from instance of toSatoshi in TransactionBuilder with fromXecToSatoshis', () => {
         const BCH = new BCHJS();
@@ -107,14 +103,14 @@ describe('Testing functions for upgrading Cashtab', () => {
     it('Replicates return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
         const BCH = new BCHJS();
         const testSendAmount = '12345678';
-        expect(fromSatoshisToXec(testSendAmount, 8)).toBe(
+        expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
         );
     });
     it('Replicates largest possible digits return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
         const BCH = new BCHJS();
         const testSendAmount = '1000000012345678';
-        expect(fromSatoshisToXec(testSendAmount, 8)).toBe(
+        expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
         );
     });
@@ -122,7 +118,7 @@ describe('Testing functions for upgrading Cashtab', () => {
     it('Replicates smallest unit value return value from instance of toBitcoinCash with fromSatoshisToXec and cashDecimals = 8', () => {
         const BCH = new BCHJS();
         const testSendAmount = '1';
-        expect(fromSatoshisToXec(testSendAmount, 8)).toBe(
+        expect(fromSatoshisToXec(testSendAmount, 8).toNumber()).toBe(
             BCH.BitcoinCash.toBitcoinCash(testSendAmount),
         );
     });

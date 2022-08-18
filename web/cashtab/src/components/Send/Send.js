@@ -235,7 +235,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                value: `${fromSatoshisToXec(currency.dustSats)}`,
+                value: `${fromSatoshisToXec(currency.dustSats).toString()}`,
             });
         }
 
@@ -581,7 +581,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             if (!validValueString) {
                 error = `Amount must be at least ${fromSatoshisToXec(
                     currency.dustSats,
-                )} XEC: ${addressString}, ${valueString}`;
+                ).toString()} XEC: ${addressString}, ${valueString}`;
                 setSendBchAddressError(error);
                 return setFormData(p => ({
                     ...p,

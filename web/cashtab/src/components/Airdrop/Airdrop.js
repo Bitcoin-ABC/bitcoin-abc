@@ -311,10 +311,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
         // if the ignore minimum payment threshold option is enabled
         if (ignoreRecipientsBelowDust) {
             // minimum airdrop threshold
-            const minEligibleAirdrop = new BigNumber(
-                fromSatoshisToXec(currency.dustSats),
-            );
-
+            const minEligibleAirdrop = fromSatoshisToXec(currency.dustSats);
             // first calculation on expected pro rata airdrops
             let initialTotalTokenAmongstRecipients = new BigNumber(0);
             let initialTotalHolders = new BigNumber(airdropList.size); // amount of addresses that hold this eToken
@@ -630,7 +627,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                             payment (
                                             {fromSatoshisToXec(
                                                 currency.dustSats,
-                                            )}{' '}
+                                            ).toString()}{' '}
                                             XEC)
                                         </AirdropOptions>
                                     </Form.Item>
@@ -755,7 +752,7 @@ const Airdrop = ({ jestBCH, passLoadingStatus }) => {
                                                                 'At least one airdrop is below the minimum ' +
                                                                 fromSatoshisToXec(
                                                                     currency.dustSats,
-                                                                ) +
+                                                                ).toString() +
                                                                 ' XEC dust. Please increase the total XEC airdrop.'
                                                             }
                                                             type="error"
