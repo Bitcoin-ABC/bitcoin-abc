@@ -27,8 +27,8 @@ export const validStoredWallet = {
     },
     state: {
         balances: {
-            totalBalanceInSatoshis: 1503017804,
-            totalBalance: 15030178.04,
+            totalBalanceInSatoshis: '1503017804',
+            totalBalance: '15030178.04',
         },
         tokens: [
             {

@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { BalanceHeaderFiatWrap } from 'components/Common/Atoms';
 import { currency } from 'components/Common/Ticker.js';
+import BigNumber from 'bignumber.js';
 const FiatCurrencyToXEC = styled.p`
     margin: 0 auto;
     padding: 0;
@@ -22,7 +23,9 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                           }`
                         : '$'}
                     {parseFloat(
-                        (balance * fiatPrice).toFixed(2),
+                        new BigNumber(balance)
+                            .times(new BigNumber(fiatPrice))
+                            .toFixed(2),
                     ).toLocaleString()}{' '}
                     {settings
                         ? `${currency.fiatCurrencies[
@@ -41,7 +44,7 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
 };
 
 BalanceHeaderFiat.propTypes = {
-    balance: PropTypes.number,
+    balance: PropTypes.string,
     settings: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
     fiatPrice: PropTypes.number,
 };

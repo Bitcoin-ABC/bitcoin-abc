@@ -35,8 +35,8 @@ export const walletWithBalancesMock = {
         },
     },
     balances: {
-        totalBalanceInSatoshis: 6047469,
-        totalBalance: 0.06047469,
+        totalBalanceInSatoshis: '6047469',
+        totalBalance: '0.06047469',
     },
     loading: false,
 };
@@ -77,7 +77,7 @@ export const walletWithoutBalancesMock = {
     },
     tokens: [],
     balances: {
-        totalBalance: 0,
+        totalBalance: '0',
     },
     loading: false,
 };
@@ -117,8 +117,8 @@ export const walletWithBalancesAndTokens = {
         },
     },
     balances: {
-        totalBalanceInSatoshis: 6047469,
-        totalBalance: 0.06047469,
+        totalBalanceInSatoshis: '6047469',
+        totalBalance: '0.06047469',
     },
     tokens: [
         {
@@ -190,8 +190,8 @@ export const walletWithBalancesAndTokensWithCorrectState = {
         },
         state: {
             balances: {
-                totalBalanceInSatoshis: 6047469,
-                totalBalance: 0.06047469,
+                totalBalanceInSatoshis: '6047469',
+                totalBalance: '0.06047469',
             },
             tokens: [
                 {
@@ -229,8 +229,8 @@ export const walletWithBalancesAndTokensWithCorrectState = {
         },
     },
     balances: {
-        totalBalanceInSatoshis: 6047469,
-        totalBalance: 0.06047469,
+        totalBalanceInSatoshis: '6047469',
+        totalBalance: '0.06047469',
     },
     tokens: [
         {

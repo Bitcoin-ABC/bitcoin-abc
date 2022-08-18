@@ -7,6 +7,8 @@ import BCHJS from '@psf/bch-js';
 import useBCH from 'hooks/useBCH';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 import { WalletContext } from 'utils/context';
+import BigNumber from 'bignumber.js';
+import { currency } from 'components/Common/Ticker';
 
 beforeEach(() => {
     // Mock method not implemented in JSDOM
@@ -38,10 +40,9 @@ test('Wallet with BCH balances and tokens and state field', () => {
                     BCH={testBCH}
                     getRestUrl={getRestUrl}
                     createToken={createToken}
-                    disabled={
-                        walletWithBalancesAndTokensWithCorrectState.wallet.state
-                            .balances.totalBalanceInSatoshis < 546
-                    }
+                    disabled={new BigNumber(
+                        walletWithBalancesAndTokensWithCorrectState.wallet.state.balances.totalBalanceInSatoshis,
+                    ).lt(new BigNumber(currency.etokenSats))}
                 />
             </ThemeProvider>
         </WalletContext.Provider>,

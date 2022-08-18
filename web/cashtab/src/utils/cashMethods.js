@@ -544,12 +544,13 @@ export const loadStoredWallet = walletStateFromStorage => {
 
 export const getWalletBalanceFromUtxos = nonSlpUtxos => {
     const totalBalanceInSatoshis = nonSlpUtxos.reduce(
-        (previousBalance, utxo) => previousBalance + utxo.value,
-        0,
+        (previousBalance, utxo) =>
+            previousBalance.plus(new BigNumber(utxo.value)),
+        new BigNumber(0),
     );
     return {
-        totalBalanceInSatoshis,
-        totalBalance: fromSatoshisToXec(totalBalanceInSatoshis).toNumber(),
+        totalBalanceInSatoshis: totalBalanceInSatoshis.toString(),
+        totalBalance: fromSatoshisToXec(totalBalanceInSatoshis).toString(),
     };
 };
 

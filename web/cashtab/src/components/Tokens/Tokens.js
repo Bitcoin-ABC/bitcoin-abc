@@ -14,6 +14,7 @@ import {
 } from 'components/Common/Atoms';
 import ApiError from 'components/Common/ApiError';
 import WalletLabel from 'components/Common/WalletLabel.js';
+import BigNumber from 'bignumber.js';
 
 const Tokens = ({ jestBCH, passLoadingStatus }) => {
     const { wallet, apiError, fiatPrice, cashtabSettings } =
@@ -45,12 +46,14 @@ const Tokens = ({ jestBCH, passLoadingStatus }) => {
                     BCH={BCH}
                     getRestUrl={getRestUrl}
                     createToken={createToken}
-                    disabled={
-                        balances.totalBalanceInSatoshis < currency.dustSats
-                    }
+                    disabled={new BigNumber(balances.totalBalanceInSatoshis).lt(
+                        new BigNumber(currency.dustSats),
+                    )}
                     passLoadingStatus={passLoadingStatus}
                 />
-                {balances.totalBalanceInSatoshis < currency.dustSats && (
+                {new BigNumber(balances.totalBalanceInSatoshis).lt(
+                    new BigNumber(currency.dustSats),
+                ) && (
                     <AlertMsg>
                         You need at least{' '}
                         {fromSatoshisToXec(currency.dustSats).toString()}{' '}

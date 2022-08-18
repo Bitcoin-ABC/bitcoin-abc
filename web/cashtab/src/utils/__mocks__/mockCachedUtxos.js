@@ -278,8 +278,8 @@ export const cachedUtxos = {
 };
 export const utxosLoadedFromCache = {
     balances: {
-        totalBalance: 0,
-        totalBalanceInSatoshis: 0,
+        totalBalance: '0',
+        totalBalanceInSatoshis: '0',
     },
     slpBalancesAndUtxos: {
         nonSlpUtxos: [],
