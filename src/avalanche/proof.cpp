@@ -189,6 +189,13 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
         return false;
     }
 
+    const CBlockIndex *activeTip = chainman.ActiveTip();
+    const int64_t tipMedianTimePast =
+        activeTip ? activeTip->GetMedianTimePast() : 0;
+    if (expirationTime > 0 && tipMedianTimePast >= expirationTime) {
+        return state.Invalid(ProofValidationResult::EXPIRED, "expired-proof");
+    }
+
     const int64_t activeHeight = chainman.ActiveHeight();
     const int64_t stakeUtxoMinConfirmations =
         gArgs.GetArg("-avaproofstakeutxoconfirmations",

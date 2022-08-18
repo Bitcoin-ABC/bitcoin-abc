@@ -1353,7 +1353,24 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     BOOST_CHECK(!processor->isQuorumEstablished());
 
     // Add the rest of the stake, but we are still lacking connected stake
-    auto proof2 = buildRandomProof(active_chainstate, minScore / 4);
+    const int64_t tipMTP = chainman.ActiveTip()->GetMedianTimePast();
+    const COutPoint utxo{TxId(GetRandHash()), 0};
+    const Amount amount = (int64_t(minScore / 4) * COIN) / 100;
+    const int height = 100;
+    const bool isCoinbase = false;
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = active_chainstate.CoinsTip();
+        coins.AddCoin(utxo,
+                      Coin(CTxOut(amount, GetScriptForDestination(
+                                              PKHash(key.GetPubKey()))),
+                           height, isCoinbase),
+                      false);
+    }
+    ProofBuilder pb(1, tipMTP + 1, key);
+    BOOST_CHECK(pb.addUTXO(utxo, amount, height, isCoinbase, key));
+    auto proof2 = pb.build();
+
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK(pm.registerProof(proof2));
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), minScore);
@@ -1405,7 +1422,17 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
         });
     };
 
-    spendProofUtxo(proof2);
+    // Expire proof2, the quorum is still latched
+    for (int64_t i = 0; i < 6; i++) {
+        SetMockTime(proof2->getExpirationTime() + i);
+        CreateAndProcessBlock({}, CScript());
+    }
+    BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetMedianTimePast(),
+                      proof2->getExpirationTime());
+    processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        pm.updatedBlockTip();
+        BOOST_CHECK(!pm.exists(proof2->getId()));
+    });
     processor->withPeerManager([&](avalanche::PeerManager &pm) {
         BOOST_CHECK_EQUAL(pm.getTotalPeersScore(), 3 * minScore / 4);
         BOOST_CHECK_EQUAL(pm.getConnectedPeersScore(), minScore / 4);

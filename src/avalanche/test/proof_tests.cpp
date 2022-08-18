@@ -918,9 +918,9 @@ BOOST_AUTO_TEST_CASE(verify) {
     const auto runCheck = [&](const ProofValidationResult result,
                               const COutPoint &o, const Amount v,
                               const uint32_t h, const bool is_coinbase,
-                              const CKey &k) {
+                              const CKey &k, int64_t expirationTime = 0) {
         // Generate a proof that match the UTXO.
-        ProofBuilder pb(0, 0, key);
+        ProofBuilder pb(0, expirationTime, key);
         BOOST_CHECK(pb.addUTXO(o, v, h, is_coinbase, k));
         ProofRef p = pb.build();
 
@@ -932,9 +932,35 @@ BOOST_AUTO_TEST_CASE(verify) {
         BOOST_CHECK(state.GetResult() == result);
     };
 
+    const int64_t currentTipMTP = chainman.ActiveTip()->GetMedianTimePast();
+
     // Valid proof
     runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
              key);
+
+    // Expiration checks
+
+    // Negative or zero expiration times means no expiration
+    runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
+             key, -1);
+    runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
+             key, 0);
+    runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
+             key, std::numeric_limits<int64_t>::min());
+
+    // The future
+    runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
+             key, std::numeric_limits<int64_t>::max());
+    runCheck(ProofValidationResult::NONE, pkh_outpoint, value, height, false,
+             key, currentTipMTP + 1);
+
+    // Expired proofs
+    runCheck(ProofValidationResult::EXPIRED, pkh_outpoint, value, height, false,
+             key, 1);
+    runCheck(ProofValidationResult::EXPIRED, pkh_outpoint, value, height, false,
+             key, currentTipMTP - 1);
+    runCheck(ProofValidationResult::EXPIRED, pkh_outpoint, value, height, false,
+             key, currentTipMTP);
 
     // Coinbase mismatch
     runCheck(ProofValidationResult::COINBASE_MISMATCH, pkh_outpoint, value,

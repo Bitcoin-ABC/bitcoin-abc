@@ -48,7 +48,7 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
             pubkey = privkey.get_pubkey()
 
             proof_sequence = 11
-            proof_expiration = 12
+            proof_expiration = 0
             proof = node.buildavalancheproof(
                 proof_sequence, proof_expiration, bytes_to_wif(
                     privkey.get_bytes()),

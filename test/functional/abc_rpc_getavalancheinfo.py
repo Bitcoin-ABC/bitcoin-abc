@@ -200,7 +200,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             stakes = create_coinbase_stakes(
                 node, [node.getbestblockhash()], node.get_deterministic_priv_key().key)
             conflicting_proof_hex = node.buildavalancheproof(
-                10, 9999, bytes_to_wif(_privkey.get_bytes()), stakes)
+                10, 0, bytes_to_wif(_privkey.get_bytes()), stakes)
             conflicting_proof = avalanche_proof_from_hex(conflicting_proof_hex)
             conflicting_proofs.append(conflicting_proof)
 

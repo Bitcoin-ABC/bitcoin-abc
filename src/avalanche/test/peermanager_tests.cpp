@@ -2053,4 +2053,50 @@ BOOST_AUTO_TEST_CASE(register_proof_missing_utxo) {
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::MISSING_UTXO);
 }
 
+BOOST_AUTO_TEST_CASE(proof_expiry) {
+    gArgs.ForceSetArg("-enableavalancheproofreplacement", "1");
+    gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
+
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+
+    const int64_t tipMTP = chainman.ActiveTip()->GetMedianTimePast();
+
+    CKey key = CKey::MakeCompressedKey();
+
+    auto utxo = createUtxo(chainman.ActiveChainstate(), key);
+    auto proofToExpire = buildProof(key, {{utxo, PROOF_DUST_THRESHOLD}}, key, 2,
+                                    100, false, tipMTP + 1);
+    auto conflictingProof = buildProof(key, {{utxo, PROOF_DUST_THRESHOLD}}, key,
+                                       1, 100, false, tipMTP + 2);
+
+    // Our proofToExpire is not expired yet, so it registers fine
+    BOOST_CHECK(pm.registerProof(proofToExpire));
+    BOOST_CHECK(pm.isBoundToPeer(proofToExpire->getId()));
+
+    // The conflicting proof has a longer expiration time but a lower sequence
+    // number, so it is moved to the conflicting pool.
+    BOOST_CHECK(!pm.registerProof(conflictingProof));
+    BOOST_CHECK(pm.isInConflictingPool(conflictingProof->getId()));
+
+    // Mine blocks until the MTP of the tip moves to the proof expiration
+    for (int64_t i = 0; i < 6; i++) {
+        SetMockTime(proofToExpire->getExpirationTime() + i);
+        CreateAndProcessBlock({}, CScript());
+    }
+    BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetMedianTimePast(),
+                      proofToExpire->getExpirationTime());
+
+    pm.updatedBlockTip();
+
+    // The now expired proof is removed
+    BOOST_CHECK(!pm.exists(proofToExpire->getId()));
+
+    // The conflicting proof has been pulled back to the valid pool
+    BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
+
+    gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
+    gArgs.ClearForcedArg("-enableavalancheproofreplacement");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

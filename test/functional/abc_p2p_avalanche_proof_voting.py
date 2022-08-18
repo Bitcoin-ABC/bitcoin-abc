@@ -331,7 +331,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         ava_key.set(bytes.fromhex(node.getavalanchekey()))
 
         def create_proof(stakes):
-            proof = node.buildavalancheproof(11, 12, self.privkey_wif, stakes)
+            proof = node.buildavalancheproof(11, 0, self.privkey_wif, stakes)
             proof_id = avalanche_proof_from_hex(proof).proofid
             return proof, proof_id
 

@@ -57,7 +57,7 @@ class AvalancheTest(BitcoinTestFramework):
             "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747"), True)
 
         proof_sequence = 11
-        proof_expiration = 12
+        proof_expiration = 0
         proof = node.buildavalancheproof(
             proof_sequence, proof_expiration, bytes_to_wif(
                 privkey.get_bytes()),

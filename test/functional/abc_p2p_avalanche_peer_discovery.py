@@ -78,7 +78,7 @@ class AvalancheTest(BitcoinTestFramework):
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
 
         proof_sequence = 11
-        proof_expiration = 12
+        proof_expiration = 0
         proof = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, stakes)
 

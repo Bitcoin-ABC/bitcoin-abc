@@ -19,6 +19,7 @@ enum class ProofValidationResult {
     TOO_MANY_UTXOS,
     INVALID_PAYOUT_SCRIPT,
     INVALID_PROOF_SIGNATURE,
+    EXPIRED,
 
     // UTXO based errors.
     MISSING_UTXO,

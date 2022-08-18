@@ -97,7 +97,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
 
         proof_master = get_hex_pubkey(privkey)
         proof_sequence = 11
-        proof_expiration = 12
+        proof_expiration = 0
         stakes = create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key)
         proof = node.buildavalancheproof(
             proof_sequence, proof_expiration, wif_privkey, stakes)
@@ -403,6 +403,10 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
                        "20d94d6b01ea693638f55c74fdaa5358fa9239d03e4caf3d817e8f7"
                        "48ccad55a27b9d365db06ad5a0b779ac385f3dc8710")
 
+        expired = node.buildavalancheproof(
+            proof_sequence, 1, wif_privkey,
+            create_coinbase_stakes(node, [blockhashes[0]], addrkey0.key))
+
         self.log.info(
             "Check the verifyavalancheproof and sendavalancheproof RPCs")
 
@@ -444,6 +448,7 @@ class LegacyAvalancheProofTest(BitcoinTestFramework):
             check_rpc_failure(missing_stake, "utxo-missing-or-spent")
             check_rpc_failure(bad_sig, "invalid-stake-signature")
             check_rpc_failure(wrong_order, "wrong-stake-ordering")
+            check_rpc_failure(expired, "expired-proof")
             if self.is_wallet_compiled():
                 check_rpc_failure(too_many_utxos, "too-many-utxos")
 
