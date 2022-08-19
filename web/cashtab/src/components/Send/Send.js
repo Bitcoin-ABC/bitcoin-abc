@@ -571,7 +571,9 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
             const validValueString = isValidXecSendAmount(valueString);
 
             if (!validAddress) {
-                error = `Invalid XEC address: ${addressString}, ${valueString}`;
+                error = `Invalid XEC address: ${addressString}${
+                    valueString !== undefined ? `, ${valueString}` : ''
+                }`;
                 setSendBchAddressError(error);
                 return setFormData(p => ({
                     ...p,
