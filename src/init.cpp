@@ -1712,7 +1712,7 @@ namespace { // Variables internal to initialization process only
 int nMaxConnections;
 int nUserMaxConnections;
 int nFD;
-ServiceFlags nLocalServices = ServiceFlags(NODE_NETWORK | NODE_NETWORK_LIMITED);
+ServiceFlags nLocalServices = ServiceFlags(NODE_NETWORK_LIMITED);
 int64_t peer_connect_timeout;
 std::set<BlockFilterType> g_enabled_filter_types;
 
@@ -2710,11 +2710,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Step 10: data directory maintenance
 
-    // if pruning, unset the service bit and perform the initial blockstore
-    // prune after any wallet rescanning has taken place.
+    // if pruning, perform the initial blockstore prune
+    // after any wallet rescanning has taken place.
     if (chainman.m_blockman.IsPruneMode()) {
-        LogPrintf("Unsetting NODE_NETWORK on prune mode\n");
-        nLocalServices = ServiceFlags(nLocalServices & ~NODE_NETWORK);
         if (!fReindex) {
             LOCK(cs_main);
             for (Chainstate *chainstate : chainman.GetAll()) {
@@ -2722,6 +2720,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                 chainstate->PruneAndFlush();
             }
         }
+    } else {
+        LogPrintf("Setting NODE_NETWORK on non-prune mode\n");
+        nLocalServices = ServiceFlags(nLocalServices | NODE_NETWORK);
     }
 
     // Step 11: import blocks
