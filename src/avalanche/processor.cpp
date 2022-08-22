@@ -156,8 +156,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
     scheduler.scheduleEvery(
         [this]() -> bool {
             WITH_LOCK(cs_peerManager,
-                      peerManager->cleanupDanglingProofs(
-                          peerData ? peerData->proof : ProofRef()));
+                      peerManager->cleanupDanglingProofs(getLocalProof()));
             return true;
         },
         5min);
