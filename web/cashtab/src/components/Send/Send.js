@@ -803,7 +803,7 @@ const SendBCH = ({ jestBCH, passLoadingStatus }) => {
                         ? `are you sure you want to send the following One to Many transaction?
                     ${formData.address}`
                         : `Are you sure you want to send ${formData.value}${' '}
-                  ${currency.ticker} to ${formData.address}?`}
+                  ${selectedCurrency} to ${formData.address}?`}
                 </p>
             </Modal>
             <WalletInfoCtn>
