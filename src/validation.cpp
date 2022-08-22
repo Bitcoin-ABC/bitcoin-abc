@@ -4176,7 +4176,7 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
 
         if (!ContextualCheckBlockHeader(chainparams, block, state, m_blockman,
                                         pindexPrev,
-                                        m_adjusted_time_callback())) {
+                                        m_options.adjusted_time_callback())) {
             LogPrint(BCLog::VALIDATION,
                      "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n",
                      __func__, hash.ToString(), state.ToString());

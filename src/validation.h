@@ -1207,10 +1207,6 @@ private:
     CBlockIndex *m_best_invalid GUARDED_BY(::cs_main){nullptr};
     CBlockIndex *m_best_parked GUARDED_BY(::cs_main){nullptr};
 
-    const Config &m_config;
-
-    const std::function<NodeClock::time_point()> m_adjusted_time_callback;
-
     //! Internal helper for ActivateSnapshot().
     [[nodiscard]] bool
     PopulateAndValidateSnapshot(Chainstate &snapshot_chainstate,
@@ -1255,13 +1251,16 @@ private:
 public:
     using Options = kernel::ChainstateManagerOpts;
 
-    explicit ChainstateManager(const Options &opts)
-        : m_config(opts.config), m_adjusted_time_callback{
-                                     Assert(opts.adjusted_time_callback)} {};
+    explicit ChainstateManager(Options options)
+        : m_options{std::move(options)} {
+        Assert(m_options.adjusted_time_callback);
+    }
 
-    const CChainParams &GetParams() const { return m_config.GetChainParams(); }
+    const CChainParams &GetParams() const {
+        return m_options.config.GetChainParams();
+    }
     const Consensus::Params &GetConsensus() const {
-        return m_config.GetChainParams().GetConsensus();
+        return m_options.config.GetChainParams().GetConsensus();
     }
 
     /**
@@ -1279,6 +1278,7 @@ public:
         return ::cs_main;
     }
 
+    const Options m_options;
     std::thread m_load_block;
     //! A single BlockManager instance is shared across each constructed
     //! chainstate to avoid duplicating block metadata.
