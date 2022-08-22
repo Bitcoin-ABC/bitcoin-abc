@@ -97,9 +97,10 @@ class ProofsCleanupTest(BitcoinTestFramework):
 
         # Run the cleanup, the proofs with no node are cleaned excepted our
         # local proof
-        node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
-        self.wait_until(lambda: set(get_proof_ids(node)) == set(
-            [proof.proofid for proof in proofs[:6]]), timeout=5)
+        with node.assert_debug_log(["Proof dropped for dangling too long (no connected node): {}".format(uint256_hex(p.proofid)) for p in proofs[6:]]):
+            node.mockscheduler(AVALANCHE_CLEANUP_INTERVAL)
+            self.wait_until(lambda: set(get_proof_ids(node)) == set(
+                [proof.proofid for proof in proofs[:6]]), timeout=5)
 
         self.log.info(
             "Check the proofs are cleaned on next cleanup after the nodes disconnected")

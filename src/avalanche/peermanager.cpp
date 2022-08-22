@@ -448,6 +448,10 @@ void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
     for (const ProofId &proofid : newlyDanglingProofIds) {
         rejectProof(proofid, RejectionMode::INVALIDATE);
         danglingProofIds.insert(proofid);
+        LogPrint(
+            BCLog::AVALANCHE,
+            "Proof dropped for dangling too long (no connected node): %s\n",
+            proofid.GetHex());
     }
 
     // If we have dangling proof, this is a good indicator that we need to
