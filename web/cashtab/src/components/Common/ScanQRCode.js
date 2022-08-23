@@ -69,7 +69,7 @@ const ScanQRCode = ({
             // Track number of successful QR code scans
             // BCH or slp?
             let eventLabel = currency.ticker;
-            const isToken = content.split(currency.tokenPrefix).length > 1;
+            const isToken = content.split(currency.tokenPrefixes).length > 1;
             if (isToken) {
                 eventLabel = currency.tokenTicker;
             }
