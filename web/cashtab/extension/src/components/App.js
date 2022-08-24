@@ -122,6 +122,16 @@ const GlobalStyle = createGlobalStyle`
     .ant-input-prefix {
         color: ${props => props.theme.eCashBlue};
     }
+    .ant-spin-nested-loading>div>.ant-spin .ant-spin-dot {
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: auto !important;
+    }
+    .ant-spin-nested-loading>div>.ant-spin {
+        position: fixed !important;
+    }
 `;
 
 const CustomApp = styled.div`
