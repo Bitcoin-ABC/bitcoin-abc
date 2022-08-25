@@ -27,7 +27,7 @@ export const currency = {
     txHistoryCount: 10,
     xecApiBatchSize: 20,
     websocketDisconnectedRefreshInterval: 1000, // 1000 = 1s
-    websocketConnectedRefreshInterval: 30000,
+    websocketConnectedRefreshInterval: 5000,
     defaultSettings: {
         fiatCurrency: 'usd',
         sendModal: false,
