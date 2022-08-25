@@ -23,6 +23,10 @@ class WalletGroupTest(BitcoinTestFramework):
             # the fee for the non-grouped tx. See tx5 below.
             ["-maxapsfee=2.93"],
             ["-maxapsfee=2.94"]]
+        # whitelist peers to speed up tx relay / mempool sync
+        for args in self.extra_args:
+            args.append("-whitelist=noban@127.0.0.1")
+
         self.rpc_timeout = 120
         self.supports_cli = False
 
