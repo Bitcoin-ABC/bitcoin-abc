@@ -147,6 +147,14 @@ class PruneTest(BitcoinTestFramework):
             extra_args=["-prune=550", "-reindex-chainstate"],
         )
 
+    def test_rescan_blockchain(self):
+        self.restart_node(0, ["-prune=550"])
+        assert_raises_rpc_error(
+            -1,
+            "Can't rescan beyond pruned data. Use RPC call getblockchaininfo to determine your pruned height.",
+            self.nodes[0].rescanblockchain,
+        )
+
     def test_height_min(self):
         assert os.path.isfile(
             os.path.join(self.prunedir, "blk00000.dat")
@@ -546,6 +554,9 @@ class PruneTest(BitcoinTestFramework):
         if self.is_wallet_compiled():
             self.log.info("Test wallet re-scan")
             self.wallet_test()
+
+            self.log.info("Test it's not possible to rescan beyond pruned data")
+            self.test_rescan_blockchain()
 
         self.log.info("Test invalid pruning command line options")
         self.test_invalid_command_line_options()
