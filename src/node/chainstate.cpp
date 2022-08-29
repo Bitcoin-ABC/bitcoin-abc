@@ -21,6 +21,28 @@ ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
                    chainstate->CoinsTip().GetBestBlock().IsNull();
         };
 
+    if (!hashAssumeValid.IsNull()) {
+        LogPrintf("Assuming ancestors of block %s have valid signatures.\n",
+                  hashAssumeValid.GetHex());
+    } else {
+        LogPrintf("Validating signatures for all blocks.\n");
+    }
+    LogPrintf("Setting nMinimumChainWork=%s\n", nMinimumChainWork.GetHex());
+    if (nMinimumChainWork <
+        UintToArith256(chainman.GetConsensus().nMinimumChainWork)) {
+        LogPrintf("Warning: nMinimumChainWork set below default value of %s\n",
+                  chainman.GetConsensus().nMinimumChainWork.GetHex());
+    }
+    if (nPruneTarget == std::numeric_limits<uint64_t>::max()) {
+        LogPrintf(
+            "Block pruning enabled.  Use RPC call pruneblockchain(height) to "
+            "manually prune block and undo files.\n");
+    } else if (nPruneTarget) {
+        LogPrintf("Prune configured to target %u MiB on disk for block and "
+                  "undo files.\n",
+                  nPruneTarget / 1024 / 1024);
+    }
+
     LOCK(cs_main);
     chainman.m_total_coinstip_cache = cache_sizes.coins;
     chainman.m_total_coinsdb_cache = cache_sizes.coins_db;

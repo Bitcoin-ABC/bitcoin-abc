@@ -1814,12 +1814,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     hashAssumeValid = BlockHash::fromHex(
         args.GetArg("-assumevalid",
                     chainparams.GetConsensus().defaultAssumeValid.GetHex()));
-    if (!hashAssumeValid.IsNull()) {
-        LogPrintf("Assuming ancestors of block %s have valid signatures.\n",
-                  hashAssumeValid.GetHex());
-    } else {
-        LogPrintf("Validating signatures for all blocks.\n");
-    }
 
     if (args.IsArgSet("-minimumchainwork")) {
         const std::string minChainWorkStr =
@@ -1834,12 +1828,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     } else {
         nMinimumChainWork =
             UintToArith256(chainparams.GetConsensus().nMinimumChainWork);
-    }
-    LogPrintf("Setting nMinimumChainWork=%s\n", nMinimumChainWork.GetHex());
-    if (nMinimumChainWork <
-        UintToArith256(chainparams.GetConsensus().nMinimumChainWork)) {
-        LogPrintf("Warning: nMinimumChainWork set below default value of %s\n",
-                  chainparams.GetConsensus().nMinimumChainWork.GetHex());
     }
 
     // mempool limits
@@ -1887,9 +1875,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     nPruneTarget = (uint64_t)nPruneArg * 1024 * 1024;
     if (nPruneArg == 1) {
         // manual pruning: -prune=1
-        LogPrintf("Block pruning enabled.  Use RPC call "
-                  "pruneblockchain(height) to manually prune block and undo "
-                  "files.\n");
         nPruneTarget = std::numeric_limits<uint64_t>::max();
         fPruneMode = true;
     } else if (nPruneTarget) {
@@ -1899,9 +1884,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
                             "Please use a higher number."),
                           MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024));
         }
-        LogPrintf("Prune configured to target %u MiB on disk for block and "
-                  "undo files.\n",
-                  nPruneTarget / 1024 / 1024);
         fPruneMode = true;
     }
 
