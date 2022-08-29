@@ -124,6 +124,9 @@ const OpReturnType = styled.div`
     background: ${props => props.theme.sentMessage};
     margin-top: 15px;
     transition: max-height 500ms cubic-bezier(0, 1, 0, 1);
+    ${({ hideMessagesFromUnknownSenders }) =>
+        hideMessagesFromUnknownSenders &&
+        `
     max-height: auto;
     &[aria-expanded='true'] {
         max-height: 5000px;
@@ -134,6 +137,7 @@ const OpReturnType = styled.div`
         transition: max-height 200ms ease-in;
         max-height: 6rem;
     }
+  `}
 
     h4 {
         color: ${props => props.theme.lightWhite};
