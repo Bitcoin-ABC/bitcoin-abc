@@ -35,6 +35,7 @@ import {
     mockBurnEtokenTxRawTx,
     mockReceivedEtokenTxRawTx,
 } from '../__mocks__/mockParseTxDataRawTxs';
+import { validStoredWallet } from '../../utils/__mocks__/mockStoredWallets';
 import BCHJS from '@psf/bch-js'; // TODO: should be removed when external lib not needed anymore
 import { currency } from '../../components/Common/Ticker';
 import BigNumber from 'bignumber.js';
@@ -299,9 +300,9 @@ describe('useBCH hook', () => {
     });
 
     it("throws error attempting to burn an eToken ID that is not within the wallet's utxo", async () => {
-        const { burnEtoken } = useBCH();
+        const { burnToken } = useBCH();
         const BCH = new BCHJS();
-        const { wallet } = sendBCHMock;
+        const wallet = validStoredWallet;
         const burnAmount = 10;
         const eTokenId = '0203c768a66eba24affNOTVALID103b772de4d9f8f63ba79e';
         const expectedError =
@@ -309,7 +310,7 @@ describe('useBCH hook', () => {
 
         let thrownError;
         try {
-            await burnEtoken(BCH, wallet, mockReturnGetSlpBalancesAndUtxos, {
+            await burnToken(BCH, wallet, {
                 eTokenId,
                 burnAmount,
             });

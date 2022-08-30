@@ -95,7 +95,8 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
     const { wallet, apiError, cashtabSettings } =
         React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
-    const { tokens, slpBalancesAndUtxos } = walletState;
+    const { tokens } = walletState;
+
     const token = tokens.find(token => token.tokenId === tokenId);
 
     const [tokenStats, setTokenStats] = useState(null);
@@ -126,7 +127,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         address: '',
     });
 
-    const { getBCH, getRestUrl, sendToken, getTokenStats, burnEtoken } =
+    const { getBCH, getRestUrl, sendToken, getTokenStats, burnToken } =
         useBCH();
 
     // jestBCH is only ever specified for unit tests, otherwise app will use getBCH();
@@ -180,7 +181,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         cleanAddress = toLegacyToken(cleanAddress);
 
         try {
-            const link = await sendToken(BCH, wallet, slpBalancesAndUtxos, {
+            const link = await sendToken(BCH, wallet, {
                 tokenId: tokenId,
                 tokenReceiverAddress: cleanAddress,
                 amount: value,
@@ -357,7 +358,7 @@ const SendToken = ({ tokenId, jestBCH, passLoadingStatus }) => {
         passLoadingStatus(true);
 
         try {
-            const link = await burnEtoken(BCH, wallet, slpBalancesAndUtxos, {
+            const link = await burnToken(BCH, wallet, {
                 tokenId: tokenId,
                 amount: eTokenBurnAmount,
             });

@@ -105,18 +105,6 @@ const useWallet = () => {
         // If you are at the "end" of the array, use the first one
     };
 
-    const normalizeSlpBalancesAndUtxos = (slpBalancesAndUtxos, wallet) => {
-        const Accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
-        slpBalancesAndUtxos.nonSlpUtxos.forEach(utxo => {
-            const derivatedAccount = Accounts.find(
-                account => account.cashAddress === utxo.address,
-            );
-            utxo.wif = derivatedAccount.fundingWif;
-        });
-
-        return slpBalancesAndUtxos;
-    };
-
     const deriveAccount = async (BCH, { masterHDNode, path }) => {
         const node = BCH.HDNode.derivePath(masterHDNode, path);
         const publicKey = BCH.HDNode.toPublicKey(node).toString('hex');
@@ -359,10 +347,7 @@ const useWallet = () => {
                 slpBalancesAndUtxos: [],
             };
 
-            newState.slpBalancesAndUtxos = normalizeSlpBalancesAndUtxos(
-                slpBalancesAndUtxos,
-                wallet,
-            );
+            newState.slpBalancesAndUtxos = slpBalancesAndUtxos;
 
             newState.balances = getWalletBalanceFromUtxos(
                 slpBalancesAndUtxos.nonSlpUtxos,

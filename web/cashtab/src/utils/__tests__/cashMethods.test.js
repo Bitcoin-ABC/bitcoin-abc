@@ -36,6 +36,8 @@ import {
     signAndBuildTx,
     fromXecToSatoshis,
     getWalletBalanceFromUtxos,
+    signUtxosByAddress,
+    getUtxoWif,
 } from 'utils/cashMethods';
 import { currency } from 'components/Common/Ticker';
 import {
@@ -192,6 +194,132 @@ import {
     mockSingleOutput,
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
+
+it(`signUtxosByAddress() successfully returns a txBuilder object for a one to one XEC tx`, () => {
+    const BCH = new BCHJS();
+    const isOneToMany = false;
+    const { destinationAddress, wallet, utxos } = sendBCHMock;
+    let txBuilder = new BCH.TransactionBuilder();
+    const satoshisToSendInput = new BigNumber(2184);
+    const feeInSatsPerByte = currency.defaultFee;
+
+    // mock tx input
+    const inputObj = generateTxInput(
+        BCH,
+        isOneToMany,
+        utxos,
+        txBuilder,
+        null,
+        satoshisToSendInput,
+        feeInSatsPerByte,
+    );
+
+    // mock tx output
+    const totalInputUtxoValue =
+        mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
+    const singleSendValue = new BigNumber(
+        fromSatoshisToXec(
+            mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
+        ),
+    );
+    const satoshisToSendOutput = fromXecToSatoshis(
+        new BigNumber(singleSendValue),
+    );
+    const txFee = new BigNumber(totalInputUtxoValue).minus(
+        new BigNumber(satoshisToSendOutput),
+    );
+    const changeAddress = wallet.Path1899.cashAddress;
+    const outputObj = generateTxOutput(
+        BCH,
+        isOneToMany,
+        singleSendValue,
+        satoshisToSendOutput,
+        totalInputUtxoValue,
+        destinationAddress,
+        null,
+        changeAddress,
+        txFee,
+        inputObj.txBuilder,
+    );
+
+    const txBuilderResponse = signUtxosByAddress(
+        BCH,
+        mockSingleInputUtxo,
+        wallet,
+        outputObj,
+    );
+    expect(txBuilderResponse.toString()).toStrictEqual(
+        mockOneToOneSendXecTxBuilderObj.toString(),
+    );
+});
+
+it(`signUtxosByAddress() successfully returns a txBuilder object for a one to many XEC tx`, () => {
+    const BCH = new BCHJS();
+    const isOneToMany = true;
+    const { wallet, utxos } = sendBCHMock;
+    let txBuilder = new BCH.TransactionBuilder();
+    let destinationAddressAndValueArray = [
+        'ecash:qrmz0egsqxj35x5jmzf8szrszdeu72fx0uxgwk3r48,3000',
+        'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
+        'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
+    ];
+    const satoshisToSendInput = new BigNumber(900000);
+    const feeInSatsPerByte = currency.defaultFee;
+
+    // mock tx input
+    const inputObj = generateTxInput(
+        BCH,
+        isOneToMany,
+        utxos,
+        txBuilder,
+        destinationAddressAndValueArray,
+        satoshisToSendInput,
+        feeInSatsPerByte,
+    );
+
+    // mock tx output
+    const totalInputUtxoValue =
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[0].value +
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[1].value +
+        mockOneToManySendXecTxBuilderObj.transaction.inputs[2].value;
+    const singleSendValue = null;
+    const satoshisToSendOutput = new BigNumber(
+        mockOneToManySendXecTxBuilderObj.transaction.tx.outs[0].value +
+            mockOneToManySendXecTxBuilderObj.transaction.tx.outs[1].value +
+            mockOneToManySendXecTxBuilderObj.transaction.tx.outs[2].value,
+    );
+    const txFee = new BigNumber(totalInputUtxoValue)
+        .minus(satoshisToSendOutput)
+        .minus(
+            new BigNumber(
+                mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
+            ),
+        ); // change value
+    destinationAddressAndValueArray = toLegacyCashArray(validAddressArrayInput);
+    const changeAddress = wallet.Path1899.cashAddress;
+    const outputObj = generateTxOutput(
+        BCH,
+        isOneToMany,
+        singleSendValue,
+        satoshisToSendOutput,
+        totalInputUtxoValue,
+        null,
+        destinationAddressAndValueArray,
+        changeAddress,
+        txFee,
+        inputObj.txBuilder,
+    );
+
+    const txBuilderResponse = signUtxosByAddress(
+        BCH,
+        mockSingleInputUtxo,
+        wallet,
+        outputObj,
+    );
+    expect(txBuilderResponse.toString()).toStrictEqual(
+        mockOneToManySendXecTxBuilderObj.toString(),
+    );
+});
 
 it(`getChangeAddressFromInputUtxos() returns a correct change address from a valid inputUtxo`, () => {
     const BCH = new BCHJS();
@@ -757,7 +885,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     // txbuilder output params
     const BCH = new BCHJS();
     let txBuilder = new BCH.TransactionBuilder();
-
+    const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     txBuilder.addInput(
         mockSingleInputUtxo[0].txid,
@@ -770,10 +898,14 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
         outputAddressAndValue[0], // address
         parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
     );
-
-    const rawTxHex = signAndBuildTx(BCH, mockSingleInputUtxo, txBuilder);
+    const rawTxHex = signAndBuildTx(
+        BCH,
+        mockSingleInputUtxo,
+        txBuilder,
+        wallet,
+    );
     expect(rawTxHex).toStrictEqual(
-        '0200000001582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006b483045022100f0064dc6ab95765ed22047aa952e509b9ce7d24e384c2c4f06b064e5cc4fc87a02207f00266cc8261c203e2832ae1e700b6035aebe3ef5ff18e9eabbdee6815b086041210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0158020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+        '0200000001582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006b483045022100b4ee5268cb64c4f097e739df7c6934d1df7e75a4f217d5824db18ae2e12554b102204faf039738181aae80c064b928b3d8079a82cdb080ce9a2d5453939a588f4372412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff0158020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
     );
 });
 
@@ -781,7 +913,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     // txbuilder output params
     const BCH = new BCHJS();
     let txBuilder = new BCH.TransactionBuilder();
-
+    const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     txBuilder.addInput(
         mockSingleInputUtxo[0].txid,
@@ -799,9 +931,14 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
         );
     }
 
-    const rawTxHex = signAndBuildTx(BCH, mockSingleInputUtxo, txBuilder);
+    const rawTxHex = signAndBuildTx(
+        BCH,
+        mockSingleInputUtxo,
+        txBuilder,
+        wallet,
+    );
     expect(rawTxHex).toStrictEqual(
-        '0200000001582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a47304402200aba1829f51c420d6c37c8e50021b8541d2d62590ad5c67eaeee535e959377390220272318cbdf8161c399a2592c3e86ede499276c1d2e3506300f58bee786f2de6541210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0326020000000000001976a914f627e51001a51a1a92d8927808701373cf29267f88ac26020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac26020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+        '0200000001582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006b483045022100df29734c4fb348b0e8b613ce522c10c5ac14cb3ecd32843dc7fcf004d60f1b8a022023c4ae02b38c7272e29f344902ae2afa4db1ec37d582a31c16650a0abc4f480c412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff0326020000000000001976a914f627e51001a51a1a92d8927808701373cf29267f88ac26020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac26020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
     );
 });
 
@@ -809,7 +946,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     // txbuilder output params
     const BCH = new BCHJS();
     let txBuilder = new BCH.TransactionBuilder();
-
+    const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
         txBuilder.addInput(
@@ -824,9 +961,14 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
         parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
     );
 
-    const rawTxHex = signAndBuildTx(BCH, mockMultipleInputUtxos, txBuilder);
+    const rawTxHex = signAndBuildTx(
+        BCH,
+        mockMultipleInputUtxos,
+        txBuilder,
+        wallet,
+    );
     expect(rawTxHex).toStrictEqual(
-        '0200000003582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a4730440220041f2c5674222f802d49783301dfbece1ac0f4cef6d0c3b8ad83a46b24481d5002200e977c1990a946e66e4cbdc2c057788e01a5d038ff9b281da95870d88c85da0c41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff7313e804af08113dfa290515390a8ec3ac01448118f2eb556ee168a96ee6acdd000000006b483045022100f9ac95c2febb445393f36ad51e221a77b2813ea8643c349d597ca19db71e829202200464567d95250c86665d3ad567f3ae1826f8ea3907cfb8fe7f36b9f72b18239c41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff960dd2f0c47e8a3cf1486b046d879f45a047da3b51aedfb5594138ac857214f1000000006a47304402207807c0bb717e1955f87db9110e91e1701c614b0cc5fa544e7cff1591a9ba45db022067f86ecac7c6d9ee8e00033fc0071f34833775f4410f72036cd958f50c60bfc141210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0158020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+        '0200000003582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a4730440220541366dd5ea25d65d3044dbde16fc6118ab1aee07c7d0d4c25c9e8aa299f040402203ed2f540948197d4c6a4ae963ad187d145a9fb339e311317b03c6172732e267b412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff7313e804af08113dfa290515390a8ec3ac01448118f2eb556ee168a96ee6acdd000000006b483045022100c1d02c5023f83b87a4f2dd26a7306ed9be9d53ab972bd935b440e45eb54a304302200b99aa2f1a728b3bb1dcbff80742c5fcab991bb74e80fa231255a31d58a6ff7d412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff960dd2f0c47e8a3cf1486b046d879f45a047da3b51aedfb5594138ac857214f1000000006b483045022100bd24d11d7070988848cb4aa2b10748aa0aeb79dc8af39c1f22dc1034b3121e5f02201491026e5f8f6eb566eb17cb195e3da3ff0d9cf01bdd34c944964d33a8d3b1ad412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff0158020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
     );
 });
 
@@ -834,7 +976,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     // txbuilder output params
     const BCH = new BCHJS();
     let txBuilder = new BCH.TransactionBuilder();
-
+    const { wallet } = sendBCHMock;
     // add inputs to txBuilder
     for (let i = 0; i < mockMultipleInputUtxos.length; i++) {
         txBuilder.addInput(
@@ -853,9 +995,14 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
         );
     }
 
-    const rawTxHex = signAndBuildTx(BCH, mockMultipleInputUtxos, txBuilder);
+    const rawTxHex = signAndBuildTx(
+        BCH,
+        mockMultipleInputUtxos,
+        txBuilder,
+        wallet,
+    );
     expect(rawTxHex).toStrictEqual(
-        '0200000003582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a47304402205cca1aacd87779f218d153222f56eefc14331803a588bae7c9b10f8b1df32e4502203579bb35e53b2e8562d7728bc3a205739f50e85076919bc16b56eec421b8d01b41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff7313e804af08113dfa290515390a8ec3ac01448118f2eb556ee168a96ee6acdd000000006b483045022100aafc986d0a45200c01ccb390db2961eb6c62c7a16e4d8a1df6725b3a3e4a98ec0220565afbea0c53b1d4a8073a54e4d167f5cc36c941c541897b20b9bb6ad5694fac41210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff960dd2f0c47e8a3cf1486b046d879f45a047da3b51aedfb5594138ac857214f1000000006a473044022065c92eddc1ea2a4aa057c6ee68b85018ee97787eb8921427a635c141c6fdd4bc022034e92f6c129cd66ab5522615e7f48965187a751690198f79154114ed974bb2d441210352cbc218d193ceaf4fb38a772856380173db7a908905e3190841b3174c7ae22dffffffff0326020000000000001976a914f627e51001a51a1a92d8927808701373cf29267f88ac26020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac26020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
+        '0200000003582dfa42e2778a2e6b7d32fb1bf4cefc0be9d10a36538e9503465df99cd4a60d000000006a47304402203de4e6a512a6bec1d378b6444008484e1be5a0c621dc4b201d67addefffe864602202daf82e76b7594fe1ab54a49380c6b1226ab65551ae6ab9164216b66266f34a1412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff7313e804af08113dfa290515390a8ec3ac01448118f2eb556ee168a96ee6acdd000000006a473044022029f5fcbc9356beb9eae6b9ff9a479e8c8331b95406b6be456fccf9d90f148ea1022028f4e7fa7234f9429535360c8f5dad303e2c5044431615997861b10f26fa8a88412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff960dd2f0c47e8a3cf1486b046d879f45a047da3b51aedfb5594138ac857214f1000000006a473044022049a67738d99006b3523cff818f3626104cf5106bd463be70d22ad179a8cb403b022025829baf67f964202ea77ea7462a5447e32415e7293cdee382ea7ae9374364e8412102322fe90c5255fe37ab321c386f9446a86e80c3940701d430f22325094fdcec60ffffffff0326020000000000001976a914f627e51001a51a1a92d8927808701373cf29267f88ac26020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac26020000000000001976a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac00000000',
     );
 });
 
@@ -863,10 +1010,10 @@ it(`signAndBuildTx() throws error on an empty inputUtxo param`, () => {
     // txbuilder output params
     const BCH = new BCHJS();
     let txBuilder = new BCH.TransactionBuilder();
-
+    const { wallet } = sendBCHMock;
     let thrownError;
     try {
-        signAndBuildTx(BCH, [], txBuilder);
+        signAndBuildTx(BCH, [], txBuilder, wallet);
     } catch (err) {
         thrownError = err;
     }
@@ -878,10 +1025,10 @@ it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
     const BCH = new BCHJS();
     let txBuilder = new BCH.TransactionBuilder();
     const inputUtxo = null; // invalid input param
-
+    const { wallet } = sendBCHMock;
     let thrownError;
     try {
-        signAndBuildTx(BCH, inputUtxo, txBuilder);
+        signAndBuildTx(BCH, inputUtxo, txBuilder, wallet);
     } catch (err) {
         thrownError = err;
     }

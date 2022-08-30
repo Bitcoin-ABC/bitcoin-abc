@@ -12,6 +12,26 @@ export default {
                 'simpleledger:qpuvjl7l3crt3apc62gmtf49pfsluu7s9guzd24nfd',
             legacyAddress: '1C1fUT99KT4SjbKjCE2fSCdhc6Bvj5gQjG',
         },
+        Path245: {
+            cashAddress:
+                'bitcoincash:qpuvjl7l3crt3apc62gmtf49pfsluu7s9gsex3qnhn',
+            slpAddress:
+                'simpleledger:qpuvjl7l3crt3apc62gmtf49pfsluu7s9guzd24nfd',
+            fundingWif: 'L2gH81AegmBdnvEZuUpnd3robG8NjBaVjPddWrVD4169wS6Mqyxn',
+            fundingAddress:
+                'simpleledger:qpuvjl7l3crt3apc62gmtf49pfsluu7s9guzd24nfd',
+            legacyAddress: '1C1fUT99KT4SjbKjCE2fSCdhc6Bvj5gQjG',
+        },
+        Path145: {
+            cashAddress:
+                'bitcoincash:qpuvjl7l3crt3apc62gmtf49pfsluu7s9gsex3qnhn',
+            slpAddress:
+                'simpleledger:qpuvjl7l3crt3apc62gmtf49pfsluu7s9guzd24nfd',
+            fundingWif: 'L2gH81AegmBdnvEZuUpnd3robG8NjBaVjPddWrVD4169wS6Mqyxn',
+            fundingAddress:
+                'simpleledger:qpuvjl7l3crt3apc62gmtf49pfsluu7s9guzd24nfd',
+            legacyAddress: '1C1fUT99KT4SjbKjCE2fSCdhc6Bvj5gQjG',
+        },
         tokens: [],
         state: {
             balances: [],

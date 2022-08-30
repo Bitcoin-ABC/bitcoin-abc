@@ -8,7 +8,7 @@ export const mockSingleInputUtxo = [
         txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
         vout: 0,
         isValid: false,
-        address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
+        address: 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
         wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
     },
 ];
@@ -23,7 +23,7 @@ export const mockMultipleInputUtxos = [
         txid: '0da6d49cf95d4603958e53360ad1e90bfccef41bfb327d6b2e8a77e242fa2d58',
         vout: 0,
         isValid: false,
-        address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
+        address: 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
         wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
     },
     {
@@ -35,7 +35,7 @@ export const mockMultipleInputUtxos = [
         txid: 'ddace66ea968e16e55ebf218814401acc38e0a39150529fa3d1108af04e81373',
         vout: 0,
         isValid: false,
-        address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
+        address: 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
         wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
     },
     {
@@ -47,7 +47,7 @@ export const mockMultipleInputUtxos = [
         txid: 'f1147285ac384159b5dfae513bda47a0459f876d046b48f13c8a7ec4f0d20d96',
         vout: 0,
         isValid: false,
-        address: 'bitcoincash:qphpmfj0qn7znklqhrfn5dq7qh36l3vxavu346vqcl',
+        address: 'bitcoincash:qrzuvj0vvnsz5949h4axercl5k420eygavv0awgz05',
         wif: 'L58jqHoi5ynSdsskPVBJuGuVqTP8ZML1MwHQsBJY32Pv7cqDSCeH',
     },
 ];

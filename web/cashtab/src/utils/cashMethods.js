@@ -9,6 +9,38 @@ import BigNumber from 'bignumber.js';
 import cashaddr from 'ecashaddrjs';
 import useBCH from '../hooks/useBCH';
 
+export const getUtxoWif = (utxo, wallet) => {
+    if (!wallet) {
+        throw new Error('Invalid wallet parameter');
+    }
+    const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
+    const wif = accounts
+        .filter(acc => acc.cashAddress === utxo.address)
+        .pop().fundingWif;
+    return wif;
+};
+
+export const signUtxosByAddress = (BCH, inputUtxos, wallet, txBuilder) => {
+    for (let i = 0; i < inputUtxos.length; i++) {
+        const utxo = inputUtxos[i];
+        const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
+        const utxoEcPair = BCH.ECPair.fromWIF(
+            accounts.filter(acc => acc.cashAddress === utxo.address).pop()
+                .fundingWif,
+        );
+
+        txBuilder.sign(
+            i,
+            utxoEcPair,
+            undefined,
+            txBuilder.hashTypes.SIGHASH_ALL,
+            utxo.value,
+        );
+    }
+
+    return txBuilder;
+};
+
 export const generateTxInput = (
     BCH,
     isOneToMany,
@@ -290,12 +322,13 @@ export const generateTxOutput = (
     return txBuilder;
 };
 
-export const signAndBuildTx = (BCH, inputUtxos, txBuilder) => {
+export const signAndBuildTx = (BCH, inputUtxos, txBuilder, wallet) => {
     if (
         !BCH ||
         !inputUtxos ||
         inputUtxos.length === 0 ||
         !txBuilder ||
+        !wallet ||
         // txBuilder.transaction.tx.ins is empty until the inputUtxos are signed
         txBuilder.transaction.tx.outs.length === 0
     ) {
@@ -305,10 +338,11 @@ export const signAndBuildTx = (BCH, inputUtxos, txBuilder) => {
     // Sign the transactions with the HD node.
     for (let i = 0; i < inputUtxos.length; i++) {
         const utxo = inputUtxos[i];
+        const wif = getUtxoWif(utxo, wallet);
         try {
             txBuilder.sign(
                 i,
-                BCH.ECPair.fromWIF(utxo.wif),
+                BCH.ECPair.fromWIF(wif),
                 undefined,
                 txBuilder.hashTypes.SIGHASH_ALL,
                 utxo.value,

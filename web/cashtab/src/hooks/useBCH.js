@@ -13,6 +13,8 @@ import {
     convertToEncryptStruct,
     getPublicKey,
     parseOpReturn,
+    signUtxosByAddress,
+    getUtxoWif,
 } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import ecies from 'ecies-lite';
@@ -234,9 +236,10 @@ export default function useBCH() {
                             wallet.state.slpBalancesAndUtxos &&
                             wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
                         ) {
-                            fundingWif =
-                                wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0]
-                                    .wif;
+                            fundingWif = getUtxoWif(
+                                wallet.state.slpBalancesAndUtxos.nonSlpUtxos[0],
+                                wallet,
+                            );
                             privateKeyObj = wif.decode(fundingWif);
                             privateKeyBuff = privateKeyObj.privateKey;
                             if (!privateKeyBuff) {
@@ -932,17 +935,13 @@ export default function useBCH() {
                 );
             }
 
-            // Sign the transactions with the HD node.
-            for (let i = 0; i < inputUtxos.length; i++) {
-                const utxo = inputUtxos[i];
-                transactionBuilder.sign(
-                    i,
-                    BCH.ECPair.fromWIF(utxo.wif),
-                    undefined,
-                    transactionBuilder.hashTypes.SIGHASH_ALL,
-                    utxo.value,
-                );
-            }
+            // Sign each XEC UTXO being consumed and refresh transactionBuilder
+            transactionBuilder = signUtxosByAddress(
+                BCH,
+                inputUtxos,
+                wallet,
+                transactionBuilder,
+            );
 
             // build tx
             const tx = transactionBuilder.build();
@@ -1002,21 +1001,59 @@ export default function useBCH() {
     const sendToken = async (
         BCH,
         wallet,
-        slpBalancesAndUtxos,
         { tokenId, amount, tokenReceiverAddress },
     ) => {
+        const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
+
         // Handle error of user having no BCH
-        if (slpBalancesAndUtxos.nonSlpUtxos.length === 0) {
+        if (
+            !slpBalancesAndUtxos ||
+            !slpBalancesAndUtxos.nonSlpUtxos ||
+            slpBalancesAndUtxos.nonSlpUtxos.length === 0
+        ) {
             throw new Error(
                 `You need some ${currency.ticker} to send ${currency.tokenTicker}`,
             );
         }
-        const largestBchUtxo = slpBalancesAndUtxos.nonSlpUtxos.reduce(
-            (previous, current) =>
-                previous.value > current.value ? previous : current,
-        );
+        const utxos = wallet.state.slpBalancesAndUtxos.nonSlpUtxos;
 
-        const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
+        // instance of transaction builder
+        let transactionBuilder = new BCH.TransactionBuilder();
+
+        // collate XEC utxos to cover token tx
+        let totalXecInputUtxoValue = new BigNumber(0);
+        let inputUtxos = [];
+        let txFee = 0;
+        let remainder;
+        for (let i = 0; i < utxos.length; i++) {
+            const utxo = utxos[i];
+            totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
+                new BigNumber(utxo.value),
+            );
+            const vout = utxo.vout;
+            const txid = utxo.txid;
+            // add input with txid and index of vout
+            transactionBuilder.addInput(txid, vout);
+
+            inputUtxos.push(utxo);
+            txFee = calcFee(BCH, inputUtxos, 5, 1.1 * currency.defaultFee);
+
+            remainder = totalXecInputUtxoValue
+                .minus(new BigNumber(currency.etokenSats * 2)) // one for token send output, one for token change
+                .minus(new BigNumber(txFee));
+
+            if (remainder.gte(0)) {
+                break;
+            }
+        }
+
+        if (remainder.lt(0)) {
+            const error = new Error(`Insufficient funds`);
+            error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
+            throw error;
+        }
+
+        // filter for token UTXOs matching the token being sent
         const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
             if (
                 utxo && // UTXO is associated with a token.
@@ -1027,30 +1064,15 @@ export default function useBCH() {
             }
             return false;
         });
-
         if (tokenUtxos.length === 0) {
             throw new Error(
                 'No token UTXOs for the specified token could be found.',
             );
         }
 
-        // BEGIN transaction construction.
-
-        // instance of transaction builder
-        let transactionBuilder;
-        if (process.env.REACT_APP_NETWORK === 'mainnet') {
-            transactionBuilder = new BCH.TransactionBuilder();
-        } else transactionBuilder = new BCH.TransactionBuilder('testnet');
-
-        const originalAmount = largestBchUtxo.value;
-        transactionBuilder.addInput(
-            largestBchUtxo.tx_hash,
-            largestBchUtxo.tx_pos,
-        );
-
+        // collate token UTXOs to cover the token amount being sent
         let finalTokenAmountSent = new BigNumber(0);
         let tokenAmountBeingSentToAddress = new BigNumber(amount);
-
         let tokenUtxosBeingSpent = [];
         for (let i = 0; i < tokenUtxos.length; i++) {
             finalTokenAmountSent = finalTokenAmountSent.plus(
@@ -1093,57 +1115,24 @@ export default function useBCH() {
             );
         }
 
-        // get byte count to calculate fee. paying 1 sat
-        // Note: This may not be totally accurate. Just guessing on the byteCount size.
-        const txFee = calcFee(
-            BCH,
-            tokenUtxosBeingSpent,
-            5,
-            1.1 * currency.defaultFee,
-        );
-
-        // amount to send back to the sending address. It's the original amount - 1 sat/byte for tx size
-        const remainder = originalAmount - txFee - currency.etokenSats * 2;
-        if (remainder < 1) {
-            throw new Error('Selected UTXO does not have enough satoshis');
-        }
-
         // Last output: send the BCH change back to the wallet.
 
         // Send it back from whence it came
         transactionBuilder.addOutput(
-            BCH.Address.toLegacyAddress(largestBchUtxo.address),
-            remainder,
+            BCH.Address.toLegacyAddress(inputUtxos[0].address),
+            remainder.toNumber(),
         );
 
-        // Sign the transaction with the private key for the BCH UTXO paying the fees.
-        let redeemScript;
-        transactionBuilder.sign(
-            0,
-            bchECPair,
-            redeemScript,
-            transactionBuilder.hashTypes.SIGHASH_ALL,
-            originalAmount,
+        // append the token input UTXOs to the array of XEC input UTXOs for signing
+        inputUtxos = inputUtxos.concat(tokenUtxosBeingSpent);
+
+        // Sign each UTXO being consumed and refresh transactionBuilder
+        transactionBuilder = signUtxosByAddress(
+            BCH,
+            inputUtxos,
+            wallet,
+            transactionBuilder,
         );
-
-        // Sign each token UTXO being consumed.
-        for (let i = 0; i < tokenUtxosBeingSpent.length; i++) {
-            const thisUtxo = tokenUtxosBeingSpent[i];
-            const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
-            const utxoEcPair = BCH.ECPair.fromWIF(
-                accounts
-                    .filter(acc => acc.cashAddress === thisUtxo.address)
-                    .pop().fundingWif,
-            );
-
-            transactionBuilder.sign(
-                1 + i,
-                utxoEcPair,
-                redeemScript,
-                transactionBuilder.hashTypes.SIGHASH_ALL,
-                thisUtxo.value,
-            );
-        }
 
         // build tx
         const tx = transactionBuilder.build();
@@ -1171,22 +1160,57 @@ export default function useBCH() {
         return link;
     };
 
-    const burnEtoken = async (
-        BCH,
-        wallet,
-        slpBalancesAndUtxos,
-        { tokenId, amount },
-    ) => {
+    const burnToken = async (BCH, wallet, { tokenId, amount }) => {
+        const slpBalancesAndUtxos = wallet.state.slpBalancesAndUtxos;
+
         // Handle error of user having no XEC
-        if (slpBalancesAndUtxos.nonSlpUtxos.length === 0) {
+        if (
+            !slpBalancesAndUtxos ||
+            !slpBalancesAndUtxos.nonSlpUtxos ||
+            slpBalancesAndUtxos.nonSlpUtxos.length === 0
+        ) {
             throw new Error(`You need some ${currency.ticker} to burn eTokens`);
         }
-        const largestBchUtxo = slpBalancesAndUtxos.nonSlpUtxos.reduce(
-            (previous, current) =>
-                previous.value > current.value ? previous : current,
-        );
 
-        const bchECPair = BCH.ECPair.fromWIF(largestBchUtxo.wif);
+        const utxos = slpBalancesAndUtxos.nonSlpUtxos;
+
+        // instance of transaction builder
+        let transactionBuilder = new BCH.TransactionBuilder();
+
+        // collate XEC utxos to cover token tx
+        let totalXecInputUtxoValue = new BigNumber(0);
+        let inputUtxos = [];
+        let txFee = 0;
+        let remainder;
+        for (let i = 0; i < utxos.length; i++) {
+            const utxo = utxos[i];
+            totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
+                new BigNumber(utxo.value),
+            );
+            const vout = utxo.vout;
+            const txid = utxo.txid;
+            // add input with txid and index of vout
+            transactionBuilder.addInput(txid, vout);
+
+            inputUtxos.push(utxo);
+            txFee = calcFee(BCH, inputUtxos, 5, 1.1 * currency.defaultFee);
+
+            remainder = totalXecInputUtxoValue
+                .minus(new BigNumber(currency.etokenSats * 2)) // one for token burn output, one for token change
+                .minus(new BigNumber(txFee));
+
+            if (remainder.gte(0)) {
+                break;
+            }
+        }
+
+        if (remainder.lt(0)) {
+            const error = new Error(`Insufficient funds`);
+            error.code = SEND_BCH_ERRORS.INSUFFICIENT_FUNDS;
+            throw error;
+        }
+
+        // filter for token UTXOs matching the token being burnt
         const tokenUtxos = slpBalancesAndUtxos.slpUtxos.filter(utxo => {
             if (
                 utxo && // UTXO is associated with a token.
@@ -1204,20 +1228,7 @@ export default function useBCH() {
             );
         }
 
-        // BEGIN transaction construction.
-
-        // instance of transaction builder
-        let transactionBuilder;
-        if (process.env.REACT_APP_NETWORK === 'mainnet') {
-            transactionBuilder = new BCH.TransactionBuilder();
-        } else transactionBuilder = new BCH.TransactionBuilder('testnet');
-
-        const originalAmount = largestBchUtxo.value;
-        transactionBuilder.addInput(
-            largestBchUtxo.tx_hash,
-            largestBchUtxo.tx_pos,
-        );
-
+        // collate token UTXOs to cover the token amount being burnt
         let finalTokenAmountBurnt = new BigNumber(0);
         let tokenAmountBeingBurnt = new BigNumber(amount);
 
@@ -1250,67 +1261,32 @@ export default function useBCH() {
 
         // Send dust transaction representing tokens being burnt.
         transactionBuilder.addOutput(
-            BCH.SLP.Address.toLegacyAddress(largestBchUtxo.address),
+            BCH.SLP.Address.toLegacyAddress(inputUtxos[0].address),
             currency.etokenSats,
         );
 
-        // get byte count to calculate fee. paying 1 sat
-        const txFee = calcFee(
-            BCH,
-            tokenUtxosBeingBurnt,
-            3,
-            currency.defaultFee,
-        );
-
-        // amount to send back to the address requesting the burn. It's the original amount - 1 sat/byte for tx size
-        const remainder = originalAmount - txFee - currency.etokenSats * 2;
-        if (remainder < 1) {
-            throw new Error('Selected UTXO does not have enough satoshis');
-        }
-
-        // Send it back from whence it came
+        // Send XEC change back from whence it came
         transactionBuilder.addOutput(
-            BCH.Address.toLegacyAddress(largestBchUtxo.address),
-            remainder,
+            BCH.Address.toLegacyAddress(inputUtxos[0].address),
+            remainder.toNumber(),
         );
 
-        // Sign the transaction with the private key for the XEC UTXO paying the fees.
-        let redeemScript;
-        transactionBuilder.sign(
-            0,
-            bchECPair,
-            redeemScript,
-            transactionBuilder.hashTypes.SIGHASH_ALL,
-            originalAmount,
+        // append the token input UTXOs to the array of XEC input UTXOs for signing
+        inputUtxos = inputUtxos.concat(tokenUtxosBeingBurnt);
+
+        // Sign each UTXO being consumed and refresh transactionBuilder
+        transactionBuilder = signUtxosByAddress(
+            BCH,
+            inputUtxos,
+            wallet,
+            transactionBuilder,
         );
-
-        // Sign each token UTXO being consumed.
-        for (let i = 0; i < tokenUtxosBeingBurnt.length; i++) {
-            const thisUtxo = tokenUtxosBeingBurnt[i];
-            const accounts = [wallet.Path245, wallet.Path145, wallet.Path1899];
-            const utxoEcPair = BCH.ECPair.fromWIF(
-                accounts
-                    .filter(acc => acc.cashAddress === thisUtxo.address)
-                    .pop().fundingWif,
-            );
-
-            transactionBuilder.sign(
-                1 + i,
-                utxoEcPair,
-                redeemScript,
-                transactionBuilder.hashTypes.SIGHASH_ALL,
-                thisUtxo.value,
-            );
-        }
 
         // build tx
         const tx = transactionBuilder.build();
 
         // output rawhex
         const hex = tx.toHex();
-        // console.log(`Transaction raw hex: `, hex);
-
-        // END transaction construction.
 
         const txidStr = await BCH.RawTransactions.sendRawTransaction([hex]);
         if (txidStr && txidStr[0]) {
@@ -1645,17 +1621,13 @@ export default function useBCH() {
                 );
             }
 
-            // Sign the transactions with the HD node.
-            for (let i = 0; i < inputUtxos.length; i++) {
-                const utxo = inputUtxos[i];
-                transactionBuilder.sign(
-                    i,
-                    BCH.ECPair.fromWIF(utxo.wif),
-                    undefined,
-                    transactionBuilder.hashTypes.SIGHASH_ALL,
-                    utxo.value,
-                );
-            }
+            // Sign each XEC UTXO being consumed and refresh transactionBuilder
+            transactionBuilder = signUtxosByAddress(
+                BCH,
+                inputUtxos,
+                wallet,
+                transactionBuilder,
+            );
 
             // build tx
             const tx = transactionBuilder.build();
@@ -1724,6 +1696,6 @@ export default function useBCH() {
         getTokenStats,
         handleEncryptedOpReturn,
         getRecipientPublicKey,
-        burnEtoken,
+        burnToken,
     };
 }
