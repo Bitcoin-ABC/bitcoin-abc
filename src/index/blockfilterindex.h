@@ -27,7 +27,6 @@ static constexpr int CFCHECKPT_INTERVAL = 1000;
 class BlockFilterIndex final : public BaseIndex {
 private:
     BlockFilterType m_filter_type;
-    std::string m_name;
     std::unique_ptr<BaseIndex::DB> m_db;
 
     FlatFilePos m_next_filter_pos;
@@ -57,9 +56,6 @@ protected:
                 const CBlockIndex *new_tip) override;
 
     BaseIndex::DB &GetDB() const override { return *m_db; }
-
-    const char *GetName() const override { return m_name.c_str(); }
-
 public:
     /** Constructs the index, which becomes available to be queried. */
     explicit BlockFilterIndex(std::unique_ptr<interfaces::Chain> chain,

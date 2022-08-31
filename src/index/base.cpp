@@ -21,6 +21,8 @@
 #include <warnings.h>
 
 #include <functional>
+#include <string>
+#include <utility>
 
 constexpr uint8_t DB_BEST_BLOCK{'B'};
 
@@ -62,8 +64,8 @@ void BaseIndex::DB::WriteBestBlock(CDBBatch &batch,
     batch.Write(DB_BEST_BLOCK, locator);
 }
 
-BaseIndex::BaseIndex(std::unique_ptr<interfaces::Chain> chain)
-    : m_chain{std::move(chain)} {}
+BaseIndex::BaseIndex(std::unique_ptr<interfaces::Chain> chain, std::string name)
+    : m_chain{std::move(chain)}, m_name{std::move(name)} {}
 
 BaseIndex::~BaseIndex() {
     Interrupt();

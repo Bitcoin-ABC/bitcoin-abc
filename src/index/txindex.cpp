@@ -48,7 +48,7 @@ bool TxIndex::DB::WriteTxs(
 
 TxIndex::TxIndex(std::unique_ptr<interfaces::Chain> chain, size_t n_cache_size,
                  bool f_memory, bool f_wipe)
-    : BaseIndex(std::move(chain)),
+    : BaseIndex(std::move(chain), "txindex"),
       m_db(std::make_unique<TxIndex::DB>(n_cache_size, f_memory, f_wipe)) {}
 
 TxIndex::~TxIndex() {}
